@@ -6,6 +6,7 @@
  */
 package com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.outlier.aspects;
 
+import static com.evolveum.midpoint.gui.api.util.LocalizationUtil.translateMessage;
 import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.outlier.panel.OutlierPartitionPanel.PARAM_ANOMALY_OID;
 
 import com.evolveum.midpoint.gui.api.component.progressbar.ProgressBar;
@@ -263,25 +264,28 @@ public class RoleAnalysisOutlierAnalysisAspectsPanel extends AbstractObjectMainP
         List<RoleAnalysisOutlierPartitionType> outlierPartitions = outlier.getPartition();
         int partitionCount = outlierPartitions.size();
         Set<String> anomalySet = new HashSet<>();
-        Set<OutlierNoiseCategoryType> outlierNoiseCategorySet = new HashSet<>();
         for (RoleAnalysisOutlierPartitionType outlierPartition : outlierPartitions) {
-            RoleAnalysisPartitionAnalysisType partitionAnalysis = outlierPartition.getPartitionAnalysis();
-            OutlierNoiseCategoryType outlierNoiseCategory = partitionAnalysis.getOutlierCategory().getOutlierNoiseCategory();
-            outlierNoiseCategorySet.add(outlierNoiseCategory);
             List<DetectedAnomalyResult> detectedAnomalyResult = outlierPartition.getDetectedAnomalyResult();
             for (DetectedAnomalyResult anomalyResult : detectedAnomalyResult) {
                 anomalySet.add(anomalyResult.getTargetObjectRef().getOid());
             }
         }
         int anomalyCount = anomalySet.size();
-        String outlierCategory = "UNKNOWN";
-        if (outlierNoiseCategorySet.size() == 1) {
-            outlierCategory = outlierNoiseCategorySet.iterator().next().value().toUpperCase();
-        } else if (outlierNoiseCategorySet.size() > 1) {
-            outlierCategory = "MIXED";
+
+        Model<String> explanationTranslatedModel = Model.of("N/A");
+
+        List<OutlierDetectionExplanationType> explanations = outlier.getExplanation();
+        OutlierDetectionExplanationType explanation = null;
+        if (explanations != null && !explanations.isEmpty()) {
+            explanation = explanations.get(0);
         }
 
-        String finalOutlierCategory = outlierCategory;
+        if (explanation != null && explanation.getMessage() != null) {
+            LocalizableMessageType message = explanation.getMessage();
+            explanationTranslatedModel = Model.of(translateMessage(message));
+        }
+
+        Model<String> finalExplanationTranslatedModel = explanationTranslatedModel;
         RoleAnalysisOutlierDashboardPanel<?> characteristicHeader = new RoleAnalysisOutlierDashboardPanel<>(cardBodyComponent.newChildId(),
                 createStringResource("RoleAnalysisOutlierAnalysisAspectsPanel.widget.characteristics")) {
             @Contract(pure = true)
@@ -292,7 +296,7 @@ public class RoleAnalysisOutlierAnalysisAspectsPanel extends AbstractObjectMainP
 
             @Override
             protected @NotNull Component getPanelComponent(String id) {
-                IconWithLabel iconWithLabel = new IconWithLabel(id, Model.of(finalOutlierCategory)) {
+                IconWithLabel iconWithLabel = new IconWithLabel(id, finalExplanationTranslatedModel) {
                     @Contract(pure = true)
                     @Override
                     protected @NotNull String getIconCssClass() {

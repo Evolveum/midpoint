@@ -115,7 +115,7 @@ public class ProgressBarForm extends BasePanel<RoleAnalysisAttributeAnalysisDto>
         int totalBars = 0;
         int size = roleAnalysisAttributeStructures.size();
         Map<Double, List<RoleAnalysisAttributeStatistics>> map = new TreeMap<>(Comparator.reverseOrder());
-        if (size > 5) { //&& analysisResult.isIsMultiValue()) {
+        if (size > 10) { //&& analysisResult.isIsMultiValue()) {
             roleAnalysisAttributeStructures.forEach((item) -> {
                 double frequency = item.getFrequency();
                 List<RoleAnalysisAttributeStatistics> list = map.getOrDefault(frequency, new ArrayList<>());
@@ -189,6 +189,12 @@ public class ProgressBarForm extends BasePanel<RoleAnalysisAttributeAnalysisDto>
                     }
 
                     @Override
+                    public boolean isUnusual() {
+                        Boolean isUnusual = value.get(0).getIsUnusual();
+                        return Objects.requireNonNullElse(isUnusual, false);
+                    }
+
+                    @Override
                     public String getInClusterCount() {
                         if (valuesCount == 1) {
                             return value.get(0).getInGroup().toString();
@@ -247,6 +253,12 @@ public class ProgressBarForm extends BasePanel<RoleAnalysisAttributeAnalysisDto>
                     @Override
                     public String getInRepoCount() {
                         return finalInRepo.toString();
+                    }
+
+                    @Override
+                    public boolean isUnusual() {
+                        Boolean isUnusual = item.getIsUnusual();
+                        return Objects.requireNonNullElse(isUnusual, false);
                     }
 
                     @Override

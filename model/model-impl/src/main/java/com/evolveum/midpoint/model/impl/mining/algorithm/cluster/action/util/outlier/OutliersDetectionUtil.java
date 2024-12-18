@@ -15,6 +15,7 @@ import java.util.*;
 import com.evolveum.midpoint.common.mining.objects.statistic.UserAccessDistribution;
 import com.evolveum.midpoint.model.impl.mining.algorithm.cluster.action.util.outlier.OutlierAttributeResolver.UnusualAttributeValueResult;
 
+import com.evolveum.midpoint.model.impl.mining.algorithm.cluster.action.util.outlier.explanation.ExplanationUtil;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 
 import com.google.common.collect.ListMultimap;
@@ -123,10 +124,12 @@ public class OutliersDetectionUtil {
             @NotNull RoleAnalysisOutlierPartitionType partition,
             @NotNull Task task,
             @NotNull OperationResult result) {
-        PrismObject<RoleAnalysisOutlierType> outlierObject = roleAnalysisService.searchOutlierObjectByUserOid(
+        PrismObject<RoleAnalysisOutlierType> outlierPrismObject = roleAnalysisService.searchOutlierObjectByUserOid(
                 userOid, task, result);
 
-        if (outlierObject == null) {
+        ExplanationUtil.uploadOutlierExplanation(roleAnalysisService, userOid, partition, task, result);
+
+        if (outlierPrismObject == null) {
             PrismObject<UserType> userPrismObject = roleAnalysisService.getUserTypeObject(userOid, task, result);
             if (userPrismObject == null) {
                 return;
@@ -144,16 +147,27 @@ public class OutliersDetectionUtil {
             roleAnalysisOutlierType.setOverallConfidence(partition.getPartitionAnalysis().getOverallConfidence());
             //TODO when update? every partition?
             resolveUserDuplicateAssignment(roleAnalysisService, roleAnalysisOutlierType, userOid, task, result);
+            roleAnalysisOutlierType.getExplanation().addAll(CloneUtil.cloneCollectionMembers(partition.getExplanation()));
             roleAnalysisService.resolveOutliers(roleAnalysisOutlierType, task, result);
         } else {
-            RoleAnalysisOutlierType roleAnalysisOutlierType = outlierObject.asObjectable();
+            RoleAnalysisOutlierType roleAnalysisOutlierType = outlierPrismObject.asObjectable();
             List<RoleAnalysisOutlierPartitionType> outlierPartitions = roleAnalysisOutlierType.getPartition();
             //TODO just temporary confidence
             double overallConfidence = 0;
             double anomalyObjectsConfidence = 0;
+            RoleAnalysisPartitionAnalysisType newPartitionAnalysis = partition.getPartitionAnalysis();
+            Double newPartitionOverallConfidence = newPartitionAnalysis.getOverallConfidence();
+            List<OutlierDetectionExplanationType> newOutlierExplanation = partition.getExplanation();
             for (RoleAnalysisOutlierPartitionType outlierPartition : outlierPartitions) {
-                overallConfidence += outlierPartition.getPartitionAnalysis().getOverallConfidence();
-                anomalyObjectsConfidence += outlierPartition.getPartitionAnalysis().getAnomalyObjectsConfidence();
+                RoleAnalysisPartitionAnalysisType partitionAnalysis = outlierPartition.getPartitionAnalysis();
+                Double partitionOveralConfidence = partitionAnalysis.getOverallConfidence();
+                overallConfidence += partitionOveralConfidence;
+                anomalyObjectsConfidence += partitionAnalysis.getAnomalyObjectsConfidence();
+
+                if (partitionOveralConfidence >= newPartitionOverallConfidence) {
+                    newPartitionOverallConfidence = partitionOveralConfidence;
+                    newOutlierExplanation = outlierPartition.getExplanation();
+                }
             }
             overallConfidence += partition.getPartitionAnalysis().getOverallConfidence();
             anomalyObjectsConfidence += partition.getPartitionAnalysis().getAnomalyObjectsConfidence();
@@ -161,7 +175,18 @@ public class OutliersDetectionUtil {
             overallConfidence = overallConfidence / (outlierPartitions.size() + 1);
             anomalyObjectsConfidence = anomalyObjectsConfidence / (outlierPartitions.size() + 1);
             roleAnalysisService.addOutlierPartition(
-                    roleAnalysisOutlierType.getOid(), partition, overallConfidence, anomalyObjectsConfidence, result);
+                    roleAnalysisOutlierType.getOid(), partition, newOutlierExplanation, overallConfidence, anomalyObjectsConfidence, result);
+        }
+    }
+
+    private static void calculateAndLoadUnusualRoleMembersAttributeAnalysis(@NotNull DetectedAnomalyStatistics statistics) {
+        AttributeAnalysis attributeAnalysis1 = statistics.getAttributeAnalysis();
+        RoleAnalysisAttributeAnalysisResult roleAttributeAnalysisResult = attributeAnalysis1.getRoleAttributeAnalysisResult();
+        if (roleAttributeAnalysisResult != null) {
+            OutlierAttributeResolver attributeResolver = new OutlierAttributeResolver(0.2);
+            List<RoleAnalysisAttributeAnalysis> attributeAnalysis = roleAttributeAnalysisResult.getAttributeAnalysis();
+            List<UnusualAttributeValueResult> unusualAttributeValueResults = attributeResolver.resolveUnusualAttributes(attributeAnalysis, attributeAnalysis);
+            loadUnusualAttributesAndValues(roleAttributeAnalysisResult, unusualAttributeValueResults);
         }
     }
 
@@ -186,10 +211,10 @@ public class OutliersDetectionUtil {
         RoleAnalysisAttributeAnalysisResult userAttributes = getUserAttributeAnalysis(userTypeObject, userAnalysisCache, roleAnalysisService, attributesForUserAnalysis);
 
         OutlierAttributeResolver attributeResolver = new OutlierAttributeResolver(0.2);
-        List<RoleAnalysisAttributeAnalysis> roleMemeberAttributeDetails = roleMemberAttributeAnalysisResult.getAttributeAnalysis();
+        List<RoleAnalysisAttributeAnalysis> roleMemberAttributeDetails = roleMemberAttributeAnalysisResult.getAttributeAnalysis();
         List<RoleAnalysisAttributeAnalysis> userAttributeDetails = userAttributes.getAttributeAnalysis();
 
-        return attributeResolver.resolveUnusualAttributes(roleMemeberAttributeDetails, userAttributeDetails);
+        return attributeResolver.resolveUnusualAttributes(roleMemberAttributeDetails, userAttributeDetails);
     }
 
     //TODO it does more than just anomaly confidence calculation. Refactor, split, rename.
@@ -214,6 +239,8 @@ public class OutliersDetectionUtil {
         List<UnusualAttributeValueResult> unusualAttributeResults = calculateUnusualAttributeResults(
                 anomalyResult, userTypeObject, attributesForUserAnalysis, roleAnalysisService, userAnalysisCache, task, result
         );
+
+        calculateAndLoadUnusualRoleMembersAttributeAnalysis(statistics);
 
         loadUnusualDetectedAnomalyAttributeStatistics(statistics, unusualAttributeResults);
 
@@ -253,10 +280,6 @@ public class OutliersDetectionUtil {
             loadUnusualAttributesAndValues(userAttributeAnalysisResult, unusualAttributeResults);
         }
 
-        if (roleAttributeAnalysisResult != null) {
-            loadUnusualAttributesAndValues(roleAttributeAnalysisResult, unusualAttributeResults);
-        }
-
         if (userRoleMembersCompare != null) {
             loadUnusualAttributesAndValues(userRoleMembersCompare, unusualAttributeResults);
         }
@@ -292,7 +315,7 @@ public class OutliersDetectionUtil {
                 }
 
                 attributeStatistic.setIsUnusual(unusualSingleValueDetails.stream()
-                        .anyMatch(u -> u.value().equals(attributeStatistic.getAttributeValue())));
+                        .anyMatch(u -> u.value().equals(attributeStatistic.getAttributeValue()) && u.isUnusual()));
             }
 
             attributeAnalysisDetail.isUnusual(unusualAttributeResult.isUnusual());
@@ -539,12 +562,22 @@ public class OutliersDetectionUtil {
         }
 
         double memberPercentageRepo = (((double) roleMemberCount / numberOfAllUsersInRepo) * 100);
-        outlierResult.getStatistics().setMemberCoverageConfidence(memberPercentageRepo);
+        FrequencyType frequencyType = new FrequencyType();
+        frequencyType.setPercentageRatio(memberPercentageRepo);
+        frequencyType.setValueRatio(roleMemberCount);
+        frequencyType.setEntiretyCount(numberOfAllUsersInRepo);
+
+        outlierResult.getStatistics().setMemberCoverageConfidence(frequencyType);
         return memberPercentageRepo;
     }
 
     public static double calculateOutlierPropertyCoverageConfidence(@NotNull DetectedAnomalyResult outlierResult) {
-        double occurInCluster = outlierResult.getStatistics().getFrequency() * 100;
+        DetectedAnomalyStatistics statistics = outlierResult.getStatistics();
+        if (statistics == null || statistics.getGroupFrequency() == null) {
+            return 0;
+        }
+        FrequencyType groupFrequency = statistics.getGroupFrequency();
+        double occurInCluster = groupFrequency.getPercentageRatio();
         outlierResult.getStatistics().setOutlierCoverageConfidence(occurInCluster);
         return occurInCluster;
     }
@@ -778,6 +811,7 @@ public class OutliersDetectionUtil {
 
         double anomalyDeviationConfidence = roleAnalysisService.calculateZScoreConfidence(miningRoleTypeChunk, zScoreData);
         double anomalyFrequencyConfidence = frequencyItem.getFrequency();
+        int memberCount = members.size();
         for (String role : roles) {
             ObjectReferenceType anomalyRef = new ObjectReferenceType()
                     .oid(role)
@@ -794,6 +828,7 @@ public class OutliersDetectionUtil {
                 DetectedAnomalyResult detectedAnomalyResult = prepareChunkAnomalyResult(anomalyRef,
                         anomalyFrequencyConfidence,
                         anomalyDeviationConfidence,
+                        memberCount,
                         patternAnalysis);
 
                 double anomalyConfidence = calculateAssignmentAnomalyConfidence(
@@ -815,6 +850,7 @@ public class OutliersDetectionUtil {
      * @param anomalyRef A reference to the anomaly object. This is the object that the anomaly is detected for.
      * @param anomalyFrequencyConfidence The confidence level of the anomaly frequency.
      * @param anomalyDeviationConfidence The confidence level of the anomaly deviation.
+     * @param memberCount The number of members in the cluster.
      * @param patternAnalysis The analysis of the pattern associated with the anomaly.
      * @return A DetectedAnomalyResult object that encapsulates the provided parameters along with a timestamp of when the anomaly result was created.
      */
@@ -822,6 +858,7 @@ public class OutliersDetectionUtil {
             @NotNull ObjectReferenceType anomalyRef,
             double anomalyFrequencyConfidence,
             double anomalyDeviationConfidence,
+            int memberCount,
             @Nullable RoleAnalysisPatternAnalysis patternAnalysis) {
         DetectedAnomalyResult anomalyResult = new DetectedAnomalyResult();
         anomalyResult.setTargetObjectRef(anomalyRef);
@@ -831,7 +868,12 @@ public class OutliersDetectionUtil {
                 XmlTypeConverter.createXMLGregorianCalendar(System.currentTimeMillis()));
 
         statistics.setConfidenceDeviation(anomalyDeviationConfidence);
-        statistics.setFrequency(anomalyFrequencyConfidence);
+        FrequencyType frequencyType = new FrequencyType();
+        frequencyType.setPercentageRatio(anomalyFrequencyConfidence * 100);
+        int valueRatio = (int) (anomalyFrequencyConfidence * memberCount);
+        frequencyType.setValueRatio(valueRatio);
+        frequencyType.setEntiretyCount(memberCount);
+        statistics.setGroupFrequency(frequencyType);
         statistics.setPatternAnalysis(patternAnalysis);
         return anomalyResult;
     }

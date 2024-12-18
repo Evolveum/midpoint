@@ -7,6 +7,7 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.page.outlier;
 
+import static com.evolveum.midpoint.gui.api.util.LocalizationUtil.translateMessage;
 import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.RoleAnalysisWebUtils.loadUserWrapperForMarkAction;
 import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.table.RoleAnalysisTableTools.densityBasedColorOposite;
 
@@ -15,9 +16,6 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.*;
 
-import com.evolveum.midpoint.gui.api.factory.wrapper.PrismObjectWrapperFactory;
-import com.evolveum.midpoint.gui.api.factory.wrapper.WrapperContext;
-import com.evolveum.midpoint.gui.api.prism.ItemStatus;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.page.admin.mark.component.MarksOfObjectListPopupPanel;
@@ -146,7 +144,6 @@ public class PageOutliers extends PageAdmin {
                 return menuItems;
             }
 
-
             @Override
             protected void addBasicActions(List<InlineMenuItem> menuItems) {
                 //TODO TBD
@@ -214,7 +211,18 @@ public class PageOutliers extends PageAdmin {
                     @Override
                     public void populateItem(Item<ICellPopulator<SelectableBean<RoleAnalysisOutlierType>>> cellItem,
                             String componentId, IModel<SelectableBean<RoleAnalysisOutlierType>> model) {
-                        cellItem.add(new Label(componentId,"TODO"));
+                        RoleAnalysisOutlierType outlierObject = model.getObject().getValue();
+
+                        List<OutlierDetectionExplanationType> explanation = outlierObject.getExplanation();
+
+                        if (explanation == null || explanation.isEmpty() || explanation.get(0).getMessage() == null) {
+                            cellItem.add(new Label(componentId, "No explanation available"));
+                            return;
+                        }
+                        OutlierDetectionExplanationType outlierDetectionExplanationType = explanation.get(0);
+                        LocalizableMessageType message = outlierDetectionExplanationType.getMessage();
+                        Model<String> explanationTranslatedModel = Model.of(translateMessage(message));
+                        cellItem.add(new Label(componentId, explanationTranslatedModel));
                     }
 
                     @Override

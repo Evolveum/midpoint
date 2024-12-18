@@ -8,10 +8,10 @@
 package com.evolveum.midpoint.gui.impl.page.admin.role.mining.tables.outlier.panel;
 
 import static com.evolveum.midpoint.gui.api.util.LocalizationUtil.translateMessage;
+import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.tables.outlier.panel.RoleAnalysisDetectedAnomalyTable.getBestSuitablePartition;
 import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.table.RoleAnalysisTableTools.densityBasedColorOposite;
 import static com.evolveum.midpoint.web.component.data.column.ColumnUtils.createStringResource;
 
-import java.io.Serial;
 import java.io.Serializable;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -19,14 +19,8 @@ import java.util.*;
 
 import com.evolveum.midpoint.gui.api.component.LabelWithHelpPanel;
 
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.outlier.RoleAnalysisMultiplePartitionUserPermissionTableTabPopup;
-
-import com.evolveum.midpoint.web.component.AjaxIconButton;
-
 import com.google.common.collect.ListMultimap;
-import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
-import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
@@ -34,7 +28,6 @@ import org.apache.wicket.extensions.markup.html.repeater.data.table.export.Abstr
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.panel.EmptyPanel;
 import org.apache.wicket.markup.repeater.Item;
-import org.apache.wicket.markup.repeater.RepeatingView;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.jetbrains.annotations.NotNull;
@@ -63,7 +56,7 @@ public enum AnomalyTableCategory implements Serializable {
             @NotNull AnomalyObjectDto anomalyObjectDto) {
         switch (this) {
             case PARTITION_ANOMALY -> {
-                return createDefaultColumnsPartitionAnomaly(pageBase, anomalyObjectDto.getAnomalyResultMapModelObject());
+                return createDefaultColumnsPartitionAnomaly(pageBase, anomalyObjectDto.getAnomalyResultMapModelObject(), anomalyObjectDto);
             }
             case OUTLIER_ANOMALY -> {
                 ListMultimap<String, DetectedAnomalyResult> anomalyResultMapModelObject = anomalyObjectDto
@@ -88,7 +81,8 @@ public enum AnomalyTableCategory implements Serializable {
 
     public @NotNull List<IColumn<SelectableBean<RoleType>, String>> createDefaultColumnsPartitionAnomaly(
             @NotNull PageBase pageBase,
-            @NotNull ListMultimap<String, DetectedAnomalyResult> anomalyResultMap) {
+            @NotNull ListMultimap<String, DetectedAnomalyResult> anomalyResultMap,
+            @NotNull AnomalyObjectDto anomalyObjectDto) {
 
         List<IColumn<SelectableBean<RoleType>, String>> columns = new ArrayList<>();
 
@@ -150,9 +144,25 @@ public enum AnomalyTableCategory implements Serializable {
             @Override
             public void populateItem(Item<ICellPopulator<SelectableBean<RoleType>>> cellItem,
                     String componentId, IModel<SelectableBean<RoleType>> model) {
+                SelectableBean<RoleType> object = model.getObject();
+                RoleType role = object.getValue();
+                List<DetectedAnomalyResult> detectedAnomalyResults = anomalyResultMap.get(role.getOid());
+                DetectedAnomalyResult anomalyResult = detectedAnomalyResults.get(0);
 
-                //                Model<String> explanationTranslatedModel = Model.of(translateMessage(message));
-                cellItem.add(new Label(componentId, "This is a test sentence. Waiting for the explanation resolver to connect."));
+                List<OutlierDetectionExplanationType> explanation = anomalyResult.getExplanation();
+                if (explanation == null || explanation.isEmpty() || explanation.get(0).getMessage() == null) {
+                    cellItem.add(new Label(componentId, "No explanation available"));
+                    return;
+                }
+
+                StringBuilder sb = new StringBuilder();
+
+                for (OutlierDetectionExplanationType explanationType : explanation) {
+                    LocalizableMessageType message = explanationType.getMessage();
+                    sb.append(translateMessage(message)).append(". \n");
+                }
+
+                cellItem.add(new Label(componentId, Model.of(sb.toString())));
             }
 
             @Override
@@ -487,10 +497,41 @@ public enum AnomalyTableCategory implements Serializable {
             @Override
             public void populateItem(Item<ICellPopulator<SelectableBean<RoleType>>> cellItem,
                     String componentId, IModel<SelectableBean<RoleType>> model) {
+                SelectableBean<RoleType> object = model.getObject();
+                RoleType role = object.getValue();
+                String oid = role.getOid();
 
-//                Model<String> explanationTranslatedModel = Model.of(translateMessage(message));
+                List<RoleAnalysisOutlierPartitionType> roleAnalysisOutlierPartitionTypes = anomalyPartitionMap.get(oid);
+                RoleAnalysisOutlierPartitionType topPartition = getBestSuitablePartition(roleAnalysisOutlierPartitionTypes, oid);
 
-                cellItem.add(new Label(componentId, "This is a test sentence. Waiting for the explanation resolver to connect."));
+                if (topPartition == null) {
+                    cellItem.add(new Label(componentId, "Partition not found"));
+                    return;
+                }
+
+                List<DetectedAnomalyResult> detectedAnomalyResult = topPartition.getDetectedAnomalyResult();
+                DetectedAnomalyResult anomalyResult = detectedAnomalyResult.stream().filter(
+                                detectedAnomalyResult1 -> detectedAnomalyResult1.getTargetObjectRef().getOid().equals(oid))
+                        .findFirst().orElse(null);
+
+                if (anomalyResult == null) {
+                    cellItem.add(new Label(componentId, "Anomaly result not found"));
+                    return;
+                }
+
+                List<OutlierDetectionExplanationType> explanation = anomalyResult.getExplanation();
+                if (explanation == null || explanation.isEmpty() || explanation.get(0).getMessage() == null) {
+                    cellItem.add(new Label(componentId, "No explanation available"));
+                    return;
+                }
+
+                StringBuilder sb = new StringBuilder();
+                for (OutlierDetectionExplanationType explanationType : explanation) {
+                    LocalizableMessageType message = explanationType.getMessage();
+                    sb.append(translateMessage(message)).append(". \n");
+                }
+
+                cellItem.add(new Label(componentId, Model.of(sb.toString())));
             }
 
             @Override

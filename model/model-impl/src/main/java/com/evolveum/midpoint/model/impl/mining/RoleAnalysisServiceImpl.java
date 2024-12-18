@@ -3239,6 +3239,7 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
     public void addOutlierPartition(
             @NotNull String outlierOid,
             @NotNull RoleAnalysisOutlierPartitionType partition,
+            @NotNull List<OutlierDetectionExplanationType> newOutlierExplanation,
             double overallConfidence,
             double anomalyConfidence,
             @NotNull OperationResult result) {
@@ -3254,6 +3255,15 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
 
             modifications.add(PrismContext.get().deltaFor(RoleAnalysisOutlierType.class)
                     .item(RoleAnalysisOutlierType.F_ANOMALY_OBJECTS_CONFIDENCE).replace(anomalyConfidence).asItemDelta());
+
+            Collection<PrismContainerValue<?>> explanationCollection = new ArrayList<>();
+            for (OutlierDetectionExplanationType explanation : newOutlierExplanation) {
+                explanationCollection.add(explanation.asPrismContainerValue());
+            }
+
+            modifications.add(PrismContext.get().deltaFor(RoleAnalysisOutlierType.class)
+                    .item(RoleAnalysisOutlierType.F_EXPLANATION).replace(CloneUtil.cloneCollectionMembers(explanationCollection))
+                    .asItemDelta());
 
             repositoryService.modifyObject(RoleAnalysisOutlierType.class, outlierOid, modifications, result);
         } catch (ObjectNotFoundException | SchemaException | ObjectAlreadyExistsException e) {

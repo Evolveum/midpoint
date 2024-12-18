@@ -580,11 +580,12 @@ public class RoleAnalysisMultiplePartitionAnomalyResultTabPopup extends BasePane
 
                     @Override
                     public Component createValueComponent(String id) {
-                        Double memberCoverageConfidence = anomalyModelStatistics.getMemberCoverageConfidence();
-                        if (memberCoverageConfidence == null) {
-                            memberCoverageConfidence = 0.0;
+                        double memberCoverageConfidence = 0.0;
+                        FrequencyType memberFrequencyContainer = anomalyModelStatistics.getMemberCoverageConfidence();
+                        if (memberFrequencyContainer != null && memberFrequencyContainer.getPercentageRatio() != null) {
+                            memberCoverageConfidence = memberFrequencyContainer.getPercentageRatio();
                         }
-                        BigDecimal bd = new BigDecimal(memberCoverageConfidence);
+                        BigDecimal bd = BigDecimal.valueOf(memberCoverageConfidence);
                         bd = bd.setScale(2, RoundingMode.HALF_UP);
                         double pointsDensity = bd.doubleValue();
                         String title = createStringResource("RoleAnalysisOutlierType.widget.repo.role.popularity.confidence")

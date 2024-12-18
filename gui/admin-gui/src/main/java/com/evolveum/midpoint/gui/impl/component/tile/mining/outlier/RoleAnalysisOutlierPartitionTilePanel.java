@@ -156,11 +156,20 @@ public class RoleAnalysisOutlierPartitionTilePanel<T extends Serializable> exten
         label.add(AttributeModifier.append(CLASS_CSS, "badge bg-info"));
         label.add(new VisibleBehaviour(() -> false));
         add(label);
-        OutlierDetectionExplanationType explanation = partition.getExplanation();
-        LocalizableMessageType message = explanation.getMessage();
-        Model<String> explanationTranslatedModel = Model.of(translateMessage(message));
+        Model<String> explanationTranslatedModel = Model.of("N/A");
 
-        Label explanationField = new Label(ID_EXPLANATION, Model.of("This is a test sentence. Waiting for the explanation resolver to connect."));
+        List<OutlierDetectionExplanationType> explanations = partition.getExplanation();
+        OutlierDetectionExplanationType explanation = null;
+        if (explanations != null && !explanations.isEmpty()) {
+            explanation = explanations.get(0);
+        }
+
+        if (explanation != null && explanation.getMessage() != null) {
+            LocalizableMessageType message = explanation.getMessage();
+            explanationTranslatedModel = Model.of(translateMessage(message));
+        }
+
+        Label explanationField = new Label(ID_EXPLANATION, explanationTranslatedModel);
         explanationField.setOutputMarkupId(true);
         explanationField.add(AttributeModifier.append(CLASS_CSS, "gap-2"));
         add(explanationField);

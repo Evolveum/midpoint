@@ -124,7 +124,7 @@
                         </xsd:annotation>
                     </xsd:element>
 
-                    <xsd:element name="explanation" type="tns:OutlierDetectionExplanationType" minOccurs="0" a:maxOccurs="unbound">
+                    <xsd:element name="explanation" type="tns:OutlierDetectionExplanationType" minOccurs="0" maxOccurs="unbounded">
                         <xsd:annotation>
                             <xsd:documentation>
                                 Provides a simple explanation of why the outlier object has been detected and identified.
@@ -210,7 +210,7 @@
                 </xsd:annotation>
             </xsd:element>
 
-            <xsd:element name="explanation" type="tns:OutlierDetectionExplanationType" minOccurs="0" a:maxOccurs="unbound">
+            <xsd:element name="explanation" type="tns:OutlierDetectionExplanationType" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
                     <xsd:documentation>
                         Provides a simple explanation of why the outlier object has been detected and identified within specific partition.
@@ -516,7 +516,7 @@
                 </xsd:annotation>
             </xsd:element>
 
-            <xsd:element name="explanation" type="tns:OutlierDetectionExplanationType" minOccurs="0" a:maxOccurs="unbound">
+            <xsd:element name="explanation" type="tns:OutlierDetectionExplanationType" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
                     <xsd:documentation>
                         Provides a simple explanation of why the anomaly has been detected and identified.
@@ -578,14 +578,15 @@
                 </xsd:annotation>
             </xsd:element>
 
-            <xsd:element name="memberCoverageConfidence" type="xsd:double" minOccurs="0">
+            <xsd:element name="memberCoverageConfidence" type="tns:FrequencyType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Confidence level associated with the identified outlier.
+                        Expressing the access frequency right above the entire system.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
 
+            <!--TODO check it this might be duplication-->
             <xsd:element name="outlierCoverageConfidence" type="xsd:double" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -594,10 +595,10 @@
                 </xsd:annotation>
             </xsd:element>
 
-            <xsd:element name="frequency" type="xsd:double" minOccurs="0">
+            <xsd:element name="groupFrequency" type="tns:FrequencyType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Frequency of the outlier for the given similar objects group.
+                        Expressing the access frequency right above the group (cluster).
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
@@ -3296,4 +3297,49 @@
             </xsd:enumeration>
         </xsd:restriction>
     </xsd:simpleType>
+
+    <xsd:complexType name="FrequencyType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Represents frequency-related information.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container>true</a:container>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+
+            <xsd:element name="percentageRatio" type="xsd:double" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Providing information about the percentage-based
+                        frequency.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+
+            <xsd:element name="valueRatio" type="xsd:int" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Providing information about the number-based
+                        frequency.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+
+            <xsd:element name="entiretyCount" type="xsd:int" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Providing information about entire count of objects.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+
+        </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
+    </xsd:complexType>
+    <xsd:element name="frequencyType" type="tns:FrequencyType"/>
+
 </xsd:schema>
+
+

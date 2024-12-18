@@ -1090,6 +1090,7 @@ public interface RoleAnalysisService {
      *
      * @param outlierOid The OID of the outlier object to be updated.
      * @param partition The partition data to be added to the outlier object.
+     * @param newOutlierExplanation The new outlier explanation to be replaced for the outlier object.
      * @param overallConfidence The overall confidence value to be set in the outlier object.
      * @param anomalyConfidence The anomaly confidence value to be set in the outlier object.
      * @param result The operation result.
@@ -1097,6 +1098,7 @@ public interface RoleAnalysisService {
     void addOutlierPartition(
             @NotNull String outlierOid,
             @NotNull RoleAnalysisOutlierPartitionType partition,
+            @NotNull List<OutlierDetectionExplanationType> newOutlierExplanation,
             double overallConfidence,
             double anomalyConfidence,
             @NotNull OperationResult result);

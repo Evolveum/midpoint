@@ -306,7 +306,7 @@ public class RoleAnalysisDetectedAnomalyTable extends BasePanel<AnomalyObjectDto
         };
     }
 
-    private static @Nullable RoleAnalysisOutlierPartitionType getBestSuitablePartition(
+    public static @Nullable RoleAnalysisOutlierPartitionType getBestSuitablePartition(
             @NotNull List<RoleAnalysisOutlierPartitionType> allPartition,
             String oid) {
         double topScore = 0.0;
