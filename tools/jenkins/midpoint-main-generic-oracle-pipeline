@@ -172,10 +172,8 @@ echo -e  "\\nPod IP: \${poddbIP}\\nHost IP: \${hostdbIP}\\n"
             // stuff we need to do anyway.
             // After that we will wait for DB container (if still necessary) and run the tests.
             stage("checkout") {
-                retry(3) {
-                    git branch: params.BRANCH ?: 'master',
-                            url: 'https://github.com/Evolveum/midpoint.git'
-                }
+                git branch: params.BRANCH ?: 'master',
+                        url: 'https://github.com/Evolveum/midpoint.git'
             }
             stage("compile") {
                 container('maven') {

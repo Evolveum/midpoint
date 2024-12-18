@@ -40,10 +40,8 @@ podTemplate(
                         df -h
                     fi
                 """
-                retry(3) {
-                    git branch: params.BRANCH ?: 'master',
-                            url: 'https://github.com/Evolveum/midpoint.git'
-                }
+                git branch: params.BRANCH ?: 'master',
+                        url: 'https://github.com/Evolveum/midpoint.git'
             }
             stage("compile") {
                 container('maven') {

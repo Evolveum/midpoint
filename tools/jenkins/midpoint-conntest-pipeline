@@ -45,11 +45,9 @@ podTemplate(
     node(POD_LABEL) {
         try {
             stage("checkout") {
-                retry(3) {
-                    git branch: "${BRANCH}",
-                            url: 'https://github.com/Evolveum/midpoint.git'
-                    echo "git checkout done..."
-                }
+                git branch: "${BRANCH}",
+                        url: 'https://github.com/Evolveum/midpoint.git'
+                echo "git checkout done..."
             }
             stage("db-init") {
                 container('postgres') {
