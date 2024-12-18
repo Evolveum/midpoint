@@ -1709,7 +1709,6 @@ fieldset.objectButtons {
   align-items: stretch;
   background-color: $white;
   border-radius: 0.25rem;
-  overflow: hidden;
   box-shadow: 0 0 1px rgba(0,0,0,.125), 0 1px 3px rgba(0,0,0,.2);
 }
 
@@ -2267,4 +2266,14 @@ div.show > a > div > i.fas {
 .input-group-append .form-control, .input-group-append .select2-selection{
   border-bottom-left-radius: 0;
   border-top-left-radius: 0;
+}
+
+.midpoint-input-suffix {
+  visibility: hidden !important;
+  position: fixed !important;
+  z-index: -1 !important;
+  bottom: 0px !important;
+  left: 0px !important;
+  width: 0px !important;
+  margin: 0px 0px 0px -10em !important;
 }

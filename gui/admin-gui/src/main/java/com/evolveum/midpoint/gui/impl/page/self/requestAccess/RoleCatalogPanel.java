@@ -577,6 +577,15 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> implements 
                     protected IModel<Search> createSearchModel() {
                         return searchModel;
                     }
+
+                    @Override
+                    public void refresh(AjaxRequestTarget target) {
+                        //in case the type was changed on the search panel
+                        Class<? extends AbstractRoleType> searchType = searchModel.getObject().getTypeClass();
+                        queryModel.getObject().setType(searchType);
+
+                        super.refresh(target);
+                    }
                 };
         add(tilesTable);
 
@@ -951,6 +960,7 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> implements 
         ObjectQuery query = getPrismContext()
                 .queryFor(ot.getClassDefinition())
                 .isInScopeOf(ref.getOid(), OrgFilter.Scope.ONE_LEVEL)
+                .asc(AbstractRoleType.F_DISPLAY_NAME)
                 .asc(ObjectType.F_NAME)
                 .build();
 

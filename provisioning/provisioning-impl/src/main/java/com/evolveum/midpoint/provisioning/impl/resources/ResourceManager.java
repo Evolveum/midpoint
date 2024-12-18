@@ -8,10 +8,12 @@
 package com.evolveum.midpoint.provisioning.impl.resources;
 
 import static com.evolveum.midpoint.schema.util.ResourceTypeUtil.*;
+import static com.evolveum.midpoint.schema.util.SystemConfigurationTypeUtil.getShadowCachingDefaultPolicy;
 
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Objects;
 
 import com.evolveum.midpoint.schema.processor.*;
 
@@ -59,6 +61,8 @@ import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ScriptCapabi
 @Component
 public class ResourceManager {
 
+    private static final Trace LOGGER = TraceManager.getTrace(ResourceManager.class);
+
     @Autowired @Qualifier("cacheRepositoryService") private RepositoryService repositoryService;
     @Autowired private ResourceCache resourceCache;
     @Autowired private ConnectorManager connectorManager;
@@ -71,7 +75,12 @@ public class ResourceManager {
     @Autowired SchemaFetcher schemaFetcher;
     @Autowired ResourceConnectorsManager connectorSelector;
 
-    private static final Trace LOGGER = TraceManager.getTrace(ResourceManager.class);
+    /**
+     * Used to detect changes in the default caching policy - for forced resource cache invalidation.
+     *
+     * @see #updateSystemConfiguration(SystemConfigurationType)
+     */
+    private ShadowCachingPolicyType lastKnownShadowCachingPolicy;
 
     /**
      * Gets (from cache) or completes a resource that has been just retrieved from the repository.
@@ -419,5 +428,32 @@ public class ResourceManager {
             ResourceType resource, Class<T> operationCapabilityClass) throws ConfigurationException {
         ConnectorSpec connectorSpec = connectorSelector.selectConnectorRequired(resource, operationCapabilityClass);
         return connectorManager.getConfiguredConnectorInstanceFromCache(connectorSpec);
+    }
+
+    /**
+     * Invalidates all resources when the default caching policy is changed.
+     *
+     * This may seem harsh, but what are the alternatives?
+     *
+     * . Either we could avoid pre-computing the caching configuration for individual resource object definitions
+     * (and attributes), which would mean that on each attribute access, the effective caching configuration would
+     * need to be re-computed. We don't want to slow down the processing.
+     *
+     * . Or, we could try to select what specific resources to invalidate. But that would mean computing whether the change
+     * of the default configuration affects the specific resource and its object classes and object types. This is not trivial,
+     * and there's a possibility of having subtle bugs in this logic.
+     *
+     * Hence, we go with this simple yet (hopefully) effective solution. The assumption is that the default caching policy
+     * is changed rarely.
+     *
+     * NOTE: As this method is invoked on the system startup, it's possible that there is an extra invalidation at that time.
+     * But it should be harmless.
+     */
+    public synchronized void updateSystemConfiguration(@Nullable SystemConfigurationType newSystemConfiguration) {
+        var newShadowCachingPolicy = getShadowCachingDefaultPolicy(newSystemConfiguration);
+        if (!Objects.equals(lastKnownShadowCachingPolicy, newShadowCachingPolicy)) {
+            resourceCache.invalidate(ResourceType.class, null, null);
+        }
+        lastKnownShadowCachingPolicy = newShadowCachingPolicy;
     }
 }

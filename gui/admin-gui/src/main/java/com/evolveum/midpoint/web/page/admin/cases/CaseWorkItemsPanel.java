@@ -138,11 +138,6 @@ public class CaseWorkItemsPanel extends ContainerableListPanel<CaseWorkItemType,
         return CaseWorkItemsPanel.this.createNameColumn();
     }
 
-    @Override
-    protected String getStorageKey() {
-        return SessionStorage.KEY_WORK_ITEMS;
-    }
-
     private ContainerListDataProvider<CaseWorkItemType> createProvider(IModel<Search<CaseWorkItemType>> searchModel) {
         Collection<SelectorOptions<GetOperationOptions>> options = CaseWorkItemsPanel.this.getPageBase().getOperationOptionsBuilder()
                 .resolveNames()
