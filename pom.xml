@@ -301,6 +301,13 @@
             </dependency>
             <dependency>
                 <groupId>com.evolveum.prism</groupId>
+                <artifactId>prism-api</artifactId>
+                <version>${prism.version}</version>
+                <type>test-jar</type>
+                <classifier>tests</classifier>
+            </dependency>
+            <dependency>
+                <groupId>com.evolveum.prism</groupId>
                 <artifactId>prism-impl</artifactId>
                 <version>${prism.version}</version>
                 <exclusions>
