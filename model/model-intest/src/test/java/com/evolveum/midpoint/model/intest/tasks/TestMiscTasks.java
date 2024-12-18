@@ -6,23 +6,22 @@
  */
 package com.evolveum.midpoint.model.intest.tasks;
 
-import static com.evolveum.midpoint.schema.constants.MidPointConstants.NS_RI;
+import static com.evolveum.midpoint.schema.constants.SchemaConstants.INTENT_DEFAULT;
+
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType.ACCOUNT;
+
 import static org.assertj.core.api.Assertions.assertThat;
 
+import static com.evolveum.midpoint.schema.constants.MidPointConstants.NS_RI;
+
 import java.io.File;
-import java.io.IOException;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
-import java.util.UUID;
 import javax.xml.namespace.QName;
 
-import org.quartz.JobBuilder;
-import org.quartz.JobKey;
-import org.quartz.Scheduler;
-import org.quartz.SchedulerException;
-import org.quartz.impl.matchers.GroupMatcher;
-import org.springframework.beans.factory.annotation.Autowired;
+import com.evolveum.midpoint.test.DummyTestResource;
+
+import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
+
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
@@ -33,16 +32,10 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.task.ActivityBasedTaskInformation;
 import com.evolveum.midpoint.schema.util.task.TaskInformation;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.task.quartzimpl.quartz.LocalScheduler;
-import com.evolveum.midpoint.task.quartzimpl.quartz.QuartzUtil;
-import com.evolveum.midpoint.task.quartzimpl.run.JobExecutor;
 import com.evolveum.midpoint.test.TestObject;
 import com.evolveum.midpoint.test.TestTask;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.CommonException;
-import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
@@ -97,8 +90,10 @@ public class TestMiscTasks extends AbstractInitializedModelIntegrationTest {
     private static final TestObject<UserType> USER_2 = TestObject.file(
             TEST_DIR, "user-2.xml", "3fc7d5bb-d1a6-446b-925e-5680afaa9df6");
 
-    @Autowired
-    private LocalScheduler localScheduler;
+    private static final DummyTestResource RESOURCE_DUMMY_REFRESHED = new DummyTestResource(
+            TEST_DIR, "resource-dummy-refreshed.xml", "e5eeccc7-a0bb-4961-9edf-a8693c6e9004", "refreshed");
+    private static final TestTask TASK_SHADOW_REFRESH_ALL = new TestTask(
+            TEST_DIR, "task-shadow-refresh-all.xml", "8c359fe6-a643-49b1-819c-c9f3351baae4");
 
     @Override
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
@@ -110,6 +105,9 @@ public class TestMiscTasks extends AbstractInitializedModelIntegrationTest {
         if (isNativeRepository()) {
             initTestObjects(initTask, initResult, SESSION_ROLE_BASED, CLUSTER_ROLE_BASED);
         }
+
+        RESOURCE_DUMMY_REFRESHED.initAndTest(this, initTask, initResult);
+        TASK_SHADOW_REFRESH_ALL.init(this, initTask, initResult);
     }
 
     /**
@@ -402,7 +400,7 @@ public class TestMiscTasks extends AbstractInitializedModelIntegrationTest {
 
         when("a task is created");
 
-        ShadowKindType kind = ShadowKindType.ACCOUNT;
+        ShadowKindType kind = ACCOUNT;
         String intent = "funny";
         QName ocName1 = new QName("oc1");
         QName ocName1Qualified = QNameUtil.qualifyIfNeeded(ocName1, NS_RI);
@@ -520,7 +518,7 @@ public class TestMiscTasks extends AbstractInitializedModelIntegrationTest {
 
         when("a task is created");
 
-        ShadowKindType kind = ShadowKindType.ACCOUNT;
+        ShadowKindType kind = ACCOUNT;
         String intent = "funny";
         QName ocName1 = new QName("oc1");
         QName ocName1Qualified = QNameUtil.qualifyIfNeeded(ocName1, NS_RI);
@@ -727,4 +725,47 @@ public class TestMiscTasks extends AbstractInitializedModelIntegrationTest {
                 .assertProgress(6);
     }
 
+    /**
+     * Here we check that the shadow refresh task really refreshes the cached password.
+     *
+     * it uses the simplest scenario: cached -> not cached.
+     * Other relevant transitions are tested in `TestDummyPasswordCaching` in `provisioning-impl`.
+     */
+    @Test
+    public void test500RefreshCachedPasswordWithChangedCaching() throws CommonException {
+        var task = getTestTask();
+        var result = task.getResult();
+        var userName = getTestNameShort();
+        var password = "AbcABC1234";
+
+        given("a user with a shadow with cached password");
+        var user = new UserType()
+                .name(userName)
+                .assignment(RESOURCE_DUMMY_REFRESHED.assignmentTo(ACCOUNT, INTENT_DEFAULT))
+                .credentials(new CredentialsType()
+                        .password(new PasswordType()
+                                .value(new ProtectedStringType().clearValue(password))));
+        var userOid = addObject(user, task, result);
+        var shadowAtStart = assertUser(userOid, "at start")
+                .singleLink()
+                .resolveTarget()
+                .getObject();
+        assertEncryptedShadowPassword(shadowAtStart, password);
+
+        when("caching is turned off and the shadow is refreshed");
+        executeChanges(
+                deltaFor(ResourceType.class)
+                        .item(ResourceType.F_CACHING, CachingPolicyType.F_CACHING_STRATEGY)
+                        .replace(CachingStrategyType.NONE)
+                        .asObjectDelta(RESOURCE_DUMMY_REFRESHED.oid),
+                null, task, result);
+
+        TASK_SHADOW_REFRESH_ALL.rerun(result);
+
+        then("there is no cached password in the shadow any more");
+        assertUser(userOid, "at end")
+                .singleLink()
+                .resolveTarget()
+                .assertNoPassword();
+    }
 }

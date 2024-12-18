@@ -8,14 +8,19 @@
 package com.evolveum.midpoint.provisioning.impl.shadows;
 
 import static com.evolveum.midpoint.provisioning.impl.shadows.ShadowsUtil.createSuccessOperationDescription;
+import static com.evolveum.midpoint.schema.constants.SchemaConstants.PATH_PASSWORD_VALUE;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 import java.util.Objects;
 import javax.xml.datatype.Duration;
 import javax.xml.datatype.XMLGregorianCalendar;
 
+import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
+import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseType;
 
 import org.jetbrains.annotations.NotNull;
@@ -152,7 +157,12 @@ class ShadowRefreshOperation {
 
         processPendingOperations(result);
         deleteDeadShadowIfPossible(result);
-        updateProvisioningIndexesAfterDeletion(result);
+        if (shadow.isDeleted()) {
+            LOGGER.trace("updateProvisioningIndexesAfterDeletion: no shadow");
+        } else {
+            updateProvisioningIndexesAfterDeletion(result);
+            updateCachedPasswordIfNeeded(result);
+        }
     }
 
     private void executeQuick(OperationResult result)
@@ -477,10 +487,6 @@ class ShadowRefreshOperation {
      */
     private void updateProvisioningIndexesAfterDeletion(OperationResult result)
             throws SchemaException, ObjectNotFoundException, ConfigurationException {
-        if (shadow.isDeleted()) {
-            LOGGER.trace("updateProvisioningIndexesAfterDeletion: no shadow");
-            return;
-        }
         if (retriedOperations.stream()
                 .noneMatch(d -> ObjectDelta.isDelete(d.getObjectDelta()))) {
             LOGGER.trace("updateProvisioningIndexesAfterDeletion: no DELETE delta found");
@@ -492,6 +498,59 @@ class ShadowRefreshOperation {
             LOGGER.debug("Couldn't set `primaryIdentifierValue` for {} - probably a new one was created in the meanwhile. "
                     + "Marking this one as dead.", shadow, e);
             b.shadowUpdater.markShadowTombstone(shadow, ctx.getTask(), result);
+        }
+    }
+
+    /**
+     * Makes rough attempt to update the cached password under (possibly) changed policies:
+     *
+     * - encrypted -> hashed / none
+     * - hashed -> none
+     * - incomplete -> none
+     *
+     * Any other transitions are currently not possible (at least not without touching the resource).
+     *
+     * NOTE: Maybe we should move this code nearer to other places where cached password is managed? (`ShadowObjectComputer` etc)
+     */
+    private void updateCachedPasswordIfNeeded(OperationResult result) throws SchemaException, ObjectNotFoundException {
+        LOGGER.trace("Considering updating cached password for {}", shadow);
+        var property = ShadowUtil.getPasswordValueProperty(shadow.getBean());
+        if (property == null || !property.isIncomplete() && property.hasNoValues()) {
+            LOGGER.trace(" -> nothing to transform here");
+            return;
+        }
+        var realValue = property.getRealValue();
+
+        ItemDelta<?, ?> deltaToExecute;
+        var definition = shadow.getObjectDefinition();
+        if (!definition.areCredentialsCached()) {
+            LOGGER.trace(" -> caching turned off, removing the cached value");
+            deltaToExecute =
+                    PrismContext.get().deltaFor(ShadowType.class)
+                            .item(PATH_PASSWORD_VALUE)
+                            .replace()
+                            .asItemDelta();
+        } else if (realValue == null) {
+            LOGGER.trace(" -> no value stored (probably only the 'incomplete' flag), nothing to do");
+            deltaToExecute = null;
+        } else {
+            LOGGER.trace(" -> caching is enabled, value is present; consulting the credentials storage manager");
+            var credentialsPolicy = b.securityPolicyFinder.locateResourceObjectCredentialsPolicy(definition, result);
+            var legacyCaching = definition.areCredentialsCachedLegacy();
+            try {
+                deltaToExecute =
+                        b.credentialsStorageManager.updateShadowPasswordIfNeeded(realValue, credentialsPolicy, legacyCaching);
+            } catch (EncryptionException e) {
+                throw new SystemException("Couldn't transform cached password for " + shadow, e);
+            }
+        }
+
+        if (deltaToExecute != null) {
+            b.shadowUpdater.executeRepoShadowModifications(
+                    ctx,
+                    shadow,
+                    RepoShadowModifications.of(List.of(deltaToExecute)),
+                    result);
         }
     }
 
