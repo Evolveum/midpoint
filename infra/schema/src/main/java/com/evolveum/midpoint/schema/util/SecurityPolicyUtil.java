@@ -9,6 +9,9 @@ package com.evolveum.midpoint.schema.util;
 import java.util.Objects;
 import java.util.*;
 
+import com.evolveum.midpoint.prism.PrismContainer;
+import com.evolveum.midpoint.prism.PrismContainerValue;
+
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
@@ -159,5 +162,30 @@ public class SecurityPolicyUtil {
                 .filter(s -> identifier.equals(s.getIdentifier()) || identifier.equals(s.getName()))
                 .findFirst()
                 .orElse(null);
+    }
+
+    public static AbstractAuthenticationModuleType getModuleByIdentifier(String identifier, AuthenticationModulesType authenticationModulesType) {
+        PrismContainerValue<?> modulesContainerValue = authenticationModulesType.asPrismContainerValue();
+
+        List<AbstractAuthenticationModuleType> modules = new ArrayList<>();
+        modulesContainerValue.accept(v -> {
+            if (!(v instanceof PrismContainer<?> c)) {
+                return;
+            }
+
+            if (!(AbstractAuthenticationModuleType.class.isAssignableFrom(Objects.requireNonNull(c.getCompileTimeClass())))) {
+                return;
+            }
+
+            c.getValues().forEach(x -> modules.add((AbstractAuthenticationModuleType) ((PrismContainerValue<?>) x).asContainerable()));
+        });
+
+        for (AbstractAuthenticationModuleType module : modules) {
+            String moduleIdentifier = StringUtils.isNotEmpty(module.getIdentifier()) ? module.getIdentifier() : module.getName();
+            if (moduleIdentifier != null && StringUtils.equals(moduleIdentifier, identifier)) {
+                return module;
+            }
+        }
+        return null;
     }
 }

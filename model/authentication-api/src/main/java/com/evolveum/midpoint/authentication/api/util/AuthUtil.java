@@ -6,17 +6,20 @@
  */
 package com.evolveum.midpoint.authentication.api.util;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
 import com.evolveum.midpoint.authentication.api.config.ModuleAuthentication;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.util.AuthenticationSequenceTypeUtil;
 import com.evolveum.midpoint.security.api.ConnectionEnvironment;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.NotLoggedInException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Validate;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.security.authentication.AuthenticationServiceException;
@@ -343,5 +346,58 @@ public class AuthUtil {
             return false;
         }
         return AuthenticationModuleNameConstants.CLUSTER.equals(baseAuthentication.getModuleTypeName());
+    }
+
+    public static AuthenticationSequenceType searchSequenceComparingChannelId(String channelId, List<AuthenticationSequenceType> sequences) {
+        Validate.notBlank(channelId, "ChannelId for searching of sequence is blank");
+        List<AuthenticationSequenceType> sequencesWithSameChannel = new ArrayList<>();
+        for (AuthenticationSequenceType sequence : sequences) {
+            if (sequence != null && sequence.getChannel() != null && channelId.equals(sequence.getChannel().getChannelId())) {
+                sequencesWithSameChannel.add(sequence);
+                if (Boolean.TRUE.equals(sequence.getChannel().isDefault())) {
+                    if (sequence.getModule() == null || sequence.getModule().isEmpty()) {
+                        LOGGER.error("Found sequence " + sequence.getName() + "not contains configuration for module");
+                        return null;
+                    }
+                    return sequence;
+                }
+            }
+        }
+        if (sequencesWithSameChannel.size() == 1) {
+            AuthenticationSequenceType sequence = sequencesWithSameChannel.iterator().next().clone();
+            sequence.getChannel().setDefault(Boolean.TRUE);
+            return sequence;
+        }
+        if (sequencesWithSameChannel.size() > 0) {
+            LOGGER.error("Couldn't define sequence for channel " + channelId + " "
+                    + "probably you define more authentication sequence for this channel, "
+                    + "but missing one default sequence. For non-default sequence use url "
+                    + "'midpoint_address'/'context_path'/auth/'urlSuffix_defined_in_channel_of_sequence'");
+        } else {
+            LOGGER.error("Couldn't define sequence for channel " + channelId + " "
+                    + "probably you forgot define authentication sequence for it.");
+        }
+        return null;
+    }
+
+    public static AbstractAuthenticationModuleType getFirstModuleOfDefaultChannel(SecurityPolicyType securityPolicyType) {
+        if (securityPolicyType == null
+                || securityPolicyType.getAuthentication() == null
+                || securityPolicyType.getAuthentication().getModules() == null) {
+            return null;
+        }
+
+        AuthenticationSequenceType sequence = searchSequenceComparingChannelId(
+                SecurityPolicyUtil.DEFAULT_CHANNEL, securityPolicyType.getAuthentication().getSequence());
+
+        if (sequence == null || sequence.getModule().isEmpty()) {
+            return null;
+        }
+
+        List<AuthenticationSequenceModuleType> module = SecurityPolicyUtil.getSortedModules(sequence);
+
+        String firstModuleIdentifier = module.get(0).getIdentifier();
+
+        return SecurityPolicyUtil.getModuleByIdentifier(firstModuleIdentifier, securityPolicyType.getAuthentication().getModules());
     }
 }

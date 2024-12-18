@@ -105,12 +105,12 @@ public class AuthSequenceUtil {
             AuthenticationSequenceType sequence = searchSequenceComparingUrlSuffix(partsOfLocalPath[1], sequences);
             if (sequence == null) {
                 LOGGER.debug("Couldn't find sequence by prefix {}, so try default channel", partsOfLocalPath[1]);
-                sequence = searchSequenceComparingChannelId(SecurityPolicyUtil.DEFAULT_CHANNEL, sequences);
+                sequence = AuthUtil.searchSequenceComparingChannelId(SecurityPolicyUtil.DEFAULT_CHANNEL, sequences);
             }
             return sequence;
         }
         String usedChannel = searchChannelByPath(localePath);
-        return searchSequenceComparingChannelId(usedChannel, sequences);
+        return AuthUtil.searchSequenceComparingChannelId(usedChannel, sequences);
     }
 
     public static List<AuthenticationSequenceType> getSequencesForNodeGroups(Collection<ObjectReferenceType> nodeGroups,
@@ -230,37 +230,7 @@ public class AuthSequenceUtil {
         return false;
     }
 
-    private static AuthenticationSequenceType searchSequenceComparingChannelId(String channelId, List<AuthenticationSequenceType> sequences) {
-        Validate.notBlank(channelId, "ChannelId for searching of sequence is blank");
-        List<AuthenticationSequenceType> sequencesWithSameChannel = new ArrayList<>();
-        for (AuthenticationSequenceType sequence : sequences) {
-            if (sequence != null && sequence.getChannel() != null && channelId.equals(sequence.getChannel().getChannelId())) {
-                sequencesWithSameChannel.add(sequence);
-                if (Boolean.TRUE.equals(sequence.getChannel().isDefault())) {
-                    if (sequence.getModule() == null || sequence.getModule().isEmpty()) {
-                        LOGGER.error("Found sequence " + sequence.getName() + "not contains configuration for module");
-                        return null;
-                    }
-                    return sequence;
-                }
-            }
-        }
-        if (sequencesWithSameChannel.size() == 1) {
-            AuthenticationSequenceType sequence = sequencesWithSameChannel.iterator().next().clone();
-            sequence.getChannel().setDefault(Boolean.TRUE);
-            return sequence;
-        }
-        if (sequencesWithSameChannel.size() > 0) {
-            LOGGER.error("Couldn't define sequence for channel " + channelId + " "
-                    + "probably you define more authentication sequence for this channel, "
-                    + "but missing one default sequence. For non-default sequence use url "
-                    + "'midpoint_address'/'context_path'/auth/'urlSuffix_defined_in_channel_of_sequence'");
-        } else {
-            LOGGER.error("Couldn't define sequence for channel " + channelId + " "
-                    + "probably you forgot define authentication sequence for it.");
-        }
-        return null;
-    }
+
 
     private static AuthenticationSequenceType searchSequenceComparingUrlSuffix(String urlSuffix, List<AuthenticationSequenceType> sequences) {
         Validate.notBlank(urlSuffix, "UrlSuffix for searching of sequence is blank");
