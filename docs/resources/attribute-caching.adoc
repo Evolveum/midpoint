@@ -322,7 +322,7 @@ This way, midPoint will not get confused by mixing real and hashed values in sto
 Password storage is driven by xref:/midpoint/reference/security/credentials/password-storage-configuration/[] in respective Security Policy object.
 The policy used is determined by merging the policy specified in the resource object type and the system-wide security policy.
 
-. Listing 4: Specifying the security policy for a resource object type
+.Listing 4: Specifying the security policy for a resource object type
 [source,xml]
 ----
 <objectType>
@@ -352,7 +352,7 @@ Partial caching of passwords was available in earlier versions of midPoint.
 It is still supported, although deprecated now.
 It was configured like this:
 
-. Listing 5: Legacy way of configuring password caching (DEPRECATED)
+.Listing 5: Legacy way of configuring password caching (DEPRECATED)
 [source,xml]
 ----
 <objectType>
