@@ -305,7 +305,7 @@ public class RoleAnalysisOutlierAnalysisAspectsPanel extends AbstractObjectMainP
 
                     @Override
                     protected String getComponentCssStyle() {
-                        return "color: #28a745; font-size: 20px;";
+                        return "font-size: 20px;";
                     }
 
                     @Override
@@ -314,8 +314,7 @@ public class RoleAnalysisOutlierAnalysisAspectsPanel extends AbstractObjectMainP
                     }
                 };
 
-                iconWithLabel.add(AttributeAppender.append("class", "badge p-3 my-auto justify-content-center flex-grow-1 flex-shrink-1"));
-                iconWithLabel.add(AttributeAppender.append("style", "background-color: #dff2e3;"));
+                iconWithLabel.add(AttributeAppender.append("class", "badge p-3 my-auto justify-content-center flex-grow-1 flex-shrink-1 bg-transparent-red border border-danger text-danger"));
                 return iconWithLabel;
             }
 

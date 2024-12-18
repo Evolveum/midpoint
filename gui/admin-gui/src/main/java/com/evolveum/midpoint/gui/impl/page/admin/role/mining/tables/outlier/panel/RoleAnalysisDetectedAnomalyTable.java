@@ -153,6 +153,15 @@ public class RoleAnalysisDetectedAnomalyTable extends BasePanel<AnomalyObjectDto
             }
 
             @Override
+            protected IColumn<SelectableBean<RoleType>, String> createNameColumn(IModel<String> displayModel, GuiObjectColumnType customColumn, ExpressionType expression) {
+                var customization = new GuiObjectColumnType();
+                customization.beginDisplay();
+                customization.getDisplay().setCssClass("text-nowrap");
+                var customDisplayModel = PageBase.createStringResourceStatic("RoleAnalysisOutlierTable.anomaly.access");
+                return super.createNameColumn(customDisplayModel, customization, expression);
+            }
+
+            @Override
             protected @NotNull List<IColumn<SelectableBean<RoleType>, String>> createDefaultColumns() {
                 return anomalyObjectDto.getCategory().generateConfiguration(
                         getPageBase(), anomalyObjectDto);

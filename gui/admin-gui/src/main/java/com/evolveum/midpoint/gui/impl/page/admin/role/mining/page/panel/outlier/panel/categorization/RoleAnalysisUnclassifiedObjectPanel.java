@@ -21,7 +21,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
         display = @PanelDisplay(
                 label = "RoleAnalysisSessionType.unclassified.objects",
                 icon = GuiStyleConstants.CLASS_ICON_OUTLIER,
-                order = 40
+                order = 35
         )
 )
 public class RoleAnalysisUnclassifiedObjectPanel extends RoleAnalysisAbstractClassificationObjectPanel {
