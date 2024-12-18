@@ -444,7 +444,7 @@ public abstract class ShadowAttributeDefinitionImpl<
         if (volatility == null) {
             return false;
         }
-        return volatility.getOutgoingDependency().stream().anyMatch(
+        return volatility.getOutgoing().stream().anyMatch(
                 s -> s.getOperation().isEmpty() || s.getOperation().contains(ChangeTypeType.MODIFY));
     }
 
@@ -454,7 +454,7 @@ public abstract class ShadowAttributeDefinitionImpl<
         if (volatility == null) {
             return false;
         }
-        return volatility.getIncomingDependency().stream().anyMatch(
+        return volatility.getIncoming().stream().anyMatch(
                 s -> s.getOperation().isEmpty() || s.getOperation().contains(ChangeTypeType.ADD));
     }
 
@@ -464,7 +464,7 @@ public abstract class ShadowAttributeDefinitionImpl<
         if (volatility == null) {
             return false;
         }
-        return volatility.getIncomingDependency().stream().anyMatch(
+        return volatility.getIncoming().stream().anyMatch(
                 s -> s.getOperation().isEmpty() || s.getOperation().contains(ChangeTypeType.MODIFY));
     }
 
