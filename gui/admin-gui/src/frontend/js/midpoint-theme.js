@@ -913,12 +913,79 @@ export default class MidPointTheme {
     }
 
     initAxiomSearchPanel(queryDslInputId) {
-        $("#" + queryDslInputId).on('input keyup click', function () {
+        const queryDslInput = $("#" + queryDslInputId);
+
+        queryDslInput.on('input keyup click', function () {
             window.MidPointTheme.cursorPosition = this.selectionStart;
         })
+
+
+        const clone = $('<div/>').attr('id', 'autocompleteWrapper').appendTo('body');
+        clone.width(queryDslInput.width());
+        clone.height(queryDslInput.height());
+        clone.css('max-height', queryDslInput.height() + "px");
+        clone.css('word-wrap', 'break-word');
+        clone.css('word-break', 'break-all');
+        const style = document.defaultView.getComputedStyle(queryDslInput[0], null);
+
+        clone.css("font",style.font);
+
+        $("</div>")
+            .hide()
+            .attr('id', 'autocomplete')
+            .appendTo(queryDslInput.parent());
     }
 
-    syncContentAssist(contentAssist, editorId) {
+    syncContentAssist(contentAssist, queryDslInputId) {
+        const queryDslInput = $("#" + queryDslInputId);
+        const fakeCursor = $(".autocomplete");
+        const clone = $(".autocompleteWrapper");
 
+        let pos = this.getCaret(queryDslInput[0]);
+
+        const value = queryDslInput.val().substring(0, pos);
+
+        let buf = "";
+        for(let i=0; i < value.length; i++) {
+            let c = value[i];
+            c = c.replace("<", "&lt;");
+            c = c.replace(">", "&gt;");
+            c = c.replace(" ", "&nbsp;");
+            c = c.replace("\r", "");
+            c = c.replace("\n", "<br>");
+            buf += c;
+        }
+        clone.html(buf);
+
+        const cursor = $("<span>«</span>");
+        clone.append(cursor);
+        pos = cursor.position();
+
+        fakeCursor.css({
+            left: pos.left,
+            top: pos.top - clone.position().top + queryDslInput.position().top - queryDslInput.scrollTop()
+        }).show();
+    }
+
+    getCaret(element) {
+        if (element.selectionStart) {
+            return element.selectionStart;
+        } else if (document.selection) {
+            element.focus();
+
+            const range = document.selection.createRange();
+            if (range == null) {
+                return 0;
+            }
+
+            const re = element.createTextRange(),
+                rc = re.duplicate();
+            re.moveToBookmark(range.getBookmark());
+            rc.setEndPoint('EndToStart', re);
+
+            return rc.text.length;
+        }
+
+        return 0;
     }
 }

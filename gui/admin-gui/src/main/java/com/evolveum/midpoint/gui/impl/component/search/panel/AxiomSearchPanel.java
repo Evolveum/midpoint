@@ -33,14 +33,18 @@ import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.head.IHeaderResponse;
 import org.apache.wicket.markup.head.OnDomReadyHeaderItem;
 import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.markup.html.form.DropDownChoice;
 import org.apache.wicket.markup.html.form.TextField;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.request.IRequestParameters;
 import org.apache.wicket.request.cycle.RequestCycle;
 
 import javax.xml.namespace.QName;
 import java.time.Duration;
+import java.util.Arrays;
+import java.util.List;
 
 public class AxiomSearchPanel extends BasePanel<AxiomQueryWrapper> {
 
@@ -90,7 +94,7 @@ public class AxiomSearchPanel extends BasePanel<AxiomQueryWrapper> {
         ObjectMapper mapper = new ObjectMapper();
         AxiomQueryContentAssist axiomQueryContentAssist = new AxiomQueryContentAssistImpl(getPrismContext());
 
-        queryDslField.add(new AjaxFormComponentUpdatingBehavior("change") {
+        queryDslField.add(new AjaxFormComponentUpdatingBehavior("keyup") {
             @Override
             protected void updateAjaxAttributes(AjaxRequestAttributes attributes) {
                 super.updateAjaxAttributes(attributes);
