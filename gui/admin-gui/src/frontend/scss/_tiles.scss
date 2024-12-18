@@ -56,7 +56,7 @@
   &.active {
     border: 2px solid $primary;
     border-radius: $border-radius;
-    background-color: mix($white, $primary, 94%);
+    background-color: mix($white, $primary, 90%);
     @include smooth-transition(0.1s);
 
     & > .tile-title {
