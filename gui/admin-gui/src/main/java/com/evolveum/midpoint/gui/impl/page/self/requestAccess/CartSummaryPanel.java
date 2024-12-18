@@ -427,6 +427,11 @@ public class CartSummaryPanel extends BasePanel<RequestAccess> implements Access
             }
 
             @Override
+            protected String getAlternativeTextForImage(IModel<ShoppingCartItem> model) {
+                return LocalizationUtil.translate("CartSummaryPanel.image.alt");
+            }
+
+            @Override
             protected DisplayType createDisplayType(IModel<ShoppingCartItem> model) {
                 AssignmentType a = model.getObject().getAssignment();
                 ObjectReferenceType ref = a != null ? a.getTargetRef() : null;

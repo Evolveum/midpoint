@@ -20,7 +20,6 @@ import jakarta.servlet.ServletResponse;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.authentication.AuthenticationDetailsSource;
-import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
@@ -137,7 +136,7 @@ public class MidpointAnonymousAuthenticationFilter extends AnonymousAuthenticati
         if (authModules != null && !authModules.isEmpty()) {
             ModuleAuthenticationImpl module = (ModuleAuthenticationImpl) authModules.get(0).getBaseModuleAuthentication();
             module.setAuthentication(auth);
-            authentication.addAuthentications(module);
+            authentication.addAuthentication(module);
         }
         authentication.setPrincipal(auth.getPrincipal());
         return authentication;
