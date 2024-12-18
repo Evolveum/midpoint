@@ -19,6 +19,8 @@ import com.evolveum.midpoint.common.mining.utils.values.RoleAnalysisChunkMode;
 import com.evolveum.midpoint.common.mining.utils.values.RoleAnalysisSortMode;
 import com.evolveum.midpoint.common.mining.utils.values.ZScoreData;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.schema.constants.ObjectTypes;
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
@@ -200,12 +202,19 @@ public class OutlierDetectionOutlineClusterModel {
             @NotNull RoleAnalysisSessionType session,
             @NotNull List<String> clusterMembersOids) {
         RoleAnalysisClusterType cluster = new RoleAnalysisClusterType();
+        cluster.setRoleAnalysisSessionRef(ObjectTypeUtil.createObjectRef(session));
+
+        RoleAnalysisOptionType analysisOption = session.getAnalysisOption();
+        RoleAnalysisProcessModeType processMode = analysisOption.getProcessMode();
+        ObjectTypes objectType = ObjectTypes.USER;
+        if (processMode.equals(RoleAnalysisProcessModeType.ROLE)) {
+            objectType = ObjectTypes.ROLE;
+        }
 
         RoleAnalysisDetectionOptionType detectionOption = prepareDetectionOptions(session);
         cluster.setDetectionOption(detectionOption);
-
-        for (String element : clusterMembersOids) {
-            cluster.getMember().add(new ObjectReferenceType().oid(element).type(UserType.COMPLEX_TYPE));
+        for (String clusterMemberOid : clusterMembersOids) {
+            cluster.getMember().add(ObjectTypeUtil.createObjectRef(clusterMemberOid, objectType));
         }
 
         return cluster;
