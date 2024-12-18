@@ -88,7 +88,7 @@ public class AuthenticationSequenceModuleCreator<MA extends ModuleAuthentication
         try {
             String sequenceModuleIdentifier = StringUtils.isNotEmpty(sequenceModule.getIdentifier()) ?
                     sequenceModule.getIdentifier() : sequenceModule.getName();
-            AbstractAuthenticationModuleType module = getModuleByIdentifier(sequenceModuleIdentifier, authenticationModulesType);
+            AbstractAuthenticationModuleType module = SecurityPolicyUtil.getModuleByIdentifier(sequenceModuleIdentifier, authenticationModulesType);
             ModuleFactory<AbstractAuthenticationModuleType, MA> moduleFactory = authRegistry.findModuleFactory(module, authenticationChannel);
 
             return moduleFactory.createAuthModule(module,
@@ -140,31 +140,4 @@ public class AuthenticationSequenceModuleCreator<MA extends ModuleAuthentication
 
         return null;
     }
-
-    private AbstractAuthenticationModuleType getModuleByIdentifier(String identifier, AuthenticationModulesType authenticationModulesType) {
-        PrismContainerValue<?> modulesContainerValue = authenticationModulesType.asPrismContainerValue();
-
-        List<AbstractAuthenticationModuleType> modules = new ArrayList<>();
-        modulesContainerValue.accept(v -> {
-            if (!(v instanceof PrismContainer<?> c)) {
-                return;
-            }
-
-            if (!(AbstractAuthenticationModuleType.class.isAssignableFrom(Objects.requireNonNull(c.getCompileTimeClass())))) {
-                return;
-            }
-
-            c.getValues().forEach(x -> modules.add((AbstractAuthenticationModuleType) ((PrismContainerValue<?>) x).asContainerable()));
-        });
-
-        for (AbstractAuthenticationModuleType module : modules) {
-            String moduleIdentifier = StringUtils.isNotEmpty(module.getIdentifier()) ? module.getIdentifier() : module.getName();
-            if (moduleIdentifier != null && StringUtils.equals(moduleIdentifier, identifier)) {
-                return module;
-            }
-        }
-        return null;
-    }
-
-
 }

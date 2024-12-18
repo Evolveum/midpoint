@@ -79,9 +79,9 @@
                 <matchingRule>mr:stringIgnoreCase</matchingRule>
                 <volatility>
                     <!-- Change of DN may cause change of naming attribute -->
-                    <outgoingDependency>
+                    <outgoing>
                         <operation>modify</operation>
-                    </outgoingDependency>
+                    </outgoing>
                 </volatility>
                 <outbound>
                     <!-- Name mapping cannot be weak. Changes in name trigger object rename. -->

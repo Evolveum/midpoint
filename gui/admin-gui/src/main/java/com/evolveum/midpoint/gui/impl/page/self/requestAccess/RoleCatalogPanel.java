@@ -560,6 +560,13 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> implements 
                             protected IModel<IResource> createPreferredImage(IModel<CatalogTile<SelectableBean<ObjectType>>> model) {
                                 return createImage(() -> model.getObject().getValue().getValue());
                             }
+
+                            @Override
+                            protected String getAlternativeTextForImage(IModel<CatalogTile<SelectableBean<ObjectType>>> model) {
+                                return LocalizationUtil.translate(
+                                        "RoleCatalogPanel.image.alt",
+                                        new Object[]{WebComponentUtil.getDisplayNameOrName(model.getObject().getValue().getValue().asPrismObject())});
+                            }
                         };
                     }
 
@@ -1048,6 +1055,13 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> implements 
             protected DisplayType createDisplayType(IModel<SelectableBean<ObjectType>> model) {
                 OperationResult result = new OperationResult("getIcon");
                 return GuiDisplayTypeUtil.getDisplayTypeForObject(model.getObject().getValue(), result, getPageBase());
+            }
+
+            @Override
+            protected String getAlternativeTextForImage(IModel<SelectableBean<ObjectType>> model) {
+                return LocalizationUtil.translate(
+                        "RoleCatalogPanel.image.alt",
+                        new Object[]{WebComponentUtil.getDisplayNameOrName(model.getObject().getValue().asPrismObject())});
             }
         });
         columns.add(new AbstractColumn<>(createStringResource("ObjectType.name")) {

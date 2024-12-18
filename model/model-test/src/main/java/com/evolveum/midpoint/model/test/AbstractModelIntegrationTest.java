@@ -4803,7 +4803,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
                 //TODO
             }
         };
-        mpAuthentication.addAuthentications(moduleAuthentication);
+        mpAuthentication.addAuthentication(moduleAuthentication);
         AuthModule authModule = new AuthModule() {
             @Override
             public ModuleAuthentication getBaseModuleAuthentication() {
