@@ -67,12 +67,17 @@ public class FocusIdentificationProvider extends MidpointAbstractAuthenticationP
             // E.g. no user name or other required property provided when resetting the password.
             // Hence DEBUG, not ERROR, and BadCredentialsException, not AuthenticationServiceException.
             LOGGER.debug("No details provided: {}", authentication);
-            throw new BadCredentialsException(AuthUtil.generateBadCredentialsMessageKey(authentication));
+            throw new BadCredentialsException("web.security.provider.resetPassword.invalid.credentials");
         }
         ModuleAuthentication moduleAuthentication = AuthUtil.getProcessingModule();
         List<ModuleItemConfigurationType> itemsConfig = null;
         if (moduleAuthentication instanceof FocusIdentificationModuleAuthenticationImpl focusModuleAuthentication) {
             itemsConfig = focusModuleAuthentication.getModuleConfiguration();
+        }
+        if (blankAttributeValueExist(attrValuesMap, itemsConfig)) {
+            //all attributes are mandatory to be filled in
+            LOGGER.debug("No value was provided for mandatory attribute(s): {}", authentication);
+            throw new BadCredentialsException("web.security.provider.resetPassword.invalid.credentials");
         }
         FocusIdentificationAuthenticationContext ctx = new FocusIdentificationAuthenticationContext(
                 attrValuesMap,
@@ -98,6 +103,18 @@ public class FocusIdentificationProvider extends MidpointAbstractAuthenticationP
     @Override
     public boolean supports(Class<?> authentication) {
         return FocusVerificationToken.class.equals(authentication);
+    }
+
+    private boolean blankAttributeValueExist(Map<ItemPath, String> attrValuesMap, List<ModuleItemConfigurationType> itemsConfig) {
+        if (itemsConfig == null) {
+            return true;
+        }
+        for (ModuleItemConfigurationType itemConfig : itemsConfig) {
+            if (StringUtils.isBlank(attrValuesMap.get(itemConfig.getPath().getItemPath()))) {
+                return true;
+            }
+        }
+        return false;
     }
 
 }
