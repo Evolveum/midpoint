@@ -41,6 +41,7 @@ Overall, midPoint 4.9 is a major step from the past into the future.
 
 * bug:MID-10147[] Added support for new capability `lastLoginTimestamp`.
 * bug:MID-10213[] Fix synchronization of large number of tasks (>10 000).
+* bug:MID-10270[] Summary panel for roles now uses display name and identifier (same as for organizations and services).
 
 === Other Improvements
 
