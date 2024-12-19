@@ -11,13 +11,11 @@ import com.evolveum.midpoint.gui.impl.component.data.column.icon.AbstractIconCol
 
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.IModel;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.DisplayType;
 
-import org.apache.wicket.request.resource.AbstractResource;
 import org.apache.wicket.request.resource.IResource;
 
 /**
@@ -33,9 +31,18 @@ public class RoundedIconColumn<T, S> extends AbstractIconColumn<T, S> {
     public void populateItem(Item<ICellPopulator<T>> item, String id, IModel<T> model) {
         item.add(AttributeAppender.append("style", "width: 2rem;"));
 
-        RoundedImagePanel panel = new RoundedImagePanel(id, () -> createDisplayType(model), createPreferredImage(model));
+        RoundedImagePanel panel = new RoundedImagePanel(id, () -> createDisplayType(model), createPreferredImage(model)) {
+            @Override
+            protected String getAlternativeTextForImage() {
+                return RoundedIconColumn.this.getAlternativeTextForImage(model);
+            }
+        };
         panel.add(AttributeAppender.append("style", "height: 2rem; width: 2rem;"));
         item.add(panel);
+    }
+
+    protected String getAlternativeTextForImage(IModel<T> model) {
+        return null;
     }
 
     protected DisplayType createDisplayType(IModel<T> model) {

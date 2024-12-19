@@ -12,6 +12,7 @@ import static com.evolveum.midpoint.util.MiscUtil.or0;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+
 import jakarta.persistence.*;
 import javax.xml.datatype.XMLGregorianCalendar;
 
@@ -21,7 +22,7 @@ import org.hibernate.annotations.*;
 
 import com.evolveum.midpoint.repo.sql.data.RepositoryContext;
 import com.evolveum.midpoint.repo.sql.data.common.container.RAccessCertificationCase;
-import com.evolveum.midpoint.repo.sql.data.common.embedded.REmbeddedReference;
+import com.evolveum.midpoint.repo.sql.data.common.embedded.RSimpleEmbeddedReference;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.RPolyString;
 import com.evolveum.midpoint.repo.sql.data.common.enums.RAccessCertificationCampaignState;
 import com.evolveum.midpoint.repo.sql.query.definition.JaxbName;
@@ -52,10 +53,10 @@ public class RAccessCertificationCampaign extends RObject {
     public static final String TABLE_NAME = "m_acc_cert_campaign";
 
     private RPolyString nameCopy;
-    private REmbeddedReference definitionRef;
+    private RSimpleEmbeddedReference definitionRef;
     private Set<RAccessCertificationCase> cases;
 
-    private REmbeddedReference ownerRefCampaign;
+    private RSimpleEmbeddedReference ownerRefCampaign;
     private String handlerUri;
     private XMLGregorianCalendar start;
     private XMLGregorianCalendar end;
@@ -79,7 +80,7 @@ public class RAccessCertificationCampaign extends RObject {
     }
 
     @Embedded
-    public REmbeddedReference getDefinitionRef() {
+    public RSimpleEmbeddedReference getDefinitionRef() {
         return definitionRef;
     }
 
@@ -98,7 +99,7 @@ public class RAccessCertificationCampaign extends RObject {
             @AttributeOverride(name = "targetOid", column = @Column(name = "ownerRef_targetOid", length = RUtil.COLUMN_LENGTH_OID)),
             @AttributeOverride(name = "targetType", column = @Column(name = "ownerRef_targetType"))
     })
-    public REmbeddedReference getOwnerRefCampaign() {       // name changed because of collision with RAbstractRole.ownerRef
+    public RSimpleEmbeddedReference getOwnerRefCampaign() {       // name changed because of collision with RAbstractRole.ownerRef
         return ownerRefCampaign;
     }
 
@@ -134,7 +135,7 @@ public class RAccessCertificationCampaign extends RObject {
         return stageNumber;
     }
 
-    public void setDefinitionRef(REmbeddedReference definitionRef) {
+    public void setDefinitionRef(RSimpleEmbeddedReference definitionRef) {
         this.definitionRef = definitionRef;
     }
 
@@ -142,7 +143,7 @@ public class RAccessCertificationCampaign extends RObject {
         this.cases = cases;
     }
 
-    public void setOwnerRefCampaign(REmbeddedReference ownerRefCampaign) {
+    public void setOwnerRefCampaign(RSimpleEmbeddedReference ownerRefCampaign) {
         this.ownerRefCampaign = ownerRefCampaign;
     }
 

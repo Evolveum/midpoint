@@ -18,7 +18,7 @@ import org.hibernate.annotations.Type;
 
 import com.evolveum.midpoint.repo.sql.data.RepositoryContext;
 import com.evolveum.midpoint.repo.sql.data.common.container.RCaseWorkItem;
-import com.evolveum.midpoint.repo.sql.data.common.embedded.REmbeddedReference;
+import com.evolveum.midpoint.repo.sql.data.common.embedded.RSimpleEmbeddedReference;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.RPolyString;
 import com.evolveum.midpoint.repo.sql.query.definition.JaxbName;
 import com.evolveum.midpoint.repo.sql.query.definition.NeverNull;
@@ -47,10 +47,10 @@ public class RCase extends RObject {
     private RPolyString nameCopy;
 
     private String state;
-    private REmbeddedReference objectRef;
-    private REmbeddedReference targetRef;
-    private REmbeddedReference parentRef;
-    private REmbeddedReference requestorRef;
+    private RSimpleEmbeddedReference objectRef;
+    private RSimpleEmbeddedReference targetRef;
+    private RSimpleEmbeddedReference parentRef;
+    private RSimpleEmbeddedReference requestorRef;
 
     private XMLGregorianCalendar closeTimestamp;
 
@@ -81,37 +81,37 @@ public class RCase extends RObject {
     }
 
     @Embedded
-    public REmbeddedReference getObjectRef() {
+    public RSimpleEmbeddedReference getObjectRef() {
         return objectRef;
     }
 
-    public void setObjectRef(REmbeddedReference objectRef) {
+    public void setObjectRef(RSimpleEmbeddedReference objectRef) {
         this.objectRef = objectRef;
     }
 
     @Embedded
-    public REmbeddedReference getTargetRef() {
+    public RSimpleEmbeddedReference getTargetRef() {
         return targetRef;
     }
 
-    public void setTargetRef(REmbeddedReference targetRef) {
+    public void setTargetRef(RSimpleEmbeddedReference targetRef) {
         this.targetRef = targetRef;
     }
 
     @Embedded
-    public REmbeddedReference getParentRef() {
+    public RSimpleEmbeddedReference getParentRef() {
         return parentRef;
     }
 
-    public void setParentRef(REmbeddedReference value) {
+    public void setParentRef(RSimpleEmbeddedReference value) {
         this.parentRef = value;
     }
 
-    public REmbeddedReference getRequestorRef() {
+    public RSimpleEmbeddedReference getRequestorRef() {
         return requestorRef;
     }
 
-    public void setRequestorRef(REmbeddedReference requestorRef) {
+    public void setRequestorRef(RSimpleEmbeddedReference requestorRef) {
         this.requestorRef = requestorRef;
     }
 

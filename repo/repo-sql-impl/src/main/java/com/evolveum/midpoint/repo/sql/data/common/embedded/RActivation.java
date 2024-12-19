@@ -26,10 +26,9 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
 
 import org.hibernate.type.descriptor.jdbc.IntegerJdbcType;
 
-@Embeddable
 @JaxbType(type = ActivationType.class)
 @MappedSuperclass
-public class RActivation {
+public abstract class RActivation {
 
     private RActivationStatus administrativeStatus;
     private RActivationStatus effectiveStatus;

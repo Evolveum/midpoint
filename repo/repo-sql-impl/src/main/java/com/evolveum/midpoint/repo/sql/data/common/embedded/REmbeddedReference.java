@@ -24,10 +24,18 @@ import com.evolveum.midpoint.schema.RelationRegistry;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 
 /**
+ * This class is a superclass for all embedded references.
+ *
+ * Previously this one was directly marked as {@link Embeddable}, however since it has child classes
+ * marked with {@link Embeddable}, hibernate now expects discriminator column + custom handling for
+ * such embeddable class hierarchy.
+ * This is unnecessary for our use case, so we are marking this class as {@link MappedSuperclass} and
+ * we created {@link RSimpleEmbeddedReference} as a direct embeddable subclass.
+ *
  * @author lazyman
  */
-@Embeddable
-public class REmbeddedReference implements ObjectReference {
+@MappedSuperclass
+public abstract class REmbeddedReference implements ObjectReference {
 
     //target
     private String targetOid;

@@ -13,6 +13,8 @@ import static com.evolveum.midpoint.prism.util.PrismTestUtil.getPrismContext;
 import java.io.File;
 import java.util.*;
 
+import com.evolveum.midpoint.repo.sql.data.common.embedded.RSimpleActivation;
+
 import jakarta.persistence.EntityManager;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
@@ -33,7 +35,6 @@ import com.evolveum.midpoint.repo.sql.data.common.RFocusPhoto;
 import com.evolveum.midpoint.repo.sql.data.common.RUser;
 import com.evolveum.midpoint.repo.sql.data.common.any.RExtItem;
 import com.evolveum.midpoint.repo.sql.data.common.container.RAssignment;
-import com.evolveum.midpoint.repo.sql.data.common.embedded.RActivation;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.RPolyString;
 import com.evolveum.midpoint.repo.sql.data.common.enums.RActivationStatus;
 import com.evolveum.midpoint.repo.sql.testing.TestStatementInspector;
@@ -247,7 +248,7 @@ public class ObjectDeltaUpdaterTest extends BaseSQLRepoTest {
             AssertJUnit.assertEquals(1, assignments.size());
 
             RAssignment a = assignments.iterator().next();
-            RActivation act = a.getActivation();
+            RSimpleActivation act = a.getActivation();
             AssertJUnit.assertNotNull(act);
             AssertJUnit.assertEquals(RActivationStatus.ENABLED, act.getAdministrativeStatus());
         }
@@ -307,7 +308,7 @@ public class ObjectDeltaUpdaterTest extends BaseSQLRepoTest {
             RUser u = em.find(RUser.class, userOid);
             Set<RAssignment> assignments = u.getAssignments();
             AssertJUnit.assertEquals(1, assignments.size());
-            RActivation act = assignments.iterator().next().getActivation();
+            RSimpleActivation act = assignments.iterator().next().getActivation();
             AssertJUnit.assertNotNull(act);
             AssertJUnit.assertEquals(RActivationStatus.ARCHIVED, act.getAdministrativeStatus());
         }
