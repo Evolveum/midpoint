@@ -59,6 +59,13 @@
         </dependency>
         <dependency>
             <groupId>com.evolveum.prism</groupId>
+            <artifactId>prism-api</artifactId>
+            <type>test-jar</type>
+            <classifier>tests</classifier>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.evolveum.prism</groupId>
             <artifactId>prism-impl</artifactId>
             <scope>test</scope>
         </dependency>
