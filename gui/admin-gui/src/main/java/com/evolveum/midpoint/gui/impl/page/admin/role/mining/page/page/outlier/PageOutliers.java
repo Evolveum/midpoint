@@ -270,41 +270,6 @@ public class PageOutliers extends PageAdmin {
                     }
                 };
                 defaultColumns.add(column);
-                column = new AbstractExportableColumn<>(
-                        createStringResource("RoleAnalysisOutlierType.outlierPartitions")) {
-
-                    @Override
-                    public IModel<?> getDataModel(IModel<SelectableBean<RoleAnalysisOutlierType>> iModel) {
-                        RoleAnalysisOutlierType outlierObject = iModel.getObject().getValue();
-                        List<RoleAnalysisOutlierPartitionType> outlierPartitions = outlierObject.getPartition();
-                        return Model.of(outlierPartitions.size());
-                    }
-
-                    @Override
-                    public void populateItem(Item<ICellPopulator<SelectableBean<RoleAnalysisOutlierType>>> cellItem,
-                            String componentId, IModel<SelectableBean<RoleAnalysisOutlierType>> model) {
-                        RoleAnalysisOutlierType outlierObject = model.getObject().getValue();
-                        List<RoleAnalysisOutlierPartitionType> outlierPartitions = outlierObject.getPartition();
-                        cellItem.add(new Label(componentId, outlierPartitions.size()));
-                    }
-
-                    @Override
-                    public boolean isSortable() {
-                        return false;
-                    }
-
-                    @Override
-                    public Component getHeader(String componentId) {
-                        return new LabelWithHelpPanel(componentId,
-                                createStringResource("RoleAnalysisOutlierType.outlierPartitions")) {
-                            @Override
-                            protected IModel<String> getHelpModel() {
-                                return createStringResource("RoleAnalysisOutlierTable.outlier.partitions.help");
-                            }
-                        };
-                    }
-                };
-                defaultColumns.add(column);
 
                 column = new AbstractExportableColumn<>(
                         createStringResource("RoleAnalysisOutlierTable.outlier.confidence")) {

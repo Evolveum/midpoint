@@ -9,10 +9,9 @@ package com.evolveum.midpoint.gui.impl.page.admin.role.mining.tables.tile;
 
 import static com.evolveum.midpoint.gui.api.util.GuiDisplayTypeUtil.createDisplayType;
 import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.RoleAnalysisWebUtils.*;
+import static com.evolveum.midpoint.gui.api.util.LocalizationUtil.translateMessage;
 
 import java.io.Serial;
-import java.math.BigDecimal;
-import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -317,11 +316,9 @@ public class RoleAnalysisOutlierAssociatedTileTable extends BasePanel<List<RoleA
 
         initNameColumn(columns);
 
-        initCategoryColumn(columns);
+        initExplanationColumn(columns);
 
         initAnomaliesColumn(columns);
-
-        initAnomaliesConfidenceColumn(columns);
 
         initPartitionConfidenceColumn(columns);
 
@@ -376,7 +373,7 @@ public class RoleAnalysisOutlierAssociatedTileTable extends BasePanel<List<RoleA
                 };
                 migrationButton.titleAsLabel(true);
                 migrationButton.setOutputMarkupId(true);
-                migrationButton.add(AttributeModifier.append(CLASS_CSS, "btn btn-default btn-sm"));
+                migrationButton.add(AttributeModifier.append(CLASS_CSS, "btn btn-default btn-sm text-nowrap"));
                 migrationButton.setOutputMarkupId(true);
                 item.add(migrationButton);
 
@@ -480,44 +477,6 @@ public class RoleAnalysisOutlierAssociatedTileTable extends BasePanel<List<RoleA
         });
     }
 
-    private void initAnomaliesConfidenceColumn(@NotNull List<IColumn<RoleAnalysisOutlierType, String>> columns) {
-        columns.add(new AbstractColumn<>(createStringResource("RoleAnalysis.tile.panel.anomaly.confidence")) {
-
-            @Override
-            public boolean isSortable() {
-                return false;
-            }
-
-            @Override
-            public void populateItem(Item<ICellPopulator<RoleAnalysisOutlierType>> item, String componentId,
-                    IModel<RoleAnalysisOutlierType> rowModel) {
-                RoleAnalysisOutlierType outlierObject = rowModel.getObject();
-                RoleAnalysisOutlierPartitionType outlierPartition = getOutlierPartition(outlierObject);
-
-                if (outlierPartition != null) {
-                    Double anomalyObjectsConfidence = outlierPartition.getPartitionAnalysis().getAnomalyObjectsConfidence();
-                    if (anomalyObjectsConfidence == null) {
-                        anomalyObjectsConfidence = 0.0;
-                    }
-
-                    BigDecimal confidence = BigDecimal.valueOf(anomalyObjectsConfidence);
-                    confidence = confidence.setScale(2, RoundingMode.HALF_UP);
-                    anomalyObjectsConfidence = confidence.doubleValue();
-                    item.add(new Label(componentId, anomalyObjectsConfidence + " %"));
-                } else {
-                    item.add(new Label(componentId, "N/A"));
-                }
-            }
-
-            @Override
-            public Component getHeader(String componentId) {
-                return new Label(
-                        componentId, createStringResource("RoleAnalysis.tile.panel.anomaly.confidence"));
-            }
-
-        });
-    }
-
     private void initAnomaliesColumn(@NotNull List<IColumn<RoleAnalysisOutlierType, String>> columns) {
         columns.add(new AbstractColumn<>(createStringResource("RoleAnalysisOutlierTable.outlier.access")) {
 
@@ -553,8 +512,8 @@ public class RoleAnalysisOutlierAssociatedTileTable extends BasePanel<List<RoleA
         });
     }
 
-    private void initCategoryColumn(@NotNull List<IColumn<RoleAnalysisOutlierType, String>> columns) {
-        columns.add(new AbstractColumn<>(createStringResource("RoleAnalysisOutlierTable.outlier.category")) {
+    private void initExplanationColumn(@NotNull List<IColumn<RoleAnalysisOutlierType, String>> columns) {
+        columns.add(new AbstractColumn<>(createStringResource("RoleAnalysisOutlierTable.outlier.explanation")) {
 
             @Override
             public boolean isSortable() {
@@ -563,29 +522,16 @@ public class RoleAnalysisOutlierAssociatedTileTable extends BasePanel<List<RoleA
 
             @Override
             public void populateItem(Item<ICellPopulator<RoleAnalysisOutlierType>> item, String componentId,
-                    IModel<RoleAnalysisOutlierType> rowModel) {
-                RoleAnalysisOutlierType outlierObject = rowModel.getObject();
-                RoleAnalysisOutlierPartitionType outlierPartition = getOutlierPartition(outlierObject);
+                    IModel<RoleAnalysisOutlierType> model) {
+                RoleAnalysisOutlierType outlierObject = model.getObject();
 
-                String category = "Undefined";
-                if (outlierPartition != null) {
-                    RoleAnalysisPartitionAnalysisType partitionAnalysis = outlierPartition.getPartitionAnalysis();
-                    OutlierCategoryType outlierCategory = partitionAnalysis.getOutlierCategory();
-                    OutlierSpecificCategoryType outlierSpecificCategory = outlierCategory.getOutlierSpecificCategory();
-                    category = outlierSpecificCategory.value();
-                }
-
-                Label statusBar = new Label(componentId, Model.of(category));
-                statusBar.add(AttributeModifier.append(CLASS_CSS, "badge badge-pill badge-info text-truncate"));
-                statusBar.add(AttributeModifier.append(STYLE_CSS, "width: 120px"));
-                statusBar.setOutputMarkupId(true);
-                item.add(statusBar);
+                Model<String> explanationTranslatedModel = explainOutlier(outlierObject);
+                item.add(new Label(componentId, explanationTranslatedModel));
             }
 
             @Override
             public Component getHeader(String componentId) {
-                return new Label(
-                        componentId, createStringResource("RoleAnalysisOutlierTable.outlier.category"));
+                return new Label(componentId, createStringResource("RoleAnalysisOutlierTable.outlier.explanation"));
             }
 
         });
