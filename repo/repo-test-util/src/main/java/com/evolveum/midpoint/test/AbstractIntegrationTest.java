@@ -4574,6 +4574,14 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
         return false;
     }
 
+    /**
+     * Used for test classes that provide their own explicit caching configuration, so there's no point in running them
+     * under caching overrides.
+     */
+    protected boolean isUsingCachingOverride() {
+        return !InternalsConfig.getShadowCachingDefault().isStandardForTests();
+    }
+
     /** To be used at individual test method level. */
     protected void skipIfNotNativeRepository() {
         if (!isNativeRepository()) {

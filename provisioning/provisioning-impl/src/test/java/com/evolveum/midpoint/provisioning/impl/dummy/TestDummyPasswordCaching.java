@@ -21,7 +21,6 @@ import java.util.UUID;
 
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.repo.api.RepoAddOptions;
-import com.evolveum.midpoint.schema.internals.InternalsConfig;
 import com.evolveum.midpoint.schema.util.RawRepoShadow;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.test.IntegrationTestTools;
@@ -102,8 +101,7 @@ public class TestDummyPasswordCaching extends AbstractDummyTest {
 
     @Override
     protected boolean shouldSkipWholeClass() {
-        // No need to waste time running this class under different caching overrides, as it uses its own (explicit) caching.
-        return !InternalsConfig.getShadowCachingDefault().isStandardForTests();
+        return isUsingCachingOverride();
     }
 
     @Override
@@ -470,7 +468,113 @@ public class TestDummyPasswordCaching extends AbstractDummyTest {
         }
     }
 
-    // TODO add more "transitional" tests; like those in TestOpenDj.
+    /**
+     * Tests the application of changed policies (caching/storage) on existing accounts using the `refresh` operation.
+     *
+     * We select scenarios to be tested, by providing a starting one, and then a set of ending ones.
+     */
+    @Test
+    public void test300RefreshShadowUnderChangedPolicies() throws Exception {
+
+        // encrypted -> hashed & off
+        refreshShadowUnderChangedPolicies(
+                "1",
+                new Scenario(Readability.FULL, Caching.ON, Storage.ENCRYPTING),
+                new Scenario(Readability.FULL, Caching.ON, Storage.HASHING),
+                new Scenario(Readability.FULL, Caching.LEGACY, Storage.ENCRYPTING),
+                new Scenario(Readability.FULL, Caching.LEGACY, Storage.HASHING),
+                new Scenario(Readability.FULL, Caching.OFF, Storage.ENCRYPTING),
+                new Scenario(Readability.FULL, Caching.OFF, Storage.HASHING));
+
+        // hashed (non-legacy) -> off
+        refreshShadowUnderChangedPolicies(
+                "2",
+                new Scenario(Readability.FULL, Caching.ON, Storage.HASHING),
+                new Scenario(Readability.FULL, Caching.OFF, Storage.ENCRYPTING),
+                new Scenario(Readability.FULL, Caching.OFF, Storage.HASHING));
+
+        // hashed (non-legacy) -> hashed (legacy)
+        refreshShadowUnderChangedPolicies(
+                "3",
+                new Scenario(Readability.FULL, Caching.ON, Storage.HASHING),
+                new Scenario(Readability.FULL, Caching.LEGACY, Storage.HASHING));
+
+        // hashed (legacy) -> off
+        refreshShadowUnderChangedPolicies(
+                "4",
+                new Scenario(Readability.FULL, Caching.LEGACY, Storage.HASHING),
+                new Scenario(Readability.FULL, Caching.OFF, Storage.ENCRYPTING),
+                new Scenario(Readability.FULL, Caching.OFF, Storage.HASHING));
+
+        // hashed (legacy) -> hashed (non-legacy)
+        refreshShadowUnderChangedPolicies(
+                "5",
+                new Scenario(Readability.FULL, Caching.LEGACY, Storage.HASHING),
+                new Scenario(Readability.FULL, Caching.ON, Storage.HASHING));
+
+        // incomplete -> off
+        refreshShadowUnderChangedPolicies(
+                "6",
+                new Scenario(Readability.EXISTENCE, Caching.ON, Storage.ENCRYPTING),
+                new Scenario(Readability.EXISTENCE, Caching.OFF, Storage.ENCRYPTING));
+
+        // incomplete -> incomplete (when storage mode changes)
+        refreshShadowUnderChangedPolicies(
+                "7",
+                new Scenario(Readability.EXISTENCE, Caching.ON, Storage.ENCRYPTING),
+                new Scenario(Readability.EXISTENCE, Caching.ON, Storage.HASHING),
+                new Scenario(Readability.EXISTENCE, Caching.LEGACY, Storage.ENCRYPTING),
+                new Scenario(Readability.EXISTENCE, Caching.LEGACY, Storage.HASHING));
+    }
+
+    /** The readability is used only to determine whether the password should be stored as "incomplete" at start. */
+    private void refreshShadowUnderChangedPolicies(
+            String identifier, Scenario startingScenario, Scenario... endingScenarios) throws Exception {
+        int i = 0;
+        refreshShadowUnderChangedPolicies1(identifier + "-" + (i++), startingScenario, startingScenario);
+        for (var endingScenario : endingScenarios) {
+            refreshShadowUnderChangedPolicies1(identifier + "-" + (i++), startingScenario, endingScenario);
+        }
+    }
+
+    private void refreshShadowUnderChangedPolicies1(
+            String identifier, Scenario startingScenario, Scenario endingScenario) throws Exception {
+        var task = getTestTask();
+        var result = task.getResult();
+        var password = "secret";
+        var accountName = getTestNameShort() + "-" + identifier;
+        var incompleteAtStart = startingScenario.readability == Readability.EXISTENCE;
+
+        given("testing the transition from " + startingScenario + " to " + endingScenario);
+        given("account " + accountName + " created");
+        var resource = getOrCreateResource(startingScenario);
+        String oid;
+        if (incompleteAtStart) {
+            // We must do the discovery to set up an incomplete password.
+            createAccount(resource, accountName, password);
+            oid = discoverShadow(resource, accountName, task, result).getOid();
+        } else {
+            oid = createAccountViaMidPoint(resource, accountName, password, task, result);
+        }
+
+        var repoShadow0 = getShadowRepo(oid);
+        assertRepoPassword(startingScenario.caching, startingScenario.storage, incompleteAtStart, repoShadow0, password);
+
+        when("the policy is changed and the shadow is refreshed");
+        try {
+            if (!startingScenario.equals(endingScenario)) {
+                updateResourceWithScenario(resource, endingScenario, task, result);
+            }
+            provisioningService.refreshShadow(repoShadow0.getPrismObject(), null, task, result);
+
+            then("password is correct in the refreshed shadow");
+            assertRepoPassword(endingScenario.caching, endingScenario.storage, incompleteAtStart, getShadowRepo(oid), password);
+        } finally {
+            if (!startingScenario.equals(endingScenario)) {
+                updateResourceWithScenario(resource, startingScenario, task, result);
+            }
+        }
+    }
 
     private @Nullable ProtectedStringType encrypted(String password) throws EncryptionException {
         var ps = clear(password);
@@ -554,6 +658,26 @@ public class TestDummyPasswordCaching extends AbstractDummyTest {
             assert scenario.readability == Readability.FULL;
             assert scenario.caching == Caching.ON;
             assertShadowPassword(repoShadow, password, scenario.storage.getStorageType());
+        }
+    }
+
+    /** Checks whether the password is consistent with the policy. */
+    private void assertRepoPassword(
+            Caching caching, Storage storage, boolean incomplete, @NotNull RawRepoShadow repoShadow, String password)
+            throws Exception {
+        var bean = repoShadow.getBean();
+        if (incomplete) {
+            if (caching == Caching.OFF) {
+                assertNoShadowPassword(bean);
+            } else {
+                assertIncompleteShadowPassword(bean);
+            }
+        } else {
+            switch (caching) {
+                case OFF -> assertNoShadowPassword(bean);
+                case LEGACY -> assertHashedShadowPassword(bean, password); // This is the only mode for legacy
+                case ON -> assertShadowPassword(bean, password, storage.getStorageType());
+            }
         }
     }
 

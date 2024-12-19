@@ -1,0 +1,136 @@
+= Volatile Attributes and Objects
+
+Volatile attributes are ones that can change on the resource without midPoint initiating (or even knowing about) that particular change.
+
+== Typical Cases
+
+There are several typical cases of volatile attributes.
+(Some of these do overlap.)
+
+. Various kinds of default values can be set up on the *object creation*.
+An example is Microsoft Exchange e-mail address that may get a default value based on the policies set up by the Windows system administrator.
+
+. An attribute may change unexpectedly *when it's modified* by midPoint.
++
+For example, when `SMTP:x@y.z` is added to the list of Exchange addresses, the former primary e-mail alias (marked by `SMTP:` prefix) is automatically downgraded to a secondary alias (marked by `smtp:` prefix).
+There is a hidden resource-side processing occurring after the change from midPoint is applied.
+
+. There may be dependencies *between attributes*, e.g., LDAP `uid` may change if the DN changes.
+
+. There may be dependencies *between attributes of related objects*.
+For example, let's assume a role has a projection to an LDAP OU and an LDAP group residing in that OU.
+When the role is renamed, LDAP OU's distinguished name is changed.
+This, however, implicitly changes also the group's DN.
+
+== Configuration Options
+
+=== Attribute-Level Settings
+
+Attribute volatility is specified using the `volatility` item in the attribute definition.
+
+There are two cases here:
+
+. An attribute in question is the volatile one, i.e., it depends on other attributes.
+This specified as the *incoming* dependency.
+Currently, we can specify only the operation, when this dependency occurs: either `add`, `modify`, or both.
+When no operation is specified, both `add` and `modify` are assumed.
++
+(Later, it will be possible to provide specific attributes on which this one depends.)
+
++
+An example:
+
++
+.Listing 1: The `uid` attribute depends on unspecified ones, during both `add` and `modify` operations
+[source,xml]
+----
+<objectType>
+    <kind>...</kind>
+    <intent>...</intent>
+    ...
+    <attribute>
+        <ref>ri:uid</ref>
+        ...
+        <volatility>
+            <incoming>
+                <operation>add</operation>
+                <operation>modify</operation>
+            </incoming>
+        </volatility>
+    </attribute>
+</objectType>
+----
+
+. An attribute in question is the volatility source for other (volatile) attributes, i.e., those other attributes depend on it.
+This is specified as *outgoing* dependency.
+Currently, we specify only the operation here, and only the `modify` operation is supported.
++
+(Later, it will be possible to provide specific attributes that depend on this one.)
+
++
+An example:
+
++
+.Listing 2: The `dn` attribute change may trigger changes in other attributes
+[source,xml]
+----
+<objectType>
+    <kind>...</kind>
+    <intent>...</intent>
+    ...
+    <attribute>
+        <ref>ri:dn</ref>
+        ...
+        <volatility>
+            <outgoing>
+                <operation>modify</operation>
+            </outgoing>
+        </volatility>
+    </attribute>
+</objectType>
+----
+
++
+Note that this is a replacement for (now deprecated) `volatilityTrigger` attribute property.
+
+=== Object-Level Settings
+
+==== The `volatility` Property on the Object Type
+
+Currently, the attribute-level settings may not always be sufficient to ensure correct processing of objects with volatile attributes.
+
+An (experimental) `volatility` object-level property influences processing in the following way:
+
+. If set to `unpredictable`, midPoint reads the current state of the object after any create or modify operation on it.
+This should help if the attribute-level volatility is not enough.
+(It should be used in addition to it.)
+
+. If set to `explosive`, midPoint invokes full focus recompute/reconcile after the current operation finishes.
+This is meant for the hardest situations.
+It is quite inefficient.
+But it may be the only option to reliably manage data in some resources.
+
+==== The `dataBinding` Property on the Dependency Configuration
+
+For example, the configuration below specifies that `entitlement/group` depends on `entitlement/org` (see case #4 among typical cases).
+If `entitlement/org` changes, the `entitlement/group` has to be reloaded, as there is potentially an induced change directly on the resource.
+
+.Listing 3: Attributes in `entitlement/group` depends on the ones in `entitlement/org`
+[source,xml]
+----
+<objectType>
+    <kind>entitlement</kind>
+    <intent>group</intent>
+    ...
+    <dependency>
+        <kind>entitlement</kind>
+        <intent>org</intent>
+        <strictness>strict</strictness>
+        <dataBinding>some</dataBinding>
+    </dependency>
+</objectType>
+----
+
+== Limitations
+
+The volatile attributes must not deal with any simulated features (like simulated activation) nor associations.
