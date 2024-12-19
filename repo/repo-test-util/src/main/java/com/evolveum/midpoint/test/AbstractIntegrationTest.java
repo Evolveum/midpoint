@@ -4574,6 +4574,14 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
         return false;
     }
 
+    /**
+     * Used for test classes that provide their own explicit caching configuration, so there's no point in running them
+     * under caching overrides.
+     */
+    protected boolean isUsingCachingOverride() {
+        return !InternalsConfig.getShadowCachingDefault().isStandardForTests();
+    }
+
     /** To be used at individual test method level. */
     protected void skipIfNotNativeRepository() {
         if (!isNativeRepository()) {
@@ -4733,5 +4741,21 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
                         .replace(clock.currentTimeXMLGregorianCalendar())
                         .asItemDeltas(),
                 getTestOperationResult());
+    }
+
+    protected PrismPropertyValue<?> constBasedValue(String value) {
+        var constExpressionEvaluator = new ConstExpressionEvaluatorType();
+        constExpressionEvaluator.setValue(value);
+
+        var ppv = prismContext.itemFactory().createPropertyValue();
+        ppv.setExpression(
+                new ExpressionWrapper(
+                        SchemaConstantsGenerated.C_EXPRESSION,
+                        new ExpressionType()
+                                .expressionEvaluator(new JAXBElement<>(
+                                        SchemaConstantsGenerated.C_CONST,
+                                        ConstExpressionEvaluatorType.class,
+                                        constExpressionEvaluator))));
+        return ppv;
     }
 }

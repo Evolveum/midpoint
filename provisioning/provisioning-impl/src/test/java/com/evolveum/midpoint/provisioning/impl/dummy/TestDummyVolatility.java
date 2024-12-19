@@ -84,8 +84,7 @@ public class TestDummyVolatility extends AbstractDummyTest {
 
     @Override
     protected boolean shouldSkipWholeClass() {
-        // No need to waste time running this class under different caching overrides, as it uses its own (explicit) caching.
-        return !InternalsConfig.getShadowCachingDefault().isStandardForTests();
+        return isUsingCachingOverride();
     }
 
     @Override

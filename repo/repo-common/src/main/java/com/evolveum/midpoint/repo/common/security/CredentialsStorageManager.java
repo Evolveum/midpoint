@@ -242,8 +242,11 @@ public class CredentialsStorageManager {
     private static @NotNull CredentialsStorageTypeType getStorageType(
             @Nullable CredentialsPolicyType credentialsPolicy, boolean legacyCaching) {
         var declaredStorage = SecurityUtil.getPasswordStorageType(credentialsPolicy);
-        return declaredStorage != CredentialsStorageTypeType.ENCRYPTION || !legacyCaching ?
-                declaredStorage : CredentialsStorageTypeType.HASHING;
+        if (legacyCaching && declaredStorage == CredentialsStorageTypeType.ENCRYPTION) {
+            return CredentialsStorageTypeType.HASHING; // this is a fallback; as the legacy caching supports only hashing
+        } else {
+            return declaredStorage;
+        }
     }
 
     /**
@@ -290,6 +293,40 @@ public class CredentialsStorageManager {
                 }
             }
             default -> throw unsupported(storage);
+        }
+    }
+
+    /**
+     * Returns deltas to update shadow password under (possibly) changed policies:
+     *
+     * - encrypted -> hashed / none
+     * - hashed -> none
+     *
+     * We assume the value is either encrypted or hashed, i.e., it's not in the cleartext nor in the external form.
+     */
+    public @Nullable PropertyDelta<ProtectedStringType> updateShadowPasswordIfNeeded(
+            @NotNull ProtectedStringType existingPasswordValue, CredentialsPolicyType credentialsPolicy, boolean legacyCaching)
+            throws SchemaException, EncryptionException {
+        assert existingPasswordValue.isEncrypted() || existingPasswordValue.isHashed();
+        var storageType = getStorageType(credentialsPolicy, legacyCaching);
+        switch (storageType) {
+            case ENCRYPTION -> {
+                // If the value is already encrypted, good. If it's hashed, there's nothing we can do about it here.
+                return null;
+            }
+            case HASHING -> {
+                if (existingPasswordValue.isEncrypted()) {
+                    var clone = existingPasswordValue.clone();
+                    protector.hash(clone);
+                    return createPasswordReplaceDelta(clone);
+                } else {
+                    return null; // Already hashed
+                }
+            }
+            case NONE -> {
+                return createPasswordReplaceDelta();
+            }
+            default -> throw unsupported(storageType);
         }
     }
 
