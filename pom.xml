@@ -228,7 +228,7 @@
         <!-- START of Spring Boot dependencies overrides (temporary/security fixes, revise regularly!) -->
         <!-- END of Spring Boot dependencies overrides -->
 
-        <wicket.version>10.2.0</wicket.version>
+        <wicket.version>10.3.0</wicket.version>
         <wicketstuff.version>10.1.1</wicketstuff.version>
         <wicket.chartjs.version>0.6-SNAPSHOT</wicket.chartjs.version>
         <!-- Groovy 4.0.21 is also default for Spring Boot 3.3.0 -->
