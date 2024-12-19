@@ -272,15 +272,6 @@ public class PageSelfRegistration extends PageAbstractFlow {
         isSubmitted = true;
     }
 
-    @Override
-    protected String getArchetypeOid() {
-        var authentication = SecurityContextHolder.getContext().getAuthentication();
-        if (!(authentication instanceof MidpointAuthentication mpAuthentication)) {
-            return null;
-        }
-        return mpAuthentication.getArchetypeOid();
-    }
-
     private void saveUser(OperationResult result) {
         try {
             PrismObject<UserType> administrator = getAdministratorPrivileged(result);

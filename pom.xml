@@ -28,7 +28,6 @@
 
     Quick developer's run without any tests, skipping distribution and documentation build (~5m):
     mvn clean install -P -dist -DskipTests
-    After this, it's possible to run midPoint JAR with: java -jar gui/midpoint-jar/target/midpoint.jar
 
     Quick build of distribution without running tests, skipping documentation (~6m):
     mvn clean install -P -docs -DskipTests

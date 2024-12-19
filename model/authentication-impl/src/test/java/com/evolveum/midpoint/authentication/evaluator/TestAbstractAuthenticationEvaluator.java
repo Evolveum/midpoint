@@ -1344,7 +1344,7 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
         module.setState(status);
         module.setNameOfModule(getModuleIdentifier());
 
-        mPAuthentication.addAuthentications(module);
+        mPAuthentication.addAuthentication(module);
         return mPAuthentication;
     }
 

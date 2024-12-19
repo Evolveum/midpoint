@@ -35,6 +35,11 @@ export default class MidPointAceEditor {
                 }
                 clone.id = newId;
 
+                let ariaControls = input.getAttribute("aria-controls");
+                if (ariaControls != null) {
+                    clone.setAttribute("aria-controls", "wicket-autocomplete-listbox-" + newId);
+                }
+
                 if (input.nextSibling) {
                     parent.insertBefore(clone, input.nextSibling);
                 } else {

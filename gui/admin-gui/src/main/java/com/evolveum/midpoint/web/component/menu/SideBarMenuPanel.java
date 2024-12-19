@@ -40,6 +40,8 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.session.SessionStorage;
 
+import org.w3c.dom.Attr;
+
 /**
  * @author Viliam Repan (lazyman)
  */
@@ -79,8 +81,8 @@ public class SideBarMenuPanel extends BasePanel<List<SideBarMenuItem>> {
         photoContainer.add(AttributeAppender.append("style", "background-image: url('" + photoUrlModel.getObject() + "');"));
         add(photoContainer);
 
-
-        Label username = new Label(ID_USERNAME, () -> getShortUserName());
+        Label username = new Label(ID_USERNAME, this::getShortUserName);
+        username.add(AttributeAppender.append("title", this::getShortUserName));
         add(username);
 
         Label usernameDescription = new Label(ID_USERNAME_DESCRIPTION, () -> getUsernameDescription());

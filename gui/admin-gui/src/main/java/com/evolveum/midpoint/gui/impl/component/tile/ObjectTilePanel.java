@@ -56,7 +56,12 @@ public class ObjectTilePanel<F extends Serializable, T extends Tile<F>> extends 
     protected void initLayout() {
         setOutputMarkupId(true);
 
-        RoundedImagePanel logo = new RoundedImagePanel(ID_LOGO, () -> createDisplayType(getModel()), createPreferredImage(getModel()));
+        RoundedImagePanel logo = new RoundedImagePanel(ID_LOGO, () -> createDisplayType(getModel()), createPreferredImage(getModel())) {
+            @Override
+            protected String getAlternativeTextForImage() {
+                return ObjectTilePanel.this.getAlternativeTextForImage(ObjectTilePanel.this.getModel());
+            }
+        };
         add(logo);
 
         Label description = new Label(ID_DESCRIPTION, () -> getModelObject().getDescription());
@@ -84,6 +89,10 @@ public class ObjectTilePanel<F extends Serializable, T extends Tile<F>> extends 
         details.add(createDetailsBehaviour());
         addAriaDescribedByForButton(details);
         add(details);
+    }
+
+    protected String getAlternativeTextForImage(IModel<T> model) {
+        return null;
     }
 
     protected void addAriaDescribedByForButton(Component details) {

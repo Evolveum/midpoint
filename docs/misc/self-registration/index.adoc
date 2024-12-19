@@ -381,7 +381,7 @@ image::login-page.png[]
 
 
 
-. Click on the Sign up button and you'll see following form
+. Click on the "Register new account" button and you'll see following form
 +
 image::registration-page.png[]
 
@@ -399,6 +399,14 @@ If your registration is successful you can continue with login.
 image::confirmation-success.png[]
 
 . In the case you got any error during registration process, please contact your system administrator.
+
+== Security
+The registration form is protected from spam bots by the honeypot technique.
+Think of it as a fake door in a maze. And the only things trying to get through are bots.
+It is a hidden field that form fillers can't see, but bots can.
+Since real people can't see it, they won't fill it in.
+
+Previous versions of midPoint used captcha, but due to the Web Content Accessibility Guidelines (WCAG) we had to change this.
 
 == See also
 
