@@ -48,6 +48,9 @@ Overall, midPoint 4.9 is a major step from the past into the future.
 * Update GUI views after changing of the archetype, that is used in the view. See bug:MID-9776[].
 * Adding support for PKCE (Proof Key for Code Exchange) as additional security for OIDC authentication module. See bug:MID-10155[].
 * Adding new configuration attribute for OIDC authentication module, that is used for ID Token signing algorithm. See xref:/midpoint/reference/security/authentication/flexible-authentication/modules/oidc/[Oidc Module].
+* Password caching has been implemented. See xref:/midpoint/reference/resources/attribute-caching/[].
+* Apply the Web Content Accessibility Guidelines (WCAG) to all login pages and self-service pages. See bug:MID-9847[].
+** Used 'honeypot' instead of captcha on self-registration and post-authentication pages to protect against spam bots.
 
 === Releases Of Other Components
 
