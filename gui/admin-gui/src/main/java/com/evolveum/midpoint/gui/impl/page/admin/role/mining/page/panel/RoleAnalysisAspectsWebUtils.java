@@ -119,12 +119,7 @@ public class RoleAnalysisAspectsWebUtils {
                     AjaxLinkPanel linkPanel = new AjaxLinkPanel(id, Model.of(outlierObject.getName())) {
                         @Override
                         public void onClick(AjaxRequestTarget target) {
-                            PageParameters parameters = new PageParameters();
-                            String outlierOid = outlierObject.getOid();
-                            parameters.add(OnePageParameterEncoder.PARAMETER, outlierOid);
-                            Class<? extends PageBase> detailsPageClass = DetailsPageUtil
-                                    .getObjectDetailsPage(RoleAnalysisOutlierType.class);
-                            pageBase.navigateToNext(detailsPageClass, parameters);
+                            DetailsPageUtil.dispatchToObjectDetailsPage(outlierObject.asPrismObject(), this);
                         }
                     };
                     linkPanel.setOutputMarkupId(true);

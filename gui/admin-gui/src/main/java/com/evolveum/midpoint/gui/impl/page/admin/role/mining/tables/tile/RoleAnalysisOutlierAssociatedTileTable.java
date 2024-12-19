@@ -9,7 +9,6 @@ package com.evolveum.midpoint.gui.impl.page.admin.role.mining.tables.tile;
 
 import static com.evolveum.midpoint.gui.api.util.GuiDisplayTypeUtil.createDisplayType;
 import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.RoleAnalysisWebUtils.*;
-import static com.evolveum.midpoint.gui.api.util.LocalizationUtil.translateMessage;
 
 import java.io.Serial;
 import java.util.ArrayList;

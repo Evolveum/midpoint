@@ -107,6 +107,7 @@ public class RoleAnalysisPartitionOverviewPanel extends BasePanel<RoleAnalysisOu
         double pointsDensity = bd.doubleValue();
 
         OutlierHeaderResultPanel components = new OutlierHeaderResultPanel(id,
+                outlierModel.getObject().getOid(),
                 outlierName,
                 translate("Analysis.outlier.result.panel.title"),
                 String.valueOf(pointsDensity), formattedDate);
