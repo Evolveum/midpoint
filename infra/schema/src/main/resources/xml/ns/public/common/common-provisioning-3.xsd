@@ -2521,7 +2521,7 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
-            <xsd:element name="incomingDependency" type="tns:ShadowItemDependencyType" minOccurs="0" maxOccurs="unbounded">
+            <xsd:element name="incoming" type="tns:ShadowItemDependencyType" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
                     <xsd:documentation>
                         Items on which this item may depend on - i.e., whose values or changes may affect the values
@@ -2529,7 +2529,7 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="outgoingDependency" type="tns:ShadowItemDependencyType" minOccurs="0" maxOccurs="unbounded">
+            <xsd:element name="outgoing" type="tns:ShadowItemDependencyType" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
                     <xsd:documentation>
                         Items that may depend on this item - i.e., whose that may be affected by values or changes of this item.

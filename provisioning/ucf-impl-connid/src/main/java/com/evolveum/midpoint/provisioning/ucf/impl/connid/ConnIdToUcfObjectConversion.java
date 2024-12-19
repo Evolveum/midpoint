@@ -429,9 +429,11 @@ class ConnIdToUcfObjectConversion {
             embeddedConversion.execute();
             // If the conversion is not successful, the conversion of the particular reference attribute - as a whole - fails
             // (and the error is handled just as if any attribute conversion failed).
-            return ShadowReferenceAttributeValue.fromShadow(
-                    embeddedConversion.getUcfResourceObjectFragmentIfSuccess(),
-                    targetObjectOrIdentification instanceof ConnectorObject);
+            var ucfObjectFragment = embeddedConversion.getUcfResourceObjectFragmentIfSuccess();
+            if (!(targetObjectOrIdentification instanceof ConnectorObject)) {
+                ucfObjectFragment.setIdentificationOnly();
+            }
+            return ShadowReferenceAttributeValue.fromShadow(ucfObjectFragment);
         }
 
         @NotNull UcfResourceObjectFragment getResourceObjectFragmentIfSuccess() throws SchemaException {

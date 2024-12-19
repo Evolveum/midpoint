@@ -91,7 +91,7 @@ public abstract class DummyObject implements DebugDumpable {
     }
 
     public DummyResource getResourceRequired() {
-        return MiscUtil.stateNonNull(resource, "No resource set for " + this);
+        return MiscUtil.stateNonNull(resource, "No resource set for %s", this);
     }
 
     void setPresentOnResource(DummyResource resource) {

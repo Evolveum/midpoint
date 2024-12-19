@@ -1,23 +1,18 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (c) 2017 Evolveum and contributors
+  ~ Copyright (c) 2010-2017 Evolveum and contributors
   ~
   ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
 
-<!-- MID-3727 -->
-
-<resource oid="67a954d2-f391-11e6-a1d7-078381fe0e6f"
+<resource oid="e5eeccc7-a0bb-4961-9edf-a8693c6e9004"
           xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-          xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
           xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
           xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
           xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">
-
-    <name>Dummy Resource Monsterized</name>
-    <description>Resource with a monster that eats cookies</description>
-    <connectorRef type="c:ConnectorType">
+    <name>refreshed</name>
+    <connectorRef type="ConnectorType">
         <filter>
             <q:and>
                 <q:equal>
@@ -33,72 +28,33 @@
     </connectorRef>
     <connectorConfiguration xmlns:icfi="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.icf.dummy/com.evolveum.icf.dummy.connector.DummyConnector"
                    xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3">
-
         <icfc:configurationProperties>
-            <icfi:instanceId>monsterized</icfi:instanceId>
-            <icfi:monsterized>true</icfi:monsterized>
+            <icfi:instanceId>refreshed</icfi:instanceId>
         </icfc:configurationProperties>
-
     </connectorConfiguration>
-
     <schemaHandling>
         <objectType>
+            <kind>account</kind>
             <intent>default</intent>
             <default>true</default>
             <objectClass>ri:AccountObjectClass</objectClass>
-
             <attribute>
                 <ref>icfs:name</ref>
                 <outbound>
-                    <source>
-                        <path>$user/name</path>
-                    </source>
-                </outbound>
-            </attribute>
-            <attribute>
-                <ref>icfs:uid</ref>
-            </attribute>
-            <attribute>
-                <ref>ri:fullname</ref>
-                <outbound>
                     <strength>strong</strength>
                     <source>
-                        <path>fullName</path>
+                        <path>name</path>
                     </source>
                 </outbound>
             </attribute>
-            <attribute>
-                <ref>ri:interests</ref>
-                <volatility>
-                    <!-- Value can change unexpectedly both when adding or modifying the object -->
-                    <incoming>
-                        <operation>add</operation>
-                        <operation>modify</operation>
-                    </incoming>
-                </volatility>
-                <outbound>
-                    <strength>strong</strength>
-                    <source>
-                        <path>organization</path>
-                    </source>
-                </outbound>
-            </attribute>
-
-            <volatility>explosive</volatility>
-
-            <activation>
-                <administrativeStatus>
-                    <outbound/>
-                </administrativeStatus>
-            </activation>
-
             <credentials>
                 <password>
                     <outbound/>
                 </password>
             </credentials>
-
         </objectType>
     </schemaHandling>
-
+    <caching>
+        <cachingStrategy>passive</cachingStrategy>
+    </caching>
 </resource>

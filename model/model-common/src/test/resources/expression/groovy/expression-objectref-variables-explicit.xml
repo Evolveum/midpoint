@@ -7,6 +7,7 @@
   -->
 
 <script xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
-    <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#python</language>
-    <code>foo + ' ' + (jack.getEmployeeNumber() if jack is not None else '')</code>
+    <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#Groovy</language>
+    <objectVariableMode>object</objectVariableMode>
+    <code>foo + ' ' + (jack?.getEmployeeNumber() ?: '')</code>
 </script>

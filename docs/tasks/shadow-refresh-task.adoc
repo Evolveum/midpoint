@@ -18,6 +18,7 @@ And there are also cases when the data model evolves and data in the "shadows" n
 All such situations mean that shadow objects need to _refreshed_. Refresh means that midPoint makes sure that a shadow is internally consistent and to execute all operations that need to be executed in order to re-gain consistency.
 Shadow refresh will try to finish pending operations, e.g. xref:/midpoint/reference/synchronization/consistency/[re-try failed operations]. Refresh will update the status of xref:/midpoint/reference/resources/manual/[manual operations]. And so on.
 Refresh task will also make sure that application-level indexes for shadow objects are right.
+It also tries to adapt the cached shadow password to the current caching and password storage policy.
 Therefore it can be useful in migration scenarios or in cases that system configuration was changed and stored data need to be updated.
 
 [NOTE]
@@ -85,7 +86,32 @@ Whenever you specify query, it overrides the default query (all shadows on all r
 
 Refresh task is quite lightweight and efficient.
 Therefore it can usually be scheduled for quite a frequent execution, usually executing every few minutes.
+(As long as only the shadows with pending operations are considered.)
 
+[#_cached_passwords]
+== Cached Passwords
+
+When the credentials caching strategy and/or storage method (`encryption`, `hashing`) is changed, the shadow refresh task can be used to apply the new configuration to existing shadows.
+In particular, the following transitions are done by this task:
+
+[%autowidth]
+|===
+| Original state | New state | Description
+
+| cached
+| not cached
+| The information about the cached passwords are removed.
+
+| encrypted
+| hashed
+| The cached passwords are hashed.
+
+|===
+
+All other changes, like from `hashing` to `encryption`, or from "not cached" to "cached" are ignored by this task.
+The reason is that it is not possible to derive the actual value of the password from hashed (or missing) value without contacting the resource - which is something this task does not do.
+
+If you need to do this kind of change, the best approach is to use the standard method of xref:/midpoint/reference/resources/attribute-caching/#_refreshing_the_cache[refreshing the cached shadows] that works by reading from the resource.
 
 == See Also
 

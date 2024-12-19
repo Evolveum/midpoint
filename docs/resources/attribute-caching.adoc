@@ -9,6 +9,7 @@ doc-type: intro
 :page-wiki-metadata-create-date: 2016-10-26T18:11:44.898+02:00
 :page-wiki-metadata-modify-user: semancik
 :page-wiki-metadata-modify-date: 2016-10-26T18:11:44.898+02:00
+:page-toc: top
 :page-upkeep-status: green
 
 MidPoint usually works with fresh data.
@@ -296,13 +297,94 @@ If you need this behavior to be avoided, just turn off that activity.
 
 This feature is *experimental*.
 
+== Caching Passwords
+
+Passwords are special in some aspects.
+
+. They are security-sensitive, so their storage is governed by xref:/midpoint/reference/security/credentials/password-storage-configuration/[].
+. Resources often do not provide password values.
+.. Most resource simply do not provide anything about passwords.
+.. Some resources provide an indication whether a password does exist or not.
+.. Some resource provide the actual password value.
+.. And there are resources that provide only a hashed value (e.g., like `{SSHA}rxNYgQODi95h2bsjYXuBqvYz+I1gjgMkF9f0tA==` for LDAP).
+
+So, when a password is stored in the shadow object in the repository, there are the following possibilities:
+
+. no value - if the resource did not provide it,
+. no value, but the `incomplete` flag being `true` - if the resource indicated only the presence of the password,
+. encrypted value,
+. hashed value.
+
+TIP: When having a resource that provides a hashed value of the password, the best approach is to set the connector to avoid providing the password at all (e.g., using `passwordReadStrategy` for LDAP connector).
+This way, midPoint will not get confused by mixing real and hashed values in stored shadows.
+
+=== Password Storage
+Password storage is driven by xref:/midpoint/reference/security/credentials/password-storage-configuration/[] in respective Security Policy object.
+The policy used is determined by merging the policy specified in the resource object type and the system-wide security policy.
+
+.Listing 4: Specifying the security policy for a resource object type
+[source,xml]
+----
+<objectType>
+    ...
+    <securityPolicyRef oid="069552e9-de28-41ff-8372-7e15c86dd516"/>
+    ...
+</objectType>
+----
+
+[#_obsolete_cached_values]
+=== Obsolete Cached Values
+
+If the resource does not provide password values, the situation can get tricky.
+Imagine the following scenario:
+
+. MidPoint requests the creation of an account (or password modification on existing account).
+The password value is cached in the repository shadow.
+. The password value is changed directly on the resource, e.g., by the user itself, or by an administrator.
+
+There is no way how midPoint could get the information about the changed password, even when the shadow is re-read from the resource: the resource simply won't tell.
+In order to avoid breaking existing functionality (e.g., xref:/midpoint/reference/security/credentials/password-policy/#_prohibited_value[prohibited values]), midPoint will keep the last known value in the shadow.
+
+[#_legacy_configuration]
+=== Legacy Configuration
+
+Partial caching of passwords was available in earlier versions of midPoint.
+It is still supported, although deprecated now.
+It was configured like this:
+
+.Listing 5: Legacy way of configuring password caching (DEPRECATED)
+[source,xml]
+----
+<objectType>
+    ...
+    <credentials>
+        <password>
+            ...
+            <caching>
+                <cachingStrategy>passive</cachingStrategy>
+            </caching>
+            ...
+        </password>
+    </credentials>
+    ...
+</objectType>
+----
+
+If this configuration is present (regardless of whether "modern" caching is enabled or not), there are the following limitations:
+
+. Storage is always in the hashed form, to avoid unintended password exposure (even in the encrypted form).
+. Passwords are _not_ updated when objects are fetched from the resource.
+
+This behavior is intentional, in order to avoid unintended storage of sensitive data when upgrading from earlier versions.
+It is recommended to migrate the configuration to the current format.
+
 [#_refreshing_the_cache]
 == Refreshing the Cache
 
 The best way of refreshing the cache is to run an import or reconciliation task.
 However, if you want to avoid the cost of data processing inherent in these tasks, you can use the following alternative:
 
-.Listing 4: A task that just refreshes the shadow cache
+.Listing 6: A task that just refreshes the shadow cache
 [source,xml]
 ----
 <task xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
@@ -329,6 +411,14 @@ However, if you want to avoid the cost of data processing inherent in these task
 <1> Avoids data processing.
 
 The same effect can be attained by clicking on `Reload` button on the resource page for accounts, entitlements, or generics.
+
+=== Updating the Cache without Reading from Resource
+
+For cached passwords, selected changes in the policies (e.g., switching the storage method from encryption to hashing) can be treated also using xref:/midpoint/reference/tasks/shadow-refresh-task/#_cached_passwords[Shadow refresh task], without the need of reading from the resource.
+
+NOTE: The shadow refresh task executes the pending operations.
+It is an integral part of the refresh activity.
+Hence, some resource operations may occur as a side effect of updating the cached password via this task.
 
 == Impact on API Operations
 
@@ -429,6 +519,32 @@ On the other hand, in some cases, inbound mappings for some attributes may be sk
 the shadow may not be loaded - because of caching.
 That way or another, please make sure the system behaves as expected with `useCachedOrFresh` setting.
 
+=== Caching of Passwords
+
+. Resources with readable passwords that return mangled (e.g., hashed) passwords can cause mixing of real and hashed values in stored shadows.
+This can break existing midPoint functionality.
+It is recommended either to configure the connector to provide existence or no information on the password, or, temporarily, it is possible to use the xref:#_legacy_configuration[legacy (deprecated) style] of the password caching.
+
+. When using a configuration in which all these conditions hold:
+.. password not fully readable,
+.. caching turned on with `encryption` storage method,
+.. `useCachedOrFresh` cache mode,
+.. password is changed both in midPoint and on the resource,
+.. there are inbound mappings and/or strong outbound mappings,
+
++
+then the results of inbound mappings and/or application of strong outbound mappings would be unpredictable.
+
++
+The reason is that only the values coming from midPoint to the resource are cached correctly.
+The values changed on the resource are simply not known to midPoint.
+See xref:#_obsolete_cached_values[Obsolete Cached Values] section above.
+
++
+In such cases, it is advised to turn off the password caching, eliminate the mappings, or make sure that the password is not changed both in midPoint and on the resource.
+
+. When applying changed policies using the xref:/midpoint/reference/tasks/shadow-refresh-task/#_cached_passwords[Shadow refresh task], pending operations may get executed as a natural effect of running that task.
+
 == Migration Note
 
 Before 4.9, this feature was experimental.
@@ -440,3 +556,4 @@ Please take that into account when migrating.
 == See Also
 
 * xref:/midpoint/reference/resources/resource-configuration/[Resource Configuration]
+* xref:/midpoint/reference/security/credentials/password-storage-configuration/[]
