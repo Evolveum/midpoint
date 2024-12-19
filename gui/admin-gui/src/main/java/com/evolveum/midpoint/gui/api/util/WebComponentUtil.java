@@ -23,6 +23,7 @@ import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.gui.impl.component.input.converter.DateConverter;
+import com.evolveum.midpoint.gui.impl.page.admin.focus.FocusDetailsModels;
 import com.evolveum.midpoint.web.page.admin.server.dto.ApprovalOutcomeIcon;
 
 import org.apache.commons.collections4.CollectionUtils;
@@ -3794,6 +3795,11 @@ public final class WebComponentUtil {
             try {
                 Panel panel = ConstructorUtils.invokeConstructor(panelClass, markupId, objectDetailsModels.getObjectWrapperModel(), panelConfig);
                 panel.setOutputMarkupId(true);
+
+                var isHistoricalData = objectDetailsModels instanceof FocusDetailsModels<?>
+                        && ((FocusDetailsModels<?>) objectDetailsModels).isHistoricalObject();
+                ((AbstractAssignmentTypePanel) panel).setHistoricalData(isHistoricalData);
+
                 return panel;
             } catch (Throwable e) {
                 LOGGER.trace("No constructor found for (String, LoadableModel, ContainerPanelConfigurationType). Continue with lookup.", e);

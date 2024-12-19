@@ -83,6 +83,7 @@ public abstract class AbstractAssignmentTypePanel extends MultivalueContainerLis
 
     private Class<? extends AssignmentHolderType> objectType;
     private String objectOid;
+    boolean isHistoricalData;
 
     public AbstractAssignmentTypePanel(String id, IModel<PrismContainerWrapper<AssignmentType>> model, ContainerPanelConfigurationType config, Class<? extends AssignmentHolderType> type, String oid) {
         super(id, AssignmentType.class, config);
@@ -107,7 +108,7 @@ public abstract class AbstractAssignmentTypePanel extends MultivalueContainerLis
     }
 
     protected boolean isRepositorySearchEnabled() {
-        return providerFactory().isRepositorySearchEnabled();
+        return providerFactory().isRepositorySearchEnabled() && isHistoricalData;
     }
 
     @Override
@@ -537,7 +538,12 @@ public abstract class AbstractAssignmentTypePanel extends MultivalueContainerLis
     }
 
     protected ContainerValueDataProviderFactory<AssignmentType, ?> providerFactory() {
-        return getPageBase().getDataProviderRegistry().forContainerValue(AssignmentType.class, this.getPanelConfiguration().getListView(), InMemoryAssignmentDataProviderType.class);
+        var listView = this.getPanelConfiguration().getListView();
+        if (listView != null && isHistoricalData) {
+            listView.setDataProvider(null); // we cannot apply repository search results for historical data
+        }
+        return getPageBase().getDataProviderRegistry().forContainerValue(AssignmentType.class, listView,
+                InMemoryAssignmentDataProviderType.class);
     }
 
     @Override
@@ -699,4 +705,9 @@ public abstract class AbstractAssignmentTypePanel extends MultivalueContainerLis
     protected final Class<? extends AssignmentHolderType> getAssignmentHolderType() {
         return objectType;
     }
+
+    public void setHistoricalData(boolean isHistoricalData) {
+        this.isHistoricalData = isHistoricalData;
+    }
+
 }

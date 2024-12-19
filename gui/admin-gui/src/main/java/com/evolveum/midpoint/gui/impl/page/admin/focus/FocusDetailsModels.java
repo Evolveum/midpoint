@@ -154,6 +154,10 @@ public class FocusDetailsModels<F extends FocusType> extends AssignmentHolderDet
         return history;
     }
 
+    public boolean isHistoricalObject() {
+        return history;
+    }
+
     private List<String> visiblePanelIdentifierList() {
         ArrayList<String> visiblePanelIdentifier = new ArrayList<>();
         visiblePanelIdentifier.add(PANEL_TYPE_BASIC);
