@@ -219,7 +219,7 @@ public class OutlierExplanationResolverTest extends AbstractUnitTest {
         var result = resolver.explain();
 
         then();
-        assertEquals("1 unusual accesses, 1 irregular attributes for location: Tokio", translate(result.explanation().getMessage()));
+        assertEquals("1 unusual accesses, 1 irregular attributes in location: Tokio group", translate(result.explanation().getMessage()));
     }
 
     @Test
@@ -234,7 +234,7 @@ public class OutlierExplanationResolverTest extends AbstractUnitTest {
         var result = resolver.explain();
 
         then();
-        assertEquals("1 unusual accesses for Organizational Unit: Development", translate(result.explanation().getMessage()));
+        assertEquals("1 unusual accesses in Organizational Unit: Development group", translate(result.explanation().getMessage()));
     }
 
     @Test
@@ -255,7 +255,7 @@ public class OutlierExplanationResolverTest extends AbstractUnitTest {
         var result = resolver.explain();
 
         then();
-        assertEquals("1 unusual accesses, 1 irregular attributes for location: Tokio and Organizational Unit: Development", translate(result.explanation().getMessage()));
+        assertEquals("1 unusual accesses, 1 irregular attributes in location: Tokio and Organizational Unit: Development group", translate(result.explanation().getMessage()));
     }
 
     @Test
@@ -270,7 +270,7 @@ public class OutlierExplanationResolverTest extends AbstractUnitTest {
         var result = resolver.explain();
 
         then();
-        assertEquals("1 unusual accesses for Organizational Unit: Development over 2 partitions", translate(result.explanation().getMessage()));
+        assertEquals("1 unusual accesses in Organizational Unit: Development group over 2 partitions", translate(result.explanation().getMessage()));
     }
 
     private OutlierExplanationInput makeOutlier(List<AnomalyExplanationInput> anomalies, List<ExplanationAttribute> groupByAttributes) {
