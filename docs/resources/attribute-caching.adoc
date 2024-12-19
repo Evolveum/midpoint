@@ -492,16 +492,19 @@ The defaults above can be turned back to standard default values (the second col
 
 === For Both Native And Generic (Oracle, SQL Server) Repository
 
-. Attributes whose values are provided by the resource should have caching turned off.
-For example, the `uid` attribute in LDAP can be derived from the `dn` attribute (if it's in the form of `uid=xxx,...`).
-In such cases, midPoint could mistakenly assume that the value of this attribute is missing for new accounts being created, when `useCachedOrFresh` approach to data retrieval is used.
+. Attributes whose values are provided by the resource should be either:
+
+.. correctly marked as xref:/midpoint/reference/resources/resource-configuration/schema-handling/volatility/[volatile];
+.. not cached - by setting their `cached` property to `false`;
+.. have values always provided by outbound mappings (if the resource provides only the default values).
+
 +
-The solution is either to turn their caching off (by setting `cached` property to `false` for those attributes), or to make sure they are explicitly provided by midPoint each time their source (e.g., `dn` for `uid`) is created or modified.
+For example, the `uid` attribute in LDAP can be derived from the `dn` attribute (if it's in the form of `uid=xxx,...`).
+The solution is either to mark the attribute as volatile, turn its caching off, or to make sure its value is explicitly provided by midPoint each time the `dn` is created or modified.
 You can do that by providing an explicit mapping for, e.g., `uid` attribute along with the mapping for `dn`.
 
-. Only hashed or "present vs not present" storage of cached passwords is supported.
-
 . Localized attributes (see bug:MID-5210[]) are not cached yet.
+See bug:MID-10102[].
 
 === For Generic Repository (Oracle, SQL Server) Only
 
