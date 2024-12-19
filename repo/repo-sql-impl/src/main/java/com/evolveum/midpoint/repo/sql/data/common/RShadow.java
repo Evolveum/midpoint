@@ -13,7 +13,7 @@ import jakarta.persistence.Table;
 import org.hibernate.annotations.*;
 
 import com.evolveum.midpoint.repo.sql.data.RepositoryContext;
-import com.evolveum.midpoint.repo.sql.data.common.embedded.REmbeddedReference;
+import com.evolveum.midpoint.repo.sql.data.common.embedded.RSimpleEmbeddedReference;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.RPolyString;
 import com.evolveum.midpoint.repo.sql.data.common.enums.RFailedOperationType;
 import com.evolveum.midpoint.repo.sql.data.common.enums.ROperationResultStatus;
@@ -63,7 +63,7 @@ public class RShadow extends RObject implements ROperationResult {
     //operation result
     private ROperationResultStatus status;
     //end of operation result
-    private REmbeddedReference resourceRef;
+    private RSimpleEmbeddedReference resourceRef;
     private Integer attemptNumber;
     private Boolean dead;
     private RFailedOperationType failedOperationType;
@@ -99,7 +99,7 @@ public class RShadow extends RObject implements ROperationResult {
     }
 
     @Embedded
-    public REmbeddedReference getResourceRef() {
+    public RSimpleEmbeddedReference getResourceRef() {
         return resourceRef;
     }
 
@@ -185,7 +185,7 @@ public class RShadow extends RObject implements ROperationResult {
         this.kind = kind;
     }
 
-    public void setResourceRef(REmbeddedReference resourceRef) {
+    public void setResourceRef(RSimpleEmbeddedReference resourceRef) {
         this.resourceRef = resourceRef;
     }
 

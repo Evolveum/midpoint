@@ -6,10 +6,10 @@
  */
 package com.evolveum.midpoint.repo.sql.data.common;
 
-import com.evolveum.midpoint.repo.sql.data.common.embedded.REmbeddedReference;
-
-import javax.xml.datatype.XMLGregorianCalendar;
 import java.util.Set;
+import javax.xml.datatype.XMLGregorianCalendar;
+
+import com.evolveum.midpoint.repo.sql.data.common.embedded.RSimpleEmbeddedReference;
 
 /**
  * @author lazyman
@@ -20,9 +20,9 @@ public interface Metadata<T extends ObjectReference> {
 
     void setCreateTimestamp(XMLGregorianCalendar calendar);
 
-    REmbeddedReference getCreatorRef();
+    RSimpleEmbeddedReference getCreatorRef();
 
-    void setCreatorRef(REmbeddedReference ref);
+    void setCreatorRef(RSimpleEmbeddedReference ref);
 
     Set<T> getCreateApproverRef();
 
@@ -36,9 +36,9 @@ public interface Metadata<T extends ObjectReference> {
 
     void setModifyTimestamp(XMLGregorianCalendar calendar);
 
-    REmbeddedReference getModifierRef();
+    RSimpleEmbeddedReference getModifierRef();
 
-    void setModifierRef(REmbeddedReference ref);
+    void setModifierRef(RSimpleEmbeddedReference ref);
 
     Set<T> getModifyApproverRef();
 

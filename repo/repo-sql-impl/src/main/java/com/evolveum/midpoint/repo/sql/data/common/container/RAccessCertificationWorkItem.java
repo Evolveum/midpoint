@@ -23,7 +23,7 @@ import javax.xml.datatype.XMLGregorianCalendar;
 import org.hibernate.annotations.*;
 
 import com.evolveum.midpoint.repo.sql.data.RepositoryContext;
-import com.evolveum.midpoint.repo.sql.data.common.embedded.REmbeddedReference;
+import com.evolveum.midpoint.repo.sql.data.common.embedded.RSimpleEmbeddedReference;
 import com.evolveum.midpoint.repo.sql.data.common.id.RCertWorkItemId;
 import com.evolveum.midpoint.repo.sql.query.definition.*;
 import com.evolveum.midpoint.repo.sql.type.XMLGregorianCalendarType;
@@ -53,7 +53,7 @@ public class RAccessCertificationWorkItem implements L2Container<RAccessCertific
     private Integer iteration;
     private Integer stageNumber;
     private Set<RCertWorkItemReference> assigneeRef = new HashSet<>();
-    private REmbeddedReference performerRef;
+    private RSimpleEmbeddedReference performerRef;
     private String outcome;
     private XMLGregorianCalendar outputChangeTimestamp;
     private XMLGregorianCalendar closeTimestamp;
@@ -157,11 +157,11 @@ public class RAccessCertificationWorkItem implements L2Container<RAccessCertific
     }
 
     @Column
-    public REmbeddedReference getPerformerRef() {
+    public RSimpleEmbeddedReference getPerformerRef() {
         return performerRef;
     }
 
-    public void setPerformerRef(REmbeddedReference performerRef) {
+    public void setPerformerRef(RSimpleEmbeddedReference performerRef) {
         this.performerRef = performerRef;
     }
 

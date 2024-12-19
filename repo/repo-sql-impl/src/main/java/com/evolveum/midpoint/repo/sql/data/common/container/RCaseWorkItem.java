@@ -23,7 +23,7 @@ import org.hibernate.annotations.*;
 
 import com.evolveum.midpoint.repo.sql.data.RepositoryContext;
 import com.evolveum.midpoint.repo.sql.data.common.RCase;
-import com.evolveum.midpoint.repo.sql.data.common.embedded.REmbeddedReference;
+import com.evolveum.midpoint.repo.sql.data.common.embedded.RSimpleEmbeddedReference;
 import com.evolveum.midpoint.repo.sql.data.common.id.RCaseWorkItemId;
 import com.evolveum.midpoint.repo.sql.data.common.other.RCaseWorkItemReferenceOwner;
 import com.evolveum.midpoint.repo.sql.query.definition.*;
@@ -51,10 +51,10 @@ public class RCaseWorkItem implements Container<RCase> {
     private Integer id;
 
     private Integer stageNumber;
-    private REmbeddedReference originalAssigneeRef;
+    private RSimpleEmbeddedReference originalAssigneeRef;
     private Set<RCaseWorkItemReference> assigneeRef = new HashSet<>();
     private Set<RCaseWorkItemReference> candidateRef = new HashSet<>();
-    private REmbeddedReference performerRef;
+    private RSimpleEmbeddedReference performerRef;
     private String outcome;
     private XMLGregorianCalendar createTimestamp;
     private XMLGregorianCalendar closeTimestamp;
@@ -119,11 +119,11 @@ public class RCaseWorkItem implements Container<RCase> {
     }
 
     @Embedded
-    public REmbeddedReference getOriginalAssigneeRef() {
+    public RSimpleEmbeddedReference getOriginalAssigneeRef() {
         return originalAssigneeRef;
     }
 
-    public void setOriginalAssigneeRef(REmbeddedReference originalAssigneeRef) {
+    public void setOriginalAssigneeRef(RSimpleEmbeddedReference originalAssigneeRef) {
         this.originalAssigneeRef = originalAssigneeRef;
     }
 
@@ -152,11 +152,11 @@ public class RCaseWorkItem implements Container<RCase> {
     }
 
     @Column
-    public REmbeddedReference getPerformerRef() {
+    public RSimpleEmbeddedReference getPerformerRef() {
         return performerRef;
     }
 
-    public void setPerformerRef(REmbeddedReference performerRef) {
+    public void setPerformerRef(RSimpleEmbeddedReference performerRef) {
         this.performerRef = performerRef;
     }
 
