@@ -83,7 +83,7 @@ public class REmbeddedNamedReference extends REmbeddedReference {
     public static void copyToJAXB(REmbeddedNamedReference repo, ObjectReferenceType jaxb, PrismContext prismContext) {
         Objects.requireNonNull(repo, "Repo object must not be null.");
         Objects.requireNonNull(jaxb, "JAXB object must not be null.");
-        REmbeddedReference.copyToJAXB(repo, jaxb, prismContext);
+        RSimpleEmbeddedReference.copyToJAXB(repo, jaxb, prismContext);
 
         jaxb.setTargetName(RPolyString.copyToJAXB(repo.getTargetName(), prismContext));
     }

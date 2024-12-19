@@ -13,13 +13,14 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import javax.xml.datatype.XMLGregorianCalendar;
 
+import com.evolveum.midpoint.repo.sql.data.common.embedded.RSimpleActivation;
+
+import com.evolveum.midpoint.repo.sql.data.common.embedded.RSimpleEmbeddedReference;
 
 import org.hibernate.transform.ResultTransformer;
 
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.repo.sql.data.common.container.RAssignment;
-import com.evolveum.midpoint.repo.sql.data.common.embedded.RActivation;
-import com.evolveum.midpoint.repo.sql.data.common.embedded.REmbeddedReference;
 import com.evolveum.midpoint.repo.sql.data.factory.MetadataFactory;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
@@ -81,17 +82,17 @@ public final class GetAssignmentResult implements Serializable {
         row.setOrder((Integer) tuple[i++]);
         row.setLifecycleState((String) tuple[i++]);
         // skipping policySituation and extension to avoid to-many fetch
-        row.setActivation((RActivation) tuple[i++]);
-        row.setTargetRef((REmbeddedReference) tuple[i++]);
-        row.setTenantRef((REmbeddedReference) tuple[i++]);
-        row.setOrgRef((REmbeddedReference) tuple[i++]);
-        row.setResourceRef((REmbeddedReference) tuple[i++]);
+        row.setActivation((RSimpleActivation) tuple[i++]);
+        row.setTargetRef((RSimpleEmbeddedReference) tuple[i++]);
+        row.setTenantRef((RSimpleEmbeddedReference) tuple[i++]);
+        row.setOrgRef((RSimpleEmbeddedReference) tuple[i++]);
+        row.setResourceRef((RSimpleEmbeddedReference) tuple[i++]);
         // metadata
         row.setCreateTimestamp((XMLGregorianCalendar) tuple[i++]);
-        row.setCreatorRef((REmbeddedReference) tuple[i++]);
+        row.setCreatorRef((RSimpleEmbeddedReference) tuple[i++]);
         row.setCreateChannel((String) tuple[i++]);
         row.setModifyTimestamp((XMLGregorianCalendar) tuple[i++]);
-        row.setModifierRef((REmbeddedReference) tuple[i++]);
+        row.setModifierRef((RSimpleEmbeddedReference) tuple[i++]);
         row.setModifyChannel((String) tuple[i]); // no ++ here, careful if adding more lines
 
         return new AssignmentType(prismContext)
@@ -108,36 +109,36 @@ public final class GetAssignmentResult implements Serializable {
                 .metadata(MetadataFactory.toJAXB(row, prismContext));
     }
 
-    private ActivationType toActivation(RActivation repoActivation, PrismContext prismContext)
+    private ActivationType toActivation(RSimpleActivation repoActivation, PrismContext prismContext)
             throws DtoTranslationException {
         if (repoActivation == null) {
             return null;
         }
 
         ActivationType activation = new ActivationType(prismContext);
-        RActivation.fromJaxb(activation, repoActivation);
+        RSimpleActivation.fromJaxb(activation, repoActivation);
         return activation;
     }
 
-    private ObjectReferenceType toObjectRef(REmbeddedReference repoRef, PrismContext prismContext) {
+    private ObjectReferenceType toObjectRef(RSimpleEmbeddedReference repoRef, PrismContext prismContext) {
         if (repoRef == null) {
             return null;
         }
 
         ObjectReferenceType ref = new ObjectReferenceType();
-        REmbeddedReference.copyToJAXB(repoRef, ref, prismContext);
+        RSimpleEmbeddedReference.copyToJAXB(repoRef, ref, prismContext);
         return ref;
     }
 
     private ConstructionType toConstruction(
-            REmbeddedReference resourceRef, PrismContext prismContext) {
+            RSimpleEmbeddedReference resourceRef, PrismContext prismContext) {
         if (resourceRef == null) {
             return null;
         }
 
         ConstructionType construction = new ConstructionType(prismContext);
         ObjectReferenceType ref = new ObjectReferenceType();
-        REmbeddedReference.copyToJAXB(resourceRef, ref, prismContext);
+        RSimpleEmbeddedReference.copyToJAXB(resourceRef, ref, prismContext);
         construction.setResourceRef(ref);
         return construction;
     }

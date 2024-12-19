@@ -190,7 +190,16 @@ public class ObjectUpdater {
 
         updateFullObject(rObject, object);
 
+        if (oldObject == null) {
+            // we have to mark our rObject entity as transient explicitly, because since Hibernate 6.6.x
+            // hibernate will see that entity has primary key present (oid), there might be no row existing in database
+            // (e.g. in case of attempt to overwrite object of different type with the same oid) and therefore hibernate
+            // will not even try to "persist" it (insert into m_object) that would throw constraint exception.
+            // See https://docs.jboss.org/hibernate/orm/6.6/migration-guide/migration-guide.html#merge-versioned-deleted
+            rObject.setTransient(true);
+        }
         RObject merged = em.merge(rObject);
+
         lookupTableHelper.addLookupTableRows(em, rObject, oldObject != null);
         caseHelper.addCertificationCampaignCases(em, rObject, oldObject != null);
 

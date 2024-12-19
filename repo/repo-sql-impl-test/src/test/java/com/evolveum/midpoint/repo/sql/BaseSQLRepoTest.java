@@ -18,6 +18,8 @@ import java.util.*;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.repo.sql.data.common.embedded.RSimpleEmbeddedReference;
+
 import com.querydsl.core.types.Path;
 import com.querydsl.core.types.Predicate;
 import com.querydsl.core.types.dsl.ComparablePath;
@@ -242,7 +244,7 @@ public class BaseSQLRepoTest extends AbstractSpringTest
     @SuppressWarnings("SameParameterValue")
     @NotNull
     REmbeddedReference createEmbeddedRepoRef(QName type, String oid) {
-        return REmbeddedReference.fromJaxb(createRef(type, oid, SchemaConstants.ORG_DEFAULT), new REmbeddedReference(),
+        return RSimpleEmbeddedReference.fromJaxb(createRef(type, oid, SchemaConstants.ORG_DEFAULT), new RSimpleEmbeddedReference(),
                 relationRegistry);
     }
 

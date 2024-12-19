@@ -20,7 +20,7 @@ import org.hibernate.annotations.Index;
 import org.hibernate.annotations.*;
 
 import com.evolveum.midpoint.repo.sql.data.RepositoryContext;
-import com.evolveum.midpoint.repo.sql.data.common.embedded.REmbeddedReference;
+import com.evolveum.midpoint.repo.sql.data.common.embedded.RSimpleEmbeddedReference;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.RPolyString;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.RTaskAutoScaling;
 import com.evolveum.midpoint.repo.sql.data.common.enums.*;
@@ -63,8 +63,8 @@ public class RTask extends RObject implements ROperationResultFull {
     private RTaskRecurrence recurrence;
     private RTaskBinding binding;
 
-    private REmbeddedReference objectRef;
-    private REmbeddedReference ownerRefTask;
+    private RSimpleEmbeddedReference objectRef;
+    private RSimpleEmbeddedReference ownerRefTask;
     private String parent;
 
     private RThreadStopAction threadStopAction;
@@ -114,7 +114,7 @@ public class RTask extends RObject implements ROperationResultFull {
     }
 
     @Embedded
-    public REmbeddedReference getObjectRef() {
+    public RSimpleEmbeddedReference getObjectRef() {
         return objectRef;
     }
 
@@ -125,7 +125,7 @@ public class RTask extends RObject implements ROperationResultFull {
             @AttributeOverride(name = "targetOid", column = @Column(name = "ownerRef_targetOid", length = RUtil.COLUMN_LENGTH_OID)),
             @AttributeOverride(name = "targetType", column = @Column(name = "ownerRef_targetType"))
     })
-    public REmbeddedReference getOwnerRefTask() {
+    public RSimpleEmbeddedReference getOwnerRefTask() {
         return ownerRefTask;
     }
 
@@ -186,11 +186,11 @@ public class RTask extends RObject implements ROperationResultFull {
         this.threadStopAction = threadStopAction;
     }
 
-    public void setObjectRef(REmbeddedReference objectRef) {
+    public void setObjectRef(RSimpleEmbeddedReference objectRef) {
         this.objectRef = objectRef;
     }
 
-    public void setOwnerRefTask(REmbeddedReference ownerRefTask) {
+    public void setOwnerRefTask(RSimpleEmbeddedReference ownerRefTask) {
         this.ownerRefTask = ownerRefTask;
     }
 

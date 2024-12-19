@@ -19,6 +19,8 @@ import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.repo.sql.data.common.embedded.RSimpleEmbeddedReference;
+
 import com.google.common.base.Strings;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityManagerFactory;
@@ -42,7 +44,6 @@ import com.evolveum.midpoint.repo.sql.data.common.RObject;
 import com.evolveum.midpoint.repo.sql.data.common.RObjectReference;
 import com.evolveum.midpoint.repo.sql.data.common.ROperationResult;
 import com.evolveum.midpoint.repo.sql.data.common.ROperationResultFull;
-import com.evolveum.midpoint.repo.sql.data.common.embedded.REmbeddedReference;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.RPolyString;
 import com.evolveum.midpoint.repo.sql.data.common.enums.ROperationResultStatus;
 import com.evolveum.midpoint.repo.sql.data.common.enums.SchemaEnum;
@@ -143,13 +144,13 @@ public final class RUtil {
         return repoRef;
     }
 
-    public static REmbeddedReference jaxbRefToEmbeddedRepoRef(ObjectReferenceType jaxb,
+    public static RSimpleEmbeddedReference jaxbRefToEmbeddedRepoRef(ObjectReferenceType jaxb,
             RelationRegistry relationRegistry) {
         if (jaxb == null) {
             return null;
         }
-        REmbeddedReference ref = new REmbeddedReference();
-        REmbeddedReference.fromJaxb(jaxb, ref, relationRegistry);
+        RSimpleEmbeddedReference ref = new RSimpleEmbeddedReference();
+        RSimpleEmbeddedReference.fromJaxb(jaxb, ref, relationRegistry);
 
         return ref;
     }
