@@ -314,7 +314,7 @@ public class RoleAnalysisOutlierAnalysisAspectsPanel extends AbstractObjectMainP
                     }
                 };
 
-                iconWithLabel.add(AttributeAppender.append("class", "badge p-3 my-auto justify-content-center flex-grow-1 flex-shrink-1 bg-transparent-red border border-danger text-danger"));
+                iconWithLabel.add(AttributeAppender.append("class", "badge p-3 my-auto justify-content-center flex-grow-1 flex-shrink-1 bg-transparent-red border border-danger text-danger text-wrap"));
                 return iconWithLabel;
             }
 
