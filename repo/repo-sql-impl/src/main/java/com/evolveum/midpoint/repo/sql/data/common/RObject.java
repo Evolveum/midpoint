@@ -31,7 +31,7 @@ import com.evolveum.midpoint.repo.sql.data.common.any.*;
 import com.evolveum.midpoint.repo.sql.data.common.container.RAssignment;
 import com.evolveum.midpoint.repo.sql.data.common.container.ROperationExecution;
 import com.evolveum.midpoint.repo.sql.data.common.container.RTrigger;
-import com.evolveum.midpoint.repo.sql.data.common.embedded.REmbeddedReference;
+import com.evolveum.midpoint.repo.sql.data.common.embedded.RSimpleEmbeddedReference;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.RPolyString;
 import com.evolveum.midpoint.repo.sql.data.common.other.RAssignmentOwner;
 import com.evolveum.midpoint.repo.sql.data.common.other.RObjectType;
@@ -118,15 +118,15 @@ public abstract class RObject implements Metadata<RObjectReference<RFocus>>, Ent
     private Set<String> subtype;
     private Set<RObjectReference<ROrg>> parentOrgRef;
     private Set<RTrigger> trigger;
-    private REmbeddedReference tenantRef;
+    private RSimpleEmbeddedReference tenantRef;
     private String lifecycleState;
     //Metadata
     private XMLGregorianCalendar createTimestamp;
-    private REmbeddedReference creatorRef;
+    private RSimpleEmbeddedReference creatorRef;
     private Set<RObjectReference<RFocus>> createApproverRef;
     private String createChannel;
     private XMLGregorianCalendar modifyTimestamp;
-    private REmbeddedReference modifierRef;
+    private RSimpleEmbeddedReference modifierRef;
     private Set<RObjectReference<RFocus>> modifyApproverRef;
     private String modifyChannel;
     //extension, and other "any" like shadow/attributes
@@ -200,7 +200,7 @@ public abstract class RObject implements Metadata<RObjectReference<RFocus>>, Ent
     }
 
     @Embedded
-    public REmbeddedReference getTenantRef() {
+    public RSimpleEmbeddedReference getTenantRef() {
         return tenantRef;
     }
 
@@ -297,14 +297,14 @@ public abstract class RObject implements Metadata<RObjectReference<RFocus>>, Ent
     @Override
     @Embedded
     @JaxbPath(itemPath = { @JaxbName(localPart = "metadata"), @JaxbName(localPart = "creatorRef") })
-    public REmbeddedReference getCreatorRef() {
+    public RSimpleEmbeddedReference getCreatorRef() {
         return creatorRef;
     }
 
     @Override
     @Embedded
     @JaxbPath(itemPath = { @JaxbName(localPart = "metadata"), @JaxbName(localPart = "modifierRef") })
-    public REmbeddedReference getModifierRef() {
+    public RSimpleEmbeddedReference getModifierRef() {
         return modifierRef;
     }
 
@@ -426,12 +426,12 @@ public abstract class RObject implements Metadata<RObjectReference<RFocus>>, Ent
     }
 
     @Override
-    public void setCreatorRef(REmbeddedReference creatorRef) {
+    public void setCreatorRef(RSimpleEmbeddedReference creatorRef) {
         this.creatorRef = creatorRef;
     }
 
     @Override
-    public void setModifierRef(REmbeddedReference modifierRef) {
+    public void setModifierRef(RSimpleEmbeddedReference modifierRef) {
         this.modifierRef = modifierRef;
     }
 
@@ -458,7 +458,7 @@ public abstract class RObject implements Metadata<RObjectReference<RFocus>>, Ent
         this.version = version;
     }
 
-    public void setTenantRef(REmbeddedReference tenantRef) {
+    public void setTenantRef(RSimpleEmbeddedReference tenantRef) {
         this.tenantRef = tenantRef;
     }
 
