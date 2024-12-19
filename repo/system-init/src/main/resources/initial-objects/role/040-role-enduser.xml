@@ -318,10 +318,10 @@
                     <identifier>policyAssignments</identifier>
                     <visibility>hidden</visibility>
                 </panel>
-                <panel id="53">
-                    <identifier>focusMarks</identifier>
-                    <visibility>hidden</visibility>
-                </panel>
+            </panel>
+            <panel id="53">
+                <identifier>focusMarks</identifier>
+                <visibility>hidden</visibility>
             </panel>
         </selfProfilePage>
     </adminGuiConfiguration>
