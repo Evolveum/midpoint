@@ -173,6 +173,14 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
     protected static final String CONNECTOR_DUMMY_VERSION = "2.0";
     protected static final String CONNECTOR_DUMMY_NAMESPACE = "http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.icf.dummy/com.evolveum.icf.dummy.connector.DummyConnector";
 
+    protected static final ItemName DUMMY_ALWAYS_REQUIRE_UPDATE_OF_ATTRIBUTE_NAME =
+            new ItemName(CONNECTOR_DUMMY_NAMESPACE, "alwaysRequireUpdateOfAttribute");
+    protected static final ItemPath DUMMY_ALWAYS_REQUIRE_UPDATE_OF_ATTRIBUTE_PATH =
+            ItemPath.create(
+                    ResourceType.F_CONNECTOR_CONFIGURATION,
+                    SchemaTestConstants.ICFC_CONFIGURATION_PROPERTIES,
+                    DUMMY_ALWAYS_REQUIRE_UPDATE_OF_ATTRIBUTE_NAME);
+
     protected static final ItemPath ACTIVATION_ADMINISTRATIVE_STATUS_PATH = SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS;
     protected static final ItemPath ACTIVATION_VALID_FROM_PATH = SchemaConstants.PATH_ACTIVATION_VALID_FROM;
     protected static final ItemPath ACTIVATION_VALID_TO_PATH = SchemaConstants.PATH_ACTIVATION_VALID_TO;

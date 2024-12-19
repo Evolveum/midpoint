@@ -4455,4 +4455,20 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
     protected ConfigurationItemOrigin testOrigin() {
         return ConfigurationItemOrigin.generated(); // to be considered safe by the expression profile manager
     }
+
+    protected PrismPropertyValue<?> constBasedValue(String value) {
+        var constExpressionEvaluator = new ConstExpressionEvaluatorType();
+        constExpressionEvaluator.setValue(value);
+
+        var ppv = prismContext.itemFactory().createPropertyValue();
+        ppv.setExpression(
+                new ExpressionWrapper(
+                        SchemaConstantsGenerated.C_EXPRESSION,
+                        new ExpressionType()
+                                .expressionEvaluator(new JAXBElement<>(
+                                        SchemaConstantsGenerated.C_CONST,
+                                        ConstExpressionEvaluatorType.class,
+                                        constExpressionEvaluator))));
+        return ppv;
+    }
 }
