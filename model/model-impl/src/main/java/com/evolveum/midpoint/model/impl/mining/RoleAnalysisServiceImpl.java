@@ -555,8 +555,13 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
             @NotNull Task task,
             @NotNull OperationResult result,
             boolean recomputeStatistics) {
+        ObjectQuery query = PrismContext.get().queryFor(RoleAnalysisClusterType.class)
+                .item(RoleAnalysisClusterType.F_ROLE_ANALYSIS_SESSION_REF).ref(sessionOid)
+                .build();
+
         ResultHandler<RoleAnalysisClusterType> resultHandler = (object, parentResult) -> {
             try {
+
                 deleteCluster(object.asObjectable(), task, result, recomputeStatistics);
             } catch (Exception e) {
                 throw new SystemException(e);
@@ -564,13 +569,10 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
             return true;
         };
 
-        ObjectQuery query = PrismContext.get().queryFor(RoleAnalysisClusterType.class)
-                .item(RoleAnalysisClusterType.F_ROLE_ANALYSIS_SESSION_REF).ref(sessionOid)
-                .build();
-
         try {
             modelService.searchObjectsIterative(RoleAnalysisClusterType.class, query, resultHandler, null,
                     task, result);
+
         } catch (Exception ex) {
             LoggingUtils.logExceptionOnDebugLevel(LOGGER, "Couldn't deleteRoleAnalysisSessionClusters", ex);
         } finally {
@@ -584,63 +586,20 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
             @NotNull Task task,
             @NotNull OperationResult result) {
 
+        Map<String, ObjectDelta<RoleAnalysisOutlierType>> modifyDeltas = new HashMap<>();
+
         ResultHandler<RoleAnalysisOutlierType> resultHandler = (object, parentResult) -> {
             RoleAnalysisOutlierType outlierObject = object.asObjectable();
             List<RoleAnalysisOutlierPartitionType> outlierPartitions = outlierObject.getPartition();
 
             try {
-
-                if (outlierPartitions == null || (outlierPartitions.size() == 1
-                        && outlierPartitions.get(0).getClusterRef().getOid().equals(cluster.getOid()))) {
-                    repositoryService.deleteObject(RoleAnalysisOutlierType.class, outlierObject.getOid(), result);
-                } else {
-                    RoleAnalysisOutlierPartitionType partitionToDelete = null;
-
-                    double overallConfidence = 0;
-                    double anomalyObjectsConfidence = 0;
-
-                    for (RoleAnalysisOutlierPartitionType outlierPartition : outlierPartitions) {
-                        if (outlierPartition.getClusterRef().getOid().equals(cluster.getOid())) {
-                            partitionToDelete = outlierPartition;
-                        } else {
-                            overallConfidence += outlierPartition.getPartitionAnalysis().getOverallConfidence();
-                            anomalyObjectsConfidence += outlierPartition.getPartitionAnalysis().getAnomalyObjectsConfidence();
-                        }
-                    }
-
-                    int partitionCount = outlierPartitions.size();
-                    if (partitionToDelete != null) {
-                        partitionCount--;
-                    }
-
-                    overallConfidence = overallConfidence / partitionCount;
-                    anomalyObjectsConfidence = anomalyObjectsConfidence / partitionCount;
-
-                    if (partitionToDelete == null) {
-                        return true;
-                    }
-
-                    List<ItemDelta<?, ?>> modifications = new ArrayList<>();
-                    var finalPartitionToDelete = new RoleAnalysisOutlierPartitionType()
-                            .id(partitionToDelete.getId());
-                    modifications.add(PrismContext.get().deltaFor(RoleAnalysisOutlierType.class)
-                            .item(RoleAnalysisOutlierType.F_PARTITION).delete(
-                                    finalPartitionToDelete)
-                            .asItemDelta());
-
-                    modifications.add(PrismContext.get().deltaFor(RoleAnalysisOutlierType.class)
-                            .item(RoleAnalysisOutlierType.F_OVERALL_CONFIDENCE).replace(overallConfidence).asItemDelta());
-
-                    modifications.add(PrismContext.get().deltaFor(RoleAnalysisOutlierType.class)
-                            .item(RoleAnalysisOutlierType.F_ANOMALY_OBJECTS_CONFIDENCE)
-                            .replace(anomalyObjectsConfidence).asItemDelta());
-
-                    repositoryService.modifyObject(RoleAnalysisOutlierType.class, outlierObject.getOid(), modifications, result);
-
-                }
-            } catch (ObjectNotFoundException | SchemaException | ObjectAlreadyExistsException e) {
-                LOGGER.error("Couldn't update RoleAnalysisOutlierType {}", outlierObject, e);
+                loadOutlierDeleteProcessModifications(modifyDeltas, cluster, outlierPartitions, outlierObject);
+            } catch (SchemaException e) {
+                throw new SystemException("Couldn't modify RoleAnalysisOutlierType", e);
+            } catch (ObjectNotFoundException e) {
+                throw new SystemException("Couldn't find partition to delete", e);
             }
+
             return true;
         };
 
@@ -651,6 +610,12 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
         try {
             modelService.searchObjectsIterative(RoleAnalysisOutlierType.class, objectQuery, resultHandler, null,
                     task, result);
+
+            for (Map.Entry<String, ObjectDelta<RoleAnalysisOutlierType>> entry : modifyDeltas.entrySet()) {
+                ObjectDelta<RoleAnalysisOutlierType> value = entry.getValue();
+                //TODO Fail on partition deletion (isOwnedBy not supported for abstract container table)
+                modelService.executeChanges(singleton(value), null, task, result);
+            }
         } catch (Exception ex) {
             LoggingUtils.logExceptionOnDebugLevel(LOGGER, "Couldn't deleteRoleAnalysisSessionClusters", ex);
         } finally {
