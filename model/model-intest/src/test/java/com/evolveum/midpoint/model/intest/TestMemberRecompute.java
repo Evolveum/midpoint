@@ -339,6 +339,22 @@ public class TestMemberRecompute extends AbstractEmptyModelIntegrationTest imple
         assertUserAfter(USER_BOB.oid)
                 .triggers()
                 .assertTriggers(1);
+
+        // The following assertion on the number of triggers can occasionally fail because of the asynchronous nature
+        // of the whole process:
+        //
+        // - clubs reconciliation task creates recompute triggers on affected users,
+        // - these triggers are created using optimizing trigger creator, hence there should be at most one
+        //   trigger per any particular object,
+        // - unfortunately, trigger creation itself is asynchronous (even multithreaded, but that's probably not
+        //   the main problem) - to not slow down the main processing,
+        // - hence, it can occur that more triggers creation are requested for a single object "at the same time",
+        //   optimizing trigger creator is out of luck here; two triggers will be created.
+        //
+        // We should adapt the test somehow. Either we should remove asynchronicity, or we should accept that
+        // there can be sometimes 2 triggers.
+        //
+        // See MID-10299.
         assertUserAfter(USER_CHUCK.oid)
                 .triggers()
                 .assertTriggers(1); // due to optimization
