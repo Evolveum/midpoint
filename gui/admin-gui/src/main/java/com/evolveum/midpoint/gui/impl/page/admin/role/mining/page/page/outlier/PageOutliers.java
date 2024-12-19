@@ -7,7 +7,7 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.page.outlier;
 
-import static com.evolveum.midpoint.gui.api.util.LocalizationUtil.translateMessage;
+import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.RoleAnalysisWebUtils.explainOutlier;
 import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.RoleAnalysisWebUtils.loadUserWrapperForMarkAction;
 import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.table.RoleAnalysisTableTools.densityBasedColorOposite;
 
@@ -212,16 +212,7 @@ public class PageOutliers extends PageAdmin {
                     public void populateItem(Item<ICellPopulator<SelectableBean<RoleAnalysisOutlierType>>> cellItem,
                             String componentId, IModel<SelectableBean<RoleAnalysisOutlierType>> model) {
                         RoleAnalysisOutlierType outlierObject = model.getObject().getValue();
-
-                        List<OutlierDetectionExplanationType> explanation = outlierObject.getExplanation();
-
-                        if (explanation == null || explanation.isEmpty() || explanation.get(0).getMessage() == null) {
-                            cellItem.add(new Label(componentId, "No explanation available"));
-                            return;
-                        }
-                        OutlierDetectionExplanationType outlierDetectionExplanationType = explanation.get(0);
-                        LocalizableMessageType message = outlierDetectionExplanationType.getMessage();
-                        Model<String> explanationTranslatedModel = Model.of(translateMessage(message));
+                        Model<String> explanationTranslatedModel = explainOutlier(outlierObject);
                         cellItem.add(new Label(componentId, explanationTranslatedModel));
                     }
 

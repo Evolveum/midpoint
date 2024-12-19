@@ -7,7 +7,7 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.role.mining.tables.outlier.panel;
 
-import static com.evolveum.midpoint.gui.api.util.LocalizationUtil.translateMessage;
+import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.RoleAnalysisWebUtils.explainAnomaly;
 import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.tables.outlier.panel.RoleAnalysisDetectedAnomalyTable.getBestSuitablePartition;
 import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.table.RoleAnalysisTableTools.densityBasedColorOposite;
 import static com.evolveum.midpoint.web.component.data.column.ColumnUtils.createStringResource;
@@ -149,20 +149,8 @@ public enum AnomalyTableCategory implements Serializable {
                 List<DetectedAnomalyResult> detectedAnomalyResults = anomalyResultMap.get(role.getOid());
                 DetectedAnomalyResult anomalyResult = detectedAnomalyResults.get(0);
 
-                List<OutlierDetectionExplanationType> explanation = anomalyResult.getExplanation();
-                if (explanation == null || explanation.isEmpty() || explanation.get(0).getMessage() == null) {
-                    cellItem.add(new Label(componentId, "No explanation available"));
-                    return;
-                }
-
-                StringBuilder sb = new StringBuilder();
-
-                for (OutlierDetectionExplanationType explanationType : explanation) {
-                    LocalizableMessageType message = explanationType.getMessage();
-                    sb.append(translateMessage(message)).append(". \n");
-                }
-
-                cellItem.add(new Label(componentId, Model.of(sb.toString())));
+                Model<String> explainAnomaly = explainAnomaly(anomalyResult);
+                cellItem.add(new Label(componentId, explainAnomaly));
             }
 
             @Override
@@ -519,19 +507,9 @@ public enum AnomalyTableCategory implements Serializable {
                     return;
                 }
 
-                List<OutlierDetectionExplanationType> explanation = anomalyResult.getExplanation();
-                if (explanation == null || explanation.isEmpty() || explanation.get(0).getMessage() == null) {
-                    cellItem.add(new Label(componentId, "No explanation available"));
-                    return;
-                }
 
-                StringBuilder sb = new StringBuilder();
-                for (OutlierDetectionExplanationType explanationType : explanation) {
-                    LocalizableMessageType message = explanationType.getMessage();
-                    sb.append(translateMessage(message)).append(". \n");
-                }
-
-                cellItem.add(new Label(componentId, Model.of(sb.toString())));
+                Model<String> explainAnomaly = explainAnomaly(anomalyResult);
+                cellItem.add(new Label(componentId, explainAnomaly));
             }
 
             @Override

@@ -156,18 +156,7 @@ public class RoleAnalysisOutlierPartitionTilePanel<T extends Serializable> exten
         label.add(AttributeModifier.append(CLASS_CSS, "badge bg-info"));
         label.add(new VisibleBehaviour(() -> false));
         add(label);
-        Model<String> explanationTranslatedModel = Model.of("N/A");
-
-        List<OutlierDetectionExplanationType> explanations = partition.getExplanation();
-        OutlierDetectionExplanationType explanation = null;
-        if (explanations != null && !explanations.isEmpty()) {
-            explanation = explanations.get(0);
-        }
-
-        if (explanation != null && explanation.getMessage() != null) {
-            LocalizableMessageType message = explanation.getMessage();
-            explanationTranslatedModel = Model.of(translateMessage(message));
-        }
+        Model<String> explanationTranslatedModel = explainPartition(partition);
 
         Label explanationField = new Label(ID_EXPLANATION, explanationTranslatedModel);
         explanationField.setOutputMarkupId(true);

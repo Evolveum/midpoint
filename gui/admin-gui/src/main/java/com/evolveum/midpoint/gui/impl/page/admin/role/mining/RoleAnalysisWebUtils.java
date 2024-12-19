@@ -35,12 +35,16 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.model.LoadableDetachableModel;
+import org.apache.wicket.model.Model;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
+
+import static com.evolveum.midpoint.gui.api.util.LocalizationUtil.translate;
+import static com.evolveum.midpoint.gui.api.util.LocalizationUtil.translateMessage;
 
 public class RoleAnalysisWebUtils {
 
@@ -54,6 +58,8 @@ public class RoleAnalysisWebUtils {
     public static final String FONT_WEIGHT_BOLD = "font-weight-bold";
 
     public static final String PANEL_ID = "panelId";
+
+    private static final String EXPLANATION_NONE_MESSAGE_KEY = "RoleAnalysis.outlier.no.explanation";
 
     private RoleAnalysisWebUtils() {
     }
@@ -274,5 +280,80 @@ public class RoleAnalysisWebUtils {
 
         table.setOutputMarkupId(true);
         return table;
+    }
+
+    /**
+     * Provides an explanation for the given outlier object.
+     *
+     * @param outlierObject The outlier object containing the explanation details.
+     * @return A model containing the translated explanation message or a default message if no explanation is available.
+     */
+    public static @NotNull Model<String> explainOutlier(@NotNull RoleAnalysisOutlierType outlierObject) {
+        List<OutlierDetectionExplanationType> explanation = outlierObject.getExplanation();
+
+        return extractSingleExplanation(explanation);
+    }
+
+    /**
+     * Provides an explanation for the given partition object.
+     *
+     * @param partition The partition object containing the explanation details.
+     * @return A model containing the translated explanation message or a default message if no explanation is available.
+     */
+    public static @NotNull Model<String> explainPartition(@NotNull RoleAnalysisOutlierPartitionType partition) {
+        List<OutlierDetectionExplanationType> explanation = partition.getExplanation();
+
+        return extractSingleExplanation(explanation);
+    }
+
+    /**
+     * Provides an explanation for the given anomaly result.
+     *
+     * @param anomalyResult The anomaly result containing the explanation details.
+     * @return A model containing the translated explanation message or a default message if no explanation is available.
+     */
+    public static @NotNull Model<String> explainAnomaly(@NotNull DetectedAnomalyResult anomalyResult) {
+        List<OutlierDetectionExplanationType> explanation = anomalyResult.getExplanation();
+        Model<String> noneExplanation = resolveIfNoneExplanation(explanation);
+        if (noneExplanation != null) {
+            return noneExplanation;
+        }
+
+        StringBuilder sb = new StringBuilder();
+        for (OutlierDetectionExplanationType explanationType : explanation) {
+            LocalizableMessageType message = explanationType.getMessage();
+            sb.append(translateMessage(message)).append(". \n");
+        }
+        return Model.of(sb.toString());
+    }
+
+    /**
+     * Extracts a single explanation from the list of explanations.
+     *
+     * @param explanation The list of explanations.
+     * @return A model containing the translated explanation message or a default message if no explanation is available.
+     */
+    private static @NotNull Model<String> extractSingleExplanation(List<OutlierDetectionExplanationType> explanation) {
+        Model<String> noneExplanation = resolveIfNoneExplanation(explanation);
+        if (noneExplanation != null) {
+            return noneExplanation;
+        }
+
+        OutlierDetectionExplanationType outlierDetectionExplanationType = explanation.get(0);
+        LocalizableMessageType message = outlierDetectionExplanationType.getMessage();
+        return Model.of(translateMessage(message));
+    }
+
+    /**
+     * Resolves if there is no explanation available in the provided list of explanations.
+     *
+     * @param explanation The list of outlier detection explanations.
+     * @return A model containing a default message if no explanation is available, or null if an explanation is present.
+     */
+    private static @Nullable Model<String> resolveIfNoneExplanation(List<OutlierDetectionExplanationType> explanation) {
+        if (explanation == null || explanation.isEmpty() || explanation.get(0).getMessage() == null) {
+            return Model.of(translate(EXPLANATION_NONE_MESSAGE_KEY));
+        }
+        return null;
     }
 }

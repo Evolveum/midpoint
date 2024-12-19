@@ -6,7 +6,7 @@
  */
 package com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.outlier.aspects;
 
-import static com.evolveum.midpoint.gui.api.util.LocalizationUtil.translateMessage;
+import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.RoleAnalysisWebUtils.explainOutlier;
 import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.outlier.panel.OutlierPartitionPanel.PARAM_ANOMALY_OID;
 
 import com.evolveum.midpoint.gui.api.component.progressbar.ProgressBar;
@@ -272,20 +272,7 @@ public class RoleAnalysisOutlierAnalysisAspectsPanel extends AbstractObjectMainP
         }
         int anomalyCount = anomalySet.size();
 
-        Model<String> explanationTranslatedModel = Model.of("N/A");
-
-        List<OutlierDetectionExplanationType> explanations = outlier.getExplanation();
-        OutlierDetectionExplanationType explanation = null;
-        if (explanations != null && !explanations.isEmpty()) {
-            explanation = explanations.get(0);
-        }
-
-        if (explanation != null && explanation.getMessage() != null) {
-            LocalizableMessageType message = explanation.getMessage();
-            explanationTranslatedModel = Model.of(translateMessage(message));
-        }
-
-        Model<String> finalExplanationTranslatedModel = explanationTranslatedModel;
+        Model<String> finalExplanationTranslatedModel = explainOutlier(outlier);
         RoleAnalysisOutlierDashboardPanel<?> characteristicHeader = new RoleAnalysisOutlierDashboardPanel<>(cardBodyComponent.newChildId(),
                 createStringResource("RoleAnalysisOutlierAnalysisAspectsPanel.widget.characteristics")) {
             @Contract(pure = true)

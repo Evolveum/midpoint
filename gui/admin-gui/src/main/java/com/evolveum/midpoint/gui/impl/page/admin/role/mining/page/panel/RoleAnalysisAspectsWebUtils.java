@@ -33,6 +33,7 @@ import java.math.RoundingMode;
 import java.util.*;
 
 import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.RoleAnalysisWebUtils.CLASS_CSS;
+import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.RoleAnalysisWebUtils.explainPartition;
 import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.cluster.RoleAnalysisClusterOperationPanel.PARAM_DETECTED_PATER_ID;
 import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.cluster.RoleAnalysisClusterOperationPanel.PARAM_TABLE_SETTING;
 
@@ -81,12 +82,12 @@ public class RoleAnalysisAspectsWebUtils {
             bd = bd.setScale(2, RoundingMode.HALF_UP);
             partitionOverallConfidence = bd.doubleValue();
             String formattedConfidence = String.format("%.2f", partitionOverallConfidence);
-            String description = anomalies.size() + " anomalies were detected in " + clusterName;
+            @NotNull Model<String> description = explainPartition(outlierPartition);
             IdentifyWidgetItem identifyWidgetItem = new IdentifyWidgetItem(
                     IdentifyWidgetItem.ComponentType.OUTLIER,
                     Model.of(GuiStyleConstants.CLASS_ICON_OUTLIER),
                     Model.of(outlierObject.getName().getOrig()),
-                    Model.of(description),
+                    description,
                     Model.of(formattedConfidence + "%"),
                     Model.of("name")) {
                 @Override

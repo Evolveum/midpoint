@@ -35,6 +35,7 @@ import java.math.RoundingMode;
 import java.util.*;
 
 import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.RoleAnalysisWebUtils.CLASS_CSS;
+import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.RoleAnalysisWebUtils.explainOutlier;
 import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.RoleAnalysisAspectsWebUtils.*;
 import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.cluster.RoleAnalysisClusterOperationPanel.PARAM_DETECTED_PATER_ID;
 import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.cluster.RoleAnalysisClusterOperationPanel.PARAM_TABLE_SETTING;
@@ -135,13 +136,14 @@ public class AnalysisInfoWidgetDto implements Serializable {
             overallConfidence = bd.doubleValue();
             String formattedConfidence = String.format("%.2f", overallConfidence);
 
-            String description = anomalies.size() + " anomalies were detected within " + outlierPartitions.size() + " session";
+            @NotNull Model<String> description = explainOutlier(topFiveOutlier);
+
             RoleAnalysisOutlierPartitionType finalTopPartition = topPartition;
             IdentifyWidgetItem identifyWidgetItem = new IdentifyWidgetItem(
                     IdentifyWidgetItem.ComponentType.OUTLIER,
                     Model.of(GuiStyleConstants.CLASS_ICON_OUTLIER),
                     Model.of(topFiveOutlier.getName().getOrig()),
-                    Model.of(description),
+                    description,
                     Model.of(formattedConfidence + "%"),
                     Model.of("name")) {
                 @Override
