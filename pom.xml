@@ -210,7 +210,7 @@
         <!-- Dependencies global versions -->
         <httpclient.version>4.5.14</httpclient.version>
 
-        <hibernate.version>6.6.3.Final</hibernate.version>
+        <hibernate.version>6.5.3.Final</hibernate.version>
 
         <commons.io.version>2.18.0</commons.io.version>
         <commons.cli>1.9.0</commons.cli>
