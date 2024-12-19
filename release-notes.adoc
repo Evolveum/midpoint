@@ -45,6 +45,8 @@ Overall, midPoint 4.9 is a major step from the past into the future.
 * Fixed cleanup of finished tasks which has configured "cleanup after finish" parameter. See bug:MID-10272[].
 * bug:MID-10213[] Fix synchronization of large number of tasks (>10 000).
 * bug:MID-10270[] Summary panel for roles now uses display name and identifier (same as for organizations and services).
+* Apply the Web Content Accessibility Guidelines (WCAG) to all login pages and self-service pages. See bug:MID-9847[].
+** Used 'honeypot' instead of captcha on self-registration and post-authentication pages to protect against spam bots.
 
 == Changes With Respect To Version 4.8
 
