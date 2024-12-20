@@ -29,6 +29,8 @@ import java.io.Serial;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import static com.evolveum.midpoint.gui.api.util.LocalizationUtil.translate;
+
 public class CategorySelectionProvider extends ChoiceProvider<RoleAnalysisObjectCategorizationType> {
     @Serial private static final long serialVersionUID = 1L;
 
@@ -42,7 +44,7 @@ public class CategorySelectionProvider extends ChoiceProvider<RoleAnalysisObject
 
     @Override
     public String getDisplayValue(RoleAnalysisObjectCategorizationType value) {
-        return getIdValue(value);
+        return getCategoryValueDisplayString(value, isRoleSelected.getObject());
     }
 
     @Override
@@ -74,24 +76,101 @@ public class CategorySelectionProvider extends ChoiceProvider<RoleAnalysisObject
     public static @NotNull List<RoleAnalysisObjectCategorizationType> allowedValues(
             boolean advanced,
             @NotNull LoadableModel<Boolean> isRoleSelected) {
+
         List<RoleAnalysisObjectCategorizationType> allowedValues = new ArrayList<>();
+
+        if (Boolean.TRUE.equals(isRoleSelected.getObject())) {
+            addRoleAllowedValues(advanced, allowedValues);
+        } else if (Boolean.FALSE.equals(isRoleSelected.getObject())) {
+            addUserAllowedValues(advanced, allowedValues);
+        }
+
+        return allowedValues;
+    }
+
+    private static void addRoleAllowedValues(
+            boolean advanced,
+            @NotNull List<RoleAnalysisObjectCategorizationType> allowedValues) {
 
         allowedValues.add(RoleAnalysisObjectCategorizationType.UN_POPULAR);
         allowedValues.add(RoleAnalysisObjectCategorizationType.NOISE_EXCLUSIVE);
 
-        if (Boolean.TRUE.equals(isRoleSelected.getObject())) {
-            allowedValues.add(RoleAnalysisObjectCategorizationType.ANOMALY_EXCLUSIVE);
-        }
-
         if (advanced) {
+            allowedValues.add(RoleAnalysisObjectCategorizationType.OVERALL_ANOMALY);
             allowedValues.add(RoleAnalysisObjectCategorizationType.ABOVE_POPULAR);
+            allowedValues.add(RoleAnalysisObjectCategorizationType.NOISE_EXCLUSIVE_UNPOPULAR);
             allowedValues.add(RoleAnalysisObjectCategorizationType.NOISE);
             allowedValues.add(RoleAnalysisObjectCategorizationType.ANOMALY);
+            allowedValues.add(RoleAnalysisObjectCategorizationType.EXCLUDED);
+        }
+    }
+
+    public static String getCategoryValueDisplayString(@NotNull RoleAnalysisObjectCategorizationType value, boolean isRoleSelected) {
+        if (isRoleSelected) {
+            return getRoleDisplayValues(value);
+        } else {
+            return getUserDisplayValues(value);
+        }
+
+    }
+
+    public static String getRoleDisplayValues(@NotNull RoleAnalysisObjectCategorizationType value) {
+        if (value.equals(RoleAnalysisObjectCategorizationType.UN_POPULAR)) {
+            return translate("RoleAnalysisObjectCategorizationType.un_popular.role");
+        } else if (value.equals(RoleAnalysisObjectCategorizationType.NOISE_EXCLUSIVE)) {
+            return translate("RoleAnalysisObjectCategorizationType.noise_exclusive.role");
+        } else if (value.equals(RoleAnalysisObjectCategorizationType.OVERALL_ANOMALY)) {
+            return translate("RoleAnalysisObjectCategorizationType.overall.anomaly");
+        }else if (value.equals(RoleAnalysisObjectCategorizationType.NOISE_EXCLUSIVE_UNPOPULAR)) {
+            return translate("RoleAnalysisObjectCategorizationType.noise_exclusive.and.un_popular.role");
+        }else if (value.equals(RoleAnalysisObjectCategorizationType.ABOVE_POPULAR)) {
+            return translate("RoleAnalysisObjectCategorizationType.above_popular");
+        }else if (value.equals(RoleAnalysisObjectCategorizationType.NOISE)) {
+            return translate("RoleAnalysisObjectCategorizationType.noise");
+        }else if (value.equals(RoleAnalysisObjectCategorizationType.ANOMALY)) {
+            return translate("RoleAnalysisObjectCategorizationType.anomaly");
+        }else if (value.equals(RoleAnalysisObjectCategorizationType.EXCLUDED)) {
+            return translate("RoleAnalysisObjectCategorizationType.excluded");
+        }
+        return value.toString();
+    }
+
+    public static String getUserDisplayValues(@NotNull RoleAnalysisObjectCategorizationType value) {
+        if (value.equals(RoleAnalysisObjectCategorizationType.INSUFFICIENT)) {
+            return translate("RoleAnalysisObjectCategorizationType.insufficient.peer.similarity");
+        } else if (value.equals(RoleAnalysisObjectCategorizationType.NOISE_EXCLUSIVE_UNPOPULAR)) {
+            return translate("RoleAnalysisObjectCategorizationType.noise_exclusive.and.un_popular.user");
+        } else if (value.equals(RoleAnalysisObjectCategorizationType.UN_POPULAR)) {
+            return translate("RoleAnalysisObjectCategorizationType.un_popular.user");
+        } else if (value.equals(RoleAnalysisObjectCategorizationType.ABOVE_POPULAR)) {
+            return translate("RoleAnalysisObjectCategorizationType.above_popular");
+        } else if (value.equals(RoleAnalysisObjectCategorizationType.NOISE)) {
+            return translate("RoleAnalysisObjectCategorizationType.noise");
+        } else if (value.equals(RoleAnalysisObjectCategorizationType.NOISE_EXCLUSIVE)) {
+            return translate("RoleAnalysisObjectCategorizationType.noise_exclusive.user");
+        } else if (value.equals(RoleAnalysisObjectCategorizationType.OUTLIER)) {
+            return translate("RoleAnalysisObjectCategorizationType.outlier");
+        } else if (value.equals(RoleAnalysisObjectCategorizationType.EXCLUDED)) {
+            return translate("RoleAnalysisObjectCategorizationType.excluded");
+        }
+        return value.toString();
+    }
+
+    private static void addUserAllowedValues(
+            boolean advanced,
+            @NotNull List<RoleAnalysisObjectCategorizationType> allowedValues) {
+
+        allowedValues.add(RoleAnalysisObjectCategorizationType.NOISE_EXCLUSIVE_UNPOPULAR);
+        allowedValues.add(RoleAnalysisObjectCategorizationType.INSUFFICIENT);
+
+        if (advanced) {
+            allowedValues.add(RoleAnalysisObjectCategorizationType.UN_POPULAR);
+            allowedValues.add(RoleAnalysisObjectCategorizationType.ABOVE_POPULAR);
+            allowedValues.add(RoleAnalysisObjectCategorizationType.NOISE);
+            allowedValues.add(RoleAnalysisObjectCategorizationType.NOISE_EXCLUSIVE);
             allowedValues.add(RoleAnalysisObjectCategorizationType.OUTLIER);
             allowedValues.add(RoleAnalysisObjectCategorizationType.EXCLUDED);
         }
-
-        return allowedValues;
     }
 
     public static @NotNull SelectableBeanObjectDataProvider<FocusType> createTableProvider(

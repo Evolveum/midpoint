@@ -3054,11 +3054,11 @@
                 </xsd:annotation>
             </xsd:element>
 
-            <xsd:element name="anomalyExclusiveCount" type="xsd:int" minOccurs="0">
+            <xsd:element name="overallAnomalyCount" type="xsd:int" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
                         <p>
-                            Number of anomaly exclusive objects.
+                            Number of overall anomaly objects.
                         </p>
                     </xsd:documentation>
                 </xsd:annotation>
@@ -3079,6 +3079,26 @@
                     <xsd:documentation>
                         <p>
                             Number of excluded objects.
+                        </p>
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+
+            <xsd:element name="insufficientCount" type="xsd:int" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        <p>
+                            Number of insufficient per similarity.
+                        </p>
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+
+            <xsd:element name="noiseExclusiveUnpopular" type="xsd:int" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        <p>
+                            Number of noise exclusive unpopular objects (noise exclusive and unpopular).
                         </p>
                     </xsd:documentation>
                 </xsd:annotation>
@@ -3185,7 +3205,7 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>
-            <xsd:enumeration value="anomaly_exclusive">
+            <xsd:enumeration value="overall_anomaly">
                 <xsd:annotation>
                     <xsd:documentation>
                         Anomaly roles or users.
@@ -3194,7 +3214,7 @@
                         (In the future, it will be used for more complex role mode analysis)
                     </xsd:documentation>
                     <xsd:appinfo>
-                        <jaxb:typesafeEnumMember name="ANOMALY_EXCLUSIVE"/>
+                        <jaxb:typesafeEnumMember name="OVERALL_ANOMALY"/>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>
@@ -3215,6 +3235,26 @@
                     </xsd:documentation>
                     <xsd:appinfo>
                         <jaxb:typesafeEnumMember name="OUTLIER"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="insufficient">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Insufficient peer similarity (noise exclusive = noise - unpopular).
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="INSUFFICIENT"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="noise_exclusive_unpopular">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        (noise_exclusive_unpopular = noise exclusive and unpopular).
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="NOISE_EXCLUSIVE_UNPOPULAR"/>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>

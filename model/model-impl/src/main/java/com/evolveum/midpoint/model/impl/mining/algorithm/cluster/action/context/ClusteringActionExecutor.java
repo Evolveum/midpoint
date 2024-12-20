@@ -314,7 +314,7 @@ public class ClusteringActionExecutor extends BaseAction {
     private static void loadSessionExclusiveAnomalyCategorization(@NotNull ObjectCategorisationCache objectCategorisationCache,
             @NotNull Set<String> sessionAnomalyOids) {
         objectCategorisationCache.putAllCategory(sessionAnomalyOids,
-                RoleAnalysisObjectCategorizationType.ANOMALY_EXCLUSIVE, RoleType.COMPLEX_TYPE);
+                RoleAnalysisObjectCategorizationType.OVERALL_ANOMALY, RoleType.COMPLEX_TYPE);
     }
 
     /**

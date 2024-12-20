@@ -7,6 +7,7 @@ import org.jetbrains.annotations.NotNull;
 
 import javax.xml.namespace.QName;
 import java.util.*;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 //TODO build RoleAnalysisIdentifiedCharacteristicsItemType
@@ -101,36 +102,18 @@ public class ObjectCategorisationCache {
      * Builds the RoleAnalysisIdentifiedCharacteristicsType container by aggregating
      * the categorized items from roles, users, and focus maps.
      *
+     * @param sessionObject The RoleAnalysisSessionType containing session data.
      * @return The RoleAnalysisIdentifiedCharacteristicsType container with categorized items.
      */
     public RoleAnalysisIdentifiedCharacteristicsType build(RoleAnalysisSessionType sessionObject) {
         RoleAnalysisIdentifiedCharacteristicsType container = new RoleAnalysisIdentifiedCharacteristicsType();
 
         markExcludedObjects(sessionObject);
+        addInsufficientCategory(sessionObject.getAnalysisOption());
 
-        if (!rolesCategoryMap.values().isEmpty()) {
-            RoleAnalysisIdentifiedCharacteristicsItemsType roleItems = new RoleAnalysisIdentifiedCharacteristicsItemsType();
-            roleItems.getItem().addAll(CloneUtil.cloneCollectionMembers(rolesCategoryMap.values()));
-            computeCategories(roleItems);
-            container.setRoles(roleItems);
-            container.setRolesCount(rolesCategoryMap.values().size());
-        }
-
-        if (!usersCategoryMap.values().isEmpty()) {
-            RoleAnalysisIdentifiedCharacteristicsItemsType userItems = new RoleAnalysisIdentifiedCharacteristicsItemsType();
-            userItems.getItem().addAll(CloneUtil.cloneCollectionMembers(usersCategoryMap.values()));
-            computeCategories(userItems);
-            container.setUsers(userItems);
-            container.setUsersCount(usersCategoryMap.values().size());
-        }
-
-        if (!focusCategoryMap.values().isEmpty()) {
-            RoleAnalysisIdentifiedCharacteristicsItemsType focusItems = new RoleAnalysisIdentifiedCharacteristicsItemsType();
-            focusItems.getItem().addAll(CloneUtil.cloneCollectionMembers(focusCategoryMap.values()));
-            computeCategories(focusItems);
-            container.setFocus(focusItems);
-            container.setFocusCount(focusCategoryMap.values().size());
-        }
+        processCategoryMap(rolesCategoryMap, container::setRoles, container::setRolesCount);
+        processCategoryMap(usersCategoryMap, container::setUsers, container::setUsersCount);
+        processCategoryMap(focusCategoryMap, container::setFocus, container::setFocusCount);
 
         RoleAnalysisIdentifiedCharacteristicsType identifiedCharacteristics = sessionObject.getIdentifiedCharacteristics();
         if (identifiedCharacteristics != null && identifiedCharacteristics.getExclude() != null) {
@@ -139,6 +122,30 @@ public class ObjectCategorisationCache {
 
         return container;
     }
+
+    /**
+     * Processes a category map, computes categories, and sets the corresponding items and count.
+     *
+     * @param categoryMap The map of categories to process.
+     * @param setItems A method reference to set the items in the container.
+     * @param setCount A method reference to set the count in the container.
+     */
+    private void processCategoryMap(
+            @NotNull Map<?, RoleAnalysisIdentifiedCharacteristicsItemType> categoryMap,
+            Consumer<RoleAnalysisIdentifiedCharacteristicsItemsType> setItems,
+            Consumer<Integer> setCount) {
+
+        if (!categoryMap.values().isEmpty()) {
+            RoleAnalysisIdentifiedCharacteristicsItemsType items = new RoleAnalysisIdentifiedCharacteristicsItemsType();
+            items.getItem().addAll(CloneUtil.cloneCollectionMembers(categoryMap.values()));
+            computeCategories(items);
+            setItems.accept(items);
+            setCount.accept(categoryMap.values().size());
+        }
+    }
+
+
+
 
     /**
      * Marks objects as excluded based on the analysis options and manually unwanted objects.
@@ -175,6 +182,30 @@ public class ObjectCategorisationCache {
                     && category.contains(RoleAnalysisObjectCategorizationType.UN_POPULAR)) {
                 user.getCategory().add(RoleAnalysisObjectCategorizationType.EXCLUDED);
             }
+        }
+
+    }
+
+    public void addInsufficientCategory(@NotNull RoleAnalysisOptionType analysisOption) {
+        RoleAnalysisProcessModeType processMode = analysisOption.getProcessMode();
+
+        Map<?, RoleAnalysisIdentifiedCharacteristicsItemType> targetMap =
+                (processMode.equals(RoleAnalysisProcessModeType.USER)) ? usersCategoryMap : rolesCategoryMap;
+
+        for (RoleAnalysisIdentifiedCharacteristicsItemType item : targetMap.values()) {
+            updateCategoryIfNecessary(item);
+        }
+    }
+
+    private void updateCategoryIfNecessary(@NotNull RoleAnalysisIdentifiedCharacteristicsItemType item) {
+        List<RoleAnalysisObjectCategorizationType> categories = item.getCategory();
+        if (categories.contains(RoleAnalysisObjectCategorizationType.NOISE_EXCLUSIVE)
+                && !categories.contains(RoleAnalysisObjectCategorizationType.UN_POPULAR)) {
+
+            categories.add(RoleAnalysisObjectCategorizationType.INSUFFICIENT);
+        }else if (categories.contains(RoleAnalysisObjectCategorizationType.UN_POPULAR)
+                && categories.contains(RoleAnalysisObjectCategorizationType.NOISE_EXCLUSIVE)) {
+            categories.add(RoleAnalysisObjectCategorizationType.NOISE_EXCLUSIVE_UNPOPULAR);
         }
 
     }
@@ -224,46 +255,29 @@ public class ObjectCategorisationCache {
      * @param items The items containing the categories to be counted.
      */
     private void computeCategories(@NotNull RoleAnalysisIdentifiedCharacteristicsItemsType items) {
-        int unpopularCount = 0;
-        int abovePopularCount = 0;
-        int noiseCount = 0;
-        int noiseExclusiveCount = 0;
-        int anomalyCount = 0;
-        int anomalyExclusiveCount = 0;
-        int outlierCount = 0;
-        int excludedCount = 0;
+        Map<RoleAnalysisObjectCategorizationType, Integer> categoryCounts = new EnumMap<>(RoleAnalysisObjectCategorizationType.class);
 
-        List<RoleAnalysisIdentifiedCharacteristicsItemType> item = items.getItem();
-        for (RoleAnalysisIdentifiedCharacteristicsItemType value : item) {
+        for (RoleAnalysisObjectCategorizationType category : RoleAnalysisObjectCategorizationType.values()) {
+            categoryCounts.put(category, 0);
+        }
+
+        List<RoleAnalysisIdentifiedCharacteristicsItemType> itemList = items.getItem();
+        for (RoleAnalysisIdentifiedCharacteristicsItemType value : itemList) {
             for (RoleAnalysisObjectCategorizationType category : value.getCategory()) {
-                if (category == RoleAnalysisObjectCategorizationType.UN_POPULAR) {
-                    unpopularCount++;
-                } else if (category == RoleAnalysisObjectCategorizationType.ABOVE_POPULAR) {
-                    abovePopularCount++;
-                } else if (category == RoleAnalysisObjectCategorizationType.NOISE) {
-                    noiseCount++;
-                } else if (category == RoleAnalysisObjectCategorizationType.NOISE_EXCLUSIVE) {
-                    noiseExclusiveCount++;
-                } else if (category == RoleAnalysisObjectCategorizationType.ANOMALY) {
-                    anomalyCount++;
-                } else if (category == RoleAnalysisObjectCategorizationType.ANOMALY_EXCLUSIVE) {
-                    anomalyExclusiveCount++;
-                } else if (category == RoleAnalysisObjectCategorizationType.OUTLIER) {
-                    outlierCount++;
-                } else if (category == RoleAnalysisObjectCategorizationType.EXCLUDED) {
-                    excludedCount++;
-                }
+                categoryCounts.put(category, categoryCounts.get(category) + 1);
             }
         }
 
-        items.setUnPopularCount(unpopularCount);
-        items.setAbovePopularCount(abovePopularCount);
-        items.setNoiseCount(noiseCount);
-        items.setNoiseExclusiveCount(noiseExclusiveCount);
-        items.setAnomalyCount(anomalyCount);
-        items.setAnomalyExclusiveCount(anomalyExclusiveCount);
-        items.setOutlierCount(outlierCount);
-        items.setExcludedCount(excludedCount);
+        items.setUnPopularCount(categoryCounts.getOrDefault(RoleAnalysisObjectCategorizationType.UN_POPULAR, 0));
+        items.setAbovePopularCount(categoryCounts.getOrDefault(RoleAnalysisObjectCategorizationType.ABOVE_POPULAR, 0));
+        items.setNoiseCount(categoryCounts.getOrDefault(RoleAnalysisObjectCategorizationType.NOISE, 0));
+        items.setNoiseExclusiveCount(categoryCounts.getOrDefault(RoleAnalysisObjectCategorizationType.NOISE_EXCLUSIVE, 0));
+        items.setAnomalyCount(categoryCounts.getOrDefault(RoleAnalysisObjectCategorizationType.ANOMALY, 0));
+        items.setOverallAnomalyCount(categoryCounts.getOrDefault(RoleAnalysisObjectCategorizationType.OVERALL_ANOMALY, 0));
+        items.setOutlierCount(categoryCounts.getOrDefault(RoleAnalysisObjectCategorizationType.OUTLIER, 0));
+        items.setExcludedCount(categoryCounts.getOrDefault(RoleAnalysisObjectCategorizationType.EXCLUDED, 0));
+        items.setInsufficientCount(categoryCounts.getOrDefault(RoleAnalysisObjectCategorizationType.INSUFFICIENT, 0));
+        items.setNoiseExclusiveUnpopular(categoryCounts.getOrDefault(RoleAnalysisObjectCategorizationType.NOISE_EXCLUSIVE_UNPOPULAR, 0));
     }
 
     public Set<String> getUnpopularRoles() {
@@ -280,7 +294,8 @@ public class ObjectCategorisationCache {
                 .collect(Collectors.toSet());
     }
 
-    public RoleAnalysisIdentifiedCharacteristicsType updateUnPopularityIdentifiedChar(@NotNull RoleAnalysisSessionType session) {
+    public RoleAnalysisIdentifiedCharacteristicsType updateUnPopularityIdentifiedChar(@NotNull RoleAnalysisSessionType
+            session) {
         Set<String> unpopularRoles = getUnpopularRoles();
         Set<String> unpopularUsers = getUnpopularUsers();
 

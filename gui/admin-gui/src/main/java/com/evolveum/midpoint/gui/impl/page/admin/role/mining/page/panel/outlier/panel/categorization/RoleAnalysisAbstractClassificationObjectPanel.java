@@ -49,6 +49,7 @@ import java.util.*;
 
 import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.RoleAnalysisWebUtils.CLASS_CSS;
 import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.outlier.panel.categorization.CategorySelectionProvider.createTableProvider;
+import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.outlier.panel.categorization.CategorySelectionProvider.getCategoryValueDisplayString;
 
 public abstract class RoleAnalysisAbstractClassificationObjectPanel extends AbstractObjectMainPanel<RoleAnalysisSessionType, ObjectDetailsModels<RoleAnalysisSessionType>> {
 
@@ -60,7 +61,8 @@ public abstract class RoleAnalysisAbstractClassificationObjectPanel extends Abst
     private static final String ID_DISTRIBUTION_USER_PANEL = "distributionUser";
     private static final int ROLE_TAB_INDEX = 1;
 
-    public record PanelOptions(boolean advanced, String rolesTitleId, String usersTitleId) {};
+    public record PanelOptions(boolean advanced, String rolesTitleId, String usersTitleId) {
+    }
 
     LoadableModel<Boolean> isRoleSelectedModel = new LoadableModel<>() {
         @Contract(pure = true)
@@ -258,7 +260,7 @@ public abstract class RoleAnalysisAbstractClassificationObjectPanel extends Abst
                 IColumn<SelectableBean<FocusType>, String> column;
 
                 column = new AbstractExportableColumn<>(
-                        createStringResource("AnalysisClusterStatisticType.status")) {
+                        createStringResource("RoleAnalysisCategoryValue.table.header.category")) {
 
                     @Override
                     public IModel<?> getDataModel(IModel<SelectableBean<FocusType>> iModel) {
@@ -268,10 +270,10 @@ public abstract class RoleAnalysisAbstractClassificationObjectPanel extends Abst
                     @Override
                     public Component getHeader(String componentId) {
                         return new LabelWithHelpPanel(componentId,
-                                createStringResource("RoleAnalysisCluster.table.header.cluster.state")) {
+                                createStringResource("RoleAnalysisCategoryValue.table.header.category")) {
                             @Override
                             protected IModel<String> getHelpModel() {
-                                return createStringResource("RoleAnalysisCluster.table.header.cluster.state.help");
+                                return createStringResource("RoleAnalysisCategoryValue.table.header.category.help");
                             }
                         };
 
@@ -298,8 +300,11 @@ public abstract class RoleAnalysisAbstractClassificationObjectPanel extends Abst
                             if (!allowedValues.contains(categorization)) {
                                 continue;
                             }
-                            Label label = new Label(repeatingView.newChildId(), categorization.value());
-                            label.add(AttributeModifier.append("class", "badge badge-info mr-1"));
+
+                            String valueDisplayString = getCategoryValueDisplayString(categorization, isRoleSelectedModel.getObject());
+                            Label label = new Label(repeatingView.newChildId(), valueDisplayString);
+                            label.add(AttributeModifier.append("class",
+                                    "badge p-1 bg-transparent-blue border border-primary text-primary mr-1"));
                             repeatingView.add(label);
                         }
 
