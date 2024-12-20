@@ -243,4 +243,9 @@ public class PagePostAuthentication extends PageAbstractFlow {
         return getModelInteractionService().getSecurityPolicy(
                 principal == null ? null : principal.asPrismObject(), task, result);
     }
+
+    @Override
+    protected String getSubmitLabelKey() {
+        return "PageBase.button.submit";
+    }
 }
