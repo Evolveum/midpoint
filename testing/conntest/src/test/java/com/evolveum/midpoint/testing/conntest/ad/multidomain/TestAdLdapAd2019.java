@@ -97,13 +97,26 @@ public class TestAdLdapAd2019 extends AbstractAdLdapMultidomainTest {
 
     @Override
     protected int getNumberOfAllAccounts() {
-        // Namely: Administrator, Guest, cloudbase-init, Admin, sshd, AD03,
-        // krbtgt, SSH Test SUB2019$, MidPoint, Jack Sparrow
-        return 11;
+        // State as of 2024-12-20 (after re-installation of AD 2019 server):
+        //
+        // - Administrator
+        // - Guest
+        // - AD03
+        // - krbtgt
+        // - Jack Sparrow
+        // - MidPoint
+        // - SSH Test
+        // - sub2019$
+        return 8;
     }
 
     @Override
     protected boolean hasExchange() {
         return false;
+    }
+
+    @Override
+    protected String getExpected182FirstShadow() {
+        return "CN=Administrator," + getPeopleLdapSuffix();
     }
 }
