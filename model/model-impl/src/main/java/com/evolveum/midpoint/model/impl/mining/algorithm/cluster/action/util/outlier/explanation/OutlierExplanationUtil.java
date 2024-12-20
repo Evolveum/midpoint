@@ -46,7 +46,8 @@ public class OutlierExplanationUtil {
         long id = 1;
         for (DetectedAnomalyResult anomalyResult : detectedAnomalyResults) {
             anomalyResult.setId(id++);
-            anomalyExplanationInputs.add(anomalyExplanationUtil.prepareOutlierExplanationAnomalyInput(anomalyResult));
+            anomalyExplanationInputs.add(anomalyExplanationUtil.prepareOutlierExplanationAnomalyInput(
+                    roleAnalysisService, anomalyResult, task, result));
         }
 
         @NotNull List<OutlierExplanationResolver.@Nullable ExplanationAttribute> explanationAttribute =

@@ -18,7 +18,9 @@ import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import javax.xml.namespace.QName;
 import java.util.List;
+import java.util.UUID;
 import java.util.stream.Stream;
 
 public class ExplanationUtil {
@@ -94,15 +96,50 @@ public class ExplanationUtil {
                 .filter(attribute -> Boolean.TRUE.equals(attribute.getIsUnusual()));
     }
 
-    @Contract("_, _, _ -> new")
+    @Contract("_, _, _, _, _, _ -> new")
     protected static OutlierExplanationResolver.@NotNull ExplanationAttribute createExplanationAttribute(
+            @NotNull RoleAnalysisService roleAnalysisService,
             @NotNull RoleAnalysisAttributeStatistics attribute,
             ItemPathType itemPath,
-            ItemDefinition<?> userItemDefinition) {
+            ItemDefinition<?> userItemDefinition,
+            @NotNull Task task,
+            @NotNull OperationResult result) {
+
+        String attributeValue = attribute.getAttributeValue();
+        String displayAttributeValue = resolveAttributeValueRealName(roleAnalysisService, userItemDefinition, attributeValue,
+                task, result);
         return new OutlierExplanationResolver.ExplanationAttribute(
                 itemPath,
                 userItemDefinition,
-                attribute.getAttributeValue());
+                displayAttributeValue);
     }
 
+    //check for better solution
+    public static String resolveAttributeValueRealName(
+            @NotNull RoleAnalysisService service,
+            @NotNull ItemDefinition<?> def,
+            @NotNull String value,
+            @NotNull Task task,
+            @NotNull OperationResult result) {
+
+        QName itemTargetType = def.getTypeName();
+        if (!itemTargetType.equals(ObjectReferenceType.COMPLEX_TYPE)) {
+            return value;
+        }
+
+        String itemValue = value;
+        UUID uuid = UUID.fromString(value);
+        PrismObject<FocusType> focusTypeObject = service.getFocusTypeObject(uuid.toString(), task, result);
+        if (focusTypeObject == null) {
+            return itemValue;
+        }
+
+        FocusType focusObject = focusTypeObject.asObjectable();
+
+        if (focusObject.getName() != null) {
+            itemValue = focusTypeObject.getName().getOrig();
+        }
+
+        return itemValue;
+    }
 }

@@ -6,7 +6,10 @@
  */
 package com.evolveum.midpoint.model.impl.mining.algorithm.cluster.action.util.outlier.explanation;
 
+import com.evolveum.midpoint.model.api.mining.RoleAnalysisService;
 import com.evolveum.midpoint.model.impl.mining.algorithm.cluster.action.util.outlier.OutlierExplanationResolver;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
@@ -27,14 +30,17 @@ public class AnomalyExplanationUtil {
     }
 
     public OutlierExplanationResolver.AnomalyExplanationInput prepareOutlierExplanationAnomalyInput(
-            @NotNull DetectedAnomalyResult detectedAnomalyResult) {
+            @NotNull RoleAnalysisService roleAnalysisService,
+            @NotNull DetectedAnomalyResult detectedAnomalyResult,
+            @NotNull Task task,
+            @NotNull OperationResult result) {
 
         DetectedAnomalyStatistics statistics = detectedAnomalyResult.getStatistics();
         OutlierExplanationResolver.RoleStats repoRoleStats = createRoleStats(statistics, true);
         OutlierExplanationResolver.RoleStats groupRoleStats = createRoleStats(statistics, false);
 
         List<OutlierExplanationResolver.ExplanationAttribute> explanationAttributes =
-                prepareOutlierExplanationAttributeInput(detectedAnomalyResult);
+                prepareOutlierExplanationAttributeInput(roleAnalysisService, detectedAnomalyResult, task, result);
 
         return new OutlierExplanationResolver.AnomalyExplanationInput(
                 detectedAnomalyResult.getId(),
@@ -45,7 +51,10 @@ public class AnomalyExplanationUtil {
     }
 
     private @NotNull List<OutlierExplanationResolver.ExplanationAttribute> prepareOutlierExplanationAttributeInput(
-            DetectedAnomalyResult detectedAnomalyResult) {
+            @NotNull RoleAnalysisService roleAnalysisService,
+            DetectedAnomalyResult detectedAnomalyResult,
+            @NotNull Task task,
+            @NotNull OperationResult result) {
         var userAttributeAnalysisResults = getUserAttributeAnalysis(detectedAnomalyResult);
 
         if (userAttributeAnalysisResults == null) {
@@ -59,9 +68,12 @@ public class AnomalyExplanationUtil {
                                 .map(attributeStatistic -> {
                                     ItemPathType itemPath = userAttributeAnalysisResult.getItemPath();
                                     return createExplanationAttribute(
+                                            roleAnalysisService,
                                             attributeStatistic,
                                             itemPath,
-                                            getUserItemDefinition(itemPath));
+                                            getUserItemDefinition(itemPath),
+                                            task,
+                                            result);
                                 }))
                 .collect(Collectors.toList());
     }
