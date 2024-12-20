@@ -62,6 +62,8 @@ public class ShadowsFacade {
     @Autowired private ShadowFinder shadowFinder;
 
     /**
+     * Gets the shadow. Assumes that the mode is not raw.
+     *
      * @param oid OID of the shadow to be fetched
      * @param repositoryShadow (Optional) current shadow in the repository. If not specified, this method will retrieve it by OID.
      * @param identifiersOverride (Optional) identifiers that are known to the caller and that should override
@@ -78,8 +80,9 @@ public class ShadowsFacade {
             @NotNull OperationResult result)
             throws ObjectNotFoundException, CommunicationException, SchemaException,
             ConfigurationException, SecurityViolationException, ExpressionEvaluationException, EncryptionException {
+        assert !GetOperationOptions.isRaw(options);
         var shadow = ShadowGetOperation.execute(oid, repositoryShadow, identifiersOverride, options, context, task, result);
-        checkReturnedShadowValidity(shadow.getBean());
+        ReturnedShadowValidityChecker.check(shadow, options);
         return shadow;
     }
 
@@ -143,7 +146,7 @@ public class ShadowsFacade {
         definitionsHelper.applyDefinition(query, task, result);
     }
 
-    public SearchResultMetadata searchObjectsIterative(
+    public SearchResultMetadata searchShadowsIterative(
             ObjectQuery query,
             Collection<SelectorOptions<GetOperationOptions>> options,
             @NotNull ResultHandler<ShadowType> handler,
@@ -155,11 +158,11 @@ public class ShadowsFacade {
         return ShadowSearchLikeOperation
                 .create(query, options, context, task, result)
                 .executeIterativeSearch(
-                        createCheckingHandler(handler),
+                        ReturnedShadowValidityChecker.createCheckingHandler(handler, options),
                         result);
     }
 
-    public @NotNull SearchResultList<PrismObject<ShadowType>> searchObjects(
+    public @NotNull SearchResultList<PrismObject<ShadowType>> searchShadows(
             ObjectQuery query,
             Collection<SelectorOptions<GetOperationOptions>> options,
             ProvisioningOperationContext context,
@@ -170,11 +173,11 @@ public class ShadowsFacade {
         var shadows = ShadowSearchLikeOperation
                 .create(query, options, context, task, result)
                 .executeNonIterativeSearch(result);
-        checkReturnedShadowsValidity(shadows);
+        ReturnedShadowValidityChecker.check(shadows, options);
         return shadows;
     }
 
-    public SearchResultMetadata searchObjectsIterative(
+    public void searchShadowsIterative(
             ProvisioningContext ctx,
             ObjectQuery query,
             Collection<SelectorOptions<GetOperationOptions>> options,
@@ -182,7 +185,7 @@ public class ShadowsFacade {
             OperationResult result)
             throws SchemaException, ObjectNotFoundException, CommunicationException,
             ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
-        return ShadowSearchLikeOperation
+        ShadowSearchLikeOperation
                 .create(ctx, query, options)
                 .executeIterativeSearch(handler, result);
     }

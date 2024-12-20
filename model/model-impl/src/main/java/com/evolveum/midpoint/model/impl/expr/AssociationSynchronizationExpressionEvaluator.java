@@ -346,7 +346,7 @@ class AssociationSynchronizationExpressionEvaluator
                 var targetAssignment = instantiateTargetAssignment();
                 PreMappingsEvaluator.computePreFocusForAssociationValue(
                         associationValue,
-                        associationValue.hasAssociationObject() ?
+                        associationValue.isComplex() ?
                                 associationValue.getAssociationDataObject().getObjectDefinition() :
                                 projectionContext.getCompositeObjectDefinitionRequired(),
                         inboundDefinition,
@@ -515,7 +515,7 @@ class AssociationSynchronizationExpressionEvaluator
                         targetAssignment,
                         ModelBeans.get().systemObjectCache.getSystemConfigurationBean(result),
                         context.getTask(),
-                        associationValue.hasAssociationObject() ?
+                        associationValue.isComplex() ?
                                 associationValue.getAssociationDataObject().getObjectDefinition() :
                                 projectionContext.getCompositeObjectDefinitionRequired(),
                         inboundDefinition,

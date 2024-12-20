@@ -97,7 +97,7 @@ class ShadowObjectComputer {
                 if (shouldStoreReferenceAttributeInShadow(objectDef, attrDef)) {
                     var repoAttrDef = ShadowComputerUtil.createRepoRefAttrDef(attrDef);
                     var repoAttr = repoAttrDef.instantiate();
-                    for (var refAttrValue : referenceAttribute.getReferenceValues()) {
+                    for (var refAttrValue : referenceAttribute.getAttributeValues()) {
                         ObjectReferenceType inRepoFormat = ShadowComputerUtil.toRepoFormat(ctx, refAttrValue);
                         if (inRepoFormat != null) {
                             repoAttr.addIgnoringEquivalents(inRepoFormat.asReferenceValue());

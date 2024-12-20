@@ -259,7 +259,7 @@ public interface InboundSourceData extends DebugDumpable, Serializable {
 
         @Override
         public Collection<? extends ShadowSimpleAttributeDefinition<?>> getSimpleAttributeDefinitions() {
-            if (associationValue.hasAssociationObject()) {
+            if (associationValue.isComplex()) {
                 return resourceObjectDefinition.getSimpleAttributeDefinitions();
             } else {
                 return List.of();
@@ -268,7 +268,7 @@ public interface InboundSourceData extends DebugDumpable, Serializable {
 
         @Override
         public Collection<? extends ShadowReferenceAttributeDefinition> getReferenceAttributeDefinitions() {
-            if (associationValue.hasAssociationObject()) {
+            if (associationValue.isComplex()) {
                 return resourceObjectDefinition.getReferenceAttributeDefinitions();
             } else {
                 return associationValue.getObjectReferences().stream()
@@ -301,7 +301,7 @@ public interface InboundSourceData extends DebugDumpable, Serializable {
 
         @Override
         public PrismObject<ShadowType> getShadowIfPresent() {
-            return associationValue.hasAssociationObject() ?
+            return associationValue.isComplex() ?
                     associationValue.getAssociationDataObject().getPrismObject() : null;
         }
 

@@ -70,7 +70,7 @@ public abstract class ShadowAttributeDefinitionImpl<
      *
      * . from the connector, as part of the native schema;
      * . manually filled-in by the administrator in `schema` part of the resource definition (in XSD form);
-     * . *special for associations*: derived from the simulated association definition (legacy or capability format).
+     * . derived from the simulated reference definition (legacy or capability format).
      *
      * The third case is a bit of hack, but it's needed to keep the code simple. The native definition is accessed from
      * too many places in this module. Note that it will never be serialized into the XSD schema in the resource definition
@@ -558,7 +558,6 @@ public abstract class ShadowAttributeDefinitionImpl<
     }
 
     public String debugDump(int indent, LayerType layer) {
-        // TODO reconsider this method
         StringBuilder sb = DebugUtil.createTitleStringBuilder(getClass(), indent);
         sb.append(" ").append(this);
         if (layer == null) {

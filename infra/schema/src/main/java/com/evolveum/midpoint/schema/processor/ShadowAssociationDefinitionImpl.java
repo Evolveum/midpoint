@@ -304,17 +304,17 @@ public class ShadowAssociationDefinitionImpl
         ComplexTypeDefinition def = genericDefinition.clone();
 
         if (isComplex()) {
-            ResourceObjectDefinition resourceObjectDefinition = getReferenceAttributeDefinition().getTargetObjectClass();
+            var targetObjectDef = getReferenceAttributeDefinition().getDefinitionForTargetObjectClass();
             def.mutator().replaceDefinition(
                     ShadowAssociationValueType.F_ATTRIBUTES,
                     new ShadowAttributesContainerDefinitionImpl(
                             ShadowAssociationValueType.F_ATTRIBUTES,
-                            resourceObjectDefinition.getSimpleAttributesComplexTypeDefinition()));
+                            targetObjectDef.getSimpleAttributesComplexTypeDefinition()));
             def.mutator().replaceDefinition(
                     ShadowAssociationValueType.F_OBJECTS,
                     new ShadowAttributesContainerDefinitionImpl(
                             ShadowAssociationValueType.F_OBJECTS,
-                            resourceObjectDefinition.getReferenceAttributesComplexTypeDefinition()));
+                            targetObjectDef.getReferenceAttributesComplexTypeDefinition()));
         } else {
             def.mutator().delete(ShadowAssociationValueType.F_ATTRIBUTES); // ...or replace with empty PCD/CTD
             def.mutator().delete(ShadowAssociationValueType.F_ACTIVATION); // ...or leave it as it is
@@ -327,15 +327,6 @@ public class ShadowAssociationDefinitionImpl
                             ShadowAssociationValueType.F_OBJECTS,
                             new ShadowSingleReferenceAttributeComplexTypeDefinitionImpl(objectRefDef)));
         }
-
-//        // We apply the prism shadow definition for (representative) target object to the shadowRef definition.
-//        var attributesDef = Objects.requireNonNull(def.findContainerDefinition(ShadowAssociationValueType.F_ATTRIBUTES)).clone();
-//        attributesDef.mutator().setTargetObjectDefinition(
-//                getRepresentativeTargetObjectDefinition().getPrismObjectDefinition());
-//        def.mutator().replaceDefinition(
-//                ShadowAssociationValueType.F_SHADOW_REF,
-//                attributesDef);
-//        def.mutator().setRuntimeSchema(true);
 
         // We have to use migrator, because we don't want to create a special implementation of ComplexTypeDefinition
         // interface here. (Just like ShadowReferenceAttributeDefinitionImpl is a special implementation of
@@ -353,7 +344,7 @@ public class ShadowAssociationDefinitionImpl
                                 (ShadowAssociationValueType) value.asContainerable(),
                                 ShadowAssociationDefinitionImpl.this);
                     } catch (SchemaException e) {
-                        throw new RuntimeException(e); // FIXME
+                        throw new RuntimeException(e); // We should perhaps tunnel the exception somehow
                     }
                     converted.setParent(value.getParent());
                     return converted;
@@ -567,7 +558,8 @@ public class ShadowAssociationDefinitionImpl
 
     @Override
     public boolean isEntitlement() {
-        throw new UnsupportedOperationException("FIXME implement");
+        return objectParticipantMap.values().stream()
+                .anyMatch(ShadowRelationParticipantType::isEntitlement);
     }
 
     public void shortDump(StringBuilder sb) {

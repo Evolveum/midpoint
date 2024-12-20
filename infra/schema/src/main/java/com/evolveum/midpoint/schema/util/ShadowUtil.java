@@ -1478,4 +1478,9 @@ public class ShadowUtil {
     public static Object getDiagInfoLazily(PrismObject<ShadowType> shadow) {
         return DebugUtil.lazy(() -> getDiagInfo(shadow));
     }
+
+    /** Beware, maintenance mode has PARTIAL_ERROR here. */
+    public static boolean hasFetchError(@NotNull ShadowType shadow) {
+        return ObjectTypeUtil.hasFetchError(shadow.asPrismObject());
+    }
 }

@@ -200,7 +200,7 @@ public class ConstraintsChecker {
         // Note that we should not call repository service directly here. The query values need to be normalized according to
         // attribute matching rules.
         List<PrismObject<ShadowType>> matchingObjects =
-                shadowsLocalBeans.shadowsFacade.searchObjects(
+                shadowsLocalBeans.shadowsFacade.searchShadows(
                         query,
                         GetOperationOptions.createNoFetchCollection(),
                         provisioningContext.getOperationContext(),

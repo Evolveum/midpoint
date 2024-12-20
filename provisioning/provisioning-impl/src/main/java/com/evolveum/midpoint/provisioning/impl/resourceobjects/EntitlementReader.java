@@ -123,8 +123,9 @@ class EntitlementReader {
 
         for (var subjectBindingAttrValue : subjectBindingAttrValues) {
             var newReferenceAttrValue =
-                    subjectReferenceAttr.createNewValueWithIdentifier(
-                            objectBindingAttrDef.instantiateFromRealValue(subjectBindingAttrValue.clone().getRealValueRequired()));
+                    subjectReferenceAttr.createNewValueWithIdentifierRealValue(
+                            objectBindingAttrDef.getItemName(),
+                            subjectBindingAttrValue.getRealValueRequired());
             LOGGER.trace("Binding attribute value resolved to reference value {}", newReferenceAttrValue);
         }
     }

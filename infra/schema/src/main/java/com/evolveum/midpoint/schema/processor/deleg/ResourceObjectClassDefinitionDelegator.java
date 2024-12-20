@@ -73,4 +73,10 @@ public interface ResourceObjectClassDefinitionDelegator extends ResourceObjectDe
     default Collection<? extends ResourceObjectDefinition> getAuxiliaryDefinitions() {
         return delegate().getAuxiliaryDefinitions();
     }
+
+    @Override
+    @NotNull
+    default ResourceObjectDefinition getEffectiveDefinition() {
+        return delegate().getEffectiveDefinition();
+    }
 }

@@ -14,6 +14,7 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.prism.xml.ns._public.types_3.RawType;
 
 import com.google.common.base.Preconditions;
@@ -34,13 +35,13 @@ import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ReferencesCapabilityType;
 
+import static com.evolveum.midpoint.util.MiscUtil.stateNonEmpty;
+
 /**
  * Definition of a shadow association item, e.g., `ri:group`.
  *
  * Note that unlike the attributes, here the {@link ShadowAttributeDefinitionImpl#nativeDefinition} may be generated artificially
  * based on simulated {@link ReferencesCapabilityType} definition.
- *
- * TODO various options for configuring associations
  */
 public class ShadowReferenceAttributeDefinitionImpl
         extends ShadowAttributeDefinitionImpl<
@@ -58,12 +59,31 @@ public class ShadowReferenceAttributeDefinitionImpl
     /** Participant-independent definition of the reference type. */
     @NotNull private final AbstractShadowReferenceTypeDefinition referenceTypeDefinition;
 
+    /**
+     * ONLY FOR SUBJECT-SIDE PARTICIPANT (and always non-null for it)
+     *
+     * Definition for the target object class.
+     *
+     * May be:
+     *
+     * - embedded (for references used to implement complex associations)
+     * - or standalone (for references used to implement simple associations, or references without associations).
+     *
+     * May be:
+     *
+     * - genuine {@link ResourceObjectClassDefinition}
+     * - or {@link ResourceObjectTypeDefinition} (if there's a default type for that object class;
+     * hopefully removed soon, see MID-10309)
+     */
+    @Nullable private final ResourceObjectDefinition definitionForTargetObjectClass;
+
     private ShadowReferenceAttributeDefinitionImpl(
             @NotNull AbstractShadowReferenceTypeDefinition typeDefinition,
             @NotNull NativeShadowReferenceAttributeDefinition nativeDefinition,
             @NotNull ResourceItemDefinitionType configurationBean) throws SchemaException {
         super(nativeDefinition, configurationBean, false);
         this.referenceTypeDefinition = typeDefinition;
+        this.definitionForTargetObjectClass = computeDefinitionForTargetObjectClass(nativeDefinition, typeDefinition);
     }
 
     private ShadowReferenceAttributeDefinitionImpl(
@@ -72,9 +92,10 @@ public class ShadowReferenceAttributeDefinitionImpl
             @NotNull ResourceItemDefinitionType customizationBean,
             @NotNull Map<LayerType, PropertyLimitations> limitationsMap,
             @NotNull PropertyAccessType accessOverride,
-            @NotNull AbstractShadowReferenceTypeDefinition referenceTypeDefinition) {
+            @NotNull AbstractShadowReferenceTypeDefinition typeDefinition) {
         super(layer, nativeDefinition, customizationBean, limitationsMap, accessOverride);
-        this.referenceTypeDefinition = referenceTypeDefinition;
+        this.referenceTypeDefinition = typeDefinition;
+        this.definitionForTargetObjectClass = computeDefinitionForTargetObjectClass(nativeDefinition, typeDefinition);
     }
 
     static ShadowReferenceAttributeDefinitionImpl fromNative(
@@ -112,13 +133,30 @@ public class ShadowReferenceAttributeDefinitionImpl
         return CloneUtil.toImmutable(Objects.requireNonNullElseGet(customizationBean, ResourceItemDefinitionType::new));
     }
 
-    /** TODO inspect calls to this method; take specific embedded shadow into account (if possible)! */
-    public @NotNull ResourceObjectDefinition getRepresentativeTargetObjectDefinition() {
-        return referenceTypeDefinition.getRepresentativeObjectDefinition();
+    private static ResourceObjectDefinition computeDefinitionForTargetObjectClass(
+            @NotNull NativeShadowReferenceAttributeDefinition nativeDefinition,
+            @NotNull AbstractShadowReferenceTypeDefinition typeDef) {
+        if (nativeDefinition.getReferenceParticipantRole() == ShadowReferenceParticipantRole.OBJECT) {
+            return null;
+        } else {
+            var immediateNeighbors =
+                    stateNonEmpty(typeDef.getObjectTypes(),
+                            "No target (object) participant types in %s", typeDef);
+            var classDefinitions = immediateNeighbors.stream()
+                    .map(participantType -> participantType.getObjectDefinition().getObjectClassDefinition())
+                    .collect(Collectors.toSet());
+            var classDefinition = MiscUtil.extractSingletonRequired(
+                    classDefinitions,
+                    () -> new IllegalStateException("Multiple object class definitions in " + typeDef + ": " + classDefinitions),
+                    () -> new IllegalStateException("No object class definition in " + typeDef));
+            return classDefinition.getEffectiveDefinition();
+        }
     }
 
-    public boolean isEntitlement() {
-        return referenceTypeDefinition.isEntitlement();
+    @Override
+    public @NotNull ResourceObjectDefinition getDefinitionForTargetObjectClass() {
+        checkSubjectSide();
+        return Objects.requireNonNull(definitionForTargetObjectClass);
     }
 
     @Override
@@ -215,19 +253,6 @@ public class ShadowReferenceAttributeDefinitionImpl
                 newLimitationsMap,
                 accessOverride.clone(), // TODO do we want to preserve also the access override?
                 referenceTypeDefinition);
-    }
-
-    @Override
-    public ShadowReferenceAttributeValue instantiateFromIdentifierRealValue(
-            @NotNull QName identifierName, @NotNull Object realValue)
-            throws SchemaException {
-        ResourceObjectDefinition targetObjectDefinition = getRepresentativeTargetObjectDefinition();
-        var blankShadow = targetObjectDefinition.createBlankShadow();
-        blankShadow.getAttributesContainer().add(
-                (ShadowAttribute<?, ?, ?, ?>)
-                        targetObjectDefinition.instantiateAttribute(identifierName, realValue));
-        blankShadow.setIdentificationOnly();
-        return ShadowReferenceAttributeValue.fromShadow(blankShadow);
     }
 
     @Override

@@ -2765,7 +2765,7 @@ public class TestDummy extends AbstractBasicDummyTest {
         var account = provisioningService.getShadow(ACCOUNT_WILL_OID, null, task, result);
 
         then();
-        display("Account", account);
+        displayDumpable("Account", account);
         assertSuccess(result);
 
         assertCounterIncrement(InternalCounters.CONNECTOR_OPERATION_COUNT, 2);
@@ -2832,6 +2832,7 @@ public class TestDummy extends AbstractBasicDummyTest {
         var shadow = provisioningService.getShadow(ACCOUNT_WILL_OID, null, task, result);
 
         then();
+        displayDumpable("Shadow", shadow);
         assertSuccess(result);
         assertCounterIncrement(InternalCounters.CONNECTOR_OPERATION_COUNT, 3);
 

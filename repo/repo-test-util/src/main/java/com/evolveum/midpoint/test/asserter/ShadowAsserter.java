@@ -764,7 +764,7 @@ public class ShadowAsserter<RA> extends PrismObjectAsserter<ShadowType, RA> {
                 .as("effective operations in " + context)
                 .isNotNull();
         for (var refAttr : ShadowUtil.getReferenceAttributes(shadow)) {
-            for (var refAttrVal : refAttr.getReferenceValues()) {
+            for (var refAttrVal : refAttr.getAttributeValues()) {
                 assertEffectiveOperationsDeeply(
                         refAttrVal.getShadowBean(),
                         refAttr.getElementName() + " value " + refAttrVal + " in " + context);
@@ -774,13 +774,13 @@ public class ShadowAsserter<RA> extends PrismObjectAsserter<ShadowType, RA> {
             for (var assocVal : assoc.getAssociationValues()) {
                 var assocContext = assoc.getElementName() + " value " + assocVal + " in " + context;
                 for (var ref : assocVal.getObjectReferences()) {
-                    for (var refAttrVal : ref.getReferenceValues()) {
+                    for (var refAttrVal : ref.getAttributeValues()) {
                         assertEffectiveOperationsDeeply(
                                 refAttrVal.getShadowBean(),
                                 ref.getElementName() + " value " + refAttrVal + " in " + assocContext);
                     }
                 }
-                if (assoc.getDefinitionRequired().isComplex()) {
+                if (assoc.getDefinition().isComplex()) {
                     assertEffectiveOperationsDeeply(
                             assocVal.getAssociationDataObject().getBean(),
                             "object in " + assocContext);

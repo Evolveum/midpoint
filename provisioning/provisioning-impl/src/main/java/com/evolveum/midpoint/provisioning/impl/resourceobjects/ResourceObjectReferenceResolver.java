@@ -139,7 +139,7 @@ class ResourceObjectReferenceResolver {
             return true;
         };
 
-        shadowsFacade.searchObjectsIterative(subCtx, completeQuery, null, handler, result);
+        shadowsFacade.searchShadowsIterative(subCtx, completeQuery, null, handler, result);
 
         // TODO: implement storage of OID (ONCE search frequency)
 

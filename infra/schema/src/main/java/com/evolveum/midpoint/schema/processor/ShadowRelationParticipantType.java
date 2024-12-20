@@ -12,6 +12,7 @@ import java.util.Collection;
 import java.util.Objects;
 
 import com.evolveum.midpoint.schema.util.ShadowUtil;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
 import org.jetbrains.annotations.NotNull;
@@ -102,6 +103,10 @@ public class ShadowRelationParticipantType implements Serializable {
 
     public boolean isWholeClass() {
         return typeIdentification == null;
+    }
+
+    public boolean isEntitlement() {
+        return typeIdentification != null && typeIdentification.getKind() == ShadowKindType.ENTITLEMENT;
     }
 
     @Override

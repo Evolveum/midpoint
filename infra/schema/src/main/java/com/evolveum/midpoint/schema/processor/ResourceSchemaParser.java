@@ -179,6 +179,7 @@ class ResourceSchemaParser {
 
         createEmptyObjectClassDefinitions();
         createEmptyObjectTypeDefinitions();
+        setEffectiveObjectClassDefinitionsFromTypes();
 
         forAllObjects(o -> o.resolveAuxiliaryObjectClassNames());
 
@@ -260,8 +261,18 @@ class ResourceSchemaParser {
                 LOGGER.trace("Ignoring abstract definition bean: {}", typeDefinitionCI);
             }
         }
-        checkForMultipleDefaults();
+        checkForMultipleDefaultsForKind();
         LOGGER.trace("Successfully created {} empty object type definitions", created);
+    }
+
+    private void setEffectiveObjectClassDefinitionsFromTypes() throws ConfigurationException {
+        for (var objectClassDefinition : resourceSchema.getObjectClassDefinitions()) {
+            var defaultTypeDef = ResourceObjectDefinitionResolver.findDefaultObjectTypeDefinitionForObjectClass(
+                    resourceSchema, objectClassDefinition.getObjectClassName());
+            if (defaultTypeDef != null) {
+                ((ResourceObjectClassDefinitionImpl) objectClassDefinition).setEffectiveDefinition(defaultTypeDef);
+            }
+        }
     }
 
     private void assertTypeNotDefinedYet(ResourceObjectTypeDefinition definition) throws ConfigurationException {
@@ -337,7 +348,7 @@ class ResourceSchemaParser {
      * @throws ConfigurationException If there's a problem. Note that during run time, we throw {@link IllegalStateException}
      * in these cases (as we assume this check was already done).
      */
-    private void checkForMultipleDefaults() throws ConfigurationException {
+    private void checkForMultipleDefaultsForKind() throws ConfigurationException {
         for (ShadowKindType kind : ShadowKindType.values()) {
             var defaults = resourceSchema.getObjectTypeDefinitions().stream()
                     .filter(def -> def.matchesKind(kind) && def.isDefaultForKind())

@@ -56,8 +56,8 @@ public class ShadowReferenceAttribute
                     return o1 == null && o2 == null;
                 }
                 return MiscUtil.unorderedCollectionEquals(
-                        o1.getReferenceValues(),
-                        o2.getReferenceValues(),
+                        o1.getAttributeValues(),
+                        o2.getAttributeValues(),
                         ShadowReferenceAttributeValue.semanticEqualsChecker());
             };
 
@@ -110,17 +110,17 @@ public class ShadowReferenceAttribute
         return value;
     }
 
-    public @NotNull ShadowReferenceAttributeValue createNewValueWithIdentifier(@NotNull ShadowSimpleAttribute<?> identifier)
+    public @NotNull ShadowReferenceAttributeValue createNewValueWithIdentifierRealValue(
+            @NotNull QName identifierName, @NotNull Object identifierRealValue)
             throws SchemaException {
-        var blankShadow = getDefinitionRequired()
-                .getRepresentativeTargetObjectDefinition()
-                .createBlankShadow();
-        blankShadow.getAttributesContainer().add((ShadowAttribute<?, ?, ?, ?>) identifier);
+        // Callable only on the subject-side reference definition.
+        var blankShadow = getDefinitionRequired().getDefinitionForTargetObjectClass().createBlankShadow();
+        blankShadow.getAttributesContainer().addSimpleAttribute(identifierName, identifierRealValue);
         blankShadow.setIdentificationOnly();
         return createNewValueFromShadow(blankShadow);
     }
 
-    public @NotNull List<ShadowReferenceAttributeValue> getReferenceValues() {
+    public @NotNull List<ShadowReferenceAttributeValue> getAttributeValues() {
         // IDE accepts the version without cast to List, but the compiler doesn't.
         //noinspection unchecked,rawtypes,RedundantCast
         return List.copyOf(
@@ -128,7 +128,7 @@ public class ShadowReferenceAttribute
     }
 
     public @NotNull List<ObjectReferenceType> getReferenceRealValues() {
-        return getReferenceValues().stream()
+        return getAttributeValues().stream()
                 .map(refVal -> refVal.asObjectReferenceType())
                 .toList();
     }
@@ -149,7 +149,7 @@ public class ShadowReferenceAttribute
 
     public @NotNull ShadowReferenceAttributeValue getSingleValueRequired() {
         return MiscUtil.extractSingletonRequired(
-                getReferenceValues(),
+                getAttributeValues(),
                 () -> new IllegalStateException("Multiple values where only a single one was expected: " + this),
                 () -> new IllegalStateException("Missing attribute value in " + this));
     }

@@ -123,11 +123,6 @@ public abstract class ResourceObjectIdentifier<T> implements Serializable, Short
                 attribute.getDefinition());
     }
 
-    @Override
-    public void shortDump(StringBuilder sb) {
-        sb.append(this);
-    }
-
     public @NotNull Object getOrigValue() {
         return MiscUtil.extractSingletonRequired(attribute.getOrigValues());
     }
@@ -187,6 +182,12 @@ public abstract class ResourceObjectIdentifier<T> implements Serializable, Short
         public String toString() {
             return "Primary identifier: " + attribute;
         }
+
+        @Override
+        public void shortDump(StringBuilder sb) {
+            sb.append(attribute.shortDump());
+            sb.append(" (primary identifier)");
+        }
     }
 
     public static class Secondary<T> extends ResourceObjectIdentifier<T> {
@@ -219,6 +220,12 @@ public abstract class ResourceObjectIdentifier<T> implements Serializable, Short
         @Override
         public String toString() {
             return "Secondary identifier: " + attribute;
+        }
+
+        @Override
+        public void shortDump(StringBuilder sb) {
+            sb.append(attribute.shortDump());
+            sb.append(" (secondary identifier)");
         }
     }
 }

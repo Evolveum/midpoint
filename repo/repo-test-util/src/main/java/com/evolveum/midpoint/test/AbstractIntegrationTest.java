@@ -4758,4 +4758,42 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
                                         constExpressionEvaluator))));
         return ppv;
     }
+
+    public interface FunctionCall<X> {
+        X execute() throws CommonException, IOException;
+    }
+
+    public interface ProcedureCall {
+        void execute() throws CommonException, IOException;
+    }
+
+    protected <X> X traced(FunctionCall<X> tracedCall)
+            throws CommonException, IOException {
+        return traced(createModelLoggingTracingProfile(), tracedCall);
+    }
+
+    protected void traced(ProcedureCall tracedCall) throws CommonException, IOException {
+        traced(createModelLoggingTracingProfile(), tracedCall);
+    }
+
+    /** Beware, this performs tracing only at defined points, e.g. at the clockwork entry/exit. */
+    public void traced(TracingProfileType profile, ProcedureCall tracedCall) throws CommonException, IOException {
+        setGlobalTracingOverride(profile);
+        try {
+            tracedCall.execute();
+        } finally {
+            unsetGlobalTracingOverride();
+        }
+    }
+
+    /** Beware, this performs tracing only at defined points, e.g. at the clockwork entry/exit. */
+    public <X> X traced(TracingProfileType profile, FunctionCall<X> tracedCall)
+            throws CommonException, IOException {
+        setGlobalTracingOverride(profile);
+        try {
+            return tracedCall.execute();
+        } finally {
+            unsetGlobalTracingOverride();
+        }
+    }
 }

@@ -512,7 +512,7 @@ class ShadowDeltaComputerAbsolute {
             throws SchemaException {
         ShadowReferenceAttributeDefinition attrDef = referenceAttribute.getDefinitionRequired();
         List<ObjectReferenceType> expectedRepoRefRealValues =
-                ShadowComputerUtil.toRepoFormat(ctx, referenceAttribute.getReferenceValues());
+                ShadowComputerUtil.toRepoFormat(ctx, referenceAttribute.getAttributeValues());
 
         var oldRepoRef = rawRepoShadow.getPrismObject().findReference(
                 ShadowType.F_REFERENCE_ATTRIBUTES.append(attrDef.getItemName()));

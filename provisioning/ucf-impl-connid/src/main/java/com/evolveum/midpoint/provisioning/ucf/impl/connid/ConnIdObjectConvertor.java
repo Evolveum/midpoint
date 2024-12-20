@@ -246,7 +246,7 @@ class ConnIdObjectConvertor {
         String connIdAttrName = ucfAttributeNameToConnId(mpAttribute, ocDef);
 
         Set<ConnectorObjectReference> connIdAttrValues = new HashSet<>();
-        for (var mpRefAttrValue : mpAttribute.getReferenceValues()) {
+        for (var mpRefAttrValue : mpAttribute.getAttributeValues()) {
             connIdAttrValues.add(
                     convertReferenceAttributeValueToConnId(mpRefAttrValue));
         }

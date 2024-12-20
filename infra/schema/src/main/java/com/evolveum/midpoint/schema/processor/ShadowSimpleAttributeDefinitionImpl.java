@@ -46,7 +46,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 public class ShadowSimpleAttributeDefinitionImpl<T>
         extends ShadowAttributeDefinitionImpl<
         PrismPropertyValue<T>, ShadowSimpleAttributeDefinition<T>, T, ShadowSimpleAttribute<T>, NativeShadowSimpleAttributeDefinition<T>>
-        implements ShadowSimpleAttributeDefinition<T>, ShadowItemDefinition {
+        implements ShadowSimpleAttributeDefinition<T> {
 
     private ShadowSimpleAttributeDefinitionImpl(
             @NotNull NativeShadowSimpleAttributeDefinition<T> nativeDefinition,
@@ -263,6 +263,6 @@ public class ShadowSimpleAttributeDefinitionImpl<T>
 
     @Override
     public boolean isSimulated() {
-        return false; // currently, all attributes are "real"; only associations can be simulated
+        return false; // currently, all attributes are "real"; only reference attributes can be simulated
     }
 }

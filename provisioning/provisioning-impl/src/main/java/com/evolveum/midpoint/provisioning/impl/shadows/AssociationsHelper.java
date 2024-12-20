@@ -244,7 +244,7 @@ class AssociationsHelper {
 
     private void loadShadowsForReferenceAttributeValuesIfNeeded(
             @NotNull ProvisioningContext ctx, @NotNull ShadowReferenceAttribute refAttr, @NotNull OperationResult result) {
-        for (var refAttrValue : refAttr.getReferenceValues()) {
+        for (var refAttrValue : refAttr.getAttributeValues()) {
             loadShadowForReferenceAttributeValueIfNeeded(ctx, refAttr.getElementName(), refAttrValue, result);
         }
     }

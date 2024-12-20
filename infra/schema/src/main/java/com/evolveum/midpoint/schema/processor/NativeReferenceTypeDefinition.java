@@ -37,7 +37,7 @@ public interface NativeReferenceTypeDefinition
 
     void addParticipant(
             @NotNull String objectClassName,
-            @NotNull ItemName referenceAttributeName,
+            @Nullable ItemName referenceAttributeName,
             @NotNull ShadowReferenceParticipantRole role);
 
     void addParticipantIfNotThere(@NotNull String objectClassName, @NotNull ShadowReferenceParticipantRole role);

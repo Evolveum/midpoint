@@ -18,20 +18,20 @@ import static com.evolveum.midpoint.schema.constants.SchemaConstants.NS_RI;
 import static com.evolveum.midpoint.util.MiscUtil.stateNonNull;
 
 /**
- * Association class that is backed by a native implementation.
+ * Shadow reference type that is backed by a native implementation.
  */
 public class NativelyProvidedShadowReferenceTypeDefinition extends AbstractShadowReferenceTypeDefinition {
 
-    @NotNull private final NativeReferenceTypeDefinition nativeClassDef;
+    @NotNull private final NativeReferenceTypeDefinition nativeTypeDef;
     @NotNull private final Collection<ShadowRelationParticipantType> subjectTypes;
     @NotNull private final Collection<ShadowRelationParticipantType> objectTypes;
 
     private NativelyProvidedShadowReferenceTypeDefinition(
-            @NotNull NativeReferenceTypeDefinition nativeClassDef,
+            @NotNull NativeReferenceTypeDefinition nativeTypeDef,
             @NotNull Collection<ShadowRelationParticipantType> subjectTypes,
             @NotNull Collection<ShadowRelationParticipantType> objectTypes) {
-        super(nativeClassDef.getName(), objectTypes.iterator().next().objectDefinition);
-        this.nativeClassDef = nativeClassDef;
+        super(nativeTypeDef.getName());
+        this.nativeTypeDef = nativeTypeDef;
         this.subjectTypes = subjectTypes;
         this.objectTypes = objectTypes;
     }
@@ -62,7 +62,7 @@ public class NativelyProvidedShadowReferenceTypeDefinition extends AbstractShado
 
     @Override
     public String debugDump(int indent) {
-        return nativeClassDef.debugDump(indent);
+        return nativeTypeDef.debugDump(indent);
     }
 
     @Override

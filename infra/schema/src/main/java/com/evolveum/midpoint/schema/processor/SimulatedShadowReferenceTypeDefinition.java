@@ -34,7 +34,7 @@ import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectAssociationDirectionType;
 
 /**
- * Specifies how to simulate the association class: what are the participants, what attributes to use for the association, etc.
+ * Specifies how to simulate the reference type: what are the participants, what attributes to use for the reference, etc.
  */
 public abstract class SimulatedShadowReferenceTypeDefinition
         extends AbstractShadowReferenceTypeDefinition
@@ -53,9 +53,9 @@ public abstract class SimulatedShadowReferenceTypeDefinition
     private final boolean requiresExplicitReferentialIntegrity;
 
     /**
-     * The "referential" association object-side definition. It is used when we have no particular object in hand.
+     * The "referential" reference object-side definition. It is used when we have no particular object in hand.
      * It must contain the definitions of all relevant object-side binding attributes (primary/secondary).
-     * */
+     */
     @NotNull private final ResourceObjectDefinition referentialObjectDefinition;
 
     @NotNull private final ShadowSimpleAttributeDefinition<?> subjectSidePrimaryBindingAttributeDefinition;
@@ -78,7 +78,7 @@ public abstract class SimulatedShadowReferenceTypeDefinition
             @NotNull ShadowSimpleAttributeDefinition<?> subjectSidePrimaryBindingAttributeDefinition,
             @NotNull Collection<SimulatedAssociationClassParticipantDefinition> subjects,
             @NotNull Collection<SimulatedAssociationClassParticipantDefinition> objects) {
-        super(associationClassName, referentialObjectDefinition);
+        super(associationClassName);
         this.localSubjectItemName = localSubjectItemName;
         this.primaryAttributeBinding = primaryAttributeBinding;
         this.secondaryAttributeBinding = secondaryAttributeBinding;
@@ -303,8 +303,7 @@ public abstract class SimulatedShadowReferenceTypeDefinition
         }
     }
 
-    static class Modern
-            extends SimulatedShadowReferenceTypeDefinition {
+    static class Modern extends SimulatedShadowReferenceTypeDefinition {
 
         private Modern(
                 @NotNull String associationClassLocalName,
