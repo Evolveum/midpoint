@@ -79,19 +79,6 @@ public class SchemaHandlingConfigItem
         }
     }
 
-//    public @Nullable ShadowAssociationTypeDefinitionConfigItem findAssociationTypeCI(@NotNull QName name)
-//            throws ConfigurationException {
-//        List<ShadowAssociationTypeDefinitionConfigItem> matching = new ArrayList<>();
-//        for (ShadowAssociationTypeDefinitionConfigItem ci : getAssociationTypes()) {
-//            if (QNameUtil.match(name, ci.getAssociationClassName())) {
-//                matching.add(ci);
-//            }
-//        }
-//        return MiscUtil.extractSingleton(
-//                matching,
-//                () -> new ConfigurationException("Multiple association type with class name " + name));
-//    }
-
     @Override
     public @NotNull String localDescription() {
         return "schema handling";

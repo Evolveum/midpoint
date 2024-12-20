@@ -427,7 +427,7 @@ public abstract class ShadowReferenceAttributesCollection implements DebugDumpab
                         return false;
                     }
                     currentRefAttr = refAttrIterator.next();
-                    valueIterator = currentRefAttr.getReferenceValues().iterator();
+                    valueIterator = currentRefAttr.getAttributeValues().iterator();
                 }
             }
 

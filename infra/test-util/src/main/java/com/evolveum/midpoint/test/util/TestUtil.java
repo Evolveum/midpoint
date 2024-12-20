@@ -35,6 +35,8 @@ import com.evolveum.midpoint.schema.util.RawRepoShadow;
 
 import com.evolveum.midpoint.schema.util.ValueMetadataTypeUtil;
 
+import com.evolveum.midpoint.util.exception.ConfigurationException;
+
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.jetbrains.annotations.NotNull;
 import org.testng.AssertJUnit;
@@ -114,7 +116,7 @@ public class TestUtil {
     }
 
     public static void setAttribute(PrismObject<ShadowType> account, QName attrName, QName typeName, String value)
-            throws SchemaException {
+            throws SchemaException, ConfigurationException {
         PrismContainer<Containerable> attributesContainer = account.findContainer(ShadowType.F_ATTRIBUTES);
         ShadowSimpleAttributeDefinition<String> attrDef = ObjectFactory.createSimpleAttributeDefinition(attrName, typeName);
         ShadowSimpleAttribute<String> attribute = attrDef.instantiate();
@@ -126,8 +128,8 @@ public class TestUtil {
         for (Object element : elements) {
             QName thisElementQName = JAXBUtil.getElementQName(element);
             if (elementQName.equals(thisElementQName)) {
-                if (element instanceof Element) {
-                    String thisElementContent = ((Element) element).getTextContent();
+                if (element instanceof Element element1) {
+                    String thisElementContent = element1.getTextContent();
                     if (value.equals(thisElementContent)) {
                         return;
                     } else {

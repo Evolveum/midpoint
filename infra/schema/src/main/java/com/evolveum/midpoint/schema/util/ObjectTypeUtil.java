@@ -1065,9 +1065,14 @@ public class ObjectTypeUtil {
         return ((PrismContainerValue<ExtensionType>) extensionContainer.getValue());
     }
 
+    public static @Nullable OperationResultStatusType getFetchStatus(@NotNull ObjectType object) {
+        var fetchResult = object.getFetchResult();
+        return fetchResult != null ? fetchResult.getStatus() : null;
+    }
+
     public static boolean hasFetchError(@NotNull PrismObject<? extends ObjectType> object) {
-        OperationResultType fetchResult = object.asObjectable().getFetchResult();
-        return fetchResult != null && OperationResultUtil.isError(fetchResult.getStatus());
+        return OperationResultUtil.isError(
+                getFetchStatus(object.asObjectable()));
     }
 
     public static void recordFetchError(ObjectType object, OperationResult result) {

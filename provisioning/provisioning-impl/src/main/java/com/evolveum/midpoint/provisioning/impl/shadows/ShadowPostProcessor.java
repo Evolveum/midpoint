@@ -33,6 +33,8 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.Objects;
 
+import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
+
 /**
  * Responsible for the usual shadow/resource-object "post-processing":
  *
@@ -192,8 +194,8 @@ class ShadowPostProcessor {
             return acquireAndPostProcessShadow(shadowCtx, existingResourceObject, result);
         }
 
-        var attributesContainer = shadow.getAttributesContainer();
-        var identifiers = attributesContainer.getAllIdentifiers();
+        var identifiers = shadow.getAllIdentifiers();
+        stateCheck(!identifiers.isEmpty(), "No identifiers in the shadow: %s", shadow);
 
         // for simulated references, here should be exactly one attribute; for native ones, it can vary
         var existingLiveRepoShadow = b.shadowFinder.lookupLiveShadowByAllAttributes(shadowCtx, identifiers, result);

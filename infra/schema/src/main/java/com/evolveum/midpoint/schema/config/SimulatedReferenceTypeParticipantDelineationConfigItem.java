@@ -9,8 +9,7 @@ package com.evolveum.midpoint.schema.config;
 
 import com.evolveum.midpoint.schema.processor.SearchHierarchyScope;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SearchHierarchyScopeType;
-import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.SimulatedAssociationClassParticipantDelineationType;
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.SimulatedReferenceTypeParticipantDelineationType;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -20,11 +19,12 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.xml.namespace.QName;
 
-public class SimulatedAssociationClassParticipantDelineationConfigItem extends ConfigurationItem<SimulatedAssociationClassParticipantDelineationType> {
+public class SimulatedReferenceTypeParticipantDelineationConfigItem
+        extends ConfigurationItem<SimulatedReferenceTypeParticipantDelineationType> {
 
     @SuppressWarnings("unused") // called dynamically
-    public SimulatedAssociationClassParticipantDelineationConfigItem(
-            @NotNull ConfigurationItem<SimulatedAssociationClassParticipantDelineationType> original) {
+    public SimulatedReferenceTypeParticipantDelineationConfigItem(
+            @NotNull ConfigurationItem<SimulatedReferenceTypeParticipantDelineationType> original) {
         super(original);
     }
 

@@ -133,7 +133,7 @@ public class ProvisioningGetOperation<T extends ObjectType> {
         }
     }
 
-    public boolean isRawMode() {
+    private boolean isRawMode() {
         return GetOperationOptions.isRaw(rootOptions);
     }
 }

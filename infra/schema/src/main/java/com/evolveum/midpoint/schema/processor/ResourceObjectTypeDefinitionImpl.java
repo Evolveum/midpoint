@@ -66,16 +66,16 @@ public final class ResourceObjectTypeDefinitionImpl
     /** All supertypes of this object type. */
     @NotNull private final Set<ResourceObjectTypeIdentification> ancestorsIds;
 
-    @NotNull private final ResourceObjectClassDefinition refinedObjectClassDefinition;
+    @NotNull private final ResourceObjectClassDefinition objectClassDefinition;
 
     ResourceObjectTypeDefinitionImpl(
             @NotNull BasicResourceInformation basicResourceInformation,
             @NotNull ResourceObjectTypeIdentification identification,
             @NotNull Set<ResourceObjectTypeIdentification> ancestorsIds,
-            @NotNull ResourceObjectClassDefinition refinedObjectClassDefinition,
+            @NotNull ResourceObjectClassDefinition objectClassDefinition,
             @NotNull ResourceObjectTypeDefinitionType definitionBean)
             throws SchemaException, ConfigurationException {
-        this(DEFAULT_LAYER, basicResourceInformation, identification, ancestorsIds, refinedObjectClassDefinition, definitionBean);
+        this(DEFAULT_LAYER, basicResourceInformation, identification, ancestorsIds, objectClassDefinition, definitionBean);
     }
 
     private ResourceObjectTypeDefinitionImpl(
@@ -83,7 +83,7 @@ public final class ResourceObjectTypeDefinitionImpl
             @NotNull BasicResourceInformation basicResourceInformation,
             @NotNull ResourceObjectTypeIdentification identification,
             @NotNull Set<ResourceObjectTypeIdentification> ancestorsIds,
-            @NotNull ResourceObjectClassDefinition refinedObjectClassDefinition,
+            @NotNull ResourceObjectClassDefinition objectClassDefinition,
             @NotNull ResourceObjectTypeDefinitionType definitionBean)
             throws SchemaException, ConfigurationException {
         super(layer, basicResourceInformation, definitionBean);
@@ -91,7 +91,7 @@ public final class ResourceObjectTypeDefinitionImpl
         this.ancestorsIds = ancestorsIds;
         this.kind = identification.getKind();
         this.intent = identification.getIntent();
-        this.refinedObjectClassDefinition = refinedObjectClassDefinition;
+        this.objectClassDefinition = objectClassDefinition;
     }
 
     @Override
@@ -117,12 +117,12 @@ public final class ResourceObjectTypeDefinitionImpl
 
     @Override
     public @NotNull ResourceObjectClassDefinition getObjectClassDefinition() {
-        return refinedObjectClassDefinition;
+        return objectClassDefinition;
     }
 
     @Override
     public @NotNull NativeObjectClassDefinition getNativeObjectClassDefinition() {
-        return refinedObjectClassDefinition.getNativeObjectClassDefinition();
+        return objectClassDefinition.getNativeObjectClassDefinition();
     }
 
     @Override
@@ -167,7 +167,7 @@ public final class ResourceObjectTypeDefinitionImpl
     @Override
     public void accept(Visitor<Definition> visitor) {
         super.accept(visitor);
-        refinedObjectClassDefinition.accept(visitor);
+        objectClassDefinition.accept(visitor);
     }
 
     @Override
@@ -175,7 +175,7 @@ public final class ResourceObjectTypeDefinitionImpl
         if (!super.accept(visitor, visitation)) {
             return false;
         } else {
-            refinedObjectClassDefinition.accept(visitor, visitation);
+            objectClassDefinition.accept(visitor, visitation);
             return true;
         }
     }
@@ -186,12 +186,12 @@ public final class ResourceObjectTypeDefinitionImpl
             return; // This would fail anyway
         }
         super.trimAttributesTo(paths);
-        refinedObjectClassDefinition.trimAttributesTo(paths);
+        objectClassDefinition.trimAttributesTo(paths);
     }
 
     @Override
     public @Nullable SchemaContextDefinition getSchemaContextDefinition() {
-        return refinedObjectClassDefinition.getSchemaContextDefinition();
+        return objectClassDefinition.getSchemaContextDefinition();
     }
 
     //region Cloning ========================================================
@@ -212,7 +212,7 @@ public final class ResourceObjectTypeDefinitionImpl
         try {
             clone = new ResourceObjectTypeDefinitionImpl(
                     layer, getBasicResourceInformation(), identification, ancestorsIds,
-                    refinedObjectClassDefinition, definitionBean);
+                    objectClassDefinition, definitionBean);
         } catch (SchemaException | ConfigurationException e) {
             // The data should be already checked for correctness, so this should not happen.
             throw SystemException.unexpected(e, "when cloning");
@@ -269,7 +269,7 @@ public final class ResourceObjectTypeDefinitionImpl
                 && associationDefinitions.equals(that.associationDefinitions)
                 && primaryIdentifiersNames.equals(that.primaryIdentifiersNames)
                 && secondaryIdentifiersNames.equals(that.secondaryIdentifiersNames)
-                && refinedObjectClassDefinition.equals(that.refinedObjectClassDefinition)
+                && objectClassDefinition.equals(that.objectClassDefinition)
                 && auxiliaryObjectClassDefinitions.equals(that.auxiliaryObjectClassDefinitions)
                 && Objects.equals(basicResourceInformation, that.basicResourceInformation)
                 && definitionBean.equals(that.definitionBean)
@@ -288,7 +288,7 @@ public final class ResourceObjectTypeDefinitionImpl
     @Override
     public void performFreeze() {
         super.performFreeze();
-        refinedObjectClassDefinition.freeze(); // TODO really?
+        objectClassDefinition.freeze(); // TODO really?
     }
 
     @Override
@@ -356,12 +356,12 @@ public final class ResourceObjectTypeDefinitionImpl
 
     @Override
     public @Nullable QName getDescriptionAttributeName() {
-        return refinedObjectClassDefinition.getDescriptionAttributeName();
+        return objectClassDefinition.getDescriptionAttributeName();
     }
 
     @Override
     public @Nullable QName getNamingAttributeName() {
-        return refinedObjectClassDefinition.getNamingAttributeName();
+        return objectClassDefinition.getNamingAttributeName();
     }
 
     @Override
@@ -369,7 +369,7 @@ public final class ResourceObjectTypeDefinitionImpl
         if (displayNameAttributeName != null) {
             return displayNameAttributeName;
         } else {
-            return refinedObjectClassDefinition.getDisplayNameAttributeName();
+            return objectClassDefinition.getDisplayNameAttributeName();
         }
     }
 

@@ -8,6 +8,7 @@ package com.evolveum.midpoint.test.ldap;
 
 import static com.evolveum.midpoint.util.MiscUtil.emptyIfNull;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.testng.AssertJUnit.assertEquals;
 
 import java.io.*;
@@ -658,6 +659,16 @@ public class OpenDJController extends AbstractResourceController {
                 members, accountDns);
     }
 
+    public void assertMemberUids(Entry groupEntry, String... uids) {
+        Collection<String> members = getAttributeValues(groupEntry, "memberUid");
+        if (uids.length == 0 && members == null) {
+            return;
+        }
+        assertThat(members)
+                .as("Members in group " + getDn(groupEntry))
+                .containsExactlyInAnyOrder(uids);
+    }
+
     public void assertUniqueMember(String groupDn, String accountDn) throws DirectoryException {
         Entry groupEntry = fetchEntry(groupDn);
         assertUniqueMember(groupEntry, accountDn);
@@ -677,6 +688,11 @@ public class OpenDJController extends AbstractResourceController {
     public void assertUniqueMembers(String groupDn, String... accountDns) throws DirectoryException {
         Entry groupEntry = fetchEntry(groupDn);
         assertUniqueMembers(groupEntry, accountDns);
+    }
+
+    public void assertMemberUids(String groupDn, String... uids) throws DirectoryException {
+        Entry groupEntry = fetchEntry(groupDn);
+        assertMemberUids(groupEntry, uids);
     }
 
     public static void assertAttribute(Entry response, String name, String... values) {
