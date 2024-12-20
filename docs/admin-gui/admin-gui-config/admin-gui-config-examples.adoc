@@ -304,6 +304,29 @@ MidPoint allows engineers to modify the All Accesses panel. This example hides o
 ----
 ====
 
+In case there is a need to filter assignments by some of the target object attributes, it is possible to use the following filter configuration.
+.Example: Filtering set of assignments which target objects are members of the archetype with "archetype1" name
+[%collapsible]
+====
+[source,xml]
+----
+    <panel>
+        <identifier>all-accesses-custom</identifier>
+        ....
+        <panelType>userAllAccesses</panelType>
+        <listView>
+            <identifier>addedRelationView</identifier>
+            <type>c:ObjectReferenceType</type>
+            <collection>
+                <filter>
+                    <q:text>. matches (targetType = RoleType and @ matches (. type RoleType and archetypeRef/@/name = "archetype1"))</q:text>
+                </filter>
+            </collection>
+        </listView>
+    </panel>
+----
+====
+
 
 == Virtual sections for different panel
 
