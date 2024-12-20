@@ -116,11 +116,8 @@ public class RoleAnalysisOutlierAnalysisAspectsPanel extends AbstractObjectMainP
             @Override
             protected @NotNull Component getPanelComponent(String id) {
                 RoleAnalysisOutlierType outlierObject = objectDetailsModels.getObjectType();
-                AnomalyObjectDto dto = new AnomalyObjectDto(outlierObject, null,
-                        AnomalyTableCategory.OUTLIER_OVERVIEW);
-                RoleAnalysisDetectedAnomalyTable detectedAnomalyTable = new RoleAnalysisDetectedAnomalyTable(id, Model.of(dto)) {
-
-                };
+                AnomalyObjectDto dto = new AnomalyObjectDto(outlierObject, null, false);
+                RoleAnalysisDetectedAnomalyTable detectedAnomalyTable = new RoleAnalysisDetectedAnomalyTable(id, Model.of(dto));
 
                 detectedAnomalyTable.setOutputMarkupId(true);
                 detectedAnomalyTable.add(AttributeAppender.append("style", "min-height: 400px;"));

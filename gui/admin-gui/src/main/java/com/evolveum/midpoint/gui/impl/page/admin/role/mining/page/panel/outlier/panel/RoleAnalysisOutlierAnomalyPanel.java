@@ -41,7 +41,6 @@ import com.evolveum.midpoint.gui.api.component.tabs.PanelTab;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.impl.page.admin.AbstractObjectMainPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.ObjectDetailsModels;
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.tables.outlier.panel.AnomalyTableCategory;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.tables.outlier.panel.RoleAnalysisDetectedAnomalyTable;
 import com.evolveum.midpoint.web.application.PanelDisplay;
 import com.evolveum.midpoint.web.application.PanelInstance;
@@ -136,8 +135,7 @@ public class RoleAnalysisOutlierAnomalyPanel extends AbstractObjectMainPanel<Rol
 
             @Override
             public WebMarkupContainer createPanel(String panelId) {
-                AnomalyObjectDto dto = new AnomalyObjectDto(outlier, null,
-                        AnomalyTableCategory.OUTLIER_OVERVIEW_WITH_IDENTIFIED_PARTITION);
+                AnomalyObjectDto dto = new AnomalyObjectDto(outlier, null, true);
                 RoleAnalysisDetectedAnomalyTable detectedAnomalyTable = new RoleAnalysisDetectedAnomalyTable(panelId, Model.of(dto));
                 detectedAnomalyTable.setOutputMarkupId(true);
                 return detectedAnomalyTable;
@@ -163,7 +161,7 @@ public class RoleAnalysisOutlierAnomalyPanel extends AbstractObjectMainPanel<Rol
 
                 @Override
                 public WebMarkupContainer createPanel(String panelId) {
-                    AnomalyObjectDto dto = new AnomalyObjectDto(outlier, partition, AnomalyTableCategory.PARTITION_ANOMALY);
+                    AnomalyObjectDto dto = new AnomalyObjectDto(outlier, partition, false);
                     RoleAnalysisDetectedAnomalyTable detectedAnomalyTable = new RoleAnalysisDetectedAnomalyTable(panelId, Model.of(dto));
                     detectedAnomalyTable.setOutputMarkupId(true);
                     return detectedAnomalyTable;

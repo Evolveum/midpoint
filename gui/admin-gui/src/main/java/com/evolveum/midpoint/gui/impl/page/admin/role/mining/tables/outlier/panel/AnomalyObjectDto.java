@@ -6,7 +6,6 @@
  */
 package com.evolveum.midpoint.gui.impl.page.admin.role.mining.tables.outlier.panel;
 
-import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.impl.component.data.provider.SelectableBeanObjectDataProvider;
 import com.evolveum.midpoint.model.api.mining.RoleAnalysisService;
@@ -18,97 +17,121 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
-import com.google.common.collect.ArrayListMultimap;
-import com.google.common.collect.ListMultimap;
 import org.apache.wicket.Component;
-import org.apache.wicket.model.IModel;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.Serializable;
 import java.util.*;
 
-//TODO this is ugly class, need to be redesigned and refactored. We need also design logic for created outlier access
-// table (anomaly must be provided with associated partition and this is not in all cases clear "explanation").
-/**
- * Data Transfer Object (DTO) for handling anomaly objects in role analysis.
- * This class is used to store and manage the data of the anomaly objects.
- */
 public class AnomalyObjectDto implements Serializable {
 
-    transient IModel<RoleAnalysisOutlierType> outlierModel;
-    transient IModel<List<RoleAnalysisOutlierPartitionType>> partitionModel;
-    transient IModel<ListMultimap<String, DetectedAnomalyResult>> anomalyResultMap;
-    transient IModel<ListMultimap<String, RoleAnalysisOutlierPartitionType>> anomalyPartitionMap;
-    transient IModel<RoleAnalysisOutlierPartitionType> associatedPartitionModel;
+    transient RoleAnalysisOutlierType outlier;
 
-    transient Set<String> anomalyObjectOidSet;
-    AnomalyTableCategory category;
+    transient Map<String, AnomalyPartitionMap> roleAnomalyMap = new HashMap<>();
+    transient AnomalyTableCategory category;
+    transient boolean isPartitionCountVisible;
+
+    public record AnomalyPartitionMap(DetectedAnomalyResult anomalyResult,
+                                      RoleAnalysisOutlierPartitionType associatedPartition,
+                                      List<OutlierDetectionExplanationType> explanation,
+                                      int partitionCount,
+                                      double anomalyScore) {
+    }
+
+    public enum AnomalyTableCategory implements Serializable {
+
+        PARTITION_ANOMALY,
+        OUTLIER_OVERVIEW;
+
+        AnomalyTableCategory() {
+        }
+    }
 
     public AnomalyObjectDto(
             @NotNull RoleAnalysisOutlierType outlier,
             @Nullable RoleAnalysisOutlierPartitionType partition,
-            @NotNull AnomalyTableCategory category) {
-        this.category = category;
-        initModels(outlier, partition);
+            boolean isPartitionCountVisible) {
+        this.isPartitionCountVisible = isPartitionCountVisible;
+        intiModels(outlier, partition);
     }
 
-    private void initModels(@NotNull RoleAnalysisOutlierType outlier, @Nullable RoleAnalysisOutlierPartitionType partition) {
-
-        associatedPartitionModel = new LoadableModel<>() {
-            @Override
-            protected RoleAnalysisOutlierPartitionType load() {
-                return partition;
-            }
-        };
-
-        outlierModel = new LoadableModel<>() {
-            @Override
-            protected RoleAnalysisOutlierType load() {
-                return outlier;
-            }
-        };
-
-        if (category == AnomalyTableCategory.PARTITION_ANOMALY && partition != null) {
-            partitionModel = new LoadableModel<>() {
-                @Override
-                protected List<RoleAnalysisOutlierPartitionType> load() {
-                    return Collections.singletonList(partition);
-                }
-            };
+    public void intiModels(RoleAnalysisOutlierType outlier, RoleAnalysisOutlierPartitionType partition) {
+        this.outlier = outlier;
+        Map<String, Integer> countPartitionsMap = countPartitions(outlier);
+        if (partition != null) {
+            this.category = AnomalyTableCategory.PARTITION_ANOMALY;
+            initPartitionModel(partition, countPartitionsMap);
         } else {
-            partitionModel = new LoadableModel<>() {
-                @Override
-                protected List<RoleAnalysisOutlierPartitionType> load() {
-                    RoleAnalysisOutlierType outlier = getOutlierModelObject();
-                    return outlier.getPartition();
+            this.category = AnomalyTableCategory.OUTLIER_OVERVIEW;
+            initOutlierAnomaliesBasedTopScore(outlier, countPartitionsMap);
+        }
+    }
+
+    public Map<String, Integer> countPartitions(@NotNull RoleAnalysisOutlierType outlier) {
+        Map<String, Integer> partitionCountMap = new HashMap<>();
+
+        List<RoleAnalysisOutlierPartitionType> partition = outlier.getPartition();
+        partition.forEach(partitionType -> {
+            List<DetectedAnomalyResult> detectedAnomalyResult = partitionType.getDetectedAnomalyResult();
+            detectedAnomalyResult.forEach(detectedAnomalyResult1 -> {
+                ObjectReferenceType targetObjectRef = detectedAnomalyResult1.getTargetObjectRef();
+                if (targetObjectRef != null) {
+                    String oid = targetObjectRef.getOid();
+                    partitionCountMap.put(oid, partitionCountMap.getOrDefault(oid, 0) + 1);
                 }
-            };
+            });
+        });
+        return partitionCountMap;
+    }
+
+    public void initPartitionModel(@NotNull RoleAnalysisOutlierPartitionType partition, @NotNull Map<String, Integer> countPartitionsMap) {
+        List<DetectedAnomalyResult> detectedAnomalyResultList = partition.getDetectedAnomalyResult();
+        for (DetectedAnomalyResult detectedAnomalyResult : detectedAnomalyResultList) {
+            updateAnomalyRecordIfNeeded(partition, detectedAnomalyResult, countPartitionsMap);
+        }
+    }
+
+    private void updateAnomalyRecordIfNeeded(
+            @NotNull RoleAnalysisOutlierPartitionType partition,
+            @NotNull DetectedAnomalyResult detectedAnomalyResult,
+            @NotNull Map<String, Integer> countPartitionsMap) {
+
+        ObjectReferenceType targetObjectRef = detectedAnomalyResult.getTargetObjectRef();
+        DetectedAnomalyStatistics statistics = detectedAnomalyResult.getStatistics();
+        if (targetObjectRef == null || statistics == null) {
+            return;
         }
 
-        anomalyResultMap = new LoadableModel<>() {
-            @Override
-            protected ListMultimap<String, DetectedAnomalyResult> load() {
-                return ArrayListMultimap.create();
-            }
-        };
+        Double confidence = statistics.getConfidence();
+        if (confidence == null) {
+            confidence = 0.0;
+        }
 
-        anomalyPartitionMap = new LoadableModel<>() {
-            @Override
-            protected ListMultimap<String, RoleAnalysisOutlierPartitionType> load() {
-                return ArrayListMultimap.create();
-            }
-        };
+        String associatedRoleOid = targetObjectRef.getOid();
+        AnomalyPartitionMap anomalyPartitionMap = roleAnomalyMap.get(associatedRoleOid);
 
-        anomalyObjectOidSet = new HashSet<>();
-        for (RoleAnalysisOutlierPartitionType outlierPartition : getPartitionModelObject()) {
-            List<DetectedAnomalyResult> partitionAnalysis = outlierPartition.getDetectedAnomalyResult();
-            for (DetectedAnomalyResult anomalyResult : partitionAnalysis) {
-                String oid = anomalyResult.getTargetObjectRef().getOid();
-                anomalyObjectOidSet.add(oid);
-                anomalyResultMap.getObject().put(oid, anomalyResult);
-                anomalyPartitionMap.getObject().put(oid, outlierPartition);
-            }
+        List<OutlierDetectionExplanationType> explanation = detectedAnomalyResult.getExplanation();
+
+        if (anomalyPartitionMap == null || anomalyPartitionMap.anomalyScore() < confidence) {
+            Integer partitionsCount = countPartitionsMap.getOrDefault(associatedRoleOid, 0);
+            roleAnomalyMap.put(
+                    associatedRoleOid,
+                    new AnomalyPartitionMap(detectedAnomalyResult, partition, explanation, partitionsCount, confidence));
+        }
+    }
+
+    public void initOutlierAnomaliesBasedTopScore(
+            @NotNull RoleAnalysisOutlierType outlier,
+            @NotNull Map<String, Integer> countPartitionsMap) {
+
+        List<RoleAnalysisOutlierPartitionType> partitions = outlier.getPartition();
+        if (partitions.isEmpty()) {
+            return;
+        }
+        for (RoleAnalysisOutlierPartitionType partition : partitions) {
+            partition.getDetectedAnomalyResult().forEach(detectedAnomalyResult
+                    -> updateAnomalyRecordIfNeeded(partition, detectedAnomalyResult, countPartitionsMap));
         }
     }
 
@@ -121,11 +144,7 @@ public class AnomalyObjectDto implements Serializable {
         RoleAnalysisService roleAnalysisService = pageBase.getRoleAnalysisService();
         List<RoleType> roles = new ArrayList<>();
 
-        if (category.equals(AnomalyTableCategory.OUTLIER_ACCESS)) {
-            handleOutlierAccessRoles(roleAnalysisService, roles, task, result);
-        } else {
-            loadRolesFromAnomalyOidSet(roleAnalysisService, roles, task, result);
-        }
+        loadRolesFromAnomalyOidSet(roleAnalysisService, roles, task, result);
 
         return new SelectableBeanObjectDataProvider<>(component, Set.of()) {
 
@@ -154,79 +173,48 @@ public class AnomalyObjectDto implements Serializable {
         };
     }
 
-    private void handleOutlierAccessRoles(@NotNull RoleAnalysisService roleAnalysisService,
-            List<RoleType> roles,
-            Task task,
-            OperationResult result) {
-        ObjectReferenceType targetObjectRef = outlierModel.getObject().getObjectRef();
-        PrismObject<UserType> userTypeObject = roleAnalysisService.getUserTypeObject(targetObjectRef.getOid(), task, result);
-
-        if (userTypeObject != null) {
-            UserType user = userTypeObject.asObjectable();
-
-            user.getAssignment().stream()
-                    .filter(assignment -> RoleType.COMPLEX_TYPE.equals(assignment.getTargetRef().getType()))
-                    .map(assignment -> roleAnalysisService.getRoleTypeObject(assignment.getTargetRef().getOid(), task, result))
-                    .filter(Objects::nonNull)
-                    .map(roleTypePrismObject -> roleTypePrismObject.asObjectable()).forEach(roles::add);
-
-            user.getRoleMembershipRef().stream()
-                    .filter(ref -> RoleType.COMPLEX_TYPE.equals(ref.getType()))
-                    .map(ref -> roleAnalysisService.getRoleTypeObject(ref.getOid(), task, result))
-                    .filter(Objects::nonNull)
-                    .map(roleTypePrismObject -> roleTypePrismObject.asObjectable()).forEach(roles::add);
-        }
-    }
-
     private void loadRolesFromAnomalyOidSet(
             RoleAnalysisService roleAnalysisService,
             List<RoleType> roles,
             Task task,
             OperationResult result) {
-        for (String oid : anomalyObjectOidSet) {
+        roleAnomalyMap.keySet().forEach(oid -> {
             PrismObject<RoleType> rolePrismObject = roleAnalysisService.getRoleTypeObject(oid, task, result);
             if (rolePrismObject != null) {
                 roles.add(rolePrismObject.asObjectable());
             }
-        }
+        });
     }
 
-    public IModel<RoleAnalysisOutlierType> getOutlierModel() {
-        return outlierModel;
+    public boolean isPartitionCountVisible() {
+        return false;
     }
 
-    public IModel<List<RoleAnalysisOutlierPartitionType>> getPartitionModel() {
-        return partitionModel;
+    public AnomalyPartitionMap getAnomalyPartitionMap(String oid) {
+        return roleAnomalyMap.get(oid);
     }
 
-    public List<RoleAnalysisOutlierPartitionType> getPartitionModelObject() {
-        return partitionModel.getObject();
-    }
-
-    public RoleAnalysisOutlierType getOutlierModelObject() {
-        return outlierModel.getObject();
-    }
-
-    public RoleAnalysisOutlierPartitionType getPartitionSingleModelObject() {
-        if(getAssociatedPartitionModel() != null && getAssociatedPartitionModel().getObject() != null) {
-            return getAssociatedPartitionModel().getObject();
-        }
-        //TODO
-        return getPartitionModelObject().get(0);
-    }
-
-    public ListMultimap<String, DetectedAnomalyResult> getAnomalyResultMapModelObject() {
-        return anomalyResultMap.getObject();
-    }
-
-    public ListMultimap<String, RoleAnalysisOutlierPartitionType> getAnomalyPartitionMapModelObject() {
-        return anomalyPartitionMap.getObject();
-    }
-    public IModel<RoleAnalysisOutlierPartitionType> getAssociatedPartitionModel() {
-        return associatedPartitionModel;
+    public RoleAnalysisOutlierType getOutlier() {
+        return outlier;
     }
 
     public AnomalyTableCategory getCategory() {
         return category;
+    }
+
+    public int getPartitionCount(String oid) {
+        return roleAnomalyMap.get(oid).partitionCount();
+    }
+
+    public double getAnomalyScore(String oid) {
+        return roleAnomalyMap.get(oid).anomalyScore();
+    }
+
+    public List<OutlierDetectionExplanationType> getExplanation(String oid) {
+        return roleAnomalyMap.get(oid).explanation();
+    }
+
+    public DetectedAnomalyResult getAnomalyResult(String oid) {
+        return roleAnomalyMap.get(oid).anomalyResult();
     }
 }

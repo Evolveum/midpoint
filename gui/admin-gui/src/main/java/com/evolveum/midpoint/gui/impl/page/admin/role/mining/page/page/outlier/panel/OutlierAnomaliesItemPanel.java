@@ -30,7 +30,6 @@ import com.evolveum.midpoint.gui.api.component.LabelWithHelpPanel;
 import com.evolveum.midpoint.gui.impl.component.menu.listGroup.ListGroupMenuItem;
 import com.evolveum.midpoint.gui.impl.component.menu.listGroup.MenuItemLinkPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.outlier.RoleAnalysisWidgetsPanel;
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.tables.outlier.panel.AnomalyTableCategory;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.tables.outlier.panel.RoleAnalysisDetectedAnomalyTable;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisOutlierPartitionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisOutlierType;
@@ -97,8 +96,7 @@ public class OutlierAnomaliesItemPanel<T extends Serializable>
             protected @NotNull Component getPanelComponent(String id1) {
                 RoleAnalysisOutlierType outlierObject = getOutlierModel().getObject();
                 RoleAnalysisOutlierPartitionType associatedPartition = getPartitionModel().getObject();
-                AnomalyObjectDto dto = new AnomalyObjectDto(outlierObject, associatedPartition,
-                        AnomalyTableCategory.PARTITION_ANOMALY);
+                AnomalyObjectDto dto = new AnomalyObjectDto(outlierObject, associatedPartition, false);
                 RoleAnalysisDetectedAnomalyTable detectedAnomalyTable = new RoleAnalysisDetectedAnomalyTable(id1, Model.of(dto));
                 detectedAnomalyTable.setOutputMarkupId(true);
                 return detectedAnomalyTable;
