@@ -57,7 +57,7 @@ import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
         display = @PanelDisplay(
                 label = "RoleAnalysisOutlierType.outlierPanel.access",
                 icon = "fa fa-warning",
-                order = 30
+                order = 20
         )
 )
 public class RoleAnalysisOutlierAnomalyPanel extends AbstractObjectMainPanel<RoleAnalysisOutlierType, ObjectDetailsModels<RoleAnalysisOutlierType>> {
