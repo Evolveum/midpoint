@@ -3,8 +3,9 @@
 
 Focus identification authentication module.
 Module that according to the specified attributes tries to find a user in midPoint.
-If only focusIdentification module is defined, authentication won't succeed.
+If focusIdentification module is the only defined module, authentication won't succeed.
 This module is marked as not sufficient to live on its own.
+IMPORTANT: All the attributes in the module are required to be filled in while module authentication.
 
 [%autowidth]
 |===
