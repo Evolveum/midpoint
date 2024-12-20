@@ -175,12 +175,7 @@ public class AnalysisInfoWidgetDto implements Serializable {
                     AjaxLinkPanel linkPanel = new AjaxLinkPanel(id, Model.of(topFiveOutlier.getName())) {
                         @Override
                         public void onClick(AjaxRequestTarget target) {
-                            PageParameters parameters = new PageParameters();
-                            String outlierOid = topFiveOutlier.getOid();
-                            parameters.add(OnePageParameterEncoder.PARAMETER, outlierOid);
-                            Class<? extends PageBase> detailsPageClass = DetailsPageUtil
-                                    .getObjectDetailsPage(RoleAnalysisOutlierType.class);
-                            pageBase.navigateToNext(detailsPageClass, parameters);
+                            DetailsPageUtil.dispatchToObjectDetailsPage(topFiveOutlier.asPrismObject(), this);
                         }
                     };
                     linkPanel.setOutputMarkupId(true);

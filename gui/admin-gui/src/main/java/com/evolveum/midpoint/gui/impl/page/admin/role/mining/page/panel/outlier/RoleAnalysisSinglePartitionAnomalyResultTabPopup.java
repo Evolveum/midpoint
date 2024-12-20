@@ -517,6 +517,7 @@ public class RoleAnalysisSinglePartitionAnomalyResultTabPopup extends BasePanel<
         double pointsDensity = bd.doubleValue();
 
         OutlierHeaderResultPanel components = new OutlierHeaderResultPanel(id,
+                getOutlierModelObject().getOid(),
                 outlierName,
                 translate("Analysis.anomaly.result.panel.title"),
                 String.valueOf(pointsDensity), formattedDate);

@@ -93,12 +93,7 @@ public class OutlierPartitionPanel extends AbstractObjectMainPanel<RoleAnalysisO
     }
 
     private void performOnRefresh() {
-        PageParameters parameters = new PageParameters();
-        parameters.add(OnePageParameterEncoder.PARAMETER, getObjectDetailsModels().getObjectType().getOid());
-        parameters.add(ID_PANEL, getPanelConfiguration().getIdentifier());
-        Class<? extends PageBase> detailsPageClass = DetailsPageUtil
-                .getObjectDetailsPage(RoleAnalysisOutlierType.class);
-        getPageBase().navigateToNext(detailsPageClass, parameters);
+        DetailsPageUtil.dispatchToObjectDetailsPage(RoleAnalysisOutlierType.class, getPanelConfiguration().getIdentifier(), this, true);
     }
 
     public PageBase getPageBase() {

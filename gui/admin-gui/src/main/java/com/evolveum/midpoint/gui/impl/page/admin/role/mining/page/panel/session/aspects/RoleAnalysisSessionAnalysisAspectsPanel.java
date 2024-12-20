@@ -1126,7 +1126,7 @@ public class RoleAnalysisSessionAnalysisAspectsPanel extends AbstractObjectMainP
 
         initOutlierPartNew(roleAnalysisService, session, task, result, sessionStatistic, container);
 
-        IconWithLabel titlePanel = new IconWithLabel(ID_CARD_TITLE, Model.of("Best session outlier")) {
+        IconWithLabel titlePanel = new IconWithLabel(ID_CARD_TITLE, createStringResource("RoleAnalysisOutlierAnalysisAspectsPanel.widget.characteristics.bestOutlierDetails")) {
             @Contract(pure = true)
             @Override
             protected @NotNull String getIconCssClass() {
@@ -1135,9 +1135,6 @@ public class RoleAnalysisSessionAnalysisAspectsPanel extends AbstractObjectMainP
         };
         titlePanel.setOutputMarkupId(true);
         container.add(titlePanel);
-
-        AjaxCompositedIconSubmitButton components = buildExplorePatternOutlier(Model.of(analysisInfoWidgetDto.getObject().getTopOutliers()));
-        container.add(components);
 
         initOutlierPanel(container, session, analysisInfoWidgetDto);
 
@@ -1155,41 +1152,6 @@ public class RoleAnalysisSessionAnalysisAspectsPanel extends AbstractObjectMainP
             @Override
             protected void onSubmit(AjaxRequestTarget target) {
                 explorePatternPerform(pattern);
-            }
-
-            @Override
-            protected void onError(@NotNull AjaxRequestTarget target) {
-                target.add(((PageBase) getPage()).getFeedbackPanel());
-            }
-        };
-        explorePatternButton.titleAsLabel(true);
-        explorePatternButton.setOutputMarkupId(true);
-        explorePatternButton.add(AttributeModifier.append(CLASS_CSS, "ml-auto btn btn-link btn-sm p-0"));
-        explorePatternButton.setOutputMarkupId(true);
-        return explorePatternButton;
-    }
-
-    private @NotNull AjaxCompositedIconSubmitButton buildExplorePatternOutlier(IModel<RoleAnalysisOutlierType> outlier) {
-        CompositedIconBuilder iconBuilder = new CompositedIconBuilder().setBasicIcon(
-                GuiStyleConstants.CLASS_ICON_SEARCH, IconCssStyle.IN_ROW_STYLE);
-        AjaxCompositedIconSubmitButton explorePatternButton = new AjaxCompositedIconSubmitButton(
-                ID_EXPLORE_PATTERN_BUTTON,
-                iconBuilder.build(),
-                createStringResource("RoleAnalysis.aspect.overview.page.title.explore.outlier")) {
-            @Serial private static final long serialVersionUID = 1L;
-
-            @Override
-            protected void onSubmit(AjaxRequestTarget target) {
-                if (outlier == null) {
-                    return;
-                }
-                PageParameters parameters = new PageParameters();
-                String clusterOid = outlier.getObject().getOid();
-                parameters.add(OnePageParameterEncoder.PARAMETER, clusterOid);
-
-                Class<? extends PageBase> detailsPageClass = DetailsPageUtil
-                        .getObjectDetailsPage(RoleAnalysisOutlierType.class);
-                getPageBase().navigateToNext(detailsPageClass, parameters);
             }
 
             @Override
