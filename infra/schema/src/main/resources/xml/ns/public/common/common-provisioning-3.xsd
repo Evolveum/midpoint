@@ -3737,7 +3737,7 @@
     <xsd:simpleType name="ResourceObjectAssociationDirectionType">
         <xsd:annotation>
             <xsd:documentation>
-                Direction of a resource object association.
+                Direction of a resource object reference or association.
             </xsd:documentation>
         </xsd:annotation>
         <xsd:restriction base="xsd:string">

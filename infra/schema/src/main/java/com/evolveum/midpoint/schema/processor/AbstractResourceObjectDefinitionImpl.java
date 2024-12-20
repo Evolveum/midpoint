@@ -149,8 +149,7 @@ public abstract class AbstractResourceObjectDefinitionImpl
      * Definition of auxiliary object classes. They originate from
      * {@link ResourceObjectTypeDefinitionType#getAuxiliaryObjectClass()} and are resolved during parsing.
      *
-     * However, they are _not_ used by default for attribute resolution!
-     * A {@link CompositeObjectDefinition} must be created in order to "activate" them.
+     * Attributes defined in them are added to {@link #attributeDefinitions}.
      */
     @NotNull final DeeplyFreezableList<ResourceObjectDefinition> auxiliaryObjectClassDefinitions =
             new DeeplyFreezableList<>();
@@ -808,12 +807,6 @@ public abstract class AbstractResourceObjectDefinitionImpl
     public @NotNull ResourceObjectTypeDefinitionType getDefinitionBean() {
         return definitionBean;
     }
-
-//    void addReferenceAttributeDefinition(@NotNull ShadowReferenceAttributeDefinition definition) {
-//        checkMutable();
-//        associationDefinitions.add(definition);
-//        invalidatePrismObjectDefinition();
-//    }
 
     void addAuxiliaryObjectClassDefinition(@NotNull ResourceObjectDefinition definition) {
         checkMutable();

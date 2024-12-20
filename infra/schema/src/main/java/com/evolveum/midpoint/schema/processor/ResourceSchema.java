@@ -37,7 +37,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 /**
  * A schema covering the whole resource.
  *
- * It contains object classes and types definitions and (experimental) association classes definitions.
+ * It contains object classes and types definitions and reference types definitions.
  * It refers to the {@link NativeResourceSchema} upon which it was built.
  *
  * This interface contains a lot of methods that try to find object type/class definition matching criteria.

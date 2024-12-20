@@ -66,7 +66,9 @@ public class ResourceObjectFound extends AbstractLazilyInitializableResourceEnti
      */
     @Override
     public void initializeInternal(Task task, OperationResult result) throws CommonException {
-        effectiveCtx = originalCtx.spawn(task);
+        effectiveCtx = originalCtx.spawn(
+                initialResourceObject.bean.getAuxiliaryObjectClass(),
+                task);
         completeResourceObject =
                 ResourceObjectCompleter.completeResourceObject(effectiveCtx, initialResourceObject, fetchAssociations, result);
         getInitializationState().recordError(completeResourceObject.errorState());

@@ -14,7 +14,7 @@ import com.evolveum.midpoint.prism.PrismItemMiscDefinition;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LayerType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceItemDefinitionType;
 
-/** TODO decide where to put these! */
+/** Layer-dependent aspects of an item definition. */
 public interface ShadowItemLayeredDefinition {
 
     /**

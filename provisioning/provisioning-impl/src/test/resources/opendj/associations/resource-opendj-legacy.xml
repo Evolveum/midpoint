@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (C) 2010-2024 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<resource oid="ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff"
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">
+    <name>opendj-legacy</name>
+    <super>
+        <resourceRef oid="e848090a-25ae-4390-bccc-2bc49d4b9a0c"/>
+    </super>
+    <schemaHandling>
+        <objectType>
+            <kind>account</kind>
+            <intent>default</intent>
+            <association>
+                <ref>ri:group</ref>
+                <kind>entitlement</kind>
+                <intent>group</intent>
+                <direction>objectToSubject</direction>
+                <associationAttribute>ri:uniqueMember</associationAttribute>
+                <valueAttribute>ri:dn</valueAttribute>
+                <shortcutAssociationAttribute>ri:isMemberOf</shortcutAssociationAttribute>
+                <shortcutValueAttribute>ri:dn</shortcutValueAttribute>
+                <explicitReferentialIntegrity>true</explicitReferentialIntegrity>
+            </association>
+            <association>
+                <ref>ri:posixGroup</ref>
+                <!-- Strictly speaking should be ri:posixAccount, but it also should work without namespace prefix. -->
+                <auxiliaryObjectClass>posixAccount</auxiliaryObjectClass>
+                <kind>entitlement</kind>
+                <intent>posixGroup</intent>
+                <direction>objectToSubject</direction>
+                <associationAttribute>ri:memberUid</associationAttribute>
+                <valueAttribute>ri:uid</valueAttribute>
+                <explicitReferentialIntegrity>true</explicitReferentialIntegrity>
+            </association>
+            <association>
+                <ref>ri:car</ref>
+                <kind>entitlement</kind>
+                <intent>passengerCar</intent>
+                <intent>lightTruck</intent>
+                <direction>subjectToObject</direction>
+                <associationAttribute>ri:carLicense</associationAttribute>
+                <valueAttribute>ri:gidNumber</valueAttribute> <!-- intentionally not in the structural object class -->
+                <explicitReferentialIntegrity>true</explicitReferentialIntegrity>
+            </association>
+        </objectType>
+    </schemaHandling>
+</resource>

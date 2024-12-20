@@ -12,6 +12,8 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.path.ItemName;
 
+import com.evolveum.midpoint.prism.util.JavaTypeConverter;
+
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.Item;
@@ -206,8 +208,11 @@ public interface ShadowAttributesContainer extends ShadowItemsContainer, PrismCo
     //ShadowAttribute<?, ?, ?, ?> findOrCreateAttribute(QName attributeName) throws SchemaException;
 
     default ShadowAttributesContainer addSimpleAttribute(QName attributeName, Object realValue) throws SchemaException {
-        findOrCreateSimpleAttribute(attributeName)
-                .setRealValue(realValue);
+        var attr = findOrCreateSimpleAttribute(attributeName);
+        // The conversion may be required e.g. when creating simulated reference values.
+        var newJavaType = attr.getDefinitionRequired().getTypeClass();
+        attr.setRealValue(
+                JavaTypeConverter.convert(newJavaType, realValue));
         return this;
     }
 

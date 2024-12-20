@@ -53,4 +53,10 @@ public interface CompositeObjectDefinition extends ResourceObjectDefinition, Lay
             @Nullable Collection<? extends ResourceObjectDefinition> auxiliaryDefinitions) {
         return CompositeObjectDefinitionImpl.immutable(structuralDefinition, auxiliaryDefinitions);
     }
+
+    static @NotNull CompositeObjectDefinitionImpl mutableOf(
+            @NotNull ResourceObjectDefinition structuralDefinition,
+            @Nullable Collection<? extends ResourceObjectDefinition> auxiliaryDefinitions) {
+        return CompositeObjectDefinitionImpl.mutable(structuralDefinition, auxiliaryDefinitions);
+    }
 }

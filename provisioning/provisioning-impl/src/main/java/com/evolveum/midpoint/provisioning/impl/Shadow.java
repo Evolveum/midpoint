@@ -49,17 +49,6 @@ public class Shadow implements AbstractShadow {
         return new Shadow(bean, resource);
     }
 
-//    public static @NotNull Shadow of(
-//            @NotNull ResourceType resourceBean, @NotNull ShadowType shadowBean)
-//            throws SchemaException, ConfigurationException {
-//        Resource resource = Resource.of(resourceBean);
-//        var resourceSchema = resource.getCompleteSchemaRequired();
-//        var objectDefinition = MiscUtil.requireNonNull(
-//                resourceSchema.findDefinitionForShadow(shadowBean),
-//                () -> "No object definition for shadow " + shadowBean);
-//        return new Shadow(shadowBean, resource);
-//    }
-
     @NotNull
     public ShadowLifecycleStateType getShadowLifecycleState() {
         return bean.getShadowLifecycleState();

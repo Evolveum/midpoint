@@ -353,7 +353,7 @@ public interface ResourceObjectDefinition
      * It contains only the object class name and resource OID.
      *
      * Kind/intent are NOT set, because the definition may be a "default type definition for given object class"
-     * (which is sadly still supported); and we do not want to create typed shadows in such cases.
+     * (which is sadly still supported, MID-10309); and we do not want to create typed shadows in such cases.
      *
      * {@link ShadowBuilder#withDefinition(ResourceObjectDefinition)} provides kind and intent.
      */
@@ -721,4 +721,27 @@ public interface ResourceObjectDefinition
 
     /** See {@link ShadowAttributeDefinition#isVolatileOnModifyOperation()}. */
     @NotNull Collection<ShadowAttributeDefinition<?, ?, ?, ?>> getAttributesVolatileOnModifyOperation();
+
+    /**
+     * Returns the name of the auxiliary object class where given attribute is defined.
+     *
+     * If the attribute is defined on the structural object class or if the attribute is not defined on any auxiliary
+     * object class, `null` is returned.
+     *
+     * Limitations:
+     *
+     * - Ignores case sensitivity.
+     * - Use only for simple attributes.
+     */
+    default @Nullable QName getAuxiliaryObjectClassNameForAttribute(@NotNull QName attrName) {
+        if (getObjectClassDefinition().findAttributeDefinition(attrName) != null) {
+            return null;
+        }
+        for (var auxiliaryDefinition : getAuxiliaryDefinitions()) {
+            if (auxiliaryDefinition.findAttributeDefinition(attrName) != null) {
+                return auxiliaryDefinition.getObjectClassName();
+            }
+        }
+        return null;
+    }
 }

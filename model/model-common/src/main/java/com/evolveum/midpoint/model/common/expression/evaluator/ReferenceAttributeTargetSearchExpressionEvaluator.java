@@ -99,7 +99,7 @@ class ReferenceAttributeTargetSearchExpressionEvaluator
             protected ObjectQuery createRawQuery(SearchFilterType filter) throws SchemaException, ExpressionEvaluationException {
                 var concreteShadowDef =
                         outputDefinition
-                                .getRepresentativeTargetObjectDefinition()
+                                .getGeneralizedObjectSideObjectDefinition()
                                 .getPrismObjectDefinition();
                 var objFilter = prismContext.getQueryConverter().createObjectFilter(concreteShadowDef, filter);
                 return prismContext.queryFactory().createQuery(objFilter);

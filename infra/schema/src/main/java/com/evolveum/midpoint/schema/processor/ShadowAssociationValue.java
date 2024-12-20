@@ -7,12 +7,21 @@
 
 package com.evolveum.midpoint.schema.processor;
 
+import static com.evolveum.midpoint.util.MiscUtil.stateNonNull;
+
+import java.io.Serial;
+import java.util.Collection;
+import java.util.List;
+import java.util.Objects;
+
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.equivalence.ParameterizedEquivalenceStrategy;
 import com.evolveum.midpoint.prism.impl.PrismContainerValueImpl;
 import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.schema.util.AbstractShadow;
-import com.evolveum.midpoint.schema.util.ObjectOperationPolicyTypeUtil;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.EqualsChecker;
@@ -21,17 +30,6 @@ import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-import org.jetbrains.annotations.TestOnly;
-
-import java.io.Serial;
-import java.util.Collection;
-import java.util.List;
-import java.util.Objects;
-
-import static com.evolveum.midpoint.util.MiscUtil.stateNonNull;
 
 /**
  * Represents a specific shadow association value - i.e. something that is put into {@link ShadowReferenceAttribute}.
@@ -77,10 +75,7 @@ public class ShadowAssociationValue extends PrismContainerValueImpl<ShadowAssoci
                         ShadowReferenceAttribute.semanticEqualsChecker());
             };
 
-    @NotNull private ShadowAssociationDefinition definition;
-
-    // FIXME decide on this
-    private final boolean hasAssociationObject;
+    @NotNull private final ShadowAssociationDefinition definition;
 
     /**
      * For complex associations, this is the association object itself: except attributes and activation.
@@ -97,7 +92,6 @@ public class ShadowAssociationValue extends PrismContainerValueImpl<ShadowAssoci
             @NotNull ShadowAssociationDefinition definition) {
         super(type, source, container, id, definition.getComplexTypeDefinition());
         this.definition = definition;
-        this.hasAssociationObject = definition.isComplex();
     }
 
     /**
@@ -108,71 +102,85 @@ public class ShadowAssociationValue extends PrismContainerValueImpl<ShadowAssoci
      */
     public static @NotNull ShadowAssociationValue fromBean(
             @NotNull ShadowAssociationValueType bean,
-            @NotNull ShadowAssociationDefinition definition) throws SchemaException {
+            @NotNull ShadowAssociationDefinition associationDef) throws SchemaException {
         PrismContainerValue<?> pcv = bean.asPrismContainerValue();
         if (pcv instanceof ShadowAssociationValue shadowAssociationValue) {
             return shadowAssociationValue;
         }
 
-        var newValue = empty(definition);
-        if (definition.isComplex()) {
-            var applicator = ShadowDefinitionApplicator.strict(definition.getAssociationDataObjectDefinition());
-
-            var rawAttributes = bean.getAttributes();
-            if (rawAttributes != null) {
-                var newAttributesContainer = newValue.getOrCreateAttributesContainer();
-                for (var rawItem : rawAttributes.asPrismContainerValue().getItems()) {
-                    if (rawItem instanceof ShadowSimpleAttribute<?> attribute) {
-                        newAttributesContainer.addAttribute(attribute.clone());
-                    } else {
-                        newAttributesContainer.addAttribute(
-                                applicator.applyToItem((Item<?, ?>) rawItem));
-                    }
-                }
-            }
-
-            var rawObjects = bean.getObjects();
-            if (rawObjects != null && !rawObjects.asPrismContainerValue().hasNoItems()) {
-                var newObjectsContainer = newValue.getOrCreateObjectsContainer();
-                for (var rawItem : rawObjects.asPrismContainerValue().getItems()) {
-                    if (rawItem instanceof ShadowReferenceAttribute attribute) {
-                        newObjectsContainer.addAttribute(attribute.clone());
-                    } else {
-                        newObjectsContainer.addAttribute(
-                                applicator.applyToItem((Item<?, ?>) rawItem));
-                    }
-                }
-            }
-
-            newValue.asContainerable().setActivation(
-                    CloneUtil.cloneCloneable(
-                            bean.getActivation()));
-
+        var newValue = empty(associationDef);
+        if (associationDef.isComplex()) {
+            fromBeanComplex(newValue, bean, associationDef);
         } else {
-
-            //noinspection unchecked
-            var objectRefItem = (Item<?, ?>)
-                    MiscUtil.extractSingletonRequired(
-                            bean.getObjects().asPrismContainerValue().getItems(),
-                            () -> new SchemaException("Multiple object references in an association value: " + bean),
-                            () -> new SchemaException("No object reference in an association value: " + bean));
-            var objectRef = MiscUtil.castSafely(objectRefItem, PrismReference.class);
-            var objectRefValue =
-                    MiscUtil.extractSingletonRequired(
-                            objectRef.getValues(),
-                            () -> new SchemaException("Multiple value in an association object reference: " + bean),
-                            () -> new SchemaException("No value in an association object reference: " + bean));
-
-            newValue.getOrCreateObjectsContainer()
-                    .findOrCreateReferenceAttribute(definition.getReferenceAttributeDefinition().getItemName())
-                    .add(ShadowReferenceAttributeValue.fromRefValue(objectRefValue.clone()));
-
+            fromBeanSimple(newValue, bean, associationDef);
         }
         newValue.setId(pcv.getId());
         return newValue;
     }
 
-    /** Creates a new value from the association object. */
+    /** Bean -> SAV for simple associations. */
+    private static void fromBeanSimple(
+            @NotNull ShadowAssociationValue newValue,
+            @NotNull ShadowAssociationValueType bean,
+            @NotNull ShadowAssociationDefinition associationDef) throws SchemaException {
+        //noinspection unchecked
+        var objectRefItem = (Item<?, ?>)
+                MiscUtil.extractSingletonRequired(
+                        bean.getObjects().asPrismContainerValue().getItems(),
+                        () -> new SchemaException("Multiple object references in an association value: " + bean),
+                        () -> new SchemaException("No object reference in an association value: " + bean));
+        var objectRef = MiscUtil.castSafely(objectRefItem, PrismReference.class);
+        var objectRefValue =
+                MiscUtil.extractSingletonRequired(
+                        objectRef.getValues(),
+                        () -> new SchemaException("Multiple value in an association object reference: " + bean),
+                        () -> new SchemaException("No value in an association object reference: " + bean));
+
+        newValue.getOrCreateObjectsContainer()
+                .findOrCreateReferenceAttribute(associationDef.getReferenceAttributeDefinition().getItemName())
+                .add(ShadowReferenceAttributeValue.fromRefValue(objectRefValue.clone()));
+    }
+
+    /** Bean -> SAV for complex associations. */
+    private static void fromBeanComplex(
+            @NotNull ShadowAssociationValue newValue,
+            @NotNull ShadowAssociationValueType bean,
+            @NotNull ShadowAssociationDefinition associationDef) throws SchemaException {
+
+        var applicator = ShadowDefinitionApplicator.strict(associationDef.getAssociationDataObjectDefinition());
+
+        var rawAttributes = bean.getAttributes();
+        if (rawAttributes != null) {
+            var newAttributesContainer = newValue.getOrCreateAttributesContainer();
+            for (var rawItem : rawAttributes.asPrismContainerValue().getItems()) {
+                if (rawItem instanceof ShadowSimpleAttribute<?> attribute) {
+                    newAttributesContainer.addAttribute(attribute.clone());
+                } else {
+                    newAttributesContainer.addAttribute(
+                            applicator.applyToItem((Item<?, ?>) rawItem));
+                }
+            }
+        }
+
+        var rawObjects = bean.getObjects();
+        if (rawObjects != null && !rawObjects.asPrismContainerValue().hasNoItems()) {
+            var newObjectsContainer = newValue.getOrCreateObjectsContainer();
+            for (var rawItem : rawObjects.asPrismContainerValue().getItems()) {
+                if (rawItem instanceof ShadowReferenceAttribute attribute) {
+                    newObjectsContainer.addAttribute(attribute.clone());
+                } else {
+                    newObjectsContainer.addAttribute(
+                            applicator.applyToItem((Item<?, ?>) rawItem));
+                }
+            }
+        }
+
+        newValue.asContainerable().setActivation(
+                CloneUtil.cloneCloneable(
+                        bean.getActivation()));
+    }
+
+    /** Creates a new value from the association object (a shadow). */
     public static @NotNull ShadowAssociationValue fromAssociationDataObject(
             @NotNull AbstractShadow associationObject,
             @NotNull ShadowAssociationDefinition associationDefinition) throws SchemaException {
@@ -181,7 +189,7 @@ public class ShadowAssociationValue extends PrismContainerValueImpl<ShadowAssoci
         return newValue;
     }
 
-    /** We need the definition to provide correct CTD. */
+    /** Creates an empty value. We need the association definition to provide correct CTD. */
     public static ShadowAssociationValue empty(@NotNull ShadowAssociationDefinition definition) {
         return new ShadowAssociationValue(
                 null, null, null, null, definition);
@@ -202,13 +210,12 @@ public class ShadowAssociationValue extends PrismContainerValueImpl<ShadowAssoci
 
     protected void copyValues(CloneStrategy strategy, ShadowAssociationValue clone) {
         super.copyValues(strategy, clone);
-        clone.definition = this.definition;
         clone.associationObjectExtraItems = CloneUtil.cloneCloneable(this.associationObjectExtraItems);
     }
 
     @Override
-    public @NotNull PrismContainerDefinition<ShadowAssociationValueType> getDefinition() {
-        return Objects.requireNonNull(definition);
+    public @NotNull ShadowAssociationDefinition getDefinition() {
+        return stateNonNull(definition, "No definition in %s", this);
     }
 
     public @NotNull ShadowAssociationDefinition getDefinitionRequired() {
@@ -258,7 +265,7 @@ public class ShadowAssociationValue extends PrismContainerValueImpl<ShadowAssoci
         }
     }
 
-    public @NotNull ShadowAttributesContainer getObjectsContainerRequired() {
+    private @NotNull ShadowAttributesContainer getObjectsContainerRequired() {
         return stateNonNull(getObjectsContainer(), "No objects container in %s", this);
     }
 
@@ -295,7 +302,7 @@ public class ShadowAssociationValue extends PrismContainerValueImpl<ShadowAssoci
         if (objectRefs.size() != 1) {
             return null;
         }
-        var objectRefValues = objectRefs.iterator().next().getReferenceValues();
+        var objectRefValues = objectRefs.iterator().next().getAttributeValues();
         if (objectRefValues.size() != 1) {
             return null;
         }
@@ -312,10 +319,6 @@ public class ShadowAssociationValue extends PrismContainerValueImpl<ShadowAssoci
 
     public @NotNull AbstractShadow getSingleObjectShadowRequired() {
         return getSingleObjectRefValueRequired().getShadowRequired();
-    }
-
-    public @NotNull ShadowType getSingleObjectShadowBeanRequired() {
-        return getSingleObjectShadowRequired().getBean();
     }
 
     /**
@@ -343,15 +346,6 @@ public class ShadowAssociationValue extends PrismContainerValueImpl<ShadowAssoci
             return ShadowReferenceAttributeValue.fromShadow(shadow);
         } else {
             return getSingleObjectRefValueRequired().clone();
-        }
-    }
-
-    @TestOnly
-    public @NotNull ShadowReferenceAttributeValue toReferenceAttributeValueUnchecked() {
-        try {
-            return toReferenceAttributeValue();
-        } catch (SchemaException e) {
-            throw new SystemException(e);
         }
     }
 
@@ -458,7 +452,7 @@ public class ShadowAssociationValue extends PrismContainerValueImpl<ShadowAssoci
      */
     public @NotNull AbstractShadow getAssociationDataObject() {
         try {
-            if (hasAssociationObject) {
+            if (isComplex()) {
                 return toReferenceAttributeValue().getShadowRequired();
             } else {
                 throw new IllegalStateException("No association object in " + this);
@@ -468,24 +462,15 @@ public class ShadowAssociationValue extends PrismContainerValueImpl<ShadowAssoci
         }
     }
 
-    public boolean hasAssociationObject() {
-        return hasAssociationObject;
-    }
-
-    public boolean isInboundMembershipSynchronizationDisabled() {
-        if (hasAssociationObject) {
-            return false; // Not supported for complex associations
-        } else {
-            return ObjectOperationPolicyTypeUtil.isMembershipSyncInboundDisabled(
-                    getSingleObjectShadowRequired().getEffectiveOperationPolicyRequired());
-        }
+    public boolean isComplex() {
+        return definition.isComplex();
     }
 
     @Override
     public String debugDump(int indent) {
         var sb = new StringBuilder(super.debugDump(indent));
         sb.append("\n");
-        DebugUtil.debugDumpWithLabelLn(sb, "Has association object", hasAssociationObject, indent + 1);
+        DebugUtil.debugDumpWithLabelLn(sb, "Type", isComplex() ? "complex" : "simple", indent + 1);
         DebugUtil.debugDumpWithLabel(sb, "Association object extra items", associationObjectExtraItems, indent + 1);
         return sb.toString();
     }

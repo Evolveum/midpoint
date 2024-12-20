@@ -88,7 +88,7 @@ public class ProvisioningSearchLikeOperation<T extends ObjectType> {
 
         if (ShadowType.class.isAssignableFrom(type)) {
             //noinspection unchecked,rawtypes
-            return (SearchResultList) beans.shadowsFacade.searchObjects(query, options, context, task, result);
+            return (SearchResultList) beans.shadowsFacade.searchShadows(query, options, context, task, result);
         } else {
             // TODO: should searching connectors trigger rediscovery?
             SearchResultList<PrismObject<T>> repoObjects =
@@ -107,7 +107,8 @@ public class ProvisioningSearchLikeOperation<T extends ObjectType> {
 
         if (ShadowType.class.isAssignableFrom(type)) {
             //noinspection unchecked
-            return beans.shadowsFacade.searchObjectsIterative(query, options, (ResultHandler<ShadowType>) handler, context, task, result);
+            return beans.shadowsFacade.searchShadowsIterative(
+                    query, options, (ResultHandler<ShadowType>) handler, context, task, result);
         } else {
             ResultHandler<T> internalHandler =
                     (object, objResult) ->
