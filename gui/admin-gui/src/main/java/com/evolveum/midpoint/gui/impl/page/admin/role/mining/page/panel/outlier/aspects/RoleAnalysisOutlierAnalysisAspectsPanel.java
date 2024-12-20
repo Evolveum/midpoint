@@ -57,7 +57,7 @@ import java.util.*;
         display = @PanelDisplay(
                 label = "RoleAnalysis.overview.panel",
                 icon = GuiStyleConstants.CLASS_LINE_CHART_ICON,
-                order = 20))
+                order = 10))
 public class RoleAnalysisOutlierAnalysisAspectsPanel extends AbstractObjectMainPanel<RoleAnalysisOutlierType, ObjectDetailsModels<RoleAnalysisOutlierType>> {
 
     private static final String ID_CONTAINER = "container";

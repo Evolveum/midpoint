@@ -13,6 +13,7 @@ import com.evolveum.midpoint.gui.impl.page.admin.AbstractObjectMainPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.ObjectDetailsModels;
 import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.AssignmentHolderDetailsModel;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.cluster.RoleAnalysisClusterOptionsPanel;
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.outlier.RoleAnalysisOutlierSettings;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.session.RoleAnalysisRoleSessionOptions;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.session.RoleAnalysisUserSessionOptions;
 import com.evolveum.midpoint.gui.impl.prism.panel.SingleContainerPanel;
@@ -54,6 +55,7 @@ import org.jetbrains.annotations.NotNull;
 
 @PanelInstance(identifier = "outlierBasic",
         applicableForType = RoleAnalysisOutlierType.class,
+        childOf = RoleAnalysisOutlierSettings.class,
         display = @PanelDisplay(
                 label = "RoleAnalysis.basic.panel",
                 icon = GuiStyleConstants.CLASS_INFO_CIRCLE,
