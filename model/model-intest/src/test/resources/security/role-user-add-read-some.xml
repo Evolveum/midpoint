@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (c) 2010-2019 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+<role oid="d70b7695-cb99-4cbf-83b1-f18652844845" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+>
+    <name>Add role</name>
+<!-- ***** GUI ***** -->
+    <authorization>
+        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-3#roles</action>
+        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-3#role</action>
+        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-3#roleDetails</action>
+    </authorization>
+
+<!-- ***** Model ***** -->
+
+    <authorization>
+        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#get</action>
+        <object>
+            <type>RoleType</type>
+        </object>
+        <item>name</item>
+        <item>description</item>
+        <item>subtype</item>
+        <item>displayName</item>
+        <item>requestable</item>
+        <item>assignment</item>
+        <item>inducement</item>
+        <item>archetypeRef</item>
+    </authorization>
+
+    <authorization>
+        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#add</action>
+        <object>
+            <type>RoleType</type>
+        </object>
+    </authorization>
+
+</role>
