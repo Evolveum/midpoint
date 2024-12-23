@@ -16,7 +16,8 @@ import org.testng.annotations.Listeners;
 /**
  * AD multi-domain test for AD 2019 hosted in Evolveum private cloud.
  * This test has some strange configuration:
- *   * SPR is used instead of VLV for paging.
+ *
+ * * SPR is used instead of VLV for paging.
  *
  * @author Radovan Semancik
  */
