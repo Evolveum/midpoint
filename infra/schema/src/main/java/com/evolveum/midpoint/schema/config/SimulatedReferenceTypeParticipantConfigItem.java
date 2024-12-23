@@ -32,7 +32,7 @@ public abstract class SimulatedReferenceTypeParticipantConfigItem
         return value().getSecondaryBindingAttributeRef();
     }
 
-    /** May be empty. */
+    /** Cannot be empty. */
     public @NotNull List<SimulatedReferenceTypeParticipantDelineationConfigItem> getDelineations()
             throws ConfigurationException {
         return children(

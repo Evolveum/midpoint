@@ -1064,8 +1064,7 @@
                     <xsd:documentation>
                         Resource objects that participate as a subject or object of a simulated reference.
                         The binding attribute definition must be the same for all of them.
-
-                        The default is to be taken from the object type for which the reference is being defined.
+                        At least one delineation must be defined here.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>

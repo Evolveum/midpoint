@@ -47,7 +47,11 @@ public interface ResourceObjectClassDefinition
      */
     boolean isAuxiliary();
 
-    /** TODO */
+    /**
+     * Is this object class embedded, i.e., meant to implement complex associations?
+     *
+     * @see NativeObjectClassUcfDefinition#isEmbedded()
+     */
     boolean isEmbedded();
 
     /**
