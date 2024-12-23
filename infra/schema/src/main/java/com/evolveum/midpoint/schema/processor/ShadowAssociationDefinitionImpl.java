@@ -46,14 +46,17 @@ import com.evolveum.midpoint.schema.config.ResourceObjectAssociationConfigItem;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
  * The (currently) only implementation of {@link ShadowAssociationDefinition}.
  *
- * TODO Effectively immutable? (if constituent definitions are immutable), except for the ability of
- *  changing the {@link #maxOccurs} value. - is this still true?
+ * This object is effectively immutable, but only after the whole resource schema is frozen.
+ * The reason is that the referenced attribute and object definitions are mutable during schema parsing.
+ *
+ * The exception is {@link #maxOccurs} that can be changed even after the schema is frozen.
+ * (But not after this particular object is frozen.)
+ * It is because the GUI needs it that way.
  */
 public class ShadowAssociationDefinitionImpl
         extends AbstractFreezable
@@ -67,19 +70,39 @@ public class ShadowAssociationDefinitionImpl
     /** Currently, we don't have a separate (internalized) association type definition. So let's keep at least the name. */
     @NotNull private final QName associationTypeName;
 
-    /** The definition of the attribute this association is based on. It exists even for legacy simulated associations. */
+    /**
+     * The definition of the attribute this association is based on. It exists even for legacy simulated associations.
+     *
+     * Immutable after the resource schema is frozen.
+     */
     @NotNull private final ShadowReferenceAttributeDefinition referenceAttributeDefinition;
 
-    /** The definition of the association data object. Null for simple associations, non-null for complex associations. */
+    /**
+     * The definition of the association data object. Null for simple associations, non-null for complex associations.
+     *
+     * Immutable after the resource schema is frozen.
+     */
     @Nullable private final ResourceObjectDefinition associationDataObjectDefinition;
 
-    /** This is the relevant part (specific to given subject association) of the "modern" association type definition. */
+    /**
+     * This is the relevant part (specific to given subject association) of {@link #modernAssociationTypeDefinitionBean}.
+     *
+     * Always immutable.
+     */
     @Nullable private final ShadowAssociationDefinitionType modernAssociationDefinitionBean;
 
-    /** The "modern" association type definition. */
+    /**
+     * The whole "modern" association type definition.
+     *
+     * Immutable after the resource schema is frozen.
+     */
     @Nullable private final ShadowAssociationTypeDefinitionType modernAssociationTypeDefinitionBean;
 
-    /** Extracts from the legacy configuration bean. */
+    /**
+     * Extracts from the legacy configuration bean.
+     *
+     * Always (deeply) immutable.
+     */
     @Nullable private final LegacyAssociationTypeInformation legacyInformation;
 
     /**
@@ -87,16 +110,18 @@ public class ShadowAssociationDefinitionImpl
      * These come from the underlying reference attribute definition, but can be further restricted
      * by the association type definition.
      *
-     * Immutable.
+     * Immutable (the referenced object definitions are frozen after the schema is frozen).
      */
     @NotNull private final Multimap<QName, ShadowRelationParticipantType> objectParticipantMap;
 
-    /** TEMPORARY: Mutable because of GUI! */
+    /** Mutable unless this definition is frozen. Needed by GUI. (Temporary?) */
     private Integer maxOccurs;
 
     /**
      * Refined definition for {@link ShadowAssociationValueType} values that are stored in the
      * {@link ShadowAssociation} item as {@link ShadowAssociationValue}s.
+     *
+     * Always immutable.
      */
     @NotNull private final ComplexTypeDefinition complexTypeDefinition;
 
@@ -118,7 +143,7 @@ public class ShadowAssociationDefinitionImpl
         this.modernAssociationTypeDefinitionBean = CloneUtil.toImmutable(modernAssociationTypeDefinitionBean);
         this.legacyInformation = legacyInformation;
         this.maxOccurs = maxOccurs;
-        this.complexTypeDefinition = createComplexTypeDefinition();
+        this.complexTypeDefinition = Freezable.checkIsImmutable(createComplexTypeDefinition());
         this.objectParticipantMap = ImmutableSetMultimap.copyOf(objectParticipantMap);
     }
 
@@ -129,8 +154,10 @@ public class ShadowAssociationDefinitionImpl
             @NotNull Collection<ResourceObjectTypeDefinition> objectTypeDefinitions) throws ConfigurationException {
 
         var legacyInformation = new LegacyAssociationTypeInformation(
-                definitionCI.value().getOutbound(),
-                List.copyOf(definitionCI.value().getInbound()));
+                CloneUtil.cloneIfImmutable(
+                        definitionCI.value().getOutbound()),
+                CloneUtil.toImmutableContainerablesList(
+                        definitionCI.value().getInbound()));
 
         var simulatedReferenceTypeDefinition =
                 SimulatedShadowReferenceTypeDefinition.Legacy.parse(
@@ -251,14 +278,6 @@ public class ShadowAssociationDefinitionImpl
     @Override
     public @NotNull PrismContainer<ShadowAssociationValueType> instantiate(QName name) throws SchemaException {
         return ShadowAssociation.empty(name, this);
-    }
-
-    /**
-     * We assume that the checks during the definition parsing were good enough to discover any problems
-     * related to broken configuration.
-     */
-    private static SystemException alreadyChecked(ConfigurationException e) {
-        return SystemException.unexpected(e, "(object was already checked)");
     }
 
     @Override
@@ -1042,6 +1061,7 @@ public class ShadowAssociationDefinitionImpl
         return associationTypeName;
     }
 
+    /** Content is immutable. */
     private record LegacyAssociationTypeInformation(
             @Nullable MappingType outboundMappingBean,
             @NotNull List<InboundMappingType> inboundMappingBeans) implements Serializable {

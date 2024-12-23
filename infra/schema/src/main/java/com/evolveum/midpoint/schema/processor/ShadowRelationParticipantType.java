@@ -33,7 +33,7 @@ public class ShadowRelationParticipantType implements Serializable {
      * Definition of the object type of the participant. It may be a genuine type even for class-scoped participants,
      * if the object type is a default one for the object class.
      */
-    @NotNull final ResourceObjectDefinition objectDefinition;
+    @NotNull private final ResourceObjectDefinition objectDefinition;
 
     private ShadowRelationParticipantType(
             @Nullable ResourceObjectTypeIdentification typeIdentification,

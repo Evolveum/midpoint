@@ -35,6 +35,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectAssoci
 
 /**
  * Specifies how to simulate the reference type: what are the participants, what attributes to use for the reference, etc.
+ *
+ * Immutable after the containing resource is frozen.
  */
 public abstract class SimulatedShadowReferenceTypeDefinition
         extends AbstractShadowReferenceTypeDefinition
@@ -60,10 +62,10 @@ public abstract class SimulatedShadowReferenceTypeDefinition
 
     @NotNull private final ShadowSimpleAttributeDefinition<?> subjectSidePrimaryBindingAttributeDefinition;
 
-    /** Never empty. */
+    /** Never empty. Immutable. */
     @NotNull private final Collection<SimulatedAssociationClassParticipantDefinition> subjects;
 
-    /** Never empty. */
+    /** Never empty. Immutable. */
     @NotNull private final Collection<SimulatedAssociationClassParticipantDefinition> objects;
 
     private SimulatedShadowReferenceTypeDefinition(
@@ -87,8 +89,8 @@ public abstract class SimulatedShadowReferenceTypeDefinition
         this.requiresExplicitReferentialIntegrity = requiresExplicitReferentialIntegrity;
         this.subjectSidePrimaryBindingAttributeDefinition = subjectSidePrimaryBindingAttributeDefinition;
         this.referentialObjectDefinition = referentialObjectDefinition;
-        this.subjects = MiscUtil.stateNonEmpty(subjects, "no subject definitions in %s", this);
-        this.objects = MiscUtil.stateNonEmpty(objects, "no object definitions in %s", this);
+        this.subjects = List.copyOf(MiscUtil.stateNonEmpty(subjects, "no subject definitions in %s", this));
+        this.objects = List.copyOf(MiscUtil.stateNonEmpty(objects, "no object definitions in %s", this));
     }
 
     public @NotNull ItemName getLocalSubjectItemName() {

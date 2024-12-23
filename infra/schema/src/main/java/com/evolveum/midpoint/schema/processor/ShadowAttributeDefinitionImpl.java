@@ -119,10 +119,8 @@ public abstract class ShadowAttributeDefinitionImpl<
     ShadowAttributeDefinitionImpl(
             @NotNull ND nativeDefinition, @NotNull ResourceItemDefinitionType customizationBean, boolean forcedIgnored)
             throws SchemaException {
-        assert nativeDefinition.isImmutable();
-
         this.currentLayer = DEFAULT_LAYER;
-        this.nativeDefinition = nativeDefinition;
+        this.nativeDefinition = Freezable.checkIsImmutable(nativeDefinition);
         this.customizationBean = CloneUtil.toImmutable(customizationBean);
         this.limitationsMap = computeLimitationsMap(forcedIgnored);
         this.accessOverride = new PropertyAccessType();
@@ -703,6 +701,7 @@ public abstract class ShadowAttributeDefinitionImpl<
         return null;
     }
 
+    @SuppressWarnings("unused")
     public <A> void setAnnotation(QName qname, A value) {
         throw new UnsupportedOperationException();
     }

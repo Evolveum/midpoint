@@ -17,8 +17,6 @@ import com.evolveum.midpoint.util.ShortDumpable;
 
 /**
  * Used to access both "legacy" and "modern" association definitions. Should be quite self-explanatory.
- *
- * TODO better name
  */
 public interface AssociationConfigItem extends DebugDumpable {
 

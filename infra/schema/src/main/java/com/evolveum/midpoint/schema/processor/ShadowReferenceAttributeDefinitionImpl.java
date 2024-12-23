@@ -56,7 +56,7 @@ public class ShadowReferenceAttributeDefinitionImpl
 
     @Serial private static final long serialVersionUID = 1L;
 
-    /** Participant-independent definition of the reference type. */
+    /** Participant-independent definition of the reference type. Immutable after the resource schema is frozen. */
     @NotNull private final AbstractShadowReferenceTypeDefinition referenceTypeDefinition;
 
     /**
@@ -74,6 +74,8 @@ public class ShadowReferenceAttributeDefinitionImpl
      * - genuine {@link ResourceObjectClassDefinition}
      * - or {@link ResourceObjectTypeDefinition} (if there's a default type for that object class;
      * hopefully removed soon, see MID-10309)
+     *
+     * Immutable after the resource schema is frozen.
      */
     @Nullable private final ResourceObjectDefinition definitionForTargetObjectClass;
 
