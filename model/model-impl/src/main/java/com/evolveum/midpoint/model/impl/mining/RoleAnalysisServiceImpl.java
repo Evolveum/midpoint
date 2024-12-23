@@ -4110,9 +4110,15 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
             prepareOutlierPartitionMap(this, task, result, partition, partitionOutlierMap, LOGGER);
             return true;
         };
+
+        Collection<SelectorOptions<GetOperationOptions>> defaultRmIterativeSearchPageSizeOptions = getDefaultRmIterativeSearchPageSizeOptions();
+        GetOperationOptionsBuilder getOperationOptionsBuilder = schemaService.getOperationOptionsBuilder();
+        getOperationOptionsBuilder = getOperationOptionsBuilder.resolveNames();
+        Collection<SelectorOptions<GetOperationOptions>> build = getOperationOptionsBuilder.build();
+        defaultRmIterativeSearchPageSizeOptions.addAll(build);
         try {
             repositoryService.searchContainersIterative(RoleAnalysisOutlierPartitionType.class, query, handler,
-                    getDefaultRmIterativeSearchPageSizeOptions(), result);
+                    defaultRmIterativeSearchPageSizeOptions, result);
         } catch (Exception ex) {
             throw new SystemException("Couldn't search cluster role suggestions", ex);
         }

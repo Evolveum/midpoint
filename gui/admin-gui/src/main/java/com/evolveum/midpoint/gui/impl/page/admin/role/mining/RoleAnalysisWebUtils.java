@@ -8,6 +8,7 @@ package com.evolveum.midpoint.gui.impl.page.admin.role.mining;
 
 import com.evolveum.midpoint.common.mining.objects.chunk.MiningRoleTypeChunk;
 import com.evolveum.midpoint.common.mining.objects.chunk.MiningUserTypeChunk;
+import com.evolveum.midpoint.common.mining.utils.values.RoleAnalysisChunkMode;
 import com.evolveum.midpoint.gui.api.factory.wrapper.PrismObjectWrapperFactory;
 import com.evolveum.midpoint.gui.api.factory.wrapper.WrapperContext;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
@@ -238,7 +239,12 @@ public class RoleAnalysisWebUtils {
             protected @NotNull RoleAnalysisObjectDto load() {
                 //TODO refactor
                 RoleAnalysisObjectDto roleAnalysisObjectDto = new RoleAnalysisObjectDto(
-                        cluster, new ArrayList<>(), 0, pageBase);
+                        cluster, new ArrayList<>(), 0, pageBase) {
+                    @Override
+                    public @NotNull RoleAnalysisChunkMode getDefaultChunkMode() {
+                        return RoleAnalysisChunkMode.EXPAND;
+                    }
+                };
                 String outlierOid = outlier.getObjectRef().getOid();
 
                 if (detectedAnomalyResult == null) {

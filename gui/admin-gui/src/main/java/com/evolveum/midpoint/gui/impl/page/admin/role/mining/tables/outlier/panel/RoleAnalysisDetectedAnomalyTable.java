@@ -74,7 +74,7 @@ public class RoleAnalysisDetectedAnomalyTable extends BasePanel<AnomalyObjectDto
             @Contract(pure = true)
             @Override
             public @NotNull String getAdditionalBoxCssClasses() {
-                return " m-0 elevation-0";
+                return RoleAnalysisDetectedAnomalyTable.this.getAdditionalBoxCssClasses();
             }
 
             @Contract("_ -> new")
@@ -265,7 +265,7 @@ public class RoleAnalysisDetectedAnomalyTable extends BasePanel<AnomalyObjectDto
 
                     @Override
                     public String getCssClass() {
-                        return "d-flex gap-2";
+                        return "";
                     }
 
                     @Override
@@ -593,4 +593,7 @@ public class RoleAnalysisDetectedAnomalyTable extends BasePanel<AnomalyObjectDto
         cellItem.add(progressBar);
     }
 
+    public String getAdditionalBoxCssClasses() {
+        return " m-0 elevation-0";
+    }
 }

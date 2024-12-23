@@ -30,6 +30,7 @@ import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.table.RoleAnalysisTableCellFillResolver.refreshCells;
 
@@ -50,6 +51,7 @@ public class RoleAnalysisObjectDto implements Serializable {
 
     private RoleAnalysisClusterType cluster;
 
+    //TODO design implement mechanism for marking users and roles (current solution is ugly hack)
     private Set<String> markedUsers = new HashSet<>();
     private Set<String> markedRoles = new HashSet<>();
     private Set<MarkedRelation> markedRelations = new HashSet<>();
@@ -137,7 +139,7 @@ public class RoleAnalysisObjectDto implements Serializable {
     }
 
     private void collectMarkedRoles(@NotNull RoleAnalysisService roleAnalysisService, Task task, OperationResult result) {
-        if(cluster == null || cluster.getOid() == null) {
+        if (cluster == null || cluster.getOid() == null) {
             return;
         }
 
@@ -199,7 +201,13 @@ public class RoleAnalysisObjectDto implements Serializable {
         }
     }
 
-    private static void resolveDefaultChunkStructure(Integer rolesCount, int maxRoles, Integer usersCount, int maxUsers, DisplayValueOption displayValueOption) {
+    private void resolveDefaultChunkStructure(Integer rolesCount, int maxRoles, Integer usersCount, int maxUsers, DisplayValueOption displayValueOption) {
+        RoleAnalysisChunkMode defaultChunkMode = getDefaultChunkMode();
+        if (defaultChunkMode != null) {
+            displayValueOption.setChunkMode(defaultChunkMode);
+            return;
+        }
+
         if (rolesCount > maxRoles || usersCount > maxUsers) {
             displayValueOption.setChunkMode(RoleAnalysisChunkMode.COMPRESS);
 //            } else if (rolesCount > maxRoles) {
@@ -217,6 +225,10 @@ public class RoleAnalysisObjectDto implements Serializable {
 
     public <A extends MiningBaseTypeChunk> List<A> getAdditionalMiningChunk() {
         return miningOperationChunk.getAdditionalMiningChunk();
+    }
+
+    public @Nullable RoleAnalysisChunkMode getDefaultChunkMode() {
+        return null;
     }
 
     public double getMinFrequency() {

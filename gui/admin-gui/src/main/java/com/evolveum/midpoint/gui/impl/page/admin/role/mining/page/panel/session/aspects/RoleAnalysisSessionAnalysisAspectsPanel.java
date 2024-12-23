@@ -20,6 +20,8 @@ import com.evolveum.midpoint.gui.impl.component.icon.IconCssStyle;
 
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.page.AnalysisInfoWidgetDto;
 
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.tables.outlier.panel.*;
+
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -27,6 +29,7 @@ import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.repeater.RepeatingView;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.LoadableDetachableModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.util.string.StringValue;
@@ -47,9 +50,6 @@ import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.outlier.
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.widgets.component.RoleAnalysisIdentifyWidgetPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.tmp.panel.IconWithLabel;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.tmp.panel.RoleAnalysisDetectedPatternDetails;
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.tables.outlier.panel.RoleAnalysisDistributionProgressPanel;
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.tables.outlier.panel.RoleAnalysisOutlierDashboardPanel;
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.tables.outlier.panel.RoleAnalysisValueLabelPanel;
 import com.evolveum.midpoint.gui.impl.util.DetailsPageUtil;
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.model.api.mining.RoleAnalysisService;
@@ -131,6 +131,77 @@ public class RoleAnalysisSessionAnalysisAspectsPanel extends AbstractObjectMainP
             initInfoOutlierPanel(container, model);
         }
 
+        RoleAnalysisViewAllPanel<String> outlierOverviewTable = buildOutlierOverviewTable(session);
+        container.add(outlierOverviewTable);
+
+    }
+
+    private @NotNull RoleAnalysisViewAllPanel<String> buildOutlierOverviewTable(RoleAnalysisSessionType session) {
+        RoleAnalysisViewAllPanel<String> accessPanel = new RoleAnalysisViewAllPanel<>("table",
+                createStringResource("RoleAnalysis.aspect.overview.page.title.session.outliers")) {
+            @Contract(pure = true)
+            @Override
+            protected @NotNull String getIconCssClass() {
+                return GuiStyleConstants.CLASS_ICON_ASSIGNMENTS;
+            }
+
+            @Contract(" -> new")
+            @Override
+            protected @NotNull IModel<String> getLinkModel() {
+                return createStringResource(
+                        "RoleAnalysis.aspect.overview.page.title.view.all.session.outliers");
+            }
+
+            @Override
+            protected void onLinkClick(AjaxRequestTarget target) {
+                PageParameters parameters = new PageParameters();
+                parameters.add(OnePageParameterEncoder.PARAMETER, session.getOid());
+                parameters.add("panelId", "outliers");
+                Class<? extends PageBase> detailsPageClass = DetailsPageUtil
+                        .getObjectDetailsPage(RoleAnalysisSessionType.class);
+                ((PageBase) getPage()).navigateToNext(detailsPageClass, parameters);
+            }
+
+            @Override
+            protected @NotNull Component getPanelComponent(String id) {
+                RoleAnalysisSessionOutlierTable table = new RoleAnalysisSessionOutlierTable(id,
+                        RoleAnalysisSessionAnalysisAspectsPanel.this.getPageBase(),
+                        new LoadableDetachableModel<>() {
+                            @Override
+                            protected RoleAnalysisSessionType load() {
+                                return session;
+                            }
+                        }) {
+
+                    @Contract(pure = true)
+                    @Override
+                    public @NotNull Integer getLimit() {
+                        return 5;
+                    }
+
+                    @Override
+                    public boolean isPaginationVisible() {
+                        return false;
+                    }
+
+                    @Override
+                    public boolean hideFooter() {
+                        return true;
+                    }
+
+                    @Override
+                    public boolean isShowAsCard() {
+                        return false;
+                    }
+                };
+                table.setOutputMarkupId(true);
+                table.add(AttributeModifier.append("style", "min-height: auto;"));
+                return table;
+            }
+        };
+
+        accessPanel.setOutputMarkupId(true);
+        return accessPanel;
     }
 
     private void initInfoPatternPanel(@NotNull WebMarkupContainer container) {
