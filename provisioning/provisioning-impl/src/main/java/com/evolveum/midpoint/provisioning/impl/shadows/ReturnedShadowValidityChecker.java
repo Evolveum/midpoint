@@ -43,7 +43,7 @@ public class ReturnedShadowValidityChecker {
 
     public static void check(Shadow shadow, @Nullable Collection<SelectorOptions<GetOperationOptions>> options) {
         new ReturnedShadowValidityChecker(options)
-                .check(shadow);
+                .check(shadow, true);
     }
 
     static @NotNull ResultHandler<ShadowType> createCheckingHandler(
@@ -53,7 +53,7 @@ public class ReturnedShadowValidityChecker {
         } else {
             var checker = new ReturnedShadowValidityChecker(options);
             return (object, parentResult) -> {
-                checker.check(AbstractShadow.of(object));
+                checker.check(AbstractShadow.of(object), true);
                 return handler.handle(object, parentResult);
             };
         }
@@ -63,11 +63,15 @@ public class ReturnedShadowValidityChecker {
             @NotNull SearchResultList<PrismObject<ShadowType>> shadows, Collection<SelectorOptions<GetOperationOptions>> options) {
         if (!GetOperationOptions.isRaw(options)) {
             var checker = new ReturnedShadowValidityChecker(options);
-            shadows.forEach(shadow -> checker.check(AbstractShadow.of(shadow)));
+            shadows.forEach(shadow -> checker.check(AbstractShadow.of(shadow), true));
         }
     }
 
-    public void check(@NotNull AbstractShadow shadow) {
+    /**
+     * isTopLevel: Either the shadow returned, or its association values. The idea is that referenced shadows need not fulfill
+     * all the checks.
+     */
+    private void check(@NotNull AbstractShadow shadow, boolean isTopLevel) {
 
         if (shadow.isIdentificationOnly()) {
             return; // Nothing to check here.
@@ -82,19 +86,21 @@ public class ReturnedShadowValidityChecker {
 
         // And this is the recursion
         for (var refAttr : shadow.getReferenceAttributes()) {
-            checkReferenceAttributeValues(refAttr);
+            checkReferenceAttributeValues(refAttr, isTopLevel);
         }
         for (var assoc : shadow.getAssociations()) {
             for (var assocVal : assoc.getAssociationValues()) {
                 try {
-                    for (var refAttr : assocVal.getObjectReferences()) {
-                        checkReferenceAttributeValues(refAttr);
-                    }
                     if (assoc.getDefinition().isComplex()) {
                         try {
-                            check(assocVal.getAssociationDataObject());
+                            check(assocVal.getAssociationDataObject(), isTopLevel);
                         } catch (IllegalStateException e) {
                             throw in("association object", e);
+                        }
+                    } else {
+                        // simple association
+                        for (var refAttr : assocVal.getObjectReferences()) {
+                            checkReferenceAttributeValues(refAttr, false);
                         }
                     }
                 } catch (IllegalStateException e) {
@@ -104,12 +110,12 @@ public class ReturnedShadowValidityChecker {
         }
     }
 
-    private void checkReferenceAttributeValues(ShadowReferenceAttribute refAttr) {
+    private void checkReferenceAttributeValues(ShadowReferenceAttribute refAttr, boolean isTopLevel) {
         for (var refAttrVal : refAttr.getAttributeValues()) {
             try {
                 var embeddedShadow = refAttrVal.getShadowIfPresent();
-                if (isPresent(embeddedShadow, refAttrVal)) {
-                    check(Objects.requireNonNull(embeddedShadow));
+                if (isPresent(embeddedShadow, refAttrVal, isTopLevel)) {
+                    check(Objects.requireNonNull(embeddedShadow), false);
                 }
             } catch (IllegalStateException e) {
                 throw in(refAttr.getElementName() + " value " + refAttrVal, e);
@@ -117,10 +123,12 @@ public class ReturnedShadowValidityChecker {
         }
     }
 
-    @Contract("!null, _ -> true")
-    private boolean isPresent(AbstractShadow embeddedShadow, ShadowReferenceAttributeValue refAttrVal) {
+    @Contract("!null, _, _ -> true")
+    private boolean isPresent(AbstractShadow embeddedShadow, ShadowReferenceAttributeValue refAttrVal, boolean isTopLevel) {
         if (embeddedShadow != null) {
             return true;
+        } else if (!isTopLevel) {
+            return false; // references in referenced shadows need not be resolved
         } else if (allowUnresolvedReferenceAttributeValues) {
             return false; // OK
         } else {
