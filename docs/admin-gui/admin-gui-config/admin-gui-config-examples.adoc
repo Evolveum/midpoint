@@ -2,6 +2,7 @@
 :page-nav-title: Configuration - Examples
 :page-keywords: [ "adminGuiConfig", "examples" ]
 :page-toc: top
+:page-upkeep-status: green
 
 == Display Some Default Panels Only
 
@@ -245,15 +246,20 @@ There are several options how to customize assignments views.
 
 == Customize All Accesses panel
 
-All accesses panel displays all direct and indirect assignments in more "business" language. It displays how the assignment was assigned and why.
+All accesses panel displays all direct and indirect assignments in more "business" language.
+It displays how the assignment was assigned and why.
 It displays full path how the target role is assigned for indirect assignments - it means all the higher level roles and ORGs from the top level directly assigned to the user.
 
 Technically - the panel displays structure from roleMembershipRef user attribute.
 
 In default configuration midPoint displays all assignments.
-But, not every assignment of role may represent access. E.g. assignment with relation owner may or may not define access. This depends on your organization environment.
+But, not every assignment of role may represent access.
+E.g. assignment with relation owner may or may not define access.
+This depends on your organization environment.
 
-MidPoint allows engineers to modify the All Accesses panel. This example hides original All accesses panel and creates custom panel filtered to assignments with relation=default. It adds relation column to the panel's view.
+MidPoint allows engineers to modify the All Accesses panel.
+This example hides original All accesses panel and creates custom panel filtered to assignments with relation=default.
+It adds relation column to the panel's view.
 
 .Example: Filtering set of assignments and adding custom column
 [%collapsible]
@@ -297,6 +303,30 @@ MidPoint allows engineers to modify the All Accesses panel. This example hides o
             <collection>
                 <filter>
                     <q:text>. matches (relation = org:default)</q:text>
+                </filter>
+            </collection>
+        </listView>
+    </panel>
+----
+====
+
+In case there is a need to filter assignments by some of the target object attributes, it is possible to use the following filter configuration.
+
+.Example: Filtering set of assignments which target objects are members of the archetype with "archetype1" name
+[%collapsible]
+====
+[source,xml]
+----
+    <panel>
+        <identifier>all-accesses-custom</identifier>
+        ....
+        <panelType>userAllAccesses</panelType>
+        <listView>
+            <identifier>addedRelationView</identifier>
+            <type>c:ObjectReferenceType</type>
+            <collection>
+                <filter>
+                    <q:text>. matches (targetType = RoleType and @ matches (. type RoleType and archetypeRef/@/name = "archetype1"))</q:text>
                 </filter>
             </collection>
         </listView>
@@ -483,7 +513,8 @@ Set another panel as `basic` panel to be shown as a default panel after opening 
 
 == Configure fullText search item on the members basic search panel
 
-Search configuration will be applied on the organization members panel. Such configuration gives the possibility to use fullText search together with specific member filters (such as scope, relation, direct/indirect etc.)
+Search configuration will be applied on the organization members panel.
+Such configuration gives the possibility to use fullText search together with specific member filters (such as scope, relation, direct/indirect etc.)
 Be aware that fullText must be enabled to make this configuration work.
 
 .Example

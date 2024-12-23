@@ -15,6 +15,7 @@ import org.apache.wicket.ajax.attributes.AjaxRequestAttributes;
 import org.apache.wicket.markup.head.IHeaderResponse;
 import org.apache.wicket.markup.head.OnDomReadyHeaderItem;
 import org.apache.wicket.markup.html.WebMarkupContainer;
+import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.panel.Fragment;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
@@ -36,6 +37,7 @@ public abstract class PageAbstractFlow extends PageRegistrationBase {
 
     private static final String ID_MAIN_FORM = "mainForm";
     private static final String ID_SUBMIT_REGISTRATION = "submitRegistration";
+    private static final String ID_SUBMIT_LABEL = "submitLabel";
 
     private static final String ID_DYNAMIC_FORM = "dynamicForm";
     protected static final String ID_CONTENT_AREA = "contentArea";
@@ -122,6 +124,13 @@ public abstract class PageAbstractFlow extends PageRegistrationBase {
         };
         register.add(new VisibleBehaviour(() -> !isSubmitted));
         mainForm.add(register);
+
+        Label submitLabel = new Label(ID_SUBMIT_LABEL, createStringResource(getSubmitLabelKey()));
+        register.add(submitLabel);
+    }
+
+    protected String getSubmitLabelKey() {
+        return "PageSelfRegistration.register";
     }
 
     protected MidpointForm<?> getMainForm() {
