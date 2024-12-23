@@ -72,7 +72,7 @@ public class SearchOpHandler extends CachedOpHandler {
             if (passReason != null) {
                 exec.reportLocalAndGlobalPass(passReason);
                 SearchResultList<PrismObject<T>> objects;
-                if (passReason.isSoft()) {
+                if (passReason.isIgnoreExistingContentOnly()) {
                     // Soft = execute the search but remember the result
                     objects = executeAndCacheSearch(exec, key);
                 } else {

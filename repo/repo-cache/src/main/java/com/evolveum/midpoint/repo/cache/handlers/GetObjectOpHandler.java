@@ -14,6 +14,9 @@ import static com.evolveum.midpoint.schema.util.TraceUtil.isAtLeastMinimal;
 
 import java.util.Collection;
 import java.util.Objects;
+import java.util.concurrent.atomic.AtomicBoolean;
+
+import com.evolveum.midpoint.prism.Item;
 
 import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Component;
@@ -47,10 +50,11 @@ public class GetObjectOpHandler extends CachedOpHandler {
         try {
              // Checks related to both caches
             PassReason passReason = PassReason.determine(options, type);
-            if (passReason != null) { // local nor global cache not interested in caching this object
+            if (passReason != null && !passReason.isBecauseOfRootIncludeOption()) {
+                // Local nor global cache not interested in caching this object.
+                // (The "include" option is treated differently, see below.)
                 exec.reportLocalAndGlobalPass(passReason);
-                PrismObject<T> loaded = getObjectInternal(type, oid, options, exec.result);
-                return exec.prepareReturnValueAsIs(loaded);
+                return passTheCaches(type, oid, options, exec);
             }
 
             // Let's try local cache first
@@ -59,10 +63,19 @@ public class GetObjectOpHandler extends CachedOpHandler {
             } else if (!exec.local.supports) {
                 exec.reportLocalPass();
             } else {
+                assert exec.local.cache != null;
                 PrismObject<T> cachedObject = exec.local.cache.get(oid);
                 if (cachedObject != null) {
-                    exec.reportLocalHit();
-                    return exec.prepareReturnValueWhenImmutable(cachedObject);
+                    assert passReason == null || passReason.isBecauseOfRootIncludeOption();
+                    if (passReason != null && containsIncompleteItem(cachedObject)) {
+                        exec.reportLocalAndGlobalPass(passReason);
+                        return passTheCaches(type, oid, options, exec);
+                    } else {
+                        // Even if there are "include" options, we can return the cached object, as it is complete.
+                        // Caches are not updated in this case.
+                        exec.reportLocalHit();
+                        return exec.prepareReturnValueWhenImmutable(cachedObject);
+                    }
                 } else {
                     exec.reportLocalMiss();
                 }
@@ -87,15 +100,32 @@ public class GetObjectOpHandler extends CachedOpHandler {
             } else {
                 PrismObject<T> cachedObject = cachedValue.getObject();
                 if (!cachedValue.shouldCheckVersion()) {
+                    assert passReason == null || passReason.isBecauseOfRootIncludeOption();
+                    if (passReason != null && containsIncompleteItem(cachedObject)) {
+                        exec.reportGlobalPass(passReason);
+                        return passTheCaches(type, oid, options, exec);
+                    }
                     exec.reportGlobalHit();
                     cacheUpdater.storeImmutableObjectToAllLocal(cachedObject, exec.caches);
                     return exec.prepareReturnValueWhenImmutable(cachedObject);
                 } else {
                     if (hasVersionChanged(type, oid, cachedValue, exec.result)) {
                         exec.reportGlobalVersionChangedMiss();
+                        assert passReason == null || passReason.isBecauseOfRootIncludeOption();
+                        if (passReason != null) {
+                            // We cannot store the object, as it MAY contain fetched items that are not returnable by default.
+                            // (We could check if it really does contain them, but that code would be currently too fragile.)
+                            exec.reportGlobalPass(passReason);
+                            return passTheCaches(type, oid, options, exec);
+                        }
                         PrismObject<T> object = executeAndCache(exec);
                         return exec.prepareReturnValueAsIs(object);
                     } else { // version matches, renew ttl
+                        assert passReason == null || passReason.isBecauseOfRootIncludeOption();
+                        if (passReason != null && containsIncompleteItem(cachedObject)) {
+                            exec.reportGlobalPass(passReason);
+                            return passTheCaches(type, oid, options, exec);
+                        }
                         exec.reportGlobalWeakHit();
                         cacheUpdater.storeImmutableObjectToAllLocal(cachedObject, exec.caches);
                         long newTimeToVersionCheck = exec.global.getCache().getNextVersionCheckTime(exec.type);
@@ -113,6 +143,31 @@ public class GetObjectOpHandler extends CachedOpHandler {
         } finally {
             exec.result.close();
         }
+    }
+
+    // TODO as a performance optimization, couldn't the repo indicate that the object is incomplete (at the global level)?
+    private <T extends ObjectType> boolean containsIncompleteItem(PrismObject<T> cachedObject) {
+        var allItemsComplete = new AtomicBoolean(true);
+        cachedObject.acceptVisitor(
+                visitable -> {
+                    // TODO it would be better (from the performance viewpoint) if we could abort on the first occurrence
+                    //  of an incomplete item
+                    if (visitable instanceof Item<?, ?> item && item.isIncomplete()) {
+                        allItemsComplete.set(false);
+                        return false;
+                    } else {
+                        return true;
+                    }
+                });
+        return !allItemsComplete.get();
+    }
+
+    /** This method intentionally does NOT cache the object. */
+    private <T extends ObjectType> @NotNull PrismObject<T> passTheCaches(
+            Class<T> type, String oid, Collection<SelectorOptions<GetOperationOptions>> options,
+            GetObjectOpExecution<T> exec) throws SchemaException, ObjectNotFoundException {
+        PrismObject<T> loaded = getObjectInternal(type, oid, options, exec.result);
+        return exec.prepareReturnValueAsIs(loaded);
     }
 
     private <T extends ObjectType> GetObjectOpExecution<T> initializeExecution(Class<T> type, String oid,

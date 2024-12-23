@@ -203,10 +203,18 @@ abstract class CachedOpExecution<RT extends RepositoryOperationTraceType, LC ext
     }
 
     void reportGlobalPass() {
+        reportGlobalPass("configuration");
+    }
+
+    void reportGlobalPass(@NotNull PassReason reason) {
+        reportGlobalPass(reason.toCacheUse().getComment());
+    }
+
+    private void reportGlobalPass(String comment) {
         CachePerformanceCollector.INSTANCE.registerPass(getGlobalCacheClass(), type, global.statisticsLevel);
         log("Cache (global): PASS:CONFIGURATION {} {}", global.tracePass, opName, getDescription());
         if (trace != null) {
-            trace.setGlobalCacheUse(createUse(PASS, "configuration"));
+            trace.setGlobalCacheUse(createUse(PASS, comment));
         }
     }
 

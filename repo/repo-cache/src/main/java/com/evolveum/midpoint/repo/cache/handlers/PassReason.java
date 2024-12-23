@@ -38,15 +38,26 @@ final class PassReason {
     private final String comment;
 
     /**
-     * If soft equals true, we don't want to fully pass cache. Meaning, in this case we would like ignore content in cache,
-     * execute query and cache results (override existing if necessary) afterwards.
-     * <p/>
-     * If soft equals false, we'd like to fully pass cache.
+     * Indicates that we don't want to completely pass the cache.
+     *
+     * We just want to ignore existing content. We retrieve the data from the repository, and update the cache with them.
+     *
+     * FIXME why it is used only for searchObjects and not for other methods (getObject, searchObjectsIterative)?
      */
-    private final boolean soft;
+    private final boolean ignoreExistingContentOnly;
 
     enum PassReasonType {
-        NOT_CACHEABLE_TYPE, MULTIPLE_OPTIONS, NON_ROOT_OPTIONS, UNSUPPORTED_OPTION, INCLUDE_OPTION_PRESENT, ZERO_STALENESS_REQUESTED
+        NOT_CACHEABLE_TYPE,
+        MULTIPLE_OPTIONS,
+        NON_ROOT_OPTIONS,
+        UNSUPPORTED_OPTION,
+
+        /**
+         * Means that "include" option is present at the root level.
+         * Lower-level include options are covered by {@link #NON_ROOT_OPTIONS}.
+         */
+        INCLUDE_OPTION_PRESENT,
+        ZERO_STALENESS_REQUESTED
     }
 
     private PassReason(PassReasonType type) {
@@ -57,14 +68,18 @@ final class PassReason {
         this(type, comment, false);
     }
 
-    private PassReason(PassReasonType type, String comment, boolean soft) {
+    private PassReason(PassReasonType type, String comment, boolean ignoreExistingContentOnly) {
         this.type = type;
         this.comment = comment;
-        this.soft = soft;
+        this.ignoreExistingContentOnly = ignoreExistingContentOnly;
     }
 
-    public boolean isSoft() {
-        return soft;
+    boolean isIgnoreExistingContentOnly() {
+        return ignoreExistingContentOnly;
+    }
+
+    boolean isBecauseOfRootIncludeOption() {
+        return type == INCLUDE_OPTION_PRESENT;
     }
 
     /**
