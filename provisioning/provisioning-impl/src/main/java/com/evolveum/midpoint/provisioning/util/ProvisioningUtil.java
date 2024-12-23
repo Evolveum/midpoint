@@ -233,19 +233,27 @@ public class ProvisioningUtil {
     private static boolean shouldExplicitlyFetch(
             ResourceAttributeDefinition<?> attributeDefinition,
             boolean returnsDefaultAttributes, ProvisioningContext ctx) {
-        AttributeFetchStrategyType fetchStrategy = attributeDefinition.getFetchStrategy();
+        AttributeFetchStrategyType fetchStrategy =
+                Objects.requireNonNullElse(attributeDefinition.getFetchStrategy(), AttributeFetchStrategyType.IMPLICIT);
         if (fetchStrategy == AttributeFetchStrategyType.EXPLICIT) {
             return true;
-        } else if (returnsDefaultAttributes) {
+        }
+        if (returnsDefaultAttributes) {
             // Normal attributes are returned by default. So there's no need to explicitly request this attribute.
             return false;
-        } else if (isFetchingRequested(ctx, attributeDefinition)) {
+        }
+        if (isFetchingRequested(ctx, attributeDefinition)) {
             // Client wants this attribute.
             return true;
-        } else {
-            // If the fetch strategy is MINIMAL, we want to skip. Otherwise, request it.
-            return fetchStrategy != AttributeFetchStrategyType.MINIMAL;
         }
+        if (fetchStrategy == AttributeFetchStrategyType.MINIMAL) {
+            // This attribute is configured to be NOT fetched by default. So be it.
+            return false;
+        }
+        assert fetchStrategy == AttributeFetchStrategyType.IMPLICIT;
+        // If returned by default: WILL fetch explicitly, because we are asking to not return default attributes
+        // If not returned by default: WILL NOT fetch explicitly, because it's not returned by default anyway
+        return attributeDefinition.isReturnedByDefault();
     }
 
     private static boolean isFetchingRequested(ProvisioningContext ctx, ResourceAttributeDefinition<?> attributeDefinition) {

@@ -86,6 +86,7 @@
         <classes>
             <class name="com.evolveum.midpoint.provisioning.impl.resources.TestResourceTemplateMerge" />
             <class name="com.evolveum.midpoint.provisioning.impl.misc.TestResourceLifecycle" />
+            <class name="com.evolveum.midpoint.provisioning.impl.dummy.TestDummyMisc" />
         </classes>
     </test>
 </suite>
