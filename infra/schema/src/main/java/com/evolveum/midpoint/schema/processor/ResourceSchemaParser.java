@@ -265,7 +265,7 @@ class ResourceSchemaParser {
         LOGGER.trace("Successfully created {} empty object type definitions", created);
     }
 
-    private void setEffectiveObjectClassDefinitionsFromTypes() throws ConfigurationException {
+    private void setEffectiveObjectClassDefinitionsFromTypes() {
         for (var objectClassDefinition : resourceSchema.getObjectClassDefinitions()) {
             var defaultTypeDef = ResourceObjectDefinitionResolver.findDefaultObjectTypeDefinitionForObjectClass(
                     resourceSchema, objectClassDefinition.getObjectClassName());
@@ -824,8 +824,7 @@ class ResourceSchemaParser {
         }
 
         @NotNull ShadowAssociationDefinitionImpl parse() throws ConfigurationException {
-            return ShadowAssociationDefinitionImpl.parseLegacy(
-                    associationDefCI, resourceSchema, subjectDefinition, getObjectTypeDefinitions());
+            return ShadowAssociationDefinitionImpl.parseLegacy(associationDefCI, subjectDefinition, getObjectTypeDefinitions());
         }
 
         /**
@@ -849,10 +848,10 @@ class ResourceSchemaParser {
                         if (objectDef.getKind() != kind) {
                             return false;
                         }
-                        if (((Collection<String>) intents).isEmpty()) {
+                        if (intents.isEmpty()) {
                             return objectDef.isDefaultForKind();
                         } else {
-                            return ((Collection<String>) intents).contains(objectDef.getIntent());
+                            return intents.contains(objectDef.getIntent());
                         }
                     };
 

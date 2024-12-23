@@ -15,7 +15,10 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
+
+import com.evolveum.midpoint.schema.config.ConfigurationItem;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -55,10 +58,10 @@ public abstract class SimulatedShadowReferenceTypeDefinition
     private final boolean requiresExplicitReferentialIntegrity;
 
     /**
-     * The "referential" reference object-side definition. It is used when we have no particular object in hand.
+     * Definition for the object class of the target (referenced) object.
      * It must contain the definitions of all relevant object-side binding attributes (primary/secondary).
      */
-    @NotNull private final ResourceObjectDefinition referentialObjectDefinition;
+    @NotNull private final ResourceObjectDefinition definitionForTargetObjectClass;
 
     @NotNull private final ShadowSimpleAttributeDefinition<?> subjectSidePrimaryBindingAttributeDefinition;
 
@@ -76,7 +79,7 @@ public abstract class SimulatedShadowReferenceTypeDefinition
             @Nullable QName primaryBindingMatchingRuleLegacy,
             @NotNull ResourceObjectAssociationDirectionType direction,
             boolean requiresExplicitReferentialIntegrity,
-            @NotNull ResourceObjectDefinition referentialObjectDefinition,
+            @NotNull ResourceObjectDefinition definitionForTargetObjectClass,
             @NotNull ShadowSimpleAttributeDefinition<?> subjectSidePrimaryBindingAttributeDefinition,
             @NotNull Collection<SimulatedReferenceTypeParticipantDefinition> subjects,
             @NotNull Collection<SimulatedReferenceTypeParticipantDefinition> objects) {
@@ -88,7 +91,7 @@ public abstract class SimulatedShadowReferenceTypeDefinition
         this.direction = direction;
         this.requiresExplicitReferentialIntegrity = requiresExplicitReferentialIntegrity;
         this.subjectSidePrimaryBindingAttributeDefinition = subjectSidePrimaryBindingAttributeDefinition;
-        this.referentialObjectDefinition = referentialObjectDefinition;
+        this.definitionForTargetObjectClass = definitionForTargetObjectClass;
         this.subjects = List.copyOf(MiscUtil.stateNonEmpty(subjects, "no subject definitions in %s", this));
         this.objects = List.copyOf(MiscUtil.stateNonEmpty(objects, "no object definitions in %s", this));
     }
@@ -127,7 +130,7 @@ public abstract class SimulatedShadowReferenceTypeDefinition
 
     private <T> ShadowSimpleAttributeDefinition<T> getObjectAttributeDefinition(QName attrName) {
         try {
-            return referentialObjectDefinition.findSimpleAttributeDefinitionRequired(attrName);
+            return definitionForTargetObjectClass.findSimpleAttributeDefinitionRequired(attrName);
         } catch (SchemaException e) {
             throw SystemException.unexpected(e, "(already checked at schema parse time)");
         }
@@ -195,15 +198,15 @@ public abstract class SimulatedShadowReferenceTypeDefinition
     @Override
     public String debugDump(int indent) {
         var sb = DebugUtil.createTitleStringBuilderLn(getClass(), indent);
-        DebugUtil.debugDumpWithLabelLn(sb,"localSubjectItemName", localSubjectItemName, indent + 1);
-        DebugUtil.debugDumpShortWithLabelLn(sb,"primaryAttributeBinding", primaryAttributeBinding, indent + 1);
-        DebugUtil.debugDumpShortWithLabelLn(sb,"secondaryAttributeBinding", secondaryAttributeBinding, indent + 1);
-        DebugUtil.debugDumpWithLabelLn(sb,"primaryBindingMatchingRuleLegacy", primaryBindingMatchingRuleLegacy, indent + 1);
-        DebugUtil.debugDumpWithLabelLn(sb,"direction", direction, indent + 1);
-        DebugUtil.debugDumpWithLabelLn(sb,"requiresExplicitReferentialIntegrity", requiresExplicitReferentialIntegrity, indent + 1);
-        DebugUtil.debugDumpWithLabelToStringLn(sb,"referentialObjectDefinition", referentialObjectDefinition, indent + 1);
-        DebugUtil.debugDumpWithLabelLn(sb,"subjectDelineations", subjects, indent + 1);
-        DebugUtil.debugDumpWithLabel(sb,"objectDelineations", objects, indent + 1);
+        DebugUtil.debugDumpWithLabelLn(sb, "localSubjectItemName", localSubjectItemName, indent + 1);
+        DebugUtil.debugDumpShortWithLabelLn(sb, "primaryAttributeBinding", primaryAttributeBinding, indent + 1);
+        DebugUtil.debugDumpShortWithLabelLn(sb, "secondaryAttributeBinding", secondaryAttributeBinding, indent + 1);
+        DebugUtil.debugDumpWithLabelLn(sb, "primaryBindingMatchingRuleLegacy", primaryBindingMatchingRuleLegacy, indent + 1);
+        DebugUtil.debugDumpWithLabelLn(sb, "direction", direction, indent + 1);
+        DebugUtil.debugDumpWithLabelLn(sb, "requiresExplicitReferentialIntegrity", requiresExplicitReferentialIntegrity, indent + 1);
+        DebugUtil.debugDumpWithLabelToStringLn(sb, "definitionForTargetObjectClass", definitionForTargetObjectClass, indent + 1);
+        DebugUtil.debugDumpWithLabelLn(sb, "subjectDelineations", subjects, indent + 1);
+        DebugUtil.debugDumpWithLabel(sb, "objectDelineations", objects, indent + 1);
         return sb.toString();
     }
 
@@ -218,13 +221,13 @@ public abstract class SimulatedShadowReferenceTypeDefinition
                 @Nullable QName primaryBindingMatchingRuleLegacy,
                 @NotNull ResourceObjectAssociationDirectionType direction,
                 boolean requiresExplicitReferentialIntegrity,
-                @NotNull ResourceObjectDefinition referentialObjectDefinition,
+                @NotNull ResourceObjectDefinition definitionForTargetObjectClass,
                 @NotNull ShadowSimpleAttributeDefinition<?> subjectSidePrimaryBindingAttributeDefinition,
                 @NotNull Collection<SimulatedReferenceTypeParticipantDefinition> subjects,
                 @NotNull Collection<SimulatedReferenceTypeParticipantDefinition> objects) {
             super(referenceTypeLocalName, subjectItemName,
                     primaryAttributeBinding, secondaryAttributeBinding, primaryBindingMatchingRuleLegacy,
-                    direction, requiresExplicitReferentialIntegrity, referentialObjectDefinition,
+                    direction, requiresExplicitReferentialIntegrity, definitionForTargetObjectClass,
                     subjectSidePrimaryBindingAttributeDefinition, subjects, objects);
         }
 
@@ -233,14 +236,17 @@ public abstract class SimulatedShadowReferenceTypeDefinition
          */
         static @NotNull SimulatedShadowReferenceTypeDefinition parse(
                 @NotNull ResourceObjectAssociationConfigItem.Legacy definitionCI,
-                @NotNull ResourceSchemaImpl schemaBeingParsed,
-                @NotNull ResourceObjectDefinition referentialSubjectDefinition,
+                @NotNull ResourceObjectDefinition subjectDefinition,
                 @NotNull Collection<ResourceObjectTypeDefinition> objectTypeDefinitions)
                 throws ConfigurationException {
+
+            // The subject definition is fixed, because the legacy specification is always attached to given SINGLE object type.
             var primaryBinding = definitionCI.getPrimaryAttributeBinding();
             var subjectSidePrimaryBindingAttrName = primaryBinding.subjectSide();
-
-            var referentialObjectDefinition = objectTypeDefinitions.iterator().next();
+            var subjectSidePrimaryBindingAttrDef = definitionCI.configNonNull(
+                    subjectDefinition.findSimpleAttributeDefinition(subjectSidePrimaryBindingAttrName),
+                    "No definition for subject-side primary binding attribute %s in %s",
+                    subjectSidePrimaryBindingAttrName, DESC);
 
             // This name is actually not important. It is not registered anywhere.
             String referenceTypeLocalName = definitionCI.getItemName().getLocalPart();
@@ -253,13 +259,10 @@ public abstract class SimulatedShadowReferenceTypeDefinition
                     definitionCI.getMatchingRule(),
                     definitionCI.getDirection(),
                     definitionCI.isExplicitReferentialIntegrity(),
-                    referentialObjectDefinition,
-                    definitionCI.configNonNull(
-                            referentialSubjectDefinition.findSimpleAttributeDefinition(subjectSidePrimaryBindingAttrName),
-                            "No definition for subject-side primary binding attribute %s in %s",
-                            subjectSidePrimaryBindingAttrName, DESC),
-                    getLegacySubjectDefinitions(definitionCI, referentialSubjectDefinition),
-                    getLegacyObjectDefinitions(definitionCI, schemaBeingParsed, referentialObjectDefinition));
+                    getDefinitionForTargetObjectClass(objectTypeDefinitions, definitionCI),
+                    subjectSidePrimaryBindingAttrDef,
+                    getLegacySubjectDefinitions(definitionCI, subjectDefinition),
+                    getLegacyObjectDefinitions(objectTypeDefinitions));
         }
 
         private static @NotNull Collection<SimulatedReferenceTypeParticipantDefinition> getLegacySubjectDefinitions(
@@ -271,29 +274,18 @@ public abstract class SimulatedShadowReferenceTypeDefinition
                             definitionCI.value().getAuxiliaryObjectClass()));
         }
 
-        /** Always non-empty. */
+        /** Returns object definitions for this legacy associations. (Always non-empty.) */
         private static Collection<SimulatedReferenceTypeParticipantDefinition> getLegacyObjectDefinitions(
-                @NotNull ResourceObjectAssociationConfigItem.Legacy definitionCI,
-                @NotNull ResourceSchema resourceSchema,
-                @NotNull ResourceObjectTypeDefinition referentialObjectDefinition)
-                throws ConfigurationException {
-            var kind = definitionCI.getKind();
-            // There must be at least one intent. If none is provided, we derive it from the object definition.
-            var configuredIntents = definitionCI.getIntents();
-            var realIntents = configuredIntents.isEmpty() ? List.of(referentialObjectDefinition.getIntent()) : configuredIntents;
+                @NotNull Collection<ResourceObjectTypeDefinition> objectTypeDefinitions) {
 
             List<SimulatedReferenceTypeParticipantDefinition> definitions = new ArrayList<>();
-            for (String intent : realIntents) {
-                var typeIdentification = ResourceObjectTypeIdentification.of(kind, intent);
-                var typeDef = definitionCI.configNonNull(
-                        resourceSchema.getObjectTypeDefinition(typeIdentification),
-                        "No object type definition for kind %s and intent %s in %s", kind, intent, DESC);
+            for (var objectTypeDefinition : objectTypeDefinitions) {
                 definitions.add(
                         new SimulatedReferenceTypeParticipantDefinition(
-                                typeDef.getTypeName(),
-                                typeDef.getDelineation().getBaseContext(),
-                                typeDef.getDelineation().getSearchHierarchyScope(),
-                                ShadowRelationParticipantType.forObjectType(typeDef),
+                                objectTypeDefinition.getTypeName(),
+                                objectTypeDefinition.getDelineation().getBaseContext(),
+                                objectTypeDefinition.getDelineation().getSearchHierarchyScope(),
+                                ShadowRelationParticipantType.forObjectType(objectTypeDefinition),
                                 null));
             }
             return definitions;
@@ -315,13 +307,13 @@ public abstract class SimulatedShadowReferenceTypeDefinition
                 @Nullable QName primaryBindingMatchingRuleLegacy,
                 @NotNull ResourceObjectAssociationDirectionType direction,
                 boolean requiresExplicitReferentialIntegrity,
-                @NotNull ResourceObjectDefinition referentialObjectDefinition,
+                @NotNull ResourceObjectDefinition definitionForTargetObjectClass,
                 @NotNull ShadowSimpleAttributeDefinition<?> subjectSidePrimaryBindingAttributeDefinition,
                 @NotNull Collection<SimulatedReferenceTypeParticipantDefinition> subjects,
                 @NotNull Collection<SimulatedReferenceTypeParticipantDefinition> objects) {
             super(referenceTypeLocalName, localSubjectItemName,
                     primaryAttributeBinding, secondaryAttributeBinding, primaryBindingMatchingRuleLegacy,
-                    direction, requiresExplicitReferentialIntegrity, referentialObjectDefinition,
+                    direction, requiresExplicitReferentialIntegrity, definitionForTargetObjectClass,
                     subjectSidePrimaryBindingAttributeDefinition, subjects, objects);
         }
 
@@ -332,16 +324,21 @@ public abstract class SimulatedShadowReferenceTypeDefinition
             var primaryBinding = simulationCI.getPrimaryAttributeBinding();
             var subjectSidePrimaryBindingAttrName = primaryBinding.subjectSide();
 
-            // TODO check the compatibility of subject/object definitions!
-
+            // The "referential" subject-side definition. It must contain the definitions of all relevant subject-side binding
+            // attributes (primary/secondary). Hence, it should contain the subject's auxiliary object class definition, if
+            // present.
+            // TODO check the compatibility of these subject-side definitions!
             var subjects = getSubjectDefinitions(simulationCI, schemaBeingParsed);
-            var objects = getObjectDefinitions(simulationCI, schemaBeingParsed);
-
-            // The "referential" association subject-side definition. It must contain the definitions of all relevant
-            // subject-side binding attributes (primary/secondary). Hence, it should contain the subject's auxiliary object class
-            // definition, if present.
             var referentialSubjectDefinition = subjects.iterator().next().getObjectDefinition();
-            var referentialObjectDefinition = objects.iterator().next().getObjectDefinition();
+            var subjectSidePrimaryBindingAttrDef = simulationCI.configNonNull(
+                    referentialSubjectDefinition.findSimpleAttributeDefinition(subjectSidePrimaryBindingAttrName),
+                    "No definition for subject-side primary binding attribute %s in %s",
+                    subjectSidePrimaryBindingAttrName, DESC);
+
+            var objects = getObjectDefinitions(simulationCI, schemaBeingParsed);
+            var objectDefinitions = objects.stream()
+                    .map(SimulatedReferenceTypeParticipantDefinition::getObjectDefinition)
+                    .toList();
 
             return new Modern(
                     simulationCI.getNameLocalPart(),
@@ -351,11 +348,8 @@ public abstract class SimulatedShadowReferenceTypeDefinition
                     null,
                     simulationCI.getDirection(),
                     simulationCI.requiresExplicitReferentialIntegrity(),
-                    referentialObjectDefinition,
-                    simulationCI.configNonNull(
-                            referentialSubjectDefinition.findSimpleAttributeDefinition(subjectSidePrimaryBindingAttrName),
-                            "No definition for subject-side primary binding attribute %s in %s",
-                            subjectSidePrimaryBindingAttrName, DESC),
+                    getDefinitionForTargetObjectClass(objectDefinitions, simulationCI),
+                    subjectSidePrimaryBindingAttrDef,
                     subjects,
                     objects);
         }
@@ -399,5 +393,19 @@ public abstract class SimulatedShadowReferenceTypeDefinition
         public boolean isLegacy() {
             return false;
         }
+    }
+
+    private static @NotNull ResourceObjectDefinition getDefinitionForTargetObjectClass(
+            Collection<? extends ResourceObjectDefinition> objects, ConfigurationItem<?> containingCI) {
+        var classDefinitions = objects.stream()
+                .map(objectDefinition -> objectDefinition.getObjectClassDefinition())
+                .collect(Collectors.toSet());
+        var classDefinition = MiscUtil.extractSingletonRequired(
+                classDefinitions,
+                () -> new IllegalStateException(
+                        "Multiple object class definitions in " + containingCI.fullDescription() + ": " + classDefinitions),
+                () -> new IllegalStateException(
+                        "No object class definition in " + containingCI.fullDescription()));
+        return classDefinition.getEffectiveDefinition();
     }
 }

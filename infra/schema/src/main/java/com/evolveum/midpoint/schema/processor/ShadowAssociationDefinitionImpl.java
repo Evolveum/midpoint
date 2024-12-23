@@ -149,7 +149,6 @@ public class ShadowAssociationDefinitionImpl
 
     static ShadowAssociationDefinitionImpl parseLegacy(
             @NotNull ResourceObjectAssociationConfigItem.Legacy definitionCI,
-            @NotNull ResourceSchemaImpl schemaBeingParsed,
             @NotNull ResourceObjectDefinition subjectDefinition,
             @NotNull Collection<ResourceObjectTypeDefinition> objectTypeDefinitions) throws ConfigurationException {
 
@@ -161,7 +160,7 @@ public class ShadowAssociationDefinitionImpl
 
         var simulatedReferenceTypeDefinition =
                 SimulatedShadowReferenceTypeDefinition.Legacy.parse(
-                        definitionCI, schemaBeingParsed, subjectDefinition, objectTypeDefinitions);
+                        definitionCI, subjectDefinition, objectTypeDefinitions);
 
         var updatedAttrDefBean = definitionCI.value().clone();
         updatedAttrDefBean.setOutbound(null);
