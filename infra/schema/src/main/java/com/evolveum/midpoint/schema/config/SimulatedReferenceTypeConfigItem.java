@@ -31,29 +31,29 @@ public class SimulatedReferenceTypeConfigItem
 
     public @NotNull QName getName() throws ConfigurationException {
         return QNameUtil.enforceNamespace(
-                nonNull(value().getName(), "association class name"),
+                nonNull(value().getName(), "reference type name"),
                 MidPointConstants.NS_RI);
     }
 
     public @NotNull String getNameLocalPart() throws ConfigurationException {
         return QNameUtil.getLocalPartCheckingNamespace(
-                nonNull(value().getName(), "association class name"),
+                nonNull(value().getName(), "reference type name"),
                 MidPointConstants.NS_RI);
     }
 
-    public @NotNull SimulatedAssociationClassParticipantConfigItem.Subject getSubject()
+    public @NotNull SimulatedReferenceTypeParticipantConfigItem.Subject getSubject()
             throws ConfigurationException {
         return child(
                 value().getSubject(),
-                SimulatedAssociationClassParticipantConfigItem.Subject.class,
+                SimulatedReferenceTypeParticipantConfigItem.Subject.class,
                 SimulatedReferenceTypeDefinitionType.F_SUBJECT);
     }
 
-    public @NotNull SimulatedAssociationClassParticipantConfigItem.Object getObject()
+    public @NotNull SimulatedReferenceTypeParticipantConfigItem.Object getObject()
             throws ConfigurationException {
         return child(
                 value().getObject(),
-                SimulatedAssociationClassParticipantConfigItem.Object.class,
+                SimulatedReferenceTypeParticipantConfigItem.Object.class,
                 SimulatedReferenceTypeDefinitionType.F_OBJECT);
     }
 
@@ -92,6 +92,6 @@ public class SimulatedReferenceTypeConfigItem
 
     @Override
     public @NotNull String localDescription() {
-        return "simulated association class '%s' definition".formatted(value().getName());
+        return "simulated reference type '%s' definition".formatted(value().getName());
     }
 }

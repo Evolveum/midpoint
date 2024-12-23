@@ -21,10 +21,10 @@ import javax.xml.namespace.QName;
 import java.io.Serializable;
 import java.util.List;
 
-/** Defines the simulated association class subject or object. Only partially supported for now! */
-public class SimulatedAssociationClassParticipantDefinition implements Serializable, DebugDumpable {
+/** Defines the simulated reference subject or object. Only partially supported for now! */
+public class SimulatedReferenceTypeParticipantDefinition implements Serializable, DebugDumpable {
 
-    /** What resource objects may participate in the association as the subject or object? */
+    /** What resource objects may participate in the reference as the subject or object? */
     @NotNull private final ResourceObjectSetDelineation delineation;
 
     /**
@@ -36,7 +36,7 @@ public class SimulatedAssociationClassParticipantDefinition implements Serializa
     /** Supported only for subject. */
     @Nullable private final QName auxiliaryObjectClassName;
 
-    SimulatedAssociationClassParticipantDefinition(
+    SimulatedReferenceTypeParticipantDefinition(
             @NotNull QName objectClassName,
             @Nullable ResourceObjectReferenceType baseContext,
             @Nullable SearchHierarchyScope searchHierarchyScope,
@@ -47,10 +47,10 @@ public class SimulatedAssociationClassParticipantDefinition implements Serializa
         this.auxiliaryObjectClassName = auxiliaryObjectClassName;
     }
 
-    static SimulatedAssociationClassParticipantDefinition fromObjectDefinition(
+    static SimulatedReferenceTypeParticipantDefinition fromObjectDefinition(
             @NotNull ResourceObjectDefinition definition,
             @Nullable QName auxiliaryObjectClassName) {
-        return new SimulatedAssociationClassParticipantDefinition(
+        return new SimulatedReferenceTypeParticipantDefinition(
                 definition.getTypeName(),
                 definition.getDelineation().getBaseContext(),
                 definition.getDelineation().getSearchHierarchyScope(),

@@ -14,7 +14,7 @@ import com.evolveum.midpoint.provisioning.util.ShadowItemsToReturnProvider;
 import com.evolveum.midpoint.schema.config.AssociationConfigItem.AttributeBinding;
 import com.evolveum.midpoint.schema.processor.SimulatedShadowReferenceTypeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
-import com.evolveum.midpoint.schema.processor.SimulatedAssociationClassParticipantDefinition;
+import com.evolveum.midpoint.schema.processor.SimulatedReferenceTypeParticipantDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.util.exception.*;
@@ -84,7 +84,7 @@ class EntitlementObjectSearch<T> {
         argCheck(subjectAttrValue != null, "No subject attr value (should be checked by the caller)");
 
         // We have to search each delineation individually.
-        for (SimulatedAssociationClassParticipantDefinition definition : simulationDefinition.getObjects()) {
+        for (SimulatedReferenceTypeParticipantDefinition definition : simulationDefinition.getObjects()) {
 
             var objectAttrDef = definition.getObjectAttributeDefinition(attributeBinding); // e.g. ri:members
             var query = createEntitlementQuery(objectAttrDef, subjectAttrValue);

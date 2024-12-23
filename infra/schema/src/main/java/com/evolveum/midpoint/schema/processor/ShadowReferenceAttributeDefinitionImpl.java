@@ -14,6 +14,7 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.prism.xml.ns._public.types_3.RawType;
 
@@ -102,11 +103,11 @@ public class ShadowReferenceAttributeDefinitionImpl
 
     static ShadowReferenceAttributeDefinitionImpl fromNative(
             @NotNull NativeShadowReferenceAttributeDefinition rawDefinition,
-            @NotNull AbstractShadowReferenceTypeDefinition associationClassDefinition,
+            @NotNull AbstractShadowReferenceTypeDefinition referenceTypeDefinition,
             @Nullable ResourceItemDefinitionType customizationBean) {
         try {
             return new ShadowReferenceAttributeDefinitionImpl(
-                    associationClassDefinition,
+                    referenceTypeDefinition,
                     rawDefinition,
                     toExistingImmutable(customizationBean));
         } catch (SchemaException e) {
@@ -284,13 +285,12 @@ public class ShadowReferenceAttributeDefinitionImpl
 
     @Override
     public String debugDump(int indent) {
-        return super.debugDump(indent, (LayerType) null);
-//        StringBuilder sb = DebugUtil.createTitleStringBuilderLn(getClass() , indent);
-//        DebugUtil.debugDumpWithLabelLn(sb, "item name", getItemName(), indent + 1);
-//        DebugUtil.debugDumpWithLabelLn(sb, "type definition", associationClassDefinition, indent + 1);
-//        // TODO
-//        //DebugUtil.debugDumpWithLabel(sb, "config item", configItem, indent + 1);
-//        return sb.toString();
+        var sb = new StringBuilder(
+                super.debugDump(indent, (LayerType) null));
+        sb.append("\n");
+        DebugUtil.debugDumpWithLabelToStringLn(sb, "reference type definition", referenceTypeDefinition, indent + 1);
+        DebugUtil.debugDumpWithLabelToString(sb, "definition for target object class", definitionForTargetObjectClass, indent + 1);
+        return sb.toString();
     }
 
     public ReferenceDelta createEmptyDelta() {
@@ -328,12 +328,6 @@ public class ShadowReferenceAttributeDefinitionImpl
     public SimulatedShadowReferenceTypeDefinition getSimulationDefinitionRequired() {
         assert isSimulated();
         return Objects.requireNonNull(getSimulationDefinition());
-    }
-
-    public boolean isRaw() {
-        return customizationBean.asPrismContainerValue().hasNoItems();
-//        return configItem instanceof ShadowAssociationTypeDefinitionConfigItem ci
-//                && ci.value().asPrismContainerValue().isEmpty();
     }
 
     @Override

@@ -48,14 +48,14 @@ abstract class AbstractShadowReferenceTypeDefinition implements DebugDumpable, S
     }
 
     /**
-     * Returns the definitions of the subjects participating on this association class.
+     * Returns the definitions of the subjects participating on this reference type.
      * Currently unused, but we expect that it can be used to provide a default subject-side delineation
      * for associations based on this reference type.
      */
     @SuppressWarnings("unused") // for now
     abstract @NotNull Collection<ShadowRelationParticipantType> getSubjectTypes();
 
-    /** Returns the definitions of the objects participating on this association class. Must be at least one. */
+    /** Returns the definitions of the objects participating on this reference type. Must be at least one. */
     abstract @NotNull Collection<ShadowRelationParticipantType> getObjectTypes();
 
     public @Nullable SimulatedShadowReferenceTypeDefinition getSimulationDefinition() {

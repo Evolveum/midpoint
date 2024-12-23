@@ -116,7 +116,7 @@ class ResourceDefinitionFeatures {
                         XsdSerializers.qName(MidPointConstants.RA_SECONDARY_IDENTIFIER));
 
         /**
-         * `true` denotes resource object class, `false` denotes resource association class. Not very nice but practical.
+         * `true` denotes resource object class, `false` denotes resource reference type. Not very nice but practical.
          */
         static final DefinitionFeature<Boolean, NativeObjectClassDefinitionBuilder, XSComplexType, ?> DF_RESOURCE_OBJECT =
                 DefinitionFeature.of(

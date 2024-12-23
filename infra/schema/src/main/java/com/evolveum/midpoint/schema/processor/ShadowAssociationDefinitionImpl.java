@@ -525,15 +525,6 @@ public class ShadowAssociationDefinitionImpl
         sb.append(this); // FIXME
     }
 
-//    @Override
-//    public String toString() {
-//        return getClass().getSimpleName() + "{" +
-//                "item=" + getItemName() +
-//                ", type=" + associationClassDefinition +
-//                "}";
-//    }
-
-
     public String getDebugDumpClassName() {
         return "SRefAttrDef";
     }

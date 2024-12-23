@@ -12,7 +12,7 @@ import com.evolveum.midpoint.gui.impl.factory.panel.qname.AbstractObjectClassFac
 import com.evolveum.midpoint.web.component.prism.InputPanel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
-import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.SimulatedAssociationClassParticipantDelineationType;
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.SimulatedReferenceTypeParticipantDelineationType;
 
 import org.springframework.stereotype.Component;
 
@@ -42,8 +42,8 @@ public class ResourceObjectClassFactory extends AbstractObjectClassFactory {
         }
         return ResourceObjectTypeDefinitionType.F_OBJECT_CLASS.equivalent(wrapper.getPath().lastName())
                 || ResourceObjectTypeDefinitionType.F_AUXILIARY_OBJECT_CLASS.equivalent(wrapper.getPath().lastName())
-                || SimulatedAssociationClassParticipantDelineationType.F_AUXILIARY_OBJECT_CLASS.equivalent(wrapper.getPath().lastName())
-                || SimulatedAssociationClassParticipantDelineationType.F_OBJECT_CLASS.equivalent(wrapper.getPath().lastName());
+                || SimulatedReferenceTypeParticipantDelineationType.F_AUXILIARY_OBJECT_CLASS.equivalent(wrapper.getPath().lastName())
+                || SimulatedReferenceTypeParticipantDelineationType.F_OBJECT_CLASS.equivalent(wrapper.getPath().lastName());
     }
 
     @Override
