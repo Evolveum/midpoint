@@ -919,73 +919,87 @@ export default class MidPointTheme {
             window.MidPointTheme.cursorPosition = this.selectionStart;
         })
 
-
-        const clone = $('<div/>').attr('id', 'autocompleteWrapper').appendTo('body');
-        clone.width(queryDslInput.width());
-        clone.height(queryDslInput.height());
-        clone.css('max-height', queryDslInput.height() + "px");
-        clone.css('word-wrap', 'break-word');
-        clone.css('word-break', 'break-all');
-        const style = document.defaultView.getComputedStyle(queryDslInput[0], null);
-
-        clone.css("font",style.font);
-
-        $("</div>")
+        const autocomplete = $("<div></div>")
             .hide()
-            .attr('id', 'autocomplete')
+            .attr('id', 'queryDslAutocomplete')
             .appendTo(queryDslInput.parent());
+
+        queryDslInput.on('keydown click blur', function () {
+            // autocomplete.hide()
+            // autocomplete.empty()
+        });
     }
 
     syncContentAssist(contentAssist, queryDslInputId) {
         const queryDslInput = $("#" + queryDslInputId);
-        const fakeCursor = $(".autocomplete");
-        const clone = $(".autocompleteWrapper");
+        const autocomplete = $("#queryDslAutocomplete");
+        const inputOffset = queryDslInput.offset();
+        const caretPosition = this.getCaretCoordinates(queryDslInput);
 
-        let pos = this.getCaret(queryDslInput[0]);
+        const errorWord = 'error';
+        const regex = new RegExp(`\\b${errorWord}\\b`, 'gi');
+        let match = regex.exec(queryDslInput.val);
 
-        const value = queryDslInput.val().substring(0, pos);
+        if (match) {
+            const start = match.index;
+            const end = start + errorWord.length;
 
-        let buf = "";
-        for(let i=0; i < value.length; i++) {
-            let c = value[i];
-            c = c.replace("<", "&lt;");
-            c = c.replace(">", "&gt;");
-            c = c.replace(" ", "&nbsp;");
-            c = c.replace("\r", "");
-            c = c.replace("\n", "<br>");
-            buf += c;
+            $('.invalid-feedback').html(`Error word: "${errorWord}" found at start: ${start}, end: ${end}`);
+        } else {
+            $('.invalid-feedback').html('No error word found.');
         }
-        clone.html(buf);
 
-        const cursor = $("<span>«</span>");
-        clone.append(cursor);
-        pos = cursor.position();
+        // calculate position for autocomplete window
+        autocomplete.css({
+            top: inputOffset.top + caretPosition.top + parseInt(queryDslInput.css('font-size')),
+            left: inputOffset.left + caretPosition.left
+        });
 
-        fakeCursor.css({
-            left: pos.left,
-            top: pos.top - clone.position().top + queryDslInput.position().top - queryDslInput.scrollTop()
-        }).show();
+        const suggestions = contentAssist.autocomplete;
+
+        // autocomplete.empty()
+        autocomplete.show()
+
+        if (suggestions === undefined || suggestions.length === 0) {
+            autocomplete.append("<div class='line'>" +
+                    "<span class='no-suggestion'> No suggestions </span>" +
+                "</div>"
+            )
+        } else {
+            suggestions.forEach(suggestion => {
+                autocomplete.append("<div class='line'>" +
+                        "<span class='name'>" + suggestion.name + "</span>" +
+                        "<span class='alias'>" + suggestion.alias + "</span>" +
+                    "</div>"
+                )
+            })
+        }
     }
 
-    getCaret(element) {
-        if (element.selectionStart) {
-            return element.selectionStart;
-        } else if (document.selection) {
-            element.focus();
+    getCaretCoordinates(element) {
+        const text = element[0].value.substring(0, element[0].selectionStart);
+        // secret <span/> element for tracking position in body
+        const span = $('<span/>').css({
+            position: 'absolute',
+            whiteSpace: 'pre-wrap',
+            visibility: 'hidden',
+            font: element.css('font'), // Match input font
+            lineHeight: element.css('line-height'),
+        }).text(text);
 
-            const range = document.selection.createRange();
-            if (range == null) {
-                return 0;
-            }
+        $('body').append(span);
 
-            const re = element.createTextRange(),
-                rc = re.duplicate();
-            re.moveToBookmark(range.getBookmark());
-            rc.setEndPoint('EndToStart', re);
+        const rect = span[0].getBoundingClientRect();
+        const coordinates = { top: rect.height, left: rect.width };
 
-            return rc.text.length;
+        span.remove();
+        return coordinates;
+    }
+
+    triggerAutocompleteShortcut(event, element) {
+        if (event.ctrlKey && event.key === ' ') {
+            event.preventDefault();
+            element.dispatchEvent(new Event('keyup', { bubbles: true }));
         }
-
-        return 0;
     }
 }

@@ -1,0 +1,42 @@
+/*!
+ * Copyright (c) 2024 Evolveum and contributors
+ *
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
+ */
+#queryDslAutocomplete {
+  max-height: 136px;
+  overflow: scroll;
+  border: 1px lightgray solid;
+  position: fixed;
+  z-index: 200000;
+  box-shadow: 2px 3px 5px rgba(0, 0, 0, .2);
+  line-height: 1.4;
+  background: #fefefe;
+  color: black;
+
+  .line {
+    padding: 3px;
+    white-space: nowrap;
+    cursor: default;
+
+    .name {
+    }
+
+    .alias, .no-suggestion {
+      opacity: 0.5;
+      margin: 0.9em;
+    }
+
+    &:hover {
+      border: 1px solid #abbffe;
+      margin-top: -1px;
+      background: rgba(233,233,253,0.4);
+    }
+  }
+
+  .line-active {
+    background-color: #CAD6FA;
+    z-index: 1;
+  }
+}

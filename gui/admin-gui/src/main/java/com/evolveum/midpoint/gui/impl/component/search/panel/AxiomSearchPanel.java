@@ -115,13 +115,13 @@ public class AxiomSearchPanel extends BasePanel<AxiomQueryWrapper> {
                 if (axiomQueryWrapper != null) {
                     ItemDefinition<?> rootDef = axiomQueryWrapper.getContainerDefinitionOverride() != null ?
                             axiomQueryWrapper.getContainerDefinitionOverride() :
-                            getPrismContext().getSchemaRegistry().findItemDefinitionByType(new QName(axiomQueryWrapper.getTypeClass().getName()));
+                            getPrismContext().getSchemaRegistry().findItemDefinitionByType(new QName(axiomQueryWrapper.getTypeClass().getSimpleName()));
 
                     try {
                         target.appendJavaScript("window.MidPointTheme.syncContentAssist(" +
-                                mapper.writeValueAsString( axiomQueryContentAssist.process(
+                                mapper.writeValueAsString(axiomQueryContentAssist.process(
                                         rootDef,
-                                        axiomQueryWrapper.getDslQuery(),
+                                        axiomQueryWrapper.getDslQuery() == null ? "" : axiomQueryWrapper.getDslQuery(),
                                         params.getParameterValue("cursorPosition").toInt()
                                 )) + ", '" + ID_AXIOM_QUERY_INPUT_FIELD + "');"
                         );
@@ -131,6 +131,8 @@ public class AxiomSearchPanel extends BasePanel<AxiomQueryWrapper> {
                 }
             }
         });
+
+        queryDslField.add(new AttributeAppender("onkeydown", "window.MidPointTheme.triggerAutocompleteShortcut(event, this);"));
 
         add(queryDslField);
 
