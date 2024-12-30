@@ -545,9 +545,6 @@ public abstract class ResourceObjectsPanel extends AbstractResourceObjectPanel {
     }
 
     private void showAssociationInboundWizard(PrismContainerValueWrapper<ShadowAssociationTypeDefinitionType> associationWrapper, AjaxRequestTarget target) {
-        String methodName;
-        ItemPath path;
-
         ShadowAssociationTypeDefinitionType association = associationWrapper.getRealValue();
         if (association == null) {
             return;
@@ -557,37 +554,25 @@ public abstract class ResourceObjectsPanel extends AbstractResourceObjectPanel {
             return;
         }
 
+        PageResource page = getObjectDetailsModels().getPageResource();
         if (association.getSubject().getAssociation().getInbound().size() == 1) {
-            methodName = "showAssociationInboundWizard";
-            path = association.getSubject().getAssociation().getInbound().iterator().next().asPrismContainerValue().getPath();
+            ItemPath path = association.getSubject().getAssociation().getInbound().iterator().next().asPrismContainerValue().getPath();
+
+            page.showAssociationInboundWizard(target, path, association, createExitLabelModel());
         } else {
-            methodName = "showAssociationInboundsWizard";
-            path = association.asPrismContainerValue().getPath()
+            ItemPath path = association.asPrismContainerValue().getPath()
                     .append(ShadowAssociationTypeDefinitionType.F_SUBJECT)
                     .append(ShadowAssociationTypeSubjectDefinitionType.F_ASSOCIATION);
-        }
 
-        showAssociationWizard(association, methodName, path, target);
+            page.showAssociationInboundsWizard(target, path, association, createExitLabelModel());
+        }
     }
 
-    private void showAssociationWizard(ShadowAssociationTypeDefinitionType association, String methodName, ItemPath path, AjaxRequestTarget target) {
-        try {
-            Method method = PageResource.class.getMethod(
-                    methodName, AjaxRequestTarget.class, ItemPath.class, ShadowAssociationTypeDefinitionType.class, IModel.class);
-            method.invoke(getObjectDetailsModels().getPageResource(),
-                    target,
-                    path,
-                    association,
-                    createStringResource("ResourceObjectsPanel.associationWizard.exitLabel." + getKind()));
-        } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
-            LOGGER.error("Couldn't invoke method " + methodName + " in PageResource class");
-        }
+    private IModel<String> createExitLabelModel() {
+        return new StringResourceModel("ResourceObjectsPanel.associationWizard.exitLabel." + getKind());
     }
 
     private void showAssociationOutboundWizard(PrismContainerValueWrapper<ShadowAssociationTypeDefinitionType> associationWrapper, AjaxRequestTarget target) {
-        String methodName;
-        ItemPath path;
-
         ShadowAssociationTypeDefinitionType association = associationWrapper.getRealValue();
         if (association == null) {
             return;
@@ -597,17 +582,18 @@ public abstract class ResourceObjectsPanel extends AbstractResourceObjectPanel {
             return;
         }
 
+        PageResource page = getObjectDetailsModels().getPageResource();
         if (association.getSubject().getAssociation().getOutbound().size() == 1) {
-            methodName = "showAssociationOutboundWizard";
-            path = association.getSubject().getAssociation().getOutbound().iterator().next().asPrismContainerValue().getPath();
+            ItemPath path = association.getSubject().getAssociation().getOutbound().iterator().next().asPrismContainerValue().getPath();
+
+            page.showAssociationOutboundWizard(target, path, association, createExitLabelModel());
         } else {
-            methodName = "showAssociationOutboundsWizard";
-            path = association.asPrismContainerValue().getPath()
+            ItemPath path = association.asPrismContainerValue().getPath()
                     .append(ShadowAssociationTypeDefinitionType.F_SUBJECT)
                     .append(ShadowAssociationTypeSubjectDefinitionType.F_ASSOCIATION);
-        }
 
-        showAssociationWizard(association, methodName, path, target);
+            page.showAssociationOutboundsWizard(target, path, association, createExitLabelModel());
+        }
     }
 
     private ButtonInlineMenuItem createWizardItemPanel(

@@ -16,6 +16,7 @@ import java.util.List;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.schema.util.SimpleObjectResolver;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
@@ -456,5 +457,9 @@ public class FocusAsserter<F extends FocusType,RA> extends AssignmentHolderAsser
                         getDetails());
         copySetupTo(asserter);
         return asserter;
+    }
+
+    public FocusAsserter<F, RA> withObjectResolver(SimpleObjectResolver objectResolver) {
+        return (FocusAsserter<F, RA>) super.withObjectResolver(objectResolver);
     }
 }

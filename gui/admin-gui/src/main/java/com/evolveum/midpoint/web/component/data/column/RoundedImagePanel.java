@@ -58,7 +58,12 @@ public class RoundedImagePanel extends BasePanel<DisplayType> {
 
         NonCachingImage image = new NonCachingImage(ID_IMAGE, preferredImage);
         image.add(new VisibleBehaviour(() -> preferredImage.getObject() != null));
+        image.add(AttributeAppender.append("alt", getAlternativeTextForImage()));
         add(image);
+    }
+
+    protected String getAlternativeTextForImage() {
+        return null;
     }
 
     protected String getCssClassesIconContainer() {

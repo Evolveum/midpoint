@@ -14,6 +14,8 @@ import com.evolveum.midpoint.gui.api.component.form.TextArea;
 import com.evolveum.midpoint.web.component.prism.show.VisualizationDto;
 import com.evolveum.midpoint.web.component.prism.show.VisualizationPanel;
 import org.apache.wicket.Component;
+import org.apache.wicket.ajax.markup.html.AjaxLink;
+import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.Form;
@@ -105,6 +107,40 @@ public class WorkItemDetailsPanel extends BasePanel<CaseWorkItemType> {
         super.onInitialize();
         initModels();
         initLayout();
+    }
+
+    @Override
+    protected void onBeforeRender() {
+        super.onBeforeRender();
+
+        getRequestedByLinkPanel().add(AttributeAppender.append("aria-description", getString("workItemPanel.requestedBy")));
+        getRequestedForLinkPanel().add(AttributeAppender.append("aria-description", getString("workItemPanel.requestedFor")));
+        getTargetLinkPanel().add(AttributeAppender.append("aria-description", getString("workItemPanel.target")));
+        getApproverLinkPanel().add(AttributeAppender.append("aria-description", getString("workItemPanel.approver")));
+        ((RepeatingView)get(createComponentPath(ID_CANDIDATE_CONTAINER, ID_CANDIDATE)))
+                .stream().forEach(child -> ((LinkedReferencePanel)child).getLinkPanel().add(
+                        AttributeAppender.append("aria-description", getString("workItemPanel.candidateActors"))));
+        getParentCaseLinkPanel().add(AttributeAppender.append("aria-description", getString("workItemPanel.parentCase")));
+    }
+
+    private AjaxLink getParentCaseLinkPanel() {
+        return ((LinkedReferencePanel) get(createComponentPath(ID_PARENT_CASE_CONTAINER, ID_PARENT_CASE))).getLinkPanel();
+    }
+
+    private AjaxLink getRequestedByLinkPanel() {
+        return ((LinkedReferencePanel) get(ID_REQUESTED_BY)).getLinkPanel();
+    }
+
+    private AjaxLink getRequestedForLinkPanel() {
+        return ((LinkedReferencePanel) get(ID_REQUESTED_FOR)).getLinkPanel();
+    }
+
+    private AjaxLink getTargetLinkPanel() {
+        return ((LinkedReferencePanel) get(ID_TARGET)).getLinkPanel();
+    }
+
+    private AjaxLink getApproverLinkPanel() {
+        return ((LinkedReferencePanel) get(ID_APPROVER)).getLinkPanel();
     }
 
     private void initModels() {
@@ -203,7 +239,9 @@ public class WorkItemDetailsPanel extends BasePanel<CaseWorkItemType> {
         add(target);
 
         CaseType parentCase = CaseTypeUtil.getCase(getModelObject());
-        add(new Label(ID_COMMENT, CaseTypeUtil.getRequesterComment(parentCase)));
+        Label comment = new Label(ID_COMMENT, CaseTypeUtil.getRequesterComment(parentCase));
+        comment.setOutputMarkupId(true);
+        add(comment);
 
         EvaluatedTriggerGroupListPanel reasonPanel = new EvaluatedTriggerGroupListPanel(ID_REASON,
                 Model.ofList(WebComponentUtil.computeTriggers(parentCase != null ? parentCase.getApprovalContext() : null,
@@ -211,15 +249,18 @@ public class WorkItemDetailsPanel extends BasePanel<CaseWorkItemType> {
         reasonPanel.setOutputMarkupId(true);
         add(reasonPanel);
 
+        Component visualizationPanel;
         if (CaseTypeUtil.isApprovalCase(parentCase) || CaseTypeUtil.isManualProvisioningCase(parentCase)) {
-            VisualizationPanel visualizationPanel = new VisualizationPanel(ID_DELTAS_TO_APPROVE, visualizationModel);
-            visualizationPanel.setOutputMarkupId(true);
-            add(visualizationPanel);
+            visualizationPanel = new VisualizationPanel(ID_DELTAS_TO_APPROVE, visualizationModel);
+
         } else if (CaseTypeUtil.isCorrelationCase(parentCase)) {
-            add(new CorrelationContextPanel(ID_DELTAS_TO_APPROVE, new CaseDetailsModels(caseModel, getPageBase()), getModel(), new ContainerPanelConfigurationType()));
+            visualizationPanel = new CorrelationContextPanel(
+                    ID_DELTAS_TO_APPROVE, new CaseDetailsModels(caseModel, getPageBase()), getModel(), new ContainerPanelConfigurationType());
         } else {
-            add(new WebMarkupContainer(ID_DELTAS_TO_APPROVE));
+            visualizationPanel = new WebMarkupContainer(ID_DELTAS_TO_APPROVE);
         }
+        visualizationPanel.setOutputMarkupId(true);
+        add(visualizationPanel);
 
         InformationListPanel additionalInformation = new InformationListPanel(ID_ADDITIONAL_INFORMATION,
                 Model.ofList(getModelObject().getAdditionalInformation()));
@@ -304,11 +345,24 @@ public class WorkItemDetailsPanel extends BasePanel<CaseWorkItemType> {
         commentContainer.add(commentLabel);
 
         TextArea<String> approverComment = new TextArea<>(ID_APPROVER_COMMENT, new PropertyModel<>(getModel(), "output.comment"));
+        approverComment.add(AttributeAppender.append("aria-labelledby", commentLabel.getMarkupId()));
         approverComment.add(new EnableBehaviour(() -> !isParentCaseClosed()));
         approverComment.setOutputMarkupId(true);
         approverComment.add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
         commentContainer.add(approverComment);
 
+    }
+
+    public Component getReasonPanel() {
+        return get(ID_REASON);
+    }
+
+    public Component getCommentPanel() {
+        return get(ID_COMMENT);
+    }
+
+    public Component getDeltasPanel() {
+        return get(ID_DELTAS_TO_APPROVE);
     }
 
     private boolean isAuthorizedForActions() {

@@ -13,6 +13,9 @@ import java.io.Serial;
 import java.util.*;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.util.exception.ConfigurationException;
+import com.evolveum.prism.xml.ns._public.types_3.ChangeTypeType;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -68,7 +71,7 @@ public abstract class ShadowAttributeDefinitionImpl<
      *
      * . from the connector, as part of the native schema;
      * . manually filled-in by the administrator in `schema` part of the resource definition (in XSD form);
-     * . *special for associations*: derived from the simulated association definition (legacy or capability format).
+     * . derived from the simulated reference definition (legacy or capability format).
      *
      * The third case is a bit of hack, but it's needed to keep the code simple. The native definition is accessed from
      * too many places in this module. Note that it will never be serialized into the XSD schema in the resource definition
@@ -112,15 +115,13 @@ public abstract class ShadowAttributeDefinitionImpl<
     /**
      * "Standard" constructor version (raw + customization).
      *
-     * @throws SchemaException If there's a problem with parsing customization bean.
+     * @throws ConfigurationException If there's a problem with parsing customization bean.
      */
     ShadowAttributeDefinitionImpl(
             @NotNull ND nativeDefinition, @NotNull ResourceItemDefinitionType customizationBean, boolean forcedIgnored)
-            throws SchemaException {
-        assert nativeDefinition.isImmutable();
-
+            throws ConfigurationException {
         this.currentLayer = DEFAULT_LAYER;
-        this.nativeDefinition = nativeDefinition;
+        this.nativeDefinition = Freezable.checkIsImmutable(nativeDefinition);
         this.customizationBean = CloneUtil.toImmutable(customizationBean);
         this.limitationsMap = computeLimitationsMap(forcedIgnored);
         this.accessOverride = new PropertyAccessType();
@@ -149,7 +150,8 @@ public abstract class ShadowAttributeDefinitionImpl<
      * Converts limitations embedded in {@link #nativeDefinition} and specified in {@link #customizationBean}
      * to the {@link #limitationsMap}.
      */
-    private @NotNull Map<LayerType, PropertyLimitations> computeLimitationsMap(boolean forcedIgnored) throws SchemaException {
+    private @NotNull Map<LayerType, PropertyLimitations> computeLimitationsMap(boolean forcedIgnored)
+            throws ConfigurationException {
         Map<LayerType, PropertyLimitations> map = new HashMap<>();
 
         PropertyLimitations schemaLimitations = getOrCreateLimitationsForLayer(map, LayerType.SCHEMA);
@@ -160,34 +162,41 @@ public abstract class ShadowAttributeDefinitionImpl<
         schemaLimitations.getAccess().setModify(nativeDefinition.canModify());
         schemaLimitations.getAccess().setRead(nativeDefinition.canRead());
 
-        PropertyLimitations previousLimitations = null;
-        for (LayerType layer : LayerType.values()) {
-            PropertyLimitations limitations = getOrCreateLimitationsForLayer(map, layer);
-            if (previousLimitations != null) {
-                limitations.setMinOccurs(previousLimitations.getMinOccurs());
-                limitations.setMaxOccurs(previousLimitations.getMaxOccurs());
-                limitations.setProcessing(forcedIgnored ? ItemProcessing.IGNORE : previousLimitations.getProcessing());
-                limitations.getAccess().setAdd(previousLimitations.getAccess().isAdd());
-                limitations.getAccess().setRead(previousLimitations.getAccess().isRead());
-                limitations.getAccess().setModify(previousLimitations.getAccess().isModify());
-            }
-            previousLimitations = limitations;
-            // TODO check this as part of MID-7929 resolution
-            if (layer != LayerType.SCHEMA) {
-                // SCHEMA is a pseudo-layer. It cannot be overridden ... unless specified explicitly
-                PropertyLimitationsType genericLimitationsType =
-                        MiscSchemaUtil.getLimitationsLabeled(customizationBean.getLimitations(), null);
-                if (genericLimitationsType != null) {
-                    applyLimitationsBean(limitations, genericLimitationsType, forcedIgnored);
+        try {
+
+            PropertyLimitations previousLimitations = null;
+            for (LayerType layer : LayerType.values()) {
+                PropertyLimitations limitations = getOrCreateLimitationsForLayer(map, layer);
+                if (previousLimitations != null) {
+                    limitations.setMinOccurs(previousLimitations.getMinOccurs());
+                    limitations.setMaxOccurs(previousLimitations.getMaxOccurs());
+                    limitations.setProcessing(forcedIgnored ? ItemProcessing.IGNORE : previousLimitations.getProcessing());
+                    limitations.getAccess().setAdd(previousLimitations.getAccess().isAdd());
+                    limitations.getAccess().setRead(previousLimitations.getAccess().isRead());
+                    limitations.getAccess().setModify(previousLimitations.getAccess().isModify());
+                }
+                previousLimitations = limitations;
+                // TODO check this as part of MID-7929 resolution
+                if (layer != LayerType.SCHEMA) {
+                    // SCHEMA is a pseudo-layer. It cannot be overridden ... unless specified explicitly
+                    PropertyLimitationsType genericLimitationsType =
+                            MiscSchemaUtil.getLimitationsLabeled(customizationBean.getLimitations(), null);
+                    if (genericLimitationsType != null) {
+                        applyLimitationsBean(limitations, genericLimitationsType, forcedIgnored);
+                    }
+                }
+                PropertyLimitationsType layerLimitationsType =
+                        MiscSchemaUtil.getLimitationsLabeled(customizationBean.getLimitations(), layer);
+                if (layerLimitationsType != null) {
+                    applyLimitationsBean(limitations, layerLimitationsType, forcedIgnored);
                 }
             }
-            PropertyLimitationsType layerLimitationsType =
-                    MiscSchemaUtil.getLimitationsLabeled(customizationBean.getLimitations(), layer);
-            if (layerLimitationsType != null) {
-                applyLimitationsBean(limitations, layerLimitationsType, forcedIgnored);
-            }
+            return Collections.unmodifiableMap(map);
+        } catch (SchemaException e) {
+            throw new ConfigurationException(
+                    "Couldn't parse definition for '%s': %s".formatted(getItemName(), e.getMessage()),
+                    e);
         }
-        return Collections.unmodifiableMap(map);
     }
 
     private PropertyLimitations getOrCreateLimitationsForLayer(Map<LayerType, PropertyLimitations> map, LayerType layer) {
@@ -432,8 +441,38 @@ public abstract class ShadowAttributeDefinitionImpl<
 
     @Override
     public boolean isVolatilityTrigger() {
-        return Boolean.TRUE.equals(
-                customizationBean.isVolatilityTrigger());
+        var legacy = Boolean.TRUE.equals(customizationBean.isVolatilityTrigger());
+        var modern = isVolatilityTriggerModern();
+        return legacy || modern;
+    }
+
+    private boolean isVolatilityTriggerModern() {
+        var volatility = customizationBean.getVolatility();
+        if (volatility == null) {
+            return false;
+        }
+        return volatility.getOutgoing().stream().anyMatch(
+                s -> s.getOperation().isEmpty() || s.getOperation().contains(ChangeTypeType.MODIFY));
+    }
+
+    @Override
+    public boolean isVolatileOnAddOperation() {
+        var volatility = customizationBean.getVolatility();
+        if (volatility == null) {
+            return false;
+        }
+        return volatility.getIncoming().stream().anyMatch(
+                s -> s.getOperation().isEmpty() || s.getOperation().contains(ChangeTypeType.ADD));
+    }
+
+    @Override
+    public boolean isVolatileOnModifyOperation() {
+        var volatility = customizationBean.getVolatility();
+        if (volatility == null) {
+            return false;
+        }
+        return volatility.getIncoming().stream().anyMatch(
+                s -> s.getOperation().isEmpty() || s.getOperation().contains(ChangeTypeType.MODIFY));
     }
 
     private static void applyLimitationsBean(
@@ -526,7 +565,6 @@ public abstract class ShadowAttributeDefinitionImpl<
     }
 
     public String debugDump(int indent, LayerType layer) {
-        // TODO reconsider this method
         StringBuilder sb = DebugUtil.createTitleStringBuilder(getClass(), indent);
         sb.append(" ").append(this);
         if (layer == null) {
@@ -672,6 +710,7 @@ public abstract class ShadowAttributeDefinitionImpl<
         return null;
     }
 
+    @SuppressWarnings("unused")
     public <A> void setAnnotation(QName qname, A value) {
         throw new UnsupportedOperationException();
     }

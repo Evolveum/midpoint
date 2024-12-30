@@ -55,9 +55,9 @@ public abstract class AbstractResourceObjectDefinitionImpl
 
     /**
      * Default settings obtained from the system configuration.
-     * Guarded by the getter and setter.
      *
-     * Temporary solution, to be reviewed (MID-10126).
+     * Thread safety ensured by synchronized getter and setter.
+     * Invalidation handled by `ResourceManager` in the `provisioning-impl` module.
      */
     private static ShadowCachingPolicyType systemDefaultPolicy;
 
@@ -149,8 +149,7 @@ public abstract class AbstractResourceObjectDefinitionImpl
      * Definition of auxiliary object classes. They originate from
      * {@link ResourceObjectTypeDefinitionType#getAuxiliaryObjectClass()} and are resolved during parsing.
      *
-     * However, they are _not_ used by default for attribute resolution!
-     * A {@link CompositeObjectDefinition} must be created in order to "activate" them.
+     * Attributes defined in them are added to {@link #attributeDefinitions}.
      */
     @NotNull final DeeplyFreezableList<ResourceObjectDefinition> auxiliaryObjectClassDefinitions =
             new DeeplyFreezableList<>();
@@ -809,12 +808,6 @@ public abstract class AbstractResourceObjectDefinitionImpl
         return definitionBean;
     }
 
-//    void addReferenceAttributeDefinition(@NotNull ShadowReferenceAttributeDefinition definition) {
-//        checkMutable();
-//        associationDefinitions.add(definition);
-//        invalidatePrismObjectDefinition();
-//    }
-
     void addAuxiliaryObjectClassDefinition(@NotNull ResourceObjectDefinition definition) {
         checkMutable();
         auxiliaryObjectClassDefinitions.add(definition);
@@ -943,11 +936,25 @@ public abstract class AbstractResourceObjectDefinitionImpl
         throw new UnsupportedOperationException();
     }
 
-    public static synchronized ShadowCachingPolicyType getSystemDefaultPolicy() {
+    private static synchronized ShadowCachingPolicyType getSystemDefaultPolicy() {
         return systemDefaultPolicy;
     }
 
     public static synchronized void setSystemDefaultPolicy(ShadowCachingPolicyType value) {
         systemDefaultPolicy = value != null ? value.clone() : null;
+    }
+
+    @Override
+    public @NotNull Collection<ShadowAttributeDefinition<?, ?, ?, ?>> getAttributesVolatileOnAddOperation() {
+        return attributeDefinitions.stream()
+                .filter(def -> def.isVolatileOnAddOperation())
+                .toList();
+    }
+
+    @Override
+    public @NotNull Collection<ShadowAttributeDefinition<?, ?, ?, ?>> getAttributesVolatileOnModifyOperation() {
+        return attributeDefinitions.stream()
+                .filter(def -> def.isVolatileOnModifyOperation())
+                .toList();
     }
 }

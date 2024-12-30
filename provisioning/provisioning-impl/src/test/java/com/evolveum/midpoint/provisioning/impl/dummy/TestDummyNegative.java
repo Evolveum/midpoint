@@ -314,11 +314,9 @@ public class TestDummyNegative extends AbstractDummyTest {
 
             assertNotReached();
         } catch (SchemaException e) {
-            displayExpectedException(e);
+            assertExpectedException(e)
+                    .hasMessageContaining("without any attributes nor associations");
         }
-
-        then();
-        syncServiceMock.assertSingleNotifyFailureOnly();
     }
 
     @Test
@@ -344,9 +342,6 @@ public class TestDummyNegative extends AbstractDummyTest {
         } catch (SchemaException e) {
             displayExpectedException(e);
         }
-
-        then();
-        syncServiceMock.assertSingleNotifyFailureOnly();
     }
 
     @Test
@@ -374,9 +369,6 @@ public class TestDummyNegative extends AbstractDummyTest {
         } catch (SchemaException e) {
             displayExpectedException(e);
         }
-
-        then();
-        syncServiceMock.assertSingleNotifyFailureOnly();
     }
 
     /**

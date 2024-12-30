@@ -303,7 +303,7 @@ public class ProvisioningContext implements DebugDumpable, ExecutionModeProvider
         return task.getChannel();
     }
 
-    public <T extends CapabilityType> ConnectorInstance getConnector(Class<T> operationCapabilityClass, OperationResult result)
+    public <T extends CapabilityType> @NotNull ConnectorInstance getConnector(Class<T> operationCapabilityClass, OperationResult result)
             throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
             ExpressionEvaluationException {
         ConnectorInstance connector = connectorMap.get(operationCapabilityClass);
@@ -333,24 +333,37 @@ public class ProvisioningContext implements DebugDumpable, ExecutionModeProvider
     }
 
     /**
-     * Creates an exact copy of the context but with different task.
+     * Creates an exact copy of the context but with different task and probably additional aux OCs.
      */
-    public @NotNull ProvisioningContext spawn(Task task) {
+    public @NotNull ProvisioningContext spawn(@NotNull Collection<QName> additionalAuxiliaryObjectClasses, Task task)
+            throws SchemaException, ConfigurationException {
         // No need to bother the factory because no population resolution is needed
         return new ProvisioningContext(
                 this,
                 task,
-                resourceObjectDefinition,
+                addAuxiliaryObjectClasses(resourceObjectDefinition, additionalAuxiliaryObjectClasses),
                 wholeClass);
     }
 
-    /** A convenience method for {@link #spawn(Task)} */
-    public @NotNull ProvisioningContext spawnIfNeeded(Task task) {
-        if (task == this.task) {
-            return this;
-        } else {
-            return spawn(task);
+    /**
+     * The goal here is to create a definition that would present itself with specified auxiliary object classes.
+     * (When asked via {@link ResourceObjectDefinition#hasAuxiliaryObjectClass(QName)}.)
+     *
+     * It does not matter if {@link CompositeObjectDefinition} is created or not.
+     */
+    private @Nullable ResourceObjectDefinition addAuxiliaryObjectClasses(
+            @Nullable ResourceObjectDefinition resourceObjectDefinition,
+            @NotNull Collection<QName> additionalAuxObjClassNames) throws SchemaException, ConfigurationException {
+        if (resourceObjectDefinition == null) {
+            return null;
         }
+        List<QName> missing = new ArrayList<>();
+        for (QName additionalAuxObjClassName : additionalAuxObjClassNames) {
+            if (!resourceObjectDefinition.hasAuxiliaryObjectClass(additionalAuxObjClassName)) {
+                missing.add(additionalAuxObjClassName);
+            }
+        }
+        return computeCompositeObjectDefinition(resourceObjectDefinition, missing);
     }
 
     /**
@@ -434,7 +447,7 @@ public class ProvisioningContext implements DebugDumpable, ExecutionModeProvider
         }
     }
 
-    private <T extends CapabilityType> ConnectorInstance getConnectorInstance(
+    private <T extends CapabilityType> @NotNull ConnectorInstance getConnectorInstance(
             Class<T> operationCapabilityClass, OperationResult parentResult)
             throws CommunicationException, ConfigurationException {
         OperationResult result =
@@ -581,7 +594,7 @@ public class ProvisioningContext implements DebugDumpable, ExecutionModeProvider
     /**
      * Returns association definitions, or an empty list if we do not have appropriate definition available.
      */
-    public @NotNull Collection<? extends ShadowReferenceAttributeDefinition> getAssociationDefinitions() {
+    public @NotNull Collection<? extends ShadowReferenceAttributeDefinition> getReferenceAttributeDefinitions() {
         return resourceObjectDefinition != null ?
                 resourceObjectDefinition.getReferenceAttributeDefinitions() : List.of();
     }
@@ -594,11 +607,11 @@ public class ProvisioningContext implements DebugDumpable, ExecutionModeProvider
         return getObjectDefinitionRequired().findAttributeDefinitionRequired(name);
     }
 
-    public @NotNull ShadowReferenceAttributeDefinition findAssociationDefinitionRequired(QName name) throws SchemaException {
-        return findAssociationDefinitionRequired(name, () -> " in " + this);
+    public @NotNull ShadowReferenceAttributeDefinition findReferenceAttributeDefinitionRequired(QName name) throws SchemaException {
+        return findReferenceAttributeDefinitionRequired(name, () -> " in " + this);
     }
 
-    public @NotNull ShadowReferenceAttributeDefinition findAssociationDefinitionRequired(QName name, Supplier<String> contextSupplier)
+    public @NotNull ShadowReferenceAttributeDefinition findReferenceAttributeDefinitionRequired(QName name, Supplier<String> contextSupplier)
             throws SchemaException {
         return getObjectDefinitionRequired()
                 .findReferenceAttributeDefinitionRequired(name, contextSupplier);
@@ -608,7 +621,7 @@ public class ProvisioningContext implements DebugDumpable, ExecutionModeProvider
      * It's more logical to call this method right on {@link ProvisioningContext}. The exact placement of the implementation
      * is to be decided yet.
      */
-    public ShadowItemsToReturn createAttributesToReturn() {
+    public ShadowItemsToReturn createItemsToReturn() {
         return new ShadowItemsToReturnProvider(resource, getObjectDefinitionRequired(), getOperationOptions)
                 .createAttributesToReturn();
     }
@@ -636,6 +649,9 @@ public class ProvisioningContext implements DebugDumpable, ExecutionModeProvider
             throws SchemaException, ConfigurationException {
         ProvisioningContext subContext = spawnForShadow(shadow);
         subContext.assertDefinition();
+        if (shadow.getAttributes() == null) {
+            shadow.setAttributes(new ShadowAttributesType()); // the definition will be applied below
+        }
         subContext.applyCurrentDefinition(shadow);
         return subContext;
     }
@@ -944,6 +960,10 @@ public class ProvisioningContext implements DebugDumpable, ExecutionModeProvider
                 GetOperationOptions.getShadowClassificationMode(
                         SelectorOptions.findRootOptions(getOperationOptions)),
                 ShadowClassificationModeType.NORMAL);
+    }
+
+    public boolean isCaseIgnoreAttributeNames() {
+        return ResourceTypeUtil.isCaseIgnoreAttributeNames(resource);
     }
 
     @Override

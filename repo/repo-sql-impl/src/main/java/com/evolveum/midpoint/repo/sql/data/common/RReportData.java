@@ -14,7 +14,7 @@ import org.hibernate.annotations.ForeignKey;
 import org.hibernate.annotations.Persister;
 
 import com.evolveum.midpoint.repo.sql.data.RepositoryContext;
-import com.evolveum.midpoint.repo.sql.data.common.embedded.REmbeddedReference;
+import com.evolveum.midpoint.repo.sql.data.common.embedded.RSimpleEmbeddedReference;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.RPolyString;
 import com.evolveum.midpoint.repo.sql.query.definition.JaxbName;
 import com.evolveum.midpoint.repo.sql.query.definition.NeverNull;
@@ -36,7 +36,7 @@ public class RReportData extends RObject {
     public static final String TABLE_NAME = "m_report_output";
 
     private RPolyString nameCopy;
-    private REmbeddedReference reportRef;
+    private RSimpleEmbeddedReference reportRef;
 
     @JaxbName(localPart = "name")
     @AttributeOverrides({
@@ -55,11 +55,11 @@ public class RReportData extends RObject {
 
     @Embedded
     @Cascade({ org.hibernate.annotations.CascadeType.ALL })
-    public REmbeddedReference getReportRef() {
+    public RSimpleEmbeddedReference getReportRef() {
         return reportRef;
     }
 
-    public void setReportRef(REmbeddedReference reportRef) {
+    public void setReportRef(RSimpleEmbeddedReference reportRef) {
         this.reportRef = reportRef;
     }
 

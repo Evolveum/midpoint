@@ -120,20 +120,23 @@ class EntitlementUtils {
     }
 
     @SuppressWarnings("BooleanMethodIsAlwaysInverted")
-    static boolean doesMatchSubjectDelineation(ShadowReferenceAttributeDefinition associationDef, ProvisioningContext subjectCtx) {
+    static boolean doesMatchSubjectDelineation(
+            @NotNull ShadowReferenceAttributeDefinition associationDef,
+            @NotNull ProvisioningContext subjectCtx) {
         return doesMatchSubjectDelineation(associationDef.getSimulationDefinitionRequired(), subjectCtx);
     }
 
     /** FIXME very imprecise implementation - deals only with aux OC specification! */
     private static boolean doesMatchSubjectDelineation(
-            SimulatedShadowReferenceTypeDefinition simulationDef, ProvisioningContext subjectCtx) {
+            SimulatedShadowReferenceTypeDefinition simulationDef,
+            ProvisioningContext subjectCtx) {
         // We assume the subjectDef reflects the actual aux classes possessed by the subject shadow.
-        ResourceObjectDefinition subjectDef = subjectCtx.getObjectDefinitionRequired();
-        for (SimulatedAssociationClassParticipantDefinition subjectDelineation : simulationDef.getSubjects()) {
-            QName requiredAuxiliaryObjectClass = subjectDelineation.getAuxiliaryObjectClassName();
-            if (requiredAuxiliaryObjectClass != null && !subjectDef.hasAuxiliaryObjectClass(requiredAuxiliaryObjectClass)) {
+        ResourceObjectDefinition actualSubjectDef = subjectCtx.getObjectDefinitionRequired();
+        for (var subjectParticipantDef : simulationDef.getSubjects()) {
+            QName requiredAuxiliaryObjectClass = subjectParticipantDef.getAuxiliaryObjectClassName();
+            if (requiredAuxiliaryObjectClass != null && !actualSubjectDef.hasAuxiliaryObjectClass(requiredAuxiliaryObjectClass)) {
                 LOGGER.trace("Ignoring association {} because subject does not have auxiliary object class {}, it has {}",
-                        simulationDef, requiredAuxiliaryObjectClass, subjectDef.getAuxiliaryDefinitions());
+                        simulationDef, requiredAuxiliaryObjectClass, actualSubjectDef.getAuxiliaryDefinitions());
                 return false;
             }
         }

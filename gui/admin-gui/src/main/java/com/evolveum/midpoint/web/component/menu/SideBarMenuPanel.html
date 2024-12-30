@@ -14,7 +14,7 @@
         <div class="info" role="region">
             <div class="sr-only"><wicket:message key="SideBarMenuPanel.loginUser"/></div>
             <div class="sr-only"><wicket:message key="SideBarMenuPanel.loginUserUsername"/></div>
-            <div class="text-lightblue text-capitalize pl-1" wicket:id="username"/>
+            <div class="text-lightblue text-capitalize pl-1 w-100" wicket:id="username" style="overflow: hidden; text-overflow: ellipsis; -webkit-line-clamp: 1;"/>
             <div class="sr-only"><wicket:message key="SideBarMenuPanel.loginUserDescription"/></div>
             <div class="text-sm text-gray text-truncate pl-1" wicket:id="usernameDescription"/>
         </div>
@@ -25,6 +25,7 @@
             <wicket:container wicket:id="menuItems">
                 <li class="nav-header pr-3" wicket:id="header" role="menuitem" aria-haspopup="true" tabindex="0">
                     <div class="d-flex">
+                        <span class="sr-only"><wicket:message key="SideBarMenuPanel.headerMenuItem"/></span>
                         <span wicket:id="name"/>
                         <span class="ml-auto">
                             <i class="fa fa-chevron-down"></i>

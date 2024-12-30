@@ -216,6 +216,11 @@ public class ObjectValidator {
                         continue;
                     }
 
+                    var key = naturalKey.getConstituents(value);
+                    if (key == null || key.isEmpty()) {
+                        continue;
+                    }
+
                     if (naturalKey.valuesMatch(value, other)) {
                         warn(
                                 result, ValidationItemType.NATURAL_KEY_NOT_UNIQUE,

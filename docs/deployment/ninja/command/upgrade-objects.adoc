@@ -1,5 +1,7 @@
 = Upgrade objects
 
+WARNING: This command will fail when used against generic repository implementation when unsupported objects are handled.
+
 Command `upgrade-objects` can be used to _upgrade_ objects to get rid of deprecated or obsolete data and configuration.
 This operation should be used with CSV output file from `verify` command.
 For more information about verification, see xref:./verify.adoc[].
@@ -16,6 +18,9 @@ Scope of upgrade-objects command can be set in several ways:
 This way it is possible to upgrade only specific objects.
 Verification items can be skipped also using last column in CSV file.
 Any of `true`, `t`, `yes`, `y` will tell ninja to skip the item.
+
+Upgrade objects command also supports multi-threading (`-l`, `--multi-thread`).
+For more information about multi-threading see xref:/midpoint/reference/deployment/ninja#how-multithreading-works[here].
 
 .Example of command that upgrades objects, also with
 [source,bash]

@@ -87,6 +87,13 @@ public class CompositeObjectDefinitionImpl
         return definition;
     }
 
+    static @NotNull CompositeObjectDefinitionImpl mutable(
+            @NotNull ResourceObjectDefinition structuralDefinition,
+            @Nullable Collection<? extends ResourceObjectDefinition> auxiliaryDefinitions) {
+        return new CompositeObjectDefinitionImpl(
+                DEFAULT_LAYER, structuralDefinition, auxiliaryDefinitions, true);
+    }
+
     @Override
     public @NotNull BasicResourceInformation getBasicResourceInformation() {
         return structuralDefinition.getBasicResourceInformation();
@@ -388,47 +395,6 @@ public class CompositeObjectDefinitionImpl
         }
         return collectedDefinitions;
     }
-
-//    @Override
-//    public @NotNull synchronized Collection<? extends ShadowAttributeDefinition<?, ?>> getShadowItemDefinitions() {
-//        if (auxiliaryDefinitions.isEmpty()) {
-//            return structuralDefinition.getShadowItemDefinitions();
-//        }
-//
-//        if (allShadowAttributeDefinitions != null) {
-//            return allShadowAttributeDefinitions;
-//        }
-//
-//        List<ShadowAttributeDefinition<?, ?>> collectedDefinitions = collectShadowItemDefinitions();
-//        if (isImmutable()) {
-//            allShadowAttributeDefinitions = collectedDefinitions;
-//        } else {
-//            // it's not safe to cache the definitions if this instance is mutable
-//        }
-//
-//        return collectedDefinitions;
-//    }
-//
-//    private @NotNull List<ShadowAttributeDefinition<?, ?>> collectShadowItemDefinitions() {
-//        // Adds all definitions from aux OCs that are not already known.
-//        ArrayList<ShadowAttributeDefinition<?, ?>> collectedDefinitions =
-//                new ArrayList<>(structuralDefinition.getShadowItemDefinitions());
-//        for (ResourceObjectDefinition auxiliaryObjectClassDefinition : auxiliaryDefinitions) {
-//            for (ShadowAttributeDefinition<?, ?> auxDef : auxiliaryObjectClassDefinition.getShadowItemDefinitions()) {
-//                boolean shouldAdd = true;
-//                for (var def : collectedDefinitions) {
-//                    if (def.getItemName().equals(auxDef.getItemName())) { // FIXME what about case in-sensitiveness?
-//                        shouldAdd = false;
-//                        break;
-//                    }
-//                }
-//                if (shouldAdd) {
-//                    collectedDefinitions.add(auxDef);
-//                }
-//            }
-//        }
-//        return collectedDefinitions;
-//    }
 
     @Override
     public @NotNull List<? extends ItemDefinition<?>> getDefinitions() {
@@ -814,5 +780,15 @@ public class CompositeObjectDefinitionImpl
     @Override
     public @NotNull List<? extends ShadowAssociationDefinition> getAssociationDefinitions() {
         return structuralDefinition.getAssociationDefinitions();
+    }
+
+    @Override
+    public @NotNull Collection<ShadowAttributeDefinition<?, ?, ?, ?>> getAttributesVolatileOnAddOperation() {
+        return structuralDefinition.getAttributesVolatileOnAddOperation();
+    }
+
+    @Override
+    public @NotNull Collection<ShadowAttributeDefinition<?, ?, ?, ?>> getAttributesVolatileOnModifyOperation() {
+        return structuralDefinition.getAttributesVolatileOnModifyOperation();
     }
 }

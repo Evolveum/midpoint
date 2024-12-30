@@ -97,7 +97,7 @@ public abstract class ErrorHandler {
      * No more retries, no more attempts.
      */
     protected abstract void throwException(
-            @Nullable ShadowProvisioningOperation<?> operation, Exception cause, OperationResult result)
+            @Nullable ShadowProvisioningOperation operation, Exception cause, OperationResult result)
             throws SchemaException, GenericFrameworkException, CommunicationException,
             ObjectNotFoundException, ObjectAlreadyExistsException, ConfigurationException,
             SecurityViolationException, PolicyViolationException, ExpressionEvaluationException;
@@ -107,7 +107,7 @@ public abstract class ErrorHandler {
      * No more retries, no more attempts.
      */
     protected void recordCompletionError(
-            @Nullable ShadowProvisioningOperation<?> operation,
+            @Nullable ShadowProvisioningOperation operation,
             Exception cause,
             OperationResult result) {
         result.recordExceptionNotFinish(cause);

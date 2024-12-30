@@ -24,3 +24,16 @@
 .bs-stepper .step-trigger:hover {
   background-color: inherit;
 }
+
+//Responsive stepper (hide unactive steps)
+@include media-breakpoint-down(xs) {
+  .bs-stepper-header {
+    & > .step:not(.active),
+    & > .line {
+      display:none;
+    }
+    & > .step.active {
+      margin: 0 auto;
+    }
+  }
+}

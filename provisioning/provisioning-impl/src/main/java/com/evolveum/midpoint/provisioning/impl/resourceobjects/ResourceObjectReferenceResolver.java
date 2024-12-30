@@ -7,6 +7,7 @@
 package com.evolveum.midpoint.provisioning.impl.resourceobjects;
 
 import static com.evolveum.midpoint.prism.Referencable.getOid;
+import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.asObjectable;
 import static com.evolveum.midpoint.util.DebugUtil.lazy;
 import static com.evolveum.midpoint.util.MiscUtil.configNonNull;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectReferenceResolutionFrequencyType.*;
@@ -139,11 +140,11 @@ class ResourceObjectReferenceResolver {
             return true;
         };
 
-        shadowsFacade.searchObjectsIterative(subCtx, completeQuery, null, handler, result);
+        shadowsFacade.searchShadowsIterative(subCtx, completeQuery, null, handler, result);
 
         // TODO: implement storage of OID (ONCE search frequency)
 
-        return shadowHolder.getValue().asObjectable();
+        return asObjectable(shadowHolder.getValue());
     }
 
     /**

@@ -113,10 +113,8 @@ public interface ShadowAssociationDefinition
         }
     }
 
-    /** TODO reconsider this: which definition should we provide as the representative one? There can be many. */
-    @Deprecated
-    default ResourceObjectDefinition getRepresentativeTargetObjectDefinition() {
-        return getReferenceAttributeDefinition().getRepresentativeTargetObjectDefinition();
+    default ResourceObjectDefinition getGeneralizedObjectSideObjectDefinition() {
+        return getReferenceAttributeDefinition().getGeneralizedObjectSideObjectDefinition();
     }
 
     @Override
@@ -124,16 +122,16 @@ public interface ShadowAssociationDefinition
 
     /** Call only on simple associations! */
     default ShadowAssociationValue createValueFromFullDefaultObject(@NotNull AbstractShadow object) throws SchemaException {
-        return createValueFromDefaultObject(object, true);
+        return createValueFromDefaultObject(object);
     }
 
     /** Call only on simple associations! */
-    default ShadowAssociationValue createValueFromDefaultObject(@NotNull AbstractShadow object, boolean full)
+    default ShadowAssociationValue createValueFromDefaultObject(@NotNull AbstractShadow object)
             throws SchemaException {
         assert !isComplex();
         var newValue = instantiate().createNewValue();
         newValue.getOrCreateObjectsContainer()
-                .addReferenceAttribute(getSingleObjectParticipantName(), object, full);
+                .addReferenceAttribute(getSingleObjectParticipantName(), object);
         return newValue.clone(); // to make it parent-less
     }
 
@@ -149,6 +147,7 @@ public interface ShadowAssociationDefinition
 
     ContainerDelta<ShadowAssociationValueType> createEmptyDelta();
 
+    /** Is at least one of the object-side participants an entitlement? */
     boolean isEntitlement();
 
     default @NotNull String getResourceOid() {
@@ -159,9 +158,7 @@ public interface ShadowAssociationDefinition
     ShadowAssociationDefinition clone();
 
     @Override
-    default <T extends ItemDefinition<?>> T findItemDefinition(@NotNull ItemPath path, @NotNull Class<T> clazz) {
-        return ShadowItemDefinition.super.findItemDefinition(path, clazz);
-    }
+    <T extends ItemDefinition<?>> T findItemDefinition(@NotNull ItemPath path, @NotNull Class<T> clazz);
 
     @NotNull Collection<MappingType> getOutboundMappingBeans();
 

@@ -29,7 +29,6 @@ import com.evolveum.midpoint.provisioning.ucf.api.async.UcfAsyncUpdateChangeList
 import com.evolveum.midpoint.schema.SearchResultMetadata;
 import com.evolveum.midpoint.schema.processor.ResourceObjectIdentification;
 import com.evolveum.midpoint.schema.result.AsynchronousOperationQueryable;
-import com.evolveum.midpoint.schema.result.AsynchronousOperationResult;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
@@ -131,7 +130,7 @@ public class ResourceObjectConverter {
         if (identification instanceof ResourceObjectIdentification.WithPrimary primary) {
             return ResourceObjectFetchOperation.execute(
                     ctx, primary, fetchAssociations,
-                    ctx.createAttributesToReturn(),
+                    ctx.createItemsToReturn(),
                     result);
         } else if (identification instanceof ResourceObjectIdentification.SecondaryOnly secondaryOnly) {
             return ResourceObjectLocateOperation.execute(ctx, secondaryOnly, fetchAssociations, result);
@@ -163,7 +162,7 @@ public class ResourceObjectConverter {
                 .execute(parentResult);
     }
 
-    public ResourceObjectAddReturnValue addResourceObject(
+    public @NotNull ResourceObjectAddReturnValue addResourceObject(
             ProvisioningContext ctx,
             ResourceObjectShadow shadowToAdd,
             OperationProvisioningScriptsType scripts,
@@ -192,7 +191,7 @@ public class ResourceObjectConverter {
      *
      * TODO consider making this obligatory for all cases.
      */
-    public ResourceObjectDeleteReturnValue deleteResourceObject(
+    public @NotNull ResourceObjectDeleteResult deleteResourceObject(
             ProvisioningContext ctx,
             RepoShadow shadow,
             OperationProvisioningScriptsType scripts,
@@ -208,21 +207,21 @@ public class ResourceObjectConverter {
             result.recordException(t);
             throw t;
         } finally {
-            result.computeStatusIfUnknown();
+            result.close();
         }
     }
 
     static void updateQuantum(
             ProvisioningContext ctx,
             ConnectorInstance connectorUsedForOperation,
-            AsynchronousOperationResult aResult,
+            ResourceObjectOperationResult aResult,
             OperationResult result)
             throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
             ExpressionEvaluationException {
         ConnectorInstance readConnector = ctx.getConnector(ReadCapabilityType.class, result);
         if (readConnector != connectorUsedForOperation) {
             // Writing by different connector that we are going to use for reading: danger of quantum effects
-            aResult.setQuantumOperation(true);
+            aResult.setQuantumOperation(true); // TODO this information is currently unused
         }
     }
 
@@ -231,7 +230,7 @@ public class ResourceObjectConverter {
      * ResourceObjectIdentification.WithPrimary, PrismObject, Collection, ConnectorOperationOptions,
      * SchemaAwareUcfExecutionContext, OperationResult)}.
      */
-    public ResourceObjectModifyReturnValue modifyResourceObject(
+    public @NotNull ResourceObjectModifyReturnValue modifyResourceObject(
             @NotNull ProvisioningContext ctx,
             @NotNull RepoShadow repoShadow,
             OperationProvisioningScriptsType scripts,
@@ -279,7 +278,7 @@ public class ResourceObjectConverter {
 
         LOGGER.trace("Got last token: {}", SchemaDebugUtil.prettyPrint(lastToken));
 
-        computeResultStatus(parentResult);
+        computeResultStatusAndAsyncOpReference(parentResult);
 
         return TokenUtil.fromUcf(lastToken);
     }
@@ -298,7 +297,7 @@ public class ResourceObjectConverter {
         if (ctx.isWildcard()) {
             attrsToReturn = null;
         } else {
-            attrsToReturn = ctx.createAttributesToReturn();
+            attrsToReturn = ctx.createItemsToReturn();
         }
 
         ConnectorInstance connector = ctx.getConnector(LiveSyncCapabilityType.class, gResult);
@@ -338,7 +337,7 @@ public class ResourceObjectConverter {
                 localListener,
                 gResult);
 
-        computeResultStatus(gResult);
+        computeResultStatusAndAsyncOpReference(gResult);
 
         LOGGER.trace("END fetch changes ({} changes); interrupted = {}; all fetched = {}, final token = {}",
                 processed.get(), !ctx.canRun(), fetchChangesResult.isAllChangesFetched(), fetchChangesResult.getFinalToken());
@@ -389,7 +388,7 @@ public class ResourceObjectConverter {
         LOGGER.trace("Finished listening for async updates");
     }
 
-    public AsynchronousOperationResult refreshOperationStatus(
+    public @Nullable OperationResultStatus refreshOperationStatus(
             ProvisioningContext ctx, RepoShadow shadow, String asyncRef, OperationResult parentResult)
             throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
             ExpressionEvaluationException {
@@ -418,13 +417,10 @@ public class ResourceObjectConverter {
                 result.setNotApplicable();
             }
 
-            OperationResult refreshResult = new OperationResult(OPERATION_REFRESH_OPERATION_STATUS);
-            refreshResult.setStatus(status);
-            AsynchronousOperationResult asyncResult = AsynchronousOperationResult.wrap(refreshResult);
+            // Here was "updateQuantum" call (actually useless). When reviving this feature, we could consider placing
+            // it here again.
 
-            updateQuantum(ctx, connector, asyncResult, result);
-
-            return asyncResult;
+            return status;
 
         } catch (Throwable t) {
             result.recordException(t);
@@ -437,17 +433,25 @@ public class ResourceObjectConverter {
     /**
      * Does _not_ close the operation result, just sets its status (and async operation reference).
      */
-    static void computeResultStatus(OperationResult result) {
+    static void computeResultStatusAndAsyncOpReference(OperationResult result) {
         if (result.isInProgress()) {
             return;
         }
+        String lastPartialErrorMessage = null;
+        String lastFatalErrorMessage = null;
         OperationResultStatus status = OperationResultStatus.SUCCESS;
         String asyncRef = null;
         for (OperationResult subresult : result.getSubresults()) {
             if (OPERATION_MODIFY_ENTITLEMENT.equals(subresult.getOperation()) && subresult.isError()) {
                 status = OperationResultStatus.PARTIAL_ERROR;
+                if (subresult.getMessage() != null) {
+                    lastPartialErrorMessage = subresult.getMessage();
+                }
             } else if (subresult.isError()) {
                 status = OperationResultStatus.FATAL_ERROR;
+                if (subresult.getMessage() != null) {
+                    lastFatalErrorMessage = subresult.getMessage();
+                }
             } else if (subresult.isInProgress()) {
                 status = OperationResultStatus.IN_PROGRESS;
                 asyncRef = subresult.getAsynchronousOperationReference();
@@ -455,13 +459,20 @@ public class ResourceObjectConverter {
         }
         result.setStatus(status);
         result.setAsynchronousOperationReference(asyncRef);
+        if (result.getMessage() == null) {
+            if (lastFatalErrorMessage != null) {
+                result.setMessage(lastFatalErrorMessage);
+            } else if (lastPartialErrorMessage != null) {
+                result.setMessage(lastPartialErrorMessage);
+            }
+        }
     }
 
     static ObjectAlreadyExistsException objectAlreadyExistsException(
-            String message, ProvisioningContext ctx, ConnectorInstance connector, ObjectAlreadyExistsException ex) {
+            String messagePrefix, ProvisioningContext ctx, ConnectorInstance connector, ObjectAlreadyExistsException ex) {
         return new ObjectAlreadyExistsException(
                 String.format("%sObject already exists on the resource (%s): %s",
-                        message, ctx.getExceptionDescription(connector), ex.getMessage()),
+                        messagePrefix, ctx.getExceptionDescription(connector), ex.getMessage()),
                 ex);
     }
 

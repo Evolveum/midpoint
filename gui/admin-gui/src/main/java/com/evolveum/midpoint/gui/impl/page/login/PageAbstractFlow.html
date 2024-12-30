@@ -12,7 +12,9 @@
 <wicket:extend>
     <form wicket:id="mainForm">
         <div wicket:id="contentArea"></div>
-        <input type="submit" wicket:id="submitRegistration" class="btn btn-primary login-panel-control mt-4" wicket:message="value:PageSelfRegistration.register"/>
+        <button type="submit" wicket:id="submitRegistration" class="btn btn-primary login-panel-control mt-4">
+            <span wicket:id="submitLabel"/>
+        </button>
     </form>
     <wicket:child/>
 </wicket:extend>

@@ -117,7 +117,12 @@
                                 xmlns:ext="http://midpoint.evolveum.com/xml/ns/science/user/ext">extension/ext:aixUserId</c:path>
                     </target>
                 </inbound>
-                <cached>false</cached> <!-- MID-10051 -->
+                <volatility>
+                    <!-- The value is generated when the object is created -->
+                    <incoming>
+                        <operation>add</operation>
+                    </incoming>
+                </volatility>
             </attribute>
             <attribute>
                 <ref xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3">ri:Description</ref>

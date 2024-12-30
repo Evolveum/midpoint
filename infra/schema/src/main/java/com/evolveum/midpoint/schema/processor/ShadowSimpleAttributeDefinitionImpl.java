@@ -12,6 +12,8 @@ import java.util.Collection;
 import java.util.Map;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.util.exception.ConfigurationException;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -46,12 +48,12 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 public class ShadowSimpleAttributeDefinitionImpl<T>
         extends ShadowAttributeDefinitionImpl<
         PrismPropertyValue<T>, ShadowSimpleAttributeDefinition<T>, T, ShadowSimpleAttribute<T>, NativeShadowSimpleAttributeDefinition<T>>
-        implements ShadowSimpleAttributeDefinition<T>, ShadowItemDefinition {
+        implements ShadowSimpleAttributeDefinition<T> {
 
     private ShadowSimpleAttributeDefinitionImpl(
             @NotNull NativeShadowSimpleAttributeDefinition<T> nativeDefinition,
             @NotNull ResourceAttributeDefinitionType customizationBean,
-            boolean ignored) throws SchemaException {
+            boolean ignored) throws ConfigurationException {
         super(nativeDefinition, customizationBean, ignored);
     }
 
@@ -72,13 +74,13 @@ public class ShadowSimpleAttributeDefinitionImpl<T>
     /**
      * This is the main creation point.
      *
-     * @throws SchemaException If there's a problem with the customization bean.
+     * @throws ConfigurationException If there's a problem with the customization bean.
      */
     public static <T> ShadowSimpleAttributeDefinition<T> create(
             @NotNull NativeShadowSimpleAttributeDefinition<T> nativeDefinition,
             @Nullable ResourceAttributeDefinitionType customizationBean,
             boolean ignored)
-            throws SchemaException {
+            throws ConfigurationException {
 
         return new ShadowSimpleAttributeDefinitionImpl<>(
                 toImmutable(nativeDefinition),
@@ -89,7 +91,7 @@ public class ShadowSimpleAttributeDefinitionImpl<T>
 
     /** This is the creation point from native form only. */
     public static <T> ShadowSimpleAttributeDefinition<T> create(
-            @NotNull NativeShadowSimpleAttributeDefinition<T> nativeDefinition) throws SchemaException {
+            @NotNull NativeShadowSimpleAttributeDefinition<T> nativeDefinition) throws ConfigurationException {
         return create(nativeDefinition, null, false);
     }
 
@@ -263,6 +265,6 @@ public class ShadowSimpleAttributeDefinitionImpl<T>
 
     @Override
     public boolean isSimulated() {
-        return false; // currently, all attributes are "real"; only associations can be simulated
+        return false; // currently, all attributes are "real"; only reference attributes can be simulated
     }
 }

@@ -52,6 +52,10 @@ public class TestEscalation extends AbstractCertificationTest {
 
     private String campaignOid;
 
+    private XMLGregorianCalendar stageClosedTime;
+    private XMLGregorianCalendar campaignClosedTime;
+    private XMLGregorianCalendar reiterationStartTime;
+
     @Override
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
         super.initSystem(initTask, initResult);
@@ -384,6 +388,7 @@ public class TestEscalation extends AbstractCertificationTest {
         clock.resetOverride();
         clock.overrideDuration("P15D"); // stage ends at P14D
         waitForTaskNextRun(TASK_TRIGGER_SCANNER_OID, 20000, true);
+        stageClosedTime = clock.currentTimeXMLGregorianCalendar();
 
         // THEN
         then();
@@ -412,6 +417,7 @@ public class TestEscalation extends AbstractCertificationTest {
         clock.resetOverride();
         clock.overrideDuration("P16D");
         certificationManager.closeCampaign(campaignOid, true, task, result);
+        campaignClosedTime = clock.currentTimeXMLGregorianCalendar();
 
         // THEN
         then();
@@ -442,6 +448,7 @@ public class TestEscalation extends AbstractCertificationTest {
         XMLGregorianCalendar startTime = clock.currentTimeXMLGregorianCalendar();
         clock.overrideDuration("P18D"); // campaign ends at P16D, reiteration scheduled to P17D
         waitForTaskNextRun(TASK_TRIGGER_SCANNER_OID, 20000, true);
+        reiterationStartTime = clock.currentTimeXMLGregorianCalendar();
 
         // THEN
         then();
@@ -486,16 +493,13 @@ public class TestEscalation extends AbstractCertificationTest {
     }
 
     /** MID-8665 */
-    @Test(enabled = false)
+    @Test(enabled = false) // MID-10294
     public void test210Reports() throws Exception {
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
         login(getUserFromRepo(USER_ADMINISTRATOR_OID));
 
-        String startYear = currentYearFragment();
-        // Year could change because of clock override
-        String endYear = String.valueOf(clock.currentTimeXMLGregorianCalendar().getYear()  % 100);
         String definitionName = "Basic User Assignment Certification (ERoot only) with escalations";
         String campaignName = definitionName + " 1";
 
@@ -509,8 +513,8 @@ public class TestEscalation extends AbstractCertificationTest {
                 .assertValue(C_DEF_OWNER, "")
                 .assertValue(C_DEF_CAMPAIGNS, "1")
                 .assertValue(C_DEF_OPEN_CAMPAIGNS, "1")
-                .assertValue(C_DEF_LAST_STARTED, v -> v.contains(startYear))
-                .assertValue(C_DEF_LAST_CLOSED, v -> v.contains(endYear));
+                .assertValue(C_DEF_LAST_STARTED, v -> v.contains(currentYearFragment()))
+                .assertValue(C_DEF_LAST_CLOSED, v -> v.contains(yearFragment(campaignClosedTime)));
 
         var campaigns = REPORT_CERTIFICATION_CAMPAIGNS.export()
                 .execute(result);
@@ -520,7 +524,7 @@ public class TestEscalation extends AbstractCertificationTest {
                 .record(0)
                 .assertValue(C_CMP_NAME, campaignName)
                 .assertValue(C_CMP_OWNER, "administrator")
-                .assertValue(C_CMP_START, v -> v.contains(endYear))
+                .assertValue(C_CMP_START, v -> v.contains(yearFragment(reiterationStartTime)))
                 .assertValue(C_CMP_FINISH, "")
                 .assertValue(C_CMP_CASES, "7")
                 .assertValue(C_CMP_STATE, "In review stage")
@@ -538,7 +542,7 @@ public class TestEscalation extends AbstractCertificationTest {
                                 && "Role: Superuser".equals(r.get(C_CASES_TARGET)),
                         a -> a.assertValue(C_CASES_CAMPAIGN, campaignName)
                                 .assertValue(C_CASES_REVIEWERS, "")
-                                .assertValue(C_CASES_LAST_REVIEWED_ON, s -> s.contains(startYear))
+                                .assertValue(C_CASES_LAST_REVIEWED_ON, s -> s.contains(currentYearFragment()))
                                 .assertValue(C_CASES_REVIEWED_BY, "administrator")
                                 .assertValue(C_CASES_ITERATION, "1")
                                 .assertValue(C_CASES_IN_STAGE, "1")
@@ -577,7 +581,7 @@ public class TestEscalation extends AbstractCertificationTest {
                                 .assertValue(C_WI_OUTCOME, "")
                                 .assertValue(C_WI_COMMENT, "")
                                 .assertValue(C_WI_LAST_CHANGED, "")
-                                .assertValue(C_WI_CLOSED, s -> s.contains(endYear)))
+                                .assertValue(C_WI_CLOSED, s -> s.contains(yearFragment(stageClosedTime))))
                 .forRecords(1,
                         r -> "User: jack".equals(r.get(C_WI_OBJECT))
                                 && "Role: Reviewer".equals(r.get(C_WI_TARGET))
@@ -790,7 +794,7 @@ public class TestEscalation extends AbstractCertificationTest {
         TaskType taskAfter = getTask(taskOid).asObjectable();
         TaskInformation taskInfo = TaskInformation.createForTask(taskAfter, taskAfter);
         assertEquals("Expected task with fatal error result, ", taskInfo.getResultStatus(), OperationResultStatusType.FATAL_ERROR);
-        
+
         String message = taskInfo.getTask().getResult().getMessage();
         assertTrue("wrong exception message", message.contains("maximum number of iterations (3) was reached"));
     }

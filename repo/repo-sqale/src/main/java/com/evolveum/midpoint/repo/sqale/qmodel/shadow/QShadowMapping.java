@@ -311,4 +311,30 @@ public class QShadowMapping
     public ShadowPartitionManager getPartitionManager() {
         return partitionManager;
     }
+
+    @Override
+    public void preprocessCacheableUris(ShadowType shadow) {
+        //QShadowReferenceAttributeMapping.get().preprocessCacheableUris();
+        processCacheableUri(shadow.getObjectClass());
+        var activation = shadow.getActivation();
+        if (activation != null) {
+            processCacheableUri(activation.getDisableReason());
+        }
+        var refAttrsBean = shadow.getReferenceAttributes();
+        if (refAttrsBean == null) {
+            return;
+        }
+        PrismContainerValue<?> refAttrs = refAttrsBean.asPrismContainerValue();
+        for (var item : refAttrs.getItems()) {
+            var name = item.getElementName();
+            if (item instanceof PrismReference ref) {
+                Integer pathId = null;
+                for (var val : ref.getValues()) {
+                    if (pathId == null) {
+                        pathId = repositoryContext().processCacheableUri(name);
+                    }
+                }
+            }
+        }
+    }
 }

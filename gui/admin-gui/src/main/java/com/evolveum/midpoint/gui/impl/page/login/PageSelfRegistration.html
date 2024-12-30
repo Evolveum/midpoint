@@ -12,55 +12,42 @@
 <wicket:extend>
 
     <wicket:fragment wicket:id="staticContent">
-        <div wicket:id="staticForm" >
-            <div class="mb-3">
-            <div class="d-flex flex-column my-2 justify-content-between login-panel-control">
-                <label>
-                    <wicket:message key="UserType.givenName"/>
-                </label>
-                <div>
+        <div wicket:id="staticForm">
+            <div>
+                <div class="form-group">
+                    <label>
+                        <wicket:message key="UserType.givenName"/>
+                    </label>
                     <div wicket:id="firstName"/>
                 </div>
-            </div>
-
-            <div class="d-flex flex-column my-2 justify-content-between login-panel-control">
-                <label>
-                    <wicket:message key="UserType.familyName"/>
-                </label>
-                <div>
+                <div class="form-group">
+                    <label>
+                        <wicket:message key="UserType.familyName"/>
+                    </label>
                     <div wicket:id="lastName"/>
                 </div>
-            </div>
-
-            <div class="d-flex flex-column my-2 justify-content-between login-panel-control">
-                <label>
-                    <wicket:message key="UserType.emailAddress"/>
-                </label>
-                <div>
+                <div class="form-group">
+                    <label>
+                        <wicket:message key="UserType.emailAddress"/>
+                    </label>
                     <div wicket:id="email"/>
                 </div>
-            </div>
-
-            <div class="d-flex flex-column my-2 justify-content-between login-panel-control">
-                <label>
-                    <wicket:message key="CredentialsType.password"/>
-                </label>
-                <div>
-                    <div class="col-md-12 px-0" wicket:id="password"/>
+                <div class="form-group">
+                    <label>
+                        <wicket:message key="CredentialsType.password"/>
+                    </label>
+                    <div wicket:id="password"/>
                 </div>
             </div>
-            </div>
-
             <div wicket:id="componentFeedback"/>
-
         </div>
-        <div wicket:id="captcha"/>
+<!--        <div wicket:id="captcha"/>-->
     </wicket:fragment>
 
     <wicket:fragment wicket:id="dynamicContent">
         <div wicket:id="dynamicForm"/>
         <div class="pt-3 text-center">
-            <div wicket:id="captcha"/>
+<!--            <div wicket:id="captcha"/>-->
         </div>
     </wicket:fragment>
 

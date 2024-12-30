@@ -296,7 +296,7 @@ public class ClockworkClick<F extends ObjectType> {
     private void processClockworkException(Throwable e, OperationResult result, OperationResult overallResult)
             throws SchemaException {
         LOGGER.trace("Processing clockwork exception {}", e.toString());
-        result.setFatalError(e);
+        result.recordException(e);
         beans.clockworkAuditHelper.auditEvent(context, AuditEventStage.EXECUTION, null, true, task, result, overallResult);
 
         reclaimSequencesIfPossible(result);

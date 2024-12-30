@@ -11,9 +11,7 @@ import java.io.Serializable;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.security.SecureRandom;
-import java.util.Base64;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 import javax.crypto.Cipher;
 import javax.crypto.spec.SecretKeySpec;
 
@@ -62,6 +60,59 @@ public class RoleMiningExportUtils implements Serializable {
         }
     }
 
+    public static class SequentialAnonymizer {
+        private final Map<String, String> anonymizedValues = new HashMap<>();
+        private final String baseName;
+        private long index = 0;
+
+        public SequentialAnonymizer(String baseName) {
+            this.baseName = baseName;
+        }
+
+        public String anonymize(String value) {
+            if (!anonymizedValues.containsKey(value)) {
+                anonymizedValues.put(value, baseName + index++);
+            }
+            return anonymizedValues.get(value);
+        }
+    }
+
+    private static class ScopedSequentialAnonymizer {
+        private final Map<String, SequentialAnonymizer> scopedAnonymizers = new HashMap<>();
+        private final String baseName;
+
+        public ScopedSequentialAnonymizer(String baseName) {
+            this.baseName = baseName;
+        }
+
+        public String anonymize(String scope, String value) {
+            if (!scopedAnonymizers.containsKey(scope)) {
+                scopedAnonymizers.put(scope, new SequentialAnonymizer(baseName));
+            }
+            return scopedAnonymizers.get(scope).anonymize(value);
+        }
+    }
+
+    public static class AttributeValueAnonymizer {
+        private final ScopedSequentialAnonymizer sequentialAnonymizer = new ScopedSequentialAnonymizer("att");
+        private final NameMode nameMode;
+        private final String encryptKey;
+
+        public AttributeValueAnonymizer(NameMode nameMode, String encryptKey) {
+            this.nameMode = nameMode;
+            this.encryptKey = encryptKey;
+        }
+
+        public String anonymize(String attributeName, String attributeValue) {
+            var anonymized = switch(nameMode) {
+                case ENCRYPTED -> encrypt(attributeValue, encryptKey);
+                case SEQUENTIAL -> sequentialAnonymizer.anonymize(attributeName, attributeValue);
+                case ORIGINAL -> attributeValue;
+            };
+            return anonymized + EXPORT_SUFFIX;
+        }
+    }
+
     private static PolyStringType encryptName(String name, int iterator, String prefix, @NotNull NameMode nameMode, String key) {
         if (nameMode.equals(NameMode.ENCRYPTED)) {
             return PolyStringType.fromOrig(encrypt(name, key) + EXPORT_SUFFIX);
@@ -83,6 +134,12 @@ public class RoleMiningExportUtils implements Serializable {
 
     public static PolyStringType encryptRoleName(String name, int iterator, NameMode nameMode, String key) {
         return encryptName(name, iterator, "Role", nameMode, key);
+    }
+
+    public static ObjectReferenceType encryptObjectReference(ObjectReferenceType targetRef, SecurityMode securityMode, String key) {
+        ObjectReferenceType encryptedTargetRef = targetRef.clone();
+        encryptedTargetRef.setOid(encryptedUUID(encryptedTargetRef.getOid(), securityMode, key));
+        return encryptedTargetRef;
     }
 
     public static AssignmentType encryptObjectReference(@NotNull AssignmentType assignmentObject,

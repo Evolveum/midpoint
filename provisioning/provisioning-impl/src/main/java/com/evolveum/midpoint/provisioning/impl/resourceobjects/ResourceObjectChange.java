@@ -146,9 +146,11 @@ public abstract class ResourceObjectChange extends AbstractLazilyInitializableRe
 
     @Override
     public void initializeInternal(Task task, OperationResult result) throws CommonException, NotApplicableException {
-        effectiveCtx = originalCtx.spawn(task);
+        effectiveCtx = originalCtx.spawn(
+                ucfResourceObject != null ? ucfResourceObject.getBean().getAuxiliaryObjectClass() : List.of(),
+                task);
         if (initialErrorState.isOk()) {
-            effectiveCtx = refineProvisioningContext();
+            effectiveCtx = refineProvisioningContext(); // FIXME what about auxiliary OCs in the refined context?
             completeResourceObject = processObjectAndDelta(result);
         } else {
             getInitializationState().recordError(initialErrorState);
@@ -213,7 +215,7 @@ public abstract class ResourceObjectChange extends AbstractLazilyInitializableRe
     }
 
     @Nullable ShadowItemsToReturn determineAttributesToReturn() {
-        return effectiveCtx.createAttributesToReturn();
+        return effectiveCtx.createItemsToReturn();
     }
 
     boolean attributesToReturnAreDifferent(ShadowItemsToReturn actualShadowItemsToReturn) {

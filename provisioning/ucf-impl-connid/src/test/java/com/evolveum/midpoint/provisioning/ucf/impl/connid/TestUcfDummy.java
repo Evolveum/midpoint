@@ -660,7 +660,7 @@ public class TestUcfDummy extends AbstractUcfDummyTest {
         assertThat(refAttributes).as("john's ref attributes").hasSize(1);
         var contractItem = refAttributes.iterator().next();
         assertThat(contractItem.getElementName()).as("ref attr name").isEqualTo(Person.LinkNames.CONTRACT.q());
-        List<? extends ShadowReferenceAttributeValue> contracts = contractItem.getReferenceValues();
+        List<? extends ShadowReferenceAttributeValue> contracts = contractItem.getAttributeValues();
         assertThat(contracts).as("john's contracts").hasSize(2);
         for (ShadowReferenceAttributeValue contract : contracts) {
             assertThat(contract.getTargetObjectClassName())
@@ -677,7 +677,7 @@ public class TestUcfDummy extends AbstractUcfDummyTest {
             assertThat(orgRefAttributes.getElementName())
                     .as("reference attribute name")
                     .isEqualTo(Contract.LinkNames.ORG.q());
-            var orgs = orgRefAttributes.getReferenceValues();
+            var orgs = orgRefAttributes.getAttributeValues();
             assertThat(orgs).as("contract's orgs").hasSize(1);
             var org = orgs.iterator().next();
             var orgAttrContainer = org.getAttributesContainerRequired();
@@ -716,7 +716,7 @@ public class TestUcfDummy extends AbstractUcfDummyTest {
         var annContractShadow =
                 ShadowBuilder.withDefinition(contractClassDefinition)
                         .withSimpleAttribute(Contract.AttributeNames.NAME.q(), "ann-engineering")
-                        .withReferenceAttributeWithFullObject(Contract.LinkNames.ORG.q(), engineering)
+                        .withReferenceAttribute(Contract.LinkNames.ORG.q(), engineering)
                         .asAbstractShadow();
 
         var personClassDefinition = resourceSchema.findObjectClassDefinitionRequired(Person.OBJECT_CLASS_NAME.xsd());
@@ -725,7 +725,7 @@ public class TestUcfDummy extends AbstractUcfDummyTest {
                         .withSimpleAttribute(Person.AttributeNames.NAME.q(), "ann")
                         .withSimpleAttribute(Person.AttributeNames.FIRST_NAME.q(), "Ann")
                         .withSimpleAttribute(Person.AttributeNames.LAST_NAME.q(), "Green")
-                        .withReferenceAttributeWithFullObject(Person.LinkNames.CONTRACT.q(), annContractShadow)
+                        .withReferenceAttribute(Person.LinkNames.CONTRACT.q(), annContractShadow)
                         .asPrismObject();
 
         when("ann is created on the resource");
@@ -744,7 +744,7 @@ public class TestUcfDummy extends AbstractUcfDummyTest {
 
         var references = annShadowAfter.getReferenceAttributes();
         assertThat(references).as("ann's references").hasSize(1);
-        List<? extends ShadowReferenceAttributeValue> contracts = references.iterator().next().getReferenceValues();
+        List<? extends ShadowReferenceAttributeValue> contracts = references.iterator().next().getAttributeValues();
         assertThat(contracts).as("ann's contracts").hasSize(1);
         var contract = contracts.get(0);
 
@@ -761,7 +761,7 @@ public class TestUcfDummy extends AbstractUcfDummyTest {
                 .as("reference attribute name")
                 .isEqualTo(Contract.LinkNames.ORG.q());
 
-        var orgs = orgRefAttribute.getReferenceValues();
+        var orgs = orgRefAttribute.getAttributeValues();
         assertThat(orgs).as("contract's orgs").hasSize(1);
 
         var org = orgs.iterator().next();
@@ -791,9 +791,8 @@ public class TestUcfDummy extends AbstractUcfDummyTest {
                 ShadowReferenceAttributeValue.fromShadow(
                         ShadowBuilder.withDefinition(contractClassDefinition)
                                 .withSimpleAttribute(Contract.AttributeNames.NAME.q(), "bob-pharmacy")
-                                .withReferenceAttributeWithFullObject(Contract.LinkNames.ORG.q(), pharmacy)
-                                .asAbstractShadow(),
-                        true);
+                                .withReferenceAttribute(Contract.LinkNames.ORG.q(), pharmacy)
+                                .asAbstractShadow());
 
         when("the contract is created on the resource");
         var referenceAddDelta =
@@ -816,7 +815,7 @@ public class TestUcfDummy extends AbstractUcfDummyTest {
 
         var references = bobShadowAfter.getReferenceAttributes();
         assertThat(references).as("bob's references").hasSize(1);
-        List<? extends ShadowReferenceAttributeValue> contracts = references.iterator().next().getReferenceValues();
+        List<? extends ShadowReferenceAttributeValue> contracts = references.iterator().next().getAttributeValues();
         assertThat(contracts).as("bob's contracts").hasSize(1);
         var contract = contracts.get(0);
 
@@ -829,7 +828,7 @@ public class TestUcfDummy extends AbstractUcfDummyTest {
         var orgRefAttr = contractRefAttributes.iterator().next();
         assertThat(orgRefAttr.getElementName()).as("ref attr name").isEqualTo(Contract.LinkNames.ORG.q());
 
-        var orgs = orgRefAttr.getReferenceValues();
+        var orgs = orgRefAttr.getAttributeValues();
         assertThat(orgs).as("contract's orgs").hasSize(1);
 
         var org = orgs.iterator().next();

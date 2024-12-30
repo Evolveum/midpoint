@@ -1,0 +1,90 @@
+= Object Counts Sample
+:page-alias: { "parent" : "/midpoint/guides/" }
+:page-upkeep-status: green
+
+In some deployments it is necessary to display counts of related objects and work with them. The "related objects" are:
+
+* direct and indirect assignments or roles/services or some others
+* direct and indirect members of a role or service
+
+This can be prepared by configuration described in samples:
+https://github.com/Evolveum/midpoint-samples/tree/master/samples/object-counts
+
+== Design benefits
+This design enhances Identity analytics capabilities of midPoint. It provides better overview of the data and their relations to end users. Such design also allows to identify objects with most or least relations easily.
+
+Security officers::
+List users with most accesses. List users with more than XY accesses.
+
+Administrators::
+List roles or applications with most members (or more than XY members). +
+List roles or applications with the least members. (0 or 1 or any number)
+
+=== Usage
+Users can use ordering in views (just click on the colum header) to see highest/lowest values.
+They can also use midpoint query to identify such objects and perform easy analytics within midPoint GUI.
+
+Midpoint Query Examples::
+* `extension/appsCount > 1` - in users view, list all users who have access to more than one application
+* `extension/rolesCount > 10` - in users view, list all users who have more than 10 roles assigned
+* `extension/membersCount > 20` - in roles view, list all roles that have more than 20 members (direct or indirect)
+* `extension/membersCount > 20` - in services view, list all services that have more than 20 members (direct or indirect)
+* `extension/rolesCount > 1` - in services view, list all services (applications) that have more than 1 role pointing to this application.
+
+=== Cons of the design
+All the values are precomputed and therefore are not always exactly correct if related objects were modified.
+
+The values may not be accurate if role structure was modified. E.g. when app role A is included in business role BR.
+In this case all role members of business role BR should be recomputed. This is normal and expected in midPoint.
+But with members counts stored in target objects, the related service that the app role A has induced, must be recomputed as well.
+
+If performance could be an issue, then the recomputation may be limited by defining channel in object template mappings that compute these numbers.
+
+
+== Configuration
+
+The design requires creation of extension attributes and precompute of the values. Otherwise it is not possible to order the views by the values and also the queries would be too complicated for users.
+
+The configuration consists of following components.
+
+Schema extension::
+Attributes are not standard part of midPoint schema and therefore the object types (UserType, RoleType and ServiceType) has to be extended.
+
+Object templates::
+Create mappings in object templates that will compute the values.
+Define attributes to be displayed as read-only.
+
+System config - application of templates::
+Apply defined templates to UserType, RoleType and ServiceType.
+
+System config - Admin GUI - Views preparation::
+Displaying of object counts in the views. Enable ordering of the views by value of the objectCount.
+Sample provides following views:
+
+* User statistics
+* Role statistics
+* Service statistics
+
+This sample describes minimal configuration that can be deployed to clean installation of midPoint. No archetypes are used, no statistics for orgs are prepared, no modification of any object panels.
+
+Each deployment may require slight modification especially relating counting of members or roles - whether you need all roles, only specific archetype, or specific relation... This depends on business requirements that should be represented by the numbers.
+
+
+== Testing the sample
+
+You can apply the code from the sample to clean installation of midPoint in following steps:
+
+. Deploy the schema extension (from object-counts-schema.xsd)
+    * copy object-counts-schema.xsd to home/schema directory and restart the midpoint.
+. Deploy object templates:
+    * `objectTemplates/object-template-user.xml`
+    * `objectTemplates/object-template-role.xml`
+    * `objectTemplates/object-template-service.xml`
+. Apply the object templates into systemConfiguration
+    * copy content of `systemConfiguration/object-templates.txt`
+. Add the 3 new views to systemConfiguration
+    * copy content of systemConfiguration/views.txt to systemConfiguration +
+    path: `adminGuiConfiguration/objectCollectionViews`
+. Recompute all roles, users, services, roles again (in this order)
+    * This can be done manually or using recompute tasks
+

@@ -1,15 +1,11 @@
-= Query - EXAMPLES
+= Query Examples
 :page-wiki-metadata-create-user: mspanik
-:page-since: "4.4"
-:page-since-improved: [ "4.5", "4.6", "4.7", "4.8" ]
 :page-display-order: 550
 
 Midpoint provides multiple mechanisms to xref:/midpoint/reference/concepts/query/[query] the data and search for information.
 This document provides basic information and examples of advanced search using xref:/midpoint/reference/concepts/query/midpoint-query-language/[midPoint query language] in midPoint GUI.
 
 The document is intended for users who understand midPoint concepts and architecture (IDM operators, administrators, engineers,...). They can use the midPoint query language in deeper analysis and searching for the objects and their relations in GUI.
-
-NOTE: The new query language is undergoing rename from 'Axiom' to 'midPoint Query Language' since midPoint version 4.8. As the Axiom name is well known, it can be still for some time referenced also with this name. Please consider _Axiom Query Language_ and _midPoint Query Language_ as synonyms.
 
 == Basic Information
 
@@ -78,6 +74,10 @@ To search these attributes you need to include "extension/" in the attribute nam
 |`activation/administrativeStatus = "disabled"`
 |
 
+|Find multiple roles specified by name
+|`name = ("Role A", "Role B", "Role C")`
+| `=` and `!=` filters allow specifying set of values.
+
 3+|*Search by attributes in referenced objects*
 
 |Find User with specific assignment
@@ -92,6 +92,10 @@ To search these attributes you need to include "extension/" in the attribute nam
 |`archetypeRef/@/name = "External Users"`
 |
 
+|Find members of a role _ABC_. Not its owner(s).
+|`assignment/targetRef matches (relation = org:default and @ matches (name = "ABC"))`
+|Role owner has role assigned with relation = owner. This query includes only users with default relation.
+
 3+|*Logical operators in search*
 
 |Find all external users with specific given name.
@@ -104,7 +108,7 @@ To search these attributes you need to include "extension/" in the attribute nam
 |`metadata/createTimestamp > "2022-09-21"`
 |
 
-|Find all users created on particular date (e.g. 19/10/2022)
+|Find all users created on particular date (e.g. 22/10/2022)
 |`metadata/createTimestamp >= "2022-10-22" and metadata/createTimestamp < "2022-10-23"`
 | createTimestamp is datetime value. The value with time is larger just the date. 2022-10-22T01:05:13 that is larger than "2022-10-22"
 
@@ -120,9 +124,9 @@ To search these attributes you need to include "extension/" in the attribute nam
 
 |===
 
-=== Search through assignments or inducements
+=== Search through assignments or other references
 
-These searches are valid in views listing objects - users, roles, services. For searches in the object panels see below.
+These searches are valid in views listing objects - users, roles, services. For searches in the object panels see chapters below.
 
 [options="header", cols="20, 30, 40"]
 |===
@@ -180,26 +184,65 @@ and resourceRef/@/name = "LDAP" +
 and intent = "default" )`
 |Like previous query, just the resource is identified by resource name.
 
-|Users having with role with specific extension attribute assigned
+|Users having role with specific extension attribute assigned
 |`assignment/targetRef/@ matches ( +
 . type RoleType and extension/sapType="SAP555")`
 |This is a complex query: Searching for all assignments of a role identified by value of specific extension attribute. +
 In this case the `. type RoleType` type filter clause is necessary as midPoint need to know which type of objects to search for the extension attribute.
 
-3+|*Referencing (supported since version 4.6)*
+3+|*Searching within ORGs*
+
+|Find all users who are members of an ORG
+|`. inOrg[ONE_LEVEL] "fee70b8b-e7c3-4f62-af7c-7d5095100775"`
+|Dot describes the user object. +
+ONE_LEVEL matching rule limits the search to specified ORG only. If omitted, the query will search specified organization unit and its subunits. +
+Doesn't matter if the user is member or manager of the ORG.
+
+|Find all users who are members of an ORG specified by name
+|`parentOrgRef/@/name = "DeptA"`
+|The same query as above, just the ORG can be specified conveniently by name
+
+|Find manager of an ORG
+|`parentOrgRef matches (relation=org:manager and @ matches (name  = "DeptA"))`
+|If ORG is specified by name, then `@ matches (name = "DeptA")` construction is necessary. +
+Filter `relation=org:manager` must be used without quotes.
+
+3+|*Searching in referenced objects*
+
+MidPoint Query allows search in objects that are referenced by other objects.
 
 |In roles view, find all roles that are assigned to specific user
 |`. referencedBy (@type = UserType AND name = "adam" AND @path = assignment/targetRef)`
-| Dot is important in the query.
+| Dot is important in the query. It specifies the object. +
+Exact meaning of the query: "Return objects that are referenced in user named adam in attribute assignment/targetRef."
+
+|===
+
+=== Searching objects marked by Object marks
+
+++++
+{% include since.html since="4.9" %}
+++++
+
+[options="header", cols="20, 30, 40"]
+|===
+|Request
+|Advanced query
+|Details
+
+|Find all shadows with "Suspicious" object mark
+|`effectiveMarkRef/@/name = "Suspicious"`
+|If used within resource Accounts or Entitlements panels in GUI, the query returns shadows related to the particular resource only.
+
+|Find all users that have shadows with "Suspicious" object mark
+|`linkRef/@/effectiveMarkRef/@/name = "Suspicious"`
+|Exact meaning of the query: "Return objects with linked shadows that have active object mark with name Suspicious."
+
 |===
 
 === Searching in All accesses panel
 
 View in "All accesses" panel displays content of "roleMembershipRef" attribute. So name of this attribute must be excluded from the queries.
-
-++++
-{% include since.html since="4.7" %}
-++++
 
 [options="header", cols="20, 30, 40"]
 |===
@@ -224,10 +267,6 @@ View in "All accesses" panel displays content of "roleMembershipRef" attribute. 
 
 Views in assignments panels display content of the "assignment" attribute. So name of this attribute must be excluded from the queries.
 
-++++
-{% include since.html since="4.7" %}
-++++
-
 [options="header", cols="20, 30, 40"]
 |===
 |Request
@@ -247,10 +286,6 @@ Views in assignments panels display content of the "assignment" attribute. So na
 
 Standard structure of the task object was not prepared for searching.
 Therefore, additional element `affectedObjects` allowing convenient searching of the tasks by affected objects and their execution mode was induced in 4.8.
-
-++++
-{% include since.html since="4.8" %}
-++++
 
 [options="header", cols="20, 30, 40"]
 |===
@@ -286,11 +321,6 @@ Technically, the reconciliation tasks may be searched also via archetype.
 You can utilize midPoint Query Language as well in Audit Log Viewer. It will allow you to review for failed events, select specific objects and operations.
 
 Instead of basic search, there is no specific timeframe defined for each search. Please use timestamp specification while searching in audit. It will increase search speed significantly. Especially in large audit searches.
-
-The search in deltas is available since version 4.8.
-++++
-{% include since.html since="4.8" %}
-++++
 
 [options="header", cols="20, 30, 40"]
 |===
@@ -334,7 +364,7 @@ This query finds all events where the "fullName" attribute was modified.
 
 |All events related to account "john" on the resource "XYZ"
 |`delta matches (resourceName = "Target2-with-roles" and shadowKind = "account" and objectName = "john")`
-|Delta components - "resourceName" and "objectName" contain values relevant during the event creation. These may be modified afterwards.
+|Delta components - "resourceName" and "objectName" contain values relevant during the event creation. These may be modified afterward.
 
 |All events related to user "JohnDoe" on the resource "XYZ"
 |`targetRef/@/name="JohnDoe" and delta matches (resourceName = "XYZ")`
@@ -351,6 +381,8 @@ This query finds all events where the "fullName" attribute was modified.
 |All object modifications that didn't went well
 |`eventType = "modifyObject" and eventStage = "execution" and outcome != "success"`
 |
+
+3+|*Searching in audit deltas*
 
 |All events where accounts on the resource "XYZ" were created or modified
 |`delta matches (resourceName = "XYZ" and shadowKind = "account")`

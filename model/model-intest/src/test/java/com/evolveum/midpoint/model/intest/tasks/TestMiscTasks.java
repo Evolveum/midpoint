@@ -6,12 +6,21 @@
  */
 package com.evolveum.midpoint.model.intest.tasks;
 
+import static com.evolveum.midpoint.schema.constants.SchemaConstants.INTENT_DEFAULT;
+
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType.ACCOUNT;
+
 import static org.assertj.core.api.Assertions.assertThat;
 
 import static com.evolveum.midpoint.schema.constants.MidPointConstants.NS_RI;
 
 import java.io.File;
+import java.util.List;
 import javax.xml.namespace.QName;
+
+import com.evolveum.midpoint.test.DummyTestResource;
+
+import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
@@ -50,6 +59,9 @@ public class TestMiscTasks extends AbstractInitializedModelIntegrationTest {
             TestObject.file(TEST_DIR, "task-delete-incomplete-raw.xml", "d0053e62-9d48-4c1e-ace8-a8feb1f35f91");
     private static final TestObject<TaskType> TASK_DELETE_SELECTED_USERS =
             TestObject.file(TEST_DIR, "task-delete-selected-users.xml", "623f261c-4c63-445b-a714-dcde118f227c");
+    private static final TestObject<TaskType> TASK_CLEANUP_SUBTASKS_AFTER_COMPLETION =
+            TestObject.file(TEST_DIR, "task-cleanup-subtasks-after-completion.xml",
+                    "7f5eb732-9ffc-42c3-a416-ee1754f1b764");
     private static final TestTask TASK_EXECUTE_CHANGES_LEGACY =
             new TestTask(TEST_DIR, "task-execute-changes.xml", "1dce894e-e76c-4db5-9318-0fa5b55261da");
     private static final TestTask TASK_EXECUTE_CHANGES_SINGLE =
@@ -78,6 +90,11 @@ public class TestMiscTasks extends AbstractInitializedModelIntegrationTest {
     private static final TestObject<UserType> USER_2 = TestObject.file(
             TEST_DIR, "user-2.xml", "3fc7d5bb-d1a6-446b-925e-5680afaa9df6");
 
+    private static final DummyTestResource RESOURCE_DUMMY_REFRESHED = new DummyTestResource(
+            TEST_DIR, "resource-dummy-refreshed.xml", "e5eeccc7-a0bb-4961-9edf-a8693c6e9004", "refreshed");
+    private static final TestTask TASK_SHADOW_REFRESH_ALL = new TestTask(
+            TEST_DIR, "task-shadow-refresh-all.xml", "8c359fe6-a643-49b1-819c-c9f3351baae4");
+
     @Override
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
         super.initSystem(initTask, initResult);
@@ -88,6 +105,9 @@ public class TestMiscTasks extends AbstractInitializedModelIntegrationTest {
         if (isNativeRepository()) {
             initTestObjects(initTask, initResult, SESSION_ROLE_BASED, CLUSTER_ROLE_BASED);
         }
+
+        RESOURCE_DUMMY_REFRESHED.initAndTest(this, initTask, initResult);
+        TASK_SHADOW_REFRESH_ALL.init(this, initTask, initResult);
     }
 
     /**
@@ -247,6 +267,41 @@ public class TestMiscTasks extends AbstractInitializedModelIntegrationTest {
                 .assertName("user-to-delete-2-indestructible");
     }
 
+    /**
+     * Tests if cleanup after task finish removes also subtasks, not just parent task
+     *
+     * Test for MID-10272
+     */
+    @Test
+    public void test140CleanSubtasksAfterFinish() throws Exception {
+        given("Noop task with more workers per node is added.");
+        OperationResult result = getTestOperationResult();
+        addTask(TASK_CLEANUP_SUBTASKS_AFTER_COMPLETION, result);
+        waitForTaskCloseOrSuspend(TASK_CLEANUP_SUBTASKS_AFTER_COMPLETION.oid, 10000);
+
+        Task taskTree = this.taskManager.getTaskTree(TASK_CLEANUP_SUBTASKS_AFTER_COMPLETION.oid, result);
+        List<String> subtasksOids = taskTree.listSubtasksDeeply(true, result).stream()
+                .map(Task::getOid)
+                .toList();
+
+        when("Task trigger scanner executes.");
+        importObjectFromFile(TASK_TRIGGER_SCANNER_FILE);
+        waitForTaskStart(TASK_TRIGGER_SCANNER_OID);
+        waitForTaskFinish(TASK_TRIGGER_SCANNER_OID);
+
+        then("After task trigger scanner executes, Noop task should be deleted as well as all its worker "
+                + "subtasks");
+        // Just to make sure, that we have correct task definition which results in subtasks creation.
+        assertThat(subtasksOids)
+                .withFailMessage(() -> "There are no subtasks, but at least one is expected. Check task definition xml")
+                .hasSizeGreaterThan(0);
+
+        assertNoObject(TaskType.class, TASK_CLEANUP_SUBTASKS_AFTER_COMPLETION.oid);
+        for (String subtaskOid : subtasksOids) {
+            assertNoObject(TaskType.class, subtaskOid);
+        }
+    }
+
     /** Tests the legacy form of "execute changes" task. */
     @Test
     public void test150ExecuteChangesLegacy() throws CommonException {
@@ -335,7 +390,9 @@ public class TestMiscTasks extends AbstractInitializedModelIntegrationTest {
         // @formatter:on
     }
 
-    /** Manipulates the activity definition and checks whether affected objects are set appropriately. */
+    /**
+     * Manipulates the activity definition and checks whether affected objects are set appropriately.
+     */
     @Test
     public void test200TestAffectedObjectsSimple() throws CommonException {
         Task task = getTestTask();
@@ -343,7 +400,7 @@ public class TestMiscTasks extends AbstractInitializedModelIntegrationTest {
 
         when("a task is created");
 
-        ShadowKindType kind = ShadowKindType.ACCOUNT;
+        ShadowKindType kind = ACCOUNT;
         String intent = "funny";
         QName ocName1 = new QName("oc1");
         QName ocName1Qualified = QNameUtil.qualifyIfNeeded(ocName1, NS_RI);
@@ -451,7 +508,9 @@ public class TestMiscTasks extends AbstractInitializedModelIntegrationTest {
                 .hasMessageContaining("Couldn't compute affected objects");
     }
 
-    /** Checks affected objects management for composite activity. */
+    /**
+     * Checks affected objects management for composite activity.
+     */
     @Test
     public void test210TestAffectedObjectsComposite() throws CommonException {
         Task task = getTestTask();
@@ -459,7 +518,7 @@ public class TestMiscTasks extends AbstractInitializedModelIntegrationTest {
 
         when("a task is created");
 
-        ShadowKindType kind = ShadowKindType.ACCOUNT;
+        ShadowKindType kind = ACCOUNT;
         String intent = "funny";
         QName ocName1 = new QName("oc1");
         QName ocName1Qualified = QNameUtil.qualifyIfNeeded(ocName1, NS_RI);
@@ -664,5 +723,49 @@ public class TestMiscTasks extends AbstractInitializedModelIntegrationTest {
         TASK_ROLE_ANALYSIS_PATTERN_DETECTION_BASIC.assertAfter()
                 .display()
                 .assertProgress(6);
+    }
+
+    /**
+     * Here we check that the shadow refresh task really refreshes the cached password.
+     *
+     * it uses the simplest scenario: cached -> not cached.
+     * Other relevant transitions are tested in `TestDummyPasswordCaching` in `provisioning-impl`.
+     */
+    @Test
+    public void test500RefreshCachedPasswordWithChangedCaching() throws CommonException {
+        var task = getTestTask();
+        var result = task.getResult();
+        var userName = getTestNameShort();
+        var password = "AbcABC1234";
+
+        given("a user with a shadow with cached password");
+        var user = new UserType()
+                .name(userName)
+                .assignment(RESOURCE_DUMMY_REFRESHED.assignmentTo(ACCOUNT, INTENT_DEFAULT))
+                .credentials(new CredentialsType()
+                        .password(new PasswordType()
+                                .value(new ProtectedStringType().clearValue(password))));
+        var userOid = addObject(user, task, result);
+        var shadowAtStart = assertUser(userOid, "at start")
+                .singleLink()
+                .resolveTarget()
+                .getObject();
+        assertEncryptedShadowPassword(shadowAtStart, password);
+
+        when("caching is turned off and the shadow is refreshed");
+        executeChanges(
+                deltaFor(ResourceType.class)
+                        .item(ResourceType.F_CACHING, CachingPolicyType.F_CACHING_STRATEGY)
+                        .replace(CachingStrategyType.NONE)
+                        .asObjectDelta(RESOURCE_DUMMY_REFRESHED.oid),
+                null, task, result);
+
+        TASK_SHADOW_REFRESH_ALL.rerun(result);
+
+        then("there is no cached password in the shadow any more");
+        assertUser(userOid, "at end")
+                .singleLink()
+                .resolveTarget()
+                .assertNoPassword();
     }
 }

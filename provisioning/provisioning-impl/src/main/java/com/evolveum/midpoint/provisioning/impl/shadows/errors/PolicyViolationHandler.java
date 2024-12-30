@@ -19,11 +19,11 @@ import com.evolveum.midpoint.util.exception.PolicyViolationException;
 class PolicyViolationHandler extends HardErrorHandler {
 
     @Override
-    protected void throwException(@Nullable ShadowProvisioningOperation<?> operation, Exception cause, OperationResult result)
+    protected void throwException(@Nullable ShadowProvisioningOperation operation, Exception cause, OperationResult result)
             throws PolicyViolationException {
         recordCompletionError(operation, cause, result);
-        if (cause instanceof PolicyViolationException) {
-            throw (PolicyViolationException)cause;
+        if (cause instanceof PolicyViolationException policyViolationException) {
+            throw policyViolationException;
         } else {
             throw new PolicyViolationException(cause.getMessage(), cause);
         }

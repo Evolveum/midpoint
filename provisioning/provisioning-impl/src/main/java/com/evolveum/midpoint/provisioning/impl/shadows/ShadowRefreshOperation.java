@@ -8,12 +8,19 @@
 package com.evolveum.midpoint.provisioning.impl.shadows;
 
 import static com.evolveum.midpoint.provisioning.impl.shadows.ShadowsUtil.createSuccessOperationDescription;
+import static com.evolveum.midpoint.schema.constants.SchemaConstants.PATH_PASSWORD_VALUE;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
+import java.util.Objects;
 import javax.xml.datatype.Duration;
 import javax.xml.datatype.XMLGregorianCalendar;
 
+import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.delta.ItemDelta;
+import com.evolveum.midpoint.schema.result.OperationResultStatus;
+import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseType;
 
 import org.jetbrains.annotations.NotNull;
@@ -32,7 +39,6 @@ import com.evolveum.midpoint.provisioning.impl.resourceobjects.ResourceObjectCon
 import com.evolveum.midpoint.provisioning.ucf.api.GenericFrameworkException;
 import com.evolveum.midpoint.provisioning.util.ProvisioningUtil;
 import com.evolveum.midpoint.schema.ObjectDeltaOperation;
-import com.evolveum.midpoint.schema.result.AsynchronousOperationResult;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.OperationResultUtil;
 import com.evolveum.midpoint.schema.util.RawRepoShadow;
@@ -50,7 +56,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
  */
 class ShadowRefreshOperation {
 
-    private static final String OP_REFRESH_RETRY = ShadowsFacade.class.getName() + ".refreshRetry";
     private static final String OP_OPERATION_RETRY = ShadowsFacade.class.getName() + ".operationRetry";
 
     private static final Trace LOGGER = TraceManager.getTrace(ShadowRefreshOperation.class);
@@ -66,8 +71,8 @@ class ShadowRefreshOperation {
     /** ODOs for retried pending operations. */
     @NotNull private final Collection<ObjectDeltaOperation<ShadowType>> retriedOperations = new ArrayList<>();
 
-    /** Very simplified result corresponding to retried execution of pending operations (just success/failure + last msg). */
-    private OperationResult retriedOperationsResult;
+    /** The overall status of the refresh operation. */
+    private OperationResultStatus retriedOperationsResultStatus;
 
     /** Original options for the embedding operation (like "modify"). */
     private final ProvisioningOperationOptions options;
@@ -152,7 +157,12 @@ class ShadowRefreshOperation {
 
         processPendingOperations(result);
         deleteDeadShadowIfPossible(result);
-        updateProvisioningIndexesAfterDeletion(result);
+        if (shadow.isDeleted()) {
+            LOGGER.trace("updateProvisioningIndexesAfterDeletion: no shadow");
+        } else {
+            updateProvisioningIndexesAfterDeletion(result);
+            updateCachedPasswordIfNeeded(result);
+        }
     }
 
     private void executeQuick(OperationResult result)
@@ -220,9 +230,9 @@ class ShadowRefreshOperation {
                 continue;
             }
 
-            AsynchronousOperationResult refreshAsyncResult;
+            OperationResultStatus newStatus;
             try {
-                refreshAsyncResult = b.resourceObjectConverter.refreshOperationStatus(ctx, shadow, asyncRef, result);
+                newStatus = b.resourceObjectConverter.refreshOperationStatus(ctx, shadow, asyncRef, result);
             } catch (CommunicationException e) {
                 LOGGER.debug("Communication error while trying to refresh pending operation of {}. "
                         + "Skipping refresh of this operation.", shadow, e);
@@ -238,7 +248,6 @@ class ShadowRefreshOperation {
                     throw e;
                 }
             }
-            var newStatus = refreshAsyncResult.getOperationResult().getStatus();
             if (newStatus == null) {
                 continue;
             }
@@ -315,8 +324,7 @@ class ShadowRefreshOperation {
     private void retryOperations(PendingOperations sortedOperations, OperationResult parentResult)
             throws ObjectNotFoundException, SchemaException {
 
-        retriedOperationsResult = new OperationResult(OP_REFRESH_RETRY);
-        retriedOperationsResult.setSuccess();
+        retriedOperationsResultStatus = OperationResultStatus.SUCCESS;
 
         if (shadow.isDead()) {
             return;
@@ -363,7 +371,7 @@ class ShadowRefreshOperation {
                 shadow = retryOperation(pendingOperation, result);
                 result.computeStatus();
                 if (result.isError()) {
-                    retriedOperationsResult.setStatus(result.getStatus());
+                    retriedOperationsResultStatus = result.getStatus();
                 }
                 result.muteError();
             } catch (CommunicationException | GenericFrameworkException | ObjectAlreadyExistsException | SchemaException |
@@ -376,15 +384,13 @@ class ShadowRefreshOperation {
                 // The retry itself was a success. Operation that was retried might have failed.
                 // And that is recorded in the shadow. But we have successfully retried the operation.
                 result.recordHandledError(e);
-                retriedOperationsResult.recordFatalError(
-                        "Operation %s on %s ended with an error after %d retries: %s".formatted(
-                                pendingOperation.getDelta(), shadow, attemptNumber, e.getMessage()));
+                retriedOperationsResultStatus = OperationResultStatus.FATAL_ERROR;
             } catch (Throwable e) {
                 // This is unexpected error during retry. This means that there was other
                 // failure that we did not expected. This is likely to be bug - or maybe wrong
                 // error handling. This means that the retry was a failure.
                 result.recordFatalError(e);
-                retriedOperationsResult.recordFatalError(e);
+                retriedOperationsResultStatus = OperationResultStatus.FATAL_ERROR;
             } finally {
                 result.close(); // Status should be set by now, we just want to close the result
             }
@@ -403,9 +409,7 @@ class ShadowRefreshOperation {
         // TODO scripts, options
         ProvisioningOperationOptions options = ProvisioningOperationOptions.createForceRetry(false);
         if (pendingOperation.isAdd()) {
-            return ShadowAddOperation
-                    .executeInRefresh(ctx, shadow, pendingOperation, options, result)
-                    .getRepoShadow();
+            return ShadowAddOperation.executeAsRetryInRefresh(ctx, shadow, pendingOperation, options, result);
         } else if (pendingOperation.isModify()) {
             return ShadowModifyOperation
                     .executeInRefresh(ctx, shadow, pendingOperation, options, result)
@@ -483,10 +487,6 @@ class ShadowRefreshOperation {
      */
     private void updateProvisioningIndexesAfterDeletion(OperationResult result)
             throws SchemaException, ObjectNotFoundException, ConfigurationException {
-        if (shadow.isDeleted()) {
-            LOGGER.trace("updateProvisioningIndexesAfterDeletion: no shadow");
-            return;
-        }
         if (retriedOperations.stream()
                 .noneMatch(d -> ObjectDelta.isDelete(d.getObjectDelta()))) {
             LOGGER.trace("updateProvisioningIndexesAfterDeletion: no DELETE delta found");
@@ -501,6 +501,59 @@ class ShadowRefreshOperation {
         }
     }
 
+    /**
+     * Makes rough attempt to update the cached password under (possibly) changed policies:
+     *
+     * - encrypted -> hashed / none
+     * - hashed -> none
+     * - incomplete -> none
+     *
+     * Any other transitions are currently not possible (at least not without touching the resource).
+     *
+     * NOTE: Maybe we should move this code nearer to other places where cached password is managed? (`ShadowObjectComputer` etc)
+     */
+    private void updateCachedPasswordIfNeeded(OperationResult result) throws SchemaException, ObjectNotFoundException {
+        LOGGER.trace("Considering updating cached password for {}", shadow);
+        var property = ShadowUtil.getPasswordValueProperty(shadow.getBean());
+        if (property == null || !property.isIncomplete() && property.hasNoValues()) {
+            LOGGER.trace(" -> nothing to transform here");
+            return;
+        }
+        var realValue = property.getRealValue();
+
+        ItemDelta<?, ?> deltaToExecute;
+        var definition = shadow.getObjectDefinition();
+        if (!definition.areCredentialsCached()) {
+            LOGGER.trace(" -> caching turned off, removing the cached value");
+            deltaToExecute =
+                    PrismContext.get().deltaFor(ShadowType.class)
+                            .item(PATH_PASSWORD_VALUE)
+                            .replace()
+                            .asItemDelta();
+        } else if (realValue == null) {
+            LOGGER.trace(" -> no value stored (probably only the 'incomplete' flag), nothing to do");
+            deltaToExecute = null;
+        } else {
+            LOGGER.trace(" -> caching is enabled, value is present; consulting the credentials storage manager");
+            var credentialsPolicy = b.securityPolicyFinder.locateResourceObjectCredentialsPolicy(definition, result);
+            var legacyCaching = definition.areCredentialsCachedLegacy();
+            try {
+                deltaToExecute =
+                        b.credentialsStorageManager.updateShadowPasswordIfNeeded(realValue, credentialsPolicy, legacyCaching);
+            } catch (EncryptionException e) {
+                throw new SystemException("Couldn't transform cached password for " + shadow, e);
+            }
+        }
+
+        if (deltaToExecute != null) {
+            b.shadowUpdater.executeRepoShadowModifications(
+                    ctx,
+                    shadow,
+                    RepoShadowModifications.of(List.of(deltaToExecute)),
+                    result);
+        }
+    }
+
     public @NotNull RepoShadow getShadow() {
         return shadow;
     }
@@ -509,7 +562,7 @@ class ShadowRefreshOperation {
         return retriedOperations;
     }
 
-    @Nullable OperationResult getRetriedOperationsResult() {
-        return retriedOperationsResult;
+    @NotNull OperationResultStatus getRetriedOperationsResultStatus() {
+        return Objects.requireNonNullElse(retriedOperationsResultStatus, OperationResultStatus.SUCCESS);
     }
 }

@@ -45,7 +45,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
  * @see ShadowAssociationsCollection
  */
 public abstract class ShadowReferenceAttributesCollection implements DebugDumpable {
-        //implements Iterator<ShadowAssociationDeltas.IterableAssociationValue> {
 
     public static @NotNull ShadowReferenceAttributesCollection empty() {
         return Empty.INSTANCE;
@@ -73,16 +72,18 @@ public abstract class ShadowReferenceAttributesCollection implements DebugDumpab
         }
     }
 
+    /** Returns all reference attributes of given shadow. */
     public static ShadowReferenceAttributesCollection ofShadow(@NotNull ShadowType shadow) {
         return ofAttributesContainer(
                 shadow.asPrismObject().findContainer(ShadowType.F_ATTRIBUTES));
     }
 
+    /** Returns all reference attributes of given association value - i.e. everything in "objects" container. */
     public static ShadowReferenceAttributesCollection ofAssociationValue(@NotNull ShadowAssociationValue assocValue) {
         return ofAttributesContainer(assocValue.getObjectsContainer());
     }
 
-    public static ShadowReferenceAttributesCollection ofAttributesContainer(
+    private static ShadowReferenceAttributesCollection ofAttributesContainer(
             @Nullable PrismContainer<? extends ShadowAttributesType> container) {
         if (container != null && container.hasAnyValue()) {
             return AttributesContainerValueBased.fromValues(container.getValues());
@@ -426,7 +427,7 @@ public abstract class ShadowReferenceAttributesCollection implements DebugDumpab
                         return false;
                     }
                     currentRefAttr = refAttrIterator.next();
-                    valueIterator = currentRefAttr.getReferenceValues().iterator();
+                    valueIterator = currentRefAttr.getAttributeValues().iterator();
                 }
             }
 

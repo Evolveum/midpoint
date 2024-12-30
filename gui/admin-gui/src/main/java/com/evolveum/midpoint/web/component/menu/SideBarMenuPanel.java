@@ -40,6 +40,8 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.session.SessionStorage;
 
+import org.w3c.dom.Attr;
+
 /**
  * @author Viliam Repan (lazyman)
  */
@@ -79,8 +81,8 @@ public class SideBarMenuPanel extends BasePanel<List<SideBarMenuItem>> {
         photoContainer.add(AttributeAppender.append("style", "background-image: url('" + photoUrlModel.getObject() + "');"));
         add(photoContainer);
 
-
-        Label username = new Label(ID_USERNAME, () -> getShortUserName());
+        Label username = new Label(ID_USERNAME, this::getShortUserName);
+        username.add(AttributeAppender.append("title", this::getShortUserName));
         add(username);
 
         Label usernameDescription = new Label(ID_USERNAME_DESCRIPTION, () -> getUsernameDescription());
@@ -162,22 +164,6 @@ public class SideBarMenuPanel extends BasePanel<List<SideBarMenuItem>> {
             @Override
             protected void onEvent(AjaxRequestTarget target) {
                 onMenuClick(model);
-            }
-        });
-        header.add(new Behavior() {
-
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            public void bind(Component component) {
-                super.bind(component);
-
-                component.add(AttributeModifier.replace("onkeydown",
-                        Model.of(
-                                "if (event.keyCode == 13){"
-                                        + "this.click();"
-                                        + "}"
-                        )));
             }
         });
         header.add(AttributeAppender.append("class", () -> isMenuExpanded(model.getObject()) ? "" : "closed"));

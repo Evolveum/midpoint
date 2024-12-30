@@ -236,7 +236,7 @@ li.dropdown.user.user-menu {
 }
 
 .icon-style-privileged {
-	color: #a94442;
+	color: #da0000;
 }
 
 .icon-style-end-user {
@@ -1709,7 +1709,6 @@ fieldset.objectButtons {
   align-items: stretch;
   background-color: $white;
   border-radius: 0.25rem;
-  overflow: hidden;
   box-shadow: 0 0 1px rgba(0,0,0,.125), 0 1px 3px rgba(0,0,0,.2);
 }
 
@@ -1892,7 +1891,7 @@ span.yui-skin-sam {
   }
 
   & .login-card-body .spacer span {
-    color:#cbcbcb;
+    color:#757575;
   }
 
   & .login-card-body .user-panel.info-box .image img {
@@ -2050,15 +2049,18 @@ th.debug-list-buttons {
   $backgroundValue: color-yiq($value);
 
   .colored-form-#{$color}, .colored-form-#{$color}:hover, .colored-form-#{$color}:active, .colored-form-#{$color}:focus {
-      color: $value;
-      background-color: mix(#ffffff, $value, 85%);
-      border-color: $value;
-      border:1px solid;
+    color: mix($black, $value, 5%);
+    background-color: mix($white, $value, 94%);
+    border-color: $value;
+    border:1px solid;
 
-      option {
-        background: $white;
-        color: $dark;
-      }
+    option {
+    background: $white;
+    color: $dark;
+    }
+  }
+  .form-item-parent .colored-form-#{$color} ~ i.form-item-dropdown {
+    color: mix($black, $value, 6%);
   }
 }
 
@@ -2264,4 +2266,14 @@ div.show > a > div > i.fas {
 .input-group-append .form-control, .input-group-append .select2-selection{
   border-bottom-left-radius: 0;
   border-top-left-radius: 0;
+}
+
+.midpoint-input-suffix {
+  visibility: hidden !important;
+  position: fixed !important;
+  z-index: -1 !important;
+  bottom: 0px !important;
+  left: 0px !important;
+  width: 0px !important;
+  margin: 0px 0px 0px -10em !important;
 }

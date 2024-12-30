@@ -7,18 +7,18 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.certification.helpers;
 
+import static com.evolveum.midpoint.util.MiscUtil.or0;
+
+import java.io.Serial;
+import java.io.Serializable;
+import java.util.*;
+
 import com.evolveum.midpoint.gui.api.component.Badge;
 import com.evolveum.midpoint.gui.api.util.LocalizationUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignStateType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.DisplayType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.IconType;
-
-import java.io.Serial;
-import java.io.Serializable;
-import java.util.*;
-
-import static com.evolveum.midpoint.util.MiscUtil.or0;
 
 public class CampaignStateHelper implements Serializable {
 
@@ -90,7 +90,7 @@ public class CampaignStateHelper implements Serializable {
                 CampaignActionConfirmation.OPEN_NEXT_STAGE_CONFIRMATION),
         CLOSE_STAGE(new DisplayType()
                 .label("CampaignAction.closeStage")
-                .cssClass("btn-secondary")
+                .cssClass("btn-default")
                 .icon(new IconType().cssClass("fa fa-regular fa-circle-xmark")),
                 false,
                 CampaignActionConfirmation.CLOSE_STAGE_CONFIRMATION),
@@ -108,7 +108,7 @@ public class CampaignStateHelper implements Serializable {
                 CampaignActionConfirmation.REITERATE_CAMPAIGN_CONFIRMATION),
         CLOSE_CAMPAIGN(new DisplayType()
                 .label("CampaignAction.closeCampaign")
-                .cssClass("btn-secondary")
+                .cssClass("btn-default")
                 .icon(new IconType().cssClass("fa fa-solid fa-circle-xmark")),
                 true,
                 CampaignActionConfirmation.CLOSE_CAMPAIGN_CONFIRMATION),
@@ -195,7 +195,9 @@ public class CampaignStateHelper implements Serializable {
     }
 
     public Badge createBadge() {
-        return new Badge(campaignStateClassMap.get(campaignState), LocalizationUtil.translateEnum(campaignState));
+        Badge badge = new Badge(campaignStateClassMap.get(campaignState), LocalizationUtil.translateEnum(campaignState));
+        badge.setTextCssClass("text-truncate text-sm");
+        return badge;
     }
 
     public CampaignAction getNextAction() {

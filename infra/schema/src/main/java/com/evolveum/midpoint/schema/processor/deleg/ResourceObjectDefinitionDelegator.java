@@ -337,5 +337,4 @@ public interface ResourceObjectDefinitionDelegator extends ResourceObjectDefinit
     default CorrelationDefinitionType getCorrelation() {
         return delegate().getCorrelation();
     }
-
 }

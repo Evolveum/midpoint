@@ -86,10 +86,9 @@ abstract class AbstractModificationConverter implements DebugDumpable {
         this.objectConvertor = objectConvertor;
     }
 
-    /**
-     * Convenience using the default value converter.
-     */
-    protected <V extends PrismValue> void collect(String connIdAttrName, ItemDelta<V, ?> delta, PlusMinusZero isInModifiedAuxiliaryClass)
+    /** Convenience method using the default value converter. */
+    protected <V extends PrismValue> void collect(
+            String connIdAttrName, ItemDelta<V, ?> delta, PlusMinusZero isInModifiedAuxiliaryClass)
             throws SchemaException {
         collect(connIdAttrName, delta, isInModifiedAuxiliaryClass, this::convertAttributeValuesToConnId);
     }
@@ -100,9 +99,7 @@ abstract class AbstractModificationConverter implements DebugDumpable {
             PlusMinusZero isInModifiedAuxiliaryClass,
             CollectorValuesConverter<V> valuesConverter) throws SchemaException;
 
-    /**
-     * Simplified collect for single-valued attribute (e.g. activation).
-     */
+    /** Simplified collect for single-valued attribute (e.g. activation). */
     protected abstract <T> void collectReplace(String connIdAttrName, T connIdAttrValue) throws SchemaException;
 
     private void collectReplaceXMLGregorianCalendar(String connIdAttrName, XMLGregorianCalendar xmlCal) throws SchemaException {
@@ -113,7 +110,7 @@ abstract class AbstractModificationConverter implements DebugDumpable {
 
         PropertyDelta<QName> auxiliaryObjectClassDelta = determineAuxiliaryObjectClassDelta(changes);
 
-        ResourceObjectDefinition structuralObjectClassDefinition = resourceSchema.findDefinitionForObjectClass(objectDefinition.getTypeName());
+        var structuralObjectClassDefinition = resourceSchema.findDefinitionForObjectClass(objectDefinition.getTypeName());
         if (structuralObjectClassDefinition == null) {
             throw new SchemaException("No definition of structural object class " + objectDefinition.getTypeName() + " in " + connectorDescription);
         }
@@ -127,9 +124,13 @@ abstract class AbstractModificationConverter implements DebugDumpable {
                     (pvals, midPointAttributeName) -> convertAuxiliaryObjectClassValuesToConnId(pvals, auxiliaryObjectClassMap));
         }
 
-        for (Operation operation : changes) {
+        for (var operation : changes) {
             if (operation instanceof PropertyModificationOperation<?> propertyModification) {
                 PropertyDelta<?> delta = propertyModification.getPropertyDelta();
+                if (delta.isEmpty()) {
+                    LOGGER.debug("Skipping empty delta for {}", objectDefinition);
+                    continue;
+                }
                 if (delta.getParentPath().equivalent(ShadowType.F_ATTRIBUTES)) {
                     if (delta.getDefinition() == null || !(delta.getDefinition() instanceof ShadowSimpleAttributeDefinition)) {
                         ShadowSimpleAttributeDefinition<?> def = objectDefinition.findSimpleAttributeDefinition(delta.getElementName());

@@ -179,6 +179,7 @@ class ResourceSchemaParser {
 
         createEmptyObjectClassDefinitions();
         createEmptyObjectTypeDefinitions();
+        setEffectiveObjectClassDefinitionsFromTypes();
 
         forAllObjects(o -> o.resolveAuxiliaryObjectClassNames());
 
@@ -260,8 +261,18 @@ class ResourceSchemaParser {
                 LOGGER.trace("Ignoring abstract definition bean: {}", typeDefinitionCI);
             }
         }
-        checkForMultipleDefaults();
+        checkForMultipleDefaultsForKind();
         LOGGER.trace("Successfully created {} empty object type definitions", created);
+    }
+
+    private void setEffectiveObjectClassDefinitionsFromTypes() {
+        for (var objectClassDefinition : resourceSchema.getObjectClassDefinitions()) {
+            var defaultTypeDef = ResourceObjectDefinitionResolver.findDefaultObjectTypeDefinitionForObjectClass(
+                    resourceSchema, objectClassDefinition.getObjectClassName());
+            if (defaultTypeDef != null) {
+                ((ResourceObjectClassDefinitionImpl) objectClassDefinition).setEffectiveDefinition(defaultTypeDef);
+            }
+        }
     }
 
     private void assertTypeNotDefinedYet(ResourceObjectTypeDefinition definition) throws ConfigurationException {
@@ -337,7 +348,7 @@ class ResourceSchemaParser {
      * @throws ConfigurationException If there's a problem. Note that during run time, we throw {@link IllegalStateException}
      * in these cases (as we assume this check was already done).
      */
-    private void checkForMultipleDefaults() throws ConfigurationException {
+    private void checkForMultipleDefaultsForKind() throws ConfigurationException {
         for (ShadowKindType kind : ShadowKindType.values()) {
             var defaults = resourceSchema.getObjectTypeDefinitions().stream()
                     .filter(def -> def.matchesKind(kind) && def.isDefaultForKind())
@@ -354,7 +365,7 @@ class ResourceSchemaParser {
      * Does *not* include legacy simulated associations! They are "anonymous" as they do not have a type name.
      */
     private void parseModernSimulatedReferenceTypes() throws ConfigurationException {
-        if (referencesCapabilityCI != null) {
+        if (referencesCapabilityCI != null && referencesCapabilityCI.isEnabled()) {
             for (var simulatedRefTypeDefCI : referencesCapabilityCI.getReferenceTypes()) {
                 resourceSchema.addReferenceTypeDefinition(
                         SimulatedShadowReferenceTypeDefinition.Modern.parse(
@@ -640,25 +651,21 @@ class ResourceSchemaParser {
 
             ResourceAttributeDefinitionType attrDefBean = value(definitionCI.getAttributeDefinitionIfPresent(attrName));
             ItemDefinition<?> attrDef;
-            try {
-                if (nativeAttrDef.isSimple()) {
-                    boolean ignored = attributesToIgnore.contains(attrName);
-                    var simpleAttrDef = ShadowSimpleAttributeDefinitionImpl.create(nativeAttrDef.asSimple(), attrDefBean, ignored);
-                    if (simpleAttrDef.isDisplayNameAttribute()) {
-                        definition.setDisplayNameAttributeName(attrName);
-                    }
-                    attrDef = simpleAttrDef;
-                } else if (nativeAttrDef.isReference()) {
-                    var nativeRefAttrDef = nativeAttrDef.asReference();
-                    var refTypeDef = resourceSchema.getReferenceTypeDefinitionRequired(
-                            nativeRefAttrDef.getReferenceTypeName(),
-                            lazy(() -> "when parsing '%s' in %s".formatted(attrName, definition)));
-                    attrDef = ShadowReferenceAttributeDefinitionImpl.fromNative(nativeRefAttrDef, refTypeDef, attrDefBean);
-                } else {
-                    throw new UnsupportedOperationException("Unknown kind of attribute: " + nativeAttrDef);
+            if (nativeAttrDef.isSimple()) {
+                boolean ignored = attributesToIgnore.contains(attrName);
+                var simpleAttrDef = ShadowSimpleAttributeDefinitionImpl.create(nativeAttrDef.asSimple(), attrDefBean, ignored);
+                if (simpleAttrDef.isDisplayNameAttribute()) {
+                    definition.setDisplayNameAttributeName(attrName);
                 }
-            } catch (SchemaException e) { // TODO throw the configuration exception right in the 'create' method
-                throw definitionCI.configException("Error while parsing attribute '%s' in %s: %s", attrName, DESC, e.getMessage());
+                attrDef = simpleAttrDef;
+            } else if (nativeAttrDef.isReference()) {
+                var nativeRefAttrDef = nativeAttrDef.asReference();
+                var refTypeDef = resourceSchema.getReferenceTypeDefinitionRequired(
+                        nativeRefAttrDef.getReferenceTypeName(),
+                        lazy(() -> "when parsing '%s' in %s".formatted(attrName, definition)));
+                attrDef = ShadowReferenceAttributeDefinitionImpl.fromNative(nativeRefAttrDef, refTypeDef, attrDefBean);
+            } else {
+                throw new UnsupportedOperationException("Unknown kind of attribute: " + nativeAttrDef);
             }
             definition.add(attrDef);
         }
@@ -807,14 +814,14 @@ class ResourceSchemaParser {
 
         LegacyAssociationParser(
                 @NotNull ResourceObjectAssociationConfigItem.Legacy associationDefCI,
-                @NotNull AbstractResourceObjectDefinitionImpl subjectDefinition) {
+                @NotNull ResourceObjectDefinition subjectDefinition) {
             this.associationDefCI = associationDefCI;
             this.subjectDefinition = subjectDefinition;
         }
 
         @NotNull ShadowAssociationDefinitionImpl parse() throws ConfigurationException {
             return ShadowAssociationDefinitionImpl.parseLegacy(
-                    associationDefCI, resourceSchema, subjectDefinition, getObjectTypeDefinitions());
+                    associationDefCI, subjectDefinition, getObjectTypeDefinitions(), resourceSchema);
         }
 
         /**
@@ -838,10 +845,10 @@ class ResourceSchemaParser {
                         if (objectDef.getKind() != kind) {
                             return false;
                         }
-                        if (((Collection<String>) intents).isEmpty()) {
+                        if (intents.isEmpty()) {
                             return objectDef.isDefaultForKind();
                         } else {
-                            return ((Collection<String>) intents).contains(objectDef.getIntent());
+                            return intents.contains(objectDef.getIntent());
                         }
                     };
 

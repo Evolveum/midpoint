@@ -47,10 +47,6 @@ public class ResourceObjectOperations {
         return currentResourceObject;
     }
 
-    public void setCurrentResourceObject(ExistingResourceObjectShadow currentResourceObject) {
-        this.currentResourceObject = currentResourceObject;
-    }
-
     public @NotNull ProvisioningContext getResourceObjectContext() {
         return resourceObjectContext;
     }

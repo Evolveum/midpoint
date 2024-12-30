@@ -181,6 +181,14 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
     protected static final String CONNECTOR_DUMMY_VERSION = "2.0";
     protected static final String CONNECTOR_DUMMY_NAMESPACE = "http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.icf.dummy/com.evolveum.icf.dummy.connector.DummyConnector";
 
+    protected static final ItemName DUMMY_ALWAYS_REQUIRE_UPDATE_OF_ATTRIBUTE_NAME =
+            ItemName.from(CONNECTOR_DUMMY_NAMESPACE, "alwaysRequireUpdateOfAttribute");
+    protected static final ItemPath DUMMY_ALWAYS_REQUIRE_UPDATE_OF_ATTRIBUTE_PATH =
+            ItemPath.create(
+                    ResourceType.F_CONNECTOR_CONFIGURATION,
+                    SchemaTestConstants.ICFC_CONFIGURATION_PROPERTIES,
+                    DUMMY_ALWAYS_REQUIRE_UPDATE_OF_ATTRIBUTE_NAME);
+
     protected static final ItemPath ACTIVATION_ADMINISTRATIVE_STATUS_PATH = SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS;
     protected static final ItemPath ACTIVATION_VALID_FROM_PATH = SchemaConstants.PATH_ACTIVATION_VALID_FROM;
     protected static final ItemPath ACTIVATION_VALID_TO_PATH = SchemaConstants.PATH_ACTIVATION_VALID_TO;
@@ -2903,6 +2911,22 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
                 attrValue);
     }
 
+    @SuppressWarnings("WeakerAccess")
+    protected void setDefaultCaching(@Nullable CachingStrategyType strategy, OperationResult result)
+            throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException {
+        repositoryService.modifyObject(
+                SystemConfigurationType.class,
+                SystemObjectsType.SYSTEM_CONFIGURATION.value(),
+                deltaFor(SystemConfigurationType.class)
+                        .item(SystemConfigurationType.F_INTERNALS,
+                                InternalsConfigurationType.F_SHADOW_CACHING,
+                                ShadowCachingConfigurationType.F_DEFAULT_POLICY,
+                                ShadowCachingPolicyType.F_CACHING_STRATEGY)
+                        .replace(strategy)
+                        .asItemDeltas(),
+                result);
+    }
+
     protected void setDefaultUserTemplate(String userTemplateOid) throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
         setDefaultObjectTemplate(UserType.COMPLEX_TYPE, userTemplateOid);
     }
@@ -4787,7 +4811,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
                 //TODO
             }
         };
-        mpAuthentication.addAuthentications(moduleAuthentication);
+        mpAuthentication.addAuthentication(moduleAuthentication);
         AuthModule authModule = new AuthModule() {
             @Override
             public ModuleAuthentication getBaseModuleAuthentication() {
@@ -7248,42 +7272,6 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
                         .item(F_ROLE_MANAGEMENT, RoleManagementConfigurationType.F_ACCESSES_METADATA_ENABLED).replace(value)
                         .<SystemConfigurationType>asObjectDelta(SystemObjectsType.SYSTEM_CONFIGURATION.value()),
                 null, task, result);
-    }
-
-    public interface FunctionCall<X> {
-        X execute() throws CommonException, IOException;
-    }
-
-    public interface ProcedureCall {
-        void execute() throws CommonException, IOException;
-    }
-
-    protected <X> X traced(FunctionCall<X> tracedCall)
-            throws CommonException, IOException {
-        return traced(createModelLoggingTracingProfile(), tracedCall);
-    }
-
-    protected void traced(ProcedureCall tracedCall) throws CommonException, IOException {
-        traced(createModelLoggingTracingProfile(), tracedCall);
-    }
-
-    public void traced(TracingProfileType profile, ProcedureCall tracedCall) throws CommonException, IOException {
-        setGlobalTracingOverride(profile);
-        try {
-            tracedCall.execute();
-        } finally {
-            unsetGlobalTracingOverride();
-        }
-    }
-
-    public <X> X traced(TracingProfileType profile, FunctionCall<X> tracedCall)
-            throws CommonException, IOException {
-        setGlobalTracingOverride(profile);
-        try {
-            return tracedCall.execute();
-        } finally {
-            unsetGlobalTracingOverride();
-        }
     }
 
     protected <F extends FocusType> void assertLinks(PrismObject<F> focus, int live, int related) {

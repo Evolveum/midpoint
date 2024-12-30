@@ -6,7 +6,7 @@
  */
 package com.evolveum.midpoint.gui.api.component.autocomplete;
 
-import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.page.PageAdminLTE;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableType;
 
@@ -29,14 +29,14 @@ public class LookupTableLabelPanel extends Label {
             @Override
             protected LookupTableType getLookupTable() {
                 if (lookupTableOid != null) {
-                    return WebComponentUtil.loadLookupTable(lookupTableOid, getPageBase());
+                    return WebComponentUtil.loadLookupTable(lookupTableOid, getParentPage());
                 }
                 return null;
             }
         };
     }
 
-    public PageBase getPageBase() {
-        return (PageBase) getPage();
+    public PageAdminLTE getParentPage() {
+        return (PageAdminLTE) getPage();
     }
 }

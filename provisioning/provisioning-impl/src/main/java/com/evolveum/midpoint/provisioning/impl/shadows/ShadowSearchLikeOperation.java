@@ -335,11 +335,12 @@ class ShadowSearchLikeOperation {
             } else {
 
                 // We don't need to keep the raw repo shadow. (At least not now.)
-                RepoShadow repoShadow = ctx.adoptRawRepoShadowSimple(rawRepoShadow);
+                var repoShadow = ctx.adoptRawRepoShadowSimple(rawRepoShadow);
+                var shadowCtx = ctx.spawnForDefinition(repoShadow.getObjectDefinition());
 
                 // Effective operation policies are not stored in repo, so they must be computed anew.
                 // Object marks maybe need to be updated as well.
-                ctx.computeAndUpdateEffectiveMarksAndPolicies(repoShadow, EXISTING, result);
+                shadowCtx.computeAndUpdateEffectiveMarksAndPolicies(repoShadow, EXISTING, result);
 
                 ProvisioningUtil.validateShadow(repoShadow.getBean(), true); // TODO move elsewhere
 
@@ -350,7 +351,7 @@ class ShadowSearchLikeOperation {
                 }
 
                 b.associationsHelper.convertReferenceAttributesToAssociations(
-                        ctx, repoShadow.getBean(), ctx.getObjectDefinitionRequired(), result);
+                        shadowCtx, repoShadow.getBean(), shadowCtx.getObjectDefinitionRequired(), result);
 
                 resultingShadow = repoShadow.getPrismObject();
                 resultingShadow.asObjectable().setContentDescription(ShadowContentDescriptionType.FROM_REPOSITORY);
