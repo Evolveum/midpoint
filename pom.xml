@@ -100,7 +100,7 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-dependencies</artifactId>
-        <version>3.3.7</version>
+        <version>3.4.1</version>
         <!-- This parent also declares dependencies listed here:
         https://docs.spring.io/spring-boot/docs/3.3.7/reference/html/dependency-versions.html#dependency-versions
         Or for current version of Spring Boot:
@@ -472,11 +472,6 @@
                 <artifactId>javassist</artifactId>
                 <!-- Version compatible with JDK 11+. Transitive dependency from hibernate. Hibernate has older version. -->
                 <version>3.28.0-GA</version>
-            </dependency>
-            <dependency>
-                <groupId>com.zaxxer</groupId>
-                <artifactId>HikariCP</artifactId>
-                <version>4.0.3</version>
             </dependency>
             <dependency>
                 <groupId>org.slf4j</groupId>
@@ -1603,7 +1598,11 @@
                     </exclusion>
                 </exclusions>
             </dependency>
-
+            <dependency>
+                <groupId>com.oracle.database.jdbc</groupId>
+                <artifactId>ojdbc17</artifactId>
+                <version>23.6.0.24.10</version>
+            </dependency>
             <dependency>
                 <groupId>org.keycloak</groupId>
                 <artifactId>keycloak-authz-client</artifactId>
