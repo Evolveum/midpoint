@@ -2587,6 +2587,7 @@
                 <a:schemaContext>
                     <a:typePath>targetType</a:typePath>
                 </a:schemaContext>
+            </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
             <xsd:element name="targetType" type="xsd:QName" minOccurs="0">
