@@ -218,6 +218,7 @@ public class ResourceSchemaImpl
     @Override
     public void performFreeze() {
         super.performFreeze();
+        referenceTypeDefinitionMap.values().forEach(AbstractShadowReferenceTypeDefinition::freeze);
     }
 
     @Override

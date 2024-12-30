@@ -46,14 +46,17 @@ import com.evolveum.midpoint.schema.config.ResourceObjectAssociationConfigItem;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
  * The (currently) only implementation of {@link ShadowAssociationDefinition}.
  *
- * TODO Effectively immutable? (if constituent definitions are immutable), except for the ability of
- *  changing the {@link #maxOccurs} value. - is this still true?
+ * This object is effectively immutable, but only after the whole resource schema is frozen.
+ * The reason is that the referenced attribute and object definitions are mutable during schema parsing.
+ *
+ * The exception is {@link #maxOccurs} that can be changed even after the schema is frozen.
+ * (But not after this particular object is frozen.)
+ * It is because the GUI needs it that way.
  */
 public class ShadowAssociationDefinitionImpl
         extends AbstractFreezable
@@ -67,19 +70,39 @@ public class ShadowAssociationDefinitionImpl
     /** Currently, we don't have a separate (internalized) association type definition. So let's keep at least the name. */
     @NotNull private final QName associationTypeName;
 
-    /** The definition of the attribute this association is based on. It exists even for legacy simulated associations. */
+    /**
+     * The definition of the attribute this association is based on. It exists even for legacy simulated associations.
+     *
+     * Immutable after the resource schema is frozen.
+     */
     @NotNull private final ShadowReferenceAttributeDefinition referenceAttributeDefinition;
 
-    /** The definition of the association data object. Null for simple associations, non-null for complex associations. */
+    /**
+     * The definition of the association data object. Null for simple associations, non-null for complex associations.
+     *
+     * Immutable after the resource schema is frozen.
+     */
     @Nullable private final ResourceObjectDefinition associationDataObjectDefinition;
 
-    /** This is the relevant part (specific to given subject association) of the "modern" association type definition. */
+    /**
+     * This is the relevant part (specific to given subject association) of {@link #modernAssociationTypeDefinitionBean}.
+     *
+     * Always immutable.
+     */
     @Nullable private final ShadowAssociationDefinitionType modernAssociationDefinitionBean;
 
-    /** The "modern" association type definition. */
+    /**
+     * The whole "modern" association type definition.
+     *
+     * Immutable after the resource schema is frozen.
+     */
     @Nullable private final ShadowAssociationTypeDefinitionType modernAssociationTypeDefinitionBean;
 
-    /** Extracts from the legacy configuration bean. */
+    /**
+     * Extracts from the legacy configuration bean.
+     *
+     * Always (deeply) immutable.
+     */
     @Nullable private final LegacyAssociationTypeInformation legacyInformation;
 
     /**
@@ -87,16 +110,18 @@ public class ShadowAssociationDefinitionImpl
      * These come from the underlying reference attribute definition, but can be further restricted
      * by the association type definition.
      *
-     * Immutable.
+     * Immutable (the referenced object definitions are frozen after the schema is frozen).
      */
     @NotNull private final Multimap<QName, ShadowRelationParticipantType> objectParticipantMap;
 
-    /** TEMPORARY: Mutable because of GUI! */
+    /** Mutable unless this definition is frozen. Needed by GUI. (Temporary?) */
     private Integer maxOccurs;
 
     /**
      * Refined definition for {@link ShadowAssociationValueType} values that are stored in the
      * {@link ShadowAssociation} item as {@link ShadowAssociationValue}s.
+     *
+     * Always immutable.
      */
     @NotNull private final ComplexTypeDefinition complexTypeDefinition;
 
@@ -118,23 +143,25 @@ public class ShadowAssociationDefinitionImpl
         this.modernAssociationTypeDefinitionBean = CloneUtil.toImmutable(modernAssociationTypeDefinitionBean);
         this.legacyInformation = legacyInformation;
         this.maxOccurs = maxOccurs;
-        this.complexTypeDefinition = createComplexTypeDefinition();
+        this.complexTypeDefinition = Freezable.checkIsImmutable(createComplexTypeDefinition());
         this.objectParticipantMap = ImmutableSetMultimap.copyOf(objectParticipantMap);
     }
 
     static ShadowAssociationDefinitionImpl parseLegacy(
             @NotNull ResourceObjectAssociationConfigItem.Legacy definitionCI,
-            @NotNull ResourceSchemaImpl schemaBeingParsed,
             @NotNull ResourceObjectDefinition subjectDefinition,
-            @NotNull Collection<ResourceObjectTypeDefinition> objectTypeDefinitions) throws ConfigurationException {
+            @NotNull Collection<ResourceObjectTypeDefinition> objectTypeDefinitions,
+            @NotNull ResourceSchema schemaBeingParsed) throws ConfigurationException {
 
         var legacyInformation = new LegacyAssociationTypeInformation(
-                definitionCI.value().getOutbound(),
-                List.copyOf(definitionCI.value().getInbound()));
+                CloneUtil.cloneIfImmutable(
+                        definitionCI.value().getOutbound()),
+                CloneUtil.toImmutableContainerablesList(
+                        definitionCI.value().getInbound()));
 
         var simulatedReferenceTypeDefinition =
                 SimulatedShadowReferenceTypeDefinition.Legacy.parse(
-                        definitionCI, schemaBeingParsed, subjectDefinition, objectTypeDefinitions);
+                        definitionCI, subjectDefinition, objectTypeDefinitions, schemaBeingParsed);
 
         var updatedAttrDefBean = definitionCI.value().clone();
         updatedAttrDefBean.setOutbound(null);
@@ -253,14 +280,6 @@ public class ShadowAssociationDefinitionImpl
         return ShadowAssociation.empty(name, this);
     }
 
-    /**
-     * We assume that the checks during the definition parsing were good enough to discover any problems
-     * related to broken configuration.
-     */
-    private static SystemException alreadyChecked(ConfigurationException e) {
-        return SystemException.unexpected(e, "(object was already checked)");
-    }
-
     @Override
     public @NotNull ItemName getItemName() {
         return itemName;
@@ -304,17 +323,17 @@ public class ShadowAssociationDefinitionImpl
         ComplexTypeDefinition def = genericDefinition.clone();
 
         if (isComplex()) {
-            ResourceObjectDefinition resourceObjectDefinition = getReferenceAttributeDefinition().getTargetObjectClass();
+            var targetObjectDef = getReferenceAttributeDefinition().getGeneralizedObjectSideObjectDefinition();
             def.mutator().replaceDefinition(
                     ShadowAssociationValueType.F_ATTRIBUTES,
                     new ShadowAttributesContainerDefinitionImpl(
                             ShadowAssociationValueType.F_ATTRIBUTES,
-                            resourceObjectDefinition.getSimpleAttributesComplexTypeDefinition()));
+                            targetObjectDef.getSimpleAttributesComplexTypeDefinition()));
             def.mutator().replaceDefinition(
                     ShadowAssociationValueType.F_OBJECTS,
                     new ShadowAttributesContainerDefinitionImpl(
                             ShadowAssociationValueType.F_OBJECTS,
-                            resourceObjectDefinition.getReferenceAttributesComplexTypeDefinition()));
+                            targetObjectDef.getReferenceAttributesComplexTypeDefinition()));
         } else {
             def.mutator().delete(ShadowAssociationValueType.F_ATTRIBUTES); // ...or replace with empty PCD/CTD
             def.mutator().delete(ShadowAssociationValueType.F_ACTIVATION); // ...or leave it as it is
@@ -327,15 +346,6 @@ public class ShadowAssociationDefinitionImpl
                             ShadowAssociationValueType.F_OBJECTS,
                             new ShadowSingleReferenceAttributeComplexTypeDefinitionImpl(objectRefDef)));
         }
-
-//        // We apply the prism shadow definition for (representative) target object to the shadowRef definition.
-//        var attributesDef = Objects.requireNonNull(def.findContainerDefinition(ShadowAssociationValueType.F_ATTRIBUTES)).clone();
-//        attributesDef.mutator().setTargetObjectDefinition(
-//                getRepresentativeTargetObjectDefinition().getPrismObjectDefinition());
-//        def.mutator().replaceDefinition(
-//                ShadowAssociationValueType.F_SHADOW_REF,
-//                attributesDef);
-//        def.mutator().setRuntimeSchema(true);
 
         // We have to use migrator, because we don't want to create a special implementation of ComplexTypeDefinition
         // interface here. (Just like ShadowReferenceAttributeDefinitionImpl is a special implementation of
@@ -353,7 +363,7 @@ public class ShadowAssociationDefinitionImpl
                                 (ShadowAssociationValueType) value.asContainerable(),
                                 ShadowAssociationDefinitionImpl.this);
                     } catch (SchemaException e) {
-                        throw new RuntimeException(e); // FIXME
+                        throw new RuntimeException(e); // We should perhaps tunnel the exception somehow
                     }
                     converted.setParent(value.getParent());
                     return converted;
@@ -515,15 +525,6 @@ public class ShadowAssociationDefinitionImpl
         sb.append(this); // FIXME
     }
 
-//    @Override
-//    public String toString() {
-//        return getClass().getSimpleName() + "{" +
-//                "item=" + getItemName() +
-//                ", type=" + associationClassDefinition +
-//                "}";
-//    }
-
-
     public String getDebugDumpClassName() {
         return "SRefAttrDef";
     }
@@ -567,7 +568,8 @@ public class ShadowAssociationDefinitionImpl
 
     @Override
     public boolean isEntitlement() {
-        throw new UnsupportedOperationException("FIXME implement");
+        return objectParticipantMap.values().stream()
+                .anyMatch(ShadowRelationParticipantType::isEntitlement);
     }
 
     public void shortDump(StringBuilder sb) {
@@ -1050,6 +1052,7 @@ public class ShadowAssociationDefinitionImpl
         return associationTypeName;
     }
 
+    /** Content is immutable. */
     private record LegacyAssociationTypeInformation(
             @Nullable MappingType outboundMappingBean,
             @NotNull List<InboundMappingType> inboundMappingBeans) implements Serializable {

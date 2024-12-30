@@ -15,11 +15,11 @@ import org.jetbrains.annotations.NotNull;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.SimulatedReferenceTypeParticipantType;
 
-public abstract class SimulatedAssociationClassParticipantConfigItem
+public abstract class SimulatedReferenceTypeParticipantConfigItem
         extends ConfigurationItem<SimulatedReferenceTypeParticipantType> {
 
     @SuppressWarnings({ "unused", "WeakerAccess" }) // called dynamically
-    public SimulatedAssociationClassParticipantConfigItem(
+    public SimulatedReferenceTypeParticipantConfigItem(
             @NotNull ConfigurationItem<SimulatedReferenceTypeParticipantType> original) {
         super(original);
     }
@@ -32,16 +32,16 @@ public abstract class SimulatedAssociationClassParticipantConfigItem
         return value().getSecondaryBindingAttributeRef();
     }
 
-    /** May be empty. */
-    public @NotNull List<SimulatedAssociationClassParticipantDelineationConfigItem> getDelineations()
+    /** Cannot be empty. */
+    public @NotNull List<SimulatedReferenceTypeParticipantDelineationConfigItem> getDelineations()
             throws ConfigurationException {
         return children(
                 nonEmpty(value().getDelineation(), "delineations"),
-                SimulatedAssociationClassParticipantDelineationConfigItem.class,
+                SimulatedReferenceTypeParticipantDelineationConfigItem.class,
                 SimulatedReferenceTypeParticipantType.F_DELINEATION);
     }
 
-    public static class Object extends SimulatedAssociationClassParticipantConfigItem {
+    public static class Object extends SimulatedReferenceTypeParticipantConfigItem {
 
         @SuppressWarnings("unused") // called dynamically
         public Object(@NotNull ConfigurationItem<SimulatedReferenceTypeParticipantType> original) {
@@ -54,7 +54,7 @@ public abstract class SimulatedAssociationClassParticipantConfigItem
         }
     }
 
-    public static class Subject extends SimulatedAssociationClassParticipantConfigItem {
+    public static class Subject extends SimulatedReferenceTypeParticipantConfigItem {
 
         @SuppressWarnings("unused") // called dynamically
         public Subject(@NotNull ConfigurationItem<SimulatedReferenceTypeParticipantType> original) {

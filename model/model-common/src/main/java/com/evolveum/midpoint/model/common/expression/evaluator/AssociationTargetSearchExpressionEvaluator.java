@@ -29,7 +29,6 @@ import com.evolveum.midpoint.schema.GetOperationOptionsBuilder;
 import com.evolveum.midpoint.schema.cache.CacheType;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
-import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SearchObjectExpressionEvaluatorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
@@ -40,7 +39,9 @@ import org.jetbrains.annotations.Nullable;
 /**
  * Creates {@link ShadowAssociationValue} (or more of them) based on specified condition for the associated object.
  *
- * TODO deduplicate with {@link ReferenceAttributeTargetSearchExpressionEvaluator}
+ * Currently suitable for simple associations only.
+ *
+ * Some day, we may deduplicate it regarding {@link ReferenceAttributeTargetSearchExpressionEvaluator}.
  *
  * @author Radovan Semancik
  *
@@ -107,7 +108,7 @@ class AssociationTargetSearchExpressionEvaluator
             protected ObjectQuery createRawQuery(SearchFilterType filter) throws SchemaException {
                 var concreteShadowDef =
                         outputDefinition
-                                .getRepresentativeTargetObjectDefinition()
+                                .getGeneralizedObjectSideObjectDefinition()
                                 .getPrismObjectDefinition();
                 var objFilter = prismContext.getQueryConverter().createObjectFilter(concreteShadowDef, filter);
                 return prismContext.queryFactory().createQuery(objFilter);

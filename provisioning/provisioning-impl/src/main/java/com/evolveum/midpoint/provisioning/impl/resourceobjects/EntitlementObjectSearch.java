@@ -14,7 +14,6 @@ import com.evolveum.midpoint.provisioning.util.ShadowItemsToReturnProvider;
 import com.evolveum.midpoint.schema.config.AssociationConfigItem.AttributeBinding;
 import com.evolveum.midpoint.schema.processor.SimulatedShadowReferenceTypeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
-import com.evolveum.midpoint.schema.processor.SimulatedAssociationClassParticipantDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.util.exception.*;
@@ -83,19 +82,18 @@ class EntitlementObjectSearch<T> {
 
         argCheck(subjectAttrValue != null, "No subject attr value (should be checked by the caller)");
 
-        // We have to search each delineation individually.
-        for (SimulatedAssociationClassParticipantDefinition definition : simulationDefinition.getObjects()) {
+        // We have to search each object participant individually, as they have separate delineations.
+        for (var participantDef : simulationDefinition.getObjects()) {
 
-            var objectAttrDef = definition.getObjectAttributeDefinition(attributeBinding); // e.g. ri:members
+            var objectAttrDef = participantDef.getObjectAttributeDefinition(attributeBinding); // e.g. ri:members
             var query = createEntitlementQuery(objectAttrDef, subjectAttrValue);
 
-            // This should be the class definition, although if there is a default type for that class, it may be returned.
-            var objectDefinition = definition.getObjectDefinition();
+            var objectDefinition = participantDef.getObjectDefinition();
 
             ProvisioningContext wildcardCtx = subjectCtx.toWildcard();
 
             var queryWithConstraints = determineQueryWithConstraints(
-                    wildcardCtx, objectDefinition, definition.getDelineation(), query, result);
+                    wildcardCtx, objectDefinition, participantDef.getDelineation(), query, result);
 
             LOGGER.trace("Searching for object-to-subject association objects for subject {}: query {}",
                     ShadowUtil.getHumanReadableNameLazily(subject.asPrismObject()), queryWithConstraints);

@@ -21,6 +21,10 @@
             <class name="com.evolveum.midpoint.provisioning.impl.opendj.TestOpenDjIncompletePassword" />
             <class name="com.evolveum.midpoint.provisioning.impl.opendj.TestOpenDjDiscovery" />
             <class name="com.evolveum.midpoint.provisioning.impl.opendj.TestOpenDjNativeReferences" />
+            <class name="com.evolveum.midpoint.provisioning.impl.opendj.TestOpenDjObjectTypes" />
+            <class name="com.evolveum.midpoint.provisioning.impl.opendj.TestOpenDjAssociationsLegacySimulated" />
+            <class name="com.evolveum.midpoint.provisioning.impl.opendj.TestOpenDjAssociationsModernSimulated" />
+            <class name="com.evolveum.midpoint.provisioning.impl.opendj.TestOpenDjAssociationsNative" />
             <class name="com.evolveum.midpoint.provisioning.impl.opendj.TestSynchronization" />
         </classes>
     </test>
@@ -94,6 +98,7 @@
             <class name="com.evolveum.midpoint.provisioning.impl.resources.TestResourceTemplateMerge" />
             <class name="com.evolveum.midpoint.provisioning.impl.misc.TestResourceLifecycle" />
             <class name="com.evolveum.midpoint.provisioning.impl.dummy.TestCapabilityBehavior"/>
+            <class name="com.evolveum.midpoint.provisioning.impl.dummy.TestDummyMisc" />
         </classes>
     </test>
 </suite>

@@ -355,16 +355,16 @@ class EntitlementConverter {
 
         EntitlementObjectsOperations objectsOperations = new EntitlementObjectsOperations();
 
-        for (var associationDef : subjectCtx.getAssociationDefinitions()) {
+        for (var refAttrDef : subjectCtx.getReferenceAttributeDefinitions()) {
 
-            if (!isSimulatedObjectToSubject(associationDef) // subject-to-object dies with the subject shadow that is being deleted
-                    || !isVisible(associationDef, subjectCtx)
-                    || !requiresExplicitReferentialIntegrity(associationDef) // it is taken care by resource itself
-                    || !doesMatchSubjectDelineation(associationDef, subjectCtx)) {
+            if (!isSimulatedObjectToSubject(refAttrDef) // subject-to-object dies with the subject shadow that is being deleted
+                    || !isVisible(refAttrDef, subjectCtx)
+                    || !requiresExplicitReferentialIntegrity(refAttrDef) // it is taken care by resource itself
+                    || !doesMatchSubjectDelineation(refAttrDef, subjectCtx)) {
                 continue;
             }
 
-            var simulationDefinition = associationDef.getSimulationDefinitionRequired();
+            var simulationDefinition = refAttrDef.getSimulationDefinitionRequired();
             var binding = simulationDefinition.getPrimaryAttributeBinding();
 
             // This will find all entitlement objects (e.g. groups) that are associated with the subject (e.g. account).
@@ -387,7 +387,7 @@ class EntitlementConverter {
                         searchOp.getSubjectAttrName(), subjectRepoShadow.debugDump(1),
                         simulationDefinition.debugDump(1), subjectCtx.debugDump(1));
                 throw new SchemaException(String.format(
-                        "Cannot delete associations for the subject, as the value of binding attribute '%s' "
+                        "Cannot delete references for the subject, as the value of binding attribute '%s' "
                                 + "is unknown or missing in the subject shadow.", searchOp.getSubjectAttrName()));
             }
 
@@ -401,7 +401,7 @@ class EntitlementConverter {
                                         ResourceObjectDiscriminator.of(entitlementObject.getBean()),
                                         subjectCtx.spawnForDefinition(entitlementObject.getObjectDefinition()))
                                 .findOrCreateAttributeOperation( // operations on specific attribute (e.g. ri:member) on the group
-                                        simulationDefinition.getObjectAttributeDefinition(binding), // like ri:member
+                                        entitlementObject.getObjectDefinition().findSimpleAttributeDefinitionRequired(binding.objectSide()), // like ri:member
                                         simulationDefinition.getPrimaryBindingMatchingRuleLegacy())
                                 .swallowValueToDelete(subjectAttrValue.clone()); // like "uid=joe,ou=people,dc=example,dc=com"
 
@@ -417,14 +417,14 @@ class EntitlementConverter {
     //region Common
     private @NotNull ShadowReferenceAttributeDefinition getReferenceAttributeDefinition(@NotNull ItemName refAttrName)
             throws SchemaException {
-        return subjectCtx.findAssociationDefinitionRequired(refAttrName);
+        return subjectCtx.findReferenceAttributeDefinitionRequired(refAttrName);
     }
 
     private void checkNoReplace(@NotNull ShadowReferenceAttributesCollection attributesCollection) throws SchemaException {
         if (attributesCollection.hasReplace()) {
             LOGGER.error("Replace delta not supported for\nreference attribute modifications:\n{}\nin provisioning context:\n{}",
                     attributesCollection.debugDump(1), subjectCtx.debugDump(1));
-            throw new SchemaException("Cannot perform replace delta for association");
+            throw new SchemaException("Cannot perform replace delta for reference attribute");
         }
     }
     //endregion

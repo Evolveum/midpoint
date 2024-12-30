@@ -12,7 +12,7 @@ import javax.xml.namespace.QName;
 import static com.evolveum.midpoint.schema.constants.SchemaConstants.*;
 
 /**
- * The internal/ConnId/midPoint form of object or association class name.
+ * The internal/ConnId/midPoint form of object class or reference type name.
  *
  * TODO consider renaming this class
  */

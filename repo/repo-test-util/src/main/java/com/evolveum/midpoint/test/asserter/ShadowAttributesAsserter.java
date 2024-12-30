@@ -150,7 +150,7 @@ public class ShadowAttributesAsserter<R> extends AbstractAsserter<ShadowAsserter
     public ShadowReferenceAttributeAsserter<ShadowAttributesAsserter<R>> referenceAttribute(QName attrName) {
         var attribute = (ShadowReferenceAttribute) findReferenceAttribute(attrName);
         var asserter = new ShadowReferenceAttributeAsserter<>(
-                attribute != null ? attribute.getReferenceValues() : List.of(),
+                attribute != null ? attribute.getAttributeValues() : List.of(),
                 this, "attribute "+attrName+" in "+desc());
         copySetupTo(asserter);
         return asserter;
@@ -224,7 +224,7 @@ public class ShadowAttributesAsserter<R> extends AbstractAsserter<ShadowAsserter
     public ShadowAsserter<ShadowAttributesAsserter<R>> singleReferenceValueShadow(QName attrName) {
         var reference = (ShadowReferenceAttribute) findReferenceAttribute(attrName);
         assertNotNull("No reference attribute " + attrName + " in " + desc(), reference);
-        var value = MiscUtil.extractSingleton(reference.getReferenceValues());
+        var value = MiscUtil.extractSingleton(reference.getAttributeValues());
         assertNotNull("No reference attribute " + attrName + " value in " + desc(), value);
         AbstractShadow shadow = value.getShadow();
         assertNotNull("No reference attribute " + attrName + " value shadow in " + desc(), value);

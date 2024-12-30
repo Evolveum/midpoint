@@ -207,7 +207,7 @@ public class ResourceObjectConverter {
             result.recordException(t);
             throw t;
         } finally {
-            result.computeStatusIfUnknown();
+            result.close();
         }
     }
 
@@ -437,13 +437,21 @@ public class ResourceObjectConverter {
         if (result.isInProgress()) {
             return;
         }
+        String lastPartialErrorMessage = null;
+        String lastFatalErrorMessage = null;
         OperationResultStatus status = OperationResultStatus.SUCCESS;
         String asyncRef = null;
         for (OperationResult subresult : result.getSubresults()) {
             if (OPERATION_MODIFY_ENTITLEMENT.equals(subresult.getOperation()) && subresult.isError()) {
                 status = OperationResultStatus.PARTIAL_ERROR;
+                if (subresult.getMessage() != null) {
+                    lastPartialErrorMessage = subresult.getMessage();
+                }
             } else if (subresult.isError()) {
                 status = OperationResultStatus.FATAL_ERROR;
+                if (subresult.getMessage() != null) {
+                    lastFatalErrorMessage = subresult.getMessage();
+                }
             } else if (subresult.isInProgress()) {
                 status = OperationResultStatus.IN_PROGRESS;
                 asyncRef = subresult.getAsynchronousOperationReference();
@@ -451,6 +459,13 @@ public class ResourceObjectConverter {
         }
         result.setStatus(status);
         result.setAsynchronousOperationReference(asyncRef);
+        if (result.getMessage() == null) {
+            if (lastFatalErrorMessage != null) {
+                result.setMessage(lastFatalErrorMessage);
+            } else if (lastPartialErrorMessage != null) {
+                result.setMessage(lastPartialErrorMessage);
+            }
+        }
     }
 
     static ObjectAlreadyExistsException objectAlreadyExistsException(

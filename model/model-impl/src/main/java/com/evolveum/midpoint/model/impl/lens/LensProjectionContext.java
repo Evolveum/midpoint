@@ -1876,8 +1876,7 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
             return false;
         }
         // Maintenance mode means the fetchResult is PARTIAL_ERROR (since 4.7).
-        OperationResultType fetchResult = loadedShadow.getFetchResult();
-        OperationResultStatusType status = fetchResult != null ? fetchResult.getStatus() : null;
+        var status = ObjectTypeUtil.getFetchStatus(loadedShadow);
         boolean full = // TODO what about other kinds of status? [e.g. in-progress]
                 status != OperationResultStatusType.PARTIAL_ERROR
                         && status != OperationResultStatusType.FATAL_ERROR;

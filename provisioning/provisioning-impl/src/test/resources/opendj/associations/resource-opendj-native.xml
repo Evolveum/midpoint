@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (C) 2010-2024 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<resource oid="ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff"
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
+        xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-3"
+        xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+        xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3">
+    <name>opendj-native</name>
+    <documentation>Only ri:ldapGroup is native; the rest is simulated.</documentation>
+    <super>
+        <resourceRef oid="e848090a-25ae-4390-bccc-2bc49d4b9a0c"/>
+    </super>
+    <connectorConfiguration xmlns:icfcldap="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.polygon.connector-ldap/com.evolveum.polygon.connector.ldap.LdapConnector">
+        <icfc:configurationProperties>
+            <icfcldap:managedAssociationPairs>"inetOrgPerson"+isMemberOf -# "groupOfUniqueNames"+uniqueMember</icfcldap:managedAssociationPairs>
+        </icfc:configurationProperties>
+    </connectorConfiguration>
+    <schemaHandling>
+        <associationType>
+            <name>ri:group</name>
+            <subject>
+                <objectType>
+                    <kind>account</kind>
+                    <intent>default</intent>
+                </objectType>
+                <association>
+                    <ref>ri:group</ref>
+                </association>
+            </subject>
+            <object>
+                <objectType>
+                    <kind>entitlement</kind>
+                    <intent>group</intent>
+                </objectType>
+            </object>
+        </associationType>
+        <associationType>
+            <name>ri:posixGroup</name>
+            <subject>
+                <objectType>
+                    <kind>account</kind>
+                    <intent>default</intent>
+                </objectType>
+                <association>
+                    <ref>ri:posixGroup</ref>
+                </association>
+            </subject>
+            <object>
+                <objectType>
+                    <kind>entitlement</kind>
+                    <intent>posixGroup</intent>
+                </objectType>
+            </object>
+        </associationType>
+    </schemaHandling>
+    <capabilities>
+        <configured>
+            <cap:references>
+                <cap:type>
+                    <cap:name>ri:posixGroup</cap:name>
+                    <cap:subject>
+                        <cap:delineation>
+                            <cap:objectClass>ri:inetOrgPerson</cap:objectClass>
+                            <cap:auxiliaryObjectClass>posixAccount</cap:auxiliaryObjectClass>
+                        </cap:delineation>
+                        <cap:primaryBindingAttributeRef>ri:uid</cap:primaryBindingAttributeRef>
+                        <cap:localItemName>ri:posixGroup</cap:localItemName>
+                    </cap:subject>
+                    <cap:object>
+                        <cap:delineation>
+                            <cap:objectClass>ri:groupOfNames</cap:objectClass>
+                            <cap:auxiliaryObjectClass>posixGroup</cap:auxiliaryObjectClass>
+                            <cap:baseContext>
+                                <objectClass>ri:organizationalUnit</objectClass>
+                                <filter>
+                                    <q:equal>
+                                        <q:path>attributes/dn</q:path>
+                                        <q:value>ou=posixGroups,dc=example,dc=com</q:value>
+                                    </q:equal>
+                                </filter>
+                            </cap:baseContext>
+                        </cap:delineation>
+                        <cap:primaryBindingAttributeRef>ri:memberUid</cap:primaryBindingAttributeRef>
+                    </cap:object>
+                    <cap:direction>objectToSubject</cap:direction>
+                    <cap:explicitReferentialIntegrity>true</cap:explicitReferentialIntegrity>
+                </cap:type>
+                <!-- For the "car" reference, see the resource-opendj-modern.xml -->
+            </cap:references>
+        </configured>
+    </capabilities>
+</resource>

@@ -14,6 +14,8 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.util.DebugUtil;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.prism.xml.ns._public.types_3.RawType;
 
 import com.google.common.base.Preconditions;
@@ -30,7 +32,6 @@ import com.evolveum.midpoint.prism.schemaContext.SchemaContextDefinition;
 import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ReferencesCapabilityType;
 
@@ -39,8 +40,6 @@ import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ReferencesCa
  *
  * Note that unlike the attributes, here the {@link ShadowAttributeDefinitionImpl#nativeDefinition} may be generated artificially
  * based on simulated {@link ReferencesCapabilityType} definition.
- *
- * TODO various options for configuring associations
  */
 public class ShadowReferenceAttributeDefinitionImpl
         extends ShadowAttributeDefinitionImpl<
@@ -55,13 +54,13 @@ public class ShadowReferenceAttributeDefinitionImpl
 
     @Serial private static final long serialVersionUID = 1L;
 
-    /** Participant-independent definition of the reference type. */
+    /** Participant-independent definition of the reference type. Immutable after the resource schema is frozen. */
     @NotNull private final AbstractShadowReferenceTypeDefinition referenceTypeDefinition;
 
     private ShadowReferenceAttributeDefinitionImpl(
             @NotNull AbstractShadowReferenceTypeDefinition typeDefinition,
             @NotNull NativeShadowReferenceAttributeDefinition nativeDefinition,
-            @NotNull ResourceItemDefinitionType configurationBean) throws SchemaException {
+            @NotNull ResourceItemDefinitionType configurationBean) throws ConfigurationException {
         super(nativeDefinition, configurationBean, false);
         this.referenceTypeDefinition = typeDefinition;
     }
@@ -72,53 +71,42 @@ public class ShadowReferenceAttributeDefinitionImpl
             @NotNull ResourceItemDefinitionType customizationBean,
             @NotNull Map<LayerType, PropertyLimitations> limitationsMap,
             @NotNull PropertyAccessType accessOverride,
-            @NotNull AbstractShadowReferenceTypeDefinition referenceTypeDefinition) {
+            @NotNull AbstractShadowReferenceTypeDefinition typeDefinition) {
         super(layer, nativeDefinition, customizationBean, limitationsMap, accessOverride);
-        this.referenceTypeDefinition = referenceTypeDefinition;
+        this.referenceTypeDefinition = typeDefinition;
     }
 
     static ShadowReferenceAttributeDefinitionImpl fromNative(
             @NotNull NativeShadowReferenceAttributeDefinition rawDefinition,
-            @NotNull AbstractShadowReferenceTypeDefinition associationClassDefinition,
-            @Nullable ResourceItemDefinitionType customizationBean) {
-        try {
-            return new ShadowReferenceAttributeDefinitionImpl(
-                    associationClassDefinition,
-                    rawDefinition,
-                    toExistingImmutable(customizationBean));
-        } catch (SchemaException e) {
-            throw SystemException.unexpected(e, "TEMPORARY");
-        }
+            @NotNull AbstractShadowReferenceTypeDefinition referenceTypeDefinition,
+            @Nullable ResourceItemDefinitionType customizationBean) throws ConfigurationException {
+        return new ShadowReferenceAttributeDefinitionImpl(
+                referenceTypeDefinition,
+                rawDefinition,
+                toExistingImmutable(customizationBean));
     }
 
     /** Both modern and legacy */
     static ShadowReferenceAttributeDefinition fromSimulated(
             @NotNull SimulatedShadowReferenceTypeDefinition simulatedReferenceTypeDefinition,
-            @Nullable ResourceItemDefinitionType assocDefBean) {
-        try {
-            return new ShadowReferenceAttributeDefinitionImpl(
-                    simulatedReferenceTypeDefinition,
-                    NativeShadowAttributeDefinitionImpl.forSimulatedAssociation(
-                            simulatedReferenceTypeDefinition.getLocalSubjectItemName(),
-                            simulatedReferenceTypeDefinition.getQName(),
-                            ShadowReferenceParticipantRole.SUBJECT),
-                    toExistingImmutable(assocDefBean));
-        } catch (SchemaException e) {
-            throw SystemException.unexpected(e, "TEMPORARY");
-        }
+            @Nullable ResourceItemDefinitionType assocDefBean) throws ConfigurationException {
+        return new ShadowReferenceAttributeDefinitionImpl(
+                simulatedReferenceTypeDefinition,
+                NativeShadowAttributeDefinitionImpl.forSimulatedAssociation(
+                        simulatedReferenceTypeDefinition.getLocalSubjectItemName(),
+                        simulatedReferenceTypeDefinition.getQName(),
+                        ShadowReferenceParticipantRole.SUBJECT),
+                toExistingImmutable(assocDefBean));
     }
 
     private static ResourceItemDefinitionType toExistingImmutable(@Nullable ResourceItemDefinitionType customizationBean) {
         return CloneUtil.toImmutable(Objects.requireNonNullElseGet(customizationBean, ResourceItemDefinitionType::new));
     }
 
-    /** TODO inspect calls to this method; take specific embedded shadow into account (if possible)! */
-    public @NotNull ResourceObjectDefinition getRepresentativeTargetObjectDefinition() {
-        return referenceTypeDefinition.getRepresentativeObjectDefinition();
-    }
-
-    public boolean isEntitlement() {
-        return referenceTypeDefinition.isEntitlement();
+    @Override
+    public @NotNull ResourceObjectDefinition getGeneralizedObjectSideObjectDefinition() {
+        checkSubjectSide();
+        return referenceTypeDefinition.getGeneralizedObjectSideObjectDefinition();
     }
 
     @Override
@@ -218,19 +206,6 @@ public class ShadowReferenceAttributeDefinitionImpl
     }
 
     @Override
-    public ShadowReferenceAttributeValue instantiateFromIdentifierRealValue(
-            @NotNull QName identifierName, @NotNull Object realValue)
-            throws SchemaException {
-        ResourceObjectDefinition targetObjectDefinition = getRepresentativeTargetObjectDefinition();
-        var blankShadow = targetObjectDefinition.createBlankShadow();
-        blankShadow.getAttributesContainer().add(
-                (ShadowAttribute<?, ?, ?, ?>)
-                        targetObjectDefinition.instantiateAttribute(identifierName, realValue));
-        blankShadow.setIdentificationOnly();
-        return ShadowReferenceAttributeValue.fromShadow(blankShadow);
-    }
-
-    @Override
     public PrismReferenceDefinitionMutator mutator() {
         checkMutableOnExposing();
         return this;
@@ -257,13 +232,11 @@ public class ShadowReferenceAttributeDefinitionImpl
 
     @Override
     public String debugDump(int indent) {
-        return super.debugDump(indent, (LayerType) null);
-//        StringBuilder sb = DebugUtil.createTitleStringBuilderLn(getClass() , indent);
-//        DebugUtil.debugDumpWithLabelLn(sb, "item name", getItemName(), indent + 1);
-//        DebugUtil.debugDumpWithLabelLn(sb, "type definition", associationClassDefinition, indent + 1);
-//        // TODO
-//        //DebugUtil.debugDumpWithLabel(sb, "config item", configItem, indent + 1);
-//        return sb.toString();
+        var sb = new StringBuilder(
+                super.debugDump(indent, (LayerType) null));
+        sb.append("\n");
+        DebugUtil.debugDumpWithLabelToStringLn(sb, "referenceTypeDefinition", referenceTypeDefinition, indent + 1);
+        return sb.toString();
     }
 
     public ReferenceDelta createEmptyDelta() {
@@ -301,12 +274,6 @@ public class ShadowReferenceAttributeDefinitionImpl
     public SimulatedShadowReferenceTypeDefinition getSimulationDefinitionRequired() {
         assert isSimulated();
         return Objects.requireNonNull(getSimulationDefinition());
-    }
-
-    public boolean isRaw() {
-        return customizationBean.asPrismContainerValue().hasNoItems();
-//        return configItem instanceof ShadowAssociationTypeDefinitionConfigItem ci
-//                && ci.value().asPrismContainerValue().isEmpty();
     }
 
     @Override
