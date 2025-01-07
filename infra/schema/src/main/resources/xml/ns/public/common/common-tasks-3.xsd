@@ -6927,6 +6927,9 @@
             <xsd:appinfo>
                 <a:since>4.8</a:since>
                 <a:container>true</a:container>
+                <a:schemaContext>
+                    <a:typePath>type</a:typePath>
+                </a:schemaContext>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
@@ -7118,6 +7121,11 @@
                                 Explicit object query used to refine/replace the default query stemming from resourceRef, kind, intent,
                                 and/or objectclass.
                             </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:schemaContext>
+                                    <a:type>ResourceType</a:type>
+                                </a:schemaContext>
+                            </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
                     <xsd:element name="queryApplication" type="tns:ResourceObjectSetQueryApplicationModeType" minOccurs="0">
@@ -7345,6 +7353,11 @@
 
                                 This is the behavior up to 4.4. It may or may not be correct. So it may change in the future.
                             </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:schemaContext>
+                                    <a:type>ShadowType</a:type>
+                                </a:schemaContext>
+                            </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
                 </xsd:sequence>
