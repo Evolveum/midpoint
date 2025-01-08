@@ -142,9 +142,8 @@ public class AnomalyObjectDto implements Serializable {
             @NotNull OperationResult result) {
 
         RoleAnalysisService roleAnalysisService = pageBase.getRoleAnalysisService();
-        List<RoleType> roles = new ArrayList<>();
 
-        loadRolesFromAnomalyOidSet(roleAnalysisService, roles, task, result);
+        var roles = loadRolesFromAnomalyOidSet(roleAnalysisService, task, result);
 
         return new SelectableBeanObjectDataProvider<>(component, Set.of()) {
 
@@ -173,17 +172,16 @@ public class AnomalyObjectDto implements Serializable {
         };
     }
 
-    private void loadRolesFromAnomalyOidSet(
+    private List<RoleType> loadRolesFromAnomalyOidSet(
             RoleAnalysisService roleAnalysisService,
-            List<RoleType> roles,
             Task task,
             OperationResult result) {
-        roleAnomalyMap.keySet().forEach(oid -> {
-            PrismObject<RoleType> rolePrismObject = roleAnalysisService.getRoleTypeObject(oid, task, result);
-            if (rolePrismObject != null) {
-                roles.add(rolePrismObject.asObjectable());
-            }
-        });
+        return roleAnomalyMap.entrySet().stream()
+                .sorted((a, b) -> Double.compare(b.getValue().anomalyScore(), a.getValue().anomalyScore())) // sort desc by score
+                .map(entry -> roleAnalysisService.getRoleTypeObject(entry.getKey(), task, result))
+                .filter(Objects::nonNull)
+                .map(rolePrismObject -> rolePrismObject.asObjectable())
+                .toList();
     }
 
     public boolean isPartitionCountVisible() {
