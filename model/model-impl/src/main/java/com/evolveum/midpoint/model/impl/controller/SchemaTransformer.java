@@ -378,24 +378,24 @@ public class SchemaTransformer {
         ParsedGetOperationOptions getOptions = ParsedGetOperationOptions.of(
                 ModelExecuteOptions.toGetOperationOptions(context.getOptions()));
 
-        if (context.hasFocusContext()) {
-            LensFocusContext<O> securedFocus = applySecurityToFocusContext(context.getFocusContext(), getOptions, task,
-                    result);
+        if (context.hasFocusContext() && context.getFocusContext().getObjectAny() != null) {
+            PrismObject<O> focusObject = context.getFocusContext().getObjectAny();
+            var readConstraints = getLensReadConstraints(focusObject, task, result);
+            LensFocusContext<O> securedFocus = applySecurityToFocusContext(context.getFocusContext(), readConstraints,
+                    getOptions, task, result);
             context.setFocusContext(securedFocus);
+            applySecurityToEvaluatedAssignments(context, readConstraints, result);
         }
         Collection<LensProjectionContext> securedProjections = applySecurityToProjectionsContexts(
                 context.getProjectionContexts(), getOptions, task, result);
 
         context.replaceProjectionContexts(securedProjections);
-        applySecurityToEvaluatedAssignments(context, task, result);
     }
 
-    private <O extends ObjectType> void applySecurityToEvaluatedAssignments(LensContext<O> context, Task task,
-            OperationResult result)
-            throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException,
-            ConfigurationException, SecurityViolationException {
+    private <O extends ObjectType> void applySecurityToEvaluatedAssignments(LensContext<O> context,
+            PrismEntityOpConstraints.ForValueContent readConstraints, OperationResult result) {
         PrismObject<O> focusObject = context.getFocusContext().getObjectAny();
-        var assignmentDecision = getLensReadConstraints(focusObject, task, result)
+        AccessDecision assignmentDecision = readConstraints
                 .getValueConstraints(FocusType.F_ASSIGNMENT).getDecision();
         if (assignmentDecision != AccessDecision.ALLOW) {
             LOGGER.trace("Logged in user isn't authorized to read (or get) assignment item of the object: {}", focusObject);
@@ -405,16 +405,13 @@ public class SchemaTransformer {
     }
 
     private <O extends ObjectType> LensFocusContext<O> applySecurityToFocusContext(
-            LensFocusContext<O> focusContext, ParsedGetOperationOptions getOptions, Task task, OperationResult result)
+            LensFocusContext<O> focusContext, PrismEntityOpConstraints.ForValueContent readConstraints,
+            ParsedGetOperationOptions getOptions, Task task, OperationResult result)
             throws SecurityViolationException, SchemaException, ConfigurationException, ObjectNotFoundException,
             ExpressionEvaluationException, CommunicationException {
-        if (focusContext.getObjectAny() == null) {
-            return focusContext;
-        }
-
         LensFocusContext<O> focusContextClone = focusContext.clone(focusContext.getLensContext());
 
-        applySecurityToElementContext(focusContextClone, getOptions, task, result);
+        applySecurityToElementContext(focusContextClone, readConstraints, getOptions, task, result);
         return focusContextClone;
     }
 
@@ -426,8 +423,10 @@ public class SchemaTransformer {
         List<LensProjectionContext> securedProjections = new ArrayList<>();
         for (LensProjectionContext projCtx : projections) {
             if (projCtx.getObjectAny() != null) {
-                final LensProjectionContext projection = projCtx.clone(projCtx.getLensContext());
-                applySecurityToElementContext(projection, getOptions, task, result);
+                LensProjectionContext projection = projCtx.clone(projCtx.getLensContext());
+                var readConstraints = getLensReadConstraints(projection.getObjectAny(), task, result);
+
+                applySecurityToElementContext(projection, readConstraints, getOptions, task, result);
                 securedProjections.add(projection);
             }
         }
@@ -435,15 +434,12 @@ public class SchemaTransformer {
     }
 
     private <O extends ObjectType> void applySecurityToElementContext(
-            LensElementContext<O> elementContext, ParsedGetOperationOptions getOptions, Task task,
-            OperationResult result)
+            LensElementContext<O> elementContext, PrismEntityOpConstraints.ForValueContent readConstraints,
+            ParsedGetOperationOptions getOptions, Task task, OperationResult result)
             throws SecurityViolationException, SchemaException, ConfigurationException, ObjectNotFoundException,
             ExpressionEvaluationException, CommunicationException {
 
         PrismObject<O> object = elementContext.getObjectAny();
-        final PrismEntityOpConstraints.ForValueContent readConstraints = getLensReadConstraints(object, task,
-                result);
-
         authorizeRawOption(object, getOptions, task, result);
 
         dataAccessProcessor.applyReadConstraints(elementContext, readConstraints);
