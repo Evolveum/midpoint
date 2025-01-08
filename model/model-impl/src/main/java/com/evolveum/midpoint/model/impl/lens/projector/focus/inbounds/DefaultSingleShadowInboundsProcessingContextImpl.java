@@ -34,6 +34,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
  * - {@link CorrelationServiceImpl#checkCandidateOwner(ShadowType, ResourceType, SynchronizationPolicy, FocusType, Task,
  * OperationResult)},
  * - or association value synchronization.
+ *
+ * Does NOT support deltas.
  */
 public class DefaultSingleShadowInboundsProcessingContextImpl<T extends Containerable>
         implements SingleShadowInboundsProcessingContext<T> {
@@ -53,7 +55,7 @@ public class DefaultSingleShadowInboundsProcessingContextImpl<T extends Containe
 
     @NotNull private final ResourceObjectDefinition objectDefinition;
 
-    @NotNull private final ResourceObjectInboundDefinition inboundDefinition;
+    @NotNull private final ResourceObjectInboundProcessingDefinition inboundProcessingDefinition;
 
     private final boolean beforeCorrelation;
 
@@ -65,7 +67,7 @@ public class DefaultSingleShadowInboundsProcessingContextImpl<T extends Containe
             @Nullable SystemConfigurationType systemConfiguration,
             @NotNull Task task,
             @NotNull ResourceObjectDefinition objectDefinition,
-            @NotNull ResourceObjectInboundDefinition inboundDefinition,
+            @NotNull ResourceObjectInboundProcessingDefinition inboundProcessingDefinition,
             boolean beforeCorrelation) {
         this.shadowLikeValue = shadowLikeValue;
         this.resource = resource;
@@ -74,7 +76,7 @@ public class DefaultSingleShadowInboundsProcessingContextImpl<T extends Containe
         this.systemConfiguration = systemConfiguration;
         this.task = task;
         this.objectDefinition = objectDefinition;
-        this.inboundDefinition = inboundDefinition;
+        this.inboundProcessingDefinition = inboundProcessingDefinition;
         this.beforeCorrelation = beforeCorrelation;
     }
 
@@ -117,13 +119,13 @@ public class DefaultSingleShadowInboundsProcessingContextImpl<T extends Containe
     }
 
     @Override
-    public @NotNull ResourceObjectInboundDefinition getInboundDefinition() {
-        return inboundDefinition;
+    public @NotNull ResourceObjectInboundProcessingDefinition getInboundProcessingDefinition() {
+        return inboundProcessingDefinition;
     }
 
     @Override
     public @Nullable String getArchetypeOid() {
-        return inboundDefinition.getFocusSpecification().getArchetypeOid();
+        return inboundProcessingDefinition.getFocusSpecification().getArchetypeOid();
     }
 
     @Override

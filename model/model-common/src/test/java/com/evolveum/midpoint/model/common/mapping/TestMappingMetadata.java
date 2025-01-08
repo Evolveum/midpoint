@@ -1206,11 +1206,6 @@ public class TestMappingMetadata extends AbstractModelCommonTest {
             }
 
             @Override
-            public boolean isLegacyPreview() {
-                return false;
-            }
-
-            @Override
             public @NotNull ObjectTreeDeltas<UserType> getTreeDeltas() {
                 throw new UnsupportedOperationException();
             }

@@ -10,12 +10,17 @@ package com.evolveum.midpoint.schema.processor;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceActivationDefinitionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceBidirectionalMappingType;
 
-public class ResourceObjectDefinitionUtil {
+import org.jetbrains.annotations.NotNull;
 
-    public static ResourceBidirectionalMappingType getActivationBidirectionalMappingType(ResourceActivationDefinitionType activationSchemaHandling, ItemName itemName) {
+import java.util.List;
+
+class ResourceObjectDefinitionUtil {
+
+    static ResourceBidirectionalMappingType getActivationBidirectionalMappingType(ResourceActivationDefinitionType activationSchemaHandling, ItemName itemName) {
         if (activationSchemaHandling == null) {
             return null;
         }
@@ -32,5 +37,9 @@ public class ResourceObjectDefinitionUtil {
         } else {
             throw new IllegalArgumentException("Unknown activation property " + itemName);
         }
+    }
+
+    static @NotNull List<MappingType> getActivationInboundMappings(ResourceBidirectionalMappingType biDirBean) {
+        return biDirBean != null ? biDirBean.getInbound() : List.of();
     }
 }

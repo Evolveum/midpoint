@@ -156,7 +156,7 @@ public class SingleShadowInboundsProcessing<T extends Containerable> extends Abs
 
     private @NotNull CorrelationDefinitionType getCorrelationDefinitionBean() throws SchemaException, ConfigurationException {
         return Objects.requireNonNullElseGet(
-                ctx.getInboundDefinition().getCorrelation(),
+                ctx.getInboundProcessingDefinition().getCorrelation(),
                 () -> new CorrelationDefinitionType());
     }
 

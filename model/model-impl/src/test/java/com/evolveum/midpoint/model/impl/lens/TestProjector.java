@@ -879,7 +879,8 @@ public class TestProjector extends AbstractLensTest {
         LensContext<UserType> context = createUserLensContext();
         context.setChannel(SchemaConstants.CHANNEL_IMPORT);
         fillContextWithEmptyAddUserDelta(context);
-        fillContextWithAccountFromFile(context, ACCOUNT_HERMAN_DUMMY_FILE, task, result);
+        var projCtx = fillContextWithAccountFromFile(context, ACCOUNT_HERMAN_DUMMY_FILE, task, result);
+        projCtx.setFullShadow(true);
         makeImportSyncDelta(context.getProjectionContexts().iterator().next());
 
         displayDumpable("Input context", context);
@@ -935,7 +936,8 @@ public class TestProjector extends AbstractLensTest {
         LensContext<UserType> context = createUserLensContext();
         context.setChannel(SchemaConstants.CHANNEL_IMPORT);
         fillContextWithEmptyAddUserDelta(context);
-        fillContextWithAccountFromFile(context, ACCOUNT_HERMAN_DUMMY_FILE, task, result);
+        var projCtx = fillContextWithAccountFromFile(context, ACCOUNT_HERMAN_DUMMY_FILE, task, result);
+        projCtx.setFullShadow(true);
         makeImportSyncDelta(context.getProjectionContexts().iterator().next());
 
         displayDumpable("Input context", context);
@@ -978,8 +980,16 @@ public class TestProjector extends AbstractLensTest {
 
         LensContext<UserType> context = createUserLensContext();
         fillContextWithUser(context, USER_GUYBRUSH_OID, result);
-        fillContextWithAccount(context, ACCOUNT_SHADOW_GUYBRUSH_OID, task, result);
-        addSyncModificationToContextReplaceAccountAttribute(context, ACCOUNT_SHADOW_GUYBRUSH_OID, "ship", "Black Pearl");
+        var projCtx = fillContextWithAccount(context, ACCOUNT_SHADOW_GUYBRUSH_OID, task, result);
+        var delta = addSyncModificationToContextReplaceAccountAttribute(
+                context, ACCOUNT_SHADOW_GUYBRUSH_OID, "ship", "Black Pearl");
+
+        // We have to manually apply the delta to the initial shadow, because the delta is the sync delta, meaning
+        // it is thought to be already applied to the shadow in question.
+        var shadow = projCtx.getObjectOld().clone();
+        delta.applyTo(shadow);
+        projCtx.setInitialObject(shadow);
+        projCtx.setFullShadow(true); // To run the inbound mappings
 
         displayDumpable("Input context", context);
 

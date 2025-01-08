@@ -245,8 +245,7 @@ public class AbstractModelImplementationIntegrationTest extends AbstractModelInt
             LensContext<UserType> context, String accountOid, String attributeLocalName, T... propertyValues)
             throws SchemaException, ConfigurationException {
         LensProjectionContext accCtx = context.findProjectionContextByOid(accountOid);
-        ObjectDelta<ShadowType> accountDelta = createAccountDelta(accCtx, accountOid, attributeLocalName,
-                propertyValues);
+        ObjectDelta<ShadowType> accountDelta = createAccountDelta(accCtx, accountOid, attributeLocalName, propertyValues);
         accCtx.addAccountSyncDelta(accountDelta);
         return accountDelta;
     }

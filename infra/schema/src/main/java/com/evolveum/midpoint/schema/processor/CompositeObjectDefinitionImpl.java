@@ -411,8 +411,20 @@ public class CompositeObjectDefinitionImpl
     }
 
     @Override
+    public @NotNull Collection<CompleteItemInboundDefinition> getItemInboundDefinitions() {
+        // Auxiliary object class definitions do not have their own inbound mapping definitions.
+        // "Structural" definition here is actually a type definition with attributes from fixed auxiliary object classes.
+        return structuralDefinition.getItemInboundDefinitions();
+    }
+
+    @Override
     public ResourceBidirectionalMappingAndDefinitionType getAuxiliaryObjectClassMappings() {
         return structuralDefinition.getAuxiliaryObjectClassMappings();
+    }
+
+    @Override
+    public @NotNull List<MappingType> getAuxiliaryObjectClassInboundMappings() {
+        return structuralDefinition.getAuxiliaryObjectClassInboundMappings();
     }
 
     @Override
@@ -745,16 +757,6 @@ public class CompositeObjectDefinitionImpl
     @Override
     public @Nullable ItemName resolveFrameworkName(@NotNull String frameworkName) {
         return FrameworkNameResolver.findInObjectDefinition(this, frameworkName);
-    }
-
-    @Override
-    public ItemInboundDefinition getSimpleAttributeInboundDefinition(ItemName itemName) throws SchemaException {
-        return structuralDefinition.getSimpleAttributeInboundDefinition(itemName);
-    }
-
-    @Override
-    public ItemInboundDefinition getReferenceAttributeInboundDefinition(ItemName itemName) throws SchemaException {
-        return structuralDefinition.getReferenceAttributeInboundDefinition(itemName);
     }
 
     @Override

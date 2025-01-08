@@ -14,14 +14,12 @@ import com.evolveum.midpoint.model.impl.lens.LensProjectionContext;
 import com.evolveum.midpoint.model.impl.lens.construction.AssociationValuesTripleComputation;
 import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
-import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.repo.common.expression.ExpressionEvaluationContext;
 import com.evolveum.midpoint.repo.common.expression.evaluator.AbstractExpressionEvaluator;
 import com.evolveum.midpoint.schema.processor.ShadowAssociationDefinition;
 import com.evolveum.midpoint.schema.processor.ShadowAssociationValue;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.*;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssociationOutboundMappingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssociationConstructionExpressionEvaluatorType;
 
 /**
@@ -50,17 +48,9 @@ class AssociationConstructionExpressionEvaluator
 
         checkEvaluatorProfile(context);
 
-        var fakeBean = new AssociationOutboundMappingType();
-        fakeBean.getAttribute().addAll(
-                CloneUtil.cloneCollectionMembers(expressionEvaluatorBean.getAttribute()));
-        fakeBean.getObjectRef().addAll(
-                CloneUtil.cloneCollectionMembers(expressionEvaluatorBean.getObjectRef()));
-        fakeBean.setActivation(
-                CloneUtil.cloneCloneable(expressionEvaluatorBean.getActivation()));
-
         return AssociationValuesTripleComputation.compute(
                 outputDefinition,
-                fakeBean,
+                expressionEvaluatorBean,
                 (LensProjectionContext) ModelExpressionThreadLocalHolder.getProjectionContextRequired(),
                 ModelBeans.get().clock.currentTimeXMLGregorianCalendar(),
                 context.getTask(),

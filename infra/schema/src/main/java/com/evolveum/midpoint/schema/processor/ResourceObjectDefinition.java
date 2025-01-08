@@ -58,7 +58,7 @@ public interface ResourceObjectDefinition
         AssociationDefinitionStore,
         LayeredDefinition,
         FrameworkNameResolver,
-        ResourceObjectInboundDefinition,
+        ResourceObjectInboundProcessingDefinition,
         TypeDefinition {
 
     /**
@@ -261,12 +261,12 @@ public interface ResourceObjectDefinition
         return password.getFetchStrategy();
     }
 
-    default @NotNull List<MappingType> getPasswordInbound() {
+    default @NotNull List<MappingType> getPasswordInboundMappings() {
         ResourcePasswordDefinitionType password = getPasswordDefinition();
         return password != null ? password.getInbound() : List.of();
     }
 
-    default @NotNull List<MappingType> getPasswordOutbound() {
+    default @NotNull List<MappingType> getPasswordOutboundMappings() {
         ResourcePasswordDefinitionType password = getPasswordDefinition();
         return password != null ? password.getOutbound() : List.of();
     }
@@ -282,6 +282,11 @@ public interface ResourceObjectDefinition
     default ResourceBidirectionalMappingType getActivationBidirectionalMappingType(ItemName itemName) {
         return ResourceObjectDefinitionUtil.getActivationBidirectionalMappingType(
                 getActivationSchemaHandling(), itemName);
+    }
+
+    default @NotNull List<MappingType> getActivationInboundMappings(ItemName itemName) {
+        return ResourceObjectDefinitionUtil.getActivationInboundMappings(
+                getActivationBidirectionalMappingType(itemName));
     }
 
     /**
