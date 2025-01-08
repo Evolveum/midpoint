@@ -14,6 +14,7 @@ import java.util.Collections;
 import java.util.List;
 
 import com.evolveum.midpoint.gui.api.util.LocalizationUtil;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.util.IconAndStylesUtil;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.model.IModel;
@@ -235,7 +236,6 @@ public class FocusListInlineMenuHelper<F extends FocusType> implements Serializa
         for (SelectableBean<F> object : objects) {
             OperationResult subResult = result.createSubresult(getOperationName(OPERATION_DELETE_OBJECT));
             try {
-                if (1==1) throw new RuntimeException();
                 Task task = parentPage.createSimpleTask(getOperationName(OPERATION_DELETE_OBJECT));
 
                 ObjectDelta<F> delta = parentPage.getPrismContext().deltaFactory().object().createDeleteDelta(objectClass, object.getValue().getOid()
@@ -273,7 +273,6 @@ public class FocusListInlineMenuHelper<F extends FocusType> implements Serializa
             String operationName = getOperationName(enabling ? OPERATION_ENABLE_OBJECT : OPERATION_DISABLE_OBJECT);
             OperationResult subResult = result.createSubresult(operationName);
             try {
-                if (1==1) throw new RuntimeException("asdf");
                 Task task = parentPage.createSimpleTask(operationName);
 
                 ObjectDelta objectDelta = WebModelServiceUtils.createActivationAdminStatusDelta(
@@ -320,7 +319,9 @@ public class FocusListInlineMenuHelper<F extends FocusType> implements Serializa
             } catch (CommonException | RuntimeException ex) {
                 opResult.recomputeStatus();
                 opResult.recordFatalError(
-                        LocalizationUtil.translate("FocusListInlineMenuHelper.message.reconcile.fatalError", new Object[] { focus }), ex);
+                        parentPage.getString(
+                                "FocusListInlineMenuHelper.message.reconcile.fatalError", WebComponentUtil.getName(focus)),
+                        ex);
                 LoggingUtils.logUnexpectedException(LOGGER, "Couldn't reconcile object " + focus + ".", ex);
             }
         }
