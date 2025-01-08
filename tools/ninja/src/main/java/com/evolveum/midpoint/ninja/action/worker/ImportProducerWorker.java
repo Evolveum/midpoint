@@ -98,10 +98,6 @@ public class ImportProducerWorker<T extends Containerable>
                         continue;
                     }
 
-                    if (!StringUtils.endsWith(entry.getName().toLowerCase(), ".xml")) {
-                        continue;
-                    }
-
                     log.info("Processing file {}", entry.getName());
                     processStream(zis);
                 }
