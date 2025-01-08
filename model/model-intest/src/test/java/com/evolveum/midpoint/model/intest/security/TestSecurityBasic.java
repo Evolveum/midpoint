@@ -12,6 +12,7 @@ import static com.evolveum.midpoint.schema.constants.SchemaConstants.RI_ACCOUNT_
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.testng.AssertJUnit.*;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -1249,6 +1250,24 @@ public class TestSecurityBasic extends AbstractInitializedSecurityTest {
         assertDeleteAllow();
 
         assertGlobalStateUntouched();
+    }
+
+    @Test
+    public void test221AutzJackObjectAddPreview() throws CommonException, IOException {
+        given("Jack has authorization to add new users");
+        cleanupAutzTest(USER_JACK_OID);
+        assignRole(USER_JACK_OID, ROLE_ROLE_ADD_READ_SOME.oid);
+        login(USER_JACK_USERNAME);
+
+        when();
+        ObjectDelta<RoleType> userToAddDelta = createObject(RoleType.class, "Jack's role").createAddDelta();
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+        ModelContext<RoleType> previewContext = previewChanges(userToAddDelta, null, task, result);
+
+        then();
+        assertPreviewContext(previewContext)
+                .focusContext().objectNew().assertName("Jack's role");
     }
 
     @Test
