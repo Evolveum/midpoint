@@ -3,6 +3,7 @@ package com.evolveum.midpoint.ninja.upgrade;
 import java.io.File;
 import java.util.List;
 
+import com.evolveum.midpoint.ninja.BaseUpgradeTest;
 import org.assertj.core.api.Assertions;
 import org.testng.annotations.Test;
 
