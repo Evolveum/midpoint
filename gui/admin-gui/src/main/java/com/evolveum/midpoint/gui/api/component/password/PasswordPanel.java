@@ -159,7 +159,9 @@ public class PasswordPanel extends InputPanel {
 
 
         };
-        password1.add(AttributeAppender.append("onfocus", initPasswordValidation()));
+        if (isPasswordStrengthBarVisible()) {
+            password1.add(AttributeAppender.append("onfocus", initPasswordValidation()));
+        }
         password1.setRequired(false);
         password1.add(new EnableBehaviour(this::canEditPassword));
         password1.setOutputMarkupId(true);
@@ -386,6 +388,10 @@ public class PasswordPanel extends InputPanel {
     }
 
     protected boolean isPasswordLimitationPopupVisible() {
+        return !showOneLinePasswordPanel;
+    }
+
+    protected boolean isPasswordStrengthBarVisible() {
         return !showOneLinePasswordPanel;
     }
 

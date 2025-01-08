@@ -173,6 +173,11 @@ public class ProtectedStringPanel extends BasePanel<PrismPropertyValueWrapper<Pr
                 return super.isPasswordLimitationPopupVisible() && useGlobalValuePolicy;
             }
 
+            @Override
+            protected boolean isPasswordStrengthBarVisible() {
+                return super.isPasswordStrengthBarVisible() && useGlobalValuePolicy;
+            }
+
         };
         panel.setOutputMarkupId(true);
         container.addOrReplace(panel);
