@@ -78,7 +78,7 @@ public class ProgressBarForm extends BasePanel<RoleAnalysisAttributeAnalysisDto>
                 int attributeCount = attributeStatistics.size();
                 Label label = new Label(id, attributeCount);
                 label.setOutputMarkupId(true);
-                label.add(AttributeAppender.append("class", "badge bg-transparent-red border border-danger text-danger"));
+                label.add(AttributeAppender.append("class", "badge border"));
                 return label;
             }
         };
@@ -98,7 +98,16 @@ public class ProgressBarForm extends BasePanel<RoleAnalysisAttributeAnalysisDto>
         List<RoleAnalysisAttributeStatistics> roleAnalysisAttributeStructures = new ArrayList<>(getModelObject().getAttributeStatistics());
         roleAnalysisAttributeStructures.sort(Comparator.comparingDouble(RoleAnalysisAttributeStatistics::getFrequency).reversed());
 
-        int maxVisibleBars = 3;
+        roleAnalysisAttributeStructures.stream()
+                .filter(a -> pathToMark.contains(a.getAttributeValue()))
+                .findFirst()
+                .ifPresent(markedAttr -> {
+                    // keep marked attributes at the top (used to highlight outlier's attributes)
+                    roleAnalysisAttributeStructures.remove(markedAttr);
+                    roleAnalysisAttributeStructures.add(0, markedAttr);
+                });
+
+        int maxVisibleBars = 5;
         boolean isCompactView = roleAnalysisAttributeStructures.size() > 10;
         Map<Double, List<RoleAnalysisAttributeStatistics>> map = new TreeMap<>(Comparator.reverseOrder());
 
@@ -136,7 +145,8 @@ public class ProgressBarForm extends BasePanel<RoleAnalysisAttributeAnalysisDto>
     }
 
     private ProgressBar createProgressBar(RepeatingView repeatingProgressBar, double frequency, List<RoleAnalysisAttributeStatistics> value, boolean isMarkedAttribute) {
-        return new ProgressBar(repeatingProgressBar.newChildId()) {
+        var isUnusual = Objects.requireNonNullElse(value.get(0).getIsUnusual(), false);
+        var bar = new ProgressBar(repeatingProgressBar.newChildId()) {
             @Override
             public double getActualValue() {
                 return frequency;
@@ -144,7 +154,7 @@ public class ProgressBarForm extends BasePanel<RoleAnalysisAttributeAnalysisDto>
 
             @Override
             public String getProgressBarColor() {
-                return isMarkedAttribute ? "#CA444B" : super.getProgressBarColor();
+                return isMarkedAttribute ? "inherit" : super.getProgressBarColor();
             }
 
             @Override
@@ -159,7 +169,7 @@ public class ProgressBarForm extends BasePanel<RoleAnalysisAttributeAnalysisDto>
 
             @Override
             public boolean isUnusual() {
-                return Objects.requireNonNullElse(value.get(0).getIsUnusual(), false);
+                return isUnusual;
             }
 
             @Override
@@ -172,6 +182,13 @@ public class ProgressBarForm extends BasePanel<RoleAnalysisAttributeAnalysisDto>
                 return value;
             }
         };
+        if (isMarkedAttribute) {
+            bar.add(AttributeModifier.append("class", "progress-bar-marked-attribute"));
+            if (isUnusual) {
+                bar.add(AttributeModifier.append("class", "progress-bar-marked-attribute-unusual"));
+            }
+        }
+        return bar;
     }
 
     private IconWithLabel createShowAllButton(RepeatingView repeatingProgressBar, WebMarkupContainer container, int maxVisibleBars) {
