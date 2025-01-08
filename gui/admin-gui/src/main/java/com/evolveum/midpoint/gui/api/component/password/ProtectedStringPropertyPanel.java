@@ -56,7 +56,12 @@ public class ProtectedStringPropertyPanel extends PrismPropertyPanel<ProtectedSt
 
                 @Override
                 protected boolean isPasswordLimitationPopupVisible() {
-                    return useGlobalValuePolicy();
+                    return super.isPasswordLimitationPopupVisible() && useGlobalValuePolicy();
+                }
+
+                @Override
+                protected boolean isPasswordStrengthBarVisible() {
+                    return super.isPasswordStrengthBarVisible() && useGlobalValuePolicy();
                 }
             };
 //        }
