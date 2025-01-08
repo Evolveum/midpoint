@@ -100,12 +100,6 @@ public interface ModelContext<F extends ObjectType> extends Serializable, DebugD
     @Nullable
     PolicyRuleEnforcerPreviewOutputType getPolicyRuleEnforcerPreviewOutput();
 
-    boolean isLegacyPreview();
-
-    /**
-     * Note that {@link #isLegacyPreview()} implies {@code true} return value here, as the preview changes always runs
-     * with non-persistent task execution mode.
-     */
     default boolean isSimulation() {
         return !getTaskExecutionMode().isFullyPersistent();
     }

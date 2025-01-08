@@ -232,6 +232,9 @@ class ProjectionUpdateOperation<F extends ObjectType> {
 
     /**
      * If "limit propagation" option is set, we set `canProject` to `false` for resources other than triggering one.
+     *
+     * TODO what about multiple object types on the same resource? We should perhaps limit the propagation to specific
+     *  object type, not just to the resource.
      */
     private void setCanProjectFlag() {
         String triggeringResourceOid = context.getTriggeringResourceOid();
