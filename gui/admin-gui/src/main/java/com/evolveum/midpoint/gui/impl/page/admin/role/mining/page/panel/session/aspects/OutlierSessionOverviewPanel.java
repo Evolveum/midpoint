@@ -121,7 +121,7 @@ public class OutlierSessionOverviewPanel extends AbstractObjectMainPanel<RoleAna
 
             @Override
             protected @NotNull Component getPanelComponent(String id) {
-                RoleAnalysisOutlierTable table = new RoleAnalysisOutlierTable(id,
+                RoleAnalysisSessionOutlierTable table = new RoleAnalysisSessionOutlierTable(id,
                         OutlierSessionOverviewPanel.this.getPageBase(),
                         new LoadableDetachableModel<>() {
                             @Override
