@@ -117,7 +117,6 @@ public class TaskManagerQuartzImpl implements TaskManager, SystemConfigurationCh
     private static final String OP_CLEANUP_NODES = DOT_INTERFACE + "cleanupNodes";
 
     @Autowired private TaskManagerConfiguration configuration;
-    @Autowired private SystemConfigurationChangeDispatcher systemConfigurationChangeDispatcher;
     @Autowired private CacheConfigurationManager cacheConfigurationManager;
     @Autowired private Schedulers schedulers;
     @Autowired private TaskThreadsDumper taskThreadsDumper;
@@ -140,7 +139,6 @@ public class TaskManagerQuartzImpl implements TaskManager, SystemConfigurationCh
     @Autowired private RepositoryService repositoryService;
     @Autowired(required = false) private SqlPerformanceMonitorsCollection sqlPerformanceMonitorsCollection;
     @Autowired private PrismContext prismContext;
-    @Autowired private UpAndDown upAndDown;
     @Autowired private LightweightTaskManager lightweightTaskManager;
     @Autowired private TaskSynchronizer taskSynchronizer;
     @Autowired private TaskBeans beans;
@@ -160,75 +158,9 @@ public class TaskManagerQuartzImpl implements TaskManager, SystemConfigurationCh
     /** Cached task prism definition. */
     private PrismObjectDefinition<TaskType> taskPrismDefinition;
 
-    /**
-     * A flag that the task manager is going down (most probably as part of the system shutdown).
-     * We use it to prevent starting the quartz scheduler in such a state, to prevent erroneous situations like MID-7331:
-     * service stop is requested during service startup, which leads to a situation when the scheduler is first paused
-     * (because of shutdown), and then started (because of startup) - which leads to tasks being closed because of internal
-     * inconsistencies due to missing task handlers.
-     *
-     * We simply assume that once system goes down, it will never be started in its current instance.
-     */
-    private boolean goingDown;
-
     @NotNull private final Set<ClusteringAvailabilityProvider> clusteringAvailabilityProviders = ConcurrentHashMap.newKeySet();
 
     private static final Trace LOGGER = TraceManager.getTrace(TaskManagerQuartzImpl.class);
-
-    //region Initialization and shutdown
-    @PostConstruct
-    public void init() {
-        OperationResult result = new OperationResult(DOT_IMPL_CLASS + "init");
-        systemConfigurationChangeDispatcher.registerListener(this);
-        upAndDown.init(result); // not actually starting the scheduler, unless in test mode
-    }
-
-    @PreDestroy
-    public void destroy() {
-        OperationResult result = new OperationResult(DOT_IMPL_CLASS + "shutdown");
-        systemConfigurationChangeDispatcher.unregisterListener(this);
-        goingDown = true;
-        upAndDown.shutdown(result);
-    }
-
-    /**
-     * Called when the whole application is initialized.
-     *
-     * Here we make this node a real cluster member: We set the operational state to UP, enabling receiving cache invalidation
-     * events (among other effects). We also invalidate local caches - to begin with a clean slate - and start the scheduler.
-     *
-     * The postInit mechanism cannot be used for this purpose. The reason is that it is invoked shortly before the application
-     * is completely up. REST endpoints are not yet functional at that time. This means that some cache invalidation
-     * messages could be lost, and the other nodes could get error messages in the meanwhile.
-     *
-     * Unfortunately, REST endpoints are not initialized even when this event is emitted. There's a few seconds before
-     * they are really available. So the real action can be delayed by setting "nodeStartupDelay" configuration parameter.
-     * (This is a temporary solution until something better is found.)
-     */
-    @EventListener(ApplicationReadyEvent.class)
-    public void onSystemStarted() {
-        OperationResult result = new OperationResult(DOT_IMPL_CLASS + "onSystemStarted");
-        if (!goingDown) {
-            upAndDown.switchToUpState(result);
-        } else {
-            LOGGER.info("NOT starting threads (scheduler + cluster manager) because we are going down");
-        }
-    }
-
-    /**
-     * Stops the local tasks as soon as we know we are going down - without waiting for {@link PreDestroy} method on Spring
-     * beans in this module is called. The latter is too late for us. We need all background tasks to stop before midPoint
-     * is torn down to pieces.
-     *
-     * Otherwise, incorrect processing is experienced, like live sync events being emitted to nowhere - see e.g. MID-7648.
-     */
-    @EventListener(ContextClosedEvent.class)
-    public void onSystemShutdown() {
-        OperationResult result = new OperationResult(DOT_IMPL_CLASS + "onSystemShutdown");
-        goingDown = true;
-        upAndDown.stopLocalSchedulerAndTasks(result);
-    }
-    //endregion
 
     //region Suspend, resume, pause, unpause
     /*
