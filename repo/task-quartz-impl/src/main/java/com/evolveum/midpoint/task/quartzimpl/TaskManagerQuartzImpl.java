@@ -117,7 +117,6 @@ public class TaskManagerQuartzImpl implements TaskManager, SystemConfigurationCh
     private static final String OP_CLEANUP_NODES = DOT_INTERFACE + "cleanupNodes";
 
     @Autowired private TaskManagerConfiguration configuration;
-    @Autowired private SystemConfigurationChangeDispatcher systemConfigurationChangeDispatcher;
     @Autowired private CacheConfigurationManager cacheConfigurationManager;
     @Autowired private Schedulers schedulers;
     @Autowired private TaskThreadsDumper taskThreadsDumper;
@@ -140,7 +139,6 @@ public class TaskManagerQuartzImpl implements TaskManager, SystemConfigurationCh
     @Autowired private RepositoryService repositoryService;
     @Autowired(required = false) private SqlPerformanceMonitorsCollection sqlPerformanceMonitorsCollection;
     @Autowired private PrismContext prismContext;
-    @Autowired private UpAndDown upAndDown;
     @Autowired private LightweightTaskManager lightweightTaskManager;
     @Autowired private TaskSynchronizer taskSynchronizer;
     @Autowired private TaskBeans beans;
@@ -163,55 +161,6 @@ public class TaskManagerQuartzImpl implements TaskManager, SystemConfigurationCh
     @NotNull private final Set<ClusteringAvailabilityProvider> clusteringAvailabilityProviders = ConcurrentHashMap.newKeySet();
 
     private static final Trace LOGGER = TraceManager.getTrace(TaskManagerQuartzImpl.class);
-
-    //region Initialization and shutdown
-    @PostConstruct
-    public void init() {
-        OperationResult result = new OperationResult(DOT_IMPL_CLASS + "init");
-        systemConfigurationChangeDispatcher.registerListener(this);
-        upAndDown.init(result);
-    }
-
-    @PreDestroy
-    public void destroy() {
-        OperationResult result = new OperationResult(DOT_IMPL_CLASS + "shutdown");
-        systemConfigurationChangeDispatcher.unregisterListener(this);
-        upAndDown.shutdown(result);
-    }
-
-    /**
-     * Called when the whole application is initialized.
-     *
-     * Here we make this node a real cluster member: We set the operational state to UP, enabling receiving cache invalidation
-     * events (among other effects). We also invalidate local caches - to begin with a clean slate - and start the scheduler.
-     *
-     * The postInit mechanism cannot be used for this purpose. The reason is that it is invoked shortly before the application
-     * is completely up. REST endpoints are not yet functional at that time. This means that some cache invalidation
-     * messages could be lost, and the other nodes could get error messages in the meanwhile.
-     *
-     * Unfortunately, REST endpoints are not initialized even when this event is emitted. There's a few seconds before
-     * they are really available. So the real action can be delayed by setting "nodeStartupDelay" configuration parameter.
-     * (This is a temporary solution until something better is found.)
-     */
-    @EventListener(ApplicationReadyEvent.class)
-    public void onSystemStarted() {
-        OperationResult result = new OperationResult(DOT_IMPL_CLASS + "onSystemStarted");
-        upAndDown.onSystemStarted(result);
-    }
-
-    /**
-     * Stops the local tasks as soon as we know we are going down - without waiting for {@link PreDestroy} method on Spring
-     * beans in this module is called. The latter is too late for us. We need all background tasks to stop before midPoint
-     * is torn down to pieces.
-     *
-     * Otherwise, incorrect processing is experienced, like live sync events being emitted to nowhere - see e.g. MID-7648.
-     */
-    @EventListener(ContextClosedEvent.class)
-    public void onSystemShutdown() {
-        OperationResult result = new OperationResult(DOT_IMPL_CLASS + "onSystemShutdown");
-        upAndDown.stopLocalSchedulerAndTasks(result);
-    }
-    //endregion
 
     //region Suspend, resume, pause, unpause
     /*
