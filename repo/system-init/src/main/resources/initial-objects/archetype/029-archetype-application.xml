@@ -94,6 +94,7 @@
                         </icon>
                     </display>
                     <displayOrder>91</displayOrder>
+                    <applicableForOperation>modify</applicableForOperation>
                     <panelType>governanceCards</panelType>
                 </panel>
                 <panel id="15">
