@@ -72,6 +72,8 @@ public class NinjaUtils {
 
     public static final long WAIT_FOR_EXECUTOR_FINISH = 365;
 
+    public static final String XML_EXTENSION = "xml";
+
     public static JCommander setupCommandLineParser() {
         BaseOptions base = new BaseOptions();
         ConnectionOptions connection = new ConnectionOptions();
@@ -181,10 +183,9 @@ public class NinjaUtils {
         }
 
         String fullName = file.getName();
-        String extension = FilenameUtils.getExtension(fullName);
         String name = FilenameUtils.removeExtension(fullName).replaceAll("\\.", "-");
 
-        return name + "." + extension;
+        return name + "." + XML_EXTENSION ;
     }
 
     public static GetOperationOptionsBuilder addIncludeOptionsForExport(GetOperationOptionsBuilder optionsBuilder,
