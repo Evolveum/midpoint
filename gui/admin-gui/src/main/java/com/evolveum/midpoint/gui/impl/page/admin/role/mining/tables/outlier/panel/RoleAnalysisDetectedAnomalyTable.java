@@ -12,7 +12,6 @@ import java.math.RoundingMode;
 import java.util.*;
 
 import com.evolveum.midpoint.gui.api.component.LabelWithHelpPanel;
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.components.ProgressBarSecondStyle;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.outlier.RoleAnalysisPartitionUserPermissionTablePopup;
 
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.tmp.panel.RoleAnalysisAttributePanel;
@@ -232,7 +231,9 @@ public class RoleAnalysisDetectedAnomalyTable extends BasePanel<AnomalyObjectDto
                         BigDecimal bd = new BigDecimal(Double.toString(anomalyScore));
                         bd = bd.setScale(2, RoundingMode.HALF_UP);
                         double roundedAnomalyScore = bd.doubleValue();
-                        initDensityProgressPanelNew(cellItem, componentId, roundedAnomalyScore);
+                        Label anomalyScorePanel = new Label(componentId, roundedAnomalyScore + "%");
+                        anomalyScorePanel.setOutputMarkupId(true);
+                        cellItem.add(anomalyScorePanel);
                     }
 
                     @Override
@@ -552,45 +553,6 @@ public class RoleAnalysisDetectedAnomalyTable extends BasePanel<AnomalyObjectDto
                         anomalyResult.getStatistics());
             }
         };
-    }
-
-    private static void initDensityProgressPanelNew(
-            @NotNull Item<ICellPopulator<SelectableBean<RoleType>>> cellItem,
-            @NotNull String componentId,
-            @NotNull Double density) {
-
-        BigDecimal bd = new BigDecimal(Double.toString(density));
-        bd = bd.setScale(2, RoundingMode.HALF_UP);
-        double pointsDensity = bd.doubleValue();
-
-        String colorClass = densityBasedColorOposite(pointsDensity);
-
-        ProgressBarSecondStyle progressBar = new ProgressBarSecondStyle(componentId) {
-
-            @Override
-            public boolean isInline() {
-                return true;
-            }
-
-            @Override
-            public double getActualValue() {
-                return pointsDensity;
-            }
-
-            @Override
-            public String getProgressBarColor() {
-                return colorClass;
-            }
-
-            @Contract(pure = true)
-            @Override
-            public @NotNull String getBarTitle() {
-                return "";
-            }
-        };
-        progressBar.setOutputMarkupId(true);
-        progressBar.add(AttributeModifier.append("style", "min-width: 150px; max-width:220px;"));
-        cellItem.add(progressBar);
     }
 
     public String getAdditionalBoxCssClasses() {
