@@ -9,10 +9,13 @@ package com.evolveum.midpoint.ninja;
 import java.io.File;
 import java.util.List;
 
+import com.evolveum.midpoint.schema.RepositoryDiag;
+
 import org.assertj.core.api.Assertions;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.AssertJUnit;
+import org.testng.SkipException;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Listeners;
 import org.testng.annotations.Test;
