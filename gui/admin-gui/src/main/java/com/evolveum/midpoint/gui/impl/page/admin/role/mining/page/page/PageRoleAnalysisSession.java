@@ -198,37 +198,39 @@ public class PageRoleAnalysisSession extends PageAssignmentHolderDetails<RoleAna
         Boolean detailedAnalysis = sessionOptions.getDetailedAnalysis();
 
         List<ContainerPanelConfigurationType> object = panelConfigurations.getObject();
+
         for (ContainerPanelConfigurationType containerPanelConfigurationType : object) {
-            if (containerPanelConfigurationType.getIdentifier().equals("sessionRoleSuggestions")
-                    && analysisProcedureType == RoleAnalysisProcedureType.OUTLIER_DETECTION) {
+            String identifier = containerPanelConfigurationType.getIdentifier();
+
+            if (shouldHidePanel(identifier, analysisProcedureType, detailedAnalysis)) {
                 containerPanelConfigurationType.setVisibility(UserInterfaceElementVisibilityType.HIDDEN);
-            } else if (containerPanelConfigurationType.getIdentifier().equals("outlierActions")
-                    && (analysisProcedureType != RoleAnalysisProcedureType.OUTLIER_DETECTION || !detailedAnalysis)) {
-                containerPanelConfigurationType.setVisibility(UserInterfaceElementVisibilityType.HIDDEN);
-            } else if (containerPanelConfigurationType.getIdentifier().equals("outliers")
-                    && (analysisProcedureType != RoleAnalysisProcedureType.OUTLIER_DETECTION || detailedAnalysis)) {
-                containerPanelConfigurationType.setVisibility(UserInterfaceElementVisibilityType.HIDDEN);
-            } else if (containerPanelConfigurationType.getIdentifier().equals("advanced")) {
-                if (analysisProcedureType == RoleAnalysisProcedureType.ROLE_MINING) {
-                    List<ContainerPanelConfigurationType> panel = containerPanelConfigurationType.getPanel();
-                    panel.forEach(panelConfig -> {
-                        if (panelConfig.getIdentifier().equals("outlier-clustering-result")) {
-                            panelConfig.setVisibility(UserInterfaceElementVisibilityType.HIDDEN);
-                        }
-                    });
-                }
-            } else if (containerPanelConfigurationType.getIdentifier().equals("role-mining-result")
-                    && analysisProcedureType == RoleAnalysisProcedureType.OUTLIER_DETECTION) {
-                containerPanelConfigurationType.setVisibility(UserInterfaceElementVisibilityType.HIDDEN);
-            } else if (containerPanelConfigurationType.getIdentifier().equals("unclassified-objects")
-                    && analysisProcedureType == RoleAnalysisProcedureType.ROLE_MINING) {
-                containerPanelConfigurationType.setVisibility(UserInterfaceElementVisibilityType.HIDDEN);
+            } else if (identifier.equals("advanced") && analysisProcedureType == RoleAnalysisProcedureType.ROLE_MINING) {
+                hideAdvancedPanel(containerPanelConfigurationType);
             } else {
                 resolveSessionSettingPanels(containerPanelConfigurationType, processMode);
             }
-
         }
+
         return panelConfigurations;
+    }
+
+    private boolean shouldHidePanel(@NotNull String identifier, RoleAnalysisProcedureType analysisProcedureType, boolean detailedAnalysis) {
+        return (identifier.equals("sessionOutlierOverView") && analysisProcedureType == RoleAnalysisProcedureType.ROLE_MINING)
+                || (identifier.equals("sessionMiningOverView") && analysisProcedureType == RoleAnalysisProcedureType.OUTLIER_DETECTION)
+                || (identifier.equals("sessionRoleSuggestions") && analysisProcedureType == RoleAnalysisProcedureType.OUTLIER_DETECTION)
+                || (identifier.equals("outlierActions") && (analysisProcedureType != RoleAnalysisProcedureType.OUTLIER_DETECTION || !detailedAnalysis))
+                || (identifier.equals("outliers") && (analysisProcedureType != RoleAnalysisProcedureType.OUTLIER_DETECTION || detailedAnalysis))
+                || (identifier.equals("mining-clustering-result") && analysisProcedureType == RoleAnalysisProcedureType.OUTLIER_DETECTION)
+                || (identifier.equals("unclassified-objects") && analysisProcedureType == RoleAnalysisProcedureType.ROLE_MINING);
+    }
+
+    private void hideAdvancedPanel(@NotNull ContainerPanelConfigurationType containerPanelConfigurationType) {
+        List<ContainerPanelConfigurationType> panel = containerPanelConfigurationType.getPanel();
+        panel.forEach(panelConfig -> {
+            if (panelConfig.getIdentifier().equals("outlier-clustering-result")) {
+                panelConfig.setVisibility(UserInterfaceElementVisibilityType.HIDDEN);
+            }
+        });
     }
 
     private static void resolveSessionSettingPanels(

@@ -48,6 +48,8 @@ import com.evolveum.midpoint.web.component.AjaxCompositedIconSubmitButton;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
+import org.jetbrains.annotations.Nullable;
+
 import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.RoleAnalysisWebUtils.CLASS_CSS;
 
 //TODO correct authorizations
@@ -84,12 +86,32 @@ public class PageRoleAnalysisCluster extends PageAssignmentHolderDetails<RoleAna
     @Override
     protected void onBackPerform(AjaxRequestTarget target) {
         PageParameters parameters = new PageParameters();
+
         ObjectReferenceType roleAnalysisSessionRef = getModelObjectType().getRoleAnalysisSessionRef();
         parameters.add(OnePageParameterEncoder.PARAMETER, roleAnalysisSessionRef.getOid());
-        parameters.add("panelId", "sessionOverView");
+        parameters.add("panelId", getBackPerformPanelId(getModelObjectType()));
         Class<? extends PageBase> detailsPageClass = DetailsPageUtil
                 .getObjectDetailsPage(RoleAnalysisSessionType.class);
         ((PageBase) getPage()).navigateToNext(detailsPageClass, parameters);
+    }
+
+    private @Nullable String getBackPerformPanelId(@NotNull RoleAnalysisClusterType cluster) {
+        PageBase pageBase = ((PageBase) getPage());
+        RoleAnalysisService roleAnalysisService = pageBase.getRoleAnalysisService();
+        Task task = pageBase.createSimpleTask("Retrieve cluster session");
+        OperationResult result = task.getResult();
+        PrismObject<RoleAnalysisSessionType> sessionTypeObject = roleAnalysisService
+                .getSessionTypeObject(cluster.getRoleAnalysisSessionRef().getOid(), task, result);
+        if (sessionTypeObject == null) {
+            return null;
+        }
+        RoleAnalysisOptionType analysisOption = sessionTypeObject.asObjectable().getAnalysisOption();
+        RoleAnalysisProcedureType procedureType = analysisOption.getAnalysisProcedureType();
+        if (procedureType.equals(RoleAnalysisProcedureType.OUTLIER_DETECTION)) {
+            return "outlier-clustering-result";
+        }
+
+        return "mining-clustering-result";
     }
 
     @Override
@@ -127,7 +149,7 @@ public class PageRoleAnalysisCluster extends PageAssignmentHolderDetails<RoleAna
             }
 
             @Override
-            protected void onError(AjaxRequestTarget target) {
+            protected void onError(@NotNull AjaxRequestTarget target) {
                 target.add(((PageBase) getPage()).getFeedbackPanel());
             }
         };

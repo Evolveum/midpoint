@@ -42,6 +42,8 @@ import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.*;
 
 import static com.evolveum.midpoint.gui.api.util.LocalizationUtil.translate;
@@ -361,5 +363,16 @@ public class RoleAnalysisWebUtils {
             return Model.of(translate(EXPLANATION_NONE_MESSAGE_KEY));
         }
         return null;
+    }
+
+    public static double getTotalSystemPercentageReduction(int totalReduction, int totalAssignmentRoleToUser) {
+        double totalSystemPercentageReduction = 0;
+        if (totalReduction != 0 && totalAssignmentRoleToUser != 0) {
+            totalSystemPercentageReduction = ((double) totalReduction / totalAssignmentRoleToUser) * 100;
+            BigDecimal bd = BigDecimal.valueOf(totalSystemPercentageReduction);
+            bd = bd.setScale(2, RoundingMode.HALF_UP);
+            totalSystemPercentageReduction = bd.doubleValue();
+        }
+        return totalSystemPercentageReduction;
     }
 }

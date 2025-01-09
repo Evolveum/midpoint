@@ -15,9 +15,9 @@ import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.impl.page.admin.ObjectDetailsModels;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
-@PanelType(name = "role-mining-result")
+@PanelType(name = "mining-clustering-result")
 @PanelInstance(
-        identifier = "role-mining-result",
+        identifier = "mining-clustering-result",
         applicableForType = RoleAnalysisSessionType.class,
         display = @PanelDisplay(
                 label = "RoleAnalysisSessionType.roleAnalysisCluster.result",
