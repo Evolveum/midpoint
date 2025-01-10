@@ -242,3 +242,41 @@ It also allows to specify whether such attribute should be listed or omitted in 
     </configured>
 </capabilities>
 ----
+
+// The following is an example of capabilities configuration as can be seen in XML editor when checking OpenDJ resource configuration (click through the path Configuration->Repository objects->Resources->Local host OpenDJ resource).
+// You have to have imported OpenDJ advanced sync sample (Configuration->Import object->Import from file) and "test connection" button pressed (Resources->Localhost OpenDJ->"test connection" button in Resource details page):
+//
+// * resource attribute `ri:ds-pwp-account-disabled` will be used for resource account de/activation (empty value: account activated, `true` value: account deactivated)
+//
+// * configured capabilities consist of `<activation>` part
+//
+// * native capabilities: credentials, liveSync, testConnection (this part is automatically provided by connector, it is not present in OpenDJ advanced sample code)
+//
+// .LDAP Resource Capabilities Example
+// [source,xml]
+// ----
+// <capabilities>
+//     <cachingMetadata>...</cachingMetadata>
+//     <native>
+//         <cap:script>
+//             <cap:host>
+//                 <cap:type>connector</cap:type>
+//             </cap:host>
+//         </cap:script>
+//         <cap:credentials>
+//             <cap:password/>
+//         </cap:credentials>
+//         <cap:testConnection/>
+//         <cap:liveSync/>
+//     </native>
+//     <configured>
+//         <cap:activation>
+//             <cap:enableDisable>
+//                 <cap:attribute>ri:ds-pwp-account-disabled</cap:attribute>
+//                 <cap:enableValue/>
+//                 <cap:disableValue>true</cap:disableValue>
+//             </cap:enableDisable>
+//         </cap:activation>
+//     </configured>
+// </capabilities>
+// ----

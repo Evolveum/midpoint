@@ -1,0 +1,401 @@
+== Attribute Definitions
+:page-toc: top
+
+Attribute definitions are part of object type definition.
+They provide more details about handling of attributes that form a particular object type.
+The administrator can define a specific data and behavior for each attribute.
+
+See xref:/midpoint/reference/resources/resource-configuration/schema-handling/attributes/[].
+
+The basic and quite straightforward attribute definition elements are:
+
+* *Display name* of the attribute.
+This is a human readable name used in GUI and similar tools.
+
+* *Description* is a human-readable explanation of the attribute purpose, the purpose of the mappings, etc.
+It may be quite long.
+
+* *Limitations* of the attribute.
+See below.
+
+* *Matching Rule* of the attribute.
+See below.
+
+* *Mappings* that define automated attribute handling.
+See below.
+
+* *Tolerance* specifies whether the attribute tolerates values that are set outside midPoint.
+See below.
+
+* *Fetch strategy* influences when midPoint will fetch this attribute.
+See below.
+
+* *Exclusive strong* See below.
+
+* *Read-Replace mode* See below.
+
+* *Secondary identifier* See below.
+
+* *Volatility Trigger* See below.
+
+* *Modification Priority* See below.
+
+
+=== Attribute Tolerance
+
+*Tolerance* specifies whether the attribute tolerates values that are set outside midPoint.
+A _tolerant_ attribute will tolerate foreign values in the attribute.
+E.g. if the attribute is a set of account privileges, setting it to tolerant will keep also the values set by native administration tools.
+On the other hand _non-tolerant_ attributes will only allow values set by midPoint.
+If a foreign value is detected in the attribute then midPoint will remove that value during reconciliation.
+
+All attributes are considered to be tolerant by default.
+This is in accord with midPoint philosophy to be non-intrusive by default and not to destroy any values unless explicitly said so.
+
+The same principle applies to both single-valued and multi-valued attributes.
+However, there are subtle differences.
+MidPoint will almost always overwrite the value of a single-value attribute.
+Even for tolerant attributes.
+This is quite obvious, as the attribute cannot hold more than one value and therefore the value that is provided by midPoint is probably the correct one.
+In case of tolerant multi-value attributes, midPoint will not overwrite existing values.
+The values provided by midPoint will be added to existing values of the attribute.
+However, midPoint may delete existing value of the attribute even if that attribute is tolerant.
+MidPoint will do that in case that such value is removed from midPoint (e.g. by unassigning a role) and that such value was given by authoritative xref:/midpoint/reference/expressions/mappings/[mapping].
+In this case, midPoint cannot reliably distinguish whether this particular value was added to the resource by midPoint or whether the value existed in the account even before midPoint discovered it.
+But the usual case is that midPoint added the value and that is what midPoint will assume in this case.
+Therefore, such value is removed even if the attribute is non-tolerant.
+If you want avoid removing the value then you can set the mapping to be non-authoritative.
+
+[NOTE]
+.Tolerant single-value attributes
+====
+Single value attributes will usually be behave as expected, even if they are tolerant (which is the default setting).
+It means that mappings will overwrite the values and such attribute will behave almost in the same way as non-tolerant.
+But there is one crucial difference that becomes obvious in case that the mapping produces empty value.
+Tolerant attribute will *not* delete the attribute value in this case.
+And that makes sense, even though it is not entirely intuitive.
+In this case midPoint has an option to keep the attribute value untouched.
+So it will not touch it.
+In case of non-empty value there is no option to keep the original value untouched because the target attribute can only hold one value.
+But in this case there is an option.
+On the other hand, non-tolerant attribute *will* delete the target value and then the mapping will work as expected.
+
+Therefore it is *recommended to set most of the single-value attributes* for which there are mappings *to a non-tolerant mode*.
+
+Even though this behavior may be somehow counter-intuitive, it makes perfect sense from the conceptual point of view.
+Single-value and multi-value attributes behave in a similar way.
+And keeping this aligned also allows to keep midPoint algorithms cleaner, handle less exceptions and special cases and it also gives midPoint a slight better flexibility.
+Therefore please forgive us this little non-intuitive weirdness.
+
+====
+
+
+=== Mappings
+
+Perhaps the most powerful parts of the definition are xref:/midpoint/reference/expressions/mappings/[mappings] that take two slightly distinct forms:
+
+* *xref:/midpoint/reference/expressions/mappings/outbound-mapping/[Outbound Mapping]* defines how the attribute value is created when the account is created or updated.
+It defines the data flow out of midPont to the resource.
+
+* *xref:/midpoint/reference/expressions/mappings/inbound-mapping/[Inbound Mappings]* define how the attribute value is used, e.g., when a change of the account is detected on the resource.
+It defines data flow from the resource into midPoint.
+
+TODO: expand
+
+
+=== Attribute Limitations
+
+The limitations include
+
+* *Ignore* flag, if set to `true` will make the attribute effectively disappear.
+The attribute will still be passed between midPoint and the resource, but the GUI and other parts of midPoint logic will pretend that it is not there.
+
+* *Multiplicity override* by use of *minOccurs* and *maxOccurs* element.
+It can be used to adjust multiplicity of the attribute.
+The multiplicity is usually determined by the schema which is generated by the connector.
+However, the connector might provide a wrong schema.
+Or more commonly the schema is used differently as is formally defined.
+Perhaps the most common case is LDAP.
+Most LDAP attributes are defined as multi-value while vast majority of systems use them as single-value.
+The multiplicity override can be used to let midPoint think that these attributes are in fact single-valued.
+
+* *Access* limitations of the attribute.
+E.g. administrator can make the attribute read-only even if the connector can both read and write the attribute value.
+The access limitation consists of three boolean switches:
+
+** *add*
+
+** *read*
+
+** *modify*
+
+
+
+.Listing 4. Attribute limitation example
+[source,xml]
+----
+<attribute>
+    <ref>ri:cn</ref>
+    ...
+    <limitations>
+        <minOccurs>1</minOccurs>
+        <maxOccurs>1</maxOccurs>
+        <access>
+            <add>true</add>
+            <read>true</read>
+            <modify>false</modify>
+        </access>
+    </limitations>
+    ...
+</attribute>
+
+----
+
+The limitations can be expressed for several layers.
+Currently there are two layers defined:
+
+* *Presentation* layer is aimed at the GUI and other forms of external data presentation such as an application behind a web service.
+
+* *Model* layer defines midPoint internals.
+It is applied to mappings, internal schema validations, etc.
+
+Separate set of limitations can be configured for each layer.
+This is often used to hide some attributes in the GUI while compute them in the model.
+Therefore such attribute needs to be ignored in the GUI but it has to be read-write in the model.
+Following example illustrates such configuration.
+A limitation that does not specify any layer applies to all the layers.
+The other limitations may modify that.
+
+.Listing 5. Attribute limitation with layers
+[source,xml]
+----
+<attribute>
+    <ref>ri:cn</ref>
+    ...
+    <limitations>
+        <minOccurs>1</minOccurs>
+        <maxOccurs>1</maxOccurs>
+        <access>
+            <add>true</add>
+            <read>true</read>
+            <modify>true</modify>
+        </access>
+    </limitations>
+    <limitations>
+        <layer>presentation</layer>
+        <ignore>true</ignore>
+    </limitations>
+    ...
+</attribute>
+----
+
+=== Fetch Strategy
+
+The `fetchStrategy` setting affects how and when midPoint retrieves value of this attribute.
+It is particularly useful in two cases: big attributes and attributes that are not returned by default.
+The `fetchStrategy` can have one of three values:
+
+* *implicit*: MidPoint expects that the attribute will be implicitly returned by the connector in each fetch request and there is no need to explicitly request the attribute.
+This is the default.
+
+* *explicit*: MidPoint expects that the attribute will NOT be implicitly returned by the connector.
+To fetch the attribute midPoint has to explicitly request it.
+Therefore midPoint will explicitly request this attribute in each fetch request.
+This setting is ideal for attributes that the connector does not return by default (e.g. operational attributes) but you want to see these attributes in midPoint anyway.
+
+* *minimal*: Fetch the attribute only if absolutely necessary.
+MidPoint expects that the attribute might be implicitly returned by the connector.
+Therefore it will try to avoid fetching this value (if possible).
+This option can be used for values that cause performance overhead (e.g. list of members of large groups, big binary attributes and so on).
+
+These three options can be very handy to tune midPoint performance - and specially the user interface performance.
+However, please note that proper functioning of these option depends on many things.
+Firstly the resource and the connector must properly support the "attributes to get" functionality.
+Smart resource and mature connectors such as LDAP support it.
+But others do not.
+It can be partially simulated in the ConnId layer.
+But this will address the issues only partially.
+Secondly, this feature depends on proper declaration of resource schema.
+E.g. if midPoint wants to avoid a fetch of a big attribute then midPoint has to request all the attributes except the one that we do not want.
+For that midPoint needs to know what other attribute names are.
+Most resource support schema properly and this works well.
+But there may be some connectors/resources where schema declaration is not entirely perfect.
+
+
+=== Exclusive Strong
+
+When set to false then both strong and normal mapping values are merged to produce the final set of values.
+When set to true only strong values are used if there is at least one strong mapping.
+Normal values are used if there is no strong mapping.
+
+Default value is *false*.
+
+
+=== Matching Rule
+
+Specification of a matching rule for an attribute, overriding a matching rule provided by the connector (if any).
+Matching rule is used to compare values of the attribute.
+If no matching rule is specified (here or by the connector), midPoint uses the literal comparison which is good for most attribute types and for case-sensitive strings.
+An alternative matching rule may be specified e.g. for case insensitive strings.
+
+
+=== Read-Replace Mode
+
+Modifications to this attribute are executed in REPLACE form only.
+I.e. if ADD or DELETE VALUE is requested, midPoint will fetch the object state, compute the expected result and write it to the resource object via REPLACE VALUE operation.
+This works around some weird connector behavior.
+
+This mode is currently supported for attributes only - not for associations.
+
+*EXPERIMENTAL*. May change in future.
+
+
+=== Secondary Identifier
+
+Indicated if the attribute should be considered as secondary identifier.
+If set to `true`, this attribute is assumed and enforced to be unique.
+Also, it is stored in repository and used for example by synchronization (correlation rule), consistency mechanism, etc.
+
+This can also be used to disable the secondary identifier - for instance when the attribute used as a secondary identifier by default is not unique.
+Normally, `icfs:name` is chosen as a secondary identifier, however ConnId contract for it doesn't mandate its uniqueness.
+If the resource doesn't provide unique name it's better to let midPoint know about it:
+
+.Listing 6. Disabling `icfs:name` as the secondary identifier
+[source,xml]
+----
+<attribute>
+    <ref>icfs:name</ref>
+    <!-- Name is not unique, so we need to disable this as a secondary identifier. -->
+    <secondaryIdentifier>false</secondaryIdentifier>
+    ... the rest of the attribute config, mappings, etc.
+</attribute>
+----
+
+[NOTE]
+This may work fine, but the result is not guaranteed.
+Some scenarios may require secondary identifier.
+
+
+=== Volatility Trigger
+
+If set to true it indicates that change of this attribute may cause changes in other attributes.
+In that case midPoint re-reads the object after the change of this attribute.
+
+
+=== Modification Priority
+
+Modification priority of this item.
+Items with specified priorities are modified in order that follows these priorities: these with lower numbers are modified first, these with higher numbers next, and items with unspecified priorities are modified last.
+Each priority level gets its own modify operation (or operations, if required by ConnId limitations).
+Currently this property is supported only for simple attributes.
+(It is envisioned that 'addingPriority' could be created as well in the future; it would concern creating new objects.
+In that case, attributes with numerically lowest adding priority would be used to create an object, and other attributes would be set via MODIFY operation, again, according to their priorities.)
+
+// There is a separate access limitation configuration for each resource attribute supported by the resource schema:
+//
+// * *create*: the attribute can be set when creating a resource account.
+// Useful for attributes that can be set only once.
+//
+// * *update*: the attribute can be set when updating a resource account.
+//
+// * *read*: the attribute is read-only and can't be modified.
+//
+// By default, no access limitation is enforced (create, update, read).
+//
+// There is a separate outbound/inbound configuration for each resource attribute supported by the resource schema.
+//
+// The *outbound* configuration specifies how to transform the attribute value from midPoint on the fly before it is sent to resource attribute.
+// The modification value can use other attribute values, constants or anything that can be achieved by an xref:/midpoint/reference/expressions/expressions/[expression]. For example you may wish to set the resource's `fullname` attribute to the uppercase value of midPoint's `fullName` attribute.
+// The outbound is what you use for *provisioning*.
+//
+// The *inbound* configuration specifies where (to which midPoint attribute) to store the resource attribute value and optionally, how to transform it.
+// For example, you may wish to store the resource's `full_name_attr` attribute value to midPoint's `fullName` attribute without modification.
+// The inbound is what you use for *synchronization*. Please note that there are multiple xref:/midpoint/reference/synchronization/introduction/[Synchronization Flavors] and this configuration applies to all of them.
+//
+// There is an optional <strength> argument to specify if an existing attribute value should be replaced:
+//
+// * *weak*: the expression will be evaluated only if there is no value of the attribute on the target side
+//
+// * *strong*: the expression will be always evaluated
+//
+// Currently, the use of the default value (`normal`) is not recommended.
+// Please specify `strong` instead.
+//
+// See also xref:/midpoint/reference/expressions/mappings/#_mapping_strength[Mapping strength].
+
+
+// ==== _NAME_ and _UID_ Special Attributes
+//
+// There are two special attributes: `icfs:name` mapped to ConnId pass:[__NAME__] attribute and `icfs:uid` mapped to ConnId pass:[__UID__] attribute.
+// Please do not confuse them with `ri:name` and/or `ri:uid` attributes.
+//
+// [%autowidth]
+// |===
+// | Attribute Name | ICF Attribute Name | Description
+//
+// | icfs:name
+// | pass:[__NAME__]
+// | Unique, mutable account identifier, e.g. Distinguished Name in hierarchical systems like LDAP or a login name in flat resources
+//
+//
+// | icfs:uid
+// | pass:[__UID__]
+// | Unique, immutable account identifier, e.g. Entry UUID in LDAP (not created by you, but generated by LDAP server)
+//
+//
+// |===
+//
+// For some resources (connectors) the pass:[__NAME__] and pass:[__UID__] attributes are equivalent.
+//
+// As a rule of thumb, you can configure an outbound expression for `icfs:name` to define an account identifier (e.g. LDAP's DN attribute).
+// After the account is created, `icfs:uid` attribute may be used internally for unique resource account identification, but this attribute will be read-only.
+// There is no need for outbound/inbound expressions for `icfs:uid` attribute.
+// Change in the `icfs:name` attribute will cause the renaming of the account.
+//
+// The following is an example of `icfs:uid` attribute configuration from OpenDJ advanced sync sample:
+//
+// * the attribute is read-only
+//
+// * there are no outbound/inbound expressions
+//
+// [source,xml]
+// ----
+// <attribute>
+//     <ref>icfs:uid</ref>
+//     <displayName>Entry UUID</displayName>
+//     <access>read</access>
+// </attribute>
+//
+// ----
+//
+// The following is an example of `icfs:name` attribute configuration from OpenDJ advanced sync sample:
+//
+// * the attribute `icfs:name` can be only created and read (no modification)
+//
+// * the value of the `icfs:name` attribute will be automatically set to a concatenation of user's login name in midPoint and a static suffix, but only if the resource attribute has no value yet (<strength>weak</strength>)
+//
+// * no inbound expression is used: the `icfs:name` attribute will not be synchronized to any midPoint attribute when synchronizing
+//
+// [source,xml]
+// ----
+// <attribute>
+//     <ref>icfs:name</ref>
+//     <displayName>Distinguished Name</displayName>
+//     <access>create</access>
+//     <access>read</access>
+//     <outbound>
+//         <strength>weak</strength>
+//         <source>
+//             <path>$user/name</path>
+//         </source>
+//         <expression>
+//             <script>
+//                 <!-- No explicit script language was specified. It means that this is Groovy -->
+//                 <code>
+//                     'uid=' + name + iterationToken + ',ou=people,dc=example,dc=com'
+//                 </code>
+//             </script>
+//         </expression>
+//     </outbound>
+// </attribute>
+// ----
