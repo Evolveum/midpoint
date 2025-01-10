@@ -73,6 +73,40 @@ public class OutlierSessionOverviewPanel extends AbstractObjectMainPanel<RoleAna
         super(id, model, config);
     }
 
+    private RoleAnalysisValueLabelPanel<?> createSimpleValueLabelPanel(String id, String titleResourceKey, String iconCssClass, int value) {
+        return new RoleAnalysisValueLabelPanel<>(id) {
+            @Contract(pure = true)
+            @Override
+            protected @NotNull Component getTitleComponent(String id) {
+                return new IconWithLabel(id, createStringResource(titleResourceKey)) {
+                    @Override
+                    protected String getIconCssClass() {
+                        return iconCssClass;
+                    }
+
+                    @Override
+                    protected String getLabelComponentCssClass() {
+                        return "text-muted";
+                    }
+
+                    @Override
+                    protected String getComponentCssClass() {
+                        return super.getComponentCssClass() + " gap-2";
+                    }
+                };
+            }
+
+            @Contract(pure = true)
+            @Override
+            protected @NotNull Component getValueComponent(String id) {
+                Label label = new Label(id, value);
+                label.setOutputMarkupId(true);
+                label.add(AttributeModifier.append(CLASS_CSS, TEXT_MUTED));
+                return label;
+            }
+        };
+    }
+
     protected void initLayout() {
         WebMarkupContainer container = new WebMarkupContainer(ID_CONTAINER);
         container.setOutputMarkupId(true);
@@ -121,7 +155,7 @@ public class OutlierSessionOverviewPanel extends AbstractObjectMainPanel<RoleAna
 
             @Override
             protected @NotNull Component getPanelComponent(String id) {
-                RoleAnalysisOutlierTable table = new RoleAnalysisOutlierTable(id,
+                RoleAnalysisSessionOutlierTable table = new RoleAnalysisSessionOutlierTable(id,
                         OutlierSessionOverviewPanel.this.getPageBase(),
                         new LoadableDetachableModel<>() {
                             @Override
@@ -458,75 +492,21 @@ public class OutlierSessionOverviewPanel extends AbstractObjectMainPanel<RoleAna
                 RepeatingView cardBodyComponent = new RepeatingView(id);
                 cardBodyComponent.setOutputMarkupId(true);
 
-                RoleAnalysisValueLabelPanel<?> anomaliesPanel = new RoleAnalysisValueLabelPanel<>(cardBodyComponent.newChildId()) {
-                    @Contract(pure = true)
-                    @Override
-                    protected @NotNull Component getTitleComponent(String id) {
-                        return new IconWithLabel(id,
-                                createStringResource("RoleAnalysisOutlierAnalysisAspectsPanel.widget.characteristics.anomalies")) {
-                            @Override
-                            protected String getIconCssClass() {
-                                return "fa fa-exclamation-triangle text-muted";
-                            }
+                var outlierLabel = createSimpleValueLabelPanel(
+                        cardBodyComponent.newChildId(),
+                        "RoleAnalysisOutlierAnalysisAspectsPanel.widget.characteristics.outliers",
+                        GuiStyleConstants.CLASS_ROLE_ANALYSIS_SESSION_ICON + " text-muted",
+                        userOutlierCount
+                );
+                cardBodyComponent.add(outlierLabel);
 
-                            @Override
-                            protected String getLabelComponentCssClass() {
-                                return "text-muted";
-                            }
-
-                            @Override
-                            protected String getComponentCssClass() {
-                                return super.getComponentCssClass() + " gap-2";
-                            }
-                        };
-                    }
-
-                    @Contract(pure = true)
-                    @Override
-                    protected @NotNull Component getValueComponent(String id) {
-                        Label label = new Label(id, anomaliesCount);
-                        label.setOutputMarkupId(true);
-                        label.add(AttributeModifier.append(CLASS_CSS, TEXT_MUTED));
-                        return label;
-                    }
-                };
-                anomaliesPanel.setOutputMarkupId(true);
-                cardBodyComponent.add(anomaliesPanel);
-
-                RoleAnalysisValueLabelPanel<?> partitionPanel = new RoleAnalysisValueLabelPanel<>(cardBodyComponent.newChildId()) {
-                    @Contract(pure = true)
-                    @Override
-                    protected @NotNull Component getTitleComponent(String id) {
-                        return new IconWithLabel(id,
-                                createStringResource("RoleAnalysisOutlierAnalysisAspectsPanel.widget.characteristics.outliers")) {
-                            @Override
-                            protected String getIconCssClass() {
-                                return GuiStyleConstants.CLASS_ROLE_ANALYSIS_SESSION_ICON + " text-muted";
-                            }
-
-                            @Override
-                            protected String getLabelComponentCssClass() {
-                                return "text-muted";
-                            }
-
-                            @Override
-                            protected String getComponentCssClass() {
-                                return super.getComponentCssClass() + " gap-2";
-                            }
-                        };
-                    }
-
-                    @Contract(pure = true)
-                    @Override
-                    protected @NotNull Component getValueComponent(String id) {
-                        Label label = new Label(id, userOutlierCount);
-                        label.setOutputMarkupId(true);
-                        label.add(AttributeModifier.append(CLASS_CSS, TEXT_MUTED));
-                        return label;
-                    }
-                };
-                partitionPanel.setOutputMarkupId(true);
-                cardBodyComponent.add(partitionPanel);
+                var anomaliesLabel = createSimpleValueLabelPanel(
+                        cardBodyComponent.newChildId(),
+                        "RoleAnalysisOutlierAnalysisAspectsPanel.widget.characteristics.anomalies",
+                        "fa fa-exclamation-triangle text-muted",
+                        anomaliesCount
+                );
+                cardBodyComponent.add(anomaliesLabel);
                 return cardBodyComponent;
             }
         };
