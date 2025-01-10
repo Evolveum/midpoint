@@ -72,7 +72,7 @@ public class AnalysisInfoWidgetDto implements Serializable {
 
         String sessionOid = session.getOid();
         Map<RoleAnalysisOutlierPartitionType, RoleAnalysisOutlierType> allSessionOutlierPartitions = roleAnalysisService
-                .getSessionOutlierPartitionsMap(sessionOid, 5, true, task, result);
+                .getSessionOutlierPartitionsMap(sessionOid, 5, true, null, task, result);
 
         topOutliers = allSessionOutlierPartitions.values().stream().findFirst().orElse(null);
 

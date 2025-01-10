@@ -1403,6 +1403,7 @@ public interface RoleAnalysisService {
      *
      * @param limit An optional limit on the number of partitions to retrieve.
      * @param sortDescending An optional flag to sort the partitions by overall confidence in descending order.
+     * @param outlierCategory The specific category of outliers to search for.
      * @param task The task in which the operation is executed.
      * @param result The operation result.
      * @return A map of outlier partitions and their corresponding outliers.
@@ -1411,6 +1412,7 @@ public interface RoleAnalysisService {
             @NotNull String sessionOid,
             @Nullable Integer limit,
             @Nullable Boolean sortDescending,
+            @Nullable OutlierCategoryType outlierCategory,
             @NotNull Task task,
             @NotNull OperationResult result);
 
@@ -1419,6 +1421,7 @@ public interface RoleAnalysisService {
      *
      * @param limit An optional limit on the number of partitions to retrieve.
      * @param sortDescending An optional flag to sort the partitions by overall confidence in descending order.
+     * @param outlierCategory The specific category of outliers to search for.
      * @param task The task in which the operation is executed.
      * @param result The operation result.
      * @return A map of outlier partitions and their corresponding outliers.
@@ -1427,6 +1430,7 @@ public interface RoleAnalysisService {
             @NotNull String clusterOid,
             @Nullable Integer limit,
             @Nullable Boolean sortDescending,
+            @Nullable OutlierCategoryType outlierCategory,
             @NotNull Task task,
             @NotNull OperationResult result);
 

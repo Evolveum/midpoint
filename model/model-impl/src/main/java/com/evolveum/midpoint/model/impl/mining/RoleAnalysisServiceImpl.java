@@ -4084,6 +4084,7 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
             @NotNull String sessionOid,
             @Nullable Integer limit,
             @Nullable Boolean sortDescending,
+            @Nullable OutlierCategoryType outlierCategory,
             @NotNull Task task,
             @NotNull OperationResult result) {
 
@@ -4107,7 +4108,20 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
 
         Map<RoleAnalysisOutlierPartitionType, RoleAnalysisOutlierType> partitionOutlierMap = new LinkedHashMap<>();
         ContainerableResultHandler<RoleAnalysisOutlierPartitionType> handler = (partition, lResult) -> {
-            prepareOutlierPartitionMap(this, task, result, partition, partitionOutlierMap, LOGGER);
+            RoleAnalysisPartitionAnalysisType partitionAnalysis = partition.getPartitionAnalysis();
+            OutlierCategoryType targetCategory = partitionAnalysis.getOutlierCategory();
+
+            boolean isSuitable = true;
+
+            if (outlierCategory != null) {
+                isSuitable = matchesCategory(outlierCategory.getOutlierClusterCategory(), targetCategory.getOutlierClusterCategory())
+                        && matchesCategory(outlierCategory.getOutlierSpecificCategory(), targetCategory.getOutlierSpecificCategory())
+                        && matchesCategory(outlierCategory.getOutlierNoiseCategory(), targetCategory.getOutlierNoiseCategory());
+            }
+
+            if (isSuitable) {
+                prepareOutlierPartitionMap(this, task, result, partition, partitionOutlierMap, LOGGER);
+            }
             return true;
         };
 
@@ -4130,6 +4144,7 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
             @NotNull String clusterOid,
             @Nullable Integer limit,
             @Nullable Boolean sortDescending,
+            @Nullable OutlierCategoryType outlierCategory,
             @NotNull Task task,
             @NotNull OperationResult result) {
 
@@ -4152,17 +4167,40 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
 
         Map<RoleAnalysisOutlierPartitionType, RoleAnalysisOutlierType> partitionOutlierMap = new LinkedHashMap<>();
         ContainerableResultHandler<RoleAnalysisOutlierPartitionType> handler = (partition, lResult) -> {
-            prepareOutlierPartitionMap(this, task, result, partition, partitionOutlierMap, LOGGER);
+            RoleAnalysisPartitionAnalysisType partitionAnalysis = partition.getPartitionAnalysis();
+            OutlierCategoryType targetCategory = partitionAnalysis.getOutlierCategory();
+
+            boolean isSuitable = true;
+
+            if (outlierCategory != null) {
+                isSuitable = matchesCategory(outlierCategory.getOutlierClusterCategory(), targetCategory.getOutlierClusterCategory())
+                        && matchesCategory(outlierCategory.getOutlierSpecificCategory(), targetCategory.getOutlierSpecificCategory())
+                        && matchesCategory(outlierCategory.getOutlierNoiseCategory(), targetCategory.getOutlierNoiseCategory());
+            }
+
+            if (isSuitable) {
+                prepareOutlierPartitionMap(this, task, result, partition, partitionOutlierMap, LOGGER);
+            }
             return true;
         };
+
+        Collection<SelectorOptions<GetOperationOptions>> defaultRmIterativeSearchPageSizeOptions = getDefaultRmIterativeSearchPageSizeOptions();
+        GetOperationOptionsBuilder getOperationOptionsBuilder = schemaService.getOperationOptionsBuilder();
+        getOperationOptionsBuilder = getOperationOptionsBuilder.resolveNames();
+        Collection<SelectorOptions<GetOperationOptions>> build = getOperationOptionsBuilder.build();
+        defaultRmIterativeSearchPageSizeOptions.addAll(build);
         try {
             repositoryService.searchContainersIterative(RoleAnalysisOutlierPartitionType.class, query, handler,
-                    getDefaultRmIterativeSearchPageSizeOptions(), result);
+                    defaultRmIterativeSearchPageSizeOptions, result);
         } catch (Exception ex) {
             throw new SystemException("Couldn't search cluster role suggestions", ex);
         }
 
         return partitionOutlierMap;
+    }
+
+    private <T> boolean matchesCategory(T category, T targetCategory) {
+        return category == null || category.equals(targetCategory);
     }
 
     private @NotNull Collection<SelectorOptions<GetOperationOptions>> getDefaultRmIterativeSearchPageSizeOptions() {

@@ -54,7 +54,7 @@ public class RoleAnalysisAspectsWebUtils {
         Task task = pageBase.createSimpleTask("loadOutliers");
         OperationResult result = task.getResult();
         Map<RoleAnalysisOutlierPartitionType, RoleAnalysisOutlierType> clusterTopOutliers = roleAnalysisService
-                .getClusterOutlierPartitionsMap(clusterOid, 5, true, task, result);
+                .getClusterOutlierPartitionsMap(clusterOid, 5, true, null, task, result);
 
         return loadOutlierWidgetModels(pageBase, clusterTopOutliers, clusterName, detailsModel);
     }

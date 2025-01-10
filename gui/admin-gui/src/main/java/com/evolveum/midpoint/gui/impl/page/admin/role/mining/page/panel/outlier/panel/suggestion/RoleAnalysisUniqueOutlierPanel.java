@@ -8,27 +8,18 @@
 package com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.outlier.panel.suggestion;
 
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
-import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.impl.page.admin.AbstractObjectMainPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.ObjectDetailsModels;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.cluster.RoleAnalysisClusterAction;
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.tables.tile.RoleAnalysisOutlierAssociatedTileTable;
-import com.evolveum.midpoint.model.api.mining.RoleAnalysisService;
-import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.tables.outlier.panel.RoleAnalysisOutlierTable;
 import com.evolveum.midpoint.web.application.PanelDisplay;
 import com.evolveum.midpoint.web.application.PanelInstance;
 import com.evolveum.midpoint.web.application.PanelType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ContainerPanelConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OutlierSpecificCategoryType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisClusterType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisOutlierType;
-import org.apache.wicket.markup.html.WebMarkupContainer;
-import org.apache.wicket.model.IModel;
-import org.jetbrains.annotations.NotNull;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
-import java.util.List;
+import org.apache.wicket.markup.html.WebMarkupContainer;
+import org.apache.wicket.model.LoadableDetachableModel;
 
 @PanelType(name = "uniqueOutlierPanel")
 @PanelInstance(
@@ -47,7 +38,7 @@ public class RoleAnalysisUniqueOutlierPanel extends AbstractObjectMainPanel<Role
     private static final String ID_PANEL = "panelId";
 
     public RoleAnalysisUniqueOutlierPanel(String id, ObjectDetailsModels<RoleAnalysisClusterType> model,
-                                          ContainerPanelConfigurationType config) {
+            ContainerPanelConfigurationType config) {
         super(id, model, config);
     }
 
@@ -60,26 +51,32 @@ public class RoleAnalysisUniqueOutlierPanel extends AbstractObjectMainPanel<Role
 
         ObjectDetailsModels<RoleAnalysisClusterType> objectDetailsModels = getObjectDetailsModels();
         RoleAnalysisClusterType cluster = objectDetailsModels.getObjectType();
-        @NotNull IModel<List<RoleAnalysisOutlierType>> outliers = getOutliers(cluster);
-        RoleAnalysisOutlierAssociatedTileTable panel = new RoleAnalysisOutlierAssociatedTileTable(ID_PANEL, outliers, cluster);
-        panel.setOutputMarkupId(true);
-        container.add(panel);
-    }
 
-    public PageBase getPageBase() {
-        return ((PageBase) getPage());
-    }
+        RoleAnalysisOutlierTable table = new RoleAnalysisOutlierTable(ID_PANEL,
+                RoleAnalysisUniqueOutlierPanel.this.getPageBase(),
+                new LoadableDetachableModel<>() {
+                    @Override
+                    protected RoleAnalysisClusterType load() {
+                        return cluster;
+                    }
+                }) {
 
-    private @NotNull IModel<List<RoleAnalysisOutlierType>> getOutliers(RoleAnalysisClusterType cluster) {
-        PageBase pageBase = getPageBase();
-        Task task = pageBase.createSimpleTask("Search outliers");
-        OperationResult result = task.getResult();
-        RoleAnalysisService roleAnalysisService = pageBase.getRoleAnalysisService();
-        return new LoadableModel<>() {
             @Override
-            protected List<RoleAnalysisOutlierType> load() {
-                return roleAnalysisService.findClusterOutliers(cluster, OutlierSpecificCategoryType.UNIQUE_OBJECT, task, result);
+            public OutlierCategoryType matchOutlierCategory() {
+                return new OutlierCategoryType().outlierSpecificCategory(OutlierSpecificCategoryType.UNIQUE_OBJECT);
+            }
+
+            @Override
+            public boolean isCategoryVisible() {
+                return true;
             }
         };
+        table.setOutputMarkupId(true);
+        container.add(table);
+    }
+
+    @Override
+    public PageBase getPageBase() {
+        return ((PageBase) getPage());
     }
 }

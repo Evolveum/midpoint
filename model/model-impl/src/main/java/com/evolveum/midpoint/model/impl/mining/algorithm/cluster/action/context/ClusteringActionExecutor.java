@@ -251,7 +251,7 @@ public class ClusteringActionExecutor extends BaseAction {
         String sessionOid = session.getOid();
 
         Map<RoleAnalysisOutlierPartitionType, RoleAnalysisOutlierType> allSessionOutlierPartitions = roleAnalysisService
-                .getSessionOutlierPartitionsMap(sessionOid, null, true, task, result);
+                .getSessionOutlierPartitionsMap(sessionOid, null, true, null, task, result);
         ListMultimap<String, String> outlierAnomalyMap = ArrayListMultimap.create();
         Set<String> sessionAnomalyOids = new HashSet<>();
         Set<String> sessionOutlierOids = new HashSet<>();

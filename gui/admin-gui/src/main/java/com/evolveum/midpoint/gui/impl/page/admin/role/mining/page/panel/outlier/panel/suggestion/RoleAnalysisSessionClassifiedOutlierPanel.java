@@ -7,14 +7,10 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.outlier.panel.suggestion;
 
-import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.cluster.RoleAnalysisSessionDiscoveredOutlierPanel;
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.tables.tile.RoleAnalysisOutlierAssociatedTileTable;
-import com.evolveum.midpoint.model.api.mining.RoleAnalysisService;
-import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.tables.outlier.panel.RoleAnalysisOutlierTable;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.OutlierCategoryType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OutlierClusterCategoryType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisOutlierType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisSessionType;
 
 import org.apache.wicket.markup.html.WebMarkupContainer;
@@ -28,10 +24,7 @@ import com.evolveum.midpoint.web.application.PanelInstance;
 import com.evolveum.midpoint.web.application.PanelType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ContainerPanelConfigurationType;
 
-import org.apache.wicket.model.IModel;
-import org.jetbrains.annotations.NotNull;
-
-import java.util.List;
+import org.apache.wicket.model.LoadableDetachableModel;
 
 @PanelType(name = "classifiedOutlierPanel")
 @PanelInstance(
@@ -56,17 +49,34 @@ public class RoleAnalysisSessionClassifiedOutlierPanel extends AbstractObjectMai
 
     @Override
     protected void initLayout() {
-
         WebMarkupContainer container = new WebMarkupContainer(ID_CONTAINER);
         container.setOutputMarkupId(true);
         add(container);
 
         ObjectDetailsModels<RoleAnalysisSessionType> objectDetailsModels = getObjectDetailsModels();
         RoleAnalysisSessionType session = objectDetailsModels.getObjectType();
-        @NotNull IModel<List<RoleAnalysisOutlierType>> outliers = getOutliers(session);
-        RoleAnalysisOutlierAssociatedTileTable panel = new RoleAnalysisOutlierAssociatedTileTable(ID_PANEL, outliers, session);
-        panel.setOutputMarkupId(true);
-        container.add(panel);
+
+        RoleAnalysisOutlierTable table = new RoleAnalysisOutlierTable(ID_PANEL,
+                RoleAnalysisSessionClassifiedOutlierPanel.this.getPageBase(),
+                new LoadableDetachableModel<>() {
+                    @Override
+                    protected RoleAnalysisSessionType load() {
+                        return session;
+                    }
+                }) {
+
+            @Override
+            public OutlierCategoryType matchOutlierCategory() {
+                return new OutlierCategoryType().outlierClusterCategory(OutlierClusterCategoryType.INNER_OUTLIER);
+            }
+
+            @Override
+            public boolean isCategoryVisible() {
+                return true;
+            }
+        };
+        table.setOutputMarkupId(true);
+        container.add(table);
     }
 
     @Override
@@ -74,16 +84,4 @@ public class RoleAnalysisSessionClassifiedOutlierPanel extends AbstractObjectMai
         return ((PageBase) getPage());
     }
 
-    private @NotNull IModel<List<RoleAnalysisOutlierType>> getOutliers(RoleAnalysisSessionType session) {
-        PageBase pageBase = getPageBase();
-        Task task = pageBase.createSimpleTask("Search outliers");
-        OperationResult result = task.getResult();
-        RoleAnalysisService roleAnalysisService = pageBase.getRoleAnalysisService();
-        return new LoadableModel<>() {
-            @Override
-            protected List<RoleAnalysisOutlierType> load() {
-                return roleAnalysisService.getSessionOutliers(session.getOid(), OutlierClusterCategoryType.INNER_OUTLIER, task, result);
-            }
-        };
-    }
 }

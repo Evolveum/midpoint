@@ -14,6 +14,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.Serializable;
 import java.util.List;
@@ -62,6 +63,7 @@ public class PartitionObjectDto implements Serializable {
      * @param roleAnalysisService The service used to retrieve role analysis data.
      * @param session The role analysis session associated with the outlier partitions.
      * @param limit The maximum number of partitions to retrieve.
+     * @param outlierCategory The outlier cluster category to filter the partitions by.
      * @param task The task in which the operation is performed.
      * @param result The operation result.
      * @return A list of PartitionObjectDto representing the outlier partitions details and their associated outliers.
@@ -69,10 +71,36 @@ public class PartitionObjectDto implements Serializable {
     public static List<PartitionObjectDto> buildPartitionObjectList(@NotNull RoleAnalysisService roleAnalysisService,
             @NotNull RoleAnalysisSessionType session,
             Integer limit,
+            @Nullable OutlierCategoryType outlierCategory,
             Task task,
             OperationResult result) {
         Map<RoleAnalysisOutlierPartitionType, RoleAnalysisOutlierType> sessionOutlierPartitionsMap = roleAnalysisService
-                .getSessionOutlierPartitionsMap(session.getOid(), limit, true, task, result);
+                .getSessionOutlierPartitionsMap(session.getOid(), limit, true, outlierCategory, task, result);
+
+        return sessionOutlierPartitionsMap.entrySet().stream()
+                .map(entry -> new PartitionObjectDto(entry.getValue(), entry.getKey()))
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * Constructs a new {@code PartitionObjectDto} list instance
+     *
+     * @param roleAnalysisService The service used to retrieve role analysis data.
+     * @param cluster The role analysis cluster associated with the outlier partitions.
+     * @param limit The maximum number of partitions to retrieve.
+     * @param outlierCategory The outlier cluster category to filter the partitions by.
+     * @param task The task in which the operation is performed.
+     * @param result The operation result.
+     * @return A list of PartitionObjectDto representing the outlier partitions details and their associated outliers.
+     */
+    public static List<PartitionObjectDto> buildPartitionObjectList(@NotNull RoleAnalysisService roleAnalysisService,
+            @NotNull RoleAnalysisClusterType cluster,
+            Integer limit,
+            @Nullable OutlierCategoryType outlierCategory,
+            Task task,
+            OperationResult result) {
+        Map<RoleAnalysisOutlierPartitionType, RoleAnalysisOutlierType> sessionOutlierPartitionsMap = roleAnalysisService
+                .getClusterOutlierPartitionsMap(cluster.getOid(), limit, true, outlierCategory, task, result);
 
         return sessionOutlierPartitionsMap.entrySet().stream()
                 .map(entry -> new PartitionObjectDto(entry.getValue(), entry.getKey()))

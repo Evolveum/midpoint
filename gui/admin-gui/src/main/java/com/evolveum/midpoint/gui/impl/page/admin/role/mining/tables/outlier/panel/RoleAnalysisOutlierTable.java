@@ -64,26 +64,32 @@ import com.evolveum.midpoint.web.component.data.mining.RoleAnalysisCollapsableTa
 import com.evolveum.midpoint.web.component.util.RoleMiningProvider;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
-public class RoleAnalysisSessionOutlierTable extends BasePanel<RoleAnalysisSessionType> {
+public class RoleAnalysisOutlierTable extends BasePanel<AssignmentHolderType> {
 
     private static final String ID_DATATABLE = "datatable";
-    private static final String DOT_CLASS = RoleAnalysisSessionOutlierTable.class.getName() + ".";
+    private static final String DOT_CLASS = RoleAnalysisOutlierTable.class.getName() + ".";
     private static final String OP_PREPARE_OBJECTS = DOT_CLASS + "prepareObjects";
 
     PageBase pageBase;
 
-    public RoleAnalysisSessionOutlierTable(
+    public RoleAnalysisOutlierTable(
             @NotNull String id,
             @NotNull PageBase pageBase,
-            @NotNull LoadableDetachableModel<RoleAnalysisSessionType> sessionModel) {
+            @NotNull LoadableDetachableModel<AssignmentHolderType> sessionModel) {
         super(id, sessionModel);
 
         RoleAnalysisService roleAnalysisService = pageBase.getRoleAnalysisService();
         Task task = pageBase.createSimpleTask(OP_PREPARE_OBJECTS);
         OperationResult result = task.getResult();
-        RoleAnalysisSessionType session = getModel().getObject();
 
-        List<PartitionObjectDto> partitionObjectDtoList = buildPartitionObjectList(roleAnalysisService, session, getLimit(), task, result);
+        List<PartitionObjectDto> partitionObjectDtoList = new ArrayList<>();
+        if (getModel().getObject() instanceof RoleAnalysisSessionType sessionObject) {
+            partitionObjectDtoList = buildPartitionObjectList(
+                    roleAnalysisService, sessionObject, getLimit(), matchOutlierCategory(), task, result);
+        } else if (getModel().getObject() instanceof RoleAnalysisClusterType clusterObject) {
+            partitionObjectDtoList = buildPartitionObjectList(
+                    roleAnalysisService, clusterObject, getLimit(), matchOutlierCategory(), task, result);
+        }
 
         this.pageBase = pageBase;
         RoleMiningProvider<PartitionObjectDto> provider = new RoleMiningProvider<>(
@@ -112,7 +118,7 @@ public class RoleAnalysisSessionOutlierTable extends BasePanel<RoleAnalysisSessi
 
             @Override
             public boolean isShowAsCard() {
-                return RoleAnalysisSessionOutlierTable.this.isShowAsCard();
+                return RoleAnalysisOutlierTable.this.isShowAsCard();
             }
 
             @Override
@@ -122,7 +128,7 @@ public class RoleAnalysisSessionOutlierTable extends BasePanel<RoleAnalysisSessi
 
             @Override
             protected boolean visibleFooter(ISortableDataProvider<PartitionObjectDto, String> provider, int pageSize) {
-                if (RoleAnalysisSessionOutlierTable.this.hideFooter()) {
+                if (RoleAnalysisOutlierTable.this.hideFooter()) {
                     return false;
                 }
 
@@ -145,6 +151,10 @@ public class RoleAnalysisSessionOutlierTable extends BasePanel<RoleAnalysisSessi
 
         initNameColumn(columns);
 
+        if (isCategoryVisible()) {
+            initCategoryColumn(columns);
+        }
+
         initPartitionScoreColumn(columns);
 
         initAnomalyAccessColumn(columns);
@@ -156,6 +166,41 @@ public class RoleAnalysisSessionOutlierTable extends BasePanel<RoleAnalysisSessi
         initActionColumn(columns);
 
         return columns;
+    }
+
+    private void initCategoryColumn(@NotNull List<IColumn<PartitionObjectDto, String>> columns) {
+        columns.add(new AbstractColumn<>(createStringResource("RoleAnalysisOutlierTable.outlier.category")) {
+
+            @Override
+            public boolean isSortable() {
+                return false;
+            }
+
+            @Override
+            public void populateItem(Item<ICellPopulator<PartitionObjectDto>> item, String componentId,
+                    IModel<PartitionObjectDto> rowModel) {
+                RoleAnalysisOutlierPartitionType partition = rowModel.getObject().getPartition();
+                RoleAnalysisPartitionAnalysisType partitionAnalysis = partition.getPartitionAnalysis();
+                OutlierCategoryType outlierCategory = partitionAnalysis.getOutlierCategory();
+                OutlierNoiseCategoryType outlierNoiseCategory = outlierCategory.getOutlierNoiseCategory();
+                String category = outlierNoiseCategory != null
+                        ? outlierNoiseCategory.value().replace("_", " ")
+                        : "N/A";
+
+                Label statusBar = new Label(componentId, Model.of(category));
+                statusBar.add(AttributeModifier.append(CLASS_CSS,
+                        "badge bg-transparent-blue border border-primary text-primary text-uppercase"));
+                statusBar.setOutputMarkupId(true);
+                item.add(statusBar);
+            }
+
+            @Override
+            public Component getHeader(String componentId) {
+                return new LabelWithHelpPanel(componentId,
+                        createStringResource("RoleAnalysisOutlierTable.outlier.category"));
+            }
+
+        });
     }
 
     private void initLocationColumn(@NotNull List<IColumn<PartitionObjectDto, String>> columns) {
@@ -529,11 +574,19 @@ public class RoleAnalysisSessionOutlierTable extends BasePanel<RoleAnalysisSessi
         return null;
     }
 
+    public OutlierCategoryType matchOutlierCategory() {
+        return null;
+    }
+
     public boolean isPaginationVisible() {
         return true;
     }
 
     public boolean isShowAsCard() {
         return true;
+    }
+
+    public boolean isCategoryVisible() {
+        return false;
     }
 }
