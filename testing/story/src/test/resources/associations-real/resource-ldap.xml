@@ -17,7 +17,7 @@
     <lifecycleState>active</lifecycleState>
     <connectorRef>
         <filter>
-            <q:text>connectorType = "com.evolveum.polygon.connector.ldap.LdapConnector" and available = "true" and connectorVersion = "3.8-M3"</q:text>
+            <q:text>connectorType = "com.evolveum.polygon.connector.ldap.LdapConnector" and available = "true"</q:text>
         </filter>
     </connectorRef>
     <connectorConfiguration xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3">

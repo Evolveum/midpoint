@@ -334,7 +334,7 @@ public class ResourceObjectClassDefinitionImpl
 
     @Override
     public @NotNull FocusSpecification getFocusSpecification() {
-        return FocusSpecification.empty();
+        return FocusSpecification.none();
     }
 
     @Override

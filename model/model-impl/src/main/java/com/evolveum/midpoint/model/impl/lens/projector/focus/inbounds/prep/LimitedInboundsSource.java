@@ -7,13 +7,12 @@
 
 package com.evolveum.midpoint.model.impl.lens.projector.focus.inbounds.prep;
 
-import com.evolveum.midpoint.model.api.InboundSourceData;
+import com.evolveum.midpoint.model.impl.lens.projector.focus.inbounds.InboundSourceData;
 import com.evolveum.midpoint.model.api.identities.IdentityItemConfiguration;
 import com.evolveum.midpoint.model.common.expression.ModelExpressionThreadLocalHolder;
 import com.evolveum.midpoint.model.impl.lens.LensProjectionContext;
 import com.evolveum.midpoint.model.impl.lens.projector.focus.inbounds.SingleShadowInboundsProcessingContext;
 import com.evolveum.midpoint.prism.delta.ContainerDelta;
-import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.processor.ShadowAssociation;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -25,7 +24,6 @@ import org.jetbrains.annotations.Nullable;
 import com.evolveum.midpoint.model.common.mapping.MappingImpl;
 import com.evolveum.midpoint.model.impl.lens.projector.focus.inbounds.MappingEvaluationRequest;
 import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
@@ -40,9 +38,8 @@ public class LimitedInboundsSource extends InboundsSource {
         super(
                 InboundSourceData.forShadowLikeValue(
                         ctx.getShadowLikeValue(),
-                        ctx.getResourceObjectDelta(),
-                        ctx.getObjectDefinitionRequired()),
-                ctx.getInboundDefinition(),
+                        ctx.getResourceObjectDelta()),
+                ctx.getInboundProcessingDefinition(),
                 ctx.getResource(),
                 ctx.getMappingContextSpecification(),
                 ctx.toString());
@@ -65,39 +62,13 @@ public class LimitedInboundsSource extends InboundsSource {
     }
 
     @Override
-    public boolean isAttributeAvailable(ItemName itemName) {
-        return true; // FIXME TEMPORARY
+    public boolean isItemLoaded(@NotNull ItemPath path) {
+        return isFullShadowLoaded();
     }
 
     @Override
-    public boolean isAssociationAvailable(ItemName itemName) {
-        return false; // associations are not supported in limited processing anyway
-    }
-
-    @Override
-    public boolean isFullShadowAvailable() {
-        return true; // TODO reconsider
-    }
-
-    @Override
-    public boolean isShadowGone() {
-        return false; // TODO what about associations being deleted?
-    }
-
-    @Override
-    public boolean isAuxiliaryObjectClassPropertyLoaded() {
-        return true; // FIXME TEMPORARY
-    }
-
-    @Override
-    <V extends PrismValue, D extends ItemDefinition<?>> void setValueMetadata(
-            Item<V, D> currentProjectionItem, ItemDelta<V, D> itemAPrioriDelta, OperationResult result) {
-        // Not supported for pre-mappings.
-    }
-
-    @Override
-    String getChannel() {
-        return ctx.getChannel();
+    public boolean isFullShadowLoaded() {
+        return true; // We assume that in limited processing scenario, we always have the full shadow
     }
 
     @Override
@@ -106,9 +77,19 @@ public class LimitedInboundsSource extends InboundsSource {
     }
 
     @Override
+    public boolean isShadowGone() {
+        return false; // TODO what about associations being deleted?
+    }
+
+    @Override
+    String getChannel() {
+        return ctx.getChannel();
+    }
+
+    @Override
     void resolveInputEntitlements(
             ContainerDelta<ShadowAssociationValueType> associationAPrioriDelta,
-            ShadowAssociation currentAssociation) {
+            ShadowAssociation currentAssociation, OperationResult result) {
         // Associations are not yet supported in limited processing
     }
 

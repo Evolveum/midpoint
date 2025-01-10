@@ -85,7 +85,7 @@ class PolicyRuleEnforcer<O extends ObjectType> {
     }
 
     private boolean isEnforcementPreviewMode() {
-        return context.isLegacyPreview() || isPreviewPolicyRulesEnforcement(context.getOptions());
+        return isPreviewPolicyRulesEnforcement(context.getOptions());
     }
 
     private void enforceInPreviewMode() {

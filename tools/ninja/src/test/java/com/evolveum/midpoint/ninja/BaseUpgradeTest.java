@@ -1,4 +1,11 @@
-package com.evolveum.midpoint.ninja.upgrade;
+/*
+ * Copyright (C) 2010-2025 Evolveum and contributors
+ *
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
+ */
+
+package com.evolveum.midpoint.ninja;
 
 import java.io.File;
 import java.net.URI;
@@ -24,7 +31,6 @@ import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 
 import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
-import com.evolveum.midpoint.ninja.NinjaTestMixin;
 import com.evolveum.midpoint.ninja.action.BaseOptions;
 import com.evolveum.midpoint.ninja.action.ConnectionOptions;
 import com.evolveum.midpoint.ninja.action.RunSqlAction;

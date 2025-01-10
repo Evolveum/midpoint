@@ -382,6 +382,12 @@ public abstract class AbstractResourceObjectDefinitionImpl
     }
 
     @Override
+    public @NotNull List<MappingType> getAuxiliaryObjectClassInboundMappings() {
+        var mappings = definitionBean.getAuxiliaryObjectClassMappings();
+        return mappings != null ? mappings.getInbound() : List.of();
+    }
+
+    @Override
     public @NotNull ShadowMarkingRules getShadowMarkingRules() {
         return MiscUtil.stateNonNull(
                 shadowMarkingRules.getValue(),
@@ -917,13 +923,15 @@ public abstract class AbstractResourceObjectDefinitionImpl
     }
 
     @Override
-    public ItemInboundDefinition getSimpleAttributeInboundDefinition(ItemName itemName) {
-        return findSimpleAttributeDefinition(itemName);
-    }
-
-    @Override
-    public ItemInboundDefinition getReferenceAttributeInboundDefinition(ItemName itemName) {
-        return findReferenceAttributeDefinition(itemName);
+    public @NotNull Collection<CompleteItemInboundDefinition> getItemInboundDefinitions() {
+        var all = new ArrayList<CompleteItemInboundDefinition>();
+        for (var attrDef : attributeDefinitions) {
+            all.add(new CompleteItemInboundDefinition(attrDef.getStandardPath(), attrDef, attrDef));
+        }
+        for (var assocDef : associationDefinitions) {
+            all.add(new CompleteItemInboundDefinition(assocDef.getStandardPath(), assocDef, assocDef));
+        }
+        return all;
     }
 
     @Override

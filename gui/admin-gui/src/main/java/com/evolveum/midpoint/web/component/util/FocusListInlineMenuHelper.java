@@ -13,6 +13,8 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
+import com.evolveum.midpoint.gui.api.util.LocalizationUtil;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.util.IconAndStylesUtil;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.model.IModel;
@@ -242,7 +244,7 @@ public class FocusListInlineMenuHelper<F extends FocusType> implements Serializa
                 subResult.computeStatus();
             } catch (RuntimeException ex) {
                 subResult.recomputeStatus();
-                subResult.recordFatalError("FocusListInlineMenuHelper.message.delete.fatalError", ex);
+                subResult.recordFatalError(LocalizationUtil.translate("FocusListInlineMenuHelper.message.delete.fatalError"), ex);
                 LoggingUtils.logUnexpectedException(LOGGER, "Couldn't delete object", ex);
             }
         }
@@ -280,10 +282,10 @@ public class FocusListInlineMenuHelper<F extends FocusType> implements Serializa
             } catch (CommonException | RuntimeException ex) {
                 subResult.recomputeStatus();
                 if (enabling) {
-                    subResult.recordFatalError("FocusListInlineMenuHelper.message.enable.fatalError", ex);
+                    subResult.recordFatalError(LocalizationUtil.translate("FocusListInlineMenuHelper.message.enable.fatalError"), ex);
                     LoggingUtils.logUnexpectedException(LOGGER, "Couldn't enable object", ex);
                 } else {
-                    subResult.recordFatalError("FocusListInlineMenuHelper.message.disable.fatalError", ex);
+                    subResult.recordFatalError(LocalizationUtil.translate("FocusListInlineMenuHelper.message.disable.fatalError"), ex);
                     LoggingUtils.logUnexpectedException(LOGGER, "Couldn't disable object", ex);
                 }
             }
@@ -317,7 +319,9 @@ public class FocusListInlineMenuHelper<F extends FocusType> implements Serializa
             } catch (CommonException | RuntimeException ex) {
                 opResult.recomputeStatus();
                 opResult.recordFatalError(
-                        parentPage.createStringResource("FocusListInlineMenuHelper.message.reconcile.fatalError", focus).getString(), ex);
+                        parentPage.getString(
+                                "FocusListInlineMenuHelper.message.reconcile.fatalError", WebComponentUtil.getName(focus)),
+                        ex);
                 LoggingUtils.logUnexpectedException(LOGGER, "Couldn't reconcile object " + focus + ".", ex);
             }
         }
