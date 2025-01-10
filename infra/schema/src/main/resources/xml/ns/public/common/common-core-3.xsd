@@ -6738,7 +6738,10 @@
                     <a:version>4.0</a:version>
                     <a:operation>removed</a:operation>
                 </a:schemaMigration>
-               </xsd:appinfo>
+                <a:schemaContext>
+                    <a:typePath>targetType</a:typePath> <!-- TODO check -->
+                </a:schemaContext>
+            </xsd:appinfo>
         </xsd:annotation>
         <xsd:complexContent>
             <xsd:extension base="tns:TransformExpressionEvaluatorType">

@@ -2992,6 +2992,9 @@
                 </a:schemaMigration>
                 <a:container/>
                 <a:naturalKey>filter</a:naturalKey>
+                <a:schemaContext>
+                    <a:type>tns:ShadowType</a:type>
+                </a:schemaContext>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
@@ -3078,7 +3081,7 @@
             <xsd:appinfo>
                 <a:container/>
                 <a:schemaContext>
-                    <a:type>ResourceType</a:type>
+                    <a:type>tns:ResourceType</a:type>
                 </a:schemaContext>
             </xsd:appinfo>
         </xsd:annotation>
@@ -6270,6 +6273,9 @@
             <xsd:appinfo>
                 <a:container/>
                 <a:since>4.6</a:since>
+                <a:schemaContext>
+                    <a:type>tns:ShadowType</a:type> <!-- TODO check -->
+                </a:schemaContext>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
