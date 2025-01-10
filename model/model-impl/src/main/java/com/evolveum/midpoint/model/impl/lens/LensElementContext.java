@@ -211,7 +211,7 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
         return state.getCurrentObject();
     }
 
-    public PrismObject<O> getObjectCurrentRequired() {
+    public @NotNull PrismObject<O> getObjectCurrentRequired() {
         return stateNonNull(getObjectCurrent(), "No current object in %s", this);
     }
 

@@ -23,7 +23,6 @@ import org.jetbrains.annotations.Nullable;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.TaskExecutionMode;
-import com.evolveum.midpoint.schema.simulation.ExecutionModeProvider;
 import com.evolveum.midpoint.schema.util.SimulationUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -59,7 +58,7 @@ public interface ShadowAttributeDefinition<
         ShadowAttributeUcfDefinition,
         ShadowItemLayeredDefinition,
         LayeredDefinition,
-        ResourceObjectInboundDefinition.ItemInboundDefinition,
+        ResourceObjectInboundProcessingDefinition.ItemInboundProcessingDefinition,
         ShadowItemDefinition,
         Definition {
 
@@ -239,16 +238,12 @@ public interface ShadowAttributeDefinition<
 
     @Override
     default boolean isIgnored(LayerType layer) {
-        return ShadowItemLayeredDefinition.super.isIgnored(layer);
+        return ShadowItemDefinition.super.isIgnored(layer);
     }
 
     /** Is this item visible under given task execution mode (production/development config)? */
     default boolean isVisible(@NotNull TaskExecutionMode taskExecutionMode) {
         return SimulationUtil.isVisible(getLifecycleState(), taskExecutionMode);
-    }
-
-    default boolean isVisible(@NotNull ExecutionModeProvider executionModeProvider) {
-        return SimulationUtil.isVisible(getLifecycleState(), executionModeProvider);
     }
 
     /** Note that attributes must always have static Java type. */

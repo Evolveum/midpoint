@@ -146,7 +146,7 @@ public class ProjectionCredentialsProcessor implements ProjectorProcessor {
         }
 
         // [EP:M:OM] DONE as the mapping obviously belong to the resource
-        List<MappingType> outboundMappingBeans = objectDefinition.getPasswordOutbound();
+        List<MappingType> outboundMappingBeans = objectDefinition.getPasswordOutboundMappings();
         if (outboundMappingBeans.isEmpty()) {
             LOGGER.trace("No outbound password mapping for {}, skipping credentials processing", key);
             return;

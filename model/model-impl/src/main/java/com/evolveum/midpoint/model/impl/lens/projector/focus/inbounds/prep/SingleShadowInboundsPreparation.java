@@ -99,7 +99,7 @@ public class SingleShadowInboundsPreparation<T extends Containerable> {
             }
 
             // Collecting information about all source items that are to be mapped
-            MappedSourceItems<T> mappedSourceItems = new MappedSourceItems<>(inboundsSource, inboundsTarget, inboundsContext);
+            var mappedSourceItems = new MappedSourceItems<T>(inboundsSource, inboundsTarget, inboundsContext);
             mappedSourceItems.collectMappedItems();
 
             // Load the shadow if needed. Note that we no longer do the loading at other inbounds-related places.
@@ -127,7 +127,7 @@ public class SingleShadowInboundsPreparation<T extends Containerable> {
     }
 
     private boolean needsFullShadowLoad(MappedSourceItems<T> mappedSourceItems) throws SchemaException, ConfigurationException {
-        if (inboundsSource.isFullShadowAvailable()) {
+        if (inboundsSource.isFullShadowLoaded()) {
             LOGGER.trace("Full shadow is available, we don't need to load anything");
             return false;
         }

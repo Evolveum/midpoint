@@ -499,8 +499,8 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
         displayDumpable("Refined object class", rOCDef);
         assertNotNull("Null config", rOCDef);
 
-        display("Password credentials outbound", rOCDef.getPasswordOutbound());
-        assertNotNull("Assert not null", rOCDef.getPasswordOutbound());
+        display("Password credentials outbound", rOCDef.getPasswordOutboundMappings());
+        assertNotNull("Assert not null", rOCDef.getPasswordOutboundMappings());
     }
 
     /** Previews deletion of an account (by deleting `linkRef` with full object). */

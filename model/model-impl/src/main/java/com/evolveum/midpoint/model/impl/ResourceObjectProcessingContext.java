@@ -52,6 +52,7 @@ public interface ResourceObjectProcessingContext {
         }
     }
 
+    /** This is always the sync delta (if not null). */
     @Nullable ObjectDelta<ShadowType> getResourceObjectDelta();
 
     @NotNull ResourceType getResource();

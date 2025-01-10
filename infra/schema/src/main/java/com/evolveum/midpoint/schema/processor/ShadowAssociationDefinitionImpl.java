@@ -231,6 +231,11 @@ public class ShadowAssociationDefinitionImpl
     }
 
     @Override
+    public ItemCorrelatorDefinitionType getCorrelatorDefinition() {
+        return null; // associations are not used for correlation for now
+    }
+
+    @Override
     public ItemProcessing getProcessing() {
         return null; // TODO implement if needed
     }
@@ -432,7 +437,7 @@ public class ShadowAssociationDefinitionImpl
     }
 
     @Override
-    public @NotNull Collection<InboundMappingType> getInboundMappingBeans() {
+    public @NotNull List<InboundMappingType> getInboundMappingBeans() {
         if (legacyInformation != null) {
             return legacyInformation.inboundMappingBeans();
         }
@@ -443,12 +448,54 @@ public class ShadowAssociationDefinitionImpl
     }
 
     @Override
-    public boolean isVisible(ExecutionModeProvider modeProvider) {
+    public boolean isVisible(@NotNull ExecutionModeProvider modeProvider) {
         if (modernAssociationTypeDefinitionBean != null
                 && !modeProvider.canSee(modernAssociationTypeDefinitionBean.getLifecycleState())) {
             return false;
         }
         return referenceAttributeDefinition.isVisible(modeProvider);
+    }
+
+    @Override
+    public @Nullable String getLifecycleState() {
+        return modernAssociationTypeDefinitionBean != null
+                ? modernAssociationTypeDefinitionBean.getLifecycleState()
+                : referenceAttributeDefinition.getLifecycleState();
+    }
+
+    @Override
+    public PropertyLimitations getLimitations(LayerType layer) {
+        return referenceAttributeDefinition.getLimitations(layer); // Implement for the association itself, if needed
+    }
+
+    @Override
+    public ItemProcessing getProcessing(LayerType layer) {
+        return referenceAttributeDefinition.getProcessing(layer); // Implement for the association itself, if needed
+    }
+
+    @Override
+    public int getMaxOccurs(LayerType layer) {
+        return referenceAttributeDefinition.getMaxOccurs(layer); // Implement for the association itself, if needed
+    }
+
+    @Override
+    public int getMinOccurs(LayerType layer) {
+        return referenceAttributeDefinition.getMinOccurs(layer); // Implement for the association itself, if needed
+    }
+
+    @Override
+    public boolean canAdd(LayerType layer) {
+        return referenceAttributeDefinition.canAdd(layer); // Implement for the association itself, if needed
+    }
+
+    @Override
+    public boolean canRead(LayerType layer) {
+        return referenceAttributeDefinition.canRead(layer); // Implement for the association itself, if needed
+    }
+
+    @Override
+    public boolean canModify(LayerType layer) {
+        return referenceAttributeDefinition.canModify(layer); // Implement for the association itself, if needed
     }
 
     @Override
@@ -536,10 +583,6 @@ public class ShadowAssociationDefinitionImpl
         DebugUtil.debugDumpWithLabelLn(sb, "reference attribute", referenceAttributeDefinition.toString(), indent + 1);
         DebugUtil.debugDumpWithLabel(sb, "association type definition bean", modernAssociationTypeDefinitionBean, indent + 1);
         return sb.toString();
-    }
-
-    public @NotNull ItemPath getStandardPath() {
-        return ItemPath.create(ShadowType.F_ASSOCIATIONS, getItemName());
     }
 
     public ContainerDelta<ShadowAssociationValueType> createEmptyDelta() {
