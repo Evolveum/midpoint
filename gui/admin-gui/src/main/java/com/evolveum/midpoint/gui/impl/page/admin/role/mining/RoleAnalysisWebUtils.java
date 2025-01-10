@@ -29,12 +29,17 @@ import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.*;
+import com.evolveum.midpoint.web.component.RoleAnalysisTabbedPanel;
+import com.evolveum.midpoint.web.component.TabbedPanel;
 import com.evolveum.midpoint.web.component.data.RoleAnalysisObjectDto;
 import com.evolveum.midpoint.web.component.data.RoleAnalysisTable;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.ajax.markup.html.form.AjaxSubmitLink;
+import org.apache.wicket.extensions.markup.html.tabs.ITab;
+import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.model.LoadableDetachableModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
@@ -42,6 +47,7 @@ import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.io.Serial;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.*;
@@ -234,6 +240,19 @@ public class RoleAnalysisWebUtils {
             @NotNull RoleAnalysisOutlierType outlier,
             @NotNull RoleAnalysisClusterType cluster) {
 
+        return loadRoleAnalysisTempTable(id, pageBase, detectedAnomalyResult, null, partition, outlier, cluster);
+    }
+
+    @NotNull
+    public static RoleAnalysisTable<MiningUserTypeChunk, MiningRoleTypeChunk> loadRoleAnalysisTempTable(
+            @NotNull String id,
+            @NotNull PageBase pageBase,
+            @Nullable List<DetectedAnomalyResult> detectedAnomalyResult,
+            String uniqRoleOid,
+            RoleAnalysisOutlierPartitionType partition,
+            @NotNull RoleAnalysisOutlierType outlier,
+            @NotNull RoleAnalysisClusterType cluster) {
+
         LoadableModel<RoleAnalysisObjectDto> miningOperationChunk = new LoadableModel<>(false) {
 
             @Contract(" -> new")
@@ -264,6 +283,9 @@ public class RoleAnalysisWebUtils {
             }
 
             private void loadObjectForMark(RoleAnalysisObjectDto roleAnalysisObjectDto, String outlierOid) {
+                String cssStyle = "border: 5px solid #206f9d;";
+                String cssClass = "p-2 d-flex align-items-center justify-content-center bg-danger";
+                String cssClassUniq = "p-2 d-flex align-items-center justify-content-center bg-warning";
                 if (detectedAnomalyResult != null) {
                     for (DetectedAnomalyResult item : detectedAnomalyResult) {
                         ObjectReferenceType targetObjectRef = item.getTargetObjectRef();
@@ -271,7 +293,13 @@ public class RoleAnalysisWebUtils {
                             continue;
                         }
 
-                        roleAnalysisObjectDto.addMarkedRelation(outlierOid, targetObjectRef.getOid());
+                        boolean isUniqueRole = uniqRoleOid != null && !targetObjectRef.getOid().equals(uniqRoleOid);
+
+                        if (isUniqueRole) {
+                            roleAnalysisObjectDto.addMarkedRelation(outlierOid, targetObjectRef.getOid(), cssStyle, cssClassUniq);
+                        } else {
+                            roleAnalysisObjectDto.addMarkedRelation(outlierOid, targetObjectRef.getOid(), cssStyle, cssClass);
+                        }
                     }
                 }
             }

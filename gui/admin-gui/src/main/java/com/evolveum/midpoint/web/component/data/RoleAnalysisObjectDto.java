@@ -318,10 +318,10 @@ public class RoleAnalysisObjectDto implements Serializable {
         return markedRelations;
     }
 
-    public void addMarkedRelation(String userOid, String roleOid) {
-        markedRelations.add(new MarkedRelation(userOid, roleOid));
+    public void addMarkedRelation(String userOid, String roleOid,String cssStyle, String cssClass) {
+        markedRelations.add(new MarkedRelation(userOid, roleOid, cssStyle, cssClass));
     }
 
-    public record MarkedRelation(String userOid, String roleOid) implements Serializable {
+    public record MarkedRelation(String userOid, String roleOid,String cssStyle, String cssClass) implements Serializable {
     }
 }

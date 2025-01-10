@@ -117,13 +117,13 @@ public abstract class RoleAnalysisIntersectionColumn<B extends MiningBaseTypeChu
             Set<String> roles = new HashSet<>(rowChunk.getRoles());
             for (RoleAnalysisObjectDto.MarkedRelation markedRelation : markedRelations) {
                 boolean matchCol = members.stream().anyMatch(markedRelation.userOid()::contains);
-                boolean matchRow = roles.stream().anyMatch(markedRelation.roleOid()::contains);
-
                 if (matchCol) {
-                    cellItem.add(AttributeModifier.append("style", " border: 5px solid #206f9d;"));
+                    cellItem.add(AttributeModifier.append("style", markedRelation.cssStyle()));
+
+                    boolean matchRow = roles.stream().anyMatch(markedRelation.roleOid()::contains);
+
                     if (matchRow) {
-                        cellItem.add(AttributeModifier.replace("class",
-                                "p-2 d-flex align-items-center justify-content-center bg-danger"));
+                        cellItem.add(AttributeModifier.replace("class", markedRelation.cssClass()));
                         return true;
                     }
                 }

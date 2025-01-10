@@ -27,6 +27,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.Serial;
+import java.util.Collections;
 import java.util.List;
 
 import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.RoleAnalysisWebUtils.loadRoleAnalysisTempTable;
@@ -51,7 +52,7 @@ public class RoleAnalysisPartitionUserPermissionTablePopup extends BasePanel<Rol
 
     public List<DetectedAnomalyResult> getAnomalyModelObject() {
         if (anomalyModel == null) {
-            return null;
+            return Collections.emptyList();
         }
         return anomalyModel.getObject();
     }
@@ -77,7 +78,7 @@ public class RoleAnalysisPartitionUserPermissionTablePopup extends BasePanel<Rol
         }
 
         RoleAnalysisTable<MiningUserTypeChunk, MiningRoleTypeChunk> table = loadRoleAnalysisTempTable(
-                ID_TABLE, pageBase, getAnomalyModelObject(), getModelObject(), outlier, cluster);
+                ID_TABLE, pageBase, getAnomalyModelObject(), getUniqueRoleOid(), getModelObject(), outlier, cluster);
         table.setOutputMarkupId(true);
         return table;
     }
@@ -128,5 +129,9 @@ public class RoleAnalysisPartitionUserPermissionTablePopup extends BasePanel<Rol
             titleComponent.add(AttributeModifier.append("class", "m-0"));
         }
         return titleComponent;
+    }
+
+    public String getUniqueRoleOid() {
+        return null;
     }
 }
