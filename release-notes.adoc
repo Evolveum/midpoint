@@ -38,6 +38,7 @@ The {release-version} release brings security, stability and miscellaneous bugfi
 * bug:MID-10319[] Fixed incorrect error message displayed when performing "Unlock" action on user list page.
 * bug:MID-10317[] Fixed missing message when user disable fails.
 * bug:MID-10320[] Fixed ninja zip option used during export/import.
+* bug:MID-10218[] Task execution constraints added to advanced options tab.
 
 
 == Changes with Respect To Version 4.8.4
