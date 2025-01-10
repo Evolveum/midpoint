@@ -1,29 +1,9 @@
 = Behavior Handling
 
-Behavior handling allows you to define how specific behaviors of resource objects will be managed.
+Behavior handling allows you to define how specific capabilities of resource objects will be managed.
+For more information about behavior capabilities, see xref:../capabilities[].
 
-== Last Login Timestamp Capability
+== Last login timestamp
 
-As name suggest, last login timestamp provides timestamp of last login for specific object on resource, most often account.
-This capability is natively recognized by midPoint if the resource object has specific ConnId attribute with name `\_LAST_LOGIN_DATE_` attribute (`long`).
-
-Last login timestamp capability can be also manually configured to point to different attribute using `attribute` element.
-If attribute is `string` type, then `format` element can be used to specify format of the timestamp.
-It also allows to specify whether such attribute should be listed or omitted in attributes via `ignoreAttribute` flag.
-
-.Example of configured last login timestamp capability
-[source,xml]
-----
-<capabilities xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-3"
-              xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">
-    <configured>
-        <cap:behavior>
-            <cap:lastLoginTimestamp>
-                <cap:attribute>ri:myLastLoginTimestampAttributeName</cap:attribute>
-                <cap:format>yyyy-MM-dd'T'HH:mm:ss.SSSXXX</cap:format>
-                <cap:ignoreAttribute>true</cap:ignoreAttribute>
-            </cap:lastLoginTimestamp>
-        </cap:behavior>
-    </configured>
-</capabilities>
-----
+Behavior for last login timestamp currently contains only one setting - attribute fetch strategy.
+See xref:attributes/fetch-strategy[] for more information.
