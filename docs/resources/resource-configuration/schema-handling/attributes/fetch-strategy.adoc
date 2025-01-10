@@ -1,29 +1,41 @@
 = Attribute Fetch Strategy
 
-The `fetchStrategy` setting affects how and when midPoint retrieves value of this attribute.
+The `fetchStrategy` setting affects how and when midPoint retrieves the value of this attribute.
+
 It is particularly useful in two cases: big attributes and attributes that are not returned by default.
+
 The `fetchStrategy` can have one of three values:
 
-* *implicit*: MidPoint expects that the attribute will be implicitly returned by the connector in each fetch request and there is no need to explicitly request the attribute.
+[%autowidth]
+|===
+| Value | Meaning
+
+| `implicit`
+| MidPoint expects that the attribute will be implicitly returned by the connector in each fetch request and there is no need to explicitly request the attribute.
 This is the default.
 
-* *explicit*: MidPoint expects that the attribute will NOT be implicitly returned by the connector.
+| `explicit`
+| MidPoint expects that the attribute will *not* be implicitly returned by the connector.
 To fetch the attribute midPoint has to explicitly request it.
 Therefore midPoint will explicitly request this attribute in each fetch request.
 This setting is ideal for attributes that the connector does not return by default (e.g. operational attributes) but you want to see these attributes in midPoint anyway.
 
-* *minimal*: Fetch the attribute only if absolutely necessary.
+| `minimal`
+| Fetch the attribute only if absolutely necessary.
 MidPoint expects that the attribute might be implicitly returned by the connector.
 Therefore it will try to avoid fetching this value (if possible).
-This option can be used for values that cause performance overhead (e.g. list of members of large groups, big binary attributes and so on).
+This option can be used for values that cause performance overhead, e.g., list of members of large groups, big binary attributes and so on.
+|===
 
 These three options can be very handy to tune midPoint performance - and specially the user interface performance.
 However, please note that proper functioning of these option depends on many things.
-Firstly the resource and the connector must properly support the "attributes to get" functionality.
+
+Firstly, the resource and the connector must properly support the "attributes to get" functionality.
 Smart resource and mature connectors such as LDAP support it.
 But others do not.
 It can be partially simulated in the ConnId layer.
 But this will address the issues only partially.
+
 Secondly, this feature depends on proper declaration of resource schema.
 E.g. if midPoint wants to avoid a fetch of a big attribute then midPoint has to request all the attributes except the one that we do not want.
 For that midPoint needs to know what other attribute names are.
