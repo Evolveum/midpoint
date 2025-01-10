@@ -10,11 +10,11 @@ package com.evolveum.midpoint.schema.processor;
 import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
 
 import java.util.Collection;
-
-import com.evolveum.midpoint.prism.*;
+import java.util.List;
 
 import org.jetbrains.annotations.NotNull;
 
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
@@ -24,7 +24,6 @@ import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
-import com.evolveum.prism.xml.ns._public.types_3.RawType;
 
 /**
  * TODO update this doc
@@ -68,20 +67,6 @@ public interface ShadowSimpleAttribute<T>
             throw new IllegalArgumentException("Not a property: " + item);
         }
     }
-
-    // TODO remove
-//    static Collection<ResourceAttribute<?>> collectionOf(ShadowAttributesType bean) {
-//        if (bean != null) {
-//            List<ResourceAttribute<?>> list = new ArrayList<>();
-//            //noinspection unchecked
-//            for (Item<?, ?> item : ((PrismContainerValue<ShadowAttributesType>) bean.asPrismContainerValue()).getItems()) {
-//                list.add(ResourceAttribute.of(item));
-//            }
-//            return list;
-//        } else {
-//            return List.of();
-//        }
-//    }
 
     ShadowSimpleAttributeDefinition<T> getDefinition();
 
@@ -172,13 +157,6 @@ public interface ShadowSimpleAttribute<T>
                 .buildFilter();
     }
 
-    /** Creates normalization-aware version of this attribute: one that is suitable to be used in the repository. */
-    default <N> @NotNull PrismProperty<N> normalizationAwareVersion() throws SchemaException {
-        return getDefinitionRequired()
-                .<N>toNormalizationAware()
-                .adoptRealValuesAndInstantiate(getRealValues());
-    }
-
     /** Creates a delta that would enforce (via REPLACE operation) the values of this attribute. */
     default @NotNull PropertyDelta<T> createReplaceDelta() {
         var delta = getDefinitionRequired().createEmptyDelta();
@@ -203,6 +181,10 @@ public interface ShadowSimpleAttribute<T>
                 this, actualDefinition, expectedDefinition);
     }
 
+    default List<PrismPropertyValue<T>> getAttributeValues() {
+        return getValues();
+    }
+
     default boolean hasNoValues() {
         return PrismProperty.super.hasNoValues();
     }
@@ -213,9 +195,9 @@ public interface ShadowSimpleAttribute<T>
     @Override
     PropertyDelta<T> createDelta(ItemPath path);
 
-     @Override
-     ShadowSimpleAttribute<T> createImmutableClone();
+    @Override
+    ShadowSimpleAttribute<T> createImmutableClone();
 
-     @Override
-     ShadowSimpleAttribute<T> cloneComplex(CloneStrategy strategy);
+    @Override
+    ShadowSimpleAttribute<T> cloneComplex(CloneStrategy strategy);
 }

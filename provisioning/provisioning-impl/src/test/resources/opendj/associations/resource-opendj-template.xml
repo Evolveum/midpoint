@@ -1,0 +1,144 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (C) 2010-2024 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<resource oid="e848090a-25ae-4390-bccc-2bc49d4b9a0c"
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
+        xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+        xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
+        xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3">
+
+    <name>opendj-template</name>
+
+    <connectorRef type="ConnectorType">
+        <filter>
+            <q:equal>
+                <q:path>c:connectorType</q:path>
+                <q:value>com.evolveum.polygon.connector.ldap.LdapConnector</q:value>
+            </q:equal>
+        </filter>
+    </connectorRef>
+
+    <connectorConfiguration xmlns:icfcldap="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.polygon.connector-ldap/com.evolveum.polygon.connector.ldap.LdapConnector">
+        <icfc:configurationProperties>
+            <icfcldap:port>10389</icfcldap:port>
+            <icfcldap:host>localhost</icfcldap:host>
+            <icfcldap:baseContext>dc=example,dc=com</icfcldap:baseContext>
+            <icfcldap:bindDn>cn=directory manager</icfcldap:bindDn>
+            <icfcldap:bindPassword><t:clearValue>secret</t:clearValue></icfcldap:bindPassword>
+            <icfcldap:pagingStrategy>auto</icfcldap:pagingStrategy>
+            <icfcldap:vlvSortAttribute>entryUUID</icfcldap:vlvSortAttribute>
+            <icfcldap:operationalAttributes>ds-pwp-account-disabled</icfcldap:operationalAttributes>
+            <icfcldap:operationalAttributes>isMemberOf</icfcldap:operationalAttributes>
+            <icfcldap:operationalAttributes>modifyTimestamp</icfcldap:operationalAttributes>
+        </icfc:configurationProperties>
+    </connectorConfiguration>
+
+    <schema>
+        <generationConstraints>
+            <generateObjectClass>ri:inetOrgPerson</generateObjectClass>
+            <generateObjectClass>ri:groupOfUniqueNames</generateObjectClass>
+            <generateObjectClass>ri:groupOfNames</generateObjectClass>
+            <generateObjectClass>ri:organizationalUnit</generateObjectClass>
+            <generateObjectClass>ri:domain</generateObjectClass>
+            <generateObjectClass>ri:posixAccount</generateObjectClass>
+            <generateObjectClass>ri:posixGroup</generateObjectClass>
+        </generationConstraints>
+    </schema>
+
+    <schemaHandling>
+        <objectType>
+            <kind>account</kind>
+            <intent>default</intent>
+            <default>true</default>
+            <delineation>
+                <objectClass>ri:inetOrgPerson</objectClass>
+            </delineation>
+            <attribute>
+                <ref>ri:uid</ref>
+                <secondaryIdentifier>true</secondaryIdentifier> <!-- Used for posixGroup reference. -->
+            </attribute>
+        </objectType>
+        <objectType>
+            <kind>entitlement</kind>
+            <intent>group</intent>
+            <delineation>
+                <objectClass>ri:groupOfUniqueNames</objectClass>
+                <baseContext>
+                    <objectClass>ri:organizationalUnit</objectClass>
+                    <filter>
+                        <q:equal>
+                            <q:path>attributes/dn</q:path>
+                            <q:value>ou=groups,dc=example,dc=com</q:value>
+                        </q:equal>
+                    </filter>
+                </baseContext>
+            </delineation>
+        </objectType>
+        <objectType>
+            <kind>entitlement</kind>
+            <intent>posixGroup</intent>
+            <delineation>
+                <objectClass>ri:groupOfNames</objectClass>
+                <auxiliaryObjectClass>ri:posixGroup</auxiliaryObjectClass>
+                <baseContext>
+                    <objectClass>ri:organizationalUnit</objectClass>
+                    <filter>
+                        <q:equal>
+                            <q:path>attributes/dn</q:path>
+                            <q:value>ou=posixGroups,dc=example,dc=com</q:value>
+                        </q:equal>
+                    </filter>
+                </baseContext>
+            </delineation>
+        </objectType>
+        <objectType>
+            <kind>entitlement</kind>
+            <intent>passengerCar</intent>
+            <delineation>
+                <objectClass>ri:groupOfNames</objectClass>
+                <auxiliaryObjectClass>ri:posixGroup</auxiliaryObjectClass>
+                <baseContext>
+                    <objectClass>ri:organizationalUnit</objectClass>
+                    <filter>
+                        <q:equal>
+                            <q:path>attributes/dn</q:path>
+                            <q:value>ou=passengerCars,dc=example,dc=com</q:value>
+                        </q:equal>
+                    </filter>
+                </baseContext>
+            </delineation>
+            <attribute>
+                <ref>ri:gidNumber</ref>
+                <secondaryIdentifier>true</secondaryIdentifier>
+            </attribute>
+        </objectType>
+        <objectType>
+            <kind>entitlement</kind>
+            <intent>lightTruck</intent>
+            <delineation>
+                <objectClass>ri:groupOfNames</objectClass>
+                <auxiliaryObjectClass>ri:posixGroup</auxiliaryObjectClass>
+                <baseContext>
+                    <objectClass>ri:organizationalUnit</objectClass>
+                    <filter>
+                        <q:equal>
+                            <q:path>attributes/dn</q:path>
+                            <q:value>ou=lightTrucks,dc=example,dc=com</q:value>
+                        </q:equal>
+                    </filter>
+                </baseContext>
+            </delineation>
+            <attribute>
+                <ref>ri:gidNumber</ref>
+                <secondaryIdentifier>true</secondaryIdentifier>
+            </attribute>
+        </objectType>
+    </schemaHandling>
+</resource>

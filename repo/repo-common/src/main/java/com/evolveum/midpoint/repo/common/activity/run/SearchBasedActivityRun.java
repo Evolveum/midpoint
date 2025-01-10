@@ -452,8 +452,8 @@ public abstract class SearchBasedActivityRun<
     }
 
     private OperationResultType getFetchResult(C item) {
-        if (item instanceof ObjectType) {
-            return ((ObjectType) item).getFetchResult();
+        if (item instanceof ObjectType object) {
+            return object.getFetchResult();
         } else {
             return null;
         }

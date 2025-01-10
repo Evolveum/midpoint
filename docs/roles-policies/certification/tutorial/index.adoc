@@ -6,7 +6,7 @@
 :page-wiki-metadata-modify-user: mmacik
 :page-wiki-metadata-modify-date: 2020-01-07T14:22:32.194+01:00
 :page-alias: { "parent" : "/midpoint/guides/" }
-:page-upkeep-status: yellow
+:page-upkeep-status: green
 
 Assuming you're logged as administrator, you should see the Certification menu items in the main menu:
 
@@ -30,8 +30,11 @@ The campaign has 1 stage, because it was defined as such.
 It is in the *Created* state, meaning no action has been done yet.
 
 To start the campaign, click the appropriate *"Start campaign"* button.
-The special task is created to process this action, you can follow its progress on the created task details page (the link to it should be displayed on the information message panel).
-Let's see the campaign details now by clicking *"Details"* link on the campaign tile panel.
+The special task is created to process this action.
+Task progress bar is displayed right on the campaign tile panel.
+Clicking on this progress element will lead you to the task page.
+The link to the task page is also displayed at the top of the page within the feedback panel right after the task was created.
+After the task is finished and the campaign is already started, let's see the campaign details by clicking *"Details"* link on the campaign tile panel.
 
 .Campaign details view
 image::campaign-details.png[width=85%]
@@ -67,8 +70,8 @@ Perhaps it has to be discussed and some solution (e.g. assignment of a less powe
 .. Not Decided - the reviewer states he/she is not able or willing to decide.
 
 .. No Response - the reviewer wants to "undone" his previous decisions regarding this case.
-(The presence of this button is questionable.
-Maybe it should be discarded.)
+
+To learn more about decision menu items configuration, as well as about other possible menu item actions, please follow to the xref:/midpoint/reference/roles-policies/certification/actions/[GUI Action Configuration] page.
 
 After some decisions are made, it's possible to view the statistics of the responses and some other data on the campaign details view ("*Certification -> Campaigns*" and click on *"All user assignments 1"* campaign).
 
@@ -76,7 +79,6 @@ After some decisions are made, it's possible to view the statistics of the respo
 image::campaign-responses-panel.png[width=85%]
 
 Also, you can view the progress of the reviewers and related tasks on the Statistics panel.
-//todo another name for Statistics panel? Overview panel?//
 
 .Campaign details view - Responses panel
 image::campaign-statistics-panel.png[width=85%]

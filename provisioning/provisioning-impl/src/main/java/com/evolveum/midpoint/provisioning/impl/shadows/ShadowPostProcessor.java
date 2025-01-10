@@ -33,6 +33,8 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.Objects;
 
+import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
+
 /**
  * Responsible for the usual shadow/resource-object "post-processing":
  *
@@ -163,7 +165,7 @@ class ShadowPostProcessor {
         }
 
         var shadowCtx = ctx.spawnForShadow(shadow.getBean());
-        var updatedShadow = acquireAndPostProcessEmbeddedShadow(shadow, refAttrValue.isFullObject(), shadowCtx, result);
+        var updatedShadow = acquireAndPostProcessEmbeddedShadow(shadow, shadowCtx, result);
         if (updatedShadow != null) {
             refAttrValue.setObject(updatedShadow.getPrismObject());
             refAttrValue.setOid(updatedShadow.getOid());
@@ -177,7 +179,6 @@ class ShadowPostProcessor {
      */
     private @Nullable AbstractShadow acquireAndPostProcessEmbeddedShadow(
             @NotNull AbstractShadow shadow,
-            boolean isFullObject,
             @NotNull ProvisioningContext shadowCtx,
             @NotNull OperationResult result)
             throws ConfigurationException, CommunicationException, ExpressionEvaluationException, SecurityViolationException,
@@ -186,15 +187,15 @@ class ShadowPostProcessor {
         // TODO should we fully cache the entitlement shadow (~ attribute/shadow caching)?
         //  (If yes, maybe we should retrieve also the associations below?)
 
-        if (isFullObject) {
+        if (!shadow.isIdentificationOnly()) {
             // The conversion from shadow to an ExistingResourceObjectShadow looks strange but actually has a point:
             // the shadow really came from the resource.
             var existingResourceObject = ExistingResourceObjectShadow.fromShadow(shadow);
             return acquireAndPostProcessShadow(shadowCtx, existingResourceObject, result);
         }
 
-        var attributesContainer = shadow.getAttributesContainer();
-        var identifiers = attributesContainer.getAllIdentifiers();
+        var identifiers = shadow.getAllIdentifiers();
+        stateCheck(!identifiers.isEmpty(), "No identifiers in the shadow: %s", shadow);
 
         // for simulated references, here should be exactly one attribute; for native ones, it can vary
         var existingLiveRepoShadow = b.shadowFinder.lookupLiveShadowByAllAttributes(shadowCtx, identifiers, result);

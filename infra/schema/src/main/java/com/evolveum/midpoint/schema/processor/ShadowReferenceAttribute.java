@@ -56,8 +56,8 @@ public class ShadowReferenceAttribute
                     return o1 == null && o2 == null;
                 }
                 return MiscUtil.unorderedCollectionEquals(
-                        o1.getReferenceValues(),
-                        o2.getReferenceValues(),
+                        o1.getAttributeValues(),
+                        o2.getAttributeValues(),
                         ShadowReferenceAttributeValue.semanticEqualsChecker());
             };
 
@@ -101,40 +101,36 @@ public class ShadowReferenceAttribute
         return "SA";
     }
 
+    /** Creates a value holding the shadow. Its definition must correspond to the one of the association. */
     @SuppressWarnings("UnusedReturnValue")
-    public @NotNull ShadowReferenceAttributeValue createNewValueWithIdentifiers(@NotNull AbstractShadow shadow) throws SchemaException {
-        var value = ShadowReferenceAttributeValue.fromShadow(shadow, false);
-        add(value);
-        return value;
-    }
-
-    public @NotNull ShadowReferenceAttributeValue createNewValueWithIdentifier(@NotNull ShadowSimpleAttribute<?> identifier)
-            throws SchemaException {
-        var blankShadow = getDefinitionRequired()
-                .getRepresentativeTargetObjectDefinition()
-                .createBlankShadow();
-        blankShadow.getAttributesContainer().add((ShadowAttribute<?, ?, ?, ?>) identifier);
-        return createNewValueWithIdentifiers(blankShadow);
-    }
-
-    /** Creates a value holding the full object. Its definition must correspond to the one of the association. */
-    public @NotNull ShadowReferenceAttributeValue createNewValueWithFullObject(@NotNull AbstractShadow target)
-            throws SchemaException {
+    public @NotNull ShadowReferenceAttributeValue createNewValueFromShadow(@NotNull AbstractShadow shadow) throws SchemaException {
         // TODO check the definition
-        var value = ShadowReferenceAttributeValue.fromShadow(target, true);
+        var value = ShadowReferenceAttributeValue.fromShadow(shadow);
         add(value);
         return value;
     }
 
-//    /** Adds only the target shadow ref. */
-//    @SuppressWarnings("UnusedReturnValue")
-//    public @NotNull ShadowReferenceAttributeValue createNewValueForTargetRef(@NotNull ObjectReferenceType ref) {
-//        var value = createNewValue();
-//        value.getValue().setShadowRef(ref);
-//        return value;
-//    }
+    /** Callable only on the subject-side reference attribute. */
+    public @NotNull ShadowReferenceAttributeValue createNewValueWithIdentifierRealValue(
+            @NotNull QName identifierName, @NotNull Object identifierRealValue)
+            throws SchemaException {
+        var objectDef = getDefinitionRequired().getGeneralizedObjectSideObjectDefinition();
+        var blankShadow = objectDef.createBlankShadow();
+        blankShadow.getAttributesContainer().addSimpleAttribute(identifierName, identifierRealValue);
+        blankShadow.setIdentificationOnly();
+        // TODO we should resolve the below code in more elegant way.
+        //  It is here mainly because the processing of single-attribute-shadow (subject-to-object direction)
+        //  couldn't search by gidNumber when it was in the auxiliary object class (posixGroup). However,
+        //  the problem is only because the provisioning derives the ProvisioningContext from the shadow as such,
+        //  not from the actual definition of the shadow. So this is perhaps a little hack. To be resolved later.
+        var auxObjClassName = objectDef.getAuxiliaryObjectClassNameForAttribute(identifierName);
+        if (auxObjClassName != null) {
+            blankShadow.getBean().getAuxiliaryObjectClass().add(auxObjClassName);
+        }
+        return createNewValueFromShadow(blankShadow);
+    }
 
-    public @NotNull List<ShadowReferenceAttributeValue> getReferenceValues() {
+    public @NotNull List<ShadowReferenceAttributeValue> getAttributeValues() {
         // IDE accepts the version without cast to List, but the compiler doesn't.
         //noinspection unchecked,rawtypes,RedundantCast
         return List.copyOf(
@@ -142,7 +138,7 @@ public class ShadowReferenceAttribute
     }
 
     public @NotNull List<ObjectReferenceType> getReferenceRealValues() {
-        return getReferenceValues().stream()
+        return getAttributeValues().stream()
                 .map(refVal -> refVal.asObjectReferenceType())
                 .toList();
     }
@@ -163,7 +159,7 @@ public class ShadowReferenceAttribute
 
     public @NotNull ShadowReferenceAttributeValue getSingleValueRequired() {
         return MiscUtil.extractSingletonRequired(
-                getReferenceValues(),
+                getAttributeValues(),
                 () -> new IllegalStateException("Multiple values where only a single one was expected: " + this),
                 () -> new IllegalStateException("Missing attribute value in " + this));
     }

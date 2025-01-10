@@ -333,24 +333,37 @@ public class ProvisioningContext implements DebugDumpable, ExecutionModeProvider
     }
 
     /**
-     * Creates an exact copy of the context but with different task.
+     * Creates an exact copy of the context but with different task and probably additional aux OCs.
      */
-    public @NotNull ProvisioningContext spawn(Task task) {
+    public @NotNull ProvisioningContext spawn(@NotNull Collection<QName> additionalAuxiliaryObjectClasses, Task task)
+            throws SchemaException, ConfigurationException {
         // No need to bother the factory because no population resolution is needed
         return new ProvisioningContext(
                 this,
                 task,
-                resourceObjectDefinition,
+                addAuxiliaryObjectClasses(resourceObjectDefinition, additionalAuxiliaryObjectClasses),
                 wholeClass);
     }
 
-    /** A convenience method for {@link #spawn(Task)} */
-    public @NotNull ProvisioningContext spawnIfNeeded(Task task) {
-        if (task == this.task) {
-            return this;
-        } else {
-            return spawn(task);
+    /**
+     * The goal here is to create a definition that would present itself with specified auxiliary object classes.
+     * (When asked via {@link ResourceObjectDefinition#hasAuxiliaryObjectClass(QName)}.)
+     *
+     * It does not matter if {@link CompositeObjectDefinition} is created or not.
+     */
+    private @Nullable ResourceObjectDefinition addAuxiliaryObjectClasses(
+            @Nullable ResourceObjectDefinition resourceObjectDefinition,
+            @NotNull Collection<QName> additionalAuxObjClassNames) throws SchemaException, ConfigurationException {
+        if (resourceObjectDefinition == null) {
+            return null;
         }
+        List<QName> missing = new ArrayList<>();
+        for (QName additionalAuxObjClassName : additionalAuxObjClassNames) {
+            if (!resourceObjectDefinition.hasAuxiliaryObjectClass(additionalAuxObjClassName)) {
+                missing.add(additionalAuxObjClassName);
+            }
+        }
+        return computeCompositeObjectDefinition(resourceObjectDefinition, missing);
     }
 
     /**
@@ -581,7 +594,7 @@ public class ProvisioningContext implements DebugDumpable, ExecutionModeProvider
     /**
      * Returns association definitions, or an empty list if we do not have appropriate definition available.
      */
-    public @NotNull Collection<? extends ShadowReferenceAttributeDefinition> getAssociationDefinitions() {
+    public @NotNull Collection<? extends ShadowReferenceAttributeDefinition> getReferenceAttributeDefinitions() {
         return resourceObjectDefinition != null ?
                 resourceObjectDefinition.getReferenceAttributeDefinitions() : List.of();
     }
@@ -594,11 +607,11 @@ public class ProvisioningContext implements DebugDumpable, ExecutionModeProvider
         return getObjectDefinitionRequired().findAttributeDefinitionRequired(name);
     }
 
-    public @NotNull ShadowReferenceAttributeDefinition findAssociationDefinitionRequired(QName name) throws SchemaException {
-        return findAssociationDefinitionRequired(name, () -> " in " + this);
+    public @NotNull ShadowReferenceAttributeDefinition findReferenceAttributeDefinitionRequired(QName name) throws SchemaException {
+        return findReferenceAttributeDefinitionRequired(name, () -> " in " + this);
     }
 
-    public @NotNull ShadowReferenceAttributeDefinition findAssociationDefinitionRequired(QName name, Supplier<String> contextSupplier)
+    public @NotNull ShadowReferenceAttributeDefinition findReferenceAttributeDefinitionRequired(QName name, Supplier<String> contextSupplier)
             throws SchemaException {
         return getObjectDefinitionRequired()
                 .findReferenceAttributeDefinitionRequired(name, contextSupplier);

@@ -554,8 +554,6 @@ public interface ProvisioningService {
      *
      * See also {@link ObjectQueryUtil#getOperationCoordinates(ObjectFilter)}.
      *
-     * (For the raw mode the requirements are currently the same; however, we may relax them in the future.)
-     *
      * === Interpreting the query for on-resource search
      *
      * ==== If `kind` is specified
@@ -593,11 +591,11 @@ public interface ProvisioningService {
      *
      * . Shadow is updated with the information obtained from the resource: cached identifiers and/or other attributes,
      * probably `dead` and `exists` properties.
-     * . #TODO#
+     * . TODO
      *
      * === Effects of development and execution mode
      *
-     * #TODO#
+     * TODO
      *
      * == Processing of {@link ResourceType} objects
      *
@@ -605,18 +603,23 @@ public interface ProvisioningService {
      * this one are processed according to the inheritance rules, unless the `raw` mode is applied. Beware that - obviously -
      * the search query is applied to find the original resource objects, not the "processed" ones.
      *
-     * #TODO expand this part#
-     * #TODO side effects#
+     * - TODO expand this part
+     * - TODO side effects
      *
      * === Effects of development and execution mode
      *
-     * #TODO#
+     * TODO
      *
      * == Fetch result
      *
      * The fetch result ({@link ObjectType#getFetchResult()}) should be present in objects returned (namely, if the processing
      * was not entirely successful). Beware that the details of storing it may differ between this method and
      * {@link #getObject(Class, String, Collection, Task, OperationResult)}.
+     *
+     * == Issues
+     *
+     * . Currently, we apply the object definition when fetching the object in raw mode.
+     * This is a bit inconsistent with the processing in `get` operation, and also a bit unexpected.
      *
      * @return all objects of specified type that match search criteria (subject to paging)
      *

@@ -18,6 +18,7 @@ import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.QNameUtil;
+import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -1266,9 +1267,13 @@ public class ShadowUtil {
         return associationsContainer != null && !(associationsContainer instanceof ShadowAssociationsContainer);
     }
 
-    // FIXME improve this method
-    static boolean equalsByContent(@NotNull ShadowType s1, @NotNull ShadowType s2) {
-
+    /**
+     * Compares the shadows on a high level, with the aim of determining if two target shadows are the same.
+     *
+     * So, when considering using this method in a different content, take care!
+     */
+    @Experimental
+    public static boolean equalsByContent(@NotNull ShadowType s1, @NotNull ShadowType s2) {
         return simpleAttributesEqualRelaxed(getSimpleAttributes(s1), getSimpleAttributes(s2))
                 && MiscUtil.unorderedCollectionEquals(getReferenceAttributes(s1), getReferenceAttributes(s2), ShadowReferenceAttribute.semanticEqualsChecker())
                 && MiscUtil.unorderedCollectionEquals(getAssociations(s1), getAssociations(s2), ShadowAssociation.semanticEqualsChecker())
@@ -1276,12 +1281,17 @@ public class ShadowUtil {
                 && Objects.equals(s1.getCredentials(), s2.getCredentials()); // TODO less strict comparison
     }
 
+    /**
+     * Compares two simple attributes, taking into account the fact that `icfs:uid` and `icfs:name` can be added by the
+     * connector.
+     *
+     * @see ShadowAssociationValue#semanticEqualsChecker()
+     * @see ShadowReferenceAttributeValue#semanticEqualsChecker()
+     */
     public static boolean simpleAttributesEqualRelaxed(
             @NotNull Collection<ShadowSimpleAttribute<?>> attributes1,
             @NotNull Collection<ShadowSimpleAttribute<?>> attributes2) {
 
-        // HACK We ignore icfs:uid and icfs:name, if they are not present at both sides.
-        // The reason is that they may be artificially added by the connector.
         var copy1 = new ArrayList<>(attributes1);
         var copy2 = new ArrayList<>(attributes2);
 
@@ -1467,5 +1477,14 @@ public class ShadowUtil {
 
     public static Object getDiagInfoLazily(PrismObject<ShadowType> shadow) {
         return DebugUtil.lazy(() -> getDiagInfo(shadow));
+    }
+
+    /** Beware, maintenance mode has PARTIAL_ERROR here. */
+    public static boolean hasFetchError(@NotNull ShadowType shadow) {
+        return ObjectTypeUtil.hasFetchError(shadow.asPrismObject());
+    }
+
+    public static boolean hasAuxiliaryObjectClass(@NotNull ShadowType bean, @NotNull QName name) {
+        return QNameUtil.contains(bean.getAuxiliaryObjectClass(), name);
     }
 }

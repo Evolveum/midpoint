@@ -18,6 +18,7 @@ import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schem
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.associationType.subject.mappingContainer.outbound.AssociationOutboundEvaluatorWizardPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.associationType.subject.mappingContainer.outbound.AssociationOutboundMappingContainerWizardPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.policies.PoliciesObjectTypeWizardPanel;
+import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -272,11 +273,20 @@ public class PageResource extends PageAssignmentHolderDetails<ResourceType, Reso
         return wizardPanel;
     }
 
-    private void addWizardBreadcrumbsForObjectType(
-            AbstractWizardPanel<ResourceObjectTypeDefinitionType, ResourceDetailsModel> wizardPanel) {
+    private <C extends Containerable> void addWizardBreadcrumbsForObjectType(
+            AbstractWizardPanel<C, ResourceDetailsModel> wizardPanel) {
         List<Breadcrumb> breadcrumbs = getWizardBreadcrumbs();
-        ResourceObjectTypeDefinitionType objectType = wizardPanel.getValueModel().getObject().getRealValue();
-        String displayName = GuiDisplayNameUtil.getDisplayName(objectType);
+        Containerable containerable = wizardPanel.getValueModel().getObject().getRealValue();
+        String displayName = "";
+        if (containerable instanceof ResourceObjectTypeDefinitionType) {
+            ResourceObjectTypeDefinitionType objectType = (ResourceObjectTypeDefinitionType) containerable;
+            displayName = GuiDisplayNameUtil.getDisplayName(objectType);
+            IModel<String> breadcrumbLabelModel = Model.of(displayName);
+
+            breadcrumbs.add(0, new Breadcrumb(breadcrumbLabelModel));
+        } else if (containerable != null) {
+            displayName = GuiDisplayNameUtil.getDisplayName(containerable.asPrismContainerValue());
+        }
         IModel<String> breadcrumbLabelModel = Model.of(displayName);
 
         breadcrumbs.add(0, new Breadcrumb(breadcrumbLabelModel));

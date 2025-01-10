@@ -175,10 +175,16 @@ public abstract class AbstractOpenDjTest extends AbstractProvisioningIntegration
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
         super.initSystem(initTask, initResult);
 
+        beforeImportingResource(initTask, initResult);
+
         resource = addResourceFromFile(getResourceOpenDjFile(), IntegrationTestTools.CONNECTOR_LDAP_TYPE, initResult);
         repoAddShadowFromFile(ACCOUNT_BAD_REPO_FILE, initResult);
 
         dnMatchingRule = matchingRuleRegistry.getMatchingRule(PrismConstants.DISTINGUISHED_NAME_MATCHING_RULE_NAME, DOMUtil.XSD_STRING);
+    }
+
+    protected void beforeImportingResource(Task initTask, OperationResult initResult) throws Exception {
+        // to be overridden in subclasses
     }
 
     @SafeVarargs

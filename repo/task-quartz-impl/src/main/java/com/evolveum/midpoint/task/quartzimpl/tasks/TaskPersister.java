@@ -139,8 +139,6 @@ public class TaskPersister {
 
         setSchedulingState(task);
 
-
-
         OperationResult result = parentResult.createSubresult(OP_ADD_TASK_TO_REPOSITORY_AND_QUARTZ);
         result.addArbitraryObjectAsParam("task", task);
         try {

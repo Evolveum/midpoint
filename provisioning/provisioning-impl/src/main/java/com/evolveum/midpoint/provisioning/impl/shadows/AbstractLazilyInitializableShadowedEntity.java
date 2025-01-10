@@ -26,6 +26,8 @@ import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 
+import java.util.List;
+
 /**
  * Processing of retrieved resource objects that is common for search and sync operations.
  *
@@ -83,7 +85,9 @@ public abstract class AbstractLazilyInitializableShadowedEntity implements Lazil
     @Override
     public void initializeInternalCommon(Task task, OperationResult result)
             throws SchemaException, ConfigurationException, EncryptionException {
-        effectiveCtx = prerequisite.getEffectiveCtx().spawn(task);
+        effectiveCtx = prerequisite.getEffectiveCtx().spawn(
+                List.of(), // assuming the auxiliary OCs were filled in by lower layers
+                task);
         repoShadow = acquireOrLookupRepoShadow(result);
         if (effectiveCtx.isWildcard() && repoShadow != null) {
             effectiveCtx = effectiveCtx.spawnForShadow(repoShadow.getBean());

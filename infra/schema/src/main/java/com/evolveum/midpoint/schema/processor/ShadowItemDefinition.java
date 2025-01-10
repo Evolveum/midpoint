@@ -7,24 +7,23 @@
 
 package com.evolveum.midpoint.schema.processor;
 
-import com.evolveum.midpoint.prism.ItemDefinition;
-import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.schema.simulation.ExecutionModeProvider;
+import com.evolveum.midpoint.schema.util.SimulationUtil;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceItemDefinitionType;
 
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-import static com.evolveum.midpoint.util.MiscUtil.argCheck;
+import java.io.Serializable;
 
-/** Temporary class, to be decided what to do with this. */
-public interface ShadowItemDefinition {
+/** Definition of the shadow attribute or association. */
+public interface ShadowItemDefinition extends ShadowItemLayeredDefinition, Serializable {
 
-    default <D extends ItemDefinition<?>> D findItemDefinition(@NotNull ItemPath path, @NotNull Class<D> clazz) {
-        if (path.isEmpty()) {
-            argCheck(clazz.isAssignableFrom(this.getClass()),
-                    "Looking for definition of class %s but found %s", clazz, this);
-            //noinspection unchecked
-            return (D) this;
-        } else {
-            return null;
-        }
+    default boolean isVisible(@NotNull ExecutionModeProvider executionModeProvider) {
+        return SimulationUtil.isVisible(getLifecycleState(), executionModeProvider);
     }
+
+    /** @see ResourceItemDefinitionType#getLifecycleState() */
+    @Nullable String getLifecycleState();
 }

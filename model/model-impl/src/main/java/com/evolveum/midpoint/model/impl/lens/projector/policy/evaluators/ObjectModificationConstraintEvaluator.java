@@ -292,13 +292,13 @@ public class ObjectModificationConstraintEvaluator
     }
 
     private boolean isEntitlementChange(QName assocName, ResourceObjectDefinition objectDefinition) {
-        // FIXME reconsider this (move to real association definitions)
-        var assocDef = objectDefinition.findReferenceAttributeDefinition(assocName);
+        var assocDef = objectDefinition.findAssociationDefinition(assocName);
         return assocDef != null && assocDef.isEntitlement();
     }
 
     private boolean isEntitlementChange(Collection<? extends QName> assocNames, ResourceObjectDefinition objectDefinition) {
-        return assocNames.stream().anyMatch(itemName -> isEntitlementChange(itemName, objectDefinition));
+        return assocNames.stream()
+                .anyMatch(itemName -> isEntitlementChange(itemName, objectDefinition));
     }
 
     private ResourceObjectDefinition getObjectDefinition(ObjectPolicyRuleEvaluationContext<?> ctx)

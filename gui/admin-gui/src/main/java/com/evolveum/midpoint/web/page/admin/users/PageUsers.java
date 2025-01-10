@@ -305,8 +305,8 @@ public class PageUsers extends PageAdmin {
                 opResult.computeStatusIfUnknown();
             } catch (Exception ex) {
                 opResult.recomputeStatus();
-                opResult.recordFatalError(getString("PageUsers.message.unlock.fatalError", user), ex);
-                LoggingUtils.logUnexpectedException(LOGGER, "Couldn't unlock user " + user + ".", ex);
+                opResult.recordFatalError(getString("PageUsers.message.unlock.fatalError", WebComponentUtil.getName(user.getValue())), ex);
+                LoggingUtils.logUnexpectedException(LOGGER, "Couldn't unlock user " + user.getValue() + ".", ex);
             }
         }
 

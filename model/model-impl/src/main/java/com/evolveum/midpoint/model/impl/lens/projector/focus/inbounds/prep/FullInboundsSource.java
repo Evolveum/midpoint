@@ -7,7 +7,7 @@
 
 package com.evolveum.midpoint.model.impl.lens.projector.focus.inbounds.prep;
 
-import com.evolveum.midpoint.model.api.InboundSourceData;
+import com.evolveum.midpoint.model.impl.lens.projector.focus.inbounds.InboundSourceData;
 import com.evolveum.midpoint.model.api.identities.IdentityItemConfiguration;
 import com.evolveum.midpoint.model.common.mapping.MappingImpl;
 import com.evolveum.midpoint.model.impl.ModelBeans;
@@ -20,7 +20,6 @@ import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ContainerDelta;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.repo.common.expression.Source;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
@@ -64,7 +63,7 @@ public class FullInboundsSource extends InboundsSource {
 
     public FullInboundsSource(
             @NotNull InboundSourceData sourceData,
-            @NotNull ResourceObjectInboundDefinition inboundDefinition,
+            @NotNull ResourceObjectInboundProcessingDefinition inboundDefinition,
             @NotNull LensProjectionContext projectionContext,
             @NotNull InboundsContext context) throws ConfigurationException {
         super(
@@ -88,8 +87,8 @@ public class FullInboundsSource extends InboundsSource {
 
     @Override
     boolean isEligibleForInboundProcessing(OperationResult result) throws SchemaException, ConfigurationException {
-        LOGGER.trace("Starting determination if we should process inbound mappings. A priori delta present: {}.",
-                aPrioriDelta != null);
+
+        LOGGER.trace("Starting determination if we should process inbound mappings.");
 
         if (projectionContext.areInboundSyncMappingsDisabled(result)) {
             LOGGER.trace("Skipping processing of inbound mappings because of the shadow operations policy.");
@@ -99,8 +98,8 @@ public class FullInboundsSource extends InboundsSource {
             LOGGER.trace("Skipping processing of inbound mappings because the context is broken");
             return false;
         }
-        if (aPrioriDelta != null) {
-            LOGGER.trace("A priori delta present, we'll do the inbound processing");
+        if (sourceData.hasSyncOrEffectiveDelta()) {
+            LOGGER.trace("Delta (sync/effective) present, we'll do the inbound processing");
             return true;
         }
         if (projectionContext.getObjectCurrent() == null) {
@@ -126,6 +125,9 @@ public class FullInboundsSource extends InboundsSource {
             return true;
         }
         if (projectionContext.isDelete()) {
+            // Note that the condition isDelete() & isCompleted() was already treated - and the processing was skipped if so.
+            assert !projectionContext.isCompleted() : "Projection is completed & it's being deleted: " + projectionContext;
+
             // TODO what's the exact reason for this behavior?
             LOGGER.trace("We'll do the inbounds even we have no apriori delta nor full shadow, because the"
                     + " projection is being deleted");
@@ -144,28 +146,18 @@ public class FullInboundsSource extends InboundsSource {
     }
 
     @Override
-    public boolean isAttributeAvailable(ItemName itemName) throws SchemaException, ConfigurationException {
-        return projectionContext.isAttributeLoaded(itemName);
+    public boolean isItemLoaded(@NotNull ItemPath path) throws SchemaException, ConfigurationException {
+        return projectionContext.isItemLoaded(path);
     }
 
     @Override
-    public boolean isAssociationAvailable(ItemName itemName) throws SchemaException, ConfigurationException {
-        return projectionContext.isAssociationLoaded(itemName);
-    }
-
-    @Override
-    public boolean isFullShadowAvailable() {
+    public boolean isFullShadowLoaded() {
         return projectionContext.isFullShadow();
     }
 
     @Override
     public boolean isShadowGone() {
         return projectionContext.isGone();
-    }
-
-    @Override
-    public boolean isAuxiliaryObjectClassPropertyLoaded() throws SchemaException, ConfigurationException {
-        return projectionContext.isAuxiliaryObjectClassPropertyLoaded();
     }
 
     @Override
@@ -196,21 +188,17 @@ public class FullInboundsSource extends InboundsSource {
         LOGGER.trace("Loading {} because full state is required", humanReadableName);
         try {
             beans.contextLoader.loadFullShadow(projectionContext, "inbound", context.env.task, result);
-            sourceData = InboundSourceData.forShadow(
-                    projectionContext.getObjectCurrentRequired(), // TODO reconsider old vs new here
-                    projectionContext.getObjectCurrentRequired(),
-                    sourceData.getAPrioriDelta(),
-                    sourceData.getShadowObjectDefinition());
             if (projectionContext.isBroken()) { // just in case the load does not return an exception
                 throw new StopProcessingProjectionException();
             }
+            sourceData = sourceData.updateShadowAfterReload(projectionContext.getObjectCurrentRequired());
             if (!projectionContext.isFullShadow()) {
                 LOGGER.trace("Projection couldn't or shouldn't be loaded - it is not a full shadow even after load operation: {}",
                         projectionContext);
-                if (aPrioriDelta != null) {
-                    LOGGER.trace("There's a priori delta. We'll try to process relevant inbounds in relative mode.");
+                if (sourceData.hasEffectiveDelta()) {
+                    LOGGER.trace("There's a delta. We'll try to process relevant inbounds in relative mode.");
                 } else {
-                    LOGGER.trace("There's no a priori delta. We stop processing the inbounds for this projection.");
+                    LOGGER.trace("There's no delta. We stop processing the inbounds for this projection.");
                     throw new StopProcessingProjectionException();
                 }
             }
@@ -225,27 +213,31 @@ public class FullInboundsSource extends InboundsSource {
 
     @Override
     void resolveInputEntitlements(
-            ContainerDelta<ShadowAssociationValueType> associationAPrioriDelta,
-            ShadowAssociation currentAssociation) {
+            ContainerDelta<ShadowAssociationValueType> associationDelta,
+            ShadowAssociation currentAssociation,
+            OperationResult result) {
 
-        Collection<PrismContainerValue<ShadowAssociationValueType>> associationsToResolve = new ArrayList<>();
+        var associationValuesToResolve = new ArrayList<ShadowAssociationValue>();
         if (currentAssociation != null) {
-            associationsToResolve.addAll(currentAssociation.getValues());
+            associationValuesToResolve.addAll(currentAssociation.getAssociationValues());
         }
-        if (associationAPrioriDelta != null) {
+        if (associationDelta != null) {
             // TODO Shouldn't we filter also these?
-            associationsToResolve.addAll(
-                    associationAPrioriDelta.getValues(ShadowAssociationValueType.class));
+            for (var associationValue : associationDelta.getValues(ShadowAssociationValueType.class)) {
+                associationValuesToResolve.add((ShadowAssociationValue) associationValue);
+            }
         }
 
-        for (PrismContainerValue<ShadowAssociationValueType> associationToResolve : associationsToResolve) {
-            resolveEntitlementFromResource(associationToResolve);
+        for (var associationValueToResolve : associationValuesToResolve) {
+            resolveEntitlementFromResource(associationValueToResolve, result);
         }
     }
 
-    private void resolveEntitlementFromResource(PrismContainerValue<ShadowAssociationValueType> associationToResolve) {
+    private void resolveEntitlementFromResource(
+            ShadowAssociationValue associationValueToResolve,
+            OperationResult result) {
         // FIXME ugly hack
-        ObjectReferenceType shadowRef = ((ShadowAssociationValue) associationToResolve).getSingleObjectRefRelaxed();
+        ObjectReferenceType shadowRef = associationValueToResolve.getSingleObjectRefRelaxed();
         if (shadowRef == null) {
             return;
         }
@@ -264,7 +256,7 @@ public class FullInboundsSource extends InboundsSource {
             object = entitlementMap.get(oid);
         } else {
             // FIXME improve error handling here
-            OperationResult subResult = new OperationResult(OP_RESOLVE_ENTITLEMENT); // FIXME!!!!!!!!!
+            OperationResult subResult = result.createMinorSubresult(OP_RESOLVE_ENTITLEMENT);
             try {
                 object = beans.provisioningService.getObject(
                         ShadowType.class, oid, createReadOnlyCollection(), context.env.task, subResult);

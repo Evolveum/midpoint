@@ -10,6 +10,7 @@ package com.evolveum.midpoint.schema.processor;
 import java.util.*;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.schema.util.AbstractShadow;
 
 import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
@@ -23,7 +24,6 @@ import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.delta.ContainerDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
-import com.evolveum.midpoint.schema.simulation.ExecutionModeProvider;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
@@ -37,6 +37,7 @@ import org.jetbrains.annotations.Nullable;
 public interface ShadowAssociationDefinition
         extends
         PrismContainerDefinition<ShadowAssociationValueType>,
+        ResourceObjectInboundProcessingDefinition.ItemInboundProcessingDefinition,
         ShadowItemDefinition {
 
     /** True if this is a "complex" association (with association data object), false if it's a trivial one. */
@@ -113,10 +114,8 @@ public interface ShadowAssociationDefinition
         }
     }
 
-    /** TODO reconsider this: which definition should we provide as the representative one? There can be many. */
-    @Deprecated
-    default ResourceObjectDefinition getRepresentativeTargetObjectDefinition() {
-        return getReferenceAttributeDefinition().getRepresentativeTargetObjectDefinition();
+    default ResourceObjectDefinition getGeneralizedObjectSideObjectDefinition() {
+        return getReferenceAttributeDefinition().getGeneralizedObjectSideObjectDefinition();
     }
 
     @Override
@@ -124,16 +123,16 @@ public interface ShadowAssociationDefinition
 
     /** Call only on simple associations! */
     default ShadowAssociationValue createValueFromFullDefaultObject(@NotNull AbstractShadow object) throws SchemaException {
-        return createValueFromDefaultObject(object, true);
+        return createValueFromDefaultObject(object);
     }
 
     /** Call only on simple associations! */
-    default ShadowAssociationValue createValueFromDefaultObject(@NotNull AbstractShadow object, boolean full)
+    default ShadowAssociationValue createValueFromDefaultObject(@NotNull AbstractShadow object)
             throws SchemaException {
         assert !isComplex();
         var newValue = instantiate().createNewValue();
         newValue.getOrCreateObjectsContainer()
-                .addReferenceAttribute(getSingleObjectParticipantName(), object, full);
+                .addReferenceAttribute(getSingleObjectParticipantName(), object);
         return newValue.clone(); // to make it parent-less
     }
 
@@ -149,6 +148,7 @@ public interface ShadowAssociationDefinition
 
     ContainerDelta<ShadowAssociationValueType> createEmptyDelta();
 
+    /** Is at least one of the object-side participants an entitlement? */
     boolean isEntitlement();
 
     default @NotNull String getResourceOid() {
@@ -159,19 +159,17 @@ public interface ShadowAssociationDefinition
     ShadowAssociationDefinition clone();
 
     @Override
-    default <T extends ItemDefinition<?>> T findItemDefinition(@NotNull ItemPath path, @NotNull Class<T> clazz) {
-        return ShadowItemDefinition.super.findItemDefinition(path, clazz);
-    }
+    <T extends ItemDefinition<?>> T findItemDefinition(@NotNull ItemPath path, @NotNull Class<T> clazz);
 
     @NotNull Collection<MappingType> getOutboundMappingBeans();
 
-    @NotNull Collection<InboundMappingType> getInboundMappingBeans();
-
-    boolean isVisible(ExecutionModeProvider modeProvider);
+    @NotNull List<InboundMappingType> getInboundMappingBeans();
 
     @NotNull ShadowReferenceAttributeDefinition getReferenceAttributeDefinition();
 
-    ItemPath getStandardPath();
+    default @NotNull ItemPath getStandardPath() {
+        return ItemPath.create(ShadowType.F_ASSOCIATIONS, getItemName());
+    }
 
     /** To be used only for trivial associations; moreover, replaced by mark-based tolerance. */
     default List<String> getTolerantValuePatterns() {
@@ -192,4 +190,21 @@ public interface ShadowAssociationDefinition
     @Nullable ShadowAssociationTypeDefinitionType getModernAssociationTypeDefinitionBean();
 
     @NotNull QName getAssociationTypeName();
+
+    default @NotNull ShadowItemDefinition findSimpleAttributeDefinitionRequired(@NotNull ItemName itemName)
+            throws SchemaException {
+        if (isComplex()) {
+            return getAssociationDataObjectDefinition().findSimpleAttributeDefinitionRequired(itemName);
+        } else {
+            throw new SchemaException("Simple association '" + getItemName() + "' does not have attributes");
+        }
+    }
+
+    default @NotNull ShadowItemDefinition findObjectRefDefinitionRequired(@NotNull ItemName itemName) throws SchemaException {
+        if (isComplex()) {
+            return getAssociationDataObjectDefinition().findReferenceAttributeDefinitionRequired(itemName);
+        } else {
+            return getReferenceAttributeDefinition();
+        }
+    }
 }

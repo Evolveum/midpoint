@@ -15,7 +15,6 @@ import com.evolveum.midpoint.prism.DeepCloneOperation;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
-import com.evolveum.midpoint.util.exception.SchemaException;
 
 /**
  * Describes a resource object class (e.g. `ri:inetOrgPerson`).
@@ -48,7 +47,11 @@ public interface ResourceObjectClassDefinition
      */
     boolean isAuxiliary();
 
-    /** TODO */
+    /**
+     * Is this object class embedded, i.e., meant to implement complex associations?
+     *
+     * @see NativeObjectClassUcfDefinition#isEmbedded()
+     */
     boolean isEmbedded();
 
     /**
@@ -92,6 +95,16 @@ public interface ResourceObjectClassDefinition
 
     @Override
     @NotNull ResourceObjectClassDefinition deepClone(@NotNull DeepCloneOperation operation);
+
+    /**
+     * The effective definition for this object class.
+     *
+     * It may be the same as this definition, or it may be the "default for object class" type definition
+     * (better to avoid - see MID-10309).
+     *
+     * TODO remove?
+     */
+    @NotNull ResourceObjectDefinition getEffectiveDefinition();
 
     /**
      * Interface allowing modifications of an object class definition. TODO remove?

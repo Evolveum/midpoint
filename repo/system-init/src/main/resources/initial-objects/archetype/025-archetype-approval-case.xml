@@ -29,6 +29,7 @@
             </pluralLabel>
             <icon>
                 <cssClass>fe fe-approver-object</cssClass>
+                <color>#001f3f</color>
             </icon>
         </display>
         <adminGuiConfiguration>

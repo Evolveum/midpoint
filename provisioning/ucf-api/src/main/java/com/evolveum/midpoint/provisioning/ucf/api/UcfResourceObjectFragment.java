@@ -11,7 +11,6 @@ import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
 
 import org.jetbrains.annotations.NotNull;
 
-import com.evolveum.midpoint.schema.internals.InternalsConfig;
 import com.evolveum.midpoint.schema.util.AbstractShadow;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.util.*;
@@ -77,9 +76,7 @@ public abstract class UcfResourceObjectFragment
 
     @Override
     public void checkConsistence() {
-        if (InternalsConfig.consistencyChecks) {
-            bean.asPrismObject().checkConsistence();
-        }
+        AbstractShadow.super.checkConsistence();
         try {
             // Class name check
             var classNameInData = getObjectClassName();

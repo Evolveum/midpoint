@@ -87,6 +87,13 @@ public class CompositeObjectDefinitionImpl
         return definition;
     }
 
+    static @NotNull CompositeObjectDefinitionImpl mutable(
+            @NotNull ResourceObjectDefinition structuralDefinition,
+            @Nullable Collection<? extends ResourceObjectDefinition> auxiliaryDefinitions) {
+        return new CompositeObjectDefinitionImpl(
+                DEFAULT_LAYER, structuralDefinition, auxiliaryDefinitions, true);
+    }
+
     @Override
     public @NotNull BasicResourceInformation getBasicResourceInformation() {
         return structuralDefinition.getBasicResourceInformation();
@@ -389,47 +396,6 @@ public class CompositeObjectDefinitionImpl
         return collectedDefinitions;
     }
 
-//    @Override
-//    public @NotNull synchronized Collection<? extends ShadowAttributeDefinition<?, ?>> getShadowItemDefinitions() {
-//        if (auxiliaryDefinitions.isEmpty()) {
-//            return structuralDefinition.getShadowItemDefinitions();
-//        }
-//
-//        if (allShadowAttributeDefinitions != null) {
-//            return allShadowAttributeDefinitions;
-//        }
-//
-//        List<ShadowAttributeDefinition<?, ?>> collectedDefinitions = collectShadowItemDefinitions();
-//        if (isImmutable()) {
-//            allShadowAttributeDefinitions = collectedDefinitions;
-//        } else {
-//            // it's not safe to cache the definitions if this instance is mutable
-//        }
-//
-//        return collectedDefinitions;
-//    }
-//
-//    private @NotNull List<ShadowAttributeDefinition<?, ?>> collectShadowItemDefinitions() {
-//        // Adds all definitions from aux OCs that are not already known.
-//        ArrayList<ShadowAttributeDefinition<?, ?>> collectedDefinitions =
-//                new ArrayList<>(structuralDefinition.getShadowItemDefinitions());
-//        for (ResourceObjectDefinition auxiliaryObjectClassDefinition : auxiliaryDefinitions) {
-//            for (ShadowAttributeDefinition<?, ?> auxDef : auxiliaryObjectClassDefinition.getShadowItemDefinitions()) {
-//                boolean shouldAdd = true;
-//                for (var def : collectedDefinitions) {
-//                    if (def.getItemName().equals(auxDef.getItemName())) { // FIXME what about case in-sensitiveness?
-//                        shouldAdd = false;
-//                        break;
-//                    }
-//                }
-//                if (shouldAdd) {
-//                    collectedDefinitions.add(auxDef);
-//                }
-//            }
-//        }
-//        return collectedDefinitions;
-//    }
-
     @Override
     public @NotNull List<? extends ItemDefinition<?>> getDefinitions() {
         //noinspection unchecked,rawtypes
@@ -445,8 +411,20 @@ public class CompositeObjectDefinitionImpl
     }
 
     @Override
+    public @NotNull Collection<CompleteItemInboundDefinition> getItemInboundDefinitions() {
+        // Auxiliary object class definitions do not have their own inbound mapping definitions.
+        // "Structural" definition here is actually a type definition with attributes from fixed auxiliary object classes.
+        return structuralDefinition.getItemInboundDefinitions();
+    }
+
+    @Override
     public ResourceBidirectionalMappingAndDefinitionType getAuxiliaryObjectClassMappings() {
         return structuralDefinition.getAuxiliaryObjectClassMappings();
+    }
+
+    @Override
+    public @NotNull List<MappingType> getAuxiliaryObjectClassInboundMappings() {
+        return structuralDefinition.getAuxiliaryObjectClassInboundMappings();
     }
 
     @Override
@@ -779,16 +757,6 @@ public class CompositeObjectDefinitionImpl
     @Override
     public @Nullable ItemName resolveFrameworkName(@NotNull String frameworkName) {
         return FrameworkNameResolver.findInObjectDefinition(this, frameworkName);
-    }
-
-    @Override
-    public ItemInboundDefinition getSimpleAttributeInboundDefinition(ItemName itemName) throws SchemaException {
-        return structuralDefinition.getSimpleAttributeInboundDefinition(itemName);
-    }
-
-    @Override
-    public ItemInboundDefinition getReferenceAttributeInboundDefinition(ItemName itemName) throws SchemaException {
-        return structuralDefinition.getReferenceAttributeInboundDefinition(itemName);
     }
 
     @Override

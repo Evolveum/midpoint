@@ -48,6 +48,7 @@ Overall, midPoint 4.9 is a major step from the past into the future.
 * Password caching has been implemented. See xref:/midpoint/reference/resources/attribute-caching/[].
 * Apply the Web Content Accessibility Guidelines (WCAG) to all login pages and self-service pages. See bug:MID-9847[].
 ** Used 'honeypot' instead of captcha on self-registration and post-authentication pages to protect against spam bots.
+* Fix error during preview of changes. See bug:MID-10204[].
 
 == Changes With Respect To Version 4.8
 

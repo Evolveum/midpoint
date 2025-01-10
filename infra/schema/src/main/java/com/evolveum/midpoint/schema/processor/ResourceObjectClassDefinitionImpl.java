@@ -16,6 +16,7 @@ import java.util.List;
 import java.util.Objects;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.FreezableReference;
 import com.evolveum.midpoint.prism.schemaContext.SchemaContextDefinition;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
@@ -23,7 +24,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.prism.DeepCloneOperation;
-import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -49,6 +49,9 @@ public class ResourceObjectClassDefinitionImpl
      */
     @NotNull private final NativeObjectClassDefinition nativeObjectClassDefinition;
 
+    /** This, or the default-for-object-class type definition. See {@link #getEffectiveDefinition()}. */
+    @NotNull private final FreezableReference<ResourceObjectDefinition> effectiveDefinitionRef;
+
     // Some day, we will use ConfigurationItem for definition bean here.
     private ResourceObjectClassDefinitionImpl(
             @NotNull LayerType layer,
@@ -59,6 +62,7 @@ public class ResourceObjectClassDefinitionImpl
         super(layer, basicResourceInformation, definitionBean);
         this.objectClassName = qualifyTypeName(nativeObjectClassDefinition.getName());
         this.nativeObjectClassDefinition = nativeObjectClassDefinition;
+        this.effectiveDefinitionRef = FreezableReference.of(this);
     }
 
     public static ResourceObjectClassDefinitionImpl create(
@@ -211,6 +215,15 @@ public class ResourceObjectClassDefinitionImpl
     }
 
     @Override
+    public @NotNull ResourceObjectDefinition getEffectiveDefinition() {
+        return effectiveDefinitionRef.getValue();
+    }
+
+    void setEffectiveDefinition(ResourceObjectDefinition definition) {
+        effectiveDefinitionRef.setValue(definition);
+    }
+
+    @Override
     public ObjectReferenceType getSecurityPolicyRef() {
         return null;
     }
@@ -321,7 +334,7 @@ public class ResourceObjectClassDefinitionImpl
 
     @Override
     public @NotNull FocusSpecification getFocusSpecification() {
-        return FocusSpecification.empty();
+        return FocusSpecification.none();
     }
 
     @Override
@@ -329,4 +342,9 @@ public class ResourceObjectClassDefinitionImpl
         return List.of();
     }
 
+    @Override
+    protected void performFreeze() {
+        super.performFreeze();
+        effectiveDefinitionRef.freeze();
+    }
 }

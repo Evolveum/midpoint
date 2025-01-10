@@ -1,0 +1,172 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (C) 2010-2024 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<resource oid="ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff"
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
+        xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-3"
+        xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3">
+    <name>opendj-modern</name>
+    <super>
+        <resourceRef oid="e848090a-25ae-4390-bccc-2bc49d4b9a0c"/>
+    </super>
+    <schemaHandling>
+        <associationType>
+            <name>ri:group</name>
+            <subject>
+                <objectType>
+                    <kind>account</kind>
+                    <intent>default</intent>
+                </objectType>
+                <association>
+                    <ref>ri:group</ref>
+                </association>
+            </subject>
+            <object>
+                <objectType>
+                    <kind>entitlement</kind>
+                    <intent>group</intent>
+                </objectType>
+            </object>
+        </associationType>
+        <associationType>
+            <name>ri:posixGroup</name>
+            <subject>
+                <objectType>
+                    <kind>account</kind>
+                    <intent>default</intent>
+                </objectType>
+                <association>
+                    <ref>ri:posixGroup</ref>
+                </association>
+            </subject>
+            <object>
+                <objectType>
+                    <kind>entitlement</kind>
+                    <intent>posixGroup</intent>
+                </objectType>
+            </object>
+        </associationType>
+    </schemaHandling>
+    <capabilities>
+        <configured>
+            <cap:references>
+                <cap:type>
+                    <cap:name>ri:group</cap:name>
+                    <cap:subject>
+                        <cap:delineation>
+                            <cap:objectClass>ri:inetOrgPerson</cap:objectClass>
+                        </cap:delineation>
+                        <cap:primaryBindingAttributeRef>ri:dn</cap:primaryBindingAttributeRef>
+                        <cap:secondaryBindingAttributeRef>ri:isMemberOf</cap:secondaryBindingAttributeRef>
+                        <cap:localItemName>ri:group</cap:localItemName>
+                    </cap:subject>
+                    <cap:object>
+                        <cap:delineation>
+                            <cap:objectClass>ri:groupOfUniqueNames</cap:objectClass>
+                            <cap:baseContext>
+                                <objectClass>ri:organizationalUnit</objectClass>
+                                <filter>
+                                    <q:equal>
+                                        <q:path>attributes/dn</q:path>
+                                        <q:value>ou=groups,dc=example,dc=com</q:value>
+                                    </q:equal>
+                                </filter>
+                            </cap:baseContext>
+                        </cap:delineation>
+                        <cap:primaryBindingAttributeRef>ri:uniqueMember</cap:primaryBindingAttributeRef>
+                        <cap:secondaryBindingAttributeRef>ri:dn</cap:secondaryBindingAttributeRef>
+                    </cap:object>
+                    <cap:direction>objectToSubject</cap:direction>
+                    <cap:explicitReferentialIntegrity>true</cap:explicitReferentialIntegrity>
+                </cap:type>
+                <cap:type>
+                    <cap:name>ri:posixGroup</cap:name>
+                    <cap:subject>
+                        <cap:delineation>
+                            <cap:objectClass>ri:inetOrgPerson</cap:objectClass>
+                            <cap:auxiliaryObjectClass>posixAccount</cap:auxiliaryObjectClass>
+                        </cap:delineation>
+                        <cap:primaryBindingAttributeRef>ri:uid</cap:primaryBindingAttributeRef>
+                        <cap:localItemName>ri:posixGroup</cap:localItemName>
+                    </cap:subject>
+                    <cap:object>
+                        <cap:delineation>
+                            <cap:objectClass>ri:groupOfNames</cap:objectClass>
+                            <cap:auxiliaryObjectClass>posixGroup</cap:auxiliaryObjectClass>
+                            <cap:baseContext>
+                                <objectClass>ri:organizationalUnit</objectClass>
+                                <filter>
+                                    <q:equal>
+                                        <q:path>attributes/dn</q:path>
+                                        <q:value>ou=posixGroups,dc=example,dc=com</q:value>
+                                    </q:equal>
+                                </filter>
+                            </cap:baseContext>
+                        </cap:delineation>
+                        <cap:primaryBindingAttributeRef>ri:memberUid</cap:primaryBindingAttributeRef>
+                    </cap:object>
+                    <cap:direction>objectToSubject</cap:direction>
+                    <cap:explicitReferentialIntegrity>true</cap:explicitReferentialIntegrity>
+                </cap:type>
+                <cap:type>
+                    <!--
+                        This does not work (yet), as it requires gidNumber to be a secondary identifier.
+
+                        1. It can be defined at the level of an object type, but that cannot be utilized here
+                        in simulated references.
+
+                        2. It could be defined at the level of object class, but we need to apply it only to a combination
+                        of groupOfNames + posixGroup, which cannot be currently done in <objectClass> in <schemaHandling>.
+
+                        So we're out of luck here. This can be done only via legacy associations.
+                    -->
+                    <cap:name>ri:car</cap:name>
+                    <cap:subject>
+                        <cap:delineation>
+                            <cap:objectClass>ri:inetOrgPerson</cap:objectClass>
+                        </cap:delineation>
+                        <cap:primaryBindingAttributeRef>ri:carLicense</cap:primaryBindingAttributeRef>
+                        <cap:localItemName>ri:car</cap:localItemName>
+                    </cap:subject>
+                    <cap:object>
+                        <cap:delineation>
+                            <cap:objectClass>ri:groupOfNames</cap:objectClass>
+                            <cap:auxiliaryObjectClass>posixGroup</cap:auxiliaryObjectClass>
+                            <cap:baseContext>
+                                <objectClass>ri:organizationalUnit</objectClass>
+                                <filter>
+                                    <q:equal>
+                                        <q:path>attributes/dn</q:path>
+                                        <q:value>ou=passengerCars,dc=example,dc=com</q:value>
+                                    </q:equal>
+                                </filter>
+                            </cap:baseContext>
+                        </cap:delineation>
+                        <cap:delineation>
+                            <cap:objectClass>ri:groupOfNames</cap:objectClass>
+                            <cap:auxiliaryObjectClass>posixGroup</cap:auxiliaryObjectClass>
+                            <cap:baseContext>
+                                <objectClass>ri:organizationalUnit</objectClass>
+                                <filter>
+                                    <q:equal>
+                                        <q:path>attributes/dn</q:path>
+                                        <q:value>ou=lightTrucks,dc=example,dc=com</q:value>
+                                    </q:equal>
+                                </filter>
+                            </cap:baseContext>
+                        </cap:delineation>
+                        <cap:primaryBindingAttributeRef>ri:gidNumber</cap:primaryBindingAttributeRef>
+                    </cap:object>
+                    <cap:direction>subjectToObject</cap:direction>
+                    <cap:explicitReferentialIntegrity>true</cap:explicitReferentialIntegrity>
+                </cap:type>
+            </cap:references>
+        </configured>
+    </capabilities>
+</resource>

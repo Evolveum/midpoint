@@ -8,24 +8,18 @@
 package com.evolveum.midpoint.schema.processor;
 
 import java.util.Collection;
-import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.prism.ItemDefinition;
-import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
-import com.evolveum.midpoint.util.MiscUtil;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.TestOnly;
 
 import com.evolveum.midpoint.prism.PrismReferenceDefinition;
 import com.evolveum.midpoint.prism.Referencable;
 import com.evolveum.midpoint.prism.delta.ReferenceDelta;
-import com.evolveum.midpoint.util.exception.SchemaException;
 
 import static com.evolveum.midpoint.util.MiscUtil.*;
 
@@ -55,38 +49,58 @@ public interface ShadowReferenceAttributeDefinition
     /** Returns types of the objects on the other side. Always non-empty. */
     @NotNull Collection<ShadowRelationParticipantType> getTargetParticipantTypes();
 
-    default boolean isTargetingSingleEmbeddedObjectClass() {
-        var classDefinitions = getTargetParticipantTypes().stream()
-                .map(participantType -> participantType.getObjectDefinition().getObjectClassDefinition())
-                .collect(Collectors.toSet());
-        return classDefinitions.size() == 1
-                && classDefinitions.iterator().next().isEmbedded();
-    }
-
-    @Override
-    <T extends ItemDefinition<?>> T findItemDefinition(@NotNull ItemPath path, @NotNull Class<T> clazz);
 
     /**
-     * Returns the object class definition of the immediate target object. Fails if there's not exactly one.
+     * ONLY FOR SUBJECT-SIDE PARTICIPANT (and always non-null for it)
      *
-     * TEMPORARY IMPLEMENTATION; this should be resolved during definition parsing/creation.
+     * Returns generalized definition for objects at the object (target) side. It should cover all possible objects;
+     * so it contains definitions of all possible auxiliary object classes.
+     *
+     * May be:
+     *
+     * - embedded (for references used to implement complex associations)
+     * - or standalone (for references used to implement simple associations, or references without associations).
+     *
+     * May be:
+     *
+     * - genuine {@link ResourceObjectClassDefinition}
+     * - or {@link ResourceObjectTypeDefinition} (if there's a default type for that object class;
+     * hopefully removed soon, see MID-10309)
+     * - or {@link CompositeObjectDefinition} if there are auxiliary object classes.
+     *
+     * Immutable after the resource schema is frozen.
+     *
+     * @see SimulatedShadowReferenceTypeDefinition#generalizedObjectSideObjectDefinition
      */
-    default @NotNull ResourceObjectClassDefinition getTargetObjectClass() {
-        var immediateNeighbors =
-                stateNonEmpty(getTargetParticipantTypes(), "No target participant types in %s", this);
-        var classDefinitions = immediateNeighbors.stream()
-                .map(participantType -> participantType.getObjectDefinition().getObjectClassDefinition())
-                .collect(Collectors.toSet());
-        return MiscUtil.extractSingletonRequired(
-                classDefinitions,
-                () -> new IllegalStateException("Multiple object class definitions in " + this + ": " + classDefinitions),
-                () -> new IllegalStateException("No object class definition in " + this));
+    @NotNull ResourceObjectDefinition getGeneralizedObjectSideObjectDefinition();
+
+    /**
+     * Returns `true` if the reference points to an embedded object class. This indicates a complex association.
+     *
+     * Callable only on the subject-side reference definitions!
+     */
+    default boolean isTargetingSingleEmbeddedObjectClass() {
+        checkSubjectSide();
+        return getGeneralizedObjectSideObjectDefinition().getObjectClassDefinition().isEmbedded();
     }
 
+    /**
+     * Returns the target object class name.
+     *
+     * Callable only on the subject-side reference definitions!
+     */
     default @NotNull QName getTargetObjectClassName() {
-        return getTargetObjectClass().getTypeName();
+        checkSubjectSide();
+        return getGeneralizedObjectSideObjectDefinition().getTypeName();
     }
 
+    default void checkSubjectSide() {
+        stateCheck(
+                getParticipantRole() == ShadowReferenceParticipantRole.SUBJECT,
+                "Only subject-side reference definition can have target object class definition: %s", this);
+    }
+
+    /** Returns `true` if the provided shadow is a legal target for this reference (according to the definition). */
     default boolean matches(@NotNull ShadowType potentialTarget) {
         return getTargetParticipantTypes().stream()
                 .anyMatch(participantType -> participantType.matches(potentialTarget));
@@ -106,26 +120,16 @@ public interface ShadowReferenceAttributeDefinition
                 getResourceOid(), getTargetParticipantTypes(), resourceSafe, this);
     }
 
-    /** TODO reconsider this: which definition should we provide as the representative one? There can be many. */
-    @Deprecated
-    ResourceObjectDefinition getRepresentativeTargetObjectDefinition();
-
-    @TestOnly
-    ShadowReferenceAttributeValue instantiateFromIdentifierRealValue(@NotNull QName identifierName, @NotNull Object realValue)
-            throws SchemaException;
-
     ReferenceDelta createEmptyDelta();
 
     SimulatedShadowReferenceTypeDefinition getSimulationDefinition();
 
     SimulatedShadowReferenceTypeDefinition getSimulationDefinitionRequired();
 
-    /** Very poorly defined method; TODO reconsider. */
-    boolean isEntitlement();
-
     default @NotNull String getResourceOid() {
+        // Callable only on the subject-side reference definition.
         return stateNonNull(
-                getRepresentativeTargetObjectDefinition().getResourceOid(),
+                getGeneralizedObjectSideObjectDefinition().getResourceOid(),
                 "No resource OID in %s", this);
     }
 

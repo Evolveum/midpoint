@@ -50,6 +50,10 @@ public class MidPointTestConstants {
     public static final ItemName QNAME_EMPLOYEE_TYPE = new ItemName(MidPointConstants.NS_RI, "employeeType");
     public static final ItemName QNAME_MAIL = new ItemName(NS_RI, "mail");
     public static final ItemPath PATH_MAIL = ItemPath.create(ShadowType.F_ATTRIBUTES, QNAME_MAIL);
+    public static final ItemName RI_INET_ORG_PERSON = ItemName.from(SchemaConstants.NS_RI, "inetOrgPerson");
+    public static final ItemName RI_GROUP_OF_UNIQUE_NAMES = ItemName.from(SchemaConstants.NS_RI, "groupOfUniqueNames");
+    public static final ItemName RI_POSIX_ACCOUNT = ItemName.from(SchemaConstants.NS_RI, "posixAccount");
+    public static final ItemName RI_POSIX_GROUP = ItemName.from(SchemaConstants.NS_RI, "posixGroup");
 
     public static final ItemName QNAME_UID_NUMBER = new ItemName(NS_RI, "uidNumber");
 

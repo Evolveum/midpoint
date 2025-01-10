@@ -7,13 +7,11 @@
 
 package com.evolveum.midpoint.model.impl.lens.projector.focus.inbounds.prep;
 
-import com.evolveum.midpoint.model.api.InboundSourceData;
+import com.evolveum.midpoint.model.impl.lens.projector.focus.inbounds.InboundSourceData;
 import com.evolveum.midpoint.model.common.mapping.MappingBuilder;
 import com.evolveum.midpoint.model.common.mapping.MappingImpl;
 import com.evolveum.midpoint.model.impl.ModelBeans;
-import com.evolveum.midpoint.model.impl.lens.projector.focus.inbounds.FullInboundsProcessing;
 import com.evolveum.midpoint.model.impl.lens.projector.focus.inbounds.MappingEvaluationRequestsMap;
-import com.evolveum.midpoint.model.impl.lens.projector.mappings.LoadedStateProvider;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ContainerDelta;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
@@ -59,7 +57,8 @@ class MappedSourceItem<V extends PrismValue, D extends ItemDefinition<?>, T exte
     /**
      * Mappings (config items) that are to be evaluated for this source item.
      *
-     * [EP:M:IM] DONE These mappings must come from `source.resource`. Currently it seems so.
+     * [EP:M:IM] DONE These mappings must come from {@link InboundsSource#resource} in {@link #inboundsSource}.
+     * Currently it seems so.
      */
     @NotNull private final Collection<? extends AbstractMappingConfigItem<?>> mappingsCIs;
 
@@ -67,27 +66,15 @@ class MappedSourceItem<V extends PrismValue, D extends ItemDefinition<?>, T exte
     @NotNull private final ItemPath itemPath;
 
     /**
-     * A-priori delta for the source item, if present: sync delta or previously computed one.
+     * Item delta that represents the change of the item from the state at the beginning of the clockwork execution
+     * to the current state.
      *
-     * @see FullInboundsProcessing#getFocusAPrioriDeltaProvider()
-     * @see InboundSourceData#getItemAPrioriDelta(ItemPath)
+     * @see InboundSourceData#getEffectiveItemDelta(ItemPath)
      */
-    @Nullable private final ItemDelta<V, D> itemAPrioriDelta;
+    @Nullable private final ItemDelta<V, D> effectiveItemDelta;
 
     /** The (most current) source item definition. */
     @NotNull private final D itemDefinition;
-
-    /**
-     * When called, provides the current (potentially null/empty) source item.
-     * The item may be unavailable initially, hence the provider is needed.
-     *
-     * TODO Before 4.9, this was needed because of amalgamated associations. Now it could be probably simplified,
-     *  retrieving the data from `sourceData` in {@link #inboundsSource}, using {@link #itemPath}.
-     */
-    @NotNull private final ItemProvider<V, D> itemProvider;
-
-    /** Tells if the item is currently loaded, i.e., ready for being used in mapping evaluation. */
-    @NotNull private final LoadedStateProvider loadedStateProvider;
 
     /** Does the situation require that the (fresh or cached) value for this item be known? */
     private final boolean requiringCurrentValue;
@@ -100,18 +87,14 @@ class MappedSourceItem<V extends PrismValue, D extends ItemDefinition<?>, T exte
             @NotNull InboundsContext inboundsContext,
             @NotNull Collection<? extends AbstractMappingConfigItem<?>> mappingsCIs,
             @NotNull ItemPath itemPath,
-            @NotNull D itemDefinition,
-            @NotNull ItemProvider<V, D> itemProvider,
-            @NotNull LoadedStateProvider loadedStateProvider) throws SchemaException, ConfigurationException {
+            @NotNull D itemDefinition) throws SchemaException, ConfigurationException {
         this.inboundsSource = inboundsSource;
         this.inboundsTarget = inboundsTarget;
         this.inboundsContext = inboundsContext;
         this.mappingsCIs = mappingsCIs;
         this.itemPath = itemPath;
-        this.itemAPrioriDelta = inboundsSource.sourceData.getItemAPrioriDelta(itemPath);
+        this.effectiveItemDelta = inboundsSource.sourceData.getEffectiveItemDelta(itemPath);
         this.itemDefinition = itemDefinition;
-        this.itemProvider = itemProvider;
-        this.loadedStateProvider = loadedStateProvider;
         this.requiringCurrentValue = computeRequiringCurrentValue();
     }
 
@@ -120,10 +103,10 @@ class MappedSourceItem<V extends PrismValue, D extends ItemDefinition<?>, T exte
     }
 
     private boolean computeRequiringCurrentValue() throws SchemaException, ConfigurationException {
-        if (itemAPrioriDelta != null) {
+        if (effectiveItemDelta != null) {
             // This is the legacy (pre-4.9) behavior.
             // TODO is it still valid? Maybe we should try to get the value even if we have a-priori delta?
-            LOGGER.trace("{}: A priori delta existence for it indicates that we do not need to know the current value", itemPath);
+            LOGGER.trace("{}: Delta existence for it indicates that we do not need to know the current value", itemPath);
             return false;
         }
         for (var mappingsCI : mappingsCIs) {
@@ -142,8 +125,9 @@ class MappedSourceItem<V extends PrismValue, D extends ItemDefinition<?>, T exte
         return false;
     }
 
-    boolean hasCurrentValue() throws SchemaException, ConfigurationException {
-        return loadedStateProvider.isLoaded();
+    @SuppressWarnings("BooleanMethodIsAlwaysInverted")
+    boolean isLoaded() throws SchemaException, ConfigurationException {
+        return inboundsSource.isItemLoaded(itemPath);
     }
 
     /**
@@ -153,14 +137,13 @@ class MappedSourceItem<V extends PrismValue, D extends ItemDefinition<?>, T exte
             throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
             ConfigurationException, ObjectNotFoundException {
 
-        if (!loadedStateProvider.isLoaded()) {
-            if (itemAPrioriDelta != null) {
+        if (!isLoaded()) {
+            if (effectiveItemDelta != null) {
                 LOGGER.trace(
-                        "{}: Item is not loaded; but proceeding with its inbound mapping(s) because of the a priori delta",
+                        "{}: Item is not loaded; but proceeding with its inbound mapping(s) because of the delta",
                         itemPath);
             } else {
-                var cachedShadowsUse = inboundsSource.getCachedShadowsUse();
-                if (cachedShadowsUse == CachedShadowsUseType.USE_CACHED_OR_FAIL) {
+                if (inboundsSource.getCachedShadowsUse() == CachedShadowsUseType.USE_CACHED_OR_FAIL) {
                     throw new ExpressionEvaluationException(
                             "Inbound mapping(s) for %s could not be evaluated, because the item is not loaded".formatted(
                                     itemPath));
@@ -172,45 +155,46 @@ class MappedSourceItem<V extends PrismValue, D extends ItemDefinition<?>, T exte
             }
         }
 
-        Item<V, D> currentProjectionItem = itemProvider.provide();
+        Item<V, D> itemOld = inboundsSource.sourceData.getItemOld(itemPath);
 
         // TODO reconsider if this is still needed
         if (isAssociation()) {
             //noinspection unchecked
             inboundsSource.resolveInputEntitlements(
-                    (ContainerDelta<ShadowAssociationValueType>) itemAPrioriDelta,
-                    (ShadowAssociation) currentProjectionItem);
+                    (ContainerDelta<ShadowAssociationValueType>) effectiveItemDelta,
+                    (ShadowAssociation) itemOld,
+                    result);
         }
 
         LOGGER.trace("""
                         Creating {} inbound mapping(s) for {} in {}. Relevant values are:
-                        - a priori item delta:
+                        - item delta:
                         {}
-                        - current item:
+                        - item old:
                         {}""",
                 mappingsCIs.size(),
                 itemPath,
                 inboundsSource.getProjectionHumanReadableName(),
-                DebugUtil.debugDumpLazily(itemAPrioriDelta, 1),
-                DebugUtil.debugDumpLazily(currentProjectionItem, 1));
+                DebugUtil.debugDumpLazily(effectiveItemDelta, 1),
+                DebugUtil.debugDumpLazily(itemOld, 1));
 
-        if (currentProjectionItem != null && currentProjectionItem.hasRaw()) {
-            throw new SystemException("Item " + currentProjectionItem + " has raw parsing state,"
+        if (itemOld != null && itemOld.hasRaw()) {
+            throw new SystemException("Item " + itemOld + " has raw parsing state,"
                     + " such property cannot be used in inbound expressions");
         }
 
-        inboundsSource.setValueMetadata(currentProjectionItem, itemAPrioriDelta, result);
+        inboundsSource.setValueMetadata(itemOld, effectiveItemDelta, result);
 
         ResourceType resource = inboundsSource.getResource();
 
         // Value for the $shadow ($projection, $account) variable.
         // Bear in mind that the value might not contain the full shadow (for example)
-        PrismObject<ShadowType> shadowVariableValue = inboundsSource.sourceData.getShadowIfPresent();
+        PrismObject<ShadowType> shadowVariableValue = inboundsSource.sourceData.getShadowVariableValue();
         PrismObjectDefinition<ShadowType> shadowVariableDef = getShadowDefinition(shadowVariableValue);
 
         Source<V, D> defaultSource = new Source<>(
-                currentProjectionItem,
-                itemAPrioriDelta,
+                itemOld,
+                effectiveItemDelta,
                 null,
                 ExpressionConstants.VAR_INPUT_QNAME,
                 itemDefinition);
@@ -253,8 +237,8 @@ class MappedSourceItem<V extends PrismValue, D extends ItemDefinition<?>, T exte
                     .addVariableDefinition(ExpressionConstants.VAR_PROJECTION, shadowVariableValue, shadowVariableDef)
                     .addAliasRegistration(ExpressionConstants.VAR_ACCOUNT, ExpressionConstants.VAR_PROJECTION)
                     .addAliasRegistration(ExpressionConstants.VAR_SHADOW, ExpressionConstants.VAR_PROJECTION)
-                    .addVariableDefinition(ExpressionConstants.VAR_OBJECT, getReferencedShadow(currentProjectionItem), shadowVariableDef)
-                    .addVariableDefinition(ExpressionConstants.VAR_ASSOCIATION, inboundsSource.sourceData.getAssociationValueBeanIfPresent(), ShadowAssociationValueType.class)
+                    .addVariableDefinition(ExpressionConstants.VAR_OBJECT, getReferencedShadow(itemOld), shadowVariableDef)
+                    .addVariableDefinition(ExpressionConstants.VAR_ASSOCIATION, inboundsSource.sourceData.getAssociationVariableValue(), ShadowAssociationValueType.class)
                     .addVariableDefinition(ExpressionConstants.VAR_RESOURCE, resource, resource.asPrismObject().getDefinition())
                     .addVariableDefinition(ExpressionConstants.VAR_CONFIGURATION,
                             inboundsContext.getSystemConfiguration(), getSystemConfigurationDefinition())
@@ -397,10 +381,5 @@ class MappedSourceItem<V extends PrismValue, D extends ItemDefinition<?>, T exte
                 "itemPath=" + itemPath +
                 ", mappings: " + mappingsCIs.size() +
                 '}';
-    }
-
-    @FunctionalInterface
-    interface ItemProvider<V extends PrismValue, D extends ItemDefinition<?>> {
-        Item<V, D> provide() throws SchemaException;
     }
 }
