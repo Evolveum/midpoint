@@ -91,8 +91,7 @@
                 <xsd:annotation>
                     <xsd:documentation>
                         <p>
-                            Specifies the set of pages that are used for displaying lists of objects
-                            such as Users, Roles, Orgs, ...
+                            Specifies the set of pages that are used for displaying lists of ShadowType objects.
                         </p>
                     </xsd:documentation>
                     <xsd:appinfo>
@@ -379,7 +378,7 @@
             <xsd:appinfo>
                 <a:container>true</a:container>
                 <a:schemaContext>
-                    <a:type>UserType</a:type>
+                    <a:type>tns:UserType</a:type>
                 </a:schemaContext>
             </xsd:appinfo>
         </xsd:annotation>
@@ -390,7 +389,7 @@
                 <xsd:annotation>
                      <xsd:appinfo>
                         <a:schemaContext>
-                            <a:type>UserType</a:type>
+                            <a:type>tns:UserType</a:type>
                         </a:schemaContext>
                     </xsd:appinfo>
                 </xsd:annotation>
@@ -402,7 +401,7 @@
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:schemaContext>
-                            <a:type>UserType</a:type>
+                            <a:type>tns:UserType</a:type>
                         </a:schemaContext>
                     </xsd:appinfo>
                 </xsd:annotation>
@@ -421,7 +420,7 @@
                         <a:deprecated>true</a:deprecated>
                         <a:deprecatedSince>4.8</a:deprecatedSince>
                         <a:schemaContext>
-                            <a:type>UserType</a:type>
+                            <a:type>tns:UserType</a:type>
                         </a:schemaContext>
                     </xsd:appinfo>
                 </xsd:annotation>
@@ -647,7 +646,16 @@
         </xsd:annotation>
         <xsd:sequence>
             <xsd:element name="enabled" type="xsd:boolean" minOccurs="0" default="true"/>
-            <xsd:element name="autocompleteConfiguration" type="tns:AutocompleteSearchConfigurationType" minOccurs="0"/>
+            <xsd:element name="autocompleteConfiguration" type="tns:AutocompleteSearchConfigurationType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <a:container/>
+                        <a:schemaContext>
+                            <a:type>tns:UserType</a:type>
+                        </a:schemaContext>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
         </xsd:sequence>
     </xsd:complexType>
 
@@ -1021,7 +1029,7 @@
             <xsd:element name="shadowCollectionView" type="tns:GuiShadowListViewType" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Specifies a view of an shadow collection (list).
+                        Specifies a view of a shadow collection (list).
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:displayName>GuiShadowListViewsType.shadowCollectionView</a:displayName>

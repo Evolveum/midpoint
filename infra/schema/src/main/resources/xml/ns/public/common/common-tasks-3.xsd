@@ -6550,6 +6550,14 @@
                     <xsd:documentation>
                         If specified, only records matching this filter will be reported.
                     </xsd:documentation>
+                    <xsd:appinfo>   <!-- TODO check -->
+                        <a:schemaContext>
+                            <a:type>BucketProcessingRecordType</a:type>
+                            <a:type>ItemProcessingRecordType</a:type>
+                            <a:type>ConnIdOperationRecordType</a:type>
+                            <a:type>InternalOperationRecordType</a:type>
+                        </a:schemaContext>
+                    </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="recordFilteringExpression" type="tns:ExpressionType" minOccurs="0">
@@ -7123,7 +7131,7 @@
                             </xsd:documentation>
                             <xsd:appinfo>
                                 <a:schemaContext>
-                                    <a:type>ResourceType</a:type>
+                                    <a:type>tns:ShadowType</a:type> <!-- TODO or ResourceType? check -->
                                 </a:schemaContext>
                             </xsd:appinfo>
                         </xsd:annotation>
@@ -7355,7 +7363,7 @@
                             </xsd:documentation>
                             <xsd:appinfo>
                                 <a:schemaContext>
-                                    <a:type>ShadowType</a:type>
+                                    <a:type>tns:ShadowType</a:type>
                                 </a:schemaContext>
                             </xsd:appinfo>
                         </xsd:annotation>
@@ -7906,7 +7914,7 @@
                         <xsd:annotation>
                             <xsd:appinfo>
                                 <a:schemaContext>
-                                    <a:type>ResourceType</a:type>
+                                    <a:type>tns:ResourceType</a:type>
                                 </a:schemaContext>
                             </xsd:appinfo>
                         </xsd:annotation>
@@ -8548,7 +8556,7 @@
                             </xsd:documentation>
                             <xsd:appinfo>
                                 <a:schemaContext>
-                                    <a:type>TaskType</a:type>
+                                    <a:type>tns:TaskType</a:type>
                                 </a:schemaContext>
                             </xsd:appinfo>
                         </xsd:annotation>
