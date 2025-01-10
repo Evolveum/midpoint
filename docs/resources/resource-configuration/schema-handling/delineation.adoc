@@ -151,3 +151,12 @@ It checks whether it has the form of `Tnnnnnn` (case insensitive) where `n` is a
 
 NOTE: This should be really the last resort.
 Specification using filters is strongly recommended, if possible.
+
+// * *Auxiliary object classes* are additional object classes that define extra characteristics for the object.
+// Auxiliary abject classes can usually be attached to objects of any structural object class.
+// There may be any number of auxiliary object classes.
+// Note: auxiliary object class support is available since midPoint 3.2.
+
+// * *Base context* is a point in a hierarchical tree under which objects of this type are stored.
+// This is an optional feature that is only applicable to resources that have hierarchical structure (such as LDAP directories).
+// Note: base context support is available since midPoint 3.4 and 3.3.1.

@@ -242,11 +242,11 @@ Schema handling also influences how the resource will be presented in the GUI, e
 The following example is from the OpenDJ advanced sync sample.
 The configuration for `sn` (surname) resource attribute is configured as follows:
 
-* the resource `sn` attribute can be modified with no limitation
+* the resource `sn` attribute can be read and modified with no limitation
 
-* the value of the resource `sn` attribute will be automatically set from midPoint's `familyName` attribute value when provisioning (outbound)
+* the value of the resource `sn` attribute will be automatically set to the value of midPoint's `familyName` property value when provisioning (outbound)
 
-* the value of the resource `sn` attribute will be automatically set to midPoint's `familyName` attribute when synchronizing (inbound)
+* the value of the midPoint's `familyName` property will be automatically set to the value of the resource `sn` attribute when synchronizing (inbound)
 
 [source,xml]
 ----
@@ -276,11 +276,11 @@ The configuration for `sn` (surname) resource attribute is configured as follows
 The following example is from the OpenDJ advanced sync sample.
 The configuration for `description` resource attribute is configured as follows:
 
-* the resource attribute `description` can be modified with no limitation
+* the resource attribute `description` can be read and modified with no limitation
 
-* the value of the resource attribute `description` will be automatically set to a constant "Created by IDM" when provisioning (outbound), but only if the resource attribute has no value yet (<strength>weak</strength>)
+* the value of the resource attribute `description` will be automatically set to a constant "Created by IDM" when provisioning (outbound), but only if the resource attribute has no value yet (`<strength>weak</strength>`)
 
-* no inbound expression is used: the `description` resource attribute will not be synchronized to any midPoint attribute when synchronizing
+* no inbound expression is used: the `description` resource attribute will not be synchronized to any midPoint property when synchronizing
 
 [source,xml]
 ----

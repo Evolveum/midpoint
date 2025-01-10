@@ -116,7 +116,7 @@ There are two specific places where this is used.
 
 === Classifying the Resource Objects
 
-When xref:#_resource_object_classification[classifying resource objects], we often use the type marked as "default for object class" as a "catch-all" type when no other type matches.
+When xref:/midpoint/reference/resources/resource-configuration/schema-handling/classification/[classifying resource objects], we often use the type marked as "default for object class" as a "catch-all" type when no other type matches.
 However, this functionality can be achieved - perhaps more cleanly - also using `classificationOrder` property of object type delineation.
 See the classification algorithm description.
 
@@ -159,3 +159,6 @@ Overall, it is better to avoid `defaultForObjectClass` setting, and hence also `
 This is a shorthand for specifying both `defaultForKind` and `defaultForObjectClass`.
 
 These three properties, `defaultForKind`, `defaultForObjectClass` and `default`, may be changed or even removed in the future.
+
+// If no intent is explicitly specified for a particular object kind, for example when defining the resource object construction, then the default type will be used.
+// Only a single intent can be marked as default for each object kind and for each object class in the scope of a resource definition.

@@ -399,3 +399,17 @@ In that case, attributes with numerically lowest adding priority would be used t
 //     </outbound>
 // </attribute>
 // ----
+
+// ** *Display name* of the attribute.
+// This is a human readable name used in GUI and similar tools.
+//
+// ** *Limitations* of the attribute.
+// E.g. administrator can make the attribute read-only even if the connector can both read and write the attribute value.
+//
+// ** *xref:/midpoint/reference/expressions/mappings/outbound-mapping/[Outbound Mapping]* defines how the attribute value is created when the account is created or updated.
+// It defines the data flow out of midPont to the resource.
+//
+// ** *xref:/midpoint/reference/expressions/mappings/inbound-mapping/[Inbound Mappings]* define how the attribute value is used, e.g., when a change of the account is detected on the resource.
+// It defines data flow from the resource into midPoint.
+//
+// ** Other aspects such as tolerance, ability to ignore the attribute, etc.
