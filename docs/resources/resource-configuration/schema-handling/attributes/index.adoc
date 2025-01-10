@@ -1,0 +1,271 @@
+= Attribute Definitions
+:page-toc: top
+
+Attribute definitions are part of the xref:/midpoint/reference/resources/resource-configuration/schema-handling/object-types/[object type definition] and - partially - of xref:/midpoint/reference/resources/resource-configuration/schema-handling/object-classes/[object class adaptation].
+They provide more details about handling of attributes that form a particular object type or object class.
+
+== Basic Information
+
+[%autowidth]
+|===
+| Item name | Description | Further information
+
+| `ref`
+| Name of the attribute that is to be defined.
+The attribute must exist in the object class (structural or auxiliary).
+| See also xref:#_connid_attribute_names[the note on ConnId attribute names].
+
+| `displayName`
+| This is a human readable name used in GUI and similar tools.
+|
+
+| `description`
+| Free-form textual description of the attribute.
+|
+
+| `documentation`
+| Technical documentation of the attribute.
+|
+
+| `lifecycleState`
+| Lifecycle state of the attribute definition: whether it is only a draft, or proposed, active, deprecated, archived, and so on.
+| xref:/midpoint/reference/concepts/configuration-item-lifecycle/[]
+
+| `displayOrder`
+| An order in which this attribute should be displayed relative to other attributes within the same context.
+|
+|===
+
+== Generic Behavior Configuration
+
+NOTE: This section is applicable to both object types and object classes.
+
+These settings tell midPoint how to access the attribute.
+They do not define any transformations to/from midPoint.
+
+[%autowidth]
+|===
+| Item name | Description | Further information
+
+| `limitations`
+| Limits the access to the attribute (reading, creating, modifying).
+E.g. administrator can make the attribute read-only even if the connector can both read and write the attribute value.
+Can also modify the cardinality (multiplicity) of the attribute.
+| xref:/midpoint/reference/resources/resource-configuration/schema-handling/attributes/limitations/[]
+
+| `matchingRule`
+| Specification of a matching rule for an attribute.
+Matching rule is used to compare values of the attribute.
+| xref:/midpoint/reference/resources/resource-configuration/schema-handling/attributes/matching-rule/[]
+
+| `secondaryIdentifier`
+| Indicated if the attribute should or should not be considered as secondary identifier.
+Secondary identifiers are always cached in the repository and are ensured to be always present and unique.
+| xref:/midpoint/reference/resources/resource-configuration/schema-handling/attributes/secondary-identifier/[]
+
+| `fetchStrategy`
+| Influences when and how midPoint will fetch this attribute.
+| xref:/midpoint/reference/resources/resource-configuration/schema-handling/attributes/fetch-strategy/[]
+
+| `cached`
+| Overrides the caching status (cached or not cached) for this attribute.
+| xref:/midpoint/reference/resources/attribute-caching/[]
+
+|===
+
+== Special Considerations when Updating the Attribute
+
+NOTE: This section is applicable to both object types and object classes.
+
+Not all resources are simple data stores.
+Many of them carry out hidden processing of the data that are stored to them.
+The following items help midPoint to deal with such resources.
+
+[%autowidth]
+|===
+| Item name | Description | Further information
+
+| `volatility`
+| Describes the behavior of this attribute that differs from the "pure data store" expectations.
+In particular, it specifies the operations during which this attribute can unexpectedly change, or operations during which the change of this attribute can have an effect on other attributes.
+| xref:/midpoint/reference/resources/resource-configuration/schema-handling/volatility/[]
+
+| `readReplaceMode`
+| If enabled, modifications to this attribute are executed in REPLACE form only.
+I.e. if ADD or DELETE VALUE is requested, midPoint will fetch the object state, compute the expected result and write it to the resource object via REPLACE VALUE operation.
+This works around some weird connector behavior.
+| xref:/midpoint/reference/resources/resource-configuration/schema-handling/attributes/read-replace-mode/[]
+
+| `modificationPriority`
+| Allows modifying the resource object in sequence of "waves", according to priorities specified for individual attributes.
+Can be used, e.g., if one needs to switch the object `type` attribute to a specific value, and only after that it's possible to set other attributes.
+| xref:/midpoint/reference/resources/resource-configuration/schema-handling/attributes/modification-priority/[]
+|===
+
+== Data Flow from MidPoint to Resource
+
+NOTE: This section is relevant only to attribute definition for object types, not for object classes.
+
+This configuration specifies how to transform the attribute value from midPoint on the fly before it is sent to resource attribute.
+The modification value can use other attribute values, constants or anything that can be achieved by an xref:/midpoint/reference/expressions/expressions/[expression].
+For example, you may wish to set the resource's `fullname` attribute to the uppercase value of midPoint's `fullName` attribute.
+The outbound is what you use for _provisioning_.
+
+[%autowidth]
+|===
+| Item name | Description | Further information
+
+| `outbound`
+| The mapping that defines how the attribute value is created when the account is created or updated.
+| xref:/midpoint/reference/expressions/mappings/[]
+
+| `tolerant`
+.3+| Specifies whether the attribute tolerates values that are set outside midPoint.
+(And which ones.)
+.3+| xref:/midpoint/reference/resources/resource-configuration/schema-handling/attributes/tolerance/[]
+
+| `tolerantValuePattern`
+
+| `intolerantValuePattern`
+
+| `exclusiveStrong`
+| Drives the behavior of mappings when both strong and normal ones are present.
+| xref:/midpoint/reference/resources/resource-configuration/schema-handling/attributes/exclusive-strong/[]
+
+|===
+
+== Data Flow from Resource to MidPoint
+
+NOTE: This section is relevant only to attribute definition for object types, not for object classes.
+
+This configuration specifies where (to which midPoint attribute) to store the resource attribute value and optionally, how to transform it.
+For example, you may wish to store the resource's `full_name_attr` attribute value to midPoint's `fullName` attribute without modification.
+The inbound is what you use for _synchronization_.
+Please note that there are multiple xref:/midpoint/reference/synchronization/introduction/[Synchronization Flavors] and this configuration applies to all of them.
+
+[%autowidth]
+|===
+| Item name | Description | Further information
+
+| `inbound`
+| Mappings that define how the attribute value is used, e.g., when a change of the account is detected on the resource.
+| xref:/midpoint/reference/expressions/mappings/[]
+
+| `correlator`
+| Marks the attribute as a xref:/midpoint/reference/correlation/items-correlator/#_short_form[single-item correlator].
+| xref:/midpoint/reference/correlation/[]
+
+|===
+
+[NOTE]
+====
+*A note about inbound mappings' strength*
+
+There is an optional `strength` property to specify if an existing midPoint (focus) item values should be replaced:
+
+* `weak`: the expression will be evaluated only if there is no value in the focus object
+
+* `strong`: the expression will be always evaluated
+
+Currently, the use of the default value (`normal`) is not recommended.
+Please specify `strong` instead.
+
+See also xref:/midpoint/reference/expressions/mappings/#_mapping_strength[Mapping strength].
+====
+
+// | `displayNameAttribute`
+// | Indicated if the content of this attribute should be used as a human-readable name when displaying resource objects of this type.
+//CURRENTLY UNUSED.
+// |
+
+[#_connid_attribute_names]
+== ConnId Special Attribute Names
+
+For some resource, there are two special attributes: `icfs:name` mapped to ConnId pass:[__NAME__] attribute and `icfs:uid` mapped to ConnId pass:[__UID__] attribute.
+Please do not confuse them with `ri:name` and/or `ri:uid` attributes.
+
+[NOTE]
+====
+MidPoint tries to avoid using these generic attribute names.
+Hence, if the connector supports it, midPoint uses the real attribute names.
+(Like `ri:dn` and `ri:entryUUID` instead of `icfs:name` and `icfs:uid` for the LDAP connector.)
+
+Nevertheless, there are connectors that still use these generic ConnId attributes.
+====
+
+[%autowidth]
+|===
+| Attribute Name | ConnId Attribute Name | Description
+
+| icfs:name
+| pass:[__NAME__]
+| Unique, mutable account identifier, e.g. Distinguished Name in hierarchical systems like LDAP or a login name in flat resources
+
+| icfs:uid
+| pass:[__UID__]
+| Unique, immutable account identifier, e.g. Entry UUID in LDAP (not created by you, but generated by LDAP server)
+
+|===
+
+For some resources (connectors) the pass:[__NAME__] and pass:[__UID__] attributes are equivalent.
+
+As a rule of thumb, you can configure an outbound expression for `icfs:name` to define an account identifier (e.g. LDAP's DN attribute).
+After the account is created, `icfs:uid` attribute may be used internally for unique resource account identification, but this attribute will be read-only.
+There is no need for outbound/inbound expressions for `icfs:uid` attribute.
+Change in the `icfs:name` attribute will cause the renaming of the account.
+
+The following is an example of `icfs:uid` attribute configuration:
+
+* the attribute is read-only
+
+* there are no outbound/inbound expressions
+
+[source,xml]
+----
+<attribute>
+    <ref>icfs:uid</ref>
+    <displayName>Internal account identifier</displayName>
+    <limitations>
+        <access>
+            <add>false</add>
+            <read>true</read>
+            <modify>false</modify>
+        </access>
+    </limitations>
+</attribute>
+----
+
+// NOTE this example is outdated; the LDAP connector maps DN to ri:dn, not icfs:name any longer
+//
+// The following is an example of `icfs:name` attribute configuration from OpenDJ advanced sync sample:
+//
+// * the attribute `icfs:name` can be only created and read (no modification)
+//
+// * the value of the `icfs:name` attribute will be automatically set to a concatenation of user's login name in midPoint and a static suffix, but only if the resource attribute has no value yet (<strength>weak</strength>)
+//
+// * no inbound expression is used: the `icfs:name` attribute will not be synchronized to any midPoint attribute when synchronizing
+//
+// [source,xml]
+// ----
+// <attribute>
+//     <ref>icfs:name</ref>
+//     <displayName>Distinguished Name</displayName>
+//     <access>create</access>
+//     <access>read</access>
+//     <outbound>
+//         <strength>weak</strength>
+//         <source>
+//             <path>$user/name</path>
+//         </source>
+//         <expression>
+//             <script>
+//                 <!-- No explicit script language was specified. It means that this is Groovy -->
+//                 <code>
+//                     'uid=' + name + iterationToken + ',ou=people,dc=example,dc=com'
+//                 </code>
+//             </script>
+//         </expression>
+//     </outbound>
+// </attribute>
+// ----
+

@@ -1,0 +1,6 @@
+= Attribute Matching Rule
+
+Specification of a matching rule for an attribute, overriding a matching rule provided by the connector (if any).
+Matching rule is used to compare values of the attribute.
+If no matching rule is specified (here or by the connector), midPoint uses the literal comparison which is good for most attribute types and for case-sensitive strings.
+An alternative matching rule may be specified e.g. for case insensitive strings.

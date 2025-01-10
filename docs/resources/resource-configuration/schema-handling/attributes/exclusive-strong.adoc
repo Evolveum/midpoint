@@ -1,0 +1,7 @@
+= Exclusive Strong
+
+When set to false then both strong and normal mapping values are merged to produce the final set of values.
+When set to true only strong values are used if there is at least one strong mapping.
+Normal values are used if there is no strong mapping.
+
+Default value is *false*.
