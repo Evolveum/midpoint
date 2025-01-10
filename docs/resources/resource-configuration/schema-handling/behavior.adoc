@@ -1,3 +1,9 @@
 = Behavior Handling
 
-#TODO#
+Behavior handling allows you to define how specific capabilities of resource objects will be managed.
+For more information about behavior capabilities, see xref:../capabilities[].
+
+== Last login timestamp
+
+Behavior for last login timestamp currently contains only one setting - attribute fetch strategy.
+See xref:attributes/fetch-strategy[] for more information.
