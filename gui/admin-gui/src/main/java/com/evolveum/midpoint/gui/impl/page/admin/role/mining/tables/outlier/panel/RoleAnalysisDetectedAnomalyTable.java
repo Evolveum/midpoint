@@ -12,10 +12,7 @@ import java.math.RoundingMode;
 import java.util.*;
 
 import com.evolveum.midpoint.gui.api.component.LabelWithHelpPanel;
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.outlier.RoleAnalysisPartitionUserPermissionTablePopup;
-
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.tmp.panel.RoleAnalysisAttributePanel;
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.tmp.panel.RoleAnalysisAttributesDto;
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.outlier.RoleAnalysisExplanationTabPanelPopup;
 
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
@@ -32,17 +29,16 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.Unmodifiable;
 
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.component.MainObjectListPanel;
 import com.evolveum.midpoint.gui.api.component.data.provider.ISelectableDataProvider;
-import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.outlier.RoleAnalysisSinglePartitionAnomalyResultTabPopup;
-import com.evolveum.midpoint.model.api.mining.RoleAnalysisService;
 import com.evolveum.midpoint.web.component.AjaxIconButton;
 import com.evolveum.midpoint.web.component.data.column.ColumnMenuAction;
 import com.evolveum.midpoint.web.component.menu.cog.ButtonInlineMenuItem;
@@ -54,7 +50,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import static com.evolveum.midpoint.gui.api.page.PageAdminLTE.createStringResourceStatic;
 import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.RoleAnalysisWebUtils.explainAnomaly;
-import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.table.RoleAnalysisTableTools.densityBasedColorOposite;
 
 public class RoleAnalysisDetectedAnomalyTable extends BasePanel<AnomalyObjectDto> {
     private static final String ID_DATATABLE = "datatable";
@@ -132,8 +127,9 @@ public class RoleAnalysisDetectedAnomalyTable extends BasePanel<AnomalyObjectDto
 
             }
 
+            @Contract(pure = true)
             @Override
-            protected UserProfileStorage.TableId getTableId() {
+            protected UserProfileStorage.@Nullable TableId getTableId() {
                 return null;
             }
 
@@ -394,19 +390,12 @@ public class RoleAnalysisDetectedAnomalyTable extends BasePanel<AnomalyObjectDto
                     @Override
                     public void onClick(AjaxRequestTarget target) {
                         SelectableBean<RoleType> object = getRowModel().getObject();
-                        RoleType role = object.getValue();
-                        String oid = role.getOid();
 
-                        AnomalyObjectDto.AnomalyPartitionMap anomalyPartitionMap = anomalyObjectDto.getAnomalyPartitionMap(oid);
-                        RoleAnalysisOutlierPartitionType associatedPartition = anomalyPartitionMap.associatedPartition();
-
-                        List<DetectedAnomalyResult> detectedAnomalyResult = associatedPartition.getDetectedAnomalyResult();
-
-                        RoleAnalysisPartitionUserPermissionTablePopup components = new RoleAnalysisPartitionUserPermissionTablePopup(
+                        RoleAnalysisExplanationTabPanelPopup components = new RoleAnalysisExplanationTabPanelPopup(
                                 getPageBase().getMainPopupBodyId(),
-                                Model.of(associatedPartition),
-                                Model.ofList(detectedAnomalyResult),
-                                Model.of(anomalyObjectDto.getOutlier()));
+                                Model.of(anomalyObjectDto),
+                                object);
+
                         getPageBase().showMainPopup(components, target);
                     }
                 };
@@ -452,31 +441,18 @@ public class RoleAnalysisDetectedAnomalyTable extends BasePanel<AnomalyObjectDto
                     @Override
                     public void onClick(AjaxRequestTarget target) {
                         SelectableBean<RoleType> object = getRowModel().getObject();
-                        RoleType role = object.getValue();
-                        String oid = role.getOid();
 
-                        AnomalyObjectDto.AnomalyPartitionMap anomalyPartitionMap = anomalyObjectDto
-                                .getAnomalyPartitionMap(oid);
-                        DetectedAnomalyResult anomalyResult = anomalyPartitionMap.anomalyResult();
+                        RoleAnalysisExplanationTabPanelPopup components = new RoleAnalysisExplanationTabPanelPopup(
+                                getPageBase().getMainPopupBodyId(),
+                                Model.of(anomalyObjectDto),
+                                object) {
+                            @Override
+                            public TabType defaultTab() {
+                                return TabType.VIEW_DETAILS_ACCESS_ANALYSIS;
+                            }
+                        };
 
-                        RoleAnalysisService roleAnalysisService = getPageBase().getRoleAnalysisService();
-
-                        DetectedAnomalyStatistics statistics = anomalyResult.getStatistics();
-                        if (statistics == null || statistics.getAttributeAnalysis() == null) {
-                            return;
-                        }
-
-                        AttributeAnalysis attributeAnalysis = statistics.getAttributeAnalysis();
-                        RoleAnalysisAttributeAnalysisResult userAttributeAnalysisResult = attributeAnalysis
-                                .getUserAttributeAnalysisResult();
-                        if (userAttributeAnalysisResult == null) {
-                            return;
-                        }
-
-                        Set<String> userValueToMark = roleAnalysisService.resolveUserValueToMark(userAttributeAnalysisResult);
-
-                        RoleAnalysisAttributePanel roleAnalysisAttributePanel = buildAttributePanel(anomalyResult, userValueToMark);
-                        getPageBase().showMainPopup(roleAnalysisAttributePanel, target);
+                        getPageBase().showMainPopup(components, target);
 
                     }
                 };
@@ -518,41 +494,6 @@ public class RoleAnalysisDetectedAnomalyTable extends BasePanel<AnomalyObjectDto
 
         }
         return Model.of(false);
-    }
-
-    private @NotNull RoleAnalysisAttributePanel buildAttributePanel(
-            DetectedAnomalyResult anomalyResult,
-            Set<String> userValueToMark) {
-        LoadableModel<RoleAnalysisAttributesDto> attributesModel = loadAttributeModel(anomalyResult);
-
-        RoleAnalysisAttributePanel roleAnalysisAttributePanel = new RoleAnalysisAttributePanel(
-                getPageBase().getMainPopupBodyId(),
-                attributesModel) {
-
-            @Override
-            protected @NotNull String getChartContainerStyle() {
-                return "min-height:350px;";
-            }
-
-            @Override
-            public Set<String> getPathToMark() {
-                return userValueToMark;
-            }
-        };
-
-        roleAnalysisAttributePanel.setOutputMarkupId(true);
-        return roleAnalysisAttributePanel;
-    }
-
-    private static @NotNull LoadableModel<RoleAnalysisAttributesDto> loadAttributeModel(DetectedAnomalyResult anomalyResult) {
-        return new LoadableModel<>(false) {
-            @Override
-            protected @NotNull RoleAnalysisAttributesDto load() {
-                return RoleAnalysisAttributesDto.fromAnomalyStatistics(
-                        "RoleAnalysisAnomalyResultTabPopup.tab.title.attribute",
-                        anomalyResult.getStatistics());
-            }
-        };
     }
 
     public String getAdditionalBoxCssClasses() {

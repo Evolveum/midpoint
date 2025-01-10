@@ -43,7 +43,6 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.web.component.RoleAnalysisTabbedPanel;
-import com.evolveum.midpoint.web.component.TabbedPanel;
 import com.evolveum.midpoint.web.component.data.column.ColumnMenuAction;
 import com.evolveum.midpoint.web.component.data.column.LinkPanel;
 import com.evolveum.midpoint.web.component.data.column.ObjectNameColumn;
@@ -64,7 +63,6 @@ import com.google.common.collect.ListMultimap;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.ajax.markup.html.form.AjaxSubmitLink;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.export.AbstractExportableColumn;
@@ -93,7 +91,7 @@ import static com.evolveum.midpoint.web.component.data.mining.RoleAnalysisCollap
 
 public abstract class RoleAnalysisAbstractClusteringResultPanel extends AbstractObjectMainPanel<RoleAnalysisSessionType, ObjectDetailsModels<RoleAnalysisSessionType>> {
 
-    private static final String ID_DATATABLE = "datatable";
+    private static final String ID_TABS_PANEL = "datatable";
     private static final String ID_FORM = "form";
     private static final String DOT_CLASS = RoleAnalysisAbstractClusteringResultPanel.class.getName() + ".";
     private static final String OP_DELETE_CLUSTER = DOT_CLASS + "deleteCluster";
@@ -129,38 +127,7 @@ public abstract class RoleAnalysisAbstractClusteringResultPanel extends Abstract
         add(form);
 
         List<ITab> tabs = createTabs();
-        RoleAnalysisTabbedPanel<ITab> tabPanel = new RoleAnalysisTabbedPanel<>(ID_DATATABLE, tabs, null) {
-            @Serial private static final long serialVersionUID = 1L;
-
-            @Contract("_, _ -> new")
-            @Override
-            protected @NotNull WebMarkupContainer newLink(String linkId, final int index) {
-                return new AjaxSubmitLink(linkId) {
-                    @Serial private static final long serialVersionUID = 1L;
-
-                    @Override
-                    protected void onError(AjaxRequestTarget target) {
-                        super.onError(target);
-                        target.add(getPageBase().getFeedbackPanel());
-                    }
-
-                    @Override
-                    protected void onSubmit(AjaxRequestTarget target) {
-                        super.onSubmit(target);
-
-                        setSelectedTab(index);
-                        if (target != null) {
-                            target.add(findParent(TabbedPanel.class));
-                        }
-                        assert target != null;
-                        target.add(getPageBase().getFeedbackPanel());
-                    }
-
-                };
-            }
-        };
-        tabPanel.setOutputMarkupId(true);
-        tabPanel.setOutputMarkupPlaceholderTag(true);
+        RoleAnalysisTabbedPanel<ITab> tabPanel = createRoleAnalysisTabPanel(getPageBase(), ID_TABS_PANEL, tabs);
         tabPanel.add(AttributeModifier.append(CLASS_CSS, "p-0 m-0"));
         form.add(tabPanel);
 
@@ -596,6 +563,7 @@ public abstract class RoleAnalysisAbstractClusteringResultPanel extends Abstract
                                     label.add(AttributeModifier.append(STYLE_CSS, "font-size: 14px"));
                                     return label;
                                 }
+
                                 @Override
                                 protected String getIconComponentCssStyle() {
                                     return "vertical-align: inherit";
@@ -867,7 +835,7 @@ public abstract class RoleAnalysisAbstractClusteringResultPanel extends Abstract
 
     @SuppressWarnings("unchecked")
     private MainObjectListPanel<RoleAnalysisClusterType> getTable() {
-        return (MainObjectListPanel<RoleAnalysisClusterType>) get(ID_FORM + ":" + ID_DATATABLE);
+        return (MainObjectListPanel<RoleAnalysisClusterType>) get(ID_FORM + ":" + ID_TABS_PANEL);
     }
 
     private InlineMenuItem createDeleteInlineMenu() {

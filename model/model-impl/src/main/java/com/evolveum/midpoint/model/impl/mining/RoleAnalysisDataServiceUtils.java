@@ -234,6 +234,7 @@ public class RoleAnalysisDataServiceUtils {
                 roleMembersMap.keySet().removeAll(unpopularRoles);
             }
 
+            //TODO if all user roles is excluded that means user is also excluded (whats with that?)
             userRolesMap.clear();
             userRolesMap = reverseMap(roleMembersMap);
 
@@ -321,11 +322,12 @@ public class RoleAnalysisDataServiceUtils {
             Set<String> nonPopularRolesMin = new HashSet<>();
             Set<String> nonPopularRolesMax = new HashSet<>();
             for (String role : roleMembersMap.keySet()) {
-                if (roleMembersMap.get(role).size() < minAccessPopularity) {
+                int size = roleMembersMap.get(role).size();
+                if (size < minAccessPopularity) {
                     nonPopularRolesMin.add(role);
                 }
 
-                if (maxAccessPopularity != null && roleMembersMap.get(role).size() > maxAccessPopularity) {
+                if (maxAccessPopularity != null && size > maxAccessPopularity) {
                     nonPopularRolesMax.add(role);
                 }
             }

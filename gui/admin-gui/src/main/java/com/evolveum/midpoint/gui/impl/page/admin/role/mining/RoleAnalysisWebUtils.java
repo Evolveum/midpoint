@@ -403,4 +403,44 @@ public class RoleAnalysisWebUtils {
         }
         return totalSystemPercentageReduction;
     }
+
+    public static @NotNull RoleAnalysisTabbedPanel<ITab> createRoleAnalysisTabPanel(
+            @NotNull PageBase pageBase,
+            @NotNull String componentId,
+            @NotNull List<ITab> tabs) {
+        RoleAnalysisTabbedPanel<ITab> tabPanel = new RoleAnalysisTabbedPanel<>(componentId, tabs, null) {
+            @Serial private static final long serialVersionUID = 1L;
+
+            @Contract("_, _ -> new")
+            @Override
+            protected @NotNull WebMarkupContainer newLink(String linkId, final int index) {
+                return new AjaxSubmitLink(linkId) {
+                    @Serial private static final long serialVersionUID = 1L;
+
+                    @Override
+                    protected void onError(AjaxRequestTarget target) {
+                        super.onError(target);
+                        target.add(pageBase.getFeedbackPanel());
+                    }
+
+                    @Override
+                    protected void onSubmit(AjaxRequestTarget target) {
+                        super.onSubmit(target);
+
+                        setSelectedTab(index);
+                        if (target != null) {
+                            target.add(findParent(TabbedPanel.class));
+                        }
+                        assert target != null;
+                        target.add(pageBase.getFeedbackPanel());
+                    }
+
+                };
+            }
+        };
+        tabPanel.setOutputMarkupId(true);
+        tabPanel.setOutputMarkupPlaceholderTag(true);
+        return tabPanel;
+    }
+
 }
