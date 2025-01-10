@@ -600,3 +600,33 @@ E.g. the following mapping will pre-provision a disabled account 5 days before u
 * xref:/midpoint/reference/roles-policies/assignment/configuration/[Assignment Configuration]
 
 * xref:/midpoint/reference/resources/resource-configuration/schema-handling/[Resource Schema Handling]
+
+// ==== Activation Handling
+//
+// The activation/deactivation (account enabled/disabled) handling is a special part of Schema Handling and allows you to define how user's state will be synchronized.
+// The user state can be synchronized from midPoint user to resource account (outbound) or the opposite way (inbound) or both.
+//
+// The following is an example of activation configuration from OpenDJ advanced sync sample:
+//
+// * the user state from midPoint is synchronized to resource account state (outbound) as is
+//
+// * the resource account state is synchronized to midPoint user (inbound) as is but only if the midPoint user state is empty (e.g. for the very first time when you create midPoint user from the resource account).
+// The resource account will not be authoritative for the account state except the first synchronization.
+// The `target` parameter is omitted, because it will be the midPoint user state attribute.
+//
+// [source,xml]
+// ----
+// <activation>
+//     <administrativeStatus>
+//         <outbound>
+//             <asIs/>
+//         </outbound>
+//         <inbound>
+//             <strength>weak</strength>
+//             <source>
+//                 <asIs/>
+//             </source>
+//         </inbound>
+//     </administrativeStatus>
+// </activation>
+// ----
