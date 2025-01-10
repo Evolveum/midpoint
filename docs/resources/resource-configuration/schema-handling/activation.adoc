@@ -630,3 +630,11 @@ E.g. the following mapping will pre-provision a disabled account 5 days before u
 //     </administrativeStatus>
 // </activation>
 // ----
+
+// ** *Existence mapping* determines when the object should and should not exist.
+//
+// ** *Administrative status* mapping defines how activation administrative status is synchronized with the resource.
+// It may contain xref:/midpoint/reference/expressions/mappings/outbound-mapping/[outbound] and xref:/midpoint/reference/expressions/mappings/inbound-mapping/[inbound] mappings.
+//
+// ** *Validity* mappings defines how validity dates (`validFrom`, `validTo`) are synchronized with the resource.
+// It may contain xref:/midpoint/reference/expressions/mappings/outbound-mapping/[outbound] and xref:/midpoint/reference/expressions/mappings/inbound-mapping/[inbound] mappings.

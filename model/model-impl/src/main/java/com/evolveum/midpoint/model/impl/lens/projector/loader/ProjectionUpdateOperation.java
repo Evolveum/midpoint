@@ -247,9 +247,7 @@ class ProjectionUpdateOperation<F extends ObjectType> {
         }
     }
 
-    private void setProjectionSecurityPolicy(OperationResult result)
-            throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException,
-            ConfigurationException, ExpressionEvaluationException {
+    private void setProjectionSecurityPolicy(OperationResult result) throws SchemaException, ConfigurationException {
         ResourceObjectDefinition structuralObjectDefinition = projectionContext.getStructuralObjectDefinition();
         if (structuralObjectDefinition != null) {
             LOGGER.trace("setProjectionSecurityPolicy: structural object class def = {}", structuralObjectDefinition);

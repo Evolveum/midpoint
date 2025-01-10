@@ -212,6 +212,7 @@ primary object class.
 |Describes capability to test connection to the resource once the connector is configured.
 |===
 
+[#_behavior]
 === Behavior Capability
 
 The `BehaviorCapabilityType` is a container for various behavior-related capabilities.
