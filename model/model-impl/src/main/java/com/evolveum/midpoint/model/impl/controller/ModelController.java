@@ -31,6 +31,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.context.annotation.DependsOn;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.audit.api.AuditEventRecord;
@@ -114,6 +115,7 @@ import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
  * Note: don't autowire this bean by implementing class (ModelController), as it is proxied by Spring AOP.
  * Use its interfaces instead.
  */
+@DependsOn("taskManagerInitializer")    // not very nice of telling that we depend on TaskManager and other related beans
 @Component
 public class ModelController implements ModelService, TaskService, CaseService, BulkActionsService, AccessCertificationService {
 
