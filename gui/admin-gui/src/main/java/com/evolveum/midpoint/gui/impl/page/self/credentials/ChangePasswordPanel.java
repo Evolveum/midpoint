@@ -6,6 +6,7 @@
  */
 package com.evolveum.midpoint.gui.impl.page.self.credentials;
 
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -14,7 +15,10 @@ import java.util.List;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.AttributeModifier;
+import org.apache.wicket.ajax.AjaxChannel;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.ajax.attributes.AjaxRequestAttributes;
+import org.apache.wicket.ajax.attributes.ThrottlingSettings;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.feedback.FeedbackMessage;
 import org.apache.wicket.markup.html.basic.Label;
@@ -124,19 +128,9 @@ public class ChangePasswordPanel<F extends FocusType> extends BasePanel<F> {
         PasswordTextField currentPasswordField =
                 new PasswordTextField(ID_CURRENT_PASSWORD_FIELD, currentPasswordModel);
         currentPasswordField.add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
-        currentPasswordField.add(new VisibleEnableBehaviour() {
-            @Serial private static final long serialVersionUID = 1L;
-
-            @Override
-            public boolean isVisible() {
-                return shouldCheckOldPassword();
-            }
-
-            @Override
-            public boolean isEnabled() {
-                return !savedPassword;
-            }
-        });
+        currentPasswordField.add(new VisibleEnableBehaviour(
+                this::shouldCheckOldPassword,
+                () -> !savedPassword));
         currentPasswordField.setRequired(false);
         currentPasswordField.setResetPassword(false);
         currentPasswordField.setOutputMarkupId(true);
@@ -223,6 +217,17 @@ public class ChangePasswordPanel<F extends FocusType> extends BasePanel<F> {
             @Override
             public void onSubmit(AjaxRequestTarget target) {
                 changePasswordPerformed(target);
+            }
+
+            @Override
+            protected void updateAjaxAttributes(AjaxRequestAttributes attributes) {
+                super.updateAjaxAttributes(attributes);
+                //hack.
+                //delay for the button click action is added due to the issue MID-10316
+                //the error appeared because of the same delay on the password input fields
+                //which is needed to make all the passwords validations
+                attributes.setThrottlingSettings(new ThrottlingSettings(Duration.ofMillis(500), true));
+                attributes.setChannel(new AjaxChannel("Drop", AjaxChannel.Type.DROP));
             }
         };
         changePasswordButton.add(new VisibleBehaviour(() -> !savedPassword));
