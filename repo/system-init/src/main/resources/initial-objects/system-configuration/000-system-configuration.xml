@@ -968,6 +968,11 @@
                             <c:path>dependent</c:path>
                         </item>
                     </container>
+                    <container id="1">
+                        <identifier>execution-constraints</identifier>
+                        <path>executionConstraints</path>
+                        <expanded>true</expanded>
+                    </container>
                 </panel>
                 <panel id="86">
                     <identifier>operational-attributes-panel</identifier>
