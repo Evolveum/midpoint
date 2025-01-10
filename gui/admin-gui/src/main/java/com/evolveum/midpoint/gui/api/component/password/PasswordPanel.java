@@ -6,6 +6,7 @@
  */
 package com.evolveum.midpoint.gui.api.component.password;
 
+import java.io.Serial;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
@@ -63,7 +64,7 @@ import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
  * @author lazyman
  */
 public class PasswordPanel extends InputPanel {
-    private static final long serialVersionUID = 1L;
+    @Serial private static final long serialVersionUID = 1L;
 
     private static final Trace LOGGER = TraceManager.getTrace(PasswordPanel.class);
     private static final String DOT_CLASS = PasswordPanel.class.getName() + ".";
@@ -142,7 +143,7 @@ public class PasswordPanel extends InputPanel {
         inputContainer.add(validationPanel);
 
         final PasswordTextField password1 = new SecureModelPasswordTextField(ID_PASSWORD_ONE, new ProtectedStringClearPasswordModel(passwordModel)) {
-            private static final long serialVersionUID = 1L;
+            @Serial private static final long serialVersionUID = 1L;
 
             @Override
             protected void onComponentTag(ComponentTag tag) {
@@ -177,7 +178,7 @@ public class PasswordPanel extends InputPanel {
         final PasswordTextField password2 = new SecureModelPasswordTextField(ID_PASSWORD_TWO,
                 new ProtectedStringClearPasswordModel(Model.of(new ProtectedStringType()))) {
 
-            private static final long serialVersionUID = 1L;
+            @Serial private static final long serialVersionUID = 1L;
 
             @Override
             protected boolean shouldTrimInput() {
@@ -196,7 +197,7 @@ public class PasswordPanel extends InputPanel {
         inputContainer.add(password2);
 
         password1.add(new AjaxFormComponentUpdatingBehavior("change") {
-            private static final long serialVersionUID = 1L;
+            @Serial private static final long serialVersionUID = 1L;
 
             @Override
             protected void onUpdate(AjaxRequestTarget target) {
@@ -215,7 +216,7 @@ public class PasswordPanel extends InputPanel {
         password2.add(AttributeAppender.append("aria-describedby", password2ValidationMessage.getMarkupId()));
 
         password1.add(new AjaxFormComponentUpdatingBehavior("keyup input") {
-            private static final long serialVersionUID = 1L;
+            @Serial private static final long serialVersionUID = 1L;
 
             @Override
             protected void onUpdate(AjaxRequestTarget target) {
@@ -238,7 +239,7 @@ public class PasswordPanel extends InputPanel {
             password2.add(pass2Validator);
         }
         password2.add(new AjaxFormComponentUpdatingBehavior("keyup input") {
-            private static final long serialVersionUID = 1L;
+            @Serial private static final long serialVersionUID = 1L;
 
             @Override
             protected void onUpdate(AjaxRequestTarget target) {
@@ -349,7 +350,7 @@ public class PasswordPanel extends InputPanel {
 
     protected Task createTask(String operation) {
         MidPointPrincipal user = AuthUtil.getPrincipalUser();
-        Task task = null;
+        Task task;
         if (user != null) {
             task = getParentPage().createSimpleTask(operation);
         } else {
