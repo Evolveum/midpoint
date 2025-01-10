@@ -43,7 +43,7 @@ public class LinkIconLabelIconPanel extends BasePanel<String> {
             if (isClicked) {
                 return "fa fa-caret-down fa-sm";
             }
-            return "fa fa-caret-up fa-sm";
+            return "fa fa-caret-right fa-sm";
         }
     };
 
