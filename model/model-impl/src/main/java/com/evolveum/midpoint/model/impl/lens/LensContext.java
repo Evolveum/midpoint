@@ -471,6 +471,11 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Clone
         projectionContexts.add(projectionContext);
     }
 
+    public void replaceProjectionContexts(Collection<LensProjectionContext> projectionContexts) {
+        this.projectionContexts.clear();
+        this.projectionContexts.addAll(projectionContexts);
+    }
+
     /**
      * BEWARE!
      *

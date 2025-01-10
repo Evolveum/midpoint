@@ -2521,19 +2521,23 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
-            <xsd:element name="incoming" type="tns:ShadowItemDependencyType" minOccurs="0" maxOccurs="unbounded">
+            <xsd:element name="incoming" type="tns:ShadowItemDependencyType" minOccurs="0"> <!-- temporarily single-valued -->
                 <xsd:annotation>
                     <xsd:documentation>
                         Items on which this item may depend on - i.e., whose values or changes may affect the values
                         of the item being considered.
+
+                        Note: Currently no specific items can be provided here, only the operation(s) relevant for this dependency.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="outgoing" type="tns:ShadowItemDependencyType" minOccurs="0" maxOccurs="unbounded">
+            <xsd:element name="outgoing" type="tns:ShadowItemDependencyType" minOccurs="0"> <!-- temporarily single-valued -->
                 <xsd:annotation>
                     <xsd:documentation>
                         Items that may depend on this item - i.e., whose that may be affected by values or changes of this item.
                         Currently, only "modify" operation is supported here.
+
+                        Note: Currently no specific items can be provided here, only the operation(s) relevant for this dependency.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>

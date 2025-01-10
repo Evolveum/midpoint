@@ -451,8 +451,9 @@ public abstract class ShadowAttributeDefinitionImpl<
         if (volatility == null) {
             return false;
         }
-        return volatility.getOutgoing().stream().anyMatch(
-                s -> s.getOperation().isEmpty() || s.getOperation().contains(ChangeTypeType.MODIFY));
+        ShadowItemDependencyType outgoing = volatility.getOutgoing();
+        return outgoing != null
+                && (outgoing.getOperation().isEmpty() || outgoing.getOperation().contains(ChangeTypeType.MODIFY));
     }
 
     @Override
@@ -461,8 +462,9 @@ public abstract class ShadowAttributeDefinitionImpl<
         if (volatility == null) {
             return false;
         }
-        return volatility.getIncoming().stream().anyMatch(
-                s -> s.getOperation().isEmpty() || s.getOperation().contains(ChangeTypeType.ADD));
+        ShadowItemDependencyType incoming = volatility.getIncoming();
+        return incoming != null
+                && (incoming.getOperation().isEmpty() || incoming.getOperation().contains(ChangeTypeType.ADD));
     }
 
     @Override
@@ -471,8 +473,9 @@ public abstract class ShadowAttributeDefinitionImpl<
         if (volatility == null) {
             return false;
         }
-        return volatility.getIncoming().stream().anyMatch(
-                s -> s.getOperation().isEmpty() || s.getOperation().contains(ChangeTypeType.MODIFY));
+        ShadowItemDependencyType incoming = volatility.getIncoming();
+        return incoming != null
+                && (incoming.getOperation().isEmpty() || incoming.getOperation().contains(ChangeTypeType.MODIFY));
     }
 
     private static void applyLimitationsBean(
