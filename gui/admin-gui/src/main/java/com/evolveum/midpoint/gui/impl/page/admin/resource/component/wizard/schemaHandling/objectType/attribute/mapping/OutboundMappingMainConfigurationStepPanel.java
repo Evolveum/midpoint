@@ -1,14 +1,14 @@
 /*
- * Copyright (C) 2010-2024 Evolveum and contributors
+ * Copyright (C) 2010-2025 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.attributeMapping;
+package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.attribute.mapping;
 
 import com.evolveum.midpoint.gui.api.prism.wrapper.ItemVisibilityHandler;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
-import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
+import com.evolveum.midpoint.gui.impl.page.admin.ObjectDetailsModels;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.AbstractValueFormResourceWizardStepPanel;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.web.application.PanelDisplay;
@@ -16,12 +16,11 @@ import com.evolveum.midpoint.web.application.PanelInstance;
 import com.evolveum.midpoint.web.component.prism.ItemVisibility;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.InboundMappingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationTypeType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceAttributeDefinitionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 
-import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.model.IModel;
 
 import java.util.List;
@@ -29,26 +28,27 @@ import java.util.List;
 /**
  * @author lskublik
  */
-@PanelInstance(identifier = "rw-attributes-inbound-optional",
+@PanelInstance(identifier = "rw-attributes-outbound-main",
         applicableForType = ResourceType.class,
         applicableForOperation = OperationTypeType.WIZARD,
-        display = @PanelDisplay(label = "PageResource.wizard.step.attributes.inbound.optional", icon = "fa fa-screwdriver-wrench"),
+        display = @PanelDisplay(label = "PageResource.wizard.step.attributes.outbound.main", icon = "fa fa-screwdriver-wrench"),
         expanded = true)
-public class InboundMappingOptionalConfigurationStepPanel
-        extends AbstractValueFormResourceWizardStepPanel<MappingType, ResourceDetailsModel> {
+public class OutboundMappingMainConfigurationStepPanel<ODM extends ObjectDetailsModels>
+        extends AbstractValueFormResourceWizardStepPanel<MappingType, ODM> {
 
-    public static final String PANEL_TYPE = "rw-attributes-inbound-optional";
+    public static final String PANEL_TYPE = "rw-attributes-outbound-main";
 
     private static final List<ItemName> VISIBLE_ITEMS = List.of(
-            MappingType.F_DESCRIPTION,
-            MappingType.F_EXCLUSIVE,
-            MappingType.F_AUTHORITATIVE,
-            MappingType.F_CHANNEL,
-            MappingType.F_EXCEPT_CHANNEL
+            MappingType.F_NAME,
+            ResourceAttributeDefinitionType.F_REF,
+            MappingType.F_SOURCE,
+            MappingType.F_STRENGTH,
+            MappingType.F_EXPRESSION,
+            MappingType.F_CONDITION
     );
 
-    public InboundMappingOptionalConfigurationStepPanel(ResourceDetailsModel model,
-                                                        IModel<PrismContainerValueWrapper<MappingType>> newValueModel) {
+    public OutboundMappingMainConfigurationStepPanel(ODM model,
+                                                     IModel<PrismContainerValueWrapper<MappingType>> newValueModel) {
         super(model, newValueModel);
     }
 
@@ -63,43 +63,21 @@ public class InboundMappingOptionalConfigurationStepPanel
 
     @Override
     public IModel<String> getTitle() {
-        return createStringResource("PageResource.wizard.step.attributes.inbound.optional");
+        return createStringResource("PageResource.wizard.step.attributes.outbound.main");
     }
 
     @Override
     protected IModel<?> getTextModel() {
-        return createStringResource("PageResource.wizard.step.attributes.inbound.optional.text");
+        return createStringResource("PageResource.wizard.step.attributes.outbound.main.text");
     }
 
     @Override
     protected IModel<?> getSubTextModel() {
-        return createStringResource("PageResource.wizard.step.attributes.inbound.optional.subText");
+        return createStringResource("PageResource.wizard.step.attributes.outbound.main.subText");
     }
 
     @Override
-    protected boolean isSubmitVisible() {
-        return true;
-    }
-
-    @Override
-    protected boolean isExitButtonVisible() {
-        return false;
-    }
-
-    @Override
-    protected void onSubmitPerformed(AjaxRequestTarget target) {
-        super.onSubmitPerformed(target);
-        onExitPreProcessing(target);
-        onExitPerformed(target);
-    }
-
-    @Override
-    protected IModel<String> getSubmitLabelModel() {
-        return createStringResource("OnePanelPopupPanel.button.done");
-    }
-
-    @Override
-    public VisibleEnableBehaviour getNextBehaviour() {
+    public VisibleEnableBehaviour getBackBehaviour() {
         return VisibleBehaviour.ALWAYS_INVISIBLE;
     }
 
