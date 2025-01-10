@@ -159,6 +159,10 @@ public abstract class ItemWrapperImpl<I extends Item<?, ?>, VW extends PrismValu
         return helpText;
     }
 
+    public void setHelp(String help) {
+        this.helpText = help;
+    }
+
     private String getLocalizedHelpText() {
         Class<?> containerClass = null;
         PrismContainerValue<?> val = newItem.getParent();
