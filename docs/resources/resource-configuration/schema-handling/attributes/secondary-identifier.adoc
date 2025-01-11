@@ -1,14 +1,18 @@
 = Secondary Identifier
 
-Indicated if the attribute should be considered as secondary identifier.
-If set to `true`, this attribute is assumed and enforced to be unique.
-Also, it is stored in repository and used for example by synchronization (correlation rule), consistency mechanism, etc.
+Indicated if the attribute should be considered as a xref:/midpoint/reference/resources/resource-schema/#_secondary_identifier[secondary identifier] or not.
 
-This can also be used to disable the secondary identifier - for instance when the attribute used as a secondary identifier by default is not unique.
-Normally, `icfs:name` is chosen as a secondary identifier, however ConnId contract for it doesn't mandate its uniqueness.
-If the resource doesn't provide unique name it's better to let midPoint know about it:
+If set to `true`, this attribute is assumed and enforced to be unique and is always stored in the repository.
+For example, `ri:sAMAccountName` in Active Directory can be promoted to be the secondary identifier in this way.
 
-.Listing 6. Disabling `icfs:name` as the secondary identifier
+This configuration property can also be used to _disable_ the secondary identifier.
+It is useful in situations when the connector marks an attribute - typically, `icfs:name` - as a secondary identifier, but the attribute is not really unique.
+(ConnId contract for this attribute doesn't mandate its uniqueness.)
+This is a problem.
+
+MidPoint must be configured to stop using this attribute as a secondary identifier:
+
+.Disabling `icfs:name` as the secondary identifier
 [source,xml]
 ----
 <attribute>

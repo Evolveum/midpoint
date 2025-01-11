@@ -54,9 +54,9 @@ Can also modify the cardinality (multiplicity) of the attribute.
 | xref:/midpoint/reference/resources/resource-configuration/schema-handling/attributes/limitations/[]
 
 | `matchingRule`
-| Specification of a matching rule for an attribute.
-Matching rule is used to compare values of the attribute.
-| xref:/midpoint/reference/resources/resource-configuration/schema-handling/attributes/matching-rule/[]
+| Specification of a matching rule for an attribute, if the rule provided by the connector is not suitable.
+Matching rules are used to compare values of the attribute.
+| xref:/midpoint/reference/concepts/matching-rules/[]
 
 | `secondaryIdentifier`
 | Indicated if the attribute should or should not be considered as secondary identifier.
@@ -94,12 +94,11 @@ In particular, it specifies the operations during which this attribute can unexp
 | If enabled, modifications to this attribute are executed in REPLACE form only.
 I.e. if ADD or DELETE VALUE is requested, midPoint will fetch the object state, compute the expected result and write it to the resource object via REPLACE VALUE operation.
 This works around some weird connector behavior.
-| xref:/midpoint/reference/resources/resource-configuration/schema-handling/attributes/read-replace-mode/[]
+.2+| xref:/midpoint/reference/resources/resource-configuration/schema-handling/attributes/read-replace-and-modification-priority/[]
 
 | `modificationPriority`
 | Allows modifying the resource object in sequence of "waves", according to priorities specified for individual attributes.
 Can be used, e.g., if one needs to switch the object `type` attribute to a specific value, and only after that it's possible to set other attributes.
-| xref:/midpoint/reference/resources/resource-configuration/schema-handling/attributes/modification-priority/[]
 |===
 
 == Data Flow from MidPoint to Resource
