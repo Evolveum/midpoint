@@ -1,0 +1,60 @@
+= Read+Replace Mode and Attribute Modification Priority
+
+MidPoint has a quite straightforward point of view regarding resource objects and their attributes: an object is seen as a set of name-value pairs - its attributes.
+Generally it is assumed that these attributes and/or their values are mutually independent, therefore it does not matter in which order they are modified, and the values can be freely added and removed as needed.
+
+Unfortunately, it is not always so.
+
+NOTE: Especially, Microsoft Exchange (accessed via now-obsolete xref:/connectors/connectors/Org.IdentityConnectors.Exchange.ExchangeConnector/[.Net Exchange Connector]) was known for such issues.
+See also xref:/midpoint/reference/resources/weird/[], although it is obsolete as well, as it refers to that connector.
+
+To deal with similar situations, two mechanisms were conceived in midPoint:
+
+. read+replace mode,
+. attribute modification priority.
+
+== Read+Replace Mode
+
+If enabled, modifications to this attribute are executed in REPLACE form only.
+I.e. if ADD or DELETE VALUE is requested, midPoint will fetch the object state, compute the expected result and write it to the resource object via REPLACE VALUE operation.
+This works around some weird connector behavior related to adding and modifying values.
+(Especially for older connectors that are not able to process adding and deleting values in one operation.)
+
+== Modification Priority
+
+Imagine a very strange resource that has an `accountType` attribute that enables and disables groups of attributes.
+I.e., if it has the value `basic`, only the selected basic attributes can be set.
+If it has the value `full`, all account attributes (basic + extended) can be set.
+(Let `extendedAttribute1` be among these.)
+Also, let us assume that it's not possible to switch `accountType` and set those extended attributes in one operation.
+
+NOTE: This situation is not entirely fictional.
+The `RecipientType` attribute managed by the legacy .Net Exchange Connector worked in a similar way.
+(Complicated by the fact that the connector - at that time - was not able to execute "add attribute values", "delete attribute values", and
+"replace attribute values" in one operation.)
+See xref:/midpoint/reference/resources/weird/[].
+
+Now let's assume that midPoint wants to set the following two attributes for given account:
+
+. `accountType` to value `full` (it was previously `basic`)
+. `extendedAttribute1` to `some-value`.
+
+Under our assumptions, this cannot be executed in a single operation.
+
+To overcome this, midPoint introduces `modificationPriority`:
+It allows modifying the resource object in sequence of "waves", according to priorities specified for individual attributes.
+
+Attributes with specified priorities are modified in order that follows these priorities:
+
+- these with lower priority values are modified first,
+- these with higher priority values next,
+- and attributes with unspecified priority are modified last.
+
+Each priority level gets its own modification operation (or operations, if required by ConnId limitations).
+
+== Future
+
+The features described here were introduced years ago.
+ConnId was much more limited than it is today.
+These features are therefore gradually less and less important.
+It is possible they will be eventually phased out of midPoint.

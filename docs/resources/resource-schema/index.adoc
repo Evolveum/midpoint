@@ -335,6 +335,7 @@ Usernames, DNs and similar attributes may be used as well.
 But these are less desirable as they may change.
 Therefore these should be used only if no other option is available.
 
+[#_secondary_identifier]
 === secondaryIdentifier
 
 Reference to the secondary identifier attribute.
@@ -348,8 +349,6 @@ It is OK for a secondary identifier to be mutable.
 Secondary identifiers are optional.
 It is OK if an object has no secondary identifiers.
 There may be multiple secondary identifiers for a single object type.
-In that case it is assumed that all such identifier attributes form a compound identifier.
-E.g. that each unique combination of identifier values refers to a different object.
 
 E.g. LDAP DN, username, unique object name or similar attributes are usually presented as secondary identifiers.
 

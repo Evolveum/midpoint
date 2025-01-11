@@ -16,6 +16,9 @@ Failure to detect that two strings match can cause problems during evaluation of
 This may undermine significant part of the provisioning logic.
 
 MidPoint allows to optionally specify a matching rule for resource attribute.
+This is useful in cases when the matching rule derived from the type information provided by the connector is wrong.
+(Modern connectors try to provide detailed type information, describing attributes like LDAP DN, UUID, URI, XML data, "case insensitive string", and so on.
+But even they can be wrong at times.)
 
 .Matching rule specification
 [source,xml]

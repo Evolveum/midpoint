@@ -1,9 +1,0 @@
-= Attribute Read-Replace Mode
-
-Modifications to this attribute are executed in REPLACE form only.
-I.e. if ADD or DELETE VALUE is requested, midPoint will fetch the object state, compute the expected result and write it to the resource object via REPLACE VALUE operation.
-This works around some weird connector behavior.
-
-This mode is currently supported for attributes only - not for associations.
-
-*EXPERIMENTAL*. May change in future.
