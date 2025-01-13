@@ -7131,7 +7131,7 @@
                             </xsd:documentation>
                             <xsd:appinfo>
                                 <a:schemaContext>
-                                    <a:type>tns:ShadowType</a:type> <!-- TODO or ResourceType? check -->
+                                    <a:type>tns:ShadowType</a:type>
                                 </a:schemaContext>
                             </xsd:appinfo>
                         </xsd:annotation>
@@ -7364,6 +7364,7 @@
                             <xsd:appinfo>
                                 <a:schemaContext>
                                     <a:type>tns:ShadowType</a:type>
+                                    <a:path>query/filter</a:path> <-- TODO check -->
                                 </a:schemaContext>
                             </xsd:appinfo>
                         </xsd:annotation>
@@ -8056,7 +8057,15 @@
         <xsd:complexContent>
             <xsd:extension base="tns:AbstractWorkDefinitionType">
                 <xsd:sequence>
-                    <xsd:element name="shadows" type="tns:ObjectSetType" minOccurs="0"/>
+                    <xsd:element name="shadows" type="tns:ObjectSetType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:appinfo>
+                                <a:schemaContext>
+                                    <a:type>tns:ShadowType</a:type>
+                                </a:schemaContext>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
                     <xsd:element name="diagnose" type="tns:ShadowIntegrityAspectType" minOccurs="0" maxOccurs="unbounded"/>
                     <xsd:element name="fix" type="tns:ShadowIntegrityAspectType" minOccurs="0" maxOccurs="unbounded"/>
                     <xsd:element name="checkDuplicatesOnPrimaryIdentifiersOnly" type="xsd:boolean" minOccurs="0" default="false"/>
@@ -9383,6 +9392,11 @@
                             <xsd:documentation>
                                 Prospective members of the role.
                             </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:schemaContext>
+                                    <a:type>tns:AssignmentHolderType</a:type>
+                                </a:schemaContext>
+                            </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
                     <xsd:element name="executionOptions" type="tns:ModelExecuteOptionsType" minOccurs="0"/>
