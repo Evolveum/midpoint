@@ -14,8 +14,6 @@ import com.evolveum.midpoint.model.impl.lens.executor.ProjectionChangeExecution;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.*;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 /**
@@ -32,8 +30,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
  */
 @Component
 public class ChangeExecutor {
-
-    private static final Trace LOGGER = TraceManager.getTrace(ChangeExecutor.class);
 
     private static final String OPERATION_EXECUTE = ChangeExecutor.class.getName() + ".execute";
     public static final String OPERATION_EXECUTE_FOCUS = OPERATION_EXECUTE + ".focus";

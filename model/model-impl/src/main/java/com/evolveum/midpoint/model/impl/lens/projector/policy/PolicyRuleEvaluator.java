@@ -181,7 +181,7 @@ abstract class PolicyRuleEvaluator {
 
     abstract void record(OperationResult result) throws SchemaException;
 
-    @NotNull List<AssociatedPolicyRule> selectRulesToRecord(@NotNull Collection<? extends AssociatedPolicyRule> allRules) {
+    @NotNull <R extends AssociatedPolicyRule> List<R> selectRulesToRecord(@NotNull Collection<R> allRules) {
         return allRules.stream()
                 .filter(rule -> rule.isTriggered() && rule.containsEnabledAction(RecordPolicyActionType.class))
                 .collect(Collectors.toList());
