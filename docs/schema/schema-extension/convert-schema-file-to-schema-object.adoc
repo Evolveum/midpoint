@@ -1,0 +1,85 @@
+= Convert schema file to schema object saved in repository
+:page-nav-title: Convert schema file to schema object
+:page-keywords: [ "old schema", "schema file", "convert to schema object", "convert to schema repository object"]
+:page-upkeep-status: green
+
+From midPoint 4.9, the schema extension is stored in the database.
+Version before midPoint 4.9 use the schema extension as the XSD file in the midPoint home directory.
+
+So we need a procedure to convert the schema from the xsd file to the SchemaType object.
+This procedure is a very simple shortcut, just paste schema from xsd file into the attribute definition that contains the SchemaType.
+Finally, we import a new `SchemaType` object into midPoint.
+
+== Example
+
+The following example shows a schema extension for user that adds one new attributes. Example is in xsd file format.
+
+.Schema from file
+[source,xml]
+----
+<xsd:schema elementFormDefault="qualified"
+        targetNamespace="http://example.com/xml/ns/mySchema"
+	    xmlns:tns="http://example.com/xml/ns/mySchema"
+	    xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-3"
+	    xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+	    xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+	<xsd:complexType name="UserExtensionType">
+		<xsd:annotation>
+			<xsd:appinfo>
+				<a:extension ref="c:UserType"/>
+			</xsd:appinfo>
+		</xsd:annotation>
+		<xsd:sequence>
+			<xsd:element name="officeNumber" type="xsd:string" minOccurs="0" maxOccurs="1">
+				<xsd:annotation>
+					<xsd:appinfo>
+						<a:indexed>true</a:indexed>
+						<a:displayName>office number</a:displayName>
+						<a:displayOrder>120</a:displayOrder>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:element>
+		</xsd:sequence>
+	</xsd:complexType>
+</xsd:schema>
+----
+
+New `SchemaType` object prepare for import into midPoint.
+
+.Schema from file
+[source,xml]
+----
+<schema>
+    <name>UserExtension</name>
+    <definition>
+        <xsd:schema elementFormDefault="qualified"
+                targetNamespace="http://example.com/xml/ns/mySchema"
+                xmlns:tns="http://example.com/xml/ns/mySchema"
+                xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-3"
+                xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+                xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+
+            <xsd:complexType name="UserExtensionType">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <a:extension ref="c:UserType"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+                <xsd:sequence>
+                    <xsd:element name="officeNumber" type="xsd:string" minOccurs="0" maxOccurs="1">
+                        <xsd:annotation>
+                            <xsd:appinfo>
+                                <a:indexed>true</a:indexed>
+                                <a:displayName>office number</a:displayName>
+                                <a:displayOrder>120</a:displayOrder>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+                </xsd:sequence>
+            </xsd:complexType>
+        </xsd:schema>
+    </definition>
+</schema>
+----
+
+For basic information about extension schema see xref:/midpoint/reference/schema/schema-extension/[Schema extension].
