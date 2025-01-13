@@ -491,11 +491,30 @@
             <xsd:element name="effectiveMarkRef" type="tns:ObjectReferenceType" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
                     <xsd:documentation>
-                       Object marks assigned to the shadow. When stored in the repository, this includes appied policy statements.
+                        Effective object marks for this object.
+
+                        When stored in the repository, this includes computed marks (for shadows by the marking mechanism,
+                        and for other objects by the policy rules), as well as applied policy statements.
+
+                        Conditions that these values hold:
+
+                        1. They always have an OID.
+
+                        2. For shadows: They have either a default relation, or `org:related` one. The latter means
+                        that the reference is inactive, and is present only for the purpose of holding value metadata
+                        (usually that it was computed by a rule, but disabled by a statement).
+
+                        3. They are computed using the `production` configuration (regarding statements, and later e.g.
+                        marking rules).
+
+                        Value metadata (currently applies only to shadows):
+
+                        1. provenance/markingRule is set when the value is provided by the automatic marking rule;
+                        2. provenance/policyStatement is set when the value is influenced by the policy statement
+                        (either enforced or suppressed).
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:objectReferenceTargetType>tns:MarkType</a:objectReferenceTargetType>
-                        <a:experimental>true</a:experimental>
                         <a:displayName>ObjectType.effectiveMarkRef</a:displayName>
                     </xsd:appinfo>
                 </xsd:annotation>
