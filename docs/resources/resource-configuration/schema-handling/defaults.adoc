@@ -4,7 +4,7 @@
 
 This property specifies whether the given resource object type is the default one _for given kind of objects_, i.e. for accounts, entitlements or "generic objects".
 
-Only one type can be the default one for given kind.
+Only a single type can be the default one for given kind.
 Setting this flag to `true` for more than one type is an error.
 
 There are two specific places where this is used.
@@ -34,7 +34,7 @@ See also xref:/midpoint/reference/tasks/activities/resource-object-set-specifica
 
 Let us have the following configuration of object types:
 
-.Listing 18. Sample configuration
+.Sample configuration
 [source,xml]
 ----
 <objectType>
@@ -67,7 +67,7 @@ Let us have the following configuration of object types:
 <2> If intent is not specified in the definition, `default` (literally) is assumed.
 
 [#_sample_constructions]
-.Listing 19. Sample resource object constructions
+.Sample resource object constructions
 [source,xml]
 ----
 <role xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
@@ -109,7 +109,7 @@ Let us have the following configuration of object types:
 
 This property specifies whether the given resource object type is the default one for its object class, e.g. for `ri:AccountObjectClass` or `ri:inetOrgPerson`.
 
-Only one type can be the default one for given object class.
+Only a single type can be the default one for given object class.
 Setting this flag to `true` for more than one type is an error.
 
 There are two specific places where this is used.
@@ -125,7 +125,7 @@ See the classification algorithm description.
 This applies when searching for resource objects, typically in import or reconciliation activities, and using only the object class name.
 For example:
 
-.Listing 20. Importing accounts by object class name
+.Importing accounts by object class name
 [source,xml]
 ----
 <task>
@@ -149,7 +149,7 @@ When `defaultForObjectClass` is used in a type definition that refers to `inetOr
 (Note that midPoint still attempts to synchronize all members of `inetOrgPerson`.)
 
 However, since 4.6, the preferred way to provide such object-class-level definitions that should be applicable to all objects of given object class
-(e.g. `inetOrgPerson`) is to use <<Object Class Definition Adaptation>>, i.e. to provide `schemaHandling/objectClass` refinement for `ri:inetOrgPerson`.
+(e.g. `inetOrgPerson`) is to use xref:/midpoint/reference/resources/resource-configuration/schema-handling/object-classes/[Object Class Definition Adaptation], i.e. to provide `schemaHandling/objectClass` refinement for `ri:inetOrgPerson`.
 Therefore, it's no longer necessary nor recommended to specify default object type for object class just for this purpose.
 
 Overall, it is better to avoid `defaultForObjectClass` setting, and hence also `default` setting.
@@ -159,6 +159,3 @@ Overall, it is better to avoid `defaultForObjectClass` setting, and hence also `
 This is a shorthand for specifying both `defaultForKind` and `defaultForObjectClass`.
 
 These three properties, `defaultForKind`, `defaultForObjectClass` and `default`, may be changed or even removed in the future.
-
-// If no intent is explicitly specified for a particular object kind, for example when defining the resource object construction, then the default type will be used.
-// Only a single intent can be marked as default for each object kind and for each object class in the scope of a resource definition.
