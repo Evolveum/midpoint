@@ -42,7 +42,7 @@ import com.evolveum.midpoint.repo.common.expression.ExpressionEvaluationContext;
 import com.evolveum.midpoint.repo.common.expression.evaluator.AbstractExpressionEvaluator;
 import com.evolveum.midpoint.schema.CorrelatorDiscriminator;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
-import com.evolveum.midpoint.schema.processor.ResourceObjectInboundDefinition;
+import com.evolveum.midpoint.schema.processor.ResourceObjectInboundProcessingDefinition;
 import com.evolveum.midpoint.schema.processor.ShadowAssociationDefinition;
 import com.evolveum.midpoint.schema.processor.ShadowAssociationValue;
 import com.evolveum.midpoint.schema.processor.SynchronizationReactionDefinition.ItemSynchronizationReactionDefinition;
@@ -121,7 +121,7 @@ class AssociationSynchronizationExpressionEvaluator
                 (LensProjectionContext) ModelExpressionThreadLocalHolder.getProjectionContextRequired();
         @NotNull private final ResourceType resource = projectionContext.getResourceRequired();
 
-        @NotNull private final ResourceObjectInboundDefinition inboundDefinition;
+        @NotNull private final ResourceObjectInboundProcessingDefinition inboundProcessingDefinition;
 
         @NotNull private final Collection<AssignmentType> candidateAssignments;
 
@@ -133,8 +133,8 @@ class AssociationSynchronizationExpressionEvaluator
             this.inputValues = inputValues;
             this.associationDefinition = associationDefinition;
             this.context = context;
-            this.inboundDefinition =
-                    ResourceObjectInboundDefinition.forAssociationSynchronization(
+            this.inboundProcessingDefinition =
+                    ResourceObjectInboundProcessingDefinition.forAssociationSynchronization(
                             associationDefinition,
                             expressionEvaluatorBean,
                             context.getTargetDefinitionBean());
@@ -320,7 +320,7 @@ class AssociationSynchronizationExpressionEvaluator
                     return SimplifiedCorrelationResult.noOwner();
                 }
 
-                var correlationDefinitionBean = mergeCorrelationDefinition(inboundDefinition, null, resource);
+                var correlationDefinitionBean = mergeCorrelationDefinition(inboundProcessingDefinition, null, resource);
                 var systemConfiguration = beans.systemObjectCache.getSystemConfigurationBean(result);
                 var correlationResult = beans.correlationServiceImpl.correlateLimited(
                         CorrelatorContextCreator.createRootContext(
@@ -346,10 +346,10 @@ class AssociationSynchronizationExpressionEvaluator
                 var targetAssignment = instantiateTargetAssignment();
                 PreMappingsEvaluator.computePreFocusForAssociationValue(
                         associationValue,
-                        associationValue.hasAssociationObject() ?
+                        associationValue.isComplex() ?
                                 associationValue.getAssociationDataObject().getObjectDefinition() :
                                 projectionContext.getCompositeObjectDefinitionRequired(),
-                        inboundDefinition,
+                        inboundProcessingDefinition,
                         projectionContext.getResourceRequired(),
                         createMappingContextSpecification(),
                         targetAssignment,
@@ -362,7 +362,7 @@ class AssociationSynchronizationExpressionEvaluator
             private AssignmentType instantiateTargetAssignment() {
                 // FIXME temporary
                 var assignment = new AssignmentType();
-                var subtype = inboundDefinition.getFocusSpecification().getAssignmentSubtype();
+                var subtype = inboundProcessingDefinition.getFocusSpecification().getAssignmentSubtype();
                 if (subtype != null) {
                     assignment.subtype(subtype);
                 }
@@ -398,7 +398,7 @@ class AssociationSynchronizationExpressionEvaluator
                     return null;
                 }
 
-                for (var abstractReaction : inboundDefinition.getSynchronizationReactions()) {
+                for (var abstractReaction : inboundProcessingDefinition.getSynchronizationReactions()) {
                     var reaction = (ItemSynchronizationReactionDefinition) abstractReaction;
                     if (reaction.matchesSituation(situation)) {
                         // TODO evaluate other aspects, like condition etc
@@ -515,10 +515,10 @@ class AssociationSynchronizationExpressionEvaluator
                         targetAssignment,
                         ModelBeans.get().systemObjectCache.getSystemConfigurationBean(result),
                         context.getTask(),
-                        associationValue.hasAssociationObject() ?
+                        associationValue.isComplex() ?
                                 associationValue.getAssociationDataObject().getObjectDefinition() :
                                 projectionContext.getCompositeObjectDefinitionRequired(),
-                        inboundDefinition,
+                        inboundProcessingDefinition,
                         false);
             }
 

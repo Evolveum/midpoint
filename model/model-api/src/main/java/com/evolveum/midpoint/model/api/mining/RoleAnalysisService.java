@@ -954,12 +954,6 @@ public interface RoleAnalysisService {
             @NotNull Task task,
             @NotNull OperationResult result);
 
-    void replaceSessionMarkRef(
-            @NotNull PrismObject<RoleAnalysisSessionType> session,
-            @NotNull ObjectReferenceType newMarkRef,
-            @NotNull OperationResult result,
-            @NotNull Task task);
-
     void updateSessionMarkRef(
             @NotNull PrismObject<RoleAnalysisSessionType> session,
             @NotNull OperationResult result,

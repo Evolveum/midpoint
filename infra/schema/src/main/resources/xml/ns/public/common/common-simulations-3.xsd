@@ -596,6 +596,11 @@
                     <xsd:documentation>
                         A filter over SimulationResultProcessedObjectType objects that denotes the matching ones.
                     </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:schemaContext>
+                            <a:type>tns:SimulationResultProcessedObjectType</a:type>
+                        </a:schemaContext>
+                    </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="expression" type="tns:ExpressionType" minOccurs="0">
@@ -738,6 +743,11 @@
                     <xsd:documentation>
                         Which event marks to include?
                     </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:schemaContext>
+                            <a:type>tns:MarkType</a:type>
+                        </a:schemaContext>
+                    </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="exclude" type="q:SearchFilterType" minOccurs="0" maxOccurs="unbounded">
@@ -745,6 +755,11 @@
                     <xsd:documentation>
                         Which event marks to exclude?
                     </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:schemaContext>
+                            <a:type>tns:MarkType</a:type>
+                        </a:schemaContext>
+                    </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
         </xsd:sequence>

@@ -11,18 +11,20 @@ import java.util.Objects;
 import java.util.Set;
 import javax.xml.datatype.XMLGregorianCalendar;
 
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.ForeignKey;
 import jakarta.persistence.Index;
 import jakarta.persistence.Table;
 import jakarta.persistence.*;
 import org.hibernate.annotations.*;
+import org.hibernate.type.descriptor.jdbc.IntegerJdbcType;
 
 import com.evolveum.midpoint.repo.sql.data.RepositoryContext;
 import com.evolveum.midpoint.repo.sql.data.common.Metadata;
 import com.evolveum.midpoint.repo.sql.data.common.RObject;
 import com.evolveum.midpoint.repo.sql.data.common.any.RAssignmentExtension;
-import com.evolveum.midpoint.repo.sql.data.common.embedded.RActivation;
-import com.evolveum.midpoint.repo.sql.data.common.embedded.REmbeddedReference;
+import com.evolveum.midpoint.repo.sql.data.common.embedded.RSimpleActivation;
+import com.evolveum.midpoint.repo.sql.data.common.embedded.RSimpleEmbeddedReference;
 import com.evolveum.midpoint.repo.sql.data.common.id.RContainerId;
 import com.evolveum.midpoint.repo.sql.data.common.other.RAssignmentOwner;
 import com.evolveum.midpoint.repo.sql.data.common.type.RAssignmentExtensionType;
@@ -35,8 +37,6 @@ import com.evolveum.midpoint.repo.sql.util.MidPointSingleTablePersister;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-
-import org.hibernate.type.descriptor.jdbc.IntegerJdbcType;
 
 @JaxbType(type = AssignmentType.class)
 @Entity
@@ -66,21 +66,21 @@ public class RAssignment implements Container<RObject>, Metadata<RAssignmentRefe
     //extension
     private RAssignmentExtension extension;
     //assignment fields
-    private RActivation activation;
-    private REmbeddedReference targetRef;
+    private RSimpleActivation activation;
+    private RSimpleEmbeddedReference targetRef;
     private Integer order;
-    private REmbeddedReference tenantRef;
-    private REmbeddedReference orgRef;
-    private REmbeddedReference resourceRef;
+    private RSimpleEmbeddedReference tenantRef;
+    private RSimpleEmbeddedReference orgRef;
+    private RSimpleEmbeddedReference resourceRef;
     private String lifecycleState;
     private Set<String> policySituation;
     //metadata
     private XMLGregorianCalendar createTimestamp;
-    private REmbeddedReference creatorRef;
+    private RSimpleEmbeddedReference creatorRef;
     private Set<RAssignmentReference> createApproverRef;
     private String createChannel;
     private XMLGregorianCalendar modifyTimestamp;
-    private REmbeddedReference modifierRef;
+    private RSimpleEmbeddedReference modifierRef;
     private Set<RAssignmentReference> modifyApproverRef;
     private String modifyChannel;
 
@@ -130,29 +130,28 @@ public class RAssignment implements Container<RObject>, Metadata<RAssignmentRefe
     }
 
     @Embedded
-    public REmbeddedReference getTargetRef() {
+    public RSimpleEmbeddedReference getTargetRef() {
         return targetRef;
     }
 
     @Embedded
-    public REmbeddedReference getTenantRef() {
+    public RSimpleEmbeddedReference getTenantRef() {
         return tenantRef;
     }
 
     @Embedded
-    public REmbeddedReference getOrgRef() {
+    public RSimpleEmbeddedReference getOrgRef() {
         return orgRef;
     }
 
     @Embedded
     @JaxbPath(itemPath = { @JaxbName(localPart = "construction"), @JaxbName(localPart = "resourceRef") })
-    public REmbeddedReference getResourceRef() {
+    public RSimpleEmbeddedReference getResourceRef() {
         return resourceRef;
     }
 
     @com.evolveum.midpoint.repo.sql.query.definition.Any(jaxbNameLocalPart = "extension")
-    @OneToOne(orphanRemoval = true)
-    @Cascade({ org.hibernate.annotations.CascadeType.ALL })
+    @OneToOne(orphanRemoval = true, cascade = { CascadeType.ALL })
     @JoinColumns(
             value = {
                     @JoinColumn(name = "extOid", referencedColumnName = "owner_owner_oid"),
@@ -161,11 +160,15 @@ public class RAssignment implements Container<RObject>, Metadata<RAssignmentRefe
             foreignKey = @ForeignKey(ConstraintMode.NO_CONSTRAINT)
     )
     public RAssignmentExtension getExtension() {
+//        if (extension == null) {
+//            extension = new RAssignmentExtension();
+//            extension.setOwner(this);
+//        }
         return extension;
     }
 
     @Embedded
-    public RActivation getActivation() {
+    public RSimpleActivation getActivation() {
         return activation;
     }
 
@@ -176,8 +179,7 @@ public class RAssignment implements Container<RObject>, Metadata<RAssignmentRefe
 
     @Override
     @Where(clause = RAssignmentReference.REFERENCE_TYPE + "= 0")
-    @OneToMany(fetch = FetchType.LAZY, mappedBy = RAssignmentReference.F_OWNER, orphanRemoval = true)
-    @Cascade({ org.hibernate.annotations.CascadeType.ALL })
+    @OneToMany(fetch = FetchType.LAZY, mappedBy = RAssignmentReference.F_OWNER, orphanRemoval = true, cascade = CascadeType.ALL)
     @JaxbPath(itemPath = { @JaxbName(localPart = "metadata"), @JaxbName(localPart = "createApproverRef") })
     public Set<RAssignmentReference> getCreateApproverRef() {
         if (createApproverRef == null) {
@@ -202,21 +204,20 @@ public class RAssignment implements Container<RObject>, Metadata<RAssignmentRefe
     @Override
     @Embedded
     @JaxbPath(itemPath = { @JaxbName(localPart = "metadata"), @JaxbName(localPart = "creatorRef") })
-    public REmbeddedReference getCreatorRef() {
+    public RSimpleEmbeddedReference getCreatorRef() {
         return creatorRef;
     }
 
     @Override
     @Embedded
     @JaxbPath(itemPath = { @JaxbName(localPart = "metadata"), @JaxbName(localPart = "modifierRef") })
-    public REmbeddedReference getModifierRef() {
+    public RSimpleEmbeddedReference getModifierRef() {
         return modifierRef;
     }
 
     @Override
     @Where(clause = RAssignmentReference.REFERENCE_TYPE + "= 1")
-    @OneToMany(fetch = FetchType.LAZY, mappedBy = RAssignmentReference.F_OWNER, orphanRemoval = true)
-    @Cascade({ org.hibernate.annotations.CascadeType.ALL })
+    @OneToMany(fetch = FetchType.LAZY, mappedBy = RAssignmentReference.F_OWNER, orphanRemoval = true, cascade = CascadeType.ALL)
     @JaxbPath(itemPath = { @JaxbName(localPart = "metadata"), @JaxbName(localPart = "modifyApproverRef") })
     public Set<RAssignmentReference> getModifyApproverRef() {
         if (modifyApproverRef == null) {
@@ -323,12 +324,12 @@ public class RAssignment implements Container<RObject>, Metadata<RAssignmentRefe
     }
 
     @Override
-    public void setCreatorRef(REmbeddedReference creatorRef) {
+    public void setCreatorRef(RSimpleEmbeddedReference creatorRef) {
         this.creatorRef = creatorRef;
     }
 
     @Override
-    public void setModifierRef(REmbeddedReference modifierRef) {
+    public void setModifierRef(RSimpleEmbeddedReference modifierRef) {
         this.modifierRef = modifierRef;
     }
 
@@ -351,15 +352,18 @@ public class RAssignment implements Container<RObject>, Metadata<RAssignmentRefe
         this.order = order;
     }
 
-    public void setActivation(RActivation activation) {
+    public void setActivation(RSimpleActivation activation) {
         this.activation = activation;
     }
 
     public void setExtension(RAssignmentExtension extension) {
         this.extension = extension;
+//        if (extension != null && extension.getOwner() != this) {
+//            extension.setOwner(this);
+//        }
     }
 
-    public void setTargetRef(REmbeddedReference targetRef) {
+    public void setTargetRef(RSimpleEmbeddedReference targetRef) {
         this.targetRef = targetRef;
     }
 
@@ -367,15 +371,15 @@ public class RAssignment implements Container<RObject>, Metadata<RAssignmentRefe
         this.assignmentOwner = assignmentOwner;
     }
 
-    public void setTenantRef(REmbeddedReference tenantRef) {
+    public void setTenantRef(RSimpleEmbeddedReference tenantRef) {
         this.tenantRef = tenantRef;
     }
 
-    public void setOrgRef(REmbeddedReference orgRef) {
+    public void setOrgRef(RSimpleEmbeddedReference orgRef) {
         this.orgRef = orgRef;
     }
 
-    public void setResourceRef(REmbeddedReference resourceRef) {
+    public void setResourceRef(RSimpleEmbeddedReference resourceRef) {
         this.resourceRef = resourceRef;
     }
 
@@ -434,8 +438,8 @@ public class RAssignment implements Container<RObject>, Metadata<RAssignmentRefe
         }
 
         if (jaxb.getActivation() != null) {
-            RActivation activation = new RActivation();
-            RActivation.fromJaxb(jaxb.getActivation(), activation);
+            RSimpleActivation activation = new RSimpleActivation();
+            RSimpleActivation.fromJaxb(jaxb.getActivation(), activation);
             repo.setActivation(activation);
         }
 

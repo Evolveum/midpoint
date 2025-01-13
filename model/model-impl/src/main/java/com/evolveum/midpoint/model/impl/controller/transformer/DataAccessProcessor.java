@@ -13,7 +13,6 @@ import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.equivalence.EquivalenceStrategy;
-import com.evolveum.midpoint.prism.path.InfraItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.AccessDecision;
 import com.evolveum.midpoint.security.api.SecurityUtil;
@@ -71,7 +70,7 @@ public class DataAccessProcessor {
             if (mutable.isEmpty()) {
                 // let's make it explicit (note that the log message may show empty object if it was originally mutable)
                 // TODO decide if this is really correct approach
-                SecurityUtil.logSecurityDeny(value, "because the subject has not access to any item");
+                SecurityUtil.logSecurityDeny(value, "because the subject has no access to any item");
                 throw new AuthorizationException("Access denied");
             }
             //noinspection unchecked
@@ -141,8 +140,6 @@ public class DataAccessProcessor {
             return value;
         }
 
-
-
         var itemConstraints = readConstraints.getMetadataConstraints();
         var explictConstraints = itemConstraints.getDecision();
 
@@ -166,9 +163,8 @@ public class DataAccessProcessor {
         }
     }
 
-    public @NotNull <O extends ObjectType> PrismEntityOpConstraints.ForValueContent applyReadConstraints(
-            LensElementContext<O> elementContext, PrismEntityOpConstraints.ForValueContent readConstraints)
-            throws AuthorizationException {
+    public <O extends ObjectType> void applyReadConstraints(LensElementContext<O> elementContext,
+            PrismEntityOpConstraints.ForValueContent readConstraints) throws AuthorizationException {
         var decision = readConstraints.getDecision();
         if (decision == AccessDecision.ALLOW) {
             // no-op
@@ -182,7 +178,6 @@ public class DataAccessProcessor {
             elementContext.forEachDelta(delta ->
                     applyReadConstraintsToDelta(delta, readConstraints));
         }
-        return readConstraints;
     }
 
     private void applyReadConstraintsToMutableValue(

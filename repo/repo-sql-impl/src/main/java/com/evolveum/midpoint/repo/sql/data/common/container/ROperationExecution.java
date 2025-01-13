@@ -19,7 +19,7 @@ import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.repo.sql.data.RepositoryContext;
 import com.evolveum.midpoint.repo.sql.data.common.RObject;
-import com.evolveum.midpoint.repo.sql.data.common.embedded.REmbeddedReference;
+import com.evolveum.midpoint.repo.sql.data.common.embedded.RSimpleEmbeddedReference;
 import com.evolveum.midpoint.repo.sql.data.common.enums.ROperationExecutionRecordType;
 import com.evolveum.midpoint.repo.sql.data.common.enums.ROperationResultStatus;
 import com.evolveum.midpoint.repo.sql.data.common.id.RContainerId;
@@ -54,8 +54,8 @@ public class ROperationExecution implements Container<RObject> {
     private String ownerOid;
     private Integer id;
 
-    private REmbeddedReference initiatorRef;
-    private REmbeddedReference taskRef;
+    private RSimpleEmbeddedReference initiatorRef;
+    private RSimpleEmbeddedReference taskRef;
     private ROperationResultStatus status;
     private ROperationExecutionRecordType recordType;
     private XMLGregorianCalendar timestamp;
@@ -116,20 +116,20 @@ public class ROperationExecution implements Container<RObject> {
     }
 
     @Embedded
-    public REmbeddedReference getInitiatorRef() {
+    public RSimpleEmbeddedReference getInitiatorRef() {
         return initiatorRef;
     }
 
-    public void setInitiatorRef(REmbeddedReference initiatorRef) {
+    public void setInitiatorRef(RSimpleEmbeddedReference initiatorRef) {
         this.initiatorRef = initiatorRef;
     }
 
     @Embedded
-    public REmbeddedReference getTaskRef() {
+    public RSimpleEmbeddedReference getTaskRef() {
         return taskRef;
     }
 
-    public void setTaskRef(REmbeddedReference taskRef) {
+    public void setTaskRef(RSimpleEmbeddedReference taskRef) {
         this.taskRef = taskRef;
     }
 

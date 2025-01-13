@@ -43,6 +43,7 @@ public class SecurityPolicyCustomMerger {
         merged.setCredentials(mergeCredentialsPolicy(specific.getCredentials(), generic.getCredentials()));
         merged.setCredentialsReset(mergeCredentialsReset(specific.getCredentialsReset(), generic.getCredentialsReset()));
         merged.setIdentityRecovery(mergeIdentityRecovery(specific.getIdentityRecovery(), generic.getIdentityRecovery()));
+        merged.setFlow(mergeFlow(specific.getFlow(), generic.getFlow()));
         return merged;
     }
 
@@ -241,6 +242,16 @@ public class SecurityPolicyCustomMerger {
 
     private static IdentityRecoveryPolicyType mergeIdentityRecovery(
             IdentityRecoveryPolicyType specific, IdentityRecoveryPolicyType generic) {
+        if (specific != null) {
+            return specific.cloneWithoutId();
+        }
+        if (generic != null) {
+            return generic.cloneWithoutId();
+        }
+        return null;
+    }
+
+    private static RegistrationsPolicyType mergeFlow(RegistrationsPolicyType specific, RegistrationsPolicyType generic) {
         if (specific != null) {
             return specific.cloneWithoutId();
         }

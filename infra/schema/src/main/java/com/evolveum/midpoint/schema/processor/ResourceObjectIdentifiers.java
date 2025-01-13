@@ -14,6 +14,7 @@ import com.evolveum.midpoint.util.DebugDumpable;
 
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.MiscUtil;
+import com.evolveum.midpoint.util.ShortDumpable;
 import com.evolveum.midpoint.util.exception.SchemaException;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
@@ -25,6 +26,7 @@ import org.jetbrains.annotations.Nullable;
 import java.io.Serial;
 import java.io.Serializable;
 import java.util.*;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
@@ -40,7 +42,7 @@ import java.util.stream.Stream;
  * @see ResourceObjectIdentifier
  * @see ResourceObjectIdentification
  */
-public abstract class ResourceObjectIdentifiers implements Serializable, DebugDumpable, Cloneable {
+public abstract class ResourceObjectIdentifiers implements Serializable, DebugDumpable, ShortDumpable, Cloneable {
 
     @Serial private static final long serialVersionUID = 1L;
 
@@ -214,6 +216,14 @@ public abstract class ResourceObjectIdentifiers implements Serializable, DebugDu
     @Override
     public String toString() {
         return "Resource object identifiers: " + getAllIdentifiers();
+    }
+
+    @Override
+    public void shortDump(StringBuilder sb) {
+        sb.append(
+                getAllIdentifiers().stream()
+                        .map(ResourceObjectIdentifier::shortDump)
+                        .collect(Collectors.joining(", ")));
     }
 
     /** Identifiers that contain a primary identifier. */

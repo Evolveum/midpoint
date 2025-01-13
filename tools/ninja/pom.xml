@@ -146,12 +146,12 @@
         <dependency>
             <groupId>com.squareup.okhttp3</groupId>
             <artifactId>okhttp</artifactId>
-             <exclusions>
-		<exclusion>  <!-- declare the exclusion here -->
-		  <groupId>com.squareup.okio</groupId>
-		  <artifactId>okio-jvm</artifactId>
-		</exclusion>
-      </exclusions> 
+            <exclusions>
+                <exclusion>  <!-- declare the exclusion here -->
+                    <groupId>com.squareup.okio</groupId>
+                    <artifactId>okio-jvm</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>com.squareup.okio</groupId>

@@ -16,7 +16,6 @@ import org.jetbrains.annotations.NotNull;
 import com.evolveum.midpoint.provisioning.impl.ProvisioningContext;
 import com.evolveum.midpoint.schema.config.AssociationConfigItem.AttributeBinding;
 import com.evolveum.midpoint.schema.processor.SimulatedShadowReferenceTypeDefinition;
-import com.evolveum.midpoint.schema.processor.ShadowReferenceAttributeDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -59,30 +58,30 @@ class EntitlementReader {
             throws SchemaException, CommunicationException, ObjectNotFoundException, ConfigurationException,
             SecurityViolationException, ExpressionEvaluationException {
 
-        LOGGER.trace("Starting simulated associations read operation");
-        for (ShadowReferenceAttributeDefinition associationDef : subjectCtx.getAssociationDefinitions()) {
-            if (!isSimulated(associationDef)
-                    || !isVisible(associationDef, subjectCtx)
-                    || !doesMatchSubjectDelineation(associationDef, subjectCtx)) {
+        LOGGER.trace("Starting simulated references read operation");
+        for (var refAttrDef : subjectCtx.getReferenceAttributeDefinitions()) {
+            if (!isSimulated(refAttrDef)
+                    || !isVisible(refAttrDef, subjectCtx)
+                    || !doesMatchSubjectDelineation(refAttrDef, subjectCtx)) {
                 continue;
             }
-            var simulationDefinition = Objects.requireNonNull(associationDef.getSimulationDefinition());
-            LOGGER.trace("Processing simulated association {}: {}", associationDef, simulationDefinition);
+            var simulationDefinition = Objects.requireNonNull(refAttrDef.getSimulationDefinition());
+            LOGGER.trace("Processing simulated reference attribute {}: {}", refAttrDef, simulationDefinition);
             var primaryBinding = simulationDefinition.getPrimaryAttributeBinding();
             var secondaryBinding = simulationDefinition.getSecondaryAttributeBinding();
             if (simulationDefinition.isSubjectToObject()) {
-                convertSubjectAttributeToAssociation(primaryBinding, simulationDefinition);
+                convertSubjectAttributeToReferenceAttribute(primaryBinding, simulationDefinition);
             } else if (secondaryBinding != null) {
-                convertSubjectAttributeToAssociation(secondaryBinding, simulationDefinition);
+                convertSubjectAttributeToReferenceAttribute(secondaryBinding, simulationDefinition);
             } else {
                 searchForTargetObjects(primaryBinding, simulationDefinition, result);
             }
         }
-        LOGGER.trace("Finished simulated associations read operation");
+        LOGGER.trace("Finished simulated references read operation");
     }
 
     /**
-     * Creates the association values from the (subject) attribute values.
+     * Creates the reference attribute values from the (subject) attribute values.
      *
      * It simply uses values of the subject side attribute of the binding to construct identifiers
      * pointing to the entitlement object.
@@ -91,7 +90,7 @@ class EntitlementReader {
      *
      * - isMemberOf: "cn=wheel,ou=Groups,dc=example,dc=com"; "cn=users,ou=Groups,dc=example,dc=com"
      * - referenced identifier is "dn" (of a group)
-     * - association name = "ri:group"
+     * - reference attribute name = "ri:group"
      *
      * then the result would be:
      *
@@ -99,11 +98,11 @@ class EntitlementReader {
      *       PCV: identifiers: { dn: "cn=wheel,ou=Groups,dc=example,dc=com" }
      *       PCV: identifiers: { dn: "cn=users,ou=Groups,dc=example,dc=com" }
      *
-     * NOTE: These values are not filtered according to the association type definition;
+     * NOTE: These values are not filtered according to the object type definition;
      * because this is just a simulation of what would the resource do.
      * The filtering will come in upper layers - specifically, in shadowed object construction.
      */
-    private <T> void convertSubjectAttributeToAssociation(
+    private <T> void convertSubjectAttributeToReferenceAttribute(
             @NotNull AttributeBinding bindingToUse,
             @NotNull SimulatedShadowReferenceTypeDefinition simulationDefinition) throws SchemaException {
 
@@ -123,8 +122,9 @@ class EntitlementReader {
 
         for (var subjectBindingAttrValue : subjectBindingAttrValues) {
             var newReferenceAttrValue =
-                    subjectReferenceAttr.createNewValueWithIdentifier(
-                            objectBindingAttrDef.instantiateFromRealValue(subjectBindingAttrValue.clone().getRealValueRequired()));
+                    subjectReferenceAttr.createNewValueWithIdentifierRealValue(
+                            objectBindingAttrDef.getItemName(),
+                            subjectBindingAttrValue.getRealValueRequired());
             LOGGER.trace("Binding attribute value resolved to reference value {}", newReferenceAttrValue);
         }
     }
@@ -137,7 +137,7 @@ class EntitlementReader {
      *
      * Iterates through all the delineations specified in the simulation.
      *
-     * NOTE: Just as {@link #convertSubjectAttributeToAssociation(AttributeBinding, SimulatedShadowReferenceTypeDefinition)},
+     * NOTE: Just as {@link #convertSubjectAttributeToReferenceAttribute(AttributeBinding, SimulatedShadowReferenceTypeDefinition)},
      * this method does not filter the results according object types specified in the association type definition.
      */
     private void searchForTargetObjects(

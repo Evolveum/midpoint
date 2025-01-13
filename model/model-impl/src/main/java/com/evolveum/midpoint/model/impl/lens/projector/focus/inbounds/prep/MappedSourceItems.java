@@ -13,29 +13,31 @@ import java.util.List;
 import java.util.Objects;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.model.impl.lens.projector.focus.inbounds.MappingEvaluationRequestsMap;
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.schema.processor.ResourceObjectInboundProcessingDefinition.CompleteItemInboundDefinition;
 
-import com.evolveum.midpoint.schema.config.ConfigurationItemOrigin;
-import com.evolveum.midpoint.schema.config.InboundMappingConfigItem;
-import com.evolveum.midpoint.schema.config.MappingConfigItem;
-
-import com.evolveum.midpoint.schema.processor.*;
-
-import com.evolveum.midpoint.schema.processor.ResourceObjectInboundDefinition.ItemInboundDefinition;
-import com.evolveum.midpoint.schema.result.OperationResult;
-
-import com.evolveum.midpoint.util.exception.*;
+import com.evolveum.midpoint.schema.processor.ShadowItemDefinition;
 
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.axiom.concepts.Lazy;
 import com.evolveum.midpoint.model.common.mapping.MappingImpl;
-import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.prism.path.ItemName;
-import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.model.impl.lens.projector.focus.inbounds.MappingEvaluationRequestsMap;
+import com.evolveum.midpoint.prism.Containerable;
+import com.evolveum.midpoint.prism.ItemDefinition;
+import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.PrismPropertyDefinition;
+import com.evolveum.midpoint.schema.config.ConfigurationItemOrigin;
+import com.evolveum.midpoint.schema.config.InboundMappingConfigItem;
+import com.evolveum.midpoint.schema.config.MappingConfigItem;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.InboundMappingType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.LayerType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
 /**
  * Collection of {@link MappedSourceItem}s: they will produce prepared {@link MappingImpl}s.
@@ -78,25 +80,10 @@ class MappedSourceItems<T extends Containerable> {
      */
     void collectMappedItems() throws SchemaException, ConfigurationException {
 
-        var sourceInboundDefinition = inboundsSource.getInboundDefinition();
-
-        for (var simpleAttributeDef : inboundsSource.getSimpleAttributeDefinitions()) {
-            createMappedItemForSimpleAttribute(
-                    simpleAttributeDef,
-                    sourceInboundDefinition.getSimpleAttributeInboundDefinition(simpleAttributeDef.getItemName()));
+        var sourceInboundDefinition = inboundsSource.getInboundProcessingDefinition();
+        for (var shadowItemInboundDefinition : sourceInboundDefinition.getItemInboundDefinitions()) {
+            createMappedItemForShadowItem(shadowItemInboundDefinition);
         }
-
-        for (var refAttributeDef : inboundsSource.getObjectReferenceAttributeDefinitions()) {
-            createMappedItemForReferenceAttribute(
-                    refAttributeDef,
-                    sourceInboundDefinition.getReferenceAttributeInboundDefinition(refAttributeDef.getItemName()));
-        }
-
-        for (var assocDef : inboundsSource.getAssociationDefinitions()) {
-            createMappedItemForAssociation(assocDef);
-        }
-
-        // Note that associations are treated later
 
         // FIXME Remove this temporary check
         if (!inboundsSource.isClockwork()) {
@@ -113,45 +100,32 @@ class MappedSourceItems<T extends Containerable> {
     }
 
     /**
-     * Creates a mapping creation request for mapping(s) for given attribute.
-     *
-     * @param <TA> type of the attribute
-     * @see #createMappedItemForReferenceAttribute(ShadowReferenceAttributeDefinition, ItemInboundDefinition)
-     * @see #createMappedItemForAuxObjectClasses()
+     * Creates a {@link MappedSourceItem} for given attribute or association.
      */
-    private <TA> void createMappedItemForSimpleAttribute(
-            @NotNull ShadowSimpleAttributeDefinition<TA> attributeDefinition,
-            ItemInboundDefinition attributeInboundDefinition)
+    private void createMappedItemForShadowItem(
+            @NotNull CompleteItemInboundDefinition completeItemInboundDefinition)
             throws SchemaException, ConfigurationException {
 
-        if (attributeInboundDefinition == null) {
-            return;
-        }
+        var itemPath = completeItemInboundDefinition.path();
+        var processingDefinition = completeItemInboundDefinition.inboundProcessingDefinition();
+        var itemDefinition = completeItemInboundDefinition.itemDefinition();
 
-        List<InboundMappingType> inboundMappingBeans = attributeInboundDefinition.getInboundMappingBeans();
+        var inboundMappingBeans = processingDefinition.getInboundMappingBeans();
         if (inboundMappingBeans.isEmpty()) {
             return;
         }
 
-        var attributeName = attributeDefinition.getItemName();
-        var itemPath = ItemPath.create(ShadowType.F_ATTRIBUTES, attributeName);
-
-        List<InboundMappingConfigItem> applicableMappings = // [EP:M:IM] DONE beans are really from the resource
+        var applicableMappingCIs = // [EP:M:IM] DONE beans are really from the resource
                 inboundsSource.selectMappingBeansForEvaluationPhase(
                         itemPath,
                         createMappingCIs(inboundMappingBeans),
-                        attributeInboundDefinition.getCorrelatorDefinition() != null,
+                        processingDefinition.getCorrelatorDefinition() != null,
                         inboundsContext.getCorrelationItemPaths());
-        if (applicableMappings.isEmpty()) {
+        if (applicableMappingCIs.isEmpty()) {
             LOGGER.trace("{}: No applicable beans for this phase", itemPath);
             return;
         }
-
-        if (inboundsSource.isItemNotProcessable(
-                itemPath,
-                attributeDefinition.isVisible(inboundsContext),
-                attributeDefinition.isIgnored(LayerType.MODEL),
-                attributeDefinition.getLimitations(LayerType.MODEL))) {
+        if (!isItemProcessable(itemPath, itemDefinition)) {
             return;
         }
 
@@ -160,121 +134,38 @@ class MappedSourceItems<T extends Containerable> {
                         inboundsSource,
                         inboundsTarget,
                         inboundsContext,
-                        applicableMappings, // [EP:M:IM] DONE beans are from the resource
+                        applicableMappingCIs, // [EP:M:IM] DONE beans are from the resource
                         itemPath,
-                        attributeDefinition,
-                        () -> inboundsSource.sourceData.getSimpleAttribute(attributeName),
-                        () -> inboundsSource.isAttributeAvailable(attributeDefinition.getItemName())
-                ));
+                        (ItemDefinition<?>) itemDefinition));
     }
 
     /**
-     * Creates a {@link MappedSourceItem} for given association.
-     *
-     * @see #createMappedItemForSimpleAttribute(ShadowSimpleAttributeDefinition, ItemInboundDefinition)
-     * @see #createMappedItemForAuxObjectClasses()
+     * Returns true if the mapping(s) for given item on this source should be skipped because of item restrictions
+     * or obviously missing data.
      */
-    private void createMappedItemForReferenceAttribute(
-            @NotNull ShadowReferenceAttributeDefinition refAttrDef,
-            ItemInboundDefinition attributeInboundDefinition)
-            throws SchemaException, ConfigurationException {
+    private boolean isItemProcessable(ItemPath itemPath, ShadowItemDefinition itemDefinition) {
 
-        if (attributeInboundDefinition == null) {
-            return;
+        if (!itemDefinition.isVisible(inboundsContext)) {
+            LOGGER.trace("Inbound mapping(s) for {} will be skipped because the item is not visible in current execution mode",
+                    itemPath);
+            return false;
         }
-
-        var inboundMappingBeans = attributeInboundDefinition.getInboundMappingBeans();
-        if (inboundMappingBeans.isEmpty()) {
-            return;
+        if (itemDefinition.isIgnored(LayerType.MODEL)) {
+            LOGGER.trace("Inbound mapping(s) for {} will be skipped because the item is ignored", itemPath);
+            return false;
         }
-
-        var refAttrName = refAttrDef.getItemName();
-        var itemPath = ShadowType.F_ATTRIBUTES.append(refAttrName);
-
-        List<InboundMappingConfigItem> applicableMappings =
-                inboundsSource.selectMappingBeansForEvaluationPhase(
-                        itemPath,
-                        createMappingCIs(inboundMappingBeans),
-                        attributeInboundDefinition.getCorrelatorDefinition() != null,
-                        inboundsContext.getCorrelationItemPaths());
-        if (applicableMappings.isEmpty()) {
-            LOGGER.trace("{}: No applicable beans for this phase", itemPath);
-            return;
+        var limitations = itemDefinition.getLimitations(LayerType.MODEL);
+        if (limitations != null && !limitations.canRead()) {
+            LOGGER.warn("Skipping inbound mapping(s) for {} in {} because it is not readable",
+                    itemPath, inboundsSource.getProjectionHumanReadableName());
+            return false;
         }
-
-        if (inboundsSource.isItemNotProcessable(
-                itemPath,
-                refAttrDef.isVisible(inboundsContext),
-                refAttrDef.isIgnored(LayerType.MODEL),
-                refAttrDef.getLimitations(LayerType.MODEL))) {
-            return;
+        if (inboundsSource.sourceData.isNoShadow() && inboundsSource.sourceData.getEffectiveItemDelta(itemPath) == null) {
+            LOGGER.trace("Inbound mapping(s) for {} will be skipped because there is no shadow (not even repo version),"
+                    + "and no delta for the item", itemPath);
+            return false;
         }
-
-        //noinspection rawtypes,unchecked
-        mappedSourceItems.add(
-                new MappedSourceItem<>(
-                        inboundsSource,
-                        inboundsTarget,
-                        inboundsContext,
-                        applicableMappings, // [EP:M:IM] DONE mappings are from the resource
-                        itemPath, // source path (cannot point to specified association name!)
-                        refAttrDef,
-                        () -> (Item) inboundsSource.sourceData.getReferenceAttribute(refAttrName),
-                        () -> inboundsSource.isAttributeAvailable(refAttrName)));
-    }
-
-    /**
-     * Creates a {@link MappedSourceItem} for given (legacy) association.
-     *
-     * @see #createMappedItemForSimpleAttribute(ShadowSimpleAttributeDefinition, ItemInboundDefinition)
-     * @see #createMappedItemForAuxObjectClasses()
-     */
-    private void createMappedItemForAssociation(@NotNull ShadowAssociationDefinition assocDef)
-            throws SchemaException, ConfigurationException {
-
-        var inboundMappingBeans = assocDef.getInboundMappingBeans();
-        if (inboundMappingBeans.isEmpty()) {
-            return;
-        }
-
-        var assocName = assocDef.getItemName();
-        var itemPath = ShadowType.F_ASSOCIATIONS.append(assocName);
-
-        List<InboundMappingConfigItem> applicableMappings =
-                inboundsSource.selectMappingBeansForEvaluationPhase(
-                        itemPath,
-                        createMappingCIs(inboundMappingBeans),
-                        false, // association cannot be a correlator (currently)
-                        inboundsContext.getCorrelationItemPaths());
-        if (applicableMappings.isEmpty()) {
-            LOGGER.trace("{}: No applicable beans for this phase", itemPath);
-            return;
-        }
-
-        MappedSourceItem.ItemProvider<ShadowAssociationValue, ShadowAssociationDefinition>
-                associationProvider = () -> {
-            //noinspection unchecked,rawtypes
-            return (Item) MappedSourceItems.this.inboundsSource.sourceData.getAssociation(assocName);
-        };
-
-        if (inboundsSource.isItemNotProcessable(
-                itemPath,
-                assocDef.isVisible(inboundsContext),
-                assocDef.getReferenceAttributeDefinition().isIgnored(LayerType.MODEL),
-                assocDef.getReferenceAttributeDefinition().getLimitations(LayerType.MODEL))) {
-            return;
-        }
-
-        mappedSourceItems.add(
-                new MappedSourceItem<>(
-                        inboundsSource,
-                        inboundsTarget,
-                        inboundsContext,
-                        applicableMappings, // [EP:M:IM] DONE mappings are from the resource
-                        itemPath, // source path (cannot point to specified association name!)
-                        assocDef,
-                        associationProvider,
-                        () -> inboundsSource.isAssociationAvailable(assocName)));
+        return true;
     }
 
     private List<InboundMappingConfigItem> createMappingCIs(Collection<InboundMappingType> inboundMappingBeans) {
@@ -287,42 +178,29 @@ class MappedSourceItems<T extends Containerable> {
     /**
      * Creates a {@link MappedSourceItem} for "auxiliary object classes" property.
      *
-     * @see #createMappedItemForSimpleAttribute(ShadowSimpleAttributeDefinition, ItemInboundDefinition)
-     * @see #createMappedItemForReferenceAttribute(ShadowReferenceAttributeDefinition, ItemInboundDefinition)
+     * @see #createMappedItemForShadowItem(CompleteItemInboundDefinition)
      */
     private void createMappedItemForAuxObjectClasses() throws SchemaException, ConfigurationException {
 
-        ItemName itemPath = ShadowType.F_AUXILIARY_OBJECT_CLASS;
-
-        var auxiliaryObjectClassMappings = inboundsSource.inboundDefinition.getAuxiliaryObjectClassMappings();
-        if (auxiliaryObjectClassMappings == null) {
-            return;
-        }
         // TODO add filtering after these mappings are promoted to InboundMappingType
-        List<MappingType> mappingBeans = auxiliaryObjectClassMappings.getInbound();
+        List<MappingType> mappingBeans = inboundsSource.inboundProcessingDefinition.getAuxiliaryObjectClassInboundMappings();
         if (mappingBeans.isEmpty()) {
             return;
         }
 
-        var mappings = MappingConfigItem.ofList(
+        var mappingCIs = MappingConfigItem.ofList(
                 mappingBeans,
                 item -> ConfigurationItemOrigin.inResourceOrAncestor(inboundsSource.getResource()),
                 MappingConfigItem.class);
-
-        MappedSourceItem.ItemProvider<PrismPropertyValue<QName>, PrismPropertyDefinition<QName>> itemProvider =
-                () -> inboundsSource.sourceData.getAuxiliaryObjectClasses();
 
         mappedSourceItems.add(
                 new MappedSourceItem<>(
                         inboundsSource,
                         inboundsTarget,
                         inboundsContext,
-                        mappings, // [EP:M:IM] DONE mappings are from the resource
-                        itemPath,
-                        lazyAuxiliaryObjectClassPropertyDefinition.get(),
-                        itemProvider,
-                        () -> inboundsSource.isAuxiliaryObjectClassPropertyLoaded()
-                ));
+                        mappingCIs, // [EP:M:IM] DONE mappings are from the resource
+                        ShadowType.F_AUXILIARY_OBJECT_CLASS,
+                        lazyAuxiliaryObjectClassPropertyDefinition.get()));
     }
 
     void createMappings(MappingEvaluationRequestsMap evaluationRequestsBeingCollected, OperationResult result)
@@ -343,7 +221,7 @@ class MappedSourceItems<T extends Containerable> {
             throws SchemaException, ConfigurationException {
         var rv = new ArrayList<MappedSourceItem<?, ?, T>>();
         for (var i : mappedSourceItems) {
-            if (i.isRequiringCurrentValue() && !i.hasCurrentValue()) {
+            if (i.isRequiringCurrentValue() && !i.isLoaded()) {
                 rv.add(i);
             }
         }

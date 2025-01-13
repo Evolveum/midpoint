@@ -2521,19 +2521,23 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
-            <xsd:element name="incoming" type="tns:ShadowItemDependencyType" minOccurs="0" maxOccurs="unbounded">
+            <xsd:element name="incoming" type="tns:ShadowItemDependencyType" minOccurs="0"> <!-- temporarily single-valued -->
                 <xsd:annotation>
                     <xsd:documentation>
                         Items on which this item may depend on - i.e., whose values or changes may affect the values
                         of the item being considered.
+
+                        Note: Currently no specific items can be provided here, only the operation(s) relevant for this dependency.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="outgoing" type="tns:ShadowItemDependencyType" minOccurs="0" maxOccurs="unbounded">
+            <xsd:element name="outgoing" type="tns:ShadowItemDependencyType" minOccurs="0"> <!-- temporarily single-valued -->
                 <xsd:annotation>
                     <xsd:documentation>
                         Items that may depend on this item - i.e., whose that may be affected by values or changes of this item.
                         Currently, only "modify" operation is supported here.
+
+                        Note: Currently no specific items can be provided here, only the operation(s) relevant for this dependency.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
@@ -2988,6 +2992,9 @@
                 </a:schemaMigration>
                 <a:container/>
                 <a:naturalKey>filter</a:naturalKey>
+                <a:schemaContext>
+                    <a:type>tns:ShadowType</a:type>
+                </a:schemaContext>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
@@ -3073,6 +3080,9 @@
             </xsd:documentation>
             <xsd:appinfo>
                 <a:container/>
+                <a:schemaContext>
+                    <a:type>tns:ShadowType</a:type>
+                </a:schemaContext>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
@@ -3473,141 +3483,6 @@
         </xsd:sequence>
     </xsd:complexType>
 
-    <xsd:complexType name="AbstractAssociationMappingType">
-        <xsd:annotation>
-            <xsd:documentation>
-                Inbound or outbound mapping for the association as a whole.
-                See also AbstractMappingType.
-            </xsd:documentation>
-            <xsd:appinfo>
-                <a:container/>
-                <a:since>4.9</a:since>
-            </xsd:appinfo>
-        </xsd:annotation>
-        <xsd:sequence>
-            <xsd:element name="name" type="xsd:string" minOccurs="0">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Short name of the mapping. Used for provenance metadata management and debugging purposes.
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="expression" type="tns:ExpressionType" minOccurs="0">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Alternative representation of the outbound mapping: via explicit expression.
-                        Mutually exclusive with partial attribute/objectRef/validation mappings.
-                    </xsd:documentation>
-                    <xsd:appinfo>
-                        <a:displayName>MappingType.expression</a:displayName>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:element>
-        </xsd:sequence>
-        <xsd:attribute name="id" type="xsd:long"/>
-    </xsd:complexType>
-
-    <xsd:complexType name="AssociationOutboundMappingType">
-        <xsd:annotation>
-            <xsd:documentation>
-                Outbound mapping for the association as a whole.
-            </xsd:documentation>
-            <xsd:appinfo>
-                <a:container/>
-                <a:since>4.9</a:since>
-            </xsd:appinfo>
-        </xsd:annotation>
-        <xsd:complexContent>
-            <xsd:extension base="tns:AbstractAssociationMappingType">
-                <xsd:sequence>
-                    <xsd:element name="attribute" type="tns:AttributeOutboundMappingsDefinitionType" minOccurs="0" maxOccurs="unbounded">
-                        <xsd:annotation>
-                            <xsd:documentation>
-                                Outbound processing of given association attribute.
-                            </xsd:documentation>
-                        </xsd:annotation>
-                    </xsd:element>
-                    <xsd:element name="objectRef" type="tns:AttributeOutboundMappingsDefinitionType" minOccurs="0" maxOccurs="unbounded">
-                        <xsd:annotation>
-                            <xsd:documentation>
-                                Outbound processing of given object-side of this association.
-                                The object can be specified exactly (via "ref" property), or kept implicit, if there's only one object.
-                            </xsd:documentation>
-                        </xsd:annotation>
-                    </xsd:element>
-                    <xsd:element name="activation" minOccurs="0" type="tns:ResourceActivationDefinitionType">
-                        <xsd:annotation>
-                            <xsd:documentation>
-                                Outbound processing of the activation of this association.
-                            </xsd:documentation>
-                        </xsd:annotation>
-                    </xsd:element>
-                </xsd:sequence>
-            </xsd:extension>
-        </xsd:complexContent>
-    </xsd:complexType>
-
-    <xsd:complexType name="AssociationInboundMappingType">
-        <xsd:annotation>
-            <xsd:documentation>
-                Inbound mapping for the association as a whole.
-            </xsd:documentation>
-            <xsd:appinfo>
-                <a:container/>
-                <a:since>4.9</a:since>
-            </xsd:appinfo>
-        </xsd:annotation>
-        <xsd:complexContent>
-            <xsd:extension base="tns:AbstractAssociationMappingType">
-                <xsd:sequence>
-                    <xsd:element name="attribute" type="tns:AttributeInboundMappingsDefinitionType" minOccurs="0" maxOccurs="unbounded">
-                        <xsd:annotation>
-                            <xsd:documentation>
-                                Outbound processing of given association attribute.
-                            </xsd:documentation>
-                        </xsd:annotation>
-                    </xsd:element>
-                    <xsd:element name="objectRef" type="tns:AttributeInboundMappingsDefinitionType" minOccurs="0" maxOccurs="unbounded">
-                        <xsd:annotation>
-                            <xsd:documentation>
-                                Outbound processing of given object-side of this association.
-                                The object can be specified exactly (via "ref" property), or kept implicit, if there's only one object.
-                            </xsd:documentation>
-                        </xsd:annotation>
-                    </xsd:element>
-                    <xsd:element name="activation" minOccurs="0" type="tns:ResourceActivationDefinitionType">
-                        <xsd:annotation>
-                            <xsd:documentation>
-                                Outbound processing of the activation of this association.
-                            </xsd:documentation>
-                        </xsd:annotation>
-                    </xsd:element>
-                    <xsd:element name="correlation" type="tns:CorrelationDefinitionType" minOccurs="0">
-                        <xsd:annotation>
-                            <xsd:documentation>
-                                How objects of this type are correlated to focus objects?
-                            </xsd:documentation>
-                        </xsd:annotation>
-                    </xsd:element>
-                    <xsd:element name="synchronization" type="tns:ItemSynchronizationReactionsType" minOccurs="0">
-                        <xsd:annotation>
-                            <xsd:documentation>
-                                TODO
-                            </xsd:documentation>
-                        </xsd:annotation>
-                    </xsd:element>
-                    <xsd:element name="target" type="tns:AssociationInboundMappingTargetDefinitionType" minOccurs="0">
-                        <xsd:annotation>
-                            <xsd:documentation>
-                                TODO
-                            </xsd:documentation>
-                        </xsd:annotation>
-                    </xsd:element>
-                </xsd:sequence>
-            </xsd:extension>
-        </xsd:complexContent>
-    </xsd:complexType>
-
     <xsd:complexType name="AbstractAttributeMappingsDefinitionType">
         <xsd:annotation>
             <xsd:documentation>
@@ -3737,7 +3612,7 @@
     <xsd:simpleType name="ResourceObjectAssociationDirectionType">
         <xsd:annotation>
             <xsd:documentation>
-                Direction of a resource object association.
+                Direction of a resource object reference or association.
             </xsd:documentation>
         </xsd:annotation>
         <xsd:restriction base="xsd:string">
@@ -6398,6 +6273,9 @@
             <xsd:appinfo>
                 <a:container/>
                 <a:since>4.6</a:since>
+                <a:schemaContext>
+                    <a:type>tns:ShadowType</a:type> <!-- TODO check -->
+                </a:schemaContext>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>

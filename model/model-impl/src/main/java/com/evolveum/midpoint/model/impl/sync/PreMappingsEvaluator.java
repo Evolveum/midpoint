@@ -10,7 +10,6 @@ package com.evolveum.midpoint.model.impl.sync;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.VisibleForTesting;
 
-import com.evolveum.midpoint.model.api.InboundSourceData;
 import com.evolveum.midpoint.model.impl.ModelBeans;
 import com.evolveum.midpoint.model.impl.lens.projector.focus.inbounds.DefaultSingleShadowInboundsProcessingContextImpl;
 import com.evolveum.midpoint.model.impl.lens.projector.focus.inbounds.SingleShadowInboundsProcessing;
@@ -19,7 +18,7 @@ import com.evolveum.midpoint.model.impl.lens.projector.focus.inbounds.prep.Inbou
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
-import com.evolveum.midpoint.schema.processor.ResourceObjectInboundDefinition;
+import com.evolveum.midpoint.schema.processor.ResourceObjectInboundProcessingDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceObjectTypeDefinition;
 import com.evolveum.midpoint.schema.processor.ShadowAssociationValue;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -76,13 +75,12 @@ public class PreMappingsEvaluator {
 
     /**
      * Note the `resourceObjectDefinition` is where we look for definitions of the mapped items; so for the trivial associations
-     * it should be the definition of the _subject_. See {@link InboundSourceData#forAssociationValue(
-     * ShadowAssociationValue, ResourceObjectDefinition)}.
+     * it should be the definition of the _subject_.
      */
     public static <C extends Containerable> void computePreFocusForAssociationValue(
             @NotNull ShadowAssociationValue associationValue,
             @NotNull ResourceObjectDefinition resourceObjectDefinition,
-            @NotNull ResourceObjectInboundDefinition inboundDefinition,
+            @NotNull ResourceObjectInboundProcessingDefinition inboundDefinition,
             @NotNull ResourceType resource,
             @NotNull InboundMappingContextSpecification mappingContextSpecification,
             @NotNull C targetObject,

@@ -50,7 +50,7 @@ public class NativeComplexTypeDefinitionImpl
 
     /**
      * Name of this object class (`AccountObjectClass`, `person`, and so on),
-     * or association class (`roleMembership`, `personContract`, and so on).
+     * or reference type (`roleMembership`, `personContract`, and so on).
      */
     @NotNull private final String name;
 
@@ -170,7 +170,7 @@ public class NativeComplexTypeDefinitionImpl
     }
     //endregion
 
-    //region Implementation for ASSOCIATION classes
+    //region Implementation for REFERENCE types
     @Override
     public @NotNull Set<NativeParticipant> getSubjects() {
         return Collections.unmodifiableSet(subjects);

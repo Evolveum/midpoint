@@ -11,8 +11,8 @@
         <classes>
             <class name="com.evolveum.midpoint.ninja.HelpVersionTest"/>
             <class name="com.evolveum.midpoint.ninja.ListKeysTest"/>
-            <!--<class name="com.evolveum.midpoint.ninja.JenkinsTest"/>-->
-            <!--<class name="com.evolveum.midpoint.ninja.ImportRepositoryTest"/>-->
+            <class name="com.evolveum.midpoint.ninja.ImportRepositoryTest"/>
+            <class name="com.evolveum.midpoint.ninja.DeleteRepositoryTest"/>
             <!--<class name="com.evolveum.midpoint.ninja.VerifyUpgradeTest"/>-->
             <!--<class name="com.evolveum.midpoint.ninja.PreUpgradeCheckTest"/>-->
         </classes>

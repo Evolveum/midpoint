@@ -45,6 +45,7 @@ import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
  *
  * See {@link #checkConsistence()}.
  */
+@SuppressWarnings("unused") // until the API stabilizes
 public interface AbstractShadow extends ShadowLikeValue, ShortDumpable, DebugDumpable, Cloneable {
 
     static AbstractShadow of(@NotNull ShadowType bean) {
@@ -226,13 +227,18 @@ public interface AbstractShadow extends ShadowLikeValue, ShortDumpable, DebugDum
         return attribute != null ? attribute.getValues() : List.of();
     }
 
+    default boolean hasAuxiliaryObjectClass(@NotNull QName name) {
+        return ShadowUtil.hasAuxiliaryObjectClass(getBean(), name);
+    }
+
     /** These checks are to be executed even in production (at least when creating the object). */
     default void checkConsistence() {
         stateCheck(getObjectDefinition() != null, "No object definition in %s", this);
         if (InternalsConfig.consistencyChecks) {
+            getBean().asPrismObject().checkConsistence();
             getAttributesContainer().checkConsistence(true, true, ConsistencyCheckScope.THOROUGH);
             checkAttributeDefinitions();
-            ShadowAssociationsContainer associationsContainer = getAssociationsContainer();
+            var associationsContainer = getAssociationsContainer();
             if (associationsContainer != null) {
                 associationsContainer.checkConsistence(true, true, ConsistencyCheckScope.THOROUGH);
             }
@@ -302,7 +308,7 @@ public interface AbstractShadow extends ShadowLikeValue, ShortDumpable, DebugDum
 
     default @NotNull Collection<ShadowReferenceAttributeValue> getReferenceAttributeValues(QName attrName) {
         var attr = getReferenceAttribute(attrName);
-        return attr != null ? attr.getReferenceValues() : List.of();
+        return attr != null ? attr.getAttributeValues() : List.of();
     }
 
     default @NotNull <T> ShadowSimpleAttribute<T> getSimpleAttributeRequired(QName attrName) {
@@ -409,6 +415,17 @@ public interface AbstractShadow extends ShadowLikeValue, ShortDumpable, DebugDum
 
     default void setIdentificationOnly() {
         getBean().setContentDescription(ShadowContentDescriptionType.IDENTIFICATION_ONLY);
+    }
+
+    /**
+     * True if the shadow could not be correctly fetched from the resource.
+     *
+     * Beware, maintenance mode signals {@link OperationResultStatusType#PARTIAL_ERROR} here.
+     *
+     * TODO is it good that this method is overridden in the subclass?
+     */
+    default boolean isError() {
+        return ShadowUtil.hasFetchError(getBean());
     }
 
     /**

@@ -17,6 +17,8 @@ import com.evolveum.midpoint.gui.impl.page.login.PageAbstractFlow;
 import com.evolveum.midpoint.gui.impl.page.login.module.PageLogin;
 import com.evolveum.midpoint.security.api.*;
 import com.evolveum.midpoint.authentication.api.util.AuthUtil;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.WebMarkupContainer;
@@ -50,10 +52,6 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.form.MidpointForm;
 import com.evolveum.midpoint.web.model.PrismContainerWrapperModel;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PasswordType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 @PageDescriptor(urls = {@Url(mountUrl = "/self/postAuthentication", matchUrlForSecurity="/self/postAuthentication")},
         action = {
@@ -239,4 +237,15 @@ public class PagePostAuthentication extends PageAbstractFlow {
         return getPostAuthenticationConfiguration().getFormRef();
     }
 
+    @Override
+    protected SecurityPolicyType resolveSecurityPolicy(Task task, OperationResult result) throws CommonException {
+        FocusType principal = getPrincipalFocus();
+        return getModelInteractionService().getSecurityPolicy(
+                principal == null ? null : principal.asPrismObject(), task, result);
+    }
+
+    @Override
+    protected String getSubmitLabelKey() {
+        return "PageBase.button.submit";
+    }
 }

@@ -188,11 +188,12 @@ public class AddOverwriteTest extends BaseSQLRepoTest {
     public void test300AddWithOverwriteDifferentTypeIsNotAllowed() throws Exception {
         given();
         OperationResult result = createOperationResult();
-        UserType user = new UserType(prismContext).name("user" + getTestNumber());
+        UserType user = new UserType()
+                .name("user" + getTestNumber());
         String oid = repositoryService.addObject(user.asPrismObject(), null, result);
 
         expect("adding object of different type with the same OID to the repository with overwrite option throws");
-        DashboardType dashboard = new DashboardType(prismContext)
+        DashboardType dashboard = new DashboardType()
                 .name("dashboard" + getTestNumber())
                 .oid(oid);
         assertThatThrownBy(() -> repositoryService.addObject(dashboard.asPrismObject(), createOverwrite(), result))

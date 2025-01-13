@@ -211,7 +211,7 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
         return state.getCurrentObject();
     }
 
-    public PrismObject<O> getObjectCurrentRequired() {
+    public @NotNull PrismObject<O> getObjectCurrentRequired() {
         return stateNonNull(getObjectCurrent(), "No current object in %s", this);
     }
 
@@ -506,11 +506,11 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
         policyRulesContext.addToPendingObjectPolicyStateModifications(modification);
     }
 
-    public void addEvaluatedPolicyStatements(EvaluatedPolicyStatements evaluatedPolicyStatements) {
+    public void setEvaluatedPolicyStatements(@NotNull EvaluatedPolicyStatements evaluatedPolicyStatements) {
         this.evaluatedPolicyStatements = evaluatedPolicyStatements;
     }
 
-    public EvaluatedPolicyStatements getEvaluatedPolicyStatements() {
+    public @NotNull EvaluatedPolicyStatements getEvaluatedPolicyStatements() {
         return evaluatedPolicyStatements;
     }
 

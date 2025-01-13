@@ -209,7 +209,8 @@ public class SelectorOptions<T> implements Serializable, DebugDumpable, ShortDum
     }
 
     private static final Set<Class<?>> OBJECTS_NOT_RETURNED_FULLY_BY_DEFAULT = new HashSet<>(Arrays.asList(
-            UserType.class, RoleType.class, OrgType.class, ServiceType.class, AbstractRoleType.class,
+            UserType.class,
+            RoleType.class, OrgType.class, ServiceType.class, ArchetypeType.class, AbstractRoleType.class,
             FocusType.class, AssignmentHolderType.class, ObjectType.class,
             TaskType.class, LookupTableType.class, AccessCertificationCampaignType.class,
             ShadowType.class // because of index-only attributes

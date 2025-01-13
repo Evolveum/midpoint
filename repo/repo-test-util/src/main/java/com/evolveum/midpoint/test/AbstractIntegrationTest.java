@@ -598,7 +598,7 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
     }
 
     protected PrismObject<ShadowType> repoAddShadowFromFile(File file, OperationResult parentResult)
-            throws SchemaException, ObjectAlreadyExistsException, EncryptionException, IOException {
+            throws SchemaException, ObjectAlreadyExistsException, EncryptionException, IOException, ConfigurationException {
 
         OperationResult result = parentResult.createSubresult(AbstractIntegrationTest.class.getName()
                 + ".repoAddShadowFromFile");
@@ -608,11 +608,11 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
 
         PrismContainer<Containerable> attrCont = object.findContainer(ShadowType.F_ATTRIBUTES);
         for (Item<?, ?> attr : attrCont.getValue().getItems()) {
-            if (attr instanceof PrismProperty<?> && attr.getDefinition() == null) {
+            if (attr instanceof PrismProperty<?> prismProperty && attr.getDefinition() == null) {
                 ShadowSimpleAttributeDefinition<String> attrDef =
                         ObjectFactory.createSimpleAttributeDefinition(attr.getElementName(), DOMUtil.XSD_STRING);
                 //noinspection unchecked,rawtypes
-                ((PrismProperty<?>) attr).setDefinition((PrismPropertyDefinition) attrDef);
+                prismProperty.setDefinition((PrismPropertyDefinition) attrDef);
             }
         }
 
@@ -4574,6 +4574,14 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
         return false;
     }
 
+    /**
+     * Used for test classes that provide their own explicit caching configuration, so there's no point in running them
+     * under caching overrides.
+     */
+    protected boolean isUsingCachingOverride() {
+        return !InternalsConfig.getShadowCachingDefault().isStandardForTests();
+    }
+
     /** To be used at individual test method level. */
     protected void skipIfNotNativeRepository() {
         if (!isNativeRepository()) {
@@ -4733,5 +4741,59 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
                         .replace(clock.currentTimeXMLGregorianCalendar())
                         .asItemDeltas(),
                 getTestOperationResult());
+    }
+
+    protected PrismPropertyValue<?> constBasedValue(String value) {
+        var constExpressionEvaluator = new ConstExpressionEvaluatorType();
+        constExpressionEvaluator.setValue(value);
+
+        var ppv = prismContext.itemFactory().createPropertyValue();
+        ppv.setExpression(
+                new ExpressionWrapper(
+                        SchemaConstantsGenerated.C_EXPRESSION,
+                        new ExpressionType()
+                                .expressionEvaluator(new JAXBElement<>(
+                                        SchemaConstantsGenerated.C_CONST,
+                                        ConstExpressionEvaluatorType.class,
+                                        constExpressionEvaluator))));
+        return ppv;
+    }
+
+    public interface FunctionCall<X> {
+        X execute() throws CommonException, IOException;
+    }
+
+    public interface ProcedureCall {
+        void execute() throws CommonException, IOException;
+    }
+
+    protected <X> X traced(FunctionCall<X> tracedCall)
+            throws CommonException, IOException {
+        return traced(createModelLoggingTracingProfile(), tracedCall);
+    }
+
+    protected void traced(ProcedureCall tracedCall) throws CommonException, IOException {
+        traced(createModelLoggingTracingProfile(), tracedCall);
+    }
+
+    /** Beware, this performs tracing only at defined points, e.g. at the clockwork entry/exit. */
+    public void traced(TracingProfileType profile, ProcedureCall tracedCall) throws CommonException, IOException {
+        setGlobalTracingOverride(profile);
+        try {
+            tracedCall.execute();
+        } finally {
+            unsetGlobalTracingOverride();
+        }
+    }
+
+    /** Beware, this performs tracing only at defined points, e.g. at the clockwork entry/exit. */
+    public <X> X traced(TracingProfileType profile, FunctionCall<X> tracedCall)
+            throws CommonException, IOException {
+        setGlobalTracingOverride(profile);
+        try {
+            return tracedCall.execute();
+        } finally {
+            unsetGlobalTracingOverride();
+        }
     }
 }

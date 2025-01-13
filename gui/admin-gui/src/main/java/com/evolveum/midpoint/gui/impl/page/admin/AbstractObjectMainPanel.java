@@ -114,7 +114,7 @@ public abstract class AbstractObjectMainPanel<O extends ObjectType, M extends Ob
     }
 
     public StringResourceModel createStringResource(String resourceKey, Object... objects) {
-        return new StringResourceModel(resourceKey, this).setModel(null)
+        return new StringResourceModel(resourceKey).setModel(null)
                 .setDefaultValue(resourceKey)
                 .setParameters(objects);
     }

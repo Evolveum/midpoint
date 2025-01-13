@@ -33,6 +33,8 @@ import com.evolveum.midpoint.schema.util.AbstractShadow;
 
 import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
 
+import com.evolveum.midpoint.util.exception.ConfigurationException;
+
 import org.assertj.core.api.InstanceOfAssertFactories;
 import org.testng.Assert;
 import org.testng.annotations.BeforeSuite;
@@ -561,7 +563,9 @@ public class TestRefinedSchema extends AbstractUnitTest {
         Assert.fail("Attribute " + name + " not found");
     }
 
-    private void assertProtectedAccount(String message, ResourceObjectPattern protectedPattern, String identifierValue, ResourceObjectTypeDefinition rAccount) throws SchemaException {
+    private void assertProtectedAccount(
+            String message, ResourceObjectPattern protectedPattern, String identifierValue, ResourceObjectTypeDefinition rAccount)
+            throws SchemaException, ConfigurationException {
         ObjectFilter filter = protectedPattern.getFilter();
         assertNotNull("Null objectFilter in " + message, filter);
         assertTrue("Wrong filter class " + filter.getClass().getSimpleName() + " in " + message, filter instanceof EqualFilter);
@@ -590,7 +594,7 @@ public class TestRefinedSchema extends AbstractUnitTest {
         assertFalse("Test attr nonsense was matched in " + message, protectedPattern.matches(abstractShadow));
     }
 
-    private ShadowSimpleAttribute<String> createStringAttribute(QName attrName, String value) throws SchemaException {
+    private ShadowSimpleAttribute<String> createStringAttribute(QName attrName, String value) throws ConfigurationException {
         ShadowSimpleAttributeDefinition<String> testAttrDef =
                 ObjectFactory.createSimpleAttributeDefinition(attrName, DOMUtil.XSD_STRING);
         ShadowSimpleAttribute<String> testAttr = testAttrDef.instantiate();

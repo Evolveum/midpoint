@@ -1,0 +1,212 @@
+= Resource Object Types
+:page-toc: top
+
+By _resource object_ we understand any object on the resource that is visible to midPoint.
+These are usually _account_ objects but may also be a wide variety of _group_ types, resource-specific low-level roles, privileges, organizational units, configuration objects, etc.
+The handling of each type of these objects has to be carefully defined.
+
+== Kind, Intent and Object Class
+
+MidPoint identifies each type of resource object by using a *(kind, intent)* tuple.
+I.e. each resource object has a *kind* and an *intent*.
+Kind defines what the object _is_, intent specified how the object _behaves_.
+
+On the other hand, xref:/midpoint/reference/resources/resource-schema/[Object Class] is a type of the object how the _resource_ understands it.
+It is therefore a "technical" type of the resource object.
+Object classes are presented to midPoint by the connector.
+But midPoint usually does not know what to do with a specific object class, e.g. an LDAP objectclass `inetOrgPerson`.
+Therefore, midPoint sorts out the object class to _kind_ and _intent_ as specified above.
+MidPoint then known quite well what to do with (e.g.) _default account_.
+
+See xref:/midpoint/reference/resources/shadow/kind-intent-objectclass/['Kind, Intent and ObjectClass'] page for more details.
+
+== The Definition
+
+Object type definition specifies how a given object type on the resource should look like and how it should behave.
+The definition is identified by the (kind, intent) tuple.
+E.g. there is usually at least one definition for default account object type (kind `account`, intent `default`).
+The definition specifies what xref:/midpoint/reference/resources/resource-schema/[Object Class] to use for such objects, how to handle the attributes, how to determine attribute values, etc.
+
+The resource object definition specified using the `objectType` element in `schemaHandling` section.
+
+=== Identification and General Properties
+
+The following items identify the object type and provide its general description.
+
+[%autowidth]
+|===
+| Item name | Description | Default | Further information
+
+| `kind`
+| Kind of the resource object.
+| `account`
+|
+
+| `intent`
+| Intent of the resource object.
+| `default`
+|
+
+| `displayName`
+| Display name of the resource object type.
+This human-readable string is used in GUI and other tools when displaying information about resource objects.
+|
+|
+
+| `description`
+| Free-form textual description of the object type.
+|
+|
+
+| `documentation`
+| Technical documentation of the object type.
+|
+|
+
+| `lifecycleState`
+| Lifecycle state of the object type definition: whether it is only a draft, or proposed, active, deprecated, archived, and so on.
+| `active`
+| xref:/midpoint/reference/concepts/configuration-item-lifecycle/[]
+
+
+| `default`
+| An indication whether the resource object type is the default type for the given object kind and for the given object class on the resource.
+| `false`
+| xref:/midpoint/reference/resources/resource-configuration/schema-handling/defaults/[]
+
+| `abstract`
+.2+| These are used to define object type inheritance.
+.2+|
+.2+| xref:/midpoint/reference/resources/resource-configuration/inheritance/[]
+
+| `super`
+
+|===
+
+=== Frequently Used Type-Level Configuration Features
+
+The following are the most-often used configuration items that are relevant for the whole object type.
+
+[%autowidth]
+|===
+| Item name | Description | Further information
+
+| `delineation`
+| Delineation of the resource object type.
+MidPoint must know what resource objects belong to the object type and what do not.
+The most typical (and obligatory) criterion is the object class.
+Other criteria, e.g., a filter based on attributes, can be used as well.
+| xref:/midpoint/reference/resources/resource-configuration/schema-handling/delineation/[]
+
+| `focus`
+| Focus objects (users, roles, orgs, and so on) corresponding to given resource object type.
+If not specified, `UserType` is assumed.
+| xref:/midpoint/reference/resources/resource-configuration/schema-handling/focus/[]
+
+| `marking`
+| Drives automatic marking of shadows, e.g., as protected objects.
+Such objects will never be touched by midPoint.
+MidPoint will not synchronize them, will not reconcile them and will not modify them.
+This is usually used to protect system accounts such as `root` or `administrator`.
+| xref:/midpoint/reference/resources/resource-configuration/protected-accounts/[]
+
+| `correlation`
+| Specifies how to locate an owner (user, role, org, ...) of the resource object (account, role, org. unit, ...).
+.2+| xref:/midpoint/reference/resources/resource-configuration/schema-handling/synchronization/[]
+
+| `synchronization`
+| Specifies how midPoint should behave in specific situations, e.g., when it encounters a newly created or recently deleted account.
+
+|===
+
+=== Item-Level Configuration
+
+The following configuration items are relevant to individual parts of a resource object of given type.
+
+[%autowidth]
+|===
+| Item name | Description | Further information
+
+| `attribute`
+| Attribute definitions that describe the handling of attributes that form a particular object type.
+The administrator can define a specific data and behavior for each attribute.
+| xref:/midpoint/reference/resources/resource-configuration/schema-handling/attributes/[]
+
+| `credentials`
+| How credentials (typically the password) are handled for this object type.
+| xref:/midpoint/reference/resources/resource-configuration/schema-handling/credentials/[]
+
+| `activation`
+| Defines how the activation-related information, like the administrative status (enabled/disabled), time validity (from/to), or even the mere existence of the resource objects should be handled.
+| xref:/midpoint/reference/resources/resource-configuration/schema-handling/activation/[]
+
+| `behavior`
+| Definition for different behaviors are handled for the resource.
+Defines how the last login timestamp synchronization is handled for the resource.
+(If it has the corresponding xref:/midpoint/reference/resources/resource-configuration/capabilities/#_behavior[capability].)
+| xref:/midpoint/reference/resources/resource-configuration/schema-handling/behavior/[]
+
+|===
+
+=== Other Type-Level Configuration Features
+
+[%autowidth]
+|===
+| Item name | Description | Further information
+
+| `multiplicity`
+| Used when there are multiple objects of given type for a single focus, e.g., a user.
+| xref:/midpoint/reference/resources/multiaccounts/[]
+
+| `iteration`
+| Defines the parameters of iterative cycles.
+Such cycles are used e.g. when determining a unique identifier values from non-unique inputs.
+E.g. a iteration cycle may be used to try account identifiers `jack2`, `jack3` and `jack4` in case there is already an account with identifier `jack`.
+|
+
+| `dependency`
+| Specification of dependencies of this object type on other type or types.
+| xref:/midpoint/reference/resources/provisioning-dependencies/[]
+
+| `volatility`
+| Specification of the volatility of this object type.
+(Note that the volatility can be specified also at the xref:/midpoint/reference/resources/resource-configuration/schema-handling/attributes/[attribute] level.)
+| xref:/midpoint/reference/resources/resource-configuration/schema-handling/volatility/[]
+
+| `defaultOperationPolicy`
+| Default operation policy for those operations that do not have their behavior specified explicitly via xref:/midpoint/reference/concepts/mark/[object marks].
+This is used to restrict some types of operations for given object type, like making it managed by midPoint solely, or the other way, managed from the resource only.
+| xref:/midpoint/reference/concepts/mark/managed-and-unmanaged-shadows/[]
+
+| `securityPolicyRef`
+| Security policy for this object type.
+Used to define the required xref:/midpoint/reference/security/credentials/password-policy/[complexity of passwords] (when generating or checking them) as well as the xref:/midpoint/reference/security/credentials/password-storage-configuration/[storage configuration] for xref:/midpoint/reference/resources/attribute-caching/#_caching_passwords[cached passwords].
+| xref:/midpoint/reference/security/security-policy/[]
+
+| `configuredCapabilities`
+| Capabilities specific to this object type.
+| xref:/midpoint/reference/resources/resource-configuration/capabilities/[]
+
+| `caching`
+| Caching configuration specific to this object type.
+| xref:/midpoint/reference/resources/attribute-caching/[]
+
+| `projection`
+| Specification of the way how projections are handled on the resource.
+This defines the ways how assignments are enforced and so on.
+| xref:/midpoint/reference/synchronization/projection-policy/[]
+
+| `auxiliaryObjectClassMappings`
+| Inbound mappings and tolerance setting for auxiliary object class information.
+|
+
+// | `mappingsEvaluation`
+// | Settings related to evaluation of mappings for this object type.
+// (Usually not needed.)
+// |
+
+|===
+
+NOTE: The schema handling is additive to a resource schema definitions.
+This means that there is no need to define all the attributes from the object class in the schema handling section.
+The attributes that are defined in the object class and are not mentioned in schema handling are taken from the object class definition without any change.

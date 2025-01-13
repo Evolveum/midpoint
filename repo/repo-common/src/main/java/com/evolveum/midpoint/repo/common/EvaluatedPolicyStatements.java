@@ -13,7 +13,16 @@ import java.util.Collection;
 import java.util.List;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
+import org.jetbrains.annotations.NotNull;
+
+/**
+ * Processed form of {@link ObjectType#F_POLICY_STATEMENT} values plus mark references derived from the policy rules.
+ *
+ * Somewhat similar to {@link ObjectMarkHelper.SmartMarkRefCollection} but does not support `org:related` relation
+ * nor the value metadata (yet).
+ */
 public class EvaluatedPolicyStatements implements Serializable {
 
     private final Collection<ObjectReferenceType> refsToAdd = new ArrayList<>();
@@ -51,16 +60,28 @@ public class EvaluatedPolicyStatements implements Serializable {
         return refsToExcludeOids.contains(markRef.getOid());
     }
 
-    public Collection<ObjectReferenceType> collectMarksToAdd() {
+    /**
+     * Returns values to add. "Existing values" parameter is used to filter out values already present in the object,
+     * to avoid phantom adds, like in MID-10121. We assume no metadata, relations or similar exotic features here.
+     * If present, more sophisticated comparison would be needed.
+     */
+    public Collection<ObjectReferenceType> collectMarksToAdd(@NotNull Collection<ObjectReferenceType> existingValues) {
         Collection<ObjectReferenceType> finalCollection = new ArrayList<>(refsToAdd);
         finalCollection.removeIf(refsToExclude::contains);
+        finalCollection.removeIf(existingValues::contains);
         return finalCollection;
     }
 
-    public Collection<ObjectReferenceType> collectMarksToDelete() {
+    /**
+     * Returns values to delete. "Existing values" parameter is used to filter out values not present in the object,
+     * to avoid phantom deletes. We assume no metadata, relations or similar exotic features here. If present, more sophisticated
+     * comparison would be needed.
+     */
+    public Collection<ObjectReferenceType> collectMarksToDelete(@NotNull Collection<ObjectReferenceType> existingValues) {
         List<ObjectReferenceType> allItemsToDelete = new ArrayList<>();
         allItemsToDelete.addAll(refsToDelete);
         allItemsToDelete.addAll(refsToExclude);
+        allItemsToDelete.removeIf(ref -> !existingValues.contains(ref));
         return allItemsToDelete;
     }
 

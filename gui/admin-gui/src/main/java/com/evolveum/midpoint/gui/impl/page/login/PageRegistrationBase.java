@@ -6,6 +6,7 @@
  */
 package com.evolveum.midpoint.gui.impl.page.login;
 
+import com.evolveum.midpoint.authentication.api.config.MidpointAuthentication;
 import com.evolveum.midpoint.gui.api.page.PageAdminLTE;
 
 import com.evolveum.midpoint.gui.impl.page.login.module.PageLogin;
@@ -41,6 +42,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.SecurityPolicyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 public class PageRegistrationBase extends PageAdminLTE {
 
@@ -147,7 +149,11 @@ public class PageRegistrationBase extends PageAdminLTE {
 
     }
 
-    protected SecurityPolicyType resolveSecurityPolicy() {
+    protected SecurityPolicyType resolveSecurityPolicy(Task task, OperationResult result) throws CommonException{
+        return getModelInteractionService().getSecurityPolicyForArchetype(getArchetypeOid(), task, result);
+    }
+
+    protected final SecurityPolicyType resolveSecurityPolicy() {
         SecurityPolicyType securityPolicy = runPrivileged((Producer<SecurityPolicyType>) () -> {
 
             Task task = createAnonymousTask(OPERATION_GET_SECURITY_POLICY);
@@ -155,7 +161,7 @@ public class PageRegistrationBase extends PageAdminLTE {
             OperationResult result = new OperationResult(OPERATION_GET_SECURITY_POLICY);
 
             try {
-                return getModelInteractionService().getSecurityPolicyForArchetype(getArchetypeOid(), task, result);
+                return resolveSecurityPolicy(task, result);
             } catch (CommonException e) {
                 LOGGER.error("Could not retrieve security policy: {}", e.getMessage(), e);
                 return null;
@@ -174,7 +180,11 @@ public class PageRegistrationBase extends PageAdminLTE {
     }
 
     protected String getArchetypeOid() {
-        return null;
+        var authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (!(authentication instanceof MidpointAuthentication mpAuthentication)) {
+            return null;
+        }
+        return mpAuthentication.getArchetypeOid();
     }
 
     public SelfRegistrationDto getSelfRegistrationConfiguration() {

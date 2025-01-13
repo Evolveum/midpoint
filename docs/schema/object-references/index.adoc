@@ -95,6 +95,7 @@ However, the repository does not store composite objects and does not even suppo
 Therefore only references can be used when dealing with repository directly (e.g. from the repository debug pages).
 
 
+[#_smart_references]
 == Smart References
 
 Linking by OID works very well in a running system.

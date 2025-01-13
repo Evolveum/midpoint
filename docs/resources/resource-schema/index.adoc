@@ -335,6 +335,7 @@ Usernames, DNs and similar attributes may be used as well.
 But these are less desirable as they may change.
 Therefore these should be used only if no other option is available.
 
+[#_secondary_identifier]
 === secondaryIdentifier
 
 Reference to the secondary identifier attribute.
@@ -348,8 +349,6 @@ It is OK for a secondary identifier to be mutable.
 Secondary identifiers are optional.
 It is OK if an object has no secondary identifiers.
 There may be multiple secondary identifiers for a single object type.
-In that case it is assumed that all such identifier attributes form a compound identifier.
-E.g. that each unique combination of identifier values refers to a different object.
 
 E.g. LDAP DN, username, unique object name or similar attributes are usually presented as secondary identifiers.
 
@@ -407,3 +406,26 @@ TODO
 * xref:/midpoint/reference/resources/resource-schema/explanation/[Resource and Connector Schema Explanation]
 
 * xref:/midpoint/architecture/archive/interactions/resource-schema-mapping/[Resource Schema Mapping]
+
+// You can check the generated schema in two ways:
+//
+// * By clicking through the path Administration->Resources->All resources->resource of your choice (from the list of resources)->Schema->object class of your choice (from the list of object classes).
+// This shows more abstract view of the schema, displaying primarily a list of attributes (without much detail).
+// * By clicking through the path Configuration->Repository objects->All objects->Type: Resource->resource of your choice (from the list of resources).
+// This shows the detailed XSD form of the schema, under `<schema>` element.
+//
+// If the resource schema needs to be generated again (e.g. after the change of LDAP schema on LDAP resource) then there are again two options:
+//
+// * By clicking through the path Administration->Resources->All resources->resource of your choice (from the list of resources)->Refresh schema (a button on the top bar, under "Resource operations" label).
+// * By deleting the `schema` element from the XML form of the resource definition.
+// The schema will be generated anew on the next use of that resource.
+//
+// Resource schema also contains caching metadata that are generated at the same time a schema is generated.
+// There are used for internal midPoint optimizations.
+
+// ...
+
+// Please note that while you can see most of the original LDAP attributes there (`cn`, `sn`, `givenName`, ...) some of the attributes are not really from LDAP (`icfs:name`, `icfs:uid`).
+// These attributes are built-in /midpoint/reference/resources/connid/[ConnId] attributes.
+// While we always prefer to use native attribute names it is not practical in this case as ConnId hides the attributes from midPoint.
+// Similarly for the `inetOrgPerson` objectclass versus ConnId `pass:[__ACCOUNT__]` objectclass (see xref:/connectors/connid/1.x/icf-issues/[ICF Issues] for more details).

@@ -73,6 +73,9 @@
                                 <a:since>3.7</a:since>
                                 <a:displayName>PolicyConstraintsType.assignmentState</a:displayName>
                                 <a:help>PolicyConstraintsType.assignmentState.help</a:help>
+                                <a:schemaContext>
+                                    <a:type>tns:AssignmentType</a:type>
+                                </a:schemaContext>
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
@@ -2584,6 +2587,10 @@
                 <a:container/>
                 <a:since>3.8.1</a:since>
                 <a:experimental>true</a:experimental>
+                <a:schemaContext>
+                    <a:type>tns:AssignmentHolderType</a:type>
+                    <a:typePath>targetType</a:typePath>
+                </a:schemaContext>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>

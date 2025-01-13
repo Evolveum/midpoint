@@ -13,7 +13,6 @@ import java.util.Objects;
 import java.util.Set;
 
 import jakarta.persistence.*;
-import org.hibernate.annotations.Cascade;
 
 import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.PrismContainerValue;
@@ -94,8 +93,7 @@ public class RAssignmentExtension implements Serializable, EntityState {
         return ownerId;
     }
 
-    @OneToMany(fetch = FetchType.LAZY, mappedBy = RAExtValue.ANY_CONTAINER, orphanRemoval = true)
-    @Cascade({ org.hibernate.annotations.CascadeType.ALL })
+    @OneToMany(fetch = FetchType.LAZY, mappedBy = RAExtValue.ANY_CONTAINER, orphanRemoval = true, cascade = CascadeType.ALL)
     public Set<RAExtBoolean> getBooleans() {
         if (booleans == null) {
             booleans = new HashSet<>();
@@ -103,8 +101,7 @@ public class RAssignmentExtension implements Serializable, EntityState {
         return booleans;
     }
 
-    @OneToMany(fetch = FetchType.LAZY, mappedBy = RAExtValue.ANY_CONTAINER, orphanRemoval = true)
-    @Cascade({ org.hibernate.annotations.CascadeType.ALL })
+    @OneToMany(fetch = FetchType.LAZY, mappedBy = RAExtValue.ANY_CONTAINER, orphanRemoval = true, cascade = CascadeType.ALL)
     public Set<RAExtLong> getLongs() {
         if (longs == null) {
             longs = new HashSet<>();
@@ -112,8 +109,7 @@ public class RAssignmentExtension implements Serializable, EntityState {
         return longs;
     }
 
-    @OneToMany(fetch = FetchType.LAZY, mappedBy = RAExtValue.ANY_CONTAINER, orphanRemoval = true)
-    @Cascade({ org.hibernate.annotations.CascadeType.ALL })
+    @OneToMany(fetch = FetchType.LAZY, mappedBy = RAExtValue.ANY_CONTAINER, orphanRemoval = true, cascade = CascadeType.ALL)
     public Set<RAExtString> getStrings() {
         if (strings == null) {
             strings = new HashSet<>();
@@ -121,8 +117,7 @@ public class RAssignmentExtension implements Serializable, EntityState {
         return strings;
     }
 
-    @OneToMany(fetch = FetchType.LAZY, mappedBy = RAExtValue.ANY_CONTAINER, orphanRemoval = true)
-    @Cascade({ org.hibernate.annotations.CascadeType.ALL })
+    @OneToMany(fetch = FetchType.LAZY, mappedBy = RAExtValue.ANY_CONTAINER, orphanRemoval = true, cascade = CascadeType.ALL)
     public Set<RAExtDate> getDates() {
         if (dates == null) {
             dates = new HashSet<>();
@@ -130,8 +125,7 @@ public class RAssignmentExtension implements Serializable, EntityState {
         return dates;
     }
 
-    @OneToMany(fetch = FetchType.LAZY, mappedBy = RAExtValue.ANY_CONTAINER, orphanRemoval = true)
-    @Cascade({ org.hibernate.annotations.CascadeType.ALL })
+    @OneToMany(fetch = FetchType.LAZY, mappedBy = RAExtValue.ANY_CONTAINER, orphanRemoval = true, cascade = CascadeType.ALL)
     public Set<RAExtReference> getReferences() {
         if (references == null) {
             references = new HashSet<>();
@@ -139,8 +133,7 @@ public class RAssignmentExtension implements Serializable, EntityState {
         return references;
     }
 
-    @OneToMany(fetch = FetchType.LAZY, mappedBy = RAExtValue.ANY_CONTAINER, orphanRemoval = true)
-    @Cascade({ org.hibernate.annotations.CascadeType.ALL })
+    @OneToMany(fetch = FetchType.LAZY, mappedBy = RAExtValue.ANY_CONTAINER, orphanRemoval = true, cascade = CascadeType.ALL)
     public Set<RAExtPolyString> getPolys() {
         if (polys == null) {
             polys = new HashSet<>();
@@ -174,6 +167,9 @@ public class RAssignmentExtension implements Serializable, EntityState {
 
     public void setOwner(RAssignment owner) {
         this.owner = owner;
+//        if (owner != null && owner.getExtension() != this) {
+//            owner.setExtension(this);
+//        }
     }
 
     public void setOwnerId(Integer ownerId) {

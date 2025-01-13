@@ -1453,6 +1453,9 @@
                 <a:experimental>true</a:experimental>
                 <a:container>true</a:container>
                 <a:since>4.0</a:since>
+                <a:schemaContext>
+                    <a:typePath>objectType</a:typePath>
+                </a:schemaContext>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:complexContent>
@@ -2561,6 +2564,7 @@
                 <xsd:annotation>
                     <xsd:documentation>
                         Processing of object retrieved from a resource (e.g. when doing import or reconciliation).
+                        CURRENTLY NOT IMPLEMENTED
                     </xsd:documentation>
                     <xsd:appinfo>
                         <jaxb:typesafeEnumMember name="RETRIEVED_RESOURCE_OBJECT_PROCESSING"/>

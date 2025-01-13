@@ -30,7 +30,6 @@ import com.evolveum.midpoint.common.ActivationComputer;
 import com.evolveum.midpoint.model.api.context.ProjectionContextKey;
 import com.evolveum.midpoint.model.common.expression.ModelExpressionEnvironment;
 import com.evolveum.midpoint.model.common.mapping.MappingBuilder;
-import com.evolveum.midpoint.model.impl.expr.SequentialValueExpressionEvaluator;
 import com.evolveum.midpoint.model.impl.lens.assignments.AssignmentPathImpl;
 import com.evolveum.midpoint.model.impl.lens.assignments.AssignmentPathSegmentImpl;
 import com.evolveum.midpoint.model.impl.util.ModelImplUtils;
@@ -757,7 +756,7 @@ public class LensUtil {
             return false;
         }
 
-        for (MappingType mappingBean : refinedProjDef.getPasswordOutbound()) {
+        for (MappingType mappingBean : refinedProjDef.getPasswordOutboundMappings()) {
             if (mappingBean.getStrength() == MappingStrengthType.STRONG || mappingBean.getStrength() == MappingStrengthType.WEAK) {
                 return true;
             }

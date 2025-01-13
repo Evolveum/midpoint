@@ -92,10 +92,6 @@ public class ShadowAssociation
                 "No definition in %s", this);
     }
 
-    public @NotNull ShadowAssociationDefinition getDefinitionRequired() {
-        return getDefinition(); // TODO inline
-    }
-
     @Override
     public ShadowAssociation clone() {
         return (ShadowAssociation) super.clone();
@@ -141,7 +137,7 @@ public class ShadowAssociation
             try {
                 return super.addInternalExecution(ShadowAssociationValue.fromBean(
                         newValue.asContainerable(),
-                        getDefinitionRequired()));
+                        getDefinition()));
             } catch (SchemaException e) {
                 throw new RuntimeException(e); // FIXME
             }
@@ -156,7 +152,7 @@ public class ShadowAssociation
 
     @Override
     protected @NotNull PrismContainerValueImpl<ShadowAssociationValueType> createNewValueInternal() {
-        return ShadowAssociationValue.empty(getDefinitionRequired());
+        return ShadowAssociationValue.empty(getDefinition());
     }
 
     public int size() {

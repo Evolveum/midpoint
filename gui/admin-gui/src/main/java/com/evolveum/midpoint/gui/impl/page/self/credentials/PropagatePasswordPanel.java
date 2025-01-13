@@ -528,7 +528,7 @@ public class PropagatePasswordPanel<F extends FocusType> extends ChangePasswordP
 
 
     private boolean getPasswordOutbound(ResourceType resource, ResourceObjectDefinition rOCDef) {
-        for (MappingType mapping : rOCDef.getPasswordOutbound()) {
+        for (MappingType mapping : rOCDef.getPasswordOutboundMappings()) {
             if (MappingStrengthType.WEAK == mapping.getStrength()) {
                 var credentialsCapability = ResourceTypeUtil.getEnabledCapability(resource, CredentialsCapabilityType.class);
                 if (CapabilityUtil.isPasswordReadable(credentialsCapability)) {

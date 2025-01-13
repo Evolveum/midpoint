@@ -118,7 +118,7 @@ public class WorkItemDetailsPanel extends BasePanel<CaseWorkItemType> {
         getTargetLinkPanel().add(AttributeAppender.append("aria-description", getString("workItemPanel.target")));
         getApproverLinkPanel().add(AttributeAppender.append("aria-description", getString("workItemPanel.approver")));
         ((RepeatingView)get(createComponentPath(ID_CANDIDATE_CONTAINER, ID_CANDIDATE)))
-                .streamChildren().forEach(child -> ((LinkedReferencePanel)child).getLinkPanel().add(
+                .stream().forEach(child -> ((LinkedReferencePanel)child).getLinkPanel().add(
                         AttributeAppender.append("aria-description", getString("workItemPanel.candidateActors"))));
         getParentCaseLinkPanel().add(AttributeAppender.append("aria-description", getString("workItemPanel.parentCase")));
     }

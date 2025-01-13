@@ -8,6 +8,9 @@ package com.evolveum.midpoint.repo.sql.data.common;
 
 import java.util.HashSet;
 import java.util.Set;
+
+import com.evolveum.midpoint.repo.sql.data.common.embedded.RSimpleEmbeddedReference;
+
 import jakarta.persistence.*;
 
 import org.hibernate.annotations.Cascade;
@@ -18,7 +21,6 @@ import org.hibernate.annotations.Where;
 import com.evolveum.midpoint.repo.sql.data.RepositoryContext;
 import com.evolveum.midpoint.repo.sql.data.common.container.RAssignment;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.RAutoassignSpecification;
-import com.evolveum.midpoint.repo.sql.data.common.embedded.REmbeddedReference;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.RPolyString;
 import com.evolveum.midpoint.repo.sql.data.common.other.RAssignmentOwner;
 import com.evolveum.midpoint.repo.sql.query.definition.JaxbName;
@@ -55,7 +57,7 @@ public abstract class RAbstractRole extends RFocus {
     private Set<RObjectReference<RFocus>> approverRef;
     private String approvalProcess;
 
-    private REmbeddedReference ownerRef;
+    private RSimpleEmbeddedReference ownerRef;
 
     private RAutoassignSpecification autoassign;
 
@@ -84,7 +86,7 @@ public abstract class RAbstractRole extends RFocus {
     }
 
     @Embedded
-    public REmbeddedReference getOwnerRef() {
+    public RSimpleEmbeddedReference getOwnerRef() {
         return ownerRef;
     }
 
@@ -109,7 +111,7 @@ public abstract class RAbstractRole extends RFocus {
         this.approvalProcess = approvalProcess;
     }
 
-    public void setOwnerRef(REmbeddedReference ownerRef) {
+    public void setOwnerRef(RSimpleEmbeddedReference ownerRef) {
         this.ownerRef = ownerRef;
     }
 
