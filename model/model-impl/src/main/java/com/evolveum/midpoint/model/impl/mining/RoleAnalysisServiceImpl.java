@@ -2852,37 +2852,6 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
     }
 
     @Override
-    public void replaceSessionMarkRef(
-            @NotNull PrismObject<RoleAnalysisSessionType> session,
-            @NotNull ObjectReferenceType newMarkRef,
-            @NotNull OperationResult result,
-            @NotNull Task task) {
-
-        try {
-            List<ObjectReferenceType> effectiveMarkRef = session.asObjectable().getEffectiveMarkRef();
-
-            if (effectiveMarkRef != null && !effectiveMarkRef.isEmpty()) {
-                ObjectDelta<RoleAnalysisSessionType> clearDelta = PrismContext.get().deltaFor(RoleAnalysisSessionType.class)
-                        .item(ObjectType.F_EFFECTIVE_MARK_REF)
-                        .delete(effectiveMarkRef.get(0).asReferenceValue().clone())
-                        .asObjectDelta(session.getOid());
-                Collection<ObjectDelta<? extends ObjectType>> collection = MiscSchemaUtil.createCollection(clearDelta);
-                modelService.executeChanges(collection, null, task, result);
-            }
-
-            ObjectDelta<RoleAnalysisSessionType> addDelta = PrismContext.get().deltaFor(RoleAnalysisSessionType.class)
-                    .item(ObjectType.F_EFFECTIVE_MARK_REF).add(newMarkRef.asReferenceValue().clone())
-                    .asObjectDelta(session.getOid());
-            Collection<ObjectDelta<? extends ObjectType>> collection = MiscSchemaUtil.createCollection(addDelta);
-            modelService.executeChanges(collection, null, task, result);
-
-        } catch (SchemaException | ObjectAlreadyExistsException | ObjectNotFoundException | ExpressionEvaluationException |
-                CommunicationException | ConfigurationException | PolicyViolationException | SecurityViolationException e) {
-            LOGGER.error("Couldn't modify RoleAnalysisClusterType {}", session.getOid(), e);
-        }
-    }
-
-    @Override
     public void updateSessionMarkRef(
             @NotNull PrismObject<RoleAnalysisSessionType> session,
             @NotNull OperationResult result,
