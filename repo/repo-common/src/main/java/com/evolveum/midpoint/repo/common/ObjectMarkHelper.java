@@ -46,7 +46,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
  *
  * Does not deal with the policies attached to marks. See {@link ObjectOperationPolicyHelper} for that.
  *
- * Effective mark references have the following characteristics:
+ * Effective mark references have the following characteristics (see docs in the XSD):
  *
  * . They always have an OID.
  * . They have either a default relation, or `org:related` one. The latter means that the reference is inactive, and is present
@@ -56,6 +56,9 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
  * Note the difference between {@link #computeObjectMarks(ObjectType, ObjectMarksComputer, TaskExecutionMode, OperationResult)}
  * and {@link #computeObjectMarksWithoutComputer(ObjectType, TaskExecutionMode)}. The former is able to add extra marking, whereas
  * the latter simply applies policy statements to the existing marks.
+ *
+ * NOTE: Currently used for shadows only! Analogous functionality for focus objects is present
+ * in {@link EvaluatedPolicyStatements} and the model code that uses it.
  *
  * @see ObjectOperationPolicyHelper
  */
