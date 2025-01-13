@@ -1,11 +1,11 @@
 package com.evolveum.midpoint.model.intest;
 
+import static com.evolveum.midpoint.model.test.CommonInitialObjects.*;
+
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNotNull;
 
-import static com.evolveum.midpoint.model.test.CommonInitialObjects.MARK_PROTECTED;
-import static com.evolveum.midpoint.model.test.CommonInitialObjects.MARK_UNMANAGED;
 import static com.evolveum.midpoint.schema.constants.SchemaConstants.RI_ACCOUNT_OBJECT_CLASS;
 import static com.evolveum.midpoint.test.util.MidPointTestConstants.TEST_RESOURCES_DIR;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType.ACCOUNT;
@@ -13,11 +13,7 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindTyp
 import java.io.File;
 import java.util.List;
 
-import com.evolveum.midpoint.model.common.MarkManager;
-
-import com.evolveum.midpoint.schema.util.Resource;
-import com.evolveum.midpoint.schema.util.ShadowBuilder;
-
+import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.util.exception.CommonException;
 
 import org.springframework.test.annotation.DirtiesContext;
@@ -39,11 +35,15 @@ import com.evolveum.midpoint.test.TestObject;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
+/**
+ * Test both shadow marks and marks on focus objects.
+ * (Note that object marks that are strictly related to policy rules should be covered by test classes dealing with policy rules.)
+ */
 @ContextConfiguration(locations = {"classpath:ctx-model-intest-test-main.xml"})
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
-public class TestShadowMarks extends AbstractEmptyModelIntegrationTest {
+public class TestObjectMarks extends AbstractEmptyModelIntegrationTest {
 
-    private static final File TEST_DIR = new File(TEST_RESOURCES_DIR, "shadow-marks");
+    private static final File TEST_DIR = new File(TEST_RESOURCES_DIR, "object-marks");
 
     private static final String ATTR_GIVEN_NAME = "givenName";
     private static final String ATTR_FAMILY_NAME = "familyName";
@@ -657,5 +657,55 @@ public class TestShadowMarks extends AbstractEmptyModelIntegrationTest {
         assertProcessedObjects(simResult2, "in development mode")
                 .by().objectType(UserType.class).find(po -> po.assertState(ObjectProcessingStateType.ADDED))
                 .by().objectType(ShadowType.class).find(po -> po.assertState(ObjectProcessingStateType.UNMODIFIED));
+    }
+
+    /**
+     * Recomputation of a user that has some marks should produce no deltas.
+     *
+     * MID-10121
+     */
+    @Test
+    public void test600ObjectMarkOnRecompute() throws CommonException {
+        var task = getTestTask();
+        var result = task.getResult();
+        var userName = getTestNameShort();
+
+        given("a user with a mark");
+        var user = new UserType()
+                .name(userName)
+                .policyStatement(new PolicyStatementType()
+                        .type(PolicyStatementTypeType.APPLY)
+                        .markRef(MARK_DO_NOT_TOUCH.oid, MarkType.COMPLEX_TYPE));
+        var oid = addObject(user, task, result);
+
+        assertUser(oid, "before")
+                .assertEffectiveMarks(MARK_DO_NOT_TOUCH.oid);
+
+        when("a user is recomputed (preview)");
+        var reconcileOption = ModelExecuteOptions.create().reconcile();
+        var context = previewChanges(
+                deltaFor(UserType.class)
+                        .asObjectDelta(oid),
+                reconcileOption, task, result);
+
+        then("there are no deltas (in preview)");
+        assertPreviewContext(context)
+                .focusContext()
+                .assertNoSecondaryDelta();
+
+        and("the mark is there");
+        assertUser(oid, "before")
+                .assertEffectiveMarks(MARK_DO_NOT_TOUCH.oid);
+
+        when("the user is recomputed (for real)");
+        dummyAuditService.clear();
+        recomputeUser(oid, reconcileOption, task, result);
+
+        then("there are no records in audit");
+        dummyAuditService.assertNoRecord();
+
+        and("the mark is there");
+        assertUser(oid, "before")
+                .assertEffectiveMarks(MARK_DO_NOT_TOUCH.oid);
     }
 }

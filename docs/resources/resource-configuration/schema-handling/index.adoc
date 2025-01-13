@@ -50,42 +50,19 @@ Having this part of the configuration right significantly simplifies the overall
 
 For the definition of object types, see xref:/midpoint/reference/resources/resource-configuration/schema-handling/object-types/[].
 
-=== Delineation
-
-MidPoint must know what resource objects belong to the object type and what do not.
-The most typical criterion is the object class.
-Other criteria, e.g., a filter based on attributes, can be used as well.
-
-See xref:/midpoint/reference/resources/resource-configuration/schema-handling/delineation/[].
-
-=== Attribute Definitions
-
-Attribute definitions are part of object type definition.
-They provide more details about handling of attributes that form a particular object type.
-The administrator can define a specific data and behavior for each attribute.
-
-See xref:/midpoint/reference/resources/resource-configuration/schema-handling/attributes/[].
-
-=== Synchronization Definition
-
-As a part of object type definition, we need to specify how midPoint should react when an event related to the given object type is detected on the resource.
-For example, when an account is created, modified, or deleted.
-
-See xref:/midpoint/reference/resources/resource-configuration/schema-handling/synchronization/[].
-
 == Association Types
 
 Besides object types, we can define _associations_ between them.
 
 See xref:/midpoint/reference/resources/entitlements/[] for more information.
 
-== Object Class Adaptation
+== Object Classes
 
 There may be situations when you want to override some settings (for example, attribute values cardinality, protected objects, or attribute fetch strategy) not only for selected object type(s), but for _all_ objects in a given object class.
 For example, you may need to specify fetch strategy for specific attribute of `groupOfUniqueNames` object class, and apply this consistently to all object types defined for this object class.
 To do so, special `schemaHandling/objectClass` definition can be used.
 
-See xref:/midpoint/reference/resources/resource-configuration/schema-handling/object-class-adaptation/[].
+See xref:/midpoint/reference/resources/resource-configuration/schema-handling/object-classes/[].
 
 == See Also
 
