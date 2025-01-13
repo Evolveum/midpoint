@@ -38,7 +38,10 @@ import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.AttributeModifier;
+import org.apache.wicket.ajax.AjaxChannel;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.ajax.attributes.AjaxRequestAttributes;
+import org.apache.wicket.ajax.attributes.ThrottlingSettings;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.feedback.FeedbackMessage;
 import org.apache.wicket.markup.html.basic.Label;
@@ -49,6 +52,7 @@ import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 
 import java.io.Serial;
+import java.time.Duration;
 import java.util.*;
 
 import org.jetbrains.annotations.NotNull;
@@ -219,6 +223,17 @@ public class ChangePasswordPanel<F extends FocusType> extends BasePanel<F> {
             @Override
             public void onSubmit(AjaxRequestTarget target) {
                 changePasswordPerformed(target);
+            }
+
+            @Override
+            protected void updateAjaxAttributes(AjaxRequestAttributes attributes) {
+                super.updateAjaxAttributes(attributes);
+                //hack.
+                //delay for the button click action is added due to the issue MID-10316
+                //the error appeared because of the same delay on the password input fields
+                //which is needed to make all the passwords validations
+                attributes.setThrottlingSettings(new ThrottlingSettings(Duration.ofMillis(500), true));
+                attributes.setChannel(new AjaxChannel("Drop", AjaxChannel.Type.DROP));
             }
         };
         changePasswordButton.add(new VisibleBehaviour(() -> !savedPassword));
