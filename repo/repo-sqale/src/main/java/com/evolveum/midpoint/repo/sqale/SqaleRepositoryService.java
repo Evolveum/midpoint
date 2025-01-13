@@ -1090,6 +1090,18 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
                 throw new RepositoryException("searchObjectsIterative() does not support ordering"
                         + " by multiple paths (yet): " + providedOrdering);
             }
+            if (providedOrdering.size() == 1) {
+                var instruction = providedOrdering.get(0);
+                if (OrderDirection.ASCENDING.equals(instruction.getDirection())
+                        && instruction.getOrderBy().size() == 1
+                        && ItemPath.isIdentifier(instruction.getOrderBy().first())) {
+                    // If provided ordering is OID ascending, we can safely ignore it, since
+                    // built-in ordering is OID ascending.
+                    providedOrdering = null;
+                }
+            }
+
+
 
             ObjectQuery pagedQuery = prismContext().queryFactory().createQuery();
             ObjectPaging paging = prismContext().queryFactory().createPaging();
@@ -1207,6 +1219,7 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
             S_ConditionEntry filter = prismContext()
                     .queryFor(lastProcessedObject.getCompileTimeClass())
                     .item(orderByPath);
+
             Item<PrismValue, ItemDefinition<?>> item = lastProcessedObject.findItem(orderByPath);
             if (item.size() > 1) {
                 throw new IllegalArgumentException(
@@ -1223,10 +1236,8 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
                 Also, audit version does not require polystring treatment.
                 Finally, this works for a single provided ordering, but not for multiple (unsupported commented code lower).
                  */
-                boolean isPolyString = QNameUtil.match(
-                        PolyStringType.COMPLEX_TYPE, item.getDefinition().getTypeName());
                 Object realValue = item.getRealValue();
-                if (isPolyString) {
+                if (realValue instanceof PolyString) {
                     // We need to use matchingOrig for polystring, see MID-7860
                     if (asc) {
                         return filter.gt(realValue).matchingOrig().or()
