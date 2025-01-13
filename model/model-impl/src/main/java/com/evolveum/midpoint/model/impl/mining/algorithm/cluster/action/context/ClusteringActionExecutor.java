@@ -234,7 +234,7 @@ public class ClusteringActionExecutor extends BaseAction {
                 .updateSessionIdentifiedCharacteristics(session, characteristicsContainer, task, result);
 
         // Development only helper method - DO NOT RUN IN REAL ENVIRONMENT!
-        //logDebugOutlierDetectionEvaluation(sessionOid, modelService, roleAnalysisService, task);
+        //logDebugOutlierDetectionEvaluation(sessionOid, ModelBeans.get().modelService, roleAnalysisService, task);
     }
 
     public void resolveAnomalyNoise(
