@@ -88,11 +88,13 @@
             <xsd:extension base="c:AbstractWorkDefinitionType">
                 <xsd:sequence>
                     <xsd:element name="objectSet" type="c:ObjectSetType" minOccurs="0">
-                        <xsd:appinfo>
-                            <a:schemaContext>
-                                <a:typePath>type</a:typePath>
-                            </a:schemaContext>
-                        </xsd:appinfo>
+                        <xsd:annotation>
+                            <xsd:appinfo>
+                                <a:schemaContext>
+                                    <a:typePath>type</a:typePath>
+                                </a:schemaContext>
+                            </xsd:appinfo>
+                        </xsd:annotation>
                     </xsd:element>
                     <xsd:element name="message" type="xsd:string" minOccurs="0"/>
                     <xsd:element name="failOn" type="q:SearchFilterType" minOccurs="0"/>
