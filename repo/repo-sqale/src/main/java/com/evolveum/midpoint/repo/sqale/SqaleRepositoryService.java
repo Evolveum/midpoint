@@ -1036,9 +1036,10 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
                 throw new RepositoryException("searchObjectsIterative() does not support ordering"
                         + " by multiple paths (yet): " + providedOrdering);
             }
-            if (providedOrdering.size() == 1) {
+            if (providedOrdering != null && providedOrdering.size() == 1) {
                 var instruction = providedOrdering.get(0);
                 if (OrderDirection.ASCENDING.equals(instruction.getDirection())
+                        && instruction.getOrderBy() != null
                         && instruction.getOrderBy().size() == 1
                         && ItemPath.isIdentifier(instruction.getOrderBy().first())) {
                     // If provided ordering is OID ascending, we can safely ignore it, since
