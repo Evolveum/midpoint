@@ -786,7 +786,15 @@
         <xsd:sequence>
             <xsd:element ref="tns:description" minOccurs="0"/>
             <xsd:element ref="tns:documentation" minOccurs="0"/>
-            <xsd:element name="targetSelection" type="tns:TargetSelectionType" minOccurs="0"/>
+            <xsd:element name="targetSelection" type="tns:TargetSelectionType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <a:schemaContext>
+                            <a:type>tns:UserType</a:type>
+                        </a:schemaContext>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
             <xsd:element name="relationSelection" type="tns:RelationSelectionType" minOccurs="0"/>
             <xsd:element name="roleCatalog" type="tns:RoleCatalogType" minOccurs="0"/>
             <xsd:element name="checkout" type="tns:CheckoutType" minOccurs="0"/>

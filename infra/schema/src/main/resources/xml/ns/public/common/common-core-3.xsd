@@ -7761,6 +7761,11 @@
                              Expressions are NOT supported here for now.
                          </p>
                      </xsd:documentation>
+                     <xsd:appinfo>
+                         <a:schemaContext>
+                            <a:type>tns:FocusType</a:type>
+                         </a:schemaContext>
+                     </xsd:appinfo>
                  </xsd:annotation>
              </xsd:element>
              <!-- TODO: later: mapping is too flexible. It is will be difficult for the
@@ -16348,6 +16353,9 @@
                             </xsd:documentation>
                             <xsd:appinfo>
                                 <a:displayName>GlobalPolicyRuleType.focusSelector</a:displayName>
+                                <a:schemaContext>
+                                    <a:type>tns:FocusType</a:type>
+                                </a:schemaContext>
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>

@@ -3081,7 +3081,7 @@
             <xsd:appinfo>
                 <a:container/>
                 <a:schemaContext>
-                    <a:type>tns:ResourceType</a:type>
+                    <a:type>tns:ShadowType</a:type>
                 </a:schemaContext>
             </xsd:appinfo>
         </xsd:annotation>
