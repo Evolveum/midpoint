@@ -588,9 +588,6 @@
             <xsd:appinfo>
                 <a:container/>
                 <a:since>4.7</a:since>
-                <a:schemaContext>
-                    <a:type>tns:SimulationResultProcessedObjectType</a:type>
-                </a:schemaContext>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
@@ -599,6 +596,11 @@
                     <xsd:documentation>
                         A filter over SimulationResultProcessedObjectType objects that denotes the matching ones.
                     </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:schemaContext>
+                            <a:type>tns:SimulationResultProcessedObjectType</a:type>
+                        </a:schemaContext>
+                    </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="expression" type="tns:ExpressionType" minOccurs="0">

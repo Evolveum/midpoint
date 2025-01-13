@@ -2588,6 +2588,7 @@
                 <a:since>3.8.1</a:since>
                 <a:experimental>true</a:experimental>
                 <a:schemaContext>
+                    <a:type>tns:AssignmentHolderType</a:type>
                     <a:typePath>targetType</a:typePath>
                 </a:schemaContext>
             </xsd:appinfo>
