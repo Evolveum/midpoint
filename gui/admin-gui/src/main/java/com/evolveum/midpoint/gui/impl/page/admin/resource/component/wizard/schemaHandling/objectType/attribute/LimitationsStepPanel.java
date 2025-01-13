@@ -4,7 +4,7 @@
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.attributeMapping;
+package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.attribute;
 
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
@@ -24,7 +24,7 @@ import org.apache.wicket.model.IModel;
 @PanelInstance(identifier = "rw-attribute-limitations",
         applicableForType = ResourceType.class,
         applicableForOperation = OperationTypeType.WIZARD,
-        display = @PanelDisplay(label = "PageResource.wizard.step.attributes.limitation", icon = "fa fa-circle"),
+        display = @PanelDisplay(label = "PageResource.wizard.step.attributes.limitation", icon = "fa fa-triangle-exclamation"),
         expanded = true)
 public class LimitationsStepPanel extends
         AbstractValueFormResourceWizardStepPanel<PropertyLimitationsType, ResourceDetailsModel> {
@@ -58,7 +58,7 @@ public class LimitationsStepPanel extends
 
     @Override
     protected String getIcon() {
-        return "fa fa-circle";
+        return "fa fa-triangle-exclamation";
     }
 
     @Override

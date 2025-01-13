@@ -89,7 +89,7 @@ Please see xref:/midpoint/reference/resources/entitlements/#_tolerating_existing
 |===
 
 *Default object operation policy* for objects without marks specifying policy is to have *all operations enabled*.
-This default can be changed by setting `defaultOperationPolicyRef` for specific resource object type definition.
+This default can be changed by setting `defaultOperationPolicy` for specific resource object type definition.
 
 If object has multiple effective marks specifying object operation policy, these policies are merged.
 Operations disabled by any of the marks are always disabled.

@@ -1,10 +1,10 @@
 /*
- * Copyright (C) 2010-2024 Evolveum and contributors
+ * Copyright (C) 2010-2025 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.attributeMapping;
+package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.attribute.mapping;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -12,9 +12,15 @@ import java.util.List;
 import com.evolveum.midpoint.gui.api.util.MappingDirection;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
 
+import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.attribute.volatilityMultivalue.AttributeTypeWizardPanel;
+import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.attribute.LimitationsStepPanel;
+import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.attribute.MainConfigurationStepPanel;
+import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.attribute.MappingOverridesTableWizardPanel;
 import com.evolveum.midpoint.prism.Containerable;
 
 import com.evolveum.midpoint.prism.path.ItemName;
+
+import com.evolveum.midpoint.schema.result.OperationResult;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.model.IModel;
@@ -86,6 +92,29 @@ public class AttributeMappingWizardPanel<C extends Containerable> extends Abstra
 
                     @Override
                     protected void inEditNewValue(IModel<PrismContainerValueWrapper<ResourceAttributeDefinitionType>> value, AjaxRequestTarget target) {
+//                        TODO uncomment if volatility incoming/outgoing container will be changed to multivalue containers
+//                        WizardPanelHelper<ResourceAttributeDefinitionType, ResourceDetailsModel> helper =
+//                                new WizardPanelHelper<>(getAssignmentHolderModel()) {
+//
+//                                    @Override
+//                                    public void onExitPerformed(AjaxRequestTarget target) {
+//                                        showAttributeOverrides(target, selectedTable);
+//                                    }
+//
+//                                    @Override
+//                                    public OperationResult onSaveObjectPerformed(AjaxRequestTarget target) {
+//                                        return getHelper().onSaveObjectPerformed(target);
+//                                    }
+//
+//                                    @Override
+//                                    public IModel<PrismContainerValueWrapper<ResourceAttributeDefinitionType>> getDefaultValueModel() {
+//                                        return value;
+//                                    }
+//                                };
+//                        showWizardFragment(
+//                                target,
+//                                new AttributeTypeWizardPanel(getIdOfWizardPanel(), helper));
+
                         showWizardFragment(
                                 target,
                                 new WizardPanel(getIdOfWizardPanel(), new WizardModel(createNewAttributeOverrideSteps(value, selectedTable))));

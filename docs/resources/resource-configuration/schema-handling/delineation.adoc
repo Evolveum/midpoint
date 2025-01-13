@@ -1,0 +1,162 @@
+= Resource Object Type Delineation
+
+A new section, called `delineation`, is used to specify the set of resource objects that comprise the given resource object type.
+
+The following basic example defines the type of `entitlement/unixGroup` that consists of all objects having the class of `groupOfNames` on a given resource.
+
+.Listing 1. The most simple example of object type delineation
+[source,xml]
+----
+<objectType>
+    <kind>entitlement</kind>
+    <intent>unixGroup</intent>
+    <delineation>
+        <objectClass>ri:groupOfNames</objectClass>
+    </delineation>
+</objectType>
+----
+
+Now let us extend the definition to include the base context.
+
+The following configuration restricts the `entitlement/unixGroup` type to objects of `groupOfNames` class that reside within `ou=unixgroups,dc=example,dc=com` organizational unit.
+
+.Listing 2. Object type delineation with a base context restriction
+[source,xml]
+----
+<objectType>
+    <kind>entitlement</kind>
+    <intent>unixGroup</intent>
+    <delineation>
+        <objectClass>ri:groupOfNames</objectClass>
+        <baseContext>
+            <objectClass>ri:organizationalUnit</objectClass>
+            <filter>
+                <q:text>attributes/dn = "ou=unixgroups,dc=example,dc=com"</q:text>
+            </filter>
+        </baseContext>
+    </delineation>
+</objectType>
+----
+
+The base context is used to search for objects of `entitlement/unixGroup` type by adding the base context condition to the search query.
+However, it can be used also as a _classification rule_ that helps to determine whether an incoming object of `groupOfNames` class belongs to the `entitlement/unixGroup` type or not.
+
+[NOTE]
+====
+The use of the base context for classification has some restrictions, namely:
+
+. The base context root must be specified by `equal` filter with a single value of the type of "LDAP distinguished name".
+The fact that it is a distinguished name is determined by the presence of `distinguishedName` matching rule for it.
+. The shadow being classified must have a primary or secondary identifier, again with the `distinguishedName` matching rule set.
+
+See link:https://github.com/Evolveum/midpoint/blob/master/provisioning/provisioning-impl/src/main/java/com/evolveum/midpoint/provisioning/impl/shadows/classification/DelineationMatcher.java[DelineationMatcher] for more information.
+====
+
+All delineation configuration items are summarized in the following table.
+
+.List of delineation configuration items
+[%header]
+[%autowidth]
+|===
+| Item | Description
+
+| `objectClass`
+| Object class (like `ri:inetOrgPerson`) for this resource object type.
+
+| `auxiliaryObjectClass` (multivalued)
+| The reference to additional object classes for this object.
+The reference should point to object class definition and this definition should be marked as auxiliary.
+
+Definitions of attributes from these classes are "imported" to the object type.
+However, currently these auxiliary object classes are _not_ used for classification; i.e. the classification decision is not based on their presence in the specific resource object.
+
+| `baseContext`
+| The definition of base context (resource object container).
+This object will be used as a base for searches for objects of this type.
+Usually only the objects that are hierarchically below the `baseContext` are returned by such a search.
+E.g. this is used to specify LDAP `organizationalUnit` that contains users or groups of particular type.
+This information is used for object classification as well.
+See also `baseContextClassificationUse` property.
+
+| `searchHierarchyScope`
+| Definition of search hierarchy scope.
+It specifies how "deep" the search should go into the object hierarchy.
+It is only applicable to resources that support hierarchical organization of objects (e.g. LDAP resources).
+This information is used for object classification (along with `baseContext`) as well.
+See also `baseContextClassificationUse` property.
+
+| `filter` (multivalued)
+| A filter that defines the object set.
+Used for both searching and classification.
+Filter(s) specified for a subtype are appended to any filter(s) defined in the supertype.
+
+| `classificationCondition`
+| Expression that is evaluated to check whether a resource object is of given type.
+It is assumed to return a boolean value.
+(If no condition is present then it is assumed to be always true, i.e. the classification is done using the other means.)
+It is preferable to use declarative means for classification, i.e. base context and filter(s).
+
+| `classificationOrder`
+| In what order should this delineation specification be used for classification?
+No value means it should be used at the end.
+
+| `baseContextClassificationUse`
+| How should be the base context used for the classification? (See below.)
+|===
+
+.The values for `baseContextClassificationUse` property
+[%header]
+[%autowidth]
+|===
+| Value | Description
+| `required`
+| The base context must be used (if it's present in the delineation).
+If it cannot be applied, the delineation is considered as non-matching.
+| `ifApplicable`
+| If the base context is not applicable, it is used.
+Otherwise, it is ignored.
+This is the default setting.
+| `ignored`
+| The base context is not used for classification.
+|===
+
+== Conditions in Delineation
+
+If it's not possible to use standard means of classification, i.e., specifying the object class, a filter, a base context, and so on, as the last resort one can use the classification condition.
+
+The following code provides a configuration example to check whether the account belongs to the `test` intent.
+It checks whether it has the form of `Tnnnnnn` (case insensitive) where `n` is any digit.
+
+.Listing 21. Classification condition example
+[source,xml]
+----
+<objectType>
+    <kind>account</kind>
+    <intent>test</intent>
+    <delineation>
+        <objectClass>ri:AccountObjectClass</objectClass>
+        <classificationCondition>
+            <variable>
+                <name>userId</name>
+                <path>$projection/attributes/icfs:name</path>
+            </variable>
+            <script>
+                <code><![CDATA[
+                    (userId =~ /^([tT][\d]{6})$/).find()
+                    ]]></code>
+            </script>
+        </classificationCondition>
+    </delineation>
+----
+
+NOTE: This should be really the last resort.
+Specification using filters is strongly recommended, if possible.
+
+// * *Auxiliary object classes* are additional object classes that define extra characteristics for the object.
+// Auxiliary abject classes can usually be attached to objects of any structural object class.
+// There may be any number of auxiliary object classes.
+// Note: auxiliary object class support is available since midPoint 3.2.
+
+// * *Base context* is a point in a hierarchical tree under which objects of this type are stored.
+// This is an optional feature that is only applicable to resources that have hierarchical structure (such as LDAP directories).
+// Note: base context support is available since midPoint 3.4 and 3.3.1.

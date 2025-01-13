@@ -1,0 +1,9 @@
+= Exclusive Strong
+
+Normally, the value of an attribute is given by evaluating all normal and strong outbound mappings targeted to it.
+(And weak ones, if there's no other value.)
+
+However, there may be situations when we want the strong mapping to take precedence over the normal one(s), just like all of these take precedence over the weak mappings.
+
+Hence, if the `exclusiveStrong` property value is `true`, only the values originating from strong mappings are taken into account.
+If the property value is `false` (the default), both strong and normal mapping values are merged to produce the final set of values.

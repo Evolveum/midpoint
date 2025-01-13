@@ -297,6 +297,7 @@ If you need this behavior to be avoided, just turn off that activity.
 
 This feature is *experimental*.
 
+[#_caching_passwords]
 == Caching Passwords
 
 Passwords are special in some aspects.

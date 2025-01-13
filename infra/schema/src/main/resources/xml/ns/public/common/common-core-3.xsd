@@ -4149,10 +4149,8 @@
             <xsd:element name="ref" type="t:ItemPathType">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Path of the item or association that this
-                        definition describes. It must point to property or the
-                        attribute in the resource schema that belongs to an
-                        object class that is being described here.
+                        Path of the item that this definition describes. It must point to an object property or to an attribute
+                        in the resource schema that belongs to an object class that is being described here.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>

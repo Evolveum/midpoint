@@ -1,27 +1,20 @@
 /*
- * Copyright (C) 2010-2024 Evolveum and contributors
+ * Copyright (C) 2010-2025 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.attributeMapping;
+package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.attribute.mapping;
 
 import com.evolveum.midpoint.gui.api.factory.wrapper.WrapperContext;
-import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.prism.ItemStatus;
 import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
-import com.evolveum.midpoint.gui.api.util.GuiDisplayTypeUtil;
 import com.evolveum.midpoint.gui.api.util.MappingDirection;
-import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
 import com.evolveum.midpoint.gui.impl.component.data.column.AbstractItemWrapperColumn;
 import com.evolveum.midpoint.gui.impl.component.data.column.PrismPropertyWrapperColumn;
-import com.evolveum.midpoint.gui.impl.component.data.column.LifecycleStateColumn;
-import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
-import com.evolveum.midpoint.gui.impl.component.wizard.AbstractWizardTable;
-import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.MappingUsedFor;
 import com.evolveum.midpoint.gui.impl.prism.panel.PrismPropertyHeaderPanel;
 import com.evolveum.midpoint.gui.impl.prism.wrapper.ItemWrapperImpl;
 import com.evolveum.midpoint.gui.impl.prism.wrapper.AttributeMappingValueWrapper;
@@ -33,14 +26,7 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.component.AjaxIconButton;
-import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
-import com.evolveum.midpoint.web.component.data.column.IconColumn;
-import com.evolveum.midpoint.web.component.menu.cog.ButtonInlineMenuItem;
-import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
-import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
 import com.evolveum.midpoint.web.component.prism.ValueStatus;
-import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.model.PrismPropertyWrapperHeaderModel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
@@ -48,13 +34,9 @@ import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.behavior.AttributeAppender;
-import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
-import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.LoadableDetachableModel;
-import org.apache.wicket.model.Model;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;

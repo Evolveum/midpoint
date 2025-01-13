@@ -1,0 +1,47 @@
+= Attribute Tolerance
+
+*Tolerance* specifies whether the attribute tolerates values that are set outside midPoint.
+A _tolerant_ attribute will tolerate foreign values in the attribute.
+E.g. if the attribute is a set of account privileges, setting it to tolerant will keep also the values set by native administration tools.
+On the other hand _non-tolerant_ attributes will only allow values set by midPoint.
+If a foreign value is detected in the attribute then midPoint will remove that value during reconciliation.
+
+All attributes are considered to be tolerant by default.
+This is in accord with midPoint philosophy to be non-intrusive by default and not to destroy any values unless explicitly said so.
+
+The same principle applies to both single-valued and multi-valued attributes.
+However, there are subtle differences.
+MidPoint will almost always overwrite the value of a single-value attribute.
+Even for tolerant attributes.
+This is quite obvious, as the attribute cannot hold more than one value and therefore the value that is provided by midPoint is probably the correct one.
+In case of tolerant multi-value attributes, midPoint will not overwrite existing values.
+The values provided by midPoint will be added to existing values of the attribute.
+However, midPoint may delete existing value of the attribute even if that attribute is tolerant.
+MidPoint will do that in case that such value is removed from midPoint (e.g. by unassigning a role) and that such value was given by authoritative xref:/midpoint/reference/expressions/mappings/[mapping].
+In this case, midPoint cannot reliably distinguish whether this particular value was added to the resource by midPoint or whether the value existed in the account even before midPoint discovered it.
+But the usual case is that midPoint added the value and that is what midPoint will assume in this case.
+Therefore, such value is removed even if the attribute is non-tolerant.
+If you want avoid removing the value then you can set the mapping to be non-authoritative.
+
+[NOTE]
+.Tolerant single-value attributes
+====
+Single value attributes will usually be behave as expected, even if they are tolerant (which is the default setting).
+It means that mappings will overwrite the values and such attribute will behave almost in the same way as non-tolerant.
+But there is one crucial difference that becomes obvious in case that the mapping produces empty value.
+Tolerant attribute will *not* delete the attribute value in this case.
+And that makes sense, even though it is not entirely intuitive.
+In this case midPoint has an option to keep the attribute value untouched.
+So it will not touch it.
+In case of non-empty value there is no option to keep the original value untouched because the target attribute can only hold one value.
+But in this case there is an option.
+On the other hand, non-tolerant attribute *will* delete the target value and then the mapping will work as expected.
+
+Therefore it is *recommended to set most of the single-value attributes* for which there are mappings *to a non-tolerant mode*.
+
+Even though this behavior may be somehow counter-intuitive, it makes perfect sense from the conceptual point of view.
+Single-value and multi-value attributes behave in a similar way.
+And keeping this aligned also allows to keep midPoint algorithms cleaner, handle less exceptions and special cases and it also gives midPoint a slight better flexibility.
+Therefore please forgive us this little non-intuitive weirdness.
+
+====
