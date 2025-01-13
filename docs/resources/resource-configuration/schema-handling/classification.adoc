@@ -9,13 +9,13 @@ See also xref:/midpoint/reference/simulation/tutorial/[].
 
 The overall classification algorithm is the following:
 
-. First, candidate object types with classification order specified are tried - in their respective order.
-The first matching one is used.
+. First, candidate object types with classification order (`classificationOrder` property in `delineation`) specified are tried - in their respective order.
+The first matching type is used.
 
 . Then, candidate object types without order are tried.
-Matching ones are collected.
+Matching types are collected.
 
-- If there is a default object type ("default for object class") among matching ones, it is used.
+- If there is a default object type ("default for object class") among matching types, it is used.
 - If there is exactly one matching type, it is used.
 - If there is no matching type, the classification is unsuccessful.
 - If there are multiple (non-default) matching types, a special heuristic is executed:
@@ -23,15 +23,11 @@ the first one with the legacy `synchronization` section present is returned.
 Otherwise, arbitrary one is used.
 (This may be changed in the future.)
 
-The details can be seen in the link:https://github.com/Evolveum/midpoint/blob/4c96aac35f54cfd656f14ef574d753fbce73f7bf/provisioning/provisioning-impl/src/main/java/com/evolveum/midpoint/provisioning/impl/shadows/classification/ResourceObjectClassifier.java[source code].
-
-NOTE: The original items `auxiliaryObjectClass`, `baseContext`, `searchHierarchyScope` are marked as deprecated.
-The `objectClass` property has a mixed meaning (the delineation in object type definition and the identifier in object class definition - see below), so it is formally not deprecated here.
-But in object type definitions it should be specified with the `delineation` item.
+The details can be seen in the link:https://github.com/Evolveum/midpoint/blob/master/provisioning/provisioning-impl/src/main/java/com/evolveum/midpoint/provisioning/impl/shadows/classification/ResourceObjectClassifier.java[source code].
 
 Here is an (artificial) example of using advanced resource object type delineation.
 
-.Listing 14. Example of resource object type delineation
+.Example of resource object type delineation
 [source,xml]
 ----
 <schemaHandling>
@@ -113,7 +109,7 @@ Here is an (artificial) example of using advanced resource object type delineati
 </schemaHandling>
 ----
 
-.Listing 15. Alice, an employee
+.Alice, an employee
 [source]
 ----
 dn: uid=alice,ou=employees,dc=example,dc=com
@@ -127,7 +123,7 @@ objectclass: organizationalPerson
 objectclass: inetOrgPerson
 ----
 
-.Listing 16. Jim, an admin
+.Jim, an admin
 [source]
 ----
 dn: uid=jim,ou=special,dc=example,dc=com
@@ -142,7 +138,7 @@ objectclass: organizationalPerson
 objectclass: inetOrgPerson
 ----
 
-.Listing 17. Ann, a tester
+.Ann, a tester
 [source]
 ----
 dn: uid=ann,ou=special,dc=example,dc=com

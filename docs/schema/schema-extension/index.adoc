@@ -2,34 +2,32 @@
 midpoint-feature: extensible-object-types
 doc-type: config
 ---
-= Custom Schema Extension
-:page-wiki-name: Custom Schema Extension
-:page-wiki-id: 4882516
-:page-wiki-metadata-create-user: semancik
-:page-wiki-metadata-create-date: 2012-08-07T11:29:21.707+02:00
-:page-wiki-metadata-modify-user: petr.gasparik
-:page-wiki-metadata-modify-date: 2020-01-14T08:15:58.493+01:00
+= Schema Extension
+:page-nav-title: Schema Extension
+:page-keywords: [ "schema extension", "custom schema", "custom attribute" ]
 :page-toc: top
-:page-upkeep-status: orange
-
-// TODO: figure
+:page-upkeep-status: green
 
 MidPoint has quite a rich xref:/midpoint/architecture/archive/data-model/midpoint-common-schema/usertype/[user schema] with many attributes that are common for most IDM deployments.
-But if there are attributes that are not really common the best option is to extend user schema.
+But if there are attributes that are not really common the best option is to extend object schema, e.g. for user, for role, for organization etc.
 It is quite easy.
-The User schema is extended by adding appropriate XSD schema to the midPoint installation.
-The schema extension is stored in the database as a SchemaType that contains an attribute for the schema in XSD format.
+The object schema is extended by adding appropriate XSD schema to the midPoint installation.
+The schema extension is stored in the database as a `SchemaType`. Therefore, the primary and recommended way to add and edit custom attributes in schema extension is through the GUI panels.
 You can also use the XSD file in the midPoint home directory as in previous versions.
 
-The custom schema extension is specified in the XML Schema Description (XSD) format similar to other schemas in midPoint.
+The schema is stored in the `definition` attribute of `SchemaType`. This attribute contains the schema that is specified in the XML Schema Description (XSD) format similar to other schemas in midPoint.
 It is using XSD annotations to specify details that XSD cannot specify.
 E.g. it is using an `a:extension` annotation to bind the complex type definition to the midPoint object type.
 
+Currently, unlike previous versions, the schema extension does not need to be present in midPoint at startup time.
+It is stored in the xref:/midpoint/reference/repository/[repository (database)]
+and can be dynamically changed when the system is running.
+
+When MidPoint starts and after each SchemaType is saved, all schemas of all SchemaTypes are loaded.
+
 == Example
 
-Following example provides a custom schema extension.
-It extends the schema of UserType as is defined by the `a:extension` XSD annotation.
-The example defines two properties: `officeNumber` and `favoriteColor`.
+The following example shows a schema extension for user that adds two new attributes.
 
 .Custom schema extension
 [source,xml]
@@ -42,51 +40,51 @@ The example defines two properties: `officeNumber` and `favoriteColor`.
                     xmlns:tns="http://example.com/xml/ns/mySchema"
                     xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-3"
                     xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-                    xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+                    xmlns:xsd="http://www.w3.org/2001/XMLSchema"><!--1-->
 
             <xsd:complexType name="UserExtensionType">
                 <xsd:annotation>
                     <xsd:appinfo>
-                        <a:extension ref="c:UserType"/>
+                        <a:extension ref="c:UserType"/><!--2-->
                     </xsd:appinfo>
                 </xsd:annotation>
                 <xsd:sequence>
-                    <xsd:element name="officeNumber" type="xsd:string" minOccurs="0" maxOccurs="1">
+                    <xsd:element name="officeNumber" type="xsd:string" minOccurs="0" maxOccurs="1"><!--3-->
                         <xsd:annotation>
                             <xsd:appinfo>
-                                <a:indexed>true</a:indexed>
-                                <a:displayName>office number</a:displayName>
-                                <a:displayOrder>120</a:displayOrder>
+                                <a:indexed>true</a:indexed><!--4-->
+                                <a:displayName>office number</a:displayName><!--5-->
+                                <a:displayOrder>120</a:displayOrder><!--6-->
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
-                    <xsd:element name="favoriteColor" type="xsd:string" minOccurs="0" maxOccurs="unbounded">
+                    <xsd:element name="favoriteColor" type="xsd:string" minOccurs="0" maxOccurs="unbounded"> <!--3-->
                         <xsd:annotation>
                             <xsd:appinfo>
-                                <a:indexed>false</a:indexed>
-                                <a:displayName>favorite color</a:displayName>
-                                <a:displayOrder>130</a:displayOrder>
-                                <a:help>The favorite color</a:help>
+                                <a:indexed>false</a:indexed><!--4-->
+                                <a:displayName>favorite color</a:displayName><!--5-->
+                                <a:displayOrder>130</a:displayOrder><!--6-->
+                                <a:help>The favorite color</a:help><!--7-->
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
- 			        <xsd:element name="facility" type="xsd:string" minOccurs="1" maxOccurs="1">
+ 			        <xsd:element name="facility" type="xsd:string" minOccurs="1" maxOccurs="1"><!--3-->
                         <xsd:annotation>
                             <xsd:appinfo>
-                                <a:indexed>true</a:indexed>
-                                <a:displayName>facility</a:displayName>
-                                <a:displayOrder>135</a:displayOrder>
-                                <a:help>The address of the facility where the employees office resides</a:help>
+                                <a:indexed>true</a:indexed><!--4-->
+                                <a:displayName>facility</a:displayName><!--5-->
+                                <a:displayOrder>135</a:displayOrder><!--6-->
+                                <a:help>The address of the facility where the employees office resides</a:help><!--7-->
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
-			        <xsd:element name="officePhone" type="xsd:string">
+			        <xsd:element name="officePhone" type="xsd:string"><!--3-->
                         <xsd:annotation>
                             <xsd:appinfo>
-                                <a:indexed>false</a:indexed>
-                                <a:displayName>office telephone number</a:displayName>
-                                <a:displayOrder>140</a:displayOrder>
-                                <a:help>The office telephone number</a:help>
+                                <a:indexed>false</a:indexed><!--4-->
+                                <a:displayName>office telephone number</a:displayName><!--5-->
+                                <a:displayOrder>140</a:displayOrder><!--6-->
+                                <a:help>The office telephone number</a:help><!--7-->
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
@@ -96,13 +94,25 @@ The example defines two properties: `officeNumber` and `favoriteColor`.
     </definition>
 </schema>
 ----
+<1> `xsd:schema` XSD annotation contains whole extension schema, we need define `targetNamespace` for new extension schema
+<2> It extends the schema of UserType as is defined by the `a:extension` XSD annotation.
+<3> The example defines two properties: `officeNumber` and `favoriteColor`, which is defined by the `xsd:element` XSD annotation.
+- Attribute `name` is the name by which midPoint knows the item. It is used in xref:/midpoint/reference/expressions/[mappings] and configuration.
+- Attribute `type` determines the type and range or item values.
+- Attributes for configuration of multiplicity define whether new item is mandatory or optional.
+<4> Attribute `indexed` define whether is item indexed in database, so if we can use it for search. This is explained in more detail below.
+<5> Display name is what midPoint will display in forms and reports.
+<6> Attribute `order` define order in which item will be displayed in forms.
+<7> Attribute `help` define help text.
+
+Most of that is defined using XSD annotations and it is optional.
 
 This file is all it takes to extend the schema.
-It extends user with two custom attributes:
+It extends user with four custom attributes:
 
 [%autowidth]
 |===
-| Name | Display Name | Type |
+| Name | Display Name | Type | Multiplicity
 
 | `officeNumber`
 | office number
@@ -126,18 +136,12 @@ It extends user with two custom attributes:
 
 |===
 
-Attribute name is the name by which midPoint knows the attribute.
-It is used in xref:/midpoint/reference/expressions/[mappings] and configuration.
-Display name is what midPoint will display in forms and reports.
-Attribute type determines the type and range or attribute values.
-The schema may also define attribute multiplicity, whether it is mandatory or optional, define the order in which it will be displayed in forms, define a help text, etc.
-Most of that is defined using XSD annotations and it is optional.
-
 Defining the schema extension is all that midPoint needs to make full use of the attribute.
 Once it is defined in the schema midPoint will display the attribute in the GUI and it will be displayed
 using suitable user field, checked for mandatory value, the attribute may be used in mappings, etc.
 It will behave as if it was always a part of midPoint.
-The small additional configuration is required only when these attributes are used in mappings.
+The small additional configuration is required only needed if these attributes are used in mappings
+and contains same name as attribute from other schema, in this case we have to define namespace for attribute in mapping configuration.
 Then you have to let configuration know in which namespace it should look for an attribute definition.
 This is the namespace introduced by the attribute `targetNamespace` in the header of the extension XSD file.
 
@@ -146,7 +150,7 @@ This is the namespace introduced by the attribute `targetNamespace` in the heade
 ----
 <user>
   <name>jack</name>
-  <extension>
+  <extension><!--1-->
     <officeNumber>001</officeNumber>
     <favoriteColor>Black with white skull on it</favoriteColor>
   </extension>
@@ -155,43 +159,9 @@ This is the namespace introduced by the attribute `targetNamespace` in the heade
 </user>
 
 ----
+<1> All values of attributes from the extension schema can be seen in the `extension` tag in the XML file.
 
 A more complex schema examples are provided in the git link:https://github.com/Evolveum/midpoint-samples/tree/master/samples/schema[samples/schema directory].
-
-== Installing Custom Schema Extension
-
-Currently, unlike previous versions, the schema extension does not need to be present in midPoint at startup time.
-It is stored in the xref:/midpoint/reference/repository/[repository (database)]
-and can be dynamically changed when the system is running.
-
-The schema is stored in the `definition` attribute of `SchemaType`. This attribute contains the schema in XSD format.
-When MidPoint starts and after each SchemaType is saved, all schemas of all SchemaTypes are loaded.
-
-=== Changing Custom Schema Extension via GUI
-
-From midpoint 4.9, schemas can be configured via GUI panels.
-After each change, the schema is reloaded and you can immediately see the new attributes
-in the GUI panels of the extended object type.
-
-When we create a new schema, a new complex type or a new item, the GUI panel has no limitations.
-However, when we modify it, we run into certain limitations related to the schema lifecycle.
-Deleting schemas, complex types or items is forbidden because some objects may contain values for attributes created by that schema, complex type or item.
-Another reason is that we need old attributes in schemas for the correct display of deltas in audit records.
-Unnecessary attributes should be marked as removed, but should remain in the schema extension.
-
-Limitations:
-
-* Can't change `Namespace` of schema
-* Can't change `Name` and  `Extension` of complex type
-* Can't change `Name` and  `Type` of item
-* Value of `Required` attribute of item can't change form `false` to true or undefined
-* Value of `Multivalue` attribute of item can't change form `true` to false or undefined
-* Container item can't mark as indexed
-* Can't change `Object reference target type` of reference item
-* Can't change `name`  of enumeration
-* Can't change `value`  of enumeration value
-
-These are limitations for GUI panels only, so if you want to, and you're sure it's correct, *you can change it directly via the XML file at your own risk.*.
 
 == Data Types Supported
 
