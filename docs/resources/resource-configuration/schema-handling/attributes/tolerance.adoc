@@ -1,10 +1,10 @@
 = Attribute Tolerance
 
 *Tolerance* specifies whether the attribute tolerates values that are set outside midPoint.
-A _tolerant_ attribute will tolerate foreign values in the attribute.
+A _tolerant_ attribute will tolerate such foreign values in the attribute.
 E.g. if the attribute is a set of account privileges, setting it to tolerant will keep also the values set by native administration tools.
 On the other hand _non-tolerant_ attributes will only allow values set by midPoint.
-If a foreign value is detected in the attribute then midPoint will remove that value during reconciliation.
+If a foreign value is detected in the attribute then midPoint will remove that value when updating or reconciling that account.
 
 All attributes are considered to be tolerant by default.
 This is in accord with midPoint philosophy to be non-intrusive by default and not to destroy any values unless explicitly said so.
@@ -20,7 +20,7 @@ However, midPoint may delete existing value of the attribute even if that attrib
 MidPoint will do that in case that such value is removed from midPoint (e.g. by unassigning a role) and that such value was given by authoritative xref:/midpoint/reference/expressions/mappings/[mapping].
 In this case, midPoint cannot reliably distinguish whether this particular value was added to the resource by midPoint or whether the value existed in the account even before midPoint discovered it.
 But the usual case is that midPoint added the value and that is what midPoint will assume in this case.
-Therefore, such value is removed even if the attribute is non-tolerant.
+Therefore, such value is removed even if the attribute is tolerant.
 If you want avoid removing the value then you can set the mapping to be non-authoritative.
 
 [NOTE]
@@ -43,5 +43,27 @@ Even though this behavior may be somehow counter-intuitive, it makes perfect sen
 Single-value and multi-value attributes behave in a similar way.
 And keeping this aligned also allows to keep midPoint algorithms cleaner, handle less exceptions and special cases and it also gives midPoint a slight better flexibility.
 Therefore please forgive us this little non-intuitive weirdness.
-
 ====
+
+== Tolerant and Intolerant Value Patterns
+
+It is possible to specify the tolerance for individual attribute values.
+
+* *`tolerantValuePattern`* is a pattern (regexp) such that if the value matches the pattern, such value is tolerated.
+It is left in the attribute even if it is not derived from any mapping.
+
+* *`intolerantValuePattern`* is also a pattern (regexp); such that if the value matches the pattern, such value is not tolerated.
+The value must be derived from a mapping or it will be removed.
+
+If a value matches none of the patterns, the attribute-wide tolerance setting is used.
+
+If it matches both patterns, the value is tolerated.
+
+== Associations
+
+The tolerance for associations works the same as for attributes.
+However, there is a possibility of setting the tolerance for each individual entitlement, e.g., a group.
+So, midPoint can know that given groups are managed right on the resource, including their membership, and that all other groups are managed by midPoint.
+All association values regarding the former groups are tolerated, and all association values regarding the latter group are not tolerated.
+
+See xref:/midpoint/reference/resources/entitlements/#_tolerating_existing_association_values[Tolerating Existing Association Values] for more information.
