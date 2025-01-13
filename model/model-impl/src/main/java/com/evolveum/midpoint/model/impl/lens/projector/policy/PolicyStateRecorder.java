@@ -11,7 +11,7 @@ import java.util.stream.Collectors;
 
 import com.evolveum.midpoint.model.api.context.AssociatedPolicyRule;
 
-import com.evolveum.midpoint.prism.delta.builder.S_ValuesEntry;
+import com.evolveum.midpoint.model.api.context.EvaluatedPolicyRule;
 import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.repo.common.EvaluatedPolicyStatements;
 import com.evolveum.midpoint.schema.config.PolicyActionConfigItem;
@@ -28,8 +28,6 @@ import com.evolveum.midpoint.prism.delta.PlusMinusZero;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
-import org.jetbrains.annotations.Nullable;
-
 /**
  * Takes care of updating `policySituation` and triggered rules for focus and assignments.
  * (Originally was a part of `PolicyRuleEvaluator`.)
@@ -42,7 +40,7 @@ class PolicyStateRecorder {
 
     <O extends ObjectType> void applyObjectState(
             @NotNull LensElementContext<O> elementContext,
-            @NotNull List<? extends AssociatedPolicyRule> rulesToRecord)
+            @NotNull List<? extends EvaluatedPolicyRule> rulesToRecord)
             throws SchemaException {
         // compute policySituation and triggeredPolicyRules and compare it with the expected state
         // note that we use the new state for the comparison, because if values match we do not need to do anything
@@ -74,26 +72,33 @@ class PolicyStateRecorder {
                             .asItemDelta());
         }
 
-        for (AssociatedPolicyRule rule : rulesToRecord) {
+        for (EvaluatedPolicyRule rule : rulesToRecord) {
             computeNewMarks(rule, evaluatedPolicyStatements);
         }
 
         // apply collected deltas for effective marks (policyStatements + policyRules)
+        // We use "existing" values (taken from object new, see above) to avoid phantom adds and deletes.
+        var newMarkRefs = objectNew.getEffectiveMarkRef();
         if (evaluatedPolicyStatements.isNotEmpty()) {
             elementContext.addToPendingObjectPolicyStateModifications(
                     PrismContext.get().deltaFor(ObjectType.class)
                             .item(ObjectType.F_EFFECTIVE_MARK_REF)
-                            .deleteRealValues(CloneUtil.cloneCollectionMembers(evaluatedPolicyStatements.collectMarksToDelete()))
-                            .addRealValues(CloneUtil.cloneCollectionMembers(evaluatedPolicyStatements.collectMarksToAdd()))
+                            .deleteRealValues(
+                                    CloneUtil.cloneCollectionMembers(
+                                            evaluatedPolicyStatements.collectMarksToDelete(newMarkRefs)))
+                            .addRealValues(
+                                    CloneUtil.cloneCollectionMembers(
+                                            evaluatedPolicyStatements.collectMarksToAdd(newMarkRefs)))
                             .asItemDelta());
         }
 
         // something strange here - probably something forgotten, let's clean up
+        // TODO What if there are some evaluated policy statements, but an extra effectiveMarkRef? We should clean that up as well.
         if (evaluatedPolicyStatements.isEmpty()) {
             elementContext.addToPendingObjectPolicyStateModifications(
                     PrismContext.get().deltaFor(ObjectType.class)
                             .item(ObjectType.F_EFFECTIVE_MARK_REF)
-                            .deleteRealValues(CloneUtil.cloneCollectionMembers(objectNew.getEffectiveMarkRef()))
+                            .deleteRealValues(CloneUtil.cloneCollectionMembers(newMarkRefs))
                             .asItemDelta());
         }
 

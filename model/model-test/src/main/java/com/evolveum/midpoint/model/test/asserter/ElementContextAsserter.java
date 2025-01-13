@@ -83,8 +83,9 @@ public abstract class ElementContextAsserter<C extends ModelElementContext<O>, O
         return deltaAsserter;
     }
 
+    @SuppressWarnings("UnusedReturnValue")
     public ElementContextAsserter<C, O, RA> assertNoSecondaryDelta() {
-        assertNull("Unexpected secondary delta in " + desc(), elementContext.getSecondaryDelta());
+        assertNull("Unexpected secondary delta in " + desc(), elementContext.getSummarySecondaryDelta());
         return this;
     }
 
