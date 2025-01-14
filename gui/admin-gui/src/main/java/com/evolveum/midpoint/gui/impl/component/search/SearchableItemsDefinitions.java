@@ -142,6 +142,9 @@ public class SearchableItemsDefinitions {
 
         SEARCHABLE_OBJECTS.put(AssignmentType.class, Arrays.asList(
                 ItemPath.create(AssignmentType.F_TARGET_REF),
+                // Prism now supports search by reference target name (in form of @/name) so
+                // it is okay to have this, even if repository assignment view is not enabled
+                ItemPath.create(AssignmentType.F_TARGET_REF, new ObjectReferencePathSegment(), ObjectType.F_NAME),
                 ItemPath.create(AssignmentType.F_CONSTRUCTION, ConstructionType.F_RESOURCE_REF),
                 ItemPath.create(AssignmentType.F_ACTIVATION, ActivationType.F_ADMINISTRATIVE_STATUS),
                 ItemPath.create(AssignmentType.F_ACTIVATION, ActivationType.F_EFFECTIVE_STATUS)
