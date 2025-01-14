@@ -292,7 +292,12 @@ public class PageOutliers extends PageAdmin {
 
                     @Override
                     public boolean isSortable() {
-                        return false;
+                        return true;
+                    }
+
+                    @Override
+                    public String getSortProperty() {
+                        return RoleAnalysisOutlierType.F_OVERALL_CONFIDENCE.getLocalPart();
                     }
 
                     @Override
