@@ -9,6 +9,7 @@ import com.evolveum.midpoint.prism.schemaContext.resolver.Algorithm;
 import com.evolveum.midpoint.prism.schemaContext.resolver.SchemaContextResolver;
 import com.evolveum.midpoint.prism.schemaContext.resolver.SchemaContextResolverRegistry;
 
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import com.google.common.collect.ImmutableSet;
@@ -19,7 +20,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import javax.xml.namespace.QName;
-import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
@@ -101,13 +101,8 @@ public class ValueBasedDefinitionLookupsImpl {
             }
             // We did not successfully found schema, do not override
             return null;
-
-
         }
     };
-
-
-
 
     class ResourceObjectContextResolver implements SchemaContextResolver {
 
@@ -120,24 +115,20 @@ public class ValueBasedDefinitionLookupsImpl {
         @Override
         public SchemaContext computeContext(PrismValue prismValue) {
             if (prismValue instanceof PrismContainerValue<?> container) {
-                ResourceObjectTypeDefinitionType resourceObjectDefinitionType = (ResourceObjectTypeDefinitionType) container.asContainerable();
+                ResourceObjectTypeDefinitionType rotd = (ResourceObjectTypeDefinitionType) container.asContainerable();
                 ResourceType resource = (ResourceType) container.getRootObjectable();
-
-                ShadowType shadowType = new ShadowType();
-                shadowType.resourceRef(resource.getOid(), ResourceType.COMPLEX_TYPE);
-                shadowType.setKind(resourceObjectDefinitionType.getKind());
-                shadowType.setIntent(resourceObjectDefinitionType.getIntent());
-
+                if (resource == null) {
+                    return null;
+                }
                 try {
-                    ResourceObjectDefinition resourceObjectDefinition = provisioning.getDefinitionForShadow(shadowType);
+                    ResourceObjectDefinition resourceObjectDefinition = provisioning.getDefinitionForKindIntent(resource.getOid(), rotd.getKind(), rotd.getIntent());
                     if (resourceObjectDefinition != null) {
                         return new SchemaContextImpl(resourceObjectDefinition.toPrismObjectDefinition());
                     }
-                } catch (Exception e) {
+                } catch (SchemaException e) {
                     // NOOP?
                 }
             }
-
             return new SchemaContextImpl(prismValue.schemaLookup().findObjectDefinitionByCompileTimeClass(ShadowType.class));
         }
     }
@@ -154,30 +145,12 @@ public class ValueBasedDefinitionLookupsImpl {
         public SchemaContext computeContext(PrismValue prismValue) {
             if (prismValue instanceof PrismContainerValue<?> container) {
                 ConstructionType construction = (ConstructionType) container.asContainerable();
-
-                ShadowType shadowType = new ShadowType();
-                shadowType.resourceRef(construction.getResourceRef().getOid(), ConstructionType.COMPLEX_TYPE);
-                shadowType.setKind(construction.getKind());
-
-                if (construction.getIntent() != null) {
-                    shadowType.setIntent(construction.getIntent());
-                } else {
-                    shadowType.setIntent("default");
-                }
-
-                try {
-                    ResourceObjectDefinition resourceObjectDefinition = provisioning.getDefinitionForShadow(shadowType);
-                    if (resourceObjectDefinition != null) {
-                        return new SchemaContextImpl(resourceObjectDefinition.toPrismObjectDefinition());
-                    }
-                } catch (Exception e) {
-                    // NOOP?
+                ResourceObjectDefinition resourceObjectDefinition = provisioning.getDefinitionForConstruction(construction);
+                if (resourceObjectDefinition != null) {
+                    return new SchemaContextImpl(resourceObjectDefinition.toPrismObjectDefinition());
                 }
             }
-
             return new SchemaContextImpl(prismValue.schemaLookup().findObjectDefinitionByCompileTimeClass(ShadowType.class));
         }
     }
 }
-
-
