@@ -6,54 +6,36 @@
 :page-wiki-metadata-modify-user: mederly
 :page-wiki-metadata-modify-date: 2014-12-16T19:17:55.492+01:00
 :page-upkeep-status: orange
+:page-experimental: true
+:page-outdated: true
 
-There is a feature of the ConnId framework since version 1.4: *paged search*. The client can specify that it would like to retrieve not all query results in one operation, but only a part of it - specified by an offset and an item count.
+There is a feature of the ConnId framework since version 1.4: *paged search*.
+The client can specify that it would like to retrieve not all query results in one operation, but only a part of it - specified by an offset and an item count.
 
 By default, midPoint does not utilize the paged search when retrieving accounts from a resource.
 For background activities, like live sync and reconciliation, this is not necessary at all.
-However, for listing accounts (Resources -> List resources -> Accounts) such a feature is really useful, if you have many accounts on your resource.
-In non-paged case, midPoint has to retrieve all accounts up to the currently displayed page (and it does not know how many accounts are there, so showing something like "Displaying 1 to 10 of 2 147 483 647 matching result."). When using paged search, it is sufficient to retrieve only those records, which are to be displayed.
+However, for listing accounts (Resources -> All resources -> select a resource -> Resource objects) such a feature is really useful, if you have many accounts on your resource.
+In non-paged case, midPoint has to retrieve all accounts up to the currently displayed page (and it does not know how many accounts are there, so showing something like "Displaying 1 to 20, unknown number of matching results.").
+When using paged search, it is sufficient to retrieve only those records, which are to be displayed.
 And midPoint knows how many objects are there.
 
 How to enable paged search?
 
 First of all, you have to use a connector that supports paged searches.
-Then, you have to configure the connector appropriately.
-This means:
 
-. Paged search is not compatible with the FilteredResultsHandler (a handler that provides additional filtering in the ConnId framework, in addition to filtering done in the connector).
-So, you have either to turn the filtered results handler off, or (if you are not sure whether this would not create any spurious results) enable it in validation mode.
-The configuration looks like this:
+Now you have to specify that paged searches are to be used.
+You can do this by creating `*<pagedSearch>` capability* - either at the level of resource or a resource object type.
+A minimal config looks like this:
 
-[source,xml]
-----
-<icfc:resultsHandlerConfiguration>
-    <icfc:enableFilteredResultsHandler>false</icfc:enableFilteredResultsHandler>
-</icfc:resultsHandlerConfiguration>
-----
-
-or this:
-
-[source,xml]
-----
-<icfc:resultsHandlerConfiguration>
-    <icfc:filteredResultsHandlerInValidationMode>true</icfc:filteredResultsHandlerInValidationMode>
-    ...
-</icfc:resultsHandlerConfiguration>
-----
-
-
-. After that, you have to specify that paged searches are to be used.
-You can do this by creating *<pagedSearch>**capability* - either at the level of resource or a resource object type.
-A minimal config looks like this:At the level of resource:
+At the level of resource:
 
 [source,xml]
 ----
 <capabilities>
-   <native> ... </native>
-   <configured xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-3">
-      <cap:pagedSearch/>
-   </configured>
+    <native> ... </native>
+    <configured xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-3">
+        <cap:pagedSearch/>
+    </configured>
 </capabilities>
 ----
 
@@ -62,15 +44,15 @@ At the level of resource object type:
 [source,xml]
 ----
 <schemaHandling>
-   <objectType>
-      <kind>account</kind>
-      <displayName>Default Account</displayName>
-      <default>true</default>
-      ...
-      <configuredCapabilities xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-3">
-         <cap:pagedSearch/>
-      </configuredCapabilities>
-      ...
+    <objectType>
+        <kind>account</kind>
+        <displayName>Default Account</displayName>
+        <default>true</default>
+        ...
+        <configuredCapabilities xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-3">
+            <cap:pagedSearch/>
+        </configuredCapabilities>
+        ...
 ----
 
 As paged searches require sorting of any kind (without sorting, the concept of a "page" has no meaning), you may define a default sorting - a field and an order.
@@ -87,34 +69,27 @@ But you can use e.g. "sn", as indicated below:
  </configuredCapabilities>
 ----
 
-midPoint (experimentally) supports paged searches since v3.0.1devel-576-g34f619c.
-BEWARE: In v3.0.1devel-640-g6083c5f we have changed configuration from resource object type element <pagedSearches/> to the above capability-based config. Old style configuration is currently ignored. In future versions of midPoint (3.1 and above) any resource with <pagedSearches/> will be considered incorrect, i.e. failing to be retrieved from the repository! So if you use <pagedSearches> element, remove it as soon as possible.
-
-. Finally, you have to tell midPoint to use paged search to estimate the number of objects. To do that, <cap:countObjects><cap:simulate>pagedSearchEstimate</cap:simulate></cap:countObjects> capability has to be used, e.g.
+Finally, you have to tell midPoint to use paged search to estimate the number of objects.
+To do that, `countObjects` capability has to be used, e.g.
 
 [source,xml]
 ----
 <configuredCapabilities xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-3">
-   <cap:pagedSearch/>
-   <cap:countObjects>
-      <cap:simulate>pagedSearchEstimate</cap:simulate>
-   </cap:countObjects>
+    <cap:pagedSearch/>
+    <cap:countObjects>
+        <cap:simulate>pagedSearchEstimate</cap:simulate>
+    </cap:countObjects>
 </configuredCapabilities>
 ----
 
- Note that there is also a possibility to set simulate to "sequentialSearch".
+Note that there is also a possibility to set simulate to "sequentialSearch".
 This method *does not* require paged searches.
 However, it is quite inefficient, because
 
-.. it causes midPoint to fetch all resource objects in order to know their count;
+. it causes midPoint to fetch all resource objects in order to know their count;
 
-.. when displaying objects in the middle of the list (e.g. those from 1001 to 1010), midPoint has to uselessly fetch first 1000 objects, just to get the required ones.
+. when displaying objects in the middle of the list (e.g. those from 1001 to 1010), midPoint has to uselessly fetch first 1000 objects, just to get the required ones.
 Paged search is much more effective than this.
-
-
-
-The number-of-objects estimation works since v3.0.1devel-765-gb7a0f58 (December 16, 2014).
-
 
 == Some AD-Related Notes
 
@@ -134,6 +109,5 @@ So, in order to work, the VLV must not be disabled (see e.g. link:http://technet
 .. applying link:http://support.microsoft.com/kb/977180[kb977180-v2]
 
 .. setting HKLM\System\CurrentControlSet\Services\NTDS\Parameters\DSA Heuristics to 000000000001 (string) - see link:https://social.technet.microsoft.com/Forums/windowsserver/en-US/51c2dbd4-91fe-4f38-a4dc-d7f04c3d7f8a/c-application-virtual-view-list-with-directoryvirtuallistview-the-server-does-not-support-the?forum=winserverDS[this discussion thread] - although beware if this fits into your environment!
-
 
 . If you encounter problems with queries with large result sets, you might want to link:http://support2.microsoft.com/kb/2009267[tune your server's LDAP parameters].
