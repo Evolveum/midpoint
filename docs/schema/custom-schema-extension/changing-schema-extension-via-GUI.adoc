@@ -7,7 +7,7 @@ From midPoint 4.9, schemas can be configured via GUI panels.
 After each change, the schema is reloaded and you can immediately see the new attributes
 in the GUI panels of the extended object type.
 
-For basic information about extension schema see xref:/midpoint/reference/schema/schema-extension/[Schema extension].
+For basic information about extension schema see xref:/midpoint/reference/schema/custom-schema-extension/[Schema extension].
 
 When we create a new schema, a new complex type or a new item, the GUI panel has no limitations.
 However, when we modify it, we run into certain limitations related to the schema lifecycle.

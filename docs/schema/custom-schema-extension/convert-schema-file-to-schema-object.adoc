@@ -82,4 +82,4 @@ New `SchemaType` object prepare for import into midPoint.
 </schema>
 ----
 
-For basic information about extension schema see xref:/midpoint/reference/schema/schema-extension/[Schema extension].
+For basic information about extension schema see xref:/midpoint/reference/schema/custom-schema-extension/[Schema extension].
