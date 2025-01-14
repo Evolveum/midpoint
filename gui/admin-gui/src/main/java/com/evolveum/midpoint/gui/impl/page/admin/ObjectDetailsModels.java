@@ -243,6 +243,7 @@ public class ObjectDetailsModels<O extends ObjectType> implements Serializable, 
                 if (!delta.isEmpty()) {
                     delta.revive(getPrismContext());
                     deltas.add(delta);
+                    validationErrors = performCustomValidation(objectWrapper.getObject(), deltas);
                 }
 
                 List<ObjectDelta<? extends ObjectType>> additionalDeltas = getAdditionalModifyDeltas(result);

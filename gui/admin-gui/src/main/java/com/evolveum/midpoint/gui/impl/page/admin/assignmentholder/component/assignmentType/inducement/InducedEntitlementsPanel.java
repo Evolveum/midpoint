@@ -48,6 +48,7 @@ import org.apache.wicket.model.Model;
 
 import javax.xml.namespace.QName;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
@@ -84,10 +85,15 @@ public class InducedEntitlementsPanel<AR extends AbstractRoleType> extends Abstr
 
         if (getPageBase() instanceof AbstractPageObjectDetails) {
             AbstractPageObjectDetails page = (AbstractPageObjectDetails) getPageBase();
-            if (!page.getFormValidatorRegistry().getValidators().contains(validator)) {
+            if (validatorNotPresentInRegistry(page)) {
                 page.getFormValidatorRegistry().registerValidator(validator);
             }
         }
+    }
+
+    private boolean validatorNotPresentInRegistry(AbstractPageObjectDetails page) {
+        Collection<MidpointFormValidator> validators = page.getFormValidatorRegistry().getValidators();
+        return validators != null && validators.stream().noneMatch(v -> v instanceof InducedEntitlementsValidator);
     }
 
     @Override
