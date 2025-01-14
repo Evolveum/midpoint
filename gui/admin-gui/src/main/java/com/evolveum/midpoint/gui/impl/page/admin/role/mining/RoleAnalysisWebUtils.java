@@ -282,18 +282,18 @@ public class RoleAnalysisWebUtils {
                 return roleAnalysisObjectDto;
             }
 
-            private void loadObjectForMark(RoleAnalysisObjectDto roleAnalysisObjectDto, String outlierOid) {
+            private void loadObjectForMark(@NotNull RoleAnalysisObjectDto roleAnalysisObjectDto,@NotNull String outlierOid) {
                 String cssStyle = "border: 5px solid #206f9d;";
                 String cssClass = "p-2 d-flex align-items-center justify-content-center bg-danger";
-                String cssClassUniq = "p-2 d-flex align-items-center justify-content-center bg-warning";
+                String cssClassUniq = cssClass + " corner-hashed-bg";
                 if (detectedAnomalyResult != null) {
                     for (DetectedAnomalyResult item : detectedAnomalyResult) {
                         ObjectReferenceType targetObjectRef = item.getTargetObjectRef();
-                        if (targetObjectRef == null) {
+                        if (targetObjectRef == null || targetObjectRef.getOid() == null) {
                             continue;
                         }
 
-                        boolean isUniqueRole = uniqRoleOid != null && !targetObjectRef.getOid().equals(uniqRoleOid);
+                        boolean isUniqueRole = uniqRoleOid != null && targetObjectRef.getOid().equals(uniqRoleOid);
 
                         if (isUniqueRole) {
                             roleAnalysisObjectDto.addMarkedRelation(outlierOid, targetObjectRef.getOid(), cssStyle, cssClassUniq);
