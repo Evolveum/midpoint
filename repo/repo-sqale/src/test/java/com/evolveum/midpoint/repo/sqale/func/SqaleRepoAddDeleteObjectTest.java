@@ -1009,6 +1009,34 @@ public class SqaleRepoAddDeleteObjectTest extends SqaleRepoBaseTest {
                                 "r", cachedUriId(SchemaConstants.ORG_DEFAULT))));
     }
 
+    @Test(description = "MID-10288")
+    public void test309AddObjectWithEmptyExtensionProperty() throws Exception {
+        OperationResult result = createOperationResult();
+
+        given("object with string extension item without value");
+        String objectName = "user" + getTestNumber();
+        UserType object = new UserType()
+                .name(objectName)
+                .extension(new ExtensionType());
+        ExtensionType extensionContainer = object.getExtension();
+        addExtensionValue(extensionContainer, "string-mv", "string-value1", "string-value2");
+        addExtensionValue(extensionContainer, "string", null);
+
+        when("adding it to the repository");
+        String returnedOid = repositoryService.addObject(object.asPrismObject(), null, result);
+
+        then("operation is successful and ext column contains the value");
+        assertThatOperationResult(result).isSuccess();
+        assertThat(returnedOid).isEqualTo(object.getOid());
+
+        MUser row = selectObjectByOid(QUser.class, returnedOid);
+        assertThat(row.oid).isEqualTo(UUID.fromString(returnedOid));
+        assertThat(row.ext).isNotNull();
+        assertThat(Jsonb.toMap(row.ext)).doesNotContainKeys(extensionKey(extensionContainer, "string"));
+        and("stored object contains the extension item");
+    }
+
+
     @Test
     public void test310AddObjectWithAssignmentExtensions()
             throws ObjectAlreadyExistsException, SchemaException {
