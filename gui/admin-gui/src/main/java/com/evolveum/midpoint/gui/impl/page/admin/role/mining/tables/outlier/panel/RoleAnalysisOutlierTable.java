@@ -370,6 +370,12 @@ public class RoleAnalysisOutlierTable extends BasePanel<AssignmentHolderType> {
                         Model.of(String.valueOf(anomalyCount))) {
                     @Contract(pure = true)
                     @Override
+                    protected @NotNull String getLinkContainerCssClass() {
+                        return super.getLinkContainerCssClass() + " btn btn-outline-primary p-0 justify-content-around w-100";
+                    }
+
+                    @Contract(pure = true)
+                    @Override
                     public @NotNull String getIconCssClass() {
                         return "fa fa-chart-bar";
                     }
@@ -405,6 +411,7 @@ public class RoleAnalysisOutlierTable extends BasePanel<AssignmentHolderType> {
                     }
                 };
 
+                components.setOutputMarkupId(true);
                 cellItem.add(components);
             }
 
