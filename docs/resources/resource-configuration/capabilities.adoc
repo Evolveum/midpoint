@@ -6,7 +6,7 @@
 :page-wiki-metadata-create-date: 2013-03-14T12:11:38.996+01:00
 :page-wiki-metadata-modify-user: mederly
 :page-wiki-metadata-modify-date: 2019-08-06T14:19:49.581+02:00
-:page-upkeep-status: orange
+:page-upkeep-status: green
 :page-liquid:
 
 Capabilities are definitions of a specific things that a resource can do.
@@ -20,11 +20,11 @@ There are two sections of capabilities definition:
 * *Native capabilities* are native to the resource.
 There are the things that resource can do all by itself without any help from midPoint.
 The list of native capabilities is provided by the connector and does not need to be configured.
-It is stored in the resource object for performance reasons.
+It is stored in the resource configuration object (`ResourceType`) for performance reasons.
 If this section is not present in the resource configuration it will be automatically fetched from the resource before its first use.
 
 * *Configured capabilities* are decision of an administrator how to use native capabilities.
-This section can be used to disable native capabilities or add capabilities.
+This section can be used to disable native capabilities or add missing capabilities.
 Some capabilities can be _simulated_ by midPoint.
 E.g., a resource does not support account enable/disable directly.
 But administrator know that the enable/disable may be done by flipping a boolean value of a specific attribute.
@@ -93,8 +93,9 @@ Attempt to create or delete any object on the resource would fail with an error.
 </capabilities>
 ----
 
-Keep in mind the capabilities section works as override.
-For example if you explicitly override `update` and set `enabled` to `true`, you are explicitly setting the capability to read/replace mode.
+IMPORTANT: Keep in mind the capabilities section works as override.
+For example if you explicitly override `update` and set `enabled` to `true`, you are explicitly setting the capability to xref:/midpoint/reference/resources/resource-configuration/schema-handling/attributes/read-replace-and-modification-priority/[read/replace mode].
+(This can be dangerous, especially with attributes with many values, not always being fetched completely - like group members.)
 In case you would like to enable advanced logic for `delta` or `addRemoveAttributeValues` you have to set them explicitly to `true`.
 
 [source,xml]
@@ -136,80 +137,106 @@ See also xref:/midpoint/reference/tasks/synchronization-tasks/live-synchronizati
 
 The following tables summarize the capabilities that are supported as native or configured ones.
 
-[cols=2,options=header]
+[%autowidth]
 |===
-| Subtype
-| Description
+| Item name | Type name | Description
 
-|AbstractWriteCapabilityType
-|Base type for all write capabilities.
+| `schema`
+| `SchemaCapabilityType`
+| Describes the capability to discover resource schema.
 
-|ActivationCapabilityType
-|Describes capability to process activation data, which means
-enable/disable of accounts, dates for scheduled enable/disable
-and similar things related to make the account active.
+| `discoverConfiguration`
+| DiscoverConfigurationCapabilityType
+| Describes the capability to do configuration discovery, check and recommendation (via `DiscoverConfigurationApiOp` ConnId method).
 
-|ActivationLockoutStatusCapabilityType
-|Describes capability to provide lockout status (e.
+| `activation`
+| `ActivationCapabilityType`
+| Describes the capability to process activation data, which means enable/disable of accounts, dates for scheduled enable/disable and similar things related to make the account active. See below.
 
-|ActivationStatusCapabilityType
-|Describes capability to provide activation status (e.
+| `activation/status`
+| `ActivationStatusCapabilityType`
+| Describes the capability to provide activation status (e.g. account enable and disable).
 
-|ActivationValidityCapabilityType
-|Describes capability to provide activation validity dates (validFrom, validTo)
+| `activation/validFrom`
+.2+| `ActivationValidityCapabilityType`
+.2+| Describes the capability to provide activation validity dates.
 
-|AddRemoveAttributeValuesCapabilityType
-|Indication that ADD and REMOVE of attribute values is reliably supported.
+| `activation/validTo`
 
-|AsyncUpdateCapabilityType
-|Describes capability to process asynchronous updates.
+| `activation/lockoutStatus`
+| `ActivationLockoutStatusCapabilityType`
+| Describes the capability to provide lockout status (e.g. account temporarily disabled due to many failed login attempts).
 
-|AuxiliaryObjectClassesCapabilityType
-|Describes capability to specify additional (auxiliary) object classes in addition to the
-primary object class.
+| `references`
+| `ReferencesCapabilityType`
+| Describes the (native or simulated) support for reference attributes.
+See xref:/midpoint/reference/resources/entitlements/#_simulated_references[Simulated Reference Type Definition].
 
-|BehaviorCapabilityType
-|Container for various behavior-related capabilities.
+| `credentials`
+| `CredentialsCapabilityType`
+| Describes the capability to present credentials in a structured way.
 
-|CountObjectsCapabilityType
-|Ability to efficiently count objects.
+| `credentials/password`
+| `PasswordCapabilityType`
+| Describes the capability to present password in a structured way.
 
-|CredentialsCapabilityType
-|Describes capability to present credentials in a structured way.
+| `liveSync`
+| `LiveSyncCapabilityType`
+| Describes the capability to detect changes in almost real time (live synchronization).
 
-|DiscoverConfigurationCapabilityType
-|Describes capability to do configuration discovery, check and recommendation
-(`DiscoverConfigurationApiOp`).
+| `asyncUpdate`
+| `AsyncUpdateCapabilityType`
+| Describes the capability to process asynchronous updates.
 
-|LastLoginTimestampCapabilityType
-|Describes capability of resource to provide last login timestamp.
+| `create`
+| `CreateCapabilityType`
+| Describes the create capability, i.e., the ability to create objects on the resource.
 
-|LiveSyncCapabilityType
-|Describes capability to detect changes in almost real time (live synchronization).
+| `read`
+| `ReadCapabilityType`
+| Describes the read capability, i.e., the ability to read objects from the resource.
 
-|PagedSearchCapabilityType
-|How to handle paged searches.
+| `update`
+| `UpdateCapabilityType`
+| Describes the update capability, i.e., the ability to update objects on the resource.
+Contains options like the support for adding/removing attribute values or complex deltas.
 
-|PasswordCapabilityType
-|Describes capability to present password in a structured way.
+| `delete`
+| `Delete
+| Describes the delete capability, i.e., the ability to delete objects on the resource.
 
-|ReadCapabilityType
-|Describes read capability.
+| `testConnection`
+| `TestConnectionCapabilityType`
+| Describes the capability to test connection to the resource once the connector is configured.
 
-|ReferencesCapabilityType
-|
+| `script`
+| `ScriptCapabilityType`
+| Describes the capability to execute scripts (short pieces of program) on the connector or resource.
 
-|RunAsCapabilityType
-|Describes capability to execute operations with specified identity.
+| `pagedSearch`
+| `PagedSearchCapabilityType`
+| How to handle paged searches.
 
-|SchemaCapabilityType
-|Describes capability to discover resource schema.
+| `countObjects`
+| `CountObjectsCapabilityType`
+| Ability to efficiently count objects.
 
-|ScriptCapabilityType
-|Describes capability to execute scripts (short pieces of program) on the connector or resource.
+| `auxiliaryObjectClasses`
+| `AuxiliaryObjectClassesCapabilityType`
+| Describes the capability to specify additional (auxiliary) object classes in addition to the primary (structural) object class.
+This capability cannot be disabled (for now).
 
-|TestConnectionCapabilityType
-|Describes capability to test connection to the resource once the connector is configured.
+| `runAs`
+| `RunAsCapabilityType`
+| Describes the capability to execute operations with specified identity.
+
+| `behavior`
+| `BehaviorCapabilityType`
+| Container for various behavior-related capabilities.
+
+| `behavior/lastLoginTimestamp`
+| `LastLoginTimestampCapabilityType`
+| Describes the capability of resource to provide last login timestamp.
 |===
 
 [#_behavior]
@@ -244,40 +271,10 @@ It also allows to specify whether such attribute should be listed or omitted in 
 </capabilities>
 ----
 
-// The following is an example of capabilities configuration as can be seen in XML editor when checking OpenDJ resource configuration (click through the path Configuration->Repository objects->Resources->Local host OpenDJ resource).
-// You have to have imported OpenDJ advanced sync sample (Configuration->Import object->Import from file) and "test connection" button pressed (Resources->Localhost OpenDJ->"test connection" button in Resource details page):
-//
-// * resource attribute `ri:ds-pwp-account-disabled` will be used for resource account de/activation (empty value: account activated, `true` value: account deactivated)
-//
-// * configured capabilities consist of `<activation>` part
-//
-// * native capabilities: credentials, liveSync, testConnection (this part is automatically provided by connector, it is not present in OpenDJ advanced sample code)
-//
-// .LDAP Resource Capabilities Example
-// [source,xml]
-// ----
-// <capabilities>
-//     <cachingMetadata>...</cachingMetadata>
-//     <native>
-//         <cap:script>
-//             <cap:host>
-//                 <cap:type>connector</cap:type>
-//             </cap:host>
-//         </cap:script>
-//         <cap:credentials>
-//             <cap:password/>
-//         </cap:credentials>
-//         <cap:testConnection/>
-//         <cap:liveSync/>
-//     </native>
-//     <configured>
-//         <cap:activation>
-//             <cap:enableDisable>
-//                 <cap:attribute>ri:ds-pwp-account-disabled</cap:attribute>
-//                 <cap:enableValue/>
-//                 <cap:disableValue>true</cap:disableValue>
-//             </cap:enableDisable>
-//         </cap:activation>
-//     </configured>
-// </capabilities>
-// ----
+== How to Access
+
+Capabilities are visually described when clicking on the "Resource" -> "All resources" -> (select a resource) -> "Details".
+They can be enabled and disabled by clicking on respective tiles.
+
+Or, they can be located right in the XML representation of the resource configuration object, accessed either by "Edit raw" (when the resource is displayed) or going through the path "Configuration" -> "Repository objects" -> type: Resource -> (select a resource).
+The element to look for is `capabilities`.

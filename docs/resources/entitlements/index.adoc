@@ -236,6 +236,7 @@ Simulated references are defined in the xref:/midpoint/reference/resources/resou
 Let's cover defining simulated references first.
 If you use connector having this capability, feel free to skip to xref:#_association_participants_definition[Association Participants Definition] section.
 
+[#_simulated_references]
 === Simulated Reference Type Definition
 
 ==== Participating Resource Objects
