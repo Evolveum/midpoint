@@ -1,4 +1,42 @@
 = Resource Business Configuration
-:page-upkeep-status: red
+:page-upkeep-status: green
 
-#TODO#
+Configuration of resource "business" aspects such as certifications reviewers and operators for manual operations and correlation.
+
+[%autowidth]
+|===
+| Configuration item | Description
+
+| `ownerRef`
+| Reference to the resource owner(s).
+It may point to user or organization.
+If more than one owner is specified they are considered equivalent.
+
+Used to certify assignments of objects on this resource, when owners are selected as reviewers.
+
+| `approverRef`
+| Reference to the resource approver(s).
+It may point to user or organization.
+If more than one approver is specified they are considered equivalent.
+
+Note that currently there is no support for using this information for actual approvals.
+It is used for certifications only, when the approvers are selected as reviewers.
+
+| `operatorRef`
+| Reference to users that should execute operations on manual resources.
+It may point to user, role (only role members) or organization (only direct org. members).
+If more than one operator is specified they are considered equivalent.
+
+| `operatorActionMaxDuration`
+| Maximal duration of the operator action.
+It is used to derive deadline for the corresponding work item(s).
+
+| `correlatorRef`
+| Reference to users that should execute manual correlation operations.
+It may point to user, role (only role members) or organization (only direct org. members).
+If more than one user is specified they are considered equivalent.
+
+| `correlatorActionMaxDuration`
+| Maximal duration of the correlator action.
+It is used to derive deadline for the corresponding work item(s).
+|===
