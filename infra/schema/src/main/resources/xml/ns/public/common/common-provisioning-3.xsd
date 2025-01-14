@@ -6752,8 +6752,12 @@
                     <xsd:element name="synchronize" type="xsd:boolean" minOccurs="0" default="true">
                         <xsd:annotation>
                             <xsd:documentation>
+                                Designed to be like this:
+
                                 If set to false, the clockwork will not run. So e.g. linking and unlinking will be done
                                 in "fast" way.
+
+                                But currently not implemented. See MID-10338.
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
