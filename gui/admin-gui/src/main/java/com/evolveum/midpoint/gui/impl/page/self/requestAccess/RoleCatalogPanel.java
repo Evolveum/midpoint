@@ -208,8 +208,6 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> implements 
 
     private void updateQueryFromOrgRef(RoleCatalogQuery query, ObjectReferenceType ref) {
         query.setQuery(null);
-        query.setType(DEFAULT_ROLE_CATALOG_TYPE);
-
         query.setParent(ref);
     }
 
