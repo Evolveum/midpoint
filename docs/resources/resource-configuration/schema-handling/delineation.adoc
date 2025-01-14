@@ -1,10 +1,10 @@
 = Resource Object Type Delineation
 
-A new section, called `delineation`, is used to specify the set of resource objects that comprise the given resource object type.
+The `delineation` section is used to specify the set of resource objects that comprise the given resource object type.
 
 The following basic example defines the type of `entitlement/unixGroup` that consists of all objects having the class of `groupOfNames` on a given resource.
 
-.Listing 1. The most simple example of object type delineation
+.The most simple example of object type delineation
 [source,xml]
 ----
 <objectType>
@@ -20,7 +20,7 @@ Now let us extend the definition to include the base context.
 
 The following configuration restricts the `entitlement/unixGroup` type to objects of `groupOfNames` class that reside within `ou=unixgroups,dc=example,dc=com` organizational unit.
 
-.Listing 2. Object type delineation with a base context restriction
+.Object type delineation with a base context restriction
 [source,xml]
 ----
 <objectType>
@@ -45,8 +45,8 @@ However, it can be used also as a _classification rule_ that helps to determine 
 ====
 The use of the base context for classification has some restrictions, namely:
 
-. The base context root must be specified by `equal` filter with a single value of the type of "LDAP distinguished name".
-The fact that it is a distinguished name is determined by the presence of `distinguishedName` matching rule for it.
+. The base context root must be specified by the `equal` filter ('=' sign) with a single value of the type of "LDAP distinguished name".
+The fact that it is a distinguished name is determined by the presence of `distinguishedName` matching rule for the attribute.
 . The shadow being classified must have a primary or secondary identifier, again with the `distinguishedName` matching rule set.
 
 See link:https://github.com/Evolveum/midpoint/blob/master/provisioning/provisioning-impl/src/main/java/com/evolveum/midpoint/provisioning/impl/shadows/classification/DelineationMatcher.java[DelineationMatcher] for more information.
@@ -127,7 +127,7 @@ If it's not possible to use standard means of classification, i.e., specifying t
 The following code provides a configuration example to check whether the account belongs to the `test` intent.
 It checks whether it has the form of `Tnnnnnn` (case insensitive) where `n` is any digit.
 
-.Listing 21. Classification condition example
+.Classification condition example
 [source,xml]
 ----
 <objectType>
@@ -151,12 +151,3 @@ It checks whether it has the form of `Tnnnnnn` (case insensitive) where `n` is a
 
 NOTE: This should be really the last resort.
 Specification using filters is strongly recommended, if possible.
-
-// * *Auxiliary object classes* are additional object classes that define extra characteristics for the object.
-// Auxiliary abject classes can usually be attached to objects of any structural object class.
-// There may be any number of auxiliary object classes.
-// Note: auxiliary object class support is available since midPoint 3.2.
-
-// * *Base context* is a point in a hierarchical tree under which objects of this type are stored.
-// This is an optional feature that is only applicable to resources that have hierarchical structure (such as LDAP directories).
-// Note: base context support is available since midPoint 3.4 and 3.3.1.

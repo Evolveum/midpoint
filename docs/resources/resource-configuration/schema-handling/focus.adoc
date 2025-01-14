@@ -2,7 +2,7 @@
 
 The `focus` section specifies which focus objects (users, roles, orgs, and so on) correspond to given resource object type.
 
-.Listing 3. Specifying focus objects
+.Specifying focus objects
 [source,xml]
 ----
 <objectType>
@@ -25,9 +25,11 @@ There are two configuration items available:
 [%autowidth]
 |===
 | Item | Description | Default value
+
 | `type`
 | Type of the focus objects.
 | `UserType`
+
 | `archetypeRef`
 | Focus archetype corresponding to this resource object type.
 If specified, the value is enforced upon focus objects that have a projection of this object type linked.
@@ -45,7 +47,6 @@ If it has a different archetype, a policy violation exception is raised.
 This behavior may change in the future, e.g. it may become configurable.
 
 3. The enforcement is done for _all_ projections, i.e. not only for ones being synchronized into midPoint, but also for the ones that are created by midPoint.
-But beware of the timing: if a projection is added during the clockwork run, and that projection enforces an archetype, the effects of this enforcement may be limited during the current clockwork run.
+But beware of the timing: if a projection is added during the operation (a clockwork run), and that projection enforces an archetype, the effects of this enforcement may be limited during the current operation.
 For example, if the archetype induces some projections, they might not be created because of the processing in waves.
 Generally speaking, it is safer to set the focus archetype explicitly (e.g. by primary delta or in the object template) in these cases.
-

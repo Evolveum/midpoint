@@ -8,7 +8,7 @@ There are several typical cases of volatile attributes.
 (Some of these do overlap.)
 
 . Various kinds of default values can be set up on the *object creation*.
-An example is Microsoft Exchange e-mail address that may get a default value based on the policies set up by the Windows system administrator.
+An example is Microsoft Exchange e-mail address that may get a default value based on the policies set up by the Exchange administrator.
 
 . An attribute may change unexpectedly *when it's modified* by midPoint.
 +
@@ -41,7 +41,7 @@ When no operation is specified, both `add` and `modify` are assumed.
 An example:
 
 +
-.Listing 1: The `uid` attribute depends on unspecified ones, during both `add` and `modify` operations
+.The `uid` attribute depends on unspecified ones, during both `add` and `modify` operations
 [source,xml]
 ----
 <objectType>
@@ -71,7 +71,7 @@ Currently, we specify only the operation here, and only the `modify` operation i
 An example:
 
 +
-.Listing 2: The `dn` attribute change may trigger changes in other attributes
+.The `dn` attribute change may trigger changes in other attributes
 [source,xml]
 ----
 <objectType>
@@ -115,7 +115,7 @@ But it may be the only option to reliably manage data in some resources.
 For example, the configuration below specifies that `entitlement/group` depends on `entitlement/org` (see case #4 among typical cases).
 If `entitlement/org` changes, the `entitlement/group` has to be reloaded, as there is potentially an induced change directly on the resource.
 
-.Listing 3: Attributes in `entitlement/group` depends on the ones in `entitlement/org`
+.Attributes in `entitlement/group` depends on the ones in `entitlement/org`
 [source,xml]
 ----
 <objectType>
