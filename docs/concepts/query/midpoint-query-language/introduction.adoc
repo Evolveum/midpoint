@@ -337,6 +337,8 @@ NOTE: To match also users, who are indirectly assigned role, you should use `rol
 
 IMPORTANT: If you need to match referenced object on multiple properties you should use `matches` filter.
 
+NOTE: Dereferencing is not supported for object references defined via schema extensions.
+
 ==== Dereferencing inside reference matches filter
 
 NOTE: This feature is currently supported in midPoint native repository only
@@ -385,6 +387,9 @@ The short query syntax is:
 <2> `@type` - required, special filter property which specified `type` of objects which should be considered in evaluation of filter. In this case we are interested in users.
 <3> `@path` - required, special filter property which specifies which Object reference should be used in filter, in this case we are interested in directly assigned roles (`assignment/targetRef`)
 <4> Filter which referencing object must match, in this case the name of referencing object must be `Administrator`.
+
+
+NOTE: `referencedBy` filter is not supported for object references defined via schema extensions.
 
 ==== ownedBy Filter
 
