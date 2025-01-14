@@ -21,6 +21,8 @@ import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
+import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
+
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.extensions.markup.html.tabs.ITab;
@@ -218,7 +220,25 @@ public class RoleAnalysisExplanationTabPanelPopup extends BasePanel<AnomalyObjec
     }
 
     public StringResourceModel getTitle() {
-        return createStringResource("RoleAnalysisOutlierTable.anomaly.preview");
+        return createStringResource("RoleAnalysisExplanationTabPanelPopup.title", getOutlierName(), getAnomalyName());
+    }
+
+    private @Nullable PolyStringType getOutlierName() {
+        RoleAnalysisOutlierType outlier = getModelObject().getOutlier();
+        if (outlier == null) {
+            return null;
+        }
+        return outlier.getName();
+    }
+
+    private @Nullable PolyStringType getAnomalyName() {
+        DetectedAnomalyResult anomalyResult = getModelObject().getAnomalyResult(selectedRoleOid);
+        ObjectReferenceType targetObjectRef = anomalyResult.getTargetObjectRef();
+        if (targetObjectRef == null) {
+            return null;
+        }
+
+        return targetObjectRef.getTargetName();
     }
 
     public Component getContent() {
