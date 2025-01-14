@@ -245,7 +245,8 @@ public class OutliersDetectionUtil {
         loadUnusualDetectedAnomalyAttributeStatistics(statistics, unusualAttributeResults);
 
         double distributionConfidence = statistics.getConfidenceDeviation();
-        double patternConfidence = statistics.getPatternAnalysis().getConfidence();
+        double patternConfidence = getPatternConfidence(statistics.getPatternAnalysis());
+
         double roleMemberConfidence = calculateRoleCoverageConfidence(
                 anomalyResult, userAnalysisCache.getRoleMemberCountCache(), roleAnalysisService, numberOfAllUsersInRepo, task, result);
         double coverageConfidence = calculateOutlierPropertyCoverageConfidence(anomalyResult);
@@ -774,10 +775,7 @@ public class OutliersDetectionUtil {
 
         double averageItemFactor = getWeightedItemFactorConfidence(compareAttributeResult);
 
-        Double outlierPatternConfidence = partitionAnalysis.getPatternAnalysis().getConfidence();
-        if (outlierPatternConfidence == null) {
-            outlierPatternConfidence = 0.0;
-        }
+        double outlierPatternConfidence = getPatternConfidence(partitionAnalysis.getPatternAnalysis());
 
         double clusterConfidence = calculatePartitionClusterConfidence(assignmentFrequencyConfidence,
                 outlierPatternConfidence,
@@ -791,6 +789,15 @@ public class OutliersDetectionUtil {
         partitionType.setPartitionAnalysis(partitionAnalysis);
 
         return partitionType;
+    }
+
+    private static double getPatternConfidence(RoleAnalysisPatternAnalysis patternAnalysis) {
+        double patternConfidence = 0.0;
+
+        if (patternAnalysis != null && patternAnalysis.getConfidence() != null) {
+            patternConfidence = patternAnalysis.getConfidence();
+        }
+        return patternConfidence;
     }
 
     public static void resolveOutlierAnomalies(
