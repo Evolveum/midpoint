@@ -2992,9 +2992,7 @@
                 </a:schemaMigration>
                 <a:container/>
                 <a:naturalKey>filter</a:naturalKey>
-                <a:schemaContext>
-                    <a:type>tns:ShadowType</a:type>
-                </a:schemaContext>
+                <!-- Inherits schema context from ResourceObjectTypeDefinitionType-->
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
@@ -3081,7 +3079,7 @@
             <xsd:appinfo>
                 <a:container/>
                 <a:schemaContext>
-                    <a:type>tns:ShadowType</a:type>
+                    <a:type>tns:ShadowType</a:type> <!-- probably new resolver/algorithm will be needed-->
                 </a:schemaContext>
             </xsd:appinfo>
         </xsd:annotation>
@@ -4089,6 +4087,11 @@
                             that denotes a necessary condition for the filter to be applied.
                         </p>
                     </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:schemaContext>
+                            <a:type>tns:FocusType</a:type>
+                        </a:schemaContext>
+                    </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="confirmation" type="c:ExpressionType" minOccurs="0">
@@ -6273,9 +6276,7 @@
             <xsd:appinfo>
                 <a:container/>
                 <a:since>4.6</a:since>
-                <a:schemaContext>
-                    <a:type>tns:ShadowType</a:type> <!-- TODO check -->
-                </a:schemaContext>
+                <!-- Inherits schema context from ResourceObjectTypeDefinitionType-->
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>

@@ -56,9 +56,9 @@ public class ExtensionProcessor {
                 }
 
                 Object value = extItemValue(item, extItemInfo);
-
-                extMap.put(extItemInfo.getId(), value);
-
+                if (value != null) {
+                    extMap.put(extItemInfo.getId(), value);
+                }
                 // We may need to add also single value index, if definition is dynamic;
                 // see additionalSingleValueIndexNeeded() javadoc for more information.
                 if (additionalSingleValueIndexNeeded(item, extItemInfo)) {
@@ -127,6 +127,7 @@ public class ExtensionProcessor {
         return info;
     }
 
+    @Nullable
     public Object extItemValue(Item<?, ?> item, ExtItemInfo extItemInfo) {
         MExtItem extItem = extItemInfo.item;
         if (extItem.cardinality == MExtItemCardinality.ARRAY) {
@@ -140,7 +141,11 @@ public class ExtensionProcessor {
         }
     }
 
+    @Nullable
     private Object convertExtItemValue(Object realValue, ExtItemInfo extItemInfo) {
+        if (realValue == null) {
+            return null;
+        }
         checkRealValueType(realValue, extItemInfo.item);
         if (realValue instanceof String
                 || realValue instanceof Number

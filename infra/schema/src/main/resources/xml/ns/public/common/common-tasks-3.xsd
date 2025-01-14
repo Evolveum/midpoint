@@ -7131,7 +7131,7 @@
                             </xsd:documentation>
                             <xsd:appinfo>
                                 <a:schemaContext>
-                                    <a:type>tns:ShadowType</a:type>
+                                    <a:type>tns:ShadowType</a:type> <!-- new resolver/algorithm will be needed-->
                                 </a:schemaContext>
                             </xsd:appinfo>
                         </xsd:annotation>

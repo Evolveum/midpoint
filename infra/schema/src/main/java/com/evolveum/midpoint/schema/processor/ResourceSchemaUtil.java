@@ -88,11 +88,12 @@ public class ResourceSchemaUtil {
         return findObjectDefinitionPrecisely(resourceSchema, kind, intent, objectClassName, resource);
     }
 
-    static ResourceObjectDefinition findObjectDefinitionPrecisely(
+    public static ResourceObjectDefinition findObjectDefinitionPrecisely(
             @NotNull ResourceSchema resourceSchema,
             @Nullable ShadowKindType kind,
             @Nullable String intent,
-            @Nullable QName objectClassName, ResourceType resource) throws SchemaException, ConfigurationException {
+            @Nullable QName objectClassName,
+            Object errorCtx) throws SchemaException, ConfigurationException {
 
         argCheck(kind != ShadowKindType.UNKNOWN && !SchemaConstants.INTENT_UNKNOWN.equals(intent),
                 "Unknown kind/intent values are not supported here: %s/%s/%s", kind, intent, objectClassName);
@@ -105,7 +106,7 @@ public class ResourceSchemaUtil {
             objectDefinition =
                     MiscUtil.configNonNull(
                             findObjectDefinition(resourceSchema, kind, intent, null),
-                            () -> String.format("No object type definition for %s/%s in %s", kind, intent, resource));
+                            () -> String.format("No object type definition for %s/%s in %s", kind, intent, errorCtx));
             checkObjectClassCompatibility(kind, intent, objectClassName, objectDefinition);
         } else {
             if (intent != null) {
@@ -116,7 +117,7 @@ public class ResourceSchemaUtil {
                     MiscUtil.configNonNull(
                             resourceSchema.findDefinitionForObjectClass(Objects.requireNonNull(objectClassName)),
                             () -> String.format("No object type or class definition for object class %s in %s",
-                                    objectClassName, resource));
+                                    objectClassName, errorCtx));
         }
 
         return addOwnAuxiliaryObjectClasses(objectDefinition, resourceSchema);
