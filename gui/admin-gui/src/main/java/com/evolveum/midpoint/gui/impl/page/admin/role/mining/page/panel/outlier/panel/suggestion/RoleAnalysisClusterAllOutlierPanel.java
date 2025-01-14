@@ -63,11 +63,6 @@ public class RoleAnalysisClusterAllOutlierPanel extends AbstractObjectMainPanel<
                     }
                 }) {
 
-            @Override
-            public boolean isCategoryVisible() {
-                return true;
-            }
-
         };
         table.setOutputMarkupId(true);
         container.add(table);

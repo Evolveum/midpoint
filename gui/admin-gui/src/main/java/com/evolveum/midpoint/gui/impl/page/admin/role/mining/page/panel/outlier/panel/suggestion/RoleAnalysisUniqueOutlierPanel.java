@@ -65,11 +65,6 @@ public class RoleAnalysisUniqueOutlierPanel extends AbstractObjectMainPanel<Role
             public OutlierCategoryType matchOutlierCategory() {
                 return new OutlierCategoryType().outlierSpecificCategory(OutlierSpecificCategoryType.UNIQUE_OBJECT);
             }
-
-            @Override
-            public boolean isCategoryVisible() {
-                return true;
-            }
         };
         table.setOutputMarkupId(true);
         container.add(table);

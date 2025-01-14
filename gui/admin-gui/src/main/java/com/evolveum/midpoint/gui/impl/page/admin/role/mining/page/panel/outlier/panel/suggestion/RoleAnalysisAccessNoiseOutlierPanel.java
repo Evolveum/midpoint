@@ -65,11 +65,6 @@ public class RoleAnalysisAccessNoiseOutlierPanel extends AbstractObjectMainPanel
             public OutlierCategoryType matchOutlierCategory() {
                 return new OutlierCategoryType().outlierSpecificCategory(OutlierSpecificCategoryType.ACCESS_NOISE);
             }
-
-            @Override
-            public boolean isCategoryVisible() {
-                return true;
-            }
         };
         table.setOutputMarkupId(true);
         container.add(table);

@@ -69,11 +69,6 @@ public class RoleAnalysisSessionClassifiedOutlierPanel extends AbstractObjectMai
             public OutlierCategoryType matchOutlierCategory() {
                 return new OutlierCategoryType().outlierClusterCategory(OutlierClusterCategoryType.INNER_OUTLIER);
             }
-
-            @Override
-            public boolean isCategoryVisible() {
-                return true;
-            }
         };
         table.setOutputMarkupId(true);
         container.add(table);

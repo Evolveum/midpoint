@@ -73,14 +73,7 @@ public class RoleAnalysisSessionAllOutlierPanel extends AbstractObjectMainPanel<
                     protected RoleAnalysisSessionType load() {
                         return session;
                     }
-                }) {
-
-            @Override
-            public boolean isCategoryVisible() {
-                return true;
-            }
-
-        };
+                });
         table.setOutputMarkupId(true);
         container.add(table);
     }
