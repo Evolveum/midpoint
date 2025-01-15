@@ -1,0 +1,333 @@
+---
+midpoint-feature: extensible-object-types
+doc-type: config
+---
+= Schema Extension
+:page-nav-title: Schema Extension
+:page-keywords: [ "schema extension", "custom schema", "custom attribute" ]
+:page-toc: top
+:page-upkeep-status: green
+
+MidPoint has quite a rich xref:/midpoint/architecture/archive/data-model/midpoint-common-schema/usertype/[user schema] with many attributes that are common for most IDM deployments.
+But if there are attributes that are not really common the best option is to extend object schema, e.g. for user, for role, for organization etc.
+It is quite easy.
+The object schema is extended by adding appropriate XSD schema to the midPoint installation.
+The schema extension is stored in the database as a `SchemaType`. Therefore, the primary and recommended way to add and edit custom attributes in schema extension is through the GUI panels.
+You can also use the XSD file in the midPoint home directory as in previous versions.
+
+The schema is stored in the `definition` attribute of `SchemaType`. This attribute contains the schema that is specified in the XML Schema Description (XSD) format similar to other schemas in midPoint.
+It is using XSD annotations to specify details that XSD cannot specify.
+E.g. it is using an `a:extension` annotation to bind the complex type definition to the midPoint object type.
+
+Currently, unlike previous versions, the schema extension does not need to be present in midPoint at startup time.
+It is stored in the xref:/midpoint/reference/repository/[repository (database)]
+and can be dynamically changed when the system is running.
+
+When MidPoint starts and after each SchemaType is saved, all schemas of all SchemaTypes are loaded.
+
+== Example
+
+The following example shows a schema extension for user that adds two new attributes.
+
+.Custom schema extension
+[source,xml]
+----
+<schema>
+    <name>UserExtension</name>
+    <definition>
+        <xsd:schema elementFormDefault="qualified"
+                    targetNamespace="http://example.com/xml/ns/mySchema"
+                    xmlns:tns="http://example.com/xml/ns/mySchema"
+                    xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-3"
+                    xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+                    xmlns:xsd="http://www.w3.org/2001/XMLSchema"><!--1-->
+
+            <xsd:complexType name="UserExtensionType">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <a:extension ref="c:UserType"/><!--2-->
+                    </xsd:appinfo>
+                </xsd:annotation>
+                <xsd:sequence>
+                    <xsd:element name="officeNumber" type="xsd:string" minOccurs="0" maxOccurs="1"><!--3-->
+                        <xsd:annotation>
+                            <xsd:appinfo>
+                                <a:indexed>true</a:indexed><!--4-->
+                                <a:displayName>office number</a:displayName><!--5-->
+                                <a:displayOrder>120</a:displayOrder><!--6-->
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="favoriteColor" type="xsd:string" minOccurs="0" maxOccurs="unbounded"> <!--3-->
+                        <xsd:annotation>
+                            <xsd:appinfo>
+                                <a:indexed>false</a:indexed><!--4-->
+                                <a:displayName>favorite color</a:displayName><!--5-->
+                                <a:displayOrder>130</a:displayOrder><!--6-->
+                                <a:help>The favorite color</a:help><!--7-->
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+ 			        <xsd:element name="facility" type="xsd:string" minOccurs="1" maxOccurs="1"><!--3-->
+                        <xsd:annotation>
+                            <xsd:appinfo>
+                                <a:indexed>true</a:indexed><!--4-->
+                                <a:displayName>facility</a:displayName><!--5-->
+                                <a:displayOrder>135</a:displayOrder><!--6-->
+                                <a:help>The address of the facility where the employees office resides</a:help><!--7-->
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+			        <xsd:element name="officePhone" type="xsd:string"><!--3-->
+                        <xsd:annotation>
+                            <xsd:appinfo>
+                                <a:indexed>false</a:indexed><!--4-->
+                                <a:displayName>office telephone number</a:displayName><!--5-->
+                                <a:displayOrder>140</a:displayOrder><!--6-->
+                                <a:help>The office telephone number</a:help><!--7-->
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+                </xsd:sequence>
+            </xsd:complexType>
+        </xsd:schema>
+    </definition>
+</schema>
+----
+<1> `xsd:schema` XSD annotation contains whole extension schema, we need define `targetNamespace` for new extension schema
+<2> It extends the schema of UserType as is defined by the `a:extension` XSD annotation.
+<3> The example defines two properties: `officeNumber` and `favoriteColor`, which is defined by the `xsd:element` XSD annotation.
+- Attribute `name` is the name by which midPoint knows the item. It is used in xref:/midpoint/reference/expressions/[mappings] and configuration.
+- Attribute `type` determines the type and range or item values.
+- Attributes for configuration of multiplicity define whether new item is mandatory or optional.
+<4> Attribute `indexed` define whether is item indexed in database, so if we can use it for search. This is explained in more detail below.
+<5> Display name is what midPoint will display in forms and reports.
+<6> Attribute `order` define order in which item will be displayed in forms.
+<7> Attribute `help` define help text.
+
+Most of that is defined using XSD annotations and it is optional.
+
+This file is all it takes to extend the schema.
+It extends user with four custom attributes:
+
+[%autowidth]
+|===
+| Name | Display Name | Type | Multiplicity
+
+| `officeNumber`
+| office number
+| string
+| Optional, single-value
+
+| `favoriteColors`
+| favorite color
+| string
+| Optional, multi-value
+
+| `facility`
+| facility
+| string
+| Mandatory, single-value
+
+| `officePhone`
+| office telephone number
+| string
+| Mandatory, single-value
+
+|===
+
+Defining the schema extension is all that midPoint needs to make full use of the attribute.
+Once it is defined in the schema midPoint will display the attribute in the GUI and it will be displayed
+using suitable user field, checked for mandatory value, the attribute may be used in mappings, etc.
+It will behave as if it was always a part of midPoint.
+The small additional configuration is required only needed if these attributes are used in mappings
+and contains same name as attribute from other schema, in this case we have to define namespace for attribute in mapping configuration.
+Then you have to let configuration know in which namespace it should look for an attribute definition.
+This is the namespace introduced by the attribute `targetNamespace` in the header of the extension XSD file.
+
+.title:Example of a user object conforming to the schema above
+[source,xml]
+----
+<user>
+  <name>jack</name>
+  <extension><!--1-->
+    <officeNumber>001</officeNumber>
+    <favoriteColor>Black with white skull on it</favoriteColor>
+  </extension>
+  <fullName>Jack Sparrow</fullName>
+  ...
+</user>
+
+----
+<1> All values of attributes from the extension schema can be seen in the `extension` tag in the XML file.
+
+A more complex schema examples are provided in the git link:https://github.com/Evolveum/midpoint-samples/tree/master/samples/schema[samples/schema directory].
+
+== Data Types Supported
+
+Extension items fall into two categories depending on how they are stored in midPoint repository: *indexed* and *not indexed*.
+
+. Not indexed items are stored in object's XML representation only.
+So they are preserved by the repository, but it is not possible to select objects by their values.
+E.g. in the example above, it is possible to formulate a query "give me all users with extension/officeNumber = '111'"
+but not "give me all users with extension/favoriteColor = 'green'".
+
+. Indexed items are stored in object's XML representation, as well as in extra columns that
+are used for querying objects based on their properties' values.
+So they can be used in object queries.
+
+For non-indexed extension items, all data types are supported.
+
+For indexed items, the following types are fully supported:
+
+[%autowidth,cols=3]
+|===
+h| XML type (Java type)
+h| How is it stored in xref:/midpoint/reference/repository/native-postgresql/[Native repository]?
+h| How is it stored in xref:/midpoint/reference/repository/generic/[Generic repository]?
+
+| xsd:string (String)
+a| stored in `ext` JSONB column as string value
+a| table `m_object_ext_string`
+
+| xsd:int (Integer)
+.3+a| stored in `ext` JSONB as numeric
+
+This is not JSON/EcmaScript limited number, but virtually limitless PostgreSQL numeric value.
+.2+a| table `m_object_ext_long`
+
+| xsd:long (Long)
+
+| xsd:integer (BigInteger)
+a| table `m_object_ext_string`: This type is stored as strings because it doesn't fit into "long" type range.
+This means that the support is *very limited* and especially comparison operations are not numerically correct!
+
+| xsd:boolean (Boolean)
+a| stored in `ext` JSONB as boolean
+a| table `m_object_ext_boolean`
+
+| xsd:dateTime (XMLGregorianCalendar)
+a| stored in `ext` JSONB as string, formatted as https://en.wikipedia.org/wiki/ISO_8601[ISO 8601]
+long date and time with `Z` timezone
+a| table `m_object_ext_date`
+
+| t:PolyStringType
+a| stored in `ext` JSONB as object `{"o":"orig value","n":"normvalue"}`
+a| table `m_object_ext_poly`
+
+| c:ObjectReferenceType
+a| stored in `ext` JSONB as object `{"o":"oid","t":"type","r":relationUrlId}`,
+type uses ObjectType DB enum values, relation is URL ID from `m_uri` table
+a| table `m_object_ext_reference`
+
+| enumerations
+a| stored in `ext` JSONB as string
+a| table `m_object_ext_string`
+
+|===
+
+Java types are mentioned as well, because they are relevant when the real value of the extension
+item is used, for instance, in scripting expressions using Groovy.
+
+The default value for `indexed` flag (i.e. the XSD annotation) is `true` for the above supported types,
+and it can be switched to `false` if the property is not important for searching.
+For other property types, complex types or extension containers (and their content) it is `false`
+and cannot be changed to `true`.
+It is only possible to search by the properties on the top level of the extension container.
+
+[NOTE]
+Word "indexed" here means that the information is externalized in the repository in such a way
+that the query against that item is possible.
+It does not necessarily mean, that it is well indexed for all supported oprations.
+Indexing everything on the DB level for every possible filter type is simply not reasonable,
+there are always compromises and specific index can be added for critical queries as needed.
+But this always depends on the specific deployment and you should consult your DB admin about it.
+Basic cases should be reasonably well indexed out-of-the-box.
+See xref:/midpoint/reference/repository/native-postgresql/db-maintenance/#index-tuning[Index tuning] for more information.
+
+The following table lists partially supported types, describing the limitations:
+
+[%autowidth]
+|===
+| Type | Prism/GUI limitations | Repository support
+
+| xsd:short (Short)
+a| Not fully supported by Prism API, no support on GUI.
+a| Full support.
+Native repo stores it in `ext` JSONB as numeric.
+
+Generic repo stores it in `m_object_ext_long`.
+
+| xsd:decimal (BigDecimal)
+a| Not fully supported by Prism API
+.3+a| Full support in the Native repo, stored in `ext` JSONB as numeric.
+
+Generic repo stores it in `m_object_ext_string`, because the types do not fit into "long" type range.
+This means the support for these types is *very limited*:
+
+* comparisons like "less than", "more than" don't work at all (or provide wrong results),
+* equality test is to be used with a great care, as it can provide false negative results (e.g. 0.4999999999 vs. 0.5 vs 0.5000000001).
+
+| xsd:double (Double)
+.2+a| No support on GUI.
+
+| xsd:float (Float)
+
+|===
+
+It is recommended to use one of the fully supported types from the first table instead of these types.
+
+=== Using midPoint types
+
+It is possible to define custom attributes using midPoint types.
+For example, if there is a need to specify various activation status types for users in your environment, it is possible to define a custom attribute for activation using ActivationStatusType type.
+If there is another requirement e.g. for supporting more than one password for the user, ProtectedStringType can be used in such a case.
+To allow using of midPoint types, proper schemas have to be added to the extension schema definition using import element as the example below shows:
+
+[source,xml]
+----
+<schema>
+    <name>UserExtension</name>
+    <definition>
+        <xsd:schema elementFormDefault="qualified"
+                    targetNamespace="http://example.com/xml/ns/mySchema"
+                    xmlns:tns="http://example.com/xml/ns/mySchema"
+                    xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-3"
+                    xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+                    xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
+                    xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+
+            <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-3"/>
+            <xsd:import namespace="http://prism.evolveum.com/xml/ns/public/types-3"/>
+
+            <xsd:complexType name="UserExtensionType">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <a:extension ref="c:UserType"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+                <xsd:sequence>
+                    <xsd:element name="customAdministrativeStatus" type="c:ActivationStatusType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:appinfo>
+                                <a:indexed>true</a:indexed>
+                                <a:displayName>Custom Administrative status</a:displayName>
+                                <a:displayOrder>250</a:displayOrder>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="secondaryPassword" type="t:ProtectedStringType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:appinfo>
+                                <a:indexed>false</a:indexed>
+                                <a:displayName>Secondary Password</a:displayName>
+                                <a:displayOrder>260</a:displayOrder>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+                </xsd:sequence>
+            </xsd:complexType>
+        </xsd:schema>
+    </definition>
+</schema>
+----

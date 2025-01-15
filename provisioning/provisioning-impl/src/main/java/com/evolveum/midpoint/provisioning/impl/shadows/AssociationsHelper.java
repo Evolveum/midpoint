@@ -11,8 +11,7 @@ import java.util.Collection;
 import java.util.List;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.provisioning.impl.RepoShadow;
-
+import com.evolveum.midpoint.provisioning.util.ProvisioningUtil;
 import com.evolveum.midpoint.util.exception.*;
 
 import org.jetbrains.annotations.NotNull;
@@ -48,6 +47,9 @@ import static com.evolveum.midpoint.provisioning.impl.shadows.RepoShadowWithStat
 class AssociationsHelper {
 
     private static final Trace LOGGER = TraceManager.getTrace(AssociationsHelper.class);
+
+    private static final String OP_CONVERT_REFERENCE_ATTRIBUTES_TO_ASSOCIATIONS =
+            AssociationsHelper.class.getName() + ".convertReferenceAttributesToAssociations";
 
     @Autowired ShadowFinder shadowFinder;
 
@@ -208,43 +210,62 @@ class AssociationsHelper {
             @NotNull ProvisioningContext ctx,
             @NotNull ShadowType shadow,
             @NotNull ResourceObjectDefinition definition,
-            @NotNull OperationResult result)
+            @NotNull OperationResult parentResult)
             throws SchemaException {
 
-        var attributesContainer = ShadowUtil.getAttributesContainerRequired(shadow);
-        var referenceAttributes = attributesContainer.getReferenceAttributes();
+        var result = parentResult.subresult(OP_CONVERT_REFERENCE_ATTRIBUTES_TO_ASSOCIATIONS)
+                .setMinor()
+                .build();
+        try {
+            var attributesContainer = ShadowUtil.getAttributesContainerRequired(shadow);
+            var referenceAttributes = attributesContainer.getReferenceAttributes();
 
-        for (var refAttr : referenceAttributes) {
-            var refAttrName = refAttr.getDefinition().getItemName();
-            var assocDefs = definition.getAssociationDefinitionsFor(refAttrName);
-            if (assocDefs.isEmpty()) {
-                LOGGER.trace("Not converting reference attribute '{}' as it has no associations attached", refAttrName);
-                continue;
-            }
-            loadShadowsForReferenceAttributeValuesIfNeeded(ctx, refAttr, result);
-            LOGGER.trace("Converting reference attribute '{}' to {} association(s)", refAttrName, assocDefs.size());
-            var refAttrValuesIterator = refAttr.getValues().iterator();
-            var reduced = false;
-            values: while (refAttrValuesIterator.hasNext()) {
-                var refAttrValue = (ShadowReferenceAttributeValue) refAttrValuesIterator.next();
-                for (var assocDef : assocDefs) {
-                    if (convertReferenceAttributeValueToAssociationValueIfPossible(
-                            ctx, shadow, refAttrValue, assocDef, result)) {
-                        refAttrValuesIterator.remove();
-                        reduced = true;
-                        continue values;
+            for (var refAttr : referenceAttributes) {
+                var refAttrName = refAttr.getDefinition().getItemName();
+
+                // We do the loading even if there are no associations defined to preserve the post-conditions
+                // that all reference attributes are resolved, i.e., they contain resolved shadows (if at all possible).
+                // We may later avoid this if we want to optimize the performance. See also ReturnedShadowValidityChecker.
+                loadShadowsForReferenceAttributeValuesIfNeeded(ctx, refAttr, result);
+
+                var assocDefs = definition.getAssociationDefinitionsFor(refAttrName);
+                if (assocDefs.isEmpty()) {
+                    LOGGER.trace("Not converting reference attribute '{}' as it has no associations attached", refAttrName);
+                    continue;
+                }
+                LOGGER.trace("Converting reference attribute '{}' to {} association(s)", refAttrName, assocDefs.size());
+                var refAttrValuesIterator = refAttr.getValues().iterator();
+                var reduced = false;
+                values: while (refAttrValuesIterator.hasNext()) {
+                    var refAttrValue = (ShadowReferenceAttributeValue) refAttrValuesIterator.next();
+                    for (var assocDef : assocDefs) {
+                        if (convertReferenceAttributeValueToAssociationValueIfPossible(
+                                ctx, shadow, refAttrValue, assocDef, result)) {
+                            refAttrValuesIterator.remove();
+                            reduced = true;
+                            continue values;
+                        }
                     }
                 }
+                if (reduced && refAttr.hasNoValues()) {
+                    attributesContainer.removeReference(refAttrName);
+                }
             }
-            if (reduced && refAttr.hasNoValues()) {
-                attributesContainer.removeReference(refAttrName);
-            }
+        } catch (Throwable t) {
+            result.recordException(t);
+            throw t;
+        } finally {
+            result.close();
         }
+
+        // We need to store the result in order for ReturnedShadowValidityChecker know whether the shadow is valid or not.
+        assert !shadow.isImmutable();
+        ProvisioningUtil.storeFetchResultIfApplicable(shadow, result);
     }
 
     private void loadShadowsForReferenceAttributeValuesIfNeeded(
             @NotNull ProvisioningContext ctx, @NotNull ShadowReferenceAttribute refAttr, @NotNull OperationResult result) {
-        for (var refAttrValue : refAttr.getReferenceValues()) {
+        for (var refAttrValue : refAttr.getAttributeValues()) {
             loadShadowForReferenceAttributeValueIfNeeded(ctx, refAttr.getElementName(), refAttrValue, result);
         }
     }
@@ -265,6 +286,8 @@ class AssociationsHelper {
                 LoggingUtils.logUnexpectedException(
                         LOGGER, "Couldn't retrieve repo shadow for the value {} of reference attribute {}", e,
                         refAttrValue, refAttrName);
+                // We assume the exception is already recorded in the operation result, so it will be visible
+                // in the fetchResult in the shadow.
             }
         }
     }

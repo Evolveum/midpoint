@@ -563,7 +563,7 @@ public abstract class SynchronizationContext<F extends FocusType>
         }
 
         @Override
-        public @NotNull ResourceObjectInboundDefinition getInboundDefinition() throws SchemaException, ConfigurationException {
+        public @NotNull ResourceObjectInboundProcessingDefinition getInboundProcessingDefinition() {
             return getObjectDefinitionRequired();
         }
     }
@@ -590,7 +590,7 @@ public abstract class SynchronizationContext<F extends FocusType>
         }
 
         @Override
-        public @NotNull ResourceObjectInboundDefinition getInboundDefinition() throws SchemaException, ConfigurationException {
+        public @NotNull ResourceObjectInboundProcessingDefinition getInboundProcessingDefinition() {
             if (resourceObjectDefinition != null) {
                 return resourceObjectDefinition;
             } else {

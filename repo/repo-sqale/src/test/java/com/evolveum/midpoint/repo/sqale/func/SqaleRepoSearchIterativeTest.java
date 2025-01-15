@@ -14,6 +14,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
+import com.evolveum.midpoint.prism.PrismConstants;
+
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.BeforeMethod;
@@ -331,6 +333,51 @@ public class SqaleRepoSearchIterativeTest extends SqaleRepoBaseTest {
                 assertThat(result.get(i)).isEqualTo(getTestNumber() + "-" + i); // order matches
             }
         }
+    }
+
+    @Test(description = "MID-10310")
+    public void test126SearchIterativeWithOidOrdering() throws Exception {
+        OperationResult operationResult = createOperationResult();
+        SqlPerformanceMonitorImpl pm = getPerformanceMonitor();
+        pm.clearGlobalPerformanceInformation();
+
+        given("total result count not multiple of the page size");
+        long totalCount = count(QObject.CLASS);
+        int iterativePageSize = 47;
+        repositoryConfiguration.setIterativeSearchByPagingBatchSize(iterativePageSize);
+        assertThat(totalCount % repositoryConfiguration.getIterativeSearchByPagingBatchSize()).isNotZero();
+        queryRecorder.clearBufferAndStartRecording();
+
+        var query = prismContext.queryFor(UserType.class).asc(PrismConstants.T_ID).build();
+
+        when("calling search iterative with null query");
+        SearchResultMetadata metadata =
+                searchObjectsIterative(query, operationResult);
+
+        then("result metadata is not null and reports the handled objects");
+        assertThatOperationResult(operationResult).isSuccess();
+        assertThat(metadata).isNotNull();
+        assertThat(metadata.getApproxNumberOfAllResults()).isEqualTo(testHandler.getCounter());
+        assertThat(metadata.isPartialResults()).isFalse();
+        // page cookie is not null and it's OID in UUID format
+        assertThat(UUID.fromString(metadata.getPagingCookie())).isNotNull();
+
+        and("search operations were called");
+        assertOperationRecordedCount(
+                REPO_OP_PREFIX + RepositoryService.OP_SEARCH_OBJECTS_ITERATIVE, 1);
+        assertTypicalPageOperationCount(metadata);
+
+        and("all objects of the specified type were processed");
+        assertThat(testHandler.getCounter()).isEqualTo(count(QUser.class));
+
+        and("last iteration query has proper conditions");
+        List<SqlRecorder.QueryEntry> iterativeSelects = queryRecorder.getQueryBuffer().stream()
+                .filter(e -> e.sql.contains("order by u.oid asc"))
+                .collect(Collectors.toList());
+        assertThat(iterativeSelects).hasSize((int) totalCount / iterativePageSize + 1); // +1 for the last page
+        SqlRecorder.QueryEntry lastEntry = iterativeSelects.get(iterativeSelects.size() - 1);
+        // we want to be sure no accidental filter accumulation happens
+        assertThat(lastEntry.sql).contains("where u.oid > ?\norder by u.oid asc");
     }
 
     @Test

@@ -6,9 +6,7 @@
   -->
 <archetype oid="00000000-0000-0000-0000-000000000320"
         xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-        xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
-        xmlns:org='http://midpoint.evolveum.com/xml/ns/public/common/org-3'>
+>
     <name>System role</name>
     <description>
         Archetype for roles that are essential from the system point
@@ -32,7 +30,7 @@
             </pluralLabel>
             <icon>
                 <cssClass>fe fe-role</cssClass>
-                <color>red</color>
+                <color>#da0000</color>
             </icon>
         </display>
     </archetypePolicy>

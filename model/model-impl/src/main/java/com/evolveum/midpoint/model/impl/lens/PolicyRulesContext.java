@@ -18,6 +18,8 @@ import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+
 import com.google.common.collect.Sets;
 import org.jetbrains.annotations.NotNull;
 
@@ -40,7 +42,7 @@ public class PolicyRulesContext implements Serializable, DebugDumpable {
 
     /**
      * Policy state modifications that should be applied.
-     * Currently we apply them in {@link ChangeExecutor#executeChanges(LensContext, Task, OperationResult)}  only.
+     * Currently we apply them in {@link ChangeExecutor#executeChanges(LensContext, Task, OperationResult)} only.
      *
      * In the future we plan to be able to apply some state modifications even
      * if the clockwork is exited in non-standard way (e.g. in primary state or with an exception).
@@ -49,7 +51,11 @@ public class PolicyRulesContext implements Serializable, DebugDumpable {
      *
      * Life cycle: Cleared in the `processFocus` iteration as well as after state modifications are flushed.
      *
-     * NOTE: Will be replaced by object marks.
+     * Contains changes related to:
+     *
+     * * {@link ObjectType#F_POLICY_SITUATION}
+     * * {@link ObjectType#F_TRIGGERED_POLICY_RULE}
+     * * {@link ObjectType#F_EFFECTIVE_MARK_REF}
      */
     @NotNull private final List<ItemDelta<?,?>> pendingObjectPolicyStateModifications = new ArrayList<>();
 

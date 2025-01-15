@@ -4,6 +4,7 @@ import java.io.File;
 import java.sql.SQLException;
 import java.util.List;
 
+import com.evolveum.midpoint.ninja.BaseUpgradeTest;
 import com.zaxxer.hikari.HikariDataSource;
 import org.assertj.core.api.Assertions;
 import org.springframework.test.annotation.DirtiesContext;

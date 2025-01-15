@@ -76,7 +76,7 @@ public class AssociationValuesTripleComputation {
 
     private final boolean complexAssociation;
     @NotNull private final ShadowAssociationDefinition associationDefinition;
-    @NotNull private final AssociationOutboundMappingType outboundBean;
+    @NotNull private final AssociationConstructionExpressionEvaluatorType outboundBean;
     @NotNull private final LensProjectionContext projectionContext;
     @NotNull private final MappingEvaluationEnvironment env;
     @NotNull private final OperationResult result;
@@ -85,7 +85,7 @@ public class AssociationValuesTripleComputation {
 
     private AssociationValuesTripleComputation(
             @NotNull ShadowAssociationDefinition associationDefinition,
-            @NotNull AssociationOutboundMappingType outboundBean,
+            @NotNull AssociationConstructionExpressionEvaluatorType outboundBean,
             @NotNull LensProjectionContext projectionContext,
             @NotNull MappingEvaluationEnvironment env,
             @NotNull OperationResult result) {
@@ -101,7 +101,7 @@ public class AssociationValuesTripleComputation {
     /** Assumes the existence of the projection context and association definition with a bean. */
     public static PrismValueDeltaSetTriple<ShadowAssociationValue> compute(
             @NotNull ShadowAssociationDefinition associationDefinition,
-            @NotNull AssociationOutboundMappingType outboundBean,
+            @NotNull AssociationConstructionExpressionEvaluatorType outboundBean,
             @NotNull LensProjectionContext projectionContext,
             @NotNull XMLGregorianCalendar now,
             @NotNull Task task,
@@ -120,34 +120,30 @@ public class AssociationValuesTripleComputation {
     private PrismValueDeltaSetTriple<ShadowAssociationValue> compute()
             throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
             ConfigurationException, ObjectNotFoundException {
-        if (outboundBean.getExpression() != null) {
-            throw new UnsupportedOperationException("This should be treated elsewhere"); // FIXME document or implement
-        } else {
-            try {
-                // We need to gather all relevant "magic assignments" here.
-                var lensContext = projectionContext.getLensContext();
-                lensContext.getEvaluatedAssignmentTriple().foreach(
-                        (eaSet, ea) ->
-                                ea.getRoles().foreach(
-                                        (targetSet, target) -> {
-                                            try {
-                                                if (target.getAssignmentPath().last().isMatchingOrder()) {
-                                                    var mode = PlusMinusZero.compute(eaSet, targetSet);
-                                                    if (mode != null) {
-                                                        // TODO consider validity as well
-                                                        processAssignmentTarget(mode, target);
-                                                    }
+        try {
+            // We need to gather all relevant "magic assignments" here.
+            var lensContext = projectionContext.getLensContext();
+            lensContext.getEvaluatedAssignmentTriple().foreach(
+                    (eaSet, ea) ->
+                            ea.getRoles().foreach(
+                                    (targetSet, target) -> {
+                                        try {
+                                            if (target.getAssignmentPath().last().isMatchingOrder()) {
+                                                var mode = PlusMinusZero.compute(eaSet, targetSet);
+                                                if (mode != null) {
+                                                    // TODO consider validity as well
+                                                    processAssignmentTarget(mode, target);
                                                 }
-                                            } catch (CommonException e) {
-                                                throw new LocalTunnelException(e);
                                             }
+                                        } catch (CommonException e) {
+                                            throw new LocalTunnelException(e);
                                         }
-                                )
-                );
-            } catch (LocalTunnelException e) {
-                e.unwrapAndRethrow();
-                throw new NotHereAssertionError();
-            }
+                                    }
+                            )
+            );
+        } catch (LocalTunnelException e) {
+            e.unwrapAndRethrow();
+            throw new NotHereAssertionError();
         }
         return triple;
     }

@@ -24,7 +24,6 @@ import com.evolveum.midpoint.prism.delta.ContainerDelta;
 import com.evolveum.midpoint.repo.common.EvaluatedPolicyStatements;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyStatementType;
 
@@ -39,7 +38,7 @@ public class PolicyStatementProcessor implements ProjectorProcessor {
         OperationResult result = parentResult.createSubresult(OP_PROCESS_POLICY_STATEMENTS);
         try {
             EvaluatedPolicyStatements evaluatedPolicyStatements = collectPolicyStatements(focusContext, result);
-            focusContext.addEvaluatedPolicyStatements(evaluatedPolicyStatements);
+            focusContext.setEvaluatedPolicyStatements(evaluatedPolicyStatements);
         } catch (Exception e) {
             result.recordException(e);
             throw e;

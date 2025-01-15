@@ -51,7 +51,7 @@ public class ShadowAssociationsAsserter<R> extends AbstractAsserter<ShadowAssert
     }
 
     public ShadowAssociationsAsserter<R> assertSize(int expected) {
-        assertEquals("Wrong number of associations in "+desc(), expected, associationsContainer.size());
+        assertEquals("Wrong number of associations in "+desc(), expected, associationsContainer.getAssociations().size());
         return this;
     }
 

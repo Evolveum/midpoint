@@ -9,6 +9,7 @@
 :page-alias: { "parent" : "/midpoint/guides/" }
 :page-upkeep-status: yellow
 :page-toc: top
+:page-outdated: true
 
 MidPoint has a quite straightforward point of view regarding resource objects and their attributes: an object is seen as a set of name-value pairs - its attributes.
 Generally it is assumed that these attributes and/or their values are mutually independent, therefore it does not matter in which order they are modified.
@@ -106,7 +107,7 @@ But if one of them would be multivalued, the "ADD" scenario is real.)
 Some attributes have their own hidden life, far from being simply "collection of values".
 For example, EmailAddresses attribute contains a list of email addresses: one primary and zero or more secondary ones.
 Primary address is distinguished by SMTP: prefix.
-Secondard addresses start with smtp: (lowercase).
+Secondary addresses start with smtp: (lowercase).
 What happens if the attribute value is e.g.
 
 [%autowidth]

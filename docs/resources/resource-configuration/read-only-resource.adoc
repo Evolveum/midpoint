@@ -6,7 +6,7 @@
 :page-wiki-metadata-modify-user: vix
 :page-wiki-metadata-modify-date: 2013-10-25T16:23:04.863+02:00
 :page-keywords: [ 'readonly', 'capabilities' ]
-:page-upkeep-status: orange
+:page-upkeep-status: green
 
 This page describes how to pretend that ordinary read-write resource is in fact read-only.
 
@@ -15,25 +15,31 @@ But it perhaps is most useful during midPoint setup, testing and migration.
 You can test midpoint on real resources by setting them to read-only mode.
 You can be sure that midPoint will not destroy the data on the resource even if you have a bug in mappings or make a mistake during a migration procedure.
 
+NOTE: An alternative, more modern, and in many ways more efficient approach is to use the xref:/midpoint/reference/simulation/[simulation] feature.
+But setting the resource as read-only provides stronger level of protection against unwanted modifications.
+It can be even combined with simulations.
+
 MidPoint resource can be switched to read-only mode by disabling the resource capabilities that create, modify and delete resource objects.
 The capabilities are checked by low-level components of midPoint (in xref:/midpoint/architecture/archive/subsystems/provisioning/[Provisioning Subsystem]) therefore even a severe misconfiguration of high-level midPoint features will not be able circumvent this protection.
-
-TODO
 
 .Read-only capabilities
 [source,xml]
 ----
-<capabilities xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-2">
-  <configured>
-    <cap:create>
-      <cap:enabled>false</cap:enabled>
-    </cap:create>
-    <cap:update>
-      <cap:enabled>false</cap:enabled>
-    </cap:update>
-    <cap:delete>
-      <cap:enabled>false</cap:enabled>
-    </cap:delete>
-  </configured>
+<capabilities xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-3">
+    <configured>
+        <cap:create>
+            <cap:enabled>false</cap:enabled>
+        </cap:create>
+        <cap:update>
+            <cap:enabled>false</cap:enabled>
+        </cap:update>
+        <cap:delete>
+            <cap:enabled>false</cap:enabled>
+        </cap:delete>
+    </configured>
 </capabilities>
 ----
+
+See also:
+
+* xref:/midpoint/reference/resources/resource-configuration/capabilities/[]

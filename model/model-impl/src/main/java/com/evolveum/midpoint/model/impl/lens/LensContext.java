@@ -251,9 +251,6 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Clone
      */
     @NotNull private final List<LensProjectionContext> conflictingProjectionContexts = new ArrayList<>();
 
-    /** Denotes (legacy) "preview changes" mode. */
-    private transient boolean legacyPreview;
-
     private transient Map<String, Collection<? extends Containerable>> hookPreviewResultsMap;
 
     private transient PolicyRuleEnforcerPreviewOutputType policyRuleEnforcerPreviewOutput;
@@ -472,6 +469,11 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Clone
 
     public void addProjectionContext(@NotNull LensProjectionContext projectionContext) {
         projectionContexts.add(projectionContext);
+    }
+
+    public void replaceProjectionContexts(Collection<LensProjectionContext> projectionContexts) {
+        this.projectionContexts.clear();
+        this.projectionContexts.addAll(projectionContexts);
     }
 
     /**
@@ -1704,15 +1706,6 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Clone
 
     void setCachedOwner(PrismObject<UserType> cachedOwner) {
         this.cachedOwner = cachedOwner;
-    }
-
-    @Override
-    public boolean isLegacyPreview() {
-        return legacyPreview;
-    }
-
-    void setLegacyPreview() {
-        this.legacyPreview = true;
     }
 
     /**

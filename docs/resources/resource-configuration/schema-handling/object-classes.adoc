@@ -1,0 +1,16 @@
+= Object Class Definition Adaptation
+
+There may be situations when you want to override some settings (for example, attribute values cardinality, protected objects, or attribute fetch strategy) not only for selected object type(s), but for _all_ objects in a given object class.
+For example, you may need to specify fetch strategy for specific attribute of `groupOfUniqueNames` object class, and apply this consistently to all object types defined for this object class.
+To do so, `schemaHandling/objectClass` definition can be used.
+
+This is something that had been achieved by setting `default=true` for a selected object type definition.
+(See xref:/midpoint/reference/resources/resource-configuration/schema-handling/defaults/[].)
+However, the use of object class definition adaptation is more focused and (in a sense) more clear way how to achieve this.
+
+Beware: Although the XSD type is formally `ResourceObjectTypeDefinitionType` (primarily because of implementation reasons), not all elements of `ResourceObjectTypeDefinitionType` are supported here.
+For example, it's not possible to specify kind, intent, nor super-type here.
+Because of a limitation of XSD language we are not able to express these restrictions without changing the order of XML elements in complying documents (because the typical solution: deriving both `ResourceObjectTypeDefinitionType` and something like `ResourceObjectClassDefinitionType` from a common ancestor would mean that the order of XML elements in resulting documents would be different from what it is now).
+
+We also advise to avoid specification of pure object-type concepts (like mappings) in these definitions.
+It is better to create a special (abstract) object type to do this.

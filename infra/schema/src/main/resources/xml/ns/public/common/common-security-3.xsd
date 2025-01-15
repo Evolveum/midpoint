@@ -3347,6 +3347,9 @@
                 <a:container/>
                 <a:experimental>true</a:experimental>
                 <a:since>4.8</a:since>
+                <a:schemaContext>
+                    <a:typePath>type</a:typePath>
+                </a:schemaContext>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:complexContent>

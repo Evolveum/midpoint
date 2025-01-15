@@ -18,7 +18,7 @@ import com.evolveum.midpoint.util.DebugDumpable;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * Definition of an association class as seen by the connector (or defined in the simulated associations capability).
+ * Definition of a reference type as seen by the connector (or defined in the simulated references capability).
  */
 public interface NativeReferenceTypeDefinition
         extends Cloneable, Serializable, DebugDumpable {
@@ -26,18 +26,18 @@ public interface NativeReferenceTypeDefinition
     String getName();
 
     /**
-     * {@link ShadowReferenceParticipantRole#SUBJECT} participants in this association. Never empty.
+     * {@link ShadowReferenceParticipantRole#SUBJECT} participants in this reference. Never empty.
      */
     @NotNull Collection<NativeParticipant> getSubjects();
 
     /**
-     * {@link ShadowReferenceParticipantRole#OBJECT} participants in this association. Never empty.
+     * {@link ShadowReferenceParticipantRole#OBJECT} participants in this reference. Never empty.
      */
     @NotNull Collection<NativeParticipant> getObjects();
 
     void addParticipant(
             @NotNull String objectClassName,
-            @NotNull ItemName referenceAttributeName,
+            @Nullable ItemName referenceAttributeName,
             @NotNull ShadowReferenceParticipantRole role);
 
     void addParticipantIfNotThere(@NotNull String objectClassName, @NotNull ShadowReferenceParticipantRole role);

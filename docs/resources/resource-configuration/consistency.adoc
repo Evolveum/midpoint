@@ -56,7 +56,7 @@ A solution is to use `avoidDuplicateValues`resource configuration property. If t
 This approach usually works well.
 But, theoretically, it has two limitations:
 
-. Performace: midPoint will read the account once again right before the modification operation. This is needed to avoid duplicate changes.
+. Performance: midPoint will read the account once again right before the modification operation. This is needed to avoid duplicate changes.
 
 . There is still a tiny chance that two operations will change the same attribute at the same time and there may be an error. The critical time window is small (that is the reason to re-read the account right before the modify operation). But there is still a theoretical possibility.
 

@@ -100,11 +100,11 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-dependencies</artifactId>
-        <version>3.4.0</version>
+        <version>3.4.1</version>
         <!-- This parent also declares dependencies listed here:
-        https://docs.spring.io/spring-boot/docs/3.4.0/reference/html/dependency-versions.html#dependency-versions
+        https://docs.spring.io/spring-boot/3.4/appendix/dependency-versions/coordinates.html
         Or for current version of Spring Boot:
-        https://docs.spring.io/spring-boot/docs/current/reference/html/appendix-dependency-versions.html
+        https://docs.spring.io/spring-boot/appendix/dependency-versions/coordinates.html
         -->
     </parent>
 
@@ -210,6 +210,12 @@
         <httpclient.version>4.5.14</httpclient.version>
 
         <hibernate.version>6.5.3.Final</hibernate.version>
+        <!--
+            Older version (given via spring boot 3.3.7) used to avoid issue of connections being non-valid
+            and not closed in hikariCP pool when thread has interrupted=true flag.
+            TestTaskManagerBasic.test180SuspendLongRunning() was failing for oracle generic repository with newer drivers.
+        -->
+        <oracle-database.version>21.9.0.0</oracle-database.version>
 
         <commons.io.version>2.18.0</commons.io.version>
         <commons.cli>1.9.0</commons.cli>

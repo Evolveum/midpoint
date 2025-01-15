@@ -660,6 +660,9 @@
         <xsd:annotation>
             <xsd:appinfo>
                 <a:container/>
+                <a:schemaContext>
+                    <a:typePath>objectType</a:typePath>
+                </a:schemaContext>
             </xsd:appinfo>
             <xsd:documentation>
                 The most common way of specifying scope - providing type+search filter to select "base" objects

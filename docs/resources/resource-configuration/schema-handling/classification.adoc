@@ -1,0 +1,154 @@
+= Resource Object Classification
+
+The classification means determining the object type (i.e. kind and intent) for a resource object that is seen by midPoint.
+
+NOTE: The normal course of action is that the first time an object is seen, it is classified.
+There are special cases, however, when classification criteria are being developed.
+It is common to do objects classification and re-classification, until the criteria are stabilized.
+See also xref:/midpoint/reference/simulation/tutorial/[].
+
+The overall classification algorithm is the following:
+
+. First, candidate object types with classification order (`classificationOrder` property in `delineation`) specified are tried - in their respective order.
+The first matching type is used.
+
+. Then, candidate object types without order are tried.
+Matching types are collected.
+
+- If there is a default object type ("default for object class") among matching types, it is used.
+- If there is exactly one matching type, it is used.
+- If there is no matching type, the classification is unsuccessful.
+- If there are multiple (non-default) matching types, a special heuristic is executed:
+the first one with the legacy `synchronization` section present is returned.
+Otherwise, arbitrary one is used.
+(This may be changed in the future.)
+
+The details can be seen in the link:https://github.com/Evolveum/midpoint/blob/master/provisioning/provisioning-impl/src/main/java/com/evolveum/midpoint/provisioning/impl/shadows/classification/ResourceObjectClassifier.java[source code].
+
+Here is an (artificial) example of using advanced resource object type delineation.
+
+.Example of resource object type delineation
+[source,xml]
+----
+<schemaHandling>
+
+    <objectType>
+        <kind>account</kind>
+        <intent>employee</intent>
+        <documentation>
+            Standard employee account. Resides in `employees` OU. Representative: `alice-employee.ldif`.
+        </documentation>
+        <delineation>
+            <objectClass>ri:inetOrgPerson</objectClass>
+            <baseContext>
+                <objectClass>ri:organizationalUnit</objectClass>
+                <filter>
+                    <q:text>attributes/dn = "ou=employees,dc=example,dc=com"</q:text>
+                </filter>
+            </baseContext>
+        </delineation>
+    </objectType>
+
+    <objectType>
+        <kind>account</kind>
+        <intent>special</intent>
+        <documentation>
+            An account devoted to special duties. It resides in `special` OU.
+            This type is abstract, and has two subtypes: `admin` and `tester`.
+        </documentation>
+        <abstract>true</abstract>
+        <delineation>
+            <objectClass>ri:inetOrgPerson</objectClass>
+            <baseContext>
+                <objectClass>ri:organizationalUnit</objectClass>
+                <filter>
+                    <q:text>attributes/dn = "ou=special,dc=example,dc=com"</q:text>
+                </filter>
+            </baseContext>
+        </delineation>
+    </objectType>
+
+    <objectType>
+        <kind>account</kind>
+        <intent>admin</intent>
+        <documentation>
+            Account used for administration. Resides in `special` OU (defined in the supertype).
+            Additional filtering condition: `businessCategory` is `admin`. Representative: `jim-admin.ldif`.
+        </documentation>
+        <super>
+            <kind>account</kind>
+            <intent>special</intent>
+        </super>
+        <delineation>
+            <!-- baseContext is inherited -->
+            <filter>
+                <q:text>attributes/businessCategory = "admin"</q:text>
+            </filter>
+        </delineation>
+    </objectType>
+
+    <objectType>
+        <kind>account</kind>
+        <intent>tester</intent>
+        <documentation>
+            Account used for testing. Resides in `special` OU (defined in the supertype).
+            Additional filtering condition: `businessCategory` is `tester`. Representative: `ann-tester.ldif`.
+        </documentation>
+        <super>
+            <kind>account</kind>
+            <intent>special</intent>
+        </super>
+        <delineation>
+            <!-- baseContext is inherited -->
+            <filter>
+                <q:text>attributes/businessCategory = "tester"</q:text>
+            </filter>
+        </delineation>
+    </objectType>
+
+</schemaHandling>
+----
+
+.Alice, an employee
+[source]
+----
+dn: uid=alice,ou=employees,dc=example,dc=com
+uid: alice
+cn: Alice Green
+sn: Green
+givenName: Alice
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+----
+
+.Jim, an admin
+[source]
+----
+dn: uid=jim,ou=special,dc=example,dc=com
+uid: jim
+cn: Jim Admin
+sn: Admin
+givenName: Jim
+businessCategory: admin
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+----
+
+.Ann, a tester
+[source]
+----
+dn: uid=ann,ou=special,dc=example,dc=com
+uid: ann
+cn: Ann the Tester
+sn: Tester
+givenName: Ann
+businessCategory: tester
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+----

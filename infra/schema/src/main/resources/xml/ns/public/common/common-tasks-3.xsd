@@ -6550,6 +6550,14 @@
                     <xsd:documentation>
                         If specified, only records matching this filter will be reported.
                     </xsd:documentation>
+                    <xsd:appinfo>   <!-- TODO check -->
+                        <a:schemaContext>
+                            <a:type>BucketProcessingRecordType</a:type>
+                            <a:type>ItemProcessingRecordType</a:type>
+                            <a:type>ConnIdOperationRecordType</a:type>
+                            <a:type>InternalOperationRecordType</a:type>
+                        </a:schemaContext>
+                    </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="recordFilteringExpression" type="tns:ExpressionType" minOccurs="0">
@@ -6927,6 +6935,9 @@
             <xsd:appinfo>
                 <a:since>4.8</a:since>
                 <a:container>true</a:container>
+                <a:schemaContext>
+                    <a:typePath>type</a:typePath>
+                </a:schemaContext>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
@@ -7118,6 +7129,11 @@
                                 Explicit object query used to refine/replace the default query stemming from resourceRef, kind, intent,
                                 and/or objectclass.
                             </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:schemaContext>
+                                    <a:type>tns:ShadowType</a:type> <!-- new resolver/algorithm will be needed-->
+                                </a:schemaContext>
+                            </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
                     <xsd:element name="queryApplication" type="tns:ResourceObjectSetQueryApplicationModeType" minOccurs="0">
@@ -7345,6 +7361,11 @@
 
                                 This is the behavior up to 4.4. It may or may not be correct. So it may change in the future.
                             </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:schemaContext>
+                                    <a:type>tns:ShadowType</a:type>
+                                </a:schemaContext>
+                            </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
                 </xsd:sequence>
@@ -7503,6 +7524,11 @@
                             <xsd:documentation>
                                 What objects should be processed by the activity.
                             </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:schemaContext>
+                                    <a:typePath>type</a:typePath>
+                                </a:schemaContext>
+                            </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
                 </xsd:sequence>
@@ -7884,7 +7910,15 @@
         <xsd:complexContent>
             <xsd:extension base="tns:AbstractWorkDefinitionType">
                 <xsd:sequence>
-                    <xsd:element name="resources" type="tns:ObjectSetType" minOccurs="0"/>
+                    <xsd:element name="resources" type="tns:ObjectSetType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:appinfo>
+                                <a:schemaContext>
+                                    <a:type>tns:ResourceType</a:type>
+                                </a:schemaContext>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
                 </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>
@@ -8022,7 +8056,15 @@
         <xsd:complexContent>
             <xsd:extension base="tns:AbstractWorkDefinitionType">
                 <xsd:sequence>
-                    <xsd:element name="shadows" type="tns:ObjectSetType" minOccurs="0"/>
+                    <xsd:element name="shadows" type="tns:ObjectSetType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:appinfo>
+                                <a:schemaContext>
+                                    <a:type>tns:ShadowType</a:type>
+                                </a:schemaContext>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
                     <xsd:element name="diagnose" type="tns:ShadowIntegrityAspectType" minOccurs="0" maxOccurs="unbounded"/>
                     <xsd:element name="fix" type="tns:ShadowIntegrityAspectType" minOccurs="0" maxOccurs="unbounded"/>
                     <xsd:element name="checkDuplicatesOnPrimaryIdentifiersOnly" type="xsd:boolean" minOccurs="0" default="false"/>
@@ -8520,6 +8562,11 @@
 
                                 This specification extends this default.
                             </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:schemaContext>
+                                    <a:type>tns:TaskType</a:type>
+                                </a:schemaContext>
+                            </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
                     <xsd:element name="minReconciliationInterval" type="xsd:duration" minOccurs="0">
@@ -9277,6 +9324,11 @@
                             Repository objects (defined by their type and archetype), which are affected by the activity.
                             Does not contain explicit enumeration of affected objects.
                         </xsd:documentation>
+                        <xsd:appinfo>
+                            <a:schemaContext>
+                                <a:typePath>type</a:typePath>
+                            </a:schemaContext>
+                        </xsd:appinfo>
                     </xsd:annotation>
                 </xsd:element>
             </xsd:choice>
@@ -9339,6 +9391,11 @@
                             <xsd:documentation>
                                 Prospective members of the role.
                             </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:schemaContext>
+                                    <a:type>tns:AssignmentHolderType</a:type>
+                                </a:schemaContext>
+                            </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
                     <xsd:element name="executionOptions" type="tns:ModelExecuteOptionsType" minOccurs="0"/>

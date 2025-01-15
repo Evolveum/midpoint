@@ -1158,6 +1158,11 @@
                             <c:path>dependent</c:path>
                         </item>
                     </container>
+                    <container id="1">
+                        <identifier>execution-constraints</identifier>
+                        <path>executionConstraints</path>
+                        <expanded>true</expanded>
+                    </container>
                 </panel>
                 <panel id="86">
                     <identifier>operational-attributes-panel</identifier>
@@ -1592,6 +1597,14 @@
                         </item>
                         <item id="173">
                             <path>schemaHandling/objectType/attribute/matchingRule</path>
+                            <visibility>visible</visibility>
+                        </item>
+                        <item id="270">
+                            <path>schemaHandling/objectType/attribute/volatility/incoming/operation</path>
+                            <visibility>visible</visibility>
+                        </item>
+                        <item id="271">
+                            <path>schemaHandling/objectType/attribute/volatility/outgoing/operation</path>
                             <visibility>visible</visibility>
                         </item>
                     </container>

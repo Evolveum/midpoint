@@ -274,4 +274,24 @@ public class ProvisioningUtil {
             return FROM_RESOURCE_COMPLETE;
         }
     }
+
+    /** Returns the clone only if the object is immutable and the result is not success. */
+    public static <T extends ObjectType> T storeFetchResultIfApplicable(T object, OperationResult result) {
+        if (result.isSuccess()) {
+            // Let's avoid storing SUCCESS result. This is an optimization in case of read-only object retrieval,
+            // because it avoids cloning the object.
+            return object;
+        } else {
+            // This must be done after the result is closed.
+            //
+            // There may be fetch result stored in the object by lower layers. We overwrite it. We assume that
+            // this parent result contains its value as one of the children (hence the overwriting does not cause loss
+            // of information).
+            //
+            //noinspection unchecked
+            T clone = (T) object.asPrismObject().cloneIfImmutable().asObjectable();
+            clone.setFetchResult(result.createBeanReduced());
+            return clone;
+        }
+    }
 }

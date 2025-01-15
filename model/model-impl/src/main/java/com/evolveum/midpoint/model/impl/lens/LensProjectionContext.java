@@ -28,6 +28,7 @@ import com.evolveum.midpoint.model.impl.sync.action.UnlinkAction;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.*;
 import com.evolveum.midpoint.prism.path.ItemName;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.schema.CapabilityUtil;
 import com.evolveum.midpoint.schema.DeltaConvertor;
@@ -227,7 +228,8 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
     private boolean doReconciliation;
 
     /**
-     * false if the context should be not taken into the account while synchronizing changes from other resource
+     * False if the context should be not taken into the account while synchronizing changes from other resource - when using
+     * "limit propagation" option.
      */
     private boolean canProject = true;
 
@@ -900,6 +902,22 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
             return ItemLoadedStatus.USE_OF_CACHED_NOT_ALLOWED;
         } else {
             return null; // Let's look at the status of the specific item
+        }
+    }
+
+    public boolean isItemLoaded(@NotNull ItemPath path) throws SchemaException, ConfigurationException {
+        if (path.startsWith(ShadowType.F_ATTRIBUTES)) {
+            return isAttributeLoaded(path.rest().asSingleNameOrFail());
+        } else if (path.startsWith(ShadowType.F_ASSOCIATIONS)) {
+            return isAssociationLoaded(path.rest().asSingleNameOrFail());
+        } else if (path.startsWith(ShadowType.F_ACTIVATION)) {
+            return isActivationLoaded();
+        } else if (path.startsWith(SchemaConstants.PATH_PASSWORD)) {
+            return isPasswordValueLoaded();
+        } else if (path.equivalent(ShadowType.F_AUXILIARY_OBJECT_CLASS)) {
+            return isAuxiliaryObjectClassPropertyLoaded();
+        } else {
+            return isFullShadow();
         }
     }
 
@@ -1876,8 +1894,7 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
             return false;
         }
         // Maintenance mode means the fetchResult is PARTIAL_ERROR (since 4.7).
-        OperationResultType fetchResult = loadedShadow.getFetchResult();
-        OperationResultStatusType status = fetchResult != null ? fetchResult.getStatus() : null;
+        var status = ObjectTypeUtil.getFetchStatus(loadedShadow);
         boolean full = // TODO what about other kinds of status? [e.g. in-progress]
                 status != OperationResultStatusType.PARTIAL_ERROR
                         && status != OperationResultStatusType.FATAL_ERROR;

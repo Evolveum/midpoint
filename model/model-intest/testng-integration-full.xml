@@ -35,7 +35,7 @@
             <class name="com.evolveum.midpoint.model.intest.simulation.TestDevelopmentSimulations"/>
             <class name="com.evolveum.midpoint.model.intest.simulation.TestRealExecution"/>
             <class name="com.evolveum.midpoint.model.intest.simulation.TestSimulationTasksAdvanced"/>
-            <class name="com.evolveum.midpoint.model.intest.TestShadowMarks"/>
+            <class name="com.evolveum.midpoint.model.intest.TestObjectMarks"/>
             <class name="com.evolveum.midpoint.model.intest.multi.TestMultiResource"/>
             <class name="com.evolveum.midpoint.model.intest.multi.TestMultiAccount"/>
             <class name="com.evolveum.midpoint.model.intest.multi.TestMultiConnectorResources"/>

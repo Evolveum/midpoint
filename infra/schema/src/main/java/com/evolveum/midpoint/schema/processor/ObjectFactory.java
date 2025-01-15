@@ -12,7 +12,7 @@ import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.schema.processor.NativeResourceSchema.NativeResourceSchemaBuilder;
 import com.evolveum.midpoint.util.annotation.Experimental;
-import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
 import org.jetbrains.annotations.NotNull;
@@ -38,7 +38,7 @@ public class ObjectFactory {
      */
     @TestOnly
     public static <T> ShadowSimpleAttributeDefinition<T> createSimpleAttributeDefinition(
-            @NotNull QName name, @NotNull QName typeName) throws SchemaException {
+            @NotNull QName name, @NotNull QName typeName) throws ConfigurationException {
         return ShadowSimpleAttributeDefinitionImpl.create(
                 createNativeAttributeDefinition(name, typeName));
     }

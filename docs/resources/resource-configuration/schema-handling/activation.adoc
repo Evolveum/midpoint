@@ -6,7 +6,7 @@
 :page-wiki-metadata-create-date: 2013-05-13T14:22:40.969+02:00
 :page-wiki-metadata-modify-user: semancik
 :page-wiki-metadata-modify-date: 2018-04-12T11:43:29.820+02:00
-:page-upkeep-status: orange
+:page-upkeep-status: green
 :page-toc: top
 
 == Introduction
@@ -14,18 +14,18 @@
 Activation part of resource object type definition is located in xref:/midpoint/reference/resources/resource-configuration/schema-handling/[Resource Schema Handling] part of resource definition.
 The activation part defines how the resource object is _activated_, i.e. whether it should or should not exist, whether it should be enabled, disabled or archived, etc.
 This part can be used to fine-tune activation and de-activation policies.
-E.g. it can be used to specify whether account should be deleted or disabled when it is unassigned from the user.
+E.g. it can be used to specify whether an account should be deleted or disabled when it is unassigned from the user.
 
 The activation part of resource object definition has three parts: existence mapping, administrative status mapping and validity mappings.
 
 
 == Existence Mapping
 
-Existence mapping determines whether the resource object should exist or not.
-If activation mapping returns `true` then the resource object will exist (will be kept as it is or created).
+The existence mapping determines whether the resource object should exist or not.
+If activation mapping returns `true` then the resource object will exist (will be kept as it is or will be created).
 If it returns `false` the resource object will not exist (will not be created or will be deleted).
 
-The existence mapping usually uses the concept of legality.
+The existence mapping usually uses the concept of _legality_.
 The legality is determined by evaluating xref:/midpoint/reference/roles-policies/assignment/[assignments] and the assignment enforcement mode.
 The result of such evaluation is provided as `input` to the existence mapping.
 Therefore simple `asIs` expression is all that is usually needed:
@@ -53,7 +53,8 @@ This is also the default mapping that will be assumed in case there is no explic
 
 Note that a similar variable is called `assigned`. It is true if and only if there is a valid assignment for this resource object.
 
-In FULL assignment enforcement mode, `assigned` is alwas the same as `input` (`legal`). In other enforcement modes, they can be different.
+In FULL assignment enforcement mode, `assigned` is always the same as `input` (`legal`).
+In other enforcement modes, they can be different.
 E.g. in RELATIVE mode, a resource object may be legal even if it is not assigned.
 
 [%autowidth]
@@ -101,9 +102,12 @@ Therefore weak mappings are applied even if the shadow exists, which may be quit
 But there is an advantage.
 Weak mappings will *not* be applied if there is any other non-weak mapping.
 Therefore such weak mapping may be used to define a normal state of the account.
-E.g. the account should normally exists all the times, even if it is not _legal_. And then the other mapping may be used to control other or unusual situations.
+E.g. the account should normally exists all the times, even if it is not _legal_.
+And then the other mapping may be used to control other or unusual situations.
 E.g. we in fact want to delete the account if it is left in illegal state for too long.
 Like this:
+
+(if it seems complex, feel free to use xref:#_predefined_activation_mappings[predefined activation mappings] instead)
 
 [source,xml]
 ----
@@ -138,12 +142,12 @@ Like this:
             <condition>
                 <script>
                     <code>
-                        import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
-                        import com.evolveum.midpoint.schema.constants.SchemaConstants;
+                        import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType
+                        import com.evolveum.midpoint.schema.constants.SchemaConstants
                         administrativeStatus == ActivationStatusType.DISABLED &amp;&amp;
                             // do not delete explicitly disabled accounts
                             (disableReason == SchemaConstants.MODEL_DISABLE_REASON_DEPROVISION ||
-                             disableReason == SchemaConstants.MODEL_DISABLE_REASON_MAPPED);
+                             disableReason == SchemaConstants.MODEL_DISABLE_REASON_MAPPED)
                     </code>
                 </script>
             </condition>
@@ -155,11 +159,11 @@ Like this:
             <expression>
                 <script>
                     <code>
-                        import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
+                        import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType
                         if (legal) {
-                            input;
+                            input
                         } else {
-                            ActivationStatusType.DISABLED;
+                            ActivationStatusType.DISABLED
                         }
                     </code>
                 </script>
@@ -171,7 +175,7 @@ Like this:
 
 In this the "default existence" weak mapping is applied in normal circumstances.
 This means that the account would exist under normal circumstances.
-But if the time constraint and condition in "delayed delete" mapping is evaluated to true value then the "delayed delete" mapping is applied instead and the "default existence" is ignored.
+But if the time constraint and condition in "delayed delete" mapping is evaluated to `true` value then the "delayed delete" mapping is applied instead and the "default existence" is ignored.
 Which means that the account gets deleted.
 
 ====
@@ -214,7 +218,7 @@ It is automatically changed into `disabled`.
 
 | `administrativeStatus`
 | ActivationStatusType
-| `$focus/activation/administrativeStatus`This may be used to avoid the "magic" computation in the `input` variable and compute the output in a custom way.
+| `$focus/activation/administrativeStatus` This may be used to avoid the "magic" computation in the `input` variable and compute the output in a custom way.
 
 
 | `legal`
@@ -244,7 +248,39 @@ Set to `true` if the resource object is linked to an existing focal object.
 
 == Validity Mappings
 
-TODO
+In a way similar to the `administrativeStatus`, we can write mappings for `validFrom` and `validTo` - assuming that the resource supports them.
+
+An example that propagates all these three properties to the resource:
+
+[source,xml]
+----
+<activation>
+    <administrativeStatus>
+        <outbound>
+            <strength>weak</strength>
+            <expression>
+                <asIs/>
+            </expression>
+        </outbound>
+    </administrativeStatus>
+    <validFrom>
+        <outbound>
+            <strength>weak</strength>
+            <expression>
+                <asIs/>
+            </expression>
+        </outbound>
+    </validFrom>
+    <validTo>
+        <outbound>
+            <strength>weak</strength>
+            <expression>
+                <asIs/>
+            </expression>
+        </outbound>
+    </validTo>
+</activation>
+----
 
 [#_predefined_activation_mappings]
 == Predefined activation mappings
@@ -397,7 +433,7 @@ It uses only `asIs` mappings.
 This configuration does *not* delete accounts when they are unassigned.
 It disables them instead.
 This is achieved by a combination of existence and administrative status mappings.
-In case of unsassigned account the existence mapping returns `true` which causes that the account is *not* going to be deleted even if it is not legal.
+In case of unassigned account the existence mapping returns `true` which causes that the account is *not* going to be deleted even if it is not legal.
 The administrative status mapping takes care of disabling that account.
 It causes that all _legal_ accounts will have the same activation administrative status as the user that they are linked to.
 On the other hand all the _illegal_ or _unassigned_ accounts will have `DISABLED` status.
@@ -449,7 +485,7 @@ The xref:/midpoint/reference/expressions/mappings/[Mapping] can optionally have 
 The time constraints means that the mapping will only be evaluated if certain time constraints are satisfied.
 E.g. a mapping that is only evaluated 30 days after the account is disabled.
 
-The time constraints are very useful especially in the activation part of schemaHandling definition.
+The time constraints are very useful especially in the activation part of `schemaHandling` definition.
 Mapping time constraints can be used to have midpoint do quite a lot of time-related tricks.
 E.g. following set of existence mappings will cause that accounts that are disabled for more than one month will be deleted.
 
@@ -590,8 +626,59 @@ E.g. the following mapping will pre-provision a disabled account 5 days before u
 </resource>
 ----
 
+== Inbound Mappings
 
+The activation state can be synchronized in the opposite direction (i.e., from the resource to midPoint) as well.
+xref:/midpoint/reference/expressions/mappings/inbound-mapping/[Inbound mappings] are used to do that.
 
+In the following example,
+
+* the user state from midPoint is synchronized to resource account state (outbound) as is;
+
+* the resource account state is synchronized to midPoint user (inbound) as is but only if the midPoint user state is empty (e.g. for the very first time when you create midPoint user from the resource account).
+
+The resource account will not be authoritative for the account state except the first synchronization.
+
+[source,xml]
+----
+<activation>
+    <administrativeStatus>
+        <outbound>
+            <expression>
+                <asIs/>
+            </expression>
+        </outbound>
+        <inbound>
+            <strength>weak</strength>
+            <expression>
+                <asIs/>
+            </expression>
+        </inbound>
+    </administrativeStatus>
+</activation>
+----
+
+[NOTE]
+====
+The `source` and target` parameters of mappings are omitted, because the default ones are applied:
+
+* The outbound mapping has the source of user's `activation/administrativeStatus` property, and the target is the same property of the resource account.
+* The inbound mappings has the same, but reversed: source is the resource account's property, target is the user's property.
+
+The `asIs` `expression` is also optional and may be omitted, leading to:
+
+[source,xml]
+----
+<activation>
+    <administrativeStatus>
+        <outbound/>
+        <inbound>
+            <strength>weak</strength>
+        </inbound>
+    </administrativeStatus>
+</activation>
+----
+====
 
 == See Also
 

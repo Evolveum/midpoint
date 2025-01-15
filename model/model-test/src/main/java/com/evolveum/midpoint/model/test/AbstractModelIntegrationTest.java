@@ -7274,42 +7274,6 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
                 null, task, result);
     }
 
-    public interface FunctionCall<X> {
-        X execute() throws CommonException, IOException;
-    }
-
-    public interface ProcedureCall {
-        void execute() throws CommonException, IOException;
-    }
-
-    protected <X> X traced(FunctionCall<X> tracedCall)
-            throws CommonException, IOException {
-        return traced(createModelLoggingTracingProfile(), tracedCall);
-    }
-
-    protected void traced(ProcedureCall tracedCall) throws CommonException, IOException {
-        traced(createModelLoggingTracingProfile(), tracedCall);
-    }
-
-    public void traced(TracingProfileType profile, ProcedureCall tracedCall) throws CommonException, IOException {
-        setGlobalTracingOverride(profile);
-        try {
-            tracedCall.execute();
-        } finally {
-            unsetGlobalTracingOverride();
-        }
-    }
-
-    public <X> X traced(TracingProfileType profile, FunctionCall<X> tracedCall)
-            throws CommonException, IOException {
-        setGlobalTracingOverride(profile);
-        try {
-            return tracedCall.execute();
-        } finally {
-            unsetGlobalTracingOverride();
-        }
-    }
-
     protected <F extends FocusType> void assertLinks(PrismObject<F> focus, int live, int related) {
         assertFocus(focus, "")
                 .assertLinks(live, related);

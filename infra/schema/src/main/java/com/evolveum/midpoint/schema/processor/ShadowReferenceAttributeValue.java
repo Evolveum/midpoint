@@ -8,6 +8,7 @@
 package com.evolveum.midpoint.schema.processor;
 
 import java.io.Serial;
+import java.util.ArrayList;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.impl.PrismReferenceValueImpl;
@@ -263,18 +264,50 @@ public class ShadowReferenceAttributeValue extends PrismReferenceValueImpl {
 
     @Override
     public String toString() {
-        return "SRAV: " + super.toString();
+        var sb = new StringBuilder();
+        sb.append("SRAV: ");
+        dumpContent(sb);
+        return sb.toString();
     }
 
     @Override
     public void shortDump(StringBuilder sb) {
-        sb.append(this); // FIXME
+        dumpContent(sb);
+    }
+
+    private void dumpContent(StringBuilder sb) {
+        try {
+            var shadow = getShadowIfPresent();
+            var name = shadow != null ? shadow.getName() : getTargetName();
+            if (name != null) {
+                sb.append(name).append("; ");
+            }
+            var oid = getOid();
+            if (oid != null) {
+                sb.append("OID=").append(oid);
+            } else {
+                sb.append("no OID");
+            }
+            sb.append("; ");
+            if (shadow != null) {
+                var identifiers = shadow.getIdentifiers();
+                if (identifiers != null) {
+                    sb.append(identifiers.shortDump());
+                } else {
+                    sb.append("no identifiers");
+                }
+            } else {
+                sb.append("no shadow");
+            }
+        } catch (Exception e) {
+            sb.append(super.toString()).append(" [ERROR while dumping]");
+        }
     }
 
     @Override
     public String toHumanReadableString() {
         StringBuilder sb = new StringBuilder();
-        shortDump(sb); // FIXME
+        shortDump(sb);
         return sb.toString();
     }
 }

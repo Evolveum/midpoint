@@ -144,6 +144,7 @@ public abstract class AbstractInitializedSecurityTest extends AbstractInitialize
     protected static final TestObject<RoleType> ROLE_SEARCH_USER_ASSIGNMENT_TARGET_REF = TestObject.file(TEST_DIR, "role-search-user-assignment-targetRef.xml", "2ed2c64e-0045-41ed-b825-2bf6ce552084");
     protected static final TestObject<RoleType> ROLE_USER_MODIFY = TestObject.file(TEST_DIR, "role-user-modify.xml", "710395da-ddd9-11e9-9d81-cf471cec8185");
     protected static final TestObject<RoleType> ROLE_USER_ADD = TestObject.file(TEST_DIR, "role-user-add.xml", "aa662e3c-ddd9-11e9-afe9-ab216a2d304b");
+    protected static final TestObject<RoleType> ROLE_ROLE_ADD_READ_SOME = TestObject.file(TEST_DIR, "role-user-add-read-some.xml", "d70b7695-cb99-4cbf-83b1-f18652844845");
     protected static final TestObject<RoleType> ROLE_APPLICATION_1 = TestObject.file(TEST_DIR, "role-application-1.xml", "00000000-0000-0000-0000-00000000aaa1");
     protected static final TestObject<RoleType> ROLE_APPLICATION_2 = TestObject.file(TEST_DIR, "role-application-2.xml", "00000000-0000-0000-0000-00000000aaa2");
     protected static final TestObject<RoleType> ROLE_BUSINESS_1 = TestObject.file(TEST_DIR, "role-business-1.xml", "00000000-0000-0000-0000-00000000aab1");
@@ -206,7 +207,7 @@ public abstract class AbstractInitializedSecurityTest extends AbstractInitialize
     protected static final XMLGregorianCalendar JACK_VALID_TO_LONG_AHEAD = XmlTypeConverter.createXMLGregorianCalendar(10000000000000L);
 
     protected static final int NUMBER_OF_ALL_USERS = 13;
-    protected static final int NUMBER_OF_IMPORTED_ROLES = 79;
+    protected static final int NUMBER_OF_IMPORTED_ROLES = 80;
     protected static final int NUMBER_OF_ALL_ORGS = 11;
 
     protected String userRumRogersOid;
@@ -294,6 +295,7 @@ public abstract class AbstractInitializedSecurityTest extends AbstractInitialize
         repoAdd(ROLE_END_USER, initResult);
         repoAdd(ROLE_USER_MODIFY, initResult);
         repoAdd(ROLE_USER_ADD, initResult);
+        repoAdd(ROLE_ROLE_ADD_READ_SOME, initResult);
         repoAdd(ROLE_MANAGER_FULL_CONTROL, initResult);
         repoAdd(ROLE_MANAGER_USER_ADMIN, initResult);
         repoAdd(ROLE_SELF_TASK_OWNER, initResult);

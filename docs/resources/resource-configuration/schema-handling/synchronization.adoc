@@ -1,0 +1,635 @@
+= Synchronization
+:page-toc: top
+
+The `synchronization` section specifies how midPoint reacts when a new synchronization event is detected, e.g. an event that account is created, modified, or deleted.
+The reaction may be to create a new user, delete or disable existing user, to ignore the event and so on.
+
+The synchronization section is used only if there is an external or unexpected event related to the _resource_.
+E.g., this section will be used if reconciliation finds a new account, if live sync detects a modification or deletion delta for an account, if discovery finds an unexpected conflicting account and so on.
+I.e. this section defines a reaction to *external* events.
+This section will *not* be used for events that are initiated by midPoint itself (e.g., a role-based provisioning).
+
+The xref:/midpoint/reference/synchronization/introduction/[Synchronization] page provides a generic introduction to midPoint synchronization feature.
+This page describes how to configure a synchronization policy for a resource.
+
+== Synchronization Algorithm
+
+When midPoint detects a synchronization event, it executes the following algorithm:
+
+. Shadow is *classified*, i.e., its object type (kind and intent) is determined.
+This usually applies to newly discovered shadows, as the kind and intent are stored in midPoint repository in the shadow object.
+See xref:/midpoint/reference/resources/resource-configuration/schema-handling/classification/[].
+
+. *Synchronization situation* is determined.
+As part of this, xref:/midpoint/reference/correlation/[correlation] may be carried out - in order to find an owner of the account, if there's any.
+
+. Appropriate *reaction* is found and executed.
+
+This applies to all xref:/midpoint/reference/synchronization/flavors/[synchronization flavors] by default.
+The idea is that midPoint will react to any change always in the same way regardless of how the change was detected.
+These mechanisms help keeping the policies simple and consistent.
+However, if an exception to this rule is needed, it can be configured e.g. by using a channel limitation (see below).
+
+== Situations
+
+When midPoint detects a synchronization event, it is categorized into one of the _situations_.
+The _situation_ describes how the change relates to the midPoint state regarding the changed resource object (account), user and the midPoint policies.
+MidPoint is using xref:/midpoint/reference/roles-policies/assignment/assigning-vs-linking/[links] and xref:/midpoint/reference/correlation/[correlation] to determine the situation.
+The xref:/midpoint/reference/synchronization/situations/[Synchronization Situations] page describes the details.
+
+== Channels
+
+Channel defines a mechanism that was used to detect a change.
+When it comes to synchronization the channel is usually set to `liveSync`, `reconciliation`, `discovery` or `import`.
+The channel may be used in the reactions to alter the synchronization behaviour for some cases.
+E.g. a channel definition can be used to define a different behaviour during initial import and during a normal sustained operation.
+The xref:/midpoint/reference/concepts/channel/[Channels] page provides more details about channels.
+
+== Reactions
+
+Obviously midPoint has to react to a synchronization event to be really useful.
+MidPoint usually reacts to a synchronization event by executing the usual synchronization algorithms that are used to recompute consequences of any other change in the system (i.e., xref:/midpoint/reference/concepts/clockwork/clockwork-and-projector/[Clockwork and Projector]).
+As usual, midPoint does nothing by default and the execution of this algorithm has to explicitly enabled by using an action like `addFocus`, `link`, or `synchronize` in the reaction.
+
+However, synchronization cases are usually little bit more complex than normal provisioning changes.
+Synchronization often detects inconsistencies.
+E.g., a real-world situation that is different than what midPoint thinks that the situation should be.
+For example, an account which was linked to a user has been deleted.
+MidPoint obviously should not blindly pretend that everything is all right.
+MidPoint should react.
+And the reaction may not be a simple "synchronize the attributes" algorithm.
+E.g., if this account was deleted we may want to leave it deleted and just unlink it, we may want to re-create the account, we may want to disable or even delete the user that was linked to that account or we may want to do a bunch of other things.
+Therefore, midPoint allows to specify a set of _actions_ to take place as part of the reaction.
+Although the actions are usually quite simple and straightforward, they can be combined into a very comprehensive policies.
+(Currently, the usual situation is that there is just a single action.)
+
+== Configuration
+
+.Synchronization configuration items
+[%header]
+[%autowidth]
+|===
+| Item | Description
+
+| `reaction` (multivalued)
+| Reaction(s) to individual synchronization situation(s).
+This is the core of the configuration.
+
+| `defaultSettings`
+| Settings that are applied to all clockwork-based actions defined here.
+(Clockwork-based means that the regular midPoint synchronization operation takes place.
+See xref:/midpoint/reference/concepts/clockwork/clockwork-and-projector/[Clockwork and Projector].)
+
+| `opportunistic`
+| If set to true midPoint will try to link and synchronize objects whenever possible.
+E.g. it will link accounts in a case if it tries to create a new account for a given user, but a conflicting account is found.
+Then the conflicting account is checked whether it correlates to the user in question, and if it does, it is linked to the user and used as the new account.
+MidPoint can be quite aggressive in this mode therefore this switch can be used to turn it off.
+It is on by default.
+|===
+
+An example:
+
+.Sample synchronization reactions
+[source,xml]
+----
+<objectType>
+    <!-- ... -->
+    <synchronization>
+        <defaultSettings>
+            <limitPropagation>true</limitPropagation>
+        </defaultSettings>
+        <reaction>
+            <situation>linked</situation>
+            <actions>
+                <synchronize/>
+            </actions>
+        </reaction>
+        <reaction>
+            <situation>deleted</situation>
+            <actions>
+                <unlink/>
+            </actions>
+        </reaction>
+        <reaction>
+            <situation>unlinked</situation>
+            <actions>
+                <link/>
+            </actions>
+        </reaction>
+        <reaction>
+            <situation>unmatched</situation>
+            <actions>
+                <addFocus/>
+            </actions>
+        </reaction>
+    </synchronization>
+</objectType>
+----
+
+== Synchronization Reactions
+
+This part is the core of the `synchronization` configuration.
+For each xref:/midpoint/reference/synchronization/situations/[synchronization situation] there is a synchronization action specified.
+(In theory, there can be more of them, but usually there is exactly one action defined for each situation.)
+
+Each reaction may have the following configuration items:
+
+.Synchronization reaction configuration items
+[%header]
+[%autowidth]
+|===
+| Item | Description
+
+| `name`
+| The name of the reaction. Just for documentation purposes.
+
+| `description`
+| The description of the reaction. Just for documentation purposes.
+
+| `documentation`
+| The documentation of the reaction.
+
+| `order`
+| Order in which this reaction is to be evaluated.
+(Related to other reactions.)
+Smaller numbers go first.
+Reactions with no order go last.
+
+| `situation` (multivalued)
+| Defines a particular synchronization situation or situations.
+
+| `channel` (multivalued)
+| If present, limits the applicability of this reaction to given synchronization channel or channels.
+
+| `condition`
+| Expression that is evaluated to check whether this reaction is applicable in a particular context.
+It is assumed to return a boolean value.
+If it returns 'true' then this reaction will be applied.
+If it returns 'false' it will be ignored.
+
+| `actions`
+| Action or actions to be executed in the given situation.
+|===
+
+The following synchronization actions are available.
+In the last column, the local part of the legacy action URI or URIs is specified for the migration purposes.
+
+.Synchronization actions
+[%header]
+[%autowidth]
+|===
+| Action | Description | Legacy action URI (part)
+
+| `synchronize`
+| The data from the resource objects are "synchronized into" the focus object, via mappings and similar means.
+| `#synchronize`, `#modifyUser`
+
+| `link`
+| Links resource object to its owning focus.
+| `#link`, `#linkAccount`
+
+| `addFocus`
+| Creates an owning focus for the resource object.
+| `#addFocus`, `#addUser`
+
+| `deleteFocus`
+| Deletes the owning focus for the resource object.
+| `#deleteFocus`, `#deleteUser`
+
+| `inactivateFocus`
+| Inactivates (disables) the owning focus for the resource object.
+| `#inactivateFocus`, `#disableUser`
+
+| `deleteResourceObject`
+| Deletes the resource object.
+| `#deleteShadow`, `#deleteAccount`
+
+| `inactivateResourceObject`
+| Inactivates (disables) the resource object.
+| `#inactivateShadow`, `#disableAccount`
+
+| `createCorrelationCase`
+| Creates (or updates) a correlation case for resource object - typically in "disputed" synchronization state, i.e. one whose owner cannot be reliably determined.
+Never includes the synchronization itself.
+| none
+|===
+
+Each action may have the following configuration items:
+
+.Configuration items for a synchronization action
+[%header]
+[%autowidth]
+|===
+| Item | Description | Default value
+
+| `name`, `description`, `documentation`
+| For documentation purposes
+|
+
+| `order`
+| Order in which this action is to be executed, if there are more of them.
+(Related to other actions for given reaction.)
+Smaller numbers go first.
+Entries with no order go last.
+Usually not needed, because single action is typically present.
+|
+
+// | `synchronize`
+// | If set to `false`, the full clockwork (i.e., synchronization) processing will not run.
+// So e.g. linking and unlinking will be done in "fast" way.
+// If set to `true` (the default), the full clockwork processing runs, as in the `synchronize` action.
+//
+// Currently ignored, see MID-10338.
+// | `true`
+
+| `reconcile`
+| If `true`, the focus and the projection being synchronized will be reconciled while executing changes.
+| `true` for situations when there is no known object delta - i.e. change information - coming from the resource
+
+| `reconcileAll`
+| If set to `true`, applicable synchronization reactions will attempt to reconcile the real attributes from all resources with the state of the midPoint repository.
+This may require additional read and recompute, therefore may be slightly less efficient.
+| `false`
+
+| `limitPropagation`
+| Option to limit change computation and execution only for the source resource.
+| `false`
+
+| `objectTemplateRef`
+| Object template used in case the focus object is created or modified.
+See xref:#_using_templates[Using Templates for Synchronization Actions].
+| template defined in archetype or system configuration
+
+| `executeOptions` (experimental)
+| Model execute options that will be used when invoking this reaction.
+Options explicitly specified here take precedence over any options derived from the context or other parameters (like "recompute").
+So please use with care.
+| derived from the context or other parameters
+|===
+
+The `reconcile` option and the ones below it are not applicable to `createCorrelationCase` action.
+
+== Default Synchronization Action Settings
+
+This item contains the default values for `reconcile`, `reconcileAll`, `limitPropagation`, `objectTemplateRef`, and `executeOptions` configuration items.
+These are applied to all reactions, unless overridden.
+
+== Migrating The Legacy (pre-4.6) Synchronization Section
+
+The configuration items have the following new places:
+
+.New places for legacy synchronization settings
+[%header]
+[%autowidth]
+|===
+| Original item | New place | Path
+
+| `kind` and `intent`
+| object type identification
+| `kind` and `intent`
+
+| `objectClass`
+| object type delineation
+| `delineation/objectClass`
+
+| `focusType`
+| focus specification
+| `focus/type`
+
+| `enabled`
+| indirectly replaceable via conditions in classification and synchronization
+| `delineation/classificationCondition` and `synchronization/reaction[xxx]/condition`
+
+| `condition`
+| condition in the delineation
+| `delineation/classificationCondition`
+
+| `correlation`
+| owner filter in the `filter` correlator
+| `correlation/correlators/filter/ownerFilter`
+
+| `confirmation`
+| confirmation expression in the `filter` correlator
+| `correlation/correlators/filter/confirmation`
+
+| `correlationDefinition` (experimental in 4.5)
+| correlation definition
+| `correlation`
+
+| `objectTemplateRef`, `reconcile`, `limitPropagation`
+| default settings for synchronization reactions
+| `synchronization/defaultSettings/objectTemplateRef`,
+`.../reconcile`, `.../limitPropagation`
+
+| `opportunistic`
+| synchronization settings
+| `synchronization/opportunistic`
+
+| `reaction`
+| synchronization reactions (new syntax)
+| `synchronization/reaction`
+|===
+
+Note that `synchronizationSorter` is still at the original place, outside `schemaHandling`.
+The reason is that it is not connected to any specific object type.
+
+== Examples
+
+The following configuration snippet illustrates a configuration of an authoritative resource.
+A user will be created when a new resource account is detected, user will be deleted when the account is deleted and so on.
+For this to work well it needs to be supplemented with other parts of the object type definition, which are not shown in the example to keep it focused on the configuration of the synchronization part.
+
+.Authoritative Resource
+[source,xml]
+----
+<resource>
+    ...
+    <objectType>
+        ...
+        <synchronization>
+            <reaction>
+                <situation>linked</situation>
+                <actions>
+                    <synchronize/>
+                </actions>
+            </reaction>
+            <reaction>
+                <situation>deleted</situation>
+                <actions>
+                    <deleteFocus/>
+                </actions>
+            </reaction>
+            <reaction>
+                <situation>unlinked</situation>
+                <actions>
+                    <link/>
+                </actions>
+            </reaction>
+            <reaction>
+                <situation>unmatched</situation>
+                <actions>
+                    <addFocus/>
+                </actions>
+            </reaction>
+        </synchronization>
+    </objectType>
+</resource>
+----
+
+=== Reaction Examples
+
+The usual reaction for a `linked` situation is just to synchronize the changes from the resource to the user.
+The actual synchronization is done by standard midPoint synchronization code (xref:/midpoint/reference/concepts/clockwork/clockwork-and-projector/[Clockwork and Projector]) which is in turn using xref:/midpoint/reference/expressions/mappings/inbound-mapping/[inbound mappings] to do so.
+Therefore the synchronization reaction simply needs to invoke standard midPoint synchronization code:
+
+.The usual reaction to "linked" situation
+[source,xml]
+----
+<reaction>
+    <situation>linked</situation>
+    <actions>
+        <synchronize/>
+    </actions>
+</reaction>
+----
+
+No other action is necessary in this case.
+Please note that the standard synchronization code will *not* be invoked unless this action is explicitly defined.
+MidPoint does not synchronize anything by default.
+
+A migration phase is important part of IDM solution deployment.
+Accounts from various resources are linked to an existing user base in this phase.
+xref:/midpoint/reference/correlation/[] is often used in this phase.
+When the correlation find a matching user (that is not yet linked to the account), the result is the `unlinked` situation.
+A simple account linking is usually the desired action:
+
+.The usual reaction to "unlinked" situation (for an authoritative resource)
+[source,xml]
+----
+<reaction>
+    <situation>unlinked</situation>
+    <actions>
+        <link/>
+    </actions>
+</reaction>
+----
+
+Note that standard midPoint synchronization run (invoked by the `link` action) is still needed for the link to be created.
+No synchronization means no change.
+But even if the synchronization is executed it does not necessarily mean that the account attributes and the user properties will be synchronized.
+Whether the values are affected is determined by xref:/midpoint/reference/expressions/mappings/inbound-mapping/[inbound mappings] and xref:/midpoint/reference/expressions/mappings/outbound-mapping/[outbound mappings].
+If the mappings are empty then only the link will be created, and assignments and the object template will be evaluated.
+
+Typical authoritative resource will need to create new users when new account is detected.
+This is a reaction to `unmatched` situation.
+The `addFocus` action is used to force the creation of new user:
+
+.The usual reaction to "unmatched" situation (for an authoritative resource)
+[source,xml]
+----
+<reaction>
+    <situation>unmatched</situation>
+    <actions>
+        <addFocus/>
+    </action>
+</reaction>
+----
+
+The new empty user will be created and the account will be linked to it.
+xref:/midpoint/reference/expressions/mappings/inbound-mapping/[Inbound mappings] and xref:/midpoint/reference/expressions/object-template/[object template] can be used to populate the empty user.
+In fact at least one of these must be used to set the name for the new user.
+No user can be created without a name.
+
+Non-authoritative resource will typically react to `unmatched` situation in a very different way.
+Such resources will often delete or disable the account.
+This can easily be achieved using a `deleteResourceObject` action:
+
+.The usual reaction to "unmatched" situation (for a non-authoritative resource)
+[source,xml]
+----
+<reaction>
+    <situation>unmatched</situation>
+    <action>
+        <deleteResourceObject/>
+    </action>
+</reaction>
+----
+
+=== Group Synchronization Example
+
+MidPoint synchronization capability goes beyond simple user-account synchronization.
+MidPoint has a xref:/midpoint/reference/synchronization/generic-synchronization/[generic synchronization] capability that can be used to synchronize almost any type of objects.
+The following example shows a configuration to synchronize groups (resource objects) and roles (midPoint objects).
+This setup will create a new midPoint role when a new group is detected on the resource.
+
+.Group synchronization example
+[source,xml]
+----
+<resource>
+    ...
+    <synchronization>
+        ...
+        <objectType>
+            <kind>entitlement</kind>
+            <intent>group</intent>
+            <delineation>
+                <objectClass>ri:GroupObjectClass</objectClass>
+            </delineation>
+            <focus>
+                <type>RoleType</type>
+            </focus>
+            <attribute>
+                <ref>ri:cn</ref>
+                <inbound>
+                    <strength>strong</strength>
+                    <target>
+                        <path>name</path>
+                    </target>
+                </inbound>
+            </attribute>
+            <!-- other attributes -->
+            <correlators>
+                <items>
+                    <item>
+                        <ref>name</ref> <!--1-->
+                    </item>
+                </items>
+            </correlators>
+            <reaction>
+                <situation>unlinked</situation>
+                <actions>
+                    <link/> <!--2-->
+                </actions>
+            </reaction>
+            <reaction>
+                <situation>unmatched</situation>
+                <actions>
+                    <addFocus> <!--3-->
+                        <!-- Reference to the object template is here. If the role would be created as a result of this action,
+                            it will be created according to this template. -->
+                        <objectTemplateRef oid="c0c010c0-d34d-b33f-f00d-777222222222"/> <!--4-->
+                    </addFocus>
+                </actions>
+            </reaction>
+            <reaction>
+                <situation>linked</situation>
+                <actions>
+                    <synchronize/> <!--5-->
+                </actions>
+            </reaction>
+            <reaction>
+                <situation>deleted</situation>
+                <actions>
+                    <synchronize/> <!-- includes unlinking --> <!--6-->
+                </actions>
+            </reaction>
+        </objectSynchronization>
+    </synchronization>
+</resource>
+----
+<1> The owner (a role) is found by matching the role name (the value of which is derived from the attribute `ri:cn`).
+<2> For the `unlinked` situation (the correlation found exactly one matching role in midPoint but it has no reference to this group) the response action is about to set link between the group and the role (`link`) and to synchronize the values according to mappings.
+<3> For the `unmatched` situation (the correlation found no matching role in midPoint) the response action is about to create a new role in midPoint.
+In addition, the group will be linked to the midPoint role.
+<4> The midPoint role attributes will be set using the inbound expressions for resource attributes and a specified xref:/midpoint/reference/expressions/object-template/[] object.
+See xref:#_using_templates[Using Templates for Synchronization Actions].
+<5> For the `linked` situation (there is a role that has a reference to this group) the response action is about to synchronize values according to mappings.
+<6> For the `deleted` situation (group was found to be deleted on the resource) the response action is to synchronize values according to mappings.
+The group is also unlinked from its owning role (if there's one).
+This unlinking is done for each deleted resource object, regardless of the synchronization action(s) specified.
+The synchronization (mappings evaluation) is driven by the presence of the `synchronize` action.
+
+// This is no longer true; we want to get rid of "account/default" magic, so schemaHandling will be obligatory to do anything reasonable with the resource
+//
+// == Resource Schema Annotations
+//
+// To make the job of IDM administrator easier, well-written connectors will provide reasonable default values for some of the schema handling parameters.
+// Such defaults are specified in the xref:/midpoint/reference/resources/resource-schema/[Resource Schema] in a form of XSD annotations.
+// See xref:/midpoint/reference/resources/resource-schema/[Resource Schema] for more details.
+//
+// In the extreme case the entire Resource Schema Handling part is optional.
+// All the details may be default to values defined in the Resource Schema annotations.
+// But that is expected to be a very rare case.
+
+== Using Synchronization When Not Synchronizing Anything
+
+The `correlation` and `synchronization` sections may be required even if you are not explicitly synchronizing anything into midPoint.
+You may need it even if there is no live sync running and you have no inbound mappings.
+MidPoint is always consulting these sections when it unexpectedly finds a new resource object.
+That can occur, e.g., if it tries to create an account but finds that the account already exists on the resource.
+The correlation and (probably) `unlinked` -> `link` reaction is appropriate for that case.
+
+=== Default Behavior with No Synchronization Defined
+
+As usual the default midPoint action is "do nothing".
+Therefore midPoint will do nothing unless a synchronization reaction is explicitly set up.
+This default setting limits potential damage that midPoint might cause during system setup, experiments and tests.
+
+MidPoint is transparently managing xref:/midpoint/reference/resources/shadow/[object shadows] in the identity repository all the time.
+This mechanism is independent of synchronization policy, situations or reactions.
+This has to be done independently as the shadows are just a cache of the real state of the resource.
+Therefore a new shadow will be created automatically for each new account even if no policy or reaction is defined.
+The shadows will also automatically be deleted if a corresponding resource object is deleted even though no synchronization policy defines that explicitly.
+Shadows are managed automatically and you do not need to care about it explicitly.
+However it still applies that midPoint will not react to a change in a shadow in any other way than by updating the shadow in repository unless there is an explicit synchronization reaction set up.
+
+The last situation of each resource object is recorded its corresponding shadow.
+Therefore it can be used for troubleshooting and reporting.
+
+Import of objects from the resource is also considered to be a form of synchronization.
+Therefore it needs a valid synchronization policy to work correctly.
+
+[#_using_templates]
+== Using Templates for Synchronization Actions
+
+The object template can be used in synchronization actions to compute midPoint object (user, role, org, ...) properties and/or assign objects (account, group, org unit, ...) on other resources.
+It will be used in addition to inbound expression processing.
+It will _replace_ the default object template derived from the archetype, system configuration, and so on - for this specific synchronization operation.
+
+The following is an example of object template:
+
+* The user template is named "Default User Template".
+
+* It will compute midPoint user attribute `fullName` from midPoint user attributes `givenName` and `familyName`, but only if the `fullName` has no value (strength is `weak`).
+This can be utilized to have a last resort value for the `fullName` attribute if the inbound expression has not set a value before.
+
+[source,xml]
+----
+<objectTemplate oid="c0c010c0-d34d-b33f-f00d-777111111111">
+
+    <name>Default User Template</name>
+
+    <description>
+        User Template Object.
+        This object is used when creating a new account, to set it up as needed.
+    </description>
+
+    <mapping>
+        <description>
+            Property mapping.
+            Defines how properties of user object are set up.
+            This specific definition sets a full name as a concatenation
+            of givenName and familyName.
+        </description>
+        <strength>weak</strength>
+        <source>
+            <path>$user/givenName</path>
+        </source>
+        <source>
+            <path>$user/familyName</path>
+        </source>
+        <expression>
+            <script>
+                <code>
+                    givenName + ' ' + familyName
+                </code>
+            </script>
+        </expression>
+        <target>
+            <path>fullName</path>
+        </target>
+    </mapping>
+
+</objectTemplate>
+----
