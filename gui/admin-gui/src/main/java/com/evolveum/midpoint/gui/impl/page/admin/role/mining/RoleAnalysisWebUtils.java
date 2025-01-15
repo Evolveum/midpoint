@@ -282,7 +282,7 @@ public class RoleAnalysisWebUtils {
                 return roleAnalysisObjectDto;
             }
 
-            private void loadObjectForMark(@NotNull RoleAnalysisObjectDto roleAnalysisObjectDto,@NotNull String outlierOid) {
+            private void loadObjectForMark(@NotNull RoleAnalysisObjectDto roleAnalysisObjectDto, @NotNull String outlierOid) {
                 String cssStyle = "border: 5px solid #206f9d;";
                 String cssClass = "p-2 d-flex align-items-center justify-content-center bg-danger";
                 String cssClassUniq = cssClass + " corner-hashed-bg";
@@ -441,6 +441,16 @@ public class RoleAnalysisWebUtils {
         tabPanel.setOutputMarkupId(true);
         tabPanel.setOutputMarkupPlaceholderTag(true);
         return tabPanel;
+    }
+
+    public static @NotNull RoleAnalysisProcessModeType resolveSessionProcessMode(@NotNull RoleAnalysisSessionType session) {
+        RoleAnalysisOptionType analysisOption = session.getAnalysisOption();
+        return analysisOption.getProcessMode();
+    }
+
+    public static RoleAnalysisProcedureType resolveSessionProcedureType(@NotNull RoleAnalysisSessionType session) {
+        RoleAnalysisOptionType analysisOption = session.getAnalysisOption();
+        return analysisOption.getAnalysisProcedureType();
     }
 
 }

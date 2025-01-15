@@ -42,6 +42,10 @@ public class ObjectCategorisationCache {
         item.getCategory().add(category);
     }
 
+    public void putMultipleCategories(String oid, QName type, RoleAnalysisObjectCategorizationType... categories) {
+        Arrays.stream(categories).forEach(category -> putCategory(oid, category, type));
+    }
+
     public void putAllCategory(@NotNull Set<String> oids, RoleAnalysisObjectCategorizationType category, QName type) {
         for (String oid : oids) {
             putCategory(oid, category, type);
@@ -278,6 +282,7 @@ public class ObjectCategorisationCache {
         items.setExcludedCount(categoryCounts.getOrDefault(RoleAnalysisObjectCategorizationType.EXCLUDED, 0));
         items.setInsufficientCount(categoryCounts.getOrDefault(RoleAnalysisObjectCategorizationType.INSUFFICIENT, 0));
         items.setNoiseExclusiveUnpopular(categoryCounts.getOrDefault(RoleAnalysisObjectCategorizationType.NOISE_EXCLUSIVE_UNPOPULAR, 0));
+        items.setExcludedMissingBase(categoryCounts.getOrDefault(RoleAnalysisObjectCategorizationType.EXCLUDED_MISSING_BASE, 0));
     }
 
     public Set<String> getUnpopularRoles() {

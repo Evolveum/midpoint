@@ -23,8 +23,8 @@ import java.io.Serial;
 import java.io.Serializable;
 import java.util.*;
 
-import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.RoleAnalysisWebUtils.CLASS_CSS;
-import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.RoleAnalysisWebUtils.STYLE_CSS;
+import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.RoleAnalysisWebUtils.*;
+import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.outlier.panel.categorization.CategorySelectionProvider.allowedCategoryData;
 
 public class CategorizationValueModel implements Serializable {
     int integerValue;
@@ -34,9 +34,6 @@ public class CategorizationValueModel implements Serializable {
     boolean visible;
     IModel<String> helpModel;
     ProgressBar.State progressBarColor;
-
-    private record CategoryData(String helpKey, int count, ProgressBar.State state, String labelKey, String cssClass) {
-    }
 
     public CategorizationValueModel(
             IModel<String> helpModel,
@@ -91,14 +88,15 @@ public class CategorizationValueModel implements Serializable {
             @NotNull PageBase pageBase,
             @NotNull RoleAnalysisIdentifiedCharacteristicsItemsType itemContainer,
             boolean isRoleSelected,
-            boolean advanced) {
+            boolean advanced,
+            RoleAnalysisOptionType sessionAnalysisOption) {
 
-        List<CategoryData> categories = collectCategoryData(itemContainer, isRoleSelected, advanced);
-
-        int total = categories.stream().mapToInt(CategoryData::count).sum();
+        List<CategorySelectionProvider.CategoryData> categories = collectCategoryData(
+                itemContainer, isRoleSelected, advanced, sessionAnalysisOption);
+        int total = categories.stream().mapToInt(CategorySelectionProvider.CategoryData::count).sum();
 
         List<CategorizationValueModel> progressValues = new ArrayList<>();
-        for (CategoryData category : categories) {
+        for (CategorySelectionProvider.CategoryData category : categories) {
             progressValues.add(new CategorizationValueModel(
                     pageBase.createStringResource(category.helpKey()),
                     true,
@@ -114,175 +112,18 @@ public class CategorizationValueModel implements Serializable {
         return progressValues;
     }
 
-    private static @NotNull List<CategoryData> collectCategoryData(
+    private static @NotNull List<CategorySelectionProvider.CategoryData> collectCategoryData(
             @NotNull RoleAnalysisIdentifiedCharacteristicsItemsType itemContainer,
             boolean isRoleSelected,
-            boolean advanced) {
-
-        List<CategoryData> categories = new ArrayList<>();
-
-        if (isRoleSelected) {
-            addRoleCategories(itemContainer, advanced, categories);
-        } else {
-            addUserCategories(itemContainer, advanced, categories);
-        }
-
-        return categories;
-    }
-
-    private static void addRoleCategories(
-            @NotNull RoleAnalysisIdentifiedCharacteristicsItemsType itemContainer,
             boolean advanced,
-            @NotNull List<CategoryData> categories) {
+            RoleAnalysisOptionType sessionAnalysisOption) {
 
-        categories.add(new CategoryData(
-                "RoleAnalysisObjectCategorizationType.noise_exclusive.role.help",
-                safeCount(itemContainer.getNoiseExclusiveCount()),
-                ProgressBar.State.WARNING,
-                "RoleAnalysisObjectCategorizationType.noise_exclusive.role",
-                "text-warning"
-        ));
-
-        categories.add(new CategoryData(
-                "RoleAnalysisObjectCategorizationType.un_popular.role.help",
-                safeCount(itemContainer.getUnPopularCount()),
-                ProgressBar.State.DANGER,
-                "RoleAnalysisObjectCategorizationType.un_popular.role",
-                "text-danger"
-        ));
-
-        if (advanced) {
-            categories.add(new CategoryData(
-                    "RoleAnalysisObjectCategorizationType.help.anomaly",
-                    safeCount(itemContainer.getAnomalyCount()),
-                    ProgressBar.State.DARK,
-                    "RoleAnalysisObjectCategorizationType.anomaly",
-                    "text-dark"
-            ));
-            categories.add(new CategoryData(
-                    "RoleAnalysisObjectCategorizationType.help.anomaly_exclusive",
-                    safeCount(itemContainer.getOverallAnomalyCount()),
-                    ProgressBar.State.SECONDARY,
-                    "RoleAnalysisObjectCategorizationType.anomaly_exclusive",
-                    "text-secondary"
-            ));
-
-            categories.add(new CategoryData(
-                    "RoleAnalysisObjectCategorizationType.help.above_popular",
-                    safeCount(itemContainer.getAbovePopularCount()),
-                    ProgressBar.State.PRIMARY,
-                    "RoleAnalysisObjectCategorizationType.above_popular",
-                    "text-primary"
-            ));
-            categories.add(new CategoryData(
-                    "RoleAnalysisObjectCategorizationType.noise_exclusive.and.un_popular.role.help",
-                    safeCount(itemContainer.getNoiseExclusiveUnpopular()),
-                    ProgressBar.State.LIGHT,
-                    "RoleAnalysisObjectCategorizationType.noise_exclusive.and.un_popular.role",
-                    "text-light"
-            ));
-
-            categories.add(new CategoryData(
-                    "RoleAnalysisObjectCategorizationType.help.noise",
-                    safeCount(itemContainer.getNoiseCount()),
-                    ProgressBar.State.INFO,
-                    "RoleAnalysisObjectCategorizationType.noise",
-                    "text-info"
-            ));
-
-            categories.add(new CategoryData(
-                    "RoleAnalysisObjectCategorizationType.help.excluded",
-                    safeCount(itemContainer.getExcludedCount()),
-                    ProgressBar.State.SUCCESS,
-                    "RoleAnalysisObjectCategorizationType.excluded",
-                    "text-success"
-            ));
-        }
-    }
-
-    //TODO (improve localization keys) then apply getHelpKey and getCategoryKey (together with getRoleDisplayValues getUserDisplayValues)
-    private static String getHelpKey(RoleAnalysisObjectCategorizationType category, boolean isRole) {
-        return "RoleAnalysisObjectCategorizationType." + category + (isRole ? ".role.help" : ".user.help");
-    }
-
-    private static String getCategoryKey(RoleAnalysisObjectCategorizationType category, boolean isRole) {
-        return "RoleAnalysisObjectCategorizationType." + category + (isRole ? ".role" : ".user");
-    }
-
-    private static void addUserCategories(
-            @NotNull RoleAnalysisIdentifiedCharacteristicsItemsType itemContainer,
-            boolean advanced,
-            @NotNull List<CategoryData> categories) {
-
-        categories.add(new CategoryData(
-                "RoleAnalysisObjectCategorizationType.noise_exclusive.and.un_popular.user.help",
-                safeCount(itemContainer.getNoiseExclusiveUnpopular()),
-                ProgressBar.State.DANGER,
-                "RoleAnalysisObjectCategorizationType.noise_exclusive.and.un_popular.user",
-                "text-danger"
-        ));
-
-        categories.add(new CategoryData(
-                "RoleAnalysisObjectCategorizationType.help.insufficient.peer.similarity",
-                safeCount(itemContainer.getInsufficientCount()),
-                ProgressBar.State.WARNING,
-                "RoleAnalysisObjectCategorizationType.insufficient.peer.similarity",
-                "text-warning"
-        ));
-
-        if (advanced) {
-            categories.add(new CategoryData(
-                    "RoleAnalysisObjectCategorizationType.help.outlier",
-                    safeCount(itemContainer.getOutlierCount()),
-                    ProgressBar.State.PRIMARY,
-                    "RoleAnalysisObjectCategorizationType.outlier",
-                    "text-primary"
-            ));
-
-            categories.add(new CategoryData(
-                    "RoleAnalysisObjectCategorizationType.noise_exclusive.user",
-                    safeCount(itemContainer.getNoiseExclusiveCount()),
-                    ProgressBar.State.SECONDARY,
-                    "RoleAnalysisObjectCategorizationType.noise_exclusive.user",
-                    "text-secondary"
-            ));
-
-            categories.add(new CategoryData(
-                    "RoleAnalysisObjectCategorizationType.un_popular.user.help",
-                    safeCount(itemContainer.getUnPopularCount()),
-                    ProgressBar.State.DARK,
-                    "RoleAnalysisObjectCategorizationType.un_popular.user",
-                    "text-dark"
-            ));
-
-            categories.add(new CategoryData(
-                    "RoleAnalysisObjectCategorizationType.help.above_popular",
-                    safeCount(itemContainer.getAbovePopularCount()),
-                    ProgressBar.State.LIGHT,
-                    "RoleAnalysisObjectCategorizationType.above_popular",
-                    "text-light"
-            ));
-
-            categories.add(new CategoryData(
-                    "RoleAnalysisObjectCategorizationType.help.noise",
-                    safeCount(itemContainer.getNoiseCount()),
-                    ProgressBar.State.INFO,
-                    "RoleAnalysisObjectCategorizationType.noise",
-                    "text-info"
-            ));
-
-            categories.add(new CategoryData(
-                    "RoleAnalysisObjectCategorizationType.help.excluded",
-                    safeCount(itemContainer.getExcludedCount()),
-                    ProgressBar.State.SUCCESS,
-                    "RoleAnalysisObjectCategorizationType.excluded",
-                    "text-success"
-            ));
-        }
-    }
-
-    private static int safeCount(Integer count) {
-        return count != null ? count : 0;
+        return allowedCategoryData(advanced, itemContainer, new LoadableModel<>() {
+            @Override
+            protected Boolean load() {
+                return isRoleSelected;
+            }
+        }, sessionAnalysisOption);
     }
 
     protected static @NotNull WebMarkupContainer buildDistributionRolePanel
@@ -311,7 +152,7 @@ public class CategorizationValueModel implements Serializable {
         }
 
         List<CategorizationValueModel> progressValueModels = CategorizationValueModel
-                .prepareDistributionCatalog(pageBase, itemContainer, isRoleSelected, advanced);
+                .prepareDistributionCatalog(pageBase, itemContainer, isRoleSelected, advanced, session.getAnalysisOption());
 
         RoleAnalysisOutlierDashboardPanel<?> distributionHeader = new RoleAnalysisOutlierDashboardPanel<>(panelId,
                 pageBase.createStringResource(title)) {

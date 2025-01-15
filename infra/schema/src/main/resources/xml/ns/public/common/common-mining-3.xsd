@@ -3104,6 +3104,16 @@
                 </xsd:annotation>
             </xsd:element>
 
+            <xsd:element name="excludedMissingBase" type="xsd:int" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        <p>
+                            Number of excluded missing base objects.
+                        </p>
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+
             <xsd:element name="item" type="tns:RoleAnalysisIdentifiedCharacteristicsItemType" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -3265,6 +3275,18 @@
                     </xsd:documentation>
                     <xsd:appinfo>
                         <jaxb:typesafeEnumMember name="EXCLUDED"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="excluded_missing_base">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        If object is excluded due to missing member/assignment.
+                        For example user "Jack" has role A,B,C and these roles is unpopular with means that is excluded from analysis.
+                        That means that user "Jack" is excluded from analysis due to missing roles.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="EXCLUDED_MISSING_BASE"/>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>

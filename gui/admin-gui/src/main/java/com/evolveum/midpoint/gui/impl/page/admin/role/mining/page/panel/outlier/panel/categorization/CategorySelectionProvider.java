@@ -7,6 +7,7 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.outlier.panel.categorization;
 
+import com.evolveum.midpoint.gui.api.component.progressbar.ProgressBar;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.impl.component.data.provider.SelectableBeanObjectDataProvider;
 import com.evolveum.midpoint.model.api.mining.RoleAnalysisService;
@@ -16,12 +17,11 @@ import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisIdentifiedCharacteristicsItemType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisObjectCategorizationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.wicket.Component;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.wicketstuff.select2.ChoiceProvider;
 import org.wicketstuff.select2.Response;
 
@@ -36,10 +36,12 @@ public class CategorySelectionProvider extends ChoiceProvider<RoleAnalysisObject
 
     boolean advanced;
     LoadableModel<Boolean> isRoleSelected;
+    transient RoleAnalysisOptionType sessionAnalysisOption;
 
-    public CategorySelectionProvider(boolean advanced, LoadableModel<Boolean> isRoleSelected) {
+    public CategorySelectionProvider(boolean advanced, LoadableModel<Boolean> isRoleSelected, RoleAnalysisOptionType sessionAnalysisOption) {
         this.advanced = advanced;
         this.isRoleSelected = isRoleSelected;
+        this.sessionAnalysisOption = sessionAnalysisOption;
     }
 
     @Override
@@ -54,7 +56,7 @@ public class CategorySelectionProvider extends ChoiceProvider<RoleAnalysisObject
 
     @Override
     public void query(String text, int page, Response<RoleAnalysisObjectCategorizationType> response) {
-        List<RoleAnalysisObjectCategorizationType> allowedValues = allowedValues(advanced, isRoleSelected);
+        List<RoleAnalysisObjectCategorizationType> allowedValues = allowedValues(advanced, isRoleSelected, sessionAnalysisOption);
         if (text == null) {
             response.addAll(allowedValues);
             return;
@@ -75,102 +77,128 @@ public class CategorySelectionProvider extends ChoiceProvider<RoleAnalysisObject
 
     public static @NotNull List<RoleAnalysisObjectCategorizationType> allowedValues(
             boolean advanced,
-            @NotNull LoadableModel<Boolean> isRoleSelected) {
+            @NotNull LoadableModel<Boolean> isRoleSelected,
+            @NotNull RoleAnalysisOptionType sessionAnalysisOption) {
+        RoleAnalysisProcessModeType processMode = sessionAnalysisOption.getProcessMode();
+        List<RoleAnalysisObjectCategorizationType> allowedValues = new ArrayList<>(
+                BASIC_VALUES.get(isRoleSelected.getObject()).get(processMode));
 
-        List<RoleAnalysisObjectCategorizationType> allowedValues = new ArrayList<>();
-
-        if (Boolean.TRUE.equals(isRoleSelected.getObject())) {
-            addRoleAllowedValues(advanced, allowedValues);
-        } else if (Boolean.FALSE.equals(isRoleSelected.getObject())) {
-            addUserAllowedValues(advanced, allowedValues);
+        if (advanced) {
+            allowedValues.addAll(ADVANCED_VALUES.get(isRoleSelected.getObject()).get(processMode));
         }
 
+        filterAllowedValuesByProcedure(allowedValues, sessionAnalysisOption.getAnalysisProcedureType());
         return allowedValues;
     }
 
-    private static void addRoleAllowedValues(
-            boolean advanced,
-            @NotNull List<RoleAnalysisObjectCategorizationType> allowedValues) {
+    private static void filterAllowedValuesByProcedure(
+            @NotNull List<RoleAnalysisObjectCategorizationType> allowedValues,
+            RoleAnalysisProcedureType analysisProcedureType) {
 
-        allowedValues.add(RoleAnalysisObjectCategorizationType.UN_POPULAR);
-        allowedValues.add(RoleAnalysisObjectCategorizationType.NOISE_EXCLUSIVE);
-
-        if (advanced) {
-            allowedValues.add(RoleAnalysisObjectCategorizationType.OVERALL_ANOMALY);
-            allowedValues.add(RoleAnalysisObjectCategorizationType.ABOVE_POPULAR);
-            allowedValues.add(RoleAnalysisObjectCategorizationType.NOISE_EXCLUSIVE_UNPOPULAR);
-            allowedValues.add(RoleAnalysisObjectCategorizationType.NOISE);
-            allowedValues.add(RoleAnalysisObjectCategorizationType.ANOMALY);
-            allowedValues.add(RoleAnalysisObjectCategorizationType.EXCLUDED);
+        if (analysisProcedureType == RoleAnalysisProcedureType.ROLE_MINING) {
+            allowedValues.removeIf(value -> value == RoleAnalysisObjectCategorizationType.OUTLIER
+                    || value == RoleAnalysisObjectCategorizationType.ANOMALY
+                    || value == RoleAnalysisObjectCategorizationType.OVERALL_ANOMALY);
         }
+    }
+
+    public static @NotNull List<CategoryData> allowedCategoryData(
+            boolean advanced,
+            @NotNull RoleAnalysisIdentifiedCharacteristicsItemsType itemContainer,
+            @NotNull LoadableModel<Boolean> isRoleSelected,
+            RoleAnalysisOptionType processMode) {
+
+        List<RoleAnalysisObjectCategorizationType> allowedValues = allowedValues(advanced, isRoleSelected, processMode);
+        Map<RoleAnalysisObjectCategorizationType, CategoryData> categoryDataMap = resolveClassificationCategoryStr(
+                isRoleSelected.getObject(), itemContainer);
+
+        return allowedValues.stream()
+                .map(categoryDataMap::get)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toList());
     }
 
     public static String getCategoryValueDisplayString(@NotNull RoleAnalysisObjectCategorizationType value, boolean isRoleSelected) {
-        if (isRoleSelected) {
-            return getRoleDisplayValues(value);
-        } else {
-            return getUserDisplayValues(value);
-        }
-
+        String labelKey = getCategoryModel(value, isRoleSelected, null).labelKey;
+        return translate(labelKey, null);
     }
 
-    public static String getRoleDisplayValues(@NotNull RoleAnalysisObjectCategorizationType value) {
-        if (value.equals(RoleAnalysisObjectCategorizationType.UN_POPULAR)) {
-            return translate("RoleAnalysisObjectCategorizationType.un_popular.role");
-        } else if (value.equals(RoleAnalysisObjectCategorizationType.NOISE_EXCLUSIVE)) {
-            return translate("RoleAnalysisObjectCategorizationType.noise_exclusive.role");
-        } else if (value.equals(RoleAnalysisObjectCategorizationType.OVERALL_ANOMALY)) {
-            return translate("RoleAnalysisObjectCategorizationType.overall.anomaly");
-        }else if (value.equals(RoleAnalysisObjectCategorizationType.NOISE_EXCLUSIVE_UNPOPULAR)) {
-            return translate("RoleAnalysisObjectCategorizationType.noise_exclusive.and.un_popular.role");
-        }else if (value.equals(RoleAnalysisObjectCategorizationType.ABOVE_POPULAR)) {
-            return translate("RoleAnalysisObjectCategorizationType.above_popular");
-        }else if (value.equals(RoleAnalysisObjectCategorizationType.NOISE)) {
-            return translate("RoleAnalysisObjectCategorizationType.noise");
-        }else if (value.equals(RoleAnalysisObjectCategorizationType.ANOMALY)) {
-            return translate("RoleAnalysisObjectCategorizationType.anomaly");
-        }else if (value.equals(RoleAnalysisObjectCategorizationType.EXCLUDED)) {
-            return translate("RoleAnalysisObjectCategorizationType.excluded");
-        }
-        return value.toString();
+    private static int safeCount(Integer count) {
+        return count != null ? count : 0;
     }
 
-    public static String getUserDisplayValues(@NotNull RoleAnalysisObjectCategorizationType value) {
-        if (value.equals(RoleAnalysisObjectCategorizationType.INSUFFICIENT)) {
-            return translate("RoleAnalysisObjectCategorizationType.insufficient.peer.similarity");
-        } else if (value.equals(RoleAnalysisObjectCategorizationType.NOISE_EXCLUSIVE_UNPOPULAR)) {
-            return translate("RoleAnalysisObjectCategorizationType.noise_exclusive.and.un_popular.user");
-        } else if (value.equals(RoleAnalysisObjectCategorizationType.UN_POPULAR)) {
-            return translate("RoleAnalysisObjectCategorizationType.un_popular.user");
-        } else if (value.equals(RoleAnalysisObjectCategorizationType.ABOVE_POPULAR)) {
-            return translate("RoleAnalysisObjectCategorizationType.above_popular");
-        } else if (value.equals(RoleAnalysisObjectCategorizationType.NOISE)) {
-            return translate("RoleAnalysisObjectCategorizationType.noise");
-        } else if (value.equals(RoleAnalysisObjectCategorizationType.NOISE_EXCLUSIVE)) {
-            return translate("RoleAnalysisObjectCategorizationType.noise_exclusive.user");
-        } else if (value.equals(RoleAnalysisObjectCategorizationType.OUTLIER)) {
-            return translate("RoleAnalysisObjectCategorizationType.outlier");
-        } else if (value.equals(RoleAnalysisObjectCategorizationType.EXCLUDED)) {
-            return translate("RoleAnalysisObjectCategorizationType.excluded");
-        }
-        return value.toString();
+    public record CategoryData(String helpKey, int count, ProgressBar.State state, String labelKey, String cssClass) {
     }
 
-    private static void addUserAllowedValues(
-            boolean advanced,
-            @NotNull List<RoleAnalysisObjectCategorizationType> allowedValues) {
+    public static CategoryData getCategoryModel(@NotNull RoleAnalysisObjectCategorizationType type, boolean isRoleSelected,
+            @Nullable RoleAnalysisIdentifiedCharacteristicsItemsType itemContainer) {
+        Map<RoleAnalysisObjectCategorizationType, CategoryData> categoryDataMap = resolveClassificationCategoryStr(
+                isRoleSelected, itemContainer);
+        return categoryDataMap.get(type);
+    }
 
-        allowedValues.add(RoleAnalysisObjectCategorizationType.NOISE_EXCLUSIVE_UNPOPULAR);
-        allowedValues.add(RoleAnalysisObjectCategorizationType.INSUFFICIENT);
+    public static @NotNull Map<RoleAnalysisObjectCategorizationType, CategoryData> resolveClassificationCategoryStr(
+            boolean isRoleSelected,
+            @Nullable RoleAnalysisIdentifiedCharacteristicsItemsType itemContainer) {
 
-        if (advanced) {
-            allowedValues.add(RoleAnalysisObjectCategorizationType.UN_POPULAR);
-            allowedValues.add(RoleAnalysisObjectCategorizationType.ABOVE_POPULAR);
-            allowedValues.add(RoleAnalysisObjectCategorizationType.NOISE);
-            allowedValues.add(RoleAnalysisObjectCategorizationType.NOISE_EXCLUSIVE);
-            allowedValues.add(RoleAnalysisObjectCategorizationType.OUTLIER);
-            allowedValues.add(RoleAnalysisObjectCategorizationType.EXCLUDED);
-        }
+        Map<RoleAnalysisObjectCategorizationType, CategoryData> categoryDataMap = new HashMap<>();
+
+        addCategory(categoryDataMap, RoleAnalysisObjectCategorizationType.INSUFFICIENT,
+                "insufficient.peer.similarity", itemContainer == null ? 0 : safeCount(itemContainer.getInsufficientCount()),
+                ProgressBar.State.SUCCESS, isRoleSelected, "text-secondary");
+
+        addCategory(categoryDataMap, RoleAnalysisObjectCategorizationType.NOISE_EXCLUSIVE_UNPOPULAR,
+                "noise_exclusive.and.un_popular", itemContainer == null ? 0 : safeCount(itemContainer.getNoiseExclusiveUnpopular()),
+                ProgressBar.State.INFO, isRoleSelected, "text-info");
+
+        addCategory(categoryDataMap, RoleAnalysisObjectCategorizationType.UN_POPULAR,
+                "un_popular", itemContainer == null ? 0 : safeCount(itemContainer.getUnPopularCount()),
+                ProgressBar.State.PRIMARY, isRoleSelected, "text-primary");
+
+        addCategory(categoryDataMap, RoleAnalysisObjectCategorizationType.ABOVE_POPULAR,
+                "above_popular", itemContainer == null ? 0 : safeCount(itemContainer.getAbovePopularCount()),
+                ProgressBar.State.SUCCESS, isRoleSelected, "text-success");
+
+        addCategory(categoryDataMap, RoleAnalysisObjectCategorizationType.NOISE,
+                "noise", itemContainer == null ? 0 : safeCount(itemContainer.getNoiseCount()),
+                ProgressBar.State.SECONDARY, isRoleSelected, "text-secondary");
+
+        addCategory(categoryDataMap, RoleAnalysisObjectCategorizationType.NOISE_EXCLUSIVE,
+                "noise_exclusive", itemContainer == null ? 0 : safeCount(itemContainer.getNoiseExclusiveCount()),
+                ProgressBar.State.INFO, isRoleSelected, "text-info");
+
+        addCategory(categoryDataMap, RoleAnalysisObjectCategorizationType.OUTLIER,
+                "outlier", itemContainer == null ? 0 : safeCount(itemContainer.getOutlierCount()),
+                ProgressBar.State.DANGER, isRoleSelected, "text-danger");
+
+        addCategory(categoryDataMap, RoleAnalysisObjectCategorizationType.EXCLUDED,
+                "excluded", itemContainer == null ? 0 : safeCount(itemContainer.getExcludedCount()),
+                ProgressBar.State.WARNING, isRoleSelected, "text-warning");
+
+        addCategory(categoryDataMap, RoleAnalysisObjectCategorizationType.EXCLUDED_MISSING_BASE,
+                "excluded.missing.base", itemContainer == null ? 0 : safeCount(itemContainer.getExcludedMissingBase()),
+                ProgressBar.State.WARNING, isRoleSelected, "text-warning");
+
+        addCategory(categoryDataMap, RoleAnalysisObjectCategorizationType.OVERALL_ANOMALY,
+                "overall.anomaly", itemContainer == null ? 0 : safeCount(itemContainer.getOverallAnomalyCount()),
+                ProgressBar.State.DANGER, isRoleSelected, "text-danger");
+
+        addCategory(categoryDataMap, RoleAnalysisObjectCategorizationType.ANOMALY,
+                "anomaly", itemContainer == null ? 0 : safeCount(itemContainer.getAnomalyCount()),
+                ProgressBar.State.DANGER, isRoleSelected, "text-danger");
+
+        return categoryDataMap;
+    }
+
+    private static void addCategory(@NotNull Map<RoleAnalysisObjectCategorizationType, CategoryData> categoryDataMap,
+            RoleAnalysisObjectCategorizationType type, String key, int count,
+            ProgressBar.State state, boolean isRoleCategorisation, String textClass) {
+        String suffix = isRoleCategorisation ? ".role" : ".user";
+        String helpSuffix = ".help" + suffix;
+
+        String helpKey = "RoleAnalysisObjectCategorizationType." + key + helpSuffix;
+        String displayKey = "RoleAnalysisObjectCategorizationType." + key + suffix;
+        categoryDataMap.put(type, new CategoryData(helpKey, count, state, displayKey, textClass));
     }
 
     public static @NotNull SelectableBeanObjectDataProvider<FocusType> createTableProvider(
@@ -179,10 +207,11 @@ public class CategorySelectionProvider extends ChoiceProvider<RoleAnalysisObject
             boolean isAdvanced,
             List<RoleAnalysisIdentifiedCharacteristicsItemType> items,
             Map<String, List<RoleAnalysisObjectCategorizationType>> params,
-            LoadableModel<Boolean> isRoleSelectedModel) {
+            LoadableModel<Boolean> isRoleSelectedModel,
+            RoleAnalysisOptionType sessionAnalysisOption) {
 
         List<RoleAnalysisObjectCategorizationType> allowedValues = CategorySelectionProvider.allowedValues(
-                isAdvanced, isRoleSelectedModel);
+                isAdvanced, isRoleSelectedModel, sessionAnalysisOption);
 
         return new SelectableBeanObjectDataProvider<>(
                 component, Set.of()) {
@@ -193,42 +222,30 @@ public class CategorySelectionProvider extends ChoiceProvider<RoleAnalysisObject
 
                 Integer offset = query.getPaging().getOffset();
                 Integer maxSize = query.getPaging().getMaxSize();
-                Integer end = offset + maxSize;
+                int end = offset + maxSize;
 
                 List<FocusType> objects = new ArrayList<>();
                 int counter = 0;
                 RoleAnalysisService roleAnalysisService = getPageBase().getRoleAnalysisService();
                 for (RoleAnalysisIdentifiedCharacteristicsItemType item : items) {
-                    List<RoleAnalysisObjectCategorizationType> category = item.getCategory();
+                    if (!skipProvidedObject(item, selectionModel, allowedValues)) {
+                        counter++;
 
-                    if (selectionModel.getObject() != null
-                            && !selectionModel.getObject().isEmpty()
-                            && (category == null || !new HashSet<>(category).containsAll(selectionModel.getObject()))) {
-                        continue;
-                    }
+                        params.put(item.getObjectRef().getOid(), item.getCategory());
 
-                    boolean existSuitableCategory = category.stream().anyMatch(allowedValues::contains);
-
-                    if (!existSuitableCategory) {
-                        continue;
-                    }
-
-                    counter++;
-
-                    params.put(item.getObjectRef().getOid(), item.getCategory());
-
-                    if (counter >= offset) {
-                        PrismObject<FocusType> focusTypeObject = roleAnalysisService.getFocusTypeObject(
-                                item.getObjectRef().getOid(), task, result);
-                        if (focusTypeObject != null) {
-                            objects.add(focusTypeObject.asObjectable());
-                        } else {
-                            counter--;
+                        if (counter >= offset) {
+                            PrismObject<FocusType> focusTypeObject = roleAnalysisService.getFocusTypeObject(
+                                    item.getObjectRef().getOid(), task, result);
+                            if (focusTypeObject != null) {
+                                objects.add(focusTypeObject.asObjectable());
+                            } else {
+                                counter--;
+                            }
                         }
-                    }
 
-                    if (counter >= end) {
-                        break;
+                        if (counter >= end) {
+                            break;
+                        }
                     }
                 }
 
@@ -240,24 +257,84 @@ public class CategorySelectionProvider extends ChoiceProvider<RoleAnalysisObject
                     Collection<SelectorOptions<GetOperationOptions>> currentOptions, Task task, OperationResult result) {
                 int count = 0;
                 for (RoleAnalysisIdentifiedCharacteristicsItemType item : items) {
-                    List<RoleAnalysisObjectCategorizationType> category = item.getCategory();
-                    if (selectionModel.getObject() != null
-                            && !selectionModel.getObject().isEmpty()
-                            && (category == null || !new HashSet<>(category).containsAll(selectionModel.getObject()))) {
-                        continue;
+                    if (!skipProvidedObject(item, selectionModel, allowedValues)) {
+                        count++;
                     }
-
-                    boolean existSuitableCategory = category.stream().anyMatch(allowedValues::contains);
-
-                    if (!existSuitableCategory) {
-                        continue;
-                    }
-
-                    count++;
                 }
 
                 return count;
             }
         };
     }
+
+    private static boolean skipProvidedObject(
+            @NotNull RoleAnalysisIdentifiedCharacteristicsItemType item,
+            @NotNull LoadableModel<List<RoleAnalysisObjectCategorizationType>> selectionModel, List<RoleAnalysisObjectCategorizationType> allowedValues) {
+        List<RoleAnalysisObjectCategorizationType> category = item.getCategory();
+        if (selectionModel.getObject() != null
+                && !selectionModel.getObject().isEmpty()
+                && (category == null || !new HashSet<>(category).containsAll(selectionModel.getObject()))) {
+            return true;
+        }
+
+        boolean existSuitableCategory = category.stream().anyMatch(allowedValues::contains);
+
+        return !existSuitableCategory;
+    }
+
+    private static final Map<Boolean, Map<RoleAnalysisProcessModeType, List<RoleAnalysisObjectCategorizationType>>> BASIC_VALUES = Map.of(
+            true, Map.of(
+                    RoleAnalysisProcessModeType.USER, List.of(
+                            RoleAnalysisObjectCategorizationType.UN_POPULAR,
+                            RoleAnalysisObjectCategorizationType.NOISE_EXCLUSIVE,
+                            RoleAnalysisObjectCategorizationType.EXCLUDED_MISSING_BASE
+                    ),
+                    RoleAnalysisProcessModeType.ROLE, List.of(
+                            RoleAnalysisObjectCategorizationType.NOISE_EXCLUSIVE_UNPOPULAR,
+                            RoleAnalysisObjectCategorizationType.INSUFFICIENT,
+                            RoleAnalysisObjectCategorizationType.EXCLUDED_MISSING_BASE
+                    )
+            ),
+            false, Map.of(
+                    RoleAnalysisProcessModeType.USER, List.of(
+                            RoleAnalysisObjectCategorizationType.NOISE_EXCLUSIVE_UNPOPULAR,
+                            RoleAnalysisObjectCategorizationType.INSUFFICIENT,
+                            RoleAnalysisObjectCategorizationType.EXCLUDED_MISSING_BASE
+                    ),
+                    RoleAnalysisProcessModeType.ROLE, List.of(
+                            RoleAnalysisObjectCategorizationType.UN_POPULAR,
+                            RoleAnalysisObjectCategorizationType.NOISE_EXCLUSIVE,
+                            RoleAnalysisObjectCategorizationType.EXCLUDED_MISSING_BASE
+                    )
+            )
+    );
+
+    private static final Map<Boolean, Map<RoleAnalysisProcessModeType, List<RoleAnalysisObjectCategorizationType>>> ADVANCED_VALUES = Map.of(
+            true, Map.of(
+                    RoleAnalysisProcessModeType.USER, List.of(
+                            RoleAnalysisObjectCategorizationType.OVERALL_ANOMALY,
+                            RoleAnalysisObjectCategorizationType.ABOVE_POPULAR,
+                            RoleAnalysisObjectCategorizationType.ANOMALY,
+                            RoleAnalysisObjectCategorizationType.EXCLUDED
+                    ),
+                    RoleAnalysisProcessModeType.ROLE, List.of(
+                            RoleAnalysisObjectCategorizationType.OVERALL_ANOMALY,
+                            RoleAnalysisObjectCategorizationType.ANOMALY,
+                            RoleAnalysisObjectCategorizationType.ABOVE_POPULAR,
+                            RoleAnalysisObjectCategorizationType.EXCLUDED
+                    )
+            ),
+            false, Map.of(
+                    RoleAnalysisProcessModeType.USER, List.of(
+                            RoleAnalysisObjectCategorizationType.ABOVE_POPULAR,
+                            RoleAnalysisObjectCategorizationType.OUTLIER,
+                            RoleAnalysisObjectCategorizationType.EXCLUDED
+                    ),
+                    RoleAnalysisProcessModeType.ROLE, List.of(
+                            RoleAnalysisObjectCategorizationType.OUTLIER,
+                            RoleAnalysisObjectCategorizationType.ABOVE_POPULAR,
+                            RoleAnalysisObjectCategorizationType.EXCLUDED
+                    )
+            )
+    );
 }

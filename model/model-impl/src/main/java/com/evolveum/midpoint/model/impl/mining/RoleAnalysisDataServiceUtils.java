@@ -234,9 +234,17 @@ public class RoleAnalysisDataServiceUtils {
                 roleMembersMap.keySet().removeAll(unpopularRoles);
             }
 
-            //TODO if all user roles is excluded that means user is also excluded (whats with that?)
+            //if all user roles is excluded that means user is also excluded
+            Set<String> allUsersInAnalysis = new HashSet<>(userRolesMap.keySet());
             userRolesMap.clear();
             userRolesMap = reverseMap(roleMembersMap);
+
+            allUsersInAnalysis.removeAll(userRolesMap.keySet());
+
+            allUsersInAnalysis.forEach(userOid -> objectCategorisationCache.putMultipleCategories(
+                    userOid, UserType.COMPLEX_TYPE,
+                    RoleAnalysisObjectCategorizationType.EXCLUDED,
+                    RoleAnalysisObjectCategorizationType.EXCLUDED_MISSING_BASE));
 
             if (updateStatistics && attributeAnalysisCache != null) {
                 attributeAnalysisCache.setRoleMemberCache(roleMembersMap);
@@ -254,8 +262,16 @@ public class RoleAnalysisDataServiceUtils {
                 userRolesMap.keySet().removeAll(unpopularUsers);
             }
 
+            //if all role members are excluded that means role is also excluded
+            Set<String> allRolesInAnalysis = new HashSet<>(roleMembersMap.keySet());
             roleMembersMap.clear();
             roleMembersMap = reverseMap(userRolesMap);
+
+            allRolesInAnalysis.removeAll(roleMembersMap.keySet());
+            allRolesInAnalysis.forEach(roleOid -> objectCategorisationCache
+                    .putMultipleCategories(roleOid, RoleType.COMPLEX_TYPE,
+                            RoleAnalysisObjectCategorizationType.EXCLUDED,
+                            RoleAnalysisObjectCategorizationType.EXCLUDED_MISSING_BASE));
 
             if (updateStatistics && attributeAnalysisCache != null) {
                 attributeAnalysisCache.setRoleMemberCache(roleMembersMap);

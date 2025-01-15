@@ -228,13 +228,13 @@ public abstract class RoleAnalysisAbstractClassificationObjectPanel extends Abst
         }
 
         Map<String, List<RoleAnalysisObjectCategorizationType>> params = new HashMap<>();
-
+        RoleAnalysisOptionType sessionAnalysisOption = session.getAnalysisOption();
         List<RoleAnalysisObjectCategorizationType> allowedValues = CategorySelectionProvider.allowedValues(
-                options.advanced(), isRoleSelectedModel);
+                options.advanced(), isRoleSelectedModel, sessionAnalysisOption);
 
         //TODO ugly hack remove later
         SelectableBeanObjectDataProvider<FocusType> selectableBeanObjectDataProvider = createTableProvider(this,
-                selectionModel, options.advanced(), items, params, isRoleSelectedModel);
+                selectionModel, options.advanced(), items, params, isRoleSelectedModel, sessionAnalysisOption);
 
         MainObjectListPanel<FocusType> table = new MainObjectListPanel<>(panelId, FocusType.class, null) {
 
@@ -359,8 +359,11 @@ public abstract class RoleAnalysisAbstractClassificationObjectPanel extends Abst
     }
 
     private @NotNull Select2MultiChoice<RoleAnalysisObjectCategorizationType> createCategorySelectionButton() {
+        ObjectDetailsModels<RoleAnalysisSessionType> objectDetailsModels = getObjectDetailsModels();
+        RoleAnalysisSessionType session = objectDetailsModels.getObjectType();
 
-        CategorySelectionProvider choiceProvider = new CategorySelectionProvider(options.advanced(), isRoleSelectedModel);
+        CategorySelectionProvider choiceProvider = new CategorySelectionProvider(
+                options.advanced(), isRoleSelectedModel, session.getAnalysisOption());
         Select2MultiChoice<RoleAnalysisObjectCategorizationType> multiselect = new Select2MultiChoice<>(
                 RoleAnalysisAbstractClassificationObjectPanel.ID_SELECTION_PANEL,
                 initSelectedModel(),
