@@ -11,12 +11,12 @@
 The following approval-related operations are currently available via REST service:
 
 * starting an approval process,
-
 * determining the status of the approval process.
-
-The following is doable, but currently only using an unsupported "hack", basically for demonstration purposes only:
-
-* approving or rejecting an item (i.e. the actual decision-making).
+* complete work item (approving or rejecting item)
+* delegate work item
+* claim work item
+* release work item
+* cancel case
 
 In this document we'll show how to carry out these operations.
 
@@ -145,7 +145,8 @@ The above search query returns all approval processes and the whole requests tha
 [NOTE]
 ====
 Formally, `state` is an URI.
-It can have both unqualified and qualified forms, e.g. `open` vs `http://midpoint.evolveum.com/xml/ns/public/common/case-3#open`. In theory, you would need to check for both, using e.g. OR filter clause.
+It can have both unqualified and qualified forms, e.g. `open` vs `http://midpoint.evolveum.com/xml/ns/public/common/case-3#open`.
+In theory, you would need to check for both, using e.g. OR filter clause.
 But practically, midPoint currently uses the unqualified form.
 
 ====
@@ -162,74 +163,7 @@ These have the `Approval case` archetype.
 
 You can use a filter on `archetypeRef` to differentiate between these two kinds; returning only what you need.
 
+==  Other case/work items related operations
 
-== Approving or rejecting a work item
-
-[WARNING]
-====
-It is currently *not possible* to approve or reject a work item via REST directly.
-And it never was.In the version 3.9 there was a *unsupported "hack"* that allowed it.
-The following is an attempt to port that hack to 4.x. *DO NOT USE THIS in production.*
-
-====
-
- +
-
-
-[NOTE]
-.Missing/incomplete feature
-====
-This is a missing or incomplete feature of midPoint and/or of other related components.
-We are perfectly capable to implement, fix and finish the feature, just the funding for the work is needed.
-Please consider the possibility for xref:/support/subscription-sponsoring/[supporting] development of this feature by means of midPoint Platform subscription.
-If you already are midPoint Platform subscriber and this feature is within the goals of your deployment you may be able to use your subscription to endorse implementation of this feature.
-
-====
-
-Having understood the above, let us describe the hack.
-This will approve the work item:
-
-.approve-work-item.bat
-[source]
-----
-curl.exe --user administrator:5ecr3t -H "Content-Type: application/xml" -X POST "http://localhost:8080/midpoint/ws/rest/rpc/executeScript" --data-binary @approve-work-item.xml
-----
-
-(--data-binary is there because otherwise the lines in script got concatenated, at least sometimes on Windows)
-
-.approve-work-item.xml
-[source,xml]
-----
-<?xml version="1.0"?>
-<s:executeScript xmlns:s="http://midpoint.evolveum.com/xml/ns/public/model/scripting-3" xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-    <s:action>
-        <s:type>execute-script</s:type>
-        <s:parameter>
-            <s:name>script</s:name>
-            <c:value xsi:type="c:ScriptExpressionEvaluatorType">
-                <c:code>
-                    import com.evolveum.midpoint.schema.util.WorkItemId
-                    import com.evolveum.midpoint.xml.ns._public.common.common_3.*
-
-                    caseOid = '492f3ff0-b0c7-4e97-86ff-730dc2bd8529' /* this is the OID of the approval case */
-                    localId = 4                                      /* this is 'local' work item ID */
-                    workItemId = WorkItemId.create(caseOid, localId)
-
-                    output = new AbstractWorkItemOutputType(prismContext)
-                        .outcome('http://midpoint.evolveum.com/xml/ns/public/model/approval/outcome#approve')
-
-                    midpoint.workflowService.completeWorkItem(workItemId, output, midpoint.currentTask, midpoint.currentResult)
-                </c:code>
-            </c:value>
-        </s:parameter>
-        <s:parameter>
-            <s:name>forWholeInput</s:name>
-            <c:value>true</c:value>
-        </s:parameter>
-    </s:action>
-</s:executeScript>
-----
-
-Unfortunately, the approval/rejection is logged under `administrator` account.
-It is not possible to use non-admin account to carry out this action, because Groovy script execution requires the strongest authorization (because of the security implications).
-But, as said, this is more-or-less for demonstration purposes.
+Approval, work item related operations are described together in REST endpoint description documentation xref:/midpoint/interfaces/rest/endpoints/cases[here].
+This documentation also provides examples on how to use this API.
