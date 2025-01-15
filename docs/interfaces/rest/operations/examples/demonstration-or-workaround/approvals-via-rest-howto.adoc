@@ -165,5 +165,5 @@ You can use a filter on `archetypeRef` to differentiate between these two kinds;
 
 ==  Other case/work items related operations
 
-Approval, work item related operations are described together in REST endpoint description documentation xref:/midpoint/interfaces/rest/endpoints/cases[here].
+Approval, work item related operations are described together in REST endpoint description documentation xref:/midpoint/reference/interfaces/rest/endpoints/cases[here].
 This documentation also provides examples on how to use this API.
