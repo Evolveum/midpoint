@@ -549,12 +549,14 @@ public interface RoleAnalysisService {
      *
      * @param modelInteractionService The model interaction service.
      * @param session The session under which the clustering task is executed.
+     * @param taskObject The performed task object.
      * @param task The task associated with this operation.
      * @param result The operation result.
      */
     void executeClusteringTask(
             @NotNull ModelInteractionService modelInteractionService,
             @NotNull PrismObject<RoleAnalysisSessionType> session,
+            @NotNull TaskType taskObject,
             @NotNull Task task,
             @NotNull OperationResult result);
 
@@ -971,12 +973,6 @@ public interface RoleAnalysisService {
             @NotNull RoleAnalysisOutlierType roleAnalysisOutlierType,
             @NotNull Task task,
             @NotNull OperationResult result);
-
-    void replaceSessionMarkRef(
-            @NotNull PrismObject<RoleAnalysisSessionType> session,
-            @NotNull ObjectReferenceType newMarkRef,
-            @NotNull OperationResult result,
-            @NotNull Task task);
 
     void updateSessionMarkRef(
             @NotNull PrismObject<RoleAnalysisSessionType> session,

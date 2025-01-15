@@ -90,45 +90,6 @@ public class ClusteringActionExecutor extends BaseAction {
         RoleAnalysisSessionType session = prismSession.asObjectable();
         objectCategorisationCache.markExcludedObjects(session);
 
-        List<ObjectReferenceType> effectiveMarkRef = session.getEffectiveMarkRef();
-        //TODO this is brutal hack. Change it.
-        // Start *
-        boolean isDecomissioned = false;
-
-        if (effectiveMarkRef != null && !effectiveMarkRef.isEmpty()) {
-            for (ObjectReferenceType ref : effectiveMarkRef) {
-                if (ref.getOid().equals(DECOMISSIONED_MARK_OID)) {
-                    String description = ref.getDescription();
-                    if (description != null && description.equals("First run")) {
-                        ObjectReferenceType mark = new ObjectReferenceType().oid(DECOMISSIONED_MARK_OID)
-                                .type(MarkType.COMPLEX_TYPE)
-                                .description("Second run");
-                        roleAnalysisService.replaceSessionMarkRef(prismSession, mark, result, task);
-                    } else {
-                        isDecomissioned = true;
-                    }
-                    break;
-                }
-            }
-        }
-
-        if (isDecomissioned) {
-            Task subTask = task.createSubtask();
-            PrismObject<TaskType> sessionTask = roleAnalysisService.getSessionTask(sessionOid, subTask, result);
-//                roleAnalysisService.stopSessionTask(sessionOid, task1, result);
-//                roleAnalysisService.deleteSessionTask(sessionOid, result);
-//                sessionTask.asObjectable().cleanupAfterCompletion(XmlTypeConverter.createDuration("PT0S"));
-
-            roleAnalysisService.deleteSession(sessionOid, subTask, result);
-            task.setName("Role Analysis Decommissioned");
-            if (sessionTask != null) {
-                roleAnalysisService.deleteSessionTask(sessionTask.asObjectable(), result);
-            }
-            handler.finish();
-            return;
-        }
-        //End *
-
         roleAnalysisService.deleteSessionClustersMembers(prismSession.getOid(), task, result, false);
 
         this.clusterable = new ClusteringBehavioralResolver();

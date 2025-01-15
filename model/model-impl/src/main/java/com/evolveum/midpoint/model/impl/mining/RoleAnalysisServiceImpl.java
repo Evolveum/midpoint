@@ -9,6 +9,7 @@ package com.evolveum.midpoint.model.impl.mining;
 
 import static com.evolveum.midpoint.model.impl.mining.RoleAnalysisDataServiceUtils.*;
 import static com.evolveum.midpoint.model.impl.mining.RoleAnalysisServiceUtils.*;
+import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.createObjectRef;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType.F_ASSIGNMENT;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType.F_NAME;
 
@@ -1170,6 +1171,7 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
     public void executeClusteringTask(
             @NotNull ModelInteractionService modelInteractionService,
             @NotNull PrismObject<RoleAnalysisSessionType> session,
+            @NotNull TaskType taskObject,
             @NotNull Task task,
             @NotNull OperationResult result) {
 
@@ -1177,35 +1179,28 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
 
         if (!RoleAnalysisObjectState.isStable(state)) {
             result.recordWarning("Couldn't start clustering. Some process is already in progress.");
-            LOGGER.warn("Couldn't start clustering. Some process is already in progress.: " + session.getOid());
+            LOGGER.warn("Couldn't start clustering. Some process is already in progress.: {}", session.getOid());
             return;
         }
 
         this.updateSessionMarkRef(session, result, task);
 
         try {
-            ObjectReferenceType objectReferenceType = new ObjectReferenceType()
-                    .oid(session.getOid())
-                    .type(RoleAnalysisSessionType.COMPLEX_TYPE)
-                    .targetName(String.valueOf(session.getName()));
-
+            ObjectReferenceType sessionObjectRef = createObjectRef(session);
             RoleAnalysisClusteringWorkDefinitionType rdw = new RoleAnalysisClusteringWorkDefinitionType();
-            rdw.setSessionRef(objectReferenceType);
+            rdw.setSessionRef(sessionObjectRef);
 
             ActivityDefinitionType activity = new ActivityDefinitionType()
                     .work(new WorkDefinitionsType()
                             .roleAnalysisClustering(rdw));
 
-            TaskType processingTask = new TaskType();
-            processingTask.setName(PolyStringType.fromOrig("Session clustering  (" + session + ")"));
+            taskObject.setName(PolyStringType.fromOrig("Session clustering  (" + session + ")"));
 
-            String taskOid = UUID.randomUUID().toString(); //TODO is this really needed here?
-            processingTask.setOid(taskOid);
 
-            modelInteractionService.submit(
+            String taskOid = modelInteractionService.submit(
                     activity,
                     ActivitySubmissionOptions.create()
-                            .withTaskTemplate(processingTask)
+                            .withTaskTemplate(taskObject)
                             .withArchetypes(
                                     SystemObjectsType.ARCHETYPE_UTILITY_TASK.value()),
                     task, result);
@@ -2839,37 +2834,6 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
             repositoryService.deleteObject(TaskType.class, taskToDelete.getOid(), result);
         } catch (ObjectNotFoundException e) {
             LOGGER.error("Couldn't delete RoleAnalysisSessionType Task {}", taskToDelete.getOid(), e);
-        }
-    }
-
-    @Override
-    public void replaceSessionMarkRef(
-            @NotNull PrismObject<RoleAnalysisSessionType> session,
-            @NotNull ObjectReferenceType newMarkRef,
-            @NotNull OperationResult result,
-            @NotNull Task task) {
-
-        try {
-            List<ObjectReferenceType> effectiveMarkRef = session.asObjectable().getEffectiveMarkRef();
-
-            if (effectiveMarkRef != null && !effectiveMarkRef.isEmpty()) {
-                ObjectDelta<RoleAnalysisSessionType> clearDelta = PrismContext.get().deltaFor(RoleAnalysisSessionType.class)
-                        .item(ObjectType.F_EFFECTIVE_MARK_REF)
-                        .delete(effectiveMarkRef.get(0).asReferenceValue().clone())
-                        .asObjectDelta(session.getOid());
-                Collection<ObjectDelta<? extends ObjectType>> collection = MiscSchemaUtil.createCollection(clearDelta);
-                modelService.executeChanges(collection, null, task, result);
-            }
-
-            ObjectDelta<RoleAnalysisSessionType> addDelta = PrismContext.get().deltaFor(RoleAnalysisSessionType.class)
-                    .item(ObjectType.F_EFFECTIVE_MARK_REF).add(newMarkRef.asReferenceValue().clone())
-                    .asObjectDelta(session.getOid());
-            Collection<ObjectDelta<? extends ObjectType>> collection = MiscSchemaUtil.createCollection(addDelta);
-            modelService.executeChanges(collection, null, task, result);
-
-        } catch (SchemaException | ObjectAlreadyExistsException | ObjectNotFoundException | ExpressionEvaluationException |
-                CommunicationException | ConfigurationException | PolicyViolationException | SecurityViolationException e) {
-            LOGGER.error("Couldn't modify RoleAnalysisClusterType {}", session.getOid(), e);
         }
     }
 
