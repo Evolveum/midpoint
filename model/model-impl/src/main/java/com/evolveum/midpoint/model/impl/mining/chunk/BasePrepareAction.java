@@ -9,30 +9,28 @@ package com.evolveum.midpoint.model.impl.mining.chunk;
 
 import java.util.*;
 
-import com.evolveum.midpoint.common.mining.objects.chunk.DisplayValueOption;
-import com.evolveum.midpoint.common.mining.utils.RoleAnalysisCacheOption;
-import com.evolveum.midpoint.common.mining.objects.analysis.RoleAnalysisAttributeDef;
-import com.evolveum.midpoint.common.mining.utils.values.FrequencyItem;
-import com.evolveum.midpoint.model.api.mining.RoleAnalysisService;
-
-import com.evolveum.midpoint.prism.path.ItemPath;
-
-import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
-
 import com.google.common.collect.ListMultimap;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
+import com.evolveum.midpoint.common.mining.objects.analysis.RoleAnalysisAttributeDef;
+import com.evolveum.midpoint.common.mining.objects.chunk.DisplayValueOption;
 import com.evolveum.midpoint.common.mining.objects.chunk.MiningOperationChunk;
 import com.evolveum.midpoint.common.mining.objects.chunk.MiningRoleTypeChunk;
 import com.evolveum.midpoint.common.mining.objects.chunk.MiningUserTypeChunk;
 import com.evolveum.midpoint.common.mining.objects.handler.RoleAnalysisProgressIncrement;
+import com.evolveum.midpoint.common.mining.utils.RoleAnalysisCacheOption;
+import com.evolveum.midpoint.common.mining.utils.values.FrequencyItem;
 import com.evolveum.midpoint.common.mining.utils.values.RoleAnalysisOperationMode;
+import com.evolveum.midpoint.model.api.mining.RoleAnalysisService;
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismObjectDefinition;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
-import org.jetbrains.annotations.Nullable;
+import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 
 public abstract class BasePrepareAction implements MiningStructure {
 
@@ -70,26 +68,32 @@ public abstract class BasePrepareAction implements MiningStructure {
             appliedPaths.add(roleAnalysisAttributeDef.getPath());
         }
 
+        PrismObjectDefinition<UserType> userDef = PrismContext.get().getSchemaRegistry().findObjectDefinitionByType(UserType.COMPLEX_TYPE);
         //TODO this is incorrect, remove after decision
         ItemPath path = ItemPath.create(ObjectType.F_NAME);
         if (!containItemPath(appliedPaths, path)) {
-            RoleAnalysisAttributeDef roleAnalysisAttributeDef = new RoleAnalysisAttributeDef(path, false, UserType.class);
+            RoleAnalysisAttributeDef roleAnalysisAttributeDef = createAnalysisAttributeDef(userDef, path);
             itemDef.add(roleAnalysisAttributeDef);
         }
 
+        //TODO assignment?
         path = ItemPath.create(AssignmentHolderType.F_ASSIGNMENT);
         if (!containItemPath(appliedPaths, path)) {
-            RoleAnalysisAttributeDef roleAnalysisAttributeDef = new RoleAnalysisAttributeDef(path, true, null);
+            RoleAnalysisAttributeDef roleAnalysisAttributeDef = createAnalysisAttributeDef(userDef, path);
             itemDef.add(roleAnalysisAttributeDef);
         }
 
         if (!containItemPath(appliedPaths, path)) {
             path = ItemPath.create(AssignmentHolderType.F_ARCHETYPE_REF);
-            RoleAnalysisAttributeDef roleAnalysisAttributeDef = new RoleAnalysisAttributeDef(path, false, ArchetypeType.class);
+            RoleAnalysisAttributeDef roleAnalysisAttributeDef = createAnalysisAttributeDef(userDef, path);
             itemDef.add(roleAnalysisAttributeDef);
         }
 
         return new RoleAnalysisCacheOption(itemDef);
+    }
+
+    private RoleAnalysisAttributeDef createAnalysisAttributeDef(PrismObjectDefinition<?> objectDef, ItemPath path) {
+        return new RoleAnalysisAttributeDef(path, objectDef.findItemDefinition(path), (Class<? extends FocusType>) objectDef.getCompileTimeClass());
     }
 
     public RoleAnalysisCacheOption generateRoleCacheOption() {
@@ -108,22 +112,23 @@ public abstract class BasePrepareAction implements MiningStructure {
             appliedPaths.add(roleAnalysisAttributeDef.getPath());
         }
 
+        PrismObjectDefinition<RoleType> roleDef = PrismContext.get().getSchemaRegistry().findObjectDefinitionByType(RoleType.COMPLEX_TYPE);
         //TODO this is incorrect, remove after decision
         ItemPath path = ItemPath.create(ObjectType.F_NAME);
         if (!containItemPath(appliedPaths, path)) {
-            RoleAnalysisAttributeDef roleAnalysisAttributeDef = new RoleAnalysisAttributeDef(path, false, RoleType.class);
+            RoleAnalysisAttributeDef roleAnalysisAttributeDef = createAnalysisAttributeDef(roleDef, path);
             itemDef.add(roleAnalysisAttributeDef);
         }
 
         path = ItemPath.create(ObjectType.F_LIFECYCLE_STATE);
         if (!containItemPath(appliedPaths, path)) {
-            RoleAnalysisAttributeDef roleAnalysisAttributeDef = new RoleAnalysisAttributeDef(path, false, RoleType.class);
+            RoleAnalysisAttributeDef roleAnalysisAttributeDef = createAnalysisAttributeDef(roleDef, path);
             itemDef.add(roleAnalysisAttributeDef);
         }
 
         path = ItemPath.create(AssignmentHolderType.F_ARCHETYPE_REF);
         if (!containItemPath(appliedPaths, path)) {
-            RoleAnalysisAttributeDef roleAnalysisAttributeDef = new RoleAnalysisAttributeDef(path, false, ArchetypeType.class);
+            RoleAnalysisAttributeDef roleAnalysisAttributeDef = createAnalysisAttributeDef(roleDef, path);
             itemDef.add(roleAnalysisAttributeDef);
         }
 

@@ -7,20 +7,19 @@
 
 package com.evolveum.midpoint.model.impl.mining;
 
-import static com.evolveum.midpoint.model.impl.mining.RoleAnalysisDataServiceUtils.*;
-import static com.evolveum.midpoint.model.impl.mining.RoleAnalysisServiceUtils.*;
-import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.createObjectRef;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType.F_ASSIGNMENT;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType.F_NAME;
-
 import static java.util.Collections.singleton;
 
 import static com.evolveum.midpoint.common.mining.utils.RoleAnalysisUtils.*;
 import static com.evolveum.midpoint.common.mining.utils.algorithm.JaccardSorter.jacquardSimilarity;
+import static com.evolveum.midpoint.model.impl.mining.RoleAnalysisDataServiceUtils.*;
+import static com.evolveum.midpoint.model.impl.mining.RoleAnalysisServiceUtils.*;
 import static com.evolveum.midpoint.model.impl.mining.analysis.AttributeAnalysisUtil.*;
 import static com.evolveum.midpoint.model.impl.mining.utils.RoleAnalysisUtils.*;
+import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.createObjectRef;
 import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.toShortString;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType.F_ASSIGNMENT;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.MetadataType.F_MODIFY_TIMESTAMP;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType.F_NAME;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -29,22 +28,6 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
-
-import com.evolveum.midpoint.common.mining.objects.analysis.cache.ObjectCategorisationCache;
-import com.evolveum.midpoint.common.mining.objects.detection.BasePattern;
-import com.evolveum.midpoint.common.mining.objects.statistic.UserAccessDistribution;
-import com.evolveum.midpoint.common.mining.utils.RoleAnalysisAttributeDefUtils;
-import com.evolveum.midpoint.prism.delta.ChangeType;
-
-import com.evolveum.midpoint.prism.path.ObjectReferencePathSegment;
-import com.evolveum.midpoint.prism.query.builder.S_FilterExit;
-import com.evolveum.midpoint.prism.query.builder.S_QueryExit;
-import com.evolveum.midpoint.repo.api.AggregateQuery;
-
-import com.evolveum.midpoint.schema.*;
-import com.evolveum.midpoint.util.QNameUtil;
-
-import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ListMultimap;
@@ -60,9 +43,13 @@ import com.evolveum.midpoint.authentication.api.util.AuthUtil;
 import com.evolveum.midpoint.common.mining.objects.analysis.AttributeAnalysisStructure;
 import com.evolveum.midpoint.common.mining.objects.analysis.RoleAnalysisAttributeDef;
 import com.evolveum.midpoint.common.mining.objects.analysis.cache.AttributeAnalysisCache;
+import com.evolveum.midpoint.common.mining.objects.analysis.cache.ObjectCategorisationCache;
 import com.evolveum.midpoint.common.mining.objects.chunk.*;
+import com.evolveum.midpoint.common.mining.objects.detection.BasePattern;
 import com.evolveum.midpoint.common.mining.objects.detection.DetectedPattern;
 import com.evolveum.midpoint.common.mining.objects.detection.PatternDetectionOption;
+import com.evolveum.midpoint.common.mining.objects.statistic.UserAccessDistribution;
+import com.evolveum.midpoint.common.mining.utils.RoleAnalysisAttributeDefUtils;
 import com.evolveum.midpoint.common.mining.utils.RoleAnalysisCacheOption;
 import com.evolveum.midpoint.common.mining.utils.values.*;
 import com.evolveum.midpoint.model.api.ActivitySubmissionOptions;
@@ -72,25 +59,33 @@ import com.evolveum.midpoint.model.api.mining.RoleAnalysisService;
 import com.evolveum.midpoint.model.impl.mining.chunk.CompressedMiningStructure;
 import com.evolveum.midpoint.model.impl.mining.chunk.ExpandedMiningStructure;
 import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.impl.binding.AbstractReferencable;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.path.ObjectReferencePathSegment;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.prism.query.builder.S_FilterExit;
+import com.evolveum.midpoint.prism.query.builder.S_QueryExit;
 import com.evolveum.midpoint.prism.util.CloneUtil;
+import com.evolveum.midpoint.repo.api.AggregateQuery;
 import com.evolveum.midpoint.repo.api.RepositoryService;
+import com.evolveum.midpoint.schema.*;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
+import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 /**
@@ -736,19 +731,19 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
                     List<RoleAnalysisAttributeDef> itemDef = option.getItemDef();
                     for (RoleAnalysisAttributeDef roleAnalysisAttributeDef : itemDef) {
                         ItemPath path = roleAnalysisAttributeDef.getPath();
-                        boolean isContainer = roleAnalysisAttributeDef.isContainer();
+//                        boolean isContainer = roleAnalysisAttributeDef.isContainer();
 
-                        if (isContainer) {
-                            PrismContainer<Containerable> container = role.findContainer(path);
-                            if (container != null) {
-                                cacheRole.add(container.clone());
+//                        if (isContainer) {
+//                            PrismContainer<Containerable> container = role.findContainer(path);
+//                            if (container != null) {
+//                                cacheRole.add(container.clone());
+//                            }
+//                        } else {
+                            Item<PrismValue, ItemDefinition<?>> item = role.findItem(path);
+                            if (item != null) {
+                                cacheRole.add(item.clone());
                             }
-                        } else {
-                            Item<PrismValue, ItemDefinition<?>> property = role.findItem(path);
-                            if (property != null) {
-                                cacheRole.add(property.clone());
-                            }
-                        }
+//                        }
                     }
                     roleExistCache.put(roleOid, cacheRole);
                     return cacheRole;
@@ -785,19 +780,19 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
                 List<RoleAnalysisAttributeDef> itemDef = option.getItemDef();
                 for (RoleAnalysisAttributeDef roleAnalysisAttributeDef : itemDef) {
                     ItemPath path = roleAnalysisAttributeDef.getPath();
-                    boolean isContainer = roleAnalysisAttributeDef.isContainer();
+//                    boolean isContainer = roleAnalysisAttributeDef.isContainer();
 
-                    if (isContainer) {
-                        PrismContainer<Containerable> container = user.findContainer(path);
-                        if (container != null) {
-                            cacheUser.add(container.clone());
+//                    if (isContainer) {
+//                        PrismContainer<Containerable> container = user.findContainer(path);
+//                        if (container != null) {
+//                            cacheUser.add(container.clone());
+//                        }
+//                    } else {
+                        Item<PrismValue, ItemDefinition<?>> item = user.findItem(path);
+                        if (item != null) {
+                            cacheUser.add(item.clone());
                         }
-                    } else {
-                        Item<PrismValue, ItemDefinition<?>> property = user.findItem(path);
-                        if (property != null) {
-                            cacheUser.add(property.clone());
-                        }
-                    }
+//                    }
                 }
                 userExistCache.put(userOid, cacheUser);
                 return cacheUser;
@@ -2360,9 +2355,9 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
             List<RoleAnalysisAttributeStatistics> attributeStatistics = roleAnalysisAttributeAnalysis.getAttributeStatistics();
 
             ItemPath path = item.getPath();
-            boolean isContainer = item.isContainer();
+            boolean isMultiValue = item.isMultiValue();
 
-            if (isContainer) {
+            if (isMultiValue) {
                 Set<String> values = item.resolveMultiValueItem(prismUser, path);
                 for (String value : values) {
                     RoleAnalysisAttributeStatistics attributeStatistic = new RoleAnalysisAttributeStatistics();
@@ -2647,9 +2642,9 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
 
         for (RoleAnalysisAttributeDef item : itemDef) {
             ItemPath path = item.getPath();
-            boolean isContainer = item.isContainer();
+            boolean isMultiValue = item.isMultiValue();
 
-            if (isContainer) {
+            if (isMultiValue) {
                 Set<String> values = item.resolveMultiValueItem(prismUser, path);
                 valueToMark.addAll(values);
             } else {
@@ -2699,9 +2694,9 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
 
         for (RoleAnalysisAttributeDef item : itemDef) {
             ItemPath path = item.getPath();
-            boolean isContainer = item.isContainer();
+            boolean isMultiValue = item.isMultiValue();
 
-            if (isContainer) {
+            if (isMultiValue) {
                 Set<String> values = item.resolveMultiValueItem(prismRole, path);
                 valueToMark.addAll(values);
             } else {
