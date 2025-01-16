@@ -3055,6 +3055,9 @@
                         <xsd:appinfo>
                             <a:displayName>AssignmentType.policyRule</a:displayName>
                             <a:help>AssignmentType.policyRule.help</a:help>
+                            <a:schemaContext>
+                                <a:type>tns:AssignmentHolderType</a:type>
+                            </a:schemaContext>
                         </xsd:appinfo>
                     </xsd:annotation>
                 </xsd:element>
@@ -13003,6 +13006,9 @@
             </xsd:documentation>
             <xsd:appinfo>
                 <a:since>3.9</a:since>
+                <a:schemaContext>
+                    <a:typePath>type</a:typePath>
+                </a:schemaContext>
             </xsd:appinfo>
         </xsd:annotation>
          <xsd:complexContent>
@@ -16384,6 +16390,9 @@
                             </xsd:documentation>
                             <xsd:appinfo>
                                 <a:displayName>GlobalPolicyRuleType.targetSelector</a:displayName>
+                                <a:schemaContext>
+                                    <a:type>tns:AssignmentHolderType</a:type>
+                                </a:schemaContext>
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
