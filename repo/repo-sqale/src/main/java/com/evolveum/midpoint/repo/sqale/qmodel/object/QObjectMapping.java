@@ -527,10 +527,13 @@ public class QObjectMapping<S extends ObjectType, Q extends QObject<R>, R extend
     }
 
     @Override
-    public Collection<SelectorOptions<GetOperationOptions>> updateGetOptions(Collection<SelectorOptions<GetOperationOptions>> options, @NotNull Collection<? extends ItemDelta<?, ?>> modifications) {
-        var ret = new ArrayList<>(super.updateGetOptions(options, modifications));
+    public Collection<SelectorOptions<GetOperationOptions>> updateGetOptions(Collection<SelectorOptions<GetOperationOptions>> options, @NotNull Collection<? extends ItemDelta<?, ?>> modifications, boolean forceReindex) {
+        var ret = new ArrayList<>(super.updateGetOptions(options, modifications, forceReindex));
         // reindex = true - we need to fetch all items
-
+        if (forceReindex) {
+            // Currently by default all separatelly serialized items are fetched.
+            return ret;
+        }
 
         // Walk deltas
         boolean onlySeparatellySerialized = true;

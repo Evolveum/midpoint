@@ -233,9 +233,9 @@ public class QAccessCertificationCampaignMapping
     @Override
     public Collection<SelectorOptions<GetOperationOptions>> updateGetOptions(
             Collection<SelectorOptions<GetOperationOptions>> options,
-            @NotNull Collection<? extends ItemDelta<?, ?>> modifications) {
+            @NotNull Collection<? extends ItemDelta<?, ?>> modifications, boolean forceReindex) {
         Set<Long> alreadyAdded = new HashSet<>();
-        Collection<SelectorOptions<GetOperationOptions>> ret = new ArrayList<>(super.updateGetOptions(options, modifications));
+        Collection<SelectorOptions<GetOperationOptions>> ret = new ArrayList<>(super.updateGetOptions(options, modifications, forceReindex));
         for (ItemDelta<?, ?> modification : modifications) {
             ItemPath modPath = modification.getPath();
             if (modPath.isEmpty()) {
