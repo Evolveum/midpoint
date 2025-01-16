@@ -180,7 +180,7 @@ public class SaveSearchPanel<C extends Serializable> extends BasePanel<Search<C>
 
     private List<SearchItemType> getAvailableFilterSearchItems(Class<?> typeClass, List<FilterableSearchItemWrapper<?>> items, SearchBoxModeType mode) {
         List<SearchItemType> searchItems = new ArrayList<>();
-        for (FilterableSearchItemWrapper item : items) {
+        for (FilterableSearchItemWrapper<?> item : items) {
             if (!item.isApplyFilter(mode)) {
                 continue;
             }
@@ -190,7 +190,7 @@ public class SaveSearchPanel<C extends Serializable> extends BasePanel<Search<C>
                 if (item instanceof PropertySearchItemWrapper) {
                     searchItem.setPath(new ItemPathType(((PropertySearchItemWrapper) item).getPath()));
                 }
-                searchItem.setDisplay(new DisplayType().label(item.getName()).help(item.getHelp()));
+                searchItem.setDisplay(new DisplayType().label(item.getName().getObject()).help(item.getHelp().getObject()));
                 try {
                     searchItem.setFilter(getPageBase().getQueryConverter().createSearchFilterType(filter));
                 } catch (SchemaException e) {

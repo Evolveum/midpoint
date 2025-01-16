@@ -17,14 +17,14 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SearchBoxModeType;
 import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 
+import org.apache.wicket.model.IModel;
+import org.jetbrains.annotations.NotNull;
+
 public abstract class AbstractSearchItemWrapper<T> implements Serializable, SelectableRow {
 
     public static final String F_SELECTED = "selected";
     public static final String F_VALUE = "value.value";
     public static final String F_DISPLAYABLE_VALUE = "value";
-    public static final String F_NAME = "name";
-    public static final String F_HELP = "help";
-    public static final String F_TITLE = "title";
     public static final String F_APPLY_FILTER = "applyFilter";
 
     private DisplayableValue<T> value;
@@ -52,11 +52,14 @@ public abstract class AbstractSearchItemWrapper<T> implements Serializable, Sele
 
     public abstract Class<? extends AbstractSearchItemPanel> getSearchItemPanelClass();
 
-    public abstract String getName();
+    @NotNull
+    public abstract IModel<String> getName();
 
-    public abstract String getHelp();
+    @NotNull
+    public abstract IModel<String> getHelp();
 
-    public abstract String getTitle();
+    @NotNull
+    public abstract IModel<String> getTitle();
 
     public abstract DisplayableValue<T> getDefaultValue();
 

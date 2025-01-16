@@ -24,6 +24,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.Model;
 
 import javax.xml.namespace.QName;
 import java.util.List;
@@ -37,8 +39,8 @@ public class AbstractRoleSearchItemWrapper extends FilterableSearchItemWrapper {
     public static final String F_PROJECT = "projectSearchItemWrapper";
     private static final Trace LOGGER = TraceManager.getTrace(AbstractRoleSearchItemWrapper.class);
 
-    protected String name;
-    protected String help;
+    protected IModel<String> name = Model.of();
+    protected IModel<String> help = Model.of();
 
     private RelationSearchItemWrapper relationSearchItemWrapper;
     private ScopeSearchItemWrapper scopeSearchItemWrapper;
@@ -177,22 +179,22 @@ public class AbstractRoleSearchItemWrapper extends FilterableSearchItemWrapper {
     }
 
     @Override
-    public String getName() {
-        return StringUtils.isNotEmpty(name) ? name : null;
+    public IModel<String> getName() {
+        return StringUtils.isNotEmpty(name.getObject()) ? name : Model.of();
     }
 
-    public void setName(String name) {
+    public void setName(IModel<String> name) {
         this.name = name;
     }
 
     @Override
-    public String getHelp() {
-        return StringUtils.isNotEmpty(help) ? help : null;
+    public IModel<String> getHelp() {
+        return StringUtils.isNotEmpty(help.getObject()) ? help : Model.of();
     }
 
     @Override
-    public String getTitle() {
-        return null;
+    public IModel<String> getTitle() {
+        return Model.of();
     }
 
     @Override
@@ -200,7 +202,7 @@ public class AbstractRoleSearchItemWrapper extends FilterableSearchItemWrapper {
         return null;
     }
 
-    public void setHelp(String help) {
+    public void setHelp(IModel<String> help) {
         this.help = help;
     }
 

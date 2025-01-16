@@ -7,6 +7,7 @@
 package com.evolveum.midpoint.gui.impl.component.search.wrapper;
 
 import com.evolveum.midpoint.gui.api.util.GuiDisplayTypeUtil;
+import com.evolveum.midpoint.gui.api.util.LocalizationUtil;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.component.search.panel.IndirectSearchItemPanel;
 import com.evolveum.midpoint.util.DisplayableValue;
@@ -15,6 +16,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.IndirectSearchItemCo
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SearchBoxModeType;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.LoadableDetachableModel;
 
 public class IndirectSearchItemWrapper extends AbstractSearchItemWrapper<Boolean> {
 
@@ -41,23 +44,38 @@ public class IndirectSearchItemWrapper extends AbstractSearchItemWrapper<Boolean
     }
 
     @Override
-    public String getName() {
-        var display = indirectConfig == null ? null : indirectConfig.getDisplay();
-        var name = GuiDisplayTypeUtil.getTranslatedLabel(display);
-        return StringUtils.isEmpty(name) ? "abstractRoleMemberPanel.indirectMembers" : name;
+    public IModel<String> getName() {
+        return new LoadableDetachableModel<>() {
+            @Override
+            protected String load() {
+                var display = indirectConfig == null ? null : indirectConfig.getDisplay();
+                var name = GuiDisplayTypeUtil.getTranslatedLabel(display);
+                return StringUtils.isEmpty(name) ? LocalizationUtil.translate("abstractRoleMemberPanel.indirectMembers") : name;
+            }
+        };
     }
 
     @Override
-    public String getHelp() {
-        var display = indirectConfig == null ? null : indirectConfig.getDisplay();
-        var help = GuiDisplayTypeUtil.getHelp(display);
-        return StringUtils.isEmpty(help) ? "abstractRoleMemberPanel.indirectMembers.tooltip" : help;
+    public IModel<String> getHelp() {
+        return new LoadableDetachableModel<>() {
+            @Override
+            protected String load() {
+                var display = indirectConfig == null ? null : indirectConfig.getDisplay();
+                var help = GuiDisplayTypeUtil.getHelp(display);
+                return StringUtils.isEmpty(help) ? LocalizationUtil.translate("abstractRoleMemberPanel.indirectMembers.tooltip") : help;
+            }
+        };
     }
 
     @Override
-    public String getTitle() {
-        var display = indirectConfig == null ? null : indirectConfig.getDisplay();
-        return GuiDisplayTypeUtil.getTooltip(display);
+    public IModel<String> getTitle() {
+        return new LoadableDetachableModel<>() {
+            @Override
+            protected String load() {
+                var display = indirectConfig == null ? null : indirectConfig.getDisplay();
+                return GuiDisplayTypeUtil.getTooltip(display);
+            }
+        };
     }
 
     @Override

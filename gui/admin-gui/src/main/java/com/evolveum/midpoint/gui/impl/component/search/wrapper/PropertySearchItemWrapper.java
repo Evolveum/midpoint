@@ -39,6 +39,9 @@ import com.evolveum.midpoint.util.DisplayableValue;
 import com.evolveum.midpoint.gui.impl.component.search.SearchValue;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
+import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.Model;
+
 public class PropertySearchItemWrapper<T> extends FilterableSearchItemWrapper<T> {
 
     public static final Trace LOGGER = TraceManager.getTrace(PropertySearchItemWrapper.class);
@@ -54,8 +57,8 @@ public class PropertySearchItemWrapper<T> extends FilterableSearchItemWrapper<T>
     private ItemDefinition<?> itemDef;
 
     private QName valueTypeName;
-    private String name;
-    private String help;
+    private IModel<String> name = Model.of();
+    private IModel<String> help = Model.of();
 
     public PropertySearchItemWrapper () {
         this.itemDef = null;
@@ -90,20 +93,20 @@ public class PropertySearchItemWrapper<T> extends FilterableSearchItemWrapper<T>
     }
 
     @Override
-    public String getName() {
+    public IModel<String> getName() {
         return name;
     }
 
-    public void setName(String name) {
+    public void setName(IModel<String> name) {
         this.name = name;
     }
 
     @Override
-    public String getHelp() {
+    public IModel<String> getHelp() {
         return help;
     }
 
-    public void setHelp(String help) {
+    public void setHelp(IModel<String> help) {
         this.help = help;
     }
 
@@ -117,8 +120,8 @@ public class PropertySearchItemWrapper<T> extends FilterableSearchItemWrapper<T>
 
 
     @Override
-    public String getTitle() {
-        return ""; //todo
+    public IModel<String> getTitle() {
+        return Model.of(""); //todo
     }
 
     public ItemPath getPath() {
