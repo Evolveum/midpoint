@@ -8,6 +8,8 @@ package com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.tmp.panel;
 
 import java.io.Serial;
 
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
+
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -45,6 +47,7 @@ public class IconWithLabel extends BasePanel<String> {
         iconContainer.setOutputMarkupId(true);
         iconContainer.add(AttributeModifier.replace(CLASS_CSS, getIconContainerCssClass()));
         iconContainer.add(AttributeModifier.replace(STYLE_CSS, getIconContainerCssStyle()));
+        iconContainer.add(new VisibleBehaviour(() -> !getIconCssClass().isEmpty()));
         add(iconContainer);
 
         Label image = new Label(ID_ICON);

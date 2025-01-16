@@ -122,7 +122,7 @@ public class ProgressBarSecondStyle extends BasePanel<String> {
             value = "";
         } else {
             value = " (in-group=" + getInClusterCount()
-                    + ", in-repo=" + getInRepoCount() + ")";
+                    + ", in-repo=" + getInRepoCount() + ", unusual=" + getRoleAnalysisAttributeResult().size() + ")";
         }
         Label label = new Label(ID_BAR_TITTLE_DATA, value);
         label.setOutputMarkupId(true);

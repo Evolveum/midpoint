@@ -7,7 +7,6 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.chart;
 
-import static com.evolveum.midpoint.common.mining.utils.RoleAnalysisUtils.getRolesOidAssignment;
 import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.RoleAnalysisWebUtils.CLASS_CSS;
 import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.RoleAnalysisWebUtils.TITLE_CSS;
 import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.chart.ChartType.SCATTER;
@@ -21,13 +20,16 @@ import java.io.IOException;
 import java.io.Serial;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import com.evolveum.midpoint.gui.impl.component.icon.IconCssStyle;
-import com.evolveum.midpoint.util.exception.SystemException;
+import com.evolveum.midpoint.model.api.ModelService;
+import com.evolveum.midpoint.model.api.mining.RoleAnalysisService;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.prism.query.builder.S_FilterExit;
+import com.evolveum.midpoint.schema.*;
+import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -57,17 +59,13 @@ import com.evolveum.midpoint.gui.impl.page.admin.role.mining.chart.RoleAnalysisA
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.model.RoleAnalysisModel;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.tmp.panel.IconWithLabel;
 import com.evolveum.midpoint.prism.PrismContainerValue;
-import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.ObjectReferencePathSegment;
 import com.evolveum.midpoint.prism.path.ParentPathSegment;
 import com.evolveum.midpoint.prism.query.OrderDirection;
 import com.evolveum.midpoint.repo.api.AggregateQuery;
 import com.evolveum.midpoint.repo.api.RepositoryService;
-import com.evolveum.midpoint.schema.ResultHandler;
-import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.AjaxCompositedIconSubmitButton;
@@ -80,6 +78,8 @@ import com.evolveum.midpoint.web.util.TooltipBehavior;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import com.evolveum.wicket.chartjs.ChartConfiguration;
 import com.evolveum.wicket.chartjs.ChartJsPanel;
+
+import javax.xml.namespace.QName;
 
 public class RoleAnalysisChartPanel extends BasePanel<String> implements Popupable {
 
@@ -97,6 +97,8 @@ public class RoleAnalysisChartPanel extends BasePanel<String> implements Popupab
     private boolean isSortByGroup = false;
     private boolean isScalable = false;
     private boolean isUserMode = false;
+
+    boolean isAxisExpanded = false;
 
     ChartType chartType = SCATTER;
 
@@ -158,6 +160,10 @@ public class RoleAnalysisChartPanel extends BasePanel<String> implements Popupab
 
         AjaxCompositedIconSubmitButton components4 = buildChartTypeButton(roleAnalysisChart);
         toolForm.add(components4);
+
+        AjaxCompositedIconSubmitButton components5 = buildExpandAxisButton(roleAnalysisChart);
+        components5.add(new VisibleBehaviour(() -> !chartType.equals(SCATTER)));
+        toolForm.add(components5);
 
         initExportButton(toolForm);
     }
@@ -258,6 +264,9 @@ public class RoleAnalysisChartPanel extends BasePanel<String> implements Popupab
                 }
                 target.add(getChartContainer());
                 chartType = getNextChartType(chartType);
+                if(chartType.equals(SCATTER)){
+                    isAxisExpanded = false;
+                }
                 target.add(roleAnalysisChart);
                 target.add(this);
                 //tool form
@@ -276,6 +285,55 @@ public class RoleAnalysisChartPanel extends BasePanel<String> implements Popupab
         chartTypeButton.add(new TooltipBehavior());
         return chartTypeButton;
     }
+
+    private @NotNull AjaxCompositedIconSubmitButton buildExpandAxisButton(ChartJsPanel<ChartConfiguration> roleAnalysisChart) {
+        LoadableModel<String> expandButtonTitle = new LoadableModel<>() {
+            @Override
+            protected String load() {
+                if (isAxisExpanded) {
+                    return "Collapse";
+                }
+                return "Expand";
+            }
+        };
+        CompositedIconBuilder iconBuilder = new CompositedIconBuilder().setBasicIcon(GuiStyleConstants.CLASS_LINE_CHART_ICON,
+                IconCssStyle.IN_ROW_STYLE);
+        AjaxCompositedIconSubmitButton chartTypeButton = new AjaxCompositedIconSubmitButton("settingPanel5",
+                iconBuilder.build(),
+                expandButtonTitle) {
+            @Serial
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public CompositedIcon getIcon() {
+                String scaleIcon = "fa fa-expand";
+                return new CompositedIconBuilder().setBasicIcon(scaleIcon,
+                        IconCssStyle.IN_ROW_STYLE).build();
+            }
+
+            @Override
+            protected void onSubmit(AjaxRequestTarget target) {
+                isAxisExpanded = !isAxisExpanded;
+                target.add(getChartContainer());
+                target.add(roleAnalysisChart);
+                target.add(this);
+                //tool form
+                target.add(this.getParent());
+            }
+
+            @Override
+            protected void onError(@NotNull AjaxRequestTarget target) {
+                target.add(((PageBase) getPage()).getFeedbackPanel());
+            }
+        };
+        chartTypeButton.titleAsLabel(true);
+        chartTypeButton.setOutputMarkupId(true);
+        chartTypeButton.add(AttributeModifier.append(CLASS_CSS, BTN_TOOL_CSS));
+        chartTypeButton.add(AttributeModifier.replace(TITLE_CSS, getChartTypeButtonTitle()));
+        chartTypeButton.add(new TooltipBehavior());
+        return chartTypeButton;
+    }
+
 
     private @NotNull AjaxCompositedIconSubmitButton buildModeButton(ChartJsPanel<ChartConfiguration> roleAnalysisChart) {
         CompositedIconBuilder iconBuilder = new CompositedIconBuilder().setBasicIcon("fe fe-role object-role-color",
@@ -456,13 +514,34 @@ public class RoleAnalysisChartPanel extends BasePanel<String> implements Popupab
         List<RoleAnalysisModel> roleAnalysisModels = new ArrayList<>();
 
         if (isUserMode) {
-            loadUserModeMapStatistics().forEach((key, value) -> roleAnalysisModels.add(new RoleAnalysisModel(key, value)));
-        } else {
-            ListMultimap<Integer, ObjectReferenceType> mapView = getIntegerCollectionMap();
+            if (!isAxisExpanded) {
+                loadUserModeMapStatistics().forEach((key, value) -> roleAnalysisModels.add(new RoleAnalysisModel(key, value)));
+            } else {
+                loadUserModeMapStatistics().forEach((key, value) -> {
+                    for (int i = 0; i < value; i++) {
+                        roleAnalysisModels.add(new RoleAnalysisModel(key, 1));
+                    }
+                });
+            }
 
-            for (Integer key : mapView.keySet()) {
-                List<ObjectReferenceType> objectReferenceTypes = mapView.get(key);
-                roleAnalysisModels.add(new RoleAnalysisModel(objectReferenceTypes.size(), key));
+        } else {
+            if (!isAxisExpanded) {
+                ListMultimap<Integer, ObjectReferenceType> mapView = getIntegerCollectionMap();
+
+                for (Integer key : mapView.keySet()) {
+                    List<ObjectReferenceType> objectReferenceTypes = mapView.get(key);
+                    roleAnalysisModels.add(new RoleAnalysisModel(objectReferenceTypes.size(), key));
+                }
+            } else {
+                ListMultimap<Integer, ObjectReferenceType> mapView = getIntegerCollectionMap();
+
+                for (Integer key : mapView.keySet()) {
+                    List<ObjectReferenceType> objectReferenceTypes = mapView.get(key);
+                    int size = objectReferenceTypes.size();
+                    for (int i = 0; i < size; i++) {
+                        roleAnalysisModels.add(new RoleAnalysisModel(1, key));
+                    }
+                }
             }
         }
 
@@ -501,18 +580,23 @@ public class RoleAnalysisChartPanel extends BasePanel<String> implements Popupab
 
     @NotNull
     private SearchResultList<PrismContainerValue<?>> loadAggregateStatistics() {
+        RoleAnalysisService roleAnalysisService = getPageBase().getRoleAnalysisService();
         RepositoryService repositoryService = getPageBase().getRepositoryService();
         OperationResult result = new OperationResult(OP_LOAD_STATISTICS);
+
+        Collection<QName> memberRelations = getPageBase().getRelationRegistry()
+                .getAllRelationsFor(RelationKindType.MEMBER);
+
+        S_FilterExit filter = roleAnalysisService.buildStatisticsAssignmentSearchFilter(memberRelations);
 
         SearchResultList<PrismContainerValue<?>> aggregateResult = new SearchResultList<>();
 
         var spec = AggregateQuery.forType(AssignmentType.class);
         try {
+            //TODO check
             spec.retrieve(F_NAME, ItemPath.create(AssignmentType.F_TARGET_REF, new ObjectReferencePathSegment(), F_NAME))
                     .retrieve(AssignmentType.F_TARGET_REF)
-                    .filter(PrismContext.get().queryFor(AssignmentType.class)
-                            .ownedBy(UserType.class, AssignmentHolderType.F_ASSIGNMENT)
-                            .and().ref(AssignmentType.F_TARGET_REF).type(RoleType.class).buildFilter())
+                    .filter(filter.buildFilter())
                     .count(F_ASSIGNMENT, ItemPath.SELF_PATH)
                     .groupBy(ItemPath.create(new ParentPathSegment(), F_ASSIGNMENT));
 
@@ -526,35 +610,84 @@ public class RoleAnalysisChartPanel extends BasePanel<String> implements Popupab
         return aggregateResult;
     }
 
+    //TODO move it (it has been changed due to poc needs (activation))
     @NotNull
     private Map<Integer, Integer> loadUserModeMapStatistics() {
-        RepositoryService repositoryService = getPageBase().getRepositoryService();
+        RoleAnalysisService roleAnalysisService = getPageBase().getRoleAnalysisService();
+        ModelService modelService = getPageBase().getModelService();
         OperationResult result = new OperationResult(OP_LOAD_STATISTICS);
+        Task task = getPageBase().createSimpleTask(OP_LOAD_STATISTICS);
 
-        Map<Integer, Integer> aggregateResult = new HashMap<>();
+        Collection<QName> memberRelations = getPageBase().getRelationRegistry()
+                .getAllRelationsFor(RelationKindType.MEMBER);
 
-        ResultHandler<UserType> resultHandler = (object, parentResult) -> {
-            try {
-                List<String> properties = getRolesOidAssignment(object.asObjectable());
-                int propertiesCount = properties.size();
-                if (aggregateResult.containsKey(propertiesCount)) {
-                    aggregateResult.put(propertiesCount, aggregateResult.get(propertiesCount) + 1);
-                } else {
-                    aggregateResult.put(propertiesCount, 1);
-                }
+        GetOperationOptionsBuilder optionsBuilder = getPageBase().getSchemaService().getOperationOptionsBuilder();
+        optionsBuilder.iterationPageSize(10000);
+        Collection<SelectorOptions<GetOperationOptions>> options = optionsBuilder.build();
 
-            } catch (SystemException e) {
-                throw new SystemException("Couldn't count user mode statistics ", e);
+        ObjectQuery assignmentQuery = roleAnalysisService.buildStatisticsAssignmentSearchFilter(memberRelations).build();
+
+        ListMultimap<String, String> userRoleMap = ArrayListMultimap.create();
+
+        ContainerableResultHandler<AssignmentType> handler;
+        handler = (object, parentResult) -> {
+            PrismContainerValue<?> prismContainerValue = object.asPrismContainerValue();
+
+            if (prismContainerValue == null) {
+                LOGGER.error("Couldn't get prism container value during assignment search");
+                return true;
             }
+
+            Map<String, Object> userData = prismContainerValue.getUserData();
+
+            if (userData == null) {
+                LOGGER.error("Couldn't get user data during assignment search");
+                return true;
+            }
+
+            Object ownerOid = userData.get("ownerOid");
+            ObjectReferenceType targetRef = object.getTargetRef();
+            if (targetRef == null) {
+                LOGGER.error("Couldn't get target reference during assignment search");
+                return true;
+            }
+
+            String roleOid = targetRef.getOid();
+            if (ownerOid == null) {
+                LOGGER.error("Owner oid retrieved null value during assignment search");
+                return true;
+            }
+
+            if (roleOid == null) {
+                LOGGER.error("Target role oid retrieved null value during search");
+                return true;
+            }
+
+            userRoleMap.put(ownerOid.toString(), roleOid);
+
             return true;
         };
 
         try {
-            repositoryService.searchObjectsIterative(UserType.class, null, resultHandler,
-                    null, false, result);
-        } catch (SchemaException e) {
-            LOGGER.error("Couldn't count user mode statistics ", e);
+            modelService.searchContainersIterative(AssignmentType.class, assignmentQuery, handler,
+                    options, task, result);
+        } catch (SchemaException | SecurityViolationException | ConfigurationException | ObjectNotFoundException |
+                ExpressionEvaluationException | CommunicationException e) {
+            throw new SystemException("Couldn't search assignments", e);
         }
+
+        //group of user has this number of roles
+        Map<Integer, Integer> aggregateResult = new HashMap<>();
+
+        userRoleMap.asMap().forEach((key, value) -> {
+            int propertiesCount = value.size();
+            if (aggregateResult.containsKey(propertiesCount)) {
+                aggregateResult.put(propertiesCount, aggregateResult.get(propertiesCount) + 1);
+            } else {
+                aggregateResult.put(propertiesCount, 1);
+            }
+        });
+
         return aggregateResult;
     }
 

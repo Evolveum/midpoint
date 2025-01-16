@@ -7,14 +7,8 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.outlier.panel.suggestion;
 
-import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.cluster.RoleAnalysisClusterAction;
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.tables.tile.RoleAnalysisOutlierAssociatedTileTable;
-
-import com.evolveum.midpoint.model.api.mining.RoleAnalysisService;
-import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisOutlierType;
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.tables.outlier.panel.RoleAnalysisOutlierTable;
 
 import org.apache.wicket.markup.html.WebMarkupContainer;
 
@@ -28,10 +22,7 @@ import com.evolveum.midpoint.web.application.PanelType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ContainerPanelConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisClusterType;
 
-import org.apache.wicket.model.IModel;
-import org.jetbrains.annotations.NotNull;
-
-import java.util.List;
+import org.apache.wicket.model.LoadableDetachableModel;
 
 @PanelType(name = "outlierPanel")
 @PanelInstance(
@@ -44,12 +35,12 @@ import java.util.List;
                 order = 10
         )
 )
-public class RoleAnalysisOutlierPanel extends AbstractObjectMainPanel<RoleAnalysisClusterType, ObjectDetailsModels<RoleAnalysisClusterType>> {
+public class RoleAnalysisClusterAllOutlierPanel extends AbstractObjectMainPanel<RoleAnalysisClusterType, ObjectDetailsModels<RoleAnalysisClusterType>> {
 
     private static final String ID_CONTAINER = "container";
     private static final String ID_PANEL = "panelId";
 
-    public RoleAnalysisOutlierPanel(String id, ObjectDetailsModels<RoleAnalysisClusterType> model,
+    public RoleAnalysisClusterAllOutlierPanel(String id, ObjectDetailsModels<RoleAnalysisClusterType> model,
             ContainerPanelConfigurationType config) {
         super(id, model, config);
     }
@@ -63,26 +54,23 @@ public class RoleAnalysisOutlierPanel extends AbstractObjectMainPanel<RoleAnalys
 
         ObjectDetailsModels<RoleAnalysisClusterType> objectDetailsModels = getObjectDetailsModels();
         RoleAnalysisClusterType cluster = objectDetailsModels.getObjectType();
-        @NotNull IModel<List<RoleAnalysisOutlierType>> outliers = getOutliers(cluster);
-        RoleAnalysisOutlierAssociatedTileTable panel = new RoleAnalysisOutlierAssociatedTileTable(ID_PANEL, outliers, cluster);
-        panel.setOutputMarkupId(true);
-        container.add(panel);
+        RoleAnalysisOutlierTable table = new RoleAnalysisOutlierTable(ID_PANEL,
+                RoleAnalysisClusterAllOutlierPanel.this.getPageBase(),
+                new LoadableDetachableModel<>() {
+                    @Override
+                    protected RoleAnalysisClusterType load() {
+                        return cluster;
+                    }
+                }) {
+
+        };
+        table.setOutputMarkupId(true);
+        container.add(table);
     }
 
+    @Override
     public PageBase getPageBase() {
         return ((PageBase) getPage());
     }
 
-    private @NotNull IModel<List<RoleAnalysisOutlierType>> getOutliers(RoleAnalysisClusterType cluster) {
-        PageBase pageBase = getPageBase();
-        Task task = pageBase.createSimpleTask("Search outliers");
-        OperationResult result = task.getResult();
-        RoleAnalysisService roleAnalysisService = pageBase.getRoleAnalysisService();
-        return new LoadableModel<>() {
-            @Override
-            protected List<RoleAnalysisOutlierType> load() {
-                return roleAnalysisService.findClusterOutliers(cluster, null, task, result);
-            }
-        };
-    }
 }

@@ -9,7 +9,9 @@ package com.evolveum.midpoint.gui.impl.page.admin.role.mining.components;
 
 import java.util.*;
 
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.tmp.panel.IconWithLabel;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
+import com.evolveum.midpoint.web.util.TooltipBehavior;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisAttributeStatistics;
 
 import org.apache.commons.lang3.StringUtils;
@@ -84,7 +86,8 @@ public class ProgressBar extends BasePanel<String> {
             value = "";
         } else {
             value = " (in-group=" + getInClusterCount()
-                    + ", in-repo=" + getInRepoCount() + ")";
+                    + ", in-repo=" + getInRepoCount() + ", "
+                    + "unusual=" + isUnusual() + ")";
         }
 
         WebMarkupContainer container = new WebMarkupContainer(ID_CONTAINER_TITLE_DATA);
@@ -98,6 +101,11 @@ public class ProgressBar extends BasePanel<String> {
                 createStringResource(helpModel.getObject() != null ? helpModel.getObject() : "")));
         help.add(new VisibleBehaviour(() -> StringUtils.isNotEmpty(helpModel.getObject())));
         help.setOutputMarkupId(true);
+        if (isUnusual()) {
+            help.add(AttributeModifier.append("class", "fa-exclamation-triangle text-warning"));
+        }else {
+            help.add(AttributeModifier.append("class", " fa-info-circle text-info"));
+        }
         container.add(help);
     }
 
@@ -189,8 +197,21 @@ public class ProgressBar extends BasePanel<String> {
     }
 
     private void addProgressBarTitleLabel(@NotNull WebMarkupContainer titleContainer, String barTitle) {
-        Label progressBarTitle = new Label(ID_BAR_TITLE, barTitle);
+        IconWithLabel progressBarTitle = new IconWithLabel(ID_BAR_TITLE, Model.of(barTitle)) {
+            @Override
+            protected @NotNull String getIconCssClass() {
+//                if (isUnusual()) {
+//                    return "fa fa-exclamation-triangle text-warning";
+//                }
+                return "";
+            }
+        };
         progressBarTitle.setOutputMarkupId(true);
+        if (isUnusual()) {
+            progressBarTitle.add(new TooltipBehavior());
+            progressBarTitle.add(AttributeModifier.replace("title",
+                    createStringResource("Unusual value")));
+        }
         titleContainer.add(progressBarTitle);
     }
 
@@ -253,6 +274,10 @@ public class ProgressBar extends BasePanel<String> {
 
     public String getInRepoCount() {
         return null;
+    }
+
+    public boolean isUnusual() {
+        return false;
     }
 
     public String getInClusterCount() {

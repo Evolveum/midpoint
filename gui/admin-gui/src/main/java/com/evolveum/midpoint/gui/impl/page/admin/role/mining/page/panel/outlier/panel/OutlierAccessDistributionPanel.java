@@ -46,7 +46,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
         display = @PanelDisplay(
                 label = "RoleAnalysisOutlierType.outlier.access.distribution",
                 icon = GuiStyleConstants.CLASS_ICON_OUTLIER,
-                order = 60
+                order = 30
         )
 )
 public class OutlierAccessDistributionPanel extends AbstractObjectMainPanel<RoleAnalysisOutlierType, ObjectDetailsModels<RoleAnalysisOutlierType>> {

@@ -16,6 +16,7 @@ public class AttributeAnalysisCache {
     private RoleMemberAttributeAnalyseCache roleMemberAttributeCache;
     private MemberUserAttributeAnalysisCache memberUserCache;
     private ListMultimap<String, String> roleMemberCache;
+    private ListMultimap<String, String> userMemberCache;
     private final RoleMemberCountCache roleMemberCountCache;
 
     public AttributeAnalysisCache(UserAttributeAnalyseCache userCache,
@@ -99,6 +100,14 @@ public class AttributeAnalysisCache {
 
     public void setRoleMemberCache(ListMultimap<String, String> roleMemberCache) {
         this.roleMemberCache = roleMemberCache;
+    }
+
+    public ListMultimap<String, String> getUserMemberCache() {
+        return userMemberCache;
+    }
+
+    public void setUserMemberCache(ListMultimap<String, String> userMemberCache) {
+        this.userMemberCache = userMemberCache;
     }
 
 }

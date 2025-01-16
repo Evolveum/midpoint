@@ -655,7 +655,10 @@ public class RoleAnalysisAttributeDefUtils {
         return null;
     }
 
-    public static boolean isSupportedPropertyType(@NotNull Class<?> typeClass) {
+    public static boolean isSupportedPropertyType(@Nullable Class<?> typeClass) {
+        if(typeClass == null) {
+            return false;
+        }
         return typeClass.equals(Integer.class) || typeClass.equals(Long.class) || typeClass.equals(Boolean.class)
                 || typeClass.equals(Double.class) || typeClass.equals(String.class) || typeClass.equals(PolyString.class);
     }
