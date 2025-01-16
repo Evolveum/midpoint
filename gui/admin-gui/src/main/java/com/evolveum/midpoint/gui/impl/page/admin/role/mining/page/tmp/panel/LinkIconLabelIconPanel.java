@@ -29,6 +29,7 @@ public class LinkIconLabelIconPanel extends BasePanel<String> {
 
     @Serial private static final long serialVersionUID = 1L;
 
+    private static final String ID_LINK_CONTAINER = "linkContainer";
     private static final String ID_ICON_CONTAINER = "iconContainer";
     private static final String ID_ICON = "icon";
     private static final String ID_TEXT = "label";
@@ -43,7 +44,7 @@ public class LinkIconLabelIconPanel extends BasePanel<String> {
             if (isClicked) {
                 return "fa fa-caret-down fa-sm";
             }
-            return "fa fa-caret-up fa-sm";
+            return "fa fa-caret-right fa-sm";
         }
     };
 
@@ -66,11 +67,16 @@ public class LinkIconLabelIconPanel extends BasePanel<String> {
         add(AttributeModifier.append(CLASS_CSS, getComponentCssClass()));
         add(AttributeModifier.append(STYLE_CSS, getComponentCssStyle()));
 
+        WebMarkupContainer linkContainer = new WebMarkupContainer(ID_LINK_CONTAINER);
+        linkContainer.setOutputMarkupId(true);
+        linkContainer.add(AttributeModifier.replace(CLASS_CSS, getLinkContainerCssClass()));
+        add(linkContainer);
+
         WebMarkupContainer iconContainer = new WebMarkupContainer(ID_ICON_CONTAINER);
         iconContainer.setOutputMarkupId(true);
         iconContainer.add(AttributeModifier.replace(CLASS_CSS, getIconContainerCssClass()));
         iconContainer.add(AttributeModifier.replace(STYLE_CSS, getIconContainerCssStyle()));
-        add(iconContainer);
+        linkContainer.add(iconContainer);
 
         Label image = new Label(ID_ICON);
         image.add(AttributeModifier.replace(CLASS_CSS, getIconCssClass() + " fa-sm"));
@@ -81,10 +87,10 @@ public class LinkIconLabelIconPanel extends BasePanel<String> {
         Component subComponent = buildSubComponent();
         subComponent.setOutputMarkupId(true);
         subComponent.add(AttributeModifier.replace(STYLE_CSS, getSubComponentCssStyle()));
-        add(subComponent);
+        linkContainer.add(subComponent);
 
         Component textComponent = createComponent(getModel());
-        add(textComponent);
+        linkContainer.add(textComponent);
     }
 
     private @NotNull Component createComponent(IModel<String> model) {
@@ -101,7 +107,7 @@ public class LinkIconLabelIconPanel extends BasePanel<String> {
     }
 
     private Component getSubComponent() {
-        return get(ID_SUB_COMPONENT);
+        return get(createComponentPath(ID_LINK_CONTAINER, ID_SUB_COMPONENT));
     }
 
     protected void onClickPerform(AjaxRequestTarget target) {
@@ -138,5 +144,9 @@ public class LinkIconLabelIconPanel extends BasePanel<String> {
 
     protected String getSubComponentCssStyle() {
         return null;
+    }
+
+    protected String getLinkContainerCssClass() {
+        return "d-flex gap-2 cursor-pointer align-items-center";
     }
 }

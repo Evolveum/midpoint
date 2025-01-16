@@ -6,6 +6,7 @@
  */
 package com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.outlier.aspects;
 
+import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.RoleAnalysisWebUtils.explainOutlier;
 import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.outlier.panel.OutlierPartitionPanel.PARAM_ANOMALY_OID;
 
 import com.evolveum.midpoint.gui.api.component.progressbar.ProgressBar;
@@ -56,13 +57,12 @@ import java.util.*;
         display = @PanelDisplay(
                 label = "RoleAnalysis.overview.panel",
                 icon = GuiStyleConstants.CLASS_LINE_CHART_ICON,
-                order = 20))
+                order = 10))
 public class RoleAnalysisOutlierAnalysisAspectsPanel extends AbstractObjectMainPanel<RoleAnalysisOutlierType, ObjectDetailsModels<RoleAnalysisOutlierType>> {
 
     private static final String ID_CONTAINER = "container";
     private static final String ID_HEADER_ITEMS = "header-items";
     private static final String ID_ACCESS_PANEL = "accessPanel";
-    private static final String ID_PARTITION_PANEL = "partitionPanel";
 
     public RoleAnalysisOutlierAnalysisAspectsPanel(
             @NotNull String id,
@@ -115,10 +115,9 @@ public class RoleAnalysisOutlierAnalysisAspectsPanel extends AbstractObjectMainP
 
             @Override
             protected @NotNull Component getPanelComponent(String id) {
-                RoleAnalysisDetectedAnomalyTable detectedAnomalyTable = new RoleAnalysisDetectedAnomalyTable(id,
-                        objectDetailsModels.getObjectType(), null, AnomalyTableCategory.OUTLIER_OVERVIEW) {
-
-                };
+                RoleAnalysisOutlierType outlierObject = objectDetailsModels.getObjectType();
+                AnomalyObjectDto dto = new AnomalyObjectDto(outlierObject, null, false);
+                RoleAnalysisDetectedAnomalyTable detectedAnomalyTable = new RoleAnalysisDetectedAnomalyTable(id, Model.of(dto));
 
                 detectedAnomalyTable.setOutputMarkupId(true);
                 detectedAnomalyTable.add(AttributeAppender.append("style", "min-height: 400px;"));
@@ -128,43 +127,6 @@ public class RoleAnalysisOutlierAnalysisAspectsPanel extends AbstractObjectMainP
 
         accessPanel.setOutputMarkupId(true);
         container.add(accessPanel);
-
-        RoleAnalysisViewAllPanel<?> partitionPanel = new RoleAnalysisViewAllPanel<>(ID_PARTITION_PANEL, Model.of("Outlier partitions")) {
-            @Contract(pure = true)
-            @Override
-            protected @NotNull String getIconCssClass() {
-                return GuiStyleConstants.CLASS_ROLE_ANALYSIS_SESSION_ICON;
-            }
-
-            @Contract(" -> new")
-            @Override
-            protected @NotNull IModel<String> getLinkModel() {
-                return createStringResource("RoleAnalysis.aspect.overview.page.title.view.all.partitions");
-            }
-
-            @Override
-            protected void onLinkClick(AjaxRequestTarget target) {
-                RoleAnalysisOutlierType outlier = getObjectDetailsModels().getObjectType();
-                PageParameters parameters = new PageParameters();
-                parameters.add(OnePageParameterEncoder.PARAMETER, outlier.getOid());
-                parameters.add("panelId", "outlierPartitions");
-                Class<? extends PageBase> detailsPageClass = DetailsPageUtil
-                        .getObjectDetailsPage(RoleAnalysisOutlierType.class);
-                ((PageBase) getPage()).navigateToNext(detailsPageClass, parameters);
-            }
-
-            @Override
-            protected @NotNull Component getPanelComponent(String id) {
-                RoleAnalysisOutlierPartitionTable partitionTable = new RoleAnalysisOutlierPartitionTable(id,
-                        objectDetailsModels.getObjectType());
-                partitionTable.setOutputMarkupId(true);
-
-                partitionTable.add(AttributeAppender.append("style", "min-height: 400px;"));
-                return partitionTable;
-            }
-        };
-        partitionPanel.setOutputMarkupId(true);
-        container.add(partitionPanel);
 
     }
 
@@ -299,25 +261,15 @@ public class RoleAnalysisOutlierAnalysisAspectsPanel extends AbstractObjectMainP
         List<RoleAnalysisOutlierPartitionType> outlierPartitions = outlier.getPartition();
         int partitionCount = outlierPartitions.size();
         Set<String> anomalySet = new HashSet<>();
-        Set<OutlierNoiseCategoryType> outlierNoiseCategorySet = new HashSet<>();
         for (RoleAnalysisOutlierPartitionType outlierPartition : outlierPartitions) {
-            RoleAnalysisPartitionAnalysisType partitionAnalysis = outlierPartition.getPartitionAnalysis();
-            OutlierNoiseCategoryType outlierNoiseCategory = partitionAnalysis.getOutlierCategory().getOutlierNoiseCategory();
-            outlierNoiseCategorySet.add(outlierNoiseCategory);
             List<DetectedAnomalyResult> detectedAnomalyResult = outlierPartition.getDetectedAnomalyResult();
             for (DetectedAnomalyResult anomalyResult : detectedAnomalyResult) {
                 anomalySet.add(anomalyResult.getTargetObjectRef().getOid());
             }
         }
         int anomalyCount = anomalySet.size();
-        String outlierCategory = "UNKNOWN";
-        if (outlierNoiseCategorySet.size() == 1) {
-            outlierCategory = outlierNoiseCategorySet.iterator().next().value().toUpperCase();
-        } else if (outlierNoiseCategorySet.size() > 1) {
-            outlierCategory = "MIXED";
-        }
 
-        String finalOutlierCategory = outlierCategory;
+        Model<String> finalExplanationTranslatedModel = explainOutlier(outlier);
         RoleAnalysisOutlierDashboardPanel<?> characteristicHeader = new RoleAnalysisOutlierDashboardPanel<>(cardBodyComponent.newChildId(),
                 createStringResource("RoleAnalysisOutlierAnalysisAspectsPanel.widget.characteristics")) {
             @Contract(pure = true)
@@ -328,7 +280,7 @@ public class RoleAnalysisOutlierAnalysisAspectsPanel extends AbstractObjectMainP
 
             @Override
             protected @NotNull Component getPanelComponent(String id) {
-                IconWithLabel iconWithLabel = new IconWithLabel(id, Model.of(finalOutlierCategory)) {
+                IconWithLabel iconWithLabel = new IconWithLabel(id, finalExplanationTranslatedModel) {
                     @Contract(pure = true)
                     @Override
                     protected @NotNull String getIconCssClass() {
@@ -337,7 +289,7 @@ public class RoleAnalysisOutlierAnalysisAspectsPanel extends AbstractObjectMainP
 
                     @Override
                     protected String getComponentCssStyle() {
-                        return "color: #28a745; font-size: 20px;";
+                        return "font-size: 20px;";
                     }
 
                     @Override
@@ -346,8 +298,7 @@ public class RoleAnalysisOutlierAnalysisAspectsPanel extends AbstractObjectMainP
                     }
                 };
 
-                iconWithLabel.add(AttributeAppender.append("class", "badge p-3 my-auto justify-content-center flex-grow-1 flex-shrink-1"));
-                iconWithLabel.add(AttributeAppender.append("style", "background-color: #dff2e3;"));
+                iconWithLabel.add(AttributeAppender.append("class", "badge p-3 my-auto justify-content-center flex-grow-1 flex-shrink-1 bg-transparent-red border border-danger text-danger text-wrap"));
                 return iconWithLabel;
             }
 
@@ -556,7 +507,7 @@ public class RoleAnalysisOutlierAnalysisAspectsPanel extends AbstractObjectMainP
 
                         List<ProgressBar> progressBars = new ArrayList<>();
                         addProgressBar(progressBars, ProgressBar.State.SUCCESS, finalDirectAssignment, allAssignmentCount);
-                        addProgressBar(progressBars, ProgressBar.State.WARNINIG, finalIndirectAssignment, allAssignmentCount);
+                        addProgressBar(progressBars, ProgressBar.State.WARNING, finalIndirectAssignment, allAssignmentCount);
                         addProgressBar(progressBars, ProgressBar.State.DANGER, finalDuplicatedRoleAssignmentCount, allAssignmentCount);
 
                         ProgressBarPanel components1 = new ProgressBarPanel(id1, new LoadableModel<>() {

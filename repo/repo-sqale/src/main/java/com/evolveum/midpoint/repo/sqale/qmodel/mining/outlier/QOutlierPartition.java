@@ -10,9 +10,11 @@ import com.evolveum.midpoint.repo.sqale.qmodel.common.QContainer;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.MObjectType;
 import com.evolveum.midpoint.repo.sqlbase.querydsl.UuidPath;
 
+import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.core.types.dsl.EnumPath;
 import com.querydsl.core.types.dsl.NumberPath;
 import com.querydsl.sql.ColumnMetadata;
+import org.jetbrains.annotations.NotNull;
 
 import java.sql.Types;
 
@@ -20,7 +22,6 @@ public class QOutlierPartition extends QContainer<MOutlierPartition, MOutlier> {
 
     public static final String TABLE_NAME = "m_role_analysis_outlier_partition";
     public static final String ALIAS = "op";
-
 
     public static final ColumnMetadata CLUSTER_REF_OID =
             ColumnMetadata.named("clusterRefOid").ofType(UuidPath.UUID_TYPE);
@@ -49,4 +50,8 @@ public class QOutlierPartition extends QContainer<MOutlierPartition, MOutlier> {
 
     public final NumberPath<Double> overallConfidence = createNumber("overallConfidence", Double.class, OVERALL_CONFIDENCE);
 
+    @Override
+    public BooleanExpression isOwnedBy(@NotNull MOutlier ownerRow) {
+        return ownerOid.eq(ownerRow.oid);
+    }
 }

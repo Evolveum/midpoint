@@ -25,10 +25,10 @@ import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.repeater.RepeatingView;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.Model;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
@@ -39,7 +39,6 @@ import com.evolveum.midpoint.gui.api.component.button.DropdownButtonDto;
 import com.evolveum.midpoint.gui.api.component.button.DropdownButtonPanel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
-import com.evolveum.midpoint.gui.impl.component.icon.LayeredIconCssStyle;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.tmp.panel.IconWithLabel;
 import com.evolveum.midpoint.gui.impl.util.DetailsPageUtil;
 import com.evolveum.midpoint.web.component.AjaxCompositedIconSubmitButton;
@@ -50,6 +49,7 @@ import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.web.util.TooltipBehavior;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
+import static com.evolveum.midpoint.gui.api.util.LocalizationUtil.translateMessage;
 import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.RoleAnalysisWebUtils.*;
 
 public class RoleAnalysisOutlierPartitionTilePanel<T extends Serializable> extends BasePanel<RoleAnalysisOutlierPartitionTileModel<T>> {
@@ -62,6 +62,7 @@ public class RoleAnalysisOutlierPartitionTilePanel<T extends Serializable> exten
     private static final String ID_ITEMS = "items";
     private static final String ID_EXAMINE = "examine";
     private static final String ID_CONFIDENCE = "confidence";
+    private static final String ID_EXPLANATION = "explanation";
 
     public RoleAnalysisOutlierPartitionTilePanel(String id, IModel<RoleAnalysisOutlierPartitionTileModel<T>> model) {
         super(id, model);
@@ -153,7 +154,14 @@ public class RoleAnalysisOutlierPartitionTilePanel<T extends Serializable> exten
         Label label = new Label(ID_LEFT_BATCH, labelValue);
         label.setOutputMarkupId(true);
         label.add(AttributeModifier.append(CLASS_CSS, "badge bg-info"));
+        label.add(new VisibleBehaviour(() -> false));
         add(label);
+        Model<String> explanationTranslatedModel = explainPartition(partition);
+
+        Label explanationField = new Label(ID_EXPLANATION, explanationTranslatedModel);
+        explanationField.setOutputMarkupId(true);
+        explanationField.add(AttributeModifier.append(CLASS_CSS, "gap-2"));
+        add(explanationField);
     }
 
     private void initRightBatch() {

@@ -1,46 +1,44 @@
 /*
- * Copyright (C) 2010-2023 Evolveum and contributors
+ * Copyright (C) 2010-2024 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-
 package com.evolveum.midpoint.gui.impl.page.admin.role.mining.tables.outlier.panel;
 
 import java.io.Serial;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.*;
 
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.outlier.RoleAnalysisMultiplePartitionAnomalyResultTabPopup;
+import com.evolveum.midpoint.gui.api.component.LabelWithHelpPanel;
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.outlier.RoleAnalysisExplanationTabPanelPopup;
 
-import com.google.common.collect.ArrayListMultimap;
-import com.google.common.collect.ListMultimap;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.Task;
+
+import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.behavior.AttributeAppender;
+import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.export.AbstractExportableColumn;
+import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.LoadableDetachableModel;
 import org.apache.wicket.model.Model;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.Unmodifiable;
 
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.component.MainObjectListPanel;
 import com.evolveum.midpoint.gui.api.component.data.provider.ISelectableDataProvider;
-import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
-import com.evolveum.midpoint.gui.impl.component.data.provider.SelectableBeanObjectDataProvider;
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.outlier.RoleAnalysisSinglePartitionAnomalyResultTabPopup;
-import com.evolveum.midpoint.model.api.mining.RoleAnalysisService;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.schema.GetOperationOptions;
-import com.evolveum.midpoint.schema.SelectorOptions;
-import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.web.component.AjaxIconButton;
 import com.evolveum.midpoint.web.component.data.column.ColumnMenuAction;
 import com.evolveum.midpoint.web.component.menu.cog.ButtonInlineMenuItem;
@@ -50,94 +48,34 @@ import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
-public class RoleAnalysisDetectedAnomalyTable extends BasePanel<String> {
+import static com.evolveum.midpoint.gui.api.page.PageAdminLTE.createStringResourceStatic;
+import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.RoleAnalysisWebUtils.explainAnomaly;
+
+public class RoleAnalysisDetectedAnomalyTable extends BasePanel<AnomalyObjectDto> {
     private static final String ID_DATATABLE = "datatable";
     private static final String DOT_CLASS = RoleAnalysisDetectedAnomalyTable.class.getName() + ".";
     private static final String OP_PREPARE_OBJECTS = DOT_CLASS + "prepareObjects";
 
-    IModel<RoleAnalysisOutlierType> outlierModel;
-    IModel<List<RoleAnalysisOutlierPartitionType>> partitionModel;
-    IModel<ListMultimap<String, DetectedAnomalyResult>> anomalyResultMap;
-    IModel<ListMultimap<String, RoleAnalysisOutlierPartitionType>> anomalyPartitionMap;
-
-    Set<String> anomalyOidSet;
-    AnomalyTableCategory category;
-
     public RoleAnalysisDetectedAnomalyTable(String id,
-            @NotNull RoleAnalysisOutlierType outlier, RoleAnalysisOutlierPartitionType partition, AnomalyTableCategory category) {
-        super(id);
-
-        this.category = category;
-        initModels(outlier, partition);
-
-        createTable();
+            IModel<AnomalyObjectDto> dto) {
+        super(id, dto);
+        createTable(RoleAnalysisDetectedAnomalyTable.this.getModelObject());
     }
 
-    private void initModels(@NotNull RoleAnalysisOutlierType outlier, RoleAnalysisOutlierPartitionType partition) {
-        outlierModel = new LoadableModel<>() {
-            @Override
-            protected RoleAnalysisOutlierType load() {
-                return outlier;
-            }
-        };
-
-        if (category == AnomalyTableCategory.PARTITION_ANOMALY && partition != null) {
-            partitionModel = new LoadableModel<>() {
-                @Override
-                protected List<RoleAnalysisOutlierPartitionType> load() {
-                    return Collections.singletonList(partition);
-                }
-            };
-        } else {
-            partitionModel = new LoadableModel<>() {
-                @Override
-                protected List<RoleAnalysisOutlierPartitionType> load() {
-                    RoleAnalysisOutlierType outlier = getOutlierModelObject();
-                    return outlier.getPartition();
-                }
-            };
-        }
-
-        anomalyResultMap = new LoadableModel<>() {
-            @Override
-            protected ListMultimap<String, DetectedAnomalyResult> load() {
-                return ArrayListMultimap.create();
-            }
-        };
-
-        anomalyPartitionMap = new LoadableModel<>() {
-            @Override
-            protected ListMultimap<String, RoleAnalysisOutlierPartitionType> load() {
-                return ArrayListMultimap.create();
-            }
-        };
-
-        anomalyOidSet = new HashSet<>();
-        for (RoleAnalysisOutlierPartitionType outlierPartition : getPartitionModelObject()) {
-            List<DetectedAnomalyResult> partitionAnalysis = outlierPartition.getDetectedAnomalyResult();
-            for (DetectedAnomalyResult anomalyResult : partitionAnalysis) {
-                String oid = anomalyResult.getTargetObjectRef().getOid();
-                anomalyOidSet.add(oid);
-                anomalyResultMap.getObject().put(oid, anomalyResult);
-                anomalyPartitionMap.getObject().put(oid, outlierPartition);
-            }
-        }
-    }
-
-    private void createTable() {
-
+    private void createTable(AnomalyObjectDto anomalyObjectDto) {
         MainObjectListPanel<RoleType> table = new MainObjectListPanel<>(ID_DATATABLE, RoleType.class, null) {
 
             @Contract(pure = true)
             @Override
             public @NotNull String getAdditionalBoxCssClasses() {
-                return " m-0 elevation-0";
+                return RoleAnalysisDetectedAnomalyTable.this.getAdditionalBoxCssClasses();
             }
 
             @Contract("_ -> new")
             @Override
             protected @NotNull @Unmodifiable List<Component> createToolbarButtonsList(String buttonId) {
-                if (category.equals(AnomalyTableCategory.OUTLIER_OVERVIEW)) {
+                if (anomalyObjectDto.getCategory()
+                        .equals(AnomalyObjectDto.AnomalyTableCategory.OUTLIER_OVERVIEW)) {
                     return List.of();
                 }
                 return List.of(RoleAnalysisDetectedAnomalyTable.this.createRefreshButton(buttonId));
@@ -155,7 +93,7 @@ public class RoleAnalysisDetectedAnomalyTable extends BasePanel<String> {
 
             @Override
             protected String getInlineMenuItemCssClass() {
-                return "btn btn-default btn-sm";
+                return "btn btn-default btn-sm flex-nowrap text-nowrap";
             }
 
             @Override
@@ -165,7 +103,7 @@ public class RoleAnalysisDetectedAnomalyTable extends BasePanel<String> {
 
             @Override
             protected boolean isPagingVisible() {
-                if (category == AnomalyTableCategory.OUTLIER_OVERVIEW) {
+                if (anomalyObjectDto.getCategory() == AnomalyObjectDto.AnomalyTableCategory.OUTLIER_OVERVIEW) {
                     return false;
                 }
                 return super.isPagingVisible();
@@ -174,21 +112,24 @@ public class RoleAnalysisDetectedAnomalyTable extends BasePanel<String> {
             @Override
             protected @NotNull List<InlineMenuItem> createInlineMenu() {
                 List<InlineMenuItem> menuItems = new ArrayList<>();
-
-                if (category == AnomalyTableCategory.PARTITION_ANOMALY || category == AnomalyTableCategory.OUTLIER_OVERVIEW) {
-                    menuItems.add(RoleAnalysisDetectedAnomalyTable.this.createViewDetailsMenu());
+                AnomalyObjectDto.AnomalyTableCategory category = anomalyObjectDto.getCategory();
+                if (category == AnomalyObjectDto.AnomalyTableCategory.PARTITION_ANOMALY) {
+                    menuItems.add(RoleAnalysisDetectedAnomalyTable.this.createViewDetailsMenu(anomalyObjectDto));
                     return menuItems;
                 }
-//                menuItems.add(RoleAnalysisDetectedAnomalyTable.this.createMarkInlineMenu());
-//                menuItems.add(RoleAnalysisDetectedAnomalyTable.this.createRecertifyInlineMenu());
-//                menuItems.add(RoleAnalysisDetectedAnomalyTable.this.createDeleteInlineMenu());
 
+                if (category == AnomalyObjectDto.AnomalyTableCategory.OUTLIER_OVERVIEW) {
+                    menuItems.add(RoleAnalysisDetectedAnomalyTable.this.createViewDetailsPeerGroupMenu(anomalyObjectDto));
+                    menuItems.add(RoleAnalysisDetectedAnomalyTable.this.createViewDetailsAccessAnalysisMenu(anomalyObjectDto));
+                    return menuItems;
+                }
                 return menuItems;
 
             }
 
+            @Contract(pure = true)
             @Override
-            protected UserProfileStorage.TableId getTableId() {
+            protected UserProfileStorage.@Nullable TableId getTableId() {
                 return null;
             }
 
@@ -203,19 +144,145 @@ public class RoleAnalysisDetectedAnomalyTable extends BasePanel<String> {
             }
 
             @Override
-            protected IColumn<SelectableBean<RoleType>, String> createIconColumn() {
-                return super.createIconColumn();
+            protected @NotNull ISelectableDataProvider<SelectableBean<RoleType>> createProvider() {
+                Task simpleTask = getPageBase().createSimpleTask(OP_PREPARE_OBJECTS);
+                OperationResult result = simpleTask.getResult();
+                return anomalyObjectDto.buildProvider(RoleAnalysisDetectedAnomalyTable.this, getPageBase(),
+                        simpleTask, result);
             }
 
             @Override
-            protected @NotNull ISelectableDataProvider<SelectableBean<RoleType>> createProvider() {
-                return RoleAnalysisDetectedAnomalyTable.this.createProvider();
+            protected IColumn<SelectableBean<RoleType>, String> createNameColumn(IModel<String> displayModel,
+                    GuiObjectColumnType customColumn,
+                    ExpressionType expression) {
+                var customization = new GuiObjectColumnType();
+                customization.beginDisplay();
+                customization.getDisplay().setCssClass("text-nowrap");
+                var customDisplayModel = createStringResourceStatic("RoleAnalysisOutlierTable.anomaly.access");
+                return super.createNameColumn(customDisplayModel, customization, expression);
             }
 
             @Override
             protected @NotNull List<IColumn<SelectableBean<RoleType>, String>> createDefaultColumns() {
-                return category.generateConfiguration(getOutlierModel(),
-                        getPageBase(), getAnomalyResultMapModelObject(), getAnomalyPartitionMapModelObject());
+                List<IColumn<SelectableBean<RoleType>, String>> columns = new ArrayList<>();
+
+                IColumn<SelectableBean<RoleType>, String> column;
+
+                if (RoleAnalysisDetectedAnomalyTable.this.getModelObject().isPartitionCountVisible) {
+                    column = new AbstractExportableColumn<>(createStringResource("")) {
+
+                        @Override
+                        public IModel<?> getDataModel(IModel<SelectableBean<RoleType>> iModel) {
+                            return null;
+                        }
+
+                        @Override
+                        public Component getHeader(String componentId) {
+                            return new Label(componentId,
+                                    createStringResource("RoleAnalysisDetectedAnomalyTable.header.identification.title"));
+                        }
+
+                        @Override
+                        public void populateItem(Item<ICellPopulator<SelectableBean<RoleType>>> cellItem,
+                                String componentId, IModel<SelectableBean<RoleType>> model) {
+                            SelectableBean<RoleType> object = model.getObject();
+                            RoleType role = object.getValue();
+                            String oid = role.getOid();
+                            int partitionCount = anomalyObjectDto.getPartitionCount(oid);
+                            Label label = new Label(componentId, String.valueOf(partitionCount));
+                            label.setOutputMarkupId(true);
+                            cellItem.add(label);
+                        }
+
+                        @Override
+                        public boolean isSortable() {
+                            return false;
+                        }
+
+                    };
+                    columns.add(column);
+                }
+
+                column = new AbstractExportableColumn<>(createStringResource("")) {
+
+                    @Override
+                    public IModel<?> getDataModel(IModel<SelectableBean<RoleType>> iModel) {
+                        return null;
+                    }
+
+                    @Override
+                    public Component getHeader(String componentId) {
+                        return new Label(componentId, createStringResource(
+                                "RoleAnalysisDetectedAnomalyTable.header.average.confidence.title"));
+                    }
+
+                    @Override
+                    public void populateItem(Item<ICellPopulator<SelectableBean<RoleType>>> cellItem,
+                            String componentId, IModel<SelectableBean<RoleType>> model) {
+                        SelectableBean<RoleType> object = model.getObject();
+                        RoleType role = object.getValue();
+                        String oid = role.getOid();
+
+                        double anomalyScore = anomalyObjectDto.getAnomalyScore(oid);
+                        BigDecimal bd = new BigDecimal(Double.toString(anomalyScore));
+                        bd = bd.setScale(2, RoundingMode.HALF_UP);
+                        double roundedAnomalyScore = bd.doubleValue();
+                        Label anomalyScorePanel = new Label(componentId, roundedAnomalyScore + "%");
+                        anomalyScorePanel.setOutputMarkupId(true);
+                        cellItem.add(anomalyScorePanel);
+                    }
+
+                    @Override
+                    public boolean isSortable() {
+                        return false;
+                    }
+
+                };
+                columns.add(column);
+
+                column = new AbstractExportableColumn<>(
+                        createStringResource("RoleAnalysisOutlierTable.anomaly.reason")) {
+
+                    @Override
+                    public IModel<?> getDataModel(IModel<SelectableBean<RoleType>> iModel) {
+                        return Model.of("");
+                    }
+
+                    @Override
+                    public void populateItem(Item<ICellPopulator<SelectableBean<RoleType>>> cellItem,
+                            String componentId, IModel<SelectableBean<RoleType>> model) {
+                        SelectableBean<RoleType> object = model.getObject();
+                        RoleType role = object.getValue();
+                        String oid = role.getOid();
+
+                        DetectedAnomalyResult anomalyResult = anomalyObjectDto.getAnomalyResult(oid);
+                        Model<String> explainAnomaly = explainAnomaly(anomalyResult);
+                        cellItem.add(new Label(componentId, explainAnomaly));
+                    }
+
+                    @Override
+                    public String getCssClass() {
+                        return "";
+                    }
+
+                    @Override
+                    public boolean isSortable() {
+                        return false;
+                    }
+
+                    @Override
+                    public Component getHeader(String componentId) {
+                        return new LabelWithHelpPanel(componentId,
+                                createStringResource("RoleAnalysisOutlierTable.anomaly.reason")) {
+                            @Override
+                            protected IModel<String> getHelpModel() {
+                                return createStringResource("RoleAnalysisOutlierTable.anomaly.reason.help");
+                            }
+                        };
+                    }
+                };
+                columns.add(column);
+                return columns;
             }
         };
 
@@ -231,119 +298,20 @@ public class RoleAnalysisDetectedAnomalyTable extends BasePanel<String> {
 
             @Override
             public void onClick(AjaxRequestTarget target) {
-                onRefresh(target);
+                //onRefresh(target);
             }
         };
-        refreshIcon.add(AttributeAppender.append("class", "btn btn-default btn-sm"));
+        refreshIcon.add(AttributeModifier.append("class", "btn btn-default btn-sm"));
         return refreshIcon;
     }
 
-    private SelectableBeanObjectDataProvider<RoleType> createProvider() {
-
-        RoleAnalysisService roleAnalysisService = getPageBase().getRoleAnalysisService();
-        Task task = getPageBase().createSimpleTask(OP_PREPARE_OBJECTS);
-        OperationResult result = task.getResult();
-
-        List<RoleType> roles = new ArrayList<>();
-        if (category.equals(AnomalyTableCategory.OUTLIER_ACESS)) {
-            ObjectReferenceType targetObjectRef = outlierModel.getObject().getObjectRef();
-            PrismObject<UserType> userTypeObject = roleAnalysisService.getUserTypeObject(targetObjectRef.getOid(), task, result);
-            if (userTypeObject != null) {
-                UserType user = userTypeObject.asObjectable();
-                user.getAssignment().forEach(assignment -> {
-                    if (assignment.getTargetRef().getType().equals(RoleType.COMPLEX_TYPE)) {
-                        PrismObject<RoleType> rolePrismObject = roleAnalysisService.getRoleTypeObject(assignment.getTargetRef().getOid(), task, result);
-                        if (rolePrismObject != null) {
-                            roles.add(rolePrismObject.asObjectable());
-                        }
-                    }
-                });
-                user.getRoleMembershipRef().forEach(roleMembershipRef -> {
-                    if (roleMembershipRef.getType().equals(RoleType.COMPLEX_TYPE)) {
-                        PrismObject<RoleType> rolePrismObject = roleAnalysisService.getRoleTypeObject(roleMembershipRef.getOid(), task, result);
-                        if (rolePrismObject != null) {
-                            roles.add(rolePrismObject.asObjectable());
-                        }
-                    }
-                });
-            }
-        } else {
-            for (String oid : anomalyOidSet) {
-                PrismObject<RoleType> rolePrismObject = roleAnalysisService.getRoleTypeObject(oid, task, result);
-                if (rolePrismObject != null) {
-                    roles.add(rolePrismObject.asObjectable());
-                }
-            }
-        }
-        return new SelectableBeanObjectDataProvider<>(
-                RoleAnalysisDetectedAnomalyTable.this, Set.of()) {
-
-            @SuppressWarnings("rawtypes")
-            @Override
-            protected List<RoleType> searchObjects(Class type,
-                    ObjectQuery query,
-                    Collection collection,
-                    Task task,
-                    OperationResult result) {
-                Integer offset = query.getPaging().getOffset();
-                Integer maxSize = query.getPaging().getMaxSize();
-                return roles.subList(offset, offset + maxSize);
-            }
-
-            @Override
-            protected Integer countObjects(Class<RoleType> type,
-                    ObjectQuery query,
-                    Collection<SelectorOptions<GetOperationOptions>> currentOptions,
-                    Task task,
-                    OperationResult result) {
-                return roles.size();
-            }
-        };
-    }
-
-    @SuppressWarnings("unchecked")
-    private MainObjectListPanel<RoleType> getTable() {
-        return (MainObjectListPanel<RoleType>) get(ID_DATATABLE);
-    }
-
+    @Override
     public PageBase getPageBase() {
         return ((PageBase) getPage());
     }
 
-    protected void onRefresh(AjaxRequestTarget target) {
-
-    }
-
-    public IModel<RoleAnalysisOutlierType> getOutlierModel() {
-        return outlierModel;
-    }
-
-    public IModel<List<RoleAnalysisOutlierPartitionType>> getPartitionModel() {
-        return partitionModel;
-    }
-
-    public List<RoleAnalysisOutlierPartitionType> getPartitionModelObject() {
-        return partitionModel.getObject();
-    }
-
-    public RoleAnalysisOutlierType getOutlierModelObject() {
-        return outlierModel.getObject();
-    }
-
-    public RoleAnalysisOutlierPartitionType getPartitionSingleModelObject() {
-        return getPartitionModelObject().get(0);
-    }
-
-    public ListMultimap<String, DetectedAnomalyResult> getAnomalyResultMapModelObject() {
-        return anomalyResultMap.getObject();
-    }
-
-    public ListMultimap<String, RoleAnalysisOutlierPartitionType> getAnomalyPartitionMapModelObject() {
-        return anomalyPartitionMap.getObject();
-    }
-
-    @Contract(" -> new")
-    private @NotNull InlineMenuItem createViewDetailsMenu() {
+    @Contract("_ -> new")
+    private @NotNull InlineMenuItem createViewDetailsMenu(AnomalyObjectDto anomalyObjectDto) {
 
         return new ButtonInlineMenuItem(
                 createStringResource("RoleAnalysisDetectedAnomalyTable.inline.view.details.title")) {
@@ -368,65 +336,22 @@ public class RoleAnalysisDetectedAnomalyTable extends BasePanel<String> {
                 return new ColumnMenuAction<SelectableBean<RoleType>>() {
                     @Override
                     public void onClick(AjaxRequestTarget target) {
-                        if (category.equals(AnomalyTableCategory.OUTLIER_OVERVIEW)) {
-                            RoleAnalysisMultiplePartitionAnomalyResultTabPopup detailsPanel =
-                                    new RoleAnalysisMultiplePartitionAnomalyResultTabPopup(
-                                            ((PageBase) getPage()).getMainPopupBodyId(),
-                                    new LoadableDetachableModel<>() {
-                                        @Override
-                                        protected List<RoleAnalysisOutlierPartitionType> load() {
-                                            return getPartitionModelObject();
-                                        }
-                                    }
-                                    ,
+                        RoleType role = getRowModel().getObject().getValue();
+                        String oid = role.getOid();
 
-                                    new LoadableDetachableModel<>() {
-                                        @Override
-                                        protected DetectedAnomalyResult load() {
-                                            //TODO
-                                            return getAnomalyResultMapModelObject()
-                                                    .get(getRowModel().getObject().getValue().getOid()).get(0);
-                                        }
-                                    },
-                                    new LoadableDetachableModel<>() {
-                                        @Override
-                                        protected RoleAnalysisOutlierType load() {
-                                            return getOutlierModelObject();
-                                        }
-                                    }
-
-                            );
-                            ((PageBase) getPage()).showMainPopup(detailsPanel, target);
-                        } else {
-                            RoleAnalysisSinglePartitionAnomalyResultTabPopup detailsPanel =
-                                    new RoleAnalysisSinglePartitionAnomalyResultTabPopup(
-                                            ((PageBase) getPage()).getMainPopupBodyId(),
-                                    new LoadableDetachableModel<>() {
-                                        @Override
-                                        protected RoleAnalysisOutlierPartitionType load() {
-                                            return getPartitionSingleModelObject();
-                                        }
-                                    }
-                                    ,
-
-                                    new LoadableDetachableModel<>() {
-                                        @Override
-                                        protected DetectedAnomalyResult load() {
-                                            //TODO
-                                            return getAnomalyResultMapModelObject()
-                                                    .get(getRowModel().getObject().getValue().getOid()).get(0);
-                                        }
-                                    },
-                                    new LoadableDetachableModel<>() {
-                                        @Override
-                                        protected RoleAnalysisOutlierType load() {
-                                            return getOutlierModelObject();
-                                        }
-                                    }
-
-                            );
-                            ((PageBase) getPage()).showMainPopup(detailsPanel, target);
+                        AnomalyObjectDto.AnomalyPartitionMap anomalyResult = anomalyObjectDto.getAnomalyPartitionMap(oid);
+                        if (anomalyResult == null) {
+                            return;
                         }
+
+                        RoleAnalysisSinglePartitionAnomalyResultTabPopup detailsPanel =
+                                new RoleAnalysisSinglePartitionAnomalyResultTabPopup(
+                                        ((PageBase) getPage()).getMainPopupBodyId(),
+                                        Model.of(anomalyResult.associatedPartition()),
+                                        Model.of(anomalyResult.anomalyResult()),
+                                        Model.of(anomalyObjectDto.getOutlier()));
+                        ((PageBase) getPage()).showMainPopup(detailsPanel, target);
+
                     }
                 };
             }
@@ -436,15 +361,23 @@ public class RoleAnalysisDetectedAnomalyTable extends BasePanel<String> {
                 return false;
             }
         };
+
     }
 
-    private @NotNull InlineMenuItem createRecertifyInlineMenu() {
+    @Contract("_ -> new")
+    private @NotNull InlineMenuItem createViewDetailsPeerGroupMenu(AnomalyObjectDto anomalyObjectDto) {
 
         return new ButtonInlineMenuItem(
-                createStringResource("RoleAnalysisDetectedAnomalyTable.inline.recertify.title")) {
+                createStringResource("RoleAnalysisDetectedAnomalyTable.createViewDetailsPeerGroupMenu.title")) {
+
+            @Override
+            public boolean isHeaderMenuItem() {
+                return false;
+            }
+
             @Override
             public CompositedIconBuilder getIconCompositedBuilder() {
-                return getDefaultCompositedIconBuilder(GuiStyleConstants.CLASS_ICON_RECYCLE);
+                return getDefaultCompositedIconBuilder("mt-1 fa fa-qrcode");
             }
 
             @Override
@@ -456,38 +389,114 @@ public class RoleAnalysisDetectedAnomalyTable extends BasePanel<String> {
                 return new ColumnMenuAction<SelectableBean<RoleType>>() {
                     @Override
                     public void onClick(AjaxRequestTarget target) {
+                        SelectableBean<RoleType> object = getRowModel().getObject();
 
-                        //TODO
+                        RoleAnalysisExplanationTabPanelPopup components = new RoleAnalysisExplanationTabPanelPopup(
+                                getPageBase().getMainPopupBodyId(),
+                                Model.of(anomalyObjectDto),
+                                object);
+
+                        getPageBase().showMainPopup(components, target);
                     }
                 };
+            }
+
+            @Override
+            public IModel<Boolean> getVisible() {
+                return resolveButtonVisibilityByCategory(
+                        this, anomalyObjectDto, OutlierDetectionExplanationCategoryType.UNUSUAL_ACCESS);
+            }
+
+            @Override
+            public boolean isMenuHeader() {
+                return false;
             }
         };
     }
 
-    @Contract(" -> new")
-    private @NotNull InlineMenuItem createDeleteInlineMenu() {
-        return new ButtonInlineMenuItem(createStringResource("MainObjectListPanel.menu.delete")) {
+    @Contract("_ -> new")
+    private @NotNull InlineMenuItem createViewDetailsAccessAnalysisMenu(AnomalyObjectDto anomalyObjectDto) {
+
+        return new ButtonInlineMenuItem(
+                createStringResource("RoleAnalysisDetectedAnomalyTable.createViewDetailsAccessAnalysisMenu.title")) {
+
+            @Override
+            public boolean isHeaderMenuItem() {
+                return false;
+            }
+
             @Override
             public CompositedIconBuilder getIconCompositedBuilder() {
-                return getDefaultCompositedIconBuilder("fa fa-minus-circle");
+                return getDefaultCompositedIconBuilder("fa fa-tags");
+            }
+
+            @Override
+            public boolean isLabelVisible() {
+                return true;
             }
 
             public InlineMenuItemAction initAction() {
-                return new ColumnMenuAction<SelectableBean<RoleAnalysisOutlierType>>() {
+                //TODO check models think about the logic
+                return new ColumnMenuAction<SelectableBean<RoleType>>() {
                     @Override
                     public void onClick(AjaxRequestTarget target) {
+                        SelectableBean<RoleType> object = getRowModel().getObject();
 
-                        //TODO
+                        RoleAnalysisExplanationTabPanelPopup components = new RoleAnalysisExplanationTabPanelPopup(
+                                getPageBase().getMainPopupBodyId(),
+                                Model.of(anomalyObjectDto),
+                                object) {
+                            @Override
+                            public TabType defaultTab() {
+                                return TabType.VIEW_DETAILS_ACCESS_ANALYSIS;
+                            }
+                        };
+
+                        getPageBase().showMainPopup(components, target);
+
                     }
                 };
             }
 
             @Override
-            public IModel<String> getConfirmationMessageModel() {
-                String actionName = createStringResource("MainObjectListPanel.message.deleteAction").getString();
-                return getTable().getConfirmationMessageModel((ColumnMenuAction<?>) getAction(), actionName);
+            public IModel<Boolean> getVisible() {
+                return resolveButtonVisibilityByCategory(
+                        this, anomalyObjectDto, OutlierDetectionExplanationCategoryType.IRREGULAR_ATTRIBUTES);
+            }
+
+            @Override
+            public boolean isMenuHeader() {
+                return false;
             }
         };
     }
 
+    @SuppressWarnings("unchecked")
+    public Model<Boolean> resolveButtonVisibilityByCategory(
+            @NotNull ButtonInlineMenuItem buttonInlineMenuItem,
+            @NotNull AnomalyObjectDto anomalyObjectDto,
+            @NotNull OutlierDetectionExplanationCategoryType requiredCategory) {
+        IModel<SelectableBean<RoleType>> rowModel = ((ColumnMenuAction<SelectableBean<RoleType>>) buttonInlineMenuItem.getAction()).getRowModel();
+        if (rowModel != null && rowModel.getObject() != null && rowModel.getObject().getValue() != null) {
+            RoleType role = rowModel.getObject().getValue();
+            List<OutlierDetectionExplanationType> explanation = anomalyObjectDto.getExplanation(role.getOid());
+            if (explanation == null || explanation.isEmpty()) {
+                return Model.of(false);
+            }
+
+            for (OutlierDetectionExplanationType item : explanation) {
+                List<OutlierDetectionExplanationCategoryType> itemCategory = item.getCategory();
+                boolean equals = itemCategory.contains(requiredCategory);
+                if (equals) {
+                    return Model.of(true);
+                }
+            }
+
+        }
+        return Model.of(false);
+    }
+
+    public String getAdditionalBoxCssClasses() {
+        return " m-0 elevation-0";
+    }
 }

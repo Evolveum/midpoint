@@ -80,7 +80,7 @@ public class ExpandedMiningStructure extends BasePrepareAction {
         //User as a key, roles as a value
         ListMultimap<String, String> expandUsersMap = roleAnalysisService.assignmentRoleMemberSearch(
                 userSearchFilter, roleSearchFilter, assignmentSearchFilter,
-                roleMembers, false, task, result);
+                roleMembers, false, task, result, cluster);
 
         //role key, users value
         ListMultimap<String, String> expandRolesMap = ArrayListMultimap.create();
@@ -128,7 +128,7 @@ public class ExpandedMiningStructure extends BasePrepareAction {
         //User as a key, roles as a value
         ListMultimap<String, String> expandUsersMap = roleAnalysisService.assignmentUserAccessSearch(
                 userSearchFilter, roleSearchFilter, assignmentSearchFilter,
-                userMember, true, task, result);
+                userMember, true, task, result, cluster);
 
         //role key, users value
         ListMultimap<String, String> expandRolesMap = ArrayListMultimap.create();
@@ -175,7 +175,7 @@ public class ExpandedMiningStructure extends BasePrepareAction {
         //User as a key, roles as a value
         ListMultimap<String, String> expandedUsersMap = roleAnalysisService.assignmentRoleMemberSearch(
                 userSearchFilter, roleSearchFilter, assignmentSearchFilter,
-                rolesMembers, false, task, result);
+                rolesMembers, false, task, result, cluster);
 
         Set<String> allRolesInMiningStructure = new HashSet<>();
         for (String userOid : expandedUsersMap.keySet()) {
@@ -215,7 +215,7 @@ public class ExpandedMiningStructure extends BasePrepareAction {
         //Roles as a key, users as a value
         ListMultimap<String, String> expandeRolesMap = roleAnalysisService.assignmentUserAccessSearch(
                 userSearchFilter, roleSearchFilter, assignmentSearchFilter,
-                userMember, false, task, result);
+                userMember, false, task, result, cluster);
 
         Set<String> allUsersInMiningStructure = new HashSet<>();
         for (String roleOid : expandeRolesMap.keySet()) {

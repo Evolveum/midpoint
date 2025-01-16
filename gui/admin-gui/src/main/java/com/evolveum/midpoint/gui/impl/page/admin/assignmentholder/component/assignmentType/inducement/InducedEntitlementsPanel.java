@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Evolveum and contributors
+ * Copyright (C) 2021 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -36,6 +36,7 @@ import com.evolveum.midpoint.web.session.SessionStorage;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.web.util.validation.MidpointFormValidator;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import java.util.Collection;
 
 @PanelType(name = "inducedEntitlements")
 public class InducedEntitlementsPanel<AR extends AbstractRoleType> extends AbstractInducementPanel<AR> {
@@ -62,10 +63,15 @@ public class InducedEntitlementsPanel<AR extends AbstractRoleType> extends Abstr
 
         if (getPageBase() instanceof AbstractPageObjectDetails) {
             AbstractPageObjectDetails page = (AbstractPageObjectDetails) getPageBase();
-            if (!page.getFormValidatorRegistry().getValidators().contains(validator)) {
+            if (validatorNotPresentInRegistry(page)) {
                 page.getFormValidatorRegistry().registerValidator(validator);
             }
         }
+    }
+
+    private boolean validatorNotPresentInRegistry(AbstractPageObjectDetails page) {
+        Collection<MidpointFormValidator> validators = page.getFormValidatorRegistry().getValidators();
+        return validators != null && validators.stream().noneMatch(v -> v instanceof InducedEntitlementsValidator);
     }
 
     @Override

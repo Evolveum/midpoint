@@ -1,0 +1,34 @@
+<!--
+  ~ Copyright (C) 2010-2024 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<!DOCTYPE html>
+<html xmlns:wicket="http://wicket.apache.org">
+<wicket:panel>
+
+    <div class="row">
+        <div class="col-md-12">
+            <div wicket:id="container">
+
+                <div class="col-12 mb-3 p-0" wicket:id="distributionRole"></div>
+                <div class="col-12 mb-3 p-0" wicket:id="distributionUser"></div>
+
+                <div class="pb-2 col-12">
+                    <div class="input-group mb-1">
+                        <div class="input-group-prepend">
+                            <div wicket:id="filter" class="input-group-text">Filter:</div>
+                        </div>
+                        <select wicket:id="selector" id="inlineFormInputGroup" class="form-control flex-grow-1"></select>
+                    </div>
+
+                </div>
+                <div wicket:id="panelId"></div>
+            </div>
+        </div>
+    </div>
+
+</wicket:panel>
+</html>

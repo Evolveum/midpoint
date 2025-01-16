@@ -138,7 +138,7 @@ public class RoleAnalysisTableOpPanelPatternItem extends BasePanel<DetectedPatte
         if (identifier == null || identifier.isEmpty()) {
             identifier = "N/A";
         }
-        identifier = identifier.replace("(outlier)", "");
+
         identifier = identifier.trim();
         if (identifier.length() > 2) {
             identifier = String.valueOf(identifier.charAt(0)) + identifier.charAt(identifier.length() - 1);
