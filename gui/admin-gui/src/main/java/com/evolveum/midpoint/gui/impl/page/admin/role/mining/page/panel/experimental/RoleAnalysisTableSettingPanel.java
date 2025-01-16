@@ -7,22 +7,11 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.experimental;
 
-import static com.evolveum.midpoint.common.mining.utils.RoleAnalysisAttributeDefUtils.*;
-
 import java.io.Serial;
-import java.util.*;
-
-import com.evolveum.midpoint.common.mining.utils.values.RoleAnalysisChunkAction;
-
-import com.evolveum.midpoint.gui.api.model.LoadableModel;
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.session.ObjectSimpleAttributeSelectionProvider;
-import com.evolveum.midpoint.prism.ItemDefinition;
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismObjectDefinition;
-import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
-import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.EnumSet;
 
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -33,22 +22,30 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.LoadableDetachableModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.StringResourceModel;
-import org.apache.xerces.xni.QName;
 import org.jetbrains.annotations.NotNull;
+import org.wicketstuff.select2.ChoiceProvider;
+import org.wicketstuff.select2.Select2MultiChoice;
 
 import com.evolveum.midpoint.common.mining.objects.analysis.RoleAnalysisAttributeDef;
 import com.evolveum.midpoint.common.mining.objects.chunk.DisplayValueOption;
 import com.evolveum.midpoint.common.mining.objects.handler.RoleAnalysisProgressIncrement;
+import com.evolveum.midpoint.common.mining.utils.values.RoleAnalysisChunkAction;
 import com.evolveum.midpoint.common.mining.utils.values.RoleAnalysisChunkMode;
 import com.evolveum.midpoint.common.mining.utils.values.RoleAnalysisSortMode;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.component.LabelWithHelpPanel;
+import com.evolveum.midpoint.gui.api.model.LoadableModel;
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.session.ObjectSimpleAttributeSelectionProvider;
+import com.evolveum.midpoint.prism.ItemDefinition;
+import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.PrismObjectDefinition;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.dialog.Popupable;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisProcessModeType;
-
-import org.wicketstuff.select2.ChoiceProvider;
-import org.wicketstuff.select2.Select2MultiChoice;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 
 public class RoleAnalysisTableSettingPanel extends BasePanel<String> implements Popupable {
 
@@ -73,23 +70,9 @@ public class RoleAnalysisTableSettingPanel extends BasePanel<String> implements 
     boolean isUserExpanded = false;
     boolean isRoleExpanded = false;
 
-    LoadableDetachableModel<RoleAnalysisAttributeDef> userAnalysisAttributeDef = new LoadableDetachableModel<>() {
-        @Serial private static final long serialVersionUID = 1L;
+    LoadableDetachableModel<RoleAnalysisAttributeDef> userAnalysisAttributeDef;
 
-        @Override
-        protected @NotNull RoleAnalysisAttributeDef load() {
-            return getObjectNameDef();
-        }
-    };
-
-    LoadableDetachableModel<RoleAnalysisAttributeDef> roleAnalysisAttributeDef = new LoadableDetachableModel<>() {
-        @Serial private static final long serialVersionUID = 1L;
-
-        @Override
-        protected @NotNull RoleAnalysisAttributeDef load() {
-            return getObjectNameDef();
-        }
-    };
+    LoadableDetachableModel<RoleAnalysisAttributeDef> roleAnalysisAttributeDef;
 
     public RoleAnalysisTableSettingPanel(
             @NotNull String id,
@@ -98,6 +81,7 @@ public class RoleAnalysisTableSettingPanel extends BasePanel<String> implements 
         super(id, messageModel);
         this.option = option;
 
+        //TODO models initialization is not good
         if (option.getObject() == null) {
             option.setObject(new DisplayValueOption());
         } else {
@@ -282,7 +266,7 @@ public class RoleAnalysisTableSettingPanel extends BasePanel<String> implements 
             ItemPath path = pathType.getItemPath();
             ItemDefinition<?> itemDefinition = userDefinition.findItemDefinition(path);
 
-            userAnalysisAttributeDef.setObject(new RoleAnalysisAttributeDef(path, itemDefinition));
+            userAnalysisAttributeDef.setObject(new RoleAnalysisAttributeDef(path, itemDefinition, UserType.class));
             option.getObject().setUserAnalysisUserDef(userAnalysisAttributeDef.getObject());
         }
     }
@@ -298,7 +282,7 @@ public class RoleAnalysisTableSettingPanel extends BasePanel<String> implements 
             ItemPath path = pathType.getItemPath();
             ItemDefinition<?> itemDefinition = roleDefinition.findItemDefinition(path);
 
-            roleAnalysisAttributeDef.setObject(new RoleAnalysisAttributeDef(path, itemDefinition));
+            roleAnalysisAttributeDef.setObject(new RoleAnalysisAttributeDef(path, itemDefinition, RoleType.class));
             option.getObject().setRoleAnalysisRoleDef(roleAnalysisAttributeDef.getObject());
         }
     }
