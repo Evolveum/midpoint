@@ -732,7 +732,7 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
         Collection<SelectorOptions<GetOperationOptions>> getOptions =
                 rootMapping.updateGetOptions(
                         RepoModifyOptions.isForceReindex(options) ? GET_FOR_REINDEX_OPTIONS : GET_FOR_UPDATE_OPTIONS,
-                        modifications);
+                        modifications, RepoModifyOptions.isForceReindex(options));
 
         return prepareUpdateContext(jdbcSession, schemaType, oid, getOptions, options);
     }
