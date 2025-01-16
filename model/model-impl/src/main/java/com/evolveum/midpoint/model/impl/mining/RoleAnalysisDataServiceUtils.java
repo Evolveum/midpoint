@@ -68,6 +68,11 @@ public class RoleAnalysisDataServiceUtils {
 
         RoleAnalysisSessionType sessionObject = sessionPrismObject.asObjectable();
         RoleAnalysisIdentifiedCharacteristicsType identifiedCharacteristics = sessionObject.getIdentifiedCharacteristics();
+
+        if(identifiedCharacteristics == null) {
+            return new HashSet<>();
+        }
+
         Set<String> unwantedAccess = new HashSet<>();
 
         RoleAnalysisExcludeType excludeObject = identifiedCharacteristics.getExclude();
@@ -121,6 +126,11 @@ public class RoleAnalysisDataServiceUtils {
         }
 
         RoleAnalysisIdentifiedCharacteristicsType identifiedCharacteristics = sessionObject.getIdentifiedCharacteristics();
+
+        if(identifiedCharacteristics == null) {
+            return new HashSet<>();
+        }
+
         Set<String> unwantedUsers = new HashSet<>();
 
         RoleAnalysisExcludeType excludeObject = identifiedCharacteristics.getExclude();

@@ -4205,6 +4205,10 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
         RoleAnalysisSessionType session = sessionObject.asObjectable();
         RoleAnalysisIdentifiedCharacteristicsType identifiedCharacteristics = session.getIdentifiedCharacteristics();
 
+        if(identifiedCharacteristics == null) {
+            return null;
+        }
+
         if (targetObjectType.equals(UserType.COMPLEX_TYPE)) {
             RoleAnalysisIdentifiedCharacteristicsItemsType users = identifiedCharacteristics.getUsers();
             if (users == null) {
