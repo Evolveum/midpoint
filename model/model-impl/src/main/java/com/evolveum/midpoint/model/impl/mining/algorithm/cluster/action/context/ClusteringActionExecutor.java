@@ -91,7 +91,6 @@ public class ClusteringActionExecutor extends BaseAction {
 
         roleAnalysisService.deleteSessionClustersMembers(prismSession.getOid(), task, result, false);
 
-        RoleAnalysisSessionType session = prismSession.asObjectable();
         this.clusterable = new ClusteringBehavioralResolver();
         List<PrismObject<RoleAnalysisClusterType>> clusterObjects = clusterable.executeClustering(
                 roleAnalysisService, modelService, session, handler, attributeAnalysisCache, objectCategorisationCache, task, result);
