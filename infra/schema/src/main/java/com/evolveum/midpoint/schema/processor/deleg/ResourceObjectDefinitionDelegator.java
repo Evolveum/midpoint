@@ -49,6 +49,18 @@ public interface ResourceObjectDefinitionDelegator extends ResourceObjectDefinit
     }
 
     @Override
+    @Nullable
+    default ShadowAttributeDefinition<?, ?, ?, ?> findAttributeDefinition(QName name) {
+        return delegate().findAttributeDefinition(name);
+    }
+
+    @Override
+    @Nullable
+    default ShadowAttributeDefinition<?, ?, ?, ?> findAttributeDefinition(QName name, boolean caseInsensitive) {
+        return delegate().findAttributeDefinition(name, caseInsensitive);
+    }
+
+    @Override
     default @NotNull Collection<? extends ShadowSimpleAttributeDefinition<?>> getPrimaryIdentifiers() {
         return delegate().getPrimaryIdentifiers();
     }

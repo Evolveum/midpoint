@@ -445,6 +445,22 @@ public class CompositeObjectDefinitionImpl
     }
 
     @Override
+    public @Nullable ShadowAttributeDefinition<?, ?, ?, ?> findAttributeDefinition(QName name, boolean caseInsensitive) {
+        return (ShadowAttributeDefinition<?, ?, ?, ?>) findLocalItemDefinition(name, ItemDefinition.class, caseInsensitive);
+    }
+
+    @Override
+    public <ID extends ItemDefinition<?>> ID findLocalItemDefinition(
+            @NotNull QName name, @NotNull Class<ID> clazz, boolean caseInsensitive) {
+        if (isMutable() || caseInsensitive || QNameUtil.isUnqualified(name)) {
+            return findLocalItemDefinitionByIteration(name, clazz, caseInsensitive);
+        } else {
+            return findInDefinitions(
+                    def -> def.findLocalItemDefinition(name, clazz, false));
+        }
+    }
+
+    @Override
     public Class<?> getTypeClass() {
         return ShadowAttributesType.class;
     }

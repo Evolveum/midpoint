@@ -112,8 +112,7 @@ class ShadowedObjectConstruction {
     }
 
     private @NotNull ExistingResourceObjectShadow construct(OperationResult result)
-            throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException,
-            SecurityViolationException, GenericConnectorException, ExpressionEvaluationException, EncryptionException {
+            throws SchemaException, GenericConnectorException {
 
         // The naming convention:
         //  - "copy" means we take the information from the resource object.
@@ -266,9 +265,7 @@ class ShadowedObjectConstruction {
                 authoritativeDefinition.getPrismObjectDefinition());
     }
 
-    private void copyAndShadowizeAttributes(OperationResult result)
-            throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
-            ConfigurationException, ObjectNotFoundException, EncryptionException {
+    private void copyAndShadowizeAttributes(OperationResult result) throws SchemaException {
 
         resultingShadowedBean.asPrismObject().removeContainer(ShadowType.F_ATTRIBUTES);
 
