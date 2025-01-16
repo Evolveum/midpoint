@@ -568,19 +568,30 @@ public class OutliersDetectionUtil {
         frequencyType.setValueRatio(roleMemberCount);
         frequencyType.setEntiretyCount(numberOfAllUsersInRepo);
 
-        outlierResult.getStatistics().setMemberCoverageConfidence(frequencyType);
+        outlierResult.getStatistics().setMemberCoverageConfidenceStat(frequencyType);
         return memberPercentageRepo;
     }
 
     public static double calculateOutlierPropertyCoverageConfidence(@NotNull DetectedAnomalyResult outlierResult) {
         DetectedAnomalyStatistics statistics = outlierResult.getStatistics();
-        if (statistics == null || statistics.getGroupFrequency() == null) {
+        if (statistics == null) {
             return 0;
         }
-        FrequencyType groupFrequency = statistics.getGroupFrequency();
-        double occurInCluster = groupFrequency.getPercentageRatio();
+
+        double occurInCluster = getFrequencyStat(statistics); //use getGroupFrequency().getPercentageRatio()
         outlierResult.getStatistics().setOutlierCoverageConfidence(occurInCluster);
         return occurInCluster;
+    }
+
+    @Deprecated
+    private static double getFrequencyStat(@NotNull DetectedAnomalyStatistics statistics){
+        FrequencyType groupFrequency = statistics.getGroupFrequency();
+        if(groupFrequency == null || groupFrequency.getPercentageRatio() == null){
+            Double frequency = statistics.getFrequency();
+            return frequency != null ? frequency : 0;
+        }else{
+            return statistics.getGroupFrequency().getPercentageRatio();
+        }
     }
 
     public static double calculateOutlierRoleAssignmentFrequencyConfidence(@NotNull AttributeAnalysisCache analysisCache, @NotNull PrismObject<UserType> prismUser,

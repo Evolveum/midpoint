@@ -86,7 +86,7 @@ public class AnomalyExplanationUtil {
             return new OutlierExplanationResolver.RoleStats(0, 0);
         }
 
-        FrequencyType frequency = isOverall ? statistics.getMemberCoverageConfidence() : statistics.getGroupFrequency();
+        FrequencyType frequency = isOverall ? statistics.getMemberCoverageConfidenceStat() : statistics.getGroupFrequency();
         if (frequency == null) {
             return new OutlierExplanationResolver.RoleStats(0, 0);
         }
