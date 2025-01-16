@@ -426,6 +426,12 @@ public class ShadowAssociationDefinitionImpl
     }
 
     @Override
+    public <ID extends ItemDefinition<?>> ID findLocalItemDefinition(
+            @NotNull QName name, @NotNull Class<ID> clazz, boolean caseInsensitive) {
+        return complexTypeDefinition.findLocalItemDefinition(name, clazz, caseInsensitive);
+    }
+
+    @Override
     public @NotNull Collection<MappingType> getOutboundMappingBeans() {
         if (legacyInformation != null) {
             return MiscUtil.asListExceptForNull(legacyInformation.outboundMappingBean());
