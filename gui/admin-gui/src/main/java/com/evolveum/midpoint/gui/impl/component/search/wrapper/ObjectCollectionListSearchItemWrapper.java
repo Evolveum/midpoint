@@ -7,16 +7,20 @@
 package com.evolveum.midpoint.gui.impl.component.search.wrapper;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.util.LocalizationUtil;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.component.search.panel.ObjectCollectionListSearchItemPanel;
 import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
-import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.util.DisplayableValue;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.gui.impl.component.search.SearchValue;
+
+import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.LoadableDetachableModel;
+import org.apache.wicket.model.Model;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.HashMap;
@@ -62,18 +66,23 @@ public class ObjectCollectionListSearchItemWrapper extends FilterableSearchItemW
     }
 
     @Override
-    public String getName() {
-        return "ObjectTypeGuiDescriptor.objectCollection";
+    public IModel<String> getName() {
+        return new LoadableDetachableModel<>() {
+            @Override
+            protected String load() {
+                return LocalizationUtil.translate("ObjectTypeGuiDescriptor.objectCollection");
+            }
+        };
     }
 
     @Override
-    public String getTitle() {
-        return null;
+    public IModel<String> getTitle() {
+        return Model.of();
     }
 
     @Override
-    public String getHelp() {
-        return null;
+    public IModel<String> getHelp() {
+        return Model.of();
     }
 
 
