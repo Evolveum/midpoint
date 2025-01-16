@@ -17,6 +17,8 @@ import com.evolveum.midpoint.schema.processor.ResourceAssociationDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
 import com.evolveum.midpoint.util.DisplayableValue;
 
+import org.apache.wicket.model.IModel;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -51,8 +53,8 @@ public class AssociationSearchItemWrapper extends ChoicesSearchItemWrapper<ItemN
     }
 
     @Override
-    public String getName() {
-        return PageBase.createStringResourceStatic("ConstructionType.association").getString();
+    public IModel<String> getName() {
+        return PageBase.createStringResourceStatic("ConstructionType.association");
     }
 
     @Override

@@ -39,6 +39,8 @@ import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnBlurAjaxFormUpdatingBehaviour;
 import com.evolveum.midpoint.web.util.InfoTooltipBehavior;
 
+import org.jetbrains.annotations.NotNull;
+
 public abstract class SingleSearchItemPanel<S extends AbstractSearchItemWrapper> extends AbstractSearchItemPanel<S> {
 
     private static final long serialVersionUID = 1L;
@@ -155,7 +157,7 @@ public abstract class SingleSearchItemPanel<S extends AbstractSearchItemWrapper>
         if (getModelObject() == null) {
             return () -> "";
         }
-        return Model.of(getModelObject().getHelp());
+        return getModelObject().getHelp();
     }
 
     protected abstract Component initSearchItemField(String id);
@@ -177,14 +179,15 @@ public abstract class SingleSearchItemPanel<S extends AbstractSearchItemWrapper>
         if (getModelObject() == null) {
             return () -> "";
         }
-        return StringUtils.isNotEmpty(getModelObject().getName()) ? createStringResource(getModelObject().getName()) : Model.of("");
+        @NotNull IModel<String> nameModel = getModelObject().getName();
+        return StringUtils.isNotEmpty(nameModel.getObject()) ? nameModel : Model.of("");
     }
 
     private IModel<String> createTitleModel() {
         if (getModelObject() == null) {
             return () -> "";
         }
-        return Model.of(getModelObject().getTitle());
+        return getModelObject().getTitle();
     }
 
     protected void searchPerformed(AjaxRequestTarget target) {

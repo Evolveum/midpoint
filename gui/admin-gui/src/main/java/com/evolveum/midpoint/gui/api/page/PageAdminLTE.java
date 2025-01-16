@@ -127,6 +127,8 @@ import com.evolveum.midpoint.wf.api.ApprovalsManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
+import org.springframework.beans.factory.annotation.Autowired;
+
 /**
  * Created by Viliam Repan (lazyman).
  */
@@ -1051,5 +1053,8 @@ public abstract class PageAdminLTE extends WebPage implements ModelServiceLocato
     public SessionStorage getSessionStorage() {
         MidPointAuthWebSession session = (MidPointAuthWebSession) getSession();
         return session.getSessionStorage();
+    }
+
+    public void changeLocal(AjaxRequestTarget target) {
     }
 }

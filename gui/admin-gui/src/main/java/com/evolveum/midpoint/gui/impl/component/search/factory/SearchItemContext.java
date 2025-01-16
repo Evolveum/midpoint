@@ -10,7 +10,6 @@ package com.evolveum.midpoint.gui.impl.component.search.factory;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import javax.xml.namespace.QName;
@@ -21,6 +20,8 @@ import com.evolveum.midpoint.prism.path.PathKeyedMap;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.LoadableDetachableModel;
 import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
@@ -39,10 +40,6 @@ import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 
 public class SearchItemContext implements Serializable {
 
-
-//    PrismContainerDefinition<? extends Containerable> containerDefinition;
-
-    private SearchContext additionalSearchContext;
     private SearchItemType item;
 
     @Nullable private ItemDefinition<?> itemDef;
@@ -52,6 +49,11 @@ public class SearchItemContext implements Serializable {
     @Nullable private ItemPath path;
 
     private Class<?> containerType;
+
+    private List<DisplayableValue<String>> availableEventMarks;
+    private String selectedEventMark;
+
+    private boolean isReportCollectionSearch = false;
 
     public SearchItemContext(
             Class<?> containerType,
@@ -75,7 +77,12 @@ public class SearchItemContext implements Serializable {
         this.availableValues = getSearchItemAvailableValues(item, itemDef, modelServiceLocator);
         LookupTableType lookupTable = getSearchItemLookupTable(itemDef, modelServiceLocator);
         this.lookupTableOid = lookupTable == null ? null : lookupTable.getOid();
-        this.additionalSearchContext = additionalSearchContext;
+
+        if (additionalSearchContext != null) {
+            availableEventMarks = additionalSearchContext.getAvailableEventMarks();
+            selectedEventMark = additionalSearchContext.getSelectedEventMark();
+            isReportCollectionSearch = additionalSearchContext.isReportCollectionSearch();
+        }
     }
 
     private List<DisplayableValue<?>> getSearchItemAvailableValues(SearchItemType searchItem, ItemDefinition<?> def,
@@ -173,35 +180,45 @@ public class SearchItemContext implements Serializable {
         return false;
     }
 
-    public String getDisplayName() {
-        String name = WebComponentUtil.getTranslatedPolyString(GuiDisplayTypeUtil.getLabel(item.getDisplay()));
-        if (StringUtils.isNotEmpty(name)) {
-            return name;
-        }
-        name = WebComponentUtil.getItemDefinitionDisplayNameOrName(itemDef);
-        if (StringUtils.isNotEmpty(name)) {
-            return name;
-        }
-        return hasParameter() ? item.getParameter().getName() : "";
+    public IModel<String> getDisplayName() {
+        return new LoadableDetachableModel<>() {
+            @Override
+            protected String load() {
+                String name = WebComponentUtil.getTranslatedPolyString(GuiDisplayTypeUtil.getLabel(item.getDisplay()));
+                if (StringUtils.isNotEmpty(name)) {
+                    return name;
+                }
+                name = WebComponentUtil.getItemDefinitionDisplayNameOrName(itemDef);
+                if (StringUtils.isNotEmpty(name)) {
+                    return name;
+                }
+                return hasParameter() ? item.getParameter().getName() : "";
+            }
+        };
     }
 
-    public String getHelp() {
-        String help = GuiDisplayTypeUtil.getHelp(item.getDisplay());
-        if (StringUtils.isNotEmpty(help)) {
-            return help;
-        }
-        if (itemDef !=null) {
-            help = WebPrismUtil.getHelpText(itemDef, containerType);
-            if (StringUtils.isNotBlank(help)) {
-                Pattern pattern = Pattern.compile("<.+?>");
-                Matcher m = pattern.matcher(help);
-                help = m.replaceAll("");
+    public IModel<String> getHelp() {
+        return new LoadableDetachableModel<>() {
+            @Override
+            protected String load() {
+                String help = GuiDisplayTypeUtil.getHelp(item.getDisplay());
+                if (StringUtils.isNotEmpty(help)) {
+                    return help;
+                }
+                if (itemDef != null) {
+                    help = WebPrismUtil.getHelpText(itemDef, containerType);
+                    if (StringUtils.isNotBlank(help)) {
+                        Pattern pattern = Pattern.compile("<.+?>");
+                        Matcher m = pattern.matcher(help);
+                        help = m.replaceAll("");
+                    }
+                    if (StringUtils.isNotEmpty(help)) {
+                        return help;
+                    }
+                }
+                return hasParameter() ? GuiDisplayTypeUtil.getHelp(item.getParameter().getDisplay()) : "";
             }
-            if (StringUtils.isNotEmpty(help)) {
-                return help;
-            }
-        }
-        return hasParameter() ? GuiDisplayTypeUtil.getHelp(item.getParameter().getDisplay()) : "";
+        };
     }
 
     public String getParameterName() {
@@ -228,14 +245,25 @@ public class SearchItemContext implements Serializable {
         return containerType;
     }
 
-    public SearchContext getAdditionalSearchContext() {
-        return additionalSearchContext;
-    }
-
     public QName getParameterTargetType() {
         if (hasParameter()) {
             return item.getParameter().getTargetType();
         }
         return null;
+    }
+
+    public List<DisplayableValue<String>> getAvailableEventMarks() {
+        if (availableEventMarks == null) {
+            availableEventMarks = new ArrayList<>();
+        }
+        return availableEventMarks;
+    }
+
+    public String getSelectedEventMark() {
+        return selectedEventMark;
+    }
+
+    public boolean isReportCollectionSearch() {
+        return isReportCollectionSearch;
     }
 }

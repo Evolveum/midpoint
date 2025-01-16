@@ -98,13 +98,13 @@ public class BasicSearchPanel extends BasePanel<BasicQueryWrapper> {
                     }
 
                     @Override
-                    protected String getItemName(FilterableSearchItemWrapper item) {
-                        return item.getName();
+                    protected String getItemName(FilterableSearchItemWrapper<?> item) {
+                        return item.getName().getObject();
                     }
 
                     @Override
-                    protected String getItemHelp(FilterableSearchItemWrapper item) {
-                        return item.getHelp();
+                    protected String getItemHelp(FilterableSearchItemWrapper<?> item) {
+                        return item.getHelp().getObject();
                     }
 
                     @Override

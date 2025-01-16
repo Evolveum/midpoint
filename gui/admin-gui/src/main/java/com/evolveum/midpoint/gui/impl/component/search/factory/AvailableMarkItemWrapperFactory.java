@@ -23,12 +23,10 @@ public class AvailableMarkItemWrapperFactory extends AbstractSearchItemWrapperFa
 
     @Override
     protected AvailableMarkSearchItemWrapper createSearchWrapper(SearchItemContext ctx) {
-        SearchContext additionalSearchContext = ctx.getAdditionalSearchContext();
-        List<DisplayableValue<String>> availableEventMarks = additionalSearchContext != null ?
-                additionalSearchContext.getAvailableEventMarks() : new ArrayList<>();
+        List<DisplayableValue<String>> availableEventMarks = ctx.getAvailableEventMarks();
 
         DisplayableValue<String> selected = availableEventMarks.stream()
-                .filter(d -> Objects.equals(d.getValue(), additionalSearchContext.getSelectedEventMark()))
+                .filter(d -> Objects.equals(d.getValue(), ctx.getSelectedEventMark()))
                 .findFirst().orElse(null);
 
         AvailableMarkSearchItemWrapper wrapper = new AvailableMarkSearchItemWrapper(availableEventMarks);

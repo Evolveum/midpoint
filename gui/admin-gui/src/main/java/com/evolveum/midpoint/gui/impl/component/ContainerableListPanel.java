@@ -661,7 +661,15 @@ public abstract class ContainerableListPanel<C extends Serializable, PO extends 
         DisplayType displayType = customColumn.getDisplay();
         PolyStringType label = displayType != null ? displayType.getLabel() : null;
         if (label != null) {
-            return createStringResource(LocalizationUtil.translatePolyString(label));
+            if (label.getTranslation() == null || StringUtils.isEmpty(label.getTranslation().getKey())) {
+                return createStringResource(LocalizationUtil.translatePolyString(label));
+            }
+            return new LoadableDetachableModel<>() {
+                @Override
+                protected String load() {
+                    return LocalizationUtil.translatePolyString(label);
+                }
+            };
         }
 
         return createStringResource(getItemDisplayName(customColumn));

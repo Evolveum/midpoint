@@ -7,6 +7,7 @@
 package com.evolveum.midpoint.gui.impl.component.search.wrapper;
 
 import com.evolveum.midpoint.gui.api.util.GuiDisplayTypeUtil;
+import com.evolveum.midpoint.gui.api.util.LocalizationUtil;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.component.search.panel.TenantSearchItemPanel;
 import com.evolveum.midpoint.prism.PrismContext;
@@ -17,6 +18,8 @@ import com.evolveum.midpoint.gui.impl.component.search.SearchValue;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.LoadableDetachableModel;
 
 public class TenantSearchItemWrapper extends AbstractSearchItemWrapper<ObjectReferenceType> {
 
@@ -40,30 +43,45 @@ public class TenantSearchItemWrapper extends AbstractSearchItemWrapper<ObjectRef
     }
 
     @Override
-    public String getName() {
-        var display = tenantConfig == null ? null : tenantConfig.getDisplay();
-        var name = GuiDisplayTypeUtil.getTranslatedLabel(display);
-        return StringUtils.isEmpty(name) ? "abstractRoleMemberPanel.tenant" : name;
+    public IModel<String> getName() {
+        return new LoadableDetachableModel<>() {
+            @Override
+            protected String load() {
+                var display = tenantConfig == null ? null : tenantConfig.getDisplay();
+                var name = GuiDisplayTypeUtil.getTranslatedLabel(display);
+                return StringUtils.isEmpty(name) ? LocalizationUtil.translate("abstractRoleMemberPanel.tenant") : name;
+            }
+        };
     }
 
 
     @Override
-    public String getHelp() {
-        String help = tenantConfig.getDisplay() != null ? WebComponentUtil.getTranslatedPolyString(tenantConfig.getDisplay().getHelp()) : null;
-        if (help != null) {
-            return help;
-        }
-        help = getTenantDefinition().getHelp();
-        if (StringUtils.isNotEmpty(help)) {
-            return help;
-        }
-        return getTenantDefinition().getDocumentation();
+    public IModel<String> getHelp() {
+        return new LoadableDetachableModel<>() {
+            @Override
+            protected String load() {
+                String help = tenantConfig.getDisplay() != null ? WebComponentUtil.getTranslatedPolyString(tenantConfig.getDisplay().getHelp()) : null;
+                if (help != null) {
+                    return help;
+                }
+                help = getTenantDefinition().getHelp();
+                if (StringUtils.isNotEmpty(help)) {
+                    return help;
+                }
+                return getTenantDefinition().getDocumentation();
+            }
+        };
     }
 
     @Override
-    public String getTitle() {
-        var display = tenantConfig == null ? null : tenantConfig.getDisplay();
-        return GuiDisplayTypeUtil.getTooltip(display);
+    public IModel<String> getTitle() {
+        return new LoadableDetachableModel<>() {
+            @Override
+            protected String load() {
+                var display = tenantConfig == null ? null : tenantConfig.getDisplay();
+                return GuiDisplayTypeUtil.getTooltip(display);
+            }
+        };
     }
 
     public PrismReferenceDefinition getTenantDefinition() {

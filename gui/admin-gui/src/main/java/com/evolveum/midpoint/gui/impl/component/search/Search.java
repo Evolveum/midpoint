@@ -543,7 +543,7 @@ public class Search<T extends Serializable> implements Serializable, DebugDumpab
         DebugUtil.dumpObjectSizeEstimate(sb, "itemsList", basicQueryWrapper, indent + 2);
         List<FilterableSearchItemWrapper<?>> items = basicQueryWrapper.getItemsList();
         for (FilterableSearchItemWrapper item : items) {
-            DebugUtil.dumpObjectSizeEstimate(sb, "item " + item.getName(), item, indent + 2);
+            DebugUtil.dumpObjectSizeEstimate(sb, "item " + item.getName().getObject(), item, indent + 2);
         }
 
         return sb.toString();
