@@ -287,6 +287,8 @@ Attempt to assign two persona constructions that refer to the same persona at th
 This means that both the focus (source) and the persona must be of `UserType`.
 Other combinations may work under some circumstances, but they are not tested and currently not supported.
 
+* Personas functionality is not covered by the simulation feature therefore object changes connected with personas cannot be previewed in the midPoint GUI (e.g. these changes won't be displayed on the Preview changes page).
+
 [NOTE]
 .Incomplete feature
 ====

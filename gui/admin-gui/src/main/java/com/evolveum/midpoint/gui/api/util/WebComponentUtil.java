@@ -19,6 +19,8 @@ import java.util.stream.StreamSupport;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.authentication.api.authorization.EndPointsUrlMapping;
+import com.evolveum.midpoint.authentication.api.authorization.Url;
 import com.evolveum.midpoint.gui.impl.component.input.converter.DateConverter;
 import com.evolveum.midpoint.gui.impl.component.action.AbstractGuiAction;
 import com.evolveum.midpoint.gui.impl.page.admin.focus.FocusDetailsModels;
@@ -717,6 +719,17 @@ public final class WebComponentUtil {
         List<String> actionUris = new ArrayList<>();
         for (AuthorizationAction action : actions) {
             actionUris.add(action.actionUri());
+        }
+
+        //fix for #10336. EndPointsUrlMapping also is used in auth-impl module to evaluate the authorization
+        Url[] pageUrl = descriptor.urls();
+        for (Url url : pageUrl) {
+            String formatedUrl = url.matchUrlForSecurity() + "/**";   //this is format of url from the EndPointsUrlMapping enum
+            EndPointsUrlMapping endPointsUrlMapping = EndPointsUrlMapping.findEndPointsUrlMappingByUrl(formatedUrl);
+            if (endPointsUrlMapping != null) {
+                Arrays.stream(endPointsUrlMapping.getAction())
+                        .forEach(action -> actionUris.add(action.getValue()));
+            }
         }
         return isAuthorized(actionUris);
     }

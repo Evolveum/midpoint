@@ -7,7 +7,7 @@
 package com.evolveum.midpoint.authentication;
 
 import com.evolveum.midpoint.authentication.impl.authorization.evaluator.MidPointGuiAuthorizationEvaluator;
-import com.evolveum.midpoint.authentication.impl.authorization.AuthorizationActionValue;
+import com.evolveum.midpoint.authentication.api.authorization.AuthorizationActionValue;
 import com.evolveum.midpoint.authentication.impl.authorization.DescriptorLoaderImpl;
 import com.evolveum.midpoint.model.api.authentication.GuiProfiledPrincipalManager;
 import com.evolveum.midpoint.model.test.AbstractModelIntegrationTest;
