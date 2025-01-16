@@ -11,6 +11,8 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.gui.api.component.result.Toast;
 import com.evolveum.midpoint.gui.api.util.GuiDisplayTypeUtil;
+import com.evolveum.midpoint.gui.impl.component.search.wrapper.AbstractSearchItemWrapper;
+import com.evolveum.midpoint.gui.impl.component.search.wrapper.FilterableSearchItemWrapper;
 import com.evolveum.midpoint.gui.impl.page.admin.abstractrole.component.TaskAwareExecutor;
 import com.evolveum.midpoint.web.component.menu.top.LocaleTopMenuPanel;
 
@@ -1087,5 +1089,23 @@ public abstract class PageBase extends PageAdminLTE {
 
     public TaskAwareExecutor taskAwareExecutor(@NotNull AjaxRequestTarget target, @NotNull String operationName) {
         return new TaskAwareExecutor(this, target, operationName);
+    }
+
+    @Override
+    public void changeLocal(AjaxRequestTarget target) {
+        super.changeLocal(target);
+        getSessionStorage().getPageStorageMap().values()
+                .forEach(pageStorage -> {
+                    if (pageStorage.getSearch() == null) {
+                        return;
+                    }
+                    pageStorage.getSearch().getItems().forEach(item -> {
+                        if (item instanceof AbstractSearchItemWrapper<?> searchItem) {
+                            searchItem.getTitle().detach();
+                            searchItem.getName().detach();
+                            searchItem.getHelp().detach();
+                        }
+                    });
+                });
     }
 }

@@ -100,6 +100,7 @@ Configuration parameters:
                     </expression>
                     <target>
                         <path>c:extension/ext:p-multi-$index</path>
+                        #if(!$defaultRange)
                         <set>
                             <condition>
                                 <script>
@@ -107,6 +108,7 @@ Configuration parameters:
                                 </script>
                             </condition>
                         </set>
+                        #end
                     </target>
                 </inbound>
             </attribute>
@@ -139,11 +141,13 @@ Configuration parameters:
                     <target>
                         <path>c:assignment</path>
                         <set>
+                            #if(!$defaultRange)
                             <condition>
                                 <script>
                                     <code>input.subtype.contains('auto-business-role')</code>
                                 </script>
                             </condition>
+                            #end
                         </set>
                     </target>
                 </inbound>

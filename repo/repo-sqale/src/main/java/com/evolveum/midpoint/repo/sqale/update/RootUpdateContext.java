@@ -49,11 +49,12 @@ public class RootUpdateContext<S extends ObjectType, Q extends QObject<R>, R ext
     private final Q rootPath;
     private final SQLUpdateClause update;
     private final int objectVersion;
+    private final boolean skipFullObject;
 
     private ContainerValueIdGenerator cidGenerator;
 
     public RootUpdateContext(SqaleRepoContext repositoryContext,
-            JdbcSession jdbcSession, S object, R rootRow) {
+            JdbcSession jdbcSession, S object, R rootRow, boolean skipFullObject) {
         super(repositoryContext, jdbcSession, rootRow);
 
         this.object = object;
@@ -64,6 +65,7 @@ public class RootUpdateContext<S extends ObjectType, Q extends QObject<R>, R ext
         update = jdbcSession.newUpdate(rootPath)
                 .where(rootPath.oid.eq(rootRow.oid)
                         .and(rootPath.version.eq(objectVersion)));
+        this.skipFullObject = skipFullObject;
     }
 
     @Override
@@ -180,7 +182,9 @@ public class RootUpdateContext<S extends ObjectType, Q extends QObject<R>, R ext
         if (cidGenerator != null) {
             update.set(rootPath.containerIdSeq, cidGenerator.lastUsedId() + 1);
         }
-        update.set(rootPath.fullObject, mapping.createFullObject(object));
+        if (!skipFullObject) {
+            update.set(rootPath.fullObject, mapping.createFullObject(object));
+        }
         executeUpdateRow();
     }
 

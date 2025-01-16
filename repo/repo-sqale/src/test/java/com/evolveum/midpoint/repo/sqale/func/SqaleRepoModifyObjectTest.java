@@ -27,6 +27,7 @@ import java.util.stream.Collectors;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.schema.GetOperationOptionsBuilder;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
@@ -1081,7 +1082,7 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
                 .asObjectDelta(user1Oid);
 
         when("modifyObject is called");
-        repositoryService.modifyObject(UserType.class, user1Oid, delta.getModifications(), result);
+        var ret = repositoryService.modifyObject(UserType.class, user1Oid, delta.getModifications(), result);
 
         then("operation is successful, ref target doesn't have to exist");
         assertThatOperationResult(result).isSuccess();
@@ -1645,6 +1646,8 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
         assertThat(aRow.policySituations).isNull();
     }
 
+
+
     @Test
     public void test190ReplacingOrganizationValuesSetsJsonbColumn() throws Exception {
         OperationResult result = createOperationResult();
@@ -1739,6 +1742,17 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
         MUser row = selectObjectByOid(QUser.class, user1Oid);
         assertThat(row.organizations).isNull();
     }
+
+    @Test
+    public void test193ReindexUserDoesNotLooseData() throws Exception {
+        OperationResult result = createOperationResult();
+        var userBefore = repositoryService
+                .getObject(UserType.class, user1Oid, null, result);
+        repositoryService.modifyObject(UserType.class, user1Oid, Collections.emptyList(), RepoModifyOptions.createForceReindex(), result);
+        var userAfter = repositoryService.getObject(UserType.class, user1Oid, null, result);
+        assertThat(userAfter).isEqualTo(userBefore);
+    }
+
 
     @Test
     public void test195ConnectorUpdateToNullConnectorHost() throws Exception {

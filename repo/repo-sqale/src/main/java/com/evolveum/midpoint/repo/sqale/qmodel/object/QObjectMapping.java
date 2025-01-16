@@ -13,6 +13,7 @@ import java.util.function.BiFunction;
 
 import com.evolveum.axiom.concepts.CheckedFunction;
 import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.impl.PrismContainerImpl;
 import com.evolveum.midpoint.prism.path.*;
 import com.evolveum.midpoint.prism.polystring.PolyString;
@@ -39,6 +40,7 @@ import com.google.common.collect.*;
 import com.querydsl.core.Tuple;
 import com.querydsl.core.types.Path;
 import com.querydsl.core.types.Predicate;
+import org.apache.commons.collections4.CollectionUtils;
 import org.jetbrains.annotations.MustBeInvokedByOverriders;
 import org.jetbrains.annotations.NotNull;
 
@@ -200,7 +202,7 @@ public class QObjectMapping<S extends ObjectType, Q extends QObject<R>, R extend
         paths.add(entity.oid);
         paths.add(entity.objectType);
         paths.add(entity.version);
-        if (isExcludeAll(options)) {
+        if (isExcludeFullObject(options)) {
             // We have options to exclude everything, so at least we should fetch name, since lot of code assumes name is present
             paths.add( entity.nameOrig);
             paths.add(entity.nameNorm);
@@ -237,15 +239,18 @@ public class QObjectMapping<S extends ObjectType, Q extends QObject<R>, R extend
         UUID oid = Objects.requireNonNull(row.get(entityPath.oid));
         var repoType = Objects.requireNonNull(row.get(entityPath.objectType));
         S ret;
-        if (isExcludeAll(options)) {
+        byte[] fullObject = row.get(entityPath.fullObject);
+        if (fullObject == null) {
+            // Full Object was excluded.
             // We have exclude (dont retrieve) options for whole object, so we just return oid
             //noinspection unchecked
             ret = (S) repoType.createObject()
                 .oid(oid.toString())
                 .name(new PolyStringType(new PolyString(row.get(entityPath.nameOrig), row.get(entityPath.nameNorm))));
+            SqaleUtils.markWithoutFullObject(ret);
         } else {
             // We load full object
-            byte[] fullObject = Objects.requireNonNull(row.get(entityPath.fullObject));
+
             ret = parseSchemaObject(fullObject, oid.toString());
             if (GetOperationOptions.isAttachDiagData(SelectorOptions.findRootOptions(options))) {
                 RepositoryObjectDiagnosticData diagData = new RepositoryObjectDiagnosticData(fullObject.length);
@@ -268,8 +273,27 @@ public class QObjectMapping<S extends ObjectType, Q extends QObject<R>, R extend
                     rootExcluded = true;
                 }
                 if (option.getOptions().getRetrieve() == RetrieveOption.INCLUDE) {
-                    // Something is explicitly included, do not exclude root
                     return false;
+                }
+            }
+        }
+        return rootExcluded;
+    }
+
+    protected boolean isExcludeFullObject(@Nullable Collection<SelectorOptions<GetOperationOptions>> options) {
+        if (options == null) {
+            return false;
+        }
+        boolean rootExcluded = false;
+        for (var option : options) {
+            if (option.getOptions() != null) {
+                if (option.isRoot() && option.getOptions().getRetrieve() == RetrieveOption.EXCLUDE) {
+                    rootExcluded = true;
+                }
+                if (option.getOptions().getRetrieve() == RetrieveOption.INCLUDE) {
+                    if (!separatellySerializedItems.containsKey(option.getItemPath().firstName())) {
+                        return false;
+                    }
                 }
             }
         }
@@ -503,6 +527,33 @@ public class QObjectMapping<S extends ObjectType, Q extends QObject<R>, R extend
     }
 
     @Override
+    public Collection<SelectorOptions<GetOperationOptions>> updateGetOptions(Collection<SelectorOptions<GetOperationOptions>> options, @NotNull Collection<? extends ItemDelta<?, ?>> modifications, boolean forceReindex) {
+        var ret = new ArrayList<>(super.updateGetOptions(options, modifications, forceReindex));
+        // reindex = true - we need to fetch all items
+        if (forceReindex) {
+            // Currently by default all separatelly serialized items are fetched.
+            return ret;
+        }
+
+        // Walk deltas
+        boolean onlySeparatellySerialized = true;
+        for (var modification : modifications) {
+            var path = modification.getPath().firstName();
+            var separate = separatellySerializedItems.get(path);
+            if (separate == null) {
+                onlySeparatellySerialized = false;
+            } else {
+                ret.add(SelectorOptions.create(UniformItemPath.from(path), GetOperationOptions.createRetrieve()));
+            }
+        }
+        if (onlySeparatellySerialized) {
+            // Add Exclude All option
+            ret.add(SelectorOptions.create(UniformItemPath.from(ItemPath.EMPTY_PATH), GetOperationOptions.createDontRetrieve()));
+        }
+        return ret;
+    }
+
+    @Override
     public <C extends Containerable, TQ extends QContainer<TR, R>, TR extends MContainer> SqaleMappingMixin<S, Q, R> addContainerTableMapping(
             @NotNull ItemName itemName, @NotNull QContainerMapping<C, TQ, TR, R> containerMapping, @NotNull BiFunction<Q, TQ, Predicate> joinPredicate) {
         if (containerMapping instanceof QContainerWithFullObjectMapping mappingWithFullObject) {
@@ -557,12 +608,24 @@ public class QObjectMapping<S extends ObjectType, Q extends QObject<R>, R extend
 
         public boolean isIncluded(Collection<SelectorOptions<GetOperationOptions>> options) {
             if (includedByDefault) {
-                var retrieveOptions = SelectorOptions.findOptionsForPath(options, UniformItemPath.from(this.getPath()));
-                if (retrieveOptions.stream().anyMatch(o -> RetrieveOption.EXCLUDE.equals(o.getRetrieve()))) {
-                    // There is at least one exclude for options
-                    return false;
+                ItemPath matchedPath = ItemPath.EMPTY_PATH;
+                RetrieveOption matchedOption = RetrieveOption.INCLUDE;
+                if (options == null) {
+                    options = Collections.emptyList();
                 }
-                return true;
+                for (var option : options) {
+                    if (!option.getItemPath().isSubPathOrEquivalent(getPath())) {
+                        // path is unrelevant
+                        continue;
+                    }
+                    if (matchedPath.isSubPathOrEquivalent(option.getItemPath())) {
+                        matchedPath = option.getItemPath();
+                        if (option.getOptions() != null && option.getOptions().getRetrieve() != null) {
+                            matchedOption = option.getOptions().getRetrieve();
+                        }
+                    }
+                }
+                return matchedOption == RetrieveOption.INCLUDE;
             }
             return SelectorOptions.hasToFetchPathNotRetrievedByDefault(getPath(), options);
         }

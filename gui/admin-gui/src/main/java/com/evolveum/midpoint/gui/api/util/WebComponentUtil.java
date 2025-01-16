@@ -193,6 +193,8 @@ import com.evolveum.prism.xml.ns._public.types_3.PolyStringTranslationType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
+import org.springframework.util.AntPathMatcher;
+
 /**
  * Utility class containing miscellaneous methods used mostly in Wicket
  * components.
@@ -724,14 +726,21 @@ public final class WebComponentUtil {
         //fix for #10336. EndPointsUrlMapping also is used in auth-impl module to evaluate the authorization
         Url[] pageUrl = descriptor.urls();
         for (Url url : pageUrl) {
-            String formatedUrl = url.matchUrlForSecurity() + "/**";   //this is format of url from the EndPointsUrlMapping enum
-            EndPointsUrlMapping endPointsUrlMapping = EndPointsUrlMapping.findEndPointsUrlMappingByUrl(formatedUrl);
+            EndPointsUrlMapping endPointsUrlMapping = findEndPointsUrlMappingByUrl(url.matchUrlForSecurity());
             if (endPointsUrlMapping != null) {
                 Arrays.stream(endPointsUrlMapping.getAction())
                         .forEach(action -> actionUris.add(action.getValue()));
             }
         }
         return isAuthorized(actionUris);
+    }
+
+    private static EndPointsUrlMapping findEndPointsUrlMappingByUrl(String url) {
+        AntPathMatcher matcher = new AntPathMatcher();
+        return Arrays.stream(EndPointsUrlMapping.values())
+                .filter(e -> matcher.match(e.getUrl(), url))
+                .findFirst()
+                .orElse(null);
     }
 
     public static boolean isCertItemsMenusEnabled(ModelServiceLocator serviceLocator) {

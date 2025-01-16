@@ -268,10 +268,4 @@ public enum EndPointsUrlMapping {
         return url;
     }
 
-    public static EndPointsUrlMapping findEndPointsUrlMappingByUrl(String url) {
-        return Arrays.stream(values())
-                .filter(e -> e.getUrl().equals(url))
-                .findFirst()
-                .orElse(null);
-    }
 }

@@ -345,7 +345,7 @@ public abstract class QueryTableMapping<S, Q extends FlexibleRelationalPathBase<
 
     public Collection<SelectorOptions<GetOperationOptions>> updateGetOptions(
             Collection<SelectorOptions<GetOperationOptions>> options,
-            @NotNull Collection<? extends ItemDelta<?, ?>> modifications) {
+            @NotNull Collection<? extends ItemDelta<?, ?>> modifications, boolean forceReindex) {
         return options;
     }
 
