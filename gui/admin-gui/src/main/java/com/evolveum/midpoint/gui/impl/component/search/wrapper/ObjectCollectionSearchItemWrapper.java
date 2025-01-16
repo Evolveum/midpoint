@@ -26,6 +26,8 @@ import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 import org.apache.commons.lang3.Validate;
+import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.LoadableDetachableModel;
 import org.jetbrains.annotations.NotNull;
 
 public class ObjectCollectionSearchItemWrapper extends FilterableSearchItemWrapper {
@@ -46,58 +48,74 @@ public class ObjectCollectionSearchItemWrapper extends FilterableSearchItemWrapp
     }
 
     @Override
-    public String getName() {
-        if (objectCollectionView.getDisplay() != null) {
-            if (objectCollectionView.getDisplay().getPluralLabel() != null) {
-                return WebComponentUtil.getTranslatedPolyString(objectCollectionView.getDisplay().getPluralLabel());
-            } else if (objectCollectionView.getDisplay().getSingularLabel() != null) {
-                return WebComponentUtil.getTranslatedPolyString(objectCollectionView.getDisplay().getSingularLabel());
-            } else if (objectCollectionView.getDisplay().getLabel() != null) {
-                return WebComponentUtil.getTranslatedPolyString(objectCollectionView.getDisplay().getLabel());
-            }
-        }
-        if (objectCollectionView.getCollection() != null) {
-            ObjectReferenceType collectionRef = null;
-            if (objectCollectionView.getCollection().getCollectionRef() != null) {
-                collectionRef = objectCollectionView.getCollection().getCollectionRef();
-
-            }
-            if (objectCollectionView.getCollection().getBaseCollectionRef() != null
-                    && objectCollectionView.getCollection().getBaseCollectionRef().getCollectionRef() != null) {
-                collectionRef = objectCollectionView.getCollection().getBaseCollectionRef().getCollectionRef();
-            }
-            if (collectionRef != null) {
-                PolyStringType label = objectCollectionView.getCollection().getCollectionRef().getTargetName();
-                if (label == null) {
-                    return objectCollectionView.getCollection().getCollectionRef().getOid();
+    public IModel<String> getName() {
+        return new LoadableDetachableModel<>() {
+            @Override
+            protected String load() {
+                if (objectCollectionView.getDisplay() != null) {
+                    if (objectCollectionView.getDisplay().getPluralLabel() != null) {
+                        return WebComponentUtil.getTranslatedPolyString(objectCollectionView.getDisplay().getPluralLabel());
+                    } else if (objectCollectionView.getDisplay().getSingularLabel() != null) {
+                        return WebComponentUtil.getTranslatedPolyString(objectCollectionView.getDisplay().getSingularLabel());
+                    } else if (objectCollectionView.getDisplay().getLabel() != null) {
+                        return WebComponentUtil.getTranslatedPolyString(objectCollectionView.getDisplay().getLabel());
+                    }
                 }
-                return WebComponentUtil.getTranslatedPolyString(label);
+                if (objectCollectionView.getCollection() != null) {
+                    ObjectReferenceType collectionRef = null;
+                    if (objectCollectionView.getCollection().getCollectionRef() != null) {
+                        collectionRef = objectCollectionView.getCollection().getCollectionRef();
+
+                    }
+                    if (objectCollectionView.getCollection().getBaseCollectionRef() != null
+                            && objectCollectionView.getCollection().getBaseCollectionRef().getCollectionRef() != null) {
+                        collectionRef = objectCollectionView.getCollection().getBaseCollectionRef().getCollectionRef();
+                    }
+                    if (collectionRef != null) {
+                        PolyStringType label = objectCollectionView.getCollection().getCollectionRef().getTargetName();
+                        if (label == null) {
+                            return objectCollectionView.getCollection().getCollectionRef().getOid();
+                        }
+                        return WebComponentUtil.getTranslatedPolyString(label);
+                    }
+                }
+                return null;
             }
-        }
-        return null;
+        };
+
     }
 
     @Override
-    public String getTitle() {
-        if (objectCollectionView.getFilter() == null) {
-            return null;
-        }
-        try {
-            SearchFilterType filter = PrismContext.get().getQueryConverter().createSearchFilterType(objectCollectionView.getFilter());
-            return PrismContext.get().xmlSerializer().serializeRealValue(filter);
-        } catch (SchemaException e) {
-            LoggingUtils.logUnexpectedException(LOGGER, "Cannot serialize filter", e);
-        }
-        return null;
+    public IModel<String> getTitle() {
+        return new LoadableDetachableModel<>() {
+            @Override
+            protected String load() {
+                if (objectCollectionView.getFilter() == null) {
+                    return null;
+                }
+                try {
+                    SearchFilterType filter = PrismContext.get().getQueryConverter().createSearchFilterType(objectCollectionView.getFilter());
+                    return PrismContext.get().xmlSerializer().serializeRealValue(filter);
+                } catch (SchemaException e) {
+                    LoggingUtils.logUnexpectedException(LOGGER, "Cannot serialize filter", e);
+                }
+                return null;
+            }
+        };
     }
 
     @Override
-    public String getHelp() {
-        if (objectCollectionView == null) {
-            return null;
-        }
+    public IModel<String> getHelp() {
+        return new LoadableDetachableModel<>() {
+            @Override
+            protected String load() {
+                if (objectCollectionView == null) {
+                    return null;
+                }
 
-        return objectCollectionView.getObjectCollectionDescription();
+                return objectCollectionView.getObjectCollectionDescription();
+            }
+        };
     }
 
 

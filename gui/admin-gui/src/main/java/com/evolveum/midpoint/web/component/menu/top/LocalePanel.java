@@ -74,6 +74,8 @@ public abstract class LocalePanel extends BasePanel {
         }
         WebComponentUtil.getCompiledGuiProfile().setLocale(descriptor.getLocale());
 
+        getParentPage().changeLocal(target);
+
         target.add(getPage());
     }
 }

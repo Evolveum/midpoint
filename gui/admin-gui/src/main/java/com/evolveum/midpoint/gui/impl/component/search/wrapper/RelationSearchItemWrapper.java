@@ -9,6 +9,7 @@ package com.evolveum.midpoint.gui.impl.component.search.wrapper;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.gui.api.util.GuiDisplayTypeUtil;
+import com.evolveum.midpoint.gui.api.util.LocalizationUtil;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.component.search.panel.RelationSearchItemPanel;
 import com.evolveum.midpoint.prism.PrismConstants;
@@ -21,6 +22,8 @@ import com.evolveum.midpoint.util.DisplayableValue;
 import com.evolveum.midpoint.gui.impl.component.search.SearchValue;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.LoadableDetachableModel;
 
 import java.util.Collections;
 import java.util.List;
@@ -56,24 +59,39 @@ public class RelationSearchItemWrapper extends AbstractSearchItemWrapper<QName> 
     }
 
     @Override
-    public String getName() {
-        var display = relationSearchItemConfigurationType == null ? null : relationSearchItemConfigurationType.getDisplay();
-        var name = GuiDisplayTypeUtil.getTranslatedLabel(display);
-        return StringUtils.isEmpty(name) ? "relationDropDownChoicePanel.relation" : name;
+    public IModel<String> getName() {
+        return new LoadableDetachableModel<>() {
+            @Override
+            protected String load() {
+                var display = relationSearchItemConfigurationType == null ? null : relationSearchItemConfigurationType.getDisplay();
+                var name = GuiDisplayTypeUtil.getTranslatedLabel(display);
+                return StringUtils.isEmpty(name) ? LocalizationUtil.translate("relationDropDownChoicePanel.relation") : name;
+            }
+        };
     }
 
     @Override
-    public String getHelp() {
-        var display = relationSearchItemConfigurationType == null ? null : relationSearchItemConfigurationType.getDisplay();
-        var help = GuiDisplayTypeUtil.getHelp(display);
-        return StringUtils.isEmpty(help) ? "relationDropDownChoicePanel.tooltip.relation" : help;
+    public IModel<String> getHelp() {
+        return new LoadableDetachableModel<>() {
+            @Override
+            protected String load() {
+                var display = relationSearchItemConfigurationType == null ? null : relationSearchItemConfigurationType.getDisplay();
+                var help = GuiDisplayTypeUtil.getHelp(display);
+                return StringUtils.isEmpty(help) ? ("relationDropDownChoicePanel.tooltip.relation") : help;
+            }
+        };
     }
 
 
     @Override
-    public String getTitle() {
-        var display = relationSearchItemConfigurationType == null ? null : relationSearchItemConfigurationType.getDisplay();
-        return GuiDisplayTypeUtil.getTooltip(display);
+    public IModel<String> getTitle() {
+        return new LoadableDetachableModel<>() {
+            @Override
+            protected String load() {
+                var display = relationSearchItemConfigurationType == null ? null : relationSearchItemConfigurationType.getDisplay();
+                return GuiDisplayTypeUtil.getTooltip(display);
+            }
+        };
     }
 
     @Override
