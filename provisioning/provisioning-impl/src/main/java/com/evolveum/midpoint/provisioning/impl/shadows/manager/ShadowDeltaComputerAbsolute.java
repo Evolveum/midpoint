@@ -204,7 +204,7 @@ class ShadowDeltaComputerAbsolute {
     private void updateExistsFlag() throws SchemaException {
         // Resource object obviously exists in this case. However, we do not want to mess with isExists flag in
         // GESTATING nor CORPSE state, as this existence may be just a quantum illusion.
-        if (!repoShadow.isInQuantumState()) {
+        if (repoShadow.isInQuantumState()) {
             computedModifications.add(
                     PrismContext.get().deltaFor(ShadowType.class)
                             .item(ShadowType.F_EXISTS).replace(resourceObject.doesExist())
