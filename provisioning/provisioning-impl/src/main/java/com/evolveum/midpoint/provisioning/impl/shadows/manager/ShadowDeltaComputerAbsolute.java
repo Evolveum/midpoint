@@ -201,13 +201,20 @@ class ShadowDeltaComputerAbsolute {
         computedModifications.add(auxOcDelta);
     }
 
+    /**
+     * The `exists` flag is set in the resource object. We want to update it in the repo shadow - if needed.
+     *
+     * However, we want to avoid updating the shadow in quantum (GESTATING, CORPSE) states, as this existence may be just
+     * a quantum illusion. For these cases, the EXISTS flag is updated in `ShadowRefreshOperation#refreshShadowAsyncStatus method`
+     * (for ADD operation) and at various other places, see e.g. `ShadowUpdater#markShadowTombstone` & `#markShadowExists`.
+     */
     private void updateExistsFlag() throws SchemaException {
-        // Resource object obviously exists in this case. However, we do not want to mess with isExists flag in
-        // GESTATING nor CORPSE state, as this existence may be just a quantum illusion.
-        if (repoShadow.isInQuantumState()) {
+        var existingValue = repoShadow.getBean().isExists();
+        var desiredValue = resourceObject.doesExist();
+        if (!Objects.equals(existingValue, desiredValue) && !repoShadow.isInQuantumState()) {
             computedModifications.add(
                     PrismContext.get().deltaFor(ShadowType.class)
-                            .item(ShadowType.F_EXISTS).replace(resourceObject.doesExist())
+                            .item(ShadowType.F_EXISTS).replace(desiredValue)
                             .asItemDelta());
         }
     }
