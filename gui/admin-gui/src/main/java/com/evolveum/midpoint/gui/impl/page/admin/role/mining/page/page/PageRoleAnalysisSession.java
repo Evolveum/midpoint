@@ -16,6 +16,7 @@ import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
+import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.authentication.api.authorization.AuthorizationAction;
@@ -191,12 +192,29 @@ public class PageRoleAnalysisSession extends PageAssignmentHolderDetails<RoleAna
                         : session.getUserModeOptions();
 
         Boolean detailedAnalysis = sessionOptions.getDetailedAnalysis();
+
+        RoleAnalysisProcedureType procedureType = analysisOption.getAnalysisProcedureType();
+        if (procedureType == null) {
+            procedureType = reviseProcedureType(session);
+        }
+
         for (ContainerPanelConfigurationType containerPanelConfigurationType : panelConfigurations.getObject()) {
             adjustPanelVisibility(
-                    containerPanelConfigurationType, processMode, analysisOption.getAnalysisProcedureType(), detailedAnalysis);
+                    containerPanelConfigurationType, processMode, procedureType, detailedAnalysis);
         }
 
         return panelConfigurations;
+    }
+
+    @Deprecated
+    private static @NotNull RoleAnalysisProcedureType reviseProcedureType(
+            @NotNull RoleAnalysisSessionType session) {
+        RoleAnalysisDetectionOptionType detectionOption = session.getDefaultDetectionOption();
+        if (detectionOption != null && detectionOption.getSensitivity() != null) {
+            return RoleAnalysisProcedureType.OUTLIER_DETECTION;
+        } else {
+            return RoleAnalysisProcedureType.ROLE_MINING;
+        }
     }
 
     private void adjustPanelVisibility(@NotNull ContainerPanelConfigurationType containerPanelConfigurationType,
@@ -204,16 +222,30 @@ public class PageRoleAnalysisSession extends PageAssignmentHolderDetails<RoleAna
             RoleAnalysisProcedureType analysisProcedureType,
             Boolean detailedAnalysis) {
         String identifier = containerPanelConfigurationType.getIdentifier();
+
         if (shouldHidePanel(identifier, analysisProcedureType, detailedAnalysis)) {
             containerPanelConfigurationType.setVisibility(UserInterfaceElementVisibilityType.HIDDEN);
-        } else if (identifier.equals("advanced") && analysisProcedureType == RoleAnalysisProcedureType.ROLE_MINING) {
+        } else if (shouldHideAdvancedPanel(analysisProcedureType, identifier)) {
             hideAdvancedPanel(containerPanelConfigurationType);
         } else {
             resolveSessionSettingPanels(containerPanelConfigurationType, processMode);
         }
     }
 
+    @Contract(pure = true)
+    private static boolean shouldHideAdvancedPanel(RoleAnalysisProcedureType analysisProcedureType, String identifier) {
+        if (analysisProcedureType == null) {
+            return true;
+        }
+
+        return identifier.equals("advanced") && analysisProcedureType == RoleAnalysisProcedureType.ROLE_MINING;
+    }
+
     private boolean shouldHidePanel(@NotNull String identifier, RoleAnalysisProcedureType analysisProcedureType, boolean detailedAnalysis) {
+        if (analysisProcedureType == null) {
+            return true;
+        }
+
         return (identifier.equals("sessionOutlierOverView") && analysisProcedureType == RoleAnalysisProcedureType.ROLE_MINING)
                 || (identifier.equals("sessionMiningOverView") && analysisProcedureType == RoleAnalysisProcedureType.OUTLIER_DETECTION)
                 || (identifier.equals("sessionRoleSuggestions") && analysisProcedureType == RoleAnalysisProcedureType.OUTLIER_DETECTION)
