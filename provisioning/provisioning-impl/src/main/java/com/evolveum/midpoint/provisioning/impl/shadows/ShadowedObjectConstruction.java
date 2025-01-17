@@ -281,6 +281,12 @@ class ShadowedObjectConstruction {
         var allAttributes = List.copyOf(sourceAttributesContainer.getAttributes());
         sourceAttributesContainer.clear();
 
+        var definitionChanged = authoritativeDefinition != repoShadow.getObjectDefinition();
+
+        // TODO if the definition was not changed, we could move the whole container, and avoid re-adding the attributes
+        //  (we would just need to remove non-applicable ones) ... but that would be ~2% from the "no-op" processing
+        //  for "1s-200m-0t-0m-0a-10ku" TestSystemPerformance scenario.
+
         for (var attribute : allAttributes) {
             attribute.clearParent(); // it has still reference to the source container
 
@@ -288,7 +294,11 @@ class ShadowedObjectConstruction {
                 LOGGER.trace("Ignoring extra legacy reference attribute {}", attribute.getElementName());
                 continue;
             }
-            attribute.applyDefinitionFrom(authoritativeDefinition);
+            if (definitionChanged) {
+                // Even if the "apply definition" itself avoids applying the attribute definition, we can spare even the
+                // attribute definition lookup in the authoritative definition by this check.
+                attribute.applyDefinitionFrom(authoritativeDefinition);
+            }
             if (attribute.getDefinitionRequired().getLimitations(LayerType.MODEL).canRead()) {
                 targetAttributesContainer.addAttribute(attribute);
             } else {
