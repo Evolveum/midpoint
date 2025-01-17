@@ -6,10 +6,7 @@
  */
 package com.evolveum.midpoint.authentication.impl.authorization;
 
-import com.evolveum.midpoint.authentication.api.authorization.AuthorizationAction;
-import com.evolveum.midpoint.authentication.api.authorization.DescriptorLoader;
-import com.evolveum.midpoint.authentication.api.authorization.PageDescriptor;
-import com.evolveum.midpoint.authentication.api.authorization.Url;
+import com.evolveum.midpoint.authentication.api.authorization.*;
 import com.evolveum.midpoint.security.api.*;
 import com.evolveum.midpoint.util.ClassPathUtil;
 import com.evolveum.midpoint.util.DebugUtil;

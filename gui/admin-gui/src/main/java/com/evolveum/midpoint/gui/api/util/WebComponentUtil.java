@@ -19,6 +19,8 @@ import java.util.stream.StreamSupport;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.authentication.api.authorization.EndPointsUrlMapping;
+import com.evolveum.midpoint.authentication.api.authorization.Url;
 import com.evolveum.midpoint.gui.impl.component.input.converter.DateConverter;
 import com.evolveum.midpoint.gui.impl.component.action.AbstractGuiAction;
 import com.evolveum.midpoint.gui.impl.page.admin.focus.FocusDetailsModels;
@@ -190,6 +192,8 @@ import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringTranslationType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
+
+import org.springframework.util.AntPathMatcher;
 
 /**
  * Utility class containing miscellaneous methods used mostly in Wicket
@@ -718,7 +722,25 @@ public final class WebComponentUtil {
         for (AuthorizationAction action : actions) {
             actionUris.add(action.actionUri());
         }
+
+        //fix for #10336. EndPointsUrlMapping also is used in auth-impl module to evaluate the authorization
+        Url[] pageUrl = descriptor.urls();
+        for (Url url : pageUrl) {
+            EndPointsUrlMapping endPointsUrlMapping = findEndPointsUrlMappingByUrl(url.matchUrlForSecurity());
+            if (endPointsUrlMapping != null) {
+                Arrays.stream(endPointsUrlMapping.getAction())
+                        .forEach(action -> actionUris.add(action.getValue()));
+            }
+        }
         return isAuthorized(actionUris);
+    }
+
+    private static EndPointsUrlMapping findEndPointsUrlMappingByUrl(String url) {
+        AntPathMatcher matcher = new AntPathMatcher();
+        return Arrays.stream(EndPointsUrlMapping.values())
+                .filter(e -> matcher.match(e.getUrl(), url))
+                .findFirst()
+                .orElse(null);
     }
 
     public static boolean isCertItemsMenusEnabled(ModelServiceLocator serviceLocator) {

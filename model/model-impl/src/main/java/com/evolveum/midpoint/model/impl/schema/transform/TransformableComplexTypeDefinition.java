@@ -95,7 +95,7 @@ public class TransformableComplexTypeDefinition
     @Override
     public <ID extends ItemDefinition<?>> ID findLocalItemDefinition(
             @NotNull QName name, @NotNull Class<ID> clazz, boolean caseInsensitive) {
-        return overridden(ComplexTypeDefinitionDelegator.super.findLocalItemDefinition(name, clazz, caseInsensitive));
+        return overridden(findLocalItemDefinitionByIteration(name, clazz, caseInsensitive));
     }
 
     @Override

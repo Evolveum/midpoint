@@ -7,6 +7,7 @@
 package com.evolveum.midpoint.gui.impl.component.search.wrapper;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.util.LocalizationUtil;
 import com.evolveum.midpoint.gui.impl.component.search.panel.OidSearchItemPanel;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
@@ -19,6 +20,9 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SearchBoxModeType;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.LoadableDetachableModel;
+import org.apache.wicket.model.Model;
 
 public class OidSearchItemWrapper extends FilterableSearchItemWrapper<String> implements QueryWrapper {
 
@@ -28,18 +32,28 @@ public class OidSearchItemWrapper extends FilterableSearchItemWrapper<String> im
     }
 
     @Override
-    public String getName() {
-        return "SearchPanel.oid";
+    public IModel<String> getName() {
+        return new LoadableDetachableModel<>() {
+            @Override
+            protected String load() {
+                return LocalizationUtil.translate("SearchPanel.oid");
+            }
+        };
     }
 
     @Override
-    public String getHelp() {
-        return "SearchPanel.oid.help";
+    public IModel<String> getHelp() {
+        return new LoadableDetachableModel<>() {
+            @Override
+            protected String load() {
+                return LocalizationUtil.translate("SearchPanel.oid.help");
+            }
+        };
     }
 
     @Override
-    public String getTitle() {
-        return "";
+    public IModel<String> getTitle() {
+        return Model.of("");
     }
 
     @Override

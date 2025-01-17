@@ -1,18 +1,18 @@
 /*
- * Copyright (c) 2010-2017 Evolveum and contributors
+ * Copyright (c) 2025 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
-package com.evolveum.midpoint.authentication.impl.util;
+package com.evolveum.midpoint.authentication.api.authorization;
 
 import static com.evolveum.midpoint.security.api.AuthorizationConstants.*;
 
-import com.evolveum.midpoint.authentication.api.authorization.AuthorizationAction;
-import com.evolveum.midpoint.authentication.impl.authorization.AuthorizationActionValue;
 import com.evolveum.midpoint.authentication.api.util.AuthConstants;
 import com.evolveum.midpoint.security.api.RestAuthorizationAction;
+
+import java.util.Arrays;
 
 /**
  * @author lazyman
@@ -267,4 +267,5 @@ public enum EndPointsUrlMapping {
     public String getUrl() {
         return url;
     }
+
 }
