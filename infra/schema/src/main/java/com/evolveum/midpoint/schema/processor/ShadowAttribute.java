@@ -51,6 +51,7 @@ public interface ShadowAttribute<
 
     SA cloneComplex(CloneStrategy strategy);
 
+    // No-op if there's the same attribute definition already
     void applyDefinitionFrom(ResourceObjectDefinition objectDefinition) throws SchemaException;
 
     D getDefinitionRequired();

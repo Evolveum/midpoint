@@ -134,13 +134,16 @@ class ShadowPostProcessor {
             }
         } else {
             // The classification was not changed; but we still should apply the correct definition to the resource object.
+            var originalDefinition = ctx.getObjectDefinition();
             var compositeDefinition =
                     ctx.computeCompositeObjectDefinition(
                             repoShadow.shadow().getObjectDefinition(), resourceObject.getBean().getAuxiliaryObjectClass());
             ctx = ctx.spawnForDefinition(compositeDefinition);
 
             ProvisioningUtil.removeExtraLegacyReferenceAttributes(resourceObject, compositeDefinition);
-            resourceObject.applyDefinition(compositeDefinition);
+            if (compositeDefinition != originalDefinition) {
+                resourceObject.applyDefinition(compositeDefinition);
+            }
         }
     }
 
