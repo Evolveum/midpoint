@@ -46,6 +46,8 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
+import static com.evolveum.midpoint.schema.GetOperationOptions.createReadOnlyCollection;
+
 @Component
 public class ShadowAuditHelper {
 
@@ -148,8 +150,9 @@ public class ShadowAuditHelper {
         // TODO: We should have better API for name resolution instead of getObject()
         ObjectDeltaSchemaLevelUtil.NameResolver nameResolver =
                 (objectClass, oid, lResult) ->
+                        // Using read-only options to avoid cloning when fetching from the cache
                         repositoryService
-                                .getObject(objectClass, oid, null, lResult)
+                                .getObject(objectClass, oid, createReadOnlyCollection(), lResult)
                                 .getName();
 
         auditHelper.audit(auditRecord, nameResolver, ctx.getTask(), result);
