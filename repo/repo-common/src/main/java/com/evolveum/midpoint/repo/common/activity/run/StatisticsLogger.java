@@ -10,9 +10,7 @@ package com.evolveum.midpoint.repo.common.activity.run;
 import com.evolveum.midpoint.schema.statistics.Operation;
 
 import java.util.Locale;
-import java.util.function.Function;
 
-import com.evolveum.midpoint.repo.common.activity.definition.ActivityReportingDefinition;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityEventLoggingOptionType;
 import org.jetbrains.annotations.NotNull;
 
@@ -39,6 +37,11 @@ public class StatisticsLogger {
 
     public void logItemCompletion(Operation operation, OperationResultStatus resultStatus) {
 
+        ActivityEventLoggingOptionType logging = activityRun.getReportingDefinition().getItemCompletionLogging();
+        if (shouldSkipLogging(logging)) {
+            return; // No need to waste time computing all the stats
+        }
+
         long end = operation.getEndTimeMillis();
         TransientActivityRunStatistics current = activityRun.getTransientRunStatistics();
         ActivityPerformanceInformation overall = getOverallStatistics();
@@ -63,10 +66,15 @@ public class StatisticsLogger {
         String mainMessageAddition = counts + throughput;
         String fullStats = getFullStatMessage(overall, end);
 
-        log(ActivityReportingDefinition::getItemCompletionLogging, mainMessage, mainMessageAddition, fullStats);
+        log(logging, mainMessage, mainMessageAddition, fullStats);
     }
 
     void logBucketCompletion(boolean complete) {
+
+        ActivityEventLoggingOptionType logging = activityRun.getReportingDefinition().getBucketCompletionLogging();
+        if (shouldSkipLogging(logging)) {
+            return; // No need to waste time computing all the stats
+        }
 
         TransientActivityRunStatistics current = activityRun.getTransientRunStatistics();
         long end = System.currentTimeMillis();
@@ -116,12 +124,11 @@ public class StatisticsLogger {
         String mainMessageAddition = "\n" + currentBrief + "\n" + overallBrief;
         String fullStats = getFullStatMessage(overall, end);
 
-        log(ActivityReportingDefinition::getBucketCompletionLogging, mainMessage, mainMessageAddition, fullStats);
+        log(logging, mainMessage, mainMessageAddition, fullStats);
     }
 
-    private void log(Function<ActivityReportingDefinition, ActivityEventLoggingOptionType> loggingExtractor, String mainMessage,
-            String mainMessageAddition, String fullStats) {
-        ActivityEventLoggingOptionType logging = loggingExtractor.apply(activityRun.getReportingDefinition());
+    // Keep in sync with #shouldSkipLogging method below.
+    private void log(ActivityEventLoggingOptionType logging, String mainMessage, String mainMessageAddition, String fullStats) {
         if (logging == ActivityEventLoggingOptionType.FULL) {
             LOGGER.info("{}\n\n{}", mainMessage, fullStats);
         } else if (logging == ActivityEventLoggingOptionType.BRIEF) {
@@ -129,6 +136,15 @@ public class StatisticsLogger {
             LOGGER.trace("{}", fullStats);
         } else {
             LOGGER.trace("{}\n\n{}", mainMessage, fullStats);
+        }
+    }
+
+    // Keep in sync with #log method above.
+    private boolean shouldSkipLogging(ActivityEventLoggingOptionType logging) {
+        if (logging == ActivityEventLoggingOptionType.FULL || logging == ActivityEventLoggingOptionType.BRIEF) {
+            return !LOGGER.isInfoEnabled();
+        } else {
+            return !LOGGER.isTraceEnabled();
         }
     }
 
