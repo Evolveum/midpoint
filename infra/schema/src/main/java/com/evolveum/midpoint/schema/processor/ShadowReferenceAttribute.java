@@ -166,8 +166,10 @@ public class ShadowReferenceAttribute
 
     public void applyDefinitionFrom(@NotNull ResourceObjectDefinition objectDefinition)
             throws SchemaException {
-        applyDefinition(
-                objectDefinition.findReferenceAttributeDefinitionRequired(getElementName()));
+        var attrDef = objectDefinition.findReferenceAttributeDefinitionRequired(getElementName());
+        if (attrDef != getDefinition()) { // Maybe equals would be better?
+            applyDefinition(attrDef);
+        }
     }
 
     /** Creates a delta that would enforce (via REPLACE operation) the values of this attribute. */
