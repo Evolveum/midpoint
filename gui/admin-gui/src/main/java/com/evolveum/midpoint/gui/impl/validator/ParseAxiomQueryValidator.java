@@ -35,7 +35,7 @@ public class ParseAxiomQueryValidator implements IValidator<String> {
         }
 
         try {
-            model.parseQuery(value);
+            model.parseQueryWithoutSetValue(value);
         } catch (Exception e) {
             LOGGER.debug("Cannot parse filter", e);
 

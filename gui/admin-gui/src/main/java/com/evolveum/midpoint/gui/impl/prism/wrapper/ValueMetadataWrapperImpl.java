@@ -199,6 +199,12 @@ public class ValueMetadataWrapperImpl implements PrismContainerWrapper<ValueMeta
     }
 
     @Override
+    public <ID extends ItemDefinition<?>> ID findLocalItemDefinition(
+            @NotNull QName name, @NotNull Class<ID> clazz, boolean caseInsensitive) {
+        return metadataValueWrapper.findLocalItemDefinition(name, clazz, caseInsensitive);
+    }
+
+    @Override
     public List<PrismPropertyDefinition<?>> getPropertyDefinitions() {
         return metadataValueWrapper.getPropertyDefinitions();
     }

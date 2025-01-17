@@ -11,6 +11,7 @@ import java.util.Collection;
 import java.util.List;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.schemaContext.SchemaContextDefinition;
 
 import org.jetbrains.annotations.NotNull;
@@ -19,6 +20,8 @@ import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.path.ItemPath;
 
 import org.jetbrains.annotations.Nullable;
+
+import static com.evolveum.midpoint.util.MiscUtil.castOrNull;
 
 /**
  * Implementation of a CTD for a {@link ShadowAttributesContainer}.
@@ -52,6 +55,29 @@ class ShadowAttributesComplexTypeDefinitionImpl
         } else {
             return null;
         }
+    }
+
+    @Override
+    public <ID extends ItemDefinition<?>> ID findLocalItemDefinition(@NotNull QName name) {
+        //noinspection unchecked
+        return (ID) findItemDefinition(ItemName.fromQName(name), ItemDefinition.class);
+    }
+
+    @Override
+    public <ID extends ItemDefinition<?>> ID findLocalItemDefinition(
+            @NotNull QName name, @NotNull Class<ID> clazz, boolean caseInsensitive) {
+        if (caseInsensitive) {
+            return findLocalItemDefinitionByIteration(name, clazz, true);
+        } else {
+            return findItemDefinition(ItemName.fromQName(name), clazz);
+        }
+    }
+
+    @Override
+    public @Nullable ShadowAttributeDefinition<?, ?, ?, ?> findAttributeDefinition(QName name, boolean caseInsensitive) {
+        return castOrNull(
+                findLocalItemDefinition(name, ItemDefinition.class, caseInsensitive),
+                ShadowAttributeDefinition.class);
     }
 
     @Override
