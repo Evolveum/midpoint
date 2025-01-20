@@ -77,7 +77,6 @@ public abstract class AbstractPageObjectDetails<O extends ObjectType, ODM extend
     protected static final String OPERATION_PREVIEW_CHANGES = DOT_CLASS + "previewChanges";
     protected static final String OPERATION_PREVIEW_CHANGES_WITH_DEV_CONFIG = DOT_CLASS + "previewChangesWithDevConfig";
     protected static final String OPERATION_SEND_TO_SUBMIT = DOT_CLASS + "sendToSubmit";
-    protected static final String OPERATION_EXECUTE_ARCHETYPE_CHANGES = DOT_CLASS + "executeArchetypeChanges";
 
     private static final String ID_MAIN_FORM = "mainForm";
     private static final String ID_MAIN_PANEL = "mainPanel";
@@ -507,8 +506,9 @@ public abstract class AbstractPageObjectDetails<O extends ObjectType, ODM extend
             checkValidationErrors(target, objectDetailsModels.getValidationErrors());
 
         } catch (Throwable ex) {
-            result.recordFatalError(getString("pageAdminObjectDetails.message.cantCreateObject"), ex);
-            LoggingUtils.logUnexpectedException(LOGGER, "Create Object failed", ex);
+            String messageKey = isAdd() ? "pageAdminObjectDetails.message.cantCreateObject" : "pageAdminObjectDetails.message.cantModifyObject";
+            result.recordFatalError(getString(messageKey), ex);
+            LoggingUtils.logUnexpectedException(LOGGER, getString(messageKey), ex);
             showResult(result);
             target.add(getFeedbackPanel());
             return null;

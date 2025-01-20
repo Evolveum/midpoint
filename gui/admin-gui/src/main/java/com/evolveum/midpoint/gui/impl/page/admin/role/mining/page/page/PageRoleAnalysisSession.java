@@ -207,7 +207,7 @@ public class PageRoleAnalysisSession extends PageAssignmentHolderDetails<RoleAna
     }
 
     @Deprecated
-    private static @NotNull RoleAnalysisProcedureType reviseProcedureType(
+    public static @NotNull RoleAnalysisProcedureType reviseProcedureType(
             @NotNull RoleAnalysisSessionType session) {
         RoleAnalysisDetectionOptionType detectionOption = session.getDefaultDetectionOption();
         if (detectionOption != null && detectionOption.getSensitivity() != null) {
