@@ -2992,6 +2992,7 @@
                 </a:schemaMigration>
                 <a:container/>
                 <a:naturalKey>filter</a:naturalKey>
+                <!-- Inherits schema context from ResourceObjectTypeDefinitionType-->
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
@@ -3077,6 +3078,9 @@
             </xsd:documentation>
             <xsd:appinfo>
                 <a:container/>
+                <a:schemaContext>
+                    <a:type>tns:ShadowType</a:type> <!-- probably new resolver/algorithm will be needed-->
+                </a:schemaContext>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
@@ -4083,6 +4087,11 @@
                             that denotes a necessary condition for the filter to be applied.
                         </p>
                     </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:schemaContext>
+                            <a:type>tns:FocusType</a:type>
+                        </a:schemaContext>
+                    </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="confirmation" type="c:ExpressionType" minOccurs="0">
@@ -5059,6 +5068,7 @@
                             <xsd:appinfo>
                                 <a:displayName>ShadowType.shadowLifecycleState</a:displayName>
                                 <a:experimental>true</a:experimental>
+                                <a:operational>true</a:operational>
                                 <a:since>4.4</a:since>
                             </xsd:appinfo>
                         </xsd:annotation>
@@ -5161,6 +5171,11 @@
                             </xsd:documentation>
                             <xsd:appinfo>
                                 <a:displayName>ShadowType.synchronizationTimestamp</a:displayName>
+                                <!-- Actually, almost all data in shadow can be marked as operational.
+                                     But this one is somehow "more operational" than the others.
+                                     Among other reasons, we do not want to display it as a change in the simulation results.
+                                     See MID-9737. -->
+                                <a:operational>true</a:operational>
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
@@ -5171,6 +5186,13 @@
                                 It does not provide any further details. More details can be found in the "synchronizationSituationDescription"
                                 property.
                             </xsd:documentation>
+                            <xsd:appinfo>
+                                <!-- Actually, almost all data in shadow can be marked as operational.
+                                     But this one is somehow "more operational" than the others.
+                                     Among other reasons, we do not want to display it as a change in the simulation results.
+                                     See MID-9737. -->
+                                <a:operational>true</a:operational>
+                            </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
                     <xsd:element name="synchronizationSituationDescription" type="tns:SynchronizationSituationDescriptionType" minOccurs="0" maxOccurs="unbounded">
@@ -5180,6 +5202,13 @@
                                 store only a single value for each channel (the most recent one). All the older values should be
                                 removed on each update.
                             </xsd:documentation>
+                            <xsd:appinfo>
+                                <!-- Actually, almost all data in shadow can be marked as operational.
+                                     But this one is somehow "more operational" than the others.
+                                     Among other reasons, we do not want to display it as a change in the simulation results.
+                                     See MID-9737. -->
+                                <a:operational>true</a:operational>
+                            </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
                     <xsd:element name="correlation" type="tns:ShadowCorrelationStateType" minOccurs="0">
@@ -5327,8 +5356,26 @@
                         </xsd:annotation>
                     </xsd:element>
                     <xsd:element name="iteration" type="xsd:int" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:appinfo>
+                                <!-- Actually, almost all data in shadow can be marked as operational.
+                                     But this one is somehow "more operational" than the others.
+                                     Among other reasons, we do not want to display it as a change in the simulation results.
+                                     See MID-9986. Note that the iteration in AssignmentHolderType is also operational. -->
+                                <a:operational>true</a:operational>
+                            </xsd:appinfo>
+                        </xsd:annotation>
                     </xsd:element>
                     <xsd:element name="iterationToken" type="xsd:string" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:appinfo>
+                                <!-- Actually, almost all data in shadow can be marked as operational.
+                                     But this one is somehow "more operational" than the others.
+                                     Among other reasons, we do not want to display it as a change in the simulation results.
+                                     See MID-9986. Note that the iterationToken in AssignmentHolderType is also operational. -->
+                                <a:operational>true</a:operational>
+                            </xsd:appinfo>
+                        </xsd:annotation>
                     </xsd:element>
                     <xsd:element name="attributes" type="tns:ShadowAttributesType" minOccurs="0">
                         <xsd:annotation>
@@ -6267,6 +6314,7 @@
             <xsd:appinfo>
                 <a:container/>
                 <a:since>4.6</a:since>
+                <!-- Inherits schema context from ResourceObjectTypeDefinitionType-->
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>

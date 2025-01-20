@@ -220,6 +220,11 @@
             <xsd:documentation>
                 Queries the model for objects of a given type, optionally fulfilling given condition.
             </xsd:documentation>
+            <xsd:appinfo>
+                <a:schemaContext>
+                    <a:typePath>type</a:typePath>
+                </a:schemaContext>
+            </xsd:appinfo>
         </xsd:annotation>
         <xsd:complexContent>
             <xsd:extension base="tns:AbstractActionExpressionType">
@@ -1125,6 +1130,11 @@
                                 Filter matching assignments to be deleted.
                                 Expressions are supported here, but only as an experimental feature.
                             </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:schemaContext>
+                                    <a:type>tns:AssignmentType</a:type>
+                                </a:schemaContext>
+                            </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
                 </xsd:sequence>

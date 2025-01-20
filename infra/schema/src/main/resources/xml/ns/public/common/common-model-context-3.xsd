@@ -1453,6 +1453,9 @@
                 <a:experimental>true</a:experimental>
                 <a:container>true</a:container>
                 <a:since>4.0</a:since>
+                <a:schemaContext>
+                    <a:typePath>objectType</a:typePath>
+                </a:schemaContext>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:complexContent>

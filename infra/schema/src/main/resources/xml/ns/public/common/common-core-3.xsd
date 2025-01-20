@@ -3055,6 +3055,9 @@
                         <xsd:appinfo>
                             <a:displayName>AssignmentType.policyRule</a:displayName>
                             <a:help>AssignmentType.policyRule.help</a:help>
+                            <a:schemaContext>
+                                <a:type>tns:AssignmentHolderType</a:type>
+                            </a:schemaContext>
                         </xsd:appinfo>
                     </xsd:annotation>
                 </xsd:element>
@@ -6755,7 +6758,10 @@
                     <a:version>4.0</a:version>
                     <a:operation>removed</a:operation>
                 </a:schemaMigration>
-               </xsd:appinfo>
+                <a:schemaContext>
+                    <a:typePath>targetType</a:typePath> <!-- TODO check -->
+                </a:schemaContext>
+            </xsd:appinfo>
         </xsd:annotation>
         <xsd:complexContent>
             <xsd:extension base="tns:TransformExpressionEvaluatorType">
@@ -7775,6 +7781,11 @@
                              Expressions are NOT supported here for now.
                          </p>
                      </xsd:documentation>
+                     <xsd:appinfo>
+                         <a:schemaContext>
+                            <a:type>tns:FocusType</a:type>
+                         </a:schemaContext>
+                     </xsd:appinfo>
                  </xsd:annotation>
              </xsd:element>
              <!-- TODO: later: mapping is too flexible. It is will be difficult for the
@@ -8244,6 +8255,9 @@
                 <a:container/>
                 <a:merger>ObjectSelectorType</a:merger>
                 <a:naturalKey>tns:name</a:naturalKey>
+                <a:schemaContext>
+                    <a:typePath>type</a:typePath>
+                </a:schemaContext>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
@@ -12992,6 +13006,9 @@
             </xsd:documentation>
             <xsd:appinfo>
                 <a:since>3.9</a:since>
+                <a:schemaContext>
+                    <a:typePath>type</a:typePath>
+                </a:schemaContext>
             </xsd:appinfo>
         </xsd:annotation>
          <xsd:complexContent>
@@ -16359,6 +16376,9 @@
                             </xsd:documentation>
                             <xsd:appinfo>
                                 <a:displayName>GlobalPolicyRuleType.focusSelector</a:displayName>
+                                <a:schemaContext>
+                                    <a:type>tns:FocusType</a:type>
+                                </a:schemaContext>
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
@@ -16370,6 +16390,9 @@
                             </xsd:documentation>
                             <xsd:appinfo>
                                 <a:displayName>GlobalPolicyRuleType.targetSelector</a:displayName>
+                                <a:schemaContext>
+                                    <a:type>tns:AssignmentHolderType</a:type>
+                                </a:schemaContext>
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
