@@ -18,11 +18,13 @@
 
 def verbose = params.VERBOSE ?: '0'
 
+def oraclePDB = "${params.ORACLE_PDB ?: 'xepdb1'}" // xepdb1 for Oracle 21c freepdb1 or Oracle 23ai
+
 // We will share logs (and other info) in /home/jenkins/agent/workspace (using ..).
 // /tmp is NOT shared and /home/jenkins/agent/workspace/experimental-test-pipeline (which
 // is the current dir for the stages) is cleared by checkout, so we need to go above it.
 def dbprops = '-Dmidpoint.repository.jdbcUrl=jdbc:oracle:thin:@$(cat ../logs-' +
-        JOB_NAME + '-' + BUILD_NUMBER + '/dbpod-ip):1521/xepdb1' +
+        JOB_NAME + '-' + BUILD_NUMBER + '/dbpod-ip):1521/' + oraclePDB +
         ' -Dmidpoint.repository.jdbcPassword=password' +
         ' -Dmidpoint.repository.jdbcUsername=midpoint' +
         ' -Dmidpoint.repository.database=oracle' +
@@ -251,7 +253,7 @@ cat config/sql/generic/oracle-*-all.sql repo/repo-sql-impl-test/sql-procedures/o
     kubectl exec -i -n jenkins test-db-${JOB_NAME}-${BUILD_NUMBER} -c oracle -- dd of=ora-mp-init.sql
 
 # Inside Oracle container sys/Heslo123@xepdb1 works the same as sys/Heslo123@//localhost:1521/xepdb1
-cat <<EOF | kubectl exec -i -n jenkins test-db-${JOB_NAME}-${BUILD_NUMBER} -c oracle -- sqlplus sys/Heslo123@xepdb1 as sysdba
+cat <<EOF | kubectl exec -i -n jenkins test-db-${JOB_NAME}-${BUILD_NUMBER} -c oracle -- sqlplus sys/Heslo123@${oraclePDB} as sysdba
 CREATE USER midpoint IDENTIFIED BY password;
 GRANT connect,resource TO midpoint;
 ALTER USER midpoint quota 10G on users;
@@ -259,7 +261,7 @@ ALTER USER midpoint quota 10G on users;
 EOF
 
 # midpoint/password@//localhost:1521/xepdb1 would also work, but not necessary inside Oracle container:
-cat <<EOF | kubectl exec -i -n jenkins test-db-${JOB_NAME}-${BUILD_NUMBER} -c oracle -- sqlplus midpoint/password@xepdb1
+cat <<EOF | kubectl exec -i -n jenkins test-db-${JOB_NAME}-${BUILD_NUMBER} -c oracle -- sqlplus midpoint/password@${oraclePDB}
 @ora-mp-init.sql
 EOF
                     """
