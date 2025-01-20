@@ -8,10 +8,10 @@
 package com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.session;
 
 import com.evolveum.midpoint.common.mining.utils.RoleAnalysisAttributeDefUtils;
+import com.evolveum.midpoint.gui.api.component.path.ItemPathDto;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ClusteringAttributeRuleType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 
 import org.apache.commons.lang3.StringUtils;
@@ -29,6 +29,7 @@ public class ClusteringAttributeSelectionProvider extends ChoiceProvider<Cluster
     @Serial private static final long serialVersionUID = 1L;
 
     QName complexType;
+    private final Map<String, ItemPathDto> choices = new HashMap<>();
 
     public ClusteringAttributeSelectionProvider(QName complexType) {
         this.complexType = complexType;
@@ -46,78 +47,77 @@ public class ClusteringAttributeSelectionProvider extends ChoiceProvider<Cluster
 
     @Override
     public void query(String text, int page, Response<ClusteringAttributeRuleType> response) {
-
-        List<String> choices = collectAvailableDefinitions(text);
-        response.addAll(toChoices(choices));
+        collectAvailableDefinitions(text);
+        response.addAll(toChoices(choices.keySet()));
     }
 
     @Override
-    public Collection<ClusteringAttributeRuleType> toChoices(Collection<String> values) {
+    public Collection<ClusteringAttributeRuleType> toChoices(@NotNull Collection<String> values) {
         return values.stream()
-                .map(value -> PrismContext.get().itemPathParser().asItemPathType(value))
-                .map(this::createNewValue)
+                .map(value -> {
+                    ItemPathDto itemPathDto = choices.get(value);
+                    if (itemPathDto != null) {
+                        ItemPathType itemPathType = PrismContext.get().itemPathParser().asItemPathType(value);
+                        boolean isMultiValue = itemPathDto.getItemDef().isMultiValue();
+                        return createNewValue(itemPathType, isMultiValue);
+                    }
+                    return null;
+                })
+                .filter(Objects::nonNull)
                 .collect(Collectors.toList());
     }
 
-    private ClusteringAttributeRuleType createNewValue(ItemPathType path) {
+    private @NotNull ClusteringAttributeRuleType createNewValue(ItemPathType path, boolean isMultiValue) {
         ClusteringAttributeRuleType rule = new ClusteringAttributeRuleType();
         rule.path(path)
                 .similarity(100.0)
+                .isMultiValue(isMultiValue)
                 .weight(1.0);
 
         return rule;
     }
 
-    public List<String> collectAvailableDefinitions(String input) {
+    public void collectAvailableDefinitions(String input) {
+        choices.clear();
+        PrismContainerDefinition<?> userDef = PrismContext.get().getSchemaRegistry().findContainerDefinitionByType(complexType);
 
-        PrismContainerDefinition<UserType> userDef = PrismContext.get().getSchemaRegistry().findContainerDefinitionByType(complexType);
-
-        List<ItemPath> paths = new ArrayList<>();
         for (ItemDefinition<?> def : userDef.getDefinitions()) {
-            Set<ItemPath> itemPathSet = createPossibleAttribute(def);
-            if(itemPathSet != null) {
-                for (ItemPath path : itemPathSet) {
-                    if (path != null) {
-                        paths.add(path);
-                    }
-                }
+            @Nullable Set<ItemPathDto> itemPathSet = createPossibleAttribute(def);
+            if (itemPathSet != null) {
+                itemPathSet.forEach(pathDto -> loadPathDtoData(input, pathDto));
             }
         }
-
-        List<String> pathsAsString = paths.stream()
-                .map(ItemPath::toString)
-                .sorted()
-                .toList();
-
-        if (StringUtils.isBlank(input)) {
-            return pathsAsString;
-        }
-
-        return pathsAsString.stream()
-                .filter(path -> path.contains(input))
-                .sorted()
-                .toList();
-
     }
 
-    private static @Nullable Set<ItemPath> createPossibleAttribute(ItemDefinition<?> def) {
-        Set<ItemPath> paths = new HashSet<>();
+    private void loadPathDtoData(String input, @NotNull ItemPathDto itemPathDto) {
+        ItemPath itemPath = itemPathDto.toItemPath();
+        if (!StringUtils.isBlank(input)) {
+            if (itemPathDto.toItemPath().toString().contains(input)) {
+                choices.put(itemPath.toString(), itemPathDto);
+            }
+        } else {
+            choices.put(itemPath.toString(), itemPathDto);
+        }
+    }
+
+    private static @Nullable Set<ItemPathDto> createPossibleAttribute(ItemDefinition<?> def) {
+        Set<ItemPathDto> paths = new HashSet<>();
         //TODO we want extension references, but maybe we can somehow filter relevant defs from static schema?
         // Think about !refDef.isOperational() and searchable items.
         if (def instanceof PrismReferenceDefinition refDef) {
-            return Collections.singleton(refDef.getItemName());
+            return Collections.singleton(new ItemPathDto(refDef.getItemName(), refDef, refDef.getTypeName()));
         }
 
         if (def instanceof PrismPropertyDefinition<?> propertyDef
                 && RoleAnalysisAttributeDefUtils.isSupportedPropertyType(propertyDef.getTypeClass())
-                    && !propertyDef.isOperational()
-                    && propertyDef.isSingleValue()) { // TODO differentiate searchable items && def.isSearchable()) {
-                return Collections.singleton(propertyDef.getItemName());
-            }
+                && !propertyDef.isOperational()
+                && propertyDef.isSingleValue()) { // TODO differentiate searchable items && def.isSearchable()) {
+            return Collections.singleton(new ItemPathDto(propertyDef.getItemName(), propertyDef, def.getTypeName()));
+        }
 
         if (def instanceof PrismContainerDefinition<?> containerDef) {
-            Set<ItemPath> possibleAttributeFromContainerDef = createPossibleAttributeFromContainerDef(containerDef);
-            if(possibleAttributeFromContainerDef != null && !possibleAttributeFromContainerDef.isEmpty()) {
+            @Nullable Set<ItemPathDto> possibleAttributeFromContainerDef = createPossibleAttributeFromContainerDef(containerDef);
+            if (possibleAttributeFromContainerDef != null && !possibleAttributeFromContainerDef.isEmpty()) {
                 paths.addAll(possibleAttributeFromContainerDef);
                 return paths;
             }
@@ -126,24 +126,24 @@ public class ClusteringAttributeSelectionProvider extends ChoiceProvider<Cluster
         return null;
     }
 
-    private static @Nullable Set<ItemPath> createPossibleAttributeFromContainerDef(
-            @NotNull PrismContainerDefinition<?> containerDef){
-        Set<ItemPath> paths = new HashSet<>();
+    private static @Nullable Set<ItemPathDto> createPossibleAttributeFromContainerDef(
+            @NotNull PrismContainerDefinition<?> containerDef) {
+        Set<ItemPathDto> paths = new HashSet<>();
         if (containerDef.isMultiValue()) {
             return null;
         }
 
         for (ItemDefinition<?> def : containerDef.getDefinitions()) {
             if (def instanceof PrismReferenceDefinition refDef) {
-                paths.add(refDef.getItemName());
+                paths.add(new ItemPathDto(refDef.getItemName(), refDef, containerDef.getTypeName()));
             }
 
             if (def instanceof PrismPropertyDefinition<?> propertyDef
                     && RoleAnalysisAttributeDefUtils.isSupportedPropertyType(propertyDef.getTypeClass())
-                        && !propertyDef.isOperational()
-                        && propertyDef.isSingleValue()) {
-                    paths.add(propertyDef.getItemName());
-                }
+                    && !propertyDef.isOperational()
+                    && propertyDef.isSingleValue()) {
+                paths.add(new ItemPathDto(propertyDef.getItemName(), propertyDef, containerDef.getTypeName()));
+            }
 
         }
         return paths;

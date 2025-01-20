@@ -98,10 +98,16 @@ public class ExpandedMiningStructure extends BasePrepareAction {
                 roleAnalysisService,
                 expandUsersMap, allRolesInMiningStructureSize,
                 userExistCache,
-                miningUserTypeChunks);
+                miningUserTypeChunks,
+                option);
 
-        resolveRoleTypeChunkExpanded(roleAnalysisService, expandRolesMap, allUsersInMiningStructureSize, roleExistCache,
-                miningRoleTypeChunks);
+        resolveRoleTypeChunkExpanded(
+                roleAnalysisService,
+                expandRolesMap,
+                allUsersInMiningStructureSize,
+                roleExistCache,
+                miningRoleTypeChunks,
+                option);
 
         return new MiningOperationChunk(miningUserTypeChunks, miningRoleTypeChunks);
     }
@@ -146,10 +152,10 @@ public class ExpandedMiningStructure extends BasePrepareAction {
                 roleAnalysisService,
                 expandUsersMap, allRolesInMiningStructureSize,
                 userExistCache,
-                miningUserTypeChunks);
+                miningUserTypeChunks, option);
 
         resolveRoleTypeChunkExpanded(roleAnalysisService, expandRolesMap, allUsersInMiningStructureSize, roleExistCache,
-                miningRoleTypeChunks);
+                miningRoleTypeChunks, option);
 
         return new MiningOperationChunk(miningUserTypeChunks, miningRoleTypeChunks);
     }
@@ -189,7 +195,8 @@ public class ExpandedMiningStructure extends BasePrepareAction {
                 roleAnalysisService,
                 expandedUsersMap, allRolesInMiningStructureSize,
                 userExistCache,
-                miningUserTypeChunks);
+                miningUserTypeChunks,
+                option);
 
         return new MiningOperationChunk(miningUserTypeChunks, miningRoleTypeChunks);
     }
@@ -225,7 +232,7 @@ public class ExpandedMiningStructure extends BasePrepareAction {
         int allUsersInMiningStructureSize = allUsersInMiningStructure.size();
 
         resolveRoleTypeChunkExpanded(roleAnalysisService, expandeRolesMap, allUsersInMiningStructureSize, roleExistCache,
-                miningRoleTypeChunks);
+                miningRoleTypeChunks, option);
 
         return new MiningOperationChunk(miningUserTypeChunks, miningRoleTypeChunks);
     }
