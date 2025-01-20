@@ -8,15 +8,18 @@ package com.evolveum.midpoint.gui.impl.prism.wrapper;
 
 import java.io.Serial;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.match.MatchingRule;
 
 import com.evolveum.midpoint.prism.path.ItemName;
 
 import com.evolveum.midpoint.prism.schemaContext.SchemaContextDefinition;
 
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.web.component.prism.ValueStatus;
 
 import org.jetbrains.annotations.NotNull;
@@ -40,6 +43,7 @@ public class PrismPropertyWrapperImpl<T> extends ItemWrapperImpl<PrismProperty<T
     @Serial private static final long serialVersionUID = 1L;
 
     private String predefinedValuesOid;
+    private boolean muteDeltaCreate;
 
     public PrismPropertyWrapperImpl(PrismContainerValueWrapper<?> parent, PrismProperty<T> item, ItemStatus status) {
         super(parent, item, status);
@@ -187,5 +191,17 @@ public class PrismPropertyWrapperImpl<T> extends ItemWrapperImpl<PrismProperty<T
     @Override
     public @Nullable SchemaContextDefinition getSchemaContextDefinition() {
         return null;
+    }
+
+    public void setMuteDeltaCreate(boolean muteDeltaCreate) {
+        this.muteDeltaCreate = muteDeltaCreate;
+    }
+
+    @Override
+    public <D extends ItemDelta<? extends PrismValue, ? extends ItemDefinition>> Collection<D> getDelta() throws SchemaException {
+        if (muteDeltaCreate) {
+            return Collections.emptyList();
+        }
+        return super.getDelta();
     }
 }
