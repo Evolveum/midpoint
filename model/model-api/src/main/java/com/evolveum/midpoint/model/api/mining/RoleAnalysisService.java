@@ -1432,22 +1432,6 @@ public interface RoleAnalysisService {
 
     S_FilterExit buildStatisticsAssignmentSearchFilter(@NotNull Collection<QName> memberRelations);
 
-    /**
-     * Retrieves the categorization of a role analysis object based on the provided object reference and session ID.
-     *
-     * @param objectRef The reference to the object whose categorization is to be retrieved.
-     * @param sessionOid The OID of the session in which the object is analyzed.
-     * @param task The task in which the operation is performed.
-     * @param result The operation result.
-     * @return A list of RoleAnalysisObjectCategorizationType representing the categorization of the object,
-     * or null if the object or session is not found.
-     */
-    @Nullable List<RoleAnalysisObjectCategorizationType> getObjectRoleAnalysisObjectCategorization(
-            @NotNull ObjectReferenceType objectRef,
-            @NotNull String sessionOid,
-            @NotNull Task task,
-            @NotNull OperationResult result);
-
     //TODO this is temporary solution
     /**
      * Prepares a temporary cluster for role analysis based on the provided outlier and partition.

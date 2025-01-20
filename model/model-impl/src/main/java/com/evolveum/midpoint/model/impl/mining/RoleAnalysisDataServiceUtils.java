@@ -121,9 +121,6 @@ public class RoleAnalysisDataServiceUtils {
         }
 
         RoleAnalysisSessionType sessionObject = sessionPrismObject.asObjectable();
-        if (sessionObject.getIdentifiedCharacteristics() == null) {
-            return new HashSet<>();
-        }
 
         RoleAnalysisIdentifiedCharacteristicsType identifiedCharacteristics = sessionObject.getIdentifiedCharacteristics();
 

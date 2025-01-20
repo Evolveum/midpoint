@@ -717,7 +717,8 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
             @NotNull Map<String, PrismObject<RoleType>> roleExistCache,
             @NotNull String roleOid,
             @NotNull Task task,
-            @NotNull OperationResult result, @Nullable RoleAnalysisCacheOption option) {
+            @NotNull OperationResult result,
+            @Nullable RoleAnalysisCacheOption option) {
         PrismObject<RoleType> role = roleExistCache.get(roleOid);
         if (role == null) {
             role = getRoleTypeObject(roleOid, task, result);
@@ -725,26 +726,10 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
                 return null;
             }
 
-            if (option != null) {
+            if (option != null && option.getItemDef() != null) {
                 try {
-                    PrismObject<RoleType> cacheRole = new RoleType().asPrismObject();
-                    List<RoleAnalysisAttributeDef> itemDef = option.getItemDef();
-                    for (RoleAnalysisAttributeDef roleAnalysisAttributeDef : itemDef) {
-                        ItemPath path = roleAnalysisAttributeDef.getPath();
-//                        boolean isContainer = roleAnalysisAttributeDef.isContainer();
+                    PrismObject<RoleType> cacheRole = buildCachedRole(option.getItemDef(), role);
 
-//                        if (isContainer) {
-//                            PrismContainer<Containerable> container = role.findContainer(path);
-//                            if (container != null) {
-//                                cacheRole.add(container.clone());
-//                            }
-//                        } else {
-                            Item<PrismValue, ItemDefinition<?>> item = role.findItem(path);
-                            if (item != null) {
-                                cacheRole.add(item.clone());
-                            }
-//                        }
-                    }
                     roleExistCache.put(roleOid, cacheRole);
                     return cacheRole;
                 } catch (SchemaException e) {
@@ -755,6 +740,25 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
             roleExistCache.put(roleOid, role);
         }
         return role;
+    }
+
+    private static PrismObject<RoleType> buildCachedRole(
+            @NotNull List<RoleAnalysisAttributeDef> itemDef,
+            @NotNull PrismObject<RoleType> role) throws SchemaException {
+        PrismObject<RoleType> cacheRole = new RoleType().asPrismObject();
+
+        for (RoleAnalysisAttributeDef roleAnalysisAttributeDef : itemDef) {
+            ItemPath path = roleAnalysisAttributeDef.getPath();
+
+            Item<PrismValue, ItemDefinition<?>> item = role.findItem(path);
+            if (item != null) {
+                cacheRole.add(item.clone());
+            }
+        }
+
+        resolveNameIfNeeded(role, cacheRole);
+
+        return cacheRole;
     }
 
     @Override
@@ -774,26 +778,9 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
             return null;
         }
 
-        if (option != null) {
+        if (option != null && option.getItemDef() != null) {
             try {
-                PrismObject<UserType> cacheUser = new UserType().asPrismObject();
-                List<RoleAnalysisAttributeDef> itemDef = option.getItemDef();
-                for (RoleAnalysisAttributeDef roleAnalysisAttributeDef : itemDef) {
-                    ItemPath path = roleAnalysisAttributeDef.getPath();
-//                    boolean isContainer = roleAnalysisAttributeDef.isContainer();
-
-//                    if (isContainer) {
-//                        PrismContainer<Containerable> container = user.findContainer(path);
-//                        if (container != null) {
-//                            cacheUser.add(container.clone());
-//                        }
-//                    } else {
-                        Item<PrismValue, ItemDefinition<?>> item = user.findItem(path);
-                        if (item != null) {
-                            cacheUser.add(item.clone());
-                        }
-//                    }
-                }
+                PrismObject<UserType> cacheUser = buildCachedUser(option.getItemDef(), user);
                 userExistCache.put(userOid, cacheUser);
                 return cacheUser;
             } catch (SchemaException e) {
@@ -804,6 +791,38 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
         userExistCache.put(userOid, user);
 
         return user;
+    }
+
+    private static PrismObject<UserType> buildCachedUser(
+            @NotNull List<RoleAnalysisAttributeDef> itemDef,
+            @NotNull PrismObject<UserType> user) throws SchemaException {
+        PrismObject<UserType> cacheUser = new UserType()
+                .asPrismObject();
+
+        for (RoleAnalysisAttributeDef roleAnalysisAttributeDef : itemDef) {
+            ItemPath path = roleAnalysisAttributeDef.getPath();
+            Item<PrismValue, ItemDefinition<?>> item = user.findItem(path);
+            if (item != null) {
+                cacheUser.add(item.clone());
+            }
+        }
+
+        resolveNameIfNeeded(user, cacheUser);
+
+        return cacheUser;
+    }
+
+    private static void resolveNameIfNeeded(
+            @NotNull PrismObject<? extends FocusType> object,
+            @NotNull PrismObject<? extends FocusType> cacheObject) throws SchemaException {
+        if (cacheObject.findItem(F_NAME) != null) {
+            return;
+        }
+
+        Item<PrismValue, ItemDefinition<?>> item = object.findItem(F_NAME);
+        if (item != null) {
+            cacheObject.add(item.clone());
+        }
     }
 
     @Override
@@ -1190,7 +1209,6 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
                             .roleAnalysisClustering(rdw));
 
             taskObject.setName(PolyStringType.fromOrig("Session clustering  (" + session + ")"));
-
 
             String taskOid = modelInteractionService.submit(
                     activity,
@@ -4179,56 +4197,6 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
                 .type(RoleType.class)
                 .block().item(FocusType.F_ACTIVATION, ActivationType.F_EFFECTIVE_STATUS).eq(ActivationStatusType.ENABLED)
                 .endBlock();
-    }
-
-    @Override
-    public @Nullable List<RoleAnalysisObjectCategorizationType> getObjectRoleAnalysisObjectCategorization(
-            @NotNull ObjectReferenceType objectRef,
-            @NotNull String sessionOid,
-            @NotNull Task task,
-            @NotNull OperationResult result) {
-        String targetObjectOid = objectRef.getOid();
-        QName targetObjectType = objectRef.getType();
-        Objects.requireNonNull(targetObjectOid, "ObjectRef oid must not be null");
-        Objects.requireNonNull(targetObjectType, "ObjectRef type must not be null");
-
-        @Nullable PrismObject<RoleAnalysisSessionType> sessionObject = getSessionTypeObject(sessionOid, task, result);
-        if (sessionObject == null) {
-            return null;
-        }
-
-        RoleAnalysisSessionType session = sessionObject.asObjectable();
-        RoleAnalysisIdentifiedCharacteristicsType identifiedCharacteristics = session.getIdentifiedCharacteristics();
-
-        if(identifiedCharacteristics == null) {
-            return null;
-        }
-
-        if (targetObjectType.equals(UserType.COMPLEX_TYPE)) {
-            RoleAnalysisIdentifiedCharacteristicsItemsType users = identifiedCharacteristics.getUsers();
-            if (users == null) {
-                return null;
-            }
-
-            for (RoleAnalysisIdentifiedCharacteristicsItemType user : users.getItem()) {
-                if (user.getObjectRef().getOid().equals(targetObjectOid)) {
-                    return user.getCategory();
-                }
-            }
-        } else if (targetObjectType.equals(RoleType.COMPLEX_TYPE)) {
-            RoleAnalysisIdentifiedCharacteristicsItemsType roles = identifiedCharacteristics.getRoles();
-            if (roles == null) {
-                return null;
-            }
-
-            for (RoleAnalysisIdentifiedCharacteristicsItemType role : roles.getItem()) {
-                if (role.getObjectRef().getOid().equals(targetObjectOid)) {
-                    return role.getCategory();
-                }
-            }
-        }
-
-        return null;
     }
 
     //TODO this is temporary solution
