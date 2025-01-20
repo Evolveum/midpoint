@@ -34,6 +34,8 @@ public class ObjectCleaner {
 
     private boolean removeContainerIds;
 
+    private boolean removeMetadata;
+
     private final Map<QName, Map<ItemPath, CleanupPathAction>> paths = new HashMap<>();
 
     public boolean isRemoveContainerIds() {
@@ -42,6 +44,14 @@ public class ObjectCleaner {
 
     public void setRemoveContainerIds(boolean removeContainerIds) {
         this.removeContainerIds = removeContainerIds;
+    }
+
+    public boolean isRemoveMetadata() {
+        return removeMetadata;
+    }
+
+    public void setRemoveMetadata(boolean removeMetadata) {
+        this.removeMetadata = removeMetadata;
     }
 
     public void setListener(CleanerListener listener) {
@@ -159,6 +169,13 @@ public class ObjectCleaner {
             return true;
         } else if (BooleanUtils.isFalse(remove)) {
             return false;
+        }
+
+        if (removeMetadata) {
+            List<? extends PrismValue> values = item.getValues();
+            if (values != null) {
+                values.forEach(v -> v.deleteValueMetadata());
+            }
         }
 
         final ItemDefinition<?> def = item.getDefinition();
