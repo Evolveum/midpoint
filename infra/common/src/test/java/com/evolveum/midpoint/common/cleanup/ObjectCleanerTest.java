@@ -189,10 +189,10 @@ public class ObjectCleanerTest extends AbstractUnitTest {
     /**
      * Not finished yet, whole concept of "extending" item path to "givenName/_metadata/provenance" is probably wrong.
      */
-    @Test(enabled = false)
-    public void test210UserMetadata() throws Exception {
+    @Test
+    public void test210MetadataCleanup() throws Exception {
         File file = new File(TEST_DIR, "user.xml");
-        PrismObject<ResourceType> user = getPrismContext().parseObject(file);
+        PrismObject<UserType> user = getPrismContext().parseObject(file);
 
         ValueMetadata metadata = user.findItem(UserType.F_GIVEN_NAME).getValue().getValueMetadata();
         Assertions.assertThat(metadata)
@@ -204,22 +204,24 @@ public class ObjectCleanerTest extends AbstractUnitTest {
                         .filter(Objects::nonNull)
                         .count());
 
-        ItemPath provenanceMetadata = ItemPath.create(
-                UserType.F_GIVEN_NAME,
-                new QName(SchemaConstantsGenerated.NS_COMMON, "_metadata"),
-                ValueMetadataType.F_PROVENANCE
-        );
-
-        List<CleanupPath> paths = List.of(
-                new CleanupPath(UserType.COMPLEX_TYPE, provenanceMetadata, CleanupPathAction.REMOVE)
-        );
-
+        // don't remove metadata by default
         ObjectCleaner processor = new ObjectCleaner();
-        processor.setPaths(paths);
         processor.setListener(new TestCleanupListener());
-        processor.process(user);
 
-        System.out.println(user.debugDump());
+        PrismObject<UserType> cloned = user.clone();
+        processor.process(cloned);
+
+        Assertions.assertThat(cloned.findItem(UserType.F_GIVEN_NAME).getValue().getValueMetadata())
+                .isNotNull();
+
+        // remove metadata
+        processor.setRemoveMetadata(true);
+
+        cloned = user.clone();
+        processor.process(cloned);
+
+        ValueMetadata valueMetadata = cloned.findItem(UserType.F_GIVEN_NAME).getValue().getValueMetadata();
+        Assertions.assertThat(valueMetadata.isEmpty()).isTrue();
     }
 
     @Test
