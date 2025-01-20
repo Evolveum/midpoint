@@ -24,6 +24,7 @@ import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -259,9 +260,12 @@ public class SearchableItemsDefinitions {
     }
 
 
-    private static List<ItemPath> getSearchableItemsFor(Class<?> typeClass, CollectionPanelType shadowSearchType) {
+    private static List<ItemPath> getSearchableItemsFor(Class<?> typeClass, CollectionPanelType shadowSearchType, QName assignmentTargetType) {
         if (ShadowType.class.equals(typeClass)) {
             return SHADOW_SEARCHABLE_ITEMS.get(shadowSearchType);
+        }
+        if (QNameUtil.match(PolicyRuleType.COMPLEX_TYPE, assignmentTargetType)) {
+            return SEARCHABLE_ASSIGNMENT_ITEMS.get(PolicyRuleType.COMPLEX_TYPE);
         }
 
         return SearchableItemsDefinitions.SEARCHABLE_OBJECTS.get(typeClass);
@@ -406,7 +410,7 @@ public class SearchableItemsDefinitions {
     }
 
     private List<ItemPath> getAvailableSearchableItems(Class<? extends Containerable> typeClass) {
-        List<ItemPath> items = getSearchableItemsFor(typeClass, collectionPanelType);
+        List<ItemPath> items = getSearchableItemsFor(typeClass, collectionPanelType, assignmentTargetType);
         if (AuditEventRecordType.class.equals(typeClass)) {
             SystemConfigurationType systemConfigurationType;
             try {
