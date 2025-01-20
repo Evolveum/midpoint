@@ -165,4 +165,9 @@ public class PageSchema extends PageAssignmentHolderDetails<SchemaType, Assignme
     protected VisibleEnableBehaviour getPageTitleBehaviour() {
         return VisibleEnableBehaviour.ALWAYS_INVISIBLE;
     }
+
+    @Override
+    protected String getMainPanelCssClass() {
+        return "col p-0 card";
+    }
 }
