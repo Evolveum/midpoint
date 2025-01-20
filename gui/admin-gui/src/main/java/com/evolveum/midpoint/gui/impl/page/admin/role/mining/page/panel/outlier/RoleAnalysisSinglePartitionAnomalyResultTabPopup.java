@@ -708,10 +708,14 @@ public class RoleAnalysisSinglePartitionAnomalyResultTabPopup extends BasePanel<
                     @Override
                     public Component createValueComponent(String id) {
                         double memberCoverageConfidence = 0.0;
-                        FrequencyType memberFrequencyContainer = anomalyModelStatistics.getMemberCoverageConfidence();
+                        FrequencyType memberFrequencyContainer = anomalyModelStatistics.getMemberCoverageConfidenceStat();
+
                         if (memberFrequencyContainer != null && memberFrequencyContainer.getPercentageRatio() != null) {
                             memberCoverageConfidence = memberFrequencyContainer.getPercentageRatio();
                         }
+
+                        //Deprecated
+                        memberCoverageConfidence = getMemberCoverageConfidence(memberCoverageConfidence);
 
                         BigDecimal bd = BigDecimal.valueOf(memberCoverageConfidence);
                         bd = bd.setScale(2, RoundingMode.HALF_UP);
@@ -719,6 +723,18 @@ public class RoleAnalysisSinglePartitionAnomalyResultTabPopup extends BasePanel<
                         String title = createStringResource("RoleAnalysisOutlierType.widget.repo.role.popularity.confidence")
                                 .getString();
                         return getDensityProgressPanel(id, pointsDensity, title);
+                    }
+
+                    @Deprecated
+                    private double getMemberCoverageConfidence(double memberCoverageConfidence) {
+                        FrequencyType memberFrequencyContainer = anomalyModelStatistics.getMemberCoverageConfidenceStat();
+                        if (memberFrequencyContainer == null || memberFrequencyContainer.getPercentageRatio() == null) {
+                            Double deprecatedMemberCoverageConfidence = anomalyModelStatistics.getMemberCoverageConfidence();
+                            if (deprecatedMemberCoverageConfidence != null) {
+                                memberCoverageConfidence = deprecatedMemberCoverageConfidence;
+                            }
+                        }
+                        return memberCoverageConfidence;
                     }
 
                     @Override

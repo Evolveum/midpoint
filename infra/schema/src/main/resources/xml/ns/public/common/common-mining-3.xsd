@@ -578,7 +578,17 @@
                 </xsd:annotation>
             </xsd:element>
 
-            <xsd:element name="memberCoverageConfidence" type="tns:FrequencyType" minOccurs="0">
+
+            <xsd:element name="memberCoverageConfidence" type="xsd:double" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Confidence level associated with the identified outlier.
+                        DEPRECATED
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+
+            <xsd:element name="memberCoverageConfidenceStat" type="tns:FrequencyType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
                         Expressing the access frequency right above the entire system.
@@ -591,6 +601,15 @@
                 <xsd:annotation>
                     <xsd:documentation>
                         Confidence level associated with the identified outlier.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+
+            <xsd:element name="frequency" type="xsd:double" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Frequency of the outlier for the given similar objects group.
+                        DEPRECATED
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
@@ -1451,6 +1470,8 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
+
+
             <xsd:element name="processedPropertiesCount" type="xsd:int" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>

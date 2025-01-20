@@ -13,16 +13,17 @@ import java.util.List;
 import com.evolveum.midpoint.common.mining.objects.analysis.RoleAnalysisAttributeDef;
 
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class RoleAnalysisCacheOption implements Serializable {
 
-    @NotNull List<RoleAnalysisAttributeDef> itemDef;
+    @Nullable List<RoleAnalysisAttributeDef> itemDef;
 
     public RoleAnalysisCacheOption(@NotNull List<RoleAnalysisAttributeDef> itemDef) {
         this.itemDef = itemDef;
     }
 
-    public @NotNull List<RoleAnalysisAttributeDef> getItemDef() {
+    public @Nullable List<RoleAnalysisAttributeDef> getItemDef() {
         return itemDef;
     }
 

@@ -15,7 +15,6 @@ import java.util.List;
 
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
-import com.evolveum.midpoint.gui.api.prism.wrapper.PrismPropertyWrapper;
 import com.evolveum.midpoint.gui.impl.component.data.provider.MultivalueContainerListDataProvider;
 import com.evolveum.midpoint.gui.impl.component.search.Search;
 import com.evolveum.midpoint.gui.impl.component.search.SearchBuilder;
@@ -37,7 +36,6 @@ import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
-import org.apache.wicket.model.util.ListModel;
 import org.apache.wicket.validation.validator.RangeValidator;
 import org.jetbrains.annotations.NotNull;
 
@@ -48,7 +46,6 @@ import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.component.Numb
 import com.evolveum.midpoint.web.component.AjaxIconButton;
 import com.evolveum.midpoint.web.component.data.BoxedTablePanel;
 import com.evolveum.midpoint.web.component.data.column.IconColumn;
-import com.evolveum.midpoint.web.component.util.RoleMiningProvider;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ClusteringAttributeRuleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.DisplayType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.IconType;
@@ -215,7 +212,8 @@ public class RoleAnalysisClusteringAttributeTable extends BasePanel<PrismContain
             @Override
             public void populateItem(Item<ICellPopulator<PrismContainerValueWrapper<ClusteringAttributeRuleType>>> item, String componentId,
                     IModel<PrismContainerValueWrapper<ClusteringAttributeRuleType>> rowModel) {
-                if (rowModel.getObject() != null) {
+                PrismContainerValueWrapper<ClusteringAttributeRuleType> prismContainerValueObjectWrapper = rowModel.getObject();
+                if (prismContainerValueObjectWrapper != null) {
                     PrismPropertyWrapperModel<ClusteringAttributeRuleType, Double> propertyModel = PrismPropertyWrapperModel.fromContainerValueWrapper(rowModel, ClusteringAttributeRuleType.F_SIMILARITY);
                     ItemRealValueModel<Double> realValueModel = new ItemRealValueModel<>(new PropertyModel<>(propertyModel, "value"));
                     NumberFormatSelectorPanel field = new NumberFormatSelectorPanel(componentId,
@@ -244,10 +242,16 @@ public class RoleAnalysisClusteringAttributeTable extends BasePanel<PrismContain
 //                            rowModel.getObject().setWeight(newValue);
 //                        }
                     };
-//                    field.setEnabled(rowModel.getObject().isIsMultiValue());
-                    field.add(new EnableBehaviour(() -> isEditable()));
+
+                    field.add(new EnableBehaviour(() -> isEditable()
+                            && isMultivaluedAttribute(prismContainerValueObjectWrapper)));
                     item.add(field);
                 }
+            }
+
+            private static Boolean isMultivaluedAttribute(
+                    @NotNull PrismContainerValueWrapper<ClusteringAttributeRuleType> prismContainerValueObjectWrapper) {
+                return prismContainerValueObjectWrapper.getRealValue().getIsMultiValue();
             }
 
             @Override

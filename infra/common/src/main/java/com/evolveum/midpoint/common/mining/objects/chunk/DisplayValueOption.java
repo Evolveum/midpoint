@@ -8,12 +8,20 @@
 package com.evolveum.midpoint.common.mining.objects.chunk;
 
 import java.io.Serializable;
+import java.util.Objects;
 
 import com.evolveum.midpoint.common.mining.objects.analysis.RoleAnalysisAttributeDef;
 import com.evolveum.midpoint.common.mining.utils.values.RoleAnalysisChunkAction;
 import com.evolveum.midpoint.common.mining.utils.values.RoleAnalysisChunkMode;
 import com.evolveum.midpoint.common.mining.utils.values.RoleAnalysisSortMode;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisProcessModeType;
+import com.evolveum.midpoint.prism.ItemDefinition;
+import com.evolveum.midpoint.prism.PrismContainerDefinition;
+import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
+import org.jetbrains.annotations.NotNull;
+
+import javax.xml.namespace.QName;
 
 public class DisplayValueOption implements Serializable {
     RoleAnalysisAttributeDef roleAnalysisAttributeDef;
@@ -41,6 +49,25 @@ public class DisplayValueOption implements Serializable {
 
     public RoleAnalysisAttributeDef getRoleAnalysisRoleDef() {
         return roleAnalysisAttributeDef;
+    }
+
+    public RoleAnalysisAttributeDef getNameIfNullAnalysisRoleDef() {
+        return Objects.requireNonNullElseGet(roleAnalysisAttributeDef, () -> new RoleAnalysisAttributeDef(
+                ObjectType.F_NAME,
+                findItemDefinition(RoleType.COMPLEX_TYPE),
+                UserType.class));
+    }
+
+    public RoleAnalysisAttributeDef getNameIfNullAnalysisUserDef() {
+        return Objects.requireNonNullElseGet(userAnalysisAttributeDef, () -> new RoleAnalysisAttributeDef(
+                ObjectType.F_NAME,
+                findItemDefinition(UserType.COMPLEX_TYPE),
+                UserType.class));
+    }
+
+    private static ItemDefinition<?> findItemDefinition(@NotNull QName complexType) {
+        PrismContainerDefinition<?> objectDefinition = PrismContext.get().getSchemaRegistry().findContainerDefinitionByType(complexType);
+        return objectDefinition.findItemDefinition(ObjectType.F_NAME);
     }
 
     public void setRoleAnalysisRoleDef(RoleAnalysisAttributeDef roleItemValuePath) {
@@ -102,7 +129,7 @@ public class DisplayValueOption implements Serializable {
     public void setToolsPanelExpanded(boolean toolsPanelExpanded) {
         isToolsPanelExpanded = toolsPanelExpanded;
     }
-    
+
     public RoleAnalysisChunkAction getChunkAction() {
         return chunkAction;
     }
