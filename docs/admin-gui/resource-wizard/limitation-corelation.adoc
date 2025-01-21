@@ -1,0 +1,11 @@
+:page-toc: top
+:page-since: "4.9"
+:visibility: data
+
+== Limitations
+
+Resource wizard has several limitations as of midPoint 4.8, such as:
+
+* correlation configuration currently supports only xref:/midpoint/reference/correlation/items-correlator/[]
+
+midPoint resource wizard won't be able to show or allow editing of these features but should tolerate them and keep them in the configuration.

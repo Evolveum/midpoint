@@ -1,0 +1,45 @@
+= Resource wizard: Object type correlation
+:page-nav-title: Correlation
+:page-toc: top
+:page-since: "4.9"
+
+Correlation allows you to define how midPoint should recognize relations between resource objects and midPoint objects.
+In short, this is about searching the resource object owners in midPoint.
+
+You can create one or several correlation rules.
+
+Click btn:[Add rule] to add a new correlation rule.
+
+For the correlation, you can configure the following:
+
+* *Rule name* for documentation and troubleshooting purposes
+* *Description*
+* *Weight*, *Tier*, *Ignore if matched by* for more complex scenarios
+* *Enabled* to enable or disable the correlation rule
+
+image::step-4-correlator-rule.png[link=step-4-correlator-rule.png,100%,title=Table of correlation rules]
+
+Click btn:[Edit] button to edit details of the correlation rule.
+
+Specify the item configuration:
+
+* *Item* refers to a midPoint property for which an inbound mapping exists. This will be used for correlation. E.g. if there is an inbound mapping from AD's `sAMAccountName` attribute to midPoint user's `name` property, you would use `name` item
++
+TIP: For target resources where inbound mappings are normally not used, the inbound mapping can be in a special <<#use_inbound_for_correlation,"Use for correlation only" mode>>.
+* *Search method* allows to specify either exact match or one of the fuzzy search methods supported by midPoint
+
+
+.Table of correlation items for one correlation rule
+image::step-4-correlator-item.png[link=step-4-correlator-item.png,100%,title=Table of correlation items for one correlation rule]
+
+.See also the following pages for more information:
+* xref:/midpoint/reference/correlation/items-correlator/[]
+* xref:/midpoint/reference/correlation/[Smart Correlation]
+
+Click btn:[Save correlation settings] when done to return to the previous page from which you started the correlation editor.
+
+include::../../configuration-resource-panels.adoc[]
+
+include::../../how-to-use-lifecycle-state.adoc[]
+
+include::../../limitation-corelation.adoc[]
