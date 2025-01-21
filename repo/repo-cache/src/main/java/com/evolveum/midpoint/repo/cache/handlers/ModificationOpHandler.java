@@ -82,7 +82,7 @@ public class ModificationOpHandler extends BaseOpHandler {
                         new ModifyObjectResult<>(object.getUserData(RepositoryService.KEY_ORIGINAL_OBJECT), object,
                                 Collections.emptyList(), options.isOverwrite()), result);
             } else {
-                // just for sure (the object should not be there but ...)
+                // just for sure (the object should not be there but ...) - but the query cache may be affected
                 invalidator.invalidateCacheEntries(object.getCompileTimeClass(), oid, new AddObjectResult<>(object), result);
             }
             if (trace != null) {

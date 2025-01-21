@@ -93,8 +93,9 @@ public class GlobalObjectCache extends AbstractGlobalCache {
                 cache.remove(oid);
             } else {
                 cache.invokeAll(cache.keys(), e -> {
-                    if (e.getValue() != null && e.getValue().getObjectType() != null &&
-                            type.isAssignableFrom(e.getValue().getObjectType())) {
+                    if (e.getValue() != null
+                            && e.getValue().getObjectType() != null
+                            && type.isAssignableFrom(e.getValue().getObjectType())) {
                         e.remove();
                     }
                     return null;

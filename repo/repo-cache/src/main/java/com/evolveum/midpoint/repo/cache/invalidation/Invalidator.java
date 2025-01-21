@@ -19,13 +19,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.CacheInvalidationContext;
-import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
 import com.evolveum.midpoint.repo.api.CacheDispatcher;
-import com.evolveum.midpoint.repo.api.CacheRegistry;
 import com.evolveum.midpoint.repo.api.RepositoryOperationResult;
-import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.cache.global.GlobalObjectCache;
 import com.evolveum.midpoint.repo.cache.global.GlobalQueryCache;
 import com.evolveum.midpoint.repo.cache.global.GlobalVersionCache;
@@ -34,7 +31,6 @@ import com.evolveum.midpoint.repo.cache.local.LocalQueryCache;
 import com.evolveum.midpoint.repo.cache.local.LocalVersionCache;
 import com.evolveum.midpoint.repo.cache.local.QueryKey;
 import com.evolveum.midpoint.schema.SearchResultList;
-import com.evolveum.midpoint.schema.cache.CacheConfigurationManager;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -57,13 +53,8 @@ public class Invalidator {
     @Autowired private GlobalQueryCache globalQueryCache;
     @Autowired private GlobalObjectCache globalObjectCache;
     @Autowired private GlobalVersionCache globalVersionCache;
-    @Autowired PrismContext prismContext;
-    @Autowired RepositoryService repositoryService;
     @Autowired CacheDispatcher cacheDispatcher;
-    @Autowired CacheRegistry cacheRegistry;
     @Autowired MatchingRuleRegistry matchingRuleRegistry;
-    @Autowired CacheConfigurationManager cacheConfigurationManager;
-    @Autowired Invalidator invalidator;
 
     private static final int MAX_LISTENERS = 1000;
 
@@ -75,13 +66,11 @@ public class Invalidator {
             globalObjectCache.clear();
             globalVersionCache.clear();
             globalQueryCache.clear();
-        } else {
+        } else if (ObjectType.class.isAssignableFrom(type)) {
             globalObjectCache.remove(type, oid);
             globalVersionCache.remove(type, oid);
-            if (ObjectType.class.isAssignableFrom(type)) {
-                //noinspection unchecked
-                clearQueryResultsGlobally((Class<? extends ObjectType>) type, oid, context);
-            }
+            //noinspection unchecked
+            clearQueryResultsGlobally((Class<? extends ObjectType>) type, oid, context);
         }
         if (!listeners.isEmpty()) {
             InvalidationEvent event = new InvalidationEvent(type, oid, context);
@@ -109,10 +98,10 @@ public class Invalidator {
             if (localQueryCache != null) {
                 clearQueryResultsLocally(localQueryCache, type, oid, additionalInfo, matchingRuleRegistry);
             }
-            boolean clusterwide = TYPES_ALWAYS_INVALIDATED_CLUSTERWIDE.contains(type) ||
-                    globalObjectCache.hasClusterwideInvalidationFor(type) ||
-                    globalVersionCache.hasClusterwideInvalidationFor(type) ||
-                    globalQueryCache.hasClusterwideInvalidationFor(type);
+            boolean clusterwide = TYPES_ALWAYS_INVALIDATED_CLUSTERWIDE.contains(type)
+                    || globalObjectCache.hasClusterwideInvalidationFor(type)
+                    || globalVersionCache.hasClusterwideInvalidationFor(type)
+                    || globalQueryCache.hasClusterwideInvalidationFor(type);
             cacheDispatcher.dispatchInvalidation(type, oid, clusterwide,
                     new CacheInvalidationContext(false, new RepositoryCacheInvalidationDetails(additionalInfo)));
         } catch (Throwable t) {
@@ -126,6 +115,10 @@ public class Invalidator {
     private <T extends ObjectType> void clearQueryResultsLocally(LocalQueryCache cache, Class<T> type, String oid,
             Object additionalInfo, MatchingRuleRegistry matchingRuleRegistry) {
         // TODO implement more efficiently
+
+        if (shouldSkipLocalQueryInvalidation(type)) {
+            return;
+        }
 
         ChangeDescription change = ChangeDescription.getFrom(type, oid, additionalInfo, true);
 
@@ -149,6 +142,10 @@ public class Invalidator {
     private <T extends ObjectType> void clearQueryResultsGlobally(Class<T> type, String oid, CacheInvalidationContext context) {
         // TODO implement more efficiently
 
+        if (shouldSkipGlobalQueryInvalidation(type)) {
+            return;
+        }
+
         // Safe invalidation means we evict queries without looking at details of the change.
         boolean safeIfUnknown =
                 context != null && !context.isFromRemoteNode()
@@ -171,6 +168,29 @@ public class Invalidator {
             }
         });
         LOGGER.trace("Removed (from global cache) {} (of {}) query result entries of type {} in {} ms", removed, all, type, System.currentTimeMillis() - start);
+    }
+
+    private <T extends ObjectType> boolean shouldSkipLocalQueryInvalidation(Class<T> type) {
+        if (ObjectType.class.equals(type)) {
+            return false; // We cannot tell anything about the type being invalidated, so we have to check the cache content.
+        }
+        var localQueryCache = getLocalQueryCache();
+        if (localQueryCache == null || !localQueryCache.isAvailable()) {
+            return true;
+        }
+        var config = localQueryCache.getConfiguration(type);
+        return config == null || !config.supportsCaching(); // False if the type is not cached at all.
+    }
+
+    private <T extends ObjectType> boolean shouldSkipGlobalQueryInvalidation(Class<T> type) {
+        if (ObjectType.class.equals(type)) {
+            return false; // We cannot tell anything about the type being invalidated, so we have to check the cache content.
+        }
+        if (!globalQueryCache.isAvailable()) {
+            return true;
+        }
+        var config = globalQueryCache.getConfiguration(type);
+        return config == null || !config.supportsCaching(); // False if the type is not cached at all.
     }
 
     public void registerInvalidationEventsListener(InvalidationEventListener listener) {

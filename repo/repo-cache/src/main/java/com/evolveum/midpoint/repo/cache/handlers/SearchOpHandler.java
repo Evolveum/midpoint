@@ -68,7 +68,7 @@ public class SearchOpHandler extends CachedOpHandler {
             QueryKey<T> key = new QueryKey<>(type, query);
 
             // Checks related to both caches
-            PassReason passReason = PassReason.determine(options, type);
+            PassReason passReason = PassReason.determineForSearch(options, type);
             if (passReason != null) {
                 exec.reportLocalAndGlobalPass(passReason);
                 SearchResultList<PrismObject<T>> objects;
@@ -135,7 +135,7 @@ public class SearchOpHandler extends CachedOpHandler {
 
         try {
             // Checks related to both caches
-            PassReason passReason = PassReason.determine(options, type);
+            PassReason passReason = PassReason.determineForSearch(options, type);
             if (passReason != null) {
                 exec.reportLocalAndGlobalPass(passReason);
                 return searchObjectsIterativeInternal(type, query, reportingHandler, options, strictlySequential, exec.result);
@@ -326,7 +326,7 @@ public class SearchOpHandler extends CachedOpHandler {
             }
             if (ownerObject != null) {
                 Class<F> type = ownerObject.getCompileTimeClass();
-                if (type != null && PassReason.determine(options, type) == null) {
+                if (type != null && PassReason.determineForSearch(options, type) == null) {
                     boolean readOnly = isReadOnly(findRootOptions(options));
                     cacheUpdater.storeLoadedObjectToAll(ownerObject, readOnly, 0);
                 }

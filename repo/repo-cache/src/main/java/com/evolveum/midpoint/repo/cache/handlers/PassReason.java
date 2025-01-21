@@ -12,15 +12,13 @@ import static com.evolveum.midpoint.schema.GetOperationOptions.createRetrieve;
 
 import java.util.Collection;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
 import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.RetrieveOption;
 import com.evolveum.midpoint.schema.SelectorOptions;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.CacheUseCategoryTraceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.CacheUseTraceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 
 /**
  * Reason why an operation request passes a cache.
@@ -67,11 +65,19 @@ final class PassReason {
         return soft;
     }
 
+    /** As {@link #determine(Collection, Class)} but for search operations. */
+    static @Nullable PassReason determineForSearch(Collection<SelectorOptions<GetOperationOptions>> options, Class<?> objectType) {
+        if (ObjectType.class.equals(objectType)) {
+            return new PassReason(NOT_CACHEABLE_TYPE);
+        } else {
+            return determine(options, objectType);
+        }
+    }
+
     /**
      * Main entry point. By looking at situation we determine if there's a reason to pass the cache.
      */
-    @Nullable
-    static PassReason determine(Collection<SelectorOptions<GetOperationOptions>> options, Class<?> objectType) {
+    static @Nullable PassReason determine(Collection<SelectorOptions<GetOperationOptions>> options, Class<?> objectType) {
         if (alwaysNotCacheable(objectType)) {
             return new PassReason(NOT_CACHEABLE_TYPE);
         }
