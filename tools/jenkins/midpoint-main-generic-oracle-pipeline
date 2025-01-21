@@ -144,7 +144,7 @@ EOF
 echo
 # 10 => 10Gi space, 5 is not enough for our tests and causes errors:
 # ORA-01691: unable to extend lob segment MIDPOINT.SYS_LOB... by 1024 in tablespace USERS
-createPVC jenkins test-db-${JOB_NAME}-${BUILD_NUMBER} 10 | tee ../logs-${JOB_NAME}-${BUILD_NUMBER}/dbpvc
+createPVC jenkins test-db-${JOB_NAME}-${BUILD_NUMBER} 15 | tee ../logs-${JOB_NAME}-${BUILD_NUMBER}/dbpvc
 createDBPod jenkins test-db ${JOB_NAME}-${BUILD_NUMBER} test-db-${JOB_NAME}-${BUILD_NUMBER} |
     tee ../logs-${JOB_NAME}-${BUILD_NUMBER}/dbpod
 pvcdbname="\$(cat ../logs-${JOB_NAME}-${BUILD_NUMBER}/dbpvc)"
