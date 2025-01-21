@@ -166,7 +166,6 @@ public class PageDebugView extends PageAdminConfiguration {
                 showResult(result, false);
 
                 if (!WebComponentUtil.isSuccessOrHandledErrorOrWarning(result)) {
-                    showResult(result, false);
                     throw new RestartResponseException(PageDebugList.class);
                 }
                 return objectViewDto;
