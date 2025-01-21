@@ -47,6 +47,7 @@ Overall, midPoint 4.9 is a major step from the past into the future.
 * bug:MID-10317[] Fixed missing message when user disable fails.
 * bug:MID-10320[] Fixed ninja zip option used during export/import.
 * bug:MID-10218[] Task execution constraints added to advanced options tab.
+* bug:MID-10216[] Support exclusion of metadata in `get`/`search` rest APIs.
 
 === Other Improvements
 
