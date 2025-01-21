@@ -179,17 +179,17 @@ NOTE: For preparation of queries use names in the Item name column.
 |===
 | Item Name | Display Name +
 (GUI Name) | Item Type | Inherited from | Note
-| administrativeStatus | Administrative status | tns:ActivationStatusType |  |
-| archiveTimestamp |  | xsd:dateTime |  |
+| administrativeStatus | Administrative status | tns:ActivationStatusType |  | N/A for `ShadowType`
+| archiveTimestamp |  | xsd:dateTime |  | N/A for `ShadowType`
 | disableReason |  | xsd:anyURI |  |
 | disableTimestamp |  | xsd:dateTime |  |
-| effectiveStatus | Effective status | tns:ActivationStatusType |  |
+| effectiveStatus | Effective status | tns:ActivationStatusType |  | N/A for `ShadowType`
 | enableTimestamp |  | xsd:dateTime |  |
-| lockoutStatus | Lock-out Status | tns:LockoutStatusType |  |
-| validFrom | Valid from | xsd:dateTime |  |
-| validTo | Valid to | xsd:dateTime |  |
-| validityChangeTimestamp |  | xsd:dateTime |  |
-| validityStatus | Validity Status | tns:TimeIntervalStatusType |  |
+| lockoutStatus | Lock-out Status | tns:LockoutStatusType |  | N/A for `ShadowType`
+| validFrom | Valid from | xsd:dateTime |  | N/A for `ShadowType`
+| validTo | Valid to | xsd:dateTime |  | N/A for `ShadowType`
+| validityChangeTimestamp |  | xsd:dateTime |  | N/A for `ShadowType`
+| validityStatus | Validity Status | tns:TimeIntervalStatusType |  | N/A for `ShadowType`
 |===
 
 [#_activityaffectedobjectstype]
@@ -292,8 +292,10 @@ NOTE: For preparation of queries use names in the Item name column.
 | activation |  | xref:#_activationtype[tns:ActivationType] |  |
 | construction | Construction | xref:#_constructiontype[tns:ConstructionType] |  |
 | extension |  | tns:ExtensionType |  |
+| effectiveMarkRef | c:ObjectReferenceType | | |
 | lifecycleState | Lifecycle state | xsd:string |  |
-| metadata |  | xref:#_metadatatype[tns:MetadataType] |  |
+| @metadata |  | xref:#_valuemetadatatype[tns:ValueMetadataType] |  |
+| metadata |  | xref:#_metadatatype[tns:MetadataType] |  | Deprecated since 4.9, use `@metadata`
 | order | Order | xsd:int |  |
 | orgRef | Organization reference | c:ObjectReferenceType |  |
 | policySituation |  | xsd:anyURI |  |
@@ -357,6 +359,7 @@ NOTE: For preparation of queries use names in the Item name column.
 (GUI Name) | Item Type | Inherited from | Note
 | archetypeRef |  | xref:#_objectreferencetype[tns:ObjectReferenceType] |  |
 | type |  | xsd:QName |  |
+| objectRef | | xref:#_objectreferencetype[tns:ObjectReferenceType] |  |
 |===
 
 [#_basicresourceobjectsettype]
@@ -981,6 +984,51 @@ NOTE: For preparation of queries use names in the Item name column.
 | metadata |  | xref:#_metadatatype[tns:MetadataType] | AbstractCredentialType |
 |===
 
+
+[#_policytype]
+=== PolicyType
+
+[options="header", cols="10,10,18,30,12" width=85%]
+|===
+| Item Name | Display Name +
+(GUI Name) | Item Type | Inherited from | Note
+| activation |  | xref:#_activationtype[tns:ActivationType] | xref:#_focustype[FocusType] |
+| archetypeRef | Archetype | c:ObjectReferenceType | xref:#_focustype[FocusType]/ xref:#_assignmentholdertype[AssignmentHolderType] |
+| assignment | Assignment | xref:#_assignmenttype[tns:AssignmentType] | xref:#_focustype[FocusType]/ xref:#_assignmentholdertype[AssignmentHolderType] |
+| autoassign |  | xref:#_autoassignspecificationtype[tns:AutoassignSpecificationType] |  |
+| costCenter | Cost Center | xsd:string | xref:#_focustype[FocusType] |
+| credentials | Credentials | xref:#_credentialstype[tns:CredentialsType] | xref:#_focustype[FocusType] |
+| delegatedRef |  | c:ObjectReferenceType | xref:#_focustype[FocusType]/ xref:#_assignmentholdertype[AssignmentHolderType] |
+| displayName | Display Name | t:PolyStringType |  |
+| effectiveMarkRef |  | xref:#_objectreferencetype[tns:ObjectReferenceType] | xref:#_focustype[FocusType]/ xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] |
+| emailAddress | Email | xsd:string | xref:#_focustype[FocusType] |
+| extension | Extension | tns:ExtensionType | xref:#_focustype[FocusType]/ xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] |
+| identifier | Identifier | xsd:string |  |
+| identities |  | xref:#_focusidentitiestype[tns:FocusIdentitiesType] | xref:#_focustype[FocusType] |
+| inducement | Inducement | xref:#_assignmenttype[tns:AssignmentType] |  |
+| lifecycleState | Lifecycle State | xsd:string | xref:#_focustype[FocusType]/ xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] |
+| linkRef | Projections | c:ObjectReferenceType | xref:#_focustype[FocusType] |
+| locale | Locale | xsd:string | xref:#_focustype[FocusType] |
+| locality | Locality | t:PolyStringType | xref:#_focustype[FocusType] |
+| metadata |  | xref:#_metadatatype[tns:MetadataType] | xref:#_focustype[FocusType]/ xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] |
+| name | Name | t:PolyStringType | xref:#_focustype[FocusType]/ xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] |
+| operationExecution |  | xref:#_operationexecutiontype[tns:OperationExecutionType] | xref:#_focustype[FocusType]/ xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] |
+| parentOrgRef | Parent Organization | c:ObjectReferenceType | xref:#_focustype[FocusType]/ xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] |
+| personaRef |  | c:ObjectReferenceType | xref:#_focustype[FocusType] |
+| policySituation |  | xsd:anyURI | xref:#_focustype[FocusType]/ xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] |
+| preferredLanguage | Preferred Language | xsd:string | xref:#_focustype[FocusType] |
+| requestable | Requestable | xsd:boolean |  |
+| riskLevel | Risk Level | xsd:string |  |
+| roleMembershipRef | Role membership | c:ObjectReferenceType | xref:#_focustype[FocusType]/ xref:#_assignmentholdertype[AssignmentHolderType] |
+| subtype | Subtype | xsd:string | xref:#_focustype[FocusType]/ xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | Deprecated since 4.2
+| telephoneNumber | Telephone Number | xsd:string | xref:#_focustype[FocusType] |
+| tenantRef | Tenant | c:ObjectReferenceType | xref:#_focustype[FocusType]/ xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] |
+| timezone | Timezone | xsd:string | xref:#_focustype[FocusType] |
+| trigger |  | xref:#_triggertype[tns:TriggerType] | xref:#_focustype[FocusType]/ xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] |
+|===
+
+
+
 [#_reportdatatype]
 === ReportDataType
 
@@ -1082,6 +1130,7 @@ NOTE: For preparation of queries use names in the Item name column.
 | archetypeRef | Archetype | c:ObjectReferenceType | xref:#_assignmentholdertype[AssignmentHolderType] |
 | assignment | Assignment | xref:#_assignmenttype[tns:AssignmentType] | xref:#_assignmentholdertype[AssignmentHolderType] |
 | delegatedRef |  | c:ObjectReferenceType | xref:#_assignmentholdertype[AssignmentHolderType] |
+| detectedPattern | |xref:#_roleanalysisdetectionpatterntype[RoleAnalysisDetectionPatternType] | |
 | effectiveMarkRef |  | xref:#_objectreferencetype[tns:ObjectReferenceType] | xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] |
 | extension | Extension | tns:ExtensionType | xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] |
 | lifecycleState | Lifecycle State | xsd:string | xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] |
@@ -1095,6 +1144,37 @@ NOTE: For preparation of queries use names in the Item name column.
 | subtype | Subtype | xsd:string | xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] | Deprecated since 4.2
 | tenantRef | Tenant | c:ObjectReferenceType | xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] |
 | trigger |  | xref:#_triggertype[tns:TriggerType] | xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] |
+|===
+
+
+[#_roleanalysisdetectionpatterntype]
+=== RoleAnalysisDetectionPatternType
+[options="header", cols="10,10,18,30,12" width=85%]
+|===
+| Item Name | Display Name +
+(GUI Name) | Item Type | Inherited from | Note
+| reductionCount | | xsd:double | |
+|===
+
+[#_roleanalysisoutliertype]
+=== RoleAnalysisOutlierType
+[options="header", cols="10,10,18,30,12" width=85%]
+|===
+| Item Name | Display Name +
+(GUI Name) | Item Type | Inherited from | Note
+| objectRef | | xref:#_objectreferencetype[tns:ObjectReferenceType] | |
+| partition | | xref:#_roleanalysisoutlierpartitiontype[tns:RoleAnalysisOutlierPartitionType] | |
+| overallConfidende | | xsd:double | |
+|===
+
+[#_roleanalysisoutlierpartitiontype]
+=== RoleAnalysisOutlierPartitionType
+[options="header", cols="10,10,18,30,12" width=85%]
+|===
+| Item Name | Display Name +
+(GUI Name) | Item Type | Inherited from | Note
+| clusterRef | | xref:#_objectreferencetype[tns:ObjectReferenceType] | |
+| partitionAnalysis/overallConfidende | | xsd:double | |
 |===
 
 [#_roleanalysissessiontype]
@@ -1286,6 +1366,7 @@ NOTE: For preparation of queries use names in the Item name column.
 | Item Name | Display Name +
 (GUI Name) | Item Type | Inherited from | Note
 | attributes | Attributes | tns:ShadowAttributesType |  |
+| behavior | Behavior | xref:#_shadowbehaviortype:[ShadowBehaviorType] |  |
 | correlation |  | xref:#_shadowcorrelationstatetype[tns:ShadowCorrelationStateType] |  |
 | dead | Dead | xsd:boolean |  |
 | effectiveMarkRef |  | xref:#_objectreferencetype[tns:ObjectReferenceType] | xref:#_objecttype[ObjectType] |
@@ -1310,6 +1391,15 @@ NOTE: For preparation of queries use names in the Item name column.
 | tag | ShadowType.tag | xsd:string |  |
 | tenantRef | Tenant | c:ObjectReferenceType | xref:#_objecttype[ObjectType] |
 | trigger |  | xref:#_triggertype[tns:TriggerType] | xref:#_objecttype[ObjectType] |
+|===
+
+
+[#_shadowbehaviortype]
+=== ShadowBehaviorType
+|===
+| Item Name | Display Name +
+(GUI Name) | Item Type | Inherited from | Note
+| lastLoginTimestamp | Last Login | xsd:dateTime
 |===
 
 [#_simulationdefinitiontype]
@@ -1523,6 +1613,27 @@ NOTE: For preparation of queries use names in the Item name column.
 | title | Title | t:PolyStringType |  |
 | trigger |  | xref:#_triggertype[tns:TriggerType] | xref:#_focustype[FocusType]/ xref:#_assignmentholdertype[AssignmentHolderType]/ xref:#_objecttype[ObjectType] |
 |===
+
+
+[#_valuemetadatatype]
+=== ValueMetadataType
+
+[options="header", cols="10,10,18,30,12" width=85%]
+|===
+| Item Name | Display Name +
+(GUI Name) | Item Type | Inherited from | Note
+| process/createApproverRef | Creation approved by | xref:#_objectreferencetype[tns:ObjectReferenceType] |  |
+| process/modifyApproverRef | Last modification approved by | xref:#_objectreferencetype[tns:ObjectReferenceType] |  |
+
+| storage/createChannel | Creation channel | xsd:anyURI |  |
+| storage/createTimestamp | Created at | xsd:dateTime |  |
+| storage/creatorRef | Creator | xref:#_objectreferencetype[tns:ObjectReferenceType] |  |
+| storage/modifierRef | Modifier | xref:#_objectreferencetype[tns:ObjectReferenceType] |  |
+| storage/modifyChannel | Modification channel | xsd:anyURI |  |
+| storage/modifyTimestamp | Modified at | xsd:dateTime |  |
+|===
+
+
 
 [#_valuepolicytype]
 === ValuePolicyType
