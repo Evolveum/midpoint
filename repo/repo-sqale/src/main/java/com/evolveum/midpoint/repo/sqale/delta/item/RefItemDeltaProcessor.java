@@ -43,7 +43,9 @@ public class RefItemDeltaProcessor extends ItemDeltaSingleValueProcessor<ObjectR
     @Override
     public void setValue(ObjectReferenceType value) {
         value = SqaleUtils.referenceWithTypeFixed(value);
-        context.set(oidPath, UUID.fromString(value.getOid()));
+        var oid = value.getOid() != null ? UUID.fromString(value.getOid()) : null;
+        // OID can be null in some references - (eg. filter is specified and resolution time is run)
+        context.set(oidPath, oid);
         context.set(typePath, MObjectType.fromTypeQName(value.getType()));
         context.set(relationIdPath,
                 context.repositoryContext().processCacheableRelation(value.getRelation()));
