@@ -10,6 +10,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 
+import com.evolveum.midpoint.common.mining.objects.analysis.cache.ObjectCategorisationCache;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ListMultimap;
 import org.jetbrains.annotations.NotNull;
@@ -40,11 +41,11 @@ public class BasicOutlierDetectionStrategy implements OutlierDetectionStrategy {
 
     @Override
     public void executeAnalysis(@NotNull RoleAnalysisService roleAnalysisService,
-            @NotNull RoleAnalysisClusterType cluster,
-            @NotNull RoleAnalysisSessionType session,
-            @NotNull AttributeAnalysisCache userAnalysisCache,
-            @NotNull Task task,
-            @NotNull OperationResult result) {
+                                @NotNull RoleAnalysisClusterType cluster,
+                                @NotNull RoleAnalysisSessionType session,
+                                @NotNull AttributeAnalysisCache userAnalysisCache,
+                                @NotNull ObjectCategorisationCache objectCategorisationCache, @NotNull Task task,
+                                @NotNull OperationResult result) {
 
         OutlierDetectionBasicModel model = new OutlierDetectionBasicModel(
                 roleAnalysisService, session, cluster, task, result);

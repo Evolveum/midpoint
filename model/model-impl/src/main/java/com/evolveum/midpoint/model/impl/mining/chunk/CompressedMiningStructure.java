@@ -74,7 +74,7 @@ public class CompressedMiningStructure extends BasePrepareAction {
         //User as a key, roles as a value
         ListMultimap<String, String> userRolesMap = roleAnalysisService.assignmentRoleMemberSearch(
                 userSearchFilter, roleSearchFilter, assignmentSearchFilter,
-                rolesMembers, false, task, result);
+                rolesMembers, false, task, result, cluster);
         //Roles as a key, users as a value
         ListMultimap<String, String> roleUserMap = ArrayListMultimap.create();
         Set<String> allRolesInMiningStructure = new HashSet<>();
@@ -136,7 +136,7 @@ public class CompressedMiningStructure extends BasePrepareAction {
         //User as a key, roles as a value
         ListMultimap<String, String> userRolesMap = roleAnalysisService.assignmentUserAccessSearch(
                 userSearchFilter, roleSearchFilter, assignmentSearchFilter,
-                userMember, true, task, result);
+                userMember, true, task, result, cluster);
         //Roles as a key, users as a value
         ListMultimap<String, String> roleUserMap = ArrayListMultimap.create();
 
@@ -198,7 +198,7 @@ public class CompressedMiningStructure extends BasePrepareAction {
         //User as a key, roles as a value
         ListMultimap<String, String> userRolesMap = roleAnalysisService.assignmentRoleMemberSearch(
                 userSearchFilter, roleSearchFilter, assignmentSearchFilter,
-                rolesMembers, false, task, result);
+                rolesMembers, false, task, result, cluster);
 
         Set<String> allRolesInMiningStructure = new HashSet<>();
 
@@ -243,7 +243,7 @@ public class CompressedMiningStructure extends BasePrepareAction {
         //Roles as a key, users as a value
         ListMultimap<String, String> rolesUserMap = roleAnalysisService.assignmentUserAccessSearch(
                 userSearchFilter, roleSearchFilter, assignmentSearchFilter,
-                userMember, false, task, result);
+                userMember, false, task, result, cluster);
 
         Set<String> allUsersInMiningStructure = new HashSet<>();
         //users key, roles value

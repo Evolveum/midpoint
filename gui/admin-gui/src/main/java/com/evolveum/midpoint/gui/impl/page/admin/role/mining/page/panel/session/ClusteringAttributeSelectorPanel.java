@@ -160,6 +160,7 @@ public class ClusteringAttributeSelectorPanel extends InputPanel {
                 newRule.asContainerable()
                         .path(poiRef.getPath())
                         .similarity(poiRef.getSimilarity())
+                        .isMultiValue(poiRef.getIsMultiValue())
                         .weight(poiRef.getWeight());
 
                 WebPrismUtil.createNewValueWrapper(rules, newRule, getPageBase(), target);

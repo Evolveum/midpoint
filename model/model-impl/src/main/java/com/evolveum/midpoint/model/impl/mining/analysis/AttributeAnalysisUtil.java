@@ -178,14 +178,14 @@ public class AttributeAnalysisUtil {
             }
 
             int totalRelation = cachedValue.getTotalRelation();
-            boolean multiValue = cachedValue.isMultiValue();
             RoleAnalysisAttributeDef itemDefinition = cachedValue.getItemDefinition();
             Map<String, Integer> frequencyMap = new HashMap<>(cachedValue.getFrequencyMap());
             attributePathResult.addToTotalRelation(totalRelation);
             attributePathResult.splitFrequencyMap(frequencyMap);
-//            attributePathResult.setMultiValue(multiValue);
+
+            boolean multiValue = cachedValue.isMultiValue();
+            //            attributePathResult.setMultiValue(multiValue);
             attributePathResult.setItemDefinition(itemDefinition);
-            attributePathResult.addTotalRelation(totalRelation);
 
         });
     }

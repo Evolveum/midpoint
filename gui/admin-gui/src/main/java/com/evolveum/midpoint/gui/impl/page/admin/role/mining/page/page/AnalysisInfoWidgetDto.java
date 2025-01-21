@@ -35,6 +35,7 @@ import java.math.RoundingMode;
 import java.util.*;
 
 import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.RoleAnalysisWebUtils.CLASS_CSS;
+import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.RoleAnalysisWebUtils.explainOutlier;
 import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.RoleAnalysisAspectsWebUtils.*;
 import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.cluster.RoleAnalysisClusterOperationPanel.PARAM_DETECTED_PATER_ID;
 import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.cluster.RoleAnalysisClusterOperationPanel.PARAM_TABLE_SETTING;
@@ -71,7 +72,7 @@ public class AnalysisInfoWidgetDto implements Serializable {
 
         String sessionOid = session.getOid();
         Map<RoleAnalysisOutlierPartitionType, RoleAnalysisOutlierType> allSessionOutlierPartitions = roleAnalysisService
-                .getSessionOutlierPartitionsMap(sessionOid, 5, true, task, result);
+                .getSessionOutlierPartitionsMap(sessionOid, 5, true, null, task, result);
 
         topOutliers = allSessionOutlierPartitions.values().stream().findFirst().orElse(null);
 
@@ -135,13 +136,14 @@ public class AnalysisInfoWidgetDto implements Serializable {
             overallConfidence = bd.doubleValue();
             String formattedConfidence = String.format("%.2f", overallConfidence);
 
-            String description = anomalies.size() + " anomalies were detected within " + outlierPartitions.size() + " session";
+            @NotNull Model<String> description = explainOutlier(topFiveOutlier);
+
             RoleAnalysisOutlierPartitionType finalTopPartition = topPartition;
             IdentifyWidgetItem identifyWidgetItem = new IdentifyWidgetItem(
                     IdentifyWidgetItem.ComponentType.OUTLIER,
                     Model.of(GuiStyleConstants.CLASS_ICON_OUTLIER),
                     Model.of(topFiveOutlier.getName().getOrig()),
-                    Model.of(description),
+                    description,
                     Model.of(formattedConfidence + "%"),
                     Model.of("name")) {
                 @Override
@@ -173,12 +175,7 @@ public class AnalysisInfoWidgetDto implements Serializable {
                     AjaxLinkPanel linkPanel = new AjaxLinkPanel(id, Model.of(topFiveOutlier.getName())) {
                         @Override
                         public void onClick(AjaxRequestTarget target) {
-                            PageParameters parameters = new PageParameters();
-                            String outlierOid = topFiveOutlier.getOid();
-                            parameters.add(OnePageParameterEncoder.PARAMETER, outlierOid);
-                            Class<? extends PageBase> detailsPageClass = DetailsPageUtil
-                                    .getObjectDetailsPage(RoleAnalysisOutlierType.class);
-                            pageBase.navigateToNext(detailsPageClass, parameters);
+                            DetailsPageUtil.dispatchToObjectDetailsPage(topFiveOutlier.asPrismObject(), this);
                         }
                     };
                     linkPanel.setOutputMarkupId(true);

@@ -10,7 +10,9 @@ import java.util.*;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.common.mining.objects.analysis.cache.AttributeAnalysisCache;
+import com.evolveum.midpoint.common.mining.objects.analysis.cache.ObjectCategorisationCache;
 import com.evolveum.midpoint.common.mining.objects.statistic.UserAccessDistribution;
+import com.evolveum.midpoint.prism.query.builder.S_FilterExit;
 import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 
@@ -180,14 +182,28 @@ public interface RoleAnalysisService {
     /**
      * Modifies statistics of a RoleAnalysisSessionType object.
      *
-     * @param sessionRef The session reference.
+     * @param session The session reference.
      * @param sessionStatistic The session statistic to modify.
      * @param task The task associated with this operation.
      * @param result The operation result.
      */
     void updateSessionStatistics(
-            @NotNull ObjectReferenceType sessionRef,
+            @NotNull RoleAnalysisSessionType session,
             @NotNull RoleAnalysisSessionStatisticType sessionStatistic,
+            @NotNull Task task,
+            @NotNull OperationResult result);
+
+    /**
+     * Modifies identified characteristics of a RoleAnalysisSessionType object.
+     *
+     * @param session The session reference.
+     * @param identifiedCharacteristics The identified characteristics to modify.
+     * @param task The task associated with this operation.
+     * @param result The operation result.
+     */
+    void updateSessionIdentifiedCharacteristics(
+            @NotNull RoleAnalysisSessionType session,
+            @NotNull RoleAnalysisIdentifiedCharacteristicsType identifiedCharacteristics,
             @NotNull Task task,
             @NotNull OperationResult result);
 
@@ -533,12 +549,14 @@ public interface RoleAnalysisService {
      *
      * @param modelInteractionService The model interaction service.
      * @param session The session under which the clustering task is executed.
+     * @param taskObject The performed task object.
      * @param task The task associated with this operation.
      * @param result The operation result.
      */
     void executeClusteringTask(
             @NotNull ModelInteractionService modelInteractionService,
             @NotNull PrismObject<RoleAnalysisSessionType> session,
+            @NotNull TaskType taskObject,
             @NotNull Task task,
             @NotNull OperationResult result);
 
@@ -925,6 +943,8 @@ public interface RoleAnalysisService {
             @NotNull PrismObject<UserType> prismUser,
             @NotNull List<RoleAnalysisAttributeDef> itemDef);
 
+    @Nullable Set<String> resolveUserValueToMark(RoleAnalysisAttributeAnalysisResult userAttributeAnalysisResult);
+
     /**
      * Resolve object attribute value.
      *
@@ -953,12 +973,6 @@ public interface RoleAnalysisService {
             @NotNull RoleAnalysisOutlierType roleAnalysisOutlierType,
             @NotNull Task task,
             @NotNull OperationResult result);
-
-    void replaceSessionMarkRef(
-            @NotNull PrismObject<RoleAnalysisSessionType> session,
-            @NotNull ObjectReferenceType newMarkRef,
-            @NotNull OperationResult result,
-            @NotNull Task task);
 
     void updateSessionMarkRef(
             @NotNull PrismObject<RoleAnalysisSessionType> session,
@@ -1004,9 +1018,13 @@ public interface RoleAnalysisService {
     ListMultimap<List<String>, String> loadUserForOutlierComparison(
             @NotNull RoleAnalysisService roleAnalysisService,
             List<String> outliersMembers,
-            @Nullable SearchFilterType query,
+            @NotNull ObjectCategorisationCache objectCategorisationCache,
+            @Nullable SearchFilterType userSearchFilter,
+            @Nullable SearchFilterType roleSearchFilter,
+            @Nullable SearchFilterType assignmentSearchFilter,
             @NotNull OperationResult result,
-            @NotNull Task task);
+            @NotNull Task task,
+            @NotNull RoleAnalysisSessionType sessionObject);
 
     /**
      * This method is used to calculate the threshold range for outlier detection.
@@ -1068,6 +1086,7 @@ public interface RoleAnalysisService {
      *
      * @param outlierOid The OID of the outlier object to be updated.
      * @param partition The partition data to be added to the outlier object.
+     * @param newOutlierExplanation The new outlier explanation to be replaced for the outlier object.
      * @param overallConfidence The overall confidence value to be set in the outlier object.
      * @param anomalyConfidence The anomaly confidence value to be set in the outlier object.
      * @param result The operation result.
@@ -1075,6 +1094,7 @@ public interface RoleAnalysisService {
     void addOutlierPartition(
             @NotNull String outlierOid,
             @NotNull RoleAnalysisOutlierPartitionType partition,
+            @NotNull List<OutlierDetectionExplanationType> newOutlierExplanation,
             double overallConfidence,
             double anomalyConfidence,
             @NotNull OperationResult result);
@@ -1154,9 +1174,12 @@ public interface RoleAnalysisService {
      * @param roleObjectFilter An optional filter to apply to the role objects.
      * @param assignmentFilter An optional filter to apply to the assignment objects.
      * @param processMode The process mode to determine whether to search in user mode or role mode.
+     * @param loadAndUpdateStatistics A boolean flag to determine whether to load and update statistics.
      * @param attributeAnalysisCache The cache for attribute analysis.
+     * @param objectCategorisationCache The cache for object categorisation.
      * @param task The task in the context of which the operation is executed.
      * @param result The result of the operation.
+     * @param sessionObject poc
      * @return A ListMultimap where the keys are either user OIDs or role OIDs, and the values are
      * the corresponding role OIDs or user OIDs, depending on the process mode.
      */
@@ -1165,9 +1188,12 @@ public interface RoleAnalysisService {
             @Nullable ObjectFilter roleObjectFilter,
             @Nullable ObjectFilter assignmentFilter,
             @NotNull RoleAnalysisProcessModeType processMode,
+            boolean loadAndUpdateStatistics,
             @Nullable AttributeAnalysisCache attributeAnalysisCache,
+            @NotNull ObjectCategorisationCache objectCategorisationCache,
             @NotNull Task task,
-            @NotNull OperationResult result);
+            @NotNull OperationResult result,
+            @NotNull RoleAnalysisSessionType sessionObject);
 
     /**
      * Prepares a map of assignment chunks.
@@ -1177,9 +1203,12 @@ public interface RoleAnalysisService {
      * @param roleSearchFiler An optional filter to apply to the role search.
      * @param assignmentSearchFiler An optional filter to apply to the assignment search.
      * @param processMode The process mode to determine whether to search in user mode or role mode.
+     * @param loadAndUpdateStatistics A boolean flag to determine whether to load and update statistics.
      * @param attributeAnalysisCache The cache for attribute analysis.
+     * @param objectCategorisationCache The cache for object categorisation.
      * @param task The task in the context of which the operation is executed.
      * @param result The result of the operation.
+     * @param sessionObject poc
      * @return A ListMultimap where the keys are lists of role OIDs and the values are user OIDs.
      */
     ListMultimap<List<String>, String> prepareAssignmentChunkMapRolesAsKey(
@@ -1187,9 +1216,12 @@ public interface RoleAnalysisService {
             @Nullable SearchFilterType roleSearchFiler,
             @Nullable SearchFilterType assignmentSearchFiler,
             @NotNull RoleAnalysisProcessModeType processMode,
+            boolean loadAndUpdateStatistics,
             @Nullable AttributeAnalysisCache attributeAnalysisCache,
+            @NotNull ObjectCategorisationCache objectCategorisationCache,
             @NotNull Task task,
-            @NotNull OperationResult result);
+            @NotNull OperationResult result,
+            @NotNull RoleAnalysisSessionType sessionObject);
 
     /**
      * Searches for user membership based on the provided filters and process mode.
@@ -1197,10 +1229,13 @@ public interface RoleAnalysisService {
      * @param userObjectFiler An optional filter to apply to the user objects.
      * @param roleObjectFilter An optional filter to apply to the role objects.
      * @param assignmentFilter An optional filter to apply to the assignment objects.
+     * @param loadAndUpdateStatistics A boolean flag to determine whether to load and update statistics.
      * @param processMode The process mode to determine whether to search in user mode or role mode.
      * @param attributeAnalysisCache The cache for attribute analysis.
+     * @param objectCategorisationCache The cache for object categorisation.
      * @param task The task in the context of which the operation is executed.
      * @param result The result of the operation.
+     * @param sessionObject Session object.
      * @return A ListMultimap where the keys are either user OIDs or role OIDs, and the values are
      * the corresponding role OIDs or user OIDs, depending on the process mode.
      */
@@ -1208,9 +1243,13 @@ public interface RoleAnalysisService {
             @Nullable ObjectFilter userObjectFiler,
             @Nullable ObjectFilter roleObjectFilter,
             @Nullable ObjectFilter assignmentFilter,
+            boolean loadAndUpdateStatistics,
             @NotNull RoleAnalysisProcessModeType processMode,
-            @Nullable AttributeAnalysisCache attributeAnalysisCache, @NotNull Task task,
-            @NotNull OperationResult result);
+            @Nullable AttributeAnalysisCache attributeAnalysisCache,
+            @NotNull ObjectCategorisationCache objectCategorisationCache,
+            @NotNull Task task,
+            @NotNull OperationResult result,
+            @NotNull RoleAnalysisSessionType sessionObject);
 
     /**
      * Prepares a map of role membership chunks.
@@ -1220,9 +1259,12 @@ public interface RoleAnalysisService {
      * @param roleSearchFiler An optional filter to apply to the role search.
      * @param assignmentSearchFiler An optional filter to apply to the assignment search.
      * @param processMode The process mode to determine whether to search in user mode or role mode.
+     * @param loadAndUpdateStatistics A boolean flag to determine whether to load and update statistics.
      * @param attributeAnalysisCache The cache for attribute analysis.
+     * @param objectCategorisationCache The cache for object categorisation.
      * @param task The task in the context of which the operation is executed.
      * @param result The result of the operation.
+     * @param sessionObject poc
      * @return A ListMultimap where the keys are lists of role OIDs and the values are user OIDs.
      */
     ListMultimap<List<String>, String> prepareMembershipChunkMapRolesAsKey(
@@ -1230,9 +1272,12 @@ public interface RoleAnalysisService {
             @Nullable SearchFilterType roleSearchFiler,
             @Nullable SearchFilterType assignmentSearchFiler,
             @NotNull RoleAnalysisProcessModeType processMode,
+            boolean loadAndUpdateStatistics,
             @Nullable AttributeAnalysisCache attributeAnalysisCache,
+            @NotNull ObjectCategorisationCache objectCategorisationCache,
             @NotNull Task task,
-            @NotNull OperationResult result);
+            @NotNull OperationResult result,
+            @NotNull RoleAnalysisSessionType sessionObject);
 
     /**
      * Transforms a SearchFilterType to an ObjectFilter for the specified object class.
@@ -1256,6 +1301,7 @@ public interface RoleAnalysisService {
      * @param roleAsKey Boolean flag to determine if roles should be used as keys in the result map.
      * @param task The task in which the operation is performed.
      * @param result The operation result.
+     * @param clusterObject poc
      * @return A ListMultimap containing the role members mapped by either role or user identifiers.
      */
     @NotNull ListMultimap<String, String> assignmentRoleMemberSearch(
@@ -1265,7 +1311,8 @@ public interface RoleAnalysisService {
             @NotNull Set<String> roleMembers,
             boolean roleAsKey,
             @NotNull Task task,
-            @NotNull OperationResult result);
+            @NotNull OperationResult result,
+            @NotNull RoleAnalysisClusterType clusterObject);
 
     /**
      * Searches for user access assignments based on the provided filters and user members set.
@@ -1286,7 +1333,8 @@ public interface RoleAnalysisService {
             @NotNull Set<String> userMembers,
             boolean userAsKey,
             @NotNull Task task,
-            @NotNull OperationResult result);
+            @NotNull OperationResult result,
+            @NotNull RoleAnalysisClusterType clusterObject);
 
     /**
      * Retrieves role suggestions for a given session by searching for detected patterns.
@@ -1351,6 +1399,7 @@ public interface RoleAnalysisService {
      *
      * @param limit An optional limit on the number of partitions to retrieve.
      * @param sortDescending An optional flag to sort the partitions by overall confidence in descending order.
+     * @param outlierCategory The specific category of outliers to search for.
      * @param task The task in which the operation is executed.
      * @param result The operation result.
      * @return A map of outlier partitions and their corresponding outliers.
@@ -1359,6 +1408,7 @@ public interface RoleAnalysisService {
             @NotNull String sessionOid,
             @Nullable Integer limit,
             @Nullable Boolean sortDescending,
+            @Nullable OutlierCategoryType outlierCategory,
             @NotNull Task task,
             @NotNull OperationResult result);
 
@@ -1367,6 +1417,7 @@ public interface RoleAnalysisService {
      *
      * @param limit An optional limit on the number of partitions to retrieve.
      * @param sortDescending An optional flag to sort the partitions by overall confidence in descending order.
+     * @param outlierCategory The specific category of outliers to search for.
      * @param task The task in which the operation is executed.
      * @param result The operation result.
      * @return A map of outlier partitions and their corresponding outliers.
@@ -1375,7 +1426,27 @@ public interface RoleAnalysisService {
             @NotNull String clusterOid,
             @Nullable Integer limit,
             @Nullable Boolean sortDescending,
+            @Nullable OutlierCategoryType outlierCategory,
             @NotNull Task task,
             @NotNull OperationResult result);
+
+    S_FilterExit buildStatisticsAssignmentSearchFilter(@NotNull Collection<QName> memberRelations);
+
+    //TODO this is temporary solution
+    /**
+     * Prepares a temporary cluster for role analysis based on the provided outlier and partition.
+     *
+     * @param outlier The outlier object containing the detected outlier information.
+     * @param partition The partition object containing the partition analysis data.
+     * @param displayValueOption The display value options for the role analysis.
+     * @param task The task in which the operation is performed.
+     * @return A RoleAnalysisClusterType object representing the prepared temporary cluster,
+     * or null if the similar object analysis is not available.
+     */
+    @Nullable RoleAnalysisClusterType prepareTemporaryCluster(
+            @NotNull RoleAnalysisOutlierType outlier,
+            @NotNull RoleAnalysisOutlierPartitionType partition,
+            @NotNull DisplayValueOption displayValueOption,
+            @NotNull Task task);
 
 }

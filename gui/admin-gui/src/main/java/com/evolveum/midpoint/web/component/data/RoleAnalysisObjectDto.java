@@ -10,6 +10,7 @@ package com.evolveum.midpoint.web.component.data;
 import java.io.Serializable;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import com.evolveum.midpoint.common.mining.objects.analysis.RoleAnalysisAttributeDef;
@@ -29,6 +30,7 @@ import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.table.RoleAnalysisTableCellFillResolver.refreshCells;
 
@@ -49,7 +51,10 @@ public class RoleAnalysisObjectDto implements Serializable {
 
     private RoleAnalysisClusterType cluster;
 
+    //TODO design implement mechanism for marking users and roles (current solution is ugly hack)
     private Set<String> markedUsers = new HashSet<>();
+    private Set<String> markedRoles = new HashSet<>();
+    private Set<MarkedRelation> markedRelations = new HashSet<>();
 
     private SearchFilterType userSearchFilter = null;
     private SearchFilterType roleSearchFilter = null;
@@ -77,6 +82,7 @@ public class RoleAnalysisObjectDto implements Serializable {
             if (procedureType == RoleAnalysisProcedureType.OUTLIER_DETECTION) {
                 this.isOutlierDetection = true;
                 collectMarkedUsers(roleAnalysisService, task, result);
+                collectMarkedRoles(roleAnalysisService, task, result);
             }
             mode = analysisOption.getProcessMode();
             this.isRoleMode = mode.equals(RoleAnalysisProcessModeType.ROLE);
@@ -118,7 +124,7 @@ public class RoleAnalysisObjectDto implements Serializable {
 
     }
 
-    private void collectMarkedUsers(RoleAnalysisService roleAnalysisService, Task task, OperationResult result) {
+    private void collectMarkedUsers(@NotNull RoleAnalysisService roleAnalysisService, Task task, OperationResult result) {
         markedUsers = new HashSet<>();
         List<RoleAnalysisOutlierType> searchResultList = roleAnalysisService.findClusterOutliers(
                 cluster, null, task, result);
@@ -130,6 +136,21 @@ public class RoleAnalysisObjectDto implements Serializable {
                 }
             }
         }
+    }
+
+    private void collectMarkedRoles(@NotNull RoleAnalysisService roleAnalysisService, Task task, OperationResult result) {
+        if (cluster == null || cluster.getOid() == null) {
+            return;
+        }
+
+        Map<RoleAnalysisOutlierPartitionType, RoleAnalysisOutlierType> clusterTopOutliers = roleAnalysisService
+                .getClusterOutlierPartitionsMap(cluster.getOid(), null, true, null, task, result);
+
+        clusterTopOutliers.keySet().forEach(partition -> partition.getDetectedAnomalyResult().stream()
+                .map(DetectedAnomalyResult::getTargetObjectRef)
+                .filter(ref -> ref != null && ref.getOid() != null)
+                .map(ObjectReferenceType::getOid)
+                .forEach(markedRoles::add));
     }
 
     private @NotNull DisplayValueOption loadDisplayValueOption(@NotNull RoleAnalysisClusterType cluster, Integer parameterTableSetting) {
@@ -180,7 +201,13 @@ public class RoleAnalysisObjectDto implements Serializable {
         }
     }
 
-    private static void resolveDefaultChunkStructure(Integer rolesCount, int maxRoles, Integer usersCount, int maxUsers, DisplayValueOption displayValueOption) {
+    private void resolveDefaultChunkStructure(Integer rolesCount, int maxRoles, Integer usersCount, int maxUsers, DisplayValueOption displayValueOption) {
+        RoleAnalysisChunkMode defaultChunkMode = getDefaultChunkMode();
+        if (defaultChunkMode != null) {
+            displayValueOption.setChunkMode(defaultChunkMode);
+            return;
+        }
+
         if (rolesCount > maxRoles || usersCount > maxUsers) {
             displayValueOption.setChunkMode(RoleAnalysisChunkMode.COMPRESS);
 //            } else if (rolesCount > maxRoles) {
@@ -198,6 +225,10 @@ public class RoleAnalysisObjectDto implements Serializable {
 
     public <A extends MiningBaseTypeChunk> List<A> getAdditionalMiningChunk() {
         return miningOperationChunk.getAdditionalMiningChunk();
+    }
+
+    public @Nullable RoleAnalysisChunkMode getDefaultChunkMode() {
+        return null;
     }
 
     public double getMinFrequency() {
@@ -277,5 +308,20 @@ public class RoleAnalysisObjectDto implements Serializable {
 
     public Set<String> getMarkedUsers() {
         return markedUsers;
+    }
+
+    public Set<String> getMarkedRoles() {
+        return markedRoles;
+    }
+
+    public Set<MarkedRelation> getMarkedRelations() {
+        return markedRelations;
+    }
+
+    public void addMarkedRelation(String userOid, String roleOid,String cssStyle, String cssClass) {
+        markedRelations.add(new MarkedRelation(userOid, roleOid, cssStyle, cssClass));
+    }
+
+    public record MarkedRelation(String userOid, String roleOid,String cssStyle, String cssClass) implements Serializable {
     }
 }

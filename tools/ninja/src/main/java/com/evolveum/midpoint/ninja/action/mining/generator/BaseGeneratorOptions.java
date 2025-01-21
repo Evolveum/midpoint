@@ -24,6 +24,9 @@ public class BaseGeneratorOptions {
     public static final String P_ROLE_MULTIPLIER = "-rm";
     public static final String P_ROLE_MULTIPLIER_LONG = "--role-multiplier";
 
+    public static final String P_RANDOM_ROLE_MULTIPLIER = "-rrm";
+    public static final String P_RANDOM_ROLE_MULTIPLIER_LONG = "--random-role-multiplier";
+
     public static final String P_USERS_COUNT = "-uc";
     public static final String P_USERS_COUNT_LONG = "--users-count";
 
@@ -114,8 +117,15 @@ public class BaseGeneratorOptions {
     @Parameter(names = { P_ROLE_MULTIPLIER, P_ROLE_MULTIPLIER_LONG }, descriptionKey = "baseGeneratorOptions.roleMultiplier")
     private int roleMultiplier = 0;
 
+    @Parameter(names = { P_RANDOM_ROLE_MULTIPLIER, P_RANDOM_ROLE_MULTIPLIER_LONG }, descriptionKey = "baseGeneratorOptions.randomMultipliers")
+    private boolean randomRoleMultiplier = false;
+
     @Parameter(names = { P_USERS_COUNT, P_USERS_COUNT_LONG }, descriptionKey = "baseGeneratorOptions.usersCount")
     private int usersCount = 100;
+
+    public boolean isRandomRoleMultiplier() {
+        return randomRoleMultiplier;
+    }
 
     public boolean isTransform() {
         return isTransform;

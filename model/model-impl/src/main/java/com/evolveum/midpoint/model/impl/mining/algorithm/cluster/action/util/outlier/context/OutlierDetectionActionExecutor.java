@@ -8,6 +8,7 @@
 package com.evolveum.midpoint.model.impl.mining.algorithm.cluster.action.util.outlier.context;
 
 import com.evolveum.midpoint.common.mining.objects.analysis.cache.AttributeAnalysisCache;
+import com.evolveum.midpoint.common.mining.objects.analysis.cache.ObjectCategorisationCache;
 import com.evolveum.midpoint.model.impl.mining.algorithm.cluster.action.util.outlier.inline.BasicOutlierDetectionStrategy;
 import com.evolveum.midpoint.model.impl.mining.algorithm.cluster.action.util.outlier.outline.OutlineOutlierDetectionStrategy;
 import com.evolveum.midpoint.model.impl.mining.algorithm.cluster.action.util.outlier.OutlierDetectionStrategyResolver;
@@ -33,12 +34,14 @@ public class OutlierDetectionActionExecutor {
             @NotNull RoleAnalysisClusterType cluster,
             @Nullable RoleAnalysisSessionType session,
             @NotNull RoleAnalysisOptionType analysisOption,
-            AttributeAnalysisCache userAnalysisCache,
+            @NotNull AttributeAnalysisCache userAnalysisCache,
+            @NotNull ObjectCategorisationCache objectCategorisationCache,
             @NotNull Task task,
             @NotNull OperationResult result) {
         if (session != null && analysisOption.getAnalysisProcedureType().equals(RoleAnalysisProcedureType.OUTLIER_DETECTION)) {
             OutlierDetectionStrategyResolver detectionExecutionUtil = resolveDetectionStrategy(cluster, session);
-            detectionExecutionUtil.executeDetection(roleAnalysisService, cluster, session, userAnalysisCache, task, result);
+            detectionExecutionUtil.executeDetection(
+                    roleAnalysisService, cluster, session, userAnalysisCache, objectCategorisationCache, task, result);
         }
 
     }

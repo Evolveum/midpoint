@@ -9,28 +9,15 @@ package com.evolveum.midpoint.common.mining.objects.chunk;
 
 import java.io.Serializable;
 import java.util.*;
-import java.util.stream.IntStream;
 
-import com.evolveum.midpoint.common.mining.objects.detection.DetectedPattern;
-import com.evolveum.midpoint.common.mining.utils.values.FrequencyItem;
-import com.evolveum.midpoint.common.mining.utils.values.RoleAnalysisObjectStatus;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisProcessModeType;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
-
-import com.google.common.collect.ListMultimap;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.common.mining.utils.algorithm.JaccardSorter;
 import com.evolveum.midpoint.common.mining.utils.values.RoleAnalysisOperationMode;
 import com.evolveum.midpoint.common.mining.utils.values.RoleAnalysisSortMode;
 
-import org.springframework.scheduling.config.Task;
-
-import static com.evolveum.midpoint.common.mining.utils.RoleAnalysisUtils.getRolesOidAssignment;
 import static com.evolveum.midpoint.common.mining.utils.algorithm.JaccardSorter.jacquardSimilarity;
 
 /**
