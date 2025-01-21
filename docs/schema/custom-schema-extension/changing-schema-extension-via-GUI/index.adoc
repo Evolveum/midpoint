@@ -48,16 +48,16 @@ And the last step contains a table where we create the specific elements we want
 
 [%autowidth, cols="a,a", frame=none, grid=none, role=center]
 |===
-| image::../wizard-1.png[link=../wizard-1.png, 100%, title=New schema]
-| image::../wizard-2.png[link=../wizard-2.png, 100%, title=Basic information about the schema]
-| image::../wizard-3.png[link=../wizard-3.png, 100%, title=Basic information about structural definition]
-| image::../wizard-4.png[link=../wizard-4.png, 100%, title=Items]
+| image::wizard-1.png[link=wizard-1.png, 100%, title=New schema]
+| image::wizard-2.png[link=wizard-2.png, 100%, title=Basic information about the schema]
+| image::wizard-3.png[link=wizard-3.png, 100%, title=Basic information about structural definition]
+| image::wizard-4.png[link=wizard-4.png, 100%, title=Items]
 |===
 
 The table only contains basic configurable attributes for the new item, if we want to configure other attributes, such as help text,
 we can display advanced configuration options by clicking the `Edit` button in the menu at the end of each row.
 
-image::wizard-4-edit.png[link=../wizard-4-edit.png, 100%, title=Edit item]
+image::wizard-4-edit.png[link=wizard-4-edit.png, 100%, title=Edit item]
 
 If we select the `Use existing schema` option at the start of the schema creation process, we would be selecting from existing schemas
 and we would only be adding another complex type to extend another object type, so the wizard would only consist of the last two steps (Figure 3. and Figure 4.).
