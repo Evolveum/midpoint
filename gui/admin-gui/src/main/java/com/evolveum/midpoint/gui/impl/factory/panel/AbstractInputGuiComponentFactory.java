@@ -60,8 +60,8 @@ public abstract class AbstractInputGuiComponentFactory<T> implements GuiComponen
             PrismPropertyWrapper<T> propertyWrapper = panelCtx.unwrapWrapperModel();
             IModel<String> label = LambdaModel.of(propertyWrapper::getDisplayName);
             formComponent.setLabel(label);
-            if (panelCtx.isMandatory() && !skipValidation(propertyWrapper)) {
-                formComponent.add(new NotNullValidator<>("Required"));
+            if (panelCtx.isMandatory()) {
+                formComponent.add(new NotNullValidator<>("Required", panelCtx.getItemWrapperModel()));
             }
 
             if (formComponent instanceof TextField) {
@@ -83,16 +83,6 @@ public abstract class AbstractInputGuiComponentFactory<T> implements GuiComponen
         }
         panelCtx.getFeedback().setFilter(new ComponentFeedbackMessageFilter(panel.getValidatableComponent()));
 
-    }
-
-    private boolean skipValidation(PrismPropertyWrapper<T> propertyWrapper) {
-        PrismContainerValueWrapper parentContainer = propertyWrapper.getParent();
-        if (parentContainer == null || parentContainer.getNewValue() == null) {
-            return false;
-        }
-        PrismContainerValue cleanedUpValue =
-                WebPrismUtil.cleanupEmptyContainerValue(parentContainer.getNewValue().clone());
-        return cleanedUpValue == null || cleanedUpValue.isEmpty();
     }
 
     @Override
