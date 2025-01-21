@@ -119,12 +119,11 @@ public abstract class AbstractLazilyInitializableShadowedEntity implements Lazil
             throws SchemaException, ConfigurationException, EncryptionException;
 
     /** Looks up and creates (if needed) a shadow for the resource object. Deals with errors. */
-    @NotNull
-    RepoShadowWithState acquireRepoShadow(@NotNull ExistingResourceObjectShadow resourceObject, OperationResult result)
+    @NotNull RepoShadowWithState acquireRepoShadow(@NotNull ExistingResourceObjectShadow resourceObject, OperationResult result)
             throws SchemaException, ConfigurationException, EncryptionException {
 
         try {
-            return ShadowAcquisition.acquireRepoShadow(effectiveCtx, resourceObject, result);
+            return ShadowAcquisition.acquireRepoShadow(effectiveCtx, resourceObject, false, result);
         } catch (Exception e) {
             // No need to log stack trace now. It will be logged at the place where the exception is processed.
             LoggingUtils.logExceptionAsWarning(
@@ -132,7 +131,8 @@ public abstract class AbstractLazilyInitializableShadowedEntity implements Lazil
                     "Couldn't acquire shadow for {}. Creating shadow in emergency mode (identifiers only). Error: {}",
                     e, resourceObject);
             try {
-                repoShadow = ShadowAcquisition.acquireRepoShadow(effectiveCtx, resourceObject.withIdentifiersOnly(), result);
+                repoShadow = ShadowAcquisition.acquireRepoShadow(
+                        effectiveCtx, resourceObject.withIdentifiersOnly(), false, result);
                 throw e;
             } catch (Exception e2) {
                 LoggingUtils.logExceptionAsWarning(
@@ -140,7 +140,8 @@ public abstract class AbstractLazilyInitializableShadowedEntity implements Lazil
                         "Couldn't acquire shadow for {}. Creating shadow in ultra emergency mode "
                                 + "(primary identifier only). Error: {}",
                         e2, resourceObject);
-                repoShadow = ShadowAcquisition.acquireRepoShadow(effectiveCtx, resourceObject.withPrimaryIdentifierOnly(), result);
+                repoShadow = ShadowAcquisition.acquireRepoShadow(
+                        effectiveCtx, resourceObject.withPrimaryIdentifierOnly(), false, result);
                 throw e2;
             }
         }
