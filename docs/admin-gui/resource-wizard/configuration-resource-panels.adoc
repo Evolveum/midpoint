@@ -1,0 +1,7 @@
+:page-toc: top
+:page-since: "4.9"
+:visibility: hidden
+
+== Configuration of resource wizard panels
+
+Some wizard panels are configurable, for more information see xref:/midpoint/reference/admin-gui/admin-gui-config/#wizard-panels[Wizard panels].
