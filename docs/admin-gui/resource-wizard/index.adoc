@@ -105,9 +105,9 @@ You can display the data even before providing configuration for its processing.
 
 image::resource/data-preview.png[link=resource/data-preview.png,100%,title=Resource Data preview]
 
-Clicking *Configure Object Types* allows you to xref:./object-type[Object type configuration], configure the Object type(s)>>.
+Clicking *Configure Object Types* allows you to xref:./object-type[configure the Object type(s)].
 
-Clicking *Configure Association Types* allows you to xref:./association-type[Association type configuration], configure the Association type(s)>>.
+Clicking *Configure Association Types* allows you to xref:./association-type[configure the Association type(s)].
 
 Clicking *Go To Resource* leads to the resource details page.
 
