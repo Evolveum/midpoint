@@ -14,10 +14,10 @@ import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.table.
 
 import java.util.*;
 
+import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxEventBehavior;
 import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.IModel;
@@ -79,7 +79,15 @@ public abstract class RoleAnalysisIntersectionColumn<B extends MiningBaseTypeChu
             setRelationSelected(true);
         }
 
-        boolean marked = markChunkIfRequested(cellItem, isInclude);
+        boolean outlierDetection = getModel().getObject().isOutlierDetection();
+
+        //TODO: refactor this and markChunkIfRequested. We need design logic for this.
+        if (outlierDetection && isInclude.equals(RoleAnalysisTableCellFillResolver.Status.RELATION_DISABLE)) {
+            cellItem.add(AttributeModifier.replace("class",
+                    "p-2 d-flex align-items-center justify-content-center bg-dark"));
+        }
+
+        markChunkIfRequested(cellItem, rowChunk, baseMiningChunk, isInclude);
 
         RoleAnalysisChunkAction chunkAction = getChunkAction();
         if (!chunkAction.equals(RoleAnalysisChunkAction.SELECTION)) {
@@ -91,9 +99,37 @@ public abstract class RoleAnalysisIntersectionColumn<B extends MiningBaseTypeChu
     }
 
     //think about this
-    private boolean markChunkIfRequested(Item<ICellPopulator<A>> cellItem, RoleAnalysisTableCellFillResolver.Status isInclude) {
+    private boolean markChunkIfRequested(Item<ICellPopulator<A>> cellItem,
+            A rowChunk,
+            B colChunk,
+            RoleAnalysisTableCellFillResolver.@NotNull Status isInclude) {
         RoleAnalysisObjectDto roleAnalysis = getModel().getObject();
         Set<String> markedUsers = getModel().getObject().getMarkedUsers();
+        Set<String> markedRoles = getModel().getObject().getMarkedRoles();
+
+        Set<RoleAnalysisObjectDto.MarkedRelation> markedRelations = getModel().getObject().getMarkedRelations();
+
+        if (!isInclude.equals(RoleAnalysisTableCellFillResolver.Status.RELATION_NONE)
+                && roleAnalysis.isOutlierDetection()
+                && markedRelations != null
+                && !markedRelations.isEmpty()) {
+            Set<String> members = new HashSet<>(colChunk.getUsers());
+            Set<String> roles = new HashSet<>(rowChunk.getRoles());
+            for (RoleAnalysisObjectDto.MarkedRelation markedRelation : markedRelations) {
+                boolean matchCol = members.stream().anyMatch(markedRelation.userOid()::contains);
+                if (matchCol) {
+                    cellItem.add(AttributeModifier.append("style", markedRelation.cssStyle()));
+
+                    boolean matchRow = roles.stream().anyMatch(markedRelation.roleOid()::contains);
+
+                    if (matchRow) {
+                        cellItem.add(AttributeModifier.replace("class", markedRelation.cssClass()));
+                        return true;
+                    }
+                }
+            }
+        }
+
         if (roleAnalysis.isOutlierDetection()
                 && (isInclude.equals(RoleAnalysisTableCellFillResolver.Status.RELATION_INCLUDE)
                 || isInclude.equals(RoleAnalysisTableCellFillResolver.Status.RELATION_DISABLE))) {
@@ -101,20 +137,23 @@ public abstract class RoleAnalysisIntersectionColumn<B extends MiningBaseTypeChu
             boolean isMarked = false;
             if (getSelectedPatterns() != null && !getSelectedPatterns().isEmpty()) {
                 for (DetectedPattern pattern : getSelectedPatterns()) {
-                    if (isMarked) {
-                        break;
-                    }
-
                     String associatedColor = pattern.getAssociatedColor();
                     if (associatedColor == null || associatedColor.isEmpty()) {
                         associatedColor = "#28a745";
                     }
                     Set<String> usersInPatterns = pattern.getUsers();
-                    for (String member : baseMiningChunk.getMembers()) {
+                    Set<String> roles = pattern.getRoles();
+                    List<String> rolesInRow = rowChunk.getRoles();
+                    for (String member : this.baseMiningChunk.getMembers()) {
                         if (usersInPatterns.contains(member)) {
                             isMarked = true;
-                            cellItem.add(AttributeAppender.append("style",
+                            cellItem.add(AttributeModifier.append("style",
                                     " border: 5px solid " + associatedColor + ";"));
+                            if (rolesInRow.stream().anyMatch(roles::contains)) {
+                                cellItem.add(AttributeModifier.replace("class",
+                                        "p-2 d-flex align-items-center justify-content-center bg-danger"));
+                            }
+
                             break;
                         }
                     }
@@ -123,13 +162,16 @@ public abstract class RoleAnalysisIntersectionColumn<B extends MiningBaseTypeChu
 
             if (!isMarked
                     && markedUsers != null
-                    && !markedUsers.isEmpty()) {
-                for (String member : baseMiningChunk.getMembers()) {
-                    if (markedUsers.contains(member)) {
-                        cellItem.add(AttributeAppender.append("style", " border: 5px solid #206f9d;"));
-                        break;
-                    }
+                    && !markedUsers.isEmpty()
+                    && this.baseMiningChunk.getMembers().stream().anyMatch(markedUsers::contains)) {
+
+                if (markedRoles != null && !markedRoles.isEmpty() && rowChunk.getRoles().stream().anyMatch(markedRoles::contains)) {
+                    cellItem.add(AttributeModifier.replace("class",
+                            "p-2 d-flex align-items-center justify-content-center bg-danger"));
                 }
+
+                cellItem.add(AttributeModifier.append("style", " border: 5px solid #206f9d;"));
+                isMarked = true;
             }
 
             return isMarked;

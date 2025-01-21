@@ -7,7 +7,10 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.outlier;
 
+import com.evolveum.midpoint.gui.impl.util.DetailsPageUtil;
 import com.evolveum.midpoint.web.component.data.column.AjaxLinkPanel;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisOutlierType;
 
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -30,13 +33,15 @@ public class OutlierHeaderResultPanel extends BasePanel<String> {
     private static final String ID_TIMESTAMP = "timestamp";
     private static final String ID_ACTION = "action";
 
-    String value;
-    String valueDescription;
-    String progressValue;
-    String timestamp;
+    private final String oid;
+    private final String value;
+    private final String valueDescription;
+    private final String progressValue;
+    private final String timestamp;
 
-    public OutlierHeaderResultPanel(String id, String value, String valueDescription, String progressValue, String timestamp) {
+    public OutlierHeaderResultPanel(String id, String oid, String value, String valueDescription, String progressValue, String timestamp) {
         super(id);
+        this.oid = oid;
         this.value = value;
         this.valueDescription = valueDescription;
         this.progressValue = progressValue;
@@ -71,21 +76,14 @@ public class OutlierHeaderResultPanel extends BasePanel<String> {
             itemBox.add(actionPanel);
         }
 
-        if (isLink()) {
-            AjaxLinkPanel namePanel = new AjaxLinkPanel(ID_VALUE, Model.of(getValue())) {
-                @Override
-                public void onClick(AjaxRequestTarget target) {
-                    performOnClick(target);
-                }
-            };
-            namePanel.setOutputMarkupId(true);
-            itemBox.add(namePanel);
-
-        } else {
-            Label namePanel = new Label(ID_VALUE, Model.of(getValue()));
-            namePanel.setOutputMarkupId(true);
-            itemBox.add(namePanel);
-        }
+        AjaxLinkPanel namePanel = new AjaxLinkPanel(ID_VALUE, Model.of(getValue())) {
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                DetailsPageUtil.dispatchToObjectDetailsPage(RoleAnalysisOutlierType.class, oid, this, true);
+            }
+        };
+        namePanel.setOutputMarkupId(true);
+        itemBox.add(namePanel);
 
         Label timestamp = new Label(ID_TIMESTAMP, Model.of(this.timestamp));
         timestamp.setOutputMarkupId(true);
@@ -130,10 +128,6 @@ public class OutlierHeaderResultPanel extends BasePanel<String> {
         WebMarkupContainer iconContainer = new WebMarkupContainer(componentId);
         iconContainer.add(AttributeModifier.replace("class", getIcon()));
         return iconContainer;
-    }
-
-    protected boolean isLink() {
-        return false;
     }
 
     protected void performOnClick(AjaxRequestTarget target) {

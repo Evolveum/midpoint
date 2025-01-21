@@ -5,40 +5,7 @@
  * and European Union Public License. See LICENSE file for details.
  */
 
-package com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.session;
-
-import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.RoleAnalysisWebUtils.*;
-import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.table.RoleAnalysisTableTools.densityBasedColor;
-import static com.evolveum.midpoint.web.component.data.mining.RoleAnalysisCollapsableTablePanel.*;
-
-import java.io.Serial;
-import java.math.BigDecimal;
-import java.math.RoundingMode;
-import java.util.*;
-
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.tmp.panel.LinkIconLabelIconPanel;
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.tmp.panel.RoleAnalysisAttributesDto;
-import com.evolveum.midpoint.util.exception.SystemException;
-
-import com.google.common.collect.ArrayListMultimap;
-import com.google.common.collect.ListMultimap;
-import org.apache.wicket.AttributeModifier;
-import org.apache.wicket.Component;
-import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.ajax.markup.html.form.AjaxSubmitLink;
-import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.export.AbstractExportableColumn;
-import org.apache.wicket.extensions.markup.html.tabs.ITab;
-import org.apache.wicket.markup.html.WebMarkupContainer;
-import org.apache.wicket.markup.html.basic.Label;
-import org.apache.wicket.markup.html.form.Form;
-import org.apache.wicket.markup.html.panel.EmptyPanel;
-import org.apache.wicket.markup.repeater.Item;
-import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.Model;
-import org.jetbrains.annotations.Contract;
-import org.jetbrains.annotations.NotNull;
+package com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.session.clusters;
 
 import com.evolveum.midpoint.common.mining.utils.values.RoleAnalysisObjectState;
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
@@ -57,8 +24,11 @@ import com.evolveum.midpoint.gui.impl.component.icon.IconCssStyle;
 import com.evolveum.midpoint.gui.impl.page.admin.AbstractObjectMainPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.ObjectDetailsModels;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.components.ProgressBar;
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.session.ImageDetailsPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.tmp.panel.IconWithLabel;
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.tmp.panel.LinkIconLabelIconPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.tmp.panel.RoleAnalysisAttributePanel;
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.tmp.panel.RoleAnalysisAttributesDto;
 import com.evolveum.midpoint.gui.impl.prism.panel.PrismPropertyHeaderPanel;
 import com.evolveum.midpoint.gui.impl.util.IconAndStylesUtil;
 import com.evolveum.midpoint.model.api.ModelService;
@@ -71,11 +41,8 @@ import com.evolveum.midpoint.schema.ResultHandler;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.web.application.PanelDisplay;
-import com.evolveum.midpoint.web.application.PanelInstance;
-import com.evolveum.midpoint.web.application.PanelType;
+import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.web.component.RoleAnalysisTabbedPanel;
-import com.evolveum.midpoint.web.component.TabbedPanel;
 import com.evolveum.midpoint.web.component.data.column.ColumnMenuAction;
 import com.evolveum.midpoint.web.component.data.column.LinkPanel;
 import com.evolveum.midpoint.web.component.data.column.ObjectNameColumn;
@@ -91,28 +58,51 @@ import com.evolveum.midpoint.web.util.TooltipBehavior;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
-@PanelType(name = "clusters")
-@PanelInstance(
-        identifier = "clusters",
-        applicableForType = RoleAnalysisSessionType.class,
-//        defaultPanel = true,
-        display = @PanelDisplay(
-                label = "RoleAnalysisSessionType.roleAnalysisCluster.result",
-                icon = GuiStyleConstants.CLASS_ROLE_ANALYSIS_CLUSTER_ICON,
-                order = 20
-        )
-)
-public class RoleAnalysisMainClusterListPanel extends AbstractObjectMainPanel<RoleAnalysisSessionType, ObjectDetailsModels<RoleAnalysisSessionType>> {
+import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.ListMultimap;
+import org.apache.wicket.AttributeModifier;
+import org.apache.wicket.Component;
+import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.export.AbstractExportableColumn;
+import org.apache.wicket.extensions.markup.html.tabs.ITab;
+import org.apache.wicket.markup.html.WebMarkupContainer;
+import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.markup.html.form.Form;
+import org.apache.wicket.markup.html.panel.EmptyPanel;
+import org.apache.wicket.markup.repeater.Item;
+import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.Model;
+import org.jetbrains.annotations.Contract;
+import org.jetbrains.annotations.NotNull;
 
-    private static final String ID_DATATABLE = "datatable";
+import java.io.Serial;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.Set;
+
+import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.RoleAnalysisWebUtils.*;
+import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.table.RoleAnalysisTableTools.densityBasedColor;
+import static com.evolveum.midpoint.web.component.data.mining.RoleAnalysisCollapsableTablePanel.*;
+
+public abstract class RoleAnalysisAbstractClusteringResultPanel extends AbstractObjectMainPanel<RoleAnalysisSessionType, ObjectDetailsModels<RoleAnalysisSessionType>> {
+
+    private static final String ID_TABS_PANEL = "datatable";
     private static final String ID_FORM = "form";
-    private static final String DOT_CLASS = RoleAnalysisMainClusterListPanel.class.getName() + ".";
+    private static final String DOT_CLASS = RoleAnalysisAbstractClusteringResultPanel.class.getName() + ".";
     private static final String OP_DELETE_CLUSTER = DOT_CLASS + "deleteCluster";
     private static final String OP_UPDATE_STATUS = DOT_CLASS + "updateOperationStatus";
 
     LoadableModel<ListMultimap<String, String>> mappedClusterOutliers;
 
-    public RoleAnalysisMainClusterListPanel(String id, ObjectDetailsModels<RoleAnalysisSessionType> model, ContainerPanelConfigurationType config) {
+    protected RoleAnalysisAbstractClusteringResultPanel(
+            String id,
+            ObjectDetailsModels<RoleAnalysisSessionType> model,
+            ContainerPanelConfigurationType config) {
         super(id, model, config);
         initModels();
     }
@@ -137,38 +127,7 @@ public class RoleAnalysisMainClusterListPanel extends AbstractObjectMainPanel<Ro
         add(form);
 
         List<ITab> tabs = createTabs();
-        RoleAnalysisTabbedPanel<ITab> tabPanel = new RoleAnalysisTabbedPanel<>(ID_DATATABLE, tabs, null) {
-            @Serial private static final long serialVersionUID = 1L;
-
-            @Contract("_, _ -> new")
-            @Override
-            protected @NotNull WebMarkupContainer newLink(String linkId, final int index) {
-                return new AjaxSubmitLink(linkId) {
-                    @Serial private static final long serialVersionUID = 1L;
-
-                    @Override
-                    protected void onError(AjaxRequestTarget target) {
-                        super.onError(target);
-                        target.add(getPageBase().getFeedbackPanel());
-                    }
-
-                    @Override
-                    protected void onSubmit(AjaxRequestTarget target) {
-                        super.onSubmit(target);
-
-                        setSelectedTab(index);
-                        if (target != null) {
-                            target.add(findParent(TabbedPanel.class));
-                        }
-                        assert target != null;
-                        target.add(getPageBase().getFeedbackPanel());
-                    }
-
-                };
-            }
-        };
-        tabPanel.setOutputMarkupId(true);
-        tabPanel.setOutputMarkupPlaceholderTag(true);
+        RoleAnalysisTabbedPanel<ITab> tabPanel = createRoleAnalysisTabPanel(getPageBase(), ID_TABS_PANEL, tabs);
         tabPanel.add(AttributeModifier.append(CLASS_CSS, "p-0 m-0"));
         form.add(tabPanel);
 
@@ -231,8 +190,8 @@ public class RoleAnalysisMainClusterListPanel extends AbstractObjectMainPanel<Ro
 //                provider.setSort(null);
 //                provider.setDefaultCountIfNull(Integer.MAX_VALUE);
 //                provider.setSort(RoleAnalysisClusterType.F_NAME.getLocalPart(), SortOrder.DESCENDING);
-                return RoleAnalysisMainClusterListPanel.this
-                        .createProvider(category, RoleAnalysisMainClusterListPanel.this);
+                return RoleAnalysisAbstractClusteringResultPanel.this
+                        .createProvider(category, RoleAnalysisAbstractClusteringResultPanel.this);
             }
 
             @Override
@@ -243,8 +202,8 @@ public class RoleAnalysisMainClusterListPanel extends AbstractObjectMainPanel<Ro
             @Override
             protected @NotNull List<InlineMenuItem> createInlineMenu() {
                 List<InlineMenuItem> menuItems = new ArrayList<>();
-                menuItems.add(RoleAnalysisMainClusterListPanel.this.createDeleteInlineMenu());
-                menuItems.add(RoleAnalysisMainClusterListPanel.this.createPreviewInlineMenu());
+                menuItems.add(RoleAnalysisAbstractClusteringResultPanel.this.createDeleteInlineMenu());
+                menuItems.add(RoleAnalysisAbstractClusteringResultPanel.this.createPreviewInlineMenu());
                 return menuItems;
             }
 
@@ -410,7 +369,7 @@ public class RoleAnalysisMainClusterListPanel extends AbstractObjectMainPanel<Ro
                 columns.add(column);
 
                 column = new AbstractExportableColumn<>(
-                        createStringResource("")) {
+                        createStringResource("RoleAnalysis.tile.panel.users")) {
 
                     @Override
                     public IModel<?> getDataModel(IModel<SelectableBean<RoleAnalysisClusterType>> iModel) {
@@ -460,7 +419,7 @@ public class RoleAnalysisMainClusterListPanel extends AbstractObjectMainPanel<Ro
                 columns.add(column);
 
                 column = new AbstractExportableColumn<>(
-                        createStringResource("")) {
+                        createStringResource("RoleAnalysis.tile.panel.roles")) {
 
                     @Override
                     public IModel<?> getDataModel(IModel<SelectableBean<RoleAnalysisClusterType>> iModel) {
@@ -604,6 +563,7 @@ public class RoleAnalysisMainClusterListPanel extends AbstractObjectMainPanel<Ro
                                     label.add(AttributeModifier.append(STYLE_CSS, "font-size: 14px"));
                                     return label;
                                 }
+
                                 @Override
                                 protected String getIconComponentCssStyle() {
                                     return "vertical-align: inherit";
@@ -875,7 +835,7 @@ public class RoleAnalysisMainClusterListPanel extends AbstractObjectMainPanel<Ro
 
     @SuppressWarnings("unchecked")
     private MainObjectListPanel<RoleAnalysisClusterType> getTable() {
-        return (MainObjectListPanel<RoleAnalysisClusterType>) get(ID_FORM + ":" + ID_DATATABLE);
+        return (MainObjectListPanel<RoleAnalysisClusterType>) get(ID_FORM + ":" + ID_TABS_PANEL);
     }
 
     private InlineMenuItem createDeleteInlineMenu() {

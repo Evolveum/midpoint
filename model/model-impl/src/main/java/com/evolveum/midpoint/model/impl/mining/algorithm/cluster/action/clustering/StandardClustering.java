@@ -8,6 +8,7 @@
 package com.evolveum.midpoint.model.impl.mining.algorithm.cluster.action.clustering;
 
 import com.evolveum.midpoint.common.mining.objects.analysis.cache.AttributeAnalysisCache;
+import com.evolveum.midpoint.common.mining.objects.analysis.cache.ObjectCategorisationCache;
 import com.evolveum.midpoint.common.mining.objects.handler.RoleAnalysisProgressIncrement;
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.model.api.mining.RoleAnalysisService;
@@ -35,7 +36,7 @@ public class StandardClustering implements Clusterable {
             @NotNull RoleAnalysisSessionType session,
             @NotNull RoleAnalysisProgressIncrement handler,
             @NotNull AttributeAnalysisCache attributeAnalysisCache,
-            @NotNull Task task,
+            @NotNull ObjectCategorisationCache objectCategorisationCache, @NotNull Task task,
             @NotNull OperationResult result) {
         RoleAnalysisOptionType analysisOption = session.getAnalysisOption();
         RoleAnalysisProcessModeType processMode = analysisOption.getProcessMode();
@@ -43,9 +44,9 @@ public class StandardClustering implements Clusterable {
         if (processMode != null) {
             return switch (processMode) {
                 case ROLE -> new RoleBasedClustering()
-                        .executeClustering(roleAnalysisService, modelService, session, handler, attributeAnalysisCache, task, result);
+                        .executeClustering(roleAnalysisService, modelService, session, handler, attributeAnalysisCache, objectCategorisationCache, task, result);
                 case USER -> new UserBasedClustering().
-                        executeClustering(roleAnalysisService, modelService, session, handler, attributeAnalysisCache, task, result);
+                        executeClustering(roleAnalysisService, modelService, session, handler, attributeAnalysisCache, objectCategorisationCache, task, result);
             };
         } else {
             throw new IllegalStateException("Missing process mode in analysis option");

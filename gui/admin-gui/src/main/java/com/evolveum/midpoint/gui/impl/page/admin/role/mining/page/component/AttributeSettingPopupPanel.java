@@ -7,12 +7,8 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.component;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
 
-import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.web.model.PrismContainerWrapperModel;
 
 import org.apache.wicket.Component;
@@ -20,12 +16,10 @@ import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.StringResourceModel;
-import org.apache.wicket.model.util.ListModel;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.tables.RoleAnalysisClusteringAttributeTable;
-import com.evolveum.midpoint.gui.impl.prism.wrapper.PrismPropertyValueWrapper;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.dialog.Popupable;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ClusteringAttributeRuleType;

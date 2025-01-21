@@ -20,8 +20,7 @@ import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.outlier.RoleAnalysisWidgetsPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.outlier.WidgetItemModel;
 
-import com.evolveum.midpoint.model.api.mining.RoleAnalysisService;
-
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.tables.outlier.panel.AnomalyObjectDto;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
@@ -42,7 +41,6 @@ import com.evolveum.midpoint.gui.api.component.tabs.PanelTab;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.impl.page.admin.AbstractObjectMainPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.ObjectDetailsModels;
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.tables.outlier.panel.AnomalyTableCategory;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.tables.outlier.panel.RoleAnalysisDetectedAnomalyTable;
 import com.evolveum.midpoint.web.application.PanelDisplay;
 import com.evolveum.midpoint.web.application.PanelInstance;
@@ -58,7 +56,7 @@ import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
         display = @PanelDisplay(
                 label = "RoleAnalysisOutlierType.outlierPanel.access",
                 icon = "fa fa-warning",
-                order = 30
+                order = 20
         )
 )
 public class RoleAnalysisOutlierAnomalyPanel extends AbstractObjectMainPanel<RoleAnalysisOutlierType, ObjectDetailsModels<RoleAnalysisOutlierType>> {
@@ -131,14 +129,14 @@ public class RoleAnalysisOutlierAnomalyPanel extends AbstractObjectMainPanel<Rol
     protected List<ITab> createPartitionTabs(RoleAnalysisOutlierType outlier) {
         List<ITab> tabs = new ArrayList<>();
 
-        tabs.add(new PanelTab(getPageBase().createStringResource("RoleAnalysisOutlierAnomalyPanel.all.access.anomaly..tab.title"), new VisibleEnableBehaviour()) {
+        tabs.add(new PanelTab(getPageBase().createStringResource("RoleAnalysisOutlierAnomalyPanel.all.access.anomaly.tab.title"), new VisibleEnableBehaviour()) {
 
             @Serial private static final long serialVersionUID = 1L;
 
             @Override
             public WebMarkupContainer createPanel(String panelId) {
-                RoleAnalysisDetectedAnomalyTable detectedAnomalyTable = new RoleAnalysisDetectedAnomalyTable(panelId,
-                        outlier, null, AnomalyTableCategory.OUTLIER_ANOMALY);
+                AnomalyObjectDto dto = new AnomalyObjectDto(outlier, null, true);
+                RoleAnalysisDetectedAnomalyTable detectedAnomalyTable = new RoleAnalysisDetectedAnomalyTable(panelId, Model.of(dto));
                 detectedAnomalyTable.setOutputMarkupId(true);
                 return detectedAnomalyTable;
             }
@@ -151,9 +149,9 @@ public class RoleAnalysisOutlierAnomalyPanel extends AbstractObjectMainPanel<Rol
             ObjectReferenceType targetSessionRef = partition.getTargetSessionRef();
             PolyStringType targetName = partition.getTargetSessionRef().getTargetName();
             String partitionName;
-            if(targetName == null) {
+            if (targetName == null) {
                 partitionName = WebModelServiceUtils.resolveReferenceName(targetSessionRef, getPageBase(), task, task.getResult());
-            }else {
+            } else {
                 partitionName = targetName.toString();
             }
 
@@ -163,8 +161,8 @@ public class RoleAnalysisOutlierAnomalyPanel extends AbstractObjectMainPanel<Rol
 
                 @Override
                 public WebMarkupContainer createPanel(String panelId) {
-                    RoleAnalysisDetectedAnomalyTable detectedAnomalyTable = new RoleAnalysisDetectedAnomalyTable(panelId,
-                            outlier, partition, AnomalyTableCategory.PARTITION_ANOMALY);
+                    AnomalyObjectDto dto = new AnomalyObjectDto(outlier, partition, false);
+                    RoleAnalysisDetectedAnomalyTable detectedAnomalyTable = new RoleAnalysisDetectedAnomalyTable(panelId, Model.of(dto));
                     detectedAnomalyTable.setOutputMarkupId(true);
                     return detectedAnomalyTable;
                 }
@@ -179,7 +177,6 @@ public class RoleAnalysisOutlierAnomalyPanel extends AbstractObjectMainPanel<Rol
         components.setOutputMarkupId(true);
         container.add(components);
     }
-
 
     private @NotNull IModel<List<WidgetItemModel>> loadDetailsModel() {
         RoleAnalysisOutlierType outlier = getObjectDetailsModels().getObjectType();

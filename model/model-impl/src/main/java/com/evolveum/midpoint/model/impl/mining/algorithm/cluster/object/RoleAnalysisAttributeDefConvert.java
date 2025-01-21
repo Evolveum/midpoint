@@ -41,7 +41,6 @@ public class RoleAnalysisAttributeDefConvert implements Serializable {
             return;
         }
 
-//        this.isMultiValue = rule.isIsMultiValue();
         this.similarity = rule.getSimilarity();
         this.weight = rule.getWeight();
 
@@ -61,7 +60,7 @@ public class RoleAnalysisAttributeDefConvert implements Serializable {
             ItemPath path = rule.getPath().getItemPath();
             PrismObjectDefinition<UserType> objectDef = PrismContext.get().getSchemaRegistry().findObjectDefinitionByCompileTimeClass(UserType.class);
 
-            RoleAnalysisAttributeDef attributeForUserAnalysis = new RoleAnalysisAttributeDef(path, objectDef.findItemDefinition(path));
+            RoleAnalysisAttributeDef attributeForUserAnalysis = new RoleAnalysisAttributeDef(path, objectDef.findItemDefinition(path), UserType.class);
             this.isMultiValue = attributeForUserAnalysis.isMultiValue();
             this.roleAnalysisAttributeDef = attributeForUserAnalysis;
             this.attributeDisplayValue = attributeForUserAnalysis.getDisplayValue();

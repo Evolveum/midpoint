@@ -7,6 +7,7 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.outlier.panel;
 
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.outlier.RoleAnalysisOutlierAdvancedPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.tables.tile.RoleAnalysisOutlierPartitionTileTable;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
@@ -34,10 +35,11 @@ import org.jetbrains.annotations.Nullable;
 @PanelInstance(
         identifier = "outlierPartitions",
         applicableForType = RoleAnalysisOutlierType.class,
+        childOf = RoleAnalysisOutlierAdvancedPanel.class,
         display = @PanelDisplay(
                 label = "RoleAnalysisOutlierType.outlierPartitions",
                 icon = GuiStyleConstants.CLASS_ICON_OUTLIER,
-                order = 30
+                order = 60
         )
 )
 public class OutlierPartitionPanel extends AbstractObjectMainPanel<RoleAnalysisOutlierType, ObjectDetailsModels<RoleAnalysisOutlierType>> {
@@ -93,12 +95,7 @@ public class OutlierPartitionPanel extends AbstractObjectMainPanel<RoleAnalysisO
     }
 
     private void performOnRefresh() {
-        PageParameters parameters = new PageParameters();
-        parameters.add(OnePageParameterEncoder.PARAMETER, getObjectDetailsModels().getObjectType().getOid());
-        parameters.add(ID_PANEL, getPanelConfiguration().getIdentifier());
-        Class<? extends PageBase> detailsPageClass = DetailsPageUtil
-                .getObjectDetailsPage(RoleAnalysisOutlierType.class);
-        getPageBase().navigateToNext(detailsPageClass, parameters);
+        DetailsPageUtil.dispatchToObjectDetailsPage(RoleAnalysisOutlierType.class, getPanelConfiguration().getIdentifier(), this, true);
     }
 
     public PageBase getPageBase() {
