@@ -194,7 +194,7 @@ class ShadowPostProcessor {
             // The conversion from shadow to an ExistingResourceObjectShadow looks strange but actually has a point:
             // the shadow really came from the resource.
             var existingResourceObject = ExistingResourceObjectShadow.fromShadow(shadow);
-            return acquireAndPostProcessShadow(shadowCtx, existingResourceObject, result);
+            return acquireAndPostProcessEmbeddedShadow(shadowCtx, existingResourceObject, result);
         }
 
         var identifiers = shadow.getAllIdentifiers();
@@ -237,14 +237,14 @@ class ShadowPostProcessor {
         // Try to look up repo shadow again, this time with full resource shadow. When we
         // have searched before we might have only some identifiers. The shadow
         // might still be there, but it may be renamed
-        return acquireAndPostProcessShadow(shadowCtx, fetchedResourceObject.resourceObject(), result);
+        return acquireAndPostProcessEmbeddedShadow(shadowCtx, fetchedResourceObject.resourceObject(), result);
     }
 
-    private static @NotNull ExistingResourceObjectShadow acquireAndPostProcessShadow(
+    private static @NotNull ExistingResourceObjectShadow acquireAndPostProcessEmbeddedShadow(
             ProvisioningContext ctxEntitlement, ExistingResourceObjectShadow existingResourceObject, OperationResult result)
             throws SchemaException, ConfigurationException, EncryptionException, ExpressionEvaluationException,
             CommunicationException, SecurityViolationException, ObjectNotFoundException {
-        var repoShadow = ShadowAcquisition.acquireRepoShadow(ctxEntitlement, existingResourceObject, result);
+        var repoShadow = ShadowAcquisition.acquireRepoShadow(ctxEntitlement, existingResourceObject, true, result);
         var shadowPostProcessor = new ShadowPostProcessor(
                 ctxEntitlement, repoShadow, existingResourceObject, null);
         return shadowPostProcessor.execute(result);
