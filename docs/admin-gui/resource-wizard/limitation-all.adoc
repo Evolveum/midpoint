@@ -1,6 +1,6 @@
 :page-toc: top
 :page-since: "4.9"
-:visibility: hidden
+:page-visibility: hidden
 
 == Limitations
 
