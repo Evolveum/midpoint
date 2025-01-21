@@ -7289,6 +7289,18 @@
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
+                    <xsd:element name="retrievalTimestampMaintenance" type="xsd:boolean" minOccurs="0" default="true">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Should we maintain retrieval timestamp in shadows when the shadow is retrieved from the resource?
+                                Can be turned off to improve the performance in cases when we need the cached data but don't need
+                                the timestamp (e.g., when using data only for reporting purposes).
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:experimental>true</a:experimental>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
                 </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>
