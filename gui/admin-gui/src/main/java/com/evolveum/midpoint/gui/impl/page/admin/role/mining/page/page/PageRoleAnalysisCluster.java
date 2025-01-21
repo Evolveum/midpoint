@@ -281,22 +281,43 @@ public class PageRoleAnalysisCluster extends PageAssignmentHolderDetails<RoleAna
                 .resolveClusterOptionType(cluster.asPrismObject(), task, task.getResult());
 
         RoleAnalysisProcedureType procedureType = roleAnalysisOptionType.getAnalysisProcedureType();
+
         if (procedureType == null) {
-            return super.getPanelConfigurations();
+            procedureType = reviseProcedureType(cluster);
         }
 
         List<ContainerPanelConfigurationType> object = panelConfigurations.getObject();
         for (ContainerPanelConfigurationType containerPanelConfigurationType : object) {
             if (containerPanelConfigurationType.getIdentifier().equals("actions")) {
                 resolveActionPanel(containerPanelConfigurationType, category, roleAnalysisOptionType);
-            } else if (containerPanelConfigurationType.getIdentifier().equals("clusterRoleSuggestions")
-                    && procedureType.equals(RoleAnalysisProcedureType.OUTLIER_DETECTION)) {
+            } else if (shouldHideClusterRoleSuggestion(containerPanelConfigurationType, procedureType)) {
                 containerPanelConfigurationType.setVisibility(UserInterfaceElementVisibilityType.HIDDEN);
             }
 
         }
 
         return panelConfigurations;
+    }
+
+    @Deprecated
+    private static @NotNull RoleAnalysisProcedureType reviseProcedureType(@NotNull RoleAnalysisClusterType cluster) {
+        RoleAnalysisDetectionOptionType detectionOption = cluster.getDetectionOption();
+        if (detectionOption != null && detectionOption.getSensitivity() != null) {
+            return RoleAnalysisProcedureType.OUTLIER_DETECTION;
+        } else {
+            return RoleAnalysisProcedureType.ROLE_MINING;
+        }
+
+    }
+
+    private static boolean shouldHideClusterRoleSuggestion(
+            @NotNull ContainerPanelConfigurationType containerPanelConfigurationType,
+            RoleAnalysisProcedureType procedureType) {
+        if (procedureType == null) {
+            return true;
+        }
+        return containerPanelConfigurationType.getIdentifier().equals("clusterRoleSuggestions")
+                && procedureType.equals(RoleAnalysisProcedureType.OUTLIER_DETECTION);
     }
 
     private static void resolveActionPanel(

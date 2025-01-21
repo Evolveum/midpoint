@@ -18,7 +18,7 @@ public class DateSearchItemWrapperFactory extends AbstractSearchItemWrapperFacto
     protected DateSearchItemWrapper createSearchWrapper(SearchItemContext ctx) {
         DateSearchItemWrapper wrapper = new DateSearchItemWrapper(ctx.getPath());
         //ticket 9828; using date search item as non-interval to be used as a report parameter value
-        if (ctx.getAdditionalSearchContext() != null && ctx.getAdditionalSearchContext().isReportCollectionSearch()) {
+        if (ctx.isReportCollectionSearch()) {
             wrapper.setInterval(false);
         }
         return wrapper;

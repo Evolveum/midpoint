@@ -30,6 +30,7 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
+import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.Behavior;
@@ -146,6 +147,8 @@ public class RoleAnalysisTable<B extends MiningBaseTypeChunk, A extends MiningBa
 
         WebMarkupContainer footer2 = createColumnsNavigation(table);
         add(footer2);
+        add(new AttributeModifier("class", "d-flex flex-column w-100 overflow-hidden"));
+        add(new AttributeModifier("style", "height: calc(100vh - 200px);"));
     }
 
     //TODO check

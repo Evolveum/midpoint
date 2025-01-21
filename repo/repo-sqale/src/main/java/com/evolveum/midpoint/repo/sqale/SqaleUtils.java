@@ -166,6 +166,21 @@ public class SqaleUtils {
         return new ToStringUtil(object).toString();
     }
 
+    /**
+     * Marks object as containing only partial data - not to be used to compute full object
+     * @param ret
+     * @param <S>
+     */
+    public static <S extends ObjectType> void markWithoutFullObject(S ret) {
+        // FIXME: Figure out better marking
+        ret.asPrismObject().setIncomplete(true);
+    }
+
+    public static <S extends ObjectType> boolean isWithoutFullObject(S ret) {
+        // FIXME: Figure out better marking
+        return ret.asPrismObject().isIncomplete();
+    }
+
     private static class ToStringUtil extends ReflectionToStringBuilder {
 
         @SuppressWarnings("DoubleBraceInitialization")

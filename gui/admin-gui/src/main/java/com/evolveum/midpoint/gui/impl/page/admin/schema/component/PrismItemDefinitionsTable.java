@@ -8,10 +8,12 @@
 package com.evolveum.midpoint.gui.impl.page.admin.schema.component;
 
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
+import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.prism.wrapper.*;
 import com.evolveum.midpoint.gui.api.util.LocalizationUtil;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
+import com.evolveum.midpoint.gui.impl.component.ContainerableListPanel;
 import com.evolveum.midpoint.gui.impl.component.data.column.AbstractItemWrapperColumn;
 import com.evolveum.midpoint.gui.impl.component.data.column.PrismPropertyWrapperColumn;
 import com.evolveum.midpoint.gui.impl.component.data.column.PrismPropertyWrapperColumnPanel;
@@ -20,8 +22,12 @@ import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
 import com.evolveum.midpoint.gui.impl.component.wizard.AbstractWizardTable;
 import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.AssignmentHolderDetailsModel;
 import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.PageAssignmentHolderDetails;
+import com.evolveum.midpoint.gui.impl.prism.panel.ItemPanelSettings;
+import com.evolveum.midpoint.gui.impl.prism.panel.ItemPanelSettingsBuilder;
 import com.evolveum.midpoint.gui.impl.prism.panel.PrismPropertyHeaderPanel;
+import com.evolveum.midpoint.gui.impl.prism.panel.PrismPropertyPanel;
 import com.evolveum.midpoint.gui.impl.prism.wrapper.PrismPropertyValueWrapper;
+import com.evolveum.midpoint.model.api.AssignmentObjectRelation;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.schema.PrismSchema;
@@ -31,9 +37,13 @@ import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.component.data.BoxedTablePanel;
+import com.evolveum.midpoint.web.component.data.SelectableDataTable;
+import com.evolveum.midpoint.web.component.input.TriStateComboPanel;
 import com.evolveum.midpoint.web.component.menu.cog.ButtonInlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
+import com.evolveum.midpoint.web.component.prism.ItemVisibility;
 import com.evolveum.midpoint.web.component.prism.ValueStatus;
 import com.evolveum.midpoint.web.model.PrismContainerWrapperModel;
 import com.evolveum.midpoint.web.model.PrismPropertyWrapperHeaderModel;
@@ -46,7 +56,10 @@ import com.evolveum.midpoint.xml.ns._public.prism_schema_3.*;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
+import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
+import org.apache.wicket.markup.head.IHeaderResponse;
+import org.apache.wicket.markup.head.OnDomReadyHeaderItem;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.form.FormComponent;
 import org.apache.wicket.model.IModel;
@@ -63,6 +76,8 @@ public class PrismItemDefinitionsTable extends AbstractWizardTable<PrismItemDefi
     private static final Trace LOGGER = TraceManager.getTrace(PrismItemDefinitionsTable.class);
 
     private static final String COLUMN_CSS = "mp-w-sm-2 mp-w-md-1 text-nowrap";
+    // fake name for new item because we need to differ values fake new values for removing
+    private static final String FAKE_NAME = "DummyDummy";
 
     private enum Type {
         PROPERTY,
@@ -116,78 +131,18 @@ public class PrismItemDefinitionsTable extends AbstractWizardTable<PrismItemDefi
                 },
                 new PrismPropertyWrapperColumn<>(defModel, PrismItemDefinitionType.F_TYPE,
                         AbstractItemWrapperColumn.ColumnType.VALUE, getPageBase()) {
+
+
                     @Override
                     protected <IW extends ItemWrapper> Component createColumnPanel(String componentId, IModel<IW> rowModel) {
                         return new PrismPropertyWrapperColumnPanel<>(componentId, (IModel<PrismPropertyWrapper<QName>>) rowModel, getColumnType()) {
 
                             @Override
-                            protected void onBeforeRender() {
-                                super.onBeforeRender();
-                                visitChildren(FormComponent.class, (formComponent, object) -> {
-                                    formComponent.add(new AjaxFormComponentUpdatingBehavior("change") {
-                                        @Override
-                                        protected void onUpdate(AjaxRequestTarget target) {
-                                            PrismPropertyWrapper<QName> object = (PrismPropertyWrapper<QName>) rowModel.getObject();
-                                            PrismPropertyValueWrapper<QName> objectValue = null;
-                                            try {
-                                                objectValue = object.getValue();
-                                            } catch (SchemaException e) {
-                                                LOGGER.debug("Couldn't get value for " + object);
-                                            }
-                                            if (objectValue == null) {
-                                                return;
-                                            }
-
-                                            PrismContainerValueWrapper<PrismItemDefinitionType> containerValue = object.getParentContainerValue(PrismItemDefinitionType.class);
-                                            if (containerValue == null) {
-                                                LOGGER.debug("Couldn't find parent value for PrismItemDefinitionType in " + object);
-                                                return;
-                                            }
-                                            if (ValueStatus.ADDED != containerValue.getStatus()) {
-                                                return;
-                                            }
-
-                                            Type type = defineTypeOfProperty(objectValue, containerValue);
-
-                                            PrismContainerValue<PrismItemDefinitionType> newValue = null;
-
-                                            switch (type) {
-                                                case PROPERTY ->
-                                                        newValue = new PrismPropertyDefinitionType().asPrismContainerValue();
-                                                case REFERENCE ->
-                                                        newValue = new PrismReferenceDefinitionType().asPrismContainerValue();
-                                                case CONTAINER ->
-                                                        newValue = new PrismContainerDefinitionType().asPrismContainerValue();
-                                            }
-
-                                            try {
-                                                containerValue.getParent().getItem().remove(containerValue.getNewValue());
-                                                containerValue.getParent().getItem().add(newValue);
-
-                                                for (Item<?, ?> item : containerValue.getNewValue().getItems()) {
-                                                    ItemDefinition<?> def = newValue.getDefinition().findItemDefinition(item.getPath().namedSegmentsOnly());
-                                                    if (def != null) {
-                                                        newValue.add(item.clone());
-                                                    }
-                                                }
-                                            } catch (SchemaException e) {
-                                                LOGGER.debug("Couldn't add old items from containerValue value to new value");
-                                            }
-                                            try {
-                                                PrismContainerValueWrapper newPrismValue =
-                                                        WebPrismUtil.createNewValueWrapper(
-                                                                containerValue.getParent(), newValue, getPageBase());
-                                                containerValue.clearItems();
-                                                containerValue.addItems(newPrismValue.getItems());
-                                            } catch (SchemaException e) {
-                                                LOGGER.debug("Couldn't create new prism value wrapper for " + newValue);
-                                            }
-                                            containerValue.replaceContainerItemValue(newValue);
-                                            target.add(getTableComponent());
-                                        }
-                                    });
-
-                                });
+                            protected ItemPanelSettings createPanelSettings() {
+                                return new ItemPanelSettingsBuilder()
+                                        .displayedInColumn(true)
+                                        .editabilityHandler(itemwrapper -> false)
+                                        .build();
                             }
                         };
                     }
@@ -198,7 +153,7 @@ public class PrismItemDefinitionsTable extends AbstractWizardTable<PrismItemDefi
                     }
                 },
                 new PrismPropertyWrapperColumn<>(defModel, PrismItemDefinitionType.F_DISPLAY_NAME,
-                        AbstractItemWrapperColumn.ColumnType.VALUE, getPageBase()){
+                        AbstractItemWrapperColumn.ColumnType.VALUE, getPageBase()) {
                     @Override
                     public String getCssClass() {
                         return "text-nowrap";
@@ -240,21 +195,21 @@ public class PrismItemDefinitionsTable extends AbstractWizardTable<PrismItemDefi
                     }
                 },
                 new PrismPropertyWrapperColumn<>(defModel, PrismItemDefinitionType.F_REQUIRED,
-                        AbstractItemWrapperColumn.ColumnType.VALUE, getPageBase()){
+                        AbstractItemWrapperColumn.ColumnType.VALUE, getPageBase()) {
                     @Override
                     public String getCssClass() {
                         return COLUMN_CSS;
                     }
                 },
                 new PrismPropertyWrapperColumn<>(defModel, PrismItemDefinitionType.F_MULTIVALUE,
-                        AbstractItemWrapperColumn.ColumnType.VALUE, getPageBase()){
+                        AbstractItemWrapperColumn.ColumnType.VALUE, getPageBase()) {
                     @Override
                     public String getCssClass() {
                         return COLUMN_CSS;
                     }
                 },
                 new PrismPropertyWrapperColumn<>(defModel, PrismItemDefinitionType.F_INDEXED,
-                        AbstractItemWrapperColumn.ColumnType.VALUE, getPageBase()){
+                        AbstractItemWrapperColumn.ColumnType.VALUE, getPageBase()) {
                     @Override
                     public String getCssClass() {
                         return COLUMN_CSS;
@@ -328,7 +283,7 @@ public class PrismItemDefinitionsTable extends AbstractWizardTable<PrismItemDefi
         };
         menu.setVisibilityChecker(
                 (InlineMenuItem.VisibilityChecker) (rowModel, isHeader) -> {
-                    if (isHeader){
+                    if (isHeader) {
                         return false;
                     }
                     PrismContainerValueWrapper<PrismItemDefinitionType> rowObject =
@@ -376,6 +331,17 @@ public class PrismItemDefinitionsTable extends AbstractWizardTable<PrismItemDefi
                                 public String getId() {
                                     return id;
                                 }
+
+                                @Override
+                                protected ItemVisibilityHandler getVisibilityHandler() {
+                                    return wrapper -> {
+                                        if (wrapper.getItemName().equals(DefinitionType.F_LIFECYCLE_STATE)
+                                                || wrapper.getItemName().equals(PrismItemDefinitionType.F_TYPE)) {
+                                            return ItemVisibility.HIDDEN;
+                                        }
+                                        return ItemVisibility.AUTO;
+                                    };
+                                }
                             };
                         }
 
@@ -412,5 +378,53 @@ public class PrismItemDefinitionsTable extends AbstractWizardTable<PrismItemDefi
     @Override
     protected boolean isHeaderVisible() {
         return true;
+    }
+
+    @Override
+    protected void newItemPerformed(PrismContainerValue<PrismItemDefinitionType> value, AjaxRequestTarget target, AssignmentObjectRelation relationSpec, boolean isDuplicate) {
+        IModel<PrismContainerValueWrapper<PrismItemDefinitionType>> model = Model.of(createNewValue(value, target));
+        CreateSchemaItemPopupPanel popupPanel = new CreateSchemaItemPopupPanel(getPageBase().getMainPopupBodyId(), model) {
+            @Override
+            protected void createPerform(AjaxRequestTarget target) {
+                PrismContainerValueWrapper<PrismItemDefinitionType> containerValue = model.getObject();
+                PrismPropertyValueWrapper<QName> objectValue = null;
+                try {
+                    PrismPropertyWrapper<QName> object = containerValue.findProperty(PrismItemDefinitionType.F_TYPE);
+                    objectValue = object.getValue();
+                } catch (SchemaException e) {
+                    LOGGER.debug("Couldn't get value for " + containerValue);
+                }
+                if (objectValue == null) {
+                    return;
+                }
+
+                Type type = defineTypeOfProperty(objectValue, containerValue);
+
+                PrismContainerValue<PrismItemDefinitionType> newValue = null;
+
+                switch (type) {
+                    case PROPERTY ->
+                            newValue = new PrismPropertyDefinitionType().type(objectValue.getRealValue()).asPrismContainerValue();
+                    case REFERENCE ->
+                            newValue = new PrismReferenceDefinitionType().type(objectValue.getRealValue()).asPrismContainerValue();
+                    case CONTAINER ->
+                            newValue = new PrismContainerDefinitionType().type(objectValue.getRealValue()).asPrismContainerValue();
+                }
+
+                try {
+                    PrismContainerWrapper<PrismItemDefinitionType> parent = getContainerModel().getObject();
+                    newValue.setParent(parent.getItem());
+                    parent.add(newValue, getPageBase());
+                    containerValue.getNewValue().asContainerable().name(new QName(FAKE_NAME, FAKE_NAME));
+                    parent.remove(containerValue, getPageBase());
+                } catch (SchemaException e) {
+                    LOGGER.debug("Couldn't create new prism value wrapper for " + newValue);
+                }
+                target.add(getTableComponent());
+                model.detach();
+                processHide(target);
+            }
+        };
+        getPageBase().showMainPopup(popupPanel, target);
     }
 }

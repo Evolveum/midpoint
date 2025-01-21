@@ -40,7 +40,7 @@ public class SchemaItemTypePanelFactory extends AbstractQNameWithChoicesPanelFac
 
     @Override
     public org.apache.wicket.Component createPanel(PrismPropertyPanelContext<QName> panelCtx) {
-        if (panelCtx.unwrapWrapperModel() != null && panelCtx.unwrapWrapperModel().isReadOnly()) {
+        if (panelCtx.unwrapWrapperModel() != null && (panelCtx.unwrapWrapperModel().isReadOnly() || !panelCtx.isEditable())) {
 
             LoadableDetachableModel<String> model = new LoadableDetachableModel<>() {
                 @Override

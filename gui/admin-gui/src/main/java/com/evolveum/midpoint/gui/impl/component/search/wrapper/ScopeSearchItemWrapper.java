@@ -7,15 +7,17 @@
 package com.evolveum.midpoint.gui.impl.component.search.wrapper;
 
 import com.evolveum.midpoint.gui.api.util.GuiDisplayTypeUtil;
+import com.evolveum.midpoint.gui.api.util.LocalizationUtil;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.component.search.panel.ScopeSearchItemPanel;
 import com.evolveum.midpoint.util.DisplayableValue;
 import com.evolveum.midpoint.gui.impl.component.search.SearchValue;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.DisplayType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ScopeSearchItemConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SearchBoxScopeType;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.LoadableDetachableModel;
 
 public class ScopeSearchItemWrapper extends AbstractSearchItemWrapper<SearchBoxScopeType> {
 
@@ -46,28 +48,37 @@ public class ScopeSearchItemWrapper extends AbstractSearchItemWrapper<SearchBoxS
     }
 
     @Override
-    public String getName() {
-        var display = scopeConfig == null ? null : scopeConfig.getDisplay();
-        var name = GuiDisplayTypeUtil.getTranslatedLabel(display);
-        return StringUtils.isEmpty(name) ? "abstractRoleMemberPanel.searchScope" : name;
+    public IModel<String> getName() {
+        return new LoadableDetachableModel<>() {
+            @Override
+            protected String load() {
+                var display = scopeConfig == null ? null : scopeConfig.getDisplay();
+                var name = GuiDisplayTypeUtil.getTranslatedLabel(display);
+                return StringUtils.isEmpty(name) ? LocalizationUtil.translate("abstractRoleMemberPanel.searchScope") : name;
+            }
+        };
     }
 
     @Override
-    public String getHelp() {
-        var display = scopeConfig == null ? null : scopeConfig.getDisplay();
-        var help = GuiDisplayTypeUtil.getHelp(display);
-        return StringUtils.isEmpty(help) ? "abstractRoleMemberPanel.searchScope.tooltip" : help;
+    public IModel<String> getHelp() {
+        return new LoadableDetachableModel<>() {
+            @Override
+            protected String load() {
+                var display = scopeConfig == null ? null : scopeConfig.getDisplay();
+                var help = GuiDisplayTypeUtil.getHelp(display);
+                return StringUtils.isEmpty(help) ? LocalizationUtil.translate("abstractRoleMemberPanel.searchScope.tooltip") : help;
+            }
+        };
     }
 
     @Override
-    public String getTitle() {
-        var display = scopeConfig == null ? null : scopeConfig.getDisplay();
-        return GuiDisplayTypeUtil.getTooltip(display);
+    public IModel<String> getTitle() {
+        return new LoadableDetachableModel<>() {
+            @Override
+            protected String load() {
+                var display = scopeConfig == null ? null : scopeConfig.getDisplay();
+                return GuiDisplayTypeUtil.getTooltip(display);
+            }
+        };
     }
-
-//    @Override
-//    public boolean isApplyFilter(SearchBoxModeType searchBoxMode) {
-//        return SearchBoxScopeType.SUBTREE.equals(getSearchConfig().getDefaultScope());
-//    }
-
 }

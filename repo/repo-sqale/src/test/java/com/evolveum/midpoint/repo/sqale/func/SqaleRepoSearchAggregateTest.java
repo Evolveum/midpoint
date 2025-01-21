@@ -6,6 +6,8 @@
  */
 package com.evolveum.midpoint.repo.sqale.func;
 
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType.F_ROLE_MEMBERSHIP_REF;
+
 import static org.assertj.core.api.Assertions.*;
 
 import static com.evolveum.midpoint.prism.xml.XmlTypeConverter.createXMLGregorianCalendar;
@@ -335,6 +337,7 @@ public class SqaleRepoSearchAggregateTest extends SqaleRepoBaseTest {
                         .timestamp("2021-08-01T00:00:00Z"))
                 .organization("org-33")
                 .roleMembershipRef(roleAvIOid, RoleType.COMPLEX_TYPE, relation2)
+                .roleMembershipRef(createTestRefWithMetadata(roleOneMoreOid, RoleType.COMPLEX_TYPE, ORG_DEFAULT))
                 .extension(new ExtensionType());
         ExtensionType user3Extension = user3.getExtension();
         addExtensionValue(user3Extension, "int", 10);
@@ -618,6 +621,23 @@ public class SqaleRepoSearchAggregateTest extends SqaleRepoBaseTest {
             queryRecorder.dumpQueryBuffer();
         }
 
+    }
+
+    @Test
+    public void test400AggregateRoleMembershipRefs() throws SchemaException {
+        var opResult = createOperationResult();
+        var spec = AggregateQuery.forType(UserType.class);
+        spec.retrieve(F_ROLE_MEMBERSHIP_REF)
+                .count(new ItemName("count"), F_ROLE_MEMBERSHIP_REF)
+                .groupBy(F_ROLE_MEMBERSHIP_REF);
+        queryRecorder.startRecording();
+        try {
+            SearchResultList<PrismContainerValue<?>> result = repositoryService.searchAggregate(spec, opResult);
+            assertThat(result)
+                    .isNotEmpty();
+        } finally {
+            queryRecorder.dumpQueryBuffer();
+        }
     }
 
 
