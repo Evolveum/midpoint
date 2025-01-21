@@ -23,6 +23,7 @@ import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.SystemException;
 
+import org.apache.commons.lang3.BooleanUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -634,6 +635,10 @@ public interface ResourceObjectDefinition
 
     default boolean isCachingEnabled() {
         return Objects.requireNonNull(getEffectiveShadowCachingPolicy().getCachingStrategy()) == CachingStrategyType.PASSIVE;
+    }
+
+    default boolean shouldUpdateCachingMetadata() {
+        return BooleanUtils.isNotFalse(getEffectiveShadowCachingPolicy().getRetrievalTimestampMaintenance());
     }
 
     default boolean isActivationCached() {

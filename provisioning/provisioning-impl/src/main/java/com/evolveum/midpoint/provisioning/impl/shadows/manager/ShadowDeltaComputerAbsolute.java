@@ -167,7 +167,11 @@ class ShadowDeltaComputerAbsolute {
             updateCachedActivation(definition.isActivationCached());
             updateCachedCredentials(definition.areCredentialsCached(), definition.areCredentialsCachedLegacy(), result);
             if (definition.isCachingEnabled()) {
-                updateCachingMetadata(incompleteCacheableItems);
+                if (definition.shouldUpdateCachingMetadata()) {
+                    updateCachingMetadata(incompleteCacheableItems);
+                } else {
+                    // doing nothing, as the caching metadata should not be updated
+                }
             } else {
                 clearCachingMetadata();
             }
