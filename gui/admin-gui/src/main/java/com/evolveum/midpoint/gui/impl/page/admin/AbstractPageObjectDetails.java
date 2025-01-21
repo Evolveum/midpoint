@@ -14,10 +14,6 @@ import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
 import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
 import com.evolveum.midpoint.gui.impl.component.menu.LeftMenuAuthzUtil;
 
-import com.evolveum.midpoint.model.common.archetypes.ArchetypeManager;
-import com.evolveum.midpoint.schema.TaskExecutionMode;
-import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.web.security.MidPointApplication;
 import com.evolveum.midpoint.web.page.error.PageError404;
 
 import org.apache.commons.lang3.BooleanUtils;
@@ -32,7 +28,6 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.LoadableDetachableModel;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.gui.api.component.result.MessagePanel;
@@ -75,7 +70,6 @@ public abstract class AbstractPageObjectDetails<O extends ObjectType, ODM extend
     protected static final String OPERATION_SAVE = DOT_CLASS + "save";
     protected static final String OPERATION_PREVIEW_CHANGES = DOT_CLASS + "previewChanges";
     protected static final String OPERATION_SEND_TO_SUBMIT = DOT_CLASS + "sendToSubmit";
-    protected static final String OPERATION_EXECUTE_ARCHETYPE_CHANGES = DOT_CLASS + "executeArchetypeChanges";
 
     private static final String ID_MAIN_FORM = "mainForm";
     private static final String ID_MAIN_PANEL = "mainPanel";
@@ -313,8 +307,9 @@ public abstract class AbstractPageObjectDetails<O extends ObjectType, ODM extend
             checkValidationErrors(target, objectDetailsModels.getValidationErrors());
 
         } catch (Throwable ex) {
-            result.recordFatalError(getString("pageAdminObjectDetails.message.cantCreateObject"), ex);
-            LoggingUtils.logUnexpectedException(LOGGER, "Create Object failed", ex);
+            String messageKey = isAdd() ? "pageAdminObjectDetails.message.cantCreateObject" : "pageAdminObjectDetails.message.cantModifyObject";
+            result.recordFatalError(getString(messageKey), ex);
+            LoggingUtils.logUnexpectedException(LOGGER, getString(messageKey), ex);
             showResult(result);
             target.add(getFeedbackPanel());
             return null;

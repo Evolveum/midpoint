@@ -1,7 +1,7 @@
 #*
  * Copyright (c) 2013 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  *#
 
@@ -83,6 +83,7 @@
                         </h4>
                         <p class="block">Flags: $!itemDefinition.debugFlags()</p>
                         <p class="block">Multiplicity: $itemDefinition.debugMultiplicity()</p>
+                        <p class="block">Display order: $itemDefinition.debugDisplayOrder()</p>
                         <p class="block">$!itemDefinition.getDocumentation()</p>
                     </li>
                 </ul>

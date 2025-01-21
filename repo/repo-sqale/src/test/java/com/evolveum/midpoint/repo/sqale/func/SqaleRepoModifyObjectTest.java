@@ -20,11 +20,16 @@ import java.util.stream.Collectors;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ReferenceDelta;
 
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.prism.xml.XsdTypeMapper;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
+
+import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
+
+import com.evolveum.prism.xml.ns._public.types_3.EvaluationTimeType;
 
 import org.assertj.core.api.Assertions;
 import org.jetbrains.annotations.NotNull;
@@ -32,9 +37,6 @@ import org.testng.AssertJUnit;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
-import com.evolveum.midpoint.prism.Item;
-import com.evolveum.midpoint.prism.PrismContainerValue;
-import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemName;
@@ -3452,6 +3454,30 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
                     return v.getRealValue() instanceof XMLGregorianCalendar;
                     }, "date shadow contains date");
     }
+
+
+    @Test(description = "MID-10326")
+    public void test700ModifyRoleWithInducementWithRuntimeFilter() throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException {
+        OperationResult result = createOperationResult();
+        given("role is created");
+        var inducementId = 11L;
+        var role = new RoleType().name("test-role")
+                .inducement(new AssignmentType().id(inducementId));
+        var roleOid = repositoryService.addObject(role.asPrismObject(), null, result);
+        given("and inducement is added with targetRef with filter (no oid)");
+
+
+        var targetOrt = new ObjectReferenceType().type(RoleType.COMPLEX_TYPE);
+        var targetPrv = targetOrt.asReferenceValue();
+        targetPrv.setResolutionTime(EvaluationTimeType.RUN);
+        var ind = new AssignmentType()
+                .targetRef(targetOrt);
+        var deltas = PrismContext.get().deltaFor(RoleType.class).item(RoleType.F_INDUCEMENT,inducementId, AssignmentType.F_TARGET_REF)
+                        .add(targetPrv.clone()).asItemDeltas();
+        then("operation is successful and modification is executed");
+        repositoryService.modifyObject(RoleType.class, roleOid, deltas, result);
+    }
+
 
     @Test
     public void test800ModifyWithPositivePrecondition() throws Exception {
