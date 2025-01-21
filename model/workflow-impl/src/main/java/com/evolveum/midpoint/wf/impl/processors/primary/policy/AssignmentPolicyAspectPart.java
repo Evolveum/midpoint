@@ -254,7 +254,9 @@ public class AssignmentPolicyAspectPart {
         boolean reallyRemoved = objectTreeDeltas.subtractFromFocusDelta(
                 FocusType.F_ASSIGNMENT, assignmentValue, assignmentRemoved, false);
         if (!reallyRemoved) {
-            ObjectDelta<?> secondaryDelta = ctx.modelContext.getFocusContext().getSecondaryDelta();
+            // For preview changes, we must take summary secondary delta (i.e. deltas from all waves) into account.
+            // Otherwise, we might see only the last secondary delta that might be empty.
+            ObjectDelta<?> secondaryDelta = ctx.modelContext.getFocusContext().getSummarySecondaryDelta();
             if (secondaryDelta != null
                     && secondaryDelta.subtract(FocusType.F_ASSIGNMENT, assignmentValue, assignmentRemoved, true)) {
                 LOGGER.trace("Assignment to be added/deleted was not found in primary delta. It is present in secondary delta, "
