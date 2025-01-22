@@ -11,7 +11,11 @@
             <extensionDir>./src/test/resources/schema</extensionDir>
         </global>
         <repository>
-            <repositoryServiceFactoryClass>com.evolveum.midpoint.repo.sql.testing.TestSqlRepositoryFactory</repositoryServiceFactoryClass>
+            <!--<repositoryServiceFactoryClass>com.evolveum.midpoint.repo.sql.testing.TestSqlRepositoryFactory</repositoryServiceFactoryClass>-->
+            <type>native</type>
+            <jdbcUrl>jdbc:postgresql://localhost:5432/midtest</jdbcUrl>
+            <jdbcUsername>midtest</jdbcUsername>
+            <jdbcPassword>password</jdbcPassword>
             <dropIfExists>true</dropIfExists>
             <!-- this is here for custom column creation in audit, audit uses default repo conf -->
             <createMissingCustomColumns>true</createMissingCustomColumns>
@@ -27,7 +31,8 @@
                 <auditServiceFactoryClass>com.evolveum.midpoint.audit.impl.LoggerAuditServiceFactory</auditServiceFactoryClass>
             </auditService>
             <auditService>
-                <auditServiceFactoryClass>com.evolveum.midpoint.repo.sql.SqlAuditServiceFactory</auditServiceFactoryClass>
+                <!-- Use SqlAuditServiceFactory for old generic repository and SqaleAuditServiceFactory for new Native one. -->
+                <auditServiceFactoryClass>com.evolveum.midpoint.repo.sqale.audit.SqaleAuditServiceFactory</auditServiceFactoryClass>
                 <!-- Needed for model-intest where these properties are used. -->
                 <customColumn>
                     <columnName>foo</columnName>
@@ -37,11 +42,13 @@
                     <columnName>ship</columnName>
                     <eventRecordPropertyName>ship</eventRecordPropertyName>
                 </customColumn>
+                <!--<auditServiceFactoryClass>com.evolveum.midpoint.repo.sql.SqlAuditServiceFactory</auditServiceFactoryClass>-->
             </auditService>
             <auditService>
                 <auditServiceFactoryClass>com.evolveum.midpoint.test.DummyAuditServiceFactory</auditServiceFactoryClass>
             </auditService>
         </audit>
+
         <taskManager>
             <jdbcJobStore>false</jdbcJobStore>
             <waitingTasksCheckInterval>5</waitingTasksCheckInterval>

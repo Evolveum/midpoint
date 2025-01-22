@@ -115,9 +115,9 @@ public class RoleAnalysisOutlierAnalysisAspectsPanel extends AbstractObjectMainP
 
             @Override
             protected @NotNull Component getPanelComponent(String id) {
-                RoleAnalysisOutlierType outlierObject = objectDetailsModels.getObjectType();
-                AnomalyObjectDto dto = new AnomalyObjectDto(outlierObject, null, false);
-                RoleAnalysisDetectedAnomalyTable detectedAnomalyTable = new RoleAnalysisDetectedAnomalyTable(id, Model.of(dto));
+//                RoleAnalysisOutlierType outlierObject = objectDetailsModels.getObjectType();
+//                AnomalyObjectDto dto = new AnomalyObjectDto(outlierObject, null, false);
+                RoleAnalysisDetectedAnomalyTable detectedAnomalyTable = new RoleAnalysisDetectedAnomalyTable(id, () -> new AnomalyObjectDto(objectDetailsModels.getObjectType(), null, false));
 
                 detectedAnomalyTable.setOutputMarkupId(true);
                 detectedAnomalyTable.add(AttributeAppender.append("style", "min-height: 400px;"));
@@ -257,19 +257,8 @@ public class RoleAnalysisOutlierAnalysisAspectsPanel extends AbstractObjectMainP
 //        statusHeader.add(AttributeAppender.append("class", "pl-0"));
 //        cardBodyComponent.add(statusHeader);
 
-        RoleAnalysisOutlierType outlier = getObjectDetailsModels().getObjectType();
-        List<RoleAnalysisOutlierPartitionType> outlierPartitions = outlier.getPartition();
-        int partitionCount = outlierPartitions.size();
-        Set<String> anomalySet = new HashSet<>();
-        for (RoleAnalysisOutlierPartitionType outlierPartition : outlierPartitions) {
-            List<DetectedAnomalyResult> detectedAnomalyResult = outlierPartition.getDetectedAnomalyResult();
-            for (DetectedAnomalyResult anomalyResult : detectedAnomalyResult) {
-                anomalySet.add(anomalyResult.getTargetObjectRef().getOid());
-            }
-        }
-        int anomalyCount = anomalySet.size();
 
-        Model<String> finalExplanationTranslatedModel = explainOutlier(outlier);
+
         RoleAnalysisOutlierDashboardPanel<?> characteristicHeader = new RoleAnalysisOutlierDashboardPanel<>(cardBodyComponent.newChildId(),
                 createStringResource("RoleAnalysisOutlierAnalysisAspectsPanel.widget.characteristics")) {
             @Contract(pure = true)
@@ -280,7 +269,7 @@ public class RoleAnalysisOutlierAnalysisAspectsPanel extends AbstractObjectMainP
 
             @Override
             protected @NotNull Component getPanelComponent(String id) {
-                IconWithLabel iconWithLabel = new IconWithLabel(id, finalExplanationTranslatedModel) {
+                IconWithLabel iconWithLabel = new IconWithLabel(id, explainOutlier(getObjectDetailsModels().getObjectType())) {
                     @Contract(pure = true)
                     @Override
                     protected @NotNull String getIconCssClass() {
@@ -333,7 +322,7 @@ public class RoleAnalysisOutlierAnalysisAspectsPanel extends AbstractObjectMainP
                     @Contract(pure = true)
                     @Override
                     protected @NotNull Component getValueComponent(String id) {
-                        Label label = new Label(id, anomalyCount);
+                        Label label = new Label(id, RoleAnalysisOutlierAnalysisAspectsPanel.this::getAnomalyCount);
                         label.setOutputMarkupId(true);
                         label.add(AttributeAppender.append("class", "text-muted"));
                         return label;
@@ -368,7 +357,7 @@ public class RoleAnalysisOutlierAnalysisAspectsPanel extends AbstractObjectMainP
                     @Contract(pure = true)
                     @Override
                     protected @NotNull Component getValueComponent(String id) {
-                        Label label = new Label(id, partitionCount);
+                        Label label = new Label(id, RoleAnalysisOutlierAnalysisAspectsPanel.this::getPartitionCount);
                         label.setOutputMarkupId(true);
                         label.add(AttributeAppender.append("class", "text-muted"));
                         return label;
@@ -528,6 +517,22 @@ public class RoleAnalysisOutlierAnalysisAspectsPanel extends AbstractObjectMainP
 
         accessHeader.setOutputMarkupId(true);
         cardBodyComponent.add(accessHeader);
+    }
+
+    private int getPartitionCount() {
+        List<RoleAnalysisOutlierPartitionType> outlierPartitions = getObjectDetailsModels().getObjectType().getPartition();
+        return outlierPartitions.size();
+    }
+
+    private int getAnomalyCount() {
+        Set<String> anomalySet = new HashSet<>();
+        for (RoleAnalysisOutlierPartitionType outlierPartition : getObjectDetailsModels().getObjectType().getPartition()) {
+            List<DetectedAnomalyResult> detectedAnomalyResult = outlierPartition.getDetectedAnomalyResult();
+            for (DetectedAnomalyResult anomalyResult : detectedAnomalyResult) {
+                anomalySet.add(anomalyResult.getTargetObjectRef().getOid());
+            }
+        }
+        return anomalySet.size();
     }
 
     private static double getAverageAccessPerUser(

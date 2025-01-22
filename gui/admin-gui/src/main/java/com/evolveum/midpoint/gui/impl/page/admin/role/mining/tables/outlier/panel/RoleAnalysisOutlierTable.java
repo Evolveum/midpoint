@@ -21,6 +21,7 @@ import java.util.*;
 import com.evolveum.midpoint.gui.impl.component.icon.IconCssStyle;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.components.ProgressBarSecondStyle;
 
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.model.ProgressBarSecondStyleDto;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.page.PageRoleAnalysisCluster;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.outlier.RoleAnalysisPartitionOverviewPanel;
 
@@ -28,6 +29,7 @@ import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.tmp.panel.Link
 import com.evolveum.midpoint.gui.impl.util.DetailsPageUtil;
 import com.evolveum.midpoint.web.component.data.column.AjaxLinkPanel;
 
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 
 import org.apache.wicket.AttributeModifier;
@@ -44,6 +46,7 @@ import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.LoadableDetachableModel;
 import org.apache.wicket.model.Model;
+import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.model.util.ListModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.jetbrains.annotations.Contract;
@@ -355,19 +358,8 @@ public class RoleAnalysisOutlierTable extends BasePanel<AssignmentHolderType> {
 
             @Override
             public void populateItem(Item<ICellPopulator<PartitionObjectDto>> cellItem, String componentId, IModel<PartitionObjectDto> model) {
-                PartitionObjectDto modelObject = model.getObject();
-                RoleAnalysisOutlierPartitionType partition = modelObject.getPartition();
-
-                List<DetectedAnomalyResult> detectedAnomalyResult = partition.getDetectedAnomalyResult();
-
-                if (detectedAnomalyResult == null) {
-                    cellItem.add(new Label(componentId, Model.of(0)));
-                    return;
-                }
-
-                int anomalyCount = detectedAnomalyResult.size();
                 LinkIconLabelIconPanel components = new LinkIconLabelIconPanel(componentId,
-                        Model.of(String.valueOf(anomalyCount))) {
+                        new PropertyModel<>(model, PartitionObjectDto.F_ANOMALY_ACCESS_COUNT)) {
                     @Contract(pure = true)
                     @Override
                     protected @NotNull String getLinkContainerCssClass() {
@@ -401,7 +393,8 @@ public class RoleAnalysisOutlierTable extends BasePanel<AssignmentHolderType> {
                             webMarkupContainerUser.add(AttributeModifier.replace("style", "display: none;"));
                             webMarkupContainerUser.setExpanded(true);
 
-                            RoleAnalysisDetectedAnomalyTable detectedAnomalyTable = buildDetectedAnomalyTable(modelObject, partition);
+                            PartitionObjectDto modelObject = model.getObject();
+                            RoleAnalysisDetectedAnomalyTable detectedAnomalyTable = buildDetectedAnomalyTable(modelObject, modelObject.getPartition());
                             webMarkupContainerUser.add(detectedAnomalyTable);
 
                             collapseContainerUser.replaceWith(webMarkupContainerUser);
@@ -452,26 +445,13 @@ public class RoleAnalysisOutlierTable extends BasePanel<AssignmentHolderType> {
             @Override
             public void populateItem(Item<ICellPopulator<PartitionObjectDto>> item, String componentId,
                     IModel<PartitionObjectDto> rowModel) {
-                RoleAnalysisOutlierPartitionType partition = rowModel.getObject().getPartition();
-                RoleAnalysisPartitionAnalysisType partitionAnalysis = partition.getPartitionAnalysis();
-                if (partitionAnalysis == null) {
-                    item.add(new EmptyPanel(componentId));
-                    return;
-                }
-
-                Double overallConfidence = partitionAnalysis.getOverallConfidence();
-                double finalOverallConfidence = overallConfidence != null ? overallConfidence : 0;
-                initDensityProgressPanel(item, componentId, finalOverallConfidence);
+                initDensityProgressPanel(item, componentId, rowModel);
             }
 
             @Override
             public Component getHeader(String componentId) {
                 return new LabelWithHelpPanel(componentId,
                         createStringResource("RoleAnalysisOutlierTable.outlier.confidence")) {
-//                    @Override
-//                    protected IModel<String> getHelpModel() {
-//                        return createStringResource("RoleAnalysisOutlierTable.outlier.confidence.help");
-//                    }
                 };
 
             }
@@ -543,36 +523,33 @@ public class RoleAnalysisOutlierTable extends BasePanel<AssignmentHolderType> {
     private static void initDensityProgressPanel(
             @NotNull Item<ICellPopulator<PartitionObjectDto>> cellItem,
             @NotNull String componentId,
-            @NotNull Double density) {
+            @NotNull  IModel<PartitionObjectDto> rowModel) {
+//        ,
+//            @NotNull Double density) {
 
-        BigDecimal bd = new BigDecimal(Double.toString(density));
-        bd = bd.setScale(2, RoundingMode.HALF_UP);
-        double pointsDensity = bd.doubleValue();
+       IModel<ProgressBarSecondStyleDto> model = () -> {
+           RoleAnalysisOutlierPartitionType partition = rowModel.getObject().getPartition();
+           RoleAnalysisPartitionAnalysisType partitionAnalysis = partition.getPartitionAnalysis();
+           if (partitionAnalysis == null) {
+               return null;
+           }
 
-        String colorClass = densityBasedColorOposite(pointsDensity);
+           Double overallConfidence = partitionAnalysis.getOverallConfidence();
+           double finalOverallConfidence = overallConfidence != null ? overallConfidence : 0;
 
-        ProgressBarSecondStyle progressBar = new ProgressBarSecondStyle(componentId) {
+           String colorClass = densityBasedColorOposite(finalOverallConfidence);
+           return new ProgressBarSecondStyleDto(finalOverallConfidence, colorClass);
+       };
+
+        ProgressBarSecondStyle progressBar = new ProgressBarSecondStyle(componentId, model) {
 
             @Override
             public boolean isInline() {
                 return true;
             }
 
-            @Override
-            public double getActualValue() {
-                return pointsDensity;
-            }
-
-            @Override
-            public String getProgressBarColor() {
-                return colorClass;
-            }
-
-            @Override
-            public String getBarTitle() {
-                return "";
-            }
         };
+        progressBar.add(new VisibleBehaviour(() -> model.getObject() != null)); //TODO visibility? or default dto values?
         progressBar.setOutputMarkupId(true);
         cellItem.add(progressBar);
     }

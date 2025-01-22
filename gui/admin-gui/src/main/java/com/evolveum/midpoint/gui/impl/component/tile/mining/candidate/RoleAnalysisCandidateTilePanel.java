@@ -22,6 +22,8 @@ import java.util.UUID;
 
 import com.evolveum.midpoint.gui.impl.component.icon.IconCssStyle;
 
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.model.ProgressBarSecondStyleDto;
+
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -30,6 +32,7 @@ import org.apache.wicket.markup.html.panel.EmptyPanel;
 import org.apache.wicket.markup.repeater.RepeatingView;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
+import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
@@ -158,43 +161,9 @@ public class RoleAnalysisCandidateTilePanel<T extends Serializable> extends Base
     }
 
     private void initProgressBar() {
-        RoleAnalysisCandidateTileModel<T> modelObject = getModelObject();
-        RoleAnalysisCandidateRoleType candidateRole = modelObject.getCandidateRole();
-        String clusterOid = modelObject.getClusterRef().getOid();
-        PageBase pageBase = getModelObject().getPageBase();
-        Task task = pageBase.createSimpleTask("Migration process");
-        OperationResult result = task.getResult();
-        RoleAnalysisService roleAnalysisService = pageBase.getRoleAnalysisService();
-        PrismObject<RoleAnalysisClusterType> clusterPrism = roleAnalysisService.getClusterTypeObject(clusterOid, task, result);
-        if (clusterPrism == null) {
-            add(new EmptyPanel(ID_BUTTON_BAR));
-            return;
-        }
 
-        RoleAnalysisOperationStatus operationStatus = candidateRole.getOperationStatus();
-
-        int[] taskProgressIfExist = roleAnalysisService.getTaskProgressIfExist(operationStatus, result);
-
-        int actualProgress = taskProgressIfExist[1];
-        int expectedProgress = taskProgressIfExist[0];
-        double progressInPercent = 0;
-
-        if (actualProgress != 0 && expectedProgress != 0) {
-            progressInPercent = ((double) actualProgress / expectedProgress) * 100;
-        }
-
-        BigDecimal bd = BigDecimal.valueOf(progressInPercent);
-        bd = bd.setScale(2, RoundingMode.HALF_UP);
-        double finalProgress = bd.doubleValue();
-
-        String colorClass = confidenceBasedTwoColor(finalProgress);
-
-        ProgressBarSecondStyle progressBar = new ProgressBarSecondStyle(ID_PROGRESS_BAR) {
-
-            @Override
-            public double getActualValue() {
-                return finalProgress;
-            }
+        IModel<ProgressBarSecondStyleDto> progressModel = loadProgressModel();
+        ProgressBarSecondStyle progressBar = new ProgressBarSecondStyle(ID_PROGRESS_BAR, progressModel) {
 
             @Contract(pure = true)
             @Override
@@ -208,21 +177,53 @@ public class RoleAnalysisCandidateTilePanel<T extends Serializable> extends Base
                 return "col-12 pl-0 pr-0";
             }
 
-            @Override
-            public String getProgressBarColor() {
-                return colorClass;
-            }
-
-            @Contract(pure = true)
-            @Override
-            public @NotNull String getBarTitle() {
-                return "Migration status";
-            }
         };
         progressBar.setOutputMarkupId(true);
-        progressBar.add(AttributeModifier.replace(TITLE_CSS, () -> "Attribute confidence: " + finalProgress + "%"));
+        progressBar.add(
+                AttributeModifier.replace(TITLE_CSS,
+                        createStringResource("RoleAnalysisCandidateTilePanel.attribute.confidence.title", new PropertyModel<>(progressModel, ProgressBarSecondStyleDto.F_ACTUAL_VALUE)))); //"Attribute confidence: " + finalProgress + "%"
         progressBar.add(new TooltipBehavior());
         add(progressBar);
+    }
+
+    private IModel<ProgressBarSecondStyleDto> loadProgressModel() {
+        return () -> {
+            RoleAnalysisCandidateTileModel<T> modelObject = getModelObject();
+            RoleAnalysisCandidateRoleType candidateRole = modelObject.getCandidateRole();
+
+            String clusterOid = modelObject.getClusterRef().getOid();
+            PageBase pageBase = getModelObject().getPageBase();
+
+            Task task = pageBase.createSimpleTask("Migration process");
+            OperationResult result = task.getResult();
+            RoleAnalysisService roleAnalysisService = pageBase.getRoleAnalysisService();
+            PrismObject<RoleAnalysisClusterType> clusterPrism = roleAnalysisService.getClusterTypeObject(clusterOid, task, result);
+            if (clusterPrism == null) {
+                return null;
+            }
+
+            RoleAnalysisOperationStatus operationStatus = candidateRole.getOperationStatus();
+
+            int[] taskProgressIfExist = roleAnalysisService.getTaskProgressIfExist(operationStatus, result);
+
+            int actualProgress = taskProgressIfExist[1];
+            int expectedProgress = taskProgressIfExist[0];
+            double progressInPercent = 0;
+
+            if (actualProgress != 0 && expectedProgress != 0) {
+                progressInPercent = ((double) actualProgress / expectedProgress) * 100;
+            }
+
+            BigDecimal bd = BigDecimal.valueOf(progressInPercent);
+            bd = bd.setScale(2, RoundingMode.HALF_UP);
+            double finalProgress = bd.doubleValue();
+
+            String colorClass = confidenceBasedTwoColor(finalProgress);
+            ProgressBarSecondStyleDto progressBarModelObject = new ProgressBarSecondStyleDto(finalProgress, colorClass);
+            progressBarModelObject.setBarTitle("Migration status");
+            return  progressBarModelObject;
+        };
+
     }
 
     private void initSecondCountPanel() {

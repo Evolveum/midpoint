@@ -16,6 +16,7 @@ import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.model.ProgressBarSecondStyleDto;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.page.outlier.OutlierPartitionPage;
 import com.evolveum.midpoint.web.component.data.column.AjaxLinkPanel;
 
@@ -337,33 +338,22 @@ public class RoleAnalysisOutlierPartitionTable extends BasePanel<String> {
             @NotNull String componentId,
             @NotNull Double density) {
 
-        BigDecimal bd = new BigDecimal(Double.toString(density));
-        bd = bd.setScale(2, RoundingMode.HALF_UP);
-        double pointsDensity = bd.doubleValue();
+        IModel<ProgressBarSecondStyleDto> model = () -> {
+            BigDecimal bd = new BigDecimal(Double.toString(density));
+            bd = bd.setScale(2, RoundingMode.HALF_UP);
+            double pointsDensity = bd.doubleValue();
 
-        String colorClass = densityBasedColorOposite(pointsDensity);
+            String colorClass = densityBasedColorOposite(pointsDensity);
+            return new ProgressBarSecondStyleDto(pointsDensity, colorClass);
+        };
 
-        ProgressBarSecondStyle progressBar = new ProgressBarSecondStyle(componentId) {
+        ProgressBarSecondStyle progressBar = new ProgressBarSecondStyle(componentId, model) {
 
             @Override
             public boolean isInline() {
                 return true;
             }
 
-            @Override
-            public double getActualValue() {
-                return pointsDensity;
-            }
-
-            @Override
-            public String getProgressBarColor() {
-                return colorClass;
-            }
-
-            @Override
-            public String getBarTitle() {
-                return "";
-            }
         };
         progressBar.setOutputMarkupId(true);
         cellItem.add(progressBar);

@@ -19,6 +19,7 @@ import java.util.*;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.page.admin.mark.component.MarksOfObjectListPopupPanel;
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.model.ProgressBarSecondStyleDto;
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -453,33 +454,22 @@ public class PageOutliers extends PageAdmin {
             @NotNull String componentId,
             @NotNull Double density) {
 
-        BigDecimal bd = new BigDecimal(Double.toString(density));
-        bd = bd.setScale(2, RoundingMode.HALF_UP);
-        double pointsDensity = bd.doubleValue();
+        IModel<ProgressBarSecondStyleDto> model = () -> {
+            BigDecimal bd = new BigDecimal(Double.toString(density));
+            bd = bd.setScale(2, RoundingMode.HALF_UP);
+            double pointsDensity = bd.doubleValue();
 
-        String colorClass = densityBasedColorOposite(pointsDensity);
+            String colorClass = densityBasedColorOposite(pointsDensity);
+            return new ProgressBarSecondStyleDto(pointsDensity, colorClass);
+        };
 
-        ProgressBarSecondStyle progressBar = new ProgressBarSecondStyle(componentId) {
+        ProgressBarSecondStyle progressBar = new ProgressBarSecondStyle(componentId, model) {
 
             @Override
             public boolean isInline() {
                 return true;
             }
 
-            @Override
-            public double getActualValue() {
-                return pointsDensity;
-            }
-
-            @Override
-            public String getProgressBarColor() {
-                return colorClass;
-            }
-
-            @Override
-            public String getBarTitle() {
-                return "";
-            }
         };
         progressBar.setOutputMarkupId(true);
         cellItem.add(progressBar);
