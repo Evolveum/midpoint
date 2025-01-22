@@ -11,6 +11,7 @@ import static org.springframework.http.ResponseEntity.status;
 import static com.evolveum.midpoint.security.api.RestAuthorizationAction.*;
 
 import java.net.URI;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
@@ -65,6 +66,7 @@ public class ModelRestController extends AbstractRestController {
 
     private static final String CURRENT = "current";
     private static final long WAIT_FOR_TASK_STOP = 2000L;
+    private static final String METADATA_SUFFIX = "@metadata";
 
     @Autowired private ModelCrudService model;
     @Autowired private ModelDiagnosticService modelDiagnosticService;
@@ -269,7 +271,7 @@ public class ModelRestController extends AbstractRestController {
             } else {
                 object = model.getObject(clazz, id, getOptions, task, result);
             }
-            removeExcludes(object, exclude); // temporary measure until fixed in repo
+            removeExcludes(object, exclude);
 
             response = createResponse(HttpStatus.OK, object, result);
         } catch (Exception ex) {
@@ -648,7 +650,7 @@ public class ModelRestController extends AbstractRestController {
 
             ObjectListType listType = new ObjectListType();
             for (PrismObject<? extends ObjectType> o : objects) {
-                removeExcludes(o, exclude);        // temporary measure until fixed in repo
+                removeExcludes(o, exclude);
                 listType.getObject().add(o.asObjectable());
             }
 
@@ -664,8 +666,19 @@ public class ModelRestController extends AbstractRestController {
 
     private void removeExcludes(PrismObject<? extends ObjectType> object, List<String> exclude)
             throws SchemaException {
-        object.getValue().removePaths(
-                ItemPathCollectionsUtil.pathListFromStrings(exclude, prismContext));
+        final List<String> metadataPaths = new ArrayList<>();
+        final List<String> dataPaths = new ArrayList<>();
+        for (final String pathToExclude : exclude) {
+            if (pathToExclude.endsWith(METADATA_SUFFIX)) {
+                metadataPaths.add(pathToExclude.substring(0, pathToExclude.lastIndexOf(METADATA_SUFFIX)));
+            } else {
+                dataPaths.add(pathToExclude);
+            }
+        }
+
+        object.getValue().removePaths(ItemPathCollectionsUtil.pathListFromStrings(dataPaths, prismContext));
+        object.getValue().removeMetadataFromPaths(ItemPathCollectionsUtil.pathListFromStrings(metadataPaths,
+                prismContext));
     }
 
     @RestHandlerMethod(authorization = IMPORT_FROM_RESOURCE)

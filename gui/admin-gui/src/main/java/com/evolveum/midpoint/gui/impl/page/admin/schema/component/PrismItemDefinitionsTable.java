@@ -76,6 +76,8 @@ public class PrismItemDefinitionsTable extends AbstractWizardTable<PrismItemDefi
     private static final Trace LOGGER = TraceManager.getTrace(PrismItemDefinitionsTable.class);
 
     private static final String COLUMN_CSS = "mp-w-sm-2 mp-w-md-1 text-nowrap";
+    // fake name for new item because we need to differ values fake new values for removing
+    private static final String FAKE_NAME = "DummyDummy";
 
     private enum Type {
         PROPERTY,
@@ -380,12 +382,7 @@ public class PrismItemDefinitionsTable extends AbstractWizardTable<PrismItemDefi
 
     @Override
     protected void newItemPerformed(PrismContainerValue<PrismItemDefinitionType> value, AjaxRequestTarget target, AssignmentObjectRelation relationSpec, boolean isDuplicate) {
-        IModel<PrismContainerValueWrapper<PrismItemDefinitionType>> model = new LoadableModel<>() {
-            @Override
-            protected PrismContainerValueWrapper<PrismItemDefinitionType> load() {
-                return createNewValue(value, target);
-            }
-        };
+        IModel<PrismContainerValueWrapper<PrismItemDefinitionType>> model = Model.of(createNewValue(value, target));
         CreateSchemaItemPopupPanel popupPanel = new CreateSchemaItemPopupPanel(getPageBase().getMainPopupBodyId(), model) {
             @Override
             protected void createPerform(AjaxRequestTarget target) {
@@ -416,12 +413,15 @@ public class PrismItemDefinitionsTable extends AbstractWizardTable<PrismItemDefi
 
                 try {
                     PrismContainerWrapper<PrismItemDefinitionType> parent = getContainerModel().getObject();
+                    newValue.setParent(parent.getItem());
                     parent.add(newValue, getPageBase());
+                    containerValue.getNewValue().asContainerable().name(new QName(FAKE_NAME, FAKE_NAME));
                     parent.remove(containerValue, getPageBase());
                 } catch (SchemaException e) {
                     LOGGER.debug("Couldn't create new prism value wrapper for " + newValue);
                 }
                 target.add(getTableComponent());
+                model.detach();
                 processHide(target);
             }
         };
