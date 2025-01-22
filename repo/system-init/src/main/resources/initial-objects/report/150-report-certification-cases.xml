@@ -128,7 +128,7 @@
                             <code>
                                 import com.evolveum.midpoint.schema.util.CertCampaignTypeUtil
 
-                                return CertCampaignTypeUtil.getCurrentlyAssignedReviewers(object.asPrismContainerValue())
+                                return CertCampaignTypeUtil.getCurrentlyAssignedReviewers(object)
                             </code>
                         </script>
                     </expression>
