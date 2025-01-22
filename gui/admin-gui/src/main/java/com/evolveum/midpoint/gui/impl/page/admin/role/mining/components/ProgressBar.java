@@ -103,7 +103,7 @@ public class ProgressBar extends BasePanel<String> {
         help.setOutputMarkupId(true);
         if (isUnusual()) {
             help.add(AttributeModifier.append("class", "fa-exclamation-triangle text-warning"));
-        }else {
+        } else {
             help.add(AttributeModifier.append("class", " fa-info-circle text-info"));
         }
         container.add(help);
@@ -139,16 +139,20 @@ public class ProgressBar extends BasePanel<String> {
             RoleAnalysisService roleAnalysisService = getPageBase().getRoleAnalysisService();
             List<PrismObject<FocusType>> objects = new ArrayList<>();
             Map<String, RoleAnalysisAttributeStatistics> objectsMap = new HashMap<>();
-            for (RoleAnalysisAttributeStatistics analysisResult : roleAnalysisAttributeResult) {
-                //TODO hack, this is wrong, not all attribute values is oid TBD
-                PrismObject<FocusType> focusTypeObject = roleAnalysisService.getFocusTypeObject(
-                        analysisResult.getAttributeValue(), task, result);
-                if (focusTypeObject == null) {
+            for (RoleAnalysisAttributeStatistics attributeStats : roleAnalysisAttributeResult) {
+                String attributeValue = attributeStats.getAttributeValue();
+
+                if (attributeValue == null || !isValidUUID(attributeValue)) {
                     continue;
                 }
-                objectsMap.put(focusTypeObject.getOid(), analysisResult);
-                objects.add(focusTypeObject);
+
+                PrismObject<FocusType> focusObject = roleAnalysisService.getFocusTypeObject(attributeValue, task, result);
+                if (focusObject != null) {
+                    objectsMap.put(focusObject.getOid(), attributeStats);
+                    objects.add(focusObject);
+                }
             }
+
             if (objects.size() == 1 && objects.get(0) != null) {
                 PolyString name = objects.get(0).getName();
                 barTitle = name != null && name.getOrig() != null ? name.getOrig() : barTitle;
@@ -238,6 +242,15 @@ public class ProgressBar extends BasePanel<String> {
         };
         ajaxLinkPanel.setOutputMarkupId(true);
         titleContainer.add(ajaxLinkPanel);
+    }
+
+    private boolean isValidUUID(String value) {
+        try {
+            UUID.fromString(value);
+            return true;
+        } catch (IllegalArgumentException e) {
+            return false;
+        }
     }
 
     private double getMinValue() {

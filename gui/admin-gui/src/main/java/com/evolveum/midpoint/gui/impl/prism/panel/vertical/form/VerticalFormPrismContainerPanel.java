@@ -97,7 +97,13 @@ public class VerticalFormPrismContainerPanel<C extends Containerable> extends Pr
         if(isExpandedButtonVisible()) {
             header.add(AttributeAppender.append("class", () -> getModelObject().isExpanded() ? "card-header" : ""));
         }
+
+        header.add(AttributeAppender.append("class", getCssForHeader()));
         return header;
+    }
+
+    protected String getCssForHeader() {
+        return "bg-white border-bottom-0 p-2 pl-3 pr-3 mb-0 btn w-100";
     }
 
     protected IModel<String> getTitleModel() {
@@ -130,11 +136,20 @@ public class VerticalFormPrismContainerPanel<C extends Containerable> extends Pr
             protected void removeValue(PrismContainerValueWrapper<C> value, AjaxRequestTarget target) throws SchemaException {
                 VerticalFormPrismContainerPanel.this.removeValue(value, target);
             }
+
+            @Override
+            protected String getCssClassForFormContainer() {
+                return getCssClassForFormContainerOfValuePanel();
+            }
         };
         panel.setOutputMarkupId(true);
         panel.add(AttributeAppender.append("class", getClassForPrismContainerValuePanel()));
         item.add(panel);
         return panel;
+    }
+
+    protected String getCssClassForFormContainerOfValuePanel() {
+        return "card-body border-top mb-0 p-3";
     }
 
     protected String getClassForPrismContainerValuePanel() {

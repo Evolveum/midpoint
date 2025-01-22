@@ -119,7 +119,12 @@ public abstract class VerticalFormPanel<C extends Containerable> extends BasePan
 
                     @Override
                     protected boolean isHeaderVisible() {
-                        return VerticalFormPanel.this.isHeaderVisible();
+                        return VerticalFormPanel.this.isHeaderVisible(model);
+                    }
+
+                    @Override
+                    protected String getCssForHeader() {
+                        return VerticalFormPanel.this.getCssForHeader();
                     }
 
                     @Override
@@ -130,6 +135,11 @@ public abstract class VerticalFormPanel<C extends Containerable> extends BasePan
                     @Override
                     protected String getClassForPrismContainerValuePanel() {
                         return VerticalFormPanel.this.getClassForPrismContainerValuePanel();
+                    }
+
+                    @Override
+                    protected String getCssClassForFormContainerOfValuePanel() {
+                        return VerticalFormPanel.this.getCssClassForFormContainerOfValuePanel();
                     }
                 };
             }
@@ -160,6 +170,14 @@ public abstract class VerticalFormPanel<C extends Containerable> extends BasePan
         add(singleContainer);
     }
 
+    protected String getCssClassForFormContainerOfValuePanel() {
+        return "card-body border-top mb-0 p-3";
+    }
+
+    protected String getCssForHeader() {
+        return "bg-white border-bottom-0 p-2 pl-3 pr-3 mb-0 btn w-100";
+    }
+
     protected String getClassForPrismContainerValuePanel() {
         return null;
     }
@@ -168,7 +186,7 @@ public abstract class VerticalFormPanel<C extends Containerable> extends BasePan
         return true;
     }
 
-    protected boolean isHeaderVisible() {
+    protected boolean isHeaderVisible(IModel<PrismContainerWrapper<C>> model) {
         return true;
     }
 

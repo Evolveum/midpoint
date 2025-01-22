@@ -59,6 +59,9 @@
             </condition>
         </approverCommentsFormatting>
     </workflowConfiguration>
+    <roleManagement>
+        <autoassignEnabled>true</autoassignEnabled>
+    </roleManagement>
     <globalPolicyRule>
         <policyConstraints>
             <assignment>
@@ -105,6 +108,36 @@
                 <q:equal>
                     <q:path>name</q:path>
                     <q:value>Role15</q:value>
+                </q:equal>
+            </filter>
+        </targetSelector>
+    </globalPolicyRule>
+    <globalPolicyRule> <!-- MID-10345 -->
+        <policyConstraints>
+            <assignment>
+                <operation>add</operation>
+                <operation>modify</operation>
+                <relation>default</relation>
+            </assignment>
+        </policyConstraints>
+        <policyActions>
+            <approval>
+                <approvalSchema>
+                    <stage>
+                        <approverRef type="UserType" oid="00000000-0000-0000-0000-000000000002"/>
+                    </stage>
+                </approvalSchema>
+            </approval>
+        </policyActions>
+        <focusSelector>
+            <type>UserType</type>
+        </focusSelector>
+        <targetSelector>
+            <type>RoleType</type>
+            <filter>
+                <q:equal>
+                    <q:path>name</q:path>
+                    <q:value>auto-assigned</q:value>
                 </q:equal>
             </filter>
         </targetSelector>

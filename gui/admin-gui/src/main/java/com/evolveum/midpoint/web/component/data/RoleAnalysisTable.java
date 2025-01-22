@@ -147,7 +147,7 @@ public class RoleAnalysisTable<B extends MiningBaseTypeChunk, A extends MiningBa
 
         WebMarkupContainer footer2 = createColumnsNavigation(table);
         add(footer2);
-        add(new AttributeModifier("class", "d-flex flex-column w-100"));
+        add(new AttributeModifier("class", "d-flex flex-column w-100 overflow-hidden"));
         add(new AttributeModifier("style", "height: calc(100vh - 200px);"));
     }
 
