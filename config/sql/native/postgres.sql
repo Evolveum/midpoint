@@ -24,9 +24,10 @@
 
 -- noinspection SqlResolveForFile @ operator-class/"gin__int_ops"
 
--- just in case PUBLIC schema was dropped (fastest way to remove all midpoint objects)
--- drop schema public cascade;
-CREATE SCHEMA IF NOT EXISTS public;
+-- just in case CURRENT_USER schema was dropped (fastest way to remove all midpoint objects)
+-- drop schema current_user cascade;
+CREATE SCHEMA IF NOT EXISTS AUTHORIZATION CURRENT_USER;
+
 CREATE EXTENSION IF NOT EXISTS intarray; -- support for indexing INTEGER[] columns
 CREATE EXTENSION IF NOT EXISTS pg_trgm; -- support for trigram indexes
 CREATE EXTENSION IF NOT EXISTS fuzzystrmatch; -- fuzzy string match (levenshtein, etc.)
