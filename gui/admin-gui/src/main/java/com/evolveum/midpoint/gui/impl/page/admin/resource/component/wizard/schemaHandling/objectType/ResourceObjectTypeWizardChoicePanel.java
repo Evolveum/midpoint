@@ -40,7 +40,7 @@ public abstract class ResourceObjectTypeWizardChoicePanel
     @Override
     protected void onInitialize() {
         super.onInitialize();
-        add(AttributeAppender.append("class", "col-xxl-10 col-12 gap-3 m-auto"));
+        add(AttributeAppender.append("class", "col-xxl-10 col-12 choice-tiles-container-8 gap-3 m-auto"));
     }
 
     public enum ResourceObjectTypePreviewTileType implements TileEnum {

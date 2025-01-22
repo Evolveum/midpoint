@@ -61,8 +61,8 @@ public abstract class AjaxCompositedIconSubmitButton extends AjaxSubmitLink {
     protected void onInitialize() {
         super.onInitialize();
 
-        if (title != null && !titleAsLabel) {
-            add(AttributeModifier.replace("title", title));
+        if (getTitle() != null && !titleAsLabel) {
+            add(AttributeModifier.replace("title", getTitle()));
         }
     }
 
@@ -80,7 +80,7 @@ public abstract class AjaxCompositedIconSubmitButton extends AjaxSubmitLink {
             sb.append("></i> ");
 
             if (titleAsLabel) {
-                sb.append(title.getObject());
+                sb.append(getTitle().getObject());
             }
         }
 

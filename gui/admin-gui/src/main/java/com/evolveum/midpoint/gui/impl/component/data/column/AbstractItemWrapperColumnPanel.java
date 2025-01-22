@@ -7,6 +7,8 @@
 
 package com.evolveum.midpoint.gui.impl.component.data.column;
 
+import org.apache.wicket.Component;
+import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
@@ -65,20 +67,30 @@ public abstract class AbstractItemWrapperColumnPanel<IW extends ItemWrapper, VW 
             getModelObject().setColumn(true);
         }
 
-        ListView<VW> listView = new ListView<>(ID_VALUES, new PropertyModel<>(getModel(), "values")) {
+        WebMarkupContainer panel;
+        if (ColumnType.VALUE.equals(getColumnType())) {
 
-            private static final long serialVersionUID = 1L;
+            panel = new WebMarkupContainer(ID_VALUES);
 
-            @Override
-            protected void populateItem(ListItem<VW> item) {
-                populate(ID_VALUE, item);
-            }
-        };
+            panel.add(createValuePanel(ID_VALUE, getModel()));
 
-        listView.setReuseItems(true);
-        listView.setOutputMarkupId(true);
+        } else {
 
-        add(listView);
+            panel = new ListView<VW>(ID_VALUES, new PropertyModel<>(getModel(), "values")) {
+
+                private static final long serialVersionUID = 1L;
+
+                @Override
+                protected void populateItem(ListItem<VW> item) {
+                    populate(ID_VALUE, item);
+                }
+            };
+            ((ListView)panel).setReuseItems(true);
+        }
+
+        panel.setOutputMarkupId(true);
+
+        add(panel);
     }
 
     protected void populate(String id, ListItem<VW> item) {
@@ -94,9 +106,6 @@ public abstract class AbstractItemWrapperColumnPanel<IW extends ItemWrapper, VW 
             case LINK:
                 item.add(createLink(ID_VALUE, item.getModel()));
                 break;
-            case VALUE:
-                item.add(createValuePanel(ID_VALUE, getModel(), item.getModelObject()));
-                break;
             case EXISTENCE_OF_VALUE:
                 IModel<?> labelModel = Model.of("");
                 if (existenceOfValue(item.getModelObject())) {
@@ -110,7 +119,7 @@ public abstract class AbstractItemWrapperColumnPanel<IW extends ItemWrapper, VW 
 
     protected abstract String createLabel(VW object);
     protected abstract Panel createLink(String id, IModel<VW> object);
-    protected abstract Panel createValuePanel(String id, IModel<IW> model, VW object);
+    protected abstract Panel createValuePanel(String id, IModel<IW> model);
 
     protected boolean existenceOfValue(VW object) {
         Object realValue = object.getRealValue();
