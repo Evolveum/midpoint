@@ -13,12 +13,15 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.Authorization
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Locale;
 import java.util.stream.Collectors;
 
 import com.evolveum.midpoint.prism.*;
 
 import com.evolveum.midpoint.security.enforcer.impl.EnforcerFilterOperation.AuthorizationSelectorExtractor;
 import com.evolveum.midpoint.util.MiscUtil;
+
+import com.evolveum.midpoint.util.SingleLocalizableMessage;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -76,7 +79,7 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
             String operationUrl, AuthorizationPhaseType phase, AbstractAuthorizationParameters params, OperationResult result)
             throws SecurityViolationException {
         MidPointPrincipal principal = securityContextManager.getPrincipal();
-        String username = getQuotedUsername(principal);
+        String username = principal.getUsername();
         Object object;
         PrismObject<?> target;
         if (params instanceof AuthorizationParameters<?, ?> ap) {
@@ -90,16 +93,27 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
             throw new NotHereAssertionError();
         }
         String message;
+        SingleLocalizableMessage userFriendlyMessage;
+        String translatedOperation = beans.expressionFactory.getLocalizationService().translate(
+                new SingleLocalizableMessage(operationUrl));
+        String translatedOperationEng = beans.expressionFactory.getLocalizationService().translate(
+                new SingleLocalizableMessage(operationUrl), new Locale("en", "US"));
         // TODO are double quotes around username intentional?
         if (target == null && object == null) {
-            message = "User '" + username + "' not authorized for operation " + operationUrl;
+            message = "User '" + username + "' not authorized for operation " + translatedOperationEng;
+            userFriendlyMessage = new SingleLocalizableMessage("security.enforcer.message.notAuthorized",
+                    new Object[]{username, translatedOperation}, message);
         } else if (target == null) {
-            message = "User '" + username + "' not authorized for operation " + operationUrl + " on " + object;
+            message = "User '" + username + "' not authorized for operation " + translatedOperationEng + " on " + object;
+            userFriendlyMessage = new SingleLocalizableMessage("security.enforcer.message.notAuthorized.onObject",
+                    new Object[]{username, translatedOperation, object}, message);
         } else {
-            message = "User '" + username + "' not authorized for operation " + operationUrl + " on " + object + " with target " + target;
+            message = "User '" + username + "' not authorized for operation " + translatedOperationEng + " on " + object + " with target " + target;
+            userFriendlyMessage = new SingleLocalizableMessage("security.enforcer.message.notAuthorized.onObject.withTarget",
+                    new Object[]{username, translatedOperation, object, target}, message);
         }
         LOGGER.error("{}", message);
-        AuthorizationException e = new AuthorizationException(message);
+        AuthorizationException e = new AuthorizationException(userFriendlyMessage);
         // Not using "record" because the operation may continue; actually, it is questionable if we should set the status at all.
         result.setFatalError(e);
         throw e;
