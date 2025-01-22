@@ -53,11 +53,13 @@ public class OutlierExplanationUtil {
         @NotNull List<OutlierExplanationResolver.@Nullable ExplanationAttribute> explanationAttribute =
                 extractGroupByExplanationAttributes(roleAnalysisService, partition, task, result);
 
+        var score = partition.getPartitionAnalysis().getOverallConfidence();
+
         return new OutlierExplanationResolver.OutlierExplanationInput(
                 partition.getId(),
                 anomalyExplanationInputs,
                 explanationAttribute,
-                partitionCount
+                score
         );
     }
 
