@@ -46,7 +46,7 @@ public class PrismReferenceWrapperColumnPanel<R extends Referencable> extends Ab
     }
 
     @Override
-    protected Panel createValuePanel(String id, IModel<PrismReferenceWrapper<R>> model, PrismValueWrapper<R> object) {
+    protected Panel createValuePanel(String id, IModel<PrismReferenceWrapper<R>> model) {
 
         Panel panel;
         try {

@@ -21,6 +21,8 @@ import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.model.IModel;
 
+import java.util.Collections;
+
 public class PrismPropertyValuePanel<T> extends PrismValuePanel<T, PrismPropertyWrapper<T>, PrismPropertyValueWrapper<T>> {
 
 
@@ -56,6 +58,15 @@ public class PrismPropertyValuePanel<T> extends PrismValuePanel<T, PrismProperty
     }
 
     protected String getCssClassForValueContainer() {
-        return getSettings() != null && getSettings().isDisplayedInColumn() ? "w-100" : "col-10";
+        if (getSettings() != null && getSettings().isDisplayedInColumn()) {
+            if (getModelObject().getParent() != null
+                    && getModelObject().getParent().isMultiValue()
+                    && getModelObject().getParent().getValues().size() > 1
+                    && !getModelObject().getParent().getValues().get(getModelObject().getParent().getValues().size() - 1).equals(getModelObject())) {
+                return "w-100 pb-2";
+            }
+            return "w-100";
+        }
+        return "col-10";
     }
 }
