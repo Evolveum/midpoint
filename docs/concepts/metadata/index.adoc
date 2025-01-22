@@ -6,9 +6,13 @@
 == Introduction
 
 xref:/midpoint/devel/axiom/spec/#metadata[Value metadata] are data about data.
-They are stored as a part of the values and can contain additional information.
+They are stored as a part of the values and can contain additional information about creation, modification or provenance of these values.
 
-Note, that value metadata are replacement `MetadataType` which was used for objects and assignments.
+Value metadata can be attached to any value processed in the midPoint, but there are common usages (basic metadata about objects, assignments), where value metadata are always used.
+
+The value metadata are referenced by `@metadata` (as item path component, JSON / YAML  item, Midpoint Query) and as `_metadata` in XML.   
+
+NOTE: Value metadata (`ValueMetadataType`) are replacement for `MetadataType` which was used for objects and assignments. See xref:#_metadatatype[MetadataType and Value Metadata] for details.
 
 == Usages
 
@@ -48,6 +52,8 @@ Only present if it was approved or otherwise processed by a "process".
 
 Provenance metadata provide information about origin of the value.
 Some parts of it also serve as the business key for (multivalued) value metadata.
+
+Provenance metadata are used by default ranges
 
 ==== Mapping Specification
 
@@ -244,6 +250,92 @@ And this is the same refernce in XML representation - here using `_metadata` ele
     </_metadata>
 </roleMembershipRef>
 ----
+
+
+[#_metadatatype]
+== MetadataType and Value Metadata
+
+Prior to midPoint 4.9 `MetadataType` was used to store basic metadata about objects and assignments. Currently value metadata are used for that role.
+
+The migration of existing data from using `metadata` to value metadata is done automatically by Native Repository. 
+
+Repository searches using deprecated `metadata` are still supported and fallback to actual searches using value metadata. 
+
+Value Metadata stores superset of information that used to be stored in `metadata` (`MetadataType`), but paths for these items changed based on their semantic grouping.
+See table below for details.
+
+.MetadataType and ValueMetadataType path migration
+[cols="2,2,1" ]
+|===
+| MetadataType Path (`metadata/`) | Value Metadata Path (`@metadata/`) |  Type
+
+| `requestTimestamp` | `process/requestTimestamp`
+| dateTime
+
+| `requestorRef` | `process/requestorRef`
+| ObjectReferenceType
+
+| `requestorComment` | `process/requestorComment`
+| string
+
+| `createTimestamp` | `storage/createTimestamp`
+| dateTime
+
+| `creatorRef` | `process/creatorRef`
+| ObjectReferenceType
+
+| `createApproverRef` | `process/createApproverRef`
+| ObjectReferenceType
+
+| `createApprovalComment` | `process/createApprovalComment`
+| string 
+
+| `createApprovalTimestamp` | `process/createApprovalTimestamp`
+| dateTime 
+
+| `createChannel` | `storage/createChannel`
+| anyURI 
+
+| `createTaskRef` | `storage/createTaskRef`
+| ObjectReferenceType
+
+| `modifyTimestamp` | `storage/modifyTimestamp`
+| dateTime
+| `modifierRef` | `storage/modifierRef`
+| ObjectReferenceType
+
+| `modifyApproverRef` | `process/modifyApproverRef`
+| ObjectReferenceType
+
+| `modifyApprovalComment` | `process/modifyApprovalComment`
+| string
+
+| `modifyApprovalTimestamp` | `process/modifyApprovalTimestamp`
+| dateTime
+
+| `modifyChannel` | `storage/modifyChannel`
+| anyURI
+
+| `modifyTaskRef` | `storage/modifyTaskRef`
+| ObjectReferenceType
+
+| `lastProvisioningTimestamp` | `provisionining/lastProvisioningTimestamp`
+| dateTime 
+
+| `certificationFinishedTimestamp` | `process/certificationFinishedTimestamp`
+| dateTime
+
+| `certificationOutcome` | `process/certificationOutcome`
+| string
+
+| `certifierRef` | `process/certifierRef`
+| ObjectReferenceType 
+
+| `certifierComment` | `process/certifierComment`
+| string
+
+|===
+
 
 == See Also
 
