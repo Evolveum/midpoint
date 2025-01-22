@@ -105,11 +105,11 @@ To search these attributes you need to include "extension/" in the attribute nam
 3+|*Search by dates and times*
 
 |Find all users created after particular date
-|`metadata/createTimestamp > "2022-09-21"`
+|`@metadata/storage/createTimestamp > "2022-09-21"`
 |
 
 |Find all users created on particular date (e.g. 22/10/2022)
-|`metadata/createTimestamp >= "2022-10-22" and metadata/createTimestamp < "2022-10-23"`
+|`@metadata/storage/createTimestamp >= "2022-10-22" and @metadata/storage/createTimestamp < "2022-10-23"`
 | createTimestamp is datetime value. The value with time is larger just the date. 2022-10-22T01:05:13 that is larger than "2022-10-22"
 
 |Find users modified in specific second

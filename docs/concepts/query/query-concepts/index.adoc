@@ -2370,7 +2370,7 @@ The following example shows search for users' ``roleMembershipRef``s where:
 . ownedBy (
     @type = UserType
     and @path = roleMembershipRef
-    and metadata/createTimestamp > groovy`basic.fromNow("-P30D")`
+    and @metadata/storage/createTimestamp > groovy`basic.fromNow("-P30D")`
     )
 and
 . matches (
@@ -2387,7 +2387,7 @@ and
         <path>roleMembershipRef</path>
         <filter>
             <gt>
-                <path>metadata/createTimestamp</path>
+                <path>@metadata/storage/createTimestamp</path>
                 <expression>
                     <script>
                         <code>basic.fromNow("-P30D")</code>

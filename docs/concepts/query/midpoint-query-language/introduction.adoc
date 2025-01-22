@@ -152,11 +152,11 @@ The exact syntax of queries for values of different types is described in the fo
 | Number values do not need quotes. Only common property filters (=,>, ..) are defined for number types.
 
 | dateTime
-| `metadata/createTimestamp >= "2024-03-01"`
+| `@metadata/storage/createTimestamp >= "2024-03-01"`
 | DateTime values are enclosed in quotes (') or double quotes ("). It can be compared as dates or date and time - written in format of https://en.wikipedia.org/wiki/ISO_8601[ISO-8601].
 
 |
-| `metadata/createTimestamp >= "2024-03-01T15:30:00"`
+| `@metadata/storage/createTimestamp >= "2024-03-01T15:30:00"`
 | While comparing time values. DateTime values entered without timezone are considered to be in the same timezone as running midPoint.
 
 |
