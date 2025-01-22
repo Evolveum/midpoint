@@ -8,12 +8,20 @@ the `exclude` parameter in your query request. The attribute which is
 mentioned after the equals sign will be excluded. In case of excluding
 multiple attributes, specify each exclude with an `&` character after each
 other.
+You can also exclude metadata from desired path using special `@metadata` attribute name.
+However, excluding attributes from within the metadata is not supported, only whole metadata could be excluded.
 
 *Example*:
 
+Following will remove
+
+- metadata from the root object
+- metadata from the `assignment` object
+- `value` object on the path `credentials/password`
+
 [source,bash]
 ----
-?exclude=metadata&exclude=credentials/password/value
+?exclude=@metadata&exclude=assignment/@metadata&exclude=credentials/password/value
 ----
 
 
