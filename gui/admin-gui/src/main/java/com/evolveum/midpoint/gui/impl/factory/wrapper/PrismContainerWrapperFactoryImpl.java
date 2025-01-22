@@ -49,7 +49,7 @@ public class PrismContainerWrapperFactoryImpl<C extends Containerable> extends I
     private static final Trace LOGGER = TraceManager.getTrace(PrismContainerWrapperFactoryImpl.class);
 
     private static final QName VIRTUAL_CONTAINER_COMPLEX_TYPE = new QName("VirtualContainerType");
-    private static final QName VIRTUAL_CONTAINER = new QName("virtualContainer");
+    public static final QName VIRTUAL_CONTAINER = new QName("virtualContainer");
 
     @Override
     public boolean match(ItemDefinition<?> def) {
