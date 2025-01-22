@@ -43,11 +43,6 @@ public class FormSessionOptionPanel<ODM extends ObjectDetailsModels<?>>
         VerticalFormPanel panel = new VerticalFormPanel(ID_FORM, containerFormModel, settings, getContainerConfiguration()) {
 
             @Override
-            protected boolean isHeaderVisible() {
-                return super.isHeaderVisible();
-            }
-
-            @Override
             protected IModel<String> getTitleModel() {
                 return getFormTitle();
             }
