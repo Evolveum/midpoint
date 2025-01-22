@@ -15,7 +15,6 @@
         <description>Testing string policy</description>
         <limitations>
             <minLength>8</minLength>
-            <maxLength>14</maxLength>
             <minUniqueChars>3</minUniqueChars>
             <checkAgainstDictionary>true</checkAgainstDictionary>
             <checkPattern/>
