@@ -16,7 +16,6 @@ import org.jetbrains.annotations.NotNull;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 
 import static com.evolveum.midpoint.util.LocalizableMessageList.*;
 
@@ -44,7 +43,7 @@ public class OutlierExplanationResolver {
             Long id,
             @NotNull List<AnomalyExplanationInput> anomalies,
             @NotNull List<ExplanationAttribute> groupByAttributes,
-            int partitionCount
+            @NotNull Double outlierScore // value <0, 100>
     ) {}
 
     public record AnomalyExplanationResult(
@@ -55,12 +54,15 @@ public class OutlierExplanationResolver {
     public record OutlierExplanationResult(
             Long id,
             OutlierDetectionExplanationType explanation,
+            OutlierDetectionExplanationType shortExplanation,
             List<AnomalyExplanationResult> anomalies
     ) {}
 
     private final OutlierExplanationInput outlier;
     private static final int FEW_ENOUGH_USERS = 3;
     private static final LocalizableMessage COLON = LocalizableMessageBuilder.buildFallbackMessage(": ");
+    private static final LocalizableMessage NOTHING = LocalizableMessageBuilder.buildFallbackMessage("");
+    private static final LocalizableMessage DOT = LocalizableMessageBuilder.buildFallbackMessage(".");
     private static final LocalizableMessage AND = joinMessage(List.of(SPACE, new SingleLocalizableMessage("OutlierDetection.explanation.common.andSeparator"), SPACE), null);
     private static final DecimalFormat PERCENTAGE_FORMAT_WHOLE = new DecimalFormat("#");
     private static final DecimalFormat PERCENTAGE_FORMAT_FRACTION = new DecimalFormat("#.#");
@@ -80,36 +82,43 @@ public class OutlierExplanationResolver {
         return new LocalizableMessageList(messages, separator, null, null);
     }
 
+    private static LocalizableMessage joinMessage(List<LocalizableMessage> messages) {
+        return new LocalizableMessageList(messages, NOTHING, null, null);
+    }
+
+    private String formatOutlierScore() {
+        return String.format("%.2f", outlier.outlierScore()) + "%";
+    }
+
     private OutlierDetectionExplanationType explainOverallOutlier() {
         var anomalyCount = outlier.anomalies().size();
-        var unusualAttributeCount = outlier.anomalies().stream()
-                .flatMap(ano -> ano.unusualAttributes().stream().map(ExplanationAttribute::path))
-                .collect(Collectors.toSet())
-                .size();
         List<OutlierDetectionExplanationCategoryType> categories = new ArrayList<>();
         LocalizableMessage finalMessage = new SingleLocalizableMessage("OutlierDetection.explanation.outlier.unusualAccess", new Object[] {anomalyCount});
         categories.add(OutlierDetectionExplanationCategoryType.UNUSUAL_ACCESS);
-        if (unusualAttributeCount > 0) {
-            var unusualAttributeMessage = new SingleLocalizableMessage("OutlierDetection.explanation.outlier.irregularAttributes", new Object[] {unusualAttributeCount});
-            finalMessage = joinMessage(List.of(finalMessage, unusualAttributeMessage), COMMA);
-            categories.add(OutlierDetectionExplanationCategoryType.IRREGULAR_ATTRIBUTES);
-        }
         if (!outlier.groupByAttributes().isEmpty()) {
             var localizedAttributes = outlier.groupByAttributes().stream()
                     .map(groupByAttribute -> {
                         var attributeName = localize(groupByAttribute);
-                        var attributeValue = LocalizableMessageBuilder.buildFallbackMessage(groupByAttribute.value());
-                        return joinMessage(List.of(attributeName, attributeValue), COLON);
+                        var attributeValue = LocalizableMessageBuilder.buildFallbackMessage("'" + groupByAttribute.value() + "'");
+                        return joinMessage(List.of(attributeValue, attributeName), SPACE);
                     })
                     .toList();
             var localizedAttributesMessage = joinMessage(localizedAttributes, AND);
             var groupByMessage = new SingleLocalizableMessage("OutlierDetection.explanation.outlier.groupByExplanation", new Object[] {localizedAttributesMessage});
             finalMessage = joinMessage(List.of(finalMessage, groupByMessage), SPACE);
         }
-        if (outlier.partitionCount() >  1) {
-            var partitionMessage = new SingleLocalizableMessage("OutlierDetection.explanation.outlier.overPartitions", new Object[] {outlier.partitionCount()});
-            finalMessage = joinMessage(List.of(finalMessage, partitionMessage), SPACE);
-        }
+        var outlierScore = formatOutlierScore();
+        var scoreMessage = new SingleLocalizableMessage("OutlierDetection.explanation.outlier.scoreExplanation", new Object[] {outlierScore, outlierScore});
+        finalMessage = joinMessage(List.of(finalMessage, DOT, SPACE, scoreMessage, DOT));
+        return makeExplanation(finalMessage, categories);
+    }
+
+    private OutlierDetectionExplanationType explainOverallOutlierShort() {
+        var anomalyCount = outlier.anomalies().size();
+        List<OutlierDetectionExplanationCategoryType> categories = List.of(OutlierDetectionExplanationCategoryType.UNUSUAL_ACCESS);
+        var outlierScore = formatOutlierScore();
+        LocalizableMessage finalMessage = new SingleLocalizableMessage("OutlierDetection.explanation.outlier.shortDescription", new Object[] {anomalyCount, outlierScore});
+        finalMessage = joinMessage(List.of(finalMessage, DOT));
         return makeExplanation(finalMessage, categories);
     }
 
@@ -179,7 +188,8 @@ public class OutlierExplanationResolver {
                 })
                 .toList();
         var overallExplanation = explainOverallOutlier();
-        return new OutlierExplanationResult(outlier.id(), overallExplanation, anomalyExplanations);
+        var shortExplanation = explainOverallOutlierShort();
+        return new OutlierExplanationResult(outlier.id(), overallExplanation, shortExplanation, anomalyExplanations);
     }
 
 }
