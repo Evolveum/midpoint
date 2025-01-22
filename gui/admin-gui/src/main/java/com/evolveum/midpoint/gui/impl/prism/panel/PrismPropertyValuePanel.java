@@ -59,7 +59,8 @@ public class PrismPropertyValuePanel<T> extends PrismValuePanel<T, PrismProperty
 
     protected String getCssClassForValueContainer() {
         if (getSettings() != null && getSettings().isDisplayedInColumn()) {
-            if (getModelObject().getParent() != null
+            if (getModelObject() != null
+                    && getModelObject().getParent() != null
                     && getModelObject().getParent().isMultiValue()
                     && getModelObject().getParent().getValues().size() > 1
                     && !getModelObject().getParent().getValues().get(getModelObject().getParent().getValues().size() - 1).equals(getModelObject())) {
