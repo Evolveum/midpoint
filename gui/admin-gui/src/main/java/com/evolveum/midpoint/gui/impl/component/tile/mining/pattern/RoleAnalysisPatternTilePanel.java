@@ -22,6 +22,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.model.ProgressBarSecondStyleDto;
+
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -101,20 +103,19 @@ public class RoleAnalysisPatternTilePanel<T extends Serializable> extends BasePa
     }
 
     private void initProgressBar() {
-        DetectedPattern pattern = getModelObject().getPattern();
-        double itemsConfidence = pattern.getItemsConfidence();
-        BigDecimal bd = BigDecimal.valueOf(itemsConfidence);
-        bd = bd.setScale(2, RoundingMode.HALF_UP);
-        double finalItemsConfidence = bd.doubleValue();
+        IModel<ProgressBarSecondStyleDto> model = () -> {
+            DetectedPattern pattern = getModelObject().getPattern();
+            double itemsConfidence = pattern.getItemsConfidence();
+            BigDecimal bd = BigDecimal.valueOf(itemsConfidence);
+            bd = bd.setScale(2, RoundingMode.HALF_UP);
+            double finalItemsConfidence = bd.doubleValue();
 
-        String colorClass = confidenceBasedTwoColor(finalItemsConfidence);
+            String colorClass = confidenceBasedTwoColor(finalItemsConfidence);
+            return new ProgressBarSecondStyleDto(finalItemsConfidence, colorClass);
+        };
 
-        ProgressBarSecondStyle progressBar = new ProgressBarSecondStyle(ID_PROGRESS_BAR) {
+        ProgressBarSecondStyle progressBar = new ProgressBarSecondStyle(ID_PROGRESS_BAR, model) {
 
-            @Override
-            public double getActualValue() {
-                return finalItemsConfidence;
-            }
 
             @Override
             protected boolean isTitleContainerVisible() {
@@ -133,19 +134,9 @@ public class RoleAnalysisPatternTilePanel<T extends Serializable> extends BasePa
                 return "col-12 pl-0 pr-0";
             }
 
-            @Override
-            public String getProgressBarColor() {
-                return colorClass;
-            }
-
-            @Contract(pure = true)
-            @Override
-            public @NotNull String getBarTitle() {
-                return "";
-            }
         };
         progressBar.setOutputMarkupId(true);
-        progressBar.add(AttributeModifier.replace("title", () -> "Attribute confidence: " + finalItemsConfidence + "%"));
+        //TODO progressBar.add(AttributeModifier.replace("title", () -> "Attribute confidence: " + finalItemsConfidence + "%"));
         progressBar.add(new TooltipBehavior());
         add(progressBar);
     }

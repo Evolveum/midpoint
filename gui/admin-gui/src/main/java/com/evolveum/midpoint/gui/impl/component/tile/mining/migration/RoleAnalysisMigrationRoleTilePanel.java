@@ -17,6 +17,8 @@ import java.util.List;
 
 import com.evolveum.midpoint.gui.impl.component.icon.IconCssStyle;
 
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.model.ProgressBarSecondStyleDto;
+
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -147,16 +149,15 @@ public class RoleAnalysisMigrationRoleTilePanel<T extends Serializable> extends 
     }
 
     private void initProgressBar() {
-        double finalProgress = 100;
+        IModel<ProgressBarSecondStyleDto> model = () -> {
+            double finalProgress = 100;
+            String colorClass = confidenceBasedTwoColor(finalProgress);
+            ProgressBarSecondStyleDto dto = new ProgressBarSecondStyleDto(finalProgress, colorClass);
+            dto.setBarTitle("Migration status");
+            return dto;
+        };
 
-        String colorClass = confidenceBasedTwoColor(finalProgress);
-
-        ProgressBarSecondStyle progressBar = new ProgressBarSecondStyle(ID_PROGRESS_BAR) {
-
-            @Override
-            public double getActualValue() {
-                return finalProgress;
-            }
+        ProgressBarSecondStyle progressBar = new ProgressBarSecondStyle(ID_PROGRESS_BAR, model) {
 
             @Contract(pure = true)
             @Override
@@ -170,19 +171,10 @@ public class RoleAnalysisMigrationRoleTilePanel<T extends Serializable> extends 
                 return "col-12 pl-0 pr-0";
             }
 
-            @Override
-            public String getProgressBarColor() {
-                return colorClass;
-            }
 
-            @Contract(pure = true)
-            @Override
-            public @NotNull String getBarTitle() {
-                return "Migration status";
-            }
         };
         progressBar.setOutputMarkupId(true);
-        progressBar.add(AttributeModifier.replace(TITLE_CSS, () -> "Attribute confidence: " + finalProgress + "%"));
+        //TODOprogressBar.add(AttributeModifier.replace(TITLE_CSS, () -> "Attribute confidence: " + finalProgress + "%"));
         progressBar.add(new TooltipBehavior());
         add(progressBar);
     }
