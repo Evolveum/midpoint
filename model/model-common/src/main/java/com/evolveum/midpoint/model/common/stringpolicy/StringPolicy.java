@@ -172,6 +172,7 @@ public class StringPolicy {
             @NotNull CharacterClass characterClass,
             @Nullable StringLimitType bean,
             boolean mustBeFirst,
+            boolean ignoreWhenGenerating,
             int minOccurrences,
             Integer declaredMaxOccurrences,
             int effectiveMaxOccurrences) {
@@ -182,6 +183,7 @@ public class StringPolicy {
                                 StringPolicyUtils.stringAsCharacters(
                                         "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890")),
                         null,
+                        false,
                         false,
                         0,
                         null,
@@ -205,6 +207,7 @@ public class StringPolicy {
                                 limitBean.getCharacterClass(), globalClassDefinition, policyConfigItem.origin()),
                         limitBean,
                         Boolean.TRUE.equals(limitBean.isMustBeFirst()),
+                        Boolean.TRUE.equals(limitBean.isIgnoreWhenGenerating()),
                         minOccurrences,
                         maxOccurrences >= 0 ? maxOccurrences : null,
                         maxOccurrences >= 0 ? maxOccurrences : Integer.MAX_VALUE));
@@ -262,6 +265,20 @@ public class StringPolicy {
 
         public @Nullable String getDescription() {
             return bean != null ? bean.getDescription() : null;
+        }
+
+        public String getHumanReadableName() {
+            if (bean != null) {
+                var name = bean.getName();
+                if (name != null) {
+                    return name.getOrig();
+                }
+                var description = bean.getDescription();
+                if (description != null) {
+                    return description;
+                }
+            }
+            return characterClass.getCharactersAsString();
         }
     }
 }
