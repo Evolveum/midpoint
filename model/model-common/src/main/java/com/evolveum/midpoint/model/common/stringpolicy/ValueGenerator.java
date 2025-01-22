@@ -102,7 +102,20 @@ class ValueGenerator {
             allLimitations.add(CharacterClassLimitation.defaultForGeneration());
         }
 
+        boolean allClassesIgnored = true;
+
         for (CharacterClassLimitation characterClassLimitation : allLimitations) {
+
+            if (characterClassLimitation.ignoreWhenGenerating()) {
+                if (characterClassLimitation.minOccurrences() > 0) {
+                    throw new GenerationException(
+                            "Character class is marked as ignored for generation, but has non-zero min occurrences: "
+                                    + characterClassLimitation.getHumanReadableName());
+                }
+                continue;
+            }
+
+            allClassesIgnored = false;
 
             CharacterClass characterClass = characterClassLimitation.characterClass();
 
@@ -130,6 +143,11 @@ class ValueGenerator {
                     preferredClasses.add(characterClass);
                 }
             }
+        }
+
+        if (allClassesIgnored) {
+            throw new GenerationException(
+                    "Couldn't generate the value, all character classes are marked as ignored for generation");
         }
 
         Set<Character> resultSet;

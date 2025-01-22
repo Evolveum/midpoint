@@ -108,8 +108,7 @@ public class PrismPropertyWrapperColumnPanel<T> extends AbstractItemWrapperColum
     }
 
     @Override
-    protected Panel createValuePanel(String
-            id, IModel<PrismPropertyWrapper<T>> model, PrismPropertyValueWrapper<T> object) {
+    protected Panel createValuePanel(String id, IModel<PrismPropertyWrapper<T>> model) {
 
         Panel panel;
         try {

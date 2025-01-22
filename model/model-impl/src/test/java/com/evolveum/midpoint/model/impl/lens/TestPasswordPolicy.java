@@ -15,6 +15,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.Map;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 import com.evolveum.midpoint.model.common.stringpolicy.StringPolicy;
@@ -43,6 +44,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.StringLimitType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ValuePolicyType;
 
+/** Tests generating and validating passwords (or values in general) using a value policy. */
 @ContextConfiguration(locations = { "classpath:ctx-model-test-main.xml" })
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 public class TestPasswordPolicy extends AbstractInternalModelIntegrationTest {
@@ -58,6 +60,7 @@ public class TestPasswordPolicy extends AbstractInternalModelIntegrationTest {
 
     @Autowired private ValuePolicyProcessor valuePolicyProcessor;
 
+    /** Tests parsing the minimal (empty) value policy. */
     @Test
     public void stringPolicyUtilsMinimalTest() throws SchemaException, IOException, ConfigurationException {
         File file = new File(TEST_DIR, "password-policy-minimal.xml");
@@ -66,6 +69,7 @@ public class TestPasswordPolicy extends AbstractInternalModelIntegrationTest {
         assertThat(sp.getCharacterClassLimitations()).isEmpty();
     }
 
+    /** Tests parsing more complex value policy. */
     @Test
     public void stringPolicyUtilsComplexTest() throws Exception {
         File file = new File(TEST_DIR, "password-policy-complex.xml");
@@ -97,6 +101,7 @@ public class TestPasswordPolicy extends AbstractInternalModelIntegrationTest {
         assertThat(lim.characterClass().getCharactersAsString()).as("characters").isEqualTo(chars);
     }
 
+    /** Tests generating a password, first with consistent requirements, then with inconsistent ones. */
     @Test
     public void testPasswordGeneratorComplexNegative() throws Exception {
         Task task = getTestTask();
@@ -105,22 +110,21 @@ public class TestPasswordPolicy extends AbstractInternalModelIntegrationTest {
         File file = new File(TEST_DIR, "password-policy-complex.xml");
         ValuePolicyType pp = (ValuePolicyType) PrismTestUtil.parseObject(file).asObjectable();
 
-        // Make switch some cosistency
         pp.getStringPolicy().getLimitations().setMinLength(2);
         pp.getStringPolicy().getLimitations().setMinUniqueChars(5);
 
         // WHEN
         when();
-        String psswd = valuePolicyProcessor.generate(
+        String password = valuePolicyProcessor.generate(
                 SchemaConstants.PATH_PASSWORD_VALUE, pp, 10, null,
                 getTestNameShort(), task, result);
 
         // THEN
         then();
-        displayValue("Generated password", psswd);
+        displayValue("Generated password", password);
         result.computeStatus();
         AssertJUnit.assertTrue(result.isAcceptable());
-        assertNotNull(psswd);
+        assertNotNull(password);
 
         // Switch to all must be first :-) to test if there is error
         for (StringLimitType l : pp.getStringPolicy().getLimitations().getLimit()) {
@@ -141,111 +145,106 @@ public class TestPasswordPolicy extends AbstractInternalModelIntegrationTest {
 
     @Test
     public void testPasswordGeneratorComplex() throws Exception {
-        passwordGeneratorTest("password-policy-complex.xml");
+        generateValidateRepeatedly("password-policy-complex.xml");
     }
 
     @Test
     public void testPasswordGeneratorLong() throws Exception {
-        passwordGeneratorTest("password-policy-long.xml");
+        generateValidateRepeatedly("password-policy-long.xml");
     }
 
     @Test
     public void testPasswordGeneratorNumeric() throws Exception {
-        passwordGeneratorTest("password-policy-numeric.xml");
+        generateValidateRepeatedly("password-policy-numeric.xml");
+    }
+
+    @Test
+    public void testPasswordGeneratorNumericAcceptingAlphas() throws Exception {
+        String policyFileName = "password-policy-gen-numeric-accepting-alphas.xml";
+
+        // Check that we never generate alphabetic chars
+        generateValidateRepeatedly(
+                policyFileName,
+                s -> {
+                    try {
+                        Long.parseLong(s);
+                    } catch (NumberFormatException e) {
+                        throw new AssertionError("Generated password is not numeric: " + s);
+                    }
+                });
+
+        // Check that we accept them
+        var pp = parsePasswordPolicy(policyFileName);
+
+        assertThat(isPasswordValid("1234567890", pp)).isTrue();
+        assertThat(isPasswordValid("abcdefghij", pp)).isTrue();
+        assertThat(isPasswordValid("abcdefghij#", pp)).isFalse(); // extra char
+        assertThat(isPasswordValid("1234567890123", pp)).isFalse(); // too many chars
+        assertThat(isPasswordValid("abcdefghijklm", pp)).isFalse(); // too many chars
+        assertThat(isPasswordValid("1234567", pp)).isFalse(); // too little chars
+        assertThat(isPasswordValid("abcdefg", pp)).isFalse(); // too little chars
+    }
+
+    /** Using invalid policy: there's only one character class, and it's marked as ignored for generation. */
+    @Test
+    public void testPasswordGeneratorWithAllLimitationsIgnoredForGeneration() throws Exception {
+        String policyFileName = "password-policy-all-ignored-for-generation.xml";
+
+        try {
+            generateValidateOnce(policyFileName, 10);
+        } catch (ExpressionEvaluationException e) {
+            assertExpectedException(e)
+                    .hasMessageContaining("all character classes are marked as ignored");
+        }
+    }
+
+    /** Using invalid policy: a required character class is ignored when generating. */
+    @Test
+    public void testPasswordGeneratorRequiredCharIgnoredForGeneration() throws Exception {
+        String policyFileName = "password-policy-required-char-ignored-for-generation.xml";
+
+        try {
+            generateValidateOnce(policyFileName, 10);
+        } catch (ExpressionEvaluationException e) {
+            assertExpectedException(e)
+                    .hasMessageContaining(
+                            "Character class is marked as ignored for generation, but has non-zero min occurrences");
+        }
     }
 
     @Test
     public void testValueGeneratorMustBeFirst() throws Exception {
-        passwordGeneratorTest("value-policy-must-be-first.xml");
+        generateValidateRepeatedly("value-policy-must-be-first.xml");
     }
 
     @Test
     public void testValueGenerateRandomPin() throws Exception {
-        Task task = getTestTask();
-        OperationResult result = task.getResult();
-
-        ValuePolicyType pp = parsePasswordPolicy("value-policy-random-pin.xml");
-
-        when();
-        String psswd = valuePolicyProcessor.generate(
-                SchemaConstants.PATH_PASSWORD_VALUE, pp, 10, null,
-                getTestNameShort(), task, result);
-
-        then();
-        displayValue("Generated password", psswd);
-        result.computeStatus();
-        TestUtil.assertSuccess(result);
-        assertNotNull(psswd);
-        assertPassword(psswd, pp);
+        generateValidateOnce("value-policy-random-pin.xml", 10);
     }
 
     @Test
     public void testValueGenerateMailNonce() throws Exception {
-        Task task = getTestTask();
-        OperationResult result = task.getResult();
-
-        ValuePolicyType pp = parsePasswordPolicy("value-policy-generate-without-limit-with-unique.xml");
-
-        when();
-        String mailNonce = valuePolicyProcessor.generate(
-                SchemaConstants.PATH_PASSWORD_VALUE, pp, 24, null,
-                getTestNameShort(), task, result);
-
-        then();
-        displayValue("Generated password", mailNonce);
-        result.computeStatus();
-        TestUtil.assertSuccess(result);
-        assertNotNull(mailNonce);
-        assertPassword(mailNonce, pp);
+        generateValidateOnce("value-policy-generate-without-limit-with-unique.xml", 24);
     }
 
     @Test
     public void testValueGenerate() throws Exception {
-        Task task = getTestTask();
-        OperationResult result = task.getResult();
-
-        ValuePolicyType pp = parsePasswordPolicy("value-policy-generate.xml");
-
-        // WHEN
-        when();
-        String psswd = valuePolicyProcessor.generate(SchemaConstants.PATH_PASSWORD_VALUE, pp, 10, null, getTestNameShort(), task, result);
-
-        // THEN
-        then();
-        displayValue("Generated password", psswd);
-        result.computeStatus();
-        TestUtil.assertSuccess(result);
-        assertNotNull(psswd);
-        assertPassword(psswd, pp);
-
+        generateValidateOnce("value-policy-generate.xml", 10);
     }
 
     @Test
     public void testValueGenerateEmpty() throws Exception {
-        Task task = getTestTask();
-        OperationResult result = task.getResult();
-
-        File file = new File(TEST_DIR, "value-policy-generate-empty.xml");
-        logger.info("Positive testing {}: {}", "testValueGenerate", "value-policy-generate-empty.xml");
-        ValuePolicyType pp = (ValuePolicyType) PrismTestUtil.parseObject(file).asObjectable();
-
-        // WHEN
-        when();
-        String psswd = valuePolicyProcessor.generate(
-                SchemaConstants.PATH_PASSWORD_VALUE, pp, 10, null, getTestNameShort(), task, result);
-
-        // THEN
-        then();
-        displayValue("Generated password", psswd);
-        result.computeStatus();
-        TestUtil.assertSuccess(result);
-        assertNotNull(psswd);
-        assertPassword(psswd, pp);
+        generateValidateOnce("value-policy-generate-empty.xml", 10);
     }
 
-    public void passwordGeneratorTest(String policyFilename)
-            throws SchemaException, IOException, ExpressionEvaluationException, ObjectNotFoundException,
-            CommunicationException, ConfigurationException, SecurityViolationException {
+    /** Runs 100 rounds of password generation + password validation. */
+    private void generateValidateRepeatedly(String policyFilename) throws CommonException, IOException {
+        generateValidateRepeatedly(policyFilename, s -> {});
+    }
+
+    /** Runs 100 rounds of password generation + password validation. */
+    private void generateValidateRepeatedly(String policyFilename, Consumer<String> extraChecker)
+            throws CommonException, IOException {
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
@@ -253,44 +252,48 @@ public class TestPasswordPolicy extends AbstractInternalModelIntegrationTest {
         logger.info("Positive testing {}: {}", getTestNameShort(), policyFilename);
         ValuePolicyType pp = (ValuePolicyType) PrismTestUtil.parseObject(file).asObjectable();
 
-        String psswd;
-        // generate minimal size passwd
         for (int i = 0; i < 100; i++) {
-            psswd = valuePolicyProcessor.generate(
+            String password = valuePolicyProcessor.generate(
                     SchemaConstants.PATH_PASSWORD_VALUE, pp, 10, null, getTestNameShort(), task, result);
-            logger.info("Generated password:" + psswd);
+            logger.info("Generated password: {}", password);
             result.computeStatus();
             if (!result.isSuccess()) {
-                logger.info("Result:" + result.debugDump());
+                logger.info("Result: {}", result.debugDump());
                 AssertJUnit.fail("Password generator failed:\n" + result.debugDump());
             }
-            assertNotNull(psswd);
-            assertPassword(psswd, pp);
-        }
-        // genereata to meet as possible
-        logger.info("-------------------------");
-        // Generate up to possible
-        for (int i = 0; i < 100; i++) {
-            psswd = valuePolicyProcessor.generate(
-                    SchemaConstants.PATH_PASSWORD_VALUE, pp, 10, null, getTestNameShort(), task, result);
-            logger.info("Generated password:" + psswd);
-            result.computeStatus();
-            if (!result.isSuccess()) {
-                logger.info("Result:" + result.debugDump());
-            }
-            AssertJUnit.assertTrue(result.isSuccess());
-            assertNotNull(psswd);
-
+            assertNotNull(password);
+            assertPasswordValid(password, pp);
+            extraChecker.accept(password);
         }
     }
 
-    private void assertPassword(String passwd, ValuePolicyType pp)
+    /** Just generates and validates a password (once). */
+    private void generateValidateOnce(String filename, int defaultLength) throws Exception {
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        ValuePolicyType pp = parsePasswordPolicy(filename);
+
+        when();
+        String password = valuePolicyProcessor.generate(
+                SchemaConstants.PATH_PASSWORD_VALUE, pp, defaultLength, null,
+                getTestNameShort(), task, result);
+
+        then();
+        displayValue("Generated password", password);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+        assertNotNull(password);
+        assertPasswordValid(password, pp);
+    }
+
+    private void assertPasswordValid(String passwd, ValuePolicyType pp)
             throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException,
             CommunicationException, ConfigurationException, SecurityViolationException {
-        assertPassword(passwd, pp, null);
+        assertPasswordValid(passwd, pp, null);
     }
 
-    private void assertPassword(String passwd, ValuePolicyType pp, PrismObject<UserType> object)
+    private void assertPasswordValid(String passwd, ValuePolicyType pp, PrismObject<UserType> object)
             throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException,
             CommunicationException, ConfigurationException, SecurityViolationException {
         Task task = getTestTask();
@@ -304,31 +307,35 @@ public class TestPasswordPolicy extends AbstractInternalModelIntegrationTest {
         AssertJUnit.assertTrue("Password not valid (but result is success)", isValid);
     }
 
+    /** Just validating passwords according to a policy. */
     @Test
     public void passwordValidationTestComplex() throws Exception {
         ValuePolicyType pp = parsePasswordPolicy("password-policy-complex.xml");
 
         // WHEN, THEN
-        AssertJUnit.assertTrue(pwdValidHelper("582a**A", pp));
-        AssertJUnit.assertFalse(pwdValidHelper("58", pp));
-        AssertJUnit.assertFalse(pwdValidHelper("333a**aGaa", pp));
-        AssertJUnit.assertFalse(pwdValidHelper("AAA4444", pp));
+        AssertJUnit.assertTrue(isPasswordValid("582a**A", pp));
+        AssertJUnit.assertFalse(isPasswordValid("58", pp));
+        AssertJUnit.assertFalse(isPasswordValid("333a**aGaa", pp));
+        AssertJUnit.assertFalse(isPasswordValid("AAA4444", pp));
     }
 
+    /** Just validating passwords according to a policy. */
     @Test
     public void passwordValidationTestTri() throws Exception {
         ValuePolicyType pp = parsePasswordPolicy("password-policy-tri.xml");
 
         // WHEN, THEN
-        AssertJUnit.assertTrue(pwdValidHelper("Password1", pp));
-        AssertJUnit.assertFalse(pwdValidHelper("password1", pp)); // no capital letter
-        AssertJUnit.assertFalse(pwdValidHelper("1PASSWORD", pp)); // no lowecase letter
-        AssertJUnit.assertFalse(pwdValidHelper("Password", pp)); // no numeral
-        AssertJUnit.assertFalse(pwdValidHelper("Pa1", pp)); // too short
-        AssertJUnit.assertFalse(pwdValidHelper("PPPPPPPPPPPPPPPPPPPPPPPaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa11111111111111111111111111111111111111111111111111111111111111111111", pp)); // too long
+        AssertJUnit.assertTrue(isPasswordValid("Password1", pp));
+        AssertJUnit.assertFalse(isPasswordValid("password1", pp)); // no capital letter
+        AssertJUnit.assertFalse(isPasswordValid("1PASSWORD", pp)); // no lowercase letter
+        AssertJUnit.assertFalse(isPasswordValid("Password", pp)); // no numeral
+        AssertJUnit.assertFalse(isPasswordValid("Pa1", pp)); // too short
+        AssertJUnit.assertFalse(isPasswordValid("PPPPPPPPPPPPPPPPPPPPPPPaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa11111111111111111111111111111111111111111111111111111111111111111111", pp)); // too long
     }
 
     /**
+     * Checks that generated password is never equal to the username (as the policy prohibits it).
+     *
      * MID-1657
      */
     @Test
@@ -343,16 +350,17 @@ public class TestPasswordPolicy extends AbstractInternalModelIntegrationTest {
             Task task = getTestTask();
             OperationResult result = task.getResult();
 
-            String psswd = valuePolicyProcessor.generate(
+            String password = valuePolicyProcessor.generate(
                     SchemaConstants.PATH_PASSWORD_VALUE, pp, 10, createUserOriginResolver(user), getTestNameShort(), task, result);
-            displayValue("Generated password (" + i + ")", psswd);
+            displayValue("Generated password (" + i + ")", password);
 
             result.computeStatus();
             TestUtil.assertSuccess(result);
-            assertNotNull(psswd);
-            assertPassword(psswd, pp, user);
+            assertNotNull(password);
+            assertPasswordValid(password, pp, user);
 
-            assertFalse("Generated password that matches the username: " + psswd, psswd.equals(USER_AB_USERNAME));
+            //noinspection SimplifiableAssertion
+            assertFalse("Generated password that matches the username: " + password, password.equals(USER_AB_USERNAME));
         }
 
         // THEN
@@ -360,6 +368,8 @@ public class TestPasswordPolicy extends AbstractInternalModelIntegrationTest {
     }
 
     /**
+     * Checks that generated password does not contain selected user properties (as the policy prohibits it).
+     *
      * MID-1657
      */
     @Test
@@ -375,18 +385,18 @@ public class TestPasswordPolicy extends AbstractInternalModelIntegrationTest {
             Task task = getTestTask();
             OperationResult result = task.getResult();
 
-            String psswd = valuePolicyProcessor.generate(
+            String password = valuePolicyProcessor.generate(
                     SchemaConstants.PATH_PASSWORD_VALUE, pp, 10, createUserOriginResolver(user), getTestNameShort(), task, result);
-            displayValue("Generated password (" + i + ")", psswd);
+            displayValue("Generated password (" + i + ")", password);
 
             result.computeStatus();
             TestUtil.assertSuccess(result);
-            assertNotNull(psswd);
-            assertPassword(psswd, pp, user);
+            assertNotNull(password);
+            assertPasswordValid(password, pp, user);
 
-            assertNotContains(psswd, USER_AB_USERNAME);
-            assertNotContains(psswd, USER_AB_GIVEN_NAME);
-            assertNotContains(psswd, USER_AB_ADDITIONAL_NAME);
+            assertNotContains(password, USER_AB_USERNAME);
+            assertNotContains(password, USER_AB_GIVEN_NAME);
+            assertNotContains(password, USER_AB_ADDITIONAL_NAME);
         }
 
         // THEN
@@ -399,8 +409,9 @@ public class TestPasswordPolicy extends AbstractInternalModelIntegrationTest {
         return user;
     }
 
-    private void assertNotContains(String psswd, String val) {
-        assertFalse("Generated password " + psswd + " contains value " + val, StringUtils.containsIgnoreCase(psswd, val));
+    private void assertNotContains(String password, String val) {
+        assertFalse("Generated password " + password + " contains value " + val,
+                StringUtils.containsIgnoreCase(password, val));
     }
 
     private ValuePolicyType parsePasswordPolicy(String filename) throws SchemaException, IOException {
@@ -408,7 +419,7 @@ public class TestPasswordPolicy extends AbstractInternalModelIntegrationTest {
         return (ValuePolicyType) PrismTestUtil.parseObject(file).asObjectable();
     }
 
-    private boolean pwdValidHelper(String password, ValuePolicyType pp) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
+    private boolean isPasswordValid(String password, ValuePolicyType pp) throws CommonException {
         Task task = getTestTask();
         OperationResult result = task.getResult();
         valuePolicyProcessor.validateValue(password, pp, null, "pwdValidHelper", task, result);

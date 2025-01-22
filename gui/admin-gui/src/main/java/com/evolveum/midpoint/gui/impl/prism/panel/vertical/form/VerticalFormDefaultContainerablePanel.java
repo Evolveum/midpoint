@@ -74,6 +74,7 @@ public class VerticalFormDefaultContainerablePanel<C extends Containerable> exte
 
         WebMarkupContainer formContainer = new WebMarkupContainer(ID_FORM_CONTAINER);
         formContainer.add(new VisibleBehaviour(() -> isShowMoreButtonVisible(nonContainerWrappers)));
+        formContainer.add(AttributeAppender.append("class", getCssClassForFormContainer()));
         propertiesLabel.setOutputMarkupId(true);
         propertiesLabel.add(formContainer);
         ListView<ItemWrapper<?, ?>> properties = new ListView<>("properties", nonContainerWrappers) {
@@ -110,6 +111,10 @@ public class VerticalFormDefaultContainerablePanel<C extends Containerable> exte
         removeButton.add(AttributeAppender.append("title", getString("VerticalFormDefaultContainerablePanel.removeValue")));
         removeButton.setOutputMarkupId(true);
         formContainer.add(removeButton);
+    }
+
+    protected String getCssClassForFormContainer() {
+        return "card-body border-top mb-0 p-3";
     }
 
     protected boolean isRemoveValueButtonVisible() {

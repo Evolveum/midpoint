@@ -52,9 +52,7 @@ public class ResourceObjectTypeMarkPolicyValueWrapperImpl<T extends Referencable
                                 .visibility(UserInterfaceElementVisibilityType.VISIBLE))
                         .item(new VirtualContainerItemSpecificationType()
                                 .path(new ItemPathType(MarkType.F_DESCRIPTION))
-                                .visibility(UserInterfaceElementVisibilityType.VISIBLE))
-                        .display(new DisplayType()
-                                .label("ContainerPanel.containerProperties")))
+                                .visibility(UserInterfaceElementVisibilityType.VISIBLE)))
                 .container(new VirtualContainersSpecificationType()
                         .identifier("new-mark-synchronization-inbound")
                         .path(new ItemPathType(
