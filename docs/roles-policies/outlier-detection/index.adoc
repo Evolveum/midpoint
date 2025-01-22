@@ -25,6 +25,12 @@ Analyzed data is divided into two mutually exclusive categories:
 The algorithm only provides suggestions for outliers and does not take any further action.
 It is up to the user to analyze, assess, and decide the next step.
 
+[WARNING]
+.System requirements
+====
+Outlier detection and role mining are resource-intensive tasks, often requiring more memory (RAM) allocation, as typically recommended in Midpoint.
+====
+
 == Outlier Detection Options
 
 In the Anomaly detection step you specify options below:

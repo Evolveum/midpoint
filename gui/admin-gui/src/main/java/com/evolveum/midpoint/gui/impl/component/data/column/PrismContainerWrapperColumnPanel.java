@@ -118,7 +118,7 @@ public class PrismContainerWrapperColumnPanel<C extends Containerable> extends A
     }
 
     @Override
-    protected Panel createValuePanel(String id, IModel<PrismContainerWrapper<C>> headerModel, PrismContainerValueWrapper<C> object) {
+    protected Panel createValuePanel(String id, IModel<PrismContainerWrapper<C>> model) {
         throw new UnsupportedOperationException("Panels not supported for container values.");
     }
 

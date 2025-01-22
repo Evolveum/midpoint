@@ -21,6 +21,7 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 
+import com.evolveum.midpoint.gui.impl.component.icon.IconCssStyle;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.chart.ChartType;
 import com.evolveum.midpoint.model.api.mining.RoleAnalysisService;
 import com.evolveum.midpoint.prism.query.builder.S_FilterExit;
@@ -117,9 +118,8 @@ public class RoleAnalysisInfoAccessPanel extends BasePanel<String> implements Po
         chartContainer.setOutputMarkupId(true);
         add(chartContainer);
 
-
         IconWithLabel cardTitle = new IconWithLabel(ID_CARD_TITLE,
-                createStringResource("PageRoleAnalysis.chart.access.distribution.title")){
+                createStringResource("PageRoleAnalysis.chart.access.distribution.title")) {
             @Contract(pure = true)
             @Override
             protected @NotNull String getIconCssClass() {
@@ -179,7 +179,6 @@ public class RoleAnalysisInfoAccessPanel extends BasePanel<String> implements Po
         initExportButton(toolForm);
 
     }
-
 
     private void initExportButton(Form<?> toolForm) {
         CompositedIconBuilder iconBuilder = new CompositedIconBuilder().setBasicIcon(GuiStyleConstants.CLASS_IMPORT_MENU_ITEM,
@@ -294,16 +293,21 @@ public class RoleAnalysisInfoAccessPanel extends BasePanel<String> implements Po
         return chartTypeButton;
     }
 
-    private AjaxCompositedIconSubmitButton buildModeButton(String id, ChartJsPanel<ChartConfiguration> roleAnalysisChart) {
+    private @NotNull AjaxCompositedIconSubmitButton buildModeButton(String id, ChartJsPanel<ChartConfiguration> roleAnalysisChart) {
+
         CompositedIconBuilder iconBuilder = new CompositedIconBuilder().setBasicIcon("fe fe-role object-role-color",
                 LayeredIconCssStyle.IN_ROW_STYLE);
         AjaxCompositedIconSubmitButton modeButton = new AjaxCompositedIconSubmitButton(id, iconBuilder.build(),
                 new LoadableModel<>() {
-                    @Override
-                    protected String load() {
-                        return getModeButtonTitle().getString();
-                    }
-                }) {
+            @Override
+            protected String load() {
+                if (isUserMode) {
+                    return createStringResource("PageRoleAnalysis.chart.mode.user.button.title").getString();
+                }
+                return createStringResource("PageRoleAnalysis.chart.mode.role.button.title").getString();
+            }
+        }) {
+
             @Override
             public CompositedIcon getIcon() {
                 String scaleIcon;
@@ -313,7 +317,7 @@ public class RoleAnalysisInfoAccessPanel extends BasePanel<String> implements Po
                     scaleIcon = "fe fe-role object-role-color";
                 }
                 return new CompositedIconBuilder().setBasicIcon(scaleIcon,
-                        LayeredIconCssStyle.IN_ROW_STYLE).build();
+                        IconCssStyle.IN_ROW_STYLE).build();
             }
 
             @Serial
@@ -428,44 +432,12 @@ public class RoleAnalysisInfoAccessPanel extends BasePanel<String> implements Po
     }
 
     public RoleAnalysisAggregateChartModel getRoleAnalysisStatistics() {
-        return new RoleAnalysisAggregateChartModel(new LoadableDetachableModel<>() {
+        return new RoleAnalysisAggregateChartModel(getPageBase(), new LoadableDetachableModel<>() {
             @Override
             protected List<RoleAnalysisModel> load() {
                 return prepareRoleAnalysisData();
             }
-        }, chartType) {
-            @Override
-            public String getXAxisTitle() {
-                if (chartType.equals(SCATTER)) {
-                    return getPageBase().createStringResource("PageRoleAnalysis.chart.yAxis.title").getString();
-                }
-                return getPageBase().createStringResource("PageRoleAnalysis.chart.xAxis.title").getString();
-            }
-
-            @Override
-            public String getYAxisTitle() {
-                if (chartType.equals(SCATTER)) {
-                    return getPageBase().createStringResource("PageRoleAnalysis.chart.xAxis.title").getString();
-                }
-                return getPageBase().createStringResource("PageRoleAnalysis.chart.yAxis.title").getString();
-            }
-
-            @Override
-            public String getDatasetUserLabel() {
-                if (isUserMode) {
-                    return getPageBase().createStringResource("PageRoleAnalysis.chart.dataset.user.userMode.label").getString();
-                }
-                return getPageBase().createStringResource("PageRoleAnalysis.chart.dataset.user.roleMode.label").getString();
-            }
-
-            @Override
-            public String getDatasetRoleLabel() {
-                if (isUserMode) {
-                    return getPageBase().createStringResource("PageRoleAnalysis.chart.dataset.role.userMode.label").getString();
-                }
-                return getPageBase().createStringResource("PageRoleAnalysis.chart.dataset.role.roleMode.label").getString();
-            }
-        };
+        }, chartType, isUserMode);
     }
 
     private @NotNull List<RoleAnalysisModel> prepareRoleAnalysisData() {
@@ -535,7 +507,6 @@ public class RoleAnalysisInfoAccessPanel extends BasePanel<String> implements Po
                     .filter(filter.buildFilter())
                     .count(F_ASSIGNMENT, ItemPath.SELF_PATH)
                     .groupBy(ItemPath.create(new ParentPathSegment(), F_ASSIGNMENT));
-
 
             AggregateQuery.ResultItem resultItem = spec.getResultItem(F_ASSIGNMENT);
             spec.orderBy(resultItem, OrderDirection.DESCENDING);
