@@ -264,7 +264,7 @@ public class RoleAnalysisChartPanel extends BasePanel<String> implements Popupab
                 }
                 target.add(getChartContainer());
                 chartType = getNextChartType(chartType);
-                if(chartType.equals(SCATTER)){
+                if (chartType.equals(SCATTER)) {
                     isAxisExpanded = false;
                 }
                 target.add(roleAnalysisChart);
@@ -287,22 +287,19 @@ public class RoleAnalysisChartPanel extends BasePanel<String> implements Popupab
     }
 
     private @NotNull AjaxCompositedIconSubmitButton buildExpandAxisButton(ChartJsPanel<ChartConfiguration> roleAnalysisChart) {
-        LoadableModel<String> expandButtonTitle = new LoadableModel<>() {
-            @Override
-            protected String load() {
-                if (isAxisExpanded) {
-                    return "Collapse";
-                }
-                return "Expand";
-            }
-        };
+
         CompositedIconBuilder iconBuilder = new CompositedIconBuilder().setBasicIcon(GuiStyleConstants.CLASS_LINE_CHART_ICON,
                 IconCssStyle.IN_ROW_STYLE);
         AjaxCompositedIconSubmitButton chartTypeButton = new AjaxCompositedIconSubmitButton("settingPanel5",
                 iconBuilder.build(),
-                expandButtonTitle) {
+                getExpandButtonTitle()) {
             @Serial
             private static final long serialVersionUID = 1L;
+
+            @Override
+            public IModel<String> getTitle() {
+                return getExpandButtonTitle();
+            }
 
             @Override
             public CompositedIcon getIcon() {
@@ -334,17 +331,18 @@ public class RoleAnalysisChartPanel extends BasePanel<String> implements Popupab
         return chartTypeButton;
     }
 
-
     private @NotNull AjaxCompositedIconSubmitButton buildModeButton(ChartJsPanel<ChartConfiguration> roleAnalysisChart) {
         CompositedIconBuilder iconBuilder = new CompositedIconBuilder().setBasicIcon("fe fe-role object-role-color",
                 IconCssStyle.IN_ROW_STYLE);
+
         AjaxCompositedIconSubmitButton modeButton = new AjaxCompositedIconSubmitButton("settingPanel1", iconBuilder.build(),
-                new LoadableModel<>() {
-                    @Override
-                    protected String load() {
-                        return getModeButtonTitle().getString();
-                    }
-                }) {
+                getModeButtonTitle()) {
+
+            @Override
+            public IModel<String> getTitle() {
+                return getModeButtonTitle();
+            }
+
             @Override
             public CompositedIcon getIcon() {
                 String scaleIcon;
@@ -377,7 +375,6 @@ public class RoleAnalysisChartPanel extends BasePanel<String> implements Popupab
         modeButton.setOutputMarkupId(true);
         modeButton.setVisible(true);
         modeButton.add(AttributeModifier.append(CLASS_CSS, BTN_TOOL_CSS));
-        modeButton.add(AttributeModifier.replace(TITLE_CSS, getModeButtonTitle()));
         modeButton.add(new TooltipBehavior());
         return modeButton;
     }
@@ -386,12 +383,13 @@ public class RoleAnalysisChartPanel extends BasePanel<String> implements Popupab
         CompositedIconBuilder iconBuilder = new CompositedIconBuilder().setBasicIcon("fa fa-refresh",
                 IconCssStyle.IN_ROW_STYLE);
         AjaxCompositedIconSubmitButton scaleButton = new AjaxCompositedIconSubmitButton("settingPanel2", iconBuilder.build(),
-                new LoadableModel<>() {
-                    @Override
-                    protected String load() {
-                        return getScaleButtonTitle().getString();
-                    }
-                }) {
+                getScaleButtonTitle()) {
+
+            @Override
+            public IModel<String> getTitle() {
+                return getScaleButtonTitle();
+            }
+
             @Override
             public CompositedIcon getIcon() {
                 String scaleIcon;
@@ -470,44 +468,12 @@ public class RoleAnalysisChartPanel extends BasePanel<String> implements Popupab
     }
 
     public RoleAnalysisAggregateChartModel getRoleAnalysisStatistics() {
-        return new RoleAnalysisAggregateChartModel(new LoadableDetachableModel<>() {
+        return new RoleAnalysisAggregateChartModel(getPageBase(), new LoadableDetachableModel<>() {
             @Override
             protected List<RoleAnalysisModel> load() {
                 return prepareRoleAnalysisData();
             }
-        }, chartType) {
-            @Override
-            public String getXAxisTitle() {
-                if (chartType.equals(SCATTER)) {
-                    return getPageBase().createStringResource("PageRoleAnalysis.chart.yAxis.title").getString();
-                }
-                return getPageBase().createStringResource("PageRoleAnalysis.chart.xAxis.title").getString();
-            }
-
-            @Override
-            public String getYAxisTitle() {
-                if (chartType.equals(SCATTER)) {
-                    return getPageBase().createStringResource("PageRoleAnalysis.chart.xAxis.title").getString();
-                }
-                return getPageBase().createStringResource("PageRoleAnalysis.chart.yAxis.title").getString();
-            }
-
-            @Override
-            public String getDatasetUserLabel() {
-                if (isUserMode) {
-                    return getPageBase().createStringResource("PageRoleAnalysis.chart.dataset.user.userMode.label").getString();
-                }
-                return getPageBase().createStringResource("PageRoleAnalysis.chart.dataset.user.roleMode.label").getString();
-            }
-
-            @Override
-            public String getDatasetRoleLabel() {
-                if (isUserMode) {
-                    return getPageBase().createStringResource("PageRoleAnalysis.chart.dataset.role.userMode.label").getString();
-                }
-                return getPageBase().createStringResource("PageRoleAnalysis.chart.dataset.role.roleMode.label").getString();
-            }
-        };
+        }, chartType, isUserMode);
     }
 
     private @NotNull List<RoleAnalysisModel> prepareRoleAnalysisData() {
@@ -689,6 +655,13 @@ public class RoleAnalysisChartPanel extends BasePanel<String> implements Popupab
         });
 
         return aggregateResult;
+    }
+
+    private StringResourceModel getExpandButtonTitle() {
+        if (isAxisExpanded) {
+            return createStringResource("RoleAnalysis.expand.button.title");
+        }
+        return createStringResource("RoleAnalysis.collapse.button.title");
     }
 
     private StringResourceModel getScaleButtonTitle() {
