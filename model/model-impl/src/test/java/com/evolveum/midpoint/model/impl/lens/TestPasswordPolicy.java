@@ -7,11 +7,13 @@
 
 package com.evolveum.midpoint.model.impl.lens;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.testng.AssertJUnit.assertFalse;
 import static org.testng.AssertJUnit.assertNotNull;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.function.Consumer;
 
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -134,6 +136,80 @@ public class TestPasswordPolicy extends AbstractInternalModelIntegrationTest {
     }
 
     @Test
+    public void testPasswordGeneratorNumericAcceptingAlphas() throws Exception {
+        String policyFileName = "password-policy-gen-numeric-accepting-alphas.xml";
+
+        // Check that we never generate alphabetic chars
+        passwordGeneratorTest(
+                policyFileName,
+                s -> {
+                    try {
+                        Long.parseLong(s);
+                    } catch (NumberFormatException e) {
+                        throw new AssertionError("Generated password is not numeric: " + s);
+                    }
+                });
+
+        // Check that we accept them
+        var pp = parsePasswordPolicy(policyFileName);
+
+        assertThat(pwdValidHelper("1234567890", pp)).isTrue();
+        assertThat(pwdValidHelper("abcdefghij", pp)).isTrue();
+        assertThat(pwdValidHelper("abcdefghij#", pp)).isFalse(); // extra char
+        assertThat(pwdValidHelper("1234567890123", pp)).isFalse(); // too many chars
+        assertThat(pwdValidHelper("abcdefghijklm", pp)).isFalse(); // too many chars
+        assertThat(pwdValidHelper("1234567", pp)).isFalse(); // too little chars
+        assertThat(pwdValidHelper("abcdefg", pp)).isFalse(); // too little chars
+    }
+
+    /** Using invalid policy: there's only one character class, and it's marked as ignored for generation. */
+    @Test
+    public void testPasswordGeneratorWithAllLimitationsIgnoredForGeneration() throws Exception {
+        String policyFileName = "password-policy-all-ignored-for-generation.xml";
+
+        try {
+            generateValidateOnce(policyFileName, 10);
+        } catch (ExpressionEvaluationException e) {
+            assertExpectedException(e)
+                    .hasMessageContaining("all character classes are marked as ignored");
+        }
+    }
+
+    /** Using invalid policy: a required character class is ignored when generating. */
+    @Test
+    public void testPasswordGeneratorRequiredCharIgnoredForGeneration() throws Exception {
+        String policyFileName = "password-policy-required-char-ignored-for-generation.xml";
+
+        try {
+            generateValidateOnce(policyFileName, 10);
+        } catch (ExpressionEvaluationException e) {
+            assertExpectedException(e)
+                    .hasMessageContaining(
+                            "Character class is marked as ignored for generation, but has non-zero min occurrences");
+        }
+    }
+
+    /** Just generates and validates a password (once). */
+    private void generateValidateOnce(String filename, int defaultLength) throws Exception {
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        ValuePolicyType pp = parsePasswordPolicy(filename);
+
+        when();
+        String password = valuePolicyProcessor.generate(
+                SchemaConstants.PATH_PASSWORD_VALUE, pp, defaultLength, true, null,
+                getTestNameShort(), task, result);
+
+        then();
+        displayValue("Generated password", password);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+        assertNotNull(password);
+        assertPassword(password, pp);
+    }
+
+    @Test
     public void testValueGeneratorMustBeFirst() throws Exception {
         passwordGeneratorTest("value-policy-must-be-first.xml");
     }
@@ -223,7 +299,11 @@ public class TestPasswordPolicy extends AbstractInternalModelIntegrationTest {
         assertPassword(psswd, pp);
     }
 
-    public void passwordGeneratorTest(String policyFilename)
+    private void passwordGeneratorTest(String policyFilename) throws CommonException, IOException {
+        passwordGeneratorTest(policyFilename, s -> {});
+    }
+
+    public void passwordGeneratorTest(String policyFilename, Consumer<String> extraChecker)
             throws SchemaException, IOException, ExpressionEvaluationException, ObjectNotFoundException,
             CommunicationException, ConfigurationException, SecurityViolationException {
         Task task = getTestTask();
@@ -245,6 +325,7 @@ public class TestPasswordPolicy extends AbstractInternalModelIntegrationTest {
             }
             assertNotNull(psswd);
             assertPassword(psswd, pp);
+            extraChecker.accept(psswd);
         }
         // genereata to meet as possible
         logger.info("-------------------------");
@@ -258,7 +339,7 @@ public class TestPasswordPolicy extends AbstractInternalModelIntegrationTest {
             }
             AssertJUnit.assertTrue(result.isSuccess());
             assertNotNull(psswd);
-
+            extraChecker.accept(psswd);
         }
     }
 

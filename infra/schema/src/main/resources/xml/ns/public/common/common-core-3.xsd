@@ -10304,6 +10304,24 @@
             <xsd:element name="minOccurs" type="xsd:int" default="0" minOccurs="0"/>
             <xsd:element name="maxOccurs" type="xsd:int" default="-1" minOccurs="0"/>
             <xsd:element name="mustBeFirst" type="xsd:boolean" default="false" minOccurs="0"/>
+            <xsd:element name="ignoreWhenGenerating" type="xsd:boolean" default="false" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        <p>
+                            If "true", this class is ignored when generating the value. This is to avoid generating passwords
+                            or nonce values with trouble-making characters (problematic in the logs, in URIs, and so on),
+                            like the space, '#', '&amp;', '*', apostrophe, or double quotes.
+
+                            The value of "true" means that "minOccurs" must be 0. Otherwise, it's not possible to generate
+                            a compliant value.
+
+                            Note that if a character is present in multiple classes (which is not recommended), and some of them
+                            are to be ignored when generating, while others are not, the specific character may still be used
+                            for the generation.
+                        </p>
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
             <xsd:element name="characterClass" type="tns:CharacterClassType" minOccurs="0"/>
         </xsd:sequence>
     </xsd:complexType>

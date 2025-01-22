@@ -75,6 +75,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ValuePolicyType;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
+import static com.evolveum.midpoint.util.MiscUtil.or0;
+
 import static org.apache.commons.lang3.BooleanUtils.isTrue;
 import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
 
@@ -638,13 +640,29 @@ public class ValuePolicyProcessor {
         int maxLen = defaultLength;
         int unique = defaultLength / 2;
         if (stringPolicy != null) {
+            int allLimitations = 0;
+            int ignoredLimitations = 0;
             for (StringLimitType l : stringPolicy.getLimitations().getLimit()) {
+                allLimitations++;
+                if (Boolean.TRUE.equals(l.isIgnoreWhenGenerating())) {
+                    ignoredLimitations++;
+                    if (or0(l.getMinOccurs()) > 0) {
+                        result.recordFatalError(
+                                "Character class is marked as ignored for generation, but has non-zero min occurrences");
+                        return null;
+                    }
+                    continue;
+                }
                 if (null != l.getCharacterClass().getValue()) {
                     lims.put(l, StringPolicyUtils.stringTokenizer(l.getCharacterClass().getValue()));
                 } else {
                     lims.put(l, StringPolicyUtils.stringTokenizer(StringPolicyUtils.collectCharacterClass(
                             stringPolicy.getCharacterClass(), l.getCharacterClass().getRef())));
                 }
+            }
+            if (allLimitations > 0 && ignoredLimitations == allLimitations) {
+                result.recordFatalError("Couldn't generate the value, all character classes are marked as ignored for generation");
+                return null;
             }
 
             // Get global limitations
