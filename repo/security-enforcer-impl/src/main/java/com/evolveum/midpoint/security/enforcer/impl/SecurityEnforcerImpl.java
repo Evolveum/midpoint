@@ -79,7 +79,7 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
             String operationUrl, AuthorizationPhaseType phase, AbstractAuthorizationParameters params, OperationResult result)
             throws SecurityViolationException {
         MidPointPrincipal principal = securityContextManager.getPrincipal();
-        String username = principal.getUsername();
+        String username = getQuotedUsername(principal);
         Object object;
         PrismObject<?> target;
         if (params instanceof AuthorizationParameters<?, ?> ap) {
