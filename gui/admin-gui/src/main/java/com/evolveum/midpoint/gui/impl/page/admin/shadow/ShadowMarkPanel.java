@@ -40,7 +40,8 @@ public class ShadowMarkPanel extends AbstractObjectMainPanel<ShadowType, ShadowD
     protected void initLayout() {
         MarksOfObjectListPanel<ShadowType> shadowPanel = new MarksOfObjectListPanel<>(
                 ID_PANEL,
-                getObjectWrapperModel());
+                getObjectWrapperModel(),
+                getPanelConfiguration());
         add(shadowPanel);
     }
 }
