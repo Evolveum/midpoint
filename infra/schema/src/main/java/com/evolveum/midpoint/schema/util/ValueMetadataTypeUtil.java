@@ -207,10 +207,6 @@ public class ValueMetadataTypeUtil {
         return metadata != null ? metadata.getStorage() : null;
     }
 
-    public static @Nullable StorageMetadataType getStorageMetadata(@NotNull AssignmentType assignment) {
-        var metadata = getMetadata(assignment);
-        return metadata != null ? metadata.getStorage() : null;
-    }
 
     public static @Nullable StorageMetadataType getStorageMetadata(
             @NotNull AssignmentType assignment, @NotNull ProvenanceMetadataType provenance) {
