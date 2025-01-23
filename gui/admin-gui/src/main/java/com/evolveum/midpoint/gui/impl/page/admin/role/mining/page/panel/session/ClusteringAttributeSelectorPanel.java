@@ -12,6 +12,7 @@ import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.Collection;
 
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.session.provider.ClusteringAttributeSelectionProvider;
 import com.evolveum.midpoint.web.component.util.EnableBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
@@ -36,6 +37,8 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.web.component.prism.InputPanel;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.model.PrismContainerWrapperModel;
+
+import static com.evolveum.midpoint.common.mining.utils.RoleAnalysisUtils.LOGGER;
 
 public class ClusteringAttributeSelectorPanel extends InputPanel {
     private static final String ID_MULTISELECT = "multiselect";
@@ -104,12 +107,11 @@ public class ClusteringAttributeSelectorPanel extends InputPanel {
 
     @NotNull
     private ChoiceProvider<ClusteringAttributeRuleType> buildChoiceProvider() {
-        if(processModeType == RoleAnalysisProcessModeType.ROLE) {
-            return new ClusteringAttributeSelectionProvider(RoleType.COMPLEX_TYPE);
+        if (processModeType == RoleAnalysisProcessModeType.ROLE) {
+            return new ClusteringAttributeSelectionProvider(RoleType.class, getPageBase());
         }
-        return new ClusteringAttributeSelectionProvider(UserType.COMPLEX_TYPE);
+        return new ClusteringAttributeSelectionProvider(UserType.class, getPageBase());
     }
-
 
     private void initSelectionFragment() {
         ChoiceProvider<ClusteringAttributeRuleType> choiceProvider = buildChoiceProvider();
@@ -135,7 +137,7 @@ public class ClusteringAttributeSelectorPanel extends InputPanel {
 
     private void updateModelWithRules(Collection<ClusteringAttributeRuleType> refs, AjaxRequestTarget target) {
         int attributeRulesCount = refs.size();
-        if(attributeRulesCount == 0) {
+        if (attributeRulesCount == 0) {
             return;
         }
         double weightPerAttribute = 1.0 / attributeRulesCount;
@@ -166,8 +168,7 @@ public class ClusteringAttributeSelectorPanel extends InputPanel {
                 WebPrismUtil.createNewValueWrapper(rules, newRule, getPageBase(), target);
             }
         } catch (SchemaException e) {
-            throw new RuntimeException(e);
-            //TODO handle
+            LOGGER.error("Cannot update model with rules: {}", e.getMessage(), e);
         }
     }
 
@@ -231,7 +232,7 @@ public class ClusteringAttributeSelectorPanel extends InputPanel {
         return model;
     }
 
-    public boolean isEditable(){
+    public boolean isEditable() {
         return true;
     }
 }
