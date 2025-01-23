@@ -13,6 +13,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.EnumSet;
 
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.session.provider.SingleValueAttributeSelectionProvider;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 
 import org.apache.wicket.Component;
@@ -37,7 +38,6 @@ import com.evolveum.midpoint.common.mining.utils.values.RoleAnalysisSortMode;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.component.LabelWithHelpPanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.session.ObjectSimpleAttributeSelectionProvider;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
@@ -173,7 +173,7 @@ public class RoleAnalysisTableSettingPanel extends BasePanel<String> implements 
 
         //TODO decide what to do with this?
 
-        ChoiceProvider<ItemPathType> choiceProvider = new ObjectSimpleAttributeSelectionProvider(RoleType.COMPLEX_TYPE);
+        ChoiceProvider<ItemPathType> choiceProvider = new SingleValueAttributeSelectionProvider(RoleType.class, getPageBase());
 
         Select2MultiChoice<ItemPathType> multiselect = new Select2MultiChoice<>(ID_SELECTOR_ROLE,
                 initSelectedModel(true),
@@ -222,7 +222,7 @@ public class RoleAnalysisTableSettingPanel extends BasePanel<String> implements 
 
         //TODO mark good
         //TODO decide what to do with this?
-        ChoiceProvider<ItemPathType> choiceProvider = new ObjectSimpleAttributeSelectionProvider(UserType.COMPLEX_TYPE);
+        ChoiceProvider<ItemPathType> choiceProvider = new SingleValueAttributeSelectionProvider(UserType.class, getPageBase());
 
         Select2MultiChoice<ItemPathType> multiselect = new Select2MultiChoice<>(ID_SELECTOR_USER,
                 initSelectedModel(false),

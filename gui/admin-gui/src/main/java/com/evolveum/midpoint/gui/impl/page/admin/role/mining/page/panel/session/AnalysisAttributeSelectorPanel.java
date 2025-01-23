@@ -10,6 +10,7 @@ package com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.session
 import java.util.Collection;
 
 import com.evolveum.midpoint.web.component.prism.ValueStatus;
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.session.provider.AnalysisAttributeSelectionProvider;
 import com.evolveum.midpoint.web.component.util.EnableBehaviour;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -123,8 +124,7 @@ public class AnalysisAttributeSelectorPanel extends InputPanel {
 
     @NotNull
     private ChoiceProvider<ItemPathType> buildChoiceProvider() {
-
-        return new AnalysisAttributeSelectionProvider();
+        return new AnalysisAttributeSelectionProvider(getPageBase());
     }
 
     @Override
