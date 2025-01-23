@@ -983,10 +983,12 @@ public class OperationResult
         if (userFriendlyMessage == null) {
             userFriendlyMessage = localizableMessage;
         } else if (userFriendlyMessage instanceof SingleLocalizableMessage) {
-            userFriendlyMessage = new LocalizableMessageListBuilder()
-                    .message(userFriendlyMessage)
-                    .message(localizableMessage)
-                    .separator(LocalizableMessageList.SPACE).build();
+            if (!userFriendlyMessage.equals(localizableMessage)) {
+                userFriendlyMessage = new LocalizableMessageListBuilder()
+                        .message(userFriendlyMessage)
+                        .message(localizableMessage)
+                        .separator(LocalizableMessageList.SPACE).build();
+            }
         } else if (userFriendlyMessage instanceof LocalizableMessageList) {
             LocalizableMessageList userFriendlyMessageList = (LocalizableMessageList) this.userFriendlyMessage;
             userFriendlyMessage = new LocalizableMessageList(
@@ -999,6 +1001,10 @@ public class OperationResult
 
     private List<LocalizableMessage> mergeMessages(LocalizableMessageList sum, LocalizableMessage increment) {
         List<LocalizableMessage> rv = new ArrayList<>(sum.getMessages());
+        if(rv.contains(increment)){
+            return rv;
+        }
+
         if (increment instanceof SingleLocalizableMessage) {
             rv.add(increment);
         } else if (increment instanceof LocalizableMessageList) {
