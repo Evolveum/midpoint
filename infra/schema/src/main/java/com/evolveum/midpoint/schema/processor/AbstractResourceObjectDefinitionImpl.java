@@ -7,6 +7,7 @@
 
 package com.evolveum.midpoint.schema.processor;
 
+import static com.evolveum.midpoint.util.MiscUtil.castOrNull;
 import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
 
 import java.util.*;
@@ -221,12 +222,24 @@ public abstract class AbstractResourceObjectDefinitionImpl
 
     @Override
     public <T> @Nullable ShadowSimpleAttributeDefinition<T> findSimpleAttributeDefinition(QName name, boolean caseInsensitive) {
-        if (caseInsensitive || isMutable() || QNameUtil.isUnqualified(name)) {
-            return ResourceObjectDefinition.super.findSimpleAttributeDefinition(name, caseInsensitive);
-        }
-        var def = attributeDefinitionMap.get(name);
         //noinspection unchecked
-        return def instanceof ShadowSimpleAttributeDefinition<?> ? (ShadowSimpleAttributeDefinition<T>) def : null;
+        return (ShadowSimpleAttributeDefinition<T>) findLocalItemDefinition(
+                ItemName.fromQName(name), ShadowSimpleAttributeDefinition.class, caseInsensitive);
+    }
+
+    @Override
+    public @Nullable ShadowAttributeDefinition<?, ?, ?, ?> findAttributeDefinition(QName name, boolean caseInsensitive) {
+        return (ShadowAttributeDefinition<?, ?, ?, ?>) findLocalItemDefinition(name, ItemDefinition.class, caseInsensitive);
+    }
+
+    @Override
+    public <ID extends ItemDefinition<?>> ID findLocalItemDefinition(@NotNull QName name, @NotNull Class<ID> clazz, boolean caseInsensitive) {
+        if (caseInsensitive || isMutable() || QNameUtil.isUnqualified(name)) {
+            // Slow but safe
+            return findLocalItemDefinitionByIteration(ItemName.fromQName(name), clazz, caseInsensitive);
+        } else {
+            return castOrNull(attributeDefinitionMap.get(name), clazz);
+        }
     }
 
     @Override
@@ -711,7 +724,7 @@ public abstract class AbstractResourceObjectDefinitionImpl
         if (first == null) {
             return null;
         }
-        return findLocalItemDefinition(first.asSingleName(), clazz, false);
+        return castOrNull(findAttributeDefinition(first), clazz);
     }
 
     public @NotNull ResourceObjectDefinition forLayerMutable(@NotNull LayerType layer) {

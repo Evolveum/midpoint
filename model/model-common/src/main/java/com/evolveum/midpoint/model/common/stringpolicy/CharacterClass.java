@@ -98,7 +98,6 @@ public class CharacterClass {
         return characters;
     }
 
-    @VisibleForTesting
     public @NotNull String getCharactersAsString() {
         return StringPolicyUtils.charactersAsString(characters);
     }

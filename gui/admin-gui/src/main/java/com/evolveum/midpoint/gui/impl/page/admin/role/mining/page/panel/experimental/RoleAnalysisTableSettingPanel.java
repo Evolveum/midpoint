@@ -7,22 +7,13 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.experimental;
 
-import static com.evolveum.midpoint.common.mining.utils.RoleAnalysisAttributeDefUtils.*;
-
 import java.io.Serial;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.EnumSet;
 
-import com.evolveum.midpoint.common.mining.utils.values.RoleAnalysisChunkAction;
-
-import com.evolveum.midpoint.gui.api.model.LoadableModel;
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.session.ObjectSimpleAttributeSelectionProvider;
-import com.evolveum.midpoint.prism.ItemDefinition;
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismObjectDefinition;
-import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
-import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -30,25 +21,33 @@ import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
 import org.apache.wicket.markup.html.form.ChoiceRenderer;
 import org.apache.wicket.markup.html.form.DropDownChoice;
 import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.LoadableDetachableModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.StringResourceModel;
-import org.apache.xerces.xni.QName;
+import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
+import org.wicketstuff.select2.ChoiceProvider;
+import org.wicketstuff.select2.Select2MultiChoice;
 
 import com.evolveum.midpoint.common.mining.objects.analysis.RoleAnalysisAttributeDef;
 import com.evolveum.midpoint.common.mining.objects.chunk.DisplayValueOption;
 import com.evolveum.midpoint.common.mining.objects.handler.RoleAnalysisProgressIncrement;
+import com.evolveum.midpoint.common.mining.utils.values.RoleAnalysisChunkAction;
 import com.evolveum.midpoint.common.mining.utils.values.RoleAnalysisChunkMode;
 import com.evolveum.midpoint.common.mining.utils.values.RoleAnalysisSortMode;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.component.LabelWithHelpPanel;
+import com.evolveum.midpoint.gui.api.model.LoadableModel;
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.session.ObjectSimpleAttributeSelectionProvider;
+import com.evolveum.midpoint.prism.ItemDefinition;
+import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.PrismObjectDefinition;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.dialog.Popupable;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisProcessModeType;
-
-import org.wicketstuff.select2.ChoiceProvider;
-import org.wicketstuff.select2.Select2MultiChoice;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 
 public class RoleAnalysisTableSettingPanel extends BasePanel<String> implements Popupable {
 
@@ -73,24 +72,6 @@ public class RoleAnalysisTableSettingPanel extends BasePanel<String> implements 
     boolean isUserExpanded = false;
     boolean isRoleExpanded = false;
 
-    LoadableDetachableModel<RoleAnalysisAttributeDef> userAnalysisAttributeDef = new LoadableDetachableModel<>() {
-        @Serial private static final long serialVersionUID = 1L;
-
-        @Override
-        protected @NotNull RoleAnalysisAttributeDef load() {
-            return getObjectNameDef();
-        }
-    };
-
-    LoadableDetachableModel<RoleAnalysisAttributeDef> roleAnalysisAttributeDef = new LoadableDetachableModel<>() {
-        @Serial private static final long serialVersionUID = 1L;
-
-        @Override
-        protected @NotNull RoleAnalysisAttributeDef load() {
-            return getObjectNameDef();
-        }
-    };
-
     public RoleAnalysisTableSettingPanel(
             @NotNull String id,
             @NotNull IModel<String> messageModel,
@@ -98,21 +79,12 @@ public class RoleAnalysisTableSettingPanel extends BasePanel<String> implements 
         super(id, messageModel);
         this.option = option;
 
+        //TODO models initialization is not good
         if (option.getObject() == null) {
             option.setObject(new DisplayValueOption());
         } else {
             selectedTableMode = option.getObject().getChunkMode();
             updateBasedExpandedStatus(selectedTableMode);
-
-            RoleAnalysisAttributeDef userAnalysisUserDef = option.getObject().getUserAnalysisUserDef();
-            if (userAnalysisUserDef != null) {
-                userAnalysisAttributeDef.setObject(userAnalysisUserDef);
-            }
-
-            RoleAnalysisAttributeDef roleAnalysisRoleDef = option.getObject().getRoleAnalysisRoleDef();
-            if (roleAnalysisRoleDef != null) {
-                roleAnalysisAttributeDef.setObject(roleAnalysisRoleDef);
-            }
         }
     }
 
@@ -204,7 +176,7 @@ public class RoleAnalysisTableSettingPanel extends BasePanel<String> implements 
         ChoiceProvider<ItemPathType> choiceProvider = new ObjectSimpleAttributeSelectionProvider(RoleType.COMPLEX_TYPE);
 
         Select2MultiChoice<ItemPathType> multiselect = new Select2MultiChoice<>(ID_SELECTOR_ROLE,
-                initSelectedModel(roleAnalysisAttributeDef),
+                initSelectedModel(true),
                 choiceProvider);
 
         multiselect.getSettings()
@@ -214,7 +186,7 @@ public class RoleAnalysisTableSettingPanel extends BasePanel<String> implements 
 
             @Override
             protected void onUpdate(AjaxRequestTarget target) {
-                updateRoleAnalysisAttributeDefModel(multiselect.getModel().getObject());
+                updateDisplayValueDefModel(multiselect.getModel().getObject(), RoleType.class);
             }
         });
         multiselect.setOutputMarkupId(true);
@@ -253,7 +225,7 @@ public class RoleAnalysisTableSettingPanel extends BasePanel<String> implements 
         ChoiceProvider<ItemPathType> choiceProvider = new ObjectSimpleAttributeSelectionProvider(UserType.COMPLEX_TYPE);
 
         Select2MultiChoice<ItemPathType> multiselect = new Select2MultiChoice<>(ID_SELECTOR_USER,
-                initSelectedModel(userAnalysisAttributeDef),
+                initSelectedModel(false),
                 choiceProvider);
 
         multiselect.getSettings()
@@ -263,7 +235,7 @@ public class RoleAnalysisTableSettingPanel extends BasePanel<String> implements 
 
             @Override
             protected void onUpdate(AjaxRequestTarget target) {
-                updateUserAnalysisAttributeDefModel(multiselect.getModel().getObject());
+                updateDisplayValueDefModel(multiselect.getModel().getObject(), UserType.class);
             }
         });
         multiselect.setOutputMarkupId(true);
@@ -271,45 +243,39 @@ public class RoleAnalysisTableSettingPanel extends BasePanel<String> implements 
         add(multiselect);
     }
 
-    private void updateUserAnalysisAttributeDefModel(Collection<ItemPathType> selected) {
-        PrismObjectDefinition<?> userDefinition = PrismContext.get().getSchemaRegistry()
-                .findObjectDefinitionByCompileTimeClass(UserType.class);
-
-        if (option.getObject() == null) {
-            option.setObject(new DisplayValueOption());
-        }
-        for (ItemPathType pathType : selected) {
-            ItemPath path = pathType.getItemPath();
-            ItemDefinition<?> itemDefinition = userDefinition.findItemDefinition(path);
-
-            userAnalysisAttributeDef.setObject(new RoleAnalysisAttributeDef(path, itemDefinition));
-            option.getObject().setUserAnalysisUserDef(userAnalysisAttributeDef.getObject());
-        }
-    }
-
-    private void updateRoleAnalysisAttributeDefModel(Collection<ItemPathType> selected) {
+    private void updateDisplayValueDefModel(Collection<ItemPathType> selected, Class<? extends FocusType> parentType) {
         PrismObjectDefinition<?> roleDefinition = PrismContext.get().getSchemaRegistry()
-                .findObjectDefinitionByCompileTimeClass(RoleType.class);
+                .findObjectDefinitionByCompileTimeClass(parentType);
 
         if (option.getObject() == null) {
             option.setObject(new DisplayValueOption());
         }
+
         for (ItemPathType pathType : selected) {
             ItemPath path = pathType.getItemPath();
             ItemDefinition<?> itemDefinition = roleDefinition.findItemDefinition(path);
 
-            roleAnalysisAttributeDef.setObject(new RoleAnalysisAttributeDef(path, itemDefinition));
-            option.getObject().setRoleAnalysisRoleDef(roleAnalysisAttributeDef.getObject());
+            if (parentType == UserType.class) {
+                option.getObject().setUserAnalysisUserDef(new RoleAnalysisAttributeDef(path, itemDefinition, parentType));
+            } else {
+                option.getObject().setRoleAnalysisRoleDef(new RoleAnalysisAttributeDef(path, itemDefinition, parentType));
+            }
+
         }
     }
 
-    private LoadableModel<Collection<ItemPathType>> initSelectedModel(LoadableDetachableModel<RoleAnalysisAttributeDef> model) {
+    @Contract(value = "_ -> new", pure = true)
+    private @NotNull LoadableModel<Collection<ItemPathType>> initSelectedModel(boolean isRoleCategorySelector) {
         return new LoadableModel<>(false) {
 
             @Override
             protected Collection<ItemPathType> load() {
-                return Collections.singleton(model.getObject()
-                        .getPath().toBean());
+                DisplayValueOption optionObject = option.getObject();
+
+                RoleAnalysisAttributeDef nameIfNullAnalysisUserDef = isRoleCategorySelector
+                        ? optionObject.getNameIfNullAnalysisRoleDef()
+                        : optionObject.getNameIfNullAnalysisUserDef();
+                return Collections.singleton(nameIfNullAnalysisUserDef.getPath().toBean());
             }
         };
     }

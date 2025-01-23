@@ -6,9 +6,15 @@
  */
 package com.evolveum.midpoint.gui.impl.factory.panel.searchfilter;
 
+import com.evolveum.midpoint.gui.impl.page.admin.resource.PageResource;
 import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.PrismObjectDefinition;
+import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
+import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.SchemaException;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.ThreadContext;
@@ -80,10 +86,21 @@ public class SearchFilterTypeForQueryModel<O extends ObjectType> extends SearchF
         }
     }
 
-    public void parseQuery(String object) throws SchemaException, ConfigurationException {
+    public final void parseQuery(String object) throws SchemaException, ConfigurationException {
+        parseQuery(object, true);
+    }
+
+    public final void parseQueryWithoutSetValue(String object) throws SchemaException, ConfigurationException {
+        parseQuery(object, false);
+    }
+
+    protected void parseQuery(String object, boolean setValue) throws SchemaException, ConfigurationException {
         ObjectFilter objectFilter = getPageBase().getPrismContext().createQueryParser().parseFilter(filterTypeModel.getObject(), object);
         SearchFilterType filter = getPageBase().getQueryConverter().createSearchFilterType(objectFilter);
         filter.setText(object);
-        getBaseModel().setObject(filter);
+
+        if (setValue) {
+            getBaseModel().setObject(filter);
+        }
     }
 }

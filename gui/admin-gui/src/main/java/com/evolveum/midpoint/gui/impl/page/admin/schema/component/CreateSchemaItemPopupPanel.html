@@ -1,0 +1,25 @@
+<!--
+  ~ Copyright (c) 2023 Evolveum
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+<wicket:panel xmlns:wicket="http://wicket.apache.org">
+    <h6 class="text-center text-secondary mb-1 lh-2">
+        <wicket:message key="CreateSchemaItemPopupPanel.description"/>
+    </h6>
+    <form wicket:id="form">
+        <div wicket:id="panel"/>
+    </form>
+
+    <wicket:fragment wicket:id="buttons">
+        <div class="d-flex">
+            <a wicket:id="cancelButton" class="mr-auto btn btn-link">
+                <span><wicket:message key="PageBase.button.cancel"/></span>
+            </a>
+            <a wicket:id="createButton" class="ml-auto btn btn-primary">
+                <span><wicket:message key="CreateSchemaItemPopupPanel.button.create"/></span>
+            </a>
+        </div>
+    </wicket:fragment>
+</wicket:panel>

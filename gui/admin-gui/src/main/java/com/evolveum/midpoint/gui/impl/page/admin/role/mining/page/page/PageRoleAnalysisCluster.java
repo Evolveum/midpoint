@@ -48,6 +48,8 @@ import com.evolveum.midpoint.web.component.AjaxCompositedIconSubmitButton;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
+import org.jetbrains.annotations.Nullable;
+
 import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.RoleAnalysisWebUtils.CLASS_CSS;
 
 //TODO correct authorizations
@@ -84,12 +86,32 @@ public class PageRoleAnalysisCluster extends PageAssignmentHolderDetails<RoleAna
     @Override
     protected void onBackPerform(AjaxRequestTarget target) {
         PageParameters parameters = new PageParameters();
+
         ObjectReferenceType roleAnalysisSessionRef = getModelObjectType().getRoleAnalysisSessionRef();
         parameters.add(OnePageParameterEncoder.PARAMETER, roleAnalysisSessionRef.getOid());
-        parameters.add("panelId", "clusters");
+        parameters.add("panelId", getBackPerformPanelId(getModelObjectType()));
         Class<? extends PageBase> detailsPageClass = DetailsPageUtil
                 .getObjectDetailsPage(RoleAnalysisSessionType.class);
         ((PageBase) getPage()).navigateToNext(detailsPageClass, parameters);
+    }
+
+    private @Nullable String getBackPerformPanelId(@NotNull RoleAnalysisClusterType cluster) {
+        PageBase pageBase = ((PageBase) getPage());
+        RoleAnalysisService roleAnalysisService = pageBase.getRoleAnalysisService();
+        Task task = pageBase.createSimpleTask("Retrieve cluster session");
+        OperationResult result = task.getResult();
+        PrismObject<RoleAnalysisSessionType> sessionTypeObject = roleAnalysisService
+                .getSessionTypeObject(cluster.getRoleAnalysisSessionRef().getOid(), task, result);
+        if (sessionTypeObject == null) {
+            return null;
+        }
+        RoleAnalysisOptionType analysisOption = sessionTypeObject.asObjectable().getAnalysisOption();
+        RoleAnalysisProcedureType procedureType = analysisOption.getAnalysisProcedureType();
+        if (procedureType.equals(RoleAnalysisProcedureType.OUTLIER_DETECTION)) {
+            return "outlier-clustering-result";
+        }
+
+        return "mining-clustering-result";
     }
 
     @Override
@@ -127,7 +149,7 @@ public class PageRoleAnalysisCluster extends PageAssignmentHolderDetails<RoleAna
             }
 
             @Override
-            protected void onError(AjaxRequestTarget target) {
+            protected void onError(@NotNull AjaxRequestTarget target) {
                 target.add(((PageBase) getPage()).getFeedbackPanel());
             }
         };
@@ -259,22 +281,43 @@ public class PageRoleAnalysisCluster extends PageAssignmentHolderDetails<RoleAna
                 .resolveClusterOptionType(cluster.asPrismObject(), task, task.getResult());
 
         RoleAnalysisProcedureType procedureType = roleAnalysisOptionType.getAnalysisProcedureType();
+
         if (procedureType == null) {
-            return super.getPanelConfigurations();
+            procedureType = reviseProcedureType(cluster);
         }
 
         List<ContainerPanelConfigurationType> object = panelConfigurations.getObject();
         for (ContainerPanelConfigurationType containerPanelConfigurationType : object) {
             if (containerPanelConfigurationType.getIdentifier().equals("actions")) {
                 resolveActionPanel(containerPanelConfigurationType, category, roleAnalysisOptionType);
-            } else if (containerPanelConfigurationType.getIdentifier().equals("clusterRoleSuggestions")
-                    && procedureType.equals(RoleAnalysisProcedureType.OUTLIER_DETECTION)) {
+            } else if (shouldHideClusterRoleSuggestion(containerPanelConfigurationType, procedureType)) {
                 containerPanelConfigurationType.setVisibility(UserInterfaceElementVisibilityType.HIDDEN);
             }
 
         }
 
         return panelConfigurations;
+    }
+
+    @Deprecated
+    private static @NotNull RoleAnalysisProcedureType reviseProcedureType(@NotNull RoleAnalysisClusterType cluster) {
+        RoleAnalysisDetectionOptionType detectionOption = cluster.getDetectionOption();
+        if (detectionOption != null && detectionOption.getSensitivity() != null) {
+            return RoleAnalysisProcedureType.OUTLIER_DETECTION;
+        } else {
+            return RoleAnalysisProcedureType.ROLE_MINING;
+        }
+
+    }
+
+    private static boolean shouldHideClusterRoleSuggestion(
+            @NotNull ContainerPanelConfigurationType containerPanelConfigurationType,
+            RoleAnalysisProcedureType procedureType) {
+        if (procedureType == null) {
+            return true;
+        }
+        return containerPanelConfigurationType.getIdentifier().equals("clusterRoleSuggestions")
+                && procedureType.equals(RoleAnalysisProcedureType.OUTLIER_DETECTION);
     }
 
     private static void resolveActionPanel(

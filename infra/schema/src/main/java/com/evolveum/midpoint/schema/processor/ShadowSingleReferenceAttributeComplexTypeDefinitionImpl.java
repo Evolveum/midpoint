@@ -12,6 +12,8 @@ import java.util.List;
 import java.util.Map;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.util.QNameUtil;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -20,6 +22,8 @@ import com.evolveum.midpoint.prism.annotation.ItemDiagramSpecification;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.schemaContext.SchemaContextDefinition;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowReferenceAttributesType;
+
+import static com.evolveum.midpoint.util.MiscUtil.castOrNull;
 
 /**
  * Implementation of a CTD for a {@link ShadowAttributesContainer} providing reference attributes only.
@@ -48,6 +52,23 @@ class ShadowSingleReferenceAttributeComplexTypeDefinitionImpl
         } else {
             return null;
         }
+    }
+
+    @Override
+    public @Nullable ShadowAttributeDefinition<?, ?, ?, ?> findAttributeDefinition(QName name, boolean caseInsensitive) {
+        if (QNameUtil.match(defaultObjectRefDefinition.getItemName(), name, caseInsensitive)) {
+            return defaultObjectRefDefinition;
+        } else {
+            return null;
+        }
+    }
+
+    @Override
+    public <ID extends ItemDefinition<?>> ID findLocalItemDefinition(
+            @NotNull QName name, @NotNull Class<ID> clazz, boolean caseInsensitive) {
+        return castOrNull(
+                findAttributeDefinition(name, caseInsensitive),
+                clazz);
     }
 
     @Override

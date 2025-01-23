@@ -190,10 +190,7 @@ public interface AttributeDefinitionStore
      * @param caseInsensitive if true, ignoring the case
      * @return found property definition or null
      */
-    default @Nullable ShadowAttributeDefinition<?, ?, ?, ?> findAttributeDefinition(QName name, boolean caseInsensitive) {
-        return (ShadowAttributeDefinition<?, ?, ?, ?>) findLocalItemDefinition(
-                ItemName.fromQName(name), ItemDefinition.class, caseInsensitive);
-    }
+    @Nullable ShadowAttributeDefinition<?, ?, ?, ?> findAttributeDefinition(QName name, boolean caseInsensitive);
 
     /**
      * Finds attribute definition using local name only.

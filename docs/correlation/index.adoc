@@ -47,8 +47,8 @@ However, currently it is supported only as a top-level rule, i.e., it is present
 
 The correlation configuration can reside in the following places:
 
-. A resource object type definition: either in top-level `correlation` item, or distributed into individual attribute definitions.
-. An object template, currently in top-level `correlation` item.
+. A xref:/midpoint/reference/resources/resource-configuration/schema-handling/object-types/[resource object type definition]: either in top-level `correlation` item, or distributed into individual attribute definitions.
+. An xref:/midpoint/reference/expressions/object-template/[object template], currently in top-level `correlation` item.
 footnote:[The item-bound usage is planned for the future. It can be configured now, but will not have any effect.]
 
 The reason for such flexibility is that in some scenarios, the correlation is bound to given type of focus objects, regardless of the origin of identity data we need to correlate.
@@ -88,7 +88,7 @@ The following is the most basic example: an attribute is mapped to a focus prope
 <2> Means that the account is correlated to the focus objects by searching for the corresponding value of `name` property.
 
 
-If multiple attributes are marked as `correlator`, any of them matching if enough for overall match.
+If multiple attributes are marked as `correlator`, any of them matching is enough for overall match.
 Technically they are evaluated separately; see xref:/midpoint/reference/correlation/rule-composition/[rule composition] for details.
 If there is a need of evaluation of two attributes together (meaning that they have to match both), it is necessary to use the explicit xref:/midpoint/reference/correlation/items-correlator/[`items` correlator].
 
@@ -191,16 +191,16 @@ An example:
 ----
 
 
-==== Example 4: Correlation for outbound resources
+==== Example 4: Correlation for Outbound Resources
 
 Smart correlation relies on inbound mapping converting resource's attribute to a property of midPoint object.
 Such approach is perfect for inbound resources because it simplifies the configuration.
-Nevertheless, there are use cases with strictly outbound resource with existing accounts that need to be correlater.
+Nevertheless, there are use cases with strictly outbound resource with existing accounts that need to be correlator.
 In such cases having an inbound mapping is not desired.
 
 For this situation midPoint supports the option to configure mapping for evaluation only for correlation and not for "standard" processing (by clockwork).
 
-.Listing 4. use inbound mapping only for correlation
+.Listing 4. Using inbound mapping only for correlation
 [source,xml]
 ----
 <schemaHandling>
@@ -223,8 +223,8 @@ For this situation midPoint supports the option to configure mapping for evaluat
     </objectType>
 </schemaHandling>
 ----
-<1> Means that the inbound mapping will be used only for correlation and otherwise won't be processed
-<2> Represents the outbound mapping as usual
+<1> Means that the inbound mapping will be used only for correlation and otherwise won't be processed.
+<2> Represents the outbound mapping as usual.
 
 == Advanced Concepts
 

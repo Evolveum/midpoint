@@ -36,7 +36,6 @@ public class TransformableContainerDefinition<C extends Containerable>
 
     protected TransformableContainerDefinition(PrismContainerDefinition<C> delegate) {
         this(delegate, delegate.getComplexTypeDefinition());
-
     }
 
     public TransformableContainerDefinition(PrismContainerDefinition<C> delegate, ComplexTypeDefinition typeDef) {
@@ -137,6 +136,12 @@ public class TransformableContainerDefinition<C extends Containerable>
             return complexTypeDefinition.getDefinitions();
         }
         return new ArrayList<>();
+    }
+
+    @Override
+    public <ID extends ItemDefinition<?>> ID findLocalItemDefinition(
+            @NotNull QName name, @NotNull Class<ID> clazz, boolean caseInsensitive) {
+        return delegate().findLocalItemDefinition(name, clazz, caseInsensitive);
     }
 
     @Override

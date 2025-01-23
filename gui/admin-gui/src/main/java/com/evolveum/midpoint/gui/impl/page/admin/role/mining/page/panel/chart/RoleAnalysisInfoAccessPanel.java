@@ -19,13 +19,15 @@ import java.io.IOException;
 import java.io.Serial;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
+import com.evolveum.midpoint.gui.impl.component.icon.IconCssStyle;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.chart.ChartType;
+import com.evolveum.midpoint.model.api.mining.RoleAnalysisService;
+import com.evolveum.midpoint.prism.query.builder.S_FilterExit;
 import com.evolveum.midpoint.web.component.dialog.Popupable;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ListMultimap;
@@ -57,7 +59,6 @@ import com.evolveum.midpoint.gui.impl.page.admin.role.mining.model.RoleAnalysisM
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.tmp.panel.IconWithLabel;
 import com.evolveum.midpoint.gui.impl.page.admin.simulation.DetailsTableItem;
 import com.evolveum.midpoint.prism.PrismContainerValue;
-import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.ObjectReferencePathSegment;
 import com.evolveum.midpoint.prism.path.ParentPathSegment;
@@ -76,13 +77,11 @@ import com.evolveum.midpoint.web.page.admin.configuration.component.PageDebugDow
 import com.evolveum.midpoint.web.security.MidPointApplication;
 import com.evolveum.midpoint.web.security.WebApplicationConfiguration;
 import com.evolveum.midpoint.web.util.TooltipBehavior;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import com.evolveum.wicket.chartjs.ChartConfiguration;
 import com.evolveum.wicket.chartjs.ChartJsPanel;
+
+import javax.xml.namespace.QName;
 
 public class RoleAnalysisInfoAccessPanel extends BasePanel<String> implements Popupable {
 
@@ -119,9 +118,8 @@ public class RoleAnalysisInfoAccessPanel extends BasePanel<String> implements Po
         chartContainer.setOutputMarkupId(true);
         add(chartContainer);
 
-
         IconWithLabel cardTitle = new IconWithLabel(ID_CARD_TITLE,
-                createStringResource("PageRoleAnalysis.chart.access.distribution.title")){
+                createStringResource("PageRoleAnalysis.chart.access.distribution.title")) {
             @Contract(pure = true)
             @Override
             protected @NotNull String getIconCssClass() {
@@ -181,7 +179,6 @@ public class RoleAnalysisInfoAccessPanel extends BasePanel<String> implements Po
         initExportButton(toolForm);
 
     }
-
 
     private void initExportButton(Form<?> toolForm) {
         CompositedIconBuilder iconBuilder = new CompositedIconBuilder().setBasicIcon(GuiStyleConstants.CLASS_IMPORT_MENU_ITEM,
@@ -296,16 +293,21 @@ public class RoleAnalysisInfoAccessPanel extends BasePanel<String> implements Po
         return chartTypeButton;
     }
 
-    private AjaxCompositedIconSubmitButton buildModeButton(String id, ChartJsPanel<ChartConfiguration> roleAnalysisChart) {
+    private @NotNull AjaxCompositedIconSubmitButton buildModeButton(String id, ChartJsPanel<ChartConfiguration> roleAnalysisChart) {
+
         CompositedIconBuilder iconBuilder = new CompositedIconBuilder().setBasicIcon("fe fe-role object-role-color",
                 LayeredIconCssStyle.IN_ROW_STYLE);
         AjaxCompositedIconSubmitButton modeButton = new AjaxCompositedIconSubmitButton(id, iconBuilder.build(),
                 new LoadableModel<>() {
-                    @Override
-                    protected String load() {
-                        return getModeButtonTitle().getString();
-                    }
-                }) {
+            @Override
+            protected String load() {
+                if (isUserMode) {
+                    return createStringResource("PageRoleAnalysis.chart.mode.user.button.title").getString();
+                }
+                return createStringResource("PageRoleAnalysis.chart.mode.role.button.title").getString();
+            }
+        }) {
+
             @Override
             public CompositedIcon getIcon() {
                 String scaleIcon;
@@ -315,7 +317,7 @@ public class RoleAnalysisInfoAccessPanel extends BasePanel<String> implements Po
                     scaleIcon = "fe fe-role object-role-color";
                 }
                 return new CompositedIconBuilder().setBasicIcon(scaleIcon,
-                        LayeredIconCssStyle.IN_ROW_STYLE).build();
+                        IconCssStyle.IN_ROW_STYLE).build();
             }
 
             @Serial
@@ -430,44 +432,12 @@ public class RoleAnalysisInfoAccessPanel extends BasePanel<String> implements Po
     }
 
     public RoleAnalysisAggregateChartModel getRoleAnalysisStatistics() {
-        return new RoleAnalysisAggregateChartModel(new LoadableDetachableModel<>() {
+        return new RoleAnalysisAggregateChartModel(getPageBase(), new LoadableDetachableModel<>() {
             @Override
             protected List<RoleAnalysisModel> load() {
                 return prepareRoleAnalysisData();
             }
-        }, chartType) {
-            @Override
-            public String getXAxisTitle() {
-                if (chartType.equals(SCATTER)) {
-                    return getPageBase().createStringResource("PageRoleAnalysis.chart.yAxis.title").getString();
-                }
-                return getPageBase().createStringResource("PageRoleAnalysis.chart.xAxis.title").getString();
-            }
-
-            @Override
-            public String getYAxisTitle() {
-                if (chartType.equals(SCATTER)) {
-                    return getPageBase().createStringResource("PageRoleAnalysis.chart.xAxis.title").getString();
-                }
-                return getPageBase().createStringResource("PageRoleAnalysis.chart.yAxis.title").getString();
-            }
-
-            @Override
-            public String getDatasetUserLabel() {
-                if (isUserMode) {
-                    return getPageBase().createStringResource("PageRoleAnalysis.chart.dataset.user.userMode.label").getString();
-                }
-                return getPageBase().createStringResource("PageRoleAnalysis.chart.dataset.user.roleMode.label").getString();
-            }
-
-            @Override
-            public String getDatasetRoleLabel() {
-                if (isUserMode) {
-                    return getPageBase().createStringResource("PageRoleAnalysis.chart.dataset.role.userMode.label").getString();
-                }
-                return getPageBase().createStringResource("PageRoleAnalysis.chart.dataset.role.roleMode.label").getString();
-            }
-        };
+        }, chartType, isUserMode);
     }
 
     private @NotNull List<RoleAnalysisModel> prepareRoleAnalysisData() {
@@ -520,7 +490,13 @@ public class RoleAnalysisInfoAccessPanel extends BasePanel<String> implements Po
     @NotNull
     private SearchResultList<PrismContainerValue<?>> loadAggregateStatistics() {
         RepositoryService repositoryService = getPageBase().getRepositoryService();
+        RoleAnalysisService roleAnalysisService = getPageBase().getRoleAnalysisService();
         OperationResult result = new OperationResult(OP_LOAD_STATISTICS);
+
+        Collection<QName> memberRelations = getPageBase().getRelationRegistry()
+                .getAllRelationsFor(RelationKindType.MEMBER);
+
+        S_FilterExit filter = roleAnalysisService.buildStatisticsAssignmentSearchFilter(memberRelations);
 
         SearchResultList<PrismContainerValue<?>> aggregateResult = new SearchResultList<>();
 
@@ -528,8 +504,7 @@ public class RoleAnalysisInfoAccessPanel extends BasePanel<String> implements Po
         try {
             spec.retrieve(F_NAME, ItemPath.create(AssignmentType.F_TARGET_REF, new ObjectReferencePathSegment(), F_NAME))
                     .retrieve(AssignmentType.F_TARGET_REF)
-                    .filter(PrismContext.get().queryFor(AssignmentType.class).ownedBy(UserType.class, UserType.F_ASSIGNMENT)
-                            .and().ref(AssignmentType.F_TARGET_REF).type(RoleType.class).buildFilter())
+                    .filter(filter.buildFilter())
                     .count(F_ASSIGNMENT, ItemPath.SELF_PATH)
                     .groupBy(ItemPath.create(new ParentPathSegment(), F_ASSIGNMENT));
 

@@ -1108,4 +1108,7 @@ public abstract class PageAdminLTE extends WebPage implements ModelServiceLocato
     public MarkManager getMarkManager() {
         return markManager;
     }
+
+    public void changeLocal(AjaxRequestTarget target) {
+    }
 }

@@ -13,6 +13,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.evolveum.midpoint.common.mining.objects.analysis.cache.AttributeAnalysisCache;
+import com.evolveum.midpoint.common.mining.objects.analysis.cache.ObjectCategorisationCache;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
@@ -42,13 +43,14 @@ public class RoleBasedClustering implements Clusterable {
     /**
      * Executes the clustering operation for role analysis.
      *
-     * @param roleAnalysisService    The role analysis service for performing operations.
-     * @param modelService           The model service for performing operations.
-     * @param session                The role analysis session object to be processed.
-     * @param handler                The progress increment handler for tracking the execution progress.
+     * @param roleAnalysisService The role analysis service for performing operations.
+     * @param modelService The model service for performing operations.
+     * @param session The role analysis session object to be processed.
+     * @param handler The progress increment handler for tracking the execution progress.
      * @param attributeAnalysisCache The cache for storing attribute analysis data.
-     * @param task                   The task being executed.
-     * @param result                 The operation result to record the outcome.
+     * @param objectCategorisationCache The cache for storing object categorisation data.
+     * @param task The task being executed.
+     * @param result The operation result to record the outcome.
      * @return A list of PrismObject instances representing the role analysis clusters.
      */
     @Override
@@ -57,7 +59,8 @@ public class RoleBasedClustering implements Clusterable {
             @NotNull ModelService modelService,
             @NotNull RoleAnalysisSessionType session,
             @NotNull RoleAnalysisProgressIncrement handler,
-            @NotNull AttributeAnalysisCache attributeAnalysisCache, @NotNull Task task,
+            @NotNull AttributeAnalysisCache attributeAnalysisCache,
+            @NotNull ObjectCategorisationCache objectCategorisationCache, @NotNull Task task,
             @NotNull OperationResult result) {
 
         RoleAnalysisSessionOptionType roleModeOptions = session.getRoleModeOptions();
@@ -80,8 +83,10 @@ public class RoleBasedClustering implements Clusterable {
                 roleSearchFilter,
                 assignmentSearchFilter,
                 attributeAnalysisCache,
+                objectCategorisationCache,
                 task,
-                result);
+                result,
+                session);
 
         handler.iterateActualStatus();
 
@@ -104,7 +109,7 @@ public class RoleBasedClustering implements Clusterable {
         List<Cluster<DataPoint>> clusters = dbscan.cluster(dataPoints, handler);
 
         return new RoleAnalysisAlgorithmUtils().processClusters(roleAnalysisService, dataPoints, clusters, session,
-                attributeAnalysisCache, handler, task, result);
+                attributeAnalysisCache, objectCategorisationCache, handler, task, result);
 
     }
 

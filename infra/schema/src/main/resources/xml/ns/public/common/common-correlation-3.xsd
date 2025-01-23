@@ -548,6 +548,11 @@
                                     in arbitrary order. If you want to prescribe specific order, please use multiple
                                     filter correlators.</p>
                             </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:schemaContext>
+                                    <a:type>tns:FocusType</a:type>
+                                </a:schemaContext>
+                            </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
                     <xsd:element name="confirmation" type="c:ExpressionType" minOccurs="0">

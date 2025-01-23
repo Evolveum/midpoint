@@ -89,6 +89,11 @@ public class PrismContainerWrapperImpl<C extends Containerable>
     }
 
     @Override
+    public <ID extends ItemDefinition<?>> ID findLocalItemDefinition(@NotNull QName name, @NotNull Class<ID> clazz, boolean caseInsensitive) {
+        return getItemDefinition().findLocalItemDefinition(name, clazz, caseInsensitive);
+    }
+
+    @Override
     public List<PrismPropertyDefinition<?>> getPropertyDefinitions() {
         return getItemDefinition().getPropertyDefinitions();
     }

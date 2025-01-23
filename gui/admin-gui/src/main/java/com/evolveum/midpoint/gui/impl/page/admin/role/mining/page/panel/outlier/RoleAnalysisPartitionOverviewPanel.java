@@ -6,6 +6,7 @@
  */
 package com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.outlier;
 
+import static com.evolveum.midpoint.gui.api.util.LocalizationUtil.translate;
 import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.table.RoleAnalysisTableTools.densityBasedColorOposite;
 
 import java.math.BigDecimal;
@@ -106,8 +107,9 @@ public class RoleAnalysisPartitionOverviewPanel extends BasePanel<RoleAnalysisOu
         double pointsDensity = bd.doubleValue();
 
         OutlierHeaderResultPanel components = new OutlierHeaderResultPanel(id,
+                outlierModel.getObject().getOid(),
                 outlierName,
-                "User has been marked as outlier object due to confidence score:",
+                translate("Analysis.outlier.result.panel.title"),
                 String.valueOf(pointsDensity), formattedDate);
         components.setOutputMarkupId(true);
         return components;

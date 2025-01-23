@@ -14,6 +14,7 @@ import com.evolveum.midpoint.gui.api.prism.wrapper.PrismPropertyWrapper;
 import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
 import com.evolveum.midpoint.gui.impl.factory.wrapper.AssignmentHolderWrapperFactoryImpl;
 import com.evolveum.midpoint.gui.impl.factory.wrapper.PrismObjectWrapperFactoryImpl;
+import com.evolveum.midpoint.gui.impl.prism.wrapper.PrismPropertyWrapperImpl;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -50,12 +51,14 @@ public class SchemaWrapperFactory extends AssignmentHolderWrapperFactoryImpl {
                 ItemPath.create(WebPrismUtil.PRISM_SCHEMA, PrismSchemaType.F_NAMESPACE));
         if (namespace != null) {
             objectValueWrapper.addItem(namespace);
+            ((PrismPropertyWrapperImpl)namespace).setMuteDeltaCreate(true);
         }
 
         PrismPropertyWrapper<Object> defaultPrefix = objectValueWrapper.findProperty(
                 ItemPath.create(WebPrismUtil.PRISM_SCHEMA, PrismSchemaType.F_DEFAULT_PREFIX));
         if (defaultPrefix != null) {
             objectValueWrapper.addItem(defaultPrefix);
+            ((PrismPropertyWrapperImpl)defaultPrefix).setMuteDeltaCreate(true);
         }
 
 

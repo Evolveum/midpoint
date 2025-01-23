@@ -18,6 +18,10 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 
 import org.jetbrains.annotations.Nullable;
 
+import javax.xml.namespace.QName;
+
+import static com.evolveum.midpoint.util.MiscUtil.castOrNull;
+
 /**
  * Implementation of a CTD for a {@link ShadowAssociationsContainer}.
  *
@@ -43,11 +47,19 @@ class ShadowAssociationsComplexTypeDefinitionImpl
 
     @Override
     public <ID extends ItemDefinition<?>> ID findItemDefinition(@NotNull ItemPath path, @NotNull Class<ID> clazz) {
-        var def = objectDefinition.findItemDefinition(path, clazz);
-        if (def instanceof ShadowAssociationDefinition) {
-            return def;
+        if (path.size() == 1) {
+            return findLocalItemDefinition(path.firstToName(), clazz, false);
         } else {
             return null;
+        }
+    }
+
+    @Override
+    public <ID extends ItemDefinition<?>> ID findLocalItemDefinition(@NotNull QName name, @NotNull Class<ID> clazz, boolean caseInsensitive) {
+        if (caseInsensitive) {
+            return findLocalItemDefinitionByIteration(name, clazz, true);
+        } else {
+            return castOrNull(objectDefinition.findAssociationDefinition(name), clazz);
         }
     }
 

@@ -134,7 +134,9 @@ abstract public class ValueMetadataComputation {
     }
 
     private void recordOutput() {
-        result.addReturn("summary", outputMetadata.toString()); // temporary
+        // In case of lot of metadata this can grow very quickly and affect performance
+        // in veeery bad ways
+        // result.addReturn("summary", outputMetadata.toString());
     }
 
     abstract void logStart();

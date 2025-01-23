@@ -9,35 +9,71 @@
 :page-upkeep-status: yellow
 :page-toc: top
 
-Security policy object contains definition of a security-related setting for an midPoint instance.
+Security policy object contains definition of a security-related setting for a midPoint instance.
 It refers to password policies and contains configuration for different types of authentication and credentials (security questions, nonce, password).
 It is also used to define password resets, self-service registration and so on.
 
 == Security Policy Merging
 
-Starting from 4.7 version there is a possibility to merge security policies. This mechanism allows to apply different security policies for different groups of user. The security policy which should be applied to the user (or to the group of the users) can be defined in several places in midPoint:
+Starting from 4.7 version there is a possibility to merge security policies.
+This mechanism allows to apply different security policies for different groups of users.
+The security policy which should be applied to the user (or to the group of the users) can be defined in several places in midPoint:
 
-. in global security policy (assigned in system configuration),
+. in global security policy (referenced from system configuration),
 . in the organization to which the user belongs,
 . in the structural archetype (or its super-structural-archetypes) which is assigned to the user.
 
 All security policies which are defined in the specified objects are merged into one in such an order that security policies "closer" to the user have higher priority.
 This means the security policy from the user's archetype can extend/override a security policy from super archetype, super archetype security policy can extend/override a security policy from organization, a security policy from the organization can extend/override a global security policy.
-While merging the authentication configuration, every authentication module which wasn't defined in the previous security policy, will be added to the list of the authentication modules which further can be used in the authentication sequence (module identifier is used for analyzing if the module is already defined or not). While merging the authentication sequences, the algorithm looks for the sequences with the same identifier attribute and gathers all the modules which are defined for this concrete sequence among all security policies. The modules then are ordered depending on the module's `order` attribute value. If the module (within the same authentication sequence) with the same identifier is met in the more prioritized security policy, it will override the values of the previously defined module (for example, the necessity of the module which is defined in the global security policy can be overridden by defining the same module (the module with the same identifier) with a new necessity value in the archetype security policy).
+While merging the authentication configuration, every authentication module which wasn't defined in the previous security policy, will be added to the list of the authentication modules which further can be used in the authentication sequence (module identifier is used for analyzing if the module is already defined or not).
+While merging the authentication sequences, the algorithm looks for the sequences with the same identifier attribute and gathers all the modules which are defined for this concrete sequence among all security policies.
+The modules then are ordered depending on the module's `order` attribute value.
+If the module (within the same authentication sequence) with the same identifier is met in the more prioritized security policy, it will override the values of the previously defined module (for example, the necessity of the module which is defined in the global security policy can be overridden by defining the same module (the module with the same identifier) with a new necessity value in the archetype security policy).
 
 Following is the example of complex Security Policy.
 
 .Security Policy sample
+[%collapsible]
+====
 [source,xml]
 ----
 <securityPolicy oid="6df80eb2-0a63-11e7-8ced-af0e536f33e1" xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-3'>
     <name>Security Policy</name>
     <authentication>
-        <mailAuthentication>
-               <name>confirmationLink</name>
-            <displayName>Additional mail authentication</displayName>
-            <mailNonce>mailNonce</mailNonce>
-        </mailAuthentication>
+        <modules>
+            <loginForm>
+                <identifier>loginForm</identifier>
+            </loginForm>
+            <mailNonce>
+                <identifier>mailNonce</identifier>
+                <credentialName>mailNonce</credentialName>
+            </mailNonce>
+        </modules>
+        <sequence>
+            <identifier>admin-gui-default</identifier>
+            <displayName>Default gui sequence</displayName>
+            <channel>
+                <default>true</default>
+                <channelId>http://midpoint.evolveum.com/xml/ns/public/common/channels-3#user</channelId>
+                <urlSuffix>gui-default</urlSuffix>
+            </channel>
+            <module>
+                <identifier>loginForm</identifier>
+                <order>1</order>
+                <necessity>sufficient</necessity>
+            </module>
+        </sequence>
+        <sequence>
+            <identifier>password-reset</identifier>
+            <channel>
+                <channelId>http://midpoint.evolveum.com/xml/ns/public/common/channels-3#resetPassword</channelId>
+                <urlSuffix>resetPassword</urlSuffix>
+            </channel>
+            <module>
+                <identifier>mailNonce</identifier>
+                <necessity>required</necessity>
+            </module>
+        </sequence>
     </authentication>
     <credentials>
         <password>
@@ -94,15 +130,13 @@ Following is the example of complex Security Policy.
                       type="c:RoleType"/>
       </selfRegistration>
    </registration>
-   <credentialsReset>
-      <mailReset>
-         <name>Reset password using mail</name>
-         <additionalAuthenticationName>confirmationLink</additionalAuthenticationName>
-      </mailReset>
-   </credentialsReset>
+    <credentialsReset>
+        <identifier>credentials-reset</identifier>
+        <authenticationSequenceName>password-reset</authenticationSequenceName>
+    </credentialsReset>
 </securityPolicy>
 ----
-
+====
 
 == Configuring credentials
 

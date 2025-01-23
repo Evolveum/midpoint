@@ -151,3 +151,33 @@ $role-mining-static-header-level-5: 100px;
   height:50px;
   width:50px;
 }
+
+$marked-attribute-color: #495057;
+$marked-attribute-unusual-color: #CA444B;
+
+.progress-bar-marked-attribute {
+  font-weight: bold;
+  color: $marked-attribute-color;
+  a {
+    color: $marked-attribute-color;
+  }
+  i {
+    color: $marked-attribute-color !important;
+  }
+  .progress-bar {
+    background-color: $marked-attribute-color !important;
+  }
+}
+
+.progress-bar-marked-attribute-unusual {
+  color: $marked-attribute-unusual-color;
+  a {
+    color: $marked-attribute-unusual-color;
+  }
+  i {
+    color: $marked-attribute-unusual-color !important;
+  }
+  .progress-bar {
+    background-color: $marked-attribute-unusual-color !important;
+  }
+}

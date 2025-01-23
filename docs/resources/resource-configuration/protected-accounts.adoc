@@ -11,7 +11,7 @@ doc-type: intro
 :page-wiki-metadata-modify-date: 2019-08-27T15:11:47.967+02:00
 
 MidPoint can protect specific accounts against any change.
-Such accounts cannot be modified or deleted from midPoint, they will not appear in searches (imports), they will not be reconciled or otherwise synchronized and midPoint will even not be able to read them.
+Such accounts cannot be modified or deleted from midPoint, they will not be reconciled or otherwise synchronized.
 
 This feature is used to make sure that midPoint will not destroy vital accounts such as `root` or `administrator`.
 MidPoint is very flexible, using expressions and complex policies for provisioning.
@@ -20,7 +20,7 @@ This may happen especially while the policies are constructed during midPoint de
 Therefore midPoint provides a mechanism that limits possible impact of misconfiguration.
 This mechanism is called _protected accounts_.
 
-Protected accounts may be specified per-resource.
+Protected accounts may be specified per resource and per object type.
 The definition is part of account definition in the `schemaHandling` section.
 Following code provides an example of such definition:
 
@@ -29,7 +29,7 @@ Following code provides an example of such definition:
 <resource>
     ...
     <schemaHandling>
-    ...
+        ...
         <objectType>
             ...
             <marking>
@@ -53,7 +53,7 @@ The above example will protect accounts with `carLicense` attribute equal to "ig
 <resource>
     ...
     <schemaHandling>
-    ...
+        ...
         <objectType>
             ...
             <marking>

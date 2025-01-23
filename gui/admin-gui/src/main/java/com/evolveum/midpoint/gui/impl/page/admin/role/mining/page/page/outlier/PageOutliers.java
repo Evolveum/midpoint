@@ -7,6 +7,7 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.page.outlier;
 
+import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.RoleAnalysisWebUtils.explainOutlier;
 import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.RoleAnalysisWebUtils.loadUserWrapperForMarkAction;
 import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.table.RoleAnalysisTableTools.densityBasedColorOposite;
 
@@ -15,9 +16,6 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.*;
 
-import com.evolveum.midpoint.gui.api.factory.wrapper.PrismObjectWrapperFactory;
-import com.evolveum.midpoint.gui.api.factory.wrapper.WrapperContext;
-import com.evolveum.midpoint.gui.api.prism.ItemStatus;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.page.admin.mark.component.MarksOfObjectListPopupPanel;
@@ -146,7 +144,6 @@ public class PageOutliers extends PageAdmin {
                 return menuItems;
             }
 
-
             @Override
             protected void addBasicActions(List<InlineMenuItem> menuItems) {
                 //TODO TBD
@@ -204,6 +201,40 @@ public class PageOutliers extends PageAdmin {
                 IColumn<SelectableBean<RoleAnalysisOutlierType>, String> column;
 
                 column = new AbstractExportableColumn<>(
+                        createStringResource("RoleAnalysisOutlierTable.outlier.explanation")) {
+
+                    @Override
+                    public IModel<?> getDataModel(IModel<SelectableBean<RoleAnalysisOutlierType>> iModel) {
+                        return Model.of("");
+                    }
+
+                    @Override
+                    public void populateItem(Item<ICellPopulator<SelectableBean<RoleAnalysisOutlierType>>> cellItem,
+                            String componentId, IModel<SelectableBean<RoleAnalysisOutlierType>> model) {
+                        RoleAnalysisOutlierType outlierObject = model.getObject().getValue();
+                        Model<String> explanationTranslatedModel = explainOutlier(outlierObject);
+                        cellItem.add(new Label(componentId, explanationTranslatedModel));
+                    }
+
+                    @Override
+                    public boolean isSortable() {
+                        return false;
+                    }
+
+                    @Override
+                    public Component getHeader(String componentId) {
+                        return new LabelWithHelpPanel(componentId,
+                                createStringResource("RoleAnalysisOutlierTable.outlier.explanation")) {
+                            @Override
+                            protected IModel<String> getHelpModel() {
+                                return createStringResource("RoleAnalysisOutlierTable.outlier.explanation.help");
+                            }
+                        };
+                    }
+                };
+                defaultColumns.add(column);
+
+                column = new AbstractExportableColumn<>(
                         createStringResource("RoleAnalysisOutlierTable.outlier.access")) {
 
                     @Override
@@ -239,41 +270,6 @@ public class PageOutliers extends PageAdmin {
                     }
                 };
                 defaultColumns.add(column);
-                column = new AbstractExportableColumn<>(
-                        createStringResource("RoleAnalysisOutlierType.outlierPartitions")) {
-
-                    @Override
-                    public IModel<?> getDataModel(IModel<SelectableBean<RoleAnalysisOutlierType>> iModel) {
-                        RoleAnalysisOutlierType outlierObject = iModel.getObject().getValue();
-                        List<RoleAnalysisOutlierPartitionType> outlierPartitions = outlierObject.getPartition();
-                        return Model.of(outlierPartitions.size());
-                    }
-
-                    @Override
-                    public void populateItem(Item<ICellPopulator<SelectableBean<RoleAnalysisOutlierType>>> cellItem,
-                            String componentId, IModel<SelectableBean<RoleAnalysisOutlierType>> model) {
-                        RoleAnalysisOutlierType outlierObject = model.getObject().getValue();
-                        List<RoleAnalysisOutlierPartitionType> outlierPartitions = outlierObject.getPartition();
-                        cellItem.add(new Label(componentId, outlierPartitions.size()));
-                    }
-
-                    @Override
-                    public boolean isSortable() {
-                        return false;
-                    }
-
-                    @Override
-                    public Component getHeader(String componentId) {
-                        return new LabelWithHelpPanel(componentId,
-                                createStringResource("RoleAnalysisOutlierType.outlierPartitions")) {
-                            @Override
-                            protected IModel<String> getHelpModel() {
-                                return createStringResource("RoleAnalysisOutlierTable.outlier.partitions.help");
-                            }
-                        };
-                    }
-                };
-                defaultColumns.add(column);
 
                 column = new AbstractExportableColumn<>(
                         createStringResource("RoleAnalysisOutlierTable.outlier.confidence")) {
@@ -296,7 +292,12 @@ public class PageOutliers extends PageAdmin {
 
                     @Override
                     public boolean isSortable() {
-                        return false;
+                        return true;
+                    }
+
+                    @Override
+                    public String getSortProperty() {
+                        return RoleAnalysisOutlierType.F_OVERALL_CONFIDENCE.getLocalPart();
                     }
 
                     @Override

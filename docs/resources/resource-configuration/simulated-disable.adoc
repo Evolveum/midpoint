@@ -7,17 +7,19 @@
 :page-wiki-metadata-modify-date: 2014-03-25T10:34:34.785+01:00
 :page-keywords: [ 'activation', 'capabilities' ]
 :page-alias: { "parent" : "/midpoint/guides/" }
-:page-upkeep-status: yellow
+:page-upkeep-status: green
 
-There are resources that natively support `administrativeStatus`xref:/midpoint/reference/concepts/activation/[activation property]. These resources can natively do enable/disable of accounts.
+There are resources that natively support `administrativeStatus` xref:/midpoint/reference/concepts/activation/[activation property].
+These resources can natively do enable/disable of accounts.
 There is nothing to do for these resources except for xref:/midpoint/reference/resources/resource-configuration/schema-handling/activation/[setting up activation mappings].
 
 But there are also resources that do not support the activation at all.
 Or at least not directly.
-Typical case it is a resource connected by xref:/connectors/connectors/org.identityconnectors.databasetable.DatabaseTableConnector/[DatabaseTable connector]. The DatabaseTable connector is very generic.
-And even if the table exposed by the connector does include a status column the connector does not know about it.
-Therefore it cannot provide this capability.
-But even though the connector does not provide this capability midPoint can.
+Typical case it is a resource connected by xref:/connectors/connectors/org.identityconnectors.databasetable.DatabaseTableConnector/[DatabaseTable connector].
+The DatabaseTable connector is very generic.
+And even if the table exposed by the connector does include a status column, the connector does not know about it.
+Therefore, it cannot provide this capability.
+But even though the connector does not provide this capability, midPoint can.
 MidPoint can _simulate_ the capability.
 
 MidPoint can pretend that the connector in fact has an `administrativeStatus` activation capability.
@@ -48,13 +50,13 @@ Let's have a database table that looks like this:
 
 |===
 
-All the three columns will be presented as an ordinary account attributes by the DatabaseTable connector (except pehaps for `ID` which is an identifier and therefore is slightly extraordinary).
+All the three columns will be presented as an ordinary account attributes by the DatabaseTable connector (except perhaps for `ID` which is an identifier and therefore is slightly extraordinary).
 Therefore also `STATUS` will normally be presented just as a simple string attribute.
 Like this:
 
 [source,xml]
 ----
-<account>
+<shadow>
     ...
     <attributes>
         <icfs:uid>jack</icfs:uid>
@@ -62,17 +64,18 @@ Like this:
         <ri:FULL_NAME>Jack Sparrow</ri:FULL_NAME>
         <ri:STATUS>1</ri:STATUS>
     </attributes>
-</account>
+</shadow>
 ----
 
 But that's not what we want.
 The meaning of `STATUS` column is like this: if there is value `1` the account is enabled, if there is value `0` the account is disabled.
-So we actually do not want to present attribute `STATUS`. We want to present special activation property `administrativeStatus` so all midPoint code will know how to enabled and disable an account.
+So we actually do not want to present attribute `STATUS`.
+We want to present special activation property `administrativeStatus` so all midPoint code will know how to enable and disable an account.
 We want this:
 
 [source,xml]
 ----
-<account>
+<shadow>
     ...
     <attributes>
         <icfs:uid>jack</icfs:uid>
@@ -80,33 +83,33 @@ We want this:
         <ri:FULL_NAME>Jack Sparrow</ri:FULL_NAME>
     </attributes>
     <activation>
-      <administrativeStatus>enabled</administrativeStatus>
+        <administrativeStatus>enabled</administrativeStatus>
     </activation>
-</account>
+</shadow>
 ----
 
-Fortunately this is very easy to do in midPoint.
+Fortunately, this is very easy to do in midPoint.
 Just add this section to xref:/midpoint/reference/resources/resource-configuration/capabilities/[Resource Capabilities] section:
 
 [source,xml]
 ----
-   <capabilities xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-2">
-        <configured>
-            <cap:activation>
-                <cap:status>
-                    <cap:attribute>ri:STATUS</cap:attribute>
-                    <cap:enableValue>1</cap:enableValue>
-                    <cap:disableValue>0</cap:disableValue>
-                </cap:status>
-            </cap:activation>
-        </configured>
-    </capabilities>
+<capabilities xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-2">
+    <configured>
+        <cap:activation>
+            <cap:status>
+                <cap:attribute>ri:STATUS</cap:attribute>
+                <cap:enableValue>1</cap:enableValue>
+                <cap:disableValue>0</cap:disableValue>
+            </cap:status>
+        </cap:activation>
+    </configured>
+</capabilities>
 ----
 
-Once this is configured midPoint will convert any enable/disable operations to the appropriate modification of `STATUS` table column.
+Once this is configured, midPoint will convert any enable/disable operations to the appropriate modification of `STATUS` table column.
 It also works in reverse: when midPoint reads the account it will check the `STATUS` column and convert it to the value of `administrativeStatus` property.
 
-Therefore all that needs to be done is xref:/midpoint/reference/resources/resource-configuration/schema-handling/activation/[setting up activation mappings] for `administrativeStatus` property - exactly the same way as if the resource supported the capability in a native way.
+Therefore, all that needs to be done is xref:/midpoint/reference/resources/resource-configuration/schema-handling/activation/[setting up activation mappings] for `administrativeStatus` property - exactly the same way as if the resource supported the capability in a native way.
 There is no difference between native and simulated capability for midPoint mapping logic.
 
 
@@ -120,26 +123,28 @@ Therefore the LDAP connector cannot support this capability natively.
 And it needs to be simulated.
 
 Let's have OpenDJ as an example.
-OpenDJ has an operational attribute `ds-pwp-account-disabled`. Account is enabled if this attribute is not present at all.
-Account is disabled if it is set to `true`. This can be achieved with the following configuration:
+OpenDJ has an operational attribute `ds-pwp-account-disabled`.
+Account is enabled if this attribute is not present at all.
+Account is disabled if it is set to `true`.
+This can be achieved with the following configuration:
 
 [source,xml]
 ----
-    <capabilities xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-2">
-        <configured>
-            <cap:activation>
-                <cap:status>
-                    <cap:attribute>ri:ds-pwp-account-disabled</cap:attribute>
-                    <cap:enableValue/>
-                    <cap:disableValue>true</cap:disableValue>
-                </cap:status>
-            </cap:activation>
-        </configured>
-    </capabilities>
+<capabilities xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-2">
+    <configured>
+        <cap:activation>
+            <cap:status>
+                <cap:attribute>ri:ds-pwp-account-disabled</cap:attribute>
+                <cap:enableValue/>
+                <cap:disableValue>true</cap:disableValue>
+            </cap:status>
+        </cap:activation>
+    </configured>
+</capabilities>
 ----
 
 The strange looking clause `<cap:enableValue/>` does the trick.
-This means that the ds-pwp-account-disabled attribute will have no value at all when the account is enabled.
+This means that the `ds-pwp-account-disabled` attribute will have no value at all when the account is enabled.
 The rest is the same as in previous example.
 
 

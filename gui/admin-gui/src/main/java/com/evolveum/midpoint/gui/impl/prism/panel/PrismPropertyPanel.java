@@ -92,6 +92,12 @@ public class  PrismPropertyPanel<T> extends ItemPanel<PrismPropertyValueWrapper<
                 removeValue(valueToRemove, target);
             }
         };
+
+        if (getModelObject().isMultiValue()
+                && getModelObject().getValues().size() > 1
+                && item.getIndex() + 1 != getModelObject().getValues().size()) {
+            item.add(AttributeAppender.append("class", "pb-2"));
+        }
         item.add(panel);
         return panel;
     }

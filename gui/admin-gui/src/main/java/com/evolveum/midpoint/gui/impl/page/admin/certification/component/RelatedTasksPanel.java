@@ -207,6 +207,7 @@ public class RelatedTasksPanel extends BasePanel {
                 .item(ItemPath.create(TaskType.F_AFFECTED_OBJECTS, TaskAffectedObjectsType.F_ACTIVITY,
                         ActivityAffectedObjectsType.F_OBJECTS, BasicObjectSetType.F_OBJECT_REF))
                 .ref(campaignOid)
+                .asc(TaskType.F_COMPLETION_TIMESTAMP)
                 .build();
         OperationResult result = new OperationResult(OPERATION_LOAD_TASKS);
         List<PrismObject<TaskType>> tasks = WebModelServiceUtils.searchObjects(TaskType.class, query, null,
@@ -282,20 +283,4 @@ public class RelatedTasksPanel extends BasePanel {
         };
     }
 
-    private IModel<DisplayType> getCreatedReportsDisplayModel(int reportsCount) {
-        String reportsCountKey = reportsCount == 1 ? "PageCertCampaign.singleCreatedReportCount" :
-                "PageCertCampaign.createdReportsCount";
-        return () -> new DisplayType()
-                .label("PageCertCampaign.createdReportsTitle")
-                .help(createStringResource(reportsCountKey, reportsCount).getString());
-    }
-
-    private String getCreatedOnDateLabel(ReportDataType report) {
-        XMLGregorianCalendar createDate = report.getMetadata() != null ? report.getMetadata().getCreateTimestamp() : null;
-        String createdOn = WebComponentUtil.getLocalizedDate(createDate, DateLabelComponent.SHORT_NOTIME_STYLE);
-        if (StringUtils.isNotEmpty(createdOn)) {
-            return createStringResource("PageCertCampaign.createdOn", createdOn).getString();
-        }
-        return null;
-    }
 }

@@ -9,12 +9,14 @@ package com.evolveum.midpoint.gui.impl.component.form;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismReferenceWrapper;
 
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.component.message.Callout;
 import com.evolveum.midpoint.gui.impl.factory.panel.ItemRealValueModel;
+import com.evolveum.midpoint.gui.impl.factory.wrapper.PrismContainerWrapperFactoryImpl;
 import com.evolveum.midpoint.gui.impl.prism.panel.ItemPanelSettingsBuilder;
 import com.evolveum.midpoint.gui.impl.prism.panel.vertical.form.VerticalFormDefaultContainerablePanel;
 import com.evolveum.midpoint.gui.impl.prism.panel.vertical.form.VerticalFormPanel;
@@ -31,6 +33,7 @@ import com.evolveum.midpoint.web.component.message.FeedbackAlerts;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -258,9 +261,14 @@ public class CreateObjectForReferencePanel<R extends Referencable> extends BaseP
                             .build(),
                     getContainerConfiguration()) {
                 @Override
-                protected boolean isHeaderVisible() {
-                    return isHeaderOfCreateObjectVisible();
+                protected boolean isHeaderVisible(IModel model) {
+                    return isHeaderOfCreateObjectVisible(model);
                 }
+
+                //                @Override
+//                protected boolean isHeaderVisible(IModel<PrismContainerWrapper>) {
+//                    return isHeaderOfCreateObjectVisible();
+//                }
 
                 @Override
                 protected boolean isShowEmptyButtonVisible() {
@@ -270,6 +278,16 @@ public class CreateObjectForReferencePanel<R extends Referencable> extends BaseP
                 @Override
                 protected String getClassForPrismContainerValuePanel() {
                     return "bg-light border-0 rounded";
+                }
+
+                @Override
+                protected String getCssForHeader() {
+                    return "border border-bottom-0 border-left-0 border-right-0 rounded-0 p-2 pl-3 pr-3 mb-0 btn w-100";
+                }
+
+                @Override
+                protected String getCssClassForFormContainerOfValuePanel() {
+                    return "card-body mb-0 p-3";
                 }
             };
         } else {
@@ -315,7 +333,15 @@ public class CreateObjectForReferencePanel<R extends Referencable> extends BaseP
         return get(createComponentPath(ID_USE_EXISTING_CONTAINER, ID_USE_EXISTING_INPUT));
     }
 
-    private boolean isHeaderOfCreateObjectVisible() {
-        return isHeaderVisible;
+    protected boolean isHeaderOfCreateObjectVisible(IModel<PrismContainerWrapper> model) {
+        if(isHeaderVisible) {
+            if (model != null && model.getObject() != null
+                    && PrismContainerWrapperFactoryImpl.VIRTUAL_CONTAINER.equals(model.getObject().getPath())
+                    && PrismContainerWrapperFactoryImpl.VIRTUAL_CONTAINER.getLocalPart().equals(model.getObject().getDisplayName())) {
+                return false;
+            }
+            return true;
+        }
+        return false;
     }
 }

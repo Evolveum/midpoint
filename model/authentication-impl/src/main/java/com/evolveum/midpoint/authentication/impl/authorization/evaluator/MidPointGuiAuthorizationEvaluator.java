@@ -8,10 +8,10 @@ package com.evolveum.midpoint.authentication.impl.authorization.evaluator;
 
 import java.util.*;
 
-import com.evolveum.midpoint.authentication.impl.authorization.AuthorizationActionValue;
+import com.evolveum.midpoint.authentication.api.authorization.AuthorizationActionValue;
 import com.evolveum.midpoint.authentication.impl.authorization.DescriptorLoaderImpl;
 import com.evolveum.midpoint.authentication.impl.util.AuthSequenceUtil;
-import com.evolveum.midpoint.authentication.impl.util.EndPointsUrlMapping;
+import com.evolveum.midpoint.authentication.api.authorization.EndPointsUrlMapping;
 
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.security.api.*;

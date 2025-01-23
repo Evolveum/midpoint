@@ -10,6 +10,7 @@ import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.evolveum.midpoint.gui.api.prism.wrapper.ItemEditabilityHandler;
 import com.evolveum.midpoint.util.MiscUtil;
 
 import org.apache.wicket.Component;
@@ -40,6 +41,7 @@ public abstract class ItemPanelContext<T, IW extends ItemWrapper<?, ?>> implemen
     private Form<?> form;
     private AjaxEventBehavior ajaxEventBehavior;
     private ItemMandatoryHandler mandatoryHandler;
+    private ItemEditabilityHandler editabilityHandler;
     private VisibleEnableBehaviour visibleEnableBehaviour;
     private ExpressionValidator<T, IW> expressionValidator;
     private FeedbackAlerts feedback;
@@ -113,6 +115,10 @@ public abstract class ItemPanelContext<T, IW extends ItemWrapper<?, ?>> implemen
         this.mandatoryHandler = mandatoryHandler;
     }
 
+    public void setEditabilityHandler(ItemEditabilityHandler editabilityHandler) {
+        this.editabilityHandler = editabilityHandler;
+    }
+
     public void setVisibleEnableBehaviour(VisibleEnableBehaviour visibleEnableBehaviour) {
         this.visibleEnableBehaviour = visibleEnableBehaviour;
     }
@@ -126,6 +132,13 @@ public abstract class ItemPanelContext<T, IW extends ItemWrapper<?, ?>> implemen
             return mandatoryHandler.isMandatory(itemWrapper.getObject());
         }
         return itemWrapper.getObject().isMandatory();
+    }
+
+    public boolean isEditable() {
+        if (editabilityHandler != null) {
+            return editabilityHandler.isEditable(itemWrapper.getObject());
+        }
+        return !itemWrapper.getObject().isReadOnly();
     }
 
     public void setExpressionValidator(ExpressionValidator<T, IW> expressionValidator) {

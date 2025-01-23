@@ -55,8 +55,6 @@ public class ResourceObjectTypeArchetypeValueWrapperImpl<T extends Referencable>
                 .applicableForOperation(OperationTypeType.WIZARD)
                 .container(new VirtualContainersSpecificationType()
                         .identifier("new-archetype")
-                        .display(new DisplayType()
-                                .label("ContainerPanel.containerProperties"))
                         .item(new VirtualContainerItemSpecificationType()
                                 .path(new ItemPathType(ArchetypeType.F_SUPER_ARCHETYPE_REF))
                                 .visibility(UserInterfaceElementVisibilityType.VISIBLE))

@@ -22,14 +22,13 @@ Find the problematic configuration item definition in the schema:
 [source,xml]
 ----
 <xsd:element name="DirectoryAdminPassword" type="xsd:string">
-  <xsd:annotation>
-    <xsd:appinfo>
-      <a:displayName>Directory Administrator's Password</a:displayName>
-      <a:help>Directory Administrator's Password</a:help>
-    </xsd:appinfo>
-  </xsd:annotation>
+    <xsd:annotation>
+        <xsd:appinfo>
+            <a:displayName>Directory Administrator's Password</a:displayName>
+            <a:help>Directory Administrator's Password</a:help>
+        </xsd:appinfo>
+    </xsd:annotation>
 </xsd:element>
-
 ----
 
 Note the type definition: `type="xsd:string"`.
@@ -42,39 +41,37 @@ Edit the schema by replacing the string type with `ProtectedStringType`:
 [source,xml]
 ----
 <xsd:element name="DirectoryAdminPassword" type="c:ProtectedStringType">
-  <xsd:annotation>
-    <xsd:appinfo>
-      <a:displayName>Directory Administrator's Password</a:displayName>
-      <a:help>Directory Administrator's Password</a:help>
-    </xsd:appinfo>
-  </xsd:annotation>
+    <xsd:annotation>
+        <xsd:appinfo>
+            <a:displayName>Directory Administrator's Password</a:displayName>
+            <a:help>Directory Administrator's Password</a:help>
+        </xsd:appinfo>
+    </xsd:annotation>
 </xsd:element>
-
 ----
 
-Make sure that the appropariate namespace prefix is defined (the `c` prefix in this case):
+Make sure that the appropriate namespace prefix is defined (the `c` prefix in this case):
 
 [source,xml]
 ----
-<connector xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-2a" oid="8154bc3d-2eaa-4725-8b04-581c8ba1aa01" version="3">
-  <name>ICF Org.IdentityConnectors.ActiveDirectory.ActiveDirectoryConnector @ICF Connector server on medusa:8759</name>
-  <framework>http://midpoint.evolveum.com/xml/ns/public/connector/icf-1</framework>
-  <connectorType>Org.IdentityConnectors.ActiveDirectory.ActiveDirectoryConnector</connectorType>
-  <connectorVersion>1.0.0.5570</connectorVersion>
-  <connectorBundle>ActiveDirectory.Connector</connectorBundle>
-  <namespace>http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/ActiveDirectory.Connector/Org.IdentityConnectors.ActiveDirectory.ActiveDirectoryConnector</namespace>
-  <connectorHostRef xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2a" oid="91919191-76e0-59e2-86d6-44cc44cc44cc" type="c:ConnectorHostType"/>
-  <schema>
+<connector xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3" oid="8154bc3d-2eaa-4725-8b04-581c8ba1aa01" version="3">
+    <name>ICF Org.IdentityConnectors.ActiveDirectory.ActiveDirectoryConnector @ICF Connector server on medusa:8759</name>
+    <framework>http://midpoint.evolveum.com/xml/ns/public/connector/icf-1</framework>
+    <connectorType>Org.IdentityConnectors.ActiveDirectory.ActiveDirectoryConnector</connectorType>
+    <connectorVersion>1.0.0.5570</connectorVersion>
+    <connectorBundle>ActiveDirectory.Connector</connectorBundle>
+    <namespace>http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/ActiveDirectory.Connector/Org.IdentityConnectors.ActiveDirectory.ActiveDirectoryConnector</namespace>
+    <connectorHostRef oid="91919191-76e0-59e2-86d6-44cc44cc44cc" type="ConnectorHostType"/>
+    <schema>
     <definition>
-        <xsd:schema xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
-                    xmlns:c="http://prism.evolveum.com/xml/ns/public/annotation-2">
+        <xsd:schema xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
             ...
             <!-- The following line has been added -->
-            <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"/>
+            <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-3"/>
             ...
         </xsd:schema>
-     </definition>
-  </schema>
+    </definition>
+    </schema>
 </connector>
 
 ----
@@ -87,20 +84,19 @@ Instead of using string in the resource definition use protected strings as usua
 [source,xml]
 ----
 <resource>
-  ...
-  <configuration>
-    <icfc:configurationProperties>
-      ...
-      <icfi:DirectoryAdminPassword>
-        <clearValue>sup3rS3cr3t</clearValue>
-      </icfi:DirectoryAdminPassword>
-      ...
-    </icfc:configurationProperties>
     ...
-  </configuration>
-  ...
+    <configuration>
+        <icfc:configurationProperties>
+            ...
+            <icfi:DirectoryAdminPassword>
+                <clearValue>sup3rS3cr3t</clearValue>
+            </icfi:DirectoryAdminPassword>
+            ...
+        </icfc:configurationProperties>
+        ...
+    </configuration>
+    ...
 </resource>
-
 ----
 
 The value will be encrypted as usual when such resource definition in imported.

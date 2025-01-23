@@ -8,6 +8,7 @@ package com.evolveum.midpoint.ninja.action.mining.generator.object;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 import java.util.UUID;
 
 import com.evolveum.midpoint.ninja.action.mining.generator.GeneratorOptions;
@@ -549,15 +550,21 @@ public class InitialObjectsDefinition {
             this.archetypeOid = archetypeOid;
 
             if (options.getRoleMultiplier() > 1) {
-                this.associationsMultiplier = options.getRoleMultiplier();
+                if (!options.isRandomRoleMultiplier()) {
+                    this.associationsMultiplier = options.getRoleMultiplier();
+                } else {
+                    this.associationsMultiplier = new Random().nextInt(options.getRoleMultiplier());
+                }
+            } else if (options.isRandomRoleMultiplier()) {
+                //TODO random role multiplier range should be initialized in the options setter (tmp <0;5>)
+                this.associationsMultiplier = new Random().nextInt(6);
             } else {
                 this.associationsMultiplier = 0;
             }
-            int associationsMultiplier = this.associationsMultiplier;
 
-            if (associationsMultiplier > 0) {
+            if (this.associationsMultiplier > 0) {
                 this.associations = new ArrayList<>();
-                for (int i = 1; i <= associationsMultiplier; i++) {
+                for (int i = 1; i <= this.associationsMultiplier; i++) {
                     this.associations.add(UUID.randomUUID().toString());
                 }
             } else {

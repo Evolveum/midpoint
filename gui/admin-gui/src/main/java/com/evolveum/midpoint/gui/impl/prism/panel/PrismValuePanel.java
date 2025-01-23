@@ -170,6 +170,7 @@ public abstract class PrismValuePanel<T, IW extends ItemWrapper, VW extends Pris
         panelCtx.setParentComponent(this);
         panelCtx.setAjaxEventBehavior(createEventBehavior());
         panelCtx.setMandatoryHandler(getMandatoryHandler());
+        panelCtx.setEditabilityHandler(getEditabilityHandler());
         panelCtx.setVisibleEnableBehaviour(createVisibleEnableBehavior());
         panelCtx.setExpressionValidator(createExpressionValidator());
         panelCtx.setFeedback(feedback);
