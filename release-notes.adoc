@@ -68,7 +68,7 @@ Overall, midPoint 4.9 is a major step from the past into the future.
 * Added support for removing "dangling" non-tolerant reference attribute values (i.e., those that do not match any association). See bug:MID-10285[].
 * Changes in default shadow caching policy are now correctly applied, without requiring any action on the user side. See bug:MID-10126[].
 * Fixed `NullPointerException` occurring in mappings when the source reference value pointed to non-existing object. See bug:MID-10162[].
-* "Native references" capability is now correctly shown in GUI. See MID-10194[].
+* "Native references" capability is now correctly shown in GUI. See bug:MID-10194[].
 * Fixed handling of multi-valued resource configuration properties defined using `const` expression. See the last comment in bug:MID-7918[].
 * Fixed repeated modifications of objects when manually attached object marks were used. See bug:MID-10121[].
 * Fixed preview changes when auto-assigned roles with approvals were used. See bug:MID-10345[].
