@@ -39,7 +39,16 @@ The {release-version} release brings security, stability and miscellaneous bugfi
 * bug:MID-10317[] Fixed missing message when user disable fails.
 * bug:MID-10320[] Fixed ninja zip option used during export/import.
 * bug:MID-10218[] Task execution constraints added to advanced options tab.
-
+* Fixed "Couldn't get assignments conflicts" error occurring during Request access. See bug:MID-10124[].
+* Fixed passing `ObjectReferenceType` values to scripts. They are no longer represented as `DefaultReferenceImpl` instances. `ObjectReferenceType` is used instead. See bug:MID-10130[].
+* Fixed inconsistent behaviour for `deleted` situation in combination with `deleteFocus` reaction. See bug:MID-10195[].
+* Fixed `NullPointerException` occurring in mappings when the source reference value pointed to non-existing object. See bug:MID-10162[].
+* Fixed handling of multi-valued resource configuration properties defined using `const` expression. See the last comment in bug:MID-7918[].
+* Stopped fetching attributes marked as "not returned by default" when there are some other attributes with fetch strategy of `minimal`. See bug:MID-9774[].
+* Stopped generating passwords with "problematic" characters, like comma, apostrophe, ampersand, and so on.
+Now it's possible to define characters that are accepted in the password, but not used when generating a new password value.
+The default password policy was updated in this regard.
+See bug:MID-9541[].
 
 == Changes with Respect To Version 4.8.4
 
