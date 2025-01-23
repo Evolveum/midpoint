@@ -73,7 +73,11 @@ public class MarksOfObjectListPanel<O extends ObjectType> extends MainObjectList
     private final IModel<PrismObjectWrapper<O>> objectModel;
 
     public MarksOfObjectListPanel(String id, IModel<PrismObjectWrapper<O>> objectModel) {
-        super(id, MarkType.class);
+        this(id, objectModel, null);
+    }
+
+    public MarksOfObjectListPanel(String id, IModel<PrismObjectWrapper<O>> objectModel, ContainerPanelConfigurationType config) {
+        super(id, MarkType.class, config);
         this.objectModel = objectModel;
     }
 
