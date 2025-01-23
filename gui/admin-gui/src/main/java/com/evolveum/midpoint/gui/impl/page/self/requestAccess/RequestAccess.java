@@ -16,6 +16,8 @@ import javax.xml.datatype.Duration;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.api.component.result.OpResult;
+
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -58,6 +60,8 @@ import com.evolveum.midpoint.web.security.MidPointApplication;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
+
+import org.apache.wicket.RestartResponseException;
 
 /**
  * Created by Viliam Repan (lazyman).
@@ -245,6 +249,7 @@ public class RequestAccess implements Serializable {
 
             requestItems.remove(ref);
             requestItemsExistingToRemove.remove(ref);
+            existingPoiRoleMemberships.remove(ref);
             existingOids.remove(ref.getOid());
 
             changed = true;
@@ -498,8 +503,10 @@ public class RequestAccess implements Serializable {
         }
 
         result.computeStatusIfUnknown();
-        if (!WebComponentUtil.isSuccessOrHandledError(result)) {
-            page.error(result);
+        if (!WebComponentUtil.isSuccessOrHandledError(result) && allConflicts.isEmpty()) {
+            conflictsDirty = false;
+            page.error(OpResult.getOpResult(page, result));
+            throw new RestartResponseException(page);
         }
 
         this.conflicts = allConflicts;
@@ -552,8 +559,11 @@ public class RequestAccess implements Serializable {
             return new ArrayList<>(conflicts.values());
         } catch (Exception ex) {
             LoggingUtils.logUnexpectedException(LOGGER, "Couldn't get assignments conflicts. Reason: ", ex);
-
-            result.recordFatalError("Couldn't get assignments conflicts", ex);
+            if (ex instanceof CommonException cm && cm.getUserFriendlyMessage() != null) {
+                result.setUserFriendlyMessage(cm.getUserFriendlyMessage());
+            } else {
+                result.recordFatalError("Couldn't get assignments conflicts", ex);
+            }
         } finally {
             result.computeStatusIfUnknown();
         }
