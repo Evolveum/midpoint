@@ -1177,13 +1177,13 @@ public abstract class ContainerableListPanel<C extends Serializable, PO extends 
     }
 
     public CompiledObjectCollectionView getObjectCollectionView() {
+        if (!useCollectionView) {
+            return null;
+        }
+
         CompiledObjectCollectionView containerPanelCollectionView = getCompiledCollectionViewFromPanelConfiguration();
         if (containerPanelCollectionView != null) {
             return containerPanelCollectionView;
-        }
-
-        if (findParent(Popupable.class) != null) {
-            return null;
         }
 
         CompiledObjectCollectionView view = getWidgetCollectionView();
