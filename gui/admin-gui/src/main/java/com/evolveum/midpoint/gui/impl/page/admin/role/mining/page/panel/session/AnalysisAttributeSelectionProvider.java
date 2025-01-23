@@ -46,7 +46,6 @@ public class AnalysisAttributeSelectionProvider extends ChoiceProvider<ItemPathT
         response.addAll(toChoices(choices));
     }
 
-
     @Override
     public Collection<ItemPathType> toChoices(Collection<String> values) {
         return values.stream()
@@ -60,7 +59,7 @@ public class AnalysisAttributeSelectionProvider extends ChoiceProvider<ItemPathT
         List<ItemPath> paths = new ArrayList<>();
         for (ItemDefinition<?> def : userDef.getDefinitions()) {
             Set<ItemPath> itemPathSet = createPossibleAttribute(def);
-            if(itemPathSet != null) {
+            if (itemPathSet != null) {
                 for (ItemPath path : itemPathSet) {
                     if (path != null) {
                         paths.add(path);
@@ -85,7 +84,6 @@ public class AnalysisAttributeSelectionProvider extends ChoiceProvider<ItemPathT
 
     }
 
-
     private static @Nullable Set<ItemPath> createPossibleAttribute(ItemDefinition<?> def) {
         Set<ItemPath> paths = new HashSet<>();
         //TODO we want extension references, but maybe we can somehow filter relevant defs from static schema?
@@ -102,7 +100,7 @@ public class AnalysisAttributeSelectionProvider extends ChoiceProvider<ItemPathT
 
         if (def instanceof PrismContainerDefinition<?> containerDef) {
             Set<ItemPath> possibleAttributeFromContainerDef = createPossibleAttributeFromContainerDef(containerDef);
-            if(possibleAttributeFromContainerDef != null && !possibleAttributeFromContainerDef.isEmpty()) {
+            if (possibleAttributeFromContainerDef != null && !possibleAttributeFromContainerDef.isEmpty()) {
                 paths.addAll(possibleAttributeFromContainerDef);
                 return paths;
             }
@@ -111,26 +109,27 @@ public class AnalysisAttributeSelectionProvider extends ChoiceProvider<ItemPathT
         return null;
     }
 
-
     private static @Nullable Set<ItemPath> createPossibleAttributeFromContainerDef(
-            @NotNull PrismContainerDefinition<?> containerDef){
+            @NotNull PrismContainerDefinition<?> containerDef) {
         Set<ItemPath> paths = new HashSet<>();
         if (containerDef.isMultiValue()) {
             return null;
         }
 
         for (ItemDefinition<?> def : containerDef.getDefinitions()) {
+
             if (def instanceof PrismReferenceDefinition refDef) {
-                paths.add(refDef.getItemName());
+                paths.add(ItemPath.create(containerDef.getItemName(), refDef.getItemName()));
             }
 
             if (def instanceof PrismPropertyDefinition<?> propertyDef
                     && RoleAnalysisAttributeDefUtils.isSupportedPropertyType(propertyDef.getTypeClass())
                     && !propertyDef.isOperational()) {
-                paths.add(propertyDef.getItemName());
+                paths.add(ItemPath.create(containerDef.getItemName(), propertyDef.getItemName()));
             }
 
         }
         return paths;
     }
+
 }
