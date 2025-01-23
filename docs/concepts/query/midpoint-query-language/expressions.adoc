@@ -42,7 +42,7 @@ By default, scripts are Groovy scripts unless other scripting language is specif
 
 .Single-line Groovy expression
 ----
-metadata/createTimestamp > `basic.fromNow("-P30D")`
+@metadata/storage/createTimestamp > `basic.fromNow("-P30D")`
 ----
 
 Single-line expressions are written as strings surrounded with single ``` (backtick)
@@ -50,7 +50,7 @@ character. This allows you to use quotes inside script without need to escape th
 
 .Multi-line Groovy expression
 ----
-metadata/createTimestamp > ```
+@metadata/storage/createTimestamp > ```
     now = basic.currentDateTime();
     ret = basic.addDuration(now, "-P30D");
     return ret
@@ -71,7 +71,7 @@ quotes with language name e.g.:
 
 [source]
 ----
-metadata/createTimestamp > groovy`basic.fromNow("-P30D")`
+@metadata/storage/createTimestamp > groovy`basic.fromNow("-P30D")`
 ----
 
 The language name is same as you would use in XML filter script expressions.
@@ -88,7 +88,7 @@ This is useful, if you need to define additional properties of expression,
 or use other expression types, which does not have built-in syntax support.
 
 ----
-metadata/createTimestamp > yaml```
+@metadata/storage/createTimestamp > yaml```
     script:
         language: groovy
         code: |

@@ -103,7 +103,7 @@ If a configuration is needed, it can be specified like this:
 ====
 Since midPoint 4.8
 
-Shadow `metadata/createTimestamp` and `metadata/modifyTimestamp` is now being added for all shadow objects at all times.
+Shadow `@metadata/storage/createTimestamp` and `@metadata/storage/modifyTimestamp` is now being added for all shadow objects at all times.
 This changes behaviour for resources which have non-zero `deadShadowRetentionPeriod` in consistency defined.
 Previously shadows without such timestamps were removed right away if there were no pending operations, since midPoint couldn't compute _last activity timestamp_.
 The last shadow activity computation takes into account values of the following properties:
@@ -111,8 +111,8 @@ The last shadow activity computation takes into account values of the following 
 * `pendingOperation/requestTimestamp`
 * `pendingOperation/lastAttemptTimestamp`
 * `pendingOperation/completionTimestamp`
-* `metadata/createTimestamp`
-* `metadata/modifyTimestamp`
+* `@metadata/storage/createTimestamp`
+* `@metadata/storage/modifyTimestamp`
 ====
 
 // see https://github.com/Evolveum/midpoint/blob/6e3a7c38bf5e7c06f8037a540bd3ccabddf29e89/provisioning/provisioning-impl/src/main/java/com/evolveum/midpoint/provisioning/impl/shadows/ShadowRefreshHelper.java#L538-L552

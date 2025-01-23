@@ -41,7 +41,8 @@ public class FocusMarkPanel<F extends FocusType, FDM extends FocusDetailsModels<
     protected void initLayout() {
         MarksOfObjectListPanel<F> shadowPanel = new MarksOfObjectListPanel<>(
                 ID_PANEL,
-                getObjectWrapperModel());
+                getObjectWrapperModel(),
+                getPanelConfiguration());
         add(shadowPanel);
     }
 }
