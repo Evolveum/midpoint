@@ -18,6 +18,7 @@ import java.util.Date;
 import java.util.List;
 import javax.xml.namespace.QName;
 
+import org.assertj.core.api.Assertions;
 import org.testng.AssertJUnit;
 import org.testng.annotations.Test;
 
@@ -604,5 +605,26 @@ public class TestDiffEquals extends AbstractSchemaTest {
                         92L,
                         VirtualContainersSpecificationType.F_ITEM
                 ).equivalent(path));
+    }
+
+    /**
+     * MID-10297
+     */
+    @Test(enabled = false)
+    public void testTwoResources() throws Exception {
+        PrismObject<ResourceType> r1 = PrismTestUtil.parseObject(new File(TEST_DIR, "res-1.xml"));
+        PrismObject<ResourceType> r2 = PrismTestUtil.parseObject(new File(TEST_DIR, "res-2.xml"));
+        ObjectDelta<ResourceType> delta = r1.diff(r2, ParameterizedEquivalenceStrategy.REAL_VALUE_CONSIDER_DIFFERENT_IDS_NATURAL_KEYS);
+
+        PrismObject<ResourceType> o1 = r1.clone();
+        PrismObject<ResourceType> o2 = r1.clone();
+
+        delta.applyTo(o2);
+
+        PrismContext ctx = PrismTestUtil.getPrismContext();
+
+        String leftContent = ctx.xmlSerializer().serializeAnyData(o1);
+        // very simple check if the XML is OK - connector ref shouldn't contain xmlns:tns definition and probably not even type attribute
+        Assertions.assertThat(leftContent).doesNotContain("xmlns:tns=\"http://midpoint.evolveum.com/xml/ns/public/common/common-3\"");
     }
 }
