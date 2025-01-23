@@ -160,6 +160,7 @@ public class TestSystemPerformance extends AbstractStoryTest implements Performa
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
         super.initSystem(initTask, initResult);
 
+        InternalsConfig.setShadowCachingDefault(InternalsConfig.ShadowCachingDefault.NONE);
         turnOffRetrievalTimestampMaintenanceIfNeeded();
 
         DummyAuditService.getInstance().setEnabled(false);
