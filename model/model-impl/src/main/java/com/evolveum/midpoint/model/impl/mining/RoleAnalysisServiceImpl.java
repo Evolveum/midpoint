@@ -7,6 +7,9 @@
 
 package com.evolveum.midpoint.model.impl.mining;
 
+import static com.evolveum.midpoint.model.impl.mining.algorithm.cluster.action.util.outlier.explanation.AnomalyExplanationUtil.prepareOutlierExplanationAnomalyInput;
+import static com.evolveum.midpoint.model.impl.mining.algorithm.cluster.action.util.outlier.explanation.OutlierExplanationUtil.prepareOutlierExplanationInput;
+
 import static java.util.Collections.singleton;
 
 import static com.evolveum.midpoint.common.mining.utils.RoleAnalysisUtils.*;
@@ -28,6 +31,8 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
+
+import com.evolveum.midpoint.common.outlier.OutlierExplanationResolver;
 
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ListMultimap;
@@ -3181,7 +3186,6 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
     public void addOutlierPartition(
             @NotNull String outlierOid,
             @NotNull RoleAnalysisOutlierPartitionType partition,
-            @NotNull List<OutlierDetectionExplanationType> newOutlierExplanation,
             double overallConfidence,
             double anomalyConfidence,
             @NotNull OperationResult result) {
@@ -3197,15 +3201,6 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
 
             modifications.add(PrismContext.get().deltaFor(RoleAnalysisOutlierType.class)
                     .item(RoleAnalysisOutlierType.F_ANOMALY_OBJECTS_CONFIDENCE).replace(anomalyConfidence).asItemDelta());
-
-            Collection<PrismContainerValue<?>> explanationCollection = new ArrayList<>();
-            for (OutlierDetectionExplanationType explanation : newOutlierExplanation) {
-                explanationCollection.add(explanation.asPrismContainerValue());
-            }
-
-            modifications.add(PrismContext.get().deltaFor(RoleAnalysisOutlierType.class)
-                    .item(RoleAnalysisOutlierType.F_EXPLANATION).replace(CloneUtil.cloneCollectionMembers(explanationCollection))
-                    .asItemDelta());
 
             repositoryService.modifyObject(RoleAnalysisOutlierType.class, outlierOid, modifications, result);
         } catch (ObjectNotFoundException | SchemaException | ObjectAlreadyExistsException e) {
@@ -4302,6 +4297,65 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
 
         cluster.setDescription(userOid);
         return cluster;
+    }
+
+    @Override
+    public List<OutlierExplanationResolver.ExplanationResult> explainOutlierAnomalyAccess(
+            @NotNull DetectedAnomalyResult detectedAnomalyResult,
+            @NotNull Task task,
+            @NotNull OperationResult result) {
+
+        OutlierExplanationResolver.AnomalyExplanationInput anomalyExplanationInput = prepareOutlierExplanationAnomalyInput(
+                this, detectedAnomalyResult, task, result);
+
+        OutlierExplanationResolver explanationResolver = new OutlierExplanationResolver(null);
+        return explanationResolver.explainAnomaly(anomalyExplanationInput);
+    }
+
+    @Override
+    public OutlierExplanationResolver.OutlierExplanationResult explainOutlierPartition(
+            @NotNull RoleAnalysisOutlierPartitionType partition,
+            int partitionCount,
+            @NotNull Task task,
+            @NotNull OperationResult result) {
+        OutlierExplanationResolver.OutlierExplanationInput outlierExplanationInput = prepareOutlierExplanationInput(
+                this, partition, partitionCount, task, result);
+
+        OutlierExplanationResolver explanationResolver = new OutlierExplanationResolver(outlierExplanationInput);
+        return explanationResolver.explain();
+    }
+
+    @Override
+    public OutlierExplanationResolver.OutlierExplanationResult explainOutlier(
+            @NotNull RoleAnalysisOutlierType outlier,
+            @NotNull Task task,
+            @NotNull OperationResult result) {
+        List<RoleAnalysisOutlierPartitionType> partitions = outlier.getPartition();
+
+        if (partitions == null || partitions.isEmpty()) {
+            throw new SystemException("Outlier partitions missing");
+        }
+
+        Optional<RoleAnalysisOutlierPartitionType> topScoredPartition = findTopScoredPartition(outlier.getPartition());
+
+        if (topScoredPartition.isEmpty()) {
+            throw new SystemException("Couldn't resolve top scored partition");
+        }
+
+        return this.explainOutlierPartition(topScoredPartition.get(), partitions.size(), task, result);
+    }
+
+    private @NotNull Optional<RoleAnalysisOutlierPartitionType> findTopScoredPartition(
+            @NotNull List<RoleAnalysisOutlierPartitionType> partitions) {
+        return partitions.stream()
+                .filter(partition -> {
+                    RoleAnalysisPartitionAnalysisType analysis = partition.getPartitionAnalysis();
+                    if (analysis == null) {
+                        throw new SystemException("Partition analysis is null");
+                    }
+                    return analysis.getOverallConfidence() != null;
+                })
+                .max(Comparator.comparingDouble(partition -> partition.getPartitionAnalysis().getOverallConfidence()));
     }
 
 }

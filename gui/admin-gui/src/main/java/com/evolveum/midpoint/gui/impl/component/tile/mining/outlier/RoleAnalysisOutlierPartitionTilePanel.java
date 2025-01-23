@@ -141,6 +141,20 @@ public class RoleAnalysisOutlierPartitionTilePanel<T extends Serializable> exten
     }
 
     private void initLeftBatch() {
+        Label label = buildCategoryPanel();
+        label.add(AttributeModifier.append(CLASS_CSS, "badge bg-info"));
+        label.add(new VisibleBehaviour(() -> false));
+        add(label);
+
+        Model<String> explanationTranslatedModel = getModelObject().getExplanationTranslatedModel();
+
+        Label explanationField = new Label(ID_EXPLANATION, explanationTranslatedModel);
+        explanationField.setOutputMarkupId(true);
+        explanationField.add(AttributeModifier.append(CLASS_CSS, "gap-2"));
+        add(explanationField);
+    }
+
+    private @NotNull Label buildCategoryPanel() {
         RoleAnalysisOutlierPartitionType partition = getModelObject().getPartition();
         RoleAnalysisPartitionAnalysisType partitionAnalysis = partition.getPartitionAnalysis();
         OutlierCategoryType outlierCategory = partitionAnalysis.getOutlierCategory();
@@ -153,15 +167,7 @@ public class RoleAnalysisOutlierPartitionTilePanel<T extends Serializable> exten
         }
         Label label = new Label(ID_LEFT_BATCH, labelValue);
         label.setOutputMarkupId(true);
-        label.add(AttributeModifier.append(CLASS_CSS, "badge bg-info"));
-        label.add(new VisibleBehaviour(() -> false));
-        add(label);
-        Model<String> explanationTranslatedModel = explainPartition(partition);
-
-        Label explanationField = new Label(ID_EXPLANATION, explanationTranslatedModel);
-        explanationField.setOutputMarkupId(true);
-        explanationField.add(AttributeModifier.append(CLASS_CSS, "gap-2"));
-        add(explanationField);
+        return label;
     }
 
     private void initRightBatch() {

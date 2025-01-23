@@ -6,8 +6,8 @@
  */
 package com.evolveum.midpoint.model.impl.mining.algorithm.cluster.action.util.outlier.explanation;
 
+import com.evolveum.midpoint.common.outlier.OutlierExplanationResolver;
 import com.evolveum.midpoint.model.api.mining.RoleAnalysisService;
-import com.evolveum.midpoint.model.impl.mining.algorithm.cluster.action.util.outlier.OutlierExplanationResolver;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -26,10 +26,10 @@ import static com.evolveum.midpoint.model.impl.mining.algorithm.cluster.action.u
 
 public class AnomalyExplanationUtil {
 
-    AnomalyExplanationUtil() {
+    public AnomalyExplanationUtil() {
     }
 
-    public OutlierExplanationResolver.AnomalyExplanationInput prepareOutlierExplanationAnomalyInput(
+    public static OutlierExplanationResolver.AnomalyExplanationInput prepareOutlierExplanationAnomalyInput(
             @NotNull RoleAnalysisService roleAnalysisService,
             @NotNull DetectedAnomalyResult detectedAnomalyResult,
             @NotNull Task task,
@@ -50,7 +50,7 @@ public class AnomalyExplanationUtil {
         );
     }
 
-    private @NotNull List<OutlierExplanationResolver.ExplanationAttribute> prepareOutlierExplanationAttributeInput(
+    private static @NotNull List<OutlierExplanationResolver.ExplanationAttribute> prepareOutlierExplanationAttributeInput(
             @NotNull RoleAnalysisService roleAnalysisService,
             DetectedAnomalyResult detectedAnomalyResult,
             @NotNull Task task,
@@ -79,7 +79,7 @@ public class AnomalyExplanationUtil {
     }
 
     @Contract("_, _ -> new")
-    private OutlierExplanationResolver.@NotNull RoleStats createRoleStats(
+    private static OutlierExplanationResolver.@NotNull RoleStats createRoleStats(
             @Nullable DetectedAnomalyStatistics statistics,
             boolean isOverall) {
         if (statistics == null) {

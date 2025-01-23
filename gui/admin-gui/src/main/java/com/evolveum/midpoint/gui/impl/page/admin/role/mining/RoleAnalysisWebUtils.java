@@ -9,6 +9,7 @@ package com.evolveum.midpoint.gui.impl.page.admin.role.mining;
 import com.evolveum.midpoint.common.mining.objects.chunk.MiningRoleTypeChunk;
 import com.evolveum.midpoint.common.mining.objects.chunk.MiningUserTypeChunk;
 import com.evolveum.midpoint.common.mining.utils.values.RoleAnalysisChunkMode;
+import com.evolveum.midpoint.common.outlier.OutlierExplanationResolver;
 import com.evolveum.midpoint.gui.api.factory.wrapper.PrismObjectWrapperFactory;
 import com.evolveum.midpoint.gui.api.factory.wrapper.WrapperContext;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
@@ -28,6 +29,7 @@ import com.evolveum.midpoint.schema.ObjectDeltaOperation;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.LocalizableMessage;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.web.component.RoleAnalysisTabbedPanel;
 import com.evolveum.midpoint.web.component.TabbedPanel;
@@ -321,25 +323,60 @@ public class RoleAnalysisWebUtils {
     /**
      * Provides an explanation for the given outlier object.
      *
+     * @param roleAnalysisService The role analysis service.
      * @param outlierObject The outlier object containing the explanation details.
+     * @param shortExplanation A flag indicating whether to provide a short explanation.
+     * @param task The task object.
+     * @param result The operation result.
      * @return A model containing the translated explanation message or a default message if no explanation is available.
      */
-    public static @NotNull Model<String> explainOutlier(@NotNull RoleAnalysisOutlierType outlierObject) {
-        List<OutlierDetectionExplanationType> explanation = outlierObject.getExplanation();
+    public static @NotNull Model<String> explainOutlier(
+            @NotNull RoleAnalysisService roleAnalysisService,
+            @NotNull RoleAnalysisOutlierType outlierObject,
+            boolean shortExplanation,
+            @NotNull Task task,
+            @NotNull OperationResult result) {
+        OutlierExplanationResolver.OutlierExplanationResult outlierExplanationResult = roleAnalysisService
+                .explainOutlier(outlierObject, task, result);
 
-        return extractSingleExplanation(explanation);
+        OutlierExplanationResolver.ExplanationResult explanation;
+
+        if (shortExplanation) {
+            explanation = outlierExplanationResult.shortExplanation();
+        } else {
+            explanation = outlierExplanationResult.explanation();
+        }
+
+        LocalizableMessage message = explanation.message();
+        return Model.of(translateMessage(message));
     }
 
     /**
      * Provides an explanation for the given partition object.
      *
      * @param partition The partition object containing the explanation details.
+     * @param shortExplanation A flag indicating whether to provide a short explanation.
      * @return A model containing the translated explanation message or a default message if no explanation is available.
      */
-    public static @NotNull Model<String> explainPartition(@NotNull RoleAnalysisOutlierPartitionType partition) {
-        List<OutlierDetectionExplanationType> explanation = partition.getExplanation();
+    public static @NotNull Model<String> explainPartition(
+            @NotNull RoleAnalysisService roleAnalysisService,
+            @NotNull RoleAnalysisOutlierPartitionType partition,
+            boolean shortExplanation,
+            @NotNull Task task,
+            @NotNull OperationResult result) {
+        OutlierExplanationResolver.OutlierExplanationResult outlierExplanationResult = roleAnalysisService
+                .explainOutlierPartition(partition, 1, task, result);
 
-        return extractSingleExplanation(explanation);
+        OutlierExplanationResolver.ExplanationResult explanation;
+
+        if (shortExplanation) {
+            explanation = outlierExplanationResult.shortExplanation();
+        } else {
+            explanation = outlierExplanationResult.explanation();
+        }
+
+        LocalizableMessage message = explanation.message();
+        return Model.of(translateMessage(message));
     }
 
     /**
@@ -348,36 +385,33 @@ public class RoleAnalysisWebUtils {
      * @param anomalyResult The anomaly result containing the explanation details.
      * @return A model containing the translated explanation message or a default message if no explanation is available.
      */
-    public static @NotNull Model<String> explainAnomaly(@NotNull DetectedAnomalyResult anomalyResult) {
-        List<OutlierDetectionExplanationType> explanation = anomalyResult.getExplanation();
-        Model<String> noneExplanation = resolveIfNoneExplanation(explanation);
+    public static @NotNull Model<String> explainAnomaly(
+            @NotNull RoleAnalysisService roleAnalysisService,
+            @NotNull DetectedAnomalyResult anomalyResult,
+            @NotNull Task task,
+            @NotNull OperationResult result) {
+        List<OutlierExplanationResolver.ExplanationResult> explanations = roleAnalysisService.explainOutlierAnomalyAccess(
+                anomalyResult, task, result);
+
+        return resolveAnomalyExplanation(explanations);
+    }
+
+    public static @NotNull Model<String> explainAnomaly(List<OutlierExplanationResolver.ExplanationResult> explanations) {
+        return resolveAnomalyExplanation(explanations);
+    }
+
+    private static @NotNull Model<String> resolveAnomalyExplanation(List<OutlierExplanationResolver.ExplanationResult> explanations) {
+        Model<String> noneExplanation = resolveIfNoneExplanation(explanations);
         if (noneExplanation != null) {
             return noneExplanation;
         }
 
         StringBuilder sb = new StringBuilder();
-        for (OutlierDetectionExplanationType explanationType : explanation) {
-            LocalizableMessageType message = explanationType.getMessage();
+        for (OutlierExplanationResolver.ExplanationResult explanation : explanations) {
+            LocalizableMessage message = explanation.message();
             sb.append(translateMessage(message)).append(". \n");
         }
         return Model.of(sb.toString());
-    }
-
-    /**
-     * Extracts a single explanation from the list of explanations.
-     *
-     * @param explanation The list of explanations.
-     * @return A model containing the translated explanation message or a default message if no explanation is available.
-     */
-    private static @NotNull Model<String> extractSingleExplanation(List<OutlierDetectionExplanationType> explanation) {
-        Model<String> noneExplanation = resolveIfNoneExplanation(explanation);
-        if (noneExplanation != null) {
-            return noneExplanation;
-        }
-
-        OutlierDetectionExplanationType outlierDetectionExplanationType = explanation.get(0);
-        LocalizableMessageType message = outlierDetectionExplanationType.getMessage();
-        return Model.of(translateMessage(message));
     }
 
     /**
@@ -386,8 +420,8 @@ public class RoleAnalysisWebUtils {
      * @param explanation The list of outlier detection explanations.
      * @return A model containing a default message if no explanation is available, or null if an explanation is present.
      */
-    private static @Nullable Model<String> resolveIfNoneExplanation(List<OutlierDetectionExplanationType> explanation) {
-        if (explanation == null || explanation.isEmpty() || explanation.get(0).getMessage() == null) {
+    private static @Nullable Model<String> resolveIfNoneExplanation(List<OutlierExplanationResolver.ExplanationResult> explanation) {
+        if (explanation == null || explanation.isEmpty() || explanation.get(0).message() == null) {
             return Model.of(translate(EXPLANATION_NONE_MESSAGE_KEY));
         }
         return null;

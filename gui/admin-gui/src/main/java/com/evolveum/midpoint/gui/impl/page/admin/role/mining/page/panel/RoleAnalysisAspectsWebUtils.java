@@ -56,7 +56,7 @@ public class RoleAnalysisAspectsWebUtils {
         Map<RoleAnalysisOutlierPartitionType, RoleAnalysisOutlierType> clusterTopOutliers = roleAnalysisService
                 .getClusterOutlierPartitionsMap(clusterOid, 5, true, null, task, result);
 
-        return loadOutlierWidgetModels(pageBase, clusterTopOutliers, clusterName, detailsModel);
+        return loadOutlierWidgetModels(pageBase, clusterTopOutliers, clusterName, detailsModel, task, result);
     }
 
     @NotNull
@@ -64,7 +64,10 @@ public class RoleAnalysisAspectsWebUtils {
             @NotNull PageBase pageBase,
             Map<RoleAnalysisOutlierPartitionType, RoleAnalysisOutlierType> outliers,
             @NotNull PolyStringType clusterName,
-            @NotNull List<IdentifyWidgetItem> detailsModel) {
+            @NotNull List<IdentifyWidgetItem> detailsModel,
+            @NotNull Task task,
+            @NotNull OperationResult result) {
+        RoleAnalysisService roleAnalysisService = pageBase.getRoleAnalysisService();
 
         for (Map.Entry<RoleAnalysisOutlierPartitionType, RoleAnalysisOutlierType> entry : outliers.entrySet()) {
             RoleAnalysisOutlierPartitionType outlierPartition = entry.getKey();
@@ -82,7 +85,8 @@ public class RoleAnalysisAspectsWebUtils {
             bd = bd.setScale(2, RoundingMode.HALF_UP);
             partitionOverallConfidence = bd.doubleValue();
             String formattedConfidence = String.format("%.2f", partitionOverallConfidence);
-            @NotNull Model<String> description = explainPartition(outlierPartition);
+            @NotNull Model<String> description = explainPartition(
+                    roleAnalysisService, outlierPartition, true, task, result);
             IdentifyWidgetItem identifyWidgetItem = new IdentifyWidgetItem(
                     IdentifyWidgetItem.ComponentType.OUTLIER,
                     Model.of(GuiStyleConstants.CLASS_ICON_OUTLIER),

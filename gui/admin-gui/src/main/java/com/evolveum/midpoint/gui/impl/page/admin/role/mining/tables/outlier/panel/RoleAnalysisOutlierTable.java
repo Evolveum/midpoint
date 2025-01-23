@@ -157,9 +157,12 @@ public class RoleAnalysisOutlierTable extends BasePanel<AssignmentHolderType> {
 
         initPartitionScoreColumn(columns);
 
-        initAnomalyAccessColumn(columns);
+        RoleAnalysisService roleAnalysisService = pageBase.getRoleAnalysisService();
+        Task task = pageBase.createSimpleTask(OP_PREPARE_OBJECTS);
+        OperationResult result = task.getResult();
 
-        initExplanationColumn(columns);
+        initAnomalyAccessColumn(roleAnalysisService, columns, task, result);
+        initExplanationColumn(roleAnalysisService, columns, task, result);
 
         initLocationColumn(columns);
 
@@ -302,7 +305,7 @@ public class RoleAnalysisOutlierTable extends BasePanel<AssignmentHolderType> {
         });
     }
 
-    private void initExplanationColumn(@NotNull List<IColumn<PartitionObjectDto, String>> columns) {
+    private void initExplanationColumn(RoleAnalysisService roleAnalysisService, @NotNull List<IColumn<PartitionObjectDto, String>> columns, Task task, OperationResult result) {
         columns.add(new AbstractColumn<>(createStringResource("RoleAnalysisOutlierTable.outlier.explanation")) {
 
             @Override
@@ -314,7 +317,8 @@ public class RoleAnalysisOutlierTable extends BasePanel<AssignmentHolderType> {
             public void populateItem(Item<ICellPopulator<PartitionObjectDto>> item, String componentId,
                     IModel<PartitionObjectDto> rowModel) {
                 RoleAnalysisOutlierPartitionType partition = rowModel.getObject().getPartition();
-                Model<String> explanationTranslatedModel = explainPartition(partition);
+                Model<String> explanationTranslatedModel = explainPartition(
+                        roleAnalysisService, partition, true, task, result);
                 item.add(new Label(componentId, explanationTranslatedModel));
             }
 
@@ -333,7 +337,7 @@ public class RoleAnalysisOutlierTable extends BasePanel<AssignmentHolderType> {
         });
     }
 
-    private void initAnomalyAccessColumn(@NotNull List<IColumn<PartitionObjectDto, String>> columns) {
+    private void initAnomalyAccessColumn(RoleAnalysisService roleAnalysisService, @NotNull List<IColumn<PartitionObjectDto, String>> columns, Task task, OperationResult result) {
         columns.add(new AbstractColumn<>(
                 createStringResource("")) {
 
@@ -401,7 +405,8 @@ public class RoleAnalysisOutlierTable extends BasePanel<AssignmentHolderType> {
                             webMarkupContainerUser.add(AttributeModifier.replace("style", "display: none;"));
                             webMarkupContainerUser.setExpanded(true);
 
-                            RoleAnalysisDetectedAnomalyTable detectedAnomalyTable = buildDetectedAnomalyTable(modelObject, partition);
+                            RoleAnalysisDetectedAnomalyTable detectedAnomalyTable = buildDetectedAnomalyTable(
+                                    roleAnalysisService, modelObject, partition, task, result);
                             webMarkupContainerUser.add(detectedAnomalyTable);
 
                             collapseContainerUser.replaceWith(webMarkupContainerUser);
@@ -418,11 +423,16 @@ public class RoleAnalysisOutlierTable extends BasePanel<AssignmentHolderType> {
         });
     }
 
-    private static @NotNull RoleAnalysisDetectedAnomalyTable buildDetectedAnomalyTable(
+    private @NotNull RoleAnalysisDetectedAnomalyTable buildDetectedAnomalyTable(
+            @NotNull RoleAnalysisService roleAnalysisService,
             @NotNull PartitionObjectDto modelObject,
-            RoleAnalysisOutlierPartitionType partition) {
+            @NotNull RoleAnalysisOutlierPartitionType partition,
+            @NotNull Task task,
+            @NotNull OperationResult result) {
+
         RoleAnalysisOutlierType outlierObject = modelObject.getOutlier();
-        AnomalyObjectDto dto = new AnomalyObjectDto(outlierObject, partition, false);
+        AnomalyObjectDto dto = new AnomalyObjectDto(
+                roleAnalysisService, outlierObject, partition, false, task, result);
         RoleAnalysisDetectedAnomalyTable detectedAnomalyTable = new RoleAnalysisDetectedAnomalyTable(ID_COLLAPSABLE_CONTENT, Model.of(dto)) {
 
             @Contract(pure = true)

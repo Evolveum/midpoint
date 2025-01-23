@@ -127,8 +127,6 @@ public class OutliersDetectionUtil {
         PrismObject<RoleAnalysisOutlierType> outlierPrismObject = roleAnalysisService.searchOutlierObjectByUserOid(
                 userOid, task, result);
 
-        ExplanationUtil.uploadOutlierExplanation(roleAnalysisService, userOid, partition, task, result);
-
         if (outlierPrismObject == null) {
             PrismObject<UserType> userPrismObject = roleAnalysisService.getUserTypeObject(userOid, task, result);
             if (userPrismObject == null) {
@@ -147,7 +145,6 @@ public class OutliersDetectionUtil {
             roleAnalysisOutlierType.setOverallConfidence(partition.getPartitionAnalysis().getOverallConfidence());
             //TODO when update? every partition?
             resolveUserDuplicateAssignment(roleAnalysisService, roleAnalysisOutlierType, userOid, task, result);
-            roleAnalysisOutlierType.getExplanation().addAll(CloneUtil.cloneCollectionMembers(partition.getExplanation()));
             roleAnalysisService.resolveOutliers(roleAnalysisOutlierType, task, result);
         } else {
             RoleAnalysisOutlierType roleAnalysisOutlierType = outlierPrismObject.asObjectable();
@@ -157,7 +154,6 @@ public class OutliersDetectionUtil {
             double anomalyObjectsConfidence = 0;
             RoleAnalysisPartitionAnalysisType newPartitionAnalysis = partition.getPartitionAnalysis();
             Double newPartitionOverallConfidence = newPartitionAnalysis.getOverallConfidence();
-            List<OutlierDetectionExplanationType> newOutlierExplanation = partition.getExplanation();
             for (RoleAnalysisOutlierPartitionType outlierPartition : outlierPartitions) {
                 RoleAnalysisPartitionAnalysisType partitionAnalysis = outlierPartition.getPartitionAnalysis();
                 Double partitionOveralConfidence = partitionAnalysis.getOverallConfidence();
@@ -166,7 +162,6 @@ public class OutliersDetectionUtil {
 
                 if (partitionOveralConfidence >= newPartitionOverallConfidence) {
                     newPartitionOverallConfidence = partitionOveralConfidence;
-                    newOutlierExplanation = outlierPartition.getExplanation();
                 }
             }
             overallConfidence += partition.getPartitionAnalysis().getOverallConfidence();
@@ -175,7 +170,7 @@ public class OutliersDetectionUtil {
             overallConfidence = overallConfidence / (outlierPartitions.size() + 1);
             anomalyObjectsConfidence = anomalyObjectsConfidence / (outlierPartitions.size() + 1);
             roleAnalysisService.addOutlierPartition(
-                    roleAnalysisOutlierType.getOid(), partition, newOutlierExplanation, overallConfidence, anomalyObjectsConfidence, result);
+                    roleAnalysisOutlierType.getOid(), partition, overallConfidence, anomalyObjectsConfidence, result);
         }
     }
 
