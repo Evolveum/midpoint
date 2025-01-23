@@ -37,6 +37,8 @@ Overall, midPoint 4.9 is a major step from the past into the future.
 
 == Changes with Respect To Version 4.9
 
+* Implemented xrefv:/midpoint/reference/support-4.9/resources/attribute-caching/#_caching_passwords[shadow password caching], with the possibility of storing them in reversible encrypted form.
+* Improved handling of xrefv:/midpoint/reference/support-4.9/resources/resource-configuration/schema-handling/volatility/[volatile shadow attributes].
 * Update GUI views after changing of the archetype, that is used in the view. See bug:MID-9776[].
 * Adding support for PKCE (Proof Key for Code Exchange) as additional security for OIDC authentication module. See bug:MID-10155[].
 * bug:MID-10147[] Added support for new capability `lastLoginTimestamp`.
@@ -55,6 +57,25 @@ Overall, midPoint 4.9 is a major step from the past into the future.
 * bug:MID-10320[] Fixed ninja zip option used during export/import.
 * bug:MID-10218[] Task execution constraints added to advanced options tab.
 * bug:MID-10305[] Remove max password length constraint.
+* Improved the documentation on the resource configuration. See bug:MID-10176[].
+* Fixed "Couldn't get assignments conflicts" error occurring during Request access. See bug:MID-10124[].
+* Fixed "No definition for item ... in outbound mapping for association" error. See bug:MID-10214[].
+* Fixed the issue with policy rules `minAssignees`/`maxAssignees` not being triggered. See bug:MID-9869[].
+* Fixed retrieving referenced objects with their own references when caching is enabled. See bug:MID-10271[].
+* Fixed inconsistent behaviour for `deleted` situation in combination with `deleteFocus` reaction. See bug:MID-10195[].
+* Fixed midPoint freezing when shadow partitioning, referenced objects, and shadow caching was used. See bug:MID-10231[].
+* Added support for removing "dangling" non-tolerant reference attribute values (i.e., those that do not match any association). See bug:MID-10285[].
+* Changes in default shadow caching policy are now correctly applied, without requiring any action on the user side. See bug:MID-10126[].
+* Fixed `NullPointerException` occurring in mappings when the source reference value pointed to non-existing object. See bug:MID-10162[].
+* "Native references" capability is now correctly shown in GUI. See MID-10194[].
+* Fixed handling of multi-valued resource configuration properties defined using `const` expression. See the last comment in bug:MID-7918[].
+* Fixed repeated modifications of objects when manually attached object marks were used. See bug:MID-10121[].
+* Fixed preview changes when auto-assigned roles with approvals were used. See bug:MID-10345[].
+* Stopped generating passwords with "problematic" characters, like comma, apostrophe, ampersand, and so on.
+Now it's possible to define characters that are accepted in the password, but not used when generating a new password value.
+The default password policy was updated in this regard.
+See bug:MID-9541[].
+* Stopped displaying some shadow operational properties (like the synchronization timestamp, iteration, and so on) among changes in simulation results. See bug:MID-9737[] and bug:MID-9986[].
 
 == Changes With Respect To Version 4.8
 
