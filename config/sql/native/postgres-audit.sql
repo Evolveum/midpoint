@@ -376,4 +376,4 @@ limit 50;
 -- This is important to avoid applying any change more than once.
 -- Also update SqaleUtils.CURRENT_SCHEMA_AUDIT_CHANGE_NUMBER
 -- repo/repo-sqale/src/main/java/com/evolveum/midpoint/repo/sqale/SqaleUtils.java
-call apply_audit_change(8, $$ SELECT 1 $$, true);
+call apply_audit_change(9, $$ SELECT 1 $$, true);
