@@ -45,8 +45,6 @@ import org.jetbrains.annotations.Nullable;
 
 import static com.evolveum.midpoint.model.api.validator.StringLimitationResult.extractMessages;
 
-import static com.evolveum.midpoint.schema.util.ValueMetadataTypeUtil.getMetadata;
-
 import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
 
 /**
@@ -252,7 +250,19 @@ public class ObjectValuePolicyEvaluator {
     }
 
     private @Nullable XMLGregorianCalendar getLastChangeTimestamp() {
-        return ValueMetadataTypeUtil.getLastChangeTimestamp(getMetadata(oldCredential));
+        XMLGregorianCalendar latest = null;
+        for (var metadata : oldCredential.asPrismContainerValue().<ValueMetadataType>getValueMetadataAsContainer().getRealValues()) {
+            var current = ValueMetadataTypeUtil.getLastChangeTimestamp(metadata);
+            if (latest == null) {
+                latest = current;
+            } else if (current != null) {
+                if (current.compare(latest) > 0) {
+                    latest = current;
+                }
+            }
+        }
+        return latest;
+
     }
 
     private boolean isMaxAgeViolated() {
