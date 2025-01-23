@@ -199,6 +199,11 @@ public class PageOutliers extends PageAdmin {
             protected @NotNull List<IColumn<SelectableBean<RoleAnalysisOutlierType>, String>> createDefaultColumns() {
                 List<IColumn<SelectableBean<RoleAnalysisOutlierType>, String>> defaultColumns = super.createDefaultColumns();
 
+                PageBase pageBase = getPageBase();
+                RoleAnalysisService roleAnalysisService = pageBase.getRoleAnalysisService();
+                Task task = pageBase.createSimpleTask("loadOutliersExplanation");
+                OperationResult result = task.getResult();
+
                 IColumn<SelectableBean<RoleAnalysisOutlierType>, String> column;
 
                 column = new AbstractExportableColumn<>(
@@ -213,7 +218,8 @@ public class PageOutliers extends PageAdmin {
                     public void populateItem(Item<ICellPopulator<SelectableBean<RoleAnalysisOutlierType>>> cellItem,
                             String componentId, IModel<SelectableBean<RoleAnalysisOutlierType>> model) {
                         RoleAnalysisOutlierType outlierObject = model.getObject().getValue();
-                        Model<String> explanationTranslatedModel = explainOutlier(outlierObject);
+                        Model<String> explanationTranslatedModel = explainOutlier(
+                                roleAnalysisService, outlierObject,true, task, result);
                         cellItem.add(new Label(componentId, explanationTranslatedModel));
                     }
 

@@ -1,13 +1,10 @@
-package com.evolveum.midpoint.model.impl.mining.algorithm.cluster.action.util.outlier;
+package com.evolveum.midpoint.common.outlier;
 
 import com.evolveum.midpoint.prism.ItemDefinition;
-import com.evolveum.midpoint.schema.util.LocalizationUtil;
 import com.evolveum.midpoint.util.LocalizableMessage;
 import com.evolveum.midpoint.util.LocalizableMessageBuilder;
 import com.evolveum.midpoint.util.LocalizableMessageList;
 import com.evolveum.midpoint.util.SingleLocalizableMessage;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OutlierDetectionExplanationCategoryType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OutlierDetectionExplanationType;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 
 import org.apache.commons.lang3.StringUtils;
@@ -17,7 +14,8 @@ import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.evolveum.midpoint.util.LocalizableMessageList.*;
+import static com.evolveum.midpoint.util.LocalizableMessageList.COMMA;
+import static com.evolveum.midpoint.util.LocalizableMessageList.SPACE;
 
 public class OutlierExplanationResolver {
 
@@ -48,15 +46,25 @@ public class OutlierExplanationResolver {
 
     public record AnomalyExplanationResult(
             Long id,
-            List<OutlierDetectionExplanationType> explanations
+            List<ExplanationResult> explanations
     ) {}
 
     public record OutlierExplanationResult(
             Long id,
-            OutlierDetectionExplanationType explanation,
-            OutlierDetectionExplanationType shortExplanation,
+            ExplanationResult explanation,
+            ExplanationResult shortExplanation,
             List<AnomalyExplanationResult> anomalies
     ) {}
+
+    public record ExplanationResult(
+            LocalizableMessage message,
+            List<OutlierDetectionExplanationCategory> categories
+    ) {}
+
+    public enum OutlierDetectionExplanationCategory {
+        UNUSUAL_ACCESS,
+        IRREGULAR_ATTRIBUTES
+    }
 
     private final OutlierExplanationInput outlier;
     private static final int FEW_ENOUGH_USERS = 3;
@@ -71,11 +79,8 @@ public class OutlierExplanationResolver {
         this.outlier = outlier;
     }
 
-    private OutlierDetectionExplanationType makeExplanation(LocalizableMessage message, List<OutlierDetectionExplanationCategoryType> categories) {
-        var explanation = new OutlierDetectionExplanationType();
-        explanation.message(LocalizationUtil.createLocalizableMessageType(message));
-        explanation.getCategory().addAll(categories);
-        return explanation;
+    private ExplanationResult makeExplanation(LocalizableMessage message, List<OutlierDetectionExplanationCategory> categories) {
+        return new ExplanationResult(message, categories);
     }
 
     private static LocalizableMessage joinMessage(List<LocalizableMessage> messages, LocalizableMessage separator) {
@@ -90,11 +95,11 @@ public class OutlierExplanationResolver {
         return String.format("%.2f", outlier.outlierScore()) + "%";
     }
 
-    private OutlierDetectionExplanationType explainOverallOutlier() {
+    private ExplanationResult explainOverallOutlier() {
         var anomalyCount = outlier.anomalies().size();
-        List<OutlierDetectionExplanationCategoryType> categories = new ArrayList<>();
+        List<OutlierDetectionExplanationCategory> categories = new ArrayList<>();
         LocalizableMessage finalMessage = new SingleLocalizableMessage("OutlierDetection.explanation.outlier.unusualAccess", new Object[] {anomalyCount});
-        categories.add(OutlierDetectionExplanationCategoryType.UNUSUAL_ACCESS);
+        categories.add(OutlierDetectionExplanationCategory.UNUSUAL_ACCESS);
         if (!outlier.groupByAttributes().isEmpty()) {
             var localizedAttributes = outlier.groupByAttributes().stream()
                     .map(groupByAttribute -> {
@@ -113,9 +118,9 @@ public class OutlierExplanationResolver {
         return makeExplanation(finalMessage, categories);
     }
 
-    private OutlierDetectionExplanationType explainOverallOutlierShort() {
+    private ExplanationResult explainOverallOutlierShort() {
         var anomalyCount = outlier.anomalies().size();
-        List<OutlierDetectionExplanationCategoryType> categories = List.of(OutlierDetectionExplanationCategoryType.UNUSUAL_ACCESS);
+        List<OutlierDetectionExplanationCategory> categories = List.of(OutlierDetectionExplanationCategory.UNUSUAL_ACCESS);
         var outlierScore = formatOutlierScore();
         LocalizableMessage finalMessage = new SingleLocalizableMessage("OutlierDetection.explanation.outlier.shortDescription", new Object[] {anomalyCount, outlierScore});
         finalMessage = joinMessage(List.of(finalMessage, DOT));
@@ -147,23 +152,23 @@ public class OutlierExplanationResolver {
         return rounded + "%";
     }
 
-    private List<OutlierDetectionExplanationType> explainAnomaly(AnomalyExplanationInput anomaly) {
+    public List<ExplanationResult> explainAnomaly(AnomalyExplanationInput anomaly) {
         var inGroupCount = anomaly.roleClusterStats().memberCount();
         var repoCoverage = formatPercentage(anomaly.roleOverallStats().frequency());
         var groupCoverage = inGroupCount <= FEW_ENOUGH_USERS
                 ? inGroupCount.toString()
                 : formatPercentage(anomaly.roleClusterStats().frequency());
         var isUnique = inGroupCount == 1;
-        List<OutlierDetectionExplanationType> explanations = new ArrayList<>();
+        List<ExplanationResult> explanations = new ArrayList<>();
         if (isUnique) {
             explanations.add(makeExplanation(
                     new SingleLocalizableMessage("OutlierDetection.explanation.anomaly.uniqueAccess", new Object[] {repoCoverage}),
-                    List.of(OutlierDetectionExplanationCategoryType.UNUSUAL_ACCESS))
+                    List.of(OutlierDetectionExplanationCategory.UNUSUAL_ACCESS))
             );
         } else {
             explanations.add(makeExplanation(
                     new SingleLocalizableMessage("OutlierDetection.explanation.anomaly.unusualAccess", new Object[] {groupCoverage, repoCoverage}),
-                    List.of(OutlierDetectionExplanationCategoryType.UNUSUAL_ACCESS))
+                    List.of(OutlierDetectionExplanationCategory.UNUSUAL_ACCESS))
             );
         }
         if (!anomaly.unusualAttributes().isEmpty()) {
@@ -173,7 +178,7 @@ public class OutlierExplanationResolver {
             var localizedAttributes = joinMessage(localizedAttributesList, COMMA);
             explanations.add(makeExplanation(
                     new SingleLocalizableMessage("OutlierDetection.explanation.anomaly.irregularAttributes", new Object[] {localizedAttributes}),
-                    List.of(OutlierDetectionExplanationCategoryType.IRREGULAR_ATTRIBUTES))
+                    List.of(OutlierDetectionExplanationCategory.IRREGULAR_ATTRIBUTES))
             );
         }
         return explanations;

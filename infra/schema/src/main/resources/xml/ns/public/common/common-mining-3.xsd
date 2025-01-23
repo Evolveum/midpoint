@@ -124,14 +124,6 @@
                         </xsd:annotation>
                     </xsd:element>
 
-                    <xsd:element name="explanation" type="tns:OutlierDetectionExplanationType" minOccurs="0" maxOccurs="unbounded">
-                        <xsd:annotation>
-                            <xsd:documentation>
-                                Provides a simple explanation of why the outlier object has been detected and identified.
-                            </xsd:documentation>
-                        </xsd:annotation>
-                    </xsd:element>
-
                 </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>
@@ -207,14 +199,6 @@
                     <xsd:appinfo>
                         <a:displayName>RoleAnalysisOutlierType.statistics</a:displayName>
                     </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:element>
-
-            <xsd:element name="explanation" type="tns:OutlierDetectionExplanationType" minOccurs="0" maxOccurs="unbounded">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Provides a simple explanation of why the outlier object has been detected and identified within specific partition.
-                    </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
 
@@ -512,14 +496,6 @@
                 <xsd:annotation>
                     <xsd:documentation>
                         Pattern result.
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
-
-            <xsd:element name="explanation" type="tns:OutlierDetectionExplanationType" minOccurs="0" maxOccurs="unbounded">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Provides a simple explanation of why the anomaly has been detected and identified.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
@@ -3308,73 +3284,6 @@
                     </xsd:documentation>
                     <xsd:appinfo>
                         <jaxb:typesafeEnumMember name="EXCLUDED_MISSING_BASE"/>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:enumeration>
-        </xsd:restriction>
-    </xsd:simpleType>
-
-
-    <xsd:complexType name="OutlierDetectionExplanationType">
-        <xsd:annotation>
-            <xsd:documentation>
-                Contains explanation of the outlier or anomaly object.
-            </xsd:documentation>
-            <xsd:appinfo>
-                <a:container>true</a:container>
-            </xsd:appinfo>
-        </xsd:annotation>
-        <xsd:sequence>
-
-            <xsd:element name="message" type="tns:LocalizableMessageType" minOccurs="0">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Explanation message.
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
-
-            <xsd:element name="category" type="tns:OutlierDetectionExplanationCategoryType" minOccurs="0" maxOccurs="unbounded">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Category classification.
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
-
-        </xsd:sequence>
-        <xsd:attribute name="id" type="xsd:long"/>
-    </xsd:complexType>
-    <xsd:element name="outlierDetectionExplanationType" type="tns:OutlierDetectionExplanationType"/>
-
-    <xsd:simpleType name="OutlierDetectionExplanationCategoryType">
-        <xsd:annotation>
-            <xsd:documentation>
-                Category classification.
-            </xsd:documentation>
-            <xsd:appinfo>
-                <a:experimental>true</a:experimental>
-                <a:since>4.8</a:since>
-            </xsd:appinfo>
-        </xsd:annotation>
-        <xsd:restriction base="xsd:string">
-            <xsd:enumeration value="irregular_attributes">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Explanations associated with role attributes analysis.
-                    </xsd:documentation>
-                    <xsd:appinfo>
-                        <jaxb:typesafeEnumMember name="IRREGULAR_ATTRIBUTES"/>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:enumeration>
-            <xsd:enumeration value="unusual_access">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Explanation associated with peer group analysis.
-                    </xsd:documentation>
-                    <xsd:appinfo>
-                        <jaxb:typesafeEnumMember name="UNUSUAL_ACCESS"/>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>

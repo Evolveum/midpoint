@@ -14,12 +14,13 @@ import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.table.
 import static com.evolveum.midpoint.web.component.data.mining.RoleAnalysisCollapsableTablePanel.*;
 
 import java.io.Serial;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.*;
 
 import com.evolveum.midpoint.gui.impl.component.icon.IconCssStyle;
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.components.ProgressBarSecondStyle;
 
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.components.bar.RoleAnalysisInlineProgressBar;
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.model.RoleAnalysisProgressBarDto;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.page.PageRoleAnalysisCluster;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.outlier.RoleAnalysisPartitionOverviewPanel;
 
@@ -27,7 +28,6 @@ import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.tmp.panel.Link
 import com.evolveum.midpoint.gui.impl.util.DetailsPageUtil;
 import com.evolveum.midpoint.web.component.data.column.AjaxLinkPanel;
 
-import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 
 import org.apache.wicket.AttributeModifier;
@@ -315,7 +315,8 @@ public class RoleAnalysisOutlierTable extends BasePanel<AssignmentHolderType> {
             public void populateItem(Item<ICellPopulator<PartitionObjectDto>> item, String componentId,
                     IModel<PartitionObjectDto> rowModel) {
                 RoleAnalysisOutlierPartitionType partition = rowModel.getObject().getPartition();
-                Model<String> explanationTranslatedModel = explainPartition(partition);
+                Model<String> explanationTranslatedModel = explainPartition(
+                        roleAnalysisService, partition, true, task, result);
                 item.add(new Label(componentId, explanationTranslatedModel));
             }
 
@@ -334,7 +335,7 @@ public class RoleAnalysisOutlierTable extends BasePanel<AssignmentHolderType> {
         });
     }
 
-    private void initAnomalyAccessColumn(@NotNull List<IColumn<PartitionObjectDto, String>> columns) {
+    private void initAnomalyAccessColumn(RoleAnalysisService roleAnalysisService, @NotNull List<IColumn<PartitionObjectDto, String>> columns, Task task, OperationResult result) {
         columns.add(new AbstractColumn<>(
                 createStringResource("")) {
 
@@ -391,8 +392,8 @@ public class RoleAnalysisOutlierTable extends BasePanel<AssignmentHolderType> {
                             webMarkupContainerUser.add(AttributeModifier.replace("style", "display: none;"));
                             webMarkupContainerUser.setExpanded(true);
 
-                            PartitionObjectDto modelObject = model.getObject();
-                            RoleAnalysisDetectedAnomalyTable detectedAnomalyTable = buildDetectedAnomalyTable(modelObject, modelObject.getPartition());
+                            RoleAnalysisDetectedAnomalyTable detectedAnomalyTable = buildDetectedAnomalyTable(
+                                    roleAnalysisService, modelObject, partition, task, result);
                             webMarkupContainerUser.add(detectedAnomalyTable);
 
                             collapseContainerUser.replaceWith(webMarkupContainerUser);
@@ -409,11 +410,16 @@ public class RoleAnalysisOutlierTable extends BasePanel<AssignmentHolderType> {
         });
     }
 
-    private static @NotNull RoleAnalysisDetectedAnomalyTable buildDetectedAnomalyTable(
+    private @NotNull RoleAnalysisDetectedAnomalyTable buildDetectedAnomalyTable(
+            @NotNull RoleAnalysisService roleAnalysisService,
             @NotNull PartitionObjectDto modelObject,
-            RoleAnalysisOutlierPartitionType partition) {
+            @NotNull RoleAnalysisOutlierPartitionType partition,
+            @NotNull Task task,
+            @NotNull OperationResult result) {
+
         RoleAnalysisOutlierType outlierObject = modelObject.getOutlier();
-        AnomalyObjectDto dto = new AnomalyObjectDto(outlierObject, partition, false);
+        AnomalyObjectDto dto = new AnomalyObjectDto(
+                roleAnalysisService, outlierObject, partition, false, task, result);
         RoleAnalysisDetectedAnomalyTable detectedAnomalyTable = new RoleAnalysisDetectedAnomalyTable(ID_COLLAPSABLE_CONTENT, Model.of(dto)) {
 
             @Contract(pure = true)

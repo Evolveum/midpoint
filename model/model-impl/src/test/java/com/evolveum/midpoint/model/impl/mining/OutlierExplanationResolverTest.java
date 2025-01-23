@@ -3,20 +3,19 @@ package com.evolveum.midpoint.model.impl.mining;
 import com.evolveum.midpoint.common.LocalizationService;
 import com.evolveum.midpoint.common.LocalizationServiceImpl;
 import com.evolveum.midpoint.common.LocalizationTestUtil;
-import com.evolveum.midpoint.model.impl.mining.algorithm.cluster.action.util.outlier.OutlierExplanationResolver;
-import com.evolveum.midpoint.model.impl.mining.algorithm.cluster.action.util.outlier.OutlierExplanationResolver.OutlierExplanationInput;
-import com.evolveum.midpoint.model.impl.mining.algorithm.cluster.action.util.outlier.OutlierExplanationResolver.AnomalyExplanationInput;
-import com.evolveum.midpoint.model.impl.mining.algorithm.cluster.action.util.outlier.OutlierExplanationResolver.ExplanationAttribute;
-import com.evolveum.midpoint.model.impl.mining.algorithm.cluster.action.util.outlier.OutlierExplanationResolver.RoleStats;
+import com.evolveum.midpoint.common.outlier.OutlierExplanationResolver;
+import com.evolveum.midpoint.common.outlier.OutlierExplanationResolver.OutlierExplanationInput;
+import com.evolveum.midpoint.common.outlier.OutlierExplanationResolver.AnomalyExplanationInput;
+import com.evolveum.midpoint.common.outlier.OutlierExplanationResolver.ExplanationAttribute;
+import com.evolveum.midpoint.common.outlier.OutlierExplanationResolver.RoleStats;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.MidPointPrismContextFactory;
-import com.evolveum.midpoint.schema.util.LocalizationUtil;
 import com.evolveum.midpoint.tools.testng.AbstractUnitTest;
+import com.evolveum.midpoint.util.LocalizableMessage;
 import com.evolveum.midpoint.util.exception.SchemaException;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.LocalizableMessageType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 
@@ -28,9 +27,11 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+import static com.evolveum.midpoint.common.outlier.OutlierExplanationResolver.OutlierDetectionExplanationCategory.IRREGULAR_ATTRIBUTES;
+import static com.evolveum.midpoint.common.outlier.OutlierExplanationResolver.OutlierDetectionExplanationCategory.UNUSUAL_ACCESS;
+
 import static org.assertj.core.api.Assertions.*;
 import static org.testng.AssertJUnit.*;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.OutlierDetectionExplanationCategoryType.*;
 
 public class OutlierExplanationResolverTest extends AbstractUnitTest {
 
@@ -113,14 +114,14 @@ public class OutlierExplanationResolverTest extends AbstractUnitTest {
         var messages = result.anomalies().stream()
             .map(a -> {
                 assertEquals("should provide just 1 explanation per anomaly", 1, a.explanations().size());
-                var categories = a.explanations().get(0).getCategory();
+                var categories = a.explanations().get(0).categories();
                 assertThatIterable(categories).isEqualTo(List.of(UNUSUAL_ACCESS));
-                return a.explanations().get(0).getMessage();
+                return a.explanations().get(0).message();
             })
             .toList();
-        assertEquals("Detected 3 atypical accesses comparing to the peer users. Outlier score 95.50%.", translate(result.explanation().getMessage()));
-        assertEquals("Detected 3 atypical accesses comparing to the peer users with score 95.50%.", translate(result.shortExplanation().getMessage()));
-        assertThatIterable(result.explanation().getCategory()).isEqualTo(List.of(UNUSUAL_ACCESS));
+        assertEquals("Detected 3 atypical accesses comparing to the peer users. Outlier score 95.50%.", translate(result.explanation().message()));
+        assertEquals("Detected 3 atypical accesses comparing to the peer users with score 95.50%.", translate(result.shortExplanation().message()));
+        assertThatIterable(result.explanation().categories()).isEqualTo(List.of(UNUSUAL_ACCESS));
         assertEquals("Access is unique within the peer users and granted to 3% users overall", translate(messages.get(0)));
         assertEquals("Access is granted only to 2 users of the peer users and granted to 0.5% users overall", translate(messages.get(1)));
         assertEquals("Access is granted only to 5% users of the peer users and granted to 30% users overall", translate(messages.get(2)));
@@ -154,24 +155,24 @@ public class OutlierExplanationResolverTest extends AbstractUnitTest {
         var result = resolver.explain();
 
         then();
-        assertEquals("Detected 2 atypical accesses comparing to the peer users. Outlier score 95.50%.", translate(result.explanation().getMessage()));
-        assertEquals("Detected 2 atypical accesses comparing to the peer users with score 95.50%.", translate(result.shortExplanation().getMessage()));
-        assertThatIterable(result.explanation().getCategory()).isEqualTo(List.of(UNUSUAL_ACCESS));
+        assertEquals("Detected 2 atypical accesses comparing to the peer users. Outlier score 95.50%.", translate(result.explanation().message()));
+        assertEquals("Detected 2 atypical accesses comparing to the peer users with score 95.50%.", translate(result.shortExplanation().message()));
+        assertThatIterable(result.explanation().categories()).isEqualTo(List.of(UNUSUAL_ACCESS));
 
         var firstAnomaly = result.anomalies().get(0);
         var secondAnomaly = result.anomalies().get(1);
 
         assertEquals("should provide 2 explanations in anomaly", 2, firstAnomaly.explanations().size());
-        assertEquals("Access is unique within the peer users and granted to 3% users overall", translate(firstAnomaly.explanations().get(0).getMessage()));
-        assertEquals("Users with attributes Organizational Unit: Development do not usually get this access", translate(firstAnomaly.explanations().get(1).getMessage()));
-        assertThatIterable(firstAnomaly.explanations().get(0).getCategory()).isEqualTo(List.of(UNUSUAL_ACCESS));
-        assertThatIterable(firstAnomaly.explanations().get(1).getCategory()).isEqualTo(List.of(IRREGULAR_ATTRIBUTES));
+        assertEquals("Access is unique within the peer users and granted to 3% users overall", translate(firstAnomaly.explanations().get(0).message()));
+        assertEquals("Users with attributes Organizational Unit: Development do not usually get this access", translate(firstAnomaly.explanations().get(1).message()));
+        assertThatIterable(firstAnomaly.explanations().get(0).categories()).isEqualTo(List.of(UNUSUAL_ACCESS));
+        assertThatIterable(firstAnomaly.explanations().get(1).categories()).isEqualTo(List.of(IRREGULAR_ATTRIBUTES));
 
         assertEquals("should provide 2 explanations in anomaly", 2, secondAnomaly.explanations().size());
-        assertEquals("Access is granted only to 2 users of the peer users and granted to 3% users overall", translate(secondAnomaly.explanations().get(0).getMessage()));
-        assertEquals("Users with attributes Organizational Unit: Development, location: Tokio, costCenter: research do not usually get this access", translate(secondAnomaly.explanations().get(1).getMessage()));
-        assertThatIterable(secondAnomaly.explanations().get(0).getCategory()).isEqualTo(List.of(UNUSUAL_ACCESS));
-        assertThatIterable(secondAnomaly.explanations().get(1).getCategory()).isEqualTo(List.of(IRREGULAR_ATTRIBUTES));
+        assertEquals("Access is granted only to 2 users of the peer users and granted to 3% users overall", translate(secondAnomaly.explanations().get(0).message()));
+        assertEquals("Users with attributes Organizational Unit: Development, location: Tokio, costCenter: research do not usually get this access", translate(secondAnomaly.explanations().get(1).message()));
+        assertThatIterable(secondAnomaly.explanations().get(0).categories()).isEqualTo(List.of(UNUSUAL_ACCESS));
+        assertThatIterable(secondAnomaly.explanations().get(1).categories()).isEqualTo(List.of(IRREGULAR_ATTRIBUTES));
     }
 
     @Test
@@ -189,8 +190,8 @@ public class OutlierExplanationResolverTest extends AbstractUnitTest {
         var result = resolver.explain();
 
         then();
-        assertEquals("Detected 1 atypical accesses comparing to the peer users with 'Tokio' location. Outlier score 95.50%.", translate(result.explanation().getMessage()));
-        assertEquals("Detected 1 atypical accesses comparing to the peer users with score 95.50%.", translate(result.shortExplanation().getMessage()));
+        assertEquals("Detected 1 atypical accesses comparing to the peer users with 'Tokio' location. Outlier score 95.50%.", translate(result.explanation().message()));
+        assertEquals("Detected 1 atypical accesses comparing to the peer users with score 95.50%.", translate(result.shortExplanation().message()));
     }
 
     @Test
@@ -205,8 +206,8 @@ public class OutlierExplanationResolverTest extends AbstractUnitTest {
         var result = resolver.explain();
 
         then();
-        assertEquals("Detected 1 atypical accesses comparing to the peer users with 'Development' Organizational Unit. Outlier score 95.50%.", translate(result.explanation().getMessage()));
-        assertEquals("Detected 1 atypical accesses comparing to the peer users with score 95.50%.", translate(result.shortExplanation().getMessage()));
+        assertEquals("Detected 1 atypical accesses comparing to the peer users with 'Development' Organizational Unit. Outlier score 95.50%.", translate(result.explanation().message()));
+        assertEquals("Detected 1 atypical accesses comparing to the peer users with score 95.50%.", translate(result.shortExplanation().message()));
     }
 
 
@@ -221,8 +222,8 @@ public class OutlierExplanationResolverTest extends AbstractUnitTest {
         var result = resolver.explain();
 
         then();
-        assertEquals("Detected 1 atypical accesses comparing to the peer users. Outlier score 77.00%.", translate(result.explanation().getMessage()));
-        assertEquals("Detected 1 atypical accesses comparing to the peer users with score 77.00%.", translate(result.shortExplanation().getMessage()));
+        assertEquals("Detected 1 atypical accesses comparing to the peer users. Outlier score 77.00%.", translate(result.explanation().message()));
+        assertEquals("Detected 1 atypical accesses comparing to the peer users with score 77.00%.", translate(result.shortExplanation().message()));
     }
 
     @Test
@@ -236,8 +237,8 @@ public class OutlierExplanationResolverTest extends AbstractUnitTest {
         var result = resolver.explain();
 
         then();
-        assertEquals("Detected 1 atypical accesses comparing to the peer users. Outlier score 95.56%.", translate(result.explanation().getMessage()));
-        assertEquals("Detected 1 atypical accesses comparing to the peer users with score 95.56%.", translate(result.shortExplanation().getMessage()));
+        assertEquals("Detected 1 atypical accesses comparing to the peer users. Outlier score 95.56%.", translate(result.explanation().message()));
+        assertEquals("Detected 1 atypical accesses comparing to the peer users with score 95.56%.", translate(result.shortExplanation().message()));
     }
 
     @Test
@@ -258,8 +259,8 @@ public class OutlierExplanationResolverTest extends AbstractUnitTest {
         var result = resolver.explain();
 
         then();
-        assertEquals("Detected 1 atypical accesses comparing to the peer users with 'Tokio' location and 'Development' Organizational Unit. Outlier score 95.50%.", translate(result.explanation().getMessage()));
-        assertEquals("Detected 1 atypical accesses comparing to the peer users with score 95.50%.", translate(result.shortExplanation().getMessage()));
+        assertEquals("Detected 1 atypical accesses comparing to the peer users with 'Tokio' location and 'Development' Organizational Unit. Outlier score 95.50%.", translate(result.explanation().message()));
+        assertEquals("Detected 1 atypical accesses comparing to the peer users with score 95.50%.", translate(result.shortExplanation().message()));
     }
 
     private OutlierExplanationInput makeOutlier(List<AnomalyExplanationInput> anomalies, List<ExplanationAttribute> groupByAttributes, Double score) {
@@ -297,8 +298,8 @@ public class OutlierExplanationResolverTest extends AbstractUnitTest {
         return attributes;
     }
 
-    private String translate(LocalizableMessageType message) {
-        return localization.translate(LocalizationUtil.toLocalizableMessage(message), localization.getDefaultLocale());
+    private String translate(LocalizableMessage message) {
+        return localization.translate(message, localization.getDefaultLocale());
     }
 
 }

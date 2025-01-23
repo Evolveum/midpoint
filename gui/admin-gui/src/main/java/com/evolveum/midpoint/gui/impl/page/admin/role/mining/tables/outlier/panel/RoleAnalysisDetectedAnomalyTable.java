@@ -11,6 +11,7 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.*;
 
+import com.evolveum.midpoint.common.outlier.OutlierExplanationResolver;
 import com.evolveum.midpoint.gui.api.component.LabelWithHelpPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.outlier.RoleAnalysisExplanationTabPanelPopup;
 
@@ -255,8 +256,8 @@ public class RoleAnalysisDetectedAnomalyTable extends BasePanel<AnomalyObjectDto
                         RoleType role = object.getValue();
                         String oid = role.getOid();
 
-                        DetectedAnomalyResult anomalyResult = anomalyObjectDto.getAnomalyResult(oid);
-                        Model<String> explainAnomaly = explainAnomaly(anomalyResult);
+                        List<OutlierExplanationResolver.ExplanationResult> explanation = anomalyObjectDto.getExplanation(oid);
+                        Model<String> explainAnomaly = explainAnomaly(explanation);
                         cellItem.add(new Label(componentId, explainAnomaly));
                     }
 
@@ -403,8 +404,9 @@ public class RoleAnalysisDetectedAnomalyTable extends BasePanel<AnomalyObjectDto
 
             @Override
             public IModel<Boolean> getVisible() {
-                return resolveButtonVisibilityByCategory(
-                        this, anomalyObjectDto, OutlierDetectionExplanationCategoryType.UNUSUAL_ACCESS);
+                return resolveButtonVisibilityByCategory(this,
+                        anomalyObjectDto,
+                        OutlierExplanationResolver.OutlierDetectionExplanationCategory.UNUSUAL_ACCESS);
             }
 
             @Override
@@ -460,8 +462,9 @@ public class RoleAnalysisDetectedAnomalyTable extends BasePanel<AnomalyObjectDto
 
             @Override
             public IModel<Boolean> getVisible() {
-                return resolveButtonVisibilityByCategory(
-                        this, anomalyObjectDto, OutlierDetectionExplanationCategoryType.IRREGULAR_ATTRIBUTES);
+                return resolveButtonVisibilityByCategory(this,
+                        anomalyObjectDto,
+                        OutlierExplanationResolver.OutlierDetectionExplanationCategory.IRREGULAR_ATTRIBUTES);
             }
 
             @Override
@@ -475,17 +478,17 @@ public class RoleAnalysisDetectedAnomalyTable extends BasePanel<AnomalyObjectDto
     public Model<Boolean> resolveButtonVisibilityByCategory(
             @NotNull ButtonInlineMenuItem buttonInlineMenuItem,
             @NotNull AnomalyObjectDto anomalyObjectDto,
-            @NotNull OutlierDetectionExplanationCategoryType requiredCategory) {
+            @NotNull OutlierExplanationResolver.OutlierDetectionExplanationCategory requiredCategory) {
         IModel<SelectableBean<RoleType>> rowModel = ((ColumnMenuAction<SelectableBean<RoleType>>) buttonInlineMenuItem.getAction()).getRowModel();
         if (rowModel != null && rowModel.getObject() != null && rowModel.getObject().getValue() != null) {
             RoleType role = rowModel.getObject().getValue();
-            List<OutlierDetectionExplanationType> explanation = anomalyObjectDto.getExplanation(role.getOid());
+            List<OutlierExplanationResolver.ExplanationResult> explanation = anomalyObjectDto.getExplanation(role.getOid());
             if (explanation == null || explanation.isEmpty()) {
                 return Model.of(false);
             }
 
-            for (OutlierDetectionExplanationType item : explanation) {
-                List<OutlierDetectionExplanationCategoryType> itemCategory = item.getCategory();
+            for (OutlierExplanationResolver.ExplanationResult item : explanation) {
+                List<OutlierExplanationResolver.OutlierDetectionExplanationCategory> itemCategory = item.categories();
                 boolean equals = itemCategory.contains(requiredCategory);
                 if (equals) {
                     return Model.of(true);

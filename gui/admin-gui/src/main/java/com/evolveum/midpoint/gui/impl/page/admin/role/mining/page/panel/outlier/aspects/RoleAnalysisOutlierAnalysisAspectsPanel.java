@@ -83,11 +83,26 @@ public class RoleAnalysisOutlierAnalysisAspectsPanel extends AbstractObjectMainP
         container.setOutputMarkupId(true);
         add(container);
 
-        initDashboard(container);
-
         ObjectDetailsModels<RoleAnalysisOutlierType> objectDetailsModels = getObjectDetailsModels();
 
-        RoleAnalysisViewAllPanel accessPanel = new RoleAnalysisViewAllPanel(ID_ACCESS_PANEL,
+        PageBase pageBase = getPageBase();
+        RoleAnalysisService roleAnalysisService = pageBase.getRoleAnalysisService();
+        Task task = pageBase.createSimpleTask("loadOutlierDetails");
+        OperationResult result = task.getResult();
+
+        initDashboard(roleAnalysisService, container, task, result);
+
+        initAccessPanel(roleAnalysisService, objectDetailsModels, container, task, result);
+
+    }
+
+    private void initAccessPanel(
+            RoleAnalysisService roleAnalysisService,
+            @NotNull ObjectDetailsModels<RoleAnalysisOutlierType> objectDetailsModels,
+            @NotNull WebMarkupContainer container,
+            @NotNull Task task,
+            @NotNull OperationResult result) {
+        RoleAnalysisViewAllPanel<?> accessPanel = new RoleAnalysisViewAllPanel<>(ID_ACCESS_PANEL,
                 createStringResource("RoleAnalysis.aspect.overview.page.title.access.anomalies")) {
             @Contract(pure = true)
             @Override
@@ -115,9 +130,10 @@ public class RoleAnalysisOutlierAnalysisAspectsPanel extends AbstractObjectMainP
 
             @Override
             protected @NotNull Component getPanelComponent(String id) {
-//                RoleAnalysisOutlierType outlierObject = objectDetailsModels.getObjectType();
-//                AnomalyObjectDto dto = new AnomalyObjectDto(outlierObject, null, false);
-                RoleAnalysisDetectedAnomalyTable detectedAnomalyTable = new RoleAnalysisDetectedAnomalyTable(id, () -> new AnomalyObjectDto(objectDetailsModels.getObjectType(), null, false));
+                RoleAnalysisOutlierType outlierObject = objectDetailsModels.getObjectType();
+                AnomalyObjectDto dto = new AnomalyObjectDto(
+                        roleAnalysisService, outlierObject, null, false, task, result);
+                RoleAnalysisDetectedAnomalyTable detectedAnomalyTable = new RoleAnalysisDetectedAnomalyTable(id, Model.of(dto));
 
                 detectedAnomalyTable.setOutputMarkupId(true);
                 detectedAnomalyTable.add(AttributeAppender.append("style", "min-height: 400px;"));
@@ -130,7 +146,11 @@ public class RoleAnalysisOutlierAnalysisAspectsPanel extends AbstractObjectMainP
 
     }
 
-    protected void initDashboard(WebMarkupContainer container) {
+    protected void initDashboard(
+            @NotNull RoleAnalysisService roleAnalysisService,
+            @NotNull WebMarkupContainer container,
+            @NotNull Task task,
+            @NotNull OperationResult result) {
 
         RepeatingView cardBodyComponent = new RepeatingView(ID_HEADER_ITEMS);
         cardBodyComponent.setOutputMarkupId(true);
@@ -257,8 +277,19 @@ public class RoleAnalysisOutlierAnalysisAspectsPanel extends AbstractObjectMainP
 //        statusHeader.add(AttributeAppender.append("class", "pl-0"));
 //        cardBodyComponent.add(statusHeader);
 
+        RoleAnalysisOutlierType outlier = getObjectDetailsModels().getObjectType();
+        List<RoleAnalysisOutlierPartitionType> outlierPartitions = outlier.getPartition();
+        int partitionCount = outlierPartitions.size();
+        Set<String> anomalySet = new HashSet<>();
+        for (RoleAnalysisOutlierPartitionType outlierPartition : outlierPartitions) {
+            List<DetectedAnomalyResult> detectedAnomalyResult = outlierPartition.getDetectedAnomalyResult();
+            for (DetectedAnomalyResult anomalyResult : detectedAnomalyResult) {
+                anomalySet.add(anomalyResult.getTargetObjectRef().getOid());
+            }
+        }
+        int anomalyCount = anomalySet.size();
 
-
+        Model<String> finalExplanationTranslatedModel = explainOutlier(outlier);
         RoleAnalysisOutlierDashboardPanel<?> characteristicHeader = new RoleAnalysisOutlierDashboardPanel<>(cardBodyComponent.newChildId(),
                 createStringResource("RoleAnalysisOutlierAnalysisAspectsPanel.widget.characteristics")) {
             @Contract(pure = true)
@@ -269,7 +300,7 @@ public class RoleAnalysisOutlierAnalysisAspectsPanel extends AbstractObjectMainP
 
             @Override
             protected @NotNull Component getPanelComponent(String id) {
-                IconWithLabel iconWithLabel = new IconWithLabel(id, explainOutlier(getObjectDetailsModels().getObjectType())) {
+                IconWithLabel iconWithLabel = new IconWithLabel(id, finalExplanationTranslatedModel) {
                     @Contract(pure = true)
                     @Override
                     protected @NotNull String getIconCssClass() {
