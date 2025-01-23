@@ -414,7 +414,9 @@ public class ClockworkRequestAuthorizer<F extends ObjectType, E extends ObjectTy
                     }
                 }
                 LOGGER.debug("{} of target {} to {} denied", operationDesc, target, objectCurrentOrNew);
-                securityEnforcer.failAuthorization("with " + type, authorizationPhase, autzParams, result);
+                String operationMessageKey = AssignmentOrInducement.ASSIGNMENT.equals(type) ?
+                        "clockwork.request.authorizer.operation.withAssignment" : "clockwork.request.authorizer.operation.withInducement";
+                securityEnforcer.failAuthorization(operationMessageKey, authorizationPhase, autzParams, result);
             }
 
             private void authorizeNoTargetOidAssignmentValue() throws SecurityViolationException {
@@ -457,7 +459,7 @@ public class ClockworkRequestAuthorizer<F extends ObjectType, E extends ObjectTy
                             operationDesc, objectCurrentOrNew, operationUrl);
                 } else {
                     securityEnforcer.failAuthorization(
-                            "with assignment because of policies in the assignment",
+                            "clockwork.request.authorizer.operation.authorizePolicyAssignmentValue",
                             authorizationPhase,
                             autzParams,
                             result);
