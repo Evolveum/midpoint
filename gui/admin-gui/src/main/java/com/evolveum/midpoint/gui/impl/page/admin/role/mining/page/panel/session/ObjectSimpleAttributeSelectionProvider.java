@@ -125,14 +125,14 @@ public class ObjectSimpleAttributeSelectionProvider extends ChoiceProvider<ItemP
 
         for (ItemDefinition<?> def : containerDef.getDefinitions()) {
             if (def instanceof PrismReferenceDefinition refDef && !refDef.isOperational() && refDef.isSingleValue()) {
-                paths.add(refDef.getItemName());
+                paths.add(ItemPath.create(containerDef.getItemName(), refDef.getItemName()));
             }
 
             if (def instanceof PrismPropertyDefinition<?> propertyDef
                     && RoleAnalysisAttributeDefUtils.isSupportedPropertyType(propertyDef.getTypeClass())
                     && !propertyDef.isOperational()
                     && propertyDef.isSingleValue()) {
-                paths.add(propertyDef.getItemName());
+                paths.add(ItemPath.create(containerDef.getItemName(), propertyDef.getItemName()));
             }
 
         }

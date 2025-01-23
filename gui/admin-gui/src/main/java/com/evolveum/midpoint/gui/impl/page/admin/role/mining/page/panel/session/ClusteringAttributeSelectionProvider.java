@@ -134,15 +134,18 @@ public class ClusteringAttributeSelectionProvider extends ChoiceProvider<Cluster
         }
 
         for (ItemDefinition<?> def : containerDef.getDefinitions()) {
+
             if (def instanceof PrismReferenceDefinition refDef) {
-                paths.add(new ItemPathDto(refDef.getItemName(), refDef, containerDef.getTypeName()));
+                paths.add(new ItemPathDto(ItemPath.create(containerDef.getItemName(), refDef.getItemName()),
+                        refDef, containerDef.getTypeName()));
             }
 
             if (def instanceof PrismPropertyDefinition<?> propertyDef
                     && RoleAnalysisAttributeDefUtils.isSupportedPropertyType(propertyDef.getTypeClass())
                     && !propertyDef.isOperational()
                     && propertyDef.isSingleValue()) {
-                paths.add(new ItemPathDto(propertyDef.getItemName(), propertyDef, containerDef.getTypeName()));
+                paths.add(new ItemPathDto(ItemPath.create(containerDef.getItemName(), propertyDef.getItemName()),
+                        propertyDef, containerDef.getTypeName()));
             }
 
         }
