@@ -32,19 +32,21 @@ public class SearchResultList<T> extends AbstractFreezable
 
     @Override
     protected void performFreeze() {
-        if (isMutable()) {
-            if (list != null) {
-                list = Collections.unmodifiableList(list);
-            } else {
-                list = Collections.emptyList();
-            }
-            for (T item : list) {
-                if (item instanceof Freezable) {
-                    ((Freezable) item).freeze();
-                }
-            }
+        if (isImmutable()) {
+            return;
+        }
+        if (list != null) {
+            list = Collections.unmodifiableList(list);
         } else {
-            // no-op to avoid multiple wrapping of the list
+            list = Collections.emptyList();
+        }
+        for (T item : list) {
+            if (item instanceof Freezable freezable) {
+                freezable.freeze();
+            }
+        }
+        if (metadata != null) {
+            metadata.freeze();
         }
     }
 

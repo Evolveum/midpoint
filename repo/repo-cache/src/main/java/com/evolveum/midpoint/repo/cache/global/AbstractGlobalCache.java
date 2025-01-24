@@ -43,7 +43,7 @@ public abstract class AbstractGlobalCache {
         } else if (configuration.getMaxSize() != null) {
             return configuration.getMaxSize();
         } else {
-            return Long.MAX_VALUE;
+            return -1;
         }
     }
 

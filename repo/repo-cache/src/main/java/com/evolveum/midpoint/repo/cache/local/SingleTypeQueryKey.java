@@ -7,50 +7,45 @@
 
 package com.evolveum.midpoint.repo.cache.local;
 
+import java.util.Objects;
+
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
-import org.jetbrains.annotations.NotNull;
-
-import java.util.Objects;
-
 /**
- * Key for repository query cache. The query is stored as a clone, in order to make sure it won't be
+ * Key for single-type repository query cache. The query is stored as a clone, in order to make sure it won't be
  * changed during the lifetime of the cache entry.
  */
-public class QueryKey<T extends ObjectType> {
+public class SingleTypeQueryKey {
 
-    @NotNull private final Class<T> type;
     private final ObjectQuery query;
     private Integer cachedHashCode;
 
-    public QueryKey(@NotNull Class<T> type, ObjectQuery query) {
-        this.type = type;
+    public SingleTypeQueryKey(ObjectQuery query) {
         this.query = query != null ? query.clone() : null;
+    }
+
+    public <T extends ObjectType> QueryKey<T> toQueryKey(Class<T> type) {
+        return new QueryKey<>(type, query);
     }
 
     @Override
     public boolean equals(Object o) {
         if (this == o) {
             return true;
-        } else if (!(o instanceof QueryKey<?> queryKey)) {
+        } else if (!(o instanceof SingleTypeQueryKey queryKey)) {
             return false;
         } else {
-            return Objects.equals(type, queryKey.type) &&
-                    Objects.equals(query, queryKey.query);
+            return Objects.equals(query, queryKey.query);
         }
     }
 
     @Override
     public int hashCode() {
         if (cachedHashCode == null) {
-            cachedHashCode = Objects.hash(type, query);
+            cachedHashCode = Objects.hash(query);
         }
         return cachedHashCode;
-    }
-
-    @NotNull public Class<T> getType() {
-        return type;
     }
 
     public ObjectQuery getQuery() {
@@ -60,8 +55,7 @@ public class QueryKey<T extends ObjectType> {
     @Override
     public String toString() {
         return "QueryKey{" +
-                "type=" + type.getSimpleName() +
-                ", query=" + query +
+                "query=" + query +
                 '}';
     }
 }

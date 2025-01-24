@@ -1,22 +1,22 @@
 /*
- * Copyright (c) 2020 Evolveum and contributors
+ * Copyright (C) 2010-2025 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
-package com.evolveum.midpoint.repo.cache.global;
+package com.evolveum.midpoint.repo.cache.local;
 
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.repo.cache.values.CachedQueryValue;
 import com.evolveum.midpoint.schema.SearchResultList;
 
-public class GlobalCacheQueryValue extends AbstractGlobalCacheValue implements CachedQueryValue {
+public class LocalCacheQueryValue implements CachedQueryValue {
 
     @NotNull private final SearchResultList<String> oidOnlyResult;
 
-    GlobalCacheQueryValue(@NotNull SearchResultList<String> oidOnlyResult) {
+    LocalCacheQueryValue(@NotNull SearchResultList<String> oidOnlyResult) {
         CachedQueryValue.checkConsistency(oidOnlyResult);
         this.oidOnlyResult = oidOnlyResult;
     }
@@ -28,6 +28,6 @@ public class GlobalCacheQueryValue extends AbstractGlobalCacheValue implements C
 
     @Override
     public String toString() {
-        return "GlobalCacheQueryValue{" + oidOnlyResult + '}';
+        return "LocalCacheQueryValue{" + oidOnlyResult + '}';
     }
 }
