@@ -150,9 +150,6 @@ public class SearchableItemsDefinitions {
 
         SEARCHABLE_OBJECTS.put(AssignmentType.class, Arrays.asList(
                 ItemPath.create(AssignmentType.F_TARGET_REF),
-                // Prism now supports search by reference target name (in form of @/name) so
-                // it is okay to have this, even if repository assignment view is not enabled
-                ItemPath.create(AssignmentType.F_TARGET_REF, new ObjectReferencePathSegment(), ObjectType.F_NAME),
                 ItemPath.create(AssignmentType.F_CONSTRUCTION, ConstructionType.F_RESOURCE_REF),
                 ItemPath.create(AssignmentType.F_ACTIVATION, ActivationType.F_ADMINISTRATIVE_STATUS),
                 ItemPath.create(AssignmentType.F_ACTIVATION, ActivationType.F_EFFECTIVE_STATUS)
@@ -334,6 +331,7 @@ public class SearchableItemsDefinitions {
         collectionNonExtensionDefinitions(containerDef, searchableDefinitions, isUseSuperclassDefinition());
 
         collectAttributesDefinitions(searchableDefinitions);
+        collectAssignmentTargetRefDefinitions(containerDef, searchableDefinitions);
 
         return searchableDefinitions;
 
@@ -421,6 +419,20 @@ public class SearchableItemsDefinitions {
                     .filter(SearchableItemsDefinitions::isNotContainerAndIsIndexed)
                     .collect(Collectors.toMap(d -> ItemPath.create(path, d.getItemName()), d -> d));
             searchableItems.putAll(extensionItems);
+        }
+    }
+
+    private void collectAssignmentTargetRefDefinitions(ItemDefinition<?> containerDef, PathKeyedMap<ItemDefinition<?>> searchableDefinitions) {
+        // Prism now supports search by reference target name (in form of @/name) so
+        // it is okay to have this, even if repository assignment view is not enabled
+        var namePath =  ItemPath.create(AssignmentType.F_TARGET_REF, new ObjectReferencePathSegment(), ObjectType.F_NAME);
+        if (AssignmentType.class.equals(type)) {
+            if (assignmentTargetType == null || isAssignmentTargetTypeObjectable()) {
+                var nameDef = containerDef.findItemDefinition(namePath, ItemDefinition.class);
+                if (nameDef != null) {
+                    searchableDefinitions.put(namePath, nameDef);
+                }
+            }
         }
     }
 

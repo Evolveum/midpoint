@@ -175,14 +175,28 @@ public class RoleAnalysisReconfigureSessionPopupPanel
                     if (itemName.equals(AbstractAnalysisSessionOptionType.F_USER_SEARCH_FILTER)
                             || itemName.equals(AbstractAnalysisSessionOptionType.F_ROLE_SEARCH_FILTER)
                             || itemName.equals(AbstractAnalysisSessionOptionType.F_ASSIGNMENT_SEARCH_FILTER)
-                            || itemName.equals(AbstractAnalysisSessionOptionType.F_IS_INDIRECT)) {
+                            || itemName.equals(AbstractAnalysisSessionOptionType.F_IS_INDIRECT)
+                            || itemName.equals(AbstractAnalysisSessionOptionType.F_MAX_ACCESS_POPULARITY)
+                            || itemName.equals(AbstractAnalysisSessionOptionType.F_MAX_USERS_POPULARITY)) {
+                        return ItemVisibility.HIDDEN;
+                    }
+
+                    LoadableModel<PrismObjectWrapper<RoleAnalysisSessionType>> objectWrapperModel = getObjectWrapperModel();
+                    RoleAnalysisOptionType option = resolveSessionAnalysisOption(objectWrapperModel);
+                    RoleAnalysisProcessModeType processMode = option.getProcessMode();
+
+                    if (processMode.equals(RoleAnalysisProcessModeType.ROLE)
+                            && itemName.equals(AbstractAnalysisSessionOptionType.F_MIN_ACCESS_POPULARITY)) {
+                        return ItemVisibility.HIDDEN;
+                    }
+
+                    if (processMode.equals(RoleAnalysisProcessModeType.USER)
+                            && itemName.equals(AbstractAnalysisSessionOptionType.F_MIN_USERS_POPULARITY)) {
                         return ItemVisibility.HIDDEN;
                     }
 
                     if (itemName.equals(AbstractAnalysisSessionOptionType.F_DETAILED_ANALYSIS)) {
-                        LoadableModel<PrismObjectWrapper<RoleAnalysisSessionType>> objectWrapperModel = getObjectWrapperModel();
-                        RoleAnalysisOptionType analysisOption = resolveSessionAnalysisOption(objectWrapperModel);
-                        if (analysisOption.getAnalysisProcedureType() != RoleAnalysisProcedureType.OUTLIER_DETECTION) {
+                        if (option.getAnalysisProcedureType() != RoleAnalysisProcedureType.OUTLIER_DETECTION) {
                             return ItemVisibility.HIDDEN;
                         }
                         return ItemVisibility.AUTO;
@@ -250,6 +264,10 @@ public class RoleAnalysisReconfigureSessionPopupPanel
                             || itemName.equals(AbstractAnalysisSessionOptionType.F_CLUSTERING_ATTRIBUTE_SETTING)
                             || itemName.equals(AbstractAnalysisSessionOptionType.F_USER_ANALYSIS_ATTRIBUTE_SETTING)
                             || itemName.equals(AbstractAnalysisSessionOptionType.F_DETAILED_ANALYSIS)
+                            || itemName.equals(AbstractAnalysisSessionOptionType.F_MIN_ACCESS_POPULARITY)
+                            || itemName.equals(AbstractAnalysisSessionOptionType.F_MAX_ACCESS_POPULARITY)
+                            || itemName.equals(AbstractAnalysisSessionOptionType.F_MAX_USERS_POPULARITY)
+                            || itemName.equals(AbstractAnalysisSessionOptionType.F_MIN_USERS_POPULARITY)
                     ) {
                         return ItemVisibility.HIDDEN;
                     }

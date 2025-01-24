@@ -28,10 +28,10 @@ public class VerticalFormClusteringAttributesPanel extends VerticalFormPrismCont
 
     @Override
     protected Component createValuesPanel() {
-        ClusteringAttributeSelectorPanel panel = new ClusteringAttributeSelectorPanel(ID_ATTRIBUTES, getModel(), getAnalysisOption().getProcessMode()){
+        ClusteringAttributeSelectorPanel panel = new ClusteringAttributeSelectorPanel(ID_ATTRIBUTES, getModel(), getAnalysisOption().getProcessMode()) {
             @Override
             public boolean isEditable() {
-                if(getSettings() == null || getSettings().getEditabilityHandler() == null){
+                if (getSettings() == null || getSettings().getEditabilityHandler() == null) {
                     return true;
                 }
                 return getSettings().getEditabilityHandler().isEditable(getModelObject());
@@ -55,7 +55,11 @@ public class VerticalFormClusteringAttributesPanel extends VerticalFormPrismCont
         PrismContainerWrapper<ClusteringAttributeSettingType> clusteringSettings = getModelObject();
         RoleAnalysisSessionType session = (RoleAnalysisSessionType) clusteringSettings.findObjectWrapper().getObject().asObjectable();
 
-        return session.getAnalysisOption(); //TODO this migth not work in all cases. rather naviage through the wrapper structure
+        return session.getAnalysisOption(); //TODO this might not work in all cases. rather navigate through the wrapper structure
+    }
 
+    @Override
+    protected String getCssForHeader() {
+        return "pb-0 pt-2 pl-3 pr-3 text-gray font-weight-bold text-center w-100";
     }
 }
