@@ -25,7 +25,6 @@ public class DropDownChoicePanel<T> extends InputPanel {
 
     @Serial private static final long serialVersionUID = 1L;
     private static final String ID_INPUT = "input";
-    private T firstChoice = null;
 
     public DropDownChoicePanel(String id, IModel<T> model, IModel<? extends List<? extends T>> choices) {
         this(id, model, choices, false);
@@ -85,10 +84,6 @@ public class DropDownChoicePanel<T> extends InputPanel {
             }
         };
 
-        if (!input.getChoices().isEmpty()) {
-            firstChoice = input.getChoices().get(0);
-        }
-
         input.setNullValid(allowNull);
         input.setOutputMarkupId(true);
         add(input);
@@ -109,6 +104,10 @@ public class DropDownChoicePanel<T> extends InputPanel {
     }
 
     public T getFirstChoice() {
-        return firstChoice;
+        DropDownChoice<T> baseComponent = getBaseFormComponent();
+        if (!baseComponent.getChoices().isEmpty()) {
+            return baseComponent.getChoices().get(0);
+        }
+        return null;
     }
 }
