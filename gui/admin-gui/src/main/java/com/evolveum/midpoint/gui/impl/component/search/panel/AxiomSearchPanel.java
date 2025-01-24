@@ -51,7 +51,7 @@ public class AxiomSearchPanel extends BasePanel<AxiomQueryWrapper> {
     private static final Trace LOGGER = TraceManager.getTrace(QueryPlaygroundPanel.class);
     private static final String ID_AXIOM_QUERY_FIELD = "axiomQueryField";
     private static final String ID_ADVANCED_ERROR = "advancedError";
-    private static String ID_AXIOM_QUERY_INPUT_FIELD;
+    private static String idAxiomQueryInputField;
 
     public AxiomSearchPanel(String id, IModel<AxiomQueryWrapper> model) {
         super(id, model);
@@ -68,7 +68,7 @@ public class AxiomSearchPanel extends BasePanel<AxiomQueryWrapper> {
                 new PropertyModel<>(getModel(), AxiomQueryWrapper.F_DSL_QUERY));
         queryDslField.add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
 
-        ID_AXIOM_QUERY_INPUT_FIELD = queryDslField.getMarkupId();
+        idAxiomQueryInputField = queryDslField.getMarkupId();
 //        queryDslField.add(new AjaxFormComponentUpdatingBehavior("keyup") {
 //
 //            @Override
@@ -123,7 +123,7 @@ public class AxiomSearchPanel extends BasePanel<AxiomQueryWrapper> {
                                         rootDef,
                                         axiomQueryWrapper.getDslQuery() == null ? "" : axiomQueryWrapper.getDslQuery(),
                                         params.getParameterValue("cursorPosition").toInt()
-                                )) + ", '" + ID_AXIOM_QUERY_INPUT_FIELD + "');"
+                                )) + ", '" + idAxiomQueryInputField + "');"
                         );
                     } catch (Exception e) {
                         LOGGER.error(e.getMessage());
@@ -148,6 +148,6 @@ public class AxiomSearchPanel extends BasePanel<AxiomQueryWrapper> {
     @Override
     public void renderHead(IHeaderResponse response) {
         super.renderHead(response);
-        response.render(OnDomReadyHeaderItem.forScript("window.MidPointTheme.initAxiomSearchPanel('" +  ID_AXIOM_QUERY_INPUT_FIELD + "');"));
+        response.render(OnDomReadyHeaderItem.forScript("window.MidPointTheme.initAxiomSearchPanel('" +  idAxiomQueryInputField + "');"));
     }
 }
