@@ -98,10 +98,11 @@ public class PageRoleAnalysis extends PageAdmin {
     protected AnalysisInfoWidgetDto modelInitialization() {
         PageBase pageBase = (PageBase) getPage();
         RoleAnalysisService roleAnalysisService = pageBase.getRoleAnalysisService();
+        Task task = pageBase.createSimpleTask(OPERATION_LOAD_ROLE_ANALYSIS_INFO);
         OperationResult result = new OperationResult(OPERATION_LOAD_ROLE_ANALYSIS_INFO);
 
         AnalysisInfoWidgetDto analysisInfoWidgetDto = new AnalysisInfoWidgetDto();
-        analysisInfoWidgetDto.loadOutlierModels(result, roleAnalysisService, pageBase);
+        analysisInfoWidgetDto.loadOutlierModels(roleAnalysisService, pageBase, task, result);
         analysisInfoWidgetDto.loadPatternModelsAsync(roleAnalysisService, pageBase, result);
         return analysisInfoWidgetDto;
     }

@@ -7,6 +7,7 @@
 package com.evolveum.midpoint.gui.impl.page.admin.role.mining.components;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.tmp.panel.RoleAnalysisAttributeAnalysisDto;
 
@@ -98,14 +99,15 @@ public class ProgressBarForm extends BasePanel<RoleAnalysisAttributeAnalysisDto>
         List<RoleAnalysisAttributeStatistics> roleAnalysisAttributeStructures = new ArrayList<>(getModelObject().getAttributeStatistics());
         roleAnalysisAttributeStructures.sort(Comparator.comparingDouble(RoleAnalysisAttributeStatistics::getFrequency).reversed());
 
-        roleAnalysisAttributeStructures.stream()
+        var markedAttributes = roleAnalysisAttributeStructures.stream()
                 .filter(a -> pathToMark.contains(a.getAttributeValue()))
-                .findFirst()
-                .ifPresent(markedAttr -> {
-                    // keep marked attributes at the top (used to highlight outlier's attributes)
-                    roleAnalysisAttributeStructures.remove(markedAttr);
-                    roleAnalysisAttributeStructures.add(0, markedAttr);
-                });
+                .collect(Collectors.toList());
+        Collections.reverse(markedAttributes); // reverse to keep original order for marked attributes
+        for (var markedAttr: markedAttributes) {
+            // keep marked attributes at the top (used to highlight outlier's attributes)
+            roleAnalysisAttributeStructures.remove(markedAttr);
+            roleAnalysisAttributeStructures.add(0, markedAttr);
+        }
 
         int maxVisibleBars = 5;
         boolean isCompactView = roleAnalysisAttributeStructures.size() > 10;

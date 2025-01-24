@@ -182,61 +182,70 @@ public class AllAccessListPanel extends AbstractObjectMainPanel<UserType, UserDe
                 if (assignmentType == null) {
                     return () -> "";
                 }
-                ValueMetadataType metadataType = ValueMetadataTypeUtil.getMetadata(assignmentType);
-                if (metadataType == null) {
-                    return null;
-                }
-
-                StorageMetadataType storageMetadataType = metadataType.getStorage();
-                if (storageMetadataType == null) {
-                    return () -> "N/A";
-                }
-
-                String chanel = storageMetadataType.getCreateChannel();
-                if (chanel == null) {
-                    return () -> "N/A";
+                var metadataContainer = assignmentType.asPrismContainerValue().<ValueMetadataType>getValueMetadataAsContainer();
+                if (metadataContainer.isEmpty()) {
+                    return () -> "";
                 }
 
                 return () -> {
-                    String creator = null;
-                    String approvers = null;
-                    String approverComments = null;
+                    var output = new StringBuilder();
+                    for (var metadataType : metadataContainer.getRealValues()) {
+                        StorageMetadataType storageMetadataType = metadataType.getStorage();
+                        if (storageMetadataType == null) {
+                            continue;
+                        }
 
-                    Channel channel = Channel.findChannel(chanel);
-                    if (channel == null) {
-                        return "N/A";
-                    }
+                        String chanel = storageMetadataType.getCreateChannel();
+                        if (chanel == null) {
+                            continue;
+                        }
+                        String creator = null;
+                        String approvers = null;
+                        String approverComments = null;
 
-                    switch (channel) {
-                        case SELF_SERVICE:
-                        case USER:
-                            creator = WebModelServiceUtils.resolveReferenceName(storageMetadataType.getCreatorRef(), getPageBase());
-                            approvers = ValueMetadataTypeUtil.getCreateApproverRefs(assignmentType)
-                                    .stream()
-                                    .filter(ref -> StringUtils.isNotEmpty(ref.getOid()))
-                                    .map(approver -> WebModelServiceUtils.resolveReferenceName(approver, getPageBase()))
-                                    .collect(Collectors.joining(", "));
-                            approverComments = ValueMetadataTypeUtil.getCreateApprovalComments(assignmentType)
-                                    .stream()
-                                    .filter(comment -> comment != null && !comment.isBlank())
-                                    .collect(Collectors.joining(". "));
-                            break;
-                        case IMPORT:
-                        case ASYNC_UPDATE:
-                        case DISCOVERY:
-                        case LIVE_SYNC:
-                        case RECOMPUTATION:
-                        case RECONCILIATION:
-                            creator = WebModelServiceUtils.resolveReferenceName(storageMetadataType.getCreateTaskRef(), getPageBase());
+                        Channel channel = Channel.findChannel(chanel);
+                        if (channel == null) {
+                            continue;
+                        }
+
+                        switch (channel) {
+                            case SELF_SERVICE:
+                            case USER:
+                                creator = WebModelServiceUtils.resolveReferenceName(storageMetadataType.getCreatorRef(), getPageBase());
+                                approvers = ValueMetadataTypeUtil.getCreateApproverRefs(assignmentType)
+                                        .stream()
+                                        .filter(ref -> StringUtils.isNotEmpty(ref.getOid()))
+                                        .map(approver -> WebModelServiceUtils.resolveReferenceName(approver, getPageBase()))
+                                        .collect(Collectors.joining(", "));
+                                approverComments = ValueMetadataTypeUtil.getCreateApprovalComments(assignmentType)
+                                        .stream()
+                                        .filter(comment -> comment != null && !comment.isBlank())
+                                        .collect(Collectors.joining(". "));
+                                break;
+                            case IMPORT:
+                            case ASYNC_UPDATE:
+                            case DISCOVERY:
+                            case LIVE_SYNC:
+                            case RECOMPUTATION:
+                            case RECONCILIATION:
+                                creator = WebModelServiceUtils.resolveReferenceName(storageMetadataType.getCreateTaskRef(), getPageBase());
+                        }
+                        String whyStatement = "Created by: " + creator;
+                        if (approvers != null && !approvers.isBlank()) {
+                            whyStatement += "\n Approved by: " + approvers;
+                        }
+                        if (approverComments != null && !approverComments.isBlank()) {
+                            whyStatement += "\n With a comment: " + approverComments;
+                        }
+                        if (!output.isEmpty()) {
+                            output.append(",\n");
+                        }
+                        output.append(whyStatement);
                     }
-                    String whyStatement = "Created by: " + creator;
-                    if (approvers != null && !approvers.isBlank()) {
-                        whyStatement += "\n Approved by: " + approvers;
+                    if (output.isEmpty()) {
+                        output.append("N/A");
                     }
-                    if (approverComments != null && !approverComments.isBlank()) {
-                        whyStatement += "\n With a comment: " + approverComments;
-                    }
-                    return whyStatement;
+                    return output.toString();
                 };
             }
         };

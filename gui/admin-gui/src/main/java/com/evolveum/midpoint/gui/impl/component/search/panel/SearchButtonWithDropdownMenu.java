@@ -25,6 +25,7 @@ import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 
 public abstract class SearchButtonWithDropdownMenu<E extends Enum> extends BasePanel<List<E>> {
+
     @Serial private static final long serialVersionUID = 1L;
 
     private static final String ID_SEARCH_BUTTON = "searchButton";
@@ -32,8 +33,6 @@ public abstract class SearchButtonWithDropdownMenu<E extends Enum> extends BaseP
     private static final String ID_MENU_ITEMS = "menuItems";
     private static final String ID_MENU_ITEM = "menuItem";
     private static final String ID_DROPDOWN_BUTTON = "dropdownButton";
-
-//    E selectedValue = null;
 
     private final IModel<E> mode;
 
@@ -66,11 +65,6 @@ public abstract class SearchButtonWithDropdownMenu<E extends Enum> extends BaseP
             @Override
             protected void onSubmit(AjaxRequestTarget target) {
                 searchPerformed(target);
-            }
-
-            @Override
-            public String getMarkupId() {
-                return ID_SEARCH_BUTTON;
             }
         };
         searchButton.setOutputMarkupId(true);

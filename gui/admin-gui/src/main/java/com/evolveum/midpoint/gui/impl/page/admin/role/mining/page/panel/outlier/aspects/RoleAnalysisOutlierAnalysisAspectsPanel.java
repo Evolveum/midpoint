@@ -83,11 +83,26 @@ public class RoleAnalysisOutlierAnalysisAspectsPanel extends AbstractObjectMainP
         container.setOutputMarkupId(true);
         add(container);
 
-        initDashboard(container);
-
         ObjectDetailsModels<RoleAnalysisOutlierType> objectDetailsModels = getObjectDetailsModels();
 
-        RoleAnalysisViewAllPanel accessPanel = new RoleAnalysisViewAllPanel(ID_ACCESS_PANEL,
+        PageBase pageBase = getPageBase();
+        RoleAnalysisService roleAnalysisService = pageBase.getRoleAnalysisService();
+        Task task = pageBase.createSimpleTask("loadOutlierDetails");
+        OperationResult result = task.getResult();
+
+        initDashboard(roleAnalysisService, container, task, result);
+
+        initAccessPanel(roleAnalysisService, objectDetailsModels, container, task, result);
+
+    }
+
+    private void initAccessPanel(
+            RoleAnalysisService roleAnalysisService,
+            @NotNull ObjectDetailsModels<RoleAnalysisOutlierType> objectDetailsModels,
+            @NotNull WebMarkupContainer container,
+            @NotNull Task task,
+            @NotNull OperationResult result) {
+        RoleAnalysisViewAllPanel<?> accessPanel = new RoleAnalysisViewAllPanel<>(ID_ACCESS_PANEL,
                 createStringResource("RoleAnalysis.aspect.overview.page.title.access.anomalies")) {
             @Contract(pure = true)
             @Override
@@ -116,7 +131,8 @@ public class RoleAnalysisOutlierAnalysisAspectsPanel extends AbstractObjectMainP
             @Override
             protected @NotNull Component getPanelComponent(String id) {
                 RoleAnalysisOutlierType outlierObject = objectDetailsModels.getObjectType();
-                AnomalyObjectDto dto = new AnomalyObjectDto(outlierObject, null, false);
+                AnomalyObjectDto dto = new AnomalyObjectDto(
+                        roleAnalysisService, outlierObject, null, false, task, result);
                 RoleAnalysisDetectedAnomalyTable detectedAnomalyTable = new RoleAnalysisDetectedAnomalyTable(id, Model.of(dto));
 
                 detectedAnomalyTable.setOutputMarkupId(true);
@@ -127,10 +143,13 @@ public class RoleAnalysisOutlierAnalysisAspectsPanel extends AbstractObjectMainP
 
         accessPanel.setOutputMarkupId(true);
         container.add(accessPanel);
-
     }
 
-    protected void initDashboard(WebMarkupContainer container) {
+    protected void initDashboard(
+            @NotNull RoleAnalysisService roleAnalysisService,
+            @NotNull WebMarkupContainer container,
+            @NotNull Task task,
+            @NotNull OperationResult result) {
 
         RepeatingView cardBodyComponent = new RepeatingView(ID_HEADER_ITEMS);
         cardBodyComponent.setOutputMarkupId(true);
@@ -269,7 +288,8 @@ public class RoleAnalysisOutlierAnalysisAspectsPanel extends AbstractObjectMainP
         }
         int anomalyCount = anomalySet.size();
 
-        Model<String> finalExplanationTranslatedModel = explainOutlier(outlier);
+        Model<String> finalExplanationTranslatedModel = explainOutlier(
+                roleAnalysisService, outlier, false, task, result);
         RoleAnalysisOutlierDashboardPanel<?> characteristicHeader = new RoleAnalysisOutlierDashboardPanel<>(cardBodyComponent.newChildId(),
                 createStringResource("RoleAnalysisOutlierAnalysisAspectsPanel.widget.characteristics")) {
             @Contract(pure = true)
