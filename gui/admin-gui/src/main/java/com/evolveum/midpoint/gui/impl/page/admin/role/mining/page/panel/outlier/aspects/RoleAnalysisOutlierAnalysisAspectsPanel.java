@@ -130,10 +130,10 @@ public class RoleAnalysisOutlierAnalysisAspectsPanel extends AbstractObjectMainP
 
             @Override
             protected @NotNull Component getPanelComponent(String id) {
-                RoleAnalysisOutlierType outlierObject = objectDetailsModels.getObjectType();
-                AnomalyObjectDto dto = new AnomalyObjectDto(
-                        roleAnalysisService, outlierObject, null, false, task, result);
-                RoleAnalysisDetectedAnomalyTable detectedAnomalyTable = new RoleAnalysisDetectedAnomalyTable(id, Model.of(dto));
+//                RoleAnalysisOutlierType outlierObject = objectDetailsModels.getObjectType();
+//                AnomalyObjectDto dto = new AnomalyObjectDto(outlierObject, null, false);
+                RoleAnalysisDetectedAnomalyTable detectedAnomalyTable = new RoleAnalysisDetectedAnomalyTable(id,
+                        () -> new AnomalyObjectDto(roleAnalysisService, objectDetailsModels.getObjectType(), null, false, task, result));
 
                 detectedAnomalyTable.setOutputMarkupId(true);
                 detectedAnomalyTable.add(AttributeAppender.append("style", "min-height: 400px;"));
@@ -143,7 +143,6 @@ public class RoleAnalysisOutlierAnalysisAspectsPanel extends AbstractObjectMainP
 
         accessPanel.setOutputMarkupId(true);
         container.add(accessPanel);
-
     }
 
     protected void initDashboard(
@@ -277,19 +276,6 @@ public class RoleAnalysisOutlierAnalysisAspectsPanel extends AbstractObjectMainP
 //        statusHeader.add(AttributeAppender.append("class", "pl-0"));
 //        cardBodyComponent.add(statusHeader);
 
-        RoleAnalysisOutlierType outlier = getObjectDetailsModels().getObjectType();
-        List<RoleAnalysisOutlierPartitionType> outlierPartitions = outlier.getPartition();
-        int partitionCount = outlierPartitions.size();
-        Set<String> anomalySet = new HashSet<>();
-        for (RoleAnalysisOutlierPartitionType outlierPartition : outlierPartitions) {
-            List<DetectedAnomalyResult> detectedAnomalyResult = outlierPartition.getDetectedAnomalyResult();
-            for (DetectedAnomalyResult anomalyResult : detectedAnomalyResult) {
-                anomalySet.add(anomalyResult.getTargetObjectRef().getOid());
-            }
-        }
-        int anomalyCount = anomalySet.size();
-
-        Model<String> finalExplanationTranslatedModel = explainOutlier(outlier);
         RoleAnalysisOutlierDashboardPanel<?> characteristicHeader = new RoleAnalysisOutlierDashboardPanel<>(cardBodyComponent.newChildId(),
                 createStringResource("RoleAnalysisOutlierAnalysisAspectsPanel.widget.characteristics")) {
             @Contract(pure = true)
@@ -300,7 +286,7 @@ public class RoleAnalysisOutlierAnalysisAspectsPanel extends AbstractObjectMainP
 
             @Override
             protected @NotNull Component getPanelComponent(String id) {
-                IconWithLabel iconWithLabel = new IconWithLabel(id, finalExplanationTranslatedModel) {
+                IconWithLabel iconWithLabel = new IconWithLabel(id, explainOutlier(roleAnalysisService, getObjectDetailsModels().getObjectType(), false, task, result)) {
                     @Contract(pure = true)
                     @Override
                     protected @NotNull String getIconCssClass() {
