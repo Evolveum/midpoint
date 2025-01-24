@@ -77,6 +77,7 @@ Now it's possible to define characters that are accepted in the password, but no
 The default password policy was updated in this regard.
 See bug:MID-9541[].
 * Stopped displaying some shadow operational properties (like the synchronization timestamp, iteration, and so on) among changes in simulation results. See bug:MID-9737[] and bug:MID-9986[].
+* bug:MID-10048[] Fix ClassCastException when creating duplicates of object types with new archetype
 
 == Changes With Respect To Version 4.8
 
