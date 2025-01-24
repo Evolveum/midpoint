@@ -924,9 +924,11 @@ export default class MidPointTheme {
             .attr('id', 'queryDslAutocomplete')
             .appendTo(queryDslInput.parent());
 
-        queryDslInput.on('keydown click blur', function () {
-            // autocomplete.hide()
-            // autocomplete.empty()
+        $(document).on("click", function(event) {
+            if (!$(event.target).closest("#" + queryDslInputId, "#queryDslAutocomplete").length) {
+                autocomplete.hide()
+                autocomplete.empty()
+            }
         });
     }
 
@@ -936,19 +938,6 @@ export default class MidPointTheme {
         const inputOffset = queryDslInput.offset();
         const caretPosition = this.getCaretCoordinates(queryDslInput);
 
-        const errorWord = 'error';
-        const regex = new RegExp(`\\b${errorWord}\\b`, 'gi');
-        let match = regex.exec(queryDslInput.val);
-
-        if (match) {
-            const start = match.index;
-            const end = start + errorWord.length;
-
-            $('.invalid-feedback').html(`Error word: "${errorWord}" found at start: ${start}, end: ${end}`);
-        } else {
-            $('.invalid-feedback').html('No error word found.');
-        }
-
         // calculate position for autocomplete window
         autocomplete.css({
             top: inputOffset.top + caretPosition.top + parseInt(queryDslInput.css('font-size')),
@@ -957,23 +946,53 @@ export default class MidPointTheme {
 
         const suggestions = contentAssist.autocomplete;
 
-        // autocomplete.empty()
+        autocomplete.empty()
         autocomplete.show()
 
         if (suggestions === undefined || suggestions.length === 0) {
-            autocomplete.append("<div class='line'>" +
-                    "<span class='no-suggestion'> No suggestions </span>" +
-                "</div>"
+            autocomplete.append('<div class="line">' +
+                    '<span class="no-suggestion"> No suggestions </span>' +
+                '</div>'
             )
         } else {
+            const query = queryDslInput.val();
+            const cursorPosition = queryDslInput[0].selectionStart;
+            const commands = query.slice(0, cursorPosition).split(" ");
+            const positionCommand = commands[commands.length - 1];
+
             suggestions.forEach(suggestion => {
-                autocomplete.append("<div class='line'>" +
-                        "<span class='name'>" + suggestion.name + "</span>" +
-                        "<span class='alias'>" + suggestion.alias + "</span>" +
-                    "</div>"
-                )
+                if (positionCommand === " ") {
+                    autocomplete.append('<div class="line">' +
+                            '<span class="name">' + suggestion.name + '</span>' +
+                            '<span class="alias">' + suggestion.alias + '</span>' +
+                        '</div>'
+                    )
+                } else if (suggestion.name.includes(positionCommand)) {
+                    autocomplete.append('<div class="line">' +
+                            '<span class="name">' + suggestion.name + '</span>' +
+                            '<span class="alias">' + suggestion.alias + '</span>' +
+                        '</div>'
+                    )
+                }
             })
+
+            autocomplete.on('click', '.line', function() {
+                commands[commands.length - 1] = $(this).find('.name').text()
+                queryDslInput.val(commands.join(" ") + query.substring(cursorPosition))
+                queryDslInput[0].focus()
+                queryDslInput[0].setSelectionRange(commands.join(" ").length, commands.join(" ").length)
+                autocomplete.hide()
+                autocomplete.empty()
+            });
         }
+
+        $('.content-assist-error').remove()
+        contentAssist.validate.forEach(error => {
+            queryDslInput.after('<span class="text-wrap invalid-feedback content-assist-error" style="display: block">' +
+                    'Error at position: ' + error.charPositionInLineStart + ', ' + error.charPositionInLineStop + ' ' +
+                    error.message
+                + '</span>')
+        })
     }
 
     getCaretCoordinates(element) {
