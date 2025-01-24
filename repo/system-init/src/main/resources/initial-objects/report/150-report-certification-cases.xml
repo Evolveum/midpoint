@@ -127,8 +127,9 @@
                         <script>
                             <code>
                                 import com.evolveum.midpoint.schema.util.CertCampaignTypeUtil
+                                import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseType
 
-                                return CertCampaignTypeUtil.getCurrentlyAssignedReviewers(object)
+                                return CertCampaignTypeUtil.getCurrentlyAssignedReviewers(object as AccessCertificationCaseType)
                             </code>
                         </script>
                     </expression>

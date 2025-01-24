@@ -7,7 +7,6 @@
 
 package com.evolveum.midpoint.gui.impl.component.data.column;
 
-import org.apache.wicket.Component;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.list.ListItem;
@@ -70,9 +69,15 @@ public abstract class AbstractItemWrapperColumnPanel<IW extends ItemWrapper, VW 
         WebMarkupContainer panel;
         if (ColumnType.VALUE.equals(getColumnType())) {
 
+            if (getModelObject() != null) {
+                getModelObject().revive(getPageBase().getPrismContext());
+            }
+
             panel = new WebMarkupContainer(ID_VALUES);
 
-            panel.add(createValuePanel(ID_VALUE, getModel()));
+            if (getModelObject() != null) {
+                panel.add(createValuePanel(ID_VALUE, getModel()));
+            }
 
         } else {
 

@@ -77,7 +77,13 @@ public class DropDownChoicePanel<T> extends InputPanel {
 
                 return super.getModelValue();
             }
+
+            @Override
+            public IModel<? extends List<? extends T>> getChoicesModel() {
+                return super.getChoicesModel();
+            }
         };
+
         input.setNullValid(allowNull);
         input.setOutputMarkupId(true);
         add(input);
@@ -95,5 +101,13 @@ public class DropDownChoicePanel<T> extends InputPanel {
 
     protected String getNullValidDisplayValue() {
         return getString("DropDownChoicePanel.notDefined");
+    }
+
+    public T getFirstChoice() {
+        DropDownChoice<T> baseComponent = getBaseFormComponent();
+        if (!baseComponent.getChoices().isEmpty()) {
+            return baseComponent.getChoices().get(0);
+        }
+        return null;
     }
 }

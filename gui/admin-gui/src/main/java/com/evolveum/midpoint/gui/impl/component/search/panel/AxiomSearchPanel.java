@@ -5,20 +5,53 @@ import com.evolveum.midpoint.gui.impl.component.search.wrapper.AdvancedQueryWrap
 import com.evolveum.midpoint.gui.impl.component.search.wrapper.AxiomQueryWrapper;
 import com.evolveum.midpoint.prism.Containerable;
 
+import com.evolveum.midpoint.prism.ItemDefinition;
+import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.impl.query.lang.AxiomQueryContentAssistImpl;
+import com.evolveum.midpoint.prism.query.AxiomQueryContentAssist;
+import com.evolveum.midpoint.prism.query.ContentAssist;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnBlurAjaxFormUpdatingBehaviour;
 
+import com.evolveum.midpoint.web.page.admin.configuration.component.QueryPlaygroundPanel;
+import com.evolveum.midpoint.web.security.MidPointAuthWebSession;
+import com.evolveum.midpoint.web.session.SessionStorage;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SearchBoxModeType;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.wicket.Component;
+import org.apache.wicket.Session;
+import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.ajax.attributes.AjaxRequestAttributes;
+import org.apache.wicket.ajax.attributes.ThrottlingSettings;
+import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
 import org.apache.wicket.behavior.AttributeAppender;
+import org.apache.wicket.markup.head.IHeaderResponse;
+import org.apache.wicket.markup.head.OnDomReadyHeaderItem;
 import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.markup.html.form.DropDownChoice;
 import org.apache.wicket.markup.html.form.TextField;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
+import org.apache.wicket.request.IRequestParameters;
+import org.apache.wicket.request.cycle.RequestCycle;
+
+import javax.xml.namespace.QName;
+import java.time.Duration;
+import java.util.Arrays;
+import java.util.List;
 
 public class AxiomSearchPanel extends BasePanel<AxiomQueryWrapper> {
 
+    private static final Trace LOGGER = TraceManager.getTrace(QueryPlaygroundPanel.class);
     private static final String ID_AXIOM_QUERY_FIELD = "axiomQueryField";
     private static final String ID_ADVANCED_ERROR = "advancedError";
+    private static String idAxiomQueryInputField;
 
     public AxiomSearchPanel(String id, IModel<AxiomQueryWrapper> model) {
         super(id, model);
@@ -35,6 +68,7 @@ public class AxiomSearchPanel extends BasePanel<AxiomQueryWrapper> {
                 new PropertyModel<>(getModel(), AxiomQueryWrapper.F_DSL_QUERY));
         queryDslField.add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
 
+        idAxiomQueryInputField = queryDslField.getMarkupId();
 //        queryDslField.add(new AjaxFormComponentUpdatingBehavior("keyup") {
 //
 //            @Override
@@ -56,6 +90,50 @@ public class AxiomSearchPanel extends BasePanel<AxiomQueryWrapper> {
                 () -> StringUtils.isEmpty(getModelObject().getAdvancedError()) ? "is-valid" : "is-invalid"));
         queryDslField.add(AttributeAppender.append("placeholder", getPageBase().createStringResource("SearchPanel.insertAxiomQuery")));
         queryDslField.add(AttributeAppender.append("title", getPageBase().createStringResource("SearchPanel.insertAxiomQuery")));
+
+        ObjectMapper mapper = new ObjectMapper();
+        AxiomQueryContentAssist axiomQueryContentAssist = new AxiomQueryContentAssistImpl(getPrismContext());
+
+        queryDslField.add(new AjaxFormComponentUpdatingBehavior("keyup") {
+            @Override
+            protected void updateAjaxAttributes(AjaxRequestAttributes attributes) {
+                super.updateAjaxAttributes(attributes);
+                attributes.setThrottlingSettings(
+                        new ThrottlingSettings(ID_AXIOM_QUERY_FIELD, Duration.ofMillis(300), true)
+                );
+
+                attributes.getDynamicExtraParameters().add(
+                        "return {'cursorPosition': window.MidPointTheme.cursorPosition || 0};"
+                );
+            }
+
+            @Override
+            protected void onUpdate(AjaxRequestTarget target) {
+                AxiomQueryWrapper axiomQueryWrapper = getModel().getObject();
+                IRequestParameters params = RequestCycle.get().getRequest().getRequestParameters();
+
+                if (axiomQueryWrapper != null) {
+                    ItemDefinition<?> rootDef = axiomQueryWrapper.getContainerDefinitionOverride() != null ?
+                            axiomQueryWrapper.getContainerDefinitionOverride() :
+                            getPrismContext().getSchemaRegistry().findItemDefinitionByType(new QName(axiomQueryWrapper.getTypeClass().getSimpleName()));
+
+                    try {
+                        target.appendJavaScript("window.MidPointTheme.syncContentAssist(" +
+                                mapper.writeValueAsString(axiomQueryContentAssist.process(
+                                        rootDef,
+                                        axiomQueryWrapper.getDslQuery() == null ? "" : axiomQueryWrapper.getDslQuery(),
+                                        params.getParameterValue("cursorPosition").toInt()
+                                )) + ", '" + idAxiomQueryInputField + "');"
+                        );
+                    } catch (Exception e) {
+                        LOGGER.error(e.getMessage());
+                    }
+                }
+            }
+        });
+
+        queryDslField.add(new AttributeAppender("onkeydown", "window.MidPointTheme.triggerAutocompleteShortcut(event, this);"));
+
         add(queryDslField);
 
         Label advancedError = new Label(ID_ADVANCED_ERROR,
@@ -67,15 +145,9 @@ public class AxiomSearchPanel extends BasePanel<AxiomQueryWrapper> {
         add(advancedError);
     }
 
-//    private void updateQueryDSLArea(Component child, Component parent, AjaxRequestTarget target) {
-//
-//        target.appendJavaScript("$('#" + child.getMarkupId() + "').updateParentClass('fa-check-circle-o', 'has-success',"
-//                + " '" + parent.getMarkupId() + "', 'fa-exclamation-triangle', 'has-error');");
-//
-//        target.add(
-//                get(createComponentPath(ID_FORM, ID_ADVANCED_GROUP, ID_ADVANCED_CHECK)),
-//                get(createComponentPath(ID_FORM, ID_ADVANCED_GROUP, ID_ADVANCED_ERROR_GROUP)),
-//                get(createComponentPath(ID_FORM, ID_SEARCH_CONTAINER)));
-//    }
-
+    @Override
+    public void renderHead(IHeaderResponse response) {
+        super.renderHead(response);
+        response.render(OnDomReadyHeaderItem.forScript("window.MidPointTheme.initAxiomSearchPanel('" +  idAxiomQueryInputField + "');"));
+    }
 }

@@ -14,8 +14,10 @@ import java.util.stream.Collectors;
 
 import com.evolveum.midpoint.gui.api.util.LocalizationUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
+import com.evolveum.midpoint.gui.impl.component.search.wrapper.AxiomQueryWrapper;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.web.component.search.Property;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.commons.collections4.CollectionUtils;
@@ -170,7 +172,9 @@ public abstract class SearchPanel<C extends Serializable> extends BasePanel<Sear
                 form.addOrReplace(basicSearchPanel);
                 break;
             case AXIOM_QUERY:
-                AxiomSearchPanel axiomSearchPanel = new AxiomSearchPanel(panelId, new PropertyModel<>(getModel(), Search.F_AXIOM_SEARCH));
+                PropertyModel<AxiomQueryWrapper> propModel = new PropertyModel<>(getModel(), Search.F_AXIOM_SEARCH);
+                propModel.getObject().setTypeClass(getModel().getObject().getTypeClass());
+                AxiomSearchPanel axiomSearchPanel = new AxiomSearchPanel(panelId, propModel);
                 axiomSearchPanel.setOutputMarkupId(true);
                 form.addOrReplace(axiomSearchPanel);
                 break;

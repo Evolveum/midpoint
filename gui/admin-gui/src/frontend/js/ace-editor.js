@@ -57,6 +57,7 @@ export default class MidPointAceEditor {
             minLines: 10,
             enableBasicAutocompletion: true,
             enableLiveAutocompletion: true,
+            enableSnippets: true,
             selectionStyle: "text",
             useSoftTabs: true,
             tabSize: 3,
@@ -70,14 +71,36 @@ export default class MidPointAceEditor {
             $(jqTextArea).val(editor.getSession().getValue());
             $(jqTextArea).trigger('blur');
         });
+
         editor.on('change', function () {
+            const cursor = editor.getCursorPosition();
+            const lines = editor.session.getLines(0, cursor.row);
+            let position = cursor.column;
+
+            lines.forEach((line, key) => {
+                if (cursor.row > key) {
+                    position = position + line.length
+                }
+            })
+
+            window.MidPointAceEditor.cursorPosition = position;
+
             $(jqTextArea).val(editor.getSession().getValue());
             $(jqTextArea).trigger('change');
         });
 
+        editor.commands.addCommand({
+            name: 'runAutocomplete',
+            bindKey: { win: 'Ctrl-M', mac: 'Command-M' },
+            exec: function (editor) {
+                $(jqTextArea).trigger('change');
+                editor.execCommand("startAutocomplete"); // trigger autocomplete
+            },
+            readOnly: true,
+        })
+
         // add editor to global map, so we can find it later
         $.aceEditors[editorId] = editor;
-
         // //todo handle readonly for text area [lazyman] add "disabled" class to .ace_scroller
     }
 
@@ -147,5 +170,43 @@ export default class MidPointAceEditor {
         } else {
             $(jqEditor).removeClass(DISABLED_CLASS);
         }
+    }
+
+    syncContentAssist(contentAssist, editorId) {
+        const editor = ace.edit(editorId + ACE_EDITOR_POSTFIX);
+
+        // validation
+        let annotations = [];
+        contentAssist.validate.forEach(error => {
+            annotations.push({
+                row: error.lineStart - 1,
+                column: error.charPositionInLineStart,
+                text: error.message,
+                type: "error",
+            });
+        });
+
+        editor.session.setAnnotations(annotations);
+
+        // code completions
+        let customCompleter = {
+            getCompletions: function (editor, session, pos, prefix, callback) {
+                const suggestions = [];
+
+                contentAssist.autocomplete.forEach(function (suggestion) {
+                    suggestions.push({caption: suggestion.name, value: suggestion.name, meta: suggestion.alias});
+                })
+
+                // select suggestions by prefix
+                if (prefix.length > 0) {
+                    callback(null, suggestions.filter((s) => s.caption.startsWith(prefix)));
+                } else {
+                    callback(null, suggestions);
+                }
+            },
+        };
+
+        editor.completers = [customCompleter];
+        editor.execCommand('startAutocomplete');
     }
 }

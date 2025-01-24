@@ -912,4 +912,113 @@ export default class MidPointTheme {
         }
     }
 
+    initAxiomSearchPanel(queryDslInputId) {
+        const queryDslInput = $("#" + queryDslInputId);
+
+        queryDslInput.on('input keyup click', function () {
+            window.MidPointTheme.cursorPosition = this.selectionStart;
+        })
+
+        const autocomplete = $("<div></div>")
+            .hide()
+            .attr('id', 'queryDslAutocomplete')
+            .appendTo(queryDslInput.parent());
+
+        $(document).on("click", function(event) {
+            if (!$(event.target).closest("#" + queryDslInputId, "#queryDslAutocomplete").length) {
+                autocomplete.hide()
+                autocomplete.empty()
+            }
+        });
+    }
+
+    syncContentAssist(contentAssist, queryDslInputId) {
+        const queryDslInput = $("#" + queryDslInputId);
+        const autocomplete = $("#queryDslAutocomplete");
+        const inputOffset = queryDslInput.offset();
+        const caretPosition = this.getCaretCoordinates(queryDslInput);
+
+        // calculate position for autocomplete window
+        autocomplete.css({
+            top: inputOffset.top + caretPosition.top + parseInt(queryDslInput.css('font-size')),
+            left: inputOffset.left + caretPosition.left
+        });
+
+        const suggestions = contentAssist.autocomplete;
+
+        autocomplete.empty()
+        autocomplete.show()
+
+        if (suggestions === undefined || suggestions.length === 0) {
+            autocomplete.append('<div class="line">' +
+                    '<span class="no-suggestion"> No suggestions </span>' +
+                '</div>'
+            )
+        } else {
+            const query = queryDslInput.val();
+            const cursorPosition = queryDslInput[0].selectionStart;
+            const commands = query.slice(0, cursorPosition).split(" ");
+            const positionCommand = commands[commands.length - 1];
+
+            suggestions.forEach(suggestion => {
+                if (positionCommand === " ") {
+                    autocomplete.append('<div class="line">' +
+                            '<span class="name">' + suggestion.name + '</span>' +
+                            '<span class="alias">' + suggestion.alias + '</span>' +
+                        '</div>'
+                    )
+                } else if (suggestion.name.includes(positionCommand)) {
+                    autocomplete.append('<div class="line">' +
+                            '<span class="name">' + suggestion.name + '</span>' +
+                            '<span class="alias">' + suggestion.alias + '</span>' +
+                        '</div>'
+                    )
+                }
+            })
+
+            autocomplete.on('click', '.line', function() {
+                commands[commands.length - 1] = $(this).find('.name').text()
+                queryDslInput.val(commands.join(" ") + query.substring(cursorPosition))
+                queryDslInput[0].focus()
+                queryDslInput[0].setSelectionRange(commands.join(" ").length, commands.join(" ").length)
+                autocomplete.hide()
+                autocomplete.empty()
+            });
+        }
+
+        $('.content-assist-error').remove()
+        contentAssist.validate.forEach(error => {
+            queryDslInput.after('<span class="text-wrap invalid-feedback content-assist-error" style="display: block">' +
+                    'Error at position: ' + error.charPositionInLineStart + ', ' + error.charPositionInLineStop + ' ' +
+                    error.message
+                + '</span>')
+        })
+    }
+
+    getCaretCoordinates(element) {
+        const text = element[0].value.substring(0, element[0].selectionStart);
+        // secret <span/> element for tracking position in body
+        const span = $('<span/>').css({
+            position: 'absolute',
+            whiteSpace: 'pre-wrap',
+            visibility: 'hidden',
+            font: element.css('font'), // Match input font
+            lineHeight: element.css('line-height'),
+        }).text(text);
+
+        $('body').append(span);
+
+        const rect = span[0].getBoundingClientRect();
+        const coordinates = { top: rect.height, left: rect.width };
+
+        span.remove();
+        return coordinates;
+    }
+
+    triggerAutocompleteShortcut(event, element) {
+        if (event.ctrlKey && event.key === ' ') {
+            event.preventDefault();
+            element.dispatchEvent(new Event('keyup', { bubbles: true }));
+        }
+    }
 }

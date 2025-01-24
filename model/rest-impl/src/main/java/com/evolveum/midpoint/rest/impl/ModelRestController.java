@@ -271,7 +271,9 @@ public class ModelRestController extends AbstractRestController {
             } else {
                 object = model.getObject(clazz, id, getOptions, task, result);
             }
-            removeExcludes(object, exclude);
+            if (exclude != null) {
+                removeExcludes(object, exclude);
+            }
 
             response = createResponse(HttpStatus.OK, object, result);
         } catch (Exception ex) {
@@ -650,7 +652,9 @@ public class ModelRestController extends AbstractRestController {
 
             ObjectListType listType = new ObjectListType();
             for (PrismObject<? extends ObjectType> o : objects) {
-                removeExcludes(o, exclude);
+                if (exclude != null) {
+                    removeExcludes(o, exclude);
+                }
                 listType.getObject().add(o.asObjectable());
             }
 
