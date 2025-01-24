@@ -7,7 +7,8 @@
 
 package com.evolveum.midpoint.repo.cache.handlers;
 
-import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.Freezable;
+import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.repo.cache.global.AbstractGlobalCache;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
@@ -29,19 +30,25 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.CacheUseCateg
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.CacheUseCategoryTraceType.MISS;
 
 /**
- * Single execution of cached operation (getObject, getVersion, searchObjects, searchObjectsIteratively).
+ * Single execution of cached operation (`getObject`, `getVersion`, `searchObjects`, `searchObjectsIteratively`).
  *
- * It is hard to split responsibilities between this class and CachedOpHandler. But, generally, here
+ * It is hard to split responsibilities between this class and {@link CachedOpHandler}. But, generally, here
  * are auxiliary methods - in particular,
- * 1) performance monitoring and logging ones,
- * 2) preparation of result to be returned - cloning as needed (plus recording it as needed).
  *
- * The CachedOpHandler contains the main caching-related logic.
+ * 1. performance monitoring and logging ones,
+ * 2. preparation of result to be returned - cloning as needed (plus recording it as needed).
+ *
+ * The {@link CachedOpHandler} contains the main caching-related logic.
  *
  * Instances of this type should be immutable (should contain only final fields).
+ *
+ * @see CachedOpHandler
  */
-abstract class CachedOpExecution<RT extends RepositoryOperationTraceType, LC extends AbstractThreadLocalCache,
-        GC extends AbstractGlobalCache, O extends ObjectType> {
+abstract class CachedOpExecution<
+        RT extends RepositoryOperationTraceType,
+        LC extends AbstractThreadLocalCache,
+        GC extends AbstractGlobalCache,
+        O extends ObjectType> {
 
     /**
      * Object type (input parameter).
@@ -87,56 +94,60 @@ abstract class CachedOpExecution<RT extends RepositoryOperationTraceType, LC ext
     /**
      * Access information for all the caches.
      */
-    @NotNull final CacheSetAccessInfo<O> caches;
+    @NotNull final CacheSetAccessInfo<O> cachesInfo;
 
     /**
      * Access information for related local cache (object, version, query).
      */
-    @NotNull final CacheAccessInfo<LC, O> local;
+    @NotNull final CacheAccessInfo<LC, O> localInfo;
 
     /**
      * Access information for related global cache (object, version, query).
      */
-    @NotNull final CacheAccessInfo<GC, O> global;
+    @NotNull final CacheAccessInfo<GC, O> globalInfo;
 
-    final long started = System.currentTimeMillis();
+    /**
+     * Whether and how should be the cache(s) used. Driven *not* by the configuration of the caches, but by the operation itself
+     * (object type, options). Evolved as a generalization of the `PassReason`.
+     */
+    @NotNull final CacheUseMode cacheUseMode;
 
-    @NotNull final PrismContext prismContext;
+    private final long started = System.currentTimeMillis();
 
     CachedOpExecution(@NotNull Class<O> type,
             @Nullable Collection<SelectorOptions<GetOperationOptions>> options,
             @NotNull OperationResult result,
-            @NotNull CacheSetAccessInfo<O> caches,
-            @NotNull CacheAccessInfo<LC, O> local,
-            @NotNull CacheAccessInfo<GC, O> global,
+            @NotNull CacheSetAccessInfo<O> cachesInfo,
+            @NotNull CacheAccessInfo<LC, O> localInfo,
+            @NotNull CacheAccessInfo<GC, O> globalInfo,
             @Nullable RT trace,
             @Nullable TracingLevelType tracingLevel,
-            @NotNull PrismContext prismContext,
+            @NotNull CacheUseMode cacheUseMode,
             @NotNull String opName) {
         this.type = type;
         this.options = options;
         this.result = result;
-        this.caches = caches;
-        this.local = local;
-        this.global = global;
+        this.cachesInfo = cachesInfo;
+        this.localInfo = localInfo;
+        this.globalInfo = globalInfo;
         this.trace = trace;
         this.tracingLevel = tracingLevel;
         this.tracingAtLeastNormal = isAtLeastNormal(tracingLevel);
         this.readOnly = isReadOnly(findRootOptions(options));
-        this.prismContext = prismContext;
+        this.cacheUseMode = cacheUseMode;
         this.opName = opName;
     }
 
-    void reportLocalAndGlobalPass(PassReason passReason) {
-        if (local.cache != null) {
-            local.cache.registerPass();
+    void reportLocalAndGlobalPass() {
+        if (localInfo.cache != null) {
+            localInfo.cache.registerPass();
         }
-        CachePerformanceCollector.INSTANCE.registerPass(getLocalCacheClass(), type, local.statisticsLevel);
-        CachePerformanceCollector.INSTANCE.registerPass(getGlobalCacheClass(), type, global.statisticsLevel);
-        log("Cache (local/global): PASS:{} {} {}", local.tracePass || global.tracePass, passReason,
+        CachePerformanceCollector.INSTANCE.registerPass(getLocalCacheClass(), type, localInfo.statisticsLevel);
+        CachePerformanceCollector.INSTANCE.registerPass(getGlobalCacheClass(), type, globalInfo.statisticsLevel);
+        log("Cache (local/global): PASS:{} {} {}", localInfo.tracePass || globalInfo.tracePass, cacheUseMode,
                 opName, getDescription());
         if (trace != null) {
-            CacheUseTraceType use = passReason.toCacheUse();
+            CacheUseTraceType use = cacheUseMode.toCacheUseForPass();
             trace.setLocalCacheUse(use);
             trace.setGlobalCacheUse(use);
         }
@@ -144,33 +155,33 @@ abstract class CachedOpExecution<RT extends RepositoryOperationTraceType, LC ext
 
     void reportLocalNotAvailable() {
         log("Cache (local): NULL {} {}", false, opName, getDescription());
-        CachePerformanceCollector.INSTANCE.registerNotAvailable(getLocalCacheClass(), type, local.statisticsLevel);
+        CachePerformanceCollector.INSTANCE.registerNotAvailable(getLocalCacheClass(), type, localInfo.statisticsLevel);
         if (trace != null) {
             trace.setLocalCacheUse(createUse(NOT_AVAILABLE));
         }
     }
 
     void reportLocalPass() {
-        local.cache.registerPass();
-        CachePerformanceCollector.INSTANCE.registerPass(getLocalCacheClass(), type, local.statisticsLevel);
-        log("Cache: PASS:CONFIGURATION {} {}", local.tracePass, opName, getDescription());
+        localInfo.cache.registerPass();
+        CachePerformanceCollector.INSTANCE.registerPass(getLocalCacheClass(), type, localInfo.statisticsLevel);
+        log("Cache: PASS:CONFIGURATION {} {}", localInfo.tracePass, opName, getDescription());
         if (trace != null) {
-            trace.setLocalCacheUse(createUse(PASS, "configuration"));
+            trace.setLocalCacheUse(createUse(PASS, cacheUseMode.getComment()));
         }
     }
 
     void reportLocalMiss() {
-        local.cache.registerMiss();
-        CachePerformanceCollector.INSTANCE.registerMiss(getLocalCacheClass(), type, local.statisticsLevel);
-        log("Cache: MISS {} {}", local.traceMiss, opName, getDescription());
+        localInfo.cache.registerMiss();
+        CachePerformanceCollector.INSTANCE.registerMiss(getLocalCacheClass(), type, localInfo.statisticsLevel);
+        log("Cache: MISS {} {}", localInfo.traceMiss, opName, getDescription());
         if (trace != null) {
             trace.setLocalCacheUse(createUse(MISS));
         }
     }
 
     private void reportLocalHitNoClone() {
-        local.cache.registerHit();
-        CachePerformanceCollector.INSTANCE.registerHit(getLocalCacheClass(), type, local.statisticsLevel);
+        localInfo.cache.registerHit();
+        CachePerformanceCollector.INSTANCE.registerHit(getLocalCacheClass(), type, localInfo.statisticsLevel);
         log("Cache: HIT {} {}", false, opName, getDescription());
         if (trace != null) {
             trace.setLocalCacheUse(createUse(HIT));
@@ -178,8 +189,8 @@ abstract class CachedOpExecution<RT extends RepositoryOperationTraceType, LC ext
     }
 
     private void reportLocalHitWithClone() {
-        local.cache.registerHit();
-        CachePerformanceCollector.INSTANCE.registerHit(getLocalCacheClass(), type, local.statisticsLevel);
+        localInfo.cache.registerHit();
+        CachePerformanceCollector.INSTANCE.registerHit(getLocalCacheClass(), type, localInfo.statisticsLevel);
         log("Cache: HIT(clone) {} {}", false, opName, getDescription());
         if (trace != null) {
             trace.setLocalCacheUse(createUse(HIT));
@@ -195,7 +206,7 @@ abstract class CachedOpExecution<RT extends RepositoryOperationTraceType, LC ext
     }
 
     void reportGlobalNotAvailable() {
-        CachePerformanceCollector.INSTANCE.registerNotAvailable(getGlobalCacheClass(), type, global.statisticsLevel);
+        CachePerformanceCollector.INSTANCE.registerNotAvailable(getGlobalCacheClass(), type, globalInfo.statisticsLevel);
         log("Cache (global): NOT_AVAILABLE {} {}", false, opName, getDescription());
         if (trace != null) {
             trace.setGlobalCacheUse(createUse(NOT_AVAILABLE));
@@ -203,15 +214,15 @@ abstract class CachedOpExecution<RT extends RepositoryOperationTraceType, LC ext
     }
 
     void reportGlobalPass() {
-        CachePerformanceCollector.INSTANCE.registerPass(getGlobalCacheClass(), type, global.statisticsLevel);
-        log("Cache (global): PASS:CONFIGURATION {} {}", global.tracePass, opName, getDescription());
+        CachePerformanceCollector.INSTANCE.registerPass(getGlobalCacheClass(), type, globalInfo.statisticsLevel);
+        log("Cache (global): PASS:CONFIGURATION {} {}", globalInfo.tracePass, opName, getDescription());
         if (trace != null) {
-            trace.setGlobalCacheUse(createUse(PASS, "configuration"));
+            trace.setGlobalCacheUse(createUse(PASS, cacheUseMode.getComment()));
         }
     }
 
     void reportGlobalHit() {
-        CachePerformanceCollector.INSTANCE.registerHit(getGlobalCacheClass(), type, global.statisticsLevel);
+        CachePerformanceCollector.INSTANCE.registerHit(getGlobalCacheClass(), type, globalInfo.statisticsLevel);
         log("Cache (global): HIT {} {}", false, opName, getDescription());
         if (trace != null) {
             trace.setGlobalCacheUse(createUse(HIT));
@@ -219,19 +230,47 @@ abstract class CachedOpExecution<RT extends RepositoryOperationTraceType, LC ext
     }
 
     void reportGlobalMiss() {
-        CachePerformanceCollector.INSTANCE.registerMiss(getGlobalCacheClass(), type, global.statisticsLevel);
-        log("Cache (global): MISS {} {}", global.traceMiss, opName, getDescription());
+        CachePerformanceCollector.INSTANCE.registerMiss(getGlobalCacheClass(), type, globalInfo.statisticsLevel);
+        log("Cache (global): MISS {} {}", globalInfo.traceMiss, opName, getDescription());
         if (trace != null) {
             trace.setGlobalCacheUse(createUse(MISS));
         }
     }
 
     CacheUseTraceType createUse(CacheUseCategoryTraceType category) {
-        return new CacheUseTraceType(prismContext).category(category);
+        return new CacheUseTraceType().category(category);
     }
 
     CacheUseTraceType createUse(CacheUseCategoryTraceType category, String comment) {
-        return new CacheUseTraceType(prismContext).category(category).comment(comment);
+        return new CacheUseTraceType().category(category).comment(comment);
+    }
+
+    /** Prepares immutable object (presumably from the cache) for returning to the caller. */
+    @NotNull <X extends Freezable & Cloneable> X toReturnValueFromImmutable(X immutable) {
+        immutable.checkImmutable();
+        if (readOnly) {
+            return immutable; // caller is OK with immutable version
+        } else {
+            return CloneUtil.cloneCloneable(immutable); // caller expects a mutable copy
+        }
+    }
+
+    /** Prepares mutable or immutable object (presumably from the repo service) for returning to the caller. */
+    @NotNull <X extends Freezable & Cloneable> X toReturnValueFromAny(X any) {
+        if (readOnly) {
+            // This is a bit questionable: the R/O option does not mean the returned object MUST be immutable.
+            // (As per the current contract.) But it is a reasonable assumption.
+            any.freeze();
+            return any;
+        } else if (any.isImmutable()) {
+            return CloneUtil.cloneCloneable(any); // caller expects a mutable copy
+        } else {
+            return any; // caller expects a mutable version
+        }
+    }
+
+    long getAge() {
+        return System.currentTimeMillis() - started;
     }
 
     abstract String getDescription();

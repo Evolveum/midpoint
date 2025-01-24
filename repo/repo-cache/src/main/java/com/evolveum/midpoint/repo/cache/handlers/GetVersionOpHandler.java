@@ -34,48 +34,29 @@ public class GetVersionOpHandler extends CachedOpHandler {
 
         try {
 
-            PassReason passReason = PassReason.determine(null, type);
-            if (passReason != null) {
-                exec.reportLocalAndGlobalPass(passReason);
-                String loaded = getVersionInternal(type, oid, exec.result);
-                return exec.prepareReturnValue(loaded);
-            }
-
-            if (!exec.local.available) {
-                exec.reportLocalNotAvailable();
-            } else if (!exec.local.supports) {
-                exec.reportLocalPass();
+            if (exec.cacheUseMode.canNeverUseCachedData()) {
+                exec.reportLocalAndGlobalPass();
             } else {
-                assert exec.local.cache != null;
-                String cachedVersion = exec.local.cache.get(oid);
-                if (cachedVersion != null) {
-                    exec.reportLocalHit();
-                    return exec.prepareReturnValue(cachedVersion);
-                } else {
-                    exec.reportLocalMiss();
+                assert exec.cacheUseMode.canUpdateCache(); // there should be no options precluding this
+
+                var fromLocalCache = tryLocalCache(exec);
+                if (fromLocalCache != null) {
+                    return fromLocalCache;
                 }
-            }
 
-            if (!exec.global.available) {
-                exec.reportGlobalNotAvailable();
-            } else if (!exec.global.supports) {
-                exec.reportGlobalPass();
-            } else {
-                String cachedVersion = globalVersionCache.get(oid);
-                if (cachedVersion != null) {
-                    exec.reportGlobalHit();
-                    cacheUpdater.storeVersionToVersionLocal(exec.oid, cachedVersion, exec.local);
-                    return exec.prepareReturnValue(cachedVersion);
-                } else {
-                    exec.reportGlobalMiss();
+                var fromGlobalCache = tryGlobalCache(exec);
+                if (fromGlobalCache != null) {
+                    return fromGlobalCache;
                 }
             }
 
             String version = getVersionInternal(type, oid, exec.result);
-
-            cacheUpdater.storeVersionToVersionGlobal(exec.type, exec.oid, version, exec.global);
-            cacheUpdater.storeVersionToVersionLocal(exec.oid, version, exec.local);
+            if (exec.cacheUseMode.canUpdateCache()) {
+                cacheUpdater.storeVersionToVersionGlobal(exec.type, exec.oid, version, exec.globalInfo);
+                cacheUpdater.storeVersionToVersionLocal(exec.oid, version, exec.localInfo);
+            }
             return exec.prepareReturnValue(version);
+
         } catch (Throwable t) {
             exec.result.recordFatalError(t);
             throw t;
@@ -84,8 +65,55 @@ public class GetVersionOpHandler extends CachedOpHandler {
         }
     }
 
-    private <T extends ObjectType> GetVersionOpExecution<T> initializeExecution(Class<T> type, String oid,
-            OperationResult parentResult) {
+    @SuppressWarnings("DuplicatedCode")
+    private <T extends ObjectType> String tryLocalCache(GetVersionOpExecution<T> exec) {
+
+        if (!exec.localInfo.available) {
+            exec.reportLocalNotAvailable();
+            return null;
+        }
+
+        if (!exec.localInfo.supports) {
+            exec.reportLocalPass();
+            return null;
+        }
+
+        assert exec.localInfo.cache != null;
+        String cachedVersion = exec.localInfo.cache.get(exec.oid);
+        if (cachedVersion == null) {
+            exec.reportLocalMiss();
+            return null;
+        }
+
+        exec.reportLocalHit();
+        return exec.prepareReturnValue(cachedVersion);
+    }
+
+    private <T extends ObjectType> String tryGlobalCache(GetVersionOpExecution<T> exec) {
+
+        if (!exec.globalInfo.available) {
+            exec.reportGlobalNotAvailable();
+            return null;
+        }
+
+        if (!exec.globalInfo.supports) {
+            exec.reportGlobalPass();
+            return null;
+        }
+
+        String cachedVersion = globalVersionCache.get(exec.oid);
+        if (cachedVersion == null) {
+            exec.reportGlobalMiss();
+            return null;
+        }
+
+        exec.reportGlobalHit();
+        cacheUpdater.storeVersionToVersionLocal(exec.oid, cachedVersion, exec.localInfo);
+        return exec.prepareReturnValue(cachedVersion);
+    }
+
+    private <T extends ObjectType> GetVersionOpExecution<T> initializeExecution(
+            Class<T> type, String oid, OperationResult parentResult) {
         OperationResult result = parentResult.subresult(GET_VERSION)
                 .addQualifier(type.getSimpleName())
                 .addParam("type", type)
@@ -104,7 +132,8 @@ public class GetVersionOpHandler extends CachedOpHandler {
         }
 
         CacheSetAccessInfo<T> caches = cacheSetAccessInfoFactory.determine(type);
-        return new GetVersionOpExecution<>(type, oid, result, trace, null, prismContext, caches);
+        CacheUseMode cacheUseMode = CacheUseMode.determineForGetVersion(type);
+        return new GetVersionOpExecution<>(type, oid, result, trace, null, caches, cacheUseMode);
     }
 
     private <T extends ObjectType> String getVersionInternal(Class<T> type, String oid, OperationResult result)

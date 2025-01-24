@@ -6,20 +6,23 @@
  */
 package com.evolveum.midpoint.schema;
 
+import java.io.Serial;
 import java.io.Serializable;
 import java.util.Objects;
 
+import com.evolveum.midpoint.prism.AbstractFreezable;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.ShortDumpable;
 
 /**
- * Objects of this type are considered READ ONLY.
- *
  * @author semancik
  */
-public class SearchResultMetadata implements Serializable, DebugDumpable, ShortDumpable, Cloneable {
-    private static final long serialVersionUID = 1L;
+public class SearchResultMetadata
+        extends AbstractFreezable
+        implements Serializable, DebugDumpable, ShortDumpable, Cloneable {
+
+    @Serial private static final long serialVersionUID = 1L;
 
     private String pagingCookie;
     private Integer approxNumberOfAllResults;
@@ -46,10 +49,12 @@ public class SearchResultMetadata implements Serializable, DebugDumpable, ShortD
      * when the next page of the same search is requested.
      */
     public void setPagingCookie(String pagingCookie) {
+        checkMutable();
         this.pagingCookie = pagingCookie;
     }
 
     public SearchResultMetadata pagingCookie(String pagingCookie) {
+        checkMutable();
         this.pagingCookie = pagingCookie;
         return this;
     }
@@ -67,10 +72,12 @@ public class SearchResultMetadata implements Serializable, DebugDumpable, ShortD
     }
 
     public void setApproxNumberOfAllResults(Integer approxNumberOfAllResults) {
+        checkMutable();
         this.approxNumberOfAllResults = approxNumberOfAllResults;
     }
 
     public SearchResultMetadata approxNumberOfAllResults(Integer approxNumberOfAllResults) {
+        checkMutable();
         this.approxNumberOfAllResults = approxNumberOfAllResults;
         return this;
     }
@@ -85,10 +92,12 @@ public class SearchResultMetadata implements Serializable, DebugDumpable, ShortD
     }
 
     public void setPartialResults(boolean partialResults) {
+        checkMutable();
         this.partialResults = partialResults;
     }
 
     public SearchResultMetadata partialResults(boolean partialResults) {
+        checkMutable();
         this.partialResults = partialResults;
         return this;
     }
@@ -103,7 +112,9 @@ public class SearchResultMetadata implements Serializable, DebugDumpable, ShortD
         }
 
         SearchResultMetadata that = (SearchResultMetadata) o;
-        return partialResults == that.partialResults && Objects.equals(pagingCookie, that.pagingCookie) && Objects.equals(approxNumberOfAllResults, that.approxNumberOfAllResults);
+        return partialResults == that.partialResults
+                && Objects.equals(pagingCookie, that.pagingCookie)
+                && Objects.equals(approxNumberOfAllResults, that.approxNumberOfAllResults);
     }
 
     @Override
