@@ -16,6 +16,7 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisAttributeStatistics;
 
 import org.jetbrains.annotations.NotNull;
@@ -39,11 +40,11 @@ public class RoleAnalysisAttributeProgressBarDto extends RoleAnalysisProgressBar
 
     transient List<RoleAnalysisAttributeStatistics> attributeStats;
 
-    private transient List<PrismObject<FocusType>> focusObjects = new ArrayList<>();
+    private transient List<PrismObject<ObjectType>> objectValues = new ArrayList<>();
 
     public RoleAnalysisAttributeProgressBarDto(PageBase pageBase, double actualValue,
-                                               @Nullable String progressColor,
-                                               @NotNull List<RoleAnalysisAttributeStatistics> attributeStats) {
+            @Nullable String progressColor,
+            @NotNull List<RoleAnalysisAttributeStatistics> attributeStats) {
         loadActualValue(actualValue);
 
         if (progressColor != null) {
@@ -95,25 +96,25 @@ public class RoleAnalysisAttributeProgressBarDto extends RoleAnalysisProgressBar
         for (RoleAnalysisAttributeStatistics attributeStatsItem : attributeStats) {
             String attributeValue = attributeStatsItem.getAttributeValue();
             if (isValidUUID(attributeValue)) {
-                @Nullable PrismObject<FocusType> focusObject = WebModelServiceUtils.loadObject(
-                        FocusType.class, attributeValue, pageBase, task, result);
+                @Nullable PrismObject<ObjectType> focusObject = WebModelServiceUtils.loadObject(
+                        ObjectType.class, attributeValue, pageBase, task, result);
                 if (focusObject != null) {
-                    focusObjects.add(focusObject);
+                    objectValues.add(focusObject);
                 }
             }
         }
 
-        updateBarTitle(focusObjects, attributeStats);
+        updateBarTitle(objectValues, attributeStats);
     }
 
     private void updateBarTitle(
-            @Nullable List<PrismObject<FocusType>> focusObjects,
+            List<PrismObject<ObjectType>> objectValues,
             @Nullable List<RoleAnalysisAttributeStatistics> roleAnalysisAttributeResult) {
-        if ((focusObjects == null || focusObjects.isEmpty())
+        if ((objectValues == null || objectValues.isEmpty())
                 && (roleAnalysisAttributeResult != null && !roleAnalysisAttributeResult.isEmpty())) {
             setBarTitleForEmptyFocusObjects(roleAnalysisAttributeResult);
-        } else if (focusObjects != null && !focusObjects.isEmpty()) {
-            setBarTitleForNonEmptyFocusObjects(focusObjects);
+        } else if (objectValues != null && !objectValues.isEmpty()) {
+            setBarTitleForNonEmptyFocusObjects(objectValues);
         }
     }
 
@@ -125,13 +126,13 @@ public class RoleAnalysisAttributeProgressBarDto extends RoleAnalysisProgressBar
         }
     }
 
-    private void setBarTitleForNonEmptyFocusObjects(@NotNull List<PrismObject<FocusType>> focusObjects) {
+    private void setBarTitleForNonEmptyFocusObjects(List<PrismObject<ObjectType>> objectValues) {
         this.isLinkTitle = true;
-        if (focusObjects.size() == 1) {
-            PolyString name = focusObjects.get(0).getName();
+        if (objectValues.size() == 1) {
+            PolyString name = objectValues.get(0).getName();
             this.barTitle = name != null && name.getOrig() != null ? name.getOrig() : this.barTitle;
         } else {
-            this.barTitle = "(" + focusObjects.size() + ") objects";
+            this.barTitle = "(" + objectValues.size() + ") objects";
         }
     }
 
@@ -172,8 +173,8 @@ public class RoleAnalysisAttributeProgressBarDto extends RoleAnalysisProgressBar
         return helpTooltip;
     }
 
-    public List<PrismObject<FocusType>> getFocusObjects() {
-        return focusObjects;
+    public List<PrismObject<ObjectType>> getObjectValues() {
+        return objectValues;
     }
 }
 
