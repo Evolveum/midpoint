@@ -27,7 +27,24 @@ public abstract class DefaultValueMetadataProcessing {
             return false;
         }
     };
-    private static boolean disableDefaultMultivalue = false;
+    private static final DefaultValueMetadataProcessing ASSIGNMENTS_ONLY = new DefaultValueMetadataProcessing() {
+
+        @Override
+        public boolean isEnabledFor(ItemPath dataPath, ItemDefinition<?> dataDefinition) {
+            return AssignmentType.COMPLEX_TYPE.equals(dataDefinition.getTypeName());
+        }
+    };
+
+
+    private static final DefaultValueMetadataProcessing MULTIVALUE = new DefaultValueMetadataProcessing() {
+
+        @Override
+        public boolean isEnabledFor(ItemPath dataPath, ItemDefinition<?> dataDefinition) {
+            return dataDefinition.isMultiValue();
+        }
+    };
+
+    private static DefaultValueMetadataProcessing defaultProvenance = MULTIVALUE;
 
     static {
         ITEM_DEFAULTS = ImmutableMap.<ItemName, DefaultValueMetadataProcessing>builder()
@@ -46,7 +63,9 @@ public abstract class DefaultValueMetadataProcessing {
     }
 
     public static void setDisableDefaultMultivalueProvenance(Boolean disableMultivalue) {
-        disableDefaultMultivalue = Objects.requireNonNullElse(disableMultivalue, false);
+        var disabled = Objects.requireNonNullElse(disableMultivalue, false);
+        // If multivalue provenance is disabled, we use assignment only, otherwise we use multivalue
+        defaultProvenance = disabled ? ASSIGNMENTS_ONLY : MULTIVALUE;
     }
 
     /**
@@ -62,10 +81,7 @@ public abstract class DefaultValueMetadataProcessing {
         return new DefaultValueMetadataProcessing() {
             @Override
             public boolean isEnabledFor(ItemPath dataPath, ItemDefinition<?> dataDefinition) {
-                if (disableDefaultMultivalue) {
-                    return AssignmentType.COMPLEX_TYPE.equals(dataDefinition.getTypeName());
-                }
-                return dataDefinition.isMultiValue();
+                return defaultProvenance.isEnabledFor(dataPath, dataDefinition);
             }
         };
     };
