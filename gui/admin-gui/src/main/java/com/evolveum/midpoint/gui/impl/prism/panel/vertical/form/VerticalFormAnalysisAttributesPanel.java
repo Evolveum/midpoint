@@ -33,6 +33,7 @@ public class VerticalFormAnalysisAttributesPanel extends VerticalFormPrismContai
     protected Component createValuesPanel() {
         PrismPropertyWrapper<ItemPathType> property;
         property = getItemPathTypePrismPropertyWrapper();
+        PrismContainerWrapper<AnalysisAttributeSettingType> object = getModel().getObject();
 
         AnalysisAttributeSelectorPanel attributeSelectorPanel = new AnalysisAttributeSelectorPanel(ID_ATTRIBUTES, Model.of(property)){
             @Override
@@ -68,4 +69,8 @@ public class VerticalFormAnalysisAttributesPanel extends VerticalFormPrismContai
         return false;
     }
 
+    @Override
+    protected String getCssForHeader() {
+        return "pb-0 pt-2 pl-3 pr-3 text-gray font-weight-bold text-center w-100";
+    }
 }
