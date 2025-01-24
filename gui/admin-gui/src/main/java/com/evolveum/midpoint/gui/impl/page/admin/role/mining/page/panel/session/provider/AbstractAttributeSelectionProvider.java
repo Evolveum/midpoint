@@ -69,7 +69,7 @@ public abstract class AbstractAttributeSelectionProvider<T> extends ChoiceProvid
         }
 
         return availableAttributes.keySet().stream()
-                .filter(name -> name.contains(input))
+                .filter(name -> name.toLowerCase().contains(input.toLowerCase()))
                 .sorted()
                 .toList();
     }
