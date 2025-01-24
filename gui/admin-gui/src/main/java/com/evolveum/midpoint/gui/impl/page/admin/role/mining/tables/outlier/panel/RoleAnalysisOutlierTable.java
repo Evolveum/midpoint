@@ -14,14 +14,12 @@ import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.table.
 import static com.evolveum.midpoint.web.component.data.mining.RoleAnalysisCollapsableTablePanel.*;
 
 import java.io.Serial;
-import java.math.BigDecimal;
-import java.math.RoundingMode;
 import java.util.*;
 
 import com.evolveum.midpoint.gui.impl.component.icon.IconCssStyle;
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.components.ProgressBarSecondStyle;
 
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.model.ProgressBarSecondStyleDto;
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.components.bar.RoleAnalysisInlineProgressBar;
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.model.RoleAnalysisProgressBarDto;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.page.PageRoleAnalysisCluster;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.outlier.RoleAnalysisPartitionOverviewPanel;
 
@@ -527,7 +525,7 @@ public class RoleAnalysisOutlierTable extends BasePanel<AssignmentHolderType> {
 //        ,
 //            @NotNull Double density) {
 
-       IModel<ProgressBarSecondStyleDto> model = () -> {
+       IModel<RoleAnalysisProgressBarDto> model = () -> {
            RoleAnalysisOutlierPartitionType partition = rowModel.getObject().getPartition();
            RoleAnalysisPartitionAnalysisType partitionAnalysis = partition.getPartitionAnalysis();
            if (partitionAnalysis == null) {
@@ -538,17 +536,10 @@ public class RoleAnalysisOutlierTable extends BasePanel<AssignmentHolderType> {
            double finalOverallConfidence = overallConfidence != null ? overallConfidence : 0;
 
            String colorClass = densityBasedColorOposite(finalOverallConfidence);
-           return new ProgressBarSecondStyleDto(finalOverallConfidence, colorClass);
+           return new RoleAnalysisProgressBarDto(finalOverallConfidence, colorClass);
        };
 
-        ProgressBarSecondStyle progressBar = new ProgressBarSecondStyle(componentId, model) {
-
-            @Override
-            public boolean isInline() {
-                return true;
-            }
-
-        };
+        RoleAnalysisInlineProgressBar progressBar = new RoleAnalysisInlineProgressBar(componentId, model);
         progressBar.add(new VisibleBehaviour(() -> model.getObject() != null)); //TODO visibility? or default dto values?
         progressBar.setOutputMarkupId(true);
         cellItem.add(progressBar);

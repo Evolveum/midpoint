@@ -18,7 +18,9 @@ import com.evolveum.midpoint.gui.api.component.Badge;
 
 import com.evolveum.midpoint.gui.api.component.BadgePanel;
 
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.model.ProgressBarDto;
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.components.bar.RoleAnalysisBasicProgressBar;
+
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.model.RoleAnalysisProgressBarDto;
 
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -34,7 +36,6 @@ import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.component.button.DropdownButtonDto;
 import com.evolveum.midpoint.gui.api.component.button.DropdownButtonPanel;
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.components.ProgressBar;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.tmp.panel.IconWithLabel;
 import com.evolveum.midpoint.gui.impl.util.DetailsPageUtil;
 import com.evolveum.midpoint.model.api.mining.RoleAnalysisService;
@@ -270,16 +271,22 @@ public class RoleAnalysisSessionTilePanel<T extends Serializable> extends BasePa
 
     private void initDensityProgressPanel() {
 
-        IModel<ProgressBarDto> model = () -> {
-            double value = getModelObject().getProgressBarValue();
+
+        IModel<RoleAnalysisProgressBarDto> model = () -> {
+            double finalProgress = getModelObject().getProgressBarValue();
             String colorClass = getModelObject().getProgressBarColor();
-            String title = getModelObject().getProgressBarTitle();
-            ProgressBarDto progressBarDto = new ProgressBarDto(value, colorClass, title);
-            progressBarDto.setBarToolTip(title + " of " + value);
-            return progressBarDto;
+
+            RoleAnalysisProgressBarDto dto = new RoleAnalysisProgressBarDto(finalProgress, colorClass);
+            dto.setBarTitle(getModelObject().getProgressBarTitle());
+            return dto;
         };
 
-        ProgressBar progressBar = new ProgressBar(RoleAnalysisSessionTilePanel.ID_DENSITY, model);
+        RoleAnalysisBasicProgressBar progressBar = new RoleAnalysisBasicProgressBar(RoleAnalysisSessionTilePanel.ID_DENSITY, model){
+            @Override
+            protected boolean isWider() {
+                return true;
+            }
+        };
 
         progressBar.setOutputMarkupId(true);
 

@@ -11,7 +11,7 @@ import java.io.Serializable;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 
-public class ProgressBarSecondStyleDto implements Serializable {
+public class RoleAnalysisProgressBarDto implements Serializable {
 
     public static final String F_ACTUAL_VALUE = "actualValue";
     public static final String F_PROGRESS_COLOR = "minValue";
@@ -19,18 +19,18 @@ public class ProgressBarSecondStyleDto implements Serializable {
     public static final String F_MIN_VALUE = "minValue";
     public static final String F_MAX_VALUE = "maxValue";
 
-    private double minValue = 0;
-    private double maxValue = 100;
-    private double actualValue = 100;
-    private String barTitle = "";
+    protected double minValue = 0;
+    protected double maxValue = 100;
+    protected double actualValue = 100;
+    protected String barTitle = "";
 
-    private String progressColor;
+    protected String progressColor;
 
-    public ProgressBarSecondStyleDto() {
+    public RoleAnalysisProgressBarDto() {
 
     }
 
-    public ProgressBarSecondStyleDto(double actualValue, String progressColor) {
+    public RoleAnalysisProgressBarDto(double actualValue, String progressColor) {
         BigDecimal bd = new BigDecimal(actualValue);
         bd = bd.setScale(2, RoundingMode.HALF_UP);
         this.actualValue = bd.doubleValue();
