@@ -13,7 +13,7 @@ compliance:
 
 == Introduction
 
-xref:/iam/rbac/[Role-based access control (RBAC)] methods have been known for several decades.
+xref:/iam/iga/rbac/[Role-based access control (RBAC)] methods have been known for several decades.
 However, the usual method that comes to a mind when "RBAC" acronym is used is static NIST-like RBAC method from early 2000s.
 Traditional RBAC is _static_. assignment of roles to users and _static_ set of privileges (entitlements) in each role.
 A role has a _fixed_ set privileges, specified by system administrator.
@@ -221,7 +221,7 @@ This is policy-based access control at its best, is it not?
 
 == See Also
 
-* xref:/iam/rbac/[]
+* xref:/iam/iga/rbac/[]
 
 * xref:/midpoint/reference/roles-policies/rbac/[]
 

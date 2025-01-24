@@ -19,7 +19,7 @@ compliance:
 
 == Introduction
 
-xref:/iam/rbac/[Role-based access control (RBAC)] principles are present in almost all identity management systems.
+xref:/iam/iga/rbac/[Role-based access control (RBAC)] principles are present in almost all identity management systems.
 Therefore, it is no surprise that RBAC is one of the basic midPoint mechanisms to organize privileges in midPoint.
 MidPoint supports all the usual RBAC features such as role hierarchies, an automatic assignment of roles, entitlement definition etc.
 However, midPoint goes beyond traditional RBAC.
