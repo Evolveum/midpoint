@@ -14,13 +14,13 @@
 == Introduction
 
 Consistency mechanism is a part of midPoint that takes care of cases when midPoint cannot carry out the operation as it wants to.
-xref:/iam/idm-consistency/[Inconsistencies] form in these cases.
+xref:/iam/iga/idm-consistency/[Inconsistencies] form in these cases.
 Inconsistencies are the difference between what _midPoint thinks that should be_ and what _really is_. Inconsistencies may happen if midPoint wants to create an account but the resource is down, if midPoint try to create an account but it finds that the account already exists and in many more cases.
 These may be caused by network outages, resource downtime, changes that happen outside midPoint, parallel and concurrent execution of tasks and also by technology limitations (e.g. connector unable to report all the changes).
 In practice inconsistencies happen all the time.
 Therefore a mechanism to handle them is an essential part of any IDM solution.
 
-Please see the xref:/iam/idm-consistency/[IDM Consistency] page for short introduction to one of the consistency issues and xref:/midpoint/reference/synchronization/consistency/theory/[Consistency Theory] for an theoretical introduction to the consistency problem.
+Please see the xref:/iam/iga/idm-consistency/[IDM Consistency] page for short introduction to one of the consistency issues and xref:/midpoint/reference/synchronization/consistency/theory/[Consistency Theory] for an theoretical introduction to the consistency problem.
 
 
 == Consistency in midPoint
@@ -175,7 +175,7 @@ Consistency mechanism was significantly improved in midPoint 3.9. Please see xre
 
 == See Also
 
-* xref:/iam/idm-consistency/[IDM Consistency]
+* xref:/iam/iga/idm-consistency/[IDM Consistency]
 
 * xref:/midpoint/reference/synchronization/consistency/theory/[Consistency Theory]
 
