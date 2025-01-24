@@ -149,16 +149,20 @@ public abstract class SelectableBeanDataProvider<T extends Serializable> extends
                 .collect(Collectors.toList());
     }
 
-    protected Iterator<SelectableBean<T>> handleNotSuccessOrHandledErrorInIterator(OperationResult result) {
+    private Iterator<SelectableBean<T>> handleNotSuccessOrHandledErrorInIterator(OperationResult result) {
         LOGGER.trace("handling non-success result {}", result);
         // page.showResult() will not work here. We are too deep in the rendering now.
         // Also do NOT re-throw not redirect to the error page. That will break the page.
         // Just return a SelectableBean that indicates the error.
         List<SelectableBean<T>> errorList = new ArrayList<>(1);
-        SelectableBean<T> bean = new SelectableBeanImpl<>();
+        SelectableBean<T> bean = createDataObjectWrapperForError();
         bean.setResult(result);
         errorList.add(bean);
         return errorList.iterator();
+    }
+
+    protected SelectableBean<T> createDataObjectWrapperForError() {
+        return new SelectableBeanImpl<>();
     }
 
     protected abstract List<T> searchObjects(Class<T> type,
