@@ -12,6 +12,7 @@ import java.util.Arrays;
 import java.util.List;
 
 import com.evolveum.midpoint.prism.ItemDefinition;
+import com.evolveum.midpoint.schema.metadata.DefaultValueMetadataProcessing;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 
 import org.jetbrains.annotations.NotNull;
