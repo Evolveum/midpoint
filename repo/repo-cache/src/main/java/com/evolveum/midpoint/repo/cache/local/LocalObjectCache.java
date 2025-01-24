@@ -23,20 +23,20 @@ public class LocalObjectCache extends AbstractThreadLocalCache {
 
     private static final Trace LOGGER_CONTENT = TraceManager.getTrace(LocalObjectCache.class.getName() + ".content");
 
-    private final Map<String, PrismObject<? extends ObjectType>> data = new ConcurrentHashMap<>();
+    private final Map<String, LocalCacheObjectValue<? extends ObjectType>> data = new ConcurrentHashMap<>();
 
-    public <T extends ObjectType> PrismObject<T> get(String oid) {
+    public <T extends ObjectType> LocalCacheObjectValue<T> get(String oid) {
         //noinspection unchecked
-        return (PrismObject<T>) data.get(oid);
+        return (LocalCacheObjectValue<T>) data.get(oid);
     }
 
-    public void put(PrismObject<? extends ObjectType> object) {
-        put(object.getOid(), object);
+    public void put(PrismObject<? extends ObjectType> object, boolean complete) {
+        put(object.getOid(), object, complete);
     }
 
-    public void put(String oid, PrismObject<? extends ObjectType> object) {
+    public <T extends ObjectType> void put(String oid, PrismObject<T> object, boolean complete) {
         object.checkImmutable();
-        data.put(oid, object);
+        data.put(oid, new LocalCacheObjectValue<>(object, complete));
     }
 
     public void remove(String oid) {
