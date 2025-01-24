@@ -2,9 +2,7 @@ package com.evolveum.midpoint.gui.impl.component.search.wrapper;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
-import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.ItemDefinition;
-import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
@@ -20,6 +18,7 @@ public class AxiomQueryWrapper extends AbstractQueryWrapper {
     private String dslQuery;
     //TODO
     private ItemDefinition<?> containerDefinitionOverride;
+    private Class<?> typeClass;
 
     public AxiomQueryWrapper(ItemDefinition<?> containerDefinitionOverride) {
         this.containerDefinitionOverride = containerDefinitionOverride;
@@ -49,5 +48,17 @@ public class AxiomQueryWrapper extends AbstractQueryWrapper {
 
     public String getDslQuery() {
         return dslQuery;
+    }
+
+    public ItemDefinition<?> getContainerDefinitionOverride() {
+        return containerDefinitionOverride;
+    }
+
+    public Class<?> getTypeClass() {
+        return typeClass;
+    }
+
+    public void setTypeClass(Class<?> typeClass) {
+        this.typeClass = typeClass;
     }
 }
