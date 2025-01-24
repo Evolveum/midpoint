@@ -96,6 +96,11 @@ public class TaskErrorsPanel extends AbstractObjectMainPanel<TaskType, TaskDetai
             }
 
             @Override
+            protected SelectableBean<OperationExecutionType> createDataObjectWrapperForError() {
+                return new TaskErrorSelectableBeanImpl();
+            }
+
+            @Override
             public ObjectQuery getQuery() {
                 return createContentQuery(getObjectWrapper().getOid(), getPageBase());
             }
@@ -185,6 +190,11 @@ public class TaskErrorsPanel extends AbstractObjectMainPanel<TaskType, TaskDetai
             @Override
             public SelectableBean<ObjectType> createDataObjectWrapper(ObjectType obj) {
                 return new TaskErrorSelectableBeanImplOld<>(obj, getObjectWrapper().getOid());
+            }
+
+            @Override
+            protected SelectableBean<ObjectType> createDataObjectWrapperForError() {
+                return new TaskErrorSelectableBeanImplOld<>();
             }
 
             @Override
