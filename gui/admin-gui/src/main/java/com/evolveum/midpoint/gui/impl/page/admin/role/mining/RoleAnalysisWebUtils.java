@@ -16,10 +16,11 @@ import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.prism.ItemStatus;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.components.ProgressBar;
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.components.bar.RoleAnalysisBasicProgressBar;
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.components.bar.RoleAnalysisInlineProgressBar;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.model.BusinessRoleApplicationDto;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.model.BusinessRoleDto;
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.model.ProgressBarDto;
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.model.RoleAnalysisProgressBarDto;
 import com.evolveum.midpoint.gui.impl.util.DetailsPageUtil;
 import com.evolveum.midpoint.model.api.ModelInteractionService;
 import com.evolveum.midpoint.model.api.ModelService;
@@ -492,46 +493,56 @@ public class RoleAnalysisWebUtils {
         return analysisOption.getAnalysisProcedureType();
     }
 
-    public static @NotNull ProgressBar buildSimpleDensityBasedProgressBar(String id, IModel<String> value) {
-        IModel<ProgressBarDto> model = () -> {
+    public static @NotNull RoleAnalysisInlineProgressBar buildSimpleDensityBasedProgressBar(String id, IModel<String> value) {
+
+        IModel<RoleAnalysisProgressBarDto> model = () -> {
+            double actualValue = Double.parseDouble(value.getObject().replace(',', '.'));
             String colorClass = densityBasedColor(
                     Double.parseDouble(value.getObject().replace(',', '.')));
 
-            double actualValue = Double.parseDouble(value.getObject().replace(',', '.'));
-            ProgressBarDto progressBarDto = new ProgressBarDto(actualValue, colorClass, "");
-            progressBarDto.setInline(true);
-
-            return progressBarDto;
+            RoleAnalysisProgressBarDto dto = new RoleAnalysisProgressBarDto(actualValue, colorClass);
+            dto.setBarTitle("");
+            return dto;
         };
 
-        ProgressBar progressBar = new ProgressBar(id, model);
+        RoleAnalysisInlineProgressBar progressBar = new RoleAnalysisInlineProgressBar(id, model) {
+            @Override
+            protected boolean isWider() {
+                return true;
+            }
+        };
         progressBar.setOutputMarkupId(true);
         return progressBar;
     }
 
-    public static @NotNull ProgressBar buildDensityProgressPanel(
+    public static RoleAnalysisBasicProgressBar buildDensityProgressPanel(
             @NotNull String componentId,
             @NotNull Double density,
             @NotNull String title) {
-
-        IModel<ProgressBarDto> model = () -> {
+        IModel<RoleAnalysisProgressBarDto> model = () -> {
             BigDecimal bd = new BigDecimal(Double.toString(density));
             bd = bd.setScale(2, RoundingMode.HALF_UP);
             double actualValue = bd.doubleValue();
 
             String colorClass = densityBasedColorOposite(actualValue);
 
-            return new ProgressBarDto(actualValue, colorClass, title);
+            RoleAnalysisProgressBarDto dto = new RoleAnalysisProgressBarDto(actualValue, colorClass);
+            dto.setBarTitle(title);
+            return dto;
         };
 
-        ProgressBar progressBar = new ProgressBar(componentId, model) {
-
-            @Contract(pure = true)
+        RoleAnalysisBasicProgressBar progressBar = new RoleAnalysisBasicProgressBar(componentId, model) {
             @Override
-            protected @NotNull String getProgressBarContainerStyle() {
+            protected boolean isWider() {
+                return true;
+            }
+
+            @Override
+            protected String getProgressBarContainerCssStyle() {
                 return "border-radius: 10px; height:10px;";
             }
         };
+
         progressBar.setOutputMarkupId(true);
         return progressBar;
     }

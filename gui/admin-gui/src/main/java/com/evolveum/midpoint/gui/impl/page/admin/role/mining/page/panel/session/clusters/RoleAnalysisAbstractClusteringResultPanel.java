@@ -23,8 +23,8 @@ import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
 import com.evolveum.midpoint.gui.impl.component.icon.IconCssStyle;
 import com.evolveum.midpoint.gui.impl.page.admin.AbstractObjectMainPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.ObjectDetailsModels;
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.components.ProgressBar;
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.model.ProgressBarDto;
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.components.bar.RoleAnalysisInlineProgressBar;
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.model.RoleAnalysisProgressBarDto;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.session.ImageDetailsPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.tmp.panel.IconWithLabel;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.tmp.panel.LinkIconLabelIconPanel;
@@ -800,19 +800,25 @@ public abstract class RoleAnalysisAbstractClusteringResultPanel extends Abstract
             @NotNull String componentId,
             @NotNull Double density) {
 
-        IModel<ProgressBarDto> model = () -> {
+        IModel<RoleAnalysisProgressBarDto> model = () -> {
             BigDecimal bd = new BigDecimal(Double.toString(density));
             bd = bd.setScale(2, RoundingMode.HALF_UP);
             double actualValue = bd.doubleValue();
 
             String colorClass = densityBasedColor(actualValue);
 
-            ProgressBarDto progressBarDto = new ProgressBarDto(actualValue, colorClass, "");
-            progressBarDto.setInline(true);
-            return progressBarDto;
+            RoleAnalysisProgressBarDto dto = new RoleAnalysisProgressBarDto(actualValue, colorClass);
+            dto.setBarTitle("");
+            return dto;
         };
 
-        ProgressBar progressBar = new ProgressBar(componentId, model);
+        RoleAnalysisInlineProgressBar progressBar = new RoleAnalysisInlineProgressBar(componentId, model) {
+            @Override
+            protected boolean isWider() {
+                return true;
+            }
+        };
+
         progressBar.setOutputMarkupId(true);
         progressBar.add(AttributeModifier.append(STYLE_CSS, "width: 170px"));
         cellItem.add(progressBar);

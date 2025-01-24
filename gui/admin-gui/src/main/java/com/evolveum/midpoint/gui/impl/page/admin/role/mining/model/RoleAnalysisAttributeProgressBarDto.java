@@ -9,27 +9,15 @@ package com.evolveum.midpoint.gui.impl.page.admin.role.mining.model;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.cluster.MembersDetailsPopupPanel;
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.tmp.panel.IconWithLabel;
-import com.evolveum.midpoint.model.api.mining.RoleAnalysisService;
 import com.evolveum.midpoint.prism.PrismObject;
 
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.web.component.data.column.AjaxLinkPanel;
-import com.evolveum.midpoint.web.util.TooltipBehavior;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisAttributeStatistics;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisProcessModeType;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
-
-import org.apache.wicket.AttributeModifier;
-import org.apache.wicket.Component;
-import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.model.Model;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -38,80 +26,39 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.*;
 
-public class ProgressBarDto implements Serializable {
+public class RoleAnalysisAttributeProgressBarDto extends RoleAnalysisProgressBarDto implements Serializable {
 
-    public static final String F_ACTUAL_VALUE = "actualValue";
-    public static final String F_PROGRESS_COLOR = "progressColor";
-    public static final String F_BAR_TITLE = "barTitle";
-    public static final String F_MIN_VALUE = "minValue";
-    public static final String F_MAX_VALUE = "maxValue";
     public static final String F_BAR_TOOLTIP = "barToolTip";
     public static final String F_HELP_TOOLTIP = "helpTooltip";
 
-    private double minValue = 0;
-    private double maxValue = 100;
-    private double actualValue = 100;
-    private String barTitle = "";
     boolean isLinkTitle = false;
     boolean isUnusual = false;
-    boolean isInline = false;
     String helpTooltip = "";
 
-    private String progressColor = "#206f9d";
     private String barToolTip;
 
     transient List<RoleAnalysisAttributeStatistics> attributeStats;
 
-    public ProgressBarDto(double actualValue, @Nullable String progressColor, String titleModel) {
+    private transient List<PrismObject<FocusType>> focusObjects = new ArrayList<>();
+
+    public RoleAnalysisAttributeProgressBarDto(PageBase pageBase, double actualValue,
+                                               @Nullable String progressColor,
+                                               @NotNull List<RoleAnalysisAttributeStatistics> attributeStats) {
         loadActualValue(actualValue);
 
         if (progressColor != null) {
             this.progressColor = progressColor;
         }
 
-        this.barTitle = titleModel;
-    }
-
-    public ProgressBarDto(double actualValue, @Nullable String progressColor, @NotNull List<RoleAnalysisAttributeStatistics> attributeStats) {
-        loadActualValue(actualValue);
-
-        if (progressColor != null) {
-            this.progressColor = progressColor;
-        }
-
-        this.isLinkTitle = true;
         this.attributeStats = attributeStats;
         resolveHelpTooltip(attributeStats);
+        extractFocusObjectsFromAttributeAnalysis(pageBase);
     }
 
     private void loadActualValue(double actualValue) {
         BigDecimal bd = new BigDecimal(actualValue);
         bd = bd.setScale(2, RoundingMode.HALF_UP);
         this.actualValue = bd.doubleValue();
-    }
-
-    public String getProgressColor() {
-        return progressColor;
-    }
-
-    public void setProgressColor(String progressColor) {
-        this.progressColor = progressColor;
-    }
-
-    public double getActualValue() {
-        return actualValue;
-    }
-
-    public void setActualValue(double actualValue) {
-        this.actualValue = actualValue;
-    }
-
-    public void setBarTitle(String barTitle) {
-        this.barTitle = barTitle;
-    }
-
-    public String getBarTitle() {
-        return barTitle;
     }
 
     public String getBarToolTip() {
@@ -126,47 +73,6 @@ public class ProgressBarDto implements Serializable {
         return isLinkTitle;
     }
 
-    public Component buildTitleComponent(String id, PageBase pageBase) {
-        if (isLinkTitle()) {
-            List<PrismObject<FocusType>> prismObjects = extractFocusObjectsFromAttributeAnalysis(attributeStats, pageBase);
-            return buildAjaxLinkTitlePanel(id, pageBase, prismObjects);
-        } else {
-            IconWithLabel progressBarTitle = new IconWithLabel(id, Model.of(getBarTitle())) {
-                @Override
-                protected @NotNull String getIconCssClass() {
-                    return "";
-                }
-            };
-            progressBarTitle.setOutputMarkupId(true);
-            if (isUnusual()) {
-                progressBarTitle.add(new TooltipBehavior());
-                progressBarTitle.add(AttributeModifier.replace("title",
-                        pageBase.createStringResource("Unusual value")));
-            }
-            return progressBarTitle;
-        }
-    }
-
-    private @NotNull AjaxLinkPanel buildAjaxLinkTitlePanel(String id, PageBase pageBase, List<PrismObject<FocusType>> prismObjects) {
-        AjaxLinkPanel ajaxLinkPanel = new AjaxLinkPanel(id, Model.of(getBarTitle())) {
-            @Override
-            public void onClick(AjaxRequestTarget target) {
-                MembersDetailsPopupPanel detailsPanel = new MembersDetailsPopupPanel(((PageBase) getPage()).getMainPopupBodyId(),
-                        pageBase.createStringResource("RoleAnalysis.analyzed.members.details.panel"),
-                        prismObjects, RoleAnalysisProcessModeType.USER) {
-                    @Override
-                    public void onClose(AjaxRequestTarget ajaxRequestTarget) {
-                        super.onClose(ajaxRequestTarget);
-                    }
-                };
-
-                ((PageBase) getPage()).showMainPopup(detailsPanel, target);
-            }
-        };
-        ajaxLinkPanel.setOutputMarkupId(true);
-        return ajaxLinkPanel;
-    }
-
     /**
      * Extracts a list of {@link PrismObject} instances of type {@link FocusType} from the given attribute
      * analysis results (if attributeValue reflect to PrismObject).
@@ -176,20 +82,18 @@ public class ProgressBarDto implements Serializable {
      * {@link PrismObject} instances are loaded and added to the result list. Additionally, the method updates the
      * {@code barTitle} based on the results.</p>
      */
-    public List<PrismObject<FocusType>> extractFocusObjectsFromAttributeAnalysis(
-            List<RoleAnalysisAttributeStatistics> roleAnalysisAttributeResult,
+    private void extractFocusObjectsFromAttributeAnalysis(
             @NotNull PageBase pageBase) {
 
-        if (roleAnalysisAttributeResult == null || roleAnalysisAttributeResult.isEmpty()) {
-            return null;
+        if (attributeStats == null || attributeStats.isEmpty()) {
+            return;
         }
 
-        List<PrismObject<FocusType>> focusObjects = new ArrayList<>();
         Task task = pageBase.createSimpleTask("resolveTitleLabel");
         OperationResult result = task.getResult();
 
-        for (RoleAnalysisAttributeStatistics attributeStats : roleAnalysisAttributeResult) {
-            String attributeValue = attributeStats.getAttributeValue();
+        for (RoleAnalysisAttributeStatistics attributeStatsItem : attributeStats) {
+            String attributeValue = attributeStatsItem.getAttributeValue();
             if (isValidUUID(attributeValue)) {
                 @Nullable PrismObject<FocusType> focusObject = WebModelServiceUtils.loadObject(
                         FocusType.class, attributeValue, pageBase, task, result);
@@ -199,8 +103,7 @@ public class ProgressBarDto implements Serializable {
             }
         }
 
-        updateBarTitle(focusObjects, roleAnalysisAttributeResult);
-        return focusObjects.isEmpty() ? null : focusObjects;
+        updateBarTitle(focusObjects, attributeStats);
     }
 
     private void updateBarTitle(
@@ -223,6 +126,7 @@ public class ProgressBarDto implements Serializable {
     }
 
     private void setBarTitleForNonEmptyFocusObjects(@NotNull List<PrismObject<FocusType>> focusObjects) {
+        this.isLinkTitle = true;
         if (focusObjects.size() == 1) {
             PolyString name = focusObjects.get(0).getName();
             this.barTitle = name != null && name.getOrig() != null ? name.getOrig() : this.barTitle;
@@ -268,12 +172,8 @@ public class ProgressBarDto implements Serializable {
         return helpTooltip;
     }
 
-    public boolean isInline() {
-        return isInline;
-    }
-
-    public void setInline(boolean inline) {
-        isInline = inline;
+    public List<PrismObject<FocusType>> getFocusObjects() {
+        return focusObjects;
     }
 }
 

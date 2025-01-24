@@ -18,7 +18,8 @@ import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.model.ProgressBarDto;
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.components.bar.RoleAnalysisInlineProgressBar;
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.model.RoleAnalysisProgressBarDto;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.page.PageRoleAnalysisSession;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.web.util.TooltipBehavior;
@@ -57,7 +58,6 @@ import com.evolveum.midpoint.gui.impl.component.tile.mining.session.RoleAnalysis
 import com.evolveum.midpoint.gui.impl.component.tile.mining.session.RoleAnalysisSessionTilePanel;
 import com.evolveum.midpoint.gui.impl.component.tile.TileTablePanel;
 import com.evolveum.midpoint.gui.impl.component.tile.ViewToggle;
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.components.ProgressBar;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.page.PageRoleAnalysis;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.tmp.panel.IconWithLabel;
 import com.evolveum.midpoint.gui.impl.prism.panel.PrismPropertyHeaderPanel;
@@ -831,19 +831,26 @@ public class RoleAnalysisSessionTileTable extends BasePanel<String> {
             @NotNull String componentId,
             @NotNull String meanDensity) {
 
-        IModel<ProgressBarDto> model = () -> {
+        IModel<RoleAnalysisProgressBarDto> model = () -> {
             BigDecimal bd = new BigDecimal(meanDensity);
             bd = bd.setScale(2, RoundingMode.HALF_UP);
             double actualValue = bd.doubleValue();
 
             String colorClass = densityBasedColor(
                     Double.parseDouble(meanDensity.replace(',', '.')));
-            ProgressBarDto progressBarDto = new ProgressBarDto(actualValue, colorClass, "");
-            progressBarDto.setInline(true);
-            return progressBarDto;
+
+            RoleAnalysisProgressBarDto dto = new RoleAnalysisProgressBarDto(actualValue, colorClass);
+            dto.setBarTitle("");
+            return dto;
         };
 
-        ProgressBar progressBar = new ProgressBar(componentId, model);
+        RoleAnalysisInlineProgressBar progressBar = new RoleAnalysisInlineProgressBar(componentId, model) {
+            @Override
+            protected boolean isWider() {
+                return true;
+            }
+        };
+
         progressBar.setOutputMarkupId(true);
         cellItem.add(progressBar);
     }

@@ -22,7 +22,8 @@ import java.util.UUID;
 
 import com.evolveum.midpoint.gui.impl.component.icon.IconCssStyle;
 
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.model.ProgressBarSecondStyleDto;
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.components.bar.RoleAnalysisBasicProgressBar;
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.model.RoleAnalysisProgressBarDto;
 
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
@@ -45,7 +46,6 @@ import com.evolveum.midpoint.gui.api.component.button.DropdownButtonPanel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.DisplayForLifecycleState;
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.components.ProgressBarSecondStyle;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.page.PageRoleAnalysisCluster;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.page.PageRoleAnalysisSession;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.outlier.MetricValuePanel;
@@ -162,8 +162,8 @@ public class RoleAnalysisCandidateTilePanel<T extends Serializable> extends Base
 
     private void initProgressBar() {
 
-        IModel<ProgressBarSecondStyleDto> progressModel = loadProgressModel();
-        ProgressBarSecondStyle progressBar = new ProgressBarSecondStyle(ID_PROGRESS_BAR, progressModel) {
+        IModel<RoleAnalysisProgressBarDto> progressModel = loadProgressModel();
+        RoleAnalysisBasicProgressBar progressBar = new RoleAnalysisBasicProgressBar(ID_PROGRESS_BAR, progressModel) {
 
             @Contract(pure = true)
             @Override
@@ -181,12 +181,12 @@ public class RoleAnalysisCandidateTilePanel<T extends Serializable> extends Base
         progressBar.setOutputMarkupId(true);
         progressBar.add(
                 AttributeModifier.replace(TITLE_CSS,
-                        createStringResource("RoleAnalysisCandidateTilePanel.attribute.confidence.title", new PropertyModel<>(progressModel, ProgressBarSecondStyleDto.F_ACTUAL_VALUE)))); //"Attribute confidence: " + finalProgress + "%"
+                        createStringResource("RoleAnalysisCandidateTilePanel.attribute.confidence.title", new PropertyModel<>(progressModel, RoleAnalysisProgressBarDto.F_ACTUAL_VALUE)))); //"Attribute confidence: " + finalProgress + "%"
         progressBar.add(new TooltipBehavior());
         add(progressBar);
     }
 
-    private IModel<ProgressBarSecondStyleDto> loadProgressModel() {
+    private IModel<RoleAnalysisProgressBarDto> loadProgressModel() {
         return () -> {
             RoleAnalysisCandidateTileModel<T> modelObject = getModelObject();
             RoleAnalysisCandidateRoleType candidateRole = modelObject.getCandidateRole();
@@ -219,7 +219,7 @@ public class RoleAnalysisCandidateTilePanel<T extends Serializable> extends Base
             double finalProgress = bd.doubleValue();
 
             String colorClass = confidenceBasedTwoColor(finalProgress);
-            ProgressBarSecondStyleDto progressBarModelObject = new ProgressBarSecondStyleDto(finalProgress, colorClass);
+            RoleAnalysisProgressBarDto progressBarModelObject = new RoleAnalysisProgressBarDto(finalProgress, colorClass);
             progressBarModelObject.setBarTitle("Migration status");
             return  progressBarModelObject;
         };

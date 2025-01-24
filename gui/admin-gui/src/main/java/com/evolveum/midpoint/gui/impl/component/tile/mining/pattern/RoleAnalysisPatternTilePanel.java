@@ -22,7 +22,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.model.ProgressBarSecondStyleDto;
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.components.bar.RoleAnalysisBasicProgressBar;
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.model.RoleAnalysisProgressBarDto;
 
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
@@ -43,7 +44,6 @@ import com.evolveum.midpoint.gui.api.component.button.DropdownButtonPanel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.impl.page.admin.role.PageRole;
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.components.ProgressBarSecondStyle;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.model.BusinessRoleApplicationDto;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.model.BusinessRoleDto;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.page.PageRoleAnalysisCluster;
@@ -103,7 +103,7 @@ public class RoleAnalysisPatternTilePanel<T extends Serializable> extends BasePa
     }
 
     private void initProgressBar() {
-        IModel<ProgressBarSecondStyleDto> model = () -> {
+        IModel<RoleAnalysisProgressBarDto> model = () -> {
             DetectedPattern pattern = getModelObject().getPattern();
             double itemsConfidence = pattern.getItemsConfidence();
             BigDecimal bd = BigDecimal.valueOf(itemsConfidence);
@@ -111,21 +111,19 @@ public class RoleAnalysisPatternTilePanel<T extends Serializable> extends BasePa
             double finalItemsConfidence = bd.doubleValue();
 
             String colorClass = confidenceBasedTwoColor(finalItemsConfidence);
-            return new ProgressBarSecondStyleDto(finalItemsConfidence, colorClass);
+            return new RoleAnalysisProgressBarDto(finalItemsConfidence, colorClass);
         };
 
-        ProgressBarSecondStyle progressBar = new ProgressBarSecondStyle(ID_PROGRESS_BAR, model) {
-
+        RoleAnalysisBasicProgressBar progressBar = new RoleAnalysisBasicProgressBar(ID_PROGRESS_BAR, model) {
 
             @Override
             protected boolean isTitleContainerVisible() {
                 return false;
             }
 
-            @Contract(pure = true)
             @Override
-            protected @NotNull String getProgressBarContainerCssStyle() {
-                return "border-radius: 3px; height:13px;";
+            protected boolean isWider() {
+                return true;
             }
 
             @Contract(pure = true)

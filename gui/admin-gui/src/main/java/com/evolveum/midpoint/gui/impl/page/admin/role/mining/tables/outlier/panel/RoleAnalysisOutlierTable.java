@@ -17,9 +17,9 @@ import java.io.Serial;
 import java.util.*;
 
 import com.evolveum.midpoint.gui.impl.component.icon.IconCssStyle;
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.components.ProgressBarSecondStyle;
 
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.model.ProgressBarSecondStyleDto;
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.components.bar.RoleAnalysisInlineProgressBar;
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.model.RoleAnalysisProgressBarDto;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.page.PageRoleAnalysisCluster;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.outlier.RoleAnalysisPartitionOverviewPanel;
 
@@ -532,29 +532,21 @@ public class RoleAnalysisOutlierTable extends BasePanel<AssignmentHolderType> {
             @NotNull String componentId,
             @NotNull IModel<PartitionObjectDto> rowModel) {
 
-        IModel<ProgressBarSecondStyleDto> model = () -> {
-            RoleAnalysisOutlierPartitionType partition = rowModel.getObject().getPartition();
-            RoleAnalysisPartitionAnalysisType partitionAnalysis = partition.getPartitionAnalysis();
-            if (partitionAnalysis == null) {
-                return null;
-            }
+       IModel<RoleAnalysisProgressBarDto> model = () -> {
+           RoleAnalysisOutlierPartitionType partition = rowModel.getObject().getPartition();
+           RoleAnalysisPartitionAnalysisType partitionAnalysis = partition.getPartitionAnalysis();
+           if (partitionAnalysis == null) {
+               return null;
+           }
 
-            Double overallConfidence = partitionAnalysis.getOverallConfidence();
-            double finalOverallConfidence = overallConfidence != null ? overallConfidence : 0;
+           Double overallConfidence = partitionAnalysis.getOverallConfidence();
+           double finalOverallConfidence = overallConfidence != null ? overallConfidence : 0;
 
-            String colorClass = densityBasedColorOposite(finalOverallConfidence);
-            return new ProgressBarSecondStyleDto(finalOverallConfidence, colorClass);
-        };
+           String colorClass = densityBasedColorOposite(finalOverallConfidence);
+           return new RoleAnalysisProgressBarDto(finalOverallConfidence, colorClass);
+       };
 
-        ProgressBarSecondStyle progressBar = new ProgressBarSecondStyle(componentId, model) {
-
-            @Override
-            public boolean isInline() {
-                return true;
-            }
-
-        };
-
+        RoleAnalysisInlineProgressBar progressBar = new RoleAnalysisInlineProgressBar(componentId, model);
         progressBar.add(new VisibleBehaviour(() -> model.getObject() != null)); //TODO visibility? or default dto values?
         progressBar.setOutputMarkupId(true);
         cellItem.add(progressBar);

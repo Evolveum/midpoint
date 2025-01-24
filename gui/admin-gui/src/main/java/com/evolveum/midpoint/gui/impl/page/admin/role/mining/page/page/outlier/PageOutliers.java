@@ -19,7 +19,8 @@ import java.util.*;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.page.admin.mark.component.MarksOfObjectListPopupPanel;
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.model.ProgressBarSecondStyleDto;
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.components.bar.RoleAnalysisInlineProgressBar;
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.model.RoleAnalysisProgressBarDto;
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -52,7 +53,6 @@ import com.evolveum.midpoint.gui.api.component.LabelWithHelpPanel;
 import com.evolveum.midpoint.gui.api.component.MainObjectListPanel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.components.ProgressBarSecondStyle;
 import com.evolveum.midpoint.model.api.mining.RoleAnalysisService;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
@@ -460,23 +460,16 @@ public class PageOutliers extends PageAdmin {
             @NotNull String componentId,
             @NotNull Double density) {
 
-        IModel<ProgressBarSecondStyleDto> model = () -> {
+        IModel<RoleAnalysisProgressBarDto> model = () -> {
             BigDecimal bd = new BigDecimal(Double.toString(density));
             bd = bd.setScale(2, RoundingMode.HALF_UP);
             double pointsDensity = bd.doubleValue();
 
             String colorClass = densityBasedColorOposite(pointsDensity);
-            return new ProgressBarSecondStyleDto(pointsDensity, colorClass);
+            return new RoleAnalysisProgressBarDto(pointsDensity, colorClass);
         };
 
-        ProgressBarSecondStyle progressBar = new ProgressBarSecondStyle(componentId, model) {
-
-            @Override
-            public boolean isInline() {
-                return true;
-            }
-
-        };
+        RoleAnalysisInlineProgressBar progressBar = new RoleAnalysisInlineProgressBar(componentId, model);
         progressBar.setOutputMarkupId(true);
         cellItem.add(progressBar);
     }
