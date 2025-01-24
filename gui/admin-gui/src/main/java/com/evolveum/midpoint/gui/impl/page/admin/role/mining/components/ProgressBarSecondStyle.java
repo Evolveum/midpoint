@@ -7,8 +7,6 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.role.mining.components;
 
-import java.util.*;
-
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.model.ProgressBarSecondStyleDto;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 
@@ -17,11 +15,7 @@ import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.PropertyModel;
-import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.Model;
-import org.apache.wicket.model.PropertyModel;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 
