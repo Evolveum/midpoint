@@ -49,12 +49,14 @@ public class FormSessionOptionPanel<ODM extends ObjectDetailsModels<?>>
 
             @Override
             protected boolean isVisibleSubContainer(PrismContainerWrapper c) {
-                return FormSessionOptionPanel.this.isVisibleSubContainer(c);
+                return true;
             }
+
         };
         panel.setOutputMarkupId(true);
         add(panel);
     }
+
 
     protected boolean isExpanded() {
         return false;
