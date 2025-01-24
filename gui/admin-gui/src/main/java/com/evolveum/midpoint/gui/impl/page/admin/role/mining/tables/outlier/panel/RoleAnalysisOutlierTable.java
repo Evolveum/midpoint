@@ -8,7 +8,6 @@ package com.evolveum.midpoint.gui.impl.page.admin.role.mining.tables.outlier.pan
 
 import static com.evolveum.midpoint.gui.api.util.GuiDisplayTypeUtil.createDisplayType;
 import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.RoleAnalysisWebUtils.*;
-import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.RoleAnalysisWebUtils.TEXT_TRUNCATE;
 import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.tables.outlier.panel.PartitionObjectDto.buildPartitionObjectList;
 import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.table.RoleAnalysisTableTools.densityBasedColorOposite;
 import static com.evolveum.midpoint.web.component.data.mining.RoleAnalysisCollapsableTablePanel.*;
@@ -21,14 +20,11 @@ import java.util.*;
 import com.evolveum.midpoint.gui.impl.component.icon.IconCssStyle;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.components.ProgressBarSecondStyle;
 
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.page.PageRoleAnalysisCluster;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.outlier.RoleAnalysisPartitionOverviewPanel;
 
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.tmp.panel.LinkIconLabelIconPanel;
 import com.evolveum.midpoint.gui.impl.util.DetailsPageUtil;
 import com.evolveum.midpoint.web.component.data.column.AjaxLinkPanel;
-
-import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
@@ -45,7 +41,6 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.LoadableDetachableModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.util.ListModel;
-import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 
@@ -145,6 +140,10 @@ public class RoleAnalysisOutlierTable extends BasePanel<AssignmentHolderType> {
 
     public List<IColumn<PartitionObjectDto, String>> initColumns() {
 
+        RoleAnalysisService roleAnalysisService = pageBase.getRoleAnalysisService();
+        Task task = pageBase.createSimpleTask(OP_PREPARE_OBJECTS);
+        OperationResult result = task.getResult();
+
         List<IColumn<PartitionObjectDto, String>> columns = new ArrayList<>();
 
         initIconColumn(columns);
@@ -155,16 +154,11 @@ public class RoleAnalysisOutlierTable extends BasePanel<AssignmentHolderType> {
             initCategoryColumn(columns);
         }
 
-        initPartitionScoreColumn(columns);
-
-        RoleAnalysisService roleAnalysisService = pageBase.getRoleAnalysisService();
-        Task task = pageBase.createSimpleTask(OP_PREPARE_OBJECTS);
-        OperationResult result = task.getResult();
-
-        initAnomalyAccessColumn(roleAnalysisService, columns, task, result);
         initExplanationColumn(roleAnalysisService, columns, task, result);
 
-        initLocationColumn(columns);
+        initAnomalyAccessColumn(roleAnalysisService, columns, task, result);
+
+        initPartitionScoreColumn(columns);
 
         initActionColumn(columns);
 
@@ -201,54 +195,6 @@ public class RoleAnalysisOutlierTable extends BasePanel<AssignmentHolderType> {
             public Component getHeader(String componentId) {
                 return new LabelWithHelpPanel(componentId,
                         createStringResource("RoleAnalysisOutlierTable.outlier.category"));
-            }
-
-        });
-    }
-
-    private void initLocationColumn(@NotNull List<IColumn<PartitionObjectDto, String>> columns) {
-        columns.add(new AbstractColumn<>(createStringResource("RoleAnalysis.title.panel.location")) {
-
-            @Override
-            public String getSortProperty() {
-                return PartitionObjectDto.F_CLUSTER_LOCATION_NAME;
-            }
-
-            @Override
-            public boolean isSortable() {
-                return true;
-            }
-
-            @Override
-            public void populateItem(Item<ICellPopulator<PartitionObjectDto>> item, String componentId,
-                    IModel<PartitionObjectDto> rowModel) {
-
-                PartitionObjectDto modelObject = rowModel.getObject();
-                String clusterLocationName = modelObject.getClusterLocationName();
-
-                AjaxLinkPanel sessionLink = new AjaxLinkPanel(componentId, Model.of(clusterLocationName)) {
-                    @Override
-                    public void onClick(AjaxRequestTarget target) {
-                        RoleAnalysisOutlierPartitionType partition = modelObject.getPartition();
-                        ObjectReferenceType clusterRef = partition.getClusterRef();
-                        if (clusterRef != null && clusterRef.getOid() != null) {
-                            PageParameters parameters = new PageParameters();
-                            parameters.add(OnePageParameterEncoder.PARAMETER, clusterRef.getOid());
-                            getPageBase().navigateToNext(PageRoleAnalysisCluster.class, parameters);
-                        }
-                    }
-                };
-
-                sessionLink.setOutputMarkupId(true);
-                sessionLink.add(AttributeModifier.append(STYLE_CSS, "max-width:130px"));
-                sessionLink.add(AttributeModifier.append(CLASS_CSS, TEXT_TRUNCATE));
-                item.add(sessionLink);
-            }
-
-            @Override
-            public Component getHeader(String componentId) {
-                return new Label(
-                        componentId, createStringResource("RoleAnalysis.title.panel.location"));
             }
 
         });

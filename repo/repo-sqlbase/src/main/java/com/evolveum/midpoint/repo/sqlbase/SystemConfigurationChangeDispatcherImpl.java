@@ -15,6 +15,7 @@ import com.evolveum.midpoint.common.secrets.SecretsProviderManager;
 
 import com.evolveum.midpoint.prism.crypto.Protector;
 
+import com.evolveum.midpoint.schema.metadata.DefaultValueMetadataProcessing;
 import com.evolveum.midpoint.schema.processor.AbstractResourceObjectDefinitionImpl;
 
 import com.evolveum.midpoint.schema.util.SystemConfigurationTypeUtil;
@@ -123,6 +124,7 @@ public class SystemConfigurationChangeDispatcherImpl implements SystemConfigurat
         applyCachingConfiguration(configuration);
         applyShadowCachingConfiguration(configuration);
         applyRepositoryConfiguration(configuration);
+        applyValueMetadataConfiguration(configuration);
 
         if (lastVersionApplied != null) {
             LOGGER.trace("System configuration version {} applied successfully", lastVersionApplied);
@@ -188,6 +190,20 @@ public class SystemConfigurationChangeDispatcherImpl implements SystemConfigurat
                     "Couldn't apply PolyString normalizer configuration", t);
             lastVersionApplied = null;
         }
+    }
+
+    private void applyValueMetadataConfiguration(SystemConfigurationType configType) {
+        InternalsConfigurationType internals = configType.getInternals();
+        ValueMetadataConfigurationType valueMetadataConfig = null;
+        if (internals != null) {
+            valueMetadataConfig = internals.getValueMetadata();
+        }
+        Boolean disableMultivalue = null;
+        if (valueMetadataConfig != null) {
+            disableMultivalue = valueMetadataConfig.isDisableDefaultMultivalueProvenance();
+        }
+        DefaultValueMetadataProcessing.setDisableDefaultMultivalueProvenance(disableMultivalue);
+
     }
 
     private void applyFullTextSearchConfiguration(SystemConfigurationType configuration) {

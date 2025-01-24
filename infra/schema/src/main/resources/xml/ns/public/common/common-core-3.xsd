@@ -13316,6 +13316,35 @@
         </xsd:sequence>
     </xsd:complexType>
 
+    <xsd:complexType name="ValueMetadataConfigurationType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Value Metadata specific internals configuration, mainly for performance optimizations and tuning
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+                <a:since>4.9.1</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="disableDefaultMultivalueProvenance" type="xsd:boolean" default="false" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Disables use of provenance metadata by default for multivalue properties.
+
+                        Provenance metadata for multivalue properties are necessary for out-of-the-box support of default ranges, but
+                        are not necessary if such custom ranges / target sets are defined by mappings.
+
+                        This should decrease object size and computation footprint in heavy use of multivalue mapping and extensions.
+
+                        Disabling this feature, does not delete already existing provenance metadata for multivalues. Reenabling this
+                        feature requires recomputation of such multivalues for correct value metadata to by computed.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+
     <xsd:complexType name="InternalsConfigurationType">
         <xsd:annotation>
             <xsd:documentation>
@@ -13521,6 +13550,16 @@
                     <xsd:appinfo>
                         <a:since>4.4</a:since>
                         <a:experimental>true</a:experimental>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="valueMetadata" type="tns:ValueMetadataConfigurationType"  minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Configuration of default value metadata processing features.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:since>4.9.1</a:since>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
