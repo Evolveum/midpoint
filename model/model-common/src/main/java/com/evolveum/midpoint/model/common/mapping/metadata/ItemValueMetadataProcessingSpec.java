@@ -22,6 +22,7 @@ import com.evolveum.midpoint.repo.common.ObjectResolver;
 import com.evolveum.midpoint.schema.config.ConfigurationItemOrigin;
 import com.evolveum.midpoint.schema.config.MetadataMappingConfigItem;
 import com.evolveum.midpoint.schema.config.OriginProvider;
+import com.evolveum.midpoint.schema.metadata.DefaultValueMetadataProcessing;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ItemRefinedDefinitionTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
