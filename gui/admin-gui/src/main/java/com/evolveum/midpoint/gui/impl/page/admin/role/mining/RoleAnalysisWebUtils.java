@@ -16,8 +16,10 @@ import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.prism.ItemStatus;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.components.ProgressBar;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.model.BusinessRoleApplicationDto;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.model.BusinessRoleDto;
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.model.ProgressBarDto;
 import com.evolveum.midpoint.gui.impl.util.DetailsPageUtil;
 import com.evolveum.midpoint.model.api.ModelInteractionService;
 import com.evolveum.midpoint.model.api.ModelService;
@@ -42,6 +44,7 @@ import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.form.AjaxSubmitLink;
 import org.apache.wicket.extensions.markup.html.tabs.ITab;
 import org.apache.wicket.markup.html.WebMarkupContainer;
+import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.LoadableDetachableModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
@@ -56,6 +59,8 @@ import java.util.*;
 
 import static com.evolveum.midpoint.gui.api.util.LocalizationUtil.translate;
 import static com.evolveum.midpoint.gui.api.util.LocalizationUtil.translateMessage;
+import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.table.RoleAnalysisTableTools.densityBasedColor;
+import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.table.RoleAnalysisTableTools.densityBasedColorOposite;
 
 public class RoleAnalysisWebUtils {
 
@@ -487,4 +492,47 @@ public class RoleAnalysisWebUtils {
         return analysisOption.getAnalysisProcedureType();
     }
 
+    public static @NotNull ProgressBar buildSimpleDensityBasedProgressBar(String id, IModel<String> value) {
+        IModel<ProgressBarDto> model = () -> {
+            String colorClass = densityBasedColor(
+                    Double.parseDouble(value.getObject().replace(',', '.')));
+
+            double actualValue = Double.parseDouble(value.getObject().replace(',', '.'));
+            ProgressBarDto progressBarDto = new ProgressBarDto(actualValue, colorClass, "");
+            progressBarDto.setInline(true);
+
+            return progressBarDto;
+        };
+
+        ProgressBar progressBar = new ProgressBar(id, model);
+        progressBar.setOutputMarkupId(true);
+        return progressBar;
+    }
+
+    public static @NotNull ProgressBar buildDensityProgressPanel(
+            @NotNull String componentId,
+            @NotNull Double density,
+            @NotNull String title) {
+
+        IModel<ProgressBarDto> model = () -> {
+            BigDecimal bd = new BigDecimal(Double.toString(density));
+            bd = bd.setScale(2, RoundingMode.HALF_UP);
+            double actualValue = bd.doubleValue();
+
+            String colorClass = densityBasedColorOposite(actualValue);
+
+            return new ProgressBarDto(actualValue, colorClass, title);
+        };
+
+        ProgressBar progressBar = new ProgressBar(componentId, model) {
+
+            @Contract(pure = true)
+            @Override
+            protected @NotNull String getProgressBarContainerStyle() {
+                return "border-radius: 10px; height:10px;";
+            }
+        };
+        progressBar.setOutputMarkupId(true);
+        return progressBar;
+    }
 }

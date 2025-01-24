@@ -9,6 +9,7 @@ package com.evolveum.midpoint.gui.impl.page.admin.role.mining.components;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.model.ProgressBarDto;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.tmp.panel.RoleAnalysisAttributeAnalysisDto;
 
 import org.apache.wicket.*;
@@ -19,6 +20,7 @@ import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.repeater.RepeatingView;
 import org.apache.wicket.model.IModel;
 import org.jetbrains.annotations.NotNull;
+
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.tmp.panel.IconWithLabel;
@@ -147,43 +149,19 @@ public class ProgressBarForm extends BasePanel<RoleAnalysisAttributeAnalysisDto>
     }
 
     private ProgressBar createProgressBar(RepeatingView repeatingProgressBar, double frequency, List<RoleAnalysisAttributeStatistics> value, boolean isMarkedAttribute) {
-        var isUnusual = Objects.requireNonNullElse(value.get(0).getIsUnusual(), false);
-        var bar = new ProgressBar(repeatingProgressBar.newChildId()) {
-            @Override
-            public double getActualValue() {
-                return frequency;
+
+        IModel<ProgressBarDto> model = () -> {
+            String colorClass = null;
+
+            if (isMarkedAttribute) {
+                colorClass = "inherit";
             }
 
-            @Override
-            public String getProgressBarColor() {
-                return isMarkedAttribute ? "inherit" : super.getProgressBarColor();
-            }
-
-            @Override
-            public String getBarTitle() {
-                return value.size() == 1 ? value.get(0).getAttributeValue() : "Objects (" + value.size() + ")";
-            }
-
-            @Override
-            public String getInRepoCount() {
-                return value.size() == 1 ? value.get(0).getInRepo().toString() : null;
-            }
-
-            @Override
-            public boolean isUnusual() {
-                return isUnusual;
-            }
-
-            @Override
-            public String getInClusterCount() {
-                return value.size() == 1 ? value.get(0).getInGroup().toString() : null;
-            }
-
-            @Override
-            public List<RoleAnalysisAttributeStatistics> getRoleAnalysisAttributeResult() {
-                return value;
-            }
+            return new ProgressBarDto(frequency, colorClass, value);
         };
+
+        var isUnusual = model.getObject().isUnusual();
+        var bar = new ProgressBar(repeatingProgressBar.newChildId(), model);
         if (isMarkedAttribute) {
             bar.add(AttributeModifier.append("class", "progress-bar-marked-attribute"));
             if (isUnusual) {

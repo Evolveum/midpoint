@@ -8,8 +8,8 @@ package com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.outlier
 
 import static com.evolveum.midpoint.common.mining.utils.ExtractPatternUtils.transformPatternWithAttributes;
 import static com.evolveum.midpoint.gui.api.util.LocalizationUtil.translate;
+import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.RoleAnalysisWebUtils.buildDensityProgressPanel;
 import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.RoleAnalysisWebUtils.loadRoleAnalysisTempTable;
-import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.table.RoleAnalysisTableTools.densityBasedColorOposite;
 
 import java.io.Serial;
 import java.math.BigDecimal;
@@ -22,8 +22,6 @@ import com.evolveum.midpoint.common.mining.objects.chunk.MiningRoleTypeChunk;
 import com.evolveum.midpoint.common.mining.objects.chunk.MiningUserTypeChunk;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
-
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.components.ProgressBar;
 
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.tmp.panel.RoleAnalysisAttributesDto;
 
@@ -567,7 +565,7 @@ public class RoleAnalysisSinglePartitionAnomalyResultTabPopup extends BasePanel<
                         Double confidence = patternAnalysis.getConfidence();
                         String title = createStringResource("RoleAnalysisOutlierType.widget.patterns.confidence")
                                 .getString();
-                        return getDensityProgressPanel(id, confidence, title);
+                        return buildDensityProgressPanel(id, confidence, title);
                     }
 
                     @Override
@@ -607,7 +605,7 @@ public class RoleAnalysisSinglePartitionAnomalyResultTabPopup extends BasePanel<
                         double pointsDensity = bd.doubleValue();
                         String title = createStringResource("RoleAnalysisOutlierType.widget.attribute.confidence")
                                 .getString();
-                        return getDensityProgressPanel(id, pointsDensity, title);
+                        return buildDensityProgressPanel(id, pointsDensity, title);
                     }
 
                     @Override
@@ -722,7 +720,7 @@ public class RoleAnalysisSinglePartitionAnomalyResultTabPopup extends BasePanel<
                         double pointsDensity = bd.doubleValue();
                         String title = createStringResource("RoleAnalysisOutlierType.widget.repo.role.popularity.confidence")
                                 .getString();
-                        return getDensityProgressPanel(id, pointsDensity, title);
+                        return buildDensityProgressPanel(id, pointsDensity, title);
                     }
 
                     @Deprecated
@@ -769,7 +767,7 @@ public class RoleAnalysisSinglePartitionAnomalyResultTabPopup extends BasePanel<
                         double pointsDensity = bd.doubleValue();
                         String title = createStringResource("RoleAnalysisOutlierType.widget.anomaly.cluster.coverage.confidence")
                                 .getString();
-                        return getDensityProgressPanel(id, pointsDensity, title);
+                        return buildDensityProgressPanel(id, pointsDensity, title);
                     }
 
                     @Override
@@ -805,7 +803,7 @@ public class RoleAnalysisSinglePartitionAnomalyResultTabPopup extends BasePanel<
                         double pointsDensity = bd.doubleValue();
                         String title = createStringResource("RoleAnalysisOutlierType.widget.deviation.confidence")
                                 .getString();
-                        return getDensityProgressPanel(id, pointsDensity, title);
+                        return buildDensityProgressPanel(id, pointsDensity, title);
                     }
 
                     @Override
@@ -820,40 +818,4 @@ public class RoleAnalysisSinglePartitionAnomalyResultTabPopup extends BasePanel<
         return Model.ofList(detailsModel);
     }
 
-    private static @NotNull ProgressBar getDensityProgressPanel(
-            @NotNull String componentId,
-            @NotNull Double density,
-            @NotNull String title) {
-
-        BigDecimal bd = new BigDecimal(Double.toString(density));
-        bd = bd.setScale(2, RoundingMode.HALF_UP);
-        double pointsDensity = bd.doubleValue();
-
-        String colorClass = densityBasedColorOposite(pointsDensity);
-
-        ProgressBar progressBar = new ProgressBar(componentId) {
-
-            @Override
-            public double getActualValue() {
-                return pointsDensity;
-            }
-
-            @Override
-            public String getProgressBarColor() {
-                return colorClass;
-            }
-
-            @Override
-            protected String getProgressBarContainerStyle() {
-                return "border-radius: 10px; height:10px;";
-            }
-
-            @Override
-            public String getBarTitle() {
-                return title;
-            }
-        };
-        progressBar.setOutputMarkupId(true);
-        return progressBar;
-    }
 }
