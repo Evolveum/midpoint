@@ -14,12 +14,21 @@ import static com.evolveum.midpoint.schema.SelectorOptions.createCollection;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
+import java.time.Duration;
 import java.util.*;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.ItemDefinition;
+import com.evolveum.midpoint.prism.impl.query.lang.AxiomQueryContentAssistImpl;
+import com.evolveum.midpoint.prism.query.*;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.ajax.attributes.AjaxRequestAttributes;
+import org.apache.wicket.ajax.attributes.ThrottlingSettings;
+import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
 import org.apache.wicket.ajax.form.OnChangeAjaxBehavior;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
@@ -40,9 +49,6 @@ import com.evolveum.midpoint.gui.impl.util.DetailsPageUtil;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
-import com.evolveum.midpoint.prism.query.ObjectFilter;
-import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.prism.query.PrismQuerySerialization;
 import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.RepositoryQueryDiagRequest;
@@ -75,6 +81,9 @@ import com.evolveum.midpoint.web.util.StringResourceChoiceRenderer;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.query_3.QueryType;
 import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
+
+import org.apache.wicket.request.IRequestParameters;
+import org.apache.wicket.request.cycle.RequestCycle;
 
 public class QueryPlaygroundPanel extends BasePanel<RepoQueryDto> {
 
@@ -301,9 +310,8 @@ public class QueryPlaygroundPanel extends BasePanel<RepoQueryDto> {
                         getModel().getObject().setObjectType(new QName(SchemaConstants.NS_C, localTypeName));
                         String xml = IOUtils.toString(is, StandardCharsets.UTF_8);
                         String serialization = "";
-                        PrismContext prismContext = getPrismContext();
                         try {
-                            QueryType parsed = prismContext.parserFor(xml).xml().parseRealValue(QueryType.class);
+                            QueryType parsed = getPrismContext().parserFor(xml).xml().parseRealValue(QueryType.class);
                             SearchFilterType filter = parsed.getFilter();
                             if (filter != null && filter.getText() != null) {
                                 serialization = filter.getText();
@@ -364,6 +372,51 @@ public class QueryPlaygroundPanel extends BasePanel<RepoQueryDto> {
                 return getModel().getObject().getQueryResultText() != null;
             }
         });
+
+        // Content assist for AXQ lang
+        AxiomQueryContentAssist axiomQueryContentAssist = new AxiomQueryContentAssistImpl(getPrismContext());
+        ObjectMapper mapper = new ObjectMapper();
+
+        editorMidPoint.add(new AjaxFormComponentUpdatingBehavior("change") {
+            @Override
+            protected void updateAjaxAttributes(AjaxRequestAttributes attributes) {
+                super.updateAjaxAttributes(attributes);
+                attributes.setThrottlingSettings(
+                        new ThrottlingSettings(ID_EDITOR_MIDPOINT, Duration.ofMillis(300), true)
+                );
+
+                attributes.getDynamicExtraParameters().add(
+                        "return {'cursorPosition': window.MidPointAceEditor.cursorPosition || 0};"
+                );
+            }
+
+            @Override
+            protected void onUpdate(AjaxRequestTarget target) {
+                RepoQueryDto repo = getModelObject();
+
+                if (repo != null) {
+                    String query = repo.getMidPointQuery();
+                    IRequestParameters params = RequestCycle.get().getRequest().getRequestParameters();
+                    ItemDefinition<?> rootDef = repo.getObjectType() == null ?
+                            getPrismContext().getSchemaRegistry().findItemDefinitionByType(objectTypeChoice.getFirstChoice()) :
+                            getPrismContext().getSchemaRegistry().findItemDefinitionByType(repo.getObjectType());
+
+                    try {
+                        target.appendJavaScript("window.MidPointAceEditor.syncContentAssist(" +
+                                        mapper.writeValueAsString(axiomQueryContentAssist.process(
+                                                rootDef,
+                                                query == null ? "" : query,
+                                                params.getParameterValue("cursorPosition").toInt()
+                                        ))
+                                + ", '" + editorMidPoint.getMarkupId() + "');"
+                        );
+                    } catch (Exception e) {
+                        LOGGER.error(e.getMessage());
+                    }
+                }
+            }
+        });
+
         mainForm.add(resultText);
     }
 

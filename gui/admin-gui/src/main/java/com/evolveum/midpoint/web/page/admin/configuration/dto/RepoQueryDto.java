@@ -34,6 +34,7 @@ public class RepoQueryDto implements Serializable {
     private Object queryResultObject = null;
     private boolean distinct;
     private boolean scriptEnabled;
+    private int positionCursor = -1;
 
     private ExpressionType midPointQueryScript = new ExpressionType();
 
@@ -111,5 +112,13 @@ public class RepoQueryDto implements Serializable {
 
     public void setScriptEnabled(boolean scriptEnabled) {
         this.scriptEnabled = scriptEnabled;
+    }
+
+    public int getPositionCursor() {
+        return positionCursor;
+    }
+
+    public void setPositionCursor(int positionCursor) {
+        this.positionCursor = positionCursor;
     }
 }
