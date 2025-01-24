@@ -7,40 +7,52 @@
 
 package com.evolveum.midpoint.repo.cache.global;
 
+import com.evolveum.midpoint.repo.cache.values.CachedObjectValue;
+
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
+import java.util.Objects;
+
 /**
  * Created by Viliam Repan (lazyman).
  */
-public class GlobalCacheObjectValue<T extends ObjectType> extends AbstractGlobalCacheValue {
+public class GlobalCacheObjectValue<T extends ObjectType> extends AbstractGlobalCacheValue implements CachedObjectValue<T> {
 
     @NotNull private final PrismObject<T> object;
 
     private volatile long checkVersionTime;
 
-    public GlobalCacheObjectValue(@NotNull PrismObject<T> object, long checkVersionTime) {
+    private final boolean complete;
+
+    public GlobalCacheObjectValue(@NotNull PrismObject<T> object, long checkVersionTime, boolean complete) {
         this.object = object;
         this.checkVersionTime = checkVersionTime;
+        this.complete = complete;
     }
 
-    String getObjectOid() {
-        return object.getOid();
+    @NotNull String getObjectOid() {
+        return Objects.requireNonNull(object.getOid());
     }
 
-    public Class<? extends ObjectType> getObjectType() {
-        return object.getCompileTimeClass();
+    public @NotNull Class<? extends ObjectType> getObjectType() {
+        return Objects.requireNonNull(object.getCompileTimeClass());
     }
 
     public String getObjectVersion() {
         return object.getVersion();
     }
 
-    @NotNull
-    public PrismObject<T> getObject() {
-        return object;      // cloning is done in RepositoryCache
+    @Override
+    public @NotNull PrismObject<T> getObject() {
+        return object;
+    }
+
+    @Override
+    public boolean isComplete() {
+        return complete;
     }
 
     public void setCheckVersionTime(long checkVersionTime) {
@@ -53,7 +65,11 @@ public class GlobalCacheObjectValue<T extends ObjectType> extends AbstractGlobal
 
     @Override
     public String toString() {
-        return "GlobalCacheObjectValue{" + "checkVersionTime=" + checkVersionTime + " (" + (checkVersionTime -System.currentTimeMillis()) + " left)"
-                + ", object=" + object + " (version " + object.getVersion() + ")}";
+        return "GlobalCacheObjectValue{"
+                + "checkVersionTime=" + checkVersionTime + " (" + (checkVersionTime - System.currentTimeMillis()) + " ms left)"
+                + ", object=" + object
+                + " (version " + object.getVersion() + ")"
+                + ", complete=" + complete
+                + "}";
     }
 }

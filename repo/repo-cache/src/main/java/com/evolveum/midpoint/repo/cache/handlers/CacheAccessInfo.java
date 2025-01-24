@@ -16,7 +16,8 @@ import java.util.Objects;
 
 /**
  * Information needed to access a specific cache.
- * They relate to object of type T.
+ *
+ * They relate to object of type `T`.
  */
 class CacheAccessInfo<C, T extends ObjectType> {
 
@@ -57,7 +58,8 @@ class CacheAccessInfo<C, T extends ObjectType> {
 
     /**
      * The cache itself.
-     * It is null if and only if available is false.
+     *
+     * It is `null` if and only if {@link #available} is `false`.
      */
     final C cache;
 
@@ -104,8 +106,7 @@ class CacheAccessInfo<C, T extends ObjectType> {
     /**
      * Just to make static nullity checks happy.
      */
-    @NotNull
-    C getCache() {
+    @NotNull C getCache() {
         return Objects.requireNonNull(cache);
     }
 }

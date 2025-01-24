@@ -6,24 +6,28 @@
  */
 package com.evolveum.midpoint.repo.cache;
 
-import static com.evolveum.midpoint.prism.util.PrismTestUtil.displayCollection;
-import static com.evolveum.midpoint.prism.util.PrismTestUtil.getPrismContext;
-import static com.evolveum.midpoint.repo.sqale.SqaleRepositoryService.REPOSITORY_IMPL_NAME;
+import static com.evolveum.midpoint.schema.GetOperationOptions.createRetrieveCollection;
+
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.fail;
 
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Set;
+import static com.evolveum.midpoint.prism.util.PrismTestUtil.displayCollection;
+import static com.evolveum.midpoint.prism.util.PrismTestUtil.getPrismContext;
+import static com.evolveum.midpoint.repo.sqale.SqaleRepositoryService.REPOSITORY_IMPL_NAME;
+
+import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.function.Consumer;
+
+import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
+
+import com.evolveum.midpoint.util.exception.CommonException;
 
 import jakarta.annotation.PostConstruct;
+
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -45,23 +49,20 @@ import com.evolveum.midpoint.repo.cache.global.GlobalQueryCache;
 import com.evolveum.midpoint.repo.cache.global.GlobalVersionCache;
 import com.evolveum.midpoint.repo.cache.local.QueryKey;
 import com.evolveum.midpoint.repo.sqale.SqaleRepositoryService;
-import com.evolveum.midpoint.schema.GetOperationOptions;
-import com.evolveum.midpoint.schema.RepositoryDiag;
-import com.evolveum.midpoint.schema.ResultHandler;
-import com.evolveum.midpoint.schema.SearchResultList;
-import com.evolveum.midpoint.schema.SearchResultMetadata;
-import com.evolveum.midpoint.schema.SelectorOptions;
+import com.evolveum.midpoint.schema.*;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.statistics.CachePerformanceInformationUtil;
 import com.evolveum.midpoint.schema.statistics.RepositoryPerformanceInformationUtil;
-import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
 import com.evolveum.midpoint.test.util.AbstractSpringTest;
 import com.evolveum.midpoint.test.util.InfraTestMixin;
 import com.evolveum.midpoint.util.caching.CachePerformanceCollector;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ArchetypeType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 @SuppressWarnings("SameParameterValue")
@@ -76,7 +77,7 @@ public class TestRepositoryCache extends AbstractSpringTest implements InfraTest
     @Autowired GlobalQueryCache globalQueryCache;
     @Autowired PrismContext prismContext;
 
-    @SuppressWarnings("unused") // used when heap dumps are uncommented
+    @SuppressWarnings("unused") // used when heap dumps are uncommented, see dumpHeap method below
     private final long identifier = System.currentTimeMillis();
 
     // Nothing for old repo, short class name for new one. TODO inline when old repo goes away
@@ -96,8 +97,7 @@ public class TestRepositoryCache extends AbstractSpringTest implements InfraTest
         OperationResult initResult = new OperationResult(CLASS_DOT + "setup");
         repositoryCache.postInit(initResult);
 
-        RepositoryDiag repositoryDiag = repositoryCache.getRepositoryDiag();
-        String implName = repositoryDiag != null ? repositoryDiag.getImplementationShortName() : null;
+        String implName = repositoryCache.getRepositoryDiag().getImplementationShortName();
         isNewRepoUsed = Objects.equals(implName, REPOSITORY_IMPL_NAME);
         opNamePrefix = isNewRepoUsed
                 ? SqaleRepositoryService.class.getSimpleName() + '.'
@@ -105,32 +105,32 @@ public class TestRepositoryCache extends AbstractSpringTest implements InfraTest
     }
 
     @Test
-    public void test100GetUser() throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException {
+    public void test100GetUser() throws CommonException {
         testGetUncachedObject(UserType.class);
     }
 
     @Test
-    public void test110GetSystemConfiguration() throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException {
+    public void test110GetSystemConfiguration() throws CommonException {
         testGetCachedObject(SystemConfigurationType.class);
     }
 
     @Test
-    public void test200SearchUsers() throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException {
+    public void test200SearchUsers() throws CommonException {
         testSearchUncachedObjects(UserType.class);
     }
 
     @Test
-    public void test210SearchArchetypes() throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException {
+    public void test210SearchArchetypes() throws CommonException {
         testSearchCachedObjects(ArchetypeType.class);
     }
 
     @Test
-    public void test220SearchUsersIterative() throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException {
+    public void test220SearchUsersIterative() throws CommonException {
         testSearchUncachedObjectsIterative(UserType.class);
     }
 
     @Test
-    public void test230SearchArchetypesIterative() throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException {
+    public void test230SearchArchetypesIterative() throws CommonException {
         testSearchCachedObjectsIterative(ArchetypeType.class);
     }
 
@@ -138,7 +138,7 @@ public class TestRepositoryCache extends AbstractSpringTest implements InfraTest
      * MID-6250
      */
     @Test
-    public void test300ModifyInIterativeSearch() throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException {
+    public void test300ModifyInIterativeSearch() throws CommonException {
         given();
         PrismContext prismContext = getPrismContext();
         OperationResult result = createOperationResult();
@@ -149,7 +149,7 @@ public class TestRepositoryCache extends AbstractSpringTest implements InfraTest
         String name = "testModifyInIterativeSearch";
         String changedDescription = "changed";
 
-        PrismObject<ArchetypeType> archetype = new ArchetypeType(prismContext)
+        PrismObject<ArchetypeType> archetype = new ArchetypeType()
                 .name(name)
                 .asPrismObject();
         repositoryCache.addObject(archetype, null, result);
@@ -190,7 +190,7 @@ public class TestRepositoryCache extends AbstractSpringTest implements InfraTest
      * MID-6250
      */
     @Test
-    public void test310AddInIterativeSearch() throws SchemaException, ObjectAlreadyExistsException {
+    public void test310AddInIterativeSearch() throws CommonException {
         given();
         PrismContext prismContext = getPrismContext();
         OperationResult result = createOperationResult();
@@ -202,7 +202,7 @@ public class TestRepositoryCache extends AbstractSpringTest implements InfraTest
         String name1 = getTestNameShort() + ".1";
         String name2 = getTestNameShort() + ".2";
 
-        PrismObject<ArchetypeType> archetype1 = new ArchetypeType(prismContext)
+        PrismObject<ArchetypeType> archetype1 = new ArchetypeType()
                 .name(name1)
                 .costCenter(costCenter)
                 .asPrismObject();
@@ -215,7 +215,7 @@ public class TestRepositoryCache extends AbstractSpringTest implements InfraTest
         AtomicInteger found = new AtomicInteger(0);
         ResultHandler<ArchetypeType> handler = (object, result1) -> {
             try {
-                PrismObject<ArchetypeType> archetype2 = new ArchetypeType(prismContext)
+                PrismObject<ArchetypeType> archetype2 = new ArchetypeType()
                         .name(name2)
                         .costCenter(costCenter)
                         .asPrismObject();
@@ -241,7 +241,7 @@ public class TestRepositoryCache extends AbstractSpringTest implements InfraTest
      * MID-6250
      */
     @Test
-    public void test320SearchObjectsIterativeSlow() throws ObjectAlreadyExistsException, SchemaException, ObjectNotFoundException {
+    public void test320SearchObjectsIterativeSlow() throws CommonException {
         OperationResult result = createOperationResult();
 
         deleteExistingObjects(ArchetypeType.class, result);
@@ -286,7 +286,7 @@ public class TestRepositoryCache extends AbstractSpringTest implements InfraTest
     }
 
     @Test
-    public void test330SearchObjectsOverSize() throws ObjectAlreadyExistsException, SchemaException, ObjectNotFoundException {
+    public void test330SearchObjectsOverSize() throws CommonException {
         OperationResult result = createOperationResult();
 
         deleteExistingObjects(ArchetypeType.class, result);
@@ -309,6 +309,16 @@ public class TestRepositoryCache extends AbstractSpringTest implements InfraTest
         assertThat(data.overSizedQueries.get()).as("over-sized counter").isEqualTo(2); // search + searchIterative
     }
 
+    @Test
+    public void test350GetArchetypeWithIncludeOptionNoPhoto() throws CommonException {
+        testGetObjectWithSmartIncludeHandling(ArchetypeType.class, a -> {}, true);
+    }
+
+    @Test
+    public void test352GetArchetypeWithIncludeOptionWithPhoto() throws CommonException {
+        testGetObjectWithSmartIncludeHandling(ArchetypeType.class, a -> a.setJpegPhoto(new byte[] { 1, 2, 3 }), false);
+    }
+
     // Must be executed last, because naive deletion such large number of archetypes fails on OOM
     @Test
     public void test900HeapUsage() throws Exception {
@@ -317,10 +327,10 @@ public class TestRepositoryCache extends AbstractSpringTest implements InfraTest
         int size = 2_000_000;
         int count = 400;
 
-        // 100 is the default "step" in paged iterative search, so we can expect we always have 50 objects in memory
+        // 50 is the default "step" in paged iterative search, so we can expect we always have 50 objects in memory
         // And "times 4" is the safety margin. It might or might not be sufficient, as System.gc() is not guaranteed to
         // really execute the garbage collection (only suggests JVM to do it).
-        long tolerance = (100 * size) * 4;
+        long tolerance = (50 * size) * 4;
 
         showMemory("Initial");
         dumpHeap("initial");
@@ -381,27 +391,27 @@ public class TestRepositoryCache extends AbstractSpringTest implements InfraTest
 //        }
     }
 
-    private <T extends ObjectType> void testGetUncachedObject(Class<T> objectClass) throws ObjectAlreadyExistsException, SchemaException, ObjectNotFoundException {
+    private <T extends ObjectType> void testGetUncachedObject(Class<T> objectClass) throws CommonException {
         testGetObject(objectClass, false);
     }
 
-    private <T extends ObjectType> void testGetCachedObject(Class<T> objectClass) throws ObjectAlreadyExistsException, SchemaException, ObjectNotFoundException {
+    private <T extends ObjectType> void testGetCachedObject(Class<T> objectClass) throws CommonException {
         testGetObject(objectClass, true);
     }
 
-    private <T extends ObjectType> void testSearchUncachedObjects(Class<T> objectClass) throws ObjectAlreadyExistsException, SchemaException, ObjectNotFoundException {
+    private <T extends ObjectType> void testSearchUncachedObjects(Class<T> objectClass) throws CommonException {
         testSearchObjects(objectClass, 5, false);
     }
 
-    private <T extends ObjectType> void testSearchCachedObjects(Class<T> objectClass) throws ObjectAlreadyExistsException, SchemaException, ObjectNotFoundException {
+    private <T extends ObjectType> void testSearchCachedObjects(Class<T> objectClass) throws CommonException {
         testSearchObjects(objectClass, 5, true);
     }
 
-    private <T extends ObjectType> void testSearchUncachedObjectsIterative(Class<T> objectClass) throws ObjectAlreadyExistsException, SchemaException, ObjectNotFoundException {
+    private <T extends ObjectType> void testSearchUncachedObjectsIterative(Class<T> objectClass) throws CommonException {
         testSearchObjectsIterative(objectClass, 5, false);
     }
 
-    private <T extends ObjectType> void testSearchCachedObjectsIterative(Class<T> objectClass) throws ObjectAlreadyExistsException, SchemaException, ObjectNotFoundException {
+    private <T extends ObjectType> void testSearchCachedObjectsIterative(Class<T> objectClass) throws CommonException {
         testSearchObjectsIterative(objectClass, 5, true);
     }
 
@@ -411,7 +421,7 @@ public class TestRepositoryCache extends AbstractSpringTest implements InfraTest
      * Besides that, alters the objects retrieved (in memory) and verifies that the returned objects are correct
      * i.e. not influenced by alterations of previously returned objects.
      */
-    private <T extends ObjectType> void testGetObject(Class<T> objectClass, boolean isCached) throws ObjectAlreadyExistsException, SchemaException, ObjectNotFoundException {
+    private <T extends ObjectType> void testGetObject(Class<T> objectClass, boolean isCached) throws CommonException {
         clearStatistics();
         clearCaches();
 
@@ -440,6 +450,40 @@ public class TestRepositoryCache extends AbstractSpringTest implements InfraTest
         assertGetOperations(isCached ? 1 : 3);
 
         assertObjectAndVersionCached(object.getOid(), isCached);
+    }
+
+    /**
+     * Checks the `getObject` behavior with `retrieve=include` option present.
+     *
+     * . First, the object is created and retrieved with no options. It should put it into the cache.
+     * . Then, object is retrieved with `retrieve=include` option. It should be retrieved from the cache, if
+     * it does not contain incomplete items and if it's supported by the policy.
+     */
+    private <T extends ObjectType> void testGetObjectWithSmartIncludeHandling(
+            Class<T> objectClass, Consumer<T> objectCustomizer, boolean isCached) throws CommonException {
+        clearStatistics();
+        clearCaches();
+
+        PrismObject<T> object = getPrismContext().createObject(objectClass);
+        object.asObjectable().setName(PolyStringType.fromOrig(String.valueOf(Math.random())));
+        objectCustomizer.accept(object.asObjectable());
+
+        OperationResult result = createOperationResult();
+        String oid = repositoryCache.addObject(object, null, result);
+
+        PrismObject<T> object1 = repositoryCache.getObject(objectClass, oid, null, result);
+        displayDumpable("1st object retrieved", object1);
+
+        PrismObject<T> object2 = repositoryCache.getObject(objectClass, oid, createRetrieveCollection(), result);
+        displayDumpable("2nd object retrieved", object2);
+        assertEquals("Wrong object2 (compared with the original)", object, object2);
+        if (isCached) {
+            assertEquals("Wrong object2 (compared to the one retrieved previously)", object1, object2);
+        }
+
+        dumpStatistics();
+        assertAddOperations(1);
+        assertGetOperations(isCached ? 1 : 2);
     }
 
     private void assertObjectAndVersionCached(String oid, boolean isCached) {
@@ -482,13 +526,13 @@ public class TestRepositoryCache extends AbstractSpringTest implements InfraTest
 
     private <T extends ObjectType> void assertQueryIsCached(Class<T> type, ObjectQuery query) {
         QueryKey<T> key = new QueryKey<>(type, query);
-        SearchResultList<PrismObject<ObjectType>> value = globalQueryCache.get(key);
+        var value = globalQueryCache.get(key);
         assertThat(value).as("cached version value for " + key).isNotNull();
     }
 
     private <T extends ObjectType> void assertQueryIsNotCached(Class<T> type, ObjectQuery query) {
         QueryKey<T> key = new QueryKey<>(type, query);
-        SearchResultList<PrismObject<ObjectType>> value = globalQueryCache.get(key);
+        var value = globalQueryCache.get(key);
         assertThat(value).as("cached version value for " + key).isNull();
     }
 

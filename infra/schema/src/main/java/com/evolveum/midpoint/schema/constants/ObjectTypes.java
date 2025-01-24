@@ -6,11 +6,9 @@
  */
 package com.evolveum.midpoint.schema.constants;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
+import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
-
-import com.evolveum.midpoint.schema.RelationRegistry;
 
 import org.apache.commons.lang3.Validate;
 import org.apache.commons.lang3.StringUtils;
@@ -138,19 +136,14 @@ public enum ObjectTypes {
     // this should be at end, because otherwise it presents itself as entry for all subtypes of ObjectType
     OBJECT(SchemaConstants.C_OBJECT_TYPE, SchemaConstants.C_OBJECT, ObjectType.class, ObjectManager.MODEL, "objects");
 
-    public List<ObjectTypes> thisAndSupertypes() {
-        List<ObjectTypes> rv = new ArrayList<>();
-        rv.add(this);
-        ObjectTypes superType = superType();
-        if (superType != null) {
-            rv.addAll(superType.thisAndSupertypes());
-        }
-        return rv;
-    }
+    /** Provides fast access to the super type of given type. */
+    private static final Map<ObjectTypes, ObjectTypes> SUPER_TYPE_MAP = new HashMap<>();
 
-    public ObjectTypes superType() {
-        return getObjectTypeIfKnown(classDefinition.getSuperclass());
-    }
+    /** Provides fast access to all ancestors of given type (excluding the type itself). */
+    private static final Map<ObjectTypes, Collection<ObjectTypes>> ANCESTOR_MAP = new HashMap<>();
+
+    /** Provides fast access to all descendants of given type (excluding the type itself). */
+    private static final Map<ObjectTypes, Collection<ObjectTypes>> DESCENDANT_MAP = new HashMap<>();
 
     public enum ObjectManager {
         PROVISIONING, TASK_MANAGER, MODEL, REPOSITORY
@@ -461,5 +454,47 @@ public enum ObjectTypes {
             return inputQName;
         }
         return new QName(SchemaConstants.NS_C, inputQName.getLocalPart());
+    }
+
+    public @NotNull List<ObjectTypes> thisAndSupertypes() {
+        List<ObjectTypes> rv = new ArrayList<>();
+        rv.add(this);
+        rv.addAll(ANCESTOR_MAP.get(this));
+        return rv;
+    }
+
+    public @NotNull Collection<ObjectTypes> subtypes() {
+        return Objects.requireNonNull(DESCENDANT_MAP.get(this));
+    }
+
+    static {
+        for (ObjectTypes type : values()) {
+            SUPER_TYPE_MAP.put(type, getObjectTypeIfKnown(type.classDefinition.getSuperclass()));
+        }
+        for (ObjectTypes type : values()) {
+            ANCESTOR_MAP.put(type, computeAncestors(type));
+        }
+        for (ObjectTypes type : values()) {
+            DESCENDANT_MAP.put(type, computeDescendants(type));
+        }
+    }
+
+    private static @NotNull List<ObjectTypes> computeAncestors(ObjectTypes type) {
+        var knownAncestors = new ArrayList<ObjectTypes>();
+        for (;;) {
+            ObjectTypes superType = SUPER_TYPE_MAP.get(type);
+            if (superType == null) {
+                return knownAncestors;
+            } else {
+                knownAncestors.add(superType);
+                type = superType;
+            }
+        }
+    }
+
+    private static @NotNull Collection<ObjectTypes> computeDescendants(ObjectTypes type) {
+        return Arrays.stream(values())
+                .filter(candidateDescendant -> ANCESTOR_MAP.get(candidateDescendant).contains(type))
+                .collect(Collectors.toSet());
     }
 }
