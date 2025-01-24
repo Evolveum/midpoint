@@ -15,6 +15,8 @@ import com.evolveum.midpoint.gui.impl.page.admin.certification.column.AbstractGu
 
 import com.evolveum.midpoint.gui.impl.page.admin.certification.helpers.ColumnTypeConfigContext;
 
+import com.evolveum.midpoint.web.component.dialog.Popupable;
+
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.reflect.ConstructorUtils;
@@ -1175,10 +1177,15 @@ public abstract class ContainerableListPanel<C extends Serializable, PO extends 
     }
 
     public CompiledObjectCollectionView getObjectCollectionView() {
+        if (!useCollectionView) {
+            return null;
+        }
+
         CompiledObjectCollectionView containerPanelCollectionView = getCompiledCollectionViewFromPanelConfiguration();
         if (containerPanelCollectionView != null) {
             return containerPanelCollectionView;
         }
+
         CompiledObjectCollectionView view = getWidgetCollectionView();
         if (view != null) {
             return view;
@@ -1261,7 +1268,7 @@ public abstract class ContainerableListPanel<C extends Serializable, PO extends 
     //  trick it's search (at least) that collection has to be used in search...
     protected boolean isCollectionViewPanelForWidget() {
         PageParameters parameters = getPageBase().getPageParameters();
-        if (parameters != null) {
+        if (useCollectionView && parameters != null) {
             StringValue widget = parameters.get(PageBase.PARAMETER_DASHBOARD_WIDGET_NAME);
             StringValue dashboardOid = parameters.get(PageBase.PARAMETER_DASHBOARD_TYPE_OID);
             return widget != null && widget.toString() != null && dashboardOid != null && dashboardOid.toString() != null;
@@ -1275,7 +1282,7 @@ public abstract class ContainerableListPanel<C extends Serializable, PO extends 
     }
 
     protected boolean isCollectionViewPanelForCompiledView() {
-        return WebComponentUtil.getCollectionNameParameterValueAsString(getPageBase()) != null;
+        return useCollectionView && WebComponentUtil.getCollectionNameParameterValueAsString(getPageBase()) != null;
     }
 
     protected boolean isCollectionViewPanel() {
