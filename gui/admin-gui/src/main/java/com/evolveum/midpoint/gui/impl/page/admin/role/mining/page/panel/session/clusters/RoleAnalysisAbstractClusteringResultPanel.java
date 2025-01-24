@@ -24,6 +24,7 @@ import com.evolveum.midpoint.gui.impl.component.icon.IconCssStyle;
 import com.evolveum.midpoint.gui.impl.page.admin.AbstractObjectMainPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.ObjectDetailsModels;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.components.ProgressBar;
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.model.ProgressBarDto;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.session.ImageDetailsPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.tmp.panel.IconWithLabel;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.tmp.panel.LinkIconLabelIconPanel;
@@ -799,35 +800,19 @@ public abstract class RoleAnalysisAbstractClusteringResultPanel extends Abstract
             @NotNull String componentId,
             @NotNull Double density) {
 
-        BigDecimal bd = new BigDecimal(Double.toString(density));
-        bd = bd.setScale(2, RoundingMode.HALF_UP);
-        double pointsDensity = bd.doubleValue();
+        IModel<ProgressBarDto> model = () -> {
+            BigDecimal bd = new BigDecimal(Double.toString(density));
+            bd = bd.setScale(2, RoundingMode.HALF_UP);
+            double actualValue = bd.doubleValue();
 
-        String colorClass = densityBasedColor(pointsDensity);
+            String colorClass = densityBasedColor(actualValue);
 
-        ProgressBar progressBar = new ProgressBar(componentId) {
-
-            @Override
-            public boolean isInline() {
-                return true;
-            }
-
-            @Override
-            public double getActualValue() {
-                return pointsDensity;
-            }
-
-            @Override
-            public String getProgressBarColor() {
-                return colorClass;
-            }
-
-            @Contract(pure = true)
-            @Override
-            public @NotNull String getBarTitle() {
-                return "";
-            }
+            ProgressBarDto progressBarDto = new ProgressBarDto(actualValue, colorClass, "");
+            progressBarDto.setInline(true);
+            return progressBarDto;
         };
+
+        ProgressBar progressBar = new ProgressBar(componentId, model);
         progressBar.setOutputMarkupId(true);
         progressBar.add(AttributeModifier.append(STYLE_CSS, "width: 170px"));
         cellItem.add(progressBar);

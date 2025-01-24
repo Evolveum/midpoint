@@ -18,6 +18,8 @@ import com.evolveum.midpoint.gui.api.component.Badge;
 
 import com.evolveum.midpoint.gui.api.component.BadgePanel;
 
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.model.ProgressBarDto;
+
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.WebMarkupContainer;
@@ -267,29 +269,20 @@ public class RoleAnalysisSessionTilePanel<T extends Serializable> extends BasePa
     }
 
     private void initDensityProgressPanel() {
-        double value = getModelObject().getProgressBarValue();
-        String colorClass = getModelObject().getProgressBarColor();
-        String title = getModelObject().getProgressBarTitle();
 
-        ProgressBar progressBar = new ProgressBar(RoleAnalysisSessionTilePanel.ID_DENSITY) {
-
-            @Override
-            public double getActualValue() {
-                return value;
-            }
-
-            @Override
-            public String getProgressBarColor() {
-                return colorClass;
-            }
-
-            @Override
-            public String getBarTitle() {
-                return title;
-            }
+        IModel<ProgressBarDto> model = () -> {
+            double value = getModelObject().getProgressBarValue();
+            String colorClass = getModelObject().getProgressBarColor();
+            String title = getModelObject().getProgressBarTitle();
+            ProgressBarDto progressBarDto = new ProgressBarDto(value, colorClass, title);
+            progressBarDto.setBarToolTip(title + " of " + value);
+            return progressBarDto;
         };
+
+        ProgressBar progressBar = new ProgressBar(RoleAnalysisSessionTilePanel.ID_DENSITY, model);
+
         progressBar.setOutputMarkupId(true);
-        progressBar.add(AttributeModifier.replace(TITLE_CSS, () -> title + " of " + value));
+
         progressBar.add(new TooltipBehavior());
         add(progressBar);
     }

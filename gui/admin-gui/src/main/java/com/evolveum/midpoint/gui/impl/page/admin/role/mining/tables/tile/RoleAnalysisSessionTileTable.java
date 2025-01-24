@@ -12,10 +12,13 @@ import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.table.
 import static com.evolveum.midpoint.gui.impl.util.DetailsPageUtil.dispatchToObjectDetailsPage;
 
 import java.io.Serial;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.model.ProgressBarDto;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.page.PageRoleAnalysisSession;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.web.util.TooltipBehavior;
@@ -352,31 +355,31 @@ public class RoleAnalysisSessionTileTable extends BasePanel<String> {
                         List<InlineMenuItem> inlineMenuItems = new ArrayList<>();
                         inlineMenuItems.add(
                                 new InlineMenuItem(createStringResource("abstractRoleMemberPanel.menu.delete")) {
-                            @Serial private static final long serialVersionUID = 1L;
-
-                            @Override
-                            public InlineMenuItemAction initAction() {
-                                return new ColumnMenuAction<>() {
                                     @Serial private static final long serialVersionUID = 1L;
 
                                     @Override
-                                    public void onClick(AjaxRequestTarget target) {
-                                        Task task = getPageBase().createSimpleTask(OP_DELETE_SESSION);
-                                        OperationResult result = task.getResult();
+                                    public InlineMenuItemAction initAction() {
+                                        return new ColumnMenuAction<>() {
+                                            @Serial private static final long serialVersionUID = 1L;
 
-                                        RoleAnalysisService roleAnalysisService = getPageBase().getRoleAnalysisService();
-                                        String parentOid = getModelObject().getOid();
-                                        roleAnalysisService
-                                                .deleteSession(parentOid,
-                                                        task, result);
-                                        RoleAnalysisSessionTileTable.this.getTable().refresh(target);
-                                        target.add(RoleAnalysisSessionTileTable.this.getTable());
-                                        getPageBase().navigateToNext(PageRoleAnalysis.class);
+                                            @Override
+                                            public void onClick(AjaxRequestTarget target) {
+                                                Task task = getPageBase().createSimpleTask(OP_DELETE_SESSION);
+                                                OperationResult result = task.getResult();
+
+                                                RoleAnalysisService roleAnalysisService = getPageBase().getRoleAnalysisService();
+                                                String parentOid = getModelObject().getOid();
+                                                roleAnalysisService
+                                                        .deleteSession(parentOid,
+                                                                task, result);
+                                                RoleAnalysisSessionTileTable.this.getTable().refresh(target);
+                                                target.add(RoleAnalysisSessionTileTable.this.getTable());
+                                                getPageBase().navigateToNext(PageRoleAnalysis.class);
+                                            }
+                                        };
                                     }
-                                };
-                            }
 
-                        });
+                                });
 
                         return inlineMenuItems;
                     }
@@ -539,7 +542,7 @@ public class RoleAnalysisSessionTileTable extends BasePanel<String> {
             public Component getHeader(String componentId) {
                 return createColumnHeader
                         (componentId, containerDefinitionModel, ItemPath.create(RoleAnalysisSessionType.F_SESSION_STATISTIC,
-                        RoleAnalysisSessionStatisticType.F_PROCESSED_OBJECT_COUNT));
+                                RoleAnalysisSessionStatisticType.F_PROCESSED_OBJECT_COUNT));
             }
 
             @Override
@@ -575,7 +578,7 @@ public class RoleAnalysisSessionTileTable extends BasePanel<String> {
             public Component getHeader(String componentId) {
                 return createColumnHeader(
                         componentId, containerDefinitionModel, ItemPath.create(RoleAnalysisSessionType.F_SESSION_STATISTIC,
-                        RoleAnalysisSessionStatisticType.F_MEAN_DENSITY));
+                                RoleAnalysisSessionStatisticType.F_MEAN_DENSITY));
             }
 
             @Override
@@ -827,32 +830,20 @@ public class RoleAnalysisSessionTileTable extends BasePanel<String> {
             @NotNull Item<ICellPopulator<SelectableBean<RoleAnalysisSessionType>>> cellItem,
             @NotNull String componentId,
             @NotNull String meanDensity) {
-        String colorClass = densityBasedColor(
-                Double.parseDouble(meanDensity.replace(',', '.')));
 
-        ProgressBar progressBar = new ProgressBar(componentId) {
+        IModel<ProgressBarDto> model = () -> {
+            BigDecimal bd = new BigDecimal(meanDensity);
+            bd = bd.setScale(2, RoundingMode.HALF_UP);
+            double actualValue = bd.doubleValue();
 
-            @Override
-            public boolean isInline() {
-                return true;
-            }
-
-            @Override
-            public double getActualValue() {
-                return Double.parseDouble(meanDensity.replace(',', '.'));
-            }
-
-            @Override
-            public String getProgressBarColor() {
-                return colorClass;
-            }
-
-            @Contract(pure = true)
-            @Override
-            public @NotNull String getBarTitle() {
-                return "";
-            }
+            String colorClass = densityBasedColor(
+                    Double.parseDouble(meanDensity.replace(',', '.')));
+            ProgressBarDto progressBarDto = new ProgressBarDto(actualValue, colorClass, "");
+            progressBarDto.setInline(true);
+            return progressBarDto;
         };
+
+        ProgressBar progressBar = new ProgressBar(componentId, model);
         progressBar.setOutputMarkupId(true);
         cellItem.add(progressBar);
     }

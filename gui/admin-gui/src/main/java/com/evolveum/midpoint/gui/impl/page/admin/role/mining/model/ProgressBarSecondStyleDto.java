@@ -8,6 +8,8 @@
 package com.evolveum.midpoint.gui.impl.page.admin.role.mining.model;
 
 import java.io.Serializable;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 
 public class ProgressBarSecondStyleDto implements Serializable {
 
@@ -29,7 +31,9 @@ public class ProgressBarSecondStyleDto implements Serializable {
     }
 
     public ProgressBarSecondStyleDto(double actualValue, String progressColor) {
-        this.actualValue = actualValue;
+        BigDecimal bd = new BigDecimal(actualValue);
+        bd = bd.setScale(2, RoundingMode.HALF_UP);
+        this.actualValue = bd.doubleValue();
         this.progressColor = progressColor;
     }
 
