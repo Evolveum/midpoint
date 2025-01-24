@@ -24,7 +24,7 @@ It is no exception that there are more roles than there are users, which somehow
 
 image::rbac-overview.png[Static RBAC]
 
-Static RBAC models have numerous drawbacks, including xref:/iam/role-explosion/[role explosion], huge role maintenance and access review effort, tendency for over-provisioning and so on.
+Static RBAC models have numerous drawbacks, including xref:/iam/iga/rbac/role-explosion/[role explosion], huge role maintenance and access review effort, tendency for over-provisioning and so on.
 It is quite clear that _static_ RBAC methods are not suitable for current access control needs.
 However, it does not mean the RBAC _idea_ is wrong, or that the concept is completely useless.
 In fact, the whole role-based idea has many advantages, as we will see later.
@@ -58,7 +58,7 @@ Role can be parametrized with specific organizational unit or a location.
 There is no need to create `Sales Assistant`, `Engineering Assistant` and `HR Assistant` any more, this can be handled by a single role.
 Similarly `London Supervisor`, `Paris Supervisor` and `New York Supervisor` are also a thing of the past.
 
-Both _relation_ and _role parameters_ are efficient method to reduce xref:/iam/role-explosion/[role explosion].
+Both _relation_ and _role parameters_ are efficient method to reduce xref:/iam/iga/rbac/role-explosion/[role explosion].
 
 image::pdrbac-midpoint-overview.png[Policy-driven RBAC in midPoint]
 
