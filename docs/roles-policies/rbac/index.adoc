@@ -21,7 +21,7 @@ midPoint is using a (very) extended version of Role-Based Access Control (RBAC) 
 RBAC is originally defined as mostly static structure of users and roles.
 The original RBAC defines that user assigned to the role gets all the rights implied by the role.
 If two users have the same role, they have the same privileges.
-However, this leads to the problem of xref:/iam/role-explosion/[role rxplosion] and numerous role maintenance problems.
+However, this leads to the problem of xref:/iam/iga/rbac/role-explosion/[role rxplosion] and numerous role maintenance problems.
 We mitigate such problems by enhancing RBAC model with logic.
 We extended basic RBAC model with ability to specify expressions in role definitions that determine how and when the role is used.
 Therefore, the role can adapt to the attributes of user that has the role or even the role assignment itself can be parametrized.
@@ -58,7 +58,7 @@ image::rbac-1.png[]
 
 The usual use of roles is to imply accounts on the resources and therefore ease the user and account administration by employing RBAC approach.
 However, this is usually not enough to implement efficient and maintainable identity management solution.
-The simple approach leads to xref:/iam/role-explosion/[role explosion].
+The simple approach leads to xref:/iam/iga/rbac/role-explosion/[role explosion].
 The roles need to contain parts of logic to make them efficient.
 
 
@@ -109,7 +109,7 @@ And that's all the flexibility.
 However this is not enough to efficiently model complex real-world scenarios.
 For example the role of `Assistant` can have some generic parts that are common to each assistant but there may be few parts that are specific for each sub-group of users or even for each individual user.
 For example identification of a building or department for which the assistant works, date of role activation and deactivation, the financial limit that an assistant is authorized to handle, etc.
-In traditional systems this leads to a necessity of creating roles such as `AssistantNewYork`, `AssistantLondon` and `AssistantBratislava`. This alone is quite difficult to manage because there is also need to `ClerkNewYork`, `ClerkLondon` and `ClerkBratislava` and the same for office manager, purchasing manager, ... And when it comes to roles such as `PurchasingManagerAssistant2013NewYork5000` it is quite sure that the solution got a severe xref:/iam/role-explosion/[role explosion] problem.
+In traditional systems this leads to a necessity of creating roles such as `AssistantNewYork`, `AssistantLondon` and `AssistantBratislava`. This alone is quite difficult to manage because there is also need to `ClerkNewYork`, `ClerkLondon` and `ClerkBratislava` and the same for office manager, purchasing manager, ... And when it comes to roles such as `PurchasingManagerAssistant2013NewYork5000` it is quite sure that the solution got a severe xref:/iam/iga/rbac/role-explosion/[role explosion] problem.
 
 Parametric roles provide a solution for some of the role explosion situations.
 Parametric roles allow to specify certain role parameters at _assignment time_. That means that one `Assistant` role is usually enough.

@@ -613,7 +613,7 @@ The parameter is defined in the extension and later used in the assigned role de
 Such extension may contain any custom data and such data can be used in the expressions in assigned object.
 Such assignment extensions can then be used as a parameters in the roles.
 Therefore a role assignment can specify details such as a department for which the role applies, the branch office, access zone in the building and so on.
-This _parametric_ RBAC structure is a good mechanism to fight the xref:/iam/role-explosion/[role explosion] problem.
+This _parametric_ RBAC structure is a good mechanism to fight the xref:/iam/iga/rbac/role-explosion/[role explosion] problem.
 See xref:/midpoint/reference/roles-policies/rbac/[Advanced Hybrid RBAC] for more details.
 
 == Enforcement Modes

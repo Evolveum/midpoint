@@ -15,7 +15,7 @@ midPoint is using a (very) extended version of Role-Based Access Control (RBAC) 
 RBAC is originally defined as mostly static structure of users and roles.
 The original RBAC defines that user assigned to the role gets all the rights implied by the role.
 If two users have the same role, they have the same rights.
-However, this leads to the problem of xref:/iam/role-explosion/[Role Explosion]. We hope to solve that problem by enhancing RBAC model with logic.
+However, this leads to the problem of xref:/iam/iga/rbac/role-explosion/[Role Explosion]. We hope to solve that problem by enhancing RBAC model with logic.
 We add ability to specify expressions in role definitions that determine how and when the role is used.
 Therefore the role can adapt to the attributes of user that has the role or even the role assignment itself can be parametrized.
 This allows to construct RBAC structures that are using fewer roles and that are much more manageable.
