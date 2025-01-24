@@ -128,6 +128,14 @@ public class ResourceDetailsTabPanel extends AbstractObjectMainPanel<ResourceTyp
                 if (model.getObject() != null) {
                     return () -> model.getObject().getLocalPart();
                 }
+                if ((Object)rowModel.getObject() instanceof ResourceConfigurationDto dto){
+                    ResourceObjectTypeDefinitionType def = dto.getObjectTypeDefinition();
+                    ResourceObjectTypeDelineationType delineation = def.getDelineation();
+                    QName objectClass = delineation != null ? delineation.getObjectClass() : null;
+                    if (objectClass != null) {
+                        return () -> objectClass.getLocalPart();
+                    }
+                }
                 return model;
             }
         });
