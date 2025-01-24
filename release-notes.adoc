@@ -1111,7 +1111,7 @@ In midPoint 4.8, xrefv:/midpoint/reference/support-4.8/schema/archetypes/person/
 
 ==== Emphasis on Iterative Approach
 
-We have always recommended the xref:/iam/identity-management-project/[iterative approach]  to identity projects with midPoint.
+We have always recommended the iterative approach to identity projects with midPoint.
 With the xref:/midpoint/methodology/first-steps/[First Steps Methodology] this is now much more than just a recommendation.
 The new midPoint features as xrefv:/midpoint/reference/support-4.8/admin-gui/simulations/[simulations], xrefv:/midpoint/reference/support-4.8/concepts/mark/[object marks]  and xrefv:/midpoint/reference/support-4.8/admin-gui/resource-wizard/[resource wizard] encourage you to work in iterations and update your configurations based on results of simulations.
 
