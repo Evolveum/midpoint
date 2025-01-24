@@ -71,17 +71,17 @@ public class RoleAnalysisAttributeProgressBar extends AbstractRoleAnalysisProgre
         titleContainer.setOutputMarkupId(true);
         add(titleContainer);
 
-        Component component = buildTitleComponent(ID_BAR_TITLE, getPageBase());
+        Component component = buildTitleComponent(ID_BAR_TITLE);
         titleContainer.add(component);
 
         resolveTitleDataLabel(titleContainer);
         return titleContainer;
     }
 
-    public Component buildTitleComponent(String id, PageBase pageBase) {
+    public Component buildTitleComponent(String id) {
         if (getModelObject().isLinkTitle()) {
             List<PrismObject<ObjectType>> prismObjects = getModelObject().getObjectValues();
-            return buildAjaxLinkTitlePanel(id, pageBase, prismObjects);
+            return buildAjaxLinkTitlePanel(id, prismObjects);
         } else {
             IconWithLabel progressBarTitle = new IconWithLabel(id, new PropertyModel<>(getModel(), RoleAnalysisProgressBarDto.F_BAR_TITLE)) {
                 @Override
@@ -93,18 +93,18 @@ public class RoleAnalysisAttributeProgressBar extends AbstractRoleAnalysisProgre
             if (getModelObject().isUnusual()) {
                 progressBarTitle.add(new TooltipBehavior());
                 progressBarTitle.add(AttributeModifier.replace("title",
-                        pageBase.createStringResource("Unusual value")));
+                        getPageBase().createStringResource("Unusual value")));
             }
             return progressBarTitle;
         }
     }
 
-    private @NotNull AjaxLinkPanel buildAjaxLinkTitlePanel(String id, PageBase pageBase, List<PrismObject<ObjectType>> prismObjects) {
+    private @NotNull AjaxLinkPanel buildAjaxLinkTitlePanel(String id, List<PrismObject<ObjectType>> prismObjects) {
         AjaxLinkPanel ajaxLinkPanel = new AjaxLinkPanel(id, new PropertyModel<>(getModel(), RoleAnalysisProgressBarDto.F_BAR_TITLE)) {
             @Override
             public void onClick(AjaxRequestTarget target) {
-                RoleAnalysisObjectDetailsTablePopupPanel detailsPanel = new RoleAnalysisObjectDetailsTablePopupPanel(((PageBase) getPage()).getMainPopupBodyId(),
-                        pageBase.createStringResource("RoleAnalysis.analyzed.members.details.panel"),
+                RoleAnalysisObjectDetailsTablePopupPanel detailsPanel = new RoleAnalysisObjectDetailsTablePopupPanel(getPageBase().getMainPopupBodyId(),
+                        getPageBase().createStringResource("RoleAnalysis.analyzed.members.details.panel"),
                         prismObjects) {
                     @Override
                     public void onClose(AjaxRequestTarget ajaxRequestTarget) {
@@ -112,7 +112,7 @@ public class RoleAnalysisAttributeProgressBar extends AbstractRoleAnalysisProgre
                     }
                 };
 
-                ((PageBase) getPage()).showMainPopup(detailsPanel, target);
+                getPageBase().showMainPopup(detailsPanel, target);
             }
         };
         ajaxLinkPanel.setOutputMarkupId(true);
