@@ -231,9 +231,9 @@ public abstract class ChangeDescription {
                     + "continuing as if there might be an overlap:\n"
                     + "change description = {}\nfilter = {}", this, filter, e);
             return true;
-        } catch (Throwable t) {
+        } catch (Exception e) {
             LOGGER.warn("Couldn't match object being changed to cached query -- continuing as if there might be an overlap:\n"
-                    + "change description = {}\nfilter = {}", this, filter, t);
+                    + "change description = {}\nfilter = {}", this, filter, e);
             return true;
         }
     }
