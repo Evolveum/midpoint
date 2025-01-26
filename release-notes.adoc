@@ -49,6 +49,25 @@ The {release-version} release brings security, stability and miscellaneous bugfi
 Now it's possible to define characters that are accepted in the password, but not used when generating a new password value.
 The default password policy was updated in this regard.
 See bug:MID-9541[].
+* Fixed certification menu item visibility under Tasks menu. See bug:MID-10190[].
+* Fixed displaying of the configured members panel. See bug:MID-10150[].
+* Fixed the icon displaying on the case and work item details page (summary panel). See bug:MID-10164[].
+* Fixed the issue with the user redirecting to the wrong page after unassign member action. See bug:MID-10151[].
+* Fixed the issue with date picker field value update on the object details page. See bug:MID-10107[].
+* Stopped applying password policies to the extension attributes of the ProtectedStringType. See bug:MID-10129[].
+* Improved validation of the required attributes on the form panel: the error isn't shown when the required attribute is empty and the whole parent container of the attribute is empty too. See bug:MID-10210[].
+* Fixed the displaying of the password policy popover. See bug:MID-10128[].
+* Fixed the sorting in the organization tree on the Role catalog page. See bug:MID-10246[].
+* Fixed the search on the cases and work items list pages. See bug:MID-10167[].
+* Fixed error messages displaying on the Role catalog page. See bug:MID-10203[].
+* Fixed the counter label under the table on the assignments panel when it's opened on the Historical object page. See bug:MID-10153[].
+* Fixed error which occurred during self-password update. See bug:MID-10316[].
+* Fixed usage of the MidpointFormValidator during object update. See bug:MID-10127[].
+* Fixed the error while Policy rule panel opening. See bug:MID-10343[].
+* Fixed the duplicate error displaying on the Repository objects page. See bug:MID-10344[].
+* Fixed the error while opening the object details page. See bug:MID-10345[].
+* Fixed inappropriate error message displaying on the Shopping cart page.
+Within this issue improved AuthenticationException to use also localizable user-friendly message instead of only technical message. See bug:MID-10341[].
 
 == Changes with Respect To Version 4.8.4
 
