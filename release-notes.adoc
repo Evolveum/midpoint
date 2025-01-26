@@ -156,6 +156,8 @@ See bug:MID-9580[] and bug:MID-9834[].
 * Upgraded DatabaseTable Connector to 1.5.2.0 version.
 * Upgraded CSV Connector to 2.8 version.
 * Upgraded LDAP and AD Connector to 3.7.2 version.
+* bug:MID-9683[] and bug:MID-10096[] Search filter not being submitted on enter.
+* bug:MID-10330[], bug:MID-10317[] and bug:10319[] Messages localization fixes.
 
 == Changes with Respect To Version 4.8.2
 
