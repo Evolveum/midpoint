@@ -20,28 +20,19 @@
         <collection>
             <!-- Type is declared in the view element. -->
             <filter>
-                <q:and>
-                    <q:ownedBy>
-                        <q:type>UserType</q:type>
-                        <q:path>roleMembershipRef</q:path>
-                        <q:filter>
-                            <q:equal>
-                                <q:path>name</q:path>
-                                <expression>
-                                    <queryInterpretationOfNoValue>filterAll</queryInterpretationOfNoValue>
-                                    <path>$userName</path>
-                                </expression>
-                            </q:equal>
-                        </q:filter>
-                    </q:ownedBy>
-                    <q:ref>
-                        <q:path/>
-                        <expression>
-                            <queryInterpretationOfNoValue>filterAll</queryInterpretationOfNoValue>
-                            <path>$roleRef</path>
-                        </expression>
-                    </q:ref>
-                </q:and>
+                <q:text>
+                    . ownedBy (
+                        @type = UserType
+                        and @path = roleMembershipRef
+                        and name = yaml```
+                            queryInterpretationOfNoValue: filterAll
+                            path: $userName
+                        ```
+                    ) and . = yaml```
+                        queryInterpretationOfNoValue: filterAll
+                        path: $roleRef
+                    ```
+                </q:text>
             </filter>
         </collection>
         <parameter id="2">
