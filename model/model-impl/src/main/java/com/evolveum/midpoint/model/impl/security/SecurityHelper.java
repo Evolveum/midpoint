@@ -9,6 +9,7 @@ package com.evolveum.midpoint.model.impl.security;
 import javax.xml.datatype.Duration;
 
 import com.evolveum.midpoint.model.common.archetypes.ArchetypeManager;
+import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
 
 import com.evolveum.midpoint.schema.util.ArchetypeTypeUtil;
@@ -101,7 +102,11 @@ public class SecurityHelper implements ModelAuditRecorder {
         try {
             auditHelper.audit(record, null, task, new OperationResult(SecurityHelper.class.getName() + ".auditLogin"));
         } catch (Exception e) {
-            LOGGER.error("Couldn't audit audit event", e);
+            LOGGER.error("Couldn't audit audit event because of malformed username: " + username, e);
+            String normalizedUsername = new PolyString(username).getNorm();
+            LOGGER.info("Normalization of username and create audit record with normalized username. Normalized username: " + normalizedUsername);
+            record.setParameter(normalizedUsername);
+            auditHelper.audit(record, null, task, new OperationResult(SecurityHelper.class.getName() + ".auditLogin"));
         }
     }
 
