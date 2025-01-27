@@ -135,6 +135,74 @@ public class TestRepositoryCache extends AbstractSpringTest implements InfraTest
     }
 
     /**
+     * This is to simulate the assignment target search evaluator that tries to search for roles with exclude = "." option.
+     * Although the objects resulting from the search cannot be cached (obviously, as they contain no data), their OIDs forming
+     * the result itself, can be.
+     */
+    @Test
+    public void test290SearchArchetypesWithExcludeOption() throws CommonException {
+        var result = createOperationResult();
+        var name = getTestNameShort();
+        var description = "description";
+
+        var archetype = new ArchetypeType()
+                .name(name)
+                .description(description);
+        var oid = repositoryCache.addObject(archetype.asPrismObject(), null, result);
+
+        clearCaches();
+
+        var query = prismContext.queryFor(ArchetypeType.class)
+                .item(ArchetypeType.F_NAME).eqPoly(name).matchingOrig()
+                .build();
+
+        var options = GetOperationOptionsBuilder.create()
+                .retrieve(RetrieveOption.EXCLUDE)
+                .build();
+
+        when("executing the first search");
+        clearStatistics();
+        var objects1 = repositoryCache.searchObjects(ArchetypeType.class, query, options, result);
+
+        then("result is OK and there was a repo access");
+        displayCollection("objects retrieved", objects1);
+        assertObjectOids(objects1, oid);
+        assertOperations(RepositoryService.OP_SEARCH_OBJECTS, 1);
+        assertThat(objects1.get(0).asObjectable().getDescription()).as("description").isNull();
+
+        when("polluting the search result and executing the second search");
+        objects1.get(0).asObjectable().setDescription("garbage");
+        clearStatistics();
+        var objects2 = repositoryCache.searchObjects(ArchetypeType.class, query, options, result);
+
+        then("result is OK and there was a repo access");
+        displayCollection("objects retrieved", objects2);
+        assertObjectOids(objects2, oid);
+        assertOperations(RepositoryService.OP_SEARCH_OBJECTS, 1);
+        assertThat(objects2.get(0).asObjectable().getDescription()).as("description").isNull();
+
+        when("retrieving the archetype by getObject, polluting the result, and repeating the search");
+        var retrieved = repositoryCache.getObject(ArchetypeType.class, oid, null, result);
+        retrieved.asObjectable().setDescription("garbage");
+        clearStatistics();
+        var objects3 = repositoryCache.searchObjects(ArchetypeType.class, query, options, result);
+
+        then("result is OK and there was a NO repo access");
+        displayCollection("objects retrieved", objects3);
+        assertObjectOids(objects3, oid);
+        assertOperations(RepositoryService.OP_SEARCH_OBJECTS, 0);
+        // This is not strictly required, but the cache currently works that way
+        assertThat(objects3.get(0).asObjectable().getDescription()).as("description").isEqualTo(description);
+    }
+
+    private void assertObjectOids(Collection<? extends PrismObject<?>> objects, String... expectedOids) {
+        assertThat(objects).as("objects").hasSize(expectedOids.length);
+        assertThat(objects.stream().map(PrismObject::getOid))
+                .as("object OIDs")
+                .containsExactlyInAnyOrder(expectedOids);
+    }
+
+    /**
      * MID-6250
      */
     @Test

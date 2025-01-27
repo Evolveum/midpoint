@@ -30,15 +30,16 @@ import com.evolveum.midpoint.schema.SelectorOptions;
  *
  * However, now it is more elaborate, and says e.g. that
  *
- * - we may use the cache for getting the data, but not update it if the data is not there, like when looking for objects
+ * - we may use the cache for getting the data, but not update it if the data is not there, like when searching for objects
  * reduced by {@link RetrieveOptionType#EXCLUDE} option - {@link #cachedDataUse} is {@link CachedDataUse#ALWAYS},
- * but {@link #canUpdateCache} is `false`;
+ * but {@link #canUpdateObjectCache} is `false` (version and query caches can be updated);
  *
  * - or vice versa, we cannot use the cache, but after retrieving the object, we update the cache with it, like when having
- * zero staleness option - {@link #cachedDataUse} is {@link CachedDataUse#NEVER}, but {@link #canUpdateCache} is `true`;
+ * zero staleness option - {@link #cachedDataUse} is {@link CachedDataUse#NEVER}, but {@link #canUpdateObjectCache} and others
+ * are `true`;
  *
- * - or that we can use the data from the cache only if it's complete, like when having {@link RetrieveOptionType#INCLUDE} option;
- * {@link #cachedDataUse} is {@link CachedDataUse#ONLY_IF_COMPLETE}.
+ * - or that we can use the data from the object cache only if it's complete, like when having {@link RetrieveOptionType#INCLUDE}
+ * option; {@link #cachedDataUse} is {@link CachedDataUse#ONLY_IF_COMPLETE}.
  */
 class CacheUseMode {
 
@@ -51,12 +52,18 @@ class CacheUseMode {
     /** Whether we can use the data from the cache. */
     private final CachedDataUse cachedDataUse;
 
+    /** Whether we can use the fetched data to update the object cache. */
+    private final boolean canUpdateObjectCache;
+
+    /** Whether we can use the fetched data to update the version cache. */
+    private final boolean canUpdateVersionCache;
+
     /**
-     * Whether we can use the fetched data to update the cache.
+     * Whether we can use the fetched data to update the query cache.
      *
      * It's `false` e.g. when {@link RetrieveOptionType#EXCLUDE} option is present.
      */
-    private final boolean canUpdateCache;
+    private final boolean canUpdateQueryCache;
 
     enum PassReasonType {
         NOT_CACHEABLE_TYPE,
@@ -89,49 +96,62 @@ class CacheUseMode {
             @Nullable PassReasonType reason,
             @Nullable String comment,
             CachedDataUse cachedDataUse,
-            boolean canUpdateCache) {
+            boolean canUpdateObjectCache,
+            boolean canUpdateVersionCache,
+            boolean canUpdateQueryCache) {
         this.reason = reason;
         this.comment = comment;
         this.cachedDataUse = cachedDataUse;
-        this.canUpdateCache = canUpdateCache;
+        this.canUpdateObjectCache = canUpdateObjectCache;
+        this.canUpdateVersionCache = canUpdateVersionCache;
+        this.canUpdateQueryCache = canUpdateQueryCache;
     }
 
     private static CacheUseMode proceed() {
-        return new CacheUseMode(null, null, CachedDataUse.ALWAYS, true);
+        return new CacheUseMode(
+                null, null, CachedDataUse.ALWAYS,
+                true, true, true);
     }
 
     private static CacheUseMode pass(@NotNull PassReasonType passReason) {
-        return new CacheUseMode(passReason, null, CachedDataUse.NEVER, false);
+        return new CacheUseMode(
+                passReason, null, CachedDataUse.NEVER,
+                false, false, false);
     }
 
     @SuppressWarnings("SameParameterValue")
     private static CacheUseMode pass(@NotNull PassReasonType reason, String comment) {
-        return new CacheUseMode(reason, comment, CachedDataUse.NEVER, false);
+        return new CacheUseMode(
+                reason, comment, CachedDataUse.NEVER,
+                false, false, false);
     }
 
     public @Nullable String getComment() {
         return comment;
     }
 
-    /** This means we do not want to do anything with the cache, not even returning the data if they are there. */
-    boolean isCompletelyPassed() {
-        return !canUpdateCache && cachedDataUse == CachedDataUse.NEVER;
-    }
-
     boolean canNeverUseCachedData() {
         return cachedDataUse == CachedDataUse.NEVER;
-    }
-
-    boolean canAlwaysUseCachedData() {
-        return cachedDataUse == CachedDataUse.ALWAYS;
     }
 
     boolean canUseCachedDataOnlyIfComplete() {
         return cachedDataUse == CachedDataUse.ONLY_IF_COMPLETE;
     }
 
-    boolean canUpdateCache() {
-        return canUpdateCache;
+    boolean canUpdateAtLeastOneCache() {
+        return canUpdateObjectCache || canUpdateVersionCache || canUpdateQueryCache;
+    }
+
+    boolean canUpdateObjectCache() {
+        return canUpdateObjectCache;
+    }
+
+    boolean canUpdateVersionCache() {
+        return canUpdateVersionCache;
+    }
+
+    boolean canUpdateQueryCache() {
+        return canUpdateQueryCache;
     }
 
     static @NotNull CacheUseMode determineForGetVersion(Class<?> objectType) {
@@ -141,7 +161,6 @@ class CacheUseMode {
             return proceed();
         }
     }
-
 
     /**
      * Main entry point. By looking at situation we determine if there's a reason to pass the cache.
@@ -184,12 +203,16 @@ class CacheUseMode {
             cachedDataUse = CachedDataUse.ALWAYS;
         }
 
-        boolean canUpdateCache;
+        boolean canUpdateObjectCache;
+        boolean canUpdateVersionCache;
+        boolean canUpdateQueryCache;
         if (isObjectType) {
-            // We cannot update the cache if reading the generic ObjectType, because the repository may use object type specific
-            // mappings e.g. for ShadowType, so the retrieved data may not be complete. Note that retrieval by ObjectType should
-            // not be used anyway.
-            canUpdateCache = false;
+            // We cannot update the object cache if reading the generic ObjectType, because the repository may use
+            // object type specific mappings e.g. for ShadowType, so the retrieved data may not be complete.
+            // Note that retrieval by ObjectType should not be used anyway.
+            canUpdateObjectCache = false;
+            canUpdateVersionCache = true;
+            canUpdateQueryCache = false; // To be 100% sure, we will not update the query cache either.
             if (reason == null) {
                 reason = UNTYPED_OPERATION;
             } else {
@@ -197,8 +220,11 @@ class CacheUseMode {
                 comment = "untyped operation";
             }
         } else if (!analysis.exclude.isEmpty()) {
-            // We cannot update the cache if we're excluding anything. (Note we can use the cached data!)
-            canUpdateCache = false;
+            // We cannot update the object cache if we're excluding anything. But we may still update the query & version caches.
+            // We can also use the cached data.
+            canUpdateObjectCache = false;
+            canUpdateVersionCache = true;
+            canUpdateQueryCache = true;
             if (reason == null) {
                 reason = EXCLUDE_OPTION_PRESENT;
             } else {
@@ -206,10 +232,12 @@ class CacheUseMode {
                 comment = "exclude option present as well";
             }
         } else {
-            canUpdateCache = true;
+            canUpdateObjectCache = true;
+            canUpdateVersionCache = true;
+            canUpdateQueryCache = true;
         }
 
-        return new CacheUseMode(reason, comment, cachedDataUse, canUpdateCache);
+        return new CacheUseMode(reason, comment, cachedDataUse, canUpdateObjectCache, canUpdateVersionCache, canUpdateQueryCache);
     }
 
     /**
