@@ -105,7 +105,7 @@ public class AuditedAccessDeniedHandler extends MidpointAccessDeniedHandler {
             auditService.audit(record, task, result);
         } catch (Exception e) {
             LOGGER.error("Couldn't audit audit event because of malformed username: " + username, e);
-            String normalizedUsername = new PolyString(username).getNorm();
+            String normalizedUsername = new PolyString(username).recompute().getNorm();
             LOGGER.info("Normalization of username and create audit record with normalized username. Normalized username: " + normalizedUsername);
             record.setParameter(normalizedUsername);
             auditService.audit(record, task, result);
