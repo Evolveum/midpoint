@@ -8,6 +8,11 @@
 package com.evolveum.midpoint.authentication.impl.handler;
 
 import java.io.IOException;
+
+import com.evolveum.midpoint.prism.polystring.PolyString;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
+
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -37,6 +42,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 
 public class AuditedAccessDeniedHandler extends MidpointAccessDeniedHandler {
 
+    private static final Trace LOGGER = TraceManager.getTrace(AuditedAccessDeniedHandler.class);
+
     private static final String OP_AUDIT_EVENT = AuditedAccessDeniedHandler.class.getName() + ".auditEvent";
 
     @Autowired private TaskManager taskManager;
@@ -65,9 +72,9 @@ public class AuditedAccessDeniedHandler extends MidpointAccessDeniedHandler {
         PrismObject<? extends FocusType> user = principal != null ? principal.getFocus().asPrismObject() : null;
 
         String channel = SchemaConstants.CHANNEL_USER_URI;
-        if (authentication instanceof MidpointAuthentication
-                && ((MidpointAuthentication) authentication).getAuthenticationChannel() != null) {
-            channel = ((MidpointAuthentication) authentication).getAuthenticationChannel().getChannelId();
+        if (authentication instanceof MidpointAuthentication mpAuthentication
+                && mpAuthentication.getAuthenticationChannel() != null) {
+            channel = mpAuthentication.getAuthenticationChannel().getChannelId();
         }
 
         Task task = taskManager.createTaskInstance();
@@ -76,7 +83,12 @@ public class AuditedAccessDeniedHandler extends MidpointAccessDeniedHandler {
 
         AuditEventRecord record = new AuditEventRecord(AuditEventType.CREATE_SESSION, AuditEventStage.REQUEST);
         record.setInitiator(user);
-        record.setParameter(AuthSequenceUtil.getName(user));
+
+        String username = AuthSequenceUtil.getName(user);
+        if (user == null && authentication != null && authentication.getPrincipal() instanceof String name) {
+            username = name;
+        }
+        record.setParameter(username);
 
         record.setChannel(channel);
         record.setTimestamp(System.currentTimeMillis());
@@ -89,6 +101,14 @@ public class AuditedAccessDeniedHandler extends MidpointAccessDeniedHandler {
         record.setSessionIdentifier(request.getRequestedSessionId());
         record.setMessage(accessDeniedException.getMessage());
 
-        auditService.audit(record, task, result);
+        try {
+            auditService.audit(record, task, result);
+        } catch (Exception e) {
+            LOGGER.error("Couldn't audit audit event because of malformed username: " + username, e);
+            String normalizedUsername = new PolyString(username).getNorm();
+            LOGGER.info("Normalization of username and create audit record with normalized username. Normalized username: " + normalizedUsername);
+            record.setParameter(normalizedUsername);
+            auditService.audit(record, task, result);
+        }
     }
 }

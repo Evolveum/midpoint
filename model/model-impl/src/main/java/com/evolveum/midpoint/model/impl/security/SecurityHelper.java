@@ -6,6 +6,8 @@
  */
 package com.evolveum.midpoint.model.impl.security;
 
+import com.evolveum.midpoint.prism.polystring.PolyString;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -84,7 +86,15 @@ public class SecurityHelper implements ModelAuditRecorder {
         record.setMessage(message);
         storeConnectionEnvironment(record, connEnv);
 
-        auditHelper.audit(record, null, task, new OperationResult(SecurityHelper.class.getName() + ".auditLogin"));
+        try {
+            auditHelper.audit(record, null, task, new OperationResult(SecurityHelper.class.getName() + ".auditLogin"));
+        } catch (Exception e) {
+            LOGGER.error("Couldn't audit audit event because of malformed username: " + username, e);
+            String normalizedUsername = new PolyString(username).getNorm();
+            LOGGER.info("Normalization of username and create audit record with normalized username. Normalized username: " + normalizedUsername);
+            record.setParameter(normalizedUsername);
+            auditHelper.audit(record, null, task, new OperationResult(SecurityHelper.class.getName() + ".auditLogin"));
+        }
     }
 
     @Override
@@ -98,7 +108,11 @@ public class SecurityHelper implements ModelAuditRecorder {
         record.setTimestamp(System.currentTimeMillis());
         record.setOutcome(OperationResultStatus.SUCCESS);
         storeConnectionEnvironment(record, connEnv);
-        auditHelper.audit(record, null, task, result);
+        try {
+            auditHelper.audit(record, null, task, result);
+        } catch (Exception e) {
+            LOGGER.error("Couldn't audit audit event", e);
+        }
     }
 
     private SystemConfigurationType getSystemConfig() {

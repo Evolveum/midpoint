@@ -19,35 +19,16 @@
     <objectCollection>
         <collection>
             <filter>
-                <!--  TODO: Convert to Axiom Query -->
-                <q:or>
-                    <q:equal>
-                        <q:path>state</q:path>
-                        <expression>
-                            <queryInterpretationOfNoValue>filterAll</queryInterpretationOfNoValue>
-                            <script>
-                                <code>
-                                    import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignStateType
-
-                                    // If "alsoClosedCampaigns" is true, we return null that causes all campaigns to be considered
-                                    return alsoClosedCampaigns ? null : AccessCertificationCampaignStateType.CREATED
-                                </code>
-                            </script>
-                        </expression>
-                    </q:equal>
-                    <q:equal>
-                        <q:path>state</q:path>
-                        <q:value>inReviewStage</q:value>
-                    </q:equal>
-                    <q:equal>
-                        <q:path>state</q:path>
-                        <q:value>reviewStageDone</q:value>
-                    </q:equal>
-                    <q:equal>
-                        <q:path>state</q:path>
-                        <q:value>inRemediation</q:value>
-                    </q:equal>
-                </q:or>
+                <q:text>
+                    state = yaml```
+                        queryInterpretationOfNoValue: filterAll
+                        script:
+                            code: |
+                                import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignStateType
+                                // If \"alsoClosedCampaigns\" is true, we return null that causes all campaigns to be considered
+                                return alsoClosedCampaigns ? null : AccessCertificationCampaignStateType.CREATED
+                    ``` or state = 'inReviewStage' or state = 'reviewStageDone' or state = 'inRemediation'
+                </q:text>
             </filter>
             <baseCollectionRef>
                 <collectionRef oid="00000000-0000-0000-0001-000000000280" type="ObjectCollectionType"/>

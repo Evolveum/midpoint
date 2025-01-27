@@ -8,6 +8,7 @@
 package com.evolveum.midpoint.schema.processor;
 
 import com.evolveum.midpoint.prism.CloneStrategy;
+import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
@@ -51,6 +52,7 @@ public interface ShadowAttribute<
 
     SA cloneComplex(CloneStrategy strategy);
 
+    // No-op if there's the same attribute definition already
     void applyDefinitionFrom(ResourceObjectDefinition objectDefinition) throws SchemaException;
 
     D getDefinitionRequired();
@@ -92,5 +94,9 @@ public interface ShadowAttribute<
         } else { // should not occur
             return String.valueOf(v);
         }
+    }
+
+    default void clearParent() {
+        ((Item<?, ?>) this).setParent(null);
     }
 }

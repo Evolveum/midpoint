@@ -10,6 +10,8 @@ package com.evolveum.midpoint.provisioning.ucf.api;
 import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
 import static com.evolveum.midpoint.util.MiscUtil.stateNonNull;
 
+import com.evolveum.midpoint.schema.internals.InternalsConfig;
+
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.PrismObject;
@@ -73,6 +75,9 @@ public class UcfResourceObject extends UcfResourceObjectFragment {
     @Override
     public void checkConsistence() {
         super.checkConsistence();
+        if (!InternalsConfig.consistencyChecks) {
+            return;
+        }
         try {
             var primaryIdentifierAttribute = stateNonNull(
                     ShadowUtil.getPrimaryIdentifier(bean),

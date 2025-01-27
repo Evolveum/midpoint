@@ -9,6 +9,8 @@ package com.evolveum.midpoint.schema.internals;
 import java.util.Arrays;
 import java.util.stream.Collectors;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowCachingPolicyType;
+
 import com.google.common.annotations.VisibleForTesting;
 import org.apache.commons.configuration2.Configuration;
 import org.jetbrains.annotations.NotNull;
@@ -92,6 +94,9 @@ public class InternalsConfig {
      * Used for the tests to enforce caching even if nothing is set via system properties.
      */
     @Nullable public static String shadowCachingDefaultDefault;
+
+    /** This is the default caching policy to be used if the default policy is not taken from the system configuration. */
+    public static ShadowCachingPolicyType defaultCachingPolicyIfNotFromSystemConfiguration;
 
     public static boolean isPrismMonitoring() {
         return prismMonitoring;
