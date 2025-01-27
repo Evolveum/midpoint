@@ -271,11 +271,13 @@ public class SearchOpHandler extends CachedOpHandler {
             throws SchemaException {
         var key = exec.queryKey;
         try {
-            boolean canUpdateCaches = exec.cacheUseMode.canUpdateCache();
+            boolean canUpdateAtLeastOneCache = exec.cacheUseMode.canUpdateAtLeastOneCache();
             var canUpdateQueryCache =
-                    canUpdateCaches && (exec.globalInfo.effectivelySupports() || exec.localInfo.effectivelySupports());
+                    canUpdateAtLeastOneCache // this is just for static compile-time checks (regarding handler casting below)
+                            && exec.cacheUseMode.canUpdateQueryCache()
+                            && (exec.globalInfo.effectivelySupports() || exec.localInfo.effectivelySupports());
 
-            var innerHandler = canUpdateCaches ?
+            var innerHandler = canUpdateAtLeastOneCache ?
                     new CachingResultHandler<>(exec, recordingHandler, canUpdateQueryCache, cacheUpdater) :
                     recordingHandler;
 
