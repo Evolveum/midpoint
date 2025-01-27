@@ -78,6 +78,8 @@ The default password policy was updated in this regard.
 See bug:MID-9541[].
 * Stopped displaying some shadow operational properties (like the synchronization timestamp, iteration, and so on) among changes in simulation results. See bug:MID-9737[] and bug:MID-9986[].
 * bug:MID-10048[] Fix ClassCastException when creating duplicates of object types with new archetype
+* bug:MID-9683[] and bug:MID-10096[] Search filter not being submitted on enter.
+* bug:MID-10330[], bug:MID-10317[] and bug:10319[] Messages localization fixes.
 
 == Changes With Respect To Version 4.8
 
