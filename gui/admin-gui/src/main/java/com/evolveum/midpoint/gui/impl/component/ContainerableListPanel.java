@@ -15,8 +15,6 @@ import com.evolveum.midpoint.gui.impl.page.admin.certification.column.AbstractGu
 
 import com.evolveum.midpoint.gui.impl.page.admin.certification.helpers.ColumnTypeConfigContext;
 
-import com.evolveum.midpoint.web.component.dialog.Popupable;
-
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.reflect.ConstructorUtils;

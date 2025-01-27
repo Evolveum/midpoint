@@ -44,7 +44,6 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.web.component.RoleAnalysisTabbedPanel;
-import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
 import com.evolveum.midpoint.web.component.data.column.ColumnMenuAction;
 import com.evolveum.midpoint.web.component.data.column.LinkPanel;
 import com.evolveum.midpoint.web.component.data.column.ObjectNameColumn;
@@ -66,7 +65,6 @@ import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.DataTable;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.export.AbstractExportableColumn;
 import org.apache.wicket.extensions.markup.html.tabs.ITab;
@@ -1078,25 +1076,9 @@ public abstract class RoleAnalysisAbstractClusteringResultPanel extends Abstract
         //sort by outlier count
         if (analysisProcedureType == RoleAnalysisProcedureType.OUTLIER_DETECTION) {
             ListMultimap<String, String> clusterMappedClusterOutliers = getMappedClusterOutliers().getObject();
-            sessionClustersByType.sort((o1, o2) -> Integer.compare(
-                    clusterMappedClusterOutliers.get(o2.getOid()).size(), clusterMappedClusterOutliers.get(o1.getOid()).size()));
+            sortByOutliersCount(sessionClustersByType, clusterMappedClusterOutliers);
         } else {
-            sessionClustersByType.sort((o1, o2) -> {
-                AnalysisClusterStatisticType o1ClusterStatistics = o1.getClusterStatistics();
-                AnalysisClusterStatisticType o2ClusterStatistics = o2.getClusterStatistics();
-                if (o1ClusterStatistics == null
-                        || o2ClusterStatistics == null) {
-                    return 0;
-                }
-
-                if (o1ClusterStatistics.getDetectedReductionMetric() == null
-                        || o2ClusterStatistics.getDetectedReductionMetric() == null) {
-                    return 0;
-                }
-
-                return Double.compare(o2.getClusterStatistics().getDetectedReductionMetric(),
-                        o1.getClusterStatistics().getDetectedReductionMetric());
-            });
+            sortByReductionMetric(sessionClustersByType);
         }
         return new SelectableBeanObjectDataProvider<>(
                 component, Set.of()) {
@@ -1114,6 +1096,11 @@ public abstract class RoleAnalysisAbstractClusteringResultPanel extends Abstract
             }
 
             @Override
+            protected boolean match(RoleAnalysisClusterType selectedValue, RoleAnalysisClusterType foundValue) {
+                return super.match(selectedValue, foundValue);
+            }
+
+            @Override
             protected Integer countObjects(Class<RoleAnalysisClusterType> type,
                     ObjectQuery query,
                     Collection<SelectorOptions<GetOperationOptions>> currentOptions,
@@ -1122,6 +1109,49 @@ public abstract class RoleAnalysisAbstractClusteringResultPanel extends Abstract
                 return sessionClustersByType.size();
             }
         };
+    }
+
+    private static void sortByOutliersCount(@NotNull List<RoleAnalysisClusterType> sessionClustersByType, ListMultimap<String, String> clusterMappedClusterOutliers) {
+        sessionClustersByType.sort((o1, o2) -> {
+            int outlierComparison = Integer.compare(
+                    clusterMappedClusterOutliers.get(o2.getOid()).size(),
+                    clusterMappedClusterOutliers.get(o1.getOid()).size()
+            );
+
+            if (outlierComparison != 0) {
+                return outlierComparison;
+            }
+
+            String name1 = o1.getName() != null ? o1.getName().getOrig().toLowerCase() : "";
+            String name2 = o2.getName() != null ? o2.getName().getOrig().toLowerCase() : "";
+            return name1.compareTo(name2);
+        });
+    }
+
+    private static void sortByReductionMetric(@NotNull List<RoleAnalysisClusterType> sessionClustersByType) {
+        sessionClustersByType.sort((o1, o2) -> {
+            AnalysisClusterStatisticType o1ClusterStatistics = o1.getClusterStatistics();
+            AnalysisClusterStatisticType o2ClusterStatistics = o2.getClusterStatistics();
+
+            if (o1ClusterStatistics == null || o2ClusterStatistics == null) {
+                return 0;
+            }
+
+            Double o1Metric = o1ClusterStatistics.getDetectedReductionMetric();
+            Double o2Metric = o2ClusterStatistics.getDetectedReductionMetric();
+            if (o1Metric == null || o2Metric == null) {
+                return 0;
+            }
+
+            int metricComparison = Double.compare(o2Metric, o1Metric);
+            if (metricComparison != 0) {
+                return metricComparison;
+            }
+
+            String name1 = o1.getName() != null ? o1.getName().getOrig().toLowerCase() : "";
+            String name2 = o2.getName() != null ? o2.getName().getOrig().toLowerCase() : "";
+            return name1.compareTo(name2);
+        });
     }
 
     //TODO we need decide how we can specify db for query provider
