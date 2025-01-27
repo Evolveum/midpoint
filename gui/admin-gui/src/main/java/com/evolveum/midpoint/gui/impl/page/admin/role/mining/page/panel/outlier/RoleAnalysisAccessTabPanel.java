@@ -19,11 +19,11 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.jetbrains.annotations.NotNull;
 
+import com.evolveum.midpoint.common.mining.objects.statistic.UserAccessDistribution;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.component.tabs.PanelTab;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.cluster.MembersDetailsPopupPanel;
 import com.evolveum.midpoint.model.api.mining.RoleAnalysisService;
-import com.evolveum.midpoint.common.mining.objects.statistic.UserAccessDistribution;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
@@ -37,6 +37,9 @@ public class RoleAnalysisAccessTabPanel extends BasePanel<UserAccessDistribution
 
     private static final String ID_CONTAINER = "container";
     private static final String ID_PANEL = "panelId";
+
+    private static final String DOT_CLASS = RoleAnalysisAccessTabPanel.class.getName() + ".";
+    private static final String OP_LOAD_ASSIGNMENT_TARGETS = DOT_CLASS + "loadAssignmentTargets";
 
     public RoleAnalysisAccessTabPanel(
             @NotNull String id,
@@ -92,10 +95,6 @@ public class RoleAnalysisAccessTabPanel extends BasePanel<UserAccessDistribution
     }
 
     protected List<ITab> createTabs() {
-        Task simpleTask = getPageBase().createSimpleTask("loadOutlierDetails");
-        OperationResult result = simpleTask.getResult();
-        RoleAnalysisService roleAnalysisService = getPageBase().getRoleAnalysisService();
-
         if (getAccessDistributionModel() == null || getAccessDistributionModel().getObject() == null) {
             return new ArrayList<>();
         }
@@ -108,6 +107,9 @@ public class RoleAnalysisAccessTabPanel extends BasePanel<UserAccessDistribution
             @Override
             public WebMarkupContainer createPanel(String panelId) {
                 UserAccessDistribution object = getAccessDistributionModel().getObject();
+                RoleAnalysisService roleAnalysisService = getPageBase().getRoleAnalysisService();
+                Task simpleTask = getPageBase().createSimpleTask(OP_LOAD_ASSIGNMENT_TARGETS);
+                OperationResult result = simpleTask.getResult();
                 List<PrismObject<FocusType>> directAssignmentsAsFocusObjects = roleAnalysisService.getAsFocusObjects(
                         object.getDirectAssignments(), simpleTask, result);
 
@@ -130,9 +132,11 @@ public class RoleAnalysisAccessTabPanel extends BasePanel<UserAccessDistribution
             @Override
             public WebMarkupContainer createPanel(String panelId) {
                 UserAccessDistribution object = getAccessDistributionModel().getObject();
-                List<PrismObject<FocusType>> members = roleAnalysisService.getAsFocusObjects(
+                Task simpleTask = getPageBase().createSimpleTask(OP_LOAD_ASSIGNMENT_TARGETS);
+                OperationResult result = simpleTask.getResult();
+                List<PrismObject<FocusType>> members = getPageBase().getRoleAnalysisService().getAsFocusObjects(
                         object.getIndirectAssignments(), simpleTask, result);
-                MembersDetailsPopupPanel membersDetailsPopupPanel = new MembersDetailsPopupPanel(panelId, Model.of("TODO"),
+                MembersDetailsPopupPanel membersDetailsPopupPanel = new MembersDetailsPopupPanel(panelId, Model.of("TODO"), //TODO what is this todo?
                         members, RoleAnalysisProcessModeType.ROLE) {
                     @Override
                     protected boolean showTableAsCard() {
@@ -151,7 +155,9 @@ public class RoleAnalysisAccessTabPanel extends BasePanel<UserAccessDistribution
             @Override
             public WebMarkupContainer createPanel(String panelId) {
                 UserAccessDistribution object = getAccessDistributionModel().getObject();
-                List<PrismObject<FocusType>> members = roleAnalysisService.getAsFocusObjects(
+                Task simpleTask = getPageBase().createSimpleTask(OP_LOAD_ASSIGNMENT_TARGETS);
+                OperationResult result = simpleTask.getResult();
+                List<PrismObject<FocusType>> members = getPageBase().getRoleAnalysisService().getAsFocusObjects(
                         object.getDuplicates(), simpleTask, result);
                 MembersDetailsPopupPanel membersDetailsPopupPanel = new MembersDetailsPopupPanel(panelId, Model.of("TODO"),
                         members, RoleAnalysisProcessModeType.ROLE) {
