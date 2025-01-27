@@ -1054,13 +1054,25 @@ public abstract class ContainerableListPanel<C extends Serializable, PO extends 
     }
 
     public List<PO> getSelectedObjects() {
+        if (isCollapsableTable()) {
+            return getSelectedObjectFromCollapsableTable();
+        }
+
+        return getSelectedObjectFromDatatable(getTable().getDataTable());
+    }
+
+    private @NotNull List<PO> getSelectedObjectFromDatatable(@NotNull DataTable<?, ?> dataTable) {
         List<PO> objects = new ArrayList<>();
-        getTable().getDataTable().visitChildren(SelectableDataTable.SelectableRowItem.class, (IVisitor<SelectableDataTable.SelectableRowItem<PO>, Void>) (row, visit) -> {
+        dataTable.visitChildren(SelectableDataTable.SelectableRowItem.class, (IVisitor<SelectableDataTable.SelectableRowItem<PO>, Void>) (row, visit) -> {
             if (row.getModelObject().isSelected()) {
                 objects.add(row.getModel().getObject());
             }
         });
         return objects;
+    }
+
+    private @NotNull List<PO> getSelectedObjectFromCollapsableTable() {
+        return getSelectedObjectFromDatatable(getCollapsableTable().getDataTable());
     }
 
     public abstract List<C> getSelectedRealObjects();
