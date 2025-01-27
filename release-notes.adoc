@@ -84,6 +84,10 @@ The default password policy was updated in this regard.
 See bug:MID-9541[].
 * Stopped displaying some shadow operational properties (like the synchronization timestamp, iteration, and so on) among changes in simulation results.
 See bug:MID-9737[] and bug:MID-9986[].
+* Midpoint Query Language Fixed inconsistent whitespace behavior when using `not` filter, modified grammar of query language. See bug:MID-9351[].
+* Fixed code completions & validation for @metadata language concept in Midpoint Query language. See bug:MID-10324[].
+* Fixed problem with handling syntax error in Midpoint Query Language. See bug:MID-8196[] and bug:MID-9585[].
+
 
 === Releases Of Other Components
 

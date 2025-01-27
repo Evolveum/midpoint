@@ -203,7 +203,7 @@ public abstract class RoleAnalysisAbstractClusteringResultPanel extends Abstract
             @Override
             protected @NotNull List<InlineMenuItem> createInlineMenu() {
                 List<InlineMenuItem> menuItems = new ArrayList<>();
-                menuItems.add(RoleAnalysisAbstractClusteringResultPanel.this.createDeleteInlineMenu());
+                menuItems.add(RoleAnalysisAbstractClusteringResultPanel.this.createDeleteInlineMenu(panelId));
                 menuItems.add(RoleAnalysisAbstractClusteringResultPanel.this.createPreviewInlineMenu());
                 return menuItems;
             }
@@ -824,12 +824,7 @@ public abstract class RoleAnalysisAbstractClusteringResultPanel extends Abstract
         cellItem.add(progressBar);
     }
 
-    @SuppressWarnings("unchecked")
-    private MainObjectListPanel<RoleAnalysisClusterType> getTable() {
-        return (MainObjectListPanel<RoleAnalysisClusterType>) get(ID_FORM + ":" + ID_TABS_PANEL);
-    }
-
-    private InlineMenuItem createDeleteInlineMenu() {
+    private InlineMenuItem createDeleteInlineMenu(String tableId) {
         return new ButtonInlineMenuItem(createStringResource("MainObjectListPanel.menu.delete")) {
             @Override
             public CompositedIconBuilder getIconCompositedBuilder() {
@@ -841,7 +836,7 @@ public abstract class RoleAnalysisAbstractClusteringResultPanel extends Abstract
                     @Override
                     public void onClick(AjaxRequestTarget target) {
 
-                        List<SelectableBean<RoleAnalysisClusterType>> selectedObjects = getTable().getSelectedObjects();
+                        List<SelectableBean<RoleAnalysisClusterType>> selectedObjects = getTable(tableId).getSelectedObjects();
                         PageBase page = (PageBase) getPage();
                         RoleAnalysisService roleAnalysisService = page.getRoleAnalysisService();
                         Task task = page.createSimpleTask(OP_DELETE_CLUSTER);
@@ -874,21 +869,48 @@ public abstract class RoleAnalysisAbstractClusteringResultPanel extends Abstract
                             throw new SystemException("Couldn't delete cluster", e);
                         }
 
-                        getTable().refreshTable(target);
+                        getTable(tableId).refreshTable(target);
                     }
                 };
             }
 
+            @SuppressWarnings("rawtypes")
             @Override
             public IModel<String> getConfirmationMessageModel() {
-                String actionName = createStringResource("MainObjectListPanel.message.deleteAction").getString();
-                return getTable().getConfirmationMessageModel((ColumnMenuAction<?>) getAction(), actionName);
+                ColumnMenuAction action = (ColumnMenuAction) getAction();
+                return createConfirmationMessage(action, tableId);
             }
         };
     }
 
+    @SuppressWarnings("unchecked")
+    private MainObjectListPanel<RoleAnalysisClusterType> getTable(String tableId) {
+        return (MainObjectListPanel<RoleAnalysisClusterType>) get(getPageBase().createComponentPath(ID_FORM, ID_TABS_PANEL, tableId));
+    }
+
+    @Contract(pure = true)
+    private @NotNull IModel<String> createConfirmationMessage(
+            ColumnMenuAction<SelectableBean<RoleAnalysisClusterType>> action,
+            String tableId) {
+        return () -> {
+            IModel<SelectableBean<RoleAnalysisClusterType>> result = action.getRowModel();
+            if (result != null) {
+                return getString("RoleAnalysisAbstractClusterResultPanel.delete.single", WebComponentUtil.getName(result.getObject().getValue()));
+            }
+
+            List<SelectableBean<RoleAnalysisClusterType>> selectedObjects = getTable(tableId).getSelectedObjects();
+
+            if (selectedObjects.size() == 1) {
+                RoleAnalysisClusterType object = selectedObjects.get(0).getValue();
+                return getString("RoleAnalysisAbstractClusterResultPanel.delete.single", WebComponentUtil.getName(object));
+            }
+
+            return getString("RoleAnalysisAbstractClusterResultPanel.delete.multiple", selectedObjects.size());
+        };
+    }
+
     private InlineMenuItem createPreviewInlineMenu() {
-        return new ButtonInlineMenuItem(createStringResource("MainObjectListPanel.menu.delete")) {
+        return new ButtonInlineMenuItem(createStringResource("MainObjectListPanel.menu.cluster.preview")) {
             @Override
             public CompositedIconBuilder getIconCompositedBuilder() {
                 return getDefaultCompositedIconBuilder("fa fa-qrcode");
@@ -1054,25 +1076,9 @@ public abstract class RoleAnalysisAbstractClusteringResultPanel extends Abstract
         //sort by outlier count
         if (analysisProcedureType == RoleAnalysisProcedureType.OUTLIER_DETECTION) {
             ListMultimap<String, String> clusterMappedClusterOutliers = getMappedClusterOutliers().getObject();
-            sessionClustersByType.sort((o1, o2) -> Integer.compare(
-                    clusterMappedClusterOutliers.get(o2.getOid()).size(), clusterMappedClusterOutliers.get(o1.getOid()).size()));
+            sortByOutliersCount(sessionClustersByType, clusterMappedClusterOutliers);
         } else {
-            sessionClustersByType.sort((o1, o2) -> {
-                AnalysisClusterStatisticType o1ClusterStatistics = o1.getClusterStatistics();
-                AnalysisClusterStatisticType o2ClusterStatistics = o2.getClusterStatistics();
-                if (o1ClusterStatistics == null
-                        || o2ClusterStatistics == null) {
-                    return 0;
-                }
-
-                if (o1ClusterStatistics.getDetectedReductionMetric() == null
-                        || o2ClusterStatistics.getDetectedReductionMetric() == null) {
-                    return 0;
-                }
-
-                return Double.compare(o2.getClusterStatistics().getDetectedReductionMetric(),
-                        o1.getClusterStatistics().getDetectedReductionMetric());
-            });
+            sortByReductionMetric(sessionClustersByType);
         }
         return new SelectableBeanObjectDataProvider<>(
                 component, Set.of()) {
@@ -1090,6 +1096,11 @@ public abstract class RoleAnalysisAbstractClusteringResultPanel extends Abstract
             }
 
             @Override
+            protected boolean match(RoleAnalysisClusterType selectedValue, RoleAnalysisClusterType foundValue) {
+                return super.match(selectedValue, foundValue);
+            }
+
+            @Override
             protected Integer countObjects(Class<RoleAnalysisClusterType> type,
                     ObjectQuery query,
                     Collection<SelectorOptions<GetOperationOptions>> currentOptions,
@@ -1098,6 +1109,49 @@ public abstract class RoleAnalysisAbstractClusteringResultPanel extends Abstract
                 return sessionClustersByType.size();
             }
         };
+    }
+
+    private static void sortByOutliersCount(@NotNull List<RoleAnalysisClusterType> sessionClustersByType, ListMultimap<String, String> clusterMappedClusterOutliers) {
+        sessionClustersByType.sort((o1, o2) -> {
+            int outlierComparison = Integer.compare(
+                    clusterMappedClusterOutliers.get(o2.getOid()).size(),
+                    clusterMappedClusterOutliers.get(o1.getOid()).size()
+            );
+
+            if (outlierComparison != 0) {
+                return outlierComparison;
+            }
+
+            String name1 = o1.getName() != null ? o1.getName().getOrig().toLowerCase() : "";
+            String name2 = o2.getName() != null ? o2.getName().getOrig().toLowerCase() : "";
+            return name1.compareTo(name2);
+        });
+    }
+
+    private static void sortByReductionMetric(@NotNull List<RoleAnalysisClusterType> sessionClustersByType) {
+        sessionClustersByType.sort((o1, o2) -> {
+            AnalysisClusterStatisticType o1ClusterStatistics = o1.getClusterStatistics();
+            AnalysisClusterStatisticType o2ClusterStatistics = o2.getClusterStatistics();
+
+            if (o1ClusterStatistics == null || o2ClusterStatistics == null) {
+                return 0;
+            }
+
+            Double o1Metric = o1ClusterStatistics.getDetectedReductionMetric();
+            Double o2Metric = o2ClusterStatistics.getDetectedReductionMetric();
+            if (o1Metric == null || o2Metric == null) {
+                return 0;
+            }
+
+            int metricComparison = Double.compare(o2Metric, o1Metric);
+            if (metricComparison != 0) {
+                return metricComparison;
+            }
+
+            String name1 = o1.getName() != null ? o1.getName().getOrig().toLowerCase() : "";
+            String name2 = o2.getName() != null ? o2.getName().getOrig().toLowerCase() : "";
+            return name1.compareTo(name2);
+        });
     }
 
     //TODO we need decide how we can specify db for query provider
