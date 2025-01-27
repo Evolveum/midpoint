@@ -18,7 +18,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.provisioning.api.GenericConnectorException;
 import com.evolveum.midpoint.provisioning.impl.ProvisioningContext;
@@ -48,6 +47,8 @@ import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
  * 4. TODO
  *
  * Instantiated separately for each shadowing operation.
+ *
+ * The resource object is *UNUSABLE* after the operation.
  */
 class ShadowedObjectConstruction {
 
@@ -65,6 +66,7 @@ class ShadowedObjectConstruction {
 
     /**
      * Object that was fetched from the resource.
+     * Its attributes are *DESTROYED* during the shadowization.
      */
     @NotNull private final ExistingResourceObjectShadow resourceObject;
 
@@ -104,8 +106,7 @@ class ShadowedObjectConstruction {
             @NotNull RepoShadow repoShadow,
             @NotNull ExistingResourceObjectShadow resourceObject,
             @NotNull OperationResult result)
-            throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException,
-            SecurityViolationException, GenericConnectorException, ExpressionEvaluationException, EncryptionException {
+            throws SchemaException, ConfigurationException, GenericConnectorException {
 
         return new ShadowedObjectConstruction(ctx, repoShadow, resourceObject)
                 .construct(result);
@@ -124,7 +125,7 @@ class ShadowedObjectConstruction {
         copyObjectClassIfMissing();
         copyAuxiliaryObjectClasses();
 
-        copyAndShadowizeAttributes(result);
+        moveAndShadowizeAttributes();
 
         copyIgnored();
         mergeCredentials();
@@ -259,23 +260,46 @@ class ShadowedObjectConstruction {
                 authoritativeDefinition.getPrismObjectDefinition());
     }
 
-    private void copyAndShadowizeAttributes(OperationResult result) throws SchemaException {
+    private void moveAndShadowizeAttributes() throws SchemaException {
 
         resultingShadowedBean.asPrismObject().removeContainer(ShadowType.F_ATTRIBUTES);
 
-        var resultingAttributesContainer = authoritativeDefinition.toShadowAttributesContainerDefinition().instantiate();
-        for (var attribute : resourceObject.getAttributes()) {
+        var sourceAttributesContainer = resourceObject.getAttributesContainer();
+        var targetAttributesContainer = authoritativeDefinition.toShadowAttributesContainerDefinition().instantiate();
+
+        // Here we move the attributes from the resource object to the resulting shadow.
+        // We could move the whole attributes container, but we have to provide the correct definition.
+        // So let's do it this way - for now.
+        // Note: Removing attributes one-by-one is way too slow - O(n^2).
+
+        var allAttributes = List.copyOf(sourceAttributesContainer.getAttributes());
+        sourceAttributesContainer.clear();
+
+        var definitionChanged = authoritativeDefinition != repoShadow.getObjectDefinition();
+
+        // TODO if the definition was not changed, we could move the whole container, and avoid re-adding the attributes
+        //  (we would just need to remove non-applicable ones) ... but that would be ~2% from the "no-op" processing
+        //  for "1s-200m-0t-0m-0a-10ku" TestSystemPerformance scenario.
+
+        for (var attribute : allAttributes) {
+            attribute.clearParent(); // it has still reference to the source container
+
             if (ProvisioningUtil.isExtraLegacyReferenceAttribute(attribute, authoritativeDefinition)) {
                 LOGGER.trace("Ignoring extra legacy reference attribute {}", attribute.getElementName());
                 continue;
             }
-            var clone = attribute.clone();
-            clone.applyDefinitionFrom(authoritativeDefinition);
-            resultingAttributesContainer.addAttribute(clone);
+            if (definitionChanged) {
+                // Even if the "apply definition" itself avoids applying the attribute definition, we can spare even the
+                // attribute definition lookup in the authoritative definition by this check.
+                attribute.applyDefinitionFrom(authoritativeDefinition);
+            }
+            if (attribute.getDefinitionRequired().getLimitations(LayerType.MODEL).canRead()) {
+                targetAttributesContainer.addAttribute(attribute);
+            } else {
+                LOGGER.trace("Ignoring non-readable attribute {}", attribute);
+            }
         }
 
-        b.accessChecker.filterGetAttributes(resultingAttributesContainer, authoritativeDefinition, result);
-
-        resultingShadowedBean.asPrismObject().add(resultingAttributesContainer);
+        resultingShadowedBean.asPrismObject().add(targetAttributesContainer);
     }
 }

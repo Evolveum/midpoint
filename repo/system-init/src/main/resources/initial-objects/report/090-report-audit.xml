@@ -22,57 +22,30 @@
                 <collectionRef oid="00000000-0000-0000-0001-000000000284" type="ObjectCollectionType"/>
             </baseCollectionRef>
             <filter>
-                <q:and>
-                    <q:ref>
-                        <q:path>targetRef</q:path>
-                        <expression>
-                            <queryInterpretationOfNoValue>filterAll</queryInterpretationOfNoValue>
-                            <path>$targetRef</path>
-                        </expression>
-                    </q:ref>
-                    <q:ref>
-                        <q:path>initiatorRef</q:path>
-                        <expression>
-                            <queryInterpretationOfNoValue>filterAll</queryInterpretationOfNoValue>
-                            <path>$initiatorRef</path>
-                        </expression>
-                    </q:ref>
-                    <q:equal>
-                        <q:path>outcome</q:path>
-                        <expression>
-                            <queryInterpretationOfNoValue>filterAll</queryInterpretationOfNoValue>
-                            <path>$outcome</path>
-                        </expression>
-                    </q:equal>
-                    <q:equal>
-                        <q:path>eventType</q:path>
-                        <expression>
-                            <queryInterpretationOfNoValue>filterAll</queryInterpretationOfNoValue>
-                            <path>$eventType</path>
-                        </expression>
-                    </q:equal>
-                    <q:equal>
-                        <q:path>eventStage</q:path>
-                        <expression>
-                            <queryInterpretationOfNoValue>filterAll</queryInterpretationOfNoValue>
-                            <path>$eventStage</path>
-                        </expression>
-                    </q:equal>
-                    <q:greater>
-                        <q:path>timestamp</q:path>
-                        <expression>
-                            <queryInterpretationOfNoValue>filterAll</queryInterpretationOfNoValue>
-                            <path>$from</path>
-                        </expression>
-                    </q:greater>
-                    <q:less>
-                        <q:path>timestamp</q:path>
-                        <expression>
-                            <queryInterpretationOfNoValue>filterAll</queryInterpretationOfNoValue>
-                            <path>$to</path>
-                        </expression>
-                    </q:less>
-                </q:and>
+                <q:text>
+                    targetRef = yaml```
+                            queryInterpretationOfNoValue: filterAll
+                            path: $targetRef
+                    ``` and initiatorRef = yaml```
+                            queryInterpretationOfNoValue: filterAll
+                            path: $initiatorRef
+                    ``` and outcome = yaml```
+                            queryInterpretationOfNoValue: filterAll
+                            path: $outcome
+                    ``` and eventType = yaml```
+                            queryInterpretationOfNoValue: filterAll
+                            path: $eventType
+                    ``` and eventStage = yaml```
+                            queryInterpretationOfNoValue: filterAll
+                            path: $eventStage
+                    ``` and timestamp greater yaml```
+                            queryInterpretationOfNoValue: filterAll
+                            path: $from
+                    ``` and timestamp less yaml```
+                            queryInterpretationOfNoValue: filterAll
+                            path: $to
+                    ```
+                </q:text>
             </filter>
         </collection>
         <parameter id="2">

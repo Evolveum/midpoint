@@ -16,6 +16,8 @@ import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.components.bar.RoleAnalysisInlineProgressBar;
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.model.RoleAnalysisProgressBarDto;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.page.outlier.OutlierPartitionPage;
 import com.evolveum.midpoint.web.component.data.column.AjaxLinkPanel;
 
@@ -42,7 +44,6 @@ import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
 import com.evolveum.midpoint.gui.impl.component.icon.LayeredIconCssStyle;
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.components.ProgressBarSecondStyle;
 import com.evolveum.midpoint.model.api.mining.RoleAnalysisService;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.task.api.Task;
@@ -337,34 +338,16 @@ public class RoleAnalysisOutlierPartitionTable extends BasePanel<String> {
             @NotNull String componentId,
             @NotNull Double density) {
 
-        BigDecimal bd = new BigDecimal(Double.toString(density));
-        bd = bd.setScale(2, RoundingMode.HALF_UP);
-        double pointsDensity = bd.doubleValue();
+        IModel<RoleAnalysisProgressBarDto> model = () -> {
+            BigDecimal bd = new BigDecimal(Double.toString(density));
+            bd = bd.setScale(2, RoundingMode.HALF_UP);
+            double pointsDensity = bd.doubleValue();
 
-        String colorClass = densityBasedColorOposite(pointsDensity);
-
-        ProgressBarSecondStyle progressBar = new ProgressBarSecondStyle(componentId) {
-
-            @Override
-            public boolean isInline() {
-                return true;
-            }
-
-            @Override
-            public double getActualValue() {
-                return pointsDensity;
-            }
-
-            @Override
-            public String getProgressBarColor() {
-                return colorClass;
-            }
-
-            @Override
-            public String getBarTitle() {
-                return "";
-            }
+            String colorClass = densityBasedColorOposite(pointsDensity);
+            return new RoleAnalysisProgressBarDto(pointsDensity, colorClass);
         };
+
+        RoleAnalysisInlineProgressBar progressBar = new RoleAnalysisInlineProgressBar(componentId, model);
         progressBar.setOutputMarkupId(true);
         cellItem.add(progressBar);
     }

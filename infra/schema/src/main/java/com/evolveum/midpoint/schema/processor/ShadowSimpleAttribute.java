@@ -103,8 +103,10 @@ public interface ShadowSimpleAttribute<T>
     default void applyDefinitionFrom(@NotNull ResourceObjectDefinition objectDefinition)
             throws SchemaException {
         var attrDef = objectDefinition.findSimpleAttributeDefinitionRequired(getElementName());
-        //noinspection unchecked
-        applyDefinition((ShadowSimpleAttributeDefinition<T>) attrDef);
+        if (attrDef != getDefinition()) { // Maybe equals would be better?
+            //noinspection unchecked
+            applyDefinition((ShadowSimpleAttributeDefinition<T>) attrDef);
+        }
     }
 
     @Override

@@ -10,6 +10,7 @@ package com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.session
 import java.util.Collection;
 
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.session.provider.AnalysisAttributeSelectionProvider;
+import com.evolveum.midpoint.web.component.prism.ValueStatus;
 import com.evolveum.midpoint.web.component.util.EnableBehaviour;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -73,14 +74,16 @@ public class AnalysisAttributeSelectorPanel extends InputPanel {
     }
 
     private LoadableModel<Collection<ItemPathType>> initSelectedModel() {
-        return new LoadableModel<>(false) {
+        return new LoadableModel<>(true) {
 
             @Override
             protected Collection<ItemPathType> load() {
 
                 return model.getObject()
                         .getValues()
-                        .stream().map(v -> v.getRealValue())
+                        .stream()
+                        .filter(v -> v.getStatus() != ValueStatus.DELETED)
+                        .map(v -> v.getRealValue())
                         .toList();
             }
         };
@@ -88,12 +91,29 @@ public class AnalysisAttributeSelectorPanel extends InputPanel {
 
     private void updateModelWithRules(Collection<ItemPathType> selectedRules, AjaxRequestTarget target) {
         PrismPropertyWrapper<ItemPathType> propertyWrapper = model.getObject();
-        propertyWrapper.getValues().clear();
-        propertyWrapper.getItem().getValues().clear();
 
-        for (ItemPathType rule : selectedRules) {
-            createNewValueWrapper(rule, target);
+        // add new values
+        Collection<PrismPropertyValueWrapper<ItemPathType>> values = propertyWrapper.getValues();
+        for (ItemPathType selectedRule : selectedRules) {
+            if (!isAlreadyPresent(selectedRule, values)) {
+                createNewValueWrapper(selectedRule, target);
+            }
         }
+
+        // mark values to be deleted. The delta is later, when wrappers are processed.
+        for (PrismPropertyValueWrapper<ItemPathType> value : values) {
+            if (!shouldValueExist(value, selectedRules)) {
+                value.setStatus(ValueStatus.DELETED);
+            }
+        }
+    }
+
+    private boolean isAlreadyPresent(ItemPathType selectedRules, Collection<PrismPropertyValueWrapper<ItemPathType>> values) {
+        return values.stream().anyMatch(r -> r.getRealValue().equivalent(selectedRules));
+    }
+
+    private boolean shouldValueExist(PrismPropertyValueWrapper<ItemPathType> value, Collection<ItemPathType> selectedRules) {
+        return selectedRules.stream().anyMatch(r -> r.equivalent(value.getRealValue()));
     }
 
     private PrismPropertyValueWrapper<ItemPathType> createNewValueWrapper(ItemPathType path, AjaxRequestTarget target) {

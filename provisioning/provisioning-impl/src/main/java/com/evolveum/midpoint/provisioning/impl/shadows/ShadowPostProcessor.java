@@ -131,16 +131,34 @@ class ShadowPostProcessor {
                     // not changed.
                     repoShadow = repoShadow.classified();
                 }
+                return;
+            } else {
+                // The classification attempt was not successful, the resource object remains unclassified. Continuing.
             }
         } else {
-            // The classification was not changed; but we still should apply the correct definition to the resource object.
-            var compositeDefinition =
-                    ctx.computeCompositeObjectDefinition(
-                            repoShadow.shadow().getObjectDefinition(), resourceObject.getBean().getAuxiliaryObjectClass());
-            ctx = ctx.spawnForDefinition(compositeDefinition);
+            // The resource object is already classified, and there was no reason to re-classify it. Continuing.
+        }
 
-            ProvisioningUtil.removeExtraLegacyReferenceAttributes(resourceObject, compositeDefinition);
-            resourceObject.applyDefinition(compositeDefinition);
+        // So, the classification was not changed (it may be known or unknown here).
+
+        // But we still should apply the correct definition to the resource object attributes container, as it is the one
+        // that will get passed to the client.
+
+        // This is the definition from the resource object. It may or may not be correct, see e.g. MID-10377.
+        var originalResourceObjectDefinition = ctx.getObjectDefinition();
+        assert originalResourceObjectDefinition == resourceObject.getObjectDefinition(); // see the constructor
+
+        // This is the definition from the shadow (the best we have at hand, as it has the correct kind/intent),
+        // with auxiliary object classes (from the repository object) added to it.
+        var authoritativeDefinition =
+                ctx.computeCompositeObjectDefinition(
+                        repoShadow.shadow().getObjectDefinition(), resourceObject.getBean().getAuxiliaryObjectClass());
+
+        ProvisioningUtil.removeExtraLegacyReferenceAttributes(resourceObject, authoritativeDefinition);
+
+        if (authoritativeDefinition != originalResourceObjectDefinition) {
+            resourceObject.applyDefinition(authoritativeDefinition);
+            ctx = ctx.spawnForDefinition(authoritativeDefinition);
         }
     }
 

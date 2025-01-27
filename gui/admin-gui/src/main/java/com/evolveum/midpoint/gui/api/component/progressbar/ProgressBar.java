@@ -15,7 +15,11 @@ public class ProgressBar implements Serializable {
         SECONDARY("bg-secondary"),
         PRIMARY("bg-primary"),
         DARK("bg-dark"),
-        LIGHT("bg-light");
+        LIGHT("bg-light"),
+        PURPLE("bg-purple"),
+        ACCENT("bg-orange"),
+        OLIVE("bg-olive"),
+        LIME("bg-lime");
 
         private String cssClass;
 

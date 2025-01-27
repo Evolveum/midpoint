@@ -9,6 +9,8 @@ package com.evolveum.midpoint.gui.impl.page.admin.role.mining.components;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.components.bar.RoleAnalysisAttributeProgressBar;
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.model.RoleAnalysisAttributeProgressBarDto;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.tmp.panel.RoleAnalysisAttributeAnalysisDto;
 
 import org.apache.wicket.*;
@@ -19,6 +21,7 @@ import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.repeater.RepeatingView;
 import org.apache.wicket.model.IModel;
 import org.jetbrains.annotations.NotNull;
+
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.tmp.panel.IconWithLabel;
@@ -119,13 +122,13 @@ public class ProgressBarForm extends BasePanel<RoleAnalysisAttributeAnalysisDto>
                 Double frequency = entry.getKey();
                 List<RoleAnalysisAttributeStatistics> stats = entry.getValue();
                 boolean isMarkedAttribute = pathToMark != null && stats.stream().anyMatch(item -> pathToMark.contains(item.getAttributeValue()));
-                ProgressBar progressBar = createProgressBar(repeatingProgressBar, frequency, stats, isMarkedAttribute);
+                RoleAnalysisAttributeProgressBar progressBar = createProgressBar(repeatingProgressBar, frequency, stats, isMarkedAttribute);
                 repeatingProgressBar.add(progressBar);
             }
         } else {
             for (RoleAnalysisAttributeStatistics item : roleAnalysisAttributeStructures) {
                 boolean isMarkedAttribute = pathToMark != null && pathToMark.contains(item.getAttributeValue());
-                ProgressBar progressBar = createProgressBar(repeatingProgressBar, item.getFrequency(), List.of(item), isMarkedAttribute);
+                RoleAnalysisAttributeProgressBar progressBar = createProgressBar(repeatingProgressBar, item.getFrequency(), List.of(item), isMarkedAttribute);
                 repeatingProgressBar.add(progressBar);
             }
         }
@@ -146,44 +149,20 @@ public class ProgressBarForm extends BasePanel<RoleAnalysisAttributeAnalysisDto>
         }
     }
 
-    private ProgressBar createProgressBar(RepeatingView repeatingProgressBar, double frequency, List<RoleAnalysisAttributeStatistics> value, boolean isMarkedAttribute) {
-        var isUnusual = Objects.requireNonNullElse(value.get(0).getIsUnusual(), false);
-        var bar = new ProgressBar(repeatingProgressBar.newChildId()) {
-            @Override
-            public double getActualValue() {
-                return frequency;
+    private RoleAnalysisAttributeProgressBar createProgressBar(RepeatingView repeatingProgressBar, double frequency, List<RoleAnalysisAttributeStatistics> value, boolean isMarkedAttribute) {
+
+        IModel<RoleAnalysisAttributeProgressBarDto> model = () -> {
+            String colorClass = null;
+
+            if (isMarkedAttribute) {
+                colorClass = "inherit";
             }
 
-            @Override
-            public String getProgressBarColor() {
-                return isMarkedAttribute ? "inherit" : super.getProgressBarColor();
-            }
-
-            @Override
-            public String getBarTitle() {
-                return value.size() == 1 ? value.get(0).getAttributeValue() : "Objects (" + value.size() + ")";
-            }
-
-            @Override
-            public String getInRepoCount() {
-                return value.size() == 1 ? value.get(0).getInRepo().toString() : null;
-            }
-
-            @Override
-            public boolean isUnusual() {
-                return isUnusual;
-            }
-
-            @Override
-            public String getInClusterCount() {
-                return value.size() == 1 ? value.get(0).getInGroup().toString() : null;
-            }
-
-            @Override
-            public List<RoleAnalysisAttributeStatistics> getRoleAnalysisAttributeResult() {
-                return value;
-            }
+            return new RoleAnalysisAttributeProgressBarDto(getPageBase(), frequency, colorClass, value);
         };
+
+        var isUnusual = model.getObject().isUnusual();
+        var bar = new RoleAnalysisAttributeProgressBar(repeatingProgressBar.newChildId(), model);
         if (isMarkedAttribute) {
             bar.add(AttributeModifier.append("class", "progress-bar-marked-attribute"));
             if (isUnusual) {

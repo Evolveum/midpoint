@@ -145,7 +145,7 @@ public class CategorySelectionProvider extends ChoiceProvider<RoleAnalysisObject
 
         addCategory(categoryDataMap, RoleAnalysisObjectCategorizationType.INSUFFICIENT,
                 "insufficient.peer.similarity", itemContainer == null ? 0 : safeCount(itemContainer.getInsufficientCount()),
-                ProgressBar.State.SUCCESS, isRoleSelected, "text-secondary");
+                ProgressBar.State.SECONDARY, isRoleSelected, "text-secondary");
 
         addCategory(categoryDataMap, RoleAnalysisObjectCategorizationType.NOISE_EXCLUSIVE_UNPOPULAR,
                 "noise_exclusive.and.un_popular", itemContainer == null ? 0 : safeCount(itemContainer.getNoiseExclusiveUnpopular()),
@@ -161,11 +161,11 @@ public class CategorySelectionProvider extends ChoiceProvider<RoleAnalysisObject
 
         addCategory(categoryDataMap, RoleAnalysisObjectCategorizationType.NOISE,
                 "noise", itemContainer == null ? 0 : safeCount(itemContainer.getNoiseCount()),
-                ProgressBar.State.SECONDARY, isRoleSelected, "text-secondary");
+                ProgressBar.State.PURPLE, isRoleSelected, "text-purple");
 
         addCategory(categoryDataMap, RoleAnalysisObjectCategorizationType.NOISE_EXCLUSIVE,
                 "noise_exclusive", itemContainer == null ? 0 : safeCount(itemContainer.getNoiseExclusiveCount()),
-                ProgressBar.State.INFO, isRoleSelected, "text-info");
+                ProgressBar.State.OLIVE, isRoleSelected, "text-olive");
 
         addCategory(categoryDataMap, RoleAnalysisObjectCategorizationType.OUTLIER,
                 "outlier", itemContainer == null ? 0 : safeCount(itemContainer.getOutlierCount()),
@@ -173,7 +173,7 @@ public class CategorySelectionProvider extends ChoiceProvider<RoleAnalysisObject
 
         addCategory(categoryDataMap, RoleAnalysisObjectCategorizationType.EXCLUDED,
                 "excluded", itemContainer == null ? 0 : safeCount(itemContainer.getExcludedCount()),
-                ProgressBar.State.WARNING, isRoleSelected, "text-warning");
+                ProgressBar.State.DARK, isRoleSelected, "text-dark");
 
         addCategory(categoryDataMap, RoleAnalysisObjectCategorizationType.EXCLUDED_MISSING_BASE,
                 "excluded.missing.base", itemContainer == null ? 0 : safeCount(itemContainer.getExcludedMissingBase()),
@@ -181,7 +181,7 @@ public class CategorySelectionProvider extends ChoiceProvider<RoleAnalysisObject
 
         addCategory(categoryDataMap, RoleAnalysisObjectCategorizationType.OVERALL_ANOMALY,
                 "overall.anomaly", itemContainer == null ? 0 : safeCount(itemContainer.getOverallAnomalyCount()),
-                ProgressBar.State.DANGER, isRoleSelected, "text-danger");
+                ProgressBar.State.LIME, isRoleSelected, "text-lime");
 
         addCategory(categoryDataMap, RoleAnalysisObjectCategorizationType.ANOMALY,
                 "anomaly", itemContainer == null ? 0 : safeCount(itemContainer.getAnomalyCount()),

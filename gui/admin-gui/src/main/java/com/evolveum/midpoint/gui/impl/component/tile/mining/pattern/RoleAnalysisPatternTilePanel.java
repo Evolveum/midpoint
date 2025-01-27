@@ -22,6 +22,9 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.components.bar.RoleAnalysisBasicProgressBar;
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.model.RoleAnalysisProgressBarDto;
+
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -41,7 +44,6 @@ import com.evolveum.midpoint.gui.api.component.button.DropdownButtonPanel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.impl.page.admin.role.PageRole;
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.components.ProgressBarSecondStyle;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.model.BusinessRoleApplicationDto;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.model.BusinessRoleDto;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.page.PageRoleAnalysisCluster;
@@ -101,30 +103,27 @@ public class RoleAnalysisPatternTilePanel<T extends Serializable> extends BasePa
     }
 
     private void initProgressBar() {
-        DetectedPattern pattern = getModelObject().getPattern();
-        double itemsConfidence = pattern.getItemsConfidence();
-        BigDecimal bd = BigDecimal.valueOf(itemsConfidence);
-        bd = bd.setScale(2, RoundingMode.HALF_UP);
-        double finalItemsConfidence = bd.doubleValue();
+        IModel<RoleAnalysisProgressBarDto> model = () -> {
+            DetectedPattern pattern = getModelObject().getPattern();
+            double itemsConfidence = pattern.getItemsConfidence();
+            BigDecimal bd = BigDecimal.valueOf(itemsConfidence);
+            bd = bd.setScale(2, RoundingMode.HALF_UP);
+            double finalItemsConfidence = bd.doubleValue();
 
-        String colorClass = confidenceBasedTwoColor(finalItemsConfidence);
+            String colorClass = confidenceBasedTwoColor(finalItemsConfidence);
+            return new RoleAnalysisProgressBarDto(finalItemsConfidence, colorClass);
+        };
 
-        ProgressBarSecondStyle progressBar = new ProgressBarSecondStyle(ID_PROGRESS_BAR) {
-
-            @Override
-            public double getActualValue() {
-                return finalItemsConfidence;
-            }
+        RoleAnalysisBasicProgressBar progressBar = new RoleAnalysisBasicProgressBar(ID_PROGRESS_BAR, model) {
 
             @Override
             protected boolean isTitleContainerVisible() {
                 return false;
             }
 
-            @Contract(pure = true)
             @Override
-            protected @NotNull String getProgressBarContainerCssStyle() {
-                return "border-radius: 3px; height:13px;";
+            protected boolean isWider() {
+                return true;
             }
 
             @Contract(pure = true)
@@ -133,19 +132,9 @@ public class RoleAnalysisPatternTilePanel<T extends Serializable> extends BasePa
                 return "col-12 pl-0 pr-0";
             }
 
-            @Override
-            public String getProgressBarColor() {
-                return colorClass;
-            }
-
-            @Contract(pure = true)
-            @Override
-            public @NotNull String getBarTitle() {
-                return "";
-            }
         };
         progressBar.setOutputMarkupId(true);
-        progressBar.add(AttributeModifier.replace("title", () -> "Attribute confidence: " + finalItemsConfidence + "%"));
+        //TODO progressBar.add(AttributeModifier.replace("title", () -> "Attribute confidence: " + finalItemsConfidence + "%"));
         progressBar.add(new TooltipBehavior());
         add(progressBar);
     }

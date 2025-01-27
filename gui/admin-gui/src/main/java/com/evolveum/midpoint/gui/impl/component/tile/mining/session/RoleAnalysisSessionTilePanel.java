@@ -18,6 +18,10 @@ import com.evolveum.midpoint.gui.api.component.Badge;
 
 import com.evolveum.midpoint.gui.api.component.BadgePanel;
 
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.components.bar.RoleAnalysisBasicProgressBar;
+
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.model.RoleAnalysisProgressBarDto;
+
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.WebMarkupContainer;
@@ -32,7 +36,6 @@ import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.component.button.DropdownButtonDto;
 import com.evolveum.midpoint.gui.api.component.button.DropdownButtonPanel;
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.components.ProgressBar;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.tmp.panel.IconWithLabel;
 import com.evolveum.midpoint.gui.impl.util.DetailsPageUtil;
 import com.evolveum.midpoint.model.api.mining.RoleAnalysisService;
@@ -267,29 +270,26 @@ public class RoleAnalysisSessionTilePanel<T extends Serializable> extends BasePa
     }
 
     private void initDensityProgressPanel() {
-        double value = getModelObject().getProgressBarValue();
-        String colorClass = getModelObject().getProgressBarColor();
-        String title = getModelObject().getProgressBarTitle();
 
-        ProgressBar progressBar = new ProgressBar(RoleAnalysisSessionTilePanel.ID_DENSITY) {
 
+        IModel<RoleAnalysisProgressBarDto> model = () -> {
+            double finalProgress = getModelObject().getProgressBarValue();
+            String colorClass = getModelObject().getProgressBarColor();
+
+            RoleAnalysisProgressBarDto dto = new RoleAnalysisProgressBarDto(finalProgress, colorClass);
+            dto.setBarTitle(getModelObject().getProgressBarTitle());
+            return dto;
+        };
+
+        RoleAnalysisBasicProgressBar progressBar = new RoleAnalysisBasicProgressBar(RoleAnalysisSessionTilePanel.ID_DENSITY, model){
             @Override
-            public double getActualValue() {
-                return value;
-            }
-
-            @Override
-            public String getProgressBarColor() {
-                return colorClass;
-            }
-
-            @Override
-            public String getBarTitle() {
-                return title;
+            protected boolean isWider() {
+                return true;
             }
         };
+
         progressBar.setOutputMarkupId(true);
-        progressBar.add(AttributeModifier.replace(TITLE_CSS, () -> title + " of " + value));
+
         progressBar.add(new TooltipBehavior());
         add(progressBar);
     }

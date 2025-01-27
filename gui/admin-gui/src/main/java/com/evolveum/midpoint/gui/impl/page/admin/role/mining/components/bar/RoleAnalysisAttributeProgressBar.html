@@ -1,5 +1,5 @@
 <!--
-  ~ Copyright (c) 2010-2013 Evolveum
+  ~ Copyright (c) 2010-2025 Evolveum
   ~
   ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
@@ -12,8 +12,8 @@
 
     <div class="d-flex flex-wrap align-items-center pt-2 pb-1" wicket:id="title-container">
         <div wicket:id="progressBarTitle" class="col progress-label p-0 text-truncate" style="text-transform: capitalize; font-size:16px;"></div>
-        <!--        <div wicket:id="progressBarDetails" class="col progress-label p-0" style="font-size:16px;"></div>-->
         <div wicket:id="progressBarPercentage" class="col-auto progress-label float-right p-0 pl-2" style=""></div> <!-- font-size:14px; -->
+
         <span class="btn btn-tool progress-label p-0" wicket:id="details-container">
           <i wicket:id="progressBarDetails" data-toggle="tooltip" data-placement="right"
                   class="fa fa-fw  float-left"></i>
@@ -21,7 +21,7 @@
     </div>
 
     <div class="d-flex flex-wrap align-items-center">
-        <div class="col p-0">
+        <div class="col pl-0 pr-0" wicket:id="progress-container">
             <div wicket:id="progressBarContainer" class="progress" style="border-radius: 3px; height:13px;">
 
                 <div wicket:id="progressBar" class="progress-bar" role="progressbar"
@@ -29,7 +29,6 @@
                 </div>
             </div>
         </div>
-        <div wicket:id="progressBarPercentageInline" class="pl-1 progress-label float-right text-right" style="min-width:3.75rem"></div>
     </div>
 
 </wicket:panel>

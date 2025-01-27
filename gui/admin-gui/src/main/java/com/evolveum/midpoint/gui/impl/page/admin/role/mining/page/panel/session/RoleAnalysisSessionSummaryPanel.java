@@ -7,7 +7,7 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.session;
 
-import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.table.RoleAnalysisTableTools.densityBasedColor;
+import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.RoleAnalysisWebUtils.buildSimpleDensityBasedProgressBar;
 
 import java.text.DecimalFormat;
 import java.util.List;
@@ -20,7 +20,6 @@ import org.apache.wicket.model.Model;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.gui.api.util.LocalizationUtil;
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.components.ProgressBar;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.tmp.panel.IconWithLabel;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.RoleAnalysisSettingsUtil;
 import com.evolveum.midpoint.gui.impl.page.admin.simulation.DetailsTableItem;
@@ -57,13 +56,13 @@ public class RoleAnalysisSessionSummaryPanel extends ObjectVerticalSummaryPanel<
 
         Integer clusterCount = sessionStatistic.getClusterCount();
 
-        if(clusterCount == null) {
+        if (clusterCount == null) {
             clusterCount = 0;
         }
 
         Integer processedObjectCount = sessionStatistic.getProcessedObjectCount();
 
-        if(processedObjectCount == null) {
+        if (processedObjectCount == null) {
             processedObjectCount = 0;
         }
 
@@ -112,8 +111,8 @@ public class RoleAnalysisSessionSummaryPanel extends ObjectVerticalSummaryPanel<
                         return new IconWithLabel(id, getValue()) {
                             @Override
                             public String getIconCssClass() {
-                            RoleAnalysisOptionType analysisOption = RoleAnalysisSessionSummaryPanel.this.getModelObject().getAnalysisOption();
-                            RoleAnalysisProcessModeType processMode = analysisOption.getProcessMode();
+                                RoleAnalysisOptionType analysisOption = RoleAnalysisSessionSummaryPanel.this.getModelObject().getAnalysisOption();
+                                RoleAnalysisProcessModeType processMode = analysisOption.getProcessMode();
 
                                 if (processMode.equals(RoleAnalysisProcessModeType.ROLE)) {
                                     return IconAndStylesUtil.createDefaultColoredIcon(RoleType.COMPLEX_TYPE);
@@ -134,31 +133,7 @@ public class RoleAnalysisSessionSummaryPanel extends ObjectVerticalSummaryPanel<
 
                     @Override
                     public Component createValueComponent(String id) {
-                        String colorClass = densityBasedColor(Double.parseDouble(getValue().getObject().replace(',', '.')));
-                        ProgressBar progressBar = new ProgressBar(id) {
-
-                            @Override
-                            public boolean isInline() {
-                                return true;
-                            }
-
-                            @Override
-                            public double getActualValue() {
-                                return Double.parseDouble(getValue().getObject().replace(',', '.'));
-                            }
-
-                            @Override
-                            public String getProgressBarColor() {
-                                return colorClass;
-                            }
-
-                            @Override
-                            public String getBarTitle() {
-                                return "";
-                            }
-                        };
-                        progressBar.setOutputMarkupId(true);
-                        return progressBar;
+                        return buildSimpleDensityBasedProgressBar(id, getValue());
                     }
 
                 });

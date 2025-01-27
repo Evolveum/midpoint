@@ -23,9 +23,14 @@
 
 -- noinspection SqlResolveForFile @ operator-class/"gin__int_ops"
 
--- just in case PUBLIC schema was dropped (fastest way to remove all midpoint objects)
--- drop schema public cascade;
-CREATE SCHEMA IF NOT EXISTS public;
+-- public schema is not used as of now, everything is in the current user schema
+-- https://www.postgresql.org/docs/15/ddl-schemas.html#DDL-SCHEMAS-PATTERNS
+-- see secure schema usage pattern
+
+-- just in case CURRENT_USER schema was dropped (fastest way to remove all midpoint objects)
+-- drop schema current_user cascade;
+CREATE SCHEMA IF NOT EXISTS AUTHORIZATION CURRENT_USER;
+
 -- CREATE EXTENSION IF NOT EXISTS pg_trgm; -- support for trigram indexes
 
 -- region custom enum types
@@ -277,7 +282,7 @@ END $$;
 
 -- https://www.postgresql.org/docs/current/runtime-config-query.html#GUC-ENABLE-PARTITIONWISE-JOIN
 DO $$ BEGIN
-    EXECUTE 'ALTER DATABASE ' || current_database() || ' SET enable_partitionwise_join TO on';
+    EXECUTE 'ALTER DATABASE "' || current_database() || '" SET enable_partitionwise_join TO on';
 END; $$;
 
 -- region partition creation procedures
