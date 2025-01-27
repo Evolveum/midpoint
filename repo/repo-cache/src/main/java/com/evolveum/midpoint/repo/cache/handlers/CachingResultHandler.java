@@ -56,7 +56,7 @@ final class CachingResultHandler<T extends ObjectType> implements ResultHandler<
     @Override
     public boolean handle(PrismObject<T> object, OperationResult parentResult) {
 
-        if (exec.cacheUseMode.canUpdateCache()) {
+        if (exec.cacheUseMode.canUpdateAtLeastOneCache()) {
 
             if (exec.readOnly) {
                 object.freeze();
@@ -64,7 +64,7 @@ final class CachingResultHandler<T extends ObjectType> implements ResultHandler<
 
             // We have to store loaded object to caches _before_ executing the original handler,
             // not after that. The reason is that the handler can change these objects. (See MID-6250.)
-            cacheUpdater.storeLoadedObjectToAll(object, exec.getAge());
+            cacheUpdater.storeLoadedObjectToObjectAndVersionCaches(object, exec.cacheUseMode, exec.getAge());
 
             // We also collect loaded objects to store them in query cache later - if possible.
             if (queryCacheable && !overflown) {

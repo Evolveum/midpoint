@@ -198,20 +198,25 @@ public class GetObjectOpHandler extends CachedOpHandler {
             PrismObject<T> object = getObjectInternal(exec);
             exec.recordResult(object);
 
-            if (!exec.cacheUseMode.canUpdateCache()) {
+            if (exec.cacheUseMode.canUpdateVersionCache()) {
+                cacheUpdater.storeObjectToVersionGlobal(object, exec.cachesInfo.globalVersion);
+                cacheUpdater.storeObjectToVersionLocal(object, exec.cachesInfo.localVersion);
+            }
+
+            if (!exec.cacheUseMode.canUpdateObjectCache()) {
                 return exec.readOnly ?
                         Freezable.doFreeze(object) :
                         object.cloneIfImmutable();
             }
+
             PrismObject<T> immutable = CloneUtil.toImmutable(object);
             var complete = CachedObjectValue.computeCompleteFlag(immutable);
             cacheUpdater.storeImmutableObjectToObjectLocal(immutable, exec.cachesInfo, complete);
             cacheUpdater.storeImmutableObjectToObjectGlobal(immutable, complete);
-            cacheUpdater.storeObjectToVersionGlobal(immutable, exec.cachesInfo.globalVersion);
-            cacheUpdater.storeObjectToVersionLocal(immutable, exec.cachesInfo.localVersion);
             return exec.readOnly ?
                     immutable :
                     object.cloneIfImmutable();
+
         } catch (ObjectNotFoundException | SchemaException ex) {
             globalObjectCache.remove(exec.oid);
             globalVersionCache.remove(exec.oid);
