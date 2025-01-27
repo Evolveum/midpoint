@@ -24,10 +24,6 @@ import com.evolveum.midpoint.common.mining.objects.statistic.UserAccessDistribut
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.component.tabs.PanelTab;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.cluster.MembersDetailsPopupPanel;
-import com.evolveum.midpoint.model.api.mining.RoleAnalysisService;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.web.component.RoleAnalysisTabbedPanel;
 import com.evolveum.midpoint.web.component.TabbedPanel;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;

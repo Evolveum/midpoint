@@ -156,7 +156,7 @@ public class RoleAnalysisDetectedAnomalyTable extends BasePanel<AnomalyObjectDto
             @Override
             protected @NotNull ISelectableDataProvider<SelectableBean<RoleType>> createProvider() {
                 SelectableBeanObjectDataProvider<RoleType> provider = RoleAnalysisDetectedAnomalyTable.this.getModelObject()
-                        .buildProvider(RoleAnalysisDetectedAnomalyTable.this, getPageBase());
+                        .buildProvider(RoleAnalysisDetectedAnomalyTable.this);
                 provider.setSort(SORT_ANOMALY_SCORE, SortOrder.DESCENDING);
                 return provider;
             }

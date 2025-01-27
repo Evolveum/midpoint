@@ -158,11 +158,9 @@ public class AnomalyObjectDto implements Serializable {
         }
     }
 
+    //TODO this should not be in the DTO object
     protected @NotNull SelectableBeanObjectDataProvider<RoleType> buildProvider(
-            @NotNull Component component,
-            @NotNull PageBase pageBase) {
-
-        RoleAnalysisService roleAnalysisService = pageBase.getRoleAnalysisService();
+            @NotNull Component component) {
 
         return new SelectableBeanObjectDataProvider<>(component, Set.of()) {
             private List<RoleType> roles = new ArrayList<>();
@@ -194,7 +192,7 @@ public class AnomalyObjectDto implements Serializable {
                 String property = getSort().getProperty();
                 boolean ascending = getSort().isAscending();
 
-                roles = loadRolesFromAnomalyOidSet(roleAnalysisService, task, property, ascending, result);
+                roles = loadRolesFromAnomalyOidSet(getPageBase().getRoleAnalysisService(), task, property, ascending, result);
                 sortByNameIfNeeded(property, ascending, roles);
                 return roles.size();
             }
