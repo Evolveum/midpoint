@@ -201,73 +201,7 @@ public class CategorySelectionProvider extends ChoiceProvider<RoleAnalysisObject
         categoryDataMap.put(type, new CategoryData(helpKey, count, state, displayKey, textClass));
     }
 
-    public static @NotNull SelectableBeanObjectDataProvider<FocusType> createTableProvider(
-            Component component,
-            LoadableModel<List<RoleAnalysisObjectCategorizationType>> selectionModel,
-            boolean isAdvanced,
-            List<RoleAnalysisIdentifiedCharacteristicsItemType> items,
-            Map<String, List<RoleAnalysisObjectCategorizationType>> params,
-            LoadableModel<Boolean> isRoleSelectedModel,
-            RoleAnalysisOptionType sessionAnalysisOption) {
-
-        List<RoleAnalysisObjectCategorizationType> allowedValues = CategorySelectionProvider.allowedValues(
-                isAdvanced, isRoleSelectedModel, sessionAnalysisOption);
-
-        return new SelectableBeanObjectDataProvider<>(
-                component, Set.of()) {
-
-            @SuppressWarnings({ "unchecked", "rawtypes" })
-            @Override
-            protected List<?> searchObjects(Class type, ObjectQuery query, Collection collection, Task task, OperationResult result) {
-
-                Integer offset = query.getPaging().getOffset();
-                Integer maxSize = query.getPaging().getMaxSize();
-                int end = offset + maxSize;
-
-                List<FocusType> objects = new ArrayList<>();
-                int counter = 0;
-                RoleAnalysisService roleAnalysisService = getPageBase().getRoleAnalysisService();
-                for (RoleAnalysisIdentifiedCharacteristicsItemType item : items) {
-                    if (!skipProvidedObject(item, selectionModel, allowedValues)) {
-                        counter++;
-
-                        params.put(item.getObjectRef().getOid(), item.getCategory());
-
-                        if (counter >= offset) {
-                            PrismObject<FocusType> focusTypeObject = roleAnalysisService.getFocusTypeObject(
-                                    item.getObjectRef().getOid(), task, result);
-                            if (focusTypeObject != null) {
-                                objects.add(focusTypeObject.asObjectable());
-                            } else {
-                                counter--;
-                            }
-                        }
-
-                        if (counter >= end) {
-                            break;
-                        }
-                    }
-                }
-
-                return objects;
-            }
-
-            @Override
-            protected Integer countObjects(Class<FocusType> type, ObjectQuery query,
-                    Collection<SelectorOptions<GetOperationOptions>> currentOptions, Task task, OperationResult result) {
-                int count = 0;
-                for (RoleAnalysisIdentifiedCharacteristicsItemType item : items) {
-                    if (!skipProvidedObject(item, selectionModel, allowedValues)) {
-                        count++;
-                    }
-                }
-
-                return count;
-            }
-        };
-    }
-
-    private static boolean skipProvidedObject(
+    public static boolean skipProvidedObject(
             @NotNull RoleAnalysisIdentifiedCharacteristicsItemType item,
             @NotNull LoadableModel<List<RoleAnalysisObjectCategorizationType>> selectionModel, List<RoleAnalysisObjectCategorizationType> allowedValues) {
         List<RoleAnalysisObjectCategorizationType> category = item.getCategory();
