@@ -45,6 +45,7 @@ import org.jetbrains.annotations.NotNull;
 import org.wicketstuff.select2.Select2MultiChoice;
 
 import java.io.Serial;
+import java.io.Serializable;
 import java.util.*;
 
 import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.RoleAnalysisWebUtils.CLASS_CSS;
@@ -61,7 +62,7 @@ public abstract class RoleAnalysisAbstractClassificationObjectPanel extends Abst
     private static final String ID_DISTRIBUTION_USER_PANEL = "distributionUser";
     private static final int ROLE_TAB_INDEX = 1;
 
-    public record PanelOptions(boolean advanced, String rolesTitleId, String usersTitleId) {
+    public record PanelOptions(boolean advanced, String rolesTitleId, String usersTitleId) implements Serializable {
     }
 
     LoadableModel<Boolean> isRoleSelectedModel = new LoadableModel<>() {
