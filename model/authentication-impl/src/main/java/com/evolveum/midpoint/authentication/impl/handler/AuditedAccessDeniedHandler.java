@@ -8,6 +8,10 @@
 package com.evolveum.midpoint.authentication.impl.handler;
 
 import java.io.IOException;
+
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
+
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -36,6 +40,8 @@ import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 
 public class AuditedAccessDeniedHandler extends MidpointAccessDeniedHandler {
+
+    private static final Trace LOGGER = TraceManager.getTrace(AuditedAccessDeniedHandler.class);
 
     private static final String OP_AUDIT_EVENT = AuditedAccessDeniedHandler.class.getName() + ".auditEvent";
 
@@ -89,6 +95,10 @@ public class AuditedAccessDeniedHandler extends MidpointAccessDeniedHandler {
         record.setSessionIdentifier(request.getRequestedSessionId());
         record.setMessage(accessDeniedException.getMessage());
 
-        auditService.audit(record, task, result);
+        try {
+            auditService.audit(record, task, result);
+        } catch (Exception e) {
+            LOGGER.error("Couldn't audit audit event", e);
+        }
     }
 }
