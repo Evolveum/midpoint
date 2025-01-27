@@ -138,6 +138,10 @@ public class AuditedLogoutHandler extends SimpleUrlLogoutSuccessHandler {
         record.setNodeIdentifier(taskManager.getNodeId());
         record.setSessionIdentifier(sessionId);
 
-        auditService.audit(record, task, result);
+        try {
+            auditService.audit(record, task, result);
+        } catch (Exception e) {
+            LOGGER.error("Couldn't audit audit event", e);
+        }
     }
 }
