@@ -70,7 +70,7 @@ See bug:MID-9541[].
 Within this issue improved AuthenticationException to use also localizable user-friendly message instead of only technical message. See bug:MID-10341[].
 * bug:MID-9300[] Secure schema usage in PostgresSQL (not using public schema).
 * Fixed refreshing names, help texts and titles of search items for all stored searches configurations. See bug:MID-10321[].
-Fixing of unused matching request parameter in saved request for redirecting after fail/success authentication. See bug:MID-10184[].
+* Fixing of unused matching request parameter in saved request for redirecting after fail/success authentication. See bug:MID-10184[].
 
 == Changes with Respect To Version 4.8.4
 
