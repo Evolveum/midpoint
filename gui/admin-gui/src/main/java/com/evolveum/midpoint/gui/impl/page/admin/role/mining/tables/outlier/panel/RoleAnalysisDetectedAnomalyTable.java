@@ -13,6 +13,7 @@ import java.util.*;
 
 import com.evolveum.midpoint.common.outlier.OutlierExplanationResolver;
 import com.evolveum.midpoint.gui.api.component.LabelWithHelpPanel;
+import com.evolveum.midpoint.gui.impl.component.data.provider.SelectableBeanObjectDataProvider;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.outlier.RoleAnalysisExplanationTabPanelPopup;
 
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -22,6 +23,7 @@ import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
+import org.apache.wicket.extensions.markup.html.repeater.data.sort.SortOrder;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.export.AbstractExportableColumn;
 import org.apache.wicket.markup.html.basic.Label;
@@ -56,6 +58,8 @@ public class RoleAnalysisDetectedAnomalyTable extends BasePanel<AnomalyObjectDto
     private static final String ID_DATATABLE = "datatable";
     private static final String DOT_CLASS = RoleAnalysisDetectedAnomalyTable.class.getName() + ".";
     private static final String OP_PREPARE_OBJECTS = DOT_CLASS + "prepareObjects";
+
+    protected static final String SORT_ANOMALY_SCORE = "anomalyScore";
 
     public RoleAnalysisDetectedAnomalyTable(String id,
             IModel<AnomalyObjectDto> dto) {
@@ -151,10 +155,10 @@ public class RoleAnalysisDetectedAnomalyTable extends BasePanel<AnomalyObjectDto
 
             @Override
             protected @NotNull ISelectableDataProvider<SelectableBean<RoleType>> createProvider() {
-                Task simpleTask = getPageBase().createSimpleTask(OP_PREPARE_OBJECTS);
-                OperationResult result = simpleTask.getResult();
-                return RoleAnalysisDetectedAnomalyTable.this.getModelObject().buildProvider(RoleAnalysisDetectedAnomalyTable.this, getPageBase(),
-                        simpleTask, result);
+                SelectableBeanObjectDataProvider<RoleType> provider = RoleAnalysisDetectedAnomalyTable.this.getModelObject()
+                        .buildProvider(RoleAnalysisDetectedAnomalyTable.this, getPageBase());
+                provider.setSort(SORT_ANOMALY_SCORE, SortOrder.DESCENDING);
+                return provider;
             }
 
             @Override
@@ -240,9 +244,13 @@ public class RoleAnalysisDetectedAnomalyTable extends BasePanel<AnomalyObjectDto
 
                     @Override
                     public boolean isSortable() {
-                        return false;
+                        return true;
                     }
 
+                    @Override
+                    public String getSortProperty() {
+                        return SORT_ANOMALY_SCORE;
+                    }
                 };
                 columns.add(column);
 
