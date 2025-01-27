@@ -10,6 +10,7 @@ import com.evolveum.midpoint.common.outlier.OutlierExplanationResolver;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.impl.component.data.provider.SelectableBeanObjectDataProvider;
 import com.evolveum.midpoint.model.api.mining.RoleAnalysisService;
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
@@ -23,6 +24,8 @@ import org.jetbrains.annotations.Nullable;
 
 import java.io.Serializable;
 import java.util.*;
+
+import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.tables.outlier.panel.RoleAnalysisDetectedAnomalyTable.SORT_ANOMALY_SCORE;
 
 public class AnomalyObjectDto implements Serializable {
 
@@ -157,15 +160,12 @@ public class AnomalyObjectDto implements Serializable {
 
     protected @NotNull SelectableBeanObjectDataProvider<RoleType> buildProvider(
             @NotNull Component component,
-            @NotNull PageBase pageBase,
-            @NotNull Task task,
-            @NotNull OperationResult result) {
+            @NotNull PageBase pageBase) {
 
         RoleAnalysisService roleAnalysisService = pageBase.getRoleAnalysisService();
 
-        var roles = loadRolesFromAnomalyOidSet(roleAnalysisService, task, result);
-
         return new SelectableBeanObjectDataProvider<>(component, Set.of()) {
+            private List<RoleType> roles = new ArrayList<>();
 
             @SuppressWarnings("rawtypes")
             @Override
@@ -175,6 +175,9 @@ public class AnomalyObjectDto implements Serializable {
                     Collection collection,
                     Task task,
                     OperationResult result) {
+
+                sortByNameIfNeeded(getSort().getProperty(), getSort().isAscending(), roles);
+
                 Integer offset = query.getPaging().getOffset();
                 Integer maxSize = query.getPaging().getMaxSize();
                 return roles.subList(offset, Math.min(offset + maxSize, roles.size()));
@@ -187,21 +190,52 @@ public class AnomalyObjectDto implements Serializable {
                     Collection<SelectorOptions<GetOperationOptions>> currentOptions,
                     Task task,
                     OperationResult result) {
+
+                String property = getSort().getProperty();
+                boolean ascending = getSort().isAscending();
+
+                roles = loadRolesFromAnomalyOidSet(roleAnalysisService, task, property, ascending, result);
+                sortByNameIfNeeded(property, ascending, roles);
                 return roles.size();
             }
         };
     }
 
-    private List<RoleType> loadRolesFromAnomalyOidSet(
+    private static void sortByNameIfNeeded(String property, boolean ascending, List<RoleType> roles) {
+        if (property.equals(ObjectType.F_NAME.getLocalPart())) {
+            roles.sort((a, b) -> {
+                int compare = a.getName().getOrig().compareTo(b.getName().getOrig());
+                return ascending ? compare : -compare;
+            });
+        }
+    }
+
+    private @NotNull List<RoleType> loadRolesFromAnomalyOidSet(
             RoleAnalysisService roleAnalysisService,
             Task task,
+            String property,
+            boolean ascending,
             OperationResult result) {
-        return roleAnomalyMap.entrySet().stream()
-                .sorted((a, b) -> Double.compare(b.getValue().anomalyScore(), a.getValue().anomalyScore())) // sort desc by score
-                .map(entry -> roleAnalysisService.getRoleTypeObject(entry.getKey(), task, result))
-                .filter(Objects::nonNull)
-                .map(rolePrismObject -> rolePrismObject.asObjectable())
-                .toList();
+        List<Map.Entry<String, AnomalyPartitionMap>> toSort = new ArrayList<>(roleAnomalyMap.entrySet());
+
+        if (property.equals(SORT_ANOMALY_SCORE) && ascending) {
+            toSort.sort((a, b) -> {
+                int compare = Double.compare(b.getValue().anomalyScore(), a.getValue().anomalyScore());
+                return -compare;
+            });
+        } else {
+            toSort.sort((a, b) -> Double.compare(b.getValue().anomalyScore(), a.getValue().anomalyScore()));
+        }
+
+        List<RoleType> list = new ArrayList<>();
+        for (Map.Entry<String, AnomalyPartitionMap> entry : toSort) {
+            PrismObject<RoleType> rolePrismObject = roleAnalysisService.getRoleTypeObject(entry.getKey(), task, result);
+            if (rolePrismObject != null) {
+                RoleType roleObject = rolePrismObject.asObjectable();
+                list.add(roleObject);
+            }
+        }
+        return list;
     }
 
     public boolean isPartitionCountVisible() {
