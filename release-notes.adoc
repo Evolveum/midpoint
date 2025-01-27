@@ -68,6 +68,7 @@ See bug:MID-9541[].
 * Fixed the error while opening the object details page. See bug:MID-10345[].
 * Fixed inappropriate error message displaying on the Shopping cart page.
 Within this issue improved AuthenticationException to use also localizable user-friendly message instead of only technical message. See bug:MID-10341[].
+* bug:MID-9300[] Secure schema usage in PostgresSQL (not using public schema).
 
 == Changes with Respect To Version 4.8.4
 
