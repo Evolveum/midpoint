@@ -439,7 +439,7 @@ public class RoleAnalysisOutlierTable extends BasePanel<AssignmentHolderType> {
 
                         @Override
                         public void onClick(AjaxRequestTarget target) {
-                            DetailsPageUtil.dispatchToObjectDetailsPage(outlierObject.asPrismObject(), this);
+                            DetailsPageUtil.dispatchToObjectDetailsPage(RoleAnalysisOutlierType.class, outlierObject.getOid(), this, true);
                         }
                     };
                     component.setOutputMarkupId(true);
