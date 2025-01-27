@@ -53,7 +53,6 @@ public class RoleAnalysisAccessNoiseOutlierPanel extends AbstractObjectMainPanel
         RoleAnalysisClusterType cluster = objectDetailsModels.getObjectType();
 
         RoleAnalysisOutlierTable table = new RoleAnalysisOutlierTable(ID_PANEL,
-                RoleAnalysisAccessNoiseOutlierPanel.this.getPageBase(),
                 new LoadableDetachableModel<>() {
                     @Override
                     protected RoleAnalysisClusterType load() {
