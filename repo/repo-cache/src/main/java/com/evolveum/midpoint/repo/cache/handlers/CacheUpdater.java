@@ -17,6 +17,8 @@ import java.util.Collection;
 import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.repo.cache.values.CachedObjectValue;
 
+import com.evolveum.midpoint.util.caching.CacheConfiguration;
+
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -29,7 +31,6 @@ import com.evolveum.midpoint.repo.cache.local.LocalObjectCache;
 import com.evolveum.midpoint.repo.cache.local.LocalVersionCache;
 import com.evolveum.midpoint.repo.cache.local.QueryKey;
 import com.evolveum.midpoint.schema.SearchResultList;
-import com.evolveum.midpoint.util.caching.CacheConfiguration;
 import com.evolveum.midpoint.util.caching.CachePerformanceCollector;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
@@ -71,7 +72,7 @@ class CacheUpdater {
     <T extends ObjectType> SearchResultList<PrismObject<T>> storeSearchResultToAll(
             SearchOpExecution<T> exec, SearchResultList<PrismObject<T>> loadedResultList) {
 
-        if (!exec.cacheUseMode.canUpdateCache()) {
+        if (!exec.cacheUseMode.canUpdateAtLeastOneCache()) {
             return exec.toReturnValueFromAny(loadedResultList);
         }
 
@@ -100,10 +101,15 @@ class CacheUpdater {
                 // May be costly, as this is a deep freeze. But we need it, as we want to store the objects in object caches.
                 loadedResultList.freeze();
                 objectsToCache = loadedResultList;
-            } else {
+            } else if (exec.cacheUseMode.canUpdateObjectCache()) {
                 // This is even more costly, as it involves cloning. But we need to store objects in their immutable form,
                 // and return them as mutable objects.
                 objectsToCache = loadedResultList.toDeeplyFrozenList();
+            } else {
+                // We will NOT store objects; we will store only versions and/or queries, neither of which require immutable
+                // full objects. (Even if we do some mistake here, the object cache rejects storing mutable objects, so it is
+                // safe to do it this way.)
+                objectsToCache = loadedResultList;
             }
             var immutableOidList = toImmutableOidList(loadedResultList);
             storeImmutableSearchResultToAllLocal(exec, objectsToCache, immutableOidList);
@@ -118,7 +124,7 @@ class CacheUpdater {
             // We are going to cache individual objects/versions only (if at all). So we will not clone the whole list.
             // Individual objects can be cloned/frozen as necessary by called methods.
             for (var loadedObject : loadedResultList) {
-                storeLoadedObjectToAll(loadedObject, age);
+                storeLoadedObjectToObjectAndVersionCaches(loadedObject, exec.cacheUseMode, age);
             }
         }
         // Assuming that loadedList is mutable as it was returned from repo (if readOnly == false)
@@ -138,30 +144,29 @@ class CacheUpdater {
 
     /**
      * Stores the data into all local caches (object and query).
-     *
-     * Assumes the data was already in the cache or that we are allowed to update the caches, i.e. that
-     * {@link CacheUseMode#canUpdateCache()} is `true`.
      */
     <T extends ObjectType> void storeImmutableSearchResultToAllLocal(
             SearchOpExecution<T> exec,
             Collection<PrismObject<T>> objects,
             SearchResultList<String> immutableOidList) {
-        assert exec.cacheUseMode.canUpdateCache();
         assert objects.size() == immutableOidList.size();
         assert objects.size() <= QUERY_RESULT_SIZE_LIMIT;
-        storeImmutableSearchResultToQueryLocal(exec.queryKey, immutableOidList, exec.cachesInfo);
-        storeImmutableObjectsToObjectAndVersionLocal(objects);
+        if (exec.cacheUseMode.canUpdateQueryCache()) {
+            storeImmutableSearchResultToQueryLocal(exec.queryKey, immutableOidList, exec.cachesInfo);
+        }
+        storeImmutableObjectsToObjectAndVersionLocal(exec, objects);
     }
 
     private <T extends ObjectType> void storeImmutableSearchResultToAllGlobal(
             SearchOpExecution<T> exec,
             Collection<PrismObject<T>> objects,
             SearchResultList<String> immutableOidList) {
-        assert exec.cacheUseMode.canUpdateCache();
         assert objects.size() == immutableOidList.size();
         assert objects.size() <= QUERY_RESULT_SIZE_LIMIT;
-        storeImmutableSearchResultToQueryGlobal(exec.queryKey, immutableOidList, exec.cachesInfo);
-        storeImmutableObjectsToObjectAndVersionGlobal(objects);
+        if (exec.cacheUseMode.canUpdateQueryCache()) {
+            storeImmutableSearchResultToQueryGlobal(exec.queryKey, immutableOidList, exec.cachesInfo);
+        }
+        storeImmutableObjectsToObjectAndVersionGlobal(exec, objects);
     }
 
     <T extends ObjectType> void storeImmutableSearchResultToQueryLocal(QueryKey<T> key,
@@ -179,9 +184,10 @@ class CacheUpdater {
     }
 
     private <T extends ObjectType> void storeImmutableObjectsToObjectAndVersionLocal(
+            SearchOpExecution<T> exec,
             Collection<PrismObject<T>> immutableObjects) {
         LocalObjectCache localObjectCache = getLocalObjectCache();
-        if (localObjectCache != null) {
+        if (localObjectCache != null && exec.cacheUseMode.canUpdateObjectCache()) {
             for (var immutableObject : immutableObjects) {
                 var type = immutableObject.asObjectable().getClass();
                 if (localObjectCache.supportsObjectType(type)) {
@@ -194,7 +200,7 @@ class CacheUpdater {
         }
 
         LocalVersionCache localVersionCache = getLocalVersionCache();
-        if (localVersionCache != null) {
+        if (localVersionCache != null && exec.cacheUseMode.canUpdateVersionCache()) {
             for (var immutableObject : immutableObjects) {
                 var type = immutableObject.asObjectable().getClass();
                 if (localVersionCache.supportsObjectType(type)) {
@@ -205,13 +211,14 @@ class CacheUpdater {
     }
 
     private <T extends ObjectType> void storeImmutableObjectsToObjectAndVersionGlobal(
+            SearchOpExecution<T> exec,
             Collection<PrismObject<T>> immutableObjects) {
-        if (globalObjectCache.isAvailable()) {
+        if (globalObjectCache.isAvailable() && exec.cacheUseMode.canUpdateObjectCache()) {
             for (PrismObject<T> immutableObject : immutableObjects) {
                 storeImmutableObjectToObjectGlobal(immutableObject, CachedObjectValue.computeCompleteFlag(immutableObject));
             }
         }
-        if (globalVersionCache.isAvailable()) {
+        if (globalVersionCache.isAvailable() && exec.cacheUseMode.canUpdateVersionCache()) {
             for (PrismObject<T> immutableObject : immutableObjects) {
                 storeObjectToVersionGlobal(immutableObject);
             }
@@ -222,22 +229,24 @@ class CacheUpdater {
     //region Single objects (content + version)
 
     // Assumption: object will be returned by the RepositoryCache; also that it is immutable if R/O option is present
-    <T extends ObjectType> void storeLoadedObjectToAll(PrismObject<T> object, long age) {
+    <T extends ObjectType> void storeLoadedObjectToObjectAndVersionCaches(
+            PrismObject<T> object, CacheUseMode cacheUseMode, long age) {
         if (age >= DATA_STALENESS_LIMIT) {
             CachePerformanceCollector.INSTANCE.registerSkippedStaleData(object.getCompileTimeClass());
             log("Not caching stale object {} (age = {} ms)", false, object, age);
         } else {
             var cachesAccessInfo = cacheSetAccessInfoFactory.determineExceptForQuery(object.getCompileTimeClass());
-            storeLoadedObjectToAll(object, cachesAccessInfo);
+            storeLoadedObjectToObjectAndVersionCaches(object, cacheUseMode, cachesAccessInfo);
         }
     }
 
     // Assumption: object will be returned by the RepositoryCache; also that it is immutable if R/O option is present
-    private <T extends ObjectType> void storeLoadedObjectToAll(
-            PrismObject<T> object, CacheSetAccessInfo<T> cachesAccessInfo) {
+    private <T extends ObjectType> void storeLoadedObjectToObjectAndVersionCaches(
+            PrismObject<T> object, CacheUseMode cacheUseMode, CacheSetAccessInfo<T> cachesAccessInfo) {
+
         boolean putIntoLocalObject = cachesAccessInfo.localObject.effectivelySupports();
         boolean putIntoGlobalObject = cachesAccessInfo.globalObject.effectivelySupports();
-        if (putIntoLocalObject || putIntoGlobalObject) {
+        if (cacheUseMode.canUpdateObjectCache() && (putIntoLocalObject || putIntoGlobalObject)) {
             // Creating an immutable version:
             // - For R/O, the object is already immutable (-> this is no-op)
             // - For R/W, the clone is necessary (and unavoidable) here
@@ -247,8 +256,10 @@ class CacheUpdater {
             storeImmutableObjectToObjectGlobal(immutable, complete);
         }
 
-        storeObjectToVersionLocal(object, cachesAccessInfo.localVersion);
-        storeObjectToVersionGlobal(object, cachesAccessInfo.globalVersion);
+        if (cacheUseMode.canUpdateVersionCache()) {
+            storeObjectToVersionLocal(object, cachesAccessInfo.localVersion);
+            storeObjectToVersionGlobal(object, cachesAccessInfo.globalVersion);
+        }
     }
 
     <T extends ObjectType> void storeImmutableObjectToAllLocal(
@@ -267,6 +278,7 @@ class CacheUpdater {
         }
     }
 
+    /** Checks whether the type is supported by the cache (when obtaining the time to check version). */
     <T extends ObjectType> void storeImmutableObjectToObjectGlobal(PrismObject<T> immutable, boolean complete) {
         Long nextVersionCheckTime = globalObjectCache.getNextVersionCheckTime(immutable.asObjectable().getClass());
         if (nextVersionCheckTime != null) {
@@ -288,6 +300,7 @@ class CacheUpdater {
         }
     }
 
+    /** We need to check whether the cache is enabled for the specific object type. */
     private <T extends ObjectType> void storeObjectToVersionGlobal(PrismObject<T> object) {
         CacheConfiguration cacheConfiguration = globalVersionCache.getConfiguration();
         Class<? extends ObjectType> type = object.asObjectable().getClass();
@@ -296,7 +309,8 @@ class CacheUpdater {
         }
     }
 
-    <T extends ObjectType> void storeObjectToVersionGlobal(PrismObject<T> object, CacheAccessInfo<GlobalVersionCache, T> globalVersion) {
+    <T extends ObjectType> void storeObjectToVersionGlobal(
+            PrismObject<T> object, CacheAccessInfo<GlobalVersionCache, T> globalVersion) {
         if (globalVersion.effectivelySupports()) {
             globalVersion.getCache().put(object);
         }
