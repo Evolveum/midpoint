@@ -37,8 +37,6 @@ public class GetVersionOpHandler extends CachedOpHandler {
             if (exec.cacheUseMode.canNeverUseCachedData()) {
                 exec.reportLocalAndGlobalPass();
             } else {
-                assert exec.cacheUseMode.canUpdateCache(); // there should be no options precluding this
-
                 var fromLocalCache = tryLocalCache(exec);
                 if (fromLocalCache != null) {
                     return fromLocalCache;
@@ -51,7 +49,7 @@ public class GetVersionOpHandler extends CachedOpHandler {
             }
 
             String version = getVersionInternal(type, oid, exec.result);
-            if (exec.cacheUseMode.canUpdateCache()) {
+            if (exec.cacheUseMode.canUpdateVersionCache()) {
                 cacheUpdater.storeVersionToVersionGlobal(exec.type, exec.oid, version, exec.globalInfo);
                 cacheUpdater.storeVersionToVersionLocal(exec.oid, version, exec.localInfo);
             }
