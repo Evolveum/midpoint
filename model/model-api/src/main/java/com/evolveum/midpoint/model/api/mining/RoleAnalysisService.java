@@ -12,6 +12,7 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.common.mining.objects.analysis.cache.AttributeAnalysisCache;
 import com.evolveum.midpoint.common.mining.objects.analysis.cache.ObjectCategorisationCache;
 import com.evolveum.midpoint.common.mining.objects.statistic.UserAccessDistribution;
+import com.evolveum.midpoint.common.outlier.OutlierExplanationResolver;
 import com.evolveum.midpoint.prism.query.builder.S_FilterExit;
 import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
@@ -1086,7 +1087,6 @@ public interface RoleAnalysisService {
      *
      * @param outlierOid The OID of the outlier object to be updated.
      * @param partition The partition data to be added to the outlier object.
-     * @param newOutlierExplanation The new outlier explanation to be replaced for the outlier object.
      * @param overallConfidence The overall confidence value to be set in the outlier object.
      * @param anomalyConfidence The anomaly confidence value to be set in the outlier object.
      * @param result The operation result.
@@ -1094,7 +1094,6 @@ public interface RoleAnalysisService {
     void addOutlierPartition(
             @NotNull String outlierOid,
             @NotNull RoleAnalysisOutlierPartitionType partition,
-            @NotNull List<OutlierDetectionExplanationType> newOutlierExplanation,
             double overallConfidence,
             double anomalyConfidence,
             @NotNull OperationResult result);
@@ -1449,4 +1448,49 @@ public interface RoleAnalysisService {
             @NotNull DisplayValueOption displayValueOption,
             @NotNull Task task);
 
+    /**
+     * Explains the anomaly access for a detected outlier.
+     * This method analyzes the detected anomaly statistics result and provides an explanation
+     * for the outlier anomaly access.
+     *
+     * @param detectedAnomalyResult The result of the detected anomaly to be explained.
+     * @param task The task associated with this operation.
+     * @param result The operation result.
+     * @return A list of explanation results for the outlier anomaly access.
+     */
+    List<OutlierExplanationResolver.ExplanationResult> explainOutlierAnomalyAccess(
+            @NotNull DetectedAnomalyResult detectedAnomalyResult,
+            @NotNull Task task,
+            @NotNull OperationResult result);
+
+    /**
+     * Explains the outlier partition.
+     * This method analyzes the provided outlier partition statistics and returns an explanation result.
+     *
+     * @param partition The outlier partition to be explained.
+     * @param partitionCount The count of partitions.
+     * @param task The task associated with this operation.
+     * @param result The operation result.
+     * @return An explanation result for the outlier partition.
+     */
+    OutlierExplanationResolver.OutlierExplanationResult explainOutlierPartition(
+            @NotNull RoleAnalysisOutlierPartitionType partition,
+            int partitionCount,
+            @NotNull Task task,
+            @NotNull OperationResult result);
+
+    /**
+     * Explains the outlier.
+     * This method analyzes the provided outlier partition and returns an explanation
+     * result of top-rated(scored) partition explanation.
+     *
+     * @param outlier The outlier to be explained.
+     * @param task The task associated with this operation.
+     * @param result The operation result.
+     * @return An explanation result for the outlier.
+     */
+    OutlierExplanationResolver.OutlierExplanationResult explainOutlier(
+            @NotNull RoleAnalysisOutlierType outlier,
+            @NotNull Task task,
+            @NotNull OperationResult result);
 }

@@ -83,7 +83,8 @@ public class SearchableItemsDefinitions {
                 ItemPath.create(ObjectType.F_EFFECTIVE_MARK_REF)
         ));
         SEARCHABLE_OBJECTS.put(AssignmentHolderType.class, Arrays.asList(
-                ItemPath.create(AssignmentHolderType.F_ARCHETYPE_REF)
+                ItemPath.create(AssignmentHolderType.F_ARCHETYPE_REF),
+                ItemPath.create(AssignmentHolderType.F_PARENT_ORG_REF)
         ));
         SEARCHABLE_OBJECTS.put(FocusType.class, Arrays.asList(
                 ItemPath.create(FocusType.F_ROLE_MEMBERSHIP_REF),

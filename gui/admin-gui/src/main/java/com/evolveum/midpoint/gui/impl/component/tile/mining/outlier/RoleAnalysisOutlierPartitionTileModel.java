@@ -10,8 +10,10 @@ package com.evolveum.midpoint.gui.impl.component.tile.mining.outlier;
 import java.io.Serializable;
 import java.util.List;
 
+import com.evolveum.midpoint.model.api.mining.RoleAnalysisService;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
+import org.apache.wicket.model.Model;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
@@ -22,12 +24,15 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 
+import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.RoleAnalysisWebUtils.explainPartition;
+
 public class RoleAnalysisOutlierPartitionTileModel<T extends Serializable> extends Tile<T> {
 
     String icon;
     String name;
     RoleAnalysisOutlierType outlierParent;
     RoleAnalysisOutlierPartitionType partition;
+    Model<String> explanationTranslatedModel;
     boolean isMostImpactful = false;
 
     public RoleAnalysisOutlierPartitionTileModel(String icon, String title) {
@@ -44,8 +49,12 @@ public class RoleAnalysisOutlierPartitionTileModel<T extends Serializable> exten
         this.name = name;
         this.outlierParent = outlierParent;
 
-        Task task = pageBase.createSimpleTask("Load object");
+        Task task = pageBase.createSimpleTask("Build partition model");
         OperationResult result = task.getResult();
+
+        RoleAnalysisService roleAnalysisService = pageBase.getRoleAnalysisService();
+
+        this.explanationTranslatedModel = explainPartition(roleAnalysisService, partition, false,task, result);
 
         ObjectReferenceType targetObjectRef = outlierParent.getObjectRef();
         PrismObject<UserType> userPrismObject = WebModelServiceUtils.loadObject(
@@ -112,5 +121,9 @@ public class RoleAnalysisOutlierPartitionTileModel<T extends Serializable> exten
 
     public boolean isMostImpactful() {
         return isMostImpactful;
+    }
+
+    public Model<String> getExplanationTranslatedModel() {
+        return explanationTranslatedModel;
     }
 }

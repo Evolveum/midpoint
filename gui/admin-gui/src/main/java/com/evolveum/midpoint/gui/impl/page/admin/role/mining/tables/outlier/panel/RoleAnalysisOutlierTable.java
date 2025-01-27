@@ -8,27 +8,24 @@ package com.evolveum.midpoint.gui.impl.page.admin.role.mining.tables.outlier.pan
 
 import static com.evolveum.midpoint.gui.api.util.GuiDisplayTypeUtil.createDisplayType;
 import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.RoleAnalysisWebUtils.*;
-import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.RoleAnalysisWebUtils.TEXT_TRUNCATE;
 import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.tables.outlier.panel.PartitionObjectDto.buildPartitionObjectList;
 import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.table.RoleAnalysisTableTools.densityBasedColorOposite;
 import static com.evolveum.midpoint.web.component.data.mining.RoleAnalysisCollapsableTablePanel.*;
 
 import java.io.Serial;
-import java.math.BigDecimal;
-import java.math.RoundingMode;
 import java.util.*;
 
 import com.evolveum.midpoint.gui.impl.component.icon.IconCssStyle;
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.components.ProgressBarSecondStyle;
 
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.page.PageRoleAnalysisCluster;
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.components.bar.RoleAnalysisInlineProgressBar;
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.model.RoleAnalysisProgressBarDto;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.outlier.RoleAnalysisPartitionOverviewPanel;
 
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.tmp.panel.LinkIconLabelIconPanel;
 import com.evolveum.midpoint.gui.impl.util.DetailsPageUtil;
 import com.evolveum.midpoint.web.component.data.column.AjaxLinkPanel;
 
-import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
@@ -44,8 +41,8 @@ import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.LoadableDetachableModel;
 import org.apache.wicket.model.Model;
+import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.model.util.ListModel;
-import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 
@@ -145,6 +142,10 @@ public class RoleAnalysisOutlierTable extends BasePanel<AssignmentHolderType> {
 
     public List<IColumn<PartitionObjectDto, String>> initColumns() {
 
+        RoleAnalysisService roleAnalysisService = pageBase.getRoleAnalysisService();
+        Task task = pageBase.createSimpleTask(OP_PREPARE_OBJECTS);
+        OperationResult result = task.getResult();
+
         List<IColumn<PartitionObjectDto, String>> columns = new ArrayList<>();
 
         initIconColumn(columns);
@@ -155,13 +156,11 @@ public class RoleAnalysisOutlierTable extends BasePanel<AssignmentHolderType> {
             initCategoryColumn(columns);
         }
 
+        initExplanationColumn(roleAnalysisService, columns, task, result);
+
+        initAnomalyAccessColumn(roleAnalysisService, columns, task, result);
+
         initPartitionScoreColumn(columns);
-
-        initAnomalyAccessColumn(columns);
-
-        initExplanationColumn(columns);
-
-        initLocationColumn(columns);
 
         initActionColumn(columns);
 
@@ -198,54 +197,6 @@ public class RoleAnalysisOutlierTable extends BasePanel<AssignmentHolderType> {
             public Component getHeader(String componentId) {
                 return new LabelWithHelpPanel(componentId,
                         createStringResource("RoleAnalysisOutlierTable.outlier.category"));
-            }
-
-        });
-    }
-
-    private void initLocationColumn(@NotNull List<IColumn<PartitionObjectDto, String>> columns) {
-        columns.add(new AbstractColumn<>(createStringResource("RoleAnalysis.title.panel.location")) {
-
-            @Override
-            public String getSortProperty() {
-                return PartitionObjectDto.F_CLUSTER_LOCATION_NAME;
-            }
-
-            @Override
-            public boolean isSortable() {
-                return true;
-            }
-
-            @Override
-            public void populateItem(Item<ICellPopulator<PartitionObjectDto>> item, String componentId,
-                    IModel<PartitionObjectDto> rowModel) {
-
-                PartitionObjectDto modelObject = rowModel.getObject();
-                String clusterLocationName = modelObject.getClusterLocationName();
-
-                AjaxLinkPanel sessionLink = new AjaxLinkPanel(componentId, Model.of(clusterLocationName)) {
-                    @Override
-                    public void onClick(AjaxRequestTarget target) {
-                        RoleAnalysisOutlierPartitionType partition = modelObject.getPartition();
-                        ObjectReferenceType clusterRef = partition.getClusterRef();
-                        if (clusterRef != null && clusterRef.getOid() != null) {
-                            PageParameters parameters = new PageParameters();
-                            parameters.add(OnePageParameterEncoder.PARAMETER, clusterRef.getOid());
-                            getPageBase().navigateToNext(PageRoleAnalysisCluster.class, parameters);
-                        }
-                    }
-                };
-
-                sessionLink.setOutputMarkupId(true);
-                sessionLink.add(AttributeModifier.append(STYLE_CSS, "max-width:130px"));
-                sessionLink.add(AttributeModifier.append(CLASS_CSS, TEXT_TRUNCATE));
-                item.add(sessionLink);
-            }
-
-            @Override
-            public Component getHeader(String componentId) {
-                return new Label(
-                        componentId, createStringResource("RoleAnalysis.title.panel.location"));
             }
 
         });
@@ -302,7 +253,7 @@ public class RoleAnalysisOutlierTable extends BasePanel<AssignmentHolderType> {
         });
     }
 
-    private void initExplanationColumn(@NotNull List<IColumn<PartitionObjectDto, String>> columns) {
+    private void initExplanationColumn(RoleAnalysisService roleAnalysisService, @NotNull List<IColumn<PartitionObjectDto, String>> columns, Task task, OperationResult result) {
         columns.add(new AbstractColumn<>(createStringResource("RoleAnalysisOutlierTable.outlier.explanation")) {
 
             @Override
@@ -314,7 +265,8 @@ public class RoleAnalysisOutlierTable extends BasePanel<AssignmentHolderType> {
             public void populateItem(Item<ICellPopulator<PartitionObjectDto>> item, String componentId,
                     IModel<PartitionObjectDto> rowModel) {
                 RoleAnalysisOutlierPartitionType partition = rowModel.getObject().getPartition();
-                Model<String> explanationTranslatedModel = explainPartition(partition);
+                Model<String> explanationTranslatedModel = explainPartition(
+                        roleAnalysisService, partition, true, task, result);
                 item.add(new Label(componentId, explanationTranslatedModel));
             }
 
@@ -333,7 +285,7 @@ public class RoleAnalysisOutlierTable extends BasePanel<AssignmentHolderType> {
         });
     }
 
-    private void initAnomalyAccessColumn(@NotNull List<IColumn<PartitionObjectDto, String>> columns) {
+    private void initAnomalyAccessColumn(RoleAnalysisService roleAnalysisService, @NotNull List<IColumn<PartitionObjectDto, String>> columns, Task task, OperationResult result) {
         columns.add(new AbstractColumn<>(
                 createStringResource("")) {
 
@@ -355,19 +307,8 @@ public class RoleAnalysisOutlierTable extends BasePanel<AssignmentHolderType> {
 
             @Override
             public void populateItem(Item<ICellPopulator<PartitionObjectDto>> cellItem, String componentId, IModel<PartitionObjectDto> model) {
-                PartitionObjectDto modelObject = model.getObject();
-                RoleAnalysisOutlierPartitionType partition = modelObject.getPartition();
-
-                List<DetectedAnomalyResult> detectedAnomalyResult = partition.getDetectedAnomalyResult();
-
-                if (detectedAnomalyResult == null) {
-                    cellItem.add(new Label(componentId, Model.of(0)));
-                    return;
-                }
-
-                int anomalyCount = detectedAnomalyResult.size();
                 LinkIconLabelIconPanel components = new LinkIconLabelIconPanel(componentId,
-                        Model.of(String.valueOf(anomalyCount))) {
+                        new PropertyModel<>(model, PartitionObjectDto.F_ANOMALY_ACCESS_COUNT)) {
                     @Contract(pure = true)
                     @Override
                     protected @NotNull String getLinkContainerCssClass() {
@@ -401,7 +342,8 @@ public class RoleAnalysisOutlierTable extends BasePanel<AssignmentHolderType> {
                             webMarkupContainerUser.add(AttributeModifier.replace("style", "display: none;"));
                             webMarkupContainerUser.setExpanded(true);
 
-                            RoleAnalysisDetectedAnomalyTable detectedAnomalyTable = buildDetectedAnomalyTable(modelObject, partition);
+                            PartitionObjectDto modelObject = model.getObject();
+                            RoleAnalysisDetectedAnomalyTable detectedAnomalyTable = buildDetectedAnomalyTable(roleAnalysisService, modelObject, modelObject.getPartition(), task, result);
                             webMarkupContainerUser.add(detectedAnomalyTable);
 
                             collapseContainerUser.replaceWith(webMarkupContainerUser);
@@ -418,11 +360,16 @@ public class RoleAnalysisOutlierTable extends BasePanel<AssignmentHolderType> {
         });
     }
 
-    private static @NotNull RoleAnalysisDetectedAnomalyTable buildDetectedAnomalyTable(
+    private @NotNull RoleAnalysisDetectedAnomalyTable buildDetectedAnomalyTable(
+            @NotNull RoleAnalysisService roleAnalysisService,
             @NotNull PartitionObjectDto modelObject,
-            RoleAnalysisOutlierPartitionType partition) {
+            @NotNull RoleAnalysisOutlierPartitionType partition,
+            @NotNull Task task,
+            @NotNull OperationResult result) {
+
         RoleAnalysisOutlierType outlierObject = modelObject.getOutlier();
-        AnomalyObjectDto dto = new AnomalyObjectDto(outlierObject, partition, false);
+        AnomalyObjectDto dto = new AnomalyObjectDto(
+                roleAnalysisService, outlierObject, partition, false, task, result);
         RoleAnalysisDetectedAnomalyTable detectedAnomalyTable = new RoleAnalysisDetectedAnomalyTable(ID_COLLAPSABLE_CONTENT, Model.of(dto)) {
 
             @Contract(pure = true)
@@ -452,26 +399,13 @@ public class RoleAnalysisOutlierTable extends BasePanel<AssignmentHolderType> {
             @Override
             public void populateItem(Item<ICellPopulator<PartitionObjectDto>> item, String componentId,
                     IModel<PartitionObjectDto> rowModel) {
-                RoleAnalysisOutlierPartitionType partition = rowModel.getObject().getPartition();
-                RoleAnalysisPartitionAnalysisType partitionAnalysis = partition.getPartitionAnalysis();
-                if (partitionAnalysis == null) {
-                    item.add(new EmptyPanel(componentId));
-                    return;
-                }
-
-                Double overallConfidence = partitionAnalysis.getOverallConfidence();
-                double finalOverallConfidence = overallConfidence != null ? overallConfidence : 0;
-                initDensityProgressPanel(item, componentId, finalOverallConfidence);
+                initDensityProgressPanel(item, componentId, rowModel);
             }
 
             @Override
             public Component getHeader(String componentId) {
                 return new LabelWithHelpPanel(componentId,
                         createStringResource("RoleAnalysisOutlierTable.outlier.confidence")) {
-//                    @Override
-//                    protected IModel<String> getHelpModel() {
-//                        return createStringResource("RoleAnalysisOutlierTable.outlier.confidence.help");
-//                    }
                 };
 
             }
@@ -543,36 +477,24 @@ public class RoleAnalysisOutlierTable extends BasePanel<AssignmentHolderType> {
     private static void initDensityProgressPanel(
             @NotNull Item<ICellPopulator<PartitionObjectDto>> cellItem,
             @NotNull String componentId,
-            @NotNull Double density) {
+            @NotNull IModel<PartitionObjectDto> rowModel) {
 
-        BigDecimal bd = new BigDecimal(Double.toString(density));
-        bd = bd.setScale(2, RoundingMode.HALF_UP);
-        double pointsDensity = bd.doubleValue();
+       IModel<RoleAnalysisProgressBarDto> model = () -> {
+           RoleAnalysisOutlierPartitionType partition = rowModel.getObject().getPartition();
+           RoleAnalysisPartitionAnalysisType partitionAnalysis = partition.getPartitionAnalysis();
+           if (partitionAnalysis == null) {
+               return null;
+           }
 
-        String colorClass = densityBasedColorOposite(pointsDensity);
+           Double overallConfidence = partitionAnalysis.getOverallConfidence();
+           double finalOverallConfidence = overallConfidence != null ? overallConfidence : 0;
 
-        ProgressBarSecondStyle progressBar = new ProgressBarSecondStyle(componentId) {
+           String colorClass = densityBasedColorOposite(finalOverallConfidence);
+           return new RoleAnalysisProgressBarDto(finalOverallConfidence, colorClass);
+       };
 
-            @Override
-            public boolean isInline() {
-                return true;
-            }
-
-            @Override
-            public double getActualValue() {
-                return pointsDensity;
-            }
-
-            @Override
-            public String getProgressBarColor() {
-                return colorClass;
-            }
-
-            @Override
-            public String getBarTitle() {
-                return "";
-            }
-        };
+        RoleAnalysisInlineProgressBar progressBar = new RoleAnalysisInlineProgressBar(componentId, model);
+        progressBar.add(new VisibleBehaviour(() -> model.getObject() != null)); //TODO visibility? or default dto values?
         progressBar.setOutputMarkupId(true);
         cellItem.add(progressBar);
     }

@@ -79,7 +79,7 @@ public class AnalysisInfoWidgetDto implements Serializable {
         List<IdentifyWidgetItem> detailsModel = new ArrayList<>();
         PolyStringType sessionName = session.getName();
         IModel<List<IdentifyWidgetItem>> sessionWidgetModelOutliers = loadOutlierWidgetModels(
-                pageBase, allSessionOutlierPartitions, sessionName, detailsModel);
+                pageBase, allSessionOutlierPartitions, sessionName, detailsModel, task, result);
 
         outlierModelData.clear();
         outlierModelData.addAll(sessionWidgetModelOutliers.getObject());
@@ -99,13 +99,16 @@ public class AnalysisInfoWidgetDto implements Serializable {
 
     }
 
-    public void loadOutlierModels(OperationResult result, @NotNull RoleAnalysisService roleAnalysisService, @NotNull PageBase pageBase) {
+    public void loadOutlierModels(
+            @NotNull RoleAnalysisService roleAnalysisService,
+            @NotNull PageBase pageBase,
+            @NotNull Task task,
+            @NotNull OperationResult result) {
         List<IdentifyWidgetItem> detailsModelOutliers = new ArrayList<>();
 
-        Task task = pageBase.createSimpleTask("loadOutlierModels");
         List<RoleAnalysisOutlierType> topThreeOutliers = roleAnalysisService.getTopOutliers(3, task, result);
         if (topThreeOutliers != null && !topThreeOutliers.isEmpty()) {
-            loadOutlierModel(detailsModelOutliers, topThreeOutliers, pageBase);
+            loadOutlierModel(roleAnalysisService, detailsModelOutliers, topThreeOutliers, pageBase, task, result);
         }
 
         outlierModelData.clear();
@@ -115,9 +118,13 @@ public class AnalysisInfoWidgetDto implements Serializable {
 
     //TODO remove duplicates
     private void loadOutlierModel(
+            @NotNull RoleAnalysisService roleAnalysisService,
             @NotNull List<IdentifyWidgetItem> detailsModel,
             @NotNull List<RoleAnalysisOutlierType> topFiveOutliers,
-            @NotNull PageBase pageBase) {
+            @NotNull PageBase pageBase,
+            @NotNull Task task,
+            @NotNull OperationResult result) {
+
         for (RoleAnalysisOutlierType topFiveOutlier : topFiveOutliers) {
 
             Set<String> anomalies = new HashSet<>();
@@ -136,7 +143,7 @@ public class AnalysisInfoWidgetDto implements Serializable {
             overallConfidence = bd.doubleValue();
             String formattedConfidence = String.format("%.2f", overallConfidence);
 
-            @NotNull Model<String> description = explainOutlier(topFiveOutlier);
+            @NotNull Model<String> description = explainOutlier(roleAnalysisService, topFiveOutlier,false, task, result);
 
             RoleAnalysisOutlierPartitionType finalTopPartition = topPartition;
             IdentifyWidgetItem identifyWidgetItem = new IdentifyWidgetItem(

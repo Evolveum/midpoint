@@ -130,7 +130,7 @@ public class ResourceObjectClassifier {
             this.existingSorterResult = existingSorterResult;
         }
 
-        public ResourceObjectClassification execute(OperationResult result) throws SchemaException, ExpressionEvaluationException,
+        ResourceObjectClassification execute(OperationResult result) throws SchemaException, ExpressionEvaluationException,
                 CommunicationException, ConfigurationException, ObjectNotFoundException, SecurityViolationException {
 
             // Just in case the definition is missing (normally it's already present). See MID-7236.

@@ -6,25 +6,25 @@
  */
 package com.evolveum.midpoint.schema.processor;
 
+import java.io.Serial;
 import java.io.Serializable;
 import java.util.Objects;
 
 import com.evolveum.midpoint.prism.ItemProcessing;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PropertyAccessType;
 
 /**
  * @author semancik
  *
  */
 public class PropertyLimitations implements DebugDumpable, Serializable {
-    private static final long serialVersionUID = 1L;
+    @Serial private static final long serialVersionUID = 1L;
 
     private ItemProcessing processing;
     private int minOccurs;
     private int maxOccurs;
-    private PropertyAccessType access = new PropertyAccessType();
+    private PropertyAccess access = new PropertyAccess();
 
     public ItemProcessing getProcessing() {
         return processing;
@@ -50,11 +50,11 @@ public class PropertyLimitations implements DebugDumpable, Serializable {
         this.maxOccurs = maxOccurs;
     }
 
-    public PropertyAccessType getAccess() {
+    public PropertyAccess getAccess() {
         return access;
     }
 
-    public void setAccess(PropertyAccessType access) {
+    private void setAccess(PropertyAccess access) {
         this.access = access;
     }
 
@@ -98,20 +98,17 @@ public class PropertyLimitations implements DebugDumpable, Serializable {
 
     /** Returns `true` if the `modify` operation is allowed. */
     public boolean canModify() {
-        return access == null
-                || Boolean.TRUE.equals(access.isModify());
+        return access == null || access.isModify();
     }
 
     /** Returns `true` if the `add` operation is allowed. */
     public boolean canAdd() {
-        return access == null
-                || Boolean.TRUE.equals(access.isAdd());
+        return access == null || access.isAdd();
     }
 
     /** Returns `true` if the `read` operation is allowed. */
     public boolean canRead() {
-        return access == null
-                || Boolean.TRUE.equals(access.isRead());
+        return access == null || access.isRead();
     }
 
     PropertyLimitations cloneWithNewCardinality(int newMinOccurs, int newMaxOccurs) {

@@ -6,10 +6,10 @@
  */
 package com.evolveum.midpoint.gui.impl.page.admin.role.mining.tables.outlier.panel;
 
+import com.evolveum.midpoint.common.outlier.OutlierExplanationResolver;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.impl.component.data.provider.SelectableBeanObjectDataProvider;
 import com.evolveum.midpoint.model.api.mining.RoleAnalysisService;
-import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
@@ -34,7 +34,7 @@ public class AnomalyObjectDto implements Serializable {
 
     public record AnomalyPartitionMap(DetectedAnomalyResult anomalyResult,
                                       RoleAnalysisOutlierPartitionType associatedPartition,
-                                      List<OutlierDetectionExplanationType> explanation,
+                                      List<OutlierExplanationResolver.ExplanationResult> explanation,
                                       int partitionCount,
                                       double anomalyScore) {
     }
@@ -49,22 +49,30 @@ public class AnomalyObjectDto implements Serializable {
     }
 
     public AnomalyObjectDto(
+            @NotNull RoleAnalysisService roleAnalysisService,
             @NotNull RoleAnalysisOutlierType outlier,
             @Nullable RoleAnalysisOutlierPartitionType partition,
-            boolean isPartitionCountVisible) {
+            boolean isPartitionCountVisible,
+            @NotNull Task task,
+            @NotNull OperationResult result) {
         this.isPartitionCountVisible = isPartitionCountVisible;
-        intiModels(outlier, partition);
+        intiModels(roleAnalysisService, outlier, partition, task, result);
     }
 
-    public void intiModels(RoleAnalysisOutlierType outlier, RoleAnalysisOutlierPartitionType partition) {
+    public void intiModels(
+            @NotNull RoleAnalysisService roleAnalysisService,
+            RoleAnalysisOutlierType outlier,
+            RoleAnalysisOutlierPartitionType partition,
+            @NotNull Task task,
+            @NotNull OperationResult result) {
         this.outlier = outlier;
         Map<String, Integer> countPartitionsMap = countPartitions(outlier);
         if (partition != null) {
             this.category = AnomalyTableCategory.PARTITION_ANOMALY;
-            initPartitionModel(partition, countPartitionsMap);
+            initPartitionModel(roleAnalysisService, partition, countPartitionsMap, task, result);
         } else {
             this.category = AnomalyTableCategory.OUTLIER_OVERVIEW;
-            initOutlierAnomaliesBasedTopScore(outlier, countPartitionsMap);
+            initOutlierAnomaliesBasedTopScore(roleAnalysisService, outlier, countPartitionsMap, task, result);
         }
     }
 
@@ -85,17 +93,25 @@ public class AnomalyObjectDto implements Serializable {
         return partitionCountMap;
     }
 
-    public void initPartitionModel(@NotNull RoleAnalysisOutlierPartitionType partition, @NotNull Map<String, Integer> countPartitionsMap) {
+    public void initPartitionModel(
+            @NotNull RoleAnalysisService roleAnalysisService,
+            @NotNull RoleAnalysisOutlierPartitionType partition,
+            @NotNull Map<String, Integer> countPartitionsMap,
+            @NotNull Task task,
+            @NotNull OperationResult result) {
         List<DetectedAnomalyResult> detectedAnomalyResultList = partition.getDetectedAnomalyResult();
         for (DetectedAnomalyResult detectedAnomalyResult : detectedAnomalyResultList) {
-            updateAnomalyRecordIfNeeded(partition, detectedAnomalyResult, countPartitionsMap);
+            updateAnomalyRecordIfNeeded(roleAnalysisService, partition, detectedAnomalyResult, countPartitionsMap, task, result);
         }
     }
 
     private void updateAnomalyRecordIfNeeded(
+            @NotNull RoleAnalysisService roleAnalysisService,
             @NotNull RoleAnalysisOutlierPartitionType partition,
             @NotNull DetectedAnomalyResult detectedAnomalyResult,
-            @NotNull Map<String, Integer> countPartitionsMap) {
+            @NotNull Map<String, Integer> countPartitionsMap,
+            @NotNull Task task,
+            @NotNull OperationResult result) {
 
         ObjectReferenceType targetObjectRef = detectedAnomalyResult.getTargetObjectRef();
         DetectedAnomalyStatistics statistics = detectedAnomalyResult.getStatistics();
@@ -111,19 +127,23 @@ public class AnomalyObjectDto implements Serializable {
         String associatedRoleOid = targetObjectRef.getOid();
         AnomalyPartitionMap anomalyPartitionMap = roleAnomalyMap.get(associatedRoleOid);
 
-        List<OutlierDetectionExplanationType> explanation = detectedAnomalyResult.getExplanation();
+        List<OutlierExplanationResolver.ExplanationResult> explanationResults = roleAnalysisService
+                .explainOutlierAnomalyAccess(detectedAnomalyResult, task, result);
 
         if (anomalyPartitionMap == null || anomalyPartitionMap.anomalyScore() < confidence) {
             Integer partitionsCount = countPartitionsMap.getOrDefault(associatedRoleOid, 0);
             roleAnomalyMap.put(
                     associatedRoleOid,
-                    new AnomalyPartitionMap(detectedAnomalyResult, partition, explanation, partitionsCount, confidence));
+                    new AnomalyPartitionMap(detectedAnomalyResult, partition, explanationResults, partitionsCount, confidence));
         }
     }
 
     public void initOutlierAnomaliesBasedTopScore(
+            @NotNull RoleAnalysisService roleAnalysisService,
             @NotNull RoleAnalysisOutlierType outlier,
-            @NotNull Map<String, Integer> countPartitionsMap) {
+            @NotNull Map<String, Integer> countPartitionsMap,
+            @NotNull Task task,
+            @NotNull OperationResult result) {
 
         List<RoleAnalysisOutlierPartitionType> partitions = outlier.getPartition();
         if (partitions.isEmpty()) {
@@ -131,7 +151,7 @@ public class AnomalyObjectDto implements Serializable {
         }
         for (RoleAnalysisOutlierPartitionType partition : partitions) {
             partition.getDetectedAnomalyResult().forEach(detectedAnomalyResult
-                    -> updateAnomalyRecordIfNeeded(partition, detectedAnomalyResult, countPartitionsMap));
+                    -> updateAnomalyRecordIfNeeded(roleAnalysisService, partition, detectedAnomalyResult, countPartitionsMap, task, result));
         }
     }
 
@@ -208,7 +228,7 @@ public class AnomalyObjectDto implements Serializable {
         return roleAnomalyMap.get(oid).anomalyScore();
     }
 
-    public List<OutlierDetectionExplanationType> getExplanation(String oid) {
+    public List<OutlierExplanationResolver.ExplanationResult> getExplanation(String oid) {
         return roleAnomalyMap.get(oid).explanation();
     }
 

@@ -17,6 +17,9 @@ import java.util.List;
 
 import com.evolveum.midpoint.gui.impl.component.icon.IconCssStyle;
 
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.components.bar.RoleAnalysisBasicProgressBar;
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.model.RoleAnalysisProgressBarDto;
+
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -34,7 +37,6 @@ import com.evolveum.midpoint.gui.api.component.button.DropdownButtonDto;
 import com.evolveum.midpoint.gui.api.component.button.DropdownButtonPanel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.components.ProgressBarSecondStyle;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.page.PageRoleAnalysisCluster;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.page.PageRoleAnalysisSession;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.outlier.MetricValuePanel;
@@ -147,21 +149,19 @@ public class RoleAnalysisMigrationRoleTilePanel<T extends Serializable> extends 
     }
 
     private void initProgressBar() {
-        double finalProgress = 100;
+        IModel<RoleAnalysisProgressBarDto> model = () -> {
+            double finalProgress = 100;
+            String colorClass = confidenceBasedTwoColor(finalProgress);
+            RoleAnalysisProgressBarDto dto = new RoleAnalysisProgressBarDto(finalProgress, colorClass);
+            dto.setBarTitle("Migration status");
+            return dto;
+        };
 
-        String colorClass = confidenceBasedTwoColor(finalProgress);
-
-        ProgressBarSecondStyle progressBar = new ProgressBarSecondStyle(ID_PROGRESS_BAR) {
+        RoleAnalysisBasicProgressBar progressBar = new RoleAnalysisBasicProgressBar(ID_PROGRESS_BAR, model) {
 
             @Override
-            public double getActualValue() {
-                return finalProgress;
-            }
-
-            @Contract(pure = true)
-            @Override
-            protected @NotNull String getProgressBarContainerCssStyle() {
-                return "border-radius: 3px; height:13px;";
+            protected boolean isWider() {
+                return true;
             }
 
             @Contract(pure = true)
@@ -170,19 +170,10 @@ public class RoleAnalysisMigrationRoleTilePanel<T extends Serializable> extends 
                 return "col-12 pl-0 pr-0";
             }
 
-            @Override
-            public String getProgressBarColor() {
-                return colorClass;
-            }
 
-            @Contract(pure = true)
-            @Override
-            public @NotNull String getBarTitle() {
-                return "Migration status";
-            }
         };
         progressBar.setOutputMarkupId(true);
-        progressBar.add(AttributeModifier.replace(TITLE_CSS, () -> "Attribute confidence: " + finalProgress + "%"));
+        //TODOprogressBar.add(AttributeModifier.replace(TITLE_CSS, () -> "Attribute confidence: " + finalProgress + "%"));
         progressBar.add(new TooltipBehavior());
         add(progressBar);
     }

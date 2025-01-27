@@ -7,7 +7,7 @@
 package com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.outlier;
 
 import static com.evolveum.midpoint.gui.api.util.LocalizationUtil.translate;
-import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.table.RoleAnalysisTableTools.densityBasedColorOposite;
+import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.RoleAnalysisWebUtils.buildDensityProgressPanel;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -26,7 +26,6 @@ import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.components.ProgressBar;
 import com.evolveum.midpoint.model.api.mining.RoleAnalysisService;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -195,7 +194,7 @@ public class RoleAnalysisPartitionOverviewPanel extends BasePanel<RoleAnalysisOu
                         double confidence = partitionAnalysis.getAnomalyObjectsConfidence();
                         String title = createStringResource("RoleAnalysisOutlierType.widget.anomalies.confidence")
                                 .getString();
-                        return getDensityProgressPanel(id, confidence, title);
+                        return buildDensityProgressPanel(id, confidence, title);
                     }
 
                     @Override
@@ -239,7 +238,7 @@ public class RoleAnalysisPartitionOverviewPanel extends BasePanel<RoleAnalysisOu
                         }
                         String title = createStringResource("RoleAnalysisOutlierType.widget.patterns.confidence")
                                 .getString();
-                        return getDensityProgressPanel(id, confidence, title);
+                        return buildDensityProgressPanel(id, confidence, title);
                     }
 
                     @Override
@@ -286,7 +285,7 @@ public class RoleAnalysisPartitionOverviewPanel extends BasePanel<RoleAnalysisOu
                         }
                         String title = createStringResource("RoleAnalysisOutlierType.widget.similarity.confidence")
                                 .getString();
-                        return getDensityProgressPanel(id, confidence, title);
+                        return buildDensityProgressPanel(id, confidence, title);
                     }
 
                     @Override
@@ -326,7 +325,7 @@ public class RoleAnalysisPartitionOverviewPanel extends BasePanel<RoleAnalysisOu
                         }
                         String title = createStringResource("RoleAnalysisOutlierType.widget.attribute.confidence")
                                 .getString();
-                        return getDensityProgressPanel(id, confidence, title);
+                        return buildDensityProgressPanel(id, confidence, title);
                     }
 
                     @Override
@@ -452,43 +451,6 @@ public class RoleAnalysisPartitionOverviewPanel extends BasePanel<RoleAnalysisOu
         );
 
         return Model.ofList(detailsModel);
-    }
-
-    private static @NotNull ProgressBar getDensityProgressPanel(
-            @NotNull String componentId,
-            @NotNull Double density,
-            @NotNull String title) {
-
-        BigDecimal bd = new BigDecimal(Double.toString(density));
-        bd = bd.setScale(2, RoundingMode.HALF_UP);
-        double pointsDensity = bd.doubleValue();
-
-        String colorClass = densityBasedColorOposite(pointsDensity);
-
-        ProgressBar progressBar = new ProgressBar(componentId) {
-
-            @Override
-            public double getActualValue() {
-                return pointsDensity;
-            }
-
-            @Override
-            public String getProgressBarColor() {
-                return colorClass;
-            }
-
-            @Override
-            protected String getProgressBarContainerStyle() {
-                return "border-radius: 10px; height:10px;";
-            }
-
-            @Override
-            public String getBarTitle() {
-                return title;
-            }
-        };
-        progressBar.setOutputMarkupId(true);
-        return progressBar;
     }
 
     @Override

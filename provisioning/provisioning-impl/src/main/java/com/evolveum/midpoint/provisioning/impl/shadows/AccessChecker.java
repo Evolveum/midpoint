@@ -120,40 +120,4 @@ class AccessChecker {
             result.close();
         }
     }
-
-    void filterGetAttributes(
-            ShadowAttributesContainer attributeContainer,
-            ResourceObjectDefinition objectDefinition,
-            OperationResult parentResult) throws SchemaException {
-        var result = parentResult.createMinorSubresult(OP_ACCESS_CHECK);
-        var attributesToRemove = new ArrayList<ShadowAttribute<?, ?, ?, ?>>();
-        try {
-            for (var attribute : attributeContainer.getAttributes()) {
-                // Need to check model layer, not schema. Model means IDM logic which can be overridden in schemaHandling,
-                // schema layer is the original one.
-                PropertyLimitations limitations = objectDefinition
-                        .findAttributeDefinitionRequired(attribute.getElementName())
-                        .getLimitations(LayerType.MODEL);
-                if (limitations == null) {
-                    continue;
-                }
-                // We cannot throw error here. At least not now. Provisioning will internally use ignored attributes
-                // e.g. for simulated capabilities. This is not a problem for normal operations, but it is a problem
-                // for delayed operations (e.g. consistency) that are passing through this code again.
-                // TODO: we need to figure a way how to avoid this loop
-                if (!limitations.canRead()) {
-                    attributesToRemove.add(attribute);
-                }
-            }
-            for (var attributeToRemove : attributesToRemove) {
-                LOGGER.trace("Removing non-readable attribute {}", attributeToRemove);
-                attributeContainer.remove(attributeToRemove);
-            }
-        } catch (Throwable t) {
-            result.recordFatalError(t);
-            throw t;
-        } finally {
-            result.close();
-        }
-    }
 }

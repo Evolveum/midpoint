@@ -1,0 +1,29 @@
+<!--
+  ~ Copyright (c) 2010-2025 Evolveum
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<!DOCTYPE html>
+<html xmlns:wicket="http://wicket.apache.org">
+<wicket:panel>
+
+    <div class="d-flex flex-wrap pt-2 pb-1" wicket:id="title-container">
+        <div wicket:id="progressBarTitle" class="col progress-label p-0 text-truncate" style="text-transform: capitalize; font-size:14px;" ></div>
+        <div wicket:id="progressBarPercentage" class="col-auto progress-label float-right p-0" style="font-size:14px;"></div>
+    </div>
+
+    <div class="d-flex flex-wrap align-items-center gap-2 w-100">
+        <div class="col pl-0 pr-0" wicket:id="progress-container">
+            <div wicket:id="progressBarContainer" class="progress" style="border-radius: 3px; height:10px;">
+
+                <div wicket:id="progressBar" class="progress-bar" role="progressbar"
+                        aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">
+                </div>
+            </div>
+        </div>
+    </div>
+
+</wicket:panel>
+</html>

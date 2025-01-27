@@ -19,36 +19,21 @@
     <objectCollection>
         <collection>
             <filter>
-                <q:and>
-                    <q:equal>
-                        <q:path>activation/administrativeStatus</q:path>
-                        <expression>
-                            <queryInterpretationOfNoValue>filterAll</queryInterpretationOfNoValue>
-                            <path>$activation</path>
-                        </expression>
-                    </q:equal>
-                    <q:ref>
-                        <q:path>assignment/targetRef</q:path>
-                        <expression>
-                            <queryInterpretationOfNoValue>filterAll</queryInterpretationOfNoValue>
-                            <path>$organizationRef</path>
-                        </expression>
-                    </q:ref>
-                    <q:ref>
-                        <q:path>assignment/targetRef</q:path>
-                        <expression>
-                            <queryInterpretationOfNoValue>filterAll</queryInterpretationOfNoValue>
-                            <path>$roleRef</path>
-                        </expression>
-                    </q:ref>
-                    <q:ref>
-                        <q:path>assignment/construction/resourceRef</q:path>
-                        <expression>
-                            <queryInterpretationOfNoValue>filterAll</queryInterpretationOfNoValue>
-                            <path>$resourceRef</path>
-                        </expression>
-                    </q:ref>
-                </q:and>
+                <q:text>
+                    activation/administrativeStatus = yaml```
+                            queryInterpretationOfNoValue: filterAll
+                            path: "$activation"
+                    ``` and assignment/targetRef = yaml```
+                            queryInterpretationOfNoValue: filterAll
+                            path: "$organizationRef"
+                    ``` and assignment/targetRef = yaml```
+                            queryInterpretationOfNoValue: filterAll
+                            path: "$roleRef"
+                    ``` and assignment/construction/resourceRef = yaml```
+                            queryInterpretationOfNoValue: filterAll
+                            path: "$resourceRef"
+                    ```
+                </q:text>
             </filter>
         </collection>
         <parameter id="2">

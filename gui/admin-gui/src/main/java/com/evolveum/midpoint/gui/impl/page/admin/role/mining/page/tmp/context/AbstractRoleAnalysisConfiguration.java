@@ -65,7 +65,7 @@ public abstract class AbstractRoleAnalysisConfiguration implements RoleAnalysisC
         //TODO it make duplicate values in xml
         AnalysisAttributeSettingType value = new AnalysisAttributeSettingType();
         value.getPath().add(UserType.F_TITLE.toBean());
-//        value.getPath().add(UserType.F_PARENT_ORG_REF.toBean());
+        value.getPath().add(UserType.F_PARENT_ORG_REF.toBean());
         value.getPath().add(UserType.F_ARCHETYPE_REF.toBean());
         value.getPath().add(UserType.F_LOCALITY.toBean());
 
