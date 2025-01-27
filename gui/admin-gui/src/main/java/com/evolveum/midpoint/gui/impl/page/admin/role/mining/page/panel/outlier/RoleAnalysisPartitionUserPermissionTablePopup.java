@@ -32,7 +32,7 @@ import java.util.List;
 
 import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.RoleAnalysisWebUtils.loadRoleAnalysisTempTable;
 
-public class RoleAnalysisPartitionUserPermissionTablePopup extends BasePanel<RoleAnalysisOutlierPartitionType> implements Popupable {
+public class RoleAnalysisPartitionUserPermissionTablePopup extends BasePanel<RoleAnalysisOutlierPartitionType> {
     @Serial private static final long serialVersionUID = 1L;
 
     private static final String ID_TABLE = "table";
@@ -95,16 +95,6 @@ public class RoleAnalysisPartitionUserPermissionTablePopup extends BasePanel<Rol
         return 80;
     }
 
-    @Override
-    public String getWidthUnit() {
-        return "%";
-    }
-
-    @Override
-    public String getHeightUnit() {
-        return "%";
-    }
-
     public StringResourceModel getTitle() {
         return createStringResource("RoleAnalysisOutlierTable.anomaly.preview");
     }
@@ -113,22 +103,6 @@ public class RoleAnalysisPartitionUserPermissionTablePopup extends BasePanel<Rol
         RoleAnalysisPartitionUserPermissionTablePopup components = this;
         components.add(AttributeModifier.append("class", "p-0"));
         return components;
-    }
-
-    @Override
-    public @NotNull Component getFooter() {
-        Component footer = Popupable.super.getFooter();
-        footer.add(new VisibleBehaviour(() -> false));
-        return footer;
-    }
-
-    @Override
-    public @Nullable Component getTitleComponent() {
-        Component titleComponent = Popupable.super.getTitleComponent();
-        if (titleComponent != null) {
-            titleComponent.add(AttributeModifier.append("class", "m-0"));
-        }
-        return titleComponent;
     }
 
     public String getUniqueRoleOid() {

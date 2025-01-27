@@ -18,6 +18,7 @@ import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.experime
 import com.evolveum.midpoint.web.component.AjaxCompositedIconSubmitButton;
 import com.evolveum.midpoint.web.component.data.*;
 import com.evolveum.midpoint.web.component.data.paging.NavigatorPanel;
+import com.evolveum.midpoint.web.component.dialog.Popupable;
 import com.evolveum.midpoint.web.component.form.MidpointForm;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
@@ -182,19 +183,31 @@ public class RoleAnalysisPaginRows extends Fragment {
 
             @Override
             public void onSubmit(AjaxRequestTarget target) {
+                var pageBase = (PageBase) getPage();
+                var parentPopup = this.findParent(Popupable.class);
+                var isUsedInPopup = parentPopup != null;
                 RoleAnalysisTableSettingPanel selector = new RoleAnalysisTableSettingPanel(
-                        ((PageBase) getPage()).getMainPopupBodyId(),
+                        pageBase.getMainPopupBodyId(),
                         createStringResource("RoleAnalysisPathTableSelector.title"),
                         displayValueOptionModel) {
 
                     @Override
                     public void performAfterFinish(AjaxRequestTarget target) {
+                        if (isUsedInPopup) {
+                            pageBase.replaceMainPopup(parentPopup, target);
+                        } else {
+                            pageBase.hideMainPopup(target);
+                        }
                         resetTable(target);
                     } //TODO probably too heavy to reset mining chunk,
                       // however we would need a mechanism how to differentiate when the chunk mode was changed
                     // vs. when sorting or something else was changed which might not need the hard reset
                 };
-                ((PageBase) getPage()).showMainPopup(selector, target);
+                if (isUsedInPopup) {
+                    pageBase.replaceMainPopup(selector, target);
+                } else {
+                    pageBase.showMainPopup(selector, target);
+                }
             }
 
         };
