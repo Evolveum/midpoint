@@ -81,7 +81,7 @@ Overall, midPoint 4.9 is a major step from the past into the future.
 * Stopped generating passwords with "problematic" characters, like comma, apostrophe, ampersand, and so on.
 Now it's possible to define characters that are accepted in the password, but not used when generating a new password value.
 The default password policy was updated in this regard.
-See bug:MID-9541[].
+See bug:MID-9541[] and the xref:/midpoint/reference/security/credentials/password-policy/#_ignoreWhenGenerating[docs].
 * Stopped displaying some shadow operational properties (like the synchronization timestamp, iteration, and so on) among changes in simulation results.
 See bug:MID-9737[] and bug:MID-9986[].
 * Midpoint Query Language Fixed inconsistent whitespace behavior when using `not` filter, modified grammar of query language. See bug:MID-9351[].
