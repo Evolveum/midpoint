@@ -38,6 +38,11 @@ public class RoleAnalysisOutlierDashboardPanel<T extends Serializable> extends B
 
     public RoleAnalysisOutlierDashboardPanel(String id, IModel<String> model) {
         super(id, model);
+    }
+
+    @Override
+    protected void onInitialize() {
+        super.onInitialize();
         initLayout();
     }
 
