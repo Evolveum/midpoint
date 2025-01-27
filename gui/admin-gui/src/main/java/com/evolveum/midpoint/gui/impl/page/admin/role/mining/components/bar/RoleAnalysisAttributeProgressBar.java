@@ -7,10 +7,9 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.role.mining.components.bar;
 
-import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.model.RoleAnalysisAttributeProgressBarDto;
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.cluster.RoleAnalysisObjectDetailsTablePopupPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.tmp.panel.IconWithLabel;
+import com.evolveum.midpoint.gui.impl.util.DetailsPageUtil;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.web.component.data.column.AjaxLinkPanel;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
@@ -32,8 +31,6 @@ import com.evolveum.midpoint.gui.impl.page.admin.role.mining.model.RoleAnalysisP
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 import org.jetbrains.annotations.NotNull;
-
-import java.util.List;
 
 public class RoleAnalysisAttributeProgressBar extends AbstractRoleAnalysisProgressBar<RoleAnalysisAttributeProgressBarDto> {
 
@@ -80,7 +77,7 @@ public class RoleAnalysisAttributeProgressBar extends AbstractRoleAnalysisProgre
 
     public Component buildTitleComponent(String id) {
         if (getModelObject().isLinkTitle()) {
-            List<PrismObject<ObjectType>> prismObjects = getModelObject().getObjectValues();
+            PrismObject<ObjectType> prismObjects = getModelObject().getObjectValue();
             return buildAjaxLinkTitlePanel(id, prismObjects);
         } else {
             IconWithLabel progressBarTitle = new IconWithLabel(id, new PropertyModel<>(getModel(), RoleAnalysisProgressBarDto.F_BAR_TITLE)) {
@@ -99,20 +96,11 @@ public class RoleAnalysisAttributeProgressBar extends AbstractRoleAnalysisProgre
         }
     }
 
-    private @NotNull AjaxLinkPanel buildAjaxLinkTitlePanel(String id, List<PrismObject<ObjectType>> prismObjects) {
+    private @NotNull AjaxLinkPanel buildAjaxLinkTitlePanel(String id, PrismObject<ObjectType> prismObjects) {
         AjaxLinkPanel ajaxLinkPanel = new AjaxLinkPanel(id, new PropertyModel<>(getModel(), RoleAnalysisProgressBarDto.F_BAR_TITLE)) {
             @Override
             public void onClick(AjaxRequestTarget target) {
-                RoleAnalysisObjectDetailsTablePopupPanel detailsPanel = new RoleAnalysisObjectDetailsTablePopupPanel(getPageBase().getMainPopupBodyId(),
-                        getPageBase().createStringResource("RoleAnalysis.analyzed.members.details.panel"),
-                        prismObjects) {
-                    @Override
-                    public void onClose(AjaxRequestTarget ajaxRequestTarget) {
-                        super.onClose(ajaxRequestTarget);
-                    }
-                };
-
-                getPageBase().showMainPopup(detailsPanel, target);
+                DetailsPageUtil.dispatchToObjectDetailsPage(prismObjects, this);
             }
         };
         ajaxLinkPanel.setOutputMarkupId(true);
