@@ -849,14 +849,17 @@ public abstract class AbstractResourceObjectDefinitionImpl
 
         var cachingDefault = InternalsConfig.getShadowCachingDefault();
 
-        ShadowCachingPolicyType parentPolicy; // everything above the object class/type level
-        if (cachingDefault == InternalsConfig.ShadowCachingDefault.FROM_SYSTEM_CONFIGURATION) {
-            parentPolicy = BaseMergeOperation.merge(basicResourceInformation.cachingPolicy(), getSystemDefaultPolicy());
-        } else {
-            parentPolicy = basicResourceInformation.cachingPolicy();
-        }
+        // system-wide default policy
+        var defaultPolicy = cachingDefault == InternalsConfig.ShadowCachingDefault.FROM_SYSTEM_CONFIGURATION ?
+                getSystemDefaultPolicy() : InternalsConfig.defaultCachingPolicyIfNotFromSystemConfiguration;
 
+        // resource-wide + system-wide policy: everything above the object class/type level
+        var parentPolicy = BaseMergeOperation.merge(basicResourceInformation.cachingPolicy(), defaultPolicy);
+
+        // object class/type level policy
         var merged = BaseMergeOperation.merge(definitionBean.getCaching(), parentPolicy);
+
+        // policy with the defaults resolved
         var workingCopy = merged != null ? merged.clone() : new ShadowCachingPolicyType();
 
         boolean readCachedCapabilityPresent = isReadCachedCapabilityPresent();
@@ -914,6 +917,9 @@ public abstract class AbstractResourceObjectDefinitionImpl
         }
         if (workingCopy.getTimeToLive() == null) {
             workingCopy.setTimeToLive(XmlTypeConverter.createDuration(defaultForTtl));
+        }
+        if (workingCopy.getRetrievalTimestampMaintenance() == null) {
+            workingCopy.setRetrievalTimestampMaintenance(true);
         }
         return workingCopy;
     }

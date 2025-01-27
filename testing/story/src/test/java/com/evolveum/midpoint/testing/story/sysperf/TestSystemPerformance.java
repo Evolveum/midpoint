@@ -160,6 +160,8 @@ public class TestSystemPerformance extends AbstractStoryTest implements Performa
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
         super.initSystem(initTask, initResult);
 
+        turnOffRetrievalTimestampMaintenanceIfNeeded();
+
         DummyAuditService.getInstance().setEnabled(false);
 
         InternalsConfig.turnOffAllChecks();
@@ -186,6 +188,14 @@ public class TestSystemPerformance extends AbstractStoryTest implements Performa
         }
 
         createSummaryReportData();
+    }
+
+    private void turnOffRetrievalTimestampMaintenanceIfNeeded() {
+        if (InternalsConfig.isShadowCachingOnByDefault() && !InternalsConfig.isShadowCachingFullByDefault()) {
+            InternalsConfig.defaultCachingPolicyIfNotFromSystemConfiguration =
+                    new ShadowCachingPolicyType()
+                            .retrievalTimestampMaintenance(false);
+        }
     }
 
     private void createSummaryReportData() {
