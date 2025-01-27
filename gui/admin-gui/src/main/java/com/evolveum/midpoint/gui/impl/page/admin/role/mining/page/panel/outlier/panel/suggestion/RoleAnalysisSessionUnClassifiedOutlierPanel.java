@@ -52,7 +52,6 @@ public class RoleAnalysisSessionUnClassifiedOutlierPanel extends AbstractObjectM
         RoleAnalysisSessionType session = objectDetailsModels.getObjectType();
 
         RoleAnalysisOutlierTable table = new RoleAnalysisOutlierTable(ID_PANEL,
-                RoleAnalysisSessionUnClassifiedOutlierPanel.this.getPageBase(),
                 new LoadableDetachableModel<>() {
                     @Override
                     protected RoleAnalysisSessionType load() {

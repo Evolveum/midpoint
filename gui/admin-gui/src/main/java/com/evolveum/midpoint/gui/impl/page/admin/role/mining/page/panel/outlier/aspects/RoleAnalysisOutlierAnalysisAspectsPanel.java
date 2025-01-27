@@ -64,6 +64,10 @@ public class RoleAnalysisOutlierAnalysisAspectsPanel extends AbstractObjectMainP
     private static final String ID_HEADER_ITEMS = "header-items";
     private static final String ID_ACCESS_PANEL = "accessPanel";
 
+    private static final String DOT_CLASS = RoleAnalysisOutlierAnalysisAspectsPanel.class.getName() + ".";
+    private static final String OP_INIT_ACCESS_ANOMALIES = DOT_CLASS + "initAccessAnomalies";
+    private static final String OP_LOAD_DASHBOARD = DOT_CLASS + "loadDashboard";
+
     public RoleAnalysisOutlierAnalysisAspectsPanel(
             @NotNull String id,
             @NotNull ObjectDetailsModels<RoleAnalysisOutlierType> model,
@@ -86,22 +90,16 @@ public class RoleAnalysisOutlierAnalysisAspectsPanel extends AbstractObjectMainP
         ObjectDetailsModels<RoleAnalysisOutlierType> objectDetailsModels = getObjectDetailsModels();
 
         PageBase pageBase = getPageBase();
-        RoleAnalysisService roleAnalysisService = pageBase.getRoleAnalysisService();
-        Task task = pageBase.createSimpleTask("loadOutlierDetails");
-        OperationResult result = task.getResult();
 
-        initDashboard(roleAnalysisService, container, task, result);
+        initDashboard(container);
 
-        initAccessPanel(roleAnalysisService, objectDetailsModels, container, task, result);
+        initAccessPanel(objectDetailsModels, container);
 
     }
 
     private void initAccessPanel(
-            RoleAnalysisService roleAnalysisService,
             @NotNull ObjectDetailsModels<RoleAnalysisOutlierType> objectDetailsModels,
-            @NotNull WebMarkupContainer container,
-            @NotNull Task task,
-            @NotNull OperationResult result) {
+            @NotNull WebMarkupContainer container) {
         RoleAnalysisViewAllPanel<?> accessPanel = new RoleAnalysisViewAllPanel<>(ID_ACCESS_PANEL,
                 createStringResource("RoleAnalysis.aspect.overview.page.title.access.anomalies")) {
             @Contract(pure = true)
@@ -133,7 +131,11 @@ public class RoleAnalysisOutlierAnalysisAspectsPanel extends AbstractObjectMainP
 //                RoleAnalysisOutlierType outlierObject = objectDetailsModels.getObjectType();
 //                AnomalyObjectDto dto = new AnomalyObjectDto(outlierObject, null, false);
                 RoleAnalysisDetectedAnomalyTable detectedAnomalyTable = new RoleAnalysisDetectedAnomalyTable(id,
-                        () -> new AnomalyObjectDto(roleAnalysisService, objectDetailsModels.getObjectType(), null, false, task, result));
+                        () -> {
+                            Task task = getPageBase().createSimpleTask(OP_INIT_ACCESS_ANOMALIES);
+                            OperationResult result = task.getResult();
+                            return new AnomalyObjectDto(getPageBase().getRoleAnalysisService(), objectDetailsModels.getObjectType(), null, false, task, result);
+                        });
 
                 detectedAnomalyTable.setOutputMarkupId(true);
                 detectedAnomalyTable.add(AttributeAppender.append("style", "min-height: 400px;"));
@@ -146,10 +148,7 @@ public class RoleAnalysisOutlierAnalysisAspectsPanel extends AbstractObjectMainP
     }
 
     protected void initDashboard(
-            @NotNull RoleAnalysisService roleAnalysisService,
-            @NotNull WebMarkupContainer container,
-            @NotNull Task task,
-            @NotNull OperationResult result) {
+            @NotNull WebMarkupContainer container) {
 
         RepeatingView cardBodyComponent = new RepeatingView(ID_HEADER_ITEMS);
         cardBodyComponent.setOutputMarkupId(true);
@@ -286,7 +285,9 @@ public class RoleAnalysisOutlierAnalysisAspectsPanel extends AbstractObjectMainP
 
             @Override
             protected @NotNull Component getPanelComponent(String id) {
-                IconWithLabel iconWithLabel = new IconWithLabel(id, explainOutlier(roleAnalysisService, getObjectDetailsModels().getObjectType(), false, task, result)) {
+                Task task = getPageBase().createSimpleTask(OP_LOAD_DASHBOARD);
+                OperationResult result = task.getResult();
+                IconWithLabel iconWithLabel = new IconWithLabel(id, explainOutlier(getPageBase().getRoleAnalysisService(), getObjectDetailsModels().getObjectType(), false, task, result)) {
                     @Contract(pure = true)
                     @Override
                     protected @NotNull String getIconCssClass() {
