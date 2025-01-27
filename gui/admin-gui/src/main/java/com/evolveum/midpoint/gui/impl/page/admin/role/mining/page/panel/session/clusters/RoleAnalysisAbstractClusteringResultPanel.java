@@ -44,6 +44,7 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.web.component.RoleAnalysisTabbedPanel;
+import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
 import com.evolveum.midpoint.web.component.data.column.ColumnMenuAction;
 import com.evolveum.midpoint.web.component.data.column.LinkPanel;
 import com.evolveum.midpoint.web.component.data.column.ObjectNameColumn;
@@ -65,6 +66,7 @@ import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.DataTable;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.export.AbstractExportableColumn;
 import org.apache.wicket.extensions.markup.html.tabs.ITab;
@@ -203,7 +205,7 @@ public abstract class RoleAnalysisAbstractClusteringResultPanel extends Abstract
             @Override
             protected @NotNull List<InlineMenuItem> createInlineMenu() {
                 List<InlineMenuItem> menuItems = new ArrayList<>();
-                menuItems.add(RoleAnalysisAbstractClusteringResultPanel.this.createDeleteInlineMenu());
+                menuItems.add(RoleAnalysisAbstractClusteringResultPanel.this.createDeleteInlineMenu(panelId));
                 menuItems.add(RoleAnalysisAbstractClusteringResultPanel.this.createPreviewInlineMenu());
                 return menuItems;
             }
@@ -824,12 +826,7 @@ public abstract class RoleAnalysisAbstractClusteringResultPanel extends Abstract
         cellItem.add(progressBar);
     }
 
-    @SuppressWarnings("unchecked")
-    private MainObjectListPanel<RoleAnalysisClusterType> getTable() {
-        return (MainObjectListPanel<RoleAnalysisClusterType>) get(ID_FORM + ":" + ID_TABS_PANEL);
-    }
-
-    private InlineMenuItem createDeleteInlineMenu() {
+    private InlineMenuItem createDeleteInlineMenu(String tableId) {
         return new ButtonInlineMenuItem(createStringResource("MainObjectListPanel.menu.delete")) {
             @Override
             public CompositedIconBuilder getIconCompositedBuilder() {
@@ -841,7 +838,7 @@ public abstract class RoleAnalysisAbstractClusteringResultPanel extends Abstract
                     @Override
                     public void onClick(AjaxRequestTarget target) {
 
-                        List<SelectableBean<RoleAnalysisClusterType>> selectedObjects = getTable().getSelectedObjects();
+                        List<SelectableBean<RoleAnalysisClusterType>> selectedObjects = getTable(tableId).getSelectedObjects();
                         PageBase page = (PageBase) getPage();
                         RoleAnalysisService roleAnalysisService = page.getRoleAnalysisService();
                         Task task = page.createSimpleTask(OP_DELETE_CLUSTER);
@@ -874,21 +871,48 @@ public abstract class RoleAnalysisAbstractClusteringResultPanel extends Abstract
                             throw new SystemException("Couldn't delete cluster", e);
                         }
 
-                        getTable().refreshTable(target);
+                        getTable(tableId).refreshTable(target);
                     }
                 };
             }
 
+            @SuppressWarnings("rawtypes")
             @Override
             public IModel<String> getConfirmationMessageModel() {
-                String actionName = createStringResource("MainObjectListPanel.message.deleteAction").getString();
-                return getTable().getConfirmationMessageModel((ColumnMenuAction<?>) getAction(), actionName);
+                ColumnMenuAction action = (ColumnMenuAction) getAction();
+                return createConfirmationMessage(action, tableId);
             }
         };
     }
 
+    @SuppressWarnings("unchecked")
+    private MainObjectListPanel<RoleAnalysisClusterType> getTable(String tableId) {
+        return (MainObjectListPanel<RoleAnalysisClusterType>) get(getPageBase().createComponentPath(ID_FORM, ID_TABS_PANEL, tableId));
+    }
+
+    @Contract(pure = true)
+    private @NotNull IModel<String> createConfirmationMessage(
+            ColumnMenuAction<SelectableBean<RoleAnalysisClusterType>> action,
+            String tableId) {
+        return () -> {
+            IModel<SelectableBean<RoleAnalysisClusterType>> result = action.getRowModel();
+            if (result != null) {
+                return getString("RoleAnalysisAbstractClusterResultPanel.delete.single", WebComponentUtil.getName(result.getObject().getValue()));
+            }
+
+            List<SelectableBean<RoleAnalysisClusterType>> selectedObjects = getTable(tableId).getSelectedObjects();
+
+            if (selectedObjects.size() == 1) {
+                RoleAnalysisClusterType object = selectedObjects.get(0).getValue();
+                return getString("RoleAnalysisAbstractClusterResultPanel.delete.single", WebComponentUtil.getName(object));
+            }
+
+            return getString("RoleAnalysisAbstractClusterResultPanel.delete.multiple", selectedObjects.size());
+        };
+    }
+
     private InlineMenuItem createPreviewInlineMenu() {
-        return new ButtonInlineMenuItem(createStringResource("MainObjectListPanel.menu.delete")) {
+        return new ButtonInlineMenuItem(createStringResource("MainObjectListPanel.menu.cluster.preview")) {
             @Override
             public CompositedIconBuilder getIconCompositedBuilder() {
                 return getDefaultCompositedIconBuilder("fa fa-qrcode");
