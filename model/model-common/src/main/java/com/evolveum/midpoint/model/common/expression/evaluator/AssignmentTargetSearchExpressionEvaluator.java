@@ -101,7 +101,7 @@ class AssignmentTargetSearchExpressionEvaluator
 
             @Override
             protected void extendOptions(GetOperationOptionsBuilder builder, boolean searchOnResource) {
-                //builder.root().dontRetrieve();
+                builder.root().dontRetrieve();
             }
         };
     }
