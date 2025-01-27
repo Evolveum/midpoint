@@ -10,8 +10,6 @@ import java.io.Serial;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.form.AjaxSubmitLink;
 import org.apache.wicket.behavior.AttributeAppender;
@@ -20,25 +18,25 @@ import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
+import com.evolveum.midpoint.common.mining.objects.statistic.UserAccessDistribution;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.component.tabs.PanelTab;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.cluster.MembersDetailsPopupPanel;
-import com.evolveum.midpoint.model.api.mining.RoleAnalysisService;
-import com.evolveum.midpoint.common.mining.objects.statistic.UserAccessDistribution;
-import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.web.component.RoleAnalysisTabbedPanel;
 import com.evolveum.midpoint.web.component.TabbedPanel;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisProcessModeType;
-
-import org.jetbrains.annotations.Nullable;
 
 public class RoleAnalysisAccessTabPanel extends BasePanel<UserAccessDistribution> {
 
     private static final String ID_CONTAINER = "container";
     private static final String ID_PANEL = "panelId";
+
+    private static final String DOT_CLASS = RoleAnalysisAccessTabPanel.class.getName() + ".";
+    private static final String OP_LOAD_ASSIGNMENT_TARGETS = DOT_CLASS + "loadAssignmentTargets";
 
     public RoleAnalysisAccessTabPanel(
             @NotNull String id,
@@ -94,10 +92,6 @@ public class RoleAnalysisAccessTabPanel extends BasePanel<UserAccessDistribution
     }
 
     protected List<ITab> createTabs() {
-        Task simpleTask = getPageBase().createSimpleTask("loadOutlierDetails");
-        OperationResult result = simpleTask.getResult();
-        RoleAnalysisService roleAnalysisService = getPageBase().getRoleAnalysisService();
-
         if (getAccessDistributionModel() == null || getAccessDistributionModel().getObject() == null) {
             return new ArrayList<>();
         }
