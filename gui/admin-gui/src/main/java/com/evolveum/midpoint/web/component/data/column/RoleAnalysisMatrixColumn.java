@@ -23,9 +23,6 @@ import com.evolveum.midpoint.common.mining.objects.chunk.MiningBaseTypeChunk;
 import com.evolveum.midpoint.common.mining.objects.detection.DetectedPattern;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.cluster.MembersDetailsPopupPanel;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisProcessModeType;
 
 public abstract class RoleAnalysisMatrixColumn<A extends MiningBaseTypeChunk> extends AbstractColumn<A, String> {
@@ -99,28 +96,14 @@ public abstract class RoleAnalysisMatrixColumn<A extends MiningBaseTypeChunk> ex
 
             @Override
             public void onDisplayNameClick(AjaxRequestTarget target) {
-                Task task = getPageBase().createSimpleTask(OP_PREPARE_OBJECTS); //TODO task name
-
                 List<String> elements = getElements(miningChunkModel.getObject());
-                List<PrismObject<FocusType>> objects = new ArrayList<>();
-                for (String objectOid : elements) {
-                    objects.add(getPageBase().getRoleAnalysisService()
-                            .getFocusTypeObject(objectOid, task, task.getResult()));
-                }
 
                 MembersDetailsPopupPanel detailsPanel = new MembersDetailsPopupPanel(
                         getPageBase().getMainPopupBodyId(),
                         createStringResource("RoleAnalysis.analyzed.members.details.panel"),
-                        objects, RoleAnalysisProcessModeType.USER) {
-                    @Override
-                    public void onClose(AjaxRequestTarget ajaxRequestTarget) {
-                        super.onClose(ajaxRequestTarget);
-                    }
-                };
+                        elements, RoleAnalysisProcessModeType.USER);
                 getPageBase().showMainPopup(detailsPanel, target);
             }
-//                        }
-
         };
     }
 
