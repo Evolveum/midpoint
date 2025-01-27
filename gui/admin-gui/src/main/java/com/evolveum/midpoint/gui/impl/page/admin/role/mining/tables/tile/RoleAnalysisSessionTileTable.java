@@ -254,6 +254,7 @@ public class RoleAnalysisSessionTileTable extends BasePanel<String> {
                     @Override
                     protected void itemSelected(@NotNull AjaxRequestTarget target, @NotNull IModel<Toggle<ViewToggle>> item) {
                         getViewToggleModel().setObject(item.getObject().getValue());
+                        target.add(this);
                         target.add(RoleAnalysisSessionTileTable.this);
                     }
                 };

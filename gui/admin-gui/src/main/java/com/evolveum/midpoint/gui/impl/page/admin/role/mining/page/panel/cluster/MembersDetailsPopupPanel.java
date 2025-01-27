@@ -7,16 +7,15 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.cluster;
 
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
+import org.apache.wicket.extensions.markup.html.repeater.data.sort.SortOrder;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.markup.html.basic.Label;
@@ -28,29 +27,24 @@ import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.component.MainObjectListPanel;
 import com.evolveum.midpoint.gui.api.component.data.provider.ISelectableDataProvider;
 import com.evolveum.midpoint.gui.impl.component.data.provider.SelectableBeanObjectDataProvider;
-import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.schema.GetOperationOptions;
-import com.evolveum.midpoint.schema.SelectorOptions;
-import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.web.component.dialog.Popupable;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class MembersDetailsPopupPanel extends BasePanel<String> implements Popupable {
 
-    List<PrismObject<FocusType>> elements;
+    List<String> elements;
     RoleAnalysisProcessModeType processModeType;
     Map<String, RoleAnalysisAttributeStatistics> map;
 
-    public MembersDetailsPopupPanel(String id, IModel<String> messageModel, List<PrismObject<FocusType>> members,
+    public MembersDetailsPopupPanel(String id, IModel<String> messageModel, List<String> members,
             RoleAnalysisProcessModeType processModeType) {
         super(id, messageModel);
-        this.elements = members;
+        this.elements = members == null ? new ArrayList<>() : members;
         this.processModeType = processModeType;
     }
 
@@ -58,30 +52,12 @@ public class MembersDetailsPopupPanel extends BasePanel<String> implements Popup
     protected void onInitialize() {
         super.onInitialize();
 
-        Class<?> roleTypeClass;
-        if (processModeType.equals(RoleAnalysisProcessModeType.ROLE)) {
-            roleTypeClass = RoleType.class;
+        initLayout();
 
-        } else {
-            roleTypeClass = UserType.class;
-        }
+    }
 
-        SelectableBeanObjectDataProvider<FocusType> selectableBeanObjectDataProvider = new SelectableBeanObjectDataProvider<>(
-                this, Set.of()) {
-
-            @Override
-            protected List searchObjects(Class type, ObjectQuery query, Collection collection, Task task, OperationResult result) {
-                Integer offset = query.getPaging().getOffset();
-                Integer maxSize = query.getPaging().getMaxSize();
-
-                return elements.subList(offset, offset + maxSize).stream().map(element -> element.asObjectable()).toList();
-            }
-
-            @Override
-            protected Integer countObjects(Class<FocusType> type, ObjectQuery query, Collection<SelectorOptions<GetOperationOptions>> currentOptions, Task task, OperationResult result) throws CommonException {
-                return elements.size();
-            }
-        };
+    private void initLayout() {
+        Class<?> roleTypeClass = processModeType.equals(RoleAnalysisProcessModeType.ROLE) ? RoleType.class : UserType.class;
 
         MainObjectListPanel<FocusType> table = new MainObjectListPanel<>("table", FocusType.class, null) {
 
@@ -156,7 +132,7 @@ public class MembersDetailsPopupPanel extends BasePanel<String> implements Popup
 
             @Override
             protected boolean isHeaderVisible() {
-                return false;
+                return true;
             }
 
             @Override
@@ -166,7 +142,12 @@ public class MembersDetailsPopupPanel extends BasePanel<String> implements Popup
 
             @Override
             protected ISelectableDataProvider<SelectableBean<FocusType>> createProvider() {
-                return selectableBeanObjectDataProvider;
+                SelectableBeanObjectDataProvider<FocusType> provider = createSelectableBeanObjectDataProvider(() ->
+                        getCustomizeContentQuery(elements), null);
+                provider.setEmptyListOnNullQuery(true);
+                provider.setSort(ObjectType.F_NAME.getLocalPart(), SortOrder.ASCENDING);
+                provider.setDefaultCountIfNull(Integer.MAX_VALUE);
+                return provider;
             }
 
             @Override
@@ -177,7 +158,6 @@ public class MembersDetailsPopupPanel extends BasePanel<String> implements Popup
 
         table.setOutputMarkupId(true);
         add(table);
-
     }
 
     public void onClose(AjaxRequestTarget ajaxRequestTarget) {
@@ -211,10 +191,6 @@ public class MembersDetailsPopupPanel extends BasePanel<String> implements Popup
 
     @Override
     public StringResourceModel getTitle() {
-//        if (processModeType.equals(RoleAnalysisProcessModeType.ROLE)) {
-//            return new StringResourceModel("RoleMining.members.details.panel.title.roles");
-//        }
-//        return new StringResourceModel("RoleMining.members.details.panel.title.users");
         return null;
     }
 
@@ -228,5 +204,11 @@ public class MembersDetailsPopupPanel extends BasePanel<String> implements Popup
 
     protected boolean showTableAsCard() {
         return true;
+    }
+
+    protected ObjectQuery getCustomizeContentQuery(@NotNull List<String> elements) {
+        return PrismContext.get().queryFor(FocusType.class)
+                .id(elements.toArray(new String[0]))
+                .build();
     }
 }
