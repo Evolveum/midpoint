@@ -1,6 +1,8 @@
 = Module securityQuestionsForm
 :page-nav-title: Module securityQuestionsForm
 
+WARNING: From midPoint version 4.8, `securityQuestionsForm` module can't be the first module in the sequence. Before `securityQuestionsForm` module, we need to use authentication module for identification of the user, for example `focusIdentification`.
+
 Definition of "security questions form" module.
 The module is used for interactive log-in of a user by answering a set of security questions.
 
