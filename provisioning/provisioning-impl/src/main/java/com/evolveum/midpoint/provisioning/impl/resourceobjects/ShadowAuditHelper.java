@@ -11,11 +11,6 @@ import java.util.Collection;
 
 import com.evolveum.midpoint.prism.Referencable;
 
-import com.evolveum.midpoint.schema.GetOperationOptions;
-import com.evolveum.midpoint.schema.GetOperationOptionsBuilder;
-
-import com.evolveum.midpoint.schema.SelectorOptions;
-
 import org.apache.commons.lang3.BooleanUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -49,11 +44,12 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
+import static com.evolveum.midpoint.schema.GetOperationOptions.createReadOnlyCollection;
+
 @Component
 public class ShadowAuditHelper {
 
     private static final Trace LOGGER = TraceManager.getTrace(ShadowAuditHelper.class);
-    private static final @NotNull Collection<SelectorOptions<GetOperationOptions>> GET_NAME_OPTIONS = GetOperationOptionsBuilder.create().readOnly().build();
 
     @Autowired private AuditHelper auditHelper;
     @Autowired private PrismContext prismContext;
@@ -152,8 +148,9 @@ public class ShadowAuditHelper {
         // TODO: We should have better API for name resolution instead of getObject()
         ObjectDeltaSchemaLevelUtil.NameResolver nameResolver =
                 (objectClass, oid, lResult) ->
+                        // Using read-only options to avoid cloning when fetching from the cache
                         repositoryService
-                                .getObject(objectClass, oid, GET_NAME_OPTIONS, lResult)
+                                .getObject(objectClass, oid, createReadOnlyCollection(), lResult)
                                 .getName();
 
         auditHelper.audit(auditRecord, nameResolver, ctx.getTask(), result);

@@ -10,7 +10,10 @@ package com.evolveum.midpoint.repo.cache.invalidation;
 import static com.evolveum.midpoint.repo.cache.RepositoryCache.CLASS_NAME_WITH_DOT;
 import static com.evolveum.midpoint.repo.cache.local.LocalRepoCacheCollection.*;
 
-import java.util.*;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -19,13 +22,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.CacheInvalidationContext;
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
 import com.evolveum.midpoint.repo.api.CacheDispatcher;
-import com.evolveum.midpoint.repo.api.CacheRegistry;
 import com.evolveum.midpoint.repo.api.RepositoryOperationResult;
-import com.evolveum.midpoint.repo.api.RepositoryService;
+import com.evolveum.midpoint.repo.cache.global.GlobalCacheQueryValue;
 import com.evolveum.midpoint.repo.cache.global.GlobalObjectCache;
 import com.evolveum.midpoint.repo.cache.global.GlobalQueryCache;
 import com.evolveum.midpoint.repo.cache.global.GlobalVersionCache;
@@ -34,7 +34,7 @@ import com.evolveum.midpoint.repo.cache.local.LocalQueryCache;
 import com.evolveum.midpoint.repo.cache.local.LocalVersionCache;
 import com.evolveum.midpoint.repo.cache.local.QueryKey;
 import com.evolveum.midpoint.schema.SearchResultList;
-import com.evolveum.midpoint.schema.cache.CacheConfigurationManager;
+import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -57,13 +57,8 @@ public class Invalidator {
     @Autowired private GlobalQueryCache globalQueryCache;
     @Autowired private GlobalObjectCache globalObjectCache;
     @Autowired private GlobalVersionCache globalVersionCache;
-    @Autowired PrismContext prismContext;
-    @Autowired RepositoryService repositoryService;
     @Autowired CacheDispatcher cacheDispatcher;
-    @Autowired CacheRegistry cacheRegistry;
     @Autowired MatchingRuleRegistry matchingRuleRegistry;
-    @Autowired CacheConfigurationManager cacheConfigurationManager;
-    @Autowired Invalidator invalidator;
 
     private static final int MAX_LISTENERS = 1000;
 
@@ -132,12 +127,12 @@ public class Invalidator {
         long start = System.currentTimeMillis();
         int all = 0;
         int removed = 0;
-        Iterator<Map.Entry<QueryKey, SearchResultList>> iterator = cache.getEntryIterator();
+        var iterator = cache.getEntryIterator();
         while (iterator.hasNext()) {
-            Map.Entry<QueryKey, SearchResultList> entry = iterator.next();
+            var entry = iterator.next();
             QueryKey<?> queryKey = entry.getKey();
             all++;
-            if (change.mayAffect(queryKey, entry.getValue(), matchingRuleRegistry)) {
+            if (change.mayAffect(queryKey, entry.getValue().getOidOnlyResult(), matchingRuleRegistry)) {
                 LOGGER.trace("Removing (from local cache) query for type={}, change={}: {}", type, change, queryKey.getQuery());
                 iterator.remove();
                 removed++;
@@ -159,18 +154,36 @@ public class Invalidator {
         AtomicInteger all = new AtomicInteger(0);
         AtomicInteger removed = new AtomicInteger(0);
 
-        globalQueryCache.deleteMatching(entry -> {
-            QueryKey queryKey = entry.getKey();
-            all.incrementAndGet();
-            if (change.mayAffect(queryKey, entry.getValue().getResult(), matchingRuleRegistry)) {
-                LOGGER.trace("Removing (from global cache) query for type={}, change={}: {}", type, change, queryKey.getQuery());
-                removed.incrementAndGet();
-                return true;
-            } else {
-                return false;
-            }
-        });
-        LOGGER.trace("Removed (from global cache) {} (of {}) query result entries of type {} in {} ms", removed, all, type, System.currentTimeMillis() - start);
+        // All ancestors, descendants, and the type itself. We have to check & remove queries issued against all of them.
+        var relevantTypes = getAllRelevantTypes(type);
+
+        relevantTypes.forEach(relevantType ->
+                globalQueryCache.deleteMatching(relevantType, entry -> {
+                    var singleTypeQueryKey = entry.getKey();
+                    var queryKey = singleTypeQueryKey.toQueryKey(relevantType);
+                    GlobalCacheQueryValue value = entry.getValue();
+                    all.incrementAndGet();
+                    if (change.mayAffect(queryKey, value.getOidOnlyResult(), matchingRuleRegistry)) {
+                        LOGGER.trace("Removing (from global cache) query for type={}, change={}: {}",
+                                relevantType, change, singleTypeQueryKey.getQuery());
+                        removed.incrementAndGet();
+                        return true;
+                    } else {
+                        return false;
+                    }
+                }));
+
+        LOGGER.trace("Removed (from global cache) {} (of {}) query result entries of type {} in {} ms",
+                removed, all, type, System.currentTimeMillis() - start);
+    }
+
+    private static <T extends ObjectType> @NotNull List<Class<ObjectType>> getAllRelevantTypes(Class<T> type) {
+        var typeRecord = ObjectTypes.getObjectType(type);
+        var relevantTypeRecords = new HashSet<>(typeRecord.thisAndSupertypes());
+        relevantTypeRecords.addAll(typeRecord.subtypes());
+        return relevantTypeRecords.stream()
+                .map(ObjectTypes::getClassDefinition)
+                .toList();
     }
 
     public void registerInvalidationEventsListener(InvalidationEventListener listener) {
@@ -187,10 +200,10 @@ public class Invalidator {
     }
 
     /**
-     * Checks if the search result is still valid, even specified invalidation events came.
+     * Checks if the search result is still valid, even after specified invalidation events came.
      */
-    public <T extends ObjectType> boolean isSearchResultValid(QueryKey<T> key, SearchResultList<PrismObject<T>> list,
-            List<InvalidationEvent> invalidationEvents) {
+    public <T extends ObjectType> boolean isSearchResultValid(
+            QueryKey<T> key, SearchResultList<String> list, List<InvalidationEvent> invalidationEvents) {
         for (InvalidationEvent event : invalidationEvents) {
             ChangeDescription change = ChangeDescription.getFrom(event);
             if (change != null && change.mayAffect(key, list, matchingRuleRegistry)) {

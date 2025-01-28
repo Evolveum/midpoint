@@ -569,7 +569,7 @@
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:since>4.6</a:since>
-                        <a:naturalKey>objectClass</a:naturalKey>
+                        <a:naturalKey>tns:objectClass</a:naturalKey>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -588,8 +588,8 @@
                         (And all inheriting definitions from refined object class definitions.)
                     </xsd:documentation>
                     <xsd:appinfo>
-                        <a:naturalKey>kind</a:naturalKey>
-                        <a:naturalKey>intent</a:naturalKey>
+                        <a:naturalKey>tns:kind</a:naturalKey>
+                        <a:naturalKey>tns:intent</a:naturalKey>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -1131,7 +1131,7 @@
             <xsd:appinfo>
                 <a:container/>
                 <a:since>4.9</a:since>
-                <a:naturalKey>markRef</a:naturalKey>
+                <a:naturalKey>tns:markRef</a:naturalKey>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
@@ -1836,7 +1836,7 @@
             <xsd:appinfo>
                 <a:container/>
                 <a:since>4.9</a:since>
-                <a:naturalKey>name</a:naturalKey>
+                <a:naturalKey>tns:name</a:naturalKey>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
@@ -2991,7 +2991,7 @@
                     <a:operation>removed</a:operation>
                 </a:schemaMigration>
                 <a:container/>
-                <a:naturalKey>filter</a:naturalKey>
+                <a:naturalKey>tns:filter</a:naturalKey>
                 <!-- Inherits schema context from ResourceObjectTypeDefinitionType-->
             </xsd:appinfo>
         </xsd:annotation>

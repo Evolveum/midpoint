@@ -17,15 +17,13 @@ import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.component.data.column.CompositedIconColumn;
-import com.evolveum.midpoint.gui.impl.component.data.provider.SelectableBeanObjectDataProvider;
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIcon;
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
 import com.evolveum.midpoint.gui.impl.component.icon.IconCssStyle;
 import com.evolveum.midpoint.gui.impl.page.admin.AbstractObjectMainPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.ObjectDetailsModels;
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.components.bar.RoleAnalysisInlineProgressBar;
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.model.RoleAnalysisProgressBarDto;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.session.ImageDetailsPanel;
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.session.provider.ClusterSelectableBeanObjectDataProvider;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.tmp.panel.IconWithLabel;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.tmp.panel.LinkIconLabelIconPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.tmp.panel.RoleAnalysisAttributePanel;
@@ -37,13 +35,12 @@ import com.evolveum.midpoint.model.api.mining.RoleAnalysisService;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.ResultHandler;
-import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.web.component.RoleAnalysisTabbedPanel;
+import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
 import com.evolveum.midpoint.web.component.data.column.ColumnMenuAction;
 import com.evolveum.midpoint.web.component.data.column.LinkPanel;
 import com.evolveum.midpoint.web.component.data.column.ObjectNameColumn;
@@ -52,6 +49,7 @@ import com.evolveum.midpoint.web.component.menu.cog.ButtonInlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.model.PrismPropertyWrapperHeaderModel;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
@@ -79,15 +77,12 @@ import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.Serial;
-import java.math.BigDecimal;
-import java.math.RoundingMode;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 
 import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.RoleAnalysisWebUtils.*;
-import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.table.RoleAnalysisTableTools.densityBasedColor;
+import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.session.provider.ClusterSelectableBeanObjectDataProvider.*;
 import static com.evolveum.midpoint.web.component.data.mining.RoleAnalysisCollapsableTablePanel.*;
 
 public abstract class RoleAnalysisAbstractClusteringResultPanel extends AbstractObjectMainPanel<RoleAnalysisSessionType, ObjectDetailsModels<RoleAnalysisSessionType>> {
@@ -184,15 +179,19 @@ public abstract class RoleAnalysisAbstractClusteringResultPanel extends Abstract
             }
 
             @Override
+            protected boolean isHeaderVisible() {
+                return false;
+            }
+
+            @Override
             protected @NotNull ISelectableDataProvider<SelectableBean<RoleAnalysisClusterType>> createProvider() {
-                //                SelectableBeanObjectDataProvider<RoleAnalysisClusterType> provider = createSelectableBeanObjectDataProvider(() ->
-//                        getCustomizeContentQuery(), null);
-//                provider.setEmptyListOnNullQuery(true);
-//                provider.setSort(null);
-//                provider.setDefaultCountIfNull(Integer.MAX_VALUE);
-//                provider.setSort(RoleAnalysisClusterType.F_NAME.getLocalPart(), SortOrder.DESCENDING);
-                return RoleAnalysisAbstractClusteringResultPanel.this
-                        .createProvider(category, RoleAnalysisAbstractClusteringResultPanel.this);
+                return new ClusterSelectableBeanObjectDataProvider(
+                        RoleAnalysisAbstractClusteringResultPanel.this,
+                        Model.of(),
+                        Set.of(),
+                        category,
+                        mappedClusterOutliers,
+                        getObjectWrapperObject().asObjectable());
             }
 
             @Override
@@ -201,9 +200,21 @@ public abstract class RoleAnalysisAbstractClusteringResultPanel extends Abstract
             }
 
             @Override
+            protected IColumn<SelectableBean<RoleAnalysisClusterType>, String> createCheckboxColumn() {
+                return new CheckBoxHeaderColumn<>(){
+                    @Override
+                    public Component getHeader(String componentId) {
+                        Component header = super.getHeader(componentId);
+                        header.add(new VisibleBehaviour(() -> false));
+                        return header;
+                    }
+                };
+            }
+
+            @Override
             protected @NotNull List<InlineMenuItem> createInlineMenu() {
                 List<InlineMenuItem> menuItems = new ArrayList<>();
-                menuItems.add(RoleAnalysisAbstractClusteringResultPanel.this.createDeleteInlineMenu());
+                menuItems.add(RoleAnalysisAbstractClusteringResultPanel.this.createDeleteInlineMenu(panelId));
                 menuItems.add(RoleAnalysisAbstractClusteringResultPanel.this.createPreviewInlineMenu());
                 return menuItems;
             }
@@ -501,7 +512,7 @@ public abstract class RoleAnalysisAbstractClusteringResultPanel extends Abstract
                                 && value.getClusterStatistics().getMembershipDensity() != null) {
                             AnalysisClusterStatisticType clusterStatistics = model.getObject().getValue().getClusterStatistics();
                             Double density = clusterStatistics.getMembershipDensity();
-                            initDensityProgressPanel(cellItem, componentId, density);
+                            initClusterDensityProgressPanel(cellItem, componentId, density);
                         } else {
 
                             cellItem.add(new EmptyPanel(componentId));
@@ -576,12 +587,12 @@ public abstract class RoleAnalysisAbstractClusteringResultPanel extends Abstract
 
                         @Override
                         public boolean isSortable() {
-                            return false;
+                            return true;
                         }
 
                         @Override
                         public String getSortProperty() {
-                            return AnalysisClusterStatisticType.F_DETECTED_REDUCTION_METRIC.getLocalPart();
+                            return SORT_REDUCTION_PROPERTY;
                         }
                     };
                     columns.add(column);
@@ -621,12 +632,12 @@ public abstract class RoleAnalysisAbstractClusteringResultPanel extends Abstract
 
                         @Override
                         public boolean isSortable() {
-                            return false;
+                            return true;
                         }
 
                         @Override
                         public String getSortProperty() {
-                            return AnalysisClusterStatisticType.F_DETECTED_REDUCTION_METRIC.getLocalPart();
+                            return SORT_OUTLIER_COUNT_PROPERTY;
                         }
                     };
                     columns.add(column);
@@ -795,41 +806,7 @@ public abstract class RoleAnalysisAbstractClusteringResultPanel extends Abstract
         target.appendJavaScript(getCollapseScript(collapseContainerUser, collapseContainerRole));
     }
 
-    private static void initDensityProgressPanel(
-            @NotNull Item<ICellPopulator<SelectableBean<RoleAnalysisClusterType>>> cellItem,
-            @NotNull String componentId,
-            @NotNull Double density) {
-
-        IModel<RoleAnalysisProgressBarDto> model = () -> {
-            BigDecimal bd = new BigDecimal(Double.toString(density));
-            bd = bd.setScale(2, RoundingMode.HALF_UP);
-            double actualValue = bd.doubleValue();
-
-            String colorClass = densityBasedColor(actualValue);
-
-            RoleAnalysisProgressBarDto dto = new RoleAnalysisProgressBarDto(actualValue, colorClass);
-            dto.setBarTitle("");
-            return dto;
-        };
-
-        RoleAnalysisInlineProgressBar progressBar = new RoleAnalysisInlineProgressBar(componentId, model) {
-            @Override
-            protected boolean isWider() {
-                return true;
-            }
-        };
-
-        progressBar.setOutputMarkupId(true);
-        progressBar.add(AttributeModifier.append(STYLE_CSS, "width: 170px"));
-        cellItem.add(progressBar);
-    }
-
-    @SuppressWarnings("unchecked")
-    private MainObjectListPanel<RoleAnalysisClusterType> getTable() {
-        return (MainObjectListPanel<RoleAnalysisClusterType>) get(ID_FORM + ":" + ID_TABS_PANEL);
-    }
-
-    private InlineMenuItem createDeleteInlineMenu() {
+    private InlineMenuItem createDeleteInlineMenu(String tableId) {
         return new ButtonInlineMenuItem(createStringResource("MainObjectListPanel.menu.delete")) {
             @Override
             public CompositedIconBuilder getIconCompositedBuilder() {
@@ -841,7 +818,7 @@ public abstract class RoleAnalysisAbstractClusteringResultPanel extends Abstract
                     @Override
                     public void onClick(AjaxRequestTarget target) {
 
-                        List<SelectableBean<RoleAnalysisClusterType>> selectedObjects = getTable().getSelectedObjects();
+                        List<SelectableBean<RoleAnalysisClusterType>> selectedObjects = getTable(tableId).getSelectedObjects();
                         PageBase page = (PageBase) getPage();
                         RoleAnalysisService roleAnalysisService = page.getRoleAnalysisService();
                         Task task = page.createSimpleTask(OP_DELETE_CLUSTER);
@@ -874,21 +851,49 @@ public abstract class RoleAnalysisAbstractClusteringResultPanel extends Abstract
                             throw new SystemException("Couldn't delete cluster", e);
                         }
 
-                        getTable().refreshTable(target);
+                        getTable(tableId).refreshTable(target);
+                        target.add(RoleAnalysisAbstractClusteringResultPanel.this);
                     }
                 };
             }
 
+            @SuppressWarnings("rawtypes")
             @Override
             public IModel<String> getConfirmationMessageModel() {
-                String actionName = createStringResource("MainObjectListPanel.message.deleteAction").getString();
-                return getTable().getConfirmationMessageModel((ColumnMenuAction<?>) getAction(), actionName);
+                ColumnMenuAction action = (ColumnMenuAction) getAction();
+                return createConfirmationMessage(action, tableId);
             }
         };
     }
 
+    @SuppressWarnings("unchecked")
+    private MainObjectListPanel<RoleAnalysisClusterType> getTable(String tableId) {
+        return (MainObjectListPanel<RoleAnalysisClusterType>) get(getPageBase().createComponentPath(ID_FORM, ID_TABS_PANEL, tableId));
+    }
+
+    @Contract(pure = true)
+    private @NotNull IModel<String> createConfirmationMessage(
+            ColumnMenuAction<SelectableBean<RoleAnalysisClusterType>> action,
+            String tableId) {
+        return () -> {
+            IModel<SelectableBean<RoleAnalysisClusterType>> result = action.getRowModel();
+            if (result != null) {
+                return getString("RoleAnalysisAbstractClusterResultPanel.delete.single", WebComponentUtil.getName(result.getObject().getValue()));
+            }
+
+            List<SelectableBean<RoleAnalysisClusterType>> selectedObjects = getTable(tableId).getSelectedObjects();
+
+            if (selectedObjects.size() == 1) {
+                RoleAnalysisClusterType object = selectedObjects.get(0).getValue();
+                return getString("RoleAnalysisAbstractClusterResultPanel.delete.single", WebComponentUtil.getName(object));
+            }
+
+            return getString("RoleAnalysisAbstractClusterResultPanel.delete.multiple", selectedObjects.size());
+        };
+    }
+
     private InlineMenuItem createPreviewInlineMenu() {
-        return new ButtonInlineMenuItem(createStringResource("MainObjectListPanel.menu.delete")) {
+        return new ButtonInlineMenuItem(createStringResource("MainObjectListPanel.menu.cluster.preview")) {
             @Override
             public CompositedIconBuilder getIconCompositedBuilder() {
                 return getDefaultCompositedIconBuilder("fa fa-qrcode");
@@ -1037,67 +1042,6 @@ public abstract class RoleAnalysisAbstractClusteringResultPanel extends Abstract
             throw new SystemException("Couldn't count outliers", ex);
         }
         return outliersMap;
-    }
-
-    private @NotNull SelectableBeanObjectDataProvider<RoleAnalysisClusterType> createProvider(
-            RoleAnalysisClusterCategory category,
-            Component component) {
-        PageBase pageBase = getPageBase();
-        Task task = pageBase.createSimpleTask("loadClusters");
-        OperationResult result = task.getResult();
-        RoleAnalysisService roleAnalysisService = pageBase.getRoleAnalysisService();
-        List<RoleAnalysisClusterType> sessionClustersByType = roleAnalysisService.getSessionClustersByType(
-                getObjectWrapperObject().getOid(), category, task, result);
-        RoleAnalysisSessionType session = getObjectDetailsModels().getObjectType();
-        RoleAnalysisOptionType analysisOption = session.getAnalysisOption();
-        RoleAnalysisProcedureType analysisProcedureType = analysisOption.getAnalysisProcedureType();
-        //sort by outlier count
-        if (analysisProcedureType == RoleAnalysisProcedureType.OUTLIER_DETECTION) {
-            ListMultimap<String, String> clusterMappedClusterOutliers = getMappedClusterOutliers().getObject();
-            sessionClustersByType.sort((o1, o2) -> Integer.compare(
-                    clusterMappedClusterOutliers.get(o2.getOid()).size(), clusterMappedClusterOutliers.get(o1.getOid()).size()));
-        } else {
-            sessionClustersByType.sort((o1, o2) -> {
-                AnalysisClusterStatisticType o1ClusterStatistics = o1.getClusterStatistics();
-                AnalysisClusterStatisticType o2ClusterStatistics = o2.getClusterStatistics();
-                if (o1ClusterStatistics == null
-                        || o2ClusterStatistics == null) {
-                    return 0;
-                }
-
-                if (o1ClusterStatistics.getDetectedReductionMetric() == null
-                        || o2ClusterStatistics.getDetectedReductionMetric() == null) {
-                    return 0;
-                }
-
-                return Double.compare(o2.getClusterStatistics().getDetectedReductionMetric(),
-                        o1.getClusterStatistics().getDetectedReductionMetric());
-            });
-        }
-        return new SelectableBeanObjectDataProvider<>(
-                component, Set.of()) {
-
-            @SuppressWarnings("rawtypes")
-            @Override
-            protected List<RoleAnalysisClusterType> searchObjects(Class type,
-                    ObjectQuery query,
-                    Collection collection,
-                    Task task,
-                    OperationResult result) {
-                Integer offset = query.getPaging().getOffset();
-                Integer maxSize = query.getPaging().getMaxSize();
-                return sessionClustersByType.subList(offset, offset + maxSize);
-            }
-
-            @Override
-            protected Integer countObjects(Class<RoleAnalysisClusterType> type,
-                    ObjectQuery query,
-                    Collection<SelectorOptions<GetOperationOptions>> currentOptions,
-                    Task task,
-                    OperationResult result) {
-                return sessionClustersByType.size();
-            }
-        };
     }
 
     //TODO we need decide how we can specify db for query provider

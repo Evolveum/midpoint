@@ -7,109 +7,120 @@
 
 package com.evolveum.midpoint.repo.cache.global;
 
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.repo.cache.local.QueryKey;
-import com.evolveum.midpoint.schema.SearchResultList;
-import com.evolveum.midpoint.schema.cache.CacheType;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SingleCacheStateInformationType;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.function.Predicate;
 
-import org.apache.commons.lang3.tuple.MutablePair;
+import com.evolveum.midpoint.repo.cache.local.SingleTypeQueryKey;
+import com.evolveum.midpoint.schema.constants.ObjectTypes;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+
+import jakarta.annotation.PreDestroy;
+import org.cache2k.Cache;
 import org.cache2k.Cache2kBuilder;
 import org.cache2k.expiry.ExpiryPolicy;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Component;
 
-import jakarta.annotation.PreDestroy;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.concurrent.atomic.AtomicInteger;
-import java.util.function.Predicate;
+import com.evolveum.midpoint.repo.cache.local.QueryKey;
+import com.evolveum.midpoint.schema.SearchResultList;
+import com.evolveum.midpoint.schema.cache.CacheType;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SingleCacheStateInformationType;
 
-import static com.evolveum.midpoint.repo.cache.handlers.SearchOpHandler.QUERY_RESULT_SIZE_LIMIT;
-
-/**
- *
- */
 @Component
 public class GlobalQueryCache extends AbstractGlobalCache {
 
     private static final Trace LOGGER = TraceManager.getTrace(GlobalQueryCache.class);
     private static final Trace LOGGER_CONTENT = TraceManager.getTrace(GlobalQueryCache.class.getName() + ".content");
 
-    private static final String CACHE_NAME = "queryCache";
+    private static final String CACHE_NAME_PREFIX = "queryCache";
 
-    private org.cache2k.Cache<QueryKey, GlobalCacheQueryValue> cache;
+    private boolean initialized;
+    private boolean available;
 
-    public void initialize() {
-        if (cache != null) {
+    private final Map<Class<? extends ObjectType>, TypeSpecificCache> cacheMap = new HashMap<>();
+
+    public synchronized void initialize() {
+        if (initialized) {
             LOGGER.warn("Global query cache was already initialized -- ignoring this request.");
             return;
         }
         long capacity = getCapacity();
         if (capacity == 0) {
-            LOGGER.warn("Capacity for " + getCacheType() + " is set to 0; this cache will be disabled (until system restart)");
-            cache = null;
+            LOGGER.warn("Capacity for {} is set to 0; this cache will be disabled", getCacheType());
+            available = false;
         } else {
-            cache = new Cache2kBuilder<QueryKey, GlobalCacheQueryValue>() {}
-                    .name(CACHE_NAME)
-                    .entryCapacity(capacity)
-                    .expiryPolicy(getExpirePolicy())
-                    .build();
-            LOGGER.info("Created global repository query cache with a capacity of {} queries", capacity);
+            ObjectTypes[] typeRecords = ObjectTypes.values();
+            for (var typeRecord : typeRecords) {
+                // TODO Could we make the expire policy faster, i.e. not requiring consultation of the configuration?
+                //  But that would need to re-create the cache on configuration change.
+                var cache = new Cache2kBuilder<SingleTypeQueryKey, GlobalCacheQueryValue>() {}
+                        .name(CACHE_NAME_PREFIX + "_" + typeRecord.getClassDefinition().getSimpleName())
+                        .expiryPolicy(getExpirePolicy(typeRecord.getClassDefinition()))
+                        .build();
+                cacheMap.put(typeRecord.getClassDefinition(), new TypeSpecificCache(cache));
+
+            }
+            available = true;
+            LOGGER.info("Created global repository query cache for {} object types, each with {}",
+                    typeRecords.length,
+                    capacity < 0 ? "unlimited capacity" : "a capacity of " + capacity + " queries per object type");
         }
+        initialized = true;
     }
 
-    private ExpiryPolicy<QueryKey, GlobalCacheQueryValue> getExpirePolicy() {
-        return (key, value, loadTime, oldEntry) -> getExpiryTime(key.getType());
+    private ExpiryPolicy<SingleTypeQueryKey, GlobalCacheQueryValue> getExpirePolicy(Class<? extends ObjectType> type) {
+        return (key, value, loadTime, oldEntry) -> getExpiryTime(type);
     }
 
     @PreDestroy
-    public void destroy() {
-        if (cache != null) {
-            cache.close();
-            cache = null;
+    public synchronized void destroy() {
+        if (initialized) {
+            cacheMap.forEach((type, cache) -> cache.cache.close());
+            cacheMap.clear();
+            initialized = false;
+            available = false;
         }
     }
 
     public boolean isAvailable() {
-        return cache != null;
+        return available;
     }
 
-    public <T extends ObjectType> SearchResultList<PrismObject<T>> get(QueryKey key) {
-        if (cache != null) {
-            GlobalCacheQueryValue value = cache.peek(key);
-            //noinspection unchecked
-            return value != null ? value.getResult() : null;
+    public GlobalCacheQueryValue get(QueryKey<?> key) {
+        var typeSpecificCache = cacheMap.get(key.getType());
+        if (typeSpecificCache != null) {
+            return typeSpecificCache.cache.peek(new SingleTypeQueryKey(key.getQuery()));
         } else {
             return null;
         }
     }
 
-    public void remove(QueryKey cacheKey) {
-        if (cache != null) {
-            cache.remove(cacheKey);
+    public void remove(QueryKey<?> key) {
+        var typeSpecificCache = cacheMap.get(key.getType());
+        if (typeSpecificCache != null) {
+            typeSpecificCache.cache.remove(new SingleTypeQueryKey(key.getQuery()));
         }
     }
 
-    public <T extends ObjectType> void put(QueryKey<T> key, @NotNull SearchResultList<PrismObject<T>> cacheObject) {
-        if (cache != null) {
-            cacheObject.checkImmutable();
-            if (cacheObject.size() > QUERY_RESULT_SIZE_LIMIT) {
-                throw new IllegalStateException("Trying to cache result list greater than " + QUERY_RESULT_SIZE_LIMIT + ": " + cacheObject.size());
-            }
-            //noinspection unchecked
-            cache.put(key, new GlobalCacheQueryValue(cacheObject));
+    public void put(QueryKey<?> key, @NotNull SearchResultList<String> immutableList) {
+        var typeSpecificCache = cacheMap.get(key.getType());
+        if (typeSpecificCache != null) {
+            typeSpecificCache.cache.put(
+                    new SingleTypeQueryKey(key.getQuery()),
+                    new GlobalCacheQueryValue(immutableList));
         }
     }
 
-    public void deleteMatching(Predicate<Map.Entry<QueryKey, GlobalCacheQueryValue>> predicate) {
-        if (cache != null) {
-            cache.asMap().entrySet().removeIf(predicate);
+    public void deleteMatching(
+            Class<? extends ObjectType> type, Predicate<Map.Entry<SingleTypeQueryKey, GlobalCacheQueryValue>> predicate) {
+        var typeSpecificCache = cacheMap.get(type);
+        if (typeSpecificCache != null) {
+            typeSpecificCache.cache.asMap().entrySet().removeIf(predicate);
         }
     }
 
@@ -119,61 +130,73 @@ public class GlobalQueryCache extends AbstractGlobalCache {
     }
 
     public int size() {
-        return cache.asMap().size();
+        return cacheMap.values().stream()
+                .mapToInt(cache -> cache.cache.asMap().size())
+                .sum();
     }
 
     @Override
     public void clear() {
-        if (cache != null) {
-            cache.clear();
-        }
+        cacheMap.forEach(
+                (type, cache) -> cache.cache.clear());
     }
 
     public Collection<SingleCacheStateInformationType> getStateInformation() {
-        Map<Class<?>, MutablePair<Integer, Integer>> counts = new HashMap<>();
-        AtomicInteger queries = new AtomicInteger(0);
-        AtomicInteger objects = new AtomicInteger(0);
-        if (cache != null) {
-            cache.invokeAll(cache.keys(), e -> {
-                QueryKey queryKey = e.getKey();
-                Class<?> objectType = queryKey.getType();
-                int resultingObjects = e.getValue().getResult().size();
-                MutablePair<Integer, Integer> value = counts.get(objectType);
-                if (value == null) {
-                    value = new MutablePair<>(0, 0);
-                    counts.put(objectType, value);
-                }
-                value.setLeft(value.getLeft() + 1);
-                value.setRight(value.getRight() + resultingObjects);
-                queries.incrementAndGet();
-                objects.addAndGet(resultingObjects);
-                return null;
-            });
-            SingleCacheStateInformationType info = new SingleCacheStateInformationType(prismContext)
-                    .name(GlobalQueryCache.class.getName())
-                    .size(queries.get())
-                    .secondarySize(objects.get());
-            counts.forEach((type, pair) ->
-                    info.beginComponent()
-                            .name(type.getSimpleName())
-                            .size(pair.getLeft())
-                            .secondarySize(pair.getRight()));
-            return Collections.singleton(info);
-        } else {
-            return Collections.emptySet();
+        if (!available) {
+            return List.of();
+        }
+        Map<Class<?>, Stats> perTypeStatsMap = new HashMap<>();
+        Stats totalStats = new Stats();
+        cacheMap.forEach((type, typeSpecificCache) ->
+                typeSpecificCache.cache.invokeAll(typeSpecificCache.cache.keys(), e -> {
+                    GlobalCacheQueryValue value = e.getValue();
+                    if (value != null) {
+                        int objects = value.getOidOnlyResult().size();
+                        perTypeStatsMap
+                                .computeIfAbsent(type, k -> new Stats())
+                                .addQuery(objects);
+                        totalStats.addQuery(objects);
+                    }
+                    return null;
+                }));
+        SingleCacheStateInformationType info = new SingleCacheStateInformationType()
+                .name(GlobalQueryCache.class.getName())
+                .size(totalStats.queries)
+                .secondarySize(totalStats.objects);
+        perTypeStatsMap.forEach((type, stats) ->
+                info.beginComponent()
+                        .name(type.getSimpleName())
+                        .size(stats.queries)
+                        .secondarySize(stats.objects));
+        return List.of(info);
+    }
+
+    private static class Stats {
+        int queries;
+        int objects;
+
+        void addQuery(int objects) {
+            queries++;
+            this.objects += objects;
         }
     }
 
     public void dumpContent() {
-        if (cache != null && LOGGER_CONTENT.isInfoEnabled()) {
-            cache.invokeAll(cache.keys(), e -> {
-                QueryKey key = e.getKey();
-                GlobalCacheQueryValue<?> value = e.getValue();
-                @NotNull SearchResultList<?> queryResult = value.getResult();
-                LOGGER_CONTENT.info("Cached query of {} ({} object(s), cached {} ms ago): {}: {}",
-                        key.getType().getSimpleName(), queryResult.size(), value.getAge(), key.getQuery(), queryResult);
-                return null;
-            });
+        if (available && LOGGER_CONTENT.isInfoEnabled()) {
+            cacheMap.forEach((type, typeSpecificCache) ->
+                    typeSpecificCache.cache.invokeAll(typeSpecificCache.cache.keys(), e -> {
+                        SingleTypeQueryKey key = e.getKey();
+                        GlobalCacheQueryValue value = e.getValue();
+                        if (value != null) {
+                            var oidList = value.getOidOnlyResult();
+                            LOGGER_CONTENT.info("Cached query of {} ({} object(s), cached {} ms ago): {}: {}",
+                                    type.getSimpleName(), oidList.size(), value.getAge(), key.getQuery(), oidList);
+                        }
+                        return null;
+                    }));
         }
+    }
+
+    private record TypeSpecificCache(Cache<SingleTypeQueryKey, GlobalCacheQueryValue> cache) {
     }
 }

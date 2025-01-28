@@ -208,8 +208,15 @@ class ShadowPostProcessor {
         if (!shadow.isIdentificationOnly()) {
             // The conversion from shadow to an ExistingResourceObjectShadow looks strange but actually has a point:
             // the shadow really came from the resource.
+            //
+            // TODO However, this code is very fragile. We assume that the shadow is the same as it would be if we
+            //  obtained it via regular getObject call (without include/exclude options). In particular, we assume
+            //  it contains all items (attributes, activation, etc) that are cached. This is generally true for
+            //  simulated associations. But for native ones, returning full object in the reference attribute, it
+            //  may not be true. (Fortunately, this should not occur for simple associations, only possibly for
+            //  the complex ones.)
             var existingResourceObject = ExistingResourceObjectShadow.fromShadow(shadow);
-            return acquireAndPostProcessShadow(shadowCtx, existingResourceObject, result);
+            return acquireAndPostProcessEmbeddedShadow(shadowCtx, existingResourceObject, result);
         }
 
         var identifiers = shadow.getAllIdentifiers();
@@ -252,14 +259,14 @@ class ShadowPostProcessor {
         // Try to look up repo shadow again, this time with full resource shadow. When we
         // have searched before we might have only some identifiers. The shadow
         // might still be there, but it may be renamed
-        return acquireAndPostProcessShadow(shadowCtx, fetchedResourceObject.resourceObject(), result);
+        return acquireAndPostProcessEmbeddedShadow(shadowCtx, fetchedResourceObject.resourceObject(), result);
     }
 
-    private static @NotNull ExistingResourceObjectShadow acquireAndPostProcessShadow(
+    private static @NotNull ExistingResourceObjectShadow acquireAndPostProcessEmbeddedShadow(
             ProvisioningContext ctxEntitlement, ExistingResourceObjectShadow existingResourceObject, OperationResult result)
             throws SchemaException, ConfigurationException, EncryptionException, ExpressionEvaluationException,
             CommunicationException, SecurityViolationException, ObjectNotFoundException {
-        var repoShadow = ShadowAcquisition.acquireRepoShadow(ctxEntitlement, existingResourceObject, result);
+        var repoShadow = ShadowAcquisition.acquireRepoShadow(ctxEntitlement, existingResourceObject, true, result);
         var shadowPostProcessor = new ShadowPostProcessor(
                 ctxEntitlement, repoShadow, existingResourceObject, null);
         return shadowPostProcessor.execute(result);

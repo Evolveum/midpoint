@@ -16,6 +16,8 @@ import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.impl.component.data.provider.SelectableBeanObjectDataProvider;
 import com.evolveum.midpoint.gui.impl.page.admin.AbstractObjectMainPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.ObjectDetailsModels;
+import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.web.component.RoleAnalysisTabbedPanel;
 import com.evolveum.midpoint.web.component.TabbedPanel;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
@@ -30,6 +32,7 @@ import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
 import org.apache.wicket.ajax.markup.html.form.AjaxSubmitLink;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
+import org.apache.wicket.extensions.markup.html.repeater.data.sort.SortOrder;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.export.AbstractExportableColumn;
 import org.apache.wicket.extensions.markup.html.tabs.ITab;
@@ -45,11 +48,11 @@ import org.jetbrains.annotations.NotNull;
 import org.wicketstuff.select2.Select2MultiChoice;
 
 import java.io.Serial;
+import java.io.Serializable;
 import java.util.*;
 
 import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.RoleAnalysisWebUtils.CLASS_CSS;
-import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.outlier.panel.categorization.CategorySelectionProvider.createTableProvider;
-import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.outlier.panel.categorization.CategorySelectionProvider.getCategoryValueDisplayString;
+import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.outlier.panel.categorization.CategorySelectionProvider.*;
 
 public abstract class RoleAnalysisAbstractClassificationObjectPanel extends AbstractObjectMainPanel<RoleAnalysisSessionType, ObjectDetailsModels<RoleAnalysisSessionType>> {
 
@@ -61,7 +64,7 @@ public abstract class RoleAnalysisAbstractClassificationObjectPanel extends Abst
     private static final String ID_DISTRIBUTION_USER_PANEL = "distributionUser";
     private static final int ROLE_TAB_INDEX = 1;
 
-    public record PanelOptions(boolean advanced, String rolesTitleId, String usersTitleId) {
+    public record PanelOptions(boolean advanced, String rolesTitleId, String usersTitleId) implements Serializable {
     }
 
     LoadableModel<Boolean> isRoleSelectedModel = new LoadableModel<>() {
@@ -232,10 +235,6 @@ public abstract class RoleAnalysisAbstractClassificationObjectPanel extends Abst
         List<RoleAnalysisObjectCategorizationType> allowedValues = CategorySelectionProvider.allowedValues(
                 options.advanced(), isRoleSelectedModel, sessionAnalysisOption);
 
-        //TODO ugly hack remove later
-        SelectableBeanObjectDataProvider<FocusType> selectableBeanObjectDataProvider = createTableProvider(this,
-                selectionModel, options.advanced(), items, params, isRoleSelectedModel, sessionAnalysisOption);
-
         MainObjectListPanel<FocusType> table = new MainObjectListPanel<>(panelId, FocusType.class, null) {
 
             @Contract(pure = true)
@@ -334,7 +333,7 @@ public abstract class RoleAnalysisAbstractClassificationObjectPanel extends Abst
 
             @Override
             protected boolean isHeaderVisible() {
-                return false;
+                return true;
             }
 
             @Contract(value = "_ -> new", pure = true)
@@ -345,7 +344,12 @@ public abstract class RoleAnalysisAbstractClassificationObjectPanel extends Abst
 
             @Override
             protected ISelectableDataProvider<SelectableBean<FocusType>> createProvider() {
-                return selectableBeanObjectDataProvider;
+                SelectableBeanObjectDataProvider<FocusType> provider = createSelectableBeanObjectDataProvider(() ->
+                        getCustomizeContentQuery(items, params, selectionModel), null);
+                provider.setEmptyListOnNullQuery(true);
+                provider.setSort(ObjectType.F_NAME.getLocalPart(), SortOrder.ASCENDING);
+                provider.setDefaultCountIfNull(Integer.MAX_VALUE);
+                return provider;
             }
 
             @Override
@@ -401,4 +405,30 @@ public abstract class RoleAnalysisAbstractClassificationObjectPanel extends Abst
         return (RoleAnalysisTabbedPanel<ITab>) get(getPageBase().createComponentPath(ID_CONTAINER, ID_PANEL));
     }
 
+    protected ObjectQuery getCustomizeContentQuery(
+            @NotNull List<RoleAnalysisIdentifiedCharacteristicsItemType> items,
+            Map<String, List<RoleAnalysisObjectCategorizationType>> params,
+            LoadableModel<List<RoleAnalysisObjectCategorizationType>> selectionModel) {
+        RoleAnalysisSessionType session = getObjectWrapperObject().asObjectable();
+        RoleAnalysisOptionType sessionAnalysisOption = session.getAnalysisOption();
+
+        List<RoleAnalysisObjectCategorizationType> allowedValues = CategorySelectionProvider.allowedValues(
+                options.advanced(), isRoleSelectedModel, sessionAnalysisOption);
+
+        Set<String> objectsOidsToLoad = new HashSet<>();
+        for (RoleAnalysisIdentifiedCharacteristicsItemType item : items) {
+            if (!skipProvidedObject(item, selectionModel, allowedValues)) {
+                ObjectReferenceType objectRef = item.getObjectRef();
+                if (objectRef != null && objectRef.getOid() != null) {
+                    objectsOidsToLoad.add(objectRef.getOid());
+                    params.put(item.getObjectRef().getOid(), item.getCategory());
+                }
+            }
+        }
+        //TODO whats with large number of objects. Should we make better query resolver or divide it
+        // into smaller queries (how in this case). (tested on 5000 objectsOidsToLoad list size)
+        return PrismContext.get().queryFor(FocusType.class)
+                .id(objectsOidsToLoad.toArray(new String[0]))
+                .build();
+    }
 }

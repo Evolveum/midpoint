@@ -13,6 +13,7 @@ import java.util.*;
 
 import com.evolveum.midpoint.common.outlier.OutlierExplanationResolver;
 import com.evolveum.midpoint.gui.api.component.LabelWithHelpPanel;
+import com.evolveum.midpoint.gui.impl.component.data.provider.SelectableBeanObjectDataProvider;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.outlier.RoleAnalysisExplanationTabPanelPopup;
 
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -22,6 +23,7 @@ import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
+import org.apache.wicket.extensions.markup.html.repeater.data.sort.SortOrder;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.export.AbstractExportableColumn;
 import org.apache.wicket.markup.html.basic.Label;
@@ -57,13 +59,20 @@ public class RoleAnalysisDetectedAnomalyTable extends BasePanel<AnomalyObjectDto
     private static final String DOT_CLASS = RoleAnalysisDetectedAnomalyTable.class.getName() + ".";
     private static final String OP_PREPARE_OBJECTS = DOT_CLASS + "prepareObjects";
 
+    protected static final String SORT_ANOMALY_SCORE = "anomalyScore";
+
     public RoleAnalysisDetectedAnomalyTable(String id,
             IModel<AnomalyObjectDto> dto) {
         super(id, dto);
-        createTable(RoleAnalysisDetectedAnomalyTable.this.getModelObject());
     }
 
-    private void createTable(AnomalyObjectDto anomalyObjectDto) {
+    @Override
+    protected void onInitialize() {
+        super.onInitialize();
+        createTable();
+    }
+
+    private void createTable() {
         MainObjectListPanel<RoleType> table = new MainObjectListPanel<>(ID_DATATABLE, RoleType.class, null) {
 
             @Contract(pure = true)
@@ -75,7 +84,7 @@ public class RoleAnalysisDetectedAnomalyTable extends BasePanel<AnomalyObjectDto
             @Contract("_ -> new")
             @Override
             protected @NotNull @Unmodifiable List<Component> createToolbarButtonsList(String buttonId) {
-                if (anomalyObjectDto.getCategory()
+                if (RoleAnalysisDetectedAnomalyTable.this.getModelObject().getCategory()
                         .equals(AnomalyObjectDto.AnomalyTableCategory.OUTLIER_OVERVIEW)) {
                     return List.of();
                 }
@@ -104,7 +113,7 @@ public class RoleAnalysisDetectedAnomalyTable extends BasePanel<AnomalyObjectDto
 
             @Override
             protected boolean isPagingVisible() {
-                if (anomalyObjectDto.getCategory() == AnomalyObjectDto.AnomalyTableCategory.OUTLIER_OVERVIEW) {
+                if (RoleAnalysisDetectedAnomalyTable.this.getModelObject().getCategory() == AnomalyObjectDto.AnomalyTableCategory.OUTLIER_OVERVIEW) {
                     return false;
                 }
                 return super.isPagingVisible();
@@ -113,15 +122,15 @@ public class RoleAnalysisDetectedAnomalyTable extends BasePanel<AnomalyObjectDto
             @Override
             protected @NotNull List<InlineMenuItem> createInlineMenu() {
                 List<InlineMenuItem> menuItems = new ArrayList<>();
-                AnomalyObjectDto.AnomalyTableCategory category = anomalyObjectDto.getCategory();
+                AnomalyObjectDto.AnomalyTableCategory category = RoleAnalysisDetectedAnomalyTable.this.getModelObject().getCategory();
                 if (category == AnomalyObjectDto.AnomalyTableCategory.PARTITION_ANOMALY) {
-                    menuItems.add(RoleAnalysisDetectedAnomalyTable.this.createViewDetailsMenu(anomalyObjectDto));
+                    menuItems.add(RoleAnalysisDetectedAnomalyTable.this.createViewDetailsMenu(RoleAnalysisDetectedAnomalyTable.this.getModelObject()));
                     return menuItems;
                 }
 
                 if (category == AnomalyObjectDto.AnomalyTableCategory.OUTLIER_OVERVIEW) {
-                    menuItems.add(RoleAnalysisDetectedAnomalyTable.this.createViewDetailsPeerGroupMenu(anomalyObjectDto));
-                    menuItems.add(RoleAnalysisDetectedAnomalyTable.this.createViewDetailsAccessAnalysisMenu(anomalyObjectDto));
+                    menuItems.add(RoleAnalysisDetectedAnomalyTable.this.createViewDetailsPeerGroupMenu(RoleAnalysisDetectedAnomalyTable.this.getModelObject()));
+                    menuItems.add(RoleAnalysisDetectedAnomalyTable.this.createViewDetailsAccessAnalysisMenu(RoleAnalysisDetectedAnomalyTable.this.getModelObject()));
                     return menuItems;
                 }
                 return menuItems;
@@ -146,10 +155,10 @@ public class RoleAnalysisDetectedAnomalyTable extends BasePanel<AnomalyObjectDto
 
             @Override
             protected @NotNull ISelectableDataProvider<SelectableBean<RoleType>> createProvider() {
-                Task simpleTask = getPageBase().createSimpleTask(OP_PREPARE_OBJECTS);
-                OperationResult result = simpleTask.getResult();
-                return anomalyObjectDto.buildProvider(RoleAnalysisDetectedAnomalyTable.this, getPageBase(),
-                        simpleTask, result);
+                SelectableBeanObjectDataProvider<RoleType> provider = RoleAnalysisDetectedAnomalyTable.this.getModelObject()
+                        .buildProvider(RoleAnalysisDetectedAnomalyTable.this);
+                provider.setSort(SORT_ANOMALY_SCORE, SortOrder.DESCENDING);
+                return provider;
             }
 
             @Override
@@ -189,7 +198,7 @@ public class RoleAnalysisDetectedAnomalyTable extends BasePanel<AnomalyObjectDto
                             SelectableBean<RoleType> object = model.getObject();
                             RoleType role = object.getValue();
                             String oid = role.getOid();
-                            int partitionCount = anomalyObjectDto.getPartitionCount(oid);
+                            int partitionCount = RoleAnalysisDetectedAnomalyTable.this.getModelObject().getPartitionCount(oid);
                             Label label = new Label(componentId, String.valueOf(partitionCount));
                             label.setOutputMarkupId(true);
                             cellItem.add(label);
@@ -224,7 +233,7 @@ public class RoleAnalysisDetectedAnomalyTable extends BasePanel<AnomalyObjectDto
                         RoleType role = object.getValue();
                         String oid = role.getOid();
 
-                        double anomalyScore = anomalyObjectDto.getAnomalyScore(oid);
+                        double anomalyScore = RoleAnalysisDetectedAnomalyTable.this.getModelObject().getAnomalyScore(oid);
                         BigDecimal bd = new BigDecimal(Double.toString(anomalyScore));
                         bd = bd.setScale(2, RoundingMode.HALF_UP);
                         double roundedAnomalyScore = bd.doubleValue();
@@ -235,9 +244,13 @@ public class RoleAnalysisDetectedAnomalyTable extends BasePanel<AnomalyObjectDto
 
                     @Override
                     public boolean isSortable() {
-                        return false;
+                        return true;
                     }
 
+                    @Override
+                    public String getSortProperty() {
+                        return SORT_ANOMALY_SCORE;
+                    }
                 };
                 columns.add(column);
 
@@ -256,7 +269,7 @@ public class RoleAnalysisDetectedAnomalyTable extends BasePanel<AnomalyObjectDto
                         RoleType role = object.getValue();
                         String oid = role.getOid();
 
-                        List<OutlierExplanationResolver.ExplanationResult> explanation = anomalyObjectDto.getExplanation(oid);
+                        List<OutlierExplanationResolver.ExplanationResult> explanation = RoleAnalysisDetectedAnomalyTable.this.getModelObject().getExplanation(oid);
                         Model<String> explainAnomaly = explainAnomaly(explanation);
                         cellItem.add(new Label(componentId, explainAnomaly));
                     }

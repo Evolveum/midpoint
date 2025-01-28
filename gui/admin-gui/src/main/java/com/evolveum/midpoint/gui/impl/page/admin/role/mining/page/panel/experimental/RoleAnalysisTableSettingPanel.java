@@ -138,7 +138,6 @@ public class RoleAnalysisTableSettingPanel extends BasePanel<String> implements 
                 displayOption.setChunkMode(selectedTableMode);
                 displayOption.setChunkAction(chunkAction);
                 performAfterFinish(target);
-                onClose(target);
             }
         };
         saveButton.setOutputMarkupId(true);
@@ -393,10 +392,6 @@ public class RoleAnalysisTableSettingPanel extends BasePanel<String> implements 
     }
 
     public void performAfterFinish(AjaxRequestTarget target) {
-    }
-
-    public void onClose(AjaxRequestTarget ajaxRequestTarget) {
-        getPageBase().hideMainPopup(ajaxRequestTarget);
     }
 
     public boolean isActive() {

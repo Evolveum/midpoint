@@ -18,7 +18,9 @@ import com.evolveum.midpoint.repo.cache.local.LocalVersionCache;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 /**
- * CacheAccessInfo for all six caches. T is object type to which this information is related.
+ * {@link CacheAccessInfo} for all six caches.
+ *
+ * `T` is object type to which this information is related.
  * It is here to avoid application of cache access information to wrong object types.
  */
 public class CacheSetAccessInfo<T extends ObjectType> {
@@ -30,7 +32,8 @@ public class CacheSetAccessInfo<T extends ObjectType> {
     @NotNull final CacheAccessInfo<GlobalVersionCache, T> globalVersion;
     @NotNull final CacheAccessInfo<GlobalQueryCache, T> globalQuery;
 
-    public CacheSetAccessInfo(@NotNull CacheAccessInfo<LocalObjectCache, T> localObject,
+    CacheSetAccessInfo(
+            @NotNull CacheAccessInfo<LocalObjectCache, T> localObject,
             @NotNull CacheAccessInfo<LocalVersionCache, T> localVersion,
             @NotNull CacheAccessInfo<LocalQueryCache, T> localQuery,
             @NotNull CacheAccessInfo<GlobalObjectCache, T> globalObject,
@@ -43,4 +46,13 @@ public class CacheSetAccessInfo<T extends ObjectType> {
         this.globalVersion = globalVersion;
         this.globalQuery = globalQuery;
     }
+
+    boolean isEffectivelySupportedByAnyObjectCache() {
+        return localObject.effectivelySupports() || globalObject.effectivelySupports();
+    }
+
+    boolean isEffectivelySupportedByAnyQueryCache() {
+        return localQuery.effectivelySupports() || globalQuery.effectivelySupports();
+    }
+
 }

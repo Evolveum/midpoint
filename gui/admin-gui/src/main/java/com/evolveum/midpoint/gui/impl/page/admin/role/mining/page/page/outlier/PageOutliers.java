@@ -199,11 +199,6 @@ public class PageOutliers extends PageAdmin {
             protected @NotNull List<IColumn<SelectableBean<RoleAnalysisOutlierType>, String>> createDefaultColumns() {
                 List<IColumn<SelectableBean<RoleAnalysisOutlierType>, String>> defaultColumns = super.createDefaultColumns();
 
-                PageBase pageBase = getPageBase();
-                RoleAnalysisService roleAnalysisService = pageBase.getRoleAnalysisService();
-                Task task = pageBase.createSimpleTask("loadOutliersExplanation");
-                OperationResult result = task.getResult();
-
                 IColumn<SelectableBean<RoleAnalysisOutlierType>, String> column;
 
                 column = new AbstractExportableColumn<>(
@@ -217,9 +212,14 @@ public class PageOutliers extends PageAdmin {
                     @Override
                     public void populateItem(Item<ICellPopulator<SelectableBean<RoleAnalysisOutlierType>>> cellItem,
                             String componentId, IModel<SelectableBean<RoleAnalysisOutlierType>> model) {
+
+                        PageBase pageBase = getPageBase();
+                        RoleAnalysisService roleAnalysisService = pageBase.getRoleAnalysisService();
+                        Task task = pageBase.createSimpleTask("loadOutliersExplanation");
+                        OperationResult result = task.getResult();
                         RoleAnalysisOutlierType outlierObject = model.getObject().getValue();
                         Model<String> explanationTranslatedModel = explainOutlier(
-                                roleAnalysisService, outlierObject,true, task, result);
+                                roleAnalysisService, outlierObject, true, task, result);
                         cellItem.add(new Label(componentId, explanationTranslatedModel));
                     }
 
@@ -362,17 +362,6 @@ public class PageOutliers extends PageAdmin {
                 return getString("pageOutliers.message.nothingSelected");
             }
 
-            @Contract(pure = true)
-            @Override
-            protected @NotNull String getConfirmMessageKeyForMultiObject() {
-                return "pageOutliers.message.confirmationMessageForMultipleObject";
-            }
-
-            @Contract(pure = true)
-            @Override
-            protected @NotNull String getConfirmMessageKeyForSingleObject() {
-                return "pageOutliers.message.confirmationMessageForSingleObject";
-            }
         };
     }
 
@@ -447,11 +436,32 @@ public class PageOutliers extends PageAdmin {
                 };
             }
 
+            @SuppressWarnings("rawtypes")
             @Override
             public IModel<String> getConfirmationMessageModel() {
-                String actionName = createStringResource("MainObjectListPanel.message.deleteAction").getString();
-                return getTable().getConfirmationMessageModel((ColumnMenuAction<?>) getAction(), actionName);
+                ColumnMenuAction action = (ColumnMenuAction) getAction();
+                return createConfirmationMessage(action);
             }
+        };
+    }
+
+    @Contract(pure = true)
+    private @NotNull IModel<String> createConfirmationMessage(
+            ColumnMenuAction<SelectableBean<RoleAnalysisClusterType>> action) {
+        return () -> {
+            IModel<SelectableBean<RoleAnalysisClusterType>> result = action.getRowModel();
+            if (result != null) {
+                return getString("PageOutliers.delete.single", WebComponentUtil.getName(result.getObject().getValue()));
+            }
+
+            List<SelectableBean<RoleAnalysisOutlierType>> selectedObjects = getTable().getSelectedObjects();
+
+            if (selectedObjects.size() == 1) {
+                RoleAnalysisOutlierType object = selectedObjects.get(0).getValue();
+                return getString("PageOutliers.delete.single", WebComponentUtil.getName(object));
+            }
+
+            return getString("PageOutliers.delete.multiple", selectedObjects.size());
         };
     }
 

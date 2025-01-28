@@ -145,6 +145,7 @@ public class RoleAnalysisOutlierPartitionTileTable extends BasePanel<String> {
                     @Override
                     protected void itemSelected(AjaxRequestTarget target, IModel<Toggle<ViewToggle>> item) {
                         getViewToggleModel().setObject(item.getObject().getValue());
+                        target.add(this);
                         target.add(RoleAnalysisOutlierPartitionTileTable.this);
                     }
                 };
