@@ -101,7 +101,6 @@ class AssignmentTargetSearchExpressionEvaluator
 
             @Override
             protected void extendOptions(GetOperationOptionsBuilder builder, boolean searchOnResource) {
-                // Fetches only oid + name + version
                 builder.root().dontRetrieve();
             }
         };
