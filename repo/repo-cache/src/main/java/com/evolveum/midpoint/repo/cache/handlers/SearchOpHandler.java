@@ -275,7 +275,7 @@ public class SearchOpHandler extends CachedOpHandler {
             var canUpdateQueryCache =
                     canUpdateAtLeastOneCache // this is just for static compile-time checks (regarding handler casting below)
                             && exec.cacheUseMode.canUpdateQueryCache()
-                            && (exec.globalInfo.effectivelySupports() || exec.localInfo.effectivelySupports());
+                            && exec.cachesInfo.isEffectivelySupportedByAnyQueryCache();
 
             var innerHandler = canUpdateAtLeastOneCache ?
                     new CachingResultHandler<>(exec, recordingHandler, canUpdateQueryCache, cacheUpdater) :
