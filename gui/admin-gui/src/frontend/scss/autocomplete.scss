@@ -18,12 +18,16 @@
   .line {
     padding: 3px;
     white-space: nowrap;
+  }
+
+  .suggestion {
     cursor: pointer;
 
     .name {
+
     }
 
-    .alias, .no-suggestion {
+    .alias {
       opacity: 0.5;
       margin: 0.9em;
     }
@@ -32,6 +36,13 @@
       border: 1px solid #abbffe;
       margin-top: -1px;
       background: rgba(233,233,253,0.4);
+    }
+  }
+
+  .no-suggestion {
+    span {
+      opacity: 0.5;
+      margin: 0.9em;
     }
   }
 
