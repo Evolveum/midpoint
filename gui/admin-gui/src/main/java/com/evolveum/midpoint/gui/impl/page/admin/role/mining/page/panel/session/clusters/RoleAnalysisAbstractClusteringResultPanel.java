@@ -40,6 +40,7 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.web.component.RoleAnalysisTabbedPanel;
+import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
 import com.evolveum.midpoint.web.component.data.column.ColumnMenuAction;
 import com.evolveum.midpoint.web.component.data.column.LinkPanel;
 import com.evolveum.midpoint.web.component.data.column.ObjectNameColumn;
@@ -48,6 +49,7 @@ import com.evolveum.midpoint.web.component.menu.cog.ButtonInlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.model.PrismPropertyWrapperHeaderModel;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
@@ -195,6 +197,18 @@ public abstract class RoleAnalysisAbstractClusteringResultPanel extends Abstract
             @Override
             protected boolean isCreateNewObjectVisible() {
                 return false;
+            }
+
+            @Override
+            protected IColumn<SelectableBean<RoleAnalysisClusterType>, String> createCheckboxColumn() {
+                return new CheckBoxHeaderColumn<>(){
+                    @Override
+                    public Component getHeader(String componentId) {
+                        Component header = super.getHeader(componentId);
+                        header.add(new VisibleBehaviour(() -> false));
+                        return header;
+                    }
+                };
             }
 
             @Override
