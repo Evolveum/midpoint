@@ -93,9 +93,19 @@ public class ResourceWizardPanel extends AbstractWizardPanel<ResourceType, Resou
             }
 
             @Override
-            protected void onExitPerformed(AjaxRequestTarget target) {
-                super.onExitPerformed(target);
+            protected OperationResult onSaveObjectPerformed(AjaxRequestTarget target) {
+                return getHelper().onSaveObjectPerformed(target);
+            }
+
+            @Override
+            protected void onExitPerformedAfterValidate(AjaxRequestTarget target) {
+                super.onExitPerformedAfterValidate(target);
                 exitToPreview(target);
+            }
+
+            @Override
+            protected void refreshValueModel() {
+                getHelper().refreshValueModel();
             }
         };
     }
@@ -115,9 +125,19 @@ public class ResourceWizardPanel extends AbstractWizardPanel<ResourceType, Resou
             }
 
             @Override
-            protected void onExitPerformed(AjaxRequestTarget target) {
-                super.onExitPerformed(target);
+            protected OperationResult onSaveObjectPerformed(AjaxRequestTarget target) {
+                return getHelper().onSaveObjectPerformed(target);
+            }
+
+            @Override
+            protected void onExitPerformedAfterValidate(AjaxRequestTarget target) {
+                super.onExitPerformedAfterValidate(target);
                 exitToPreview(target);
+            }
+
+            @Override
+            protected void refreshValueModel() {
+                getHelper().refreshValueModel();
             }
         };
     }
