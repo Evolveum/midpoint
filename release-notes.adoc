@@ -95,6 +95,18 @@ See bug:MID-9541[] and the xref:/midpoint/reference/security/credentials/passwor
 * Fixed All Access page crashing if assignment has multiple provenances. See bug:MID-10217[] and bug:MID-10358[].
 * bug:MID-10278[] Fix non-clickable part of a button in Edit Schema popup panel.
 
+* Role Analysis Improvements:
+** Improve overall performance.
+** Improved user experience (UX).
+** Added explanations for outlier objects and identified anomalies.
+** Introduced categorization for unclassified objects.
+** Refined the outlier detection algorithm.
+** Implemented a resolver for unusual attributes.
+** Fixed issues with multivalued department mode analysis.
+** Added an option to specify the minimum object popularity.
+
+* Anonymous Export Improvements:
+** Added support for exporting anonymized attributes.
 
 * Performance improvements in Native PostgreSQL repository:
 ** Lazy parsing for value metadata in Native PostgreSQL repository. Value metadata are parsed only if they are actually used
