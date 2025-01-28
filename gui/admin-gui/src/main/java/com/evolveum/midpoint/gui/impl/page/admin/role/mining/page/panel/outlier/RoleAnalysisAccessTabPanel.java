@@ -103,9 +103,8 @@ public class RoleAnalysisAccessTabPanel extends BasePanel<UserAccessDistribution
 
             @Override
             public WebMarkupContainer createPanel(String panelId) {
-                UserAccessDistribution object = getAccessDistributionModel().getObject();
                 MembersDetailsPopupPanel membersDetailsPopupPanel = new MembersDetailsPopupPanel(panelId, Model.of("TODO"),
-                        extractOidList(object.getDirectAssignments()), RoleAnalysisProcessModeType.ROLE) {
+                        extractOidList(getAccessDistributionModel().getObject().getDirectAssignments()), RoleAnalysisProcessModeType.ROLE) {
                     @Override
                     protected boolean showTableAsCard() {
                         return false;
@@ -122,10 +121,8 @@ public class RoleAnalysisAccessTabPanel extends BasePanel<UserAccessDistribution
 
             @Override
             public WebMarkupContainer createPanel(String panelId) {
-                UserAccessDistribution object = getAccessDistributionModel().getObject();
-
                 MembersDetailsPopupPanel membersDetailsPopupPanel = new MembersDetailsPopupPanel(panelId, Model.of("TODO"),
-                        extractOidList(object.getIndirectAssignments()), RoleAnalysisProcessModeType.ROLE) {
+                        extractOidList(getAccessDistributionModel().getObject().getIndirectAssignments()), RoleAnalysisProcessModeType.ROLE) {
                     @Override
                     protected boolean showTableAsCard() {
                         return false;
@@ -142,9 +139,8 @@ public class RoleAnalysisAccessTabPanel extends BasePanel<UserAccessDistribution
 
             @Override
             public WebMarkupContainer createPanel(String panelId) {
-                UserAccessDistribution object = getAccessDistributionModel().getObject();
                 MembersDetailsPopupPanel membersDetailsPopupPanel = new MembersDetailsPopupPanel(panelId, Model.of("TODO"),
-                        extractOidList(object.getDuplicates()), RoleAnalysisProcessModeType.ROLE) {
+                        extractOidList(getAccessDistributionModel().getObject().getDuplicates()), RoleAnalysisProcessModeType.ROLE) {
                     @Override
                     protected boolean showTableAsCard() {
                         return false;
