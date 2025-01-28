@@ -8,6 +8,7 @@
 package com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.cluster;
 
 import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.RoleAnalysisWebUtils.buildSimpleDensityBasedProgressBar;
+import static com.evolveum.midpoint.schema.util.ValueMetadataTypeUtil.getMetadata;
 
 import java.text.DecimalFormat;
 import java.util.List;
@@ -254,11 +255,14 @@ public class RoleAnalysisClusterSummaryPanel extends ObjectVerticalSummaryPanel<
 
     @Override
     protected String defineDescription(RoleAnalysisClusterType object) {
-        MetadataType metadata = object.getMetadata();
-        if (metadata == null) {
+
+        ValueMetadataType metadata = getMetadata(object);
+
+        if (metadata == null || metadata.getStorage() == null) {
             return "unknown";
         }
-        XMLGregorianCalendar createTimestamp = metadata.getCreateTimestamp();
+
+        XMLGregorianCalendar createTimestamp = metadata.getStorage().getCreateTimestamp();
         if (createTimestamp != null) {
             int eonAndYear = createTimestamp.getYear();
             int month = createTimestamp.getMonth();
