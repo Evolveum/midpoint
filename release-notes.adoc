@@ -77,10 +77,34 @@ Now it's possible to define characters that are accepted in the password, but no
 The default password policy was updated in this regard.
 See bug:MID-9541[] and the xref:/midpoint/reference/security/credentials/password-policy/#_ignoreWhenGenerating[docs].
 * Stopped displaying some shadow operational properties (like the synchronization timestamp, iteration, and so on) among changes in simulation results. See bug:MID-9737[] and bug:MID-9986[].
+* Midpoint Query Language Fixed inconsistent whitespace behavior when using `not` filter, modified grammar of query language. See bug:MID-9351[].
+* Fixed code completions & validation for @metadata language concept in Midpoint Query language. See bug:MID-10324[].
+* Fixed problem with handling syntax error in Midpoint Query Language. See bug:MID-8196[] and bug:MID-9585[].
 * bug:MID-10048[] Fix ClassCastException when creating duplicates of object types with new archetype
 * bug:MID-9683[] and bug:MID-10096[] Search filter not being submitted on enter.
 * bug:MID-10330[], bug:MID-10317[] and bug:10319[] Messages localization fixes.
 * bug:MID-9300[] Secure schema usage in PostgresSQL (not using public schema).
+* Fixed regression when user assignments can not be searched by name in GUI. See bug:MID-9732[]
+* Fixed searchObjectsIterative not working in scripts when ordering by OID. See bug:MID-10310[]
+* Fixed UnsupportedOperationException when using TypedQuery in scripts. See bug:MID-10351[]
+* Updated reports in initial objects to use Midpoint Query Language. See bug:MID-9618[].
+* Fixed All Cases panel sometimes not working. See bug:MID-10137[].
+* Fixed deadlock in Native PostgreSQL repository when shadow partitions are created and some URIs are not yet cached. See bug:MID-10231[].
+* Fixed NPE in Native PostgreSQL repository when adding inducement with runtime targetRef filter. See bug:MID-10305[].
+* Fixed too verbose logging when user in GUI entered syntacticly incorrect filter. See bug:MID-9342[].
+* Fixed All Access page crashing if assignment has multiple provenances. See bug:MID-10217[] and bug:MID-10358[].
+* bug:MID-10278[] Fix non-clickable part of a button in Edit Schema popup panel.
+
+
+* Performance improvements in Native PostgreSQL repository:
+** Lazy parsing for value metadata in Native PostgreSQL repository. Value metadata are parsed only if they are actually used
+** Partial updates which takes use of splitted full objects. When modification only changes assignments, linkRef, operationExecution or roleMembershipRef, there is no need to load / modify and serialize full object, only changed parts.
+** Decreased audit insert time when auditing large adds / modifications.
+
+* Performance tuning improvements:
+** Added quick option to SystemConfiguration/internals/valueMetadata to disable default provenance metadata for multivalue items (excepts assignments).
+** Added `iterationPageSize` to GetOperationOptions which allows to customize size of page in search*Iterative in Groovy Scripts.
+
 
 == Changes With Respect To Version 4.8
 

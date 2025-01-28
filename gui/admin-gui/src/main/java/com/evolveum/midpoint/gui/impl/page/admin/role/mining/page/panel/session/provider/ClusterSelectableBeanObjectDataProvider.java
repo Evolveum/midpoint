@@ -6,6 +6,8 @@ import com.evolveum.midpoint.gui.impl.component.data.provider.SelectableBeanObje
 
 import com.evolveum.midpoint.gui.impl.component.search.Search;
 import com.evolveum.midpoint.model.api.mining.RoleAnalysisService;
+import com.evolveum.midpoint.prism.query.ObjectOrdering;
+import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
@@ -23,6 +25,8 @@ import org.jetbrains.annotations.Nullable;
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
+
+import static com.evolveum.midpoint.gui.api.util.WebComponentUtil.safeLongToInteger;
 
 /**
  * A temporary implementation of a data provider for managing and sorting role analysis cluster objects in the session.
@@ -51,11 +55,11 @@ public class ClusterSelectableBeanObjectDataProvider extends SelectableBeanObjec
     private final RoleAnalysisSessionType sessionObject;
 
     public ClusterSelectableBeanObjectDataProvider(Component component,
-                                                   IModel<Search<RoleAnalysisClusterType>> search,
-                                                   Set<RoleAnalysisClusterType> selected,
-                                                   RoleAnalysisClusterCategory category,
-                                                   LoadableModel<ListMultimap<String, String>> clusterMappedClusterOutliers,
-                                                   RoleAnalysisSessionType sessionObject) {
+            IModel<Search<RoleAnalysisClusterType>> search,
+            Set<RoleAnalysisClusterType> selected,
+            RoleAnalysisClusterCategory category,
+            LoadableModel<ListMultimap<String, String>> clusterMappedClusterOutliers,
+            RoleAnalysisSessionType sessionObject) {
         super(component, search, selected);
 
         this.clusterMappedClusterOutliers = clusterMappedClusterOutliers;
@@ -98,6 +102,20 @@ public class ClusterSelectableBeanObjectDataProvider extends SelectableBeanObjec
         this.sessionClustersByType = loadSessionClusters(category);
 
         return sessionClustersByType.size();
+    }
+
+    @Override
+    public ObjectPaging createPaging(long offset, long pageSize) {
+        Integer o = safeLongToInteger(offset);
+        Integer size = safeLongToInteger(pageSize);
+        List<ObjectOrdering> orderings = null;
+
+        boolean allowed = !getSort().getProperty().equals(SORT_OUTLIER_COUNT_PROPERTY)
+                && !getSort().getProperty().equals(SORT_REDUCTION_PROPERTY);
+        if (!isOrderingDisabled() && allowed) {
+            orderings = createObjectOrderings(getSort());
+        }
+        return getPrismContext().queryFactory().createPaging(o, size, orderings);
     }
 
     private List<RoleAnalysisClusterType> loadSessionClusters(RoleAnalysisClusterCategory category) {
