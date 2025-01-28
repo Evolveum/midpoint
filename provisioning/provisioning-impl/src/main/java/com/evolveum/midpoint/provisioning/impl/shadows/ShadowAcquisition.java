@@ -55,14 +55,22 @@ class ShadowAcquisition {
     /** The resource object we try to acquire shadow for. May be minimalistic in extreme cases (sync changes, emergency). */
     @NotNull private final ExistingResourceObjectShadow resourceObject;
 
+    /*
+     * When acquiring embedded shadows, we can skip some items, like operation execution information,
+     * sparing some SQL queries (for native repo).
+     */
+    private final boolean embedded;
+
     private final ShadowsLocalBeans b = ShadowsLocalBeans.get();
 
     private ShadowAcquisition(
             @NotNull ProvisioningContext ctx,
-            @NotNull ExistingResourceObjectShadow resourceObject) throws SchemaException {
+            @NotNull ExistingResourceObjectShadow resourceObject,
+            boolean embedded) throws SchemaException {
         this.ctx = ctx;
         this.primaryIdentification = resourceObject.getPrimaryIdentification();
         this.resourceObject = resourceObject;
+        this.embedded = embedded;
     }
 
 
@@ -73,21 +81,25 @@ class ShadowAcquisition {
      *
      * It may look like this method would rather belong to ShadowManager. But it does not. It does too much stuff
      * (e.g. change notification).
+     *
+     * When acquiring embedded shadows, we can skip some items, like operation execution information,
+     * sparing some SQL queries (for native repo).
      */
     static @NotNull RepoShadowWithState acquireRepoShadow(
             @NotNull ProvisioningContext ctx,
             @NotNull ExistingResourceObjectShadow resourceObject,
+            boolean embedded,
             @NotNull OperationResult result)
             throws SchemaException, ConfigurationException, EncryptionException {
 
-        return new ShadowAcquisition(ctx, resourceObject)
+        return new ShadowAcquisition(ctx, resourceObject, embedded)
                 .execute(result);
     }
 
     private @NotNull RepoShadowWithState execute(OperationResult result)
             throws SchemaException, ConfigurationException, EncryptionException {
 
-        var existingLiveRepoShadow = b.shadowFinder.lookupLiveRepoShadowByPrimaryId(ctx, primaryIdentification, result);
+        var existingLiveRepoShadow = b.shadowFinder.lookupLiveRepoShadowByPrimaryId(ctx, primaryIdentification, embedded, result);
         if (existingLiveRepoShadow != null) {
             LOGGER.trace("Found live shadow object in the repository {}", existingLiveRepoShadow.shortDumpLazily());
             return RepoShadowWithState.existing(existingLiveRepoShadow);
@@ -119,7 +131,7 @@ class ShadowAcquisition {
 
         LOGGER.debug("Attempt to create new repo shadow for {} ended up in conflict, re-trying the search for repo shadow",
                 resourceObject);
-        var conflictingLiveShadow = b.shadowFinder.lookupLiveRepoShadowByPrimaryId(ctx, primaryIdentification, result);
+        var conflictingLiveShadow = b.shadowFinder.lookupLiveRepoShadowByPrimaryId(ctx, primaryIdentification, embedded, result);
 
         if (conflictingLiveShadow != null) {
             if (b.shadowUpdater.markLiveShadowExistingIfNotMarkedSo(conflictingLiveShadow, result)) {

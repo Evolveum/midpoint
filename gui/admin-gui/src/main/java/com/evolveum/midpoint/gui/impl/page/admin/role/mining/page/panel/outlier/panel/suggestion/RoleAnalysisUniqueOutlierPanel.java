@@ -53,7 +53,6 @@ public class RoleAnalysisUniqueOutlierPanel extends AbstractObjectMainPanel<Role
         RoleAnalysisClusterType cluster = objectDetailsModels.getObjectType();
 
         RoleAnalysisOutlierTable table = new RoleAnalysisOutlierTable(ID_PANEL,
-                RoleAnalysisUniqueOutlierPanel.this.getPageBase(),
                 new LoadableDetachableModel<>() {
                     @Override
                     protected RoleAnalysisClusterType load() {

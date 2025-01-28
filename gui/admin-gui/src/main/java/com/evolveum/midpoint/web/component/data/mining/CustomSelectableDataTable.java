@@ -9,6 +9,8 @@ package com.evolveum.midpoint.web.component.data.mining;
 
 import java.util.List;
 
+import com.evolveum.midpoint.web.component.data.SelectableDataTable;
+
 import org.apache.wicket.Component;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.behavior.Behavior;
@@ -36,17 +38,10 @@ public class CustomSelectableDataTable<T> extends CustomDataTable<T, String> {
 
     @Override
     protected Item<T> newRowItem(String id, int index, final IModel<T> model) {
-        final Item<T> rowItem = new SelectableRowItem<>(id, index, model);
+        final Item<T> rowItem = new SelectableDataTable.SelectableRowItem<>(id, index, model);
 
         rowItem.setOutputMarkupId(true);
         return rowItem;
-    }
-
-    public static class SelectableRowItem<T> extends Item<T> {
-
-        public SelectableRowItem(String id, int index, IModel<T> model) {
-            super(id, index, model);
-        }
     }
 
     @Override

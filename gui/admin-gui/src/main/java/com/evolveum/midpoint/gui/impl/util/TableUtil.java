@@ -1,6 +1,5 @@
 package com.evolveum.midpoint.gui.impl.util;
 
-import com.evolveum.midpoint.gui.impl.model.SelectableObjectModel;
 import com.evolveum.midpoint.web.component.data.SelectableDataTable;
 
 import com.evolveum.midpoint.web.component.util.SelectableBean;
@@ -10,10 +9,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.DataTable;
 import org.apache.wicket.model.IModel;
-import org.apache.wicket.util.visit.IVisit;
 import org.apache.wicket.util.visit.IVisitor;
 
-import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 

@@ -50,6 +50,7 @@ Overall, midPoint 4.9 is a major step from the past into the future.
 * bug:MID-10216[] Support exclusion of metadata in `get`/`search` rest APIs.
 * bug:MID-10305[] Remove max password length constraint.
 * bug:MID-10048[] Fix ClassCastException when creating duplicates of object types with new archetype
+* bug:MID-9300[] Secure schema usage in PostgresSQL (not using public schema).
 
 === Other Improvements
 
@@ -80,9 +81,13 @@ Overall, midPoint 4.9 is a major step from the past into the future.
 * Stopped generating passwords with "problematic" characters, like comma, apostrophe, ampersand, and so on.
 Now it's possible to define characters that are accepted in the password, but not used when generating a new password value.
 The default password policy was updated in this regard.
-See bug:MID-9541[].
+See bug:MID-9541[] and the xref:/midpoint/reference/security/credentials/password-policy/#_ignoreWhenGenerating[docs].
 * Stopped displaying some shadow operational properties (like the synchronization timestamp, iteration, and so on) among changes in simulation results.
 See bug:MID-9737[] and bug:MID-9986[].
+* Midpoint Query Language Fixed inconsistent whitespace behavior when using `not` filter, modified grammar of query language. See bug:MID-9351[].
+* Fixed code completions & validation for @metadata language concept in Midpoint Query language. See bug:MID-10324[].
+* Fixed problem with handling syntax error in Midpoint Query Language. See bug:MID-8196[] and bug:MID-9585[].
+
 
 === Releases Of Other Components
 

@@ -664,8 +664,6 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
             // Only reindex if mapping supports reindex (most mappings, except simulation result)
             reindex = reindex && updateContext.mapping().isReindexSupported();
             // FIXME: If reindex needed is detected and this is partial update (without full object)
-
-
             // object needs to be reloaded.
 
             if (reindex) {
@@ -734,7 +732,15 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
                         RepoModifyOptions.isForceReindex(options) ? GET_FOR_REINDEX_OPTIONS : GET_FOR_UPDATE_OPTIONS,
                         modifications, RepoModifyOptions.isForceReindex(options));
 
-        return prepareUpdateContext(jdbcSession, schemaType, oid, getOptions, options);
+        RootUpdateContext<S, Q, R>  updateContext = prepareUpdateContext(jdbcSession, schemaType, oid, getOptions, options);
+        if (updateContext.reindexNeeded()) {
+            var reindexOptions = options != null ? options.clone() : new RepoModifyOptions();
+            reindexOptions.setForceReindex(true);
+            Collection<SelectorOptions<GetOperationOptions>> getReindexOptions =
+                    rootMapping.updateGetOptions(GET_FOR_REINDEX_OPTIONS, modifications, true);
+            updateContext = prepareUpdateContext(jdbcSession, schemaType, oid, getReindexOptions, reindexOptions);
+        }
+        return updateContext;
     }
 
     /** Read object for update and returns update context that contains it with specific get options. */
@@ -750,10 +756,6 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
         SqaleTableMapping<S, QObject<R>, R> rootMapping =
                 sqlRepoContext.getMappingBySchemaType(schemaType);
         QObject<R> entityPath = rootMapping.defaultAlias();
-
-        Path<?>[] selectExpressions = ObjectArrays.concat(
-                rootMapping.selectExpressions(entityPath, getOptions),
-                entityPath.containerIdSeq);
 
         MappedTuple<S> mapped = internalReadByOid(jdbcSession, rootMapping, oid, getOptions, true);
         R rootRow = rootMapping.newRowObject();
