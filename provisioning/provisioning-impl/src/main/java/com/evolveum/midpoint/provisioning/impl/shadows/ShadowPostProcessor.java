@@ -208,6 +208,13 @@ class ShadowPostProcessor {
         if (!shadow.isIdentificationOnly()) {
             // The conversion from shadow to an ExistingResourceObjectShadow looks strange but actually has a point:
             // the shadow really came from the resource.
+            //
+            // TODO However, this code is very fragile. We assume that the shadow is the same as it would be if we
+            //  obtained it via regular getObject call (without include/exclude options). In particular, we assume
+            //  it contains all items (attributes, activation, etc) that are cached. This is generally true for
+            //  simulated associations. But for native ones, returning full object in the reference attribute, it
+            //  may not be true. (Fortunately, this should not occur for simple associations, only possibly for
+            //  the complex ones.)
             var existingResourceObject = ExistingResourceObjectShadow.fromShadow(shadow);
             return acquireAndPostProcessEmbeddedShadow(shadowCtx, existingResourceObject, result);
         }
