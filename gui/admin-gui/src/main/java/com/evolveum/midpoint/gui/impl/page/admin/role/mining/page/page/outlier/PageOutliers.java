@@ -362,17 +362,6 @@ public class PageOutliers extends PageAdmin {
                 return getString("pageOutliers.message.nothingSelected");
             }
 
-            @Contract(pure = true)
-            @Override
-            protected @NotNull String getConfirmMessageKeyForMultiObject() {
-                return "pageOutliers.message.confirmationMessageForMultipleObject";
-            }
-
-            @Contract(pure = true)
-            @Override
-            protected @NotNull String getConfirmMessageKeyForSingleObject() {
-                return "pageOutliers.message.confirmationMessageForSingleObject";
-            }
         };
     }
 
@@ -447,11 +436,32 @@ public class PageOutliers extends PageAdmin {
                 };
             }
 
+            @SuppressWarnings("rawtypes")
             @Override
             public IModel<String> getConfirmationMessageModel() {
-                String actionName = createStringResource("MainObjectListPanel.message.deleteAction").getString();
-                return getTable().getConfirmationMessageModel((ColumnMenuAction<?>) getAction(), actionName);
+                ColumnMenuAction action = (ColumnMenuAction) getAction();
+                return createConfirmationMessage(action);
             }
+        };
+    }
+
+    @Contract(pure = true)
+    private @NotNull IModel<String> createConfirmationMessage(
+            ColumnMenuAction<SelectableBean<RoleAnalysisClusterType>> action) {
+        return () -> {
+            IModel<SelectableBean<RoleAnalysisClusterType>> result = action.getRowModel();
+            if (result != null) {
+                return getString("PageOutliers.delete.single", WebComponentUtil.getName(result.getObject().getValue()));
+            }
+
+            List<SelectableBean<RoleAnalysisOutlierType>> selectedObjects = getTable().getSelectedObjects();
+
+            if (selectedObjects.size() == 1) {
+                RoleAnalysisOutlierType object = selectedObjects.get(0).getValue();
+                return getString("PageOutliers.delete.single", WebComponentUtil.getName(object));
+            }
+
+            return getString("PageOutliers.delete.multiple", selectedObjects.size());
         };
     }
 
