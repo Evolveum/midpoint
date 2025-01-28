@@ -12,7 +12,8 @@ import java.util.List;
 import java.util.Set;
 import java.util.function.Consumer;
 
-import org.apache.commons.collections4.CollectionUtils;
+import com.evolveum.midpoint.prism.query.ObjectPaging;
+
 import org.apache.wicket.Component;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
@@ -114,6 +115,11 @@ public class SelectableBeanObjectDataProvider<O extends ObjectType> extends Sele
     public void detach() {
         super.detach();
         getAvailableData().clear();
+    }
+
+    @Override
+    public ObjectPaging createPaging(long offset, long pageSize) {
+        return super.createPaging(offset, pageSize);
     }
 
     public void setTaskConsumer(Consumer<Task> taskConsumer) {
