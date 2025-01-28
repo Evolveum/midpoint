@@ -203,7 +203,7 @@ public class GetObjectOpHandler extends CachedOpHandler {
                 cacheUpdater.storeObjectToVersionLocal(object, exec.cachesInfo.localVersion);
             }
 
-            if (!exec.cacheUseMode.canUpdateObjectCache()) {
+            if (!exec.cacheUseMode.canUpdateObjectCache() || !exec.cachesInfo.isEffectivelySupportedByAnyObjectCache()) {
                 return exec.readOnly ?
                         Freezable.doFreeze(object) :
                         object.cloneIfImmutable();
