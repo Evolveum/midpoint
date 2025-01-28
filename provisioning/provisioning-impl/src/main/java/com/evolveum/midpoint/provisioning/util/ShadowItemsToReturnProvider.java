@@ -15,8 +15,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 
 import com.evolveum.midpoint.util.logging.TraceManager;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowBehaviorType;
-import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.BehaviorCapabilityType;
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.*;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -31,8 +30,6 @@ import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
-import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ActivationCapabilityType;
-import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CredentialsCapabilityType;
 
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AttributeFetchStrategyType.*;
 
@@ -101,9 +98,17 @@ public class ShadowItemsToReturnProvider {
         // Activation
         var activationCapability = ResourceTypeUtil.getEnabledCapability(resource, ActivationCapabilityType.class);
         if (activationCapability != null) {
-            if (CapabilityUtil.isCapabilityEnabled(activationCapability.getStatus())) {
-                if (!CapabilityUtil.isActivationStatusReturnedByDefault(activationCapability)) {
+            var activationStatusCap = activationCapability.getStatus();
+            if (CapabilityUtil.isCapabilityEnabled(activationStatusCap)
+                    && CapabilityUtil.isProvidedNatively(activationStatusCap)) {
+                if (!CapabilityUtil.isActivationStatusReturnedByDefault(activationCapability)
+                        || !shadowItemsToReturn.isReturnDefaultAttributes()) {
                     // The resource is capable of returning enable flag but it does not do it by default.
+                    // Or, we are not fetching default attributes.
+                    // The idea behind this code is that we would like to have the administration status present.
+                    // But the current implementation is strange.
+                    // The same applies to all similar items below.
+                    // See MID-10160.
                     if (isFetchingNotDisabledByClient(SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS)) {
                         shadowItemsToReturn.setReturnAdministrativeStatusExplicit(true);
                     } else if (objectDefinition.getActivationFetchStrategy(ActivationType.F_ADMINISTRATIVE_STATUS) == EXPLICIT) {
@@ -112,7 +117,8 @@ public class ShadowItemsToReturnProvider {
                 }
             }
             if (CapabilityUtil.isCapabilityEnabled(activationCapability.getValidFrom())) {
-                if (!CapabilityUtil.isActivationValidFromReturnedByDefault(activationCapability)) {
+                if (!CapabilityUtil.isActivationValidFromReturnedByDefault(activationCapability)
+                        || !shadowItemsToReturn.isReturnDefaultAttributes()) {
                     if (isFetchingNotDisabledByClient(SchemaConstants.PATH_ACTIVATION_VALID_FROM)) {
                         shadowItemsToReturn.setReturnValidFromExplicit(true);
                     } else if (objectDefinition.getActivationFetchStrategy(ActivationType.F_VALID_FROM) == EXPLICIT) {
@@ -121,7 +127,8 @@ public class ShadowItemsToReturnProvider {
                 }
             }
             if (CapabilityUtil.isCapabilityEnabled(activationCapability.getValidTo())) {
-                if (!CapabilityUtil.isActivationValidToReturnedByDefault(activationCapability)) {
+                if (!CapabilityUtil.isActivationValidToReturnedByDefault(activationCapability)
+                        || !shadowItemsToReturn.isReturnDefaultAttributes()) {
                     if (isFetchingNotDisabledByClient(SchemaConstants.PATH_ACTIVATION_VALID_TO)) {
                         shadowItemsToReturn.setReturnValidToExplicit(true);
                     } else if (objectDefinition.getActivationFetchStrategy(ActivationType.F_VALID_TO) == EXPLICIT) {
@@ -129,8 +136,10 @@ public class ShadowItemsToReturnProvider {
                     }
                 }
             }
-            if (CapabilityUtil.isCapabilityEnabled(activationCapability.getLockoutStatus())) {
-                if (!CapabilityUtil.isActivationLockoutStatusReturnedByDefault(activationCapability)) {
+            var lockoutStatusCap = activationCapability.getLockoutStatus();
+            if (CapabilityUtil.isCapabilityEnabled(lockoutStatusCap) && CapabilityUtil.isProvidedNatively(lockoutStatusCap)) {
+                if (!CapabilityUtil.isActivationLockoutStatusReturnedByDefault(activationCapability)
+                        || !shadowItemsToReturn.isReturnDefaultAttributes()) {
                     // The resource is capable of returning lockout flag but it does not do it by default.
                     if (isFetchingNotDisabledByClient(SchemaConstants.PATH_ACTIVATION_LOCKOUT_STATUS)) {
                         shadowItemsToReturn.setReturnAdministrativeStatusExplicit(true);
@@ -143,8 +152,11 @@ public class ShadowItemsToReturnProvider {
 
         var behaviorCapability = ResourceTypeUtil.getEnabledCapability(resource, BehaviorCapabilityType.class);
         if (behaviorCapability != null) {
-            if (CapabilityUtil.isCapabilityEnabled(behaviorCapability.getLastLoginTimestamp())) {
-                if (!CapabilityUtil.isLastLoginTimestampReturnedByDefault(behaviorCapability)) {
+            var lastLoginTimestampCap = behaviorCapability.getLastLoginTimestamp();
+            if (CapabilityUtil.isCapabilityEnabled(lastLoginTimestampCap)
+                    && CapabilityUtil.isProvidedNatively(lastLoginTimestampCap)) {
+                if (!CapabilityUtil.isLastLoginTimestampReturnedByDefault(behaviorCapability)
+                        || !shadowItemsToReturn.isReturnDefaultAttributes()) {
                     if (isFetchingNotDisabledByClient(SchemaConstants.PATH_BEHAVIOUR_LAST_LOGIN_TIMESTAMP)) {
                         shadowItemsToReturn.setReturnLastLoginTimestampExplicit(true);
                     } else if (objectDefinition.getLastLoginTimestampFetchStrategy() == EXPLICIT) {

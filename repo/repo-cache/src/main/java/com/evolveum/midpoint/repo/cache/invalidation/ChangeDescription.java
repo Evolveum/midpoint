@@ -64,7 +64,7 @@ public abstract class ChangeDescription {
         }
 
         @Override
-        public boolean mayMatchAfterChange(@NotNull ObjectFilter filter, SearchResultList list, MatchingRuleRegistry matchingRuleRegistry)
+        public boolean mayMatchAfterChange(@NotNull ObjectFilter filter, MatchingRuleRegistry matchingRuleRegistry)
                 throws SchemaException {
             return filter.match(addInfo.getObject().getValue(), matchingRuleRegistry);
         }
@@ -87,7 +87,7 @@ public abstract class ChangeDescription {
         }
 
         @Override
-        public boolean mayMatchAfterChange(@NotNull ObjectFilter filter, SearchResultList list, MatchingRuleRegistry matchingRuleRegistry)
+        public boolean mayMatchAfterChange(@NotNull ObjectFilter filter, MatchingRuleRegistry matchingRuleRegistry)
                 throws SchemaException {
             //noinspection SimplifiableIfStatement
             if (modifyInfo.getObjectAfter() == null) {
@@ -117,7 +117,7 @@ public abstract class ChangeDescription {
         }
 
         @Override
-        public boolean mayMatchAfterChange(@NotNull ObjectFilter filter, SearchResultList list, MatchingRuleRegistry matchingRuleRegistry) {
+        public boolean mayMatchAfterChange(@NotNull ObjectFilter filter, MatchingRuleRegistry matchingRuleRegistry) {
             // There's no object after deletion. :)
             return false;
         }
@@ -140,7 +140,7 @@ public abstract class ChangeDescription {
         }
 
         @Override
-        public boolean mayMatchAfterChange(@NotNull ObjectFilter filter, SearchResultList list, MatchingRuleRegistry matchingRuleRegistry) {
+        public boolean mayMatchAfterChange(@NotNull ObjectFilter filter, MatchingRuleRegistry matchingRuleRegistry) {
             // We know nothing about the object state after change, so we must say "yes" here.
             return safeInvalidation;
         }
@@ -203,14 +203,15 @@ public abstract class ChangeDescription {
     }
 
     private boolean queryTypeMatches(QueryKey<?> queryKey) {
-        return queryKey.getType().isAssignableFrom(type);
+        return queryKey.getType().isAssignableFrom(type) // query is issued to more general type
+                || type.isAssignableFrom(queryKey.getType()); // modification is done on more general type
     }
 
     /**
      * Returns true if the given change may affect the result of a given query.
      * Better be conservative and say "true" even if we are not sure.
      */
-    boolean mayAffect(QueryKey<?> queryKey, SearchResultList list, MatchingRuleRegistry matchingRuleRegistry) {
+    boolean mayAffect(QueryKey<?> queryKey, SearchResultList<String> oidList, MatchingRuleRegistry matchingRuleRegistry) {
         if (!queryTypeMatches(queryKey)) {
             return false;
         }
@@ -219,26 +220,30 @@ public abstract class ChangeDescription {
             // We are interested in all objects; so probably in this one as well.
             return true;
         }
-        if (listContainsOid(list, oid)) {
+        if (oidList.contains(oid)) {
             // The original query result contains the object being changed or deleted.
             // (In very strange cases, also the object being added -- although this should never happen.)
             return true;
         }
         try {
-            return mayMatchAfterChange(filter, list, matchingRuleRegistry);
+            return mayMatchAfterChange(filter, matchingRuleRegistry);
         } catch (UnsupportedOperationException e) {
-            LOGGER.debug("Couldn't match object being changed to cached query because the filter is not (yet) supported -- "
-                    + "continuing as if there might be an overlap:\n"
-                    + "change description = {}\nfilter = {}", this, filter, e);
+            LOGGER.debug("""
+                    Couldn't match object being changed to cached query because the filter is not (yet) supported -- \
+                    continuing as if there might be an overlap:
+                    change description = {}
+                    filter = {}""", this, filter, e);
             return true;
         } catch (Exception e) {
-            LOGGER.warn("Couldn't match object being changed to cached query -- continuing as if there might be an overlap:\n"
-                    + "change description = {}\nfilter = {}", this, filter, e);
+            LOGGER.warn("""
+                    Couldn't match object being changed to cached query -- continuing as if there might be an overlap:
+                    change description = {}
+                    filter = {}""", this, filter, e);
             return true;
         }
     }
 
-    public abstract boolean mayMatchAfterChange(@NotNull ObjectFilter filter, SearchResultList list, MatchingRuleRegistry matchingRuleRegistry)
+    public abstract boolean mayMatchAfterChange(@NotNull ObjectFilter filter, MatchingRuleRegistry matchingRuleRegistry)
             throws SchemaException;
 
     @Nullable

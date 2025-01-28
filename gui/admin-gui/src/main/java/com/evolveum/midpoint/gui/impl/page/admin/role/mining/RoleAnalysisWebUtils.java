@@ -38,13 +38,17 @@ import com.evolveum.midpoint.web.component.RoleAnalysisTabbedPanel;
 import com.evolveum.midpoint.web.component.TabbedPanel;
 import com.evolveum.midpoint.web.component.data.RoleAnalysisObjectDto;
 import com.evolveum.midpoint.web.component.data.RoleAnalysisTable;
+import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
+import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.form.AjaxSubmitLink;
+import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.tabs.ITab;
 import org.apache.wicket.markup.html.WebMarkupContainer;
+import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.LoadableDetachableModel;
 import org.apache.wicket.model.Model;
@@ -545,5 +549,34 @@ public class RoleAnalysisWebUtils {
 
         progressBar.setOutputMarkupId(true);
         return progressBar;
+    }
+
+    public static void initClusterDensityProgressPanel(
+            @NotNull Item<ICellPopulator<SelectableBean<RoleAnalysisClusterType>>> cellItem,
+            @NotNull String componentId,
+            @NotNull Double density) {
+
+        IModel<RoleAnalysisProgressBarDto> model = () -> {
+            BigDecimal bd = new BigDecimal(Double.toString(density));
+            bd = bd.setScale(2, RoundingMode.HALF_UP);
+            double actualValue = bd.doubleValue();
+
+            String colorClass = densityBasedColor(actualValue);
+
+            RoleAnalysisProgressBarDto dto = new RoleAnalysisProgressBarDto(actualValue, colorClass);
+            dto.setBarTitle("");
+            return dto;
+        };
+
+        RoleAnalysisInlineProgressBar progressBar = new RoleAnalysisInlineProgressBar(componentId, model) {
+            @Override
+            protected boolean isWider() {
+                return true;
+            }
+        };
+
+        progressBar.setOutputMarkupId(true);
+        progressBar.add(AttributeModifier.append(STYLE_CSS, "width: 170px"));
+        cellItem.add(progressBar);
     }
 }

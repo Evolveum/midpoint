@@ -201,13 +201,13 @@ public class AuditServiceProxy implements AuditService, AuditServiceRegistry {
         for (ObjectDeltaOperation<? extends ObjectType> objectDeltaOperation : record.getDeltas()) {
             ObjectDelta<? extends ObjectType> delta = objectDeltaOperation.getObjectDelta();
 
-            // currently this does not work as expected (retrieves all default items)
             Collection<SelectorOptions<GetOperationOptions>> nameOnlyOptions = schemaService.getOperationOptionsBuilder()
-                    .item(ObjectType.F_NAME).retrieve()
+                    .item(ObjectType.F_NAME).retrieve() // currently this does not work as expected (retrieves all default items)
+                    .readOnly() // to avoid cloning when returning from the cache
                     .build();
             ObjectDeltaSchemaLevelUtil.NameResolver nameResolver = (objectClass, oid, lResult) -> {
                 if (record.getNonExistingReferencedObjects().contains(oid)) {
-                    return null;    // save a useless getObject call plus associated warning (MID-5378)
+                    return null; // save a useless getObject call plus associated warning (MID-5378)
                 }
                 if (repositoryService == null) {
                     LOGGER.warn("No repository, no OID resolution (for {})", oid);

@@ -6,22 +6,21 @@
  */
 package com.evolveum.midpoint.repo.cache;
 
-import static com.evolveum.midpoint.prism.util.PrismTestUtil.displayCollection;
-import static com.evolveum.midpoint.prism.util.PrismTestUtil.getPrismContext;
-import static com.evolveum.midpoint.repo.sqale.SqaleRepositoryService.REPOSITORY_IMPL_NAME;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.fail;
 
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Set;
+import static com.evolveum.midpoint.prism.util.PrismTestUtil.displayCollection;
+import static com.evolveum.midpoint.prism.util.PrismTestUtil.getPrismContext;
+import static com.evolveum.midpoint.repo.sqale.SqaleRepositoryService.REPOSITORY_IMPL_NAME;
+import static com.evolveum.midpoint.schema.GetOperationOptions.createReadOnlyCollection;
+import static com.evolveum.midpoint.schema.GetOperationOptions.createRetrieveCollection;
+
+import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.function.Consumer;
 
 import jakarta.annotation.PostConstruct;
 import org.apache.commons.lang3.StringUtils;
@@ -39,18 +38,14 @@ import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.api.perf.OperationPerformanceInformation;
 import com.evolveum.midpoint.repo.api.perf.PerformanceInformation;
-import com.evolveum.midpoint.repo.cache.global.GlobalCacheObjectValue;
 import com.evolveum.midpoint.repo.cache.global.GlobalObjectCache;
 import com.evolveum.midpoint.repo.cache.global.GlobalQueryCache;
 import com.evolveum.midpoint.repo.cache.global.GlobalVersionCache;
 import com.evolveum.midpoint.repo.cache.local.QueryKey;
 import com.evolveum.midpoint.repo.sqale.SqaleRepositoryService;
-import com.evolveum.midpoint.schema.GetOperationOptions;
-import com.evolveum.midpoint.schema.RepositoryDiag;
-import com.evolveum.midpoint.schema.ResultHandler;
-import com.evolveum.midpoint.schema.SearchResultList;
-import com.evolveum.midpoint.schema.SearchResultMetadata;
-import com.evolveum.midpoint.schema.SelectorOptions;
+import com.evolveum.midpoint.schema.*;
+import com.evolveum.midpoint.schema.internals.InternalCounters;
+import com.evolveum.midpoint.schema.internals.InternalMonitor;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.statistics.CachePerformanceInformationUtil;
 import com.evolveum.midpoint.schema.statistics.RepositoryPerformanceInformationUtil;
@@ -58,12 +53,19 @@ import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
 import com.evolveum.midpoint.test.util.AbstractSpringTest;
 import com.evolveum.midpoint.test.util.InfraTestMixin;
 import com.evolveum.midpoint.util.caching.CachePerformanceCollector;
+import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ArchetypeType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
+/**
+ * Various low-level tests regarding the repository cache.
+ */
 @SuppressWarnings("SameParameterValue")
 @ContextConfiguration(locations = { "classpath:ctx-repo-cache-test.xml" })
 public class TestRepositoryCache extends AbstractSpringTest implements InfraTestMixin {
@@ -76,12 +78,14 @@ public class TestRepositoryCache extends AbstractSpringTest implements InfraTest
     @Autowired GlobalQueryCache globalQueryCache;
     @Autowired PrismContext prismContext;
 
-    @SuppressWarnings("unused") // used when heap dumps are uncommented
+    @SuppressWarnings("unused") // used when heap dumps are uncommented, see dumpHeap method below
     private final long identifier = System.currentTimeMillis();
 
     // Nothing for old repo, short class name for new one. TODO inline when old repo goes away
     private String opNamePrefix;
     private boolean isNewRepoUsed;
+
+    private long lastCloneCount;
 
     @BeforeSuite
     public void setup() {
@@ -93,52 +97,128 @@ public class TestRepositoryCache extends AbstractSpringTest implements InfraTest
         displayTestTitle("Initializing TEST CLASS: " + getClass().getName());
         PrismTestUtil.setPrismContext(prismContext);
 
+        prismContext.setMonitor(new InternalMonitor());
+
         OperationResult initResult = new OperationResult(CLASS_DOT + "setup");
         repositoryCache.postInit(initResult);
 
-        RepositoryDiag repositoryDiag = repositoryCache.getRepositoryDiag();
-        String implName = repositoryDiag != null ? repositoryDiag.getImplementationShortName() : null;
+        String implName = repositoryCache.getRepositoryDiag().getImplementationShortName();
         isNewRepoUsed = Objects.equals(implName, REPOSITORY_IMPL_NAME);
         opNamePrefix = isNewRepoUsed
                 ? SqaleRepositoryService.class.getSimpleName() + '.'
                 : "";
     }
 
+    /** Tests `getObject` operation passing the cache. */
     @Test
-    public void test100GetUser() throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException {
-        testGetUncachedObject(UserType.class);
+    public void test100GetObjectPassingCache() throws CommonException {
+        testGetObjectBasic(UserType.class, getTestNameShort(), false);
+    }
+
+    /** Test `getObject` operation using the cache (only the basic features). */
+    @Test
+    public void test110GetObjectUsingCache() throws CommonException {
+        testGetObjectBasic(SystemConfigurationType.class, getTestNameShort(), true);
     }
 
     @Test
-    public void test110GetSystemConfiguration() throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException {
-        testGetCachedObject(SystemConfigurationType.class);
+    public void test200SearchUsers() throws CommonException {
+        testSearchObjects(UserType.class, 5, false);
     }
 
     @Test
-    public void test200SearchUsers() throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException {
-        testSearchUncachedObjects(UserType.class);
+    public void test210SearchArchetypes() throws CommonException {
+        testSearchObjects(ArchetypeType.class, 5, true);
     }
 
     @Test
-    public void test210SearchArchetypes() throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException {
-        testSearchCachedObjects(ArchetypeType.class);
+    public void test220SearchUsersIterative() throws CommonException {
+        testSearchObjectsIterative(UserType.class, 5, false);
     }
 
     @Test
-    public void test220SearchUsersIterative() throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException {
-        testSearchUncachedObjectsIterative(UserType.class);
+    public void test230SearchArchetypesIterative() throws CommonException {
+        testSearchObjectsIterative(ArchetypeType.class, 5, true);
     }
 
+    /**
+     * This is to simulate the assignment target search evaluator that tries to search for roles with exclude = "." option.
+     * Although the objects resulting from the search cannot be cached (obviously, as they contain no data), their OIDs forming
+     * the result itself, can be.
+     */
     @Test
-    public void test230SearchArchetypesIterative() throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException {
-        testSearchCachedObjectsIterative(ArchetypeType.class);
+    public void test290SearchArchetypesWithExcludeOption() throws CommonException {
+        var result = createOperationResult();
+        var name = getTestNameShort();
+        var description = "description";
+
+        var archetype = new ArchetypeType()
+                .name(name)
+                .description(description);
+        var oid = repositoryCache.addObject(archetype.asPrismObject(), null, result);
+
+        clearCaches();
+
+        var query = prismContext.queryFor(ArchetypeType.class)
+                .item(ArchetypeType.F_NAME).eqPoly(name).matchingOrig()
+                .build();
+
+        var options = GetOperationOptionsBuilder.create()
+                .retrieve(RetrieveOption.EXCLUDE)
+                .build();
+
+        when("executing the first search");
+        clearStatistics();
+        var objects1 = repositoryCache.searchObjects(ArchetypeType.class, query, options, result);
+
+        then("result is OK and there was a repo access");
+        displayCollection("objects retrieved", objects1);
+        assertObjectOids(objects1, oid);
+        assertOperations(RepositoryService.OP_SEARCH_OBJECTS, 1);
+        assertThat(objects1.get(0).asObjectable().getDescription())
+                .as("description")
+                .isIn(null, description);
+
+        when("polluting the search result and executing the second search");
+        objects1.get(0).asObjectable().setDescription("garbage");
+        clearStatistics();
+        var objects2 = repositoryCache.searchObjects(ArchetypeType.class, query, options, result);
+
+        then("result is OK and there was a repo access");
+        displayCollection("objects retrieved", objects2);
+        assertObjectOids(objects2, oid);
+        assertOperations(RepositoryService.OP_SEARCH_OBJECTS, 1);
+        assertThat(objects2.get(0).asObjectable().getDescription())
+                .as("description")
+                .isIn(null, description);
+
+        when("retrieving the archetype by getObject, polluting the result, and repeating the search");
+        var retrieved = repositoryCache.getObject(ArchetypeType.class, oid, null, result);
+        retrieved.asObjectable().setDescription("garbage");
+        clearStatistics();
+        var objects3 = repositoryCache.searchObjects(ArchetypeType.class, query, options, result);
+
+        then("result is OK and there was a NO repo access");
+        displayCollection("objects retrieved", objects3);
+        assertObjectOids(objects3, oid);
+        assertOperations(RepositoryService.OP_SEARCH_OBJECTS, 0);
+        assertThat(objects3.get(0).asObjectable().getDescription())
+                .as("description")
+                .isIn(null, description);
+    }
+
+    private void assertObjectOids(Collection<? extends PrismObject<?>> objects, String... expectedOids) {
+        assertThat(objects).as("objects").hasSize(expectedOids.length);
+        assertThat(objects.stream().map(PrismObject::getOid))
+                .as("object OIDs")
+                .containsExactlyInAnyOrder(expectedOids);
     }
 
     /**
      * MID-6250
      */
     @Test
-    public void test300ModifyInIterativeSearch() throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException {
+    public void test300ModifyInIterativeSearch() throws CommonException {
         given();
         PrismContext prismContext = getPrismContext();
         OperationResult result = createOperationResult();
@@ -149,7 +229,7 @@ public class TestRepositoryCache extends AbstractSpringTest implements InfraTest
         String name = "testModifyInIterativeSearch";
         String changedDescription = "changed";
 
-        PrismObject<ArchetypeType> archetype = new ArchetypeType(prismContext)
+        PrismObject<ArchetypeType> archetype = new ArchetypeType()
                 .name(name)
                 .asPrismObject();
         repositoryCache.addObject(archetype, null, result);
@@ -190,7 +270,7 @@ public class TestRepositoryCache extends AbstractSpringTest implements InfraTest
      * MID-6250
      */
     @Test
-    public void test310AddInIterativeSearch() throws SchemaException, ObjectAlreadyExistsException {
+    public void test310AddInIterativeSearch() throws CommonException {
         given();
         PrismContext prismContext = getPrismContext();
         OperationResult result = createOperationResult();
@@ -202,7 +282,7 @@ public class TestRepositoryCache extends AbstractSpringTest implements InfraTest
         String name1 = getTestNameShort() + ".1";
         String name2 = getTestNameShort() + ".2";
 
-        PrismObject<ArchetypeType> archetype1 = new ArchetypeType(prismContext)
+        PrismObject<ArchetypeType> archetype1 = new ArchetypeType()
                 .name(name1)
                 .costCenter(costCenter)
                 .asPrismObject();
@@ -215,7 +295,7 @@ public class TestRepositoryCache extends AbstractSpringTest implements InfraTest
         AtomicInteger found = new AtomicInteger(0);
         ResultHandler<ArchetypeType> handler = (object, result1) -> {
             try {
-                PrismObject<ArchetypeType> archetype2 = new ArchetypeType(prismContext)
+                PrismObject<ArchetypeType> archetype2 = new ArchetypeType()
                         .name(name2)
                         .costCenter(costCenter)
                         .asPrismObject();
@@ -241,7 +321,7 @@ public class TestRepositoryCache extends AbstractSpringTest implements InfraTest
      * MID-6250
      */
     @Test
-    public void test320SearchObjectsIterativeSlow() throws ObjectAlreadyExistsException, SchemaException, ObjectNotFoundException {
+    public void test320SearchObjectsIterativeSlow() throws CommonException {
         OperationResult result = createOperationResult();
 
         deleteExistingObjects(ArchetypeType.class, result);
@@ -286,7 +366,7 @@ public class TestRepositoryCache extends AbstractSpringTest implements InfraTest
     }
 
     @Test
-    public void test330SearchObjectsOverSize() throws ObjectAlreadyExistsException, SchemaException, ObjectNotFoundException {
+    public void test330SearchObjectsOverSize() throws CommonException {
         OperationResult result = createOperationResult();
 
         deleteExistingObjects(ArchetypeType.class, result);
@@ -307,6 +387,16 @@ public class TestRepositoryCache extends AbstractSpringTest implements InfraTest
         Map<String, CachePerformanceCollector.CacheData> map = CachePerformanceCollector.INSTANCE.getGlobalPerformanceMap();
         CachePerformanceCollector.CacheData data = map.get("all.ArchetypeType");
         assertThat(data.overSizedQueries.get()).as("over-sized counter").isEqualTo(2); // search + searchIterative
+    }
+
+    @Test
+    public void test350GetArchetypeWithIncludeOptionNoPhoto() throws CommonException {
+        testGetObjectWithSmartIncludeHandling(ArchetypeType.class, a -> {}, true);
+    }
+
+    @Test
+    public void test352GetArchetypeWithIncludeOptionWithPhoto() throws CommonException {
+        testGetObjectWithSmartIncludeHandling(ArchetypeType.class, a -> a.setJpegPhoto(new byte[] { 1, 2, 3 }), false);
     }
 
     // Must be executed last, because naive deletion such large number of archetypes fails on OOM
@@ -367,7 +457,7 @@ public class TestRepositoryCache extends AbstractSpringTest implements InfraTest
         return Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory();
     }
 
-    @SuppressWarnings("unused")
+    @SuppressWarnings({ "unused", "CommentedOutCode" })
     private void dumpHeap(String desc) {
         // Enable when needed
 //        try {
@@ -381,65 +471,130 @@ public class TestRepositoryCache extends AbstractSpringTest implements InfraTest
 //        }
     }
 
-    private <T extends ObjectType> void testGetUncachedObject(Class<T> objectClass) throws ObjectAlreadyExistsException, SchemaException, ObjectNotFoundException {
-        testGetObject(objectClass, false);
-    }
-
-    private <T extends ObjectType> void testGetCachedObject(Class<T> objectClass) throws ObjectAlreadyExistsException, SchemaException, ObjectNotFoundException {
-        testGetObject(objectClass, true);
-    }
-
-    private <T extends ObjectType> void testSearchUncachedObjects(Class<T> objectClass) throws ObjectAlreadyExistsException, SchemaException, ObjectNotFoundException {
-        testSearchObjects(objectClass, 5, false);
-    }
-
-    private <T extends ObjectType> void testSearchCachedObjects(Class<T> objectClass) throws ObjectAlreadyExistsException, SchemaException, ObjectNotFoundException {
-        testSearchObjects(objectClass, 5, true);
-    }
-
-    private <T extends ObjectType> void testSearchUncachedObjectsIterative(Class<T> objectClass) throws ObjectAlreadyExistsException, SchemaException, ObjectNotFoundException {
-        testSearchObjectsIterative(objectClass, 5, false);
-    }
-
-    private <T extends ObjectType> void testSearchCachedObjectsIterative(Class<T> objectClass) throws ObjectAlreadyExistsException, SchemaException, ObjectNotFoundException {
-        testSearchObjectsIterative(objectClass, 5, true);
-    }
-
     /**
      * Creates an object and repeatedly gets it. Then counts the number of repository service invocations.
      *
      * Besides that, alters the objects retrieved (in memory) and verifies that the returned objects are correct
      * i.e. not influenced by alterations of previously returned objects.
+     *
+     * Checks also the R/O option handling.
      */
-    private <T extends ObjectType> void testGetObject(Class<T> objectClass, boolean isCached) throws ObjectAlreadyExistsException, SchemaException, ObjectNotFoundException {
+    private <T extends ObjectType> void testGetObjectBasic(Class<T> objectClass, String objectName, boolean isCached)
+            throws CommonException {
+        var result = createOperationResult();
+
+        clearCaches();
+
+        given("an object in the repo");
+
+        PrismObject<T> object = getPrismContext().createObject(objectClass);
+        object.asObjectable().setName(PolyStringType.fromOrig(objectName));
+
+        clearStatistics();
+        var oid = repositoryCache.addObject(object, null, result);
+        assertAddOperations(1);
+        assertGetOperations(0);
+
+        when("object is retrieved (null options)");
+        clearStatistics();
+        var object1 = repositoryCache.getObject(objectClass, oid, null, result);
+
+        then("object is OK");
+        displayDumpable("object retrieved", object1);
+        assertEquals("Wrong object1", object, object1);
+        object1.checkMutable();
+        dumpStatistics();
+        assertGetOperations(1);
+        if (isCached) {
+            assertCloneOperations(1); // when putting into the cache (immutable copy)
+        } else {
+            assertCloneOperations(0);
+        }
+
+        when("in-memory representation is corrupted, and object is retrieved again");
+        object1.asObjectable().setDescription("garbage");
+        clearStatistics();
+        var object2 = repositoryCache.getObject(objectClass, oid, null, result);
+
+        then("object is OK");
+        displayDumpable("object retrieved", object2);
+        assertEquals("Wrong object2", object, object2);
+        object2.checkMutable();
+        dumpStatistics();
+        assertGetOperations(isCached ? 0 : 1);
+        if (isCached) {
+            assertCloneOperations(1); // when retrieving from the cache (to make it mutable)
+        } else {
+            assertCloneOperations(0);
+        }
+
+        when("in-memory representation is corrupted again, and object is retrieved again");
+        object2.asObjectable().setDescription("total garbage");
+        clearStatistics();
+        var object3 = repositoryCache.getObject(objectClass, oid, null, result);
+
+        then("object is OK");
+        displayDumpable("object retrieved", object3);
+        assertEquals("Wrong object3", object, object3);
+        object3.checkMutable();
+        dumpStatistics();
+        assertGetOperations(isCached ? 0 : 1);
+        if (isCached) {
+            assertCloneOperations(1); // when retrieving from the cache (to make it mutable)
+        } else {
+            assertCloneOperations(0);
+        }
+
+        and("object is (or is not) really in the cache");
+        assertObjectAndVersionCached(object.getOid(), isCached);
+
+        when("object is retrieved with R/O option");
+        clearStatistics();
+        var object4 = repositoryCache.getObject(objectClass, oid, createReadOnlyCollection(), result);
+
+        then("object is OK");
+        displayDumpable("object retrieved", object4);
+        assertEquals("Wrong object4", object, object4);
+        // Actually, the contract don't require the returned object to be immutable, but it's a service to clients, so that
+        // they don't need to freeze the object themselves. To be reconsidered.
+        object4.checkImmutable();
+        dumpStatistics();
+        assertGetOperations(isCached ? 0 : 1);
+        assertCloneOperations(0); // cached -> returned right from the cache; not cached -> 0 as before
+    }
+
+    /**
+     * Checks the `getObject` behavior with `retrieve=include` option present.
+     *
+     * . First, the object is created and retrieved with no options. It should put it into the cache.
+     * . Then, object is retrieved with `retrieve=include` option. It should be retrieved from the cache, if
+     * it does not contain incomplete items and if it's supported by the policy.
+     */
+    private <T extends ObjectType> void testGetObjectWithSmartIncludeHandling(
+            Class<T> objectClass, Consumer<T> objectCustomizer, boolean isCached) throws CommonException {
         clearStatistics();
         clearCaches();
 
         PrismObject<T> object = getPrismContext().createObject(objectClass);
         object.asObjectable().setName(PolyStringType.fromOrig(String.valueOf(Math.random())));
+        objectCustomizer.accept(object.asObjectable());
 
         OperationResult result = createOperationResult();
         String oid = repositoryCache.addObject(object, null, result);
 
         PrismObject<T> object1 = repositoryCache.getObject(objectClass, oid, null, result);
         displayDumpable("1st object retrieved", object1);
-        assertEquals("Wrong object1", object, object1);
-        object1.asObjectable().setDescription("garbage");
 
-        PrismObject<T> object2 = repositoryCache.getObject(objectClass, oid, null, result);
+        PrismObject<T> object2 = repositoryCache.getObject(objectClass, oid, createRetrieveCollection(), result);
         displayDumpable("2nd object retrieved", object2);
-        assertEquals("Wrong object2", object, object2);
-        object2.asObjectable().setDescription("total garbage");
-
-        PrismObject<T> object3 = repositoryCache.getObject(objectClass, oid, null, result);
-        assertEquals("Wrong object3", object, object3);
-        displayDumpable("3rd object retrieved", object3);
+        assertEquals("Wrong object2 (compared with the original)", object, object2);
+        if (isCached) {
+            assertEquals("Wrong object2 (compared to the one retrieved previously)", object1, object2);
+        }
 
         dumpStatistics();
         assertAddOperations(1);
-        assertGetOperations(isCached ? 1 : 3);
-
-        assertObjectAndVersionCached(object.getOid(), isCached);
+        assertGetOperations(isCached ? 1 : 2);
     }
 
     private void assertObjectAndVersionCached(String oid, boolean isCached) {
@@ -461,35 +616,41 @@ public class TestRepositoryCache extends AbstractSpringTest implements InfraTest
     }
 
     private void assertObjectIsCached(String oid) {
-        GlobalCacheObjectValue<ObjectType> value = globalObjectCache.get(oid);
-        assertThat(value).as("cached object value for " + oid).isNotNull();
+        assertThat(globalObjectCache.get(oid))
+                .as("cached object value for " + oid)
+                .isNotNull();
     }
 
     private void assertObjectIsNotCached(String oid) {
-        GlobalCacheObjectValue<ObjectType> value = globalObjectCache.get(oid);
-        assertThat(value).as("cached object value for " + oid).isNull();
+        assertThat(globalObjectCache.get(oid))
+                .as("cached object value for " + oid)
+                .isNull();
     }
 
     private void assertVersionIsCached(String oid) {
-        String value = globalVersionCache.get(oid);
-        assertThat(value).as("cached version value for " + oid).isNotNull();
+        assertThat(globalVersionCache.get(oid))
+                .as("cached version value for " + oid)
+                .isNotNull();
     }
 
     private void assertVersionIsNotCached(String oid) {
-        String value = globalVersionCache.get(oid);
-        assertThat(value).as("cached version value for " + oid).isNull();
+        assertThat(globalVersionCache.get(oid))
+                .as("cached version value for " + oid)
+                .isNull();
     }
 
     private <T extends ObjectType> void assertQueryIsCached(Class<T> type, ObjectQuery query) {
         QueryKey<T> key = new QueryKey<>(type, query);
-        SearchResultList<PrismObject<ObjectType>> value = globalQueryCache.get(key);
-        assertThat(value).as("cached version value for " + key).isNotNull();
+        assertThat(globalQueryCache.get(key))
+                .as("cached version value for " + key)
+                .isNotNull();
     }
 
     private <T extends ObjectType> void assertQueryIsNotCached(Class<T> type, ObjectQuery query) {
         QueryKey<T> key = new QueryKey<>(type, query);
-        SearchResultList<PrismObject<ObjectType>> value = globalQueryCache.get(key);
-        assertThat(value).as("cached version value for " + key).isNull();
+        assertThat(globalQueryCache.get(key))
+                .as("cached version value for " + key)
+                .isNull();
     }
 
     private void clearCaches() {
@@ -695,10 +856,25 @@ public class TestRepositoryCache extends AbstractSpringTest implements InfraTest
                 CachePerformanceInformationUtil.format(CachePerformanceInformationUtil.toCachesPerformanceInformationType(cache)));
         displayValue("Cache performance information (extra)",
                 CachePerformanceInformationUtil.formatExtra(cache));
+
+        displayValue("clone operations count", getCloneCount());
     }
 
     private void clearStatistics() {
         repositoryCache.getPerformanceMonitor().clearGlobalPerformanceInformation();
         CachePerformanceCollector.INSTANCE.clear();
+        rememberCloneCount();
+    }
+
+    private void rememberCloneCount() {
+        lastCloneCount = InternalMonitor.getCount(InternalCounters.PRISM_OBJECT_CLONE_COUNT);
+    }
+
+    private long getCloneCount() {
+        return InternalMonitor.getCount(InternalCounters.PRISM_OBJECT_CLONE_COUNT) - lastCloneCount;
+    }
+
+    private void assertCloneOperations(long expected) {
+        assertThat(getCloneCount()).as("clone operations executed").isEqualTo(expected);
     }
 }

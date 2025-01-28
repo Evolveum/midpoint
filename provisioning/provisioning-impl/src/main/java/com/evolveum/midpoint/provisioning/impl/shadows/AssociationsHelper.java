@@ -12,6 +12,8 @@ import java.util.List;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.provisioning.util.ProvisioningUtil;
+import com.evolveum.midpoint.schema.GetOperationOptionsBuilder;
+import com.evolveum.midpoint.schema.RetrieveOption;
 import com.evolveum.midpoint.util.exception.*;
 
 import org.jetbrains.annotations.NotNull;
@@ -278,7 +280,12 @@ class AssociationsHelper {
         if (refAttrValue.getObject() == null) {
             var oid = refAttrValue.getOidRequired();
             try {
-                var rawRepoShadow = shadowFinder.getRepoShadow(oid, null, result);
+                // Operation execution is stored in a separate table. We don't need them for referenced shadows.
+                var options = GetOperationOptionsBuilder.create()
+                        .item(ShadowType.F_OPERATION_EXECUTION)
+                        .retrieve(RetrieveOption.EXCLUDE)
+                        .build();
+                var rawRepoShadow = shadowFinder.getRepoShadow(oid, options, result);
                 var repoShadow = ctx.adoptRawRepoShadow(rawRepoShadow);
                 ctx.computeAndUpdateEffectiveMarksAndPolicies(repoShadow, EXISTING, result);
                 refAttrValue.setShadow(repoShadow);
