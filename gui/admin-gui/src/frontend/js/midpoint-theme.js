@@ -950,8 +950,8 @@ export default class MidPointTheme {
         autocomplete.show()
 
         if (suggestions === undefined || suggestions.length === 0) {
-            autocomplete.append('<div class="line">' +
-                    '<span class="no-suggestion"> No suggestions </span>' +
+            autocomplete.append('<div class="line no-suggestion">' +
+                    '<span> No suggestions </span>' +
                 '</div>'
             )
         } else {
@@ -960,23 +960,24 @@ export default class MidPointTheme {
             const commands = query.slice(0, cursorPosition).split(" ");
             const positionCommand = commands[commands.length - 1];
 
+            const regex = new RegExp(`(${commands})`, "gi");
+
+            let renderSuggestions = (name, alias) => autocomplete.append('<div class="line suggestion">' +
+                    '<span class="name">' + name + '</span>' +
+                    '<span class="alias">' + alias + '</span>' +
+                '</div>'
+            );
+
             suggestions.forEach(suggestion => {
+                const highlighted = suggestion.name.replace(regex, "<strong>$1</strong>");
                 if (positionCommand === " ") {
-                    autocomplete.append('<div class="line">' +
-                            '<span class="name">' + suggestion.name + '</span>' +
-                            '<span class="alias">' + suggestion.alias + '</span>' +
-                        '</div>'
-                    )
+                    renderSuggestions(highlighted, suggestion.alias)
                 } else if (suggestion.name.includes(positionCommand)) {
-                    autocomplete.append('<div class="line">' +
-                            '<span class="name">' + suggestion.name + '</span>' +
-                            '<span class="alias">' + suggestion.alias + '</span>' +
-                        '</div>'
-                    )
+                    renderSuggestions(highlighted, suggestion.alias)
                 }
             })
 
-            autocomplete.on('click', '.line', function() {
+            autocomplete.on('click', '.suggestion', function() {
                 commands[commands.length - 1] = $(this).find('.name').text()
                 queryDslInput.val(commands.join(" ") + query.substring(cursorPosition))
                 queryDslInput[0].focus()
@@ -986,13 +987,13 @@ export default class MidPointTheme {
             });
         }
 
-        $('.content-assist-error').remove()
-        contentAssist.validate.forEach(error => {
-            queryDslInput.after('<span class="text-wrap invalid-feedback content-assist-error" style="display: block">' +
-                    'Error at position: ' + error.charPositionInLineStart + ', ' + error.charPositionInLineStop + ' ' +
-                    error.message
-                + '</span>')
-        })
+//        $('.content-assist-error').remove()
+//        contentAssist.validate.forEach(error => {
+//            queryDslInput.after('<span class="text-wrap invalid-feedback content-assist-error" style="display: block">' +
+//                    'Error at position: ' + error.charPositionInLineStart + ', ' + error.charPositionInLineStop + ' ' +
+//                    error.message
+//                + '</span>')
+//        })
     }
 
     getCaretCoordinates(element) {
