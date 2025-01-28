@@ -14,13 +14,12 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import javax.xml.datatype.Duration;
 
-import com.evolveum.midpoint.util.SingleLocalizableMessage;
-
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.common.Clock;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.crypto.SecretsProvider;
+import com.evolveum.midpoint.util.SingleLocalizableMessage;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SecretsProviderType;
@@ -38,7 +37,7 @@ public class CacheableSecretsProviderDelegate<C> implements SecretsProvider<C> {
 
     private final SecretsProvider<C> delegate;
 
-    private final Map<String, CacheValue<?>> cache = new ConcurrentHashMap<>();
+    private final Map<String, CacheValue> cache = new ConcurrentHashMap<>();
 
     private final long ttl;
 
@@ -90,23 +89,14 @@ public class CacheableSecretsProviderDelegate<C> implements SecretsProvider<C> {
             return resolveSecret(key, type);
         }
 
-        CacheValue<?> value = cache.get(key);
+        CacheValue value = cache.get(key);
         if (value != null) {
             LOGGER.trace("Cache hit for key {}", key);
 
             if (value.ttl - Clock.get().currentTimeMillis() >= 0) {
                 LOGGER.trace("Cache entry for key {} is still valid, using cached value", key);
 
-                if (value.value == null) {
-                    return null;
-                }
-
-                Class<?> clazz = value.value().getClass();
-                if (!(type.isAssignableFrom(clazz))) {
-                    throw new IllegalStateException(
-                            "Secret value for key " + key + " is not a " + type + ", but " + clazz);
-                }
-                return (ST) value.value();
+                return createRealSecretValue(value.value, type);
             } else {
                 LOGGER.trace("Cache entry for key {} expired", key);
 
@@ -119,9 +109,37 @@ public class CacheableSecretsProviderDelegate<C> implements SecretsProvider<C> {
         ST secret = resolveSecret(key, type);
 
         LOGGER.trace("Caching secret for key {}", key);
-        cache.put(key, new CacheValue<>(secret, Clock.get().currentTimeMillis() + ttl));
+
+        ByteBuffer secretBytes = createCacheableSecretValue(secret);
+        cache.put(key, new CacheValue(secretBytes, Clock.get().currentTimeMillis() + ttl));
 
         return secret;
+    }
+
+    private <T> T createRealSecretValue(ByteBuffer secretValue, Class<T> type) {
+        if (secretValue == null) {
+            return null;
+        }
+
+        if (type == String.class) {
+            return (T) new String(secretValue.array());
+        } else if (type == ByteBuffer.class) {
+            return (T) secretValue;
+        }
+
+        throw new IllegalStateException(
+                "Can't translate cached secret value (" + secretValue.getClass() + ") to type  " + type);
+
+    }
+
+    private <T> ByteBuffer createCacheableSecretValue(@NotNull T secret) {
+        if (secret instanceof String str) {
+            return ByteBuffer.wrap(str.getBytes());
+        } else if (secret instanceof ByteBuffer) {
+            return (ByteBuffer) secret;
+        }
+
+        throw new IllegalStateException("Unsupported secret type " + secret.getClass());
     }
 
     protected <ST> ST resolveSecret(@NotNull String key, @NotNull Class<ST> type) throws EncryptionException {
@@ -152,7 +170,7 @@ public class CacheableSecretsProviderDelegate<C> implements SecretsProvider<C> {
         throw new IllegalStateException("Unsupported type " + type);
     }
 
-    private record CacheValue<T>(T value, long ttl) {
+    private record CacheValue(ByteBuffer value, long ttl) {
 
         @Override
         public String toString() {
