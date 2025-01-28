@@ -7,17 +7,18 @@
 
 package com.evolveum.midpoint.gui.api.component.wizard;
 
-import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.web.component.AjaxSubmitButton;
-import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
-import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
-
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
+import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.repeater.RepeatingView;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
+
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.web.component.AjaxSubmitButton;
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
+import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 
 /**
  * @author lskublik
@@ -31,6 +32,7 @@ public class BasicWizardStepPanel<T> extends WizardStepPanel<T> {
     private static final String ID_BACK = "back";
     private static final String ID_EXIT = "exit";
 
+    private static final String ID_BUTTONS_STRIP = "buttonsStrip";
     private static final String ID_CUSTOM_BUTTONS = "customButtons";
 
     private static final String ID_SUBMIT = "submit";
@@ -61,6 +63,14 @@ public class BasicWizardStepPanel<T> extends WizardStepPanel<T> {
         secondaryText.add(new VisibleBehaviour(() -> getSubTextModel().getObject() != null));
         add(secondaryText);
 
+        WebMarkupContainer buttonsStrip = new WebMarkupContainer(ID_BUTTONS_STRIP);
+        buttonsStrip.setOutputMarkupPlaceholderTag(true);
+        buttonsStrip.setVisible(isExitButtonVisible()
+                || isSubmitVisible()
+                || getBackBehaviour().isVisible()
+                || getNextBehaviour().isVisible());
+        add(buttonsStrip);
+
         AjaxLink back = new AjaxLink<>(ID_BACK) {
 
             @Override
@@ -72,7 +82,7 @@ public class BasicWizardStepPanel<T> extends WizardStepPanel<T> {
         back.setOutputMarkupId(true);
         back.setOutputMarkupPlaceholderTag(true);
         WebComponentUtil.addDisabledClassBehavior(back);
-        add(back);
+        buttonsStrip.add(back);
 
         AjaxLink exit = new AjaxLink<>(ID_EXIT) {
 
@@ -87,10 +97,10 @@ public class BasicWizardStepPanel<T> extends WizardStepPanel<T> {
         exit.setOutputMarkupId(true);
         exit.setOutputMarkupPlaceholderTag(true);
         WebComponentUtil.addDisabledClassBehavior(exit);
-        add(exit);
+        buttonsStrip.add(exit);
 
         RepeatingView customButtons = new RepeatingView(ID_CUSTOM_BUTTONS);
-        add(customButtons);
+        buttonsStrip.add(customButtons);
         initCustomButtons(customButtons);
 
         AjaxSubmitButton submit = new AjaxSubmitButton(ID_SUBMIT) {
@@ -112,7 +122,7 @@ public class BasicWizardStepPanel<T> extends WizardStepPanel<T> {
         submit.setOutputMarkupId(true);
         submit.setOutputMarkupPlaceholderTag(true);
         WebComponentUtil.addDisabledClassBehavior(submit);
-        add(submit);
+        buttonsStrip.add(submit);
 
         Label submitLabel = new Label(ID_SUBMIT_LABEL, getSubmitLabelModel());
         submit.add(submitLabel);
@@ -133,7 +143,7 @@ public class BasicWizardStepPanel<T> extends WizardStepPanel<T> {
         next.setOutputMarkupId(true);
         next.setOutputMarkupPlaceholderTag(true);
         WebComponentUtil.addDisabledClassBehavior(next);
-        add(next);
+        buttonsStrip.add(next);
 
         Label nextLabel = new Label(ID_NEXT_LABEL, getNextLabelModel());
         next.add(nextLabel);
@@ -184,15 +194,15 @@ public class BasicWizardStepPanel<T> extends WizardStepPanel<T> {
     }
 
     protected AjaxSubmitButton getNext() {
-        return (AjaxSubmitButton) get(ID_NEXT);
+        return (AjaxSubmitButton) get(createComponentPath(ID_BUTTONS_STRIP, ID_NEXT));
     }
 
     protected AjaxLink getBack() {
-        return (AjaxLink) get(ID_BACK);
+        return (AjaxLink) get(createComponentPath(ID_BUTTONS_STRIP, ID_BACK));
     }
 
     protected AjaxSubmitButton getSubmit() {
-        return (AjaxSubmitButton) get(ID_SUBMIT);
+        return (AjaxSubmitButton) get(createComponentPath(ID_BUTTONS_STRIP, ID_SUBMIT));
     }
 
     protected IModel<String> getTextModel() {
