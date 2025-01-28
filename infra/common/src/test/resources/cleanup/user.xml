@@ -7,6 +7,7 @@
 
 <user xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
         xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
+        version="123"
         oid="d6793e11-edf0-40e6-aa23-695c2b9fa98a">
 
     <_metadata>
