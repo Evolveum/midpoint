@@ -11,6 +11,7 @@ import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
 
 import java.util.Collection;
 
+import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.cache.local.QueryKey;
 
 import com.evolveum.midpoint.prism.PrismObject;
@@ -85,12 +86,12 @@ class SearchOpExecution<O extends ObjectType>
 
     void recordSearchResult(int numberOfObjectsFound, boolean wasInterrupted) {
         recordNumberOfObjectsFound(numberOfObjectsFound);
-        result.addReturn("interrupted", wasInterrupted);
+        result.addReturn(RepositoryService.RETURN_INTERRUPTED, wasInterrupted);
         // objects themselves were already recorded by ReportingResultHandler
     }
 
     private void recordNumberOfObjectsFound(int number) {
-        result.addReturn("objectsFound", number);
+        result.addReturn(RepositoryService.RETURN_OBJECTS_FOUND, number);
     }
 
     /**
