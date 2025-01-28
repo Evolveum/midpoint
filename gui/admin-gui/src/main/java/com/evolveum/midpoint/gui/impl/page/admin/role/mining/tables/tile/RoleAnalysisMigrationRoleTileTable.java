@@ -180,6 +180,7 @@ public class RoleAnalysisMigrationRoleTileTable extends BasePanel<String> {
                     protected void itemSelected(AjaxRequestTarget target, IModel<Toggle<ViewToggle>> item) {
                         getViewToggleModel().setObject(item.getObject().getValue());
 //                        RoleAnalysisSessionTileTable.this.getTable().refresh();
+                        target.add(this);
                         target.add(RoleAnalysisMigrationRoleTileTable.this);
                     }
                 };
