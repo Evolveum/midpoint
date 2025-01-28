@@ -13,7 +13,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.repo.cache.invalidation.InvalidationEvent;
 import com.evolveum.midpoint.repo.cache.invalidation.InvalidationEventListener;
 import com.evolveum.midpoint.schema.ResultHandler;
@@ -42,8 +41,8 @@ final class CachingResultHandler<T extends ObjectType> implements ResultHandler<
     /** True means that iterative search was interrupted by handler, hence the result cannot be cached (as it's incomplete). */
     private boolean wasInterrupted;
 
-    /** Objects found. Non-empty only if {@link #overflown} is `false`. */
-    private final List<PrismObject<T>> objects = new ArrayList<>();
+    /** Objects OIDs found. Non-empty only if {@link #overflown} is `false`. */
+    private final List<String> objectOids = new ArrayList<>();
 
     CachingResultHandler(
             SearchOpExecution<T> exec, ResultHandler<T> handler, boolean queryCacheable, CacheUpdater cacheUpdater) {
@@ -68,13 +67,12 @@ final class CachingResultHandler<T extends ObjectType> implements ResultHandler<
 
             // We also collect loaded objects to store them in query cache later - if possible.
             if (queryCacheable && !overflown) {
-                if (objects.size() < SearchOpHandler.QUERY_RESULT_SIZE_LIMIT) {
-                    objects.add(
-                            CloneUtil.toImmutable(object));
+                if (objectOids.size() < SearchOpHandler.QUERY_RESULT_SIZE_LIMIT) {
+                    objectOids.add(object.getOid());
                 } else {
                     CachePerformanceCollector.INSTANCE.registerOverSizedQuery(exec.type);
                     overflown = true;
-                    objects.clear();
+                    objectOids.clear();
                 }
             }
         }
@@ -93,15 +91,12 @@ final class CachingResultHandler<T extends ObjectType> implements ResultHandler<
         if (queryCacheable && !overflown && !wasInterrupted) {
             long age = exec.getAge();
             if (age < CacheUpdater.DATA_STALENESS_LIMIT) {
-                var oids = objects.stream()
-                        .map(o -> o.getOid())
-                        .toList();
-                var list = new SearchResultList<>(oids, metadataToImplant);
+                var list = new SearchResultList<>(List.copyOf(objectOids), metadataToImplant);
                 list.freeze();
                 return list;
             } else {
                 CachePerformanceCollector.INSTANCE.registerSkippedStaleData(exec.type);
-                log("Not caching stale search result with {} object(s) (age = {} ms)", false, objects.size(), age);
+                log("Not caching stale search result with {} object(s) (age = {} ms)", false, objectOids.size(), age);
                 return null;
             }
         } else {
