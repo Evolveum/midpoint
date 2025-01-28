@@ -34,10 +34,20 @@ public class VisibleEnableBehaviour extends Behavior {
 
     private final SerializableSupplier<Boolean> enabled;
 
+    /**
+     *
+     * @deprecated use {@link #VisibleEnableBehaviour(SerializableSupplier, SerializableSupplier)} instead
+     */
+    @Deprecated
     public VisibleEnableBehaviour() {
         this(null);
     }
 
+    /**
+     *
+     * @deprecated use {@link #VisibleEnableBehaviour(SerializableSupplier, SerializableSupplier)} instead
+     */
+    @Deprecated
     public VisibleEnableBehaviour(@Nullable SerializableSupplier<Boolean> visible) {
         this(visible, null);
     }
@@ -50,10 +60,9 @@ public class VisibleEnableBehaviour extends Behavior {
     /**
      * @return Default implementation returns true even if underlying supplier returns null (this is because of backward compatibility of this class)
      *
-     * @deprecated use {@link #VisibleEnableBehaviour(SerializableSupplier)} instead
-     * This method doesn't properly handle null values (when behaviour can't decide on whether component should be visible or not).
+     * This method doesn't properly handle situations, when underlying supplier itself is null (when behaviour can't
+     * decide on whether component should be visible or not). In such case, it returns {@code true}.
      */
-    @Deprecated
     public boolean isVisible() {
         if (visible == null) {
             return true;
@@ -64,10 +73,9 @@ public class VisibleEnableBehaviour extends Behavior {
     /**
      * @return Default implementation returns true even if underlying supplier returns null (this is because of backward compatibility of this class)
      *
-     * @deprecated use {@link #VisibleEnableBehaviour(SerializableSupplier, SerializableSupplier)} instead.
-     * This method doesn't properly handle null values (when behaviour can't decide on whether component should be enabled or not).
+     * This method doesn't properly handle situations, when underlying supplier itself is null (when behaviour can't
+     * decide on whether component should be enabled or not). In such case, it returns {@code true}.
      */
-    @Deprecated
     public boolean isEnabled() {
         if (enabled == null) {
             return true;
