@@ -238,9 +238,7 @@ public class CertificationWorkItemTable extends ContainerableListPanel<AccessCer
     private ContainerListDataProvider<AccessCertificationWorkItemType> createProvider(IModel<Search<AccessCertificationWorkItemType>> searchModel) {
         Collection<SelectorOptions<GetOperationOptions>> options = getPageBase()
                 .getOperationOptionsBuilder()
-                .item(AccessCertificationWorkItemType.F_ASSIGNEE_REF).resolve()
-                .item(ItemPath.create(PrismConstants.T_PARENT, AccessCertificationCaseType.F_OBJECT_REF)).resolve()
-                .item(ItemPath.create(PrismConstants.T_PARENT, AccessCertificationCaseType.F_TARGET_REF)).resolve()
+                .resolveNames()
                 .build();
         ContainerListDataProvider<AccessCertificationWorkItemType> provider = new ContainerListDataProvider<>(this,
                 searchModel, options) {

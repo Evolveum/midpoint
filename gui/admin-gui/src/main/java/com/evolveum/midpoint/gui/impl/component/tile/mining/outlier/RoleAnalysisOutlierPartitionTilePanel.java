@@ -219,42 +219,6 @@ public class RoleAnalysisOutlierPartitionTilePanel<T extends Serializable> exten
         assignmentAnomalyPanel.setOutputMarkupId(true);
         items.add(assignmentAnomalyPanel);
 
-        RoleAnalysisPatternAnalysis patternAnalysis = partitionAnalysis.getPatternAnalysis();
-        Double confidence = patternAnalysis.getConfidence();
-        if (confidence == null) {
-            confidence = 0.0;
-        }
-        BigDecimal bdConfidence = new BigDecimal(Double.toString(confidence));
-        bdConfidence = bdConfidence.setScale(2, RoundingMode.HALF_UP);
-        double patternCoverageConfidence = bdConfidence.doubleValue();
-        String confidenceValue = patternCoverageConfidence + "%";
-
-        MetricValuePanel patternPanel = new MetricValuePanel(items.newChildId()) {
-
-            @Override
-            protected @NotNull Component getTitleComponent(String id) {
-                LabelWithHelpPanel label = new LabelWithHelpPanel(id,
-                        createStringResource("RoleAnalysisOutlierPartitionTilePanel.pattern.coverage")) {
-                    @Override
-                    protected IModel<String> getHelpModel() {
-                        return createStringResource("RoleAnalysisOutlierPartitionTilePanel.pattern.help");
-                    }
-                };
-                label.setOutputMarkupId(true);
-                return label;
-            }
-
-            @Override
-            protected @NotNull Component getValueComponent(String id) {
-                Label label = new Label(id, confidenceValue);
-                label.setOutputMarkupId(true);
-                label.add(AttributeModifier.append(CLASS_CSS, FONT_WEIGHT_BOLD));
-                return label;
-            }
-        };
-        patternPanel.setOutputMarkupId(true);
-        items.add(patternPanel);
-
         RoleAnalysisOutlierSimilarObjectsAnalysisResult similarObjectAnalysis = partitionAnalysis.getSimilarObjectAnalysis();
         Integer similarObjectsCount = similarObjectAnalysis.getSimilarObjectsCount();
 
@@ -297,40 +261,6 @@ public class RoleAnalysisOutlierPartitionTilePanel<T extends Serializable> exten
         };
         similarObjectPanel.setOutputMarkupId(true);
         items.add(similarObjectPanel);
-
-        Double outlierAssignmentFrequencyConfidence = partitionAnalysis.getOutlierAssignmentFrequencyConfidence();
-        if (outlierAssignmentFrequencyConfidence == null) {
-            outlierAssignmentFrequencyConfidence = 0.0;
-        }
-        BigDecimal bdOutlierAssignmentFrequencyConfidence = new BigDecimal(Double.toString(outlierAssignmentFrequencyConfidence));
-        bdOutlierAssignmentFrequencyConfidence = bdOutlierAssignmentFrequencyConfidence.setScale(2, RoundingMode.HALF_UP);
-        double outlierAssignmentFrequencyConfidenceValue = bdOutlierAssignmentFrequencyConfidence.doubleValue();
-        String outlierAssignmentFrequencyValue = outlierAssignmentFrequencyConfidenceValue + "%";
-        MetricValuePanel outlierAssignmentFrequencyPanel = new MetricValuePanel(items.newChildId()) {
-
-            @Override
-            protected @NotNull Component getTitleComponent(String id) {
-                LabelWithHelpPanel label = new LabelWithHelpPanel(id,
-                        createStringResource("RoleAnalysisOutlierPartitionTilePanel.outlierAssignmentFrequency")) {
-                    @Override
-                    protected IModel<String> getHelpModel() {
-                        return createStringResource("RoleAnalysisOutlierPartitionTilePanel.outlierAssignmentFrequency.help");
-                    }
-                };
-                label.setOutputMarkupId(true);
-                return label;
-            }
-
-            @Override
-            protected @NotNull Component getValueComponent(String id) {
-                Label label = new Label(id, outlierAssignmentFrequencyValue);
-                label.setOutputMarkupId(true);
-                label.add(AttributeModifier.append(CLASS_CSS, FONT_WEIGHT_BOLD));
-                return label;
-            }
-        };
-        outlierAssignmentFrequencyPanel.setOutputMarkupId(true);
-        items.add(outlierAssignmentFrequencyPanel);
 
         MetricValuePanel attributeAnalysisPanel = new MetricValuePanel(items.newChildId()) {
 
@@ -376,6 +306,76 @@ public class RoleAnalysisOutlierPartitionTilePanel<T extends Serializable> exten
         };
         attributeAnalysisPanel.setOutputMarkupId(true);
         items.add(attributeAnalysisPanel);
+
+        RoleAnalysisPatternAnalysis patternAnalysis = partitionAnalysis.getPatternAnalysis();
+        Double confidence = patternAnalysis.getConfidence();
+        if (confidence == null) {
+            confidence = 0.0;
+        }
+        BigDecimal bdConfidence = new BigDecimal(Double.toString(confidence));
+        bdConfidence = bdConfidence.setScale(2, RoundingMode.HALF_UP);
+        double patternCoverageConfidence = bdConfidence.doubleValue();
+        String confidenceValue = patternCoverageConfidence + "%";
+
+        Double outlierAssignmentFrequencyConfidence = partitionAnalysis.getOutlierAssignmentFrequencyConfidence();
+        if (outlierAssignmentFrequencyConfidence == null) {
+            outlierAssignmentFrequencyConfidence = 0.0;
+        }
+        BigDecimal bdOutlierAssignmentFrequencyConfidence = new BigDecimal(Double.toString(outlierAssignmentFrequencyConfidence));
+        bdOutlierAssignmentFrequencyConfidence = bdOutlierAssignmentFrequencyConfidence.setScale(2, RoundingMode.HALF_UP);
+        double outlierAssignmentFrequencyConfidenceValue = bdOutlierAssignmentFrequencyConfidence.doubleValue();
+        String outlierAssignmentFrequencyValue = outlierAssignmentFrequencyConfidenceValue + "%";
+        MetricValuePanel outlierAssignmentFrequencyPanel = new MetricValuePanel(items.newChildId()) {
+
+            @Override
+            protected @NotNull Component getTitleComponent(String id) {
+                LabelWithHelpPanel label = new LabelWithHelpPanel(id,
+                        createStringResource("RoleAnalysisOutlierPartitionTilePanel.outlierAssignmentFrequency")) {
+                    @Override
+                    protected IModel<String> getHelpModel() {
+                        return createStringResource("RoleAnalysisOutlierPartitionTilePanel.outlierAssignmentFrequency.help");
+                    }
+                };
+                label.setOutputMarkupId(true);
+                return label;
+            }
+
+            @Override
+            protected @NotNull Component getValueComponent(String id) {
+                Label label = new Label(id, outlierAssignmentFrequencyValue);
+                label.setOutputMarkupId(true);
+                label.add(AttributeModifier.append(CLASS_CSS, FONT_WEIGHT_BOLD));
+                return label;
+            }
+        };
+        outlierAssignmentFrequencyPanel.setOutputMarkupId(true);
+        items.add(outlierAssignmentFrequencyPanel);
+
+        MetricValuePanel patternPanel = new MetricValuePanel(items.newChildId()) {
+
+            @Override
+            protected @NotNull Component getTitleComponent(String id) {
+                LabelWithHelpPanel label = new LabelWithHelpPanel(id,
+                        createStringResource("RoleAnalysisOutlierPartitionTilePanel.pattern.coverage")) {
+                    @Override
+                    protected IModel<String> getHelpModel() {
+                        return createStringResource("RoleAnalysisOutlierPartitionTilePanel.pattern.help");
+                    }
+                };
+                label.setOutputMarkupId(true);
+                return label;
+            }
+
+            @Override
+            protected @NotNull Component getValueComponent(String id) {
+                Label label = new Label(id, confidenceValue);
+                label.setOutputMarkupId(true);
+                label.add(AttributeModifier.append(CLASS_CSS, FONT_WEIGHT_BOLD));
+                return label;
+            }
+        };
+        patternPanel.setOutputMarkupId(true);
+        items.add(patternPanel);
 
     }
 

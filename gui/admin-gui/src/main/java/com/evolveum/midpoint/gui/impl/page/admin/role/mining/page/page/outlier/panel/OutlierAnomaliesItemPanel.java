@@ -139,12 +139,7 @@ public class OutlierAnomaliesItemPanel<T extends Serializable>
 
                     @Override
                     public Component createDescriptionComponent(String id) {
-                        return new LabelWithHelpPanel(id, createStringResource("RoleAnalysisOutlierType.anomalyCount")) {
-                            @Override
-                            protected IModel<String> getHelpModel() {
-                                return createStringResource("RoleAnalysisOutlierType.anomalyCount.help");
-                            }
-                        };
+                        return new Label(id, createStringResource("RoleAnalysisOutlierType.anomalyCount"));
                     }
                 },
 
@@ -167,13 +162,8 @@ public class OutlierAnomaliesItemPanel<T extends Serializable>
 
                     @Override
                     public Component createDescriptionComponent(String id) {
-                        return new LabelWithHelpPanel(id,
-                                createStringResource("RoleAnalysisOutlierType.anomalyAverageConfidence")) {
-                            @Override
-                            protected IModel<String> getHelpModel() {
-                                return createStringResource("RoleAnalysisOutlierType.anomalyAverageConfidence.help");
-                            }
-                        };
+                        return new Label(id,
+                                createStringResource("RoleAnalysisOutlierType.anomalyAverageConfidence"));
                     }
                 }
 
