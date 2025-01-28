@@ -46,4 +46,13 @@ public class CacheSetAccessInfo<T extends ObjectType> {
         this.globalVersion = globalVersion;
         this.globalQuery = globalQuery;
     }
+
+    boolean isEffectivelySupportedByAnyObjectCache() {
+        return localObject.effectivelySupports() || globalObject.effectivelySupports();
+    }
+
+    boolean isEffectivelySupportedByAnyQueryCache() {
+        return localQuery.effectivelySupports() || globalQuery.effectivelySupports();
+    }
+
 }

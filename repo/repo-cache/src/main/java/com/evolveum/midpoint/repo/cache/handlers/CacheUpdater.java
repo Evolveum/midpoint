@@ -85,11 +85,8 @@ class CacheUpdater {
             return exec.toReturnValueFromAny(loadedResultList);
         }
 
-        var localQueryAccess = exec.cachesInfo.localQuery;
-        var globalQueryAccess = exec.cachesInfo.globalQuery;
-
         boolean sizeOk = loadedResultList.size() <= QUERY_RESULT_SIZE_LIMIT;
-        boolean effectivelySupported = localQueryAccess.effectivelySupports() || globalQueryAccess.effectivelySupports();
+        boolean effectivelySupported = exec.cachesInfo.isEffectivelySupportedByAnyQueryCache();
 
         if (effectivelySupported && !sizeOk) {
             CachePerformanceCollector.INSTANCE.registerOverSizedQuery(key.getType());
@@ -244,9 +241,7 @@ class CacheUpdater {
     private <T extends ObjectType> void storeLoadedObjectToObjectAndVersionCaches(
             PrismObject<T> object, CacheUseMode cacheUseMode, CacheSetAccessInfo<T> cachesAccessInfo) {
 
-        boolean putIntoLocalObject = cachesAccessInfo.localObject.effectivelySupports();
-        boolean putIntoGlobalObject = cachesAccessInfo.globalObject.effectivelySupports();
-        if (cacheUseMode.canUpdateObjectCache() && (putIntoLocalObject || putIntoGlobalObject)) {
+        if (cacheUseMode.canUpdateObjectCache() && cachesAccessInfo.isEffectivelySupportedByAnyObjectCache()) {
             // Creating an immutable version:
             // - For R/O, the object is already immutable (-> this is no-op)
             // - For R/W, the clone is necessary (and unavoidable) here
