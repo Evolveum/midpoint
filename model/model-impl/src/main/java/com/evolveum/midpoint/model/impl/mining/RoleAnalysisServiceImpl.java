@@ -396,8 +396,13 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
         clusterObject.setRoleAnalysisSessionRef(parentRef);
         clusterObject.setDetectionOption(roleAnalysisSessionDetectionOption);
         try {
-            repositoryService.addObject(clusterPrismObject, null, result);
-        } catch (ObjectAlreadyExistsException | SchemaException e) {
+
+            ObjectDelta<RoleAnalysisClusterType> objectDelta = PrismContext.get().deltaFactory().object().create(RoleAnalysisClusterType.class, ChangeType.ADD);
+            objectDelta.setObjectToAdd(clusterPrismObject);
+
+            modelService.executeChanges(singleton(objectDelta), null, task, result);
+        } catch (ObjectAlreadyExistsException | SchemaException | ObjectNotFoundException | ExpressionEvaluationException |
+                CommunicationException | ConfigurationException | PolicyViolationException | SecurityViolationException e) {
             LOGGER.error("Couldn't import RoleAnalysisClusterType object {}", clusterPrismObject, e);
         }
     }

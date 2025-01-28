@@ -51,6 +51,7 @@ Overall, midPoint 4.9 is a major step from the past into the future.
 * bug:MID-10305[] Remove max password length constraint.
 * bug:MID-10048[] Fix ClassCastException when creating duplicates of object types with new archetype
 * bug:MID-9300[] Secure schema usage in PostgresSQL (not using public schema).
+* bug:MID-10278[] Fix non-clickable part of a button in Edit Schema popup panel.
 
 === Other Improvements
 
@@ -62,6 +63,9 @@ Overall, midPoint 4.9 is a major step from the past into the future.
 * Apply the Web Content Accessibility Guidelines (WCAG) to all login pages and self-service pages. See bug:MID-9847[].
 ** Used 'honeypot' instead of captcha on self-registration and post-authentication pages to protect against spam bots.
 * Improved the documentation on the resource configuration. See bug:MID-10176[].
+* Allow volatility configuration per mapping through the Resource Wizard. See bug:MID-10170[].
+* Change the CSS style of sub-containers in the vertical form panel to create a new object for reference. See bug:MID-10030[].
+
 
 === Other Bug Fixes
 
@@ -87,6 +91,18 @@ See bug:MID-9737[] and bug:MID-9986[].
 * Midpoint Query Language Fixed inconsistent whitespace behavior when using `not` filter, modified grammar of query language. See bug:MID-9351[].
 * Fixed code completions & validation for @metadata language concept in Midpoint Query language. See bug:MID-10324[].
 * Fixed problem with handling syntax error in Midpoint Query Language. See bug:MID-8196[] and bug:MID-9585[].
+* Fixed removal of the shadow transition mark in the mark table panel. See bug:MID-10228[].
+* Fixed refresh names, help texts and search items for all saved search configurations. See bug:MID-10321[].
+* Fixed phantom changes when displaying an existing object type in the resource wizard. See bug:MID-10284[].
+* Added a popup to create a new item for the Schema Extension panel. See bug:MID-10283[].
+* Harmonize the design of the mapping table panel for object template and resource object type mapping. See bug:MID-10291[].
+* Removed the use of page parameters for view collection in popup tables. See bug:MID-10254[].
+* Fixed display of row without object name for Task Errors panel. See bug:MID-10354[].
+* Fixed the display of the 'User Dashboard Links' panel in the System Configuration panel. See bug:MID-10133[].
+* Fixed the object class name column in the Resource Details panel. See bug:MID-10005[].
+* Fixed saving of audit record with malformed username as parameter during login (User-Enumeration attack). See bug:MID-10383[].
+* Add a save button to the wizard's table of object and association types. See bug:MID-10046[].
+* Add an error message when the 'securityQuestionsForm' authentication module is the first in the authentication sequence. See bug:MID-10149[].
 
 
 === Releases Of Other Components

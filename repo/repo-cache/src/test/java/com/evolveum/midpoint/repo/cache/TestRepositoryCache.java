@@ -21,12 +21,16 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Consumer;
+import java.util.function.Function;
 
 import com.evolveum.midpoint.prism.Freezable;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import jakarta.annotation.PostConstruct;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.BeforeSuite;
@@ -59,10 +63,6 @@ import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ArchetypeType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 /**
@@ -148,6 +148,8 @@ public class TestRepositoryCache extends AbstractSpringTest implements InfraTest
     }
 
     /**
+     * Searching for objects with the exclude = "." option. The search result should be cached, but individual objects should not.
+     *
      * This is to simulate the assignment target search evaluator that tries to search for roles with exclude = "." option.
      * Although the objects resulting from the search cannot be cached (obviously, as they contain no data), their OIDs forming
      * the result itself, can be.
@@ -190,7 +192,7 @@ public class TestRepositoryCache extends AbstractSpringTest implements InfraTest
         clearStatistics();
         var objects2 = repositoryCache.searchObjects(ArchetypeType.class, query, options, result);
 
-        then("result is OK and there was a repo access");
+        then("result is OK and there was a repo access (the object itself could not be cached)");
         displayCollection("objects retrieved", objects2);
         assertObjectOids(objects2, oid);
         assertSearchOperations(1);
@@ -198,13 +200,13 @@ public class TestRepositoryCache extends AbstractSpringTest implements InfraTest
                 .as("description")
                 .isIn(null, description);
 
-        when("retrieving the archetype by getObject, polluting the result, and repeating the search");
+        when("retrieving the archetype by 'getObject', polluting the result, and repeating the search");
         var retrieved = repositoryCache.getObject(ArchetypeType.class, oid, null, result);
         retrieved.asObjectable().setDescription("garbage");
         clearStatistics();
         var objects3 = repositoryCache.searchObjects(ArchetypeType.class, query, options, result);
 
-        then("result is OK and there was a NO repo access");
+        then("result is OK and there was a NO repo access (the object data are now in the cache)");
         displayCollection("objects retrieved", objects3);
         assertObjectOids(objects3, oid);
         assertSearchOperations(0);
@@ -232,7 +234,7 @@ public class TestRepositoryCache extends AbstractSpringTest implements InfraTest
         clearStatistics();
         clearCaches();
 
-        String name = "testModifyInIterativeSearch";
+        String name = getTestNameShort();
         String changedDescription = "changed";
 
         PrismObject<ArchetypeType> archetype = new ArchetypeType()
@@ -395,17 +397,183 @@ public class TestRepositoryCache extends AbstractSpringTest implements InfraTest
         assertThat(data.overSizedQueries.get()).as("over-sized counter").isEqualTo(2); // search + searchIterative
     }
 
+    /** MID-6003 */
     @Test
     public void test350GetArchetypeWithIncludeOptionNoPhoto() throws CommonException {
         testGetObjectWithSmartIncludeHandling(ArchetypeType.class, a -> {}, true);
     }
 
+    /** MID-6003 */
     @Test
     public void test352GetArchetypeWithIncludeOptionWithPhoto() throws CommonException {
         testGetObjectWithSmartIncludeHandling(ArchetypeType.class, a -> a.setJpegPhoto(new byte[] { 1, 2, 3 }), false);
     }
 
-    // Must be executed last, because naive deletion such large number of archetypes fails on OOM
+    // region Testing the effect of various GetOperationOptions on the cache
+
+    @Test
+    public void test400UsingSafeOptions() throws CommonException {
+        testUsingSafeOptions(null);
+        testUsingSafeOptions(b -> b);
+        testUsingSafeOptions(b -> b.readOnly());
+        testUsingSafeOptions(b -> b.doNotDiscovery());
+        testUsingSafeOptions(b -> b.forceRefresh());
+        testUsingSafeOptions(b -> b.forceRetry());
+        testUsingSafeOptions(b -> b.allowNotFound());
+        testUsingSafeOptions(b -> b.executionPhase());
+        testUsingSafeOptions(b -> b.noFetch());
+        testUsingSafeOptions(b -> b.futurePointInTime());
+        testUsingSafeOptions(b -> b.errorReportingMethod(FetchErrorReportingMethodType.EXCEPTION));
+        // plus some combinations
+        testUsingSafeOptions(b -> b.doNotDiscovery().forceRetry().forceRefresh());
+    }
+
+    private void testUsingSafeOptions(Function<GetOperationOptionsBuilder, GetOperationOptionsBuilder> builderFunction)
+            throws CommonException {
+
+        // Operations using the correct type and safe options are always served from the cache.
+        testWithOptions(
+                ArchetypeType.class, getTestNameShort(), ArchetypeType.class, getOptions(builderFunction),
+                true, false, true, true);
+
+        // Results of get/search operations invoked on ObjectType are never cached.
+        testWithOptions(
+                ArchetypeType.class, getTestNameShort(), ObjectType.class, getOptions(builderFunction),
+                true, false, false, false);
+
+        // Even with pre-populating the cache, the operation cannot be served from the cache, as ObjectType-typed requests
+        // are not configured to be served from the cache.
+        testWithOptions(
+                ArchetypeType.class, getTestNameShort(), ObjectType.class, getOptions(builderFunction),
+                true, true, false, true);
+    }
+
+    @Test
+    public void test410UsingUnsafeOptions() throws CommonException {
+        testUsingUnsafeOptions(b -> b.resolve());
+        testUsingUnsafeOptions(b -> b.resolveNames());
+        testUsingUnsafeOptions(b -> b.raw());
+        testUsingUnsafeOptions(b -> b.tolerateRawData());
+        testUsingUnsafeOptions(b -> b.retrieve(new RelationalValueSearchQuery(null)));
+        testUsingUnsafeOptions(b -> b.distinct());
+        testUsingUnsafeOptions(b -> b.attachDiagData());
+        testUsingUnsafeOptions(b -> b.definitionProcessing(DefinitionProcessingOption.FULL));
+        testUsingUnsafeOptions(b -> b.iterationMethod(IterationMethodType.FETCH_ALL));
+    }
+
+    private void testUsingUnsafeOptions(Function<GetOperationOptionsBuilder, GetOperationOptionsBuilder> builderFunction)
+            throws CommonException {
+
+        // Operations with unsafe options are never served from the cache; and their results are not stored into the cache.
+        testWithOptions(
+                ArchetypeType.class, getTestNameShort(), ArchetypeType.class, getOptions(builderFunction),
+                true, false, false, false);
+
+        // Even if pre-populating the cache, the operation cannot be served from the cache.
+        testWithOptions(
+                ArchetypeType.class, getTestNameShort(), ArchetypeType.class, getOptions(builderFunction),
+                true, true, false, true);
+    }
+
+    @Test
+    public void test420UsingZeroStalenessOption() throws CommonException {
+        testUsingZeroStalenessOptions(b -> b.staleness(0L));
+        // safe options should be safe also here
+        testUsingZeroStalenessOptions(b -> b.staleness(0L).readOnly());
+        testUsingZeroStalenessOptions(b -> b.staleness(0L).doNotDiscovery());
+    }
+
+    private void testUsingZeroStalenessOptions(Function<GetOperationOptionsBuilder, GetOperationOptionsBuilder> builderFunction)
+            throws CommonException {
+
+        // Operations with zero staleness are never served from the cache; but their results are stored into the cache.
+        testWithOptions(
+                ArchetypeType.class, getTestNameShort(), ArchetypeType.class, getOptions(builderFunction),
+                true, false, false, true);
+
+        // Results being pre-populated does not change anything in this case.
+        testWithOptions(
+                ArchetypeType.class, getTestNameShort(), ArchetypeType.class, getOptions(builderFunction),
+                true, true, false, true);
+    }
+
+    private static @Nullable Collection<SelectorOptions<GetOperationOptions>> getOptions(Function<GetOperationOptionsBuilder, GetOperationOptionsBuilder> builderFunction) {
+        return builderFunction != null ?
+                builderFunction
+                        .apply(GetOperationOptionsBuilder.create())
+                        .build() : null;
+    }
+
+    private <T extends ObjectType> void testWithOptions(
+            Class<T> type, String objectName,
+            Class<? extends ObjectType> requestType, Collection<SelectorOptions<GetOperationOptions>> options,
+            boolean includeSearchOperations,
+            boolean inCachesBefore, boolean servedFromCache, boolean inObjectCacheAfter)
+            throws CommonException {
+
+        var result = createOperationResult();
+        clearCaches();
+
+        given("an object in the repo");
+        var object = getPrismContext().createObject(type);
+        object.asObjectable().setName(PolyStringType.fromOrig(objectName));
+        var oid = repositoryCache.addObject(object, null, result);
+
+        var scenario = new CachingScenario(
+                object, requestType, options, inCachesBefore, servedFromCache, inObjectCacheAfter);
+
+        testOperationWithOptions(scenario, getObjectOperation(), result);
+        if (includeSearchOperations) {
+            testOperationWithOptions(scenario, searchObjectsOperation(createQueryByName(object)), result);
+            testOperationWithOptions(scenario, searchObjectsOperation(createQueryByOid(object)), result);
+            testOperationWithOptions(scenario, searchObjectsIterativeOperation(createQueryByName(object)), result);
+            testOperationWithOptions(scenario, searchObjectsIterativeOperation(createQueryByOid(object)), result);
+        }
+
+        repositoryCache.deleteObject(type, oid, result);
+    }
+
+    private void testOperationWithOptions(CachingScenario scenario, RequestedOperation operation, OperationResult result)
+            throws CommonException {
+
+        clearCaches();
+
+        var requestType = scenario.requestType;
+        var object = scenario.object;
+        var options = scenario.options;
+
+        if (scenario.inCachesBefore) {
+            when("executing %s on %s to pre-populate the caches".formatted(operation, object));
+            operation.execute(object.getCompileTimeClass(), object, null, result);
+        } else {
+            when("executing %s (%s) on %s with %s the first time".formatted(
+                    operation, requestType.getSimpleName(), object, options));
+            operation.execute(requestType, object, options, result);
+        }
+
+        clearStatistics();
+
+        when("executing %s (%s) on %s with %s the second time".formatted(operation, requestType.getSimpleName(), object, options));
+        operation.execute(requestType, object, options, result);
+
+        if (scenario.servedFromCache) {
+            then("operation should be served from the cache");
+            assertOperations(operation.getOperationName(), 0);
+        } else {
+            then("operation should be really executed");
+            assertOperations(operation.getOperationName(), 1);
+        }
+
+        if (scenario.inObjectCacheAfter) {
+            assertObjectIsCached(object.getOid());
+        } else {
+            assertObjectIsNotCached(object.getOid());
+        }
+    }
+
+    // endregion
+
+    // Must be executed last, because naive deletion of such large number of archetypes fails on OOM
     @Test
     public void test900HeapUsage() throws Exception {
         OperationResult result = new OperationResult("testHeapUsage");
@@ -858,16 +1026,23 @@ public class TestRepositoryCache extends AbstractSpringTest implements InfraTest
         }
     }
 
-    private <T extends ObjectType> void assertImmutableContent(Collection<? extends Freezable> collection) {
+    private void assertImmutableContent(Collection<? extends Freezable> collection) {
         collection.forEach(Freezable::checkImmutable);
     }
 
     private void assertSearchIterativeOperations(int expectedCount) {
-        assertOperations(
-                // new repo clearly identifies "page" call, old just calls public searchObject
-                isNewRepoUsed ? RepositoryService.OP_SEARCH_OBJECTS_ITERATIVE_PAGE
-                        : RepositoryService.OP_SEARCH_OBJECTS,
-                expectedCount);
+        assertOperations(getSearchIterativeOperationName(), expectedCount);
+    }
+
+    /**
+     * Returns the name of operation for `searchObjectsIterative`.
+     *
+     * The new repo clearly identifies "page" call, old just calls public `searchObject`.
+     */
+    private @NotNull String getSearchIterativeOperationName() {
+        return isNewRepoUsed ?
+                RepositoryService.OP_SEARCH_OBJECTS_ITERATIVE_PAGE :
+                RepositoryService.OP_SEARCH_OBJECTS;
     }
 
     /** Searches for objects, but also clones them and corrupts the originally returned objects. */
@@ -986,5 +1161,163 @@ public class TestRepositoryCache extends AbstractSpringTest implements InfraTest
 
     private void assertCloneOperations(long expected) {
         assertThat(getCloneCount()).as("clone operations executed").isEqualTo(expected);
+    }
+
+    private GetObjectOperation getObjectOperation() {
+        return new GetObjectOperation();
+    }
+
+    private SearchObjectsOperation searchObjectsOperation(ObjectQuery query) {
+        return new SearchObjectsOperation(query);
+    }
+
+    private SearchObjectsIterativeOperation searchObjectsIterativeOperation(ObjectQuery query) {
+        return new SearchObjectsIterativeOperation(query);
+    }
+
+    private interface RequestedOperation {
+
+        <T extends ObjectType> void execute(
+                Class<? extends ObjectType> requestedType,
+                PrismObject<T> object,
+                Collection<SelectorOptions<GetOperationOptions>> options,
+                OperationResult result)
+                throws CommonException;
+
+        String getOperationName();
+    }
+
+    private class GetObjectOperation implements RequestedOperation {
+
+        @Override
+        public <T extends ObjectType> void execute(
+                Class<? extends ObjectType> requestedType,
+                PrismObject<T> object,
+                Collection<SelectorOptions<GetOperationOptions>> options,
+                OperationResult result)
+                throws CommonException {
+            repositoryCache.getObject(requestedType, object.getOid(), options, result);
+        }
+
+        @Override
+        public String getOperationName() {
+            return RepositoryService.OP_GET_OBJECT;
+        }
+
+        @Override
+        public String toString() {
+            return "getObject";
+        }
+    }
+
+    private class SearchObjectsOperation implements RequestedOperation {
+
+        private final ObjectQuery query;
+
+        private SearchObjectsOperation(ObjectQuery query) {
+            this.query = query;
+        }
+
+        @Override
+        public <T extends ObjectType> void execute(
+                Class<? extends ObjectType> requestedType,
+                PrismObject<T> object,
+                Collection<SelectorOptions<GetOperationOptions>> options,
+                OperationResult result)
+                throws CommonException {
+            repositoryCache.searchObjects(requestedType, query, options, result);
+        }
+
+        @Override
+        public String getOperationName() {
+            return RepositoryService.OP_SEARCH_OBJECTS;
+        }
+
+        @Override
+        public String toString() {
+            return "searchObjects(" + query + ")";
+        }
+    }
+
+    private class SearchObjectsIterativeOperation implements RequestedOperation {
+
+        private final ObjectQuery query;
+
+        private SearchObjectsIterativeOperation(ObjectQuery query) {
+            this.query = query;
+        }
+
+        @Override
+        public <T extends ObjectType> void execute(
+                Class<? extends ObjectType> requestedType,
+                PrismObject<T> object,
+                Collection<SelectorOptions<GetOperationOptions>> options,
+                OperationResult result)
+                throws CommonException {
+            repositoryCache.searchObjectsIterative(
+                    requestedType,
+                    query,
+                    (objectFound, lResult) -> true,
+                    options, true, result);
+        }
+
+        @Override
+        public String getOperationName() {
+            return getSearchIterativeOperationName();
+        }
+
+        @Override
+        public String toString() {
+            return "searchObjectsIterative(" + query + ")";
+        }
+    }
+
+
+    private static <T extends ObjectType> ObjectQuery createQueryByName(PrismObject<T> object) {
+        return getPrismContext().queryFor(object.getCompileTimeClass())
+                .item(ObjectType.F_NAME).eqPoly(object.getName().getOrig()).matchingOrig()
+                .build();
+    }
+
+    private static <T extends ObjectType> ObjectQuery createQueryByOid(PrismObject<T> object) {
+        return getPrismContext().queryFor(object.getCompileTimeClass())
+                .id(object.getOid())
+                .build();
+    }
+
+    /** A single-object caching scenario test, varying operations, options, and requested type. */
+    private static class CachingScenario {
+        /** The object used for the test scenario. */
+        private final PrismObject<? extends ObjectType> object;
+
+        /** The type used to invoke the operation. */
+        private final Class<? extends ObjectType> requestType;
+
+        /** Options used to invoke the operation. */
+        private final Collection<SelectorOptions<GetOperationOptions>> options;
+
+        /** Should be the object/query cached before the operation? (Typically by invoking it using safe options.) */
+        private final boolean inCachesBefore;
+
+        /** Should be the (repeated) operation served from the cache? */
+        private final boolean servedFromCache;
+
+        /** Is the object expected to be present in the cache after the operation? */
+        private final boolean inObjectCacheAfter;
+
+        private CachingScenario(
+                PrismObject<? extends ObjectType> object,
+                Class<? extends ObjectType> requestType,
+                Collection<SelectorOptions<GetOperationOptions>> options,
+                boolean inCachesBefore,
+                boolean servedFromCache,
+                boolean inObjectCacheAfter) {
+            this.object = object;
+            this.requestType = requestType;
+            this.options = options;
+            this.inCachesBefore = inCachesBefore;
+            this.servedFromCache = servedFromCache;
+            this.inObjectCacheAfter = inObjectCacheAfter;
+        }
     }
 }

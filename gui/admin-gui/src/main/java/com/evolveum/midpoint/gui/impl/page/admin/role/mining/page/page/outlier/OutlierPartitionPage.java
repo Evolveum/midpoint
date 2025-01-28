@@ -180,13 +180,14 @@ public class OutlierPartitionPage extends PageAdmin {
 
                 initOverviewItem(menu);
 
+                initAnomaliesItem(menu);
+
                 initClusterItem(menu);
+
+                initAttributesItem(menu);
 
                 initPatternItem(menu);
 
-                initAnomaliesItem(menu);
-
-                initAttributesItem(menu);
 
                 return menu;
             }
