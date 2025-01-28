@@ -22,6 +22,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Consumer;
 
+import com.evolveum.midpoint.prism.Freezable;
+
 import jakarta.annotation.PostConstruct;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
@@ -115,30 +117,34 @@ public class TestRepositoryCache extends AbstractSpringTest implements InfraTest
         testGetObjectBasic(UserType.class, getTestNameShort(), false);
     }
 
-    /** Test `getObject` operation using the cache (only the basic features). */
+    /** Tests `getObject` operation using the cache (only the basic features). */
     @Test
     public void test110GetObjectUsingCache() throws CommonException {
         testGetObjectBasic(SystemConfigurationType.class, getTestNameShort(), true);
     }
 
+    /** Tests `searchObjects` operation passing the cache. */
     @Test
-    public void test200SearchUsers() throws CommonException {
-        testSearchObjects(UserType.class, 5, false);
+    public void test200SearchObjectsPassingCache() throws CommonException {
+        testSearchObjectsBasic(UserType.class, 5, false);
     }
 
+    /** Tests `searchObjects` operation using the cache (only the basic features). */
     @Test
-    public void test210SearchArchetypes() throws CommonException {
-        testSearchObjects(ArchetypeType.class, 5, true);
+    public void test210SearchObjectsUsingCache() throws CommonException {
+        testSearchObjectsBasic(ArchetypeType.class, 5, true);
     }
 
+    /** Tests `searchObjectsIterative` operation passing the cache. */
     @Test
-    public void test220SearchUsersIterative() throws CommonException {
-        testSearchObjectsIterative(UserType.class, 5, false);
+    public void test220SearchObjectsIterativePassingCache() throws CommonException {
+        testSearchObjectsIterativeBasic(UserType.class, 5, false);
     }
 
+    /** Tests `searchObjectsIterative` operation using the cache (only the basic features). */
     @Test
-    public void test230SearchArchetypesIterative() throws CommonException {
-        testSearchObjectsIterative(ArchetypeType.class, 5, true);
+    public void test230SearchObjectsIterativeUsingCache() throws CommonException {
+        testSearchObjectsIterativeBasic(ArchetypeType.class, 5, true);
     }
 
     /**
@@ -174,7 +180,7 @@ public class TestRepositoryCache extends AbstractSpringTest implements InfraTest
         then("result is OK and there was a repo access");
         displayCollection("objects retrieved", objects1);
         assertObjectOids(objects1, oid);
-        assertOperations(RepositoryService.OP_SEARCH_OBJECTS, 1);
+        assertSearchOperations(1);
         assertThat(objects1.get(0).asObjectable().getDescription())
                 .as("description")
                 .isIn(null, description);
@@ -187,7 +193,7 @@ public class TestRepositoryCache extends AbstractSpringTest implements InfraTest
         then("result is OK and there was a repo access");
         displayCollection("objects retrieved", objects2);
         assertObjectOids(objects2, oid);
-        assertOperations(RepositoryService.OP_SEARCH_OBJECTS, 1);
+        assertSearchOperations(1);
         assertThat(objects2.get(0).asObjectable().getDescription())
                 .as("description")
                 .isIn(null, description);
@@ -201,7 +207,7 @@ public class TestRepositoryCache extends AbstractSpringTest implements InfraTest
         then("result is OK and there was a NO repo access");
         displayCollection("objects retrieved", objects3);
         assertObjectOids(objects3, oid);
-        assertOperations(RepositoryService.OP_SEARCH_OBJECTS, 0);
+        assertSearchOperations(0);
         assertThat(objects3.get(0).asObjectable().getDescription())
                 .as("description")
                 .isIn(null, description);
@@ -481,8 +487,8 @@ public class TestRepositoryCache extends AbstractSpringTest implements InfraTest
      */
     private <T extends ObjectType> void testGetObjectBasic(Class<T> objectClass, String objectName, boolean isCached)
             throws CommonException {
-        var result = createOperationResult();
 
+        var result = createOperationResult();
         clearCaches();
 
         given("an object in the repo");
@@ -666,50 +672,94 @@ public class TestRepositoryCache extends AbstractSpringTest implements InfraTest
      * Besides that, alters the objects retrieved (in memory) and verifies that the returned objects are correct
      * i.e. not influenced by alterations of previously returned objects.
      */
-    private <T extends ObjectType> void testSearchObjects(Class<T> type, int objectCount, boolean isCached)
+    private <T extends ObjectType> void testSearchObjectsBasic(Class<T> type, int objectCount, boolean isCached)
             throws ObjectAlreadyExistsException, SchemaException, ObjectNotFoundException {
 
-        OperationResult result = createOperationResult();
+        var result = createOperationResult();
+        clearCaches();
+
+        given("objects in the repo");
 
         deleteExistingObjects(type, result);
 
         clearStatistics();
-        clearCaches();
-
-        Set<PrismObject<T>> objects = generateObjects(type, objectCount, result);
-
-        SearchResultList<PrismObject<T>> objects1 = repositoryCache.searchObjects(type, null, null, result);
-        SearchResultList<PrismObject<T>> referentialList = objects1.deepClone();
-
-        displayCollection("1st round of objects retrieved", objects1);
-        assertEquals("Wrong objects1", objects, new HashSet<>(objects1));
-        objects1.get(0).asObjectable().setDescription("garbage");
-
-        SearchResultList<PrismObject<T>> objects2 = repositoryCache.searchObjects(type, null, null, result);
-        displayCollection("2nd round of objects retrieved", objects2);
-        assertEquals("Wrong objects2", objects, new HashSet<>(objects2));
-        objects2.get(0).asObjectable().setDescription("total garbage");
-
-        SearchResultList<PrismObject<T>> objects3 = repositoryCache.searchObjects(type, null, null, result);
-        displayCollection("3rd round of objects retrieved", objects3);
-        assertEquals("Wrong objects3", objects, new HashSet<>(objects3));
-
-        getObjectsAfterSearching(type, referentialList, result);
-
-        dumpStatistics();
+        var objects = generateObjects(type, objectCount, result);
         assertAddOperations(objectCount);
-        assertOperations(RepositoryService.OP_SEARCH_OBJECTS, isCached ? 1 : 3);
-        assertOperations(RepositoryService.OP_GET_OBJECT, isCached ? 0 : 3 * objectCount);
+        assertSearchOperations(0);
+        assertGetOperations(0);
 
+        when("objects are retrieved (null options)");
+        clearStatistics();
+        var objects1 = repositoryCache.searchObjects(type, null, null, result);
+
+        then("objects are OK");
+        displayCollection("objects retrieved", objects1);
+        assertEquals("Wrong objects1", objects, new HashSet<>(objects1));
+        objects1.checkMutable(); // not checking individual objects, but the corruption proves they're mutable
+        dumpStatistics();
+        assertSearchOperations(1);
+        assertGetOperations(0);
+        assertCloneOperations(isCached ? objectCount : 0); // when putting into the cache
+
+        var referentialList = objects1.deepClone();
+
+        when("in-memory representation is corrupted, and objects are retrieved again");
+        objects1.get(0).asObjectable().setDescription("garbage");
+        clearStatistics();
+        var objects2 = repositoryCache.searchObjects(type, null, null, result);
+
+        then("objects are OK");
+        displayCollection("objects retrieved", objects2);
+        assertEquals("Wrong objects2", objects, new HashSet<>(objects2));
+        objects2.checkMutable(); // not checking individual objects, but the corruption proves they're mutable
+        dumpStatistics();
+        assertSearchOperations(isCached ? 0 : 1);
+        assertGetOperations(0);
+        assertCloneOperations(isCached ? objectCount : 0); // when retrieving from the cache
+
+        when("in-memory representation is corrupted again, and objects are retrieved again");
+        objects2.get(0).asObjectable().setDescription("total garbage");
+        clearStatistics();
+        var objects3 = repositoryCache.searchObjects(type, null, null, result);
+
+        then("objects are OK");
+        displayCollection("objects retrieved", objects3);
+        assertEquals("Wrong objects3", objects, new HashSet<>(objects3));
+        objects3.checkMutable();
+        dumpStatistics();
+        assertSearchOperations(isCached ? 0 : 1);
+        assertGetOperations(0);
+        assertCloneOperations(isCached ? objectCount : 0); // when retrieving from the cache
+
+        when("in-memory representation is corrupted again, and objects are retrieved again (R/O mode)");
+        objects3.get(0).asObjectable().setDescription("total garbage");
+        clearStatistics();
+        var objects4 = repositoryCache.searchObjects(type, null, createReadOnlyCollection(), result);
+
+        then("objects are OK");
+        displayCollection("objects retrieved", objects4);
+        assertEquals("Wrong objects4", objects, new HashSet<>(objects4));
+        objects4.checkImmutable();
+        dumpStatistics();
+        assertSearchOperations(isCached ? 0 : 1);
+        assertGetOperations(0);
+        assertCloneOperations(0);
+
+        getObjectsAfterSearching(type, referentialList, isCached, result);
+
+        then("query and objects are in the cache (iff cached)");
         assertQueryCached(type, null, isCached);
         for (PrismObject<T> object : objects) {
             assertObjectAndVersionCached(object.getOid(), isCached);
         }
     }
 
-    private <T extends ObjectType> void getObjectsAfterSearching(Class<T> objectClass, SearchResultList<PrismObject<T>> list,
-            OperationResult result) throws ObjectNotFoundException, SchemaException {
+    private <T extends ObjectType> void getObjectsAfterSearching(
+            Class<T> objectClass, SearchResultList<PrismObject<T>> list, boolean isCached, OperationResult result)
+            throws ObjectNotFoundException, SchemaException {
 
+        when("objects are retrieved again, using 'getObject' method call");
+        clearStatistics();
         for (PrismObject<T> object : list) {
             String oid = object.getOid();
 
@@ -727,62 +777,118 @@ public class TestRepositoryCache extends AbstractSpringTest implements InfraTest
             assertEquals("Wrong object3", object, object3);
             displayDumpable("3rd object retrieved", object3);
         }
+
+        then("operation counts are correct");
+        assertGetOperations(isCached ? 0 : 3 * list.size());
     }
 
-    private <T extends ObjectType> void testSearchObjectsIterative(Class<T> type, int objectCount,
+    private <T extends ObjectType> void testSearchObjectsIterativeBasic(Class<T> type, int objectCount,
             boolean isCached) throws ObjectAlreadyExistsException, SchemaException, ObjectNotFoundException {
-        OperationResult result = createOperationResult();
+
+        var result = createOperationResult();
+        clearCaches();
+
+        given("objects in the repo");
 
         deleteExistingObjects(type, result);
 
         clearStatistics();
-        clearCaches();
+        var objects = generateObjects(type, objectCount, result);
+        assertAddOperations(objectCount);
+        assertSearchIterativeOperations(0);
+        assertGetOperations(0);
 
-        Set<PrismObject<T>> objects = generateObjects(type, objectCount, result);
+        when("objects are retrieved iteratively (null options)");
+        clearStatistics();
+        var objects1 = searchObjectsIterative(type, null, false, result);
 
-        SearchResultList<PrismObject<T>> objects1 = searchObjectsIterative(type, null, null, result);
-        SearchResultList<PrismObject<T>> referentialList = objects1.deepClone();
-
-        displayCollection("1st round of objects retrieved", objects1);
+        then("objects are OK");
+        displayCollection("objects retrieved", objects1);
         assertEquals("Wrong objects1", objects, new HashSet<>(objects1));
-        objects1.get(0).asObjectable().setDescription("garbage");
+        dumpStatistics();
+        assertSearchIterativeOperations(1);
+        assertGetOperations(0);
+        assertCloneOperations(isCached ? 2L * objectCount : objectCount); // when modifying + when putting into the cache
 
-        SearchResultList<PrismObject<T>> objects2 = searchObjectsIterative(type, null, null, result);
-        displayCollection("2nd round of objects retrieved", objects2);
+        var referentialList = objects1.deepClone();
+
+        when("objects are retrieved again (they were corrupted before)");
+        clearStatistics();
+        var objects2 = searchObjectsIterative(type, null, false, result);
+
+        then("objects are OK");
+        displayCollection("objects retrieved", objects2);
         assertEquals("Wrong objects2", objects, new HashSet<>(objects2));
-        objects2.get(0).asObjectable().setDescription("total garbage");
+        dumpStatistics();
+        assertSearchIterativeOperations(isCached ? 0 : 1);
+        assertGetOperations(0);
+        assertCloneOperations(isCached ? 2L * objectCount : objectCount); // when modifying + when retrieving from the cache
 
-        SearchResultList<PrismObject<T>> objects3 = searchObjectsIterative(type, null, null, result);
+        when("objects are retrieved again (they were corrupted before)");
+        clearStatistics();
+        var objects3 = searchObjectsIterative(type, null, false, result);
+
+        then("objects are OK");
         displayCollection("3rd round of objects retrieved", objects3);
         assertEquals("Wrong objects3", objects, new HashSet<>(objects3));
-
-        getObjectsAfterSearching(type, referentialList, result);
-
         dumpStatistics();
-        assertAddOperations(objectCount);
-        assertOperations(
-                // new repo clearly identifies "page" call, old just calls public searchObject
-                isNewRepoUsed ? RepositoryService.OP_SEARCH_OBJECTS_ITERATIVE_PAGE
-                        : RepositoryService.OP_SEARCH_OBJECTS,
-                isCached ? 1 : 3);
-        assertOperations(RepositoryService.OP_GET_OBJECT, isCached ? 0 : 3 * objectCount);
+        assertSearchIterativeOperations(isCached ? 0 : 1);
+        assertGetOperations(0);
+        assertCloneOperations(isCached ? 2L * objectCount : objectCount); // when modifying + when retrieving from the cache
 
+        when("objects are retrieved again (R/O mode)");
+        clearStatistics();
+        var objects4 = searchObjectsIterative(type, null, true, result);
+
+        then("objects are OK");
+        displayCollection("objects retrieved", objects4);
+        assertEquals("Wrong objects4", objects, new HashSet<>(objects4));
+        assertImmutableContent(objects4);
+        dumpStatistics();
+        assertSearchIterativeOperations(isCached ? 0 : 1);
+        assertGetOperations(0);
+        assertCloneOperations(0); // not modifying (because of R/O), not putting into/retrieving from cache
+
+        getObjectsAfterSearching(type, referentialList, isCached, result);
+
+        then("query and objects are in the cache (iff cached)");
         assertQueryCached(type, null, isCached);
         for (PrismObject<T> object : objects) {
             assertObjectAndVersionCached(object.getOid(), isCached);
         }
     }
 
-    private <T extends ObjectType> SearchResultList<PrismObject<T>> searchObjectsIterative(Class<T> objectClass, ObjectQuery query,
-            Collection<SelectorOptions<GetOperationOptions>> options, OperationResult result) throws SchemaException {
+    private <T extends ObjectType> void assertImmutableContent(Collection<? extends Freezable> collection) {
+        collection.forEach(Freezable::checkImmutable);
+    }
+
+    private void assertSearchIterativeOperations(int expectedCount) {
+        assertOperations(
+                // new repo clearly identifies "page" call, old just calls public searchObject
+                isNewRepoUsed ? RepositoryService.OP_SEARCH_OBJECTS_ITERATIVE_PAGE
+                        : RepositoryService.OP_SEARCH_OBJECTS,
+                expectedCount);
+    }
+
+    /** Searches for objects, but also clones them and corrupts the originally returned objects. */
+    private <T extends ObjectType> SearchResultList<PrismObject<T>> searchObjectsIterative(
+            Class<T> type, ObjectQuery query, boolean readOnly, OperationResult result)
+            throws SchemaException {
         SearchResultList<PrismObject<T>> objects = new SearchResultList<>();
-        ResultHandler<T> handler = (object, parentResult) -> {
-            objects.add(object.clone());
-            object.asObjectable().setDescription("garbage: " + Math.random());
-            return true;
-        };
-        SearchResultMetadata metadata = repositoryCache
-                .searchObjectsIterative(objectClass, query, handler, options, true, result);
+        var metadata =
+                repositoryCache.searchObjectsIterative(
+                        type, query,
+                        (object, lResult) -> {
+                            if (readOnly) {
+                                objects.add(object);
+                            } else {
+                                objects.add(object.clone());
+                                object.asObjectable().setDescription("garbage: " + Math.random());
+                            }
+                            return true;
+                        },
+                        readOnly ? createReadOnlyCollection() : null,
+                        true, result);
         objects.setMetadata(metadata);
         return objects;
     }
@@ -833,6 +939,10 @@ public class TestRepositoryCache extends AbstractSpringTest implements InfraTest
 
     private void assertGetOperations(int expectedCount) {
         assertOperations(RepositoryService.OP_GET_OBJECT, expectedCount);
+    }
+
+    private void assertSearchOperations(int expectedCount) {
+        assertOperations(RepositoryService.OP_SEARCH_OBJECTS, expectedCount);
     }
 
     private void assertOperations(String operation, int expectedCount) {
