@@ -69,39 +69,6 @@ public abstract class AbstractRoleAnalysisConfiguration implements RoleAnalysisC
         value.getPath().add(UserType.F_ARCHETYPE_REF.toBean());
         value.getPath().add(UserType.F_LOCALITY.toBean());
 
-//        AnalysisAttributeRuleType rule = new AnalysisAttributeRuleType();
-//        rule.setTargetType(ArchetypeType.COMPLEX_TYPE);
-//        value.getAssignmentRule().add(rule);
-
-//        List<AnalysisAttributeRuleType> analysisAttributeRule = new ArrayList<>();
-//        RoleAnalysisAttributeDef title = RoleAnalysisAttributeDefUtils.getTitle();
-//        RoleAnalysisAttributeDef archetypeRef = RoleAnalysisAttributeDefUtils.getArchetypeRef();
-//        RoleAnalysisAttributeDef locality = RoleAnalysisAttributeDefUtils.getLocality();
-//        RoleAnalysisAttributeDef orgAssignment = RoleAnalysisAttributeDefUtils.getOrgAssignment();
-
-//        analysisAttributeRule
-//                .add(new AnalysisAttributeRuleType()
-//                        .attributeIdentifier(title.getDisplayValue())
-//                        .propertyType(UserType.COMPLEX_TYPE));
-//        analysisAttributeRule
-//                .add(new AnalysisAttributeRuleType()
-//                        .attributeIdentifier(archetypeRef.getDisplayValue())
-//                        .propertyType(UserType.COMPLEX_TYPE));
-//        analysisAttributeRule
-//                .add(new AnalysisAttributeRuleType()
-//                        .attributeIdentifier(locality.getDisplayValue())
-//                        .propertyType(UserType.COMPLEX_TYPE));
-//        analysisAttributeRule
-//                .add(new AnalysisAttributeRuleType()
-//                        .attributeIdentifier(orgAssignment.getDisplayValue())
-//                        .propertyType(UserType.COMPLEX_TYPE));
-//        analysisAttributeRule
-//                .add(new AnalysisAttributeRuleType()
-//                        .attributeIdentifier(archetypeRef.getDisplayValue())
-//                        .propertyType(RoleType.COMPLEX_TYPE));
-//
-//        value.getAnalysisAttributeRule().addAll(analysisAttributeRule);
-
         return value;
     }
 
@@ -121,36 +88,7 @@ public abstract class AbstractRoleAnalysisConfiguration implements RoleAnalysisC
             object.setUserModeOptions(userModeOption);
         }
         return userModeOption;
-
-//            return PrismContainerWrapperModel.fromContainerWrapper(objectWrapperModel,
-//                    ItemPath.create(RoleAnalysisSessionType.F_ROLE_MODE_OPTIONS));
-//        }
-//        return PrismContainerWrapperModel.fromContainerWrapper(objectWrapperModel,
-//                ItemPath.create(RoleAnalysisSessionType.F_USER_MODE_OPTIONS));
     }
-
-//    protected IModel<? extends PrismContainerWrapper<RoleAnalysisDetectionOptionType>> getDetectionOptionFormModel(
-//            @NotNull LoadableModel<PrismObjectWrapper<RoleAnalysisSessionType>> objectWrapperModel
-//    ) {
-//        return PrismContainerWrapperModel.fromContainerWrapper(objectWrapperModel,
-//                ItemPath.create(RoleAnalysisSessionType.F_DEFAULT_DETECTION_OPTION));
-//    }
-//
-//    private void setNewPrimaryOptionValue(@NotNull PrismContainerValueWrapper<AbstractAnalysisSessionOptionType> sessionType,
-//            ItemName itemName, Object realValue) throws SchemaException {
-//        sessionType.findProperty(itemName).getValue().setRealValue(realValue);
-//    }
-//
-//    private void setNewDetectionOptionValue(@NotNull PrismContainerValueWrapper<RoleAnalysisDetectionOptionType> sessionType,
-//            ItemName itemName, Object realValue) throws SchemaException {
-//
-//        if (sessionType.findProperty(itemName) != null) {
-//            sessionType.findProperty(itemName).getValue().setRealValue(realValue);
-//        } else {
-//            LOGGER.warn("Property not found: " + itemName);
-//        }
-//        return object.getUserModeOptions();
-//    }
 
     public void updatePrimaryOptions(
             SearchFilterType userSearchFilter,
