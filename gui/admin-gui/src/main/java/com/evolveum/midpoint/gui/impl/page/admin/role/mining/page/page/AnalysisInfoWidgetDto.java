@@ -143,7 +143,7 @@ public class AnalysisInfoWidgetDto implements Serializable {
             overallConfidence = bd.doubleValue();
             String formattedConfidence = String.format("%.2f", overallConfidence);
 
-            @NotNull Model<String> description = explainOutlier(roleAnalysisService, topFiveOutlier,false, task, result);
+            @NotNull Model<String> description = explainOutlier(roleAnalysisService, topFiveOutlier,true, task, result);
 
             RoleAnalysisOutlierPartitionType finalTopPartition = topPartition;
             IdentifyWidgetItem identifyWidgetItem = new IdentifyWidgetItem(
