@@ -7,10 +7,11 @@
 package com.evolveum.midpoint.gui.impl.page.admin.role.mining.tables.outlier.panel;
 
 import com.evolveum.midpoint.common.outlier.OutlierExplanationResolver;
-import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.impl.component.data.provider.SelectableBeanObjectDataProvider;
 import com.evolveum.midpoint.model.api.mining.RoleAnalysisService;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.query.ObjectOrdering;
+import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
@@ -25,6 +26,7 @@ import org.jetbrains.annotations.Nullable;
 import java.io.Serializable;
 import java.util.*;
 
+import static com.evolveum.midpoint.gui.api.util.WebComponentUtil.safeLongToInteger;
 import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.tables.outlier.panel.RoleAnalysisDetectedAnomalyTable.SORT_ANOMALY_SCORE;
 
 public class AnomalyObjectDto implements Serializable {
@@ -195,6 +197,19 @@ public class AnomalyObjectDto implements Serializable {
                 roles = loadRolesFromAnomalyOidSet(getPageBase().getRoleAnalysisService(), task, property, ascending, result);
                 sortByNameIfNeeded(property, ascending, roles);
                 return roles.size();
+            }
+
+            @Override
+            public ObjectPaging createPaging(long offset, long pageSize) {
+                Integer o = safeLongToInteger(offset);
+                Integer size = safeLongToInteger(pageSize);
+                List<ObjectOrdering> orderings = null;
+
+                boolean allowed = !getSort().getProperty().equals(SORT_ANOMALY_SCORE);
+                if (!isOrderingDisabled() && allowed) {
+                    orderings = createObjectOrderings(getSort());
+                }
+                return getPrismContext().queryFactory().createPaging(o, size, orderings);
             }
         };
     }

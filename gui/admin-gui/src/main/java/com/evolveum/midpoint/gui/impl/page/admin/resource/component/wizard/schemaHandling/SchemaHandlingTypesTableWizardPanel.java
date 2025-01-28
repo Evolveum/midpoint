@@ -14,13 +14,16 @@ import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
 import com.evolveum.midpoint.gui.impl.component.MultivalueContainerListPanel;
 import com.evolveum.midpoint.gui.impl.component.wizard.AbstractWizardBasicPanel;
+import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.PageAssignmentHolderDetails;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.SchemaHandlingObjectsPanel;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismContainerValue;
+import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.component.dialog.ConfirmationPanel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ContainerPanelConfigurationType;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -98,4 +101,50 @@ public abstract class SchemaHandlingTypesTableWizardPanel<C extends Containerabl
     protected String getCssForWidthOfFeedbackPanel() {
         return "col-8";
     }
+
+    @Override
+    protected boolean isSubmitButtonVisible() {
+        return true;
+    }
+
+    protected boolean isValid(AjaxRequestTarget target) {
+        return getTable().isValidFormComponents(target);
+    }
+
+    @Override
+    protected void onExitPerformed(AjaxRequestTarget target) {
+        if (isValid(target)) {
+            checkDeltasExitPerformed(target);
+        }
+    }
+
+    @Override
+    protected void onSubmitPerformed(AjaxRequestTarget target) {
+        if (isValid(target)) {
+            OperationResult result = onSaveObjectPerformed(target);
+            if (result != null && !result.isError()) {
+                onExitPerformedAfterValidate(target);
+            } else {
+                target.add(getFeedback());
+            }
+        }
+    }
+
+    protected abstract OperationResult onSaveObjectPerformed(AjaxRequestTarget target);
+
+    protected void onExitPerformedAfterValidate(AjaxRequestTarget target) {
+        super.onExitPerformed(target);
+    }
+
+    private void checkDeltasExitPerformed(AjaxRequestTarget target) {
+        getAssignmentHolderDetailsModel().getPageResource().checkDeltasExitPerformed(
+                consumerTarget -> {
+                    getAssignmentHolderDetailsModel().reloadPrismObjectModel();
+                    refreshValueModel();
+                    onExitPerformedAfterValidate(consumerTarget);
+                },
+                target);
+    }
+
+    protected abstract void refreshValueModel();
 }

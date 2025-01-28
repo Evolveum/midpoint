@@ -575,8 +575,8 @@ public class GetOperationOptions extends AbstractOptions implements Serializable
         this.doNotDiscovery = force;
     }
 
-    public GetOperationOptions doNotDiscovery(Boolean force) {
-        this.doNotDiscovery = force;
+    public GetOperationOptions doNotDiscovery(Boolean doNotDiscovery) {
+        this.doNotDiscovery = doNotDiscovery;
         return this;
     }
 
@@ -1089,6 +1089,11 @@ public class GetOperationOptions extends AbstractOptions implements Serializable
                 Objects.equals(executionPhase, that.executionPhase) &&
                 Containerable.equivalent(errorHandling, that.errorHandling) &&
                 Objects.equals(shadowClassificationMode, that.shadowClassificationMode);
+    }
+
+    public boolean isEmpty() {
+        // This is maybe not 100% efficient, but more reliable implementation
+        return this.equals(GetOperationOptions.EMPTY);
     }
 
     @Override

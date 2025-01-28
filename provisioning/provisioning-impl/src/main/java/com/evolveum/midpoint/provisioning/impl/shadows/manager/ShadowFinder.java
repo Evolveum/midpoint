@@ -155,19 +155,26 @@ public class ShadowFinder {
      * Looks up a live shadow by primary identifier.
      * Unlike {@link #lookupShadowByIndexedPrimaryIdValue(ProvisioningContext, String, OperationResult)} this method
      * uses stored attributes to execute the query.
+     *
+     * The `basicInfo` flag is used to control whether we need to fetch the full shadow or just basic information (useful for
+     * optimizing searches for embedded shadows).
+     *
+     * TODO we could consider using the indexed primary ID value, as we are looking for live shadows anyway.
+     *  But we need to think carefully about the border cases, like shadows not yet created on the resource.
      */
     public @Nullable RepoShadow lookupLiveRepoShadowByPrimaryId(
-            ProvisioningContext ctx, WithPrimary identification, OperationResult result)
+            ProvisioningContext ctx, WithPrimary identification, boolean basicInfo, OperationResult result)
             throws SchemaException, ConfigurationException {
         return executeLiveRepoShadowByPrimaryIdQuery(
                 ctx,
                 createQueryByPrimaryId(ctx, identification),
+                basicInfo,
                 "by primary identifier " + identification,
                 result);
     }
 
     /**
-     * A variant of {@link #lookupLiveRepoShadowByPrimaryId(ProvisioningContext, WithPrimary, OperationResult)}
+     * A variant of {@link #lookupLiveRepoShadowByPrimaryId(ProvisioningContext, WithPrimary, boolean, OperationResult)}
      * where we don't know the object class. (Used e.g. for delete changes.)
      */
     public @Nullable RepoShadow lookupLiveRepoShadowByPrimaryIdWithoutObjectClass(
@@ -176,15 +183,23 @@ public class ShadowFinder {
         return executeLiveRepoShadowByPrimaryIdQuery(
                 ctx,
                 createQueryByPrimaryIdWithoutObjectClass(ctx, primaryIdentifier),
+                false,
                 "by primary identifier " + primaryIdentifier + " (without object class)",
                 result);
     }
 
     private @Nullable RepoShadow executeLiveRepoShadowByPrimaryIdQuery(
-            ProvisioningContext ctx, ObjectQuery query, String context, OperationResult result)
+            ProvisioningContext ctx, ObjectQuery query, boolean basicInfo, String context, OperationResult result)
             throws SchemaException, ConfigurationException {
         LOGGER.trace("Searching for shadow {} using query:\n{}", context, query.debugDumpLazily(1));
-        var shadowsFound = searchRepoShadows(query, zeroStalenessOptions(), result); // no caching!
+        var optionsBuilder = GetOperationOptionsBuilder.create()
+                .staleness(0L); // no caching!
+        if (basicInfo) {
+            optionsBuilder = optionsBuilder
+                    .item(ShadowType.F_OPERATION_EXECUTION)
+                    .retrieve(RetrieveOption.EXCLUDE);
+        }
+        var shadowsFound = searchRepoShadows(query, optionsBuilder.build(), result);
         LOGGER.trace("Found {} shadows (live or dead)", shadowsFound.size());
 
         var rawRepoShadow = RawRepoShadow.selectLiveShadow(shadowsFound, context);
@@ -198,7 +213,7 @@ public class ShadowFinder {
     /**
      * Looks up a shadow by primary identifier value.
      *
-     * Unlike {@link #lookupLiveRepoShadowByPrimaryId(ProvisioningContext, WithPrimary, OperationResult)}, this method
+     * Unlike {@link #lookupLiveRepoShadowByPrimaryId(ProvisioningContext, WithPrimary, boolean, OperationResult)}, this method
      * queries directly the shadow.primaryIdentifierValue property. (And does not ask for shadow liveness.)
      */
     public @Nullable RepoShadow lookupShadowByIndexedPrimaryIdValue(

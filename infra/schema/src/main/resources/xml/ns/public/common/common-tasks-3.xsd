@@ -2148,6 +2148,7 @@
                         </xsd:documentation>
                         <xsd:appinfo>
                             <a:since>4.9</a:since>
+                            <a:displayName>WorkDefinitionsType.certificationRemediation</a:displayName>
                         </xsd:appinfo>
                     </xsd:annotation>
                 </xsd:element>
@@ -2159,6 +2160,7 @@
                         </xsd:documentation>
                         <xsd:appinfo>
                             <a:since>4.9</a:since>
+                            <a:displayName>WorkDefinitionsType.certificationOpenNextStage</a:displayName>
                         </xsd:appinfo>
                     </xsd:annotation>
                 </xsd:element>
@@ -2170,6 +2172,7 @@
                         </xsd:documentation>
                         <xsd:appinfo>
                             <a:since>4.9</a:since>
+                            <a:displayName>WorkDefinitionsType.certificationStartCampaign</a:displayName>
                         </xsd:appinfo>
                     </xsd:annotation>
                 </xsd:element>
@@ -2181,6 +2184,7 @@
                         </xsd:documentation>
                         <xsd:appinfo>
                             <a:since>4.9</a:since>
+                            <a:displayName>WorkDefinitionsType.certificationCloseCurrentStage</a:displayName>
                         </xsd:appinfo>
                     </xsd:annotation>
                 </xsd:element>
@@ -2192,6 +2196,7 @@
                         </xsd:documentation>
                         <xsd:appinfo>
                             <a:since>4.9</a:since>
+                            <a:displayName>WorkDefinitionsType.certificationReiterateCampaign</a:displayName>
                         </xsd:appinfo>
                     </xsd:annotation>
                 </xsd:element>
@@ -9467,7 +9472,7 @@
     <xsd:complexType name="AbstractCertificationWorkDefinitionType">
         <xsd:annotation>
             <xsd:documentation>
-                Specified certification campaign definition for certification related operations.
+                Work definition for the certification related operations.
             </xsd:documentation>
             <xsd:appinfo>
                 <a:container>true</a:container>
@@ -9480,10 +9485,12 @@
                     <xsd:element name="certificationCampaignRef" type="tns:ObjectReferenceType">
                         <xsd:annotation>
                             <xsd:documentation>
-                                Specified certification campaign definition for operation.
+                                The reference to the specified certification campaign which was processed
+                                during the operation.
                             </xsd:documentation>
                             <xsd:appinfo>
                                 <a:objectReferenceTargetType>tns:AccessCertificationCampaignType</a:objectReferenceTargetType>
+                                <a:displayName>AbstractCertificationWorkDefinitionType.certificationCampaignRef</a:displayName>
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
@@ -9495,7 +9502,7 @@
     <xsd:complexType name="CertificationRemediationWorkDefinitionType">
         <xsd:annotation>
             <xsd:documentation>
-                Specified certification campaign for remediation.
+                Work definition for the certification campaign remediation operation.
             </xsd:documentation>
             <xsd:appinfo>
                 <a:container>true</a:container>
@@ -9512,7 +9519,7 @@
     <xsd:complexType name="CertificationOpenNextStageWorkDefinitionType">
         <xsd:annotation>
             <xsd:documentation>
-                Specified certification campaign for opening next stage.
+                Work definition for the opening next stage of the certification campaign operation.
             </xsd:documentation>
             <xsd:appinfo>
                 <a:container>true</a:container>
@@ -9529,7 +9536,7 @@
     <xsd:complexType name="CertificationStartCampaignWorkDefinitionType">
         <xsd:annotation>
             <xsd:documentation>
-                Specified certification campaign for opening next stage.
+                Work definition for the start certification campaign operation.
             </xsd:documentation>
             <xsd:appinfo>
                 <a:container>true</a:container>
@@ -9546,7 +9553,7 @@
     <xsd:complexType name="CertificationCloseCurrentStageWorkDefinitionType">
         <xsd:annotation>
             <xsd:documentation>
-                Specified certification campaign for opening next stage.
+                Work definition for the close current stage of the certification campaign operation.
             </xsd:documentation>
             <xsd:appinfo>
                 <a:container>true</a:container>
@@ -9563,7 +9570,7 @@
     <xsd:complexType name="CertificationReiterateCampaignWorkDefinitionType">
         <xsd:annotation>
             <xsd:documentation>
-                Specified certification campaign for opening next stage.
+                Work definition for the certification campaign reiteration operation.
             </xsd:documentation>
             <xsd:appinfo>
                 <a:container>true</a:container>
