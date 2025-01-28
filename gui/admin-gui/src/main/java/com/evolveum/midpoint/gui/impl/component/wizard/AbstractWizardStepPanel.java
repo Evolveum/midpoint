@@ -6,21 +6,16 @@
  */
 package com.evolveum.midpoint.gui.impl.component.wizard;
 
-import com.evolveum.midpoint.gui.api.component.wizard.BasicWizardStepPanel;
-import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.gui.impl.page.admin.ObjectDetailsModels;
-
-import com.evolveum.midpoint.web.component.message.FeedbackAlerts;
-
-import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
-
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ContainerPanelConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.GuiObjectDetailsPageType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.model.IModel;
+
+import com.evolveum.midpoint.gui.api.component.wizard.BasicWizardStepPanel;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.impl.page.admin.ObjectDetailsModels;
+import com.evolveum.midpoint.web.component.message.FeedbackAlerts;
+import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
  * @author lskublik

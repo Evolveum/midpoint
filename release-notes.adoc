@@ -93,6 +93,7 @@ See bug:MID-9541[] and the xref:/midpoint/reference/security/credentials/passwor
 * Fixed NPE in Native PostgreSQL repository when adding inducement with runtime targetRef filter. See bug:MID-10305[].
 * Fixed too verbose logging when user in GUI entered syntacticly incorrect filter. See bug:MID-9342[].
 * Fixed All Access page crashing if assignment has multiple provenances. See bug:MID-10217[] and bug:MID-10358[].
+* bug:MID-10278[] Fix non-clickable part of a button in Edit Schema popup panel.
 
 
 * Performance improvements in Native PostgreSQL repository:
