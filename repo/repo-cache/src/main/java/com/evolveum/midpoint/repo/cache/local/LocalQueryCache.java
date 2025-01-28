@@ -15,12 +15,10 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import org.jetbrains.annotations.NotNull;
 
-import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.util.caching.AbstractThreadLocalCache;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 /**
  * Thread-local cache for storing query results.
@@ -29,22 +27,17 @@ public class LocalQueryCache extends AbstractThreadLocalCache {
 
     private static final Trace LOGGER_CONTENT = TraceManager.getTrace(LocalQueryCache.class.getName() + ".content");
 
-    private final Map<QueryKey, SearchResultList> data = new ConcurrentHashMap<>();
+    private final Map<QueryKey<?>, LocalCacheQueryValue> data = new ConcurrentHashMap<>();
 
-    public <T extends ObjectType> SearchResultList<PrismObject<T>> get(QueryKey key) {
-        //noinspection unchecked
+    public LocalCacheQueryValue get(QueryKey<?> key) {
         return data.get(key);
     }
 
-    public void put(QueryKey key, @NotNull SearchResultList list) {
-        list.checkImmutable();
-        if (list.size() > QUERY_RESULT_SIZE_LIMIT) {
-            throw new IllegalStateException("Trying to cache result list greater than " + QUERY_RESULT_SIZE_LIMIT + ": " + list.size());
-        }
-        data.put(key, list);
+    public void put(QueryKey<?> key, @NotNull SearchResultList<String> oidOnlyResult) {
+        data.put(key, new LocalCacheQueryValue(oidOnlyResult));
     }
 
-    public void remove(QueryKey key) {
+    public void remove(QueryKey<?> key) {
         data.remove(key);
     }
 
@@ -76,13 +69,13 @@ public class LocalQueryCache extends AbstractThreadLocalCache {
 
     private int getCachedObjects() {
         int rv = 0;
-        for (SearchResultList value : data.values()) {
+        for (var value : data.values()) {
             rv += value.size();
         }
         return rv;
     }
 
-    public Iterator<Map.Entry<QueryKey, SearchResultList>> getEntryIterator() {
+    public Iterator<Map.Entry<QueryKey<?>, LocalCacheQueryValue>> getEntryIterator() {
         return data.entrySet().iterator();
     }
 }

@@ -107,7 +107,8 @@ public abstract class ShadowedChange<ROC extends ResourceObjectChange>
             var identification = ResourceObjectIdentification.fromIdentifiers(objectDefinition, getIdentifiers());
             schemaCheck(identification.hasPrimaryIdentifier(), "No primary identifier in %s", this);
             return RepoShadowWithState.existingOptional(
-                    b.shadowFinder.lookupLiveRepoShadowByPrimaryId(effectiveCtx, identification.ensurePrimary(), result));
+                    b.shadowFinder.lookupLiveRepoShadowByPrimaryId(
+                            effectiveCtx, identification.ensurePrimary(), false, result));
         } else {
             // This is the wildcard case. The only way how to detect the OC is to read existing repo shadow.
             // So we must take the risk of guessing the primary identifier definition correctly - in other words,

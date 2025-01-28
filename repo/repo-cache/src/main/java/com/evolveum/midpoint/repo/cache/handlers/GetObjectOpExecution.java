@@ -15,7 +15,6 @@ import java.util.Collection;
 
 import org.jetbrains.annotations.NotNull;
 
-import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.repo.cache.global.GlobalObjectCache;
 import com.evolveum.midpoint.repo.cache.local.LocalObjectCache;
@@ -36,10 +35,17 @@ class GetObjectOpExecution<O extends ObjectType>
 
     final String oid;
 
-    GetObjectOpExecution(Class<O> type, String oid, Collection<SelectorOptions<GetOperationOptions>> options, OperationResult result,
-            RepositoryGetObjectTraceType trace, TracingLevelType tracingLevel,
-            PrismContext prismContext, CacheSetAccessInfo<O> caches) {
-        super(type, options, result, caches, caches.localObject, caches.globalObject, trace, tracingLevel, prismContext, "getObject");
+    GetObjectOpExecution(
+            Class<O> type,
+            String oid,
+            Collection<SelectorOptions<GetOperationOptions>> options,
+            OperationResult result,
+            RepositoryGetObjectTraceType trace,
+            TracingLevelType tracingLevel,
+            CacheSetAccessInfo<O> caches,
+            CacheUseMode cacheUseMode) {
+        super(type, options, result, caches, caches.localObject, caches.globalObject,
+                trace, tracingLevel, cacheUseMode, "getObject");
         this.oid = oid;
     }
 
@@ -59,8 +65,8 @@ class GetObjectOpExecution<O extends ObjectType>
     }
 
     void reportGlobalVersionChangedMiss() {
-        CachePerformanceCollector.INSTANCE.registerMiss(GlobalObjectCache.class, type, global.statisticsLevel);
-        log("Cache (global): MISS because of version changed - getObject {}", global.traceMiss, getDescription());
+        CachePerformanceCollector.INSTANCE.registerMiss(GlobalObjectCache.class, type, globalInfo.statisticsLevel);
+        log("Cache (global): MISS because of version changed - getObject {}", globalInfo.traceMiss, getDescription());
         if (trace != null) {
             trace.setGlobalCacheUse(createUse(MISS, "version changed"));
             // todo object if needed
@@ -68,14 +74,14 @@ class GetObjectOpExecution<O extends ObjectType>
     }
 
     void reportGlobalWeakHit() {
-        CachePerformanceCollector.INSTANCE.registerWeakHit(GlobalObjectCache.class, type, global.statisticsLevel);
-        log("Cache (global): HIT with version check - getObject {}", global.traceMiss, getDescription());
+        CachePerformanceCollector.INSTANCE.registerWeakHit(GlobalObjectCache.class, type, globalInfo.statisticsLevel);
+        log("Cache (global): HIT with version check - getObject {}", globalInfo.traceMiss, getDescription());
         if (trace != null) {
             trace.setGlobalCacheUse(createUse(WEAK_HIT));
         }
     }
 
-    private void recordResult(PrismObject<O> objectToReturn) {
+    void recordResult(PrismObject<O> objectToReturn) {
         if (objectToReturn != null) {
             if (trace != null && tracingAtLeastNormal) {
                 trace.setObjectRef(ObjectTypeUtil.createObjectRefWithFullObject(objectToReturn.clone()));
