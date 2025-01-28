@@ -13,6 +13,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationC
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.LoadableDetachableModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 
 import com.evolveum.midpoint.authentication.api.authorization.AuthorizationAction;
@@ -64,16 +65,19 @@ public class PageCertCampaigns extends PageAdminCertification {
         if (definitionOid == null) {
             return super.createPageTitleModel();
         } else {
-            return () -> {
-                Task task = createSimpleTask("dummy");
-                PrismObject<AccessCertificationDefinitionType> definitionPrismObject = WebModelServiceUtils
-                        .loadObject(AccessCertificationDefinitionType.class, definitionOid,
-                                PageCertCampaigns.this, task, task.getResult());
+            return new LoadableDetachableModel<String>() {
+                @Override
+                protected String load() {
+                    Task task = createSimpleTask("dummy");
+                    PrismObject<AccessCertificationDefinitionType> definitionPrismObject = WebModelServiceUtils
+                            .loadObject(AccessCertificationDefinitionType.class, definitionOid,
+                                    PageCertCampaigns.this, task, task.getResult());
 
-                String name = definitionPrismObject == null ? ""
-                        : WebComponentUtil.getName(definitionPrismObject);
+                    String name = definitionPrismObject == null ? ""
+                            : WebComponentUtil.getName(definitionPrismObject);
 
-                return createStringResource("PageCertCampaigns.title", name).getString();
+                    return createStringResource("PageCertCampaigns.title", name).getString();
+                }
             };
         }
     }

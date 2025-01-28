@@ -164,27 +164,43 @@ public class CertificationCasesPanel extends
                 PrismContext prismContext = PrismContext.get();
                 ObjectQuery query = prismContext.queryFor(AccessCertificationCaseType.class).build();
                 query.addFilter(prismContext.queryFactory().createOwnerHasOidIn(campaignOid));
-                query.addFilter(createStageFilter());
-                query.addFilter(createIterationFilter());
+//                query.addFilter(createIterationFilter());
+                query.addFilter(createCasesFilter());
                 return query;
             }
 
-            private ObjectFilter createStageFilter() {
-                return getPageBase().getPrismContext().queryFor(AccessCertificationCaseType.class)
-                        .item(AccessCertificationCaseType.F_WORK_ITEM, AccessCertificationWorkItemType.F_STAGE_NUMBER)
-                        .eq(stageNumber)
-                        .build()
-                        .getFilter();
-            }
-
-            private ObjectFilter createIterationFilter() {
+            private ObjectFilter createCasesFilter() {
                 int iteration = campaignModel != null ? campaignModel.getObject().getIteration() : 0;
                 return getPageBase().getPrismContext().queryFor(AccessCertificationCaseType.class)
                         .item(AccessCertificationCaseType.F_WORK_ITEM, AccessCertificationWorkItemType.F_ITERATION)
                         .eq(iteration)
+                        .and()
+                        .item(AccessCertificationCaseType.F_WORK_ITEM, AccessCertificationWorkItemType.F_STAGE_NUMBER)
+                        .eq(stageNumber)
+                        .or()
+                        .item(AccessCertificationCaseType.F_ITERATION)
+                        .eq(iteration)
+                        .and()
+                        .item(AccessCertificationCaseType.F_STAGE_NUMBER)
+                        .eq(stageNumber)
+                        .or()
+                        .item(AccessCertificationCaseType.F_ITERATION)
+                        .eq(iteration)
+                        .and()
+                        .not()
+                        .exists(AccessCertificationCaseType.F_WORK_ITEM)
                         .build()
                         .getFilter();
             }
+
+//            private ObjectFilter createIterationFilter() {
+//                int iteration = campaignModel != null ? campaignModel.getObject().getIteration() : 0;
+//                return getPageBase().getPrismContext().queryFor(AccessCertificationCaseType.class)
+//                        .item(AccessCertificationCaseType.F_WORK_ITEM, AccessCertificationWorkItemType.F_ITERATION)
+//                        .eq(iteration)
+//                        .build()
+//                        .getFilter();
+//            }
 
             @NotNull
             @Override

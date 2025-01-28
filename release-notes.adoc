@@ -109,6 +109,19 @@ See bug:MID-9541[] and the xref:/midpoint/reference/security/credentials/passwor
 * Add a save button to the wizard's table of object and association types. See bug:MID-10046[].
 * Add an error message when the 'securityQuestionsForm' authentication module is the first in the authentication sequence. See bug:MID-10149[].
 
+* Role Analysis Improvements:
+** Improve overall performance.
+** Improved user experience (UX).
+** Added explanations for outlier objects and identified anomalies.
+** Introduced categorization for unclassified objects.
+** Refined the outlier detection algorithm.
+** Implemented a resolver for unusual attributes.
+** Fixed issues with multivalued department mode analysis.
+** Added an option to specify the minimum object popularity.
+
+* Anonymous Export Improvements:
+** Added support for exporting anonymized attributes.
+
 * Performance improvements in Native PostgreSQL repository:
 ** Lazy parsing for value metadata in Native PostgreSQL repository. Value metadata are parsed only if they are actually used
 ** Partial updates which takes use of splitted full objects. When modification only changes assignments, linkRef, operationExecution or roleMembershipRef, there is no need to load / modify and serialize full object, only changed parts.
