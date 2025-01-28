@@ -156,6 +156,24 @@ public class ObjectCleanerTest extends AbstractUnitTest {
         user.findProperty(UserType.F_GIVEN_NAME).getValues().forEach(value -> {
             Assertions.assertThat(value.getValueMetadata().getValues()).isEmpty();
         });
+        Assertions.assertThat(user.getVersion()).isEqualTo("123");
+    }
+
+    @Test
+    public void test210CleanupObjectVersion() throws Exception {
+        File file = new File(TEST_DIR, "user.xml");
+        PrismObject<ResourceType> user = getPrismContext().parseObject(file);
+
+        Assertions.assertThat(user.findItem(UserType.F_METADATA))
+                .isNotNull();
+        Assertions.assertThat(user.findItem(UserType.F_OPERATION_EXECUTION))
+                .isNotNull();
+
+        ObjectCleaner processor = new ObjectCleaner();
+        processor.setRemoveObjectVersion(true);
+        processor.process(user);
+
+        Assertions.assertThat(user.getVersion()).isNull();
     }
 
     @Test
