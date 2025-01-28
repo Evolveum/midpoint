@@ -127,19 +127,6 @@ public class PageEmailNonce extends PageAbstractAuthenticationModule<CredentialM
 
     }
 
-    private void validateUserNotNullOrFail(UserType user) {
-        if (user == null) {
-            LOGGER.error("Couldn't find principal user, you probably use wrong configuration. "
-                    + "Please confirm order of authentication modules "
-                    + "and add module for identification of user before 'mailNonce' module, "
-                    + "for example 'focusIdentification' module.",
-                    new IllegalArgumentException("principal user is null"));
-            getSession().error(getString("pageForgetPassword.message.user.not.found"));
-            throw new RestartResponseException(PageBase.class);
-        }
-    }
-
-
     private @Nullable NonceCredentialsPolicyType getMailNoncePolicy(PrismObject<UserType> user) {
 
         CredentialModuleAuthentication moduleType = getAuthenticationModuleConfiguration();
@@ -242,5 +229,9 @@ public class PageEmailNonce extends PageAbstractAuthenticationModule<CredentialM
         };
     }
 
+    @Override
+    protected String getModuleTypeName() {
+        return "mailNonce";
+    }
 }
 

@@ -87,6 +87,7 @@ public class PageSecurityQuestions extends PageAbstractAuthenticationModule<Cred
 
     @Override
     protected void initModuleLayout(MidpointForm form) {
+        validateUserNotNullOrFail(searchUser());
         initQuestionsSection(form);
         initSendingInformation(form);
     }
@@ -224,4 +225,8 @@ public class PageSecurityQuestions extends PageAbstractAuthenticationModule<Cred
         return createStringResource("PageSecurityQuestions.description");
     }
 
+    @Override
+    protected String getModuleTypeName() {
+        return "securityQuestionsForm";
+    }
 }
