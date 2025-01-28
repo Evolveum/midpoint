@@ -188,6 +188,18 @@ public interface RepositoryService extends OrgTreeEvaluator, CaseSupportMixin, A
     Trace LOGGER = TraceManager.getTrace(RepositoryService.class);
 
     /**
+     * Name of the {@link OperationResult} return value indicating that the iterative search was interrupted.
+     * Currently set by the repository cache only (and not necessarily for all search operations).
+     */
+    String RETURN_INTERRUPTED = "interrupted";
+
+    /**
+     * Name of the {@link OperationResult} return value providing the number of objects found.
+     * Currently set by the repository cache only (and not necessarily for all search operations).
+     */
+    String RETURN_OBJECTS_FOUND = "objectsFound";
+
+    /**
      * Returns object for provided OID.
      *
      * Must fail if object with the OID does not exist.
