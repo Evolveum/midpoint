@@ -195,12 +195,8 @@ public class OutlierAttributeItemPanel<T extends Serializable>
 
                     @Override
                     public Component createDescriptionComponent(String id) {
-                        return new LabelWithHelpPanel(id, createStringResource("OutlierAttributeItemPanel.cluster.attribute.confidence")) {
-                            @Override
-                            protected IModel<String> getHelpModel() {
-                                return createStringResource("OutlierAttributeItemPanel.cluster.attribute.confidence.help");
-                            }
-                        };
+                        return new LabelWithHelpPanel(id,
+                                createStringResource("OutlierAttributeItemPanel.cluster.attribute.confidence"));
                     }
                 },
 
@@ -220,12 +216,7 @@ public class OutlierAttributeItemPanel<T extends Serializable>
                     @Override
                     public Component createDescriptionComponent(String id) {
                         return new LabelWithHelpPanel(id,
-                                createStringResource("OutlierAttributeItemPanel.outlier.vs.cluster.attribute.confidence")) {
-                            @Override
-                            protected IModel<String> getHelpModel() {
-                                return createStringResource("RoleAnalysisOutlierType.anomalyAverageConfidence.help");
-                            }
-                        };
+                                createStringResource("OutlierAttributeItemPanel.outlier.vs.cluster.attribute.confidence"));
                     }
                 },
 
@@ -247,12 +238,8 @@ public class OutlierAttributeItemPanel<T extends Serializable>
 
                     @Override
                     public Component createDescriptionComponent(String id) {
-                        return new LabelWithHelpPanel(id, createStringResource("OutlierAttributeItemPanel.analysed.attributes")) {
-                            @Override
-                            protected IModel<String> getHelpModel() {
-                                return createStringResource("OutlierAttributeItemPanel.analysed.attributes.help");
-                            }
-                        };
+                        return new LabelWithHelpPanel(id,
+                                createStringResource("OutlierAttributeItemPanel.analysed.attributes"));
                     }
                 },
 
@@ -271,12 +258,8 @@ public class OutlierAttributeItemPanel<T extends Serializable>
 
                     @Override
                     public Component createDescriptionComponent(String id) {
-                        return new LabelWithHelpPanel(id, createStringResource("OutlierAttributeItemPanel.analysed.users")) {
-                            @Override
-                            protected IModel<String> getHelpModel() {
-                                return createStringResource("OutlierAttributeItemPanel.analysed.users.help");
-                            }
-                        };
+                        return new LabelWithHelpPanel(id,
+                                createStringResource("OutlierAttributeItemPanel.analysed.users"));
                     }
                 }
         );

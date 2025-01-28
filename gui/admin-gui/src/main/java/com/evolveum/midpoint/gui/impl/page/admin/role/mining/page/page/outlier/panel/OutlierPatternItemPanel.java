@@ -113,6 +113,11 @@ public class OutlierPatternItemPanel<T extends Serializable>
                         Model.of(pattern)) {
 
                     @Override
+                    protected String getCardTitle() {
+                        return createStringResource("OutlierPatternItemPanel.pattern.title").getString();
+                    }
+
+                    @Override
                     protected boolean isWidgetsPanelVisible() {
                         return false;
                     }
@@ -196,12 +201,7 @@ public class OutlierPatternItemPanel<T extends Serializable>
 
                     @Override
                     public Component createDescriptionComponent(String id) {
-                        return new LabelWithHelpPanel(id, createStringResource("Coverage")) {
-                            @Override
-                            protected IModel<String> getHelpModel() {
-                                return createStringResource("RoleAnalysisOutlierType.anomalyCount.help");
-                            }
-                        };
+                        return new LabelWithHelpPanel(id, createStringResource("OutlierPatternItemPanel.pattern.coverage"));
                     }
                 },
 
@@ -224,12 +224,7 @@ public class OutlierPatternItemPanel<T extends Serializable>
                     @Override
                     public Component createDescriptionComponent(String id) {
                         return new LabelWithHelpPanel(id,
-                                createStringResource("OutlierPatternItemPanel.attributes.confidence")) {
-                            @Override
-                            protected IModel<String> getHelpModel() {
-                                return createStringResource("RoleAnalysisOutlierType.anomalyAverageConfidence.help");
-                            }
-                        };
+                                createStringResource("OutlierPatternItemPanel.attributes.confidence"));
                     }
                 },
 
@@ -246,12 +241,7 @@ public class OutlierPatternItemPanel<T extends Serializable>
                     @Override
                     public Component createDescriptionComponent(String id) {
                         return new LabelWithHelpPanel(id,
-                                createStringResource("OutlierPatternItemPanel.roles.count")) {
-                            @Override
-                            protected IModel<String> getHelpModel() {
-                                return createStringResource("RoleAnalysisOutlierType.anomalyAverageConfidence.help");
-                            }
-                        };
+                                createStringResource("OutlierPatternItemPanel.roles.count"));
                     }
                 },
 
@@ -268,12 +258,7 @@ public class OutlierPatternItemPanel<T extends Serializable>
                     @Override
                     public Component createDescriptionComponent(String id) {
                         return new LabelWithHelpPanel(id,
-                                createStringResource("OutlierPatternItemPanel.users.count")) {
-                            @Override
-                            protected IModel<String> getHelpModel() {
-                                return createStringResource("RoleAnalysisOutlierType.anomalyAverageConfidence.help");
-                            }
-                        };
+                                createStringResource("OutlierPatternItemPanel.users.count"));
                     }
                 }
         );
