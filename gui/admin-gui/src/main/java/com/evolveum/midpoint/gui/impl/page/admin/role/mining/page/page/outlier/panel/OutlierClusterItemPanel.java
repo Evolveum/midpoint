@@ -150,12 +150,7 @@ public class OutlierClusterItemPanel<T extends Serializable>
 
                     @Override
                     public Component createDescriptionComponent(String id) {
-                        return new LabelWithHelpPanel(id, createStringResource("Similar objects")) {
-                            @Override
-                            protected IModel<String> getHelpModel() {
-                                return createStringResource("RoleAnalysisOutlierType.anomalyCount.help");
-                            }
-                        };
+                        return new LabelWithHelpPanel(id, createStringResource("OutlierClusterItemPanel.peer.users.count"));
                     }
                 },
 
@@ -177,13 +172,8 @@ public class OutlierClusterItemPanel<T extends Serializable>
 
                     @Override
                     public Component createDescriptionComponent(String id) {
-                        return new LabelWithHelpPanel(id,
-                                createStringResource("Density")) {
-                            @Override
-                            protected IModel<String> getHelpModel() {
-                                return createStringResource("RoleAnalysisOutlierType.density.help");
-                            }
-                        };
+                        return new Label(id,
+                                createStringResource("OutlierClusterItemPanel.peer.users.density"));
                     }
                 },
 
@@ -205,12 +195,7 @@ public class OutlierClusterItemPanel<T extends Serializable>
 
                     @Override
                     public Component createDescriptionComponent(String id) {
-                        return new LabelWithHelpPanel(id, Model.of("Assignments frequency")) {
-                            @Override
-                            protected IModel<String> getHelpModel() {
-                                return createStringResource("RoleAnalysisOutlierType.anomalyAverageConfidence.help");
-                            }
-                        };
+                        return new LabelWithHelpPanel(id, createStringResource("OutlierClusterItemPanel.outlier.access.frequency"));
                     }
                 },
 
@@ -225,12 +210,7 @@ public class OutlierClusterItemPanel<T extends Serializable>
 
                     @Override
                     public Component createDescriptionComponent(String id) {
-                        return new LabelWithHelpPanel(id, Model.of("Similarity threshold")) {
-                            @Override
-                            protected IModel<String> getHelpModel() {
-                                return createStringResource("RoleAnalysisOutlierType.anomalyAverageConfidence.help");
-                            }
-                        };
+                        return new LabelWithHelpPanel(id, createStringResource("OutlierClusterItemPanel.similarity.threshold"));
                     }
                 }
         );

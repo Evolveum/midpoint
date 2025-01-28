@@ -27,45 +27,53 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
  */
 final class CachingResultHandler<T extends ObjectType> implements ResultHandler<T>, InvalidationEventListener {
 
+    private final SearchOpExecution<T> exec;
     private final ResultHandler<T> originalHandler;
     private final boolean queryCacheable;
-    private final boolean readOnly;
-    private final long started;
-    private final Class<T> type;
     private final CacheUpdater cacheUpdater;
 
     // Guarded by itself
     private final List<InvalidationEvent> invalidationEvents = new ArrayList<>();
 
-    private boolean overflown; // too many objects for the result to be cached
-    private boolean wasInterrupted; // interrupted by handler => result cannot be cached
-    private final List<PrismObject<T>> objects = new ArrayList<>();
+    /** True means that there are too many objects for the result (OID list) to be cached. Individual objects are still cached. */
+    private boolean overflown;
 
-    CachingResultHandler(ResultHandler<T> handler, boolean queryCacheable, boolean readOnly, long started,
-            Class<T> type, CacheUpdater cacheUpdater) {
+    /** True means that iterative search was interrupted by handler, hence the result cannot be cached (as it's incomplete). */
+    private boolean wasInterrupted;
+
+    /** Objects OIDs found. Non-empty only if {@link #overflown} is `false`. */
+    private final List<String> objectOids = new ArrayList<>();
+
+    CachingResultHandler(
+            SearchOpExecution<T> exec, ResultHandler<T> handler, boolean queryCacheable, CacheUpdater cacheUpdater) {
+        this.exec = exec;
         this.originalHandler = handler;
         this.queryCacheable = queryCacheable;
-        this.readOnly = readOnly;
-        this.started = started;
-        this.type = type;
         this.cacheUpdater = cacheUpdater;
     }
 
     @Override
     public boolean handle(PrismObject<T> object, OperationResult parentResult) {
 
-        // We have to store loaded object to caches _before_ executing the original handler,
-        // not after that. The reason is that the handler can change these objects. (See MID-6250.)
-        cacheUpdater.storeLoadedObjectToAll(object, readOnly, System.currentTimeMillis() - started);
+        if (exec.cacheUseMode.canUpdateAtLeastOneCache()) {
 
-        // We also collect loaded objects to store them in query cache later - if possible.
-        if (queryCacheable && !overflown) {
-            if (objects.size() < SearchOpHandler.QUERY_RESULT_SIZE_LIMIT) {
-                objects.add(object.isImmutable() ? object : object.createImmutableClone());
-            } else {
-                CachePerformanceCollector.INSTANCE.registerOverSizedQuery(type);
-                overflown = true;
-                objects.clear();
+            if (exec.readOnly) {
+                object.freeze();
+            }
+
+            // We have to store loaded object to caches _before_ executing the original handler,
+            // not after that. The reason is that the handler can change these objects. (See MID-6250.)
+            cacheUpdater.storeLoadedObjectToObjectAndVersionCaches(object, exec.cacheUseMode, exec.getAge());
+
+            // We also collect loaded objects to store them in query cache later - if possible.
+            if (queryCacheable && !overflown) {
+                if (objectOids.size() < SearchOpHandler.QUERY_RESULT_SIZE_LIMIT) {
+                    objectOids.add(object.getOid());
+                } else {
+                    CachePerformanceCollector.INSTANCE.registerOverSizedQuery(exec.type);
+                    overflown = true;
+                    objectOids.clear();
+                }
             }
         }
 
@@ -79,14 +87,16 @@ final class CachingResultHandler<T extends ObjectType> implements ResultHandler<
     /**
      * @return Search result to be stored into the cache; or null if the result is not suitable for caching.
      */
-    SearchResultList<PrismObject<T>> getCacheableSearchResult(SearchResultMetadata metadataToImplant) {
+    SearchResultList<String> getCacheableSearchResult(SearchResultMetadata metadataToImplant) {
         if (queryCacheable && !overflown && !wasInterrupted) {
-            long age = System.currentTimeMillis() - started;
+            long age = exec.getAge();
             if (age < CacheUpdater.DATA_STALENESS_LIMIT) {
-                return new SearchResultList<>(objects, metadataToImplant);
+                var list = new SearchResultList<>(List.copyOf(objectOids), metadataToImplant);
+                list.freeze();
+                return list;
             } else {
-                CachePerformanceCollector.INSTANCE.registerSkippedStaleData(type);
-                log("Not caching stale search result with {} object(s) (age = {} ms)", false, objects.size(), age);
+                CachePerformanceCollector.INSTANCE.registerSkippedStaleData(exec.type);
+                log("Not caching stale search result with {} object(s) (age = {} ms)", false, objectOids.size(), age);
                 return null;
             }
         } else {

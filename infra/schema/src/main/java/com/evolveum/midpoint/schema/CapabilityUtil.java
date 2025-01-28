@@ -557,4 +557,16 @@ public class CapabilityUtil {
         return getEnabledActivationStatusStrict(
                 getCapability(resource, objectDefinition, ActivationCapabilityType.class)) != null;
     }
+
+    public static boolean isProvidedNatively(ActivationStatusCapabilityType statusCapability) {
+        return statusCapability != null && statusCapability.getAttribute() == null;
+    }
+
+    public static boolean isProvidedNatively(ActivationLockoutStatusCapabilityType lockoutStatusCap) {
+        return lockoutStatusCap != null && lockoutStatusCap.getAttribute() == null;
+    }
+
+    public static boolean isProvidedNatively(LastLoginTimestampCapabilityType lastLoginTimestampCap) {
+        return lastLoginTimestampCap != null && lastLoginTimestampCap.getAttribute() == null;
+    }
 }

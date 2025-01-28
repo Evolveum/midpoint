@@ -568,7 +568,7 @@ public abstract class PageAssignmentHolderDetails<AH extends AssignmentHolderTyp
         navigateToNext(DetailsPageUtil.getObjectListPage(getType()));
     }
 
-    protected void checkDeltasExitPerformed(SerializableConsumer<AjaxRequestTarget> consumer, AjaxRequestTarget target) {
+    public void checkDeltasExitPerformed(SerializableConsumer<AjaxRequestTarget> consumer, AjaxRequestTarget target) {
 
         if (!hasUnsavedChangesInWizard(target)) {
             consumer.accept(target);

@@ -96,12 +96,10 @@ public abstract class RoleAnalysisMatrixColumn<A extends MiningBaseTypeChunk> ex
 
             @Override
             public void onDisplayNameClick(AjaxRequestTarget target) {
-                List<String> elements = getElements(miningChunkModel.getObject());
-
                 MembersDetailsPopupPanel detailsPanel = new MembersDetailsPopupPanel(
                         getPageBase().getMainPopupBodyId(),
                         createStringResource("RoleAnalysis.analyzed.members.details.panel"),
-                        elements, RoleAnalysisProcessModeType.USER);
+                        getElements(miningChunkModel.getObject()), RoleAnalysisProcessModeType.USER);
                 getPageBase().showMainPopup(detailsPanel, target);
             }
         };

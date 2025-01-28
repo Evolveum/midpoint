@@ -132,8 +132,8 @@ public class AxiomSearchPanel extends BasePanel<AxiomQueryWrapper> {
             }
         });
 
-        queryDslField.add(new AttributeAppender("onkeydown", "window.MidPointTheme.triggerAutocompleteShortcut(event, this);"));
-
+        queryDslField.add(AttributeAppender.append("onkeydown", "window.MidPointTheme.triggerAutocompleteShortcut(event, this);"));
+        queryDslField.add(AttributeAppender.append("autocomplete", "off"));
         add(queryDslField);
 
         Label advancedError = new Label(ID_ADVANCED_ERROR,
