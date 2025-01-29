@@ -92,7 +92,6 @@ public class AxiomSearchPanel extends BasePanel<AxiomQueryWrapper> {
         queryDslField.add(AttributeAppender.append("title", getPageBase().createStringResource("SearchPanel.insertAxiomQuery")));
 
         ObjectMapper mapper = new ObjectMapper();
-        AxiomQueryContentAssist axiomQueryContentAssist = new AxiomQueryContentAssistImpl(getPrismContext());
 
         queryDslField.add(new AjaxFormComponentUpdatingBehavior("keyup") {
             @Override
@@ -119,7 +118,7 @@ public class AxiomSearchPanel extends BasePanel<AxiomQueryWrapper> {
 
                     try {
                         target.appendJavaScript("window.MidPointTheme.syncContentAssist(" +
-                                mapper.writeValueAsString(axiomQueryContentAssist.process(
+                                mapper.writeValueAsString(new AxiomQueryContentAssistImpl(getPrismContext()).process(
                                         rootDef,
                                         axiomQueryWrapper.getDslQuery() == null ? "" : axiomQueryWrapper.getDslQuery(),
                                         params.getParameterValue("cursorPosition").toInt()
