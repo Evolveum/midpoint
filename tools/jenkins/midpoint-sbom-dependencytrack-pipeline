@@ -1,0 +1,92 @@
+/*
+ * Copyright (C) 2010-2022 Evolveum and contributors
+ *
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
+ */
+
+def verbose = params.VERBOSE ?: '0'
+
+podTemplate(
+        nodeSelector: params.NODE_SELECTOR,
+        activeDeadlineSeconds: 900,
+        idleMinutes: 1,
+        workspaceVolume: dynamicPVC(requestsSize: "10Gi"),
+        containers: [
+                containerTemplate(name: 'jnlp',
+                        image: 'jenkins/inbound-agent:4.13-2-alpine',
+                        runAsUser: '0',
+                        resourceRequestCpu: '1',
+                        resourceLimitCpu: '1',
+                        resourceRequestMemory: '1Gi',
+                        resourceLimitMemory: '1Gi'),
+                containerTemplate(name: 'maven',
+                        image: params.BUILDER_IMAGE ?: 'maven:3.8.5-openjdk-17',
+                        runAsUser: '0',
+                        ttyEnabled: true,
+                        command: 'cat',
+                        resourceRequestCpu: params.BUILDER_CPU ?: '4',
+                        resourceLimitCpu: params.BUILDER_CPU ?: '4',
+                        resourceRequestMemory: '4Gi',
+                        resourceLimitMemory: '4Gi')
+        ]
+) {
+    node(POD_LABEL) {
+        try {
+            stage("checkout") {
+                sh """#!/bin/bash -ex
+                    if [ "${verbose}" -ge 1 ]
+                    then
+                        df -h
+                    fi
+                """
+                retry(3) {
+                    git branch: params.BRANCH ?: 'master',
+                            url: 'https://github.com/Evolveum/midpoint.git'
+                }
+            }
+            stage("analyze") {
+                container('maven') {
+                    withCredentials([usernamePassword(
+                            credentialsId:"dependencyTrack",
+                            usernameVariable:"DTRACK_URL",
+                            passwordVariable: "DTRACK_TOKEN"
+                            )]) {
+                        sh """#!/bin/bash -ex
+                            if [ "${verbose}" -ge 1 ]
+                            then
+                                id
+                                env | sort
+                                mvn --version
+                            fi
+
+                            mvn clean install -DskipTests -P sbom,dependencytrack
+                        """
+                    }
+                }
+            }
+
+            currentBuild.result = 'SUCCESS'
+        } catch (Exception e) {
+            currentBuild.result = 'FAILURE' // error below will not set result for mailer!
+            error "Marking build as FAILURE because of: ${e}"
+        } finally {
+            try {
+                // Very basic mails, later we can use https://plugins.jenkins.io/email-ext/
+                step([$class: 'Mailer',
+                    notifyEveryUnstableBuild: true,
+                    recipients: env.DEFAULT_MAIL_RECIPIENT,
+                    sendToIndividuals: false])
+
+                sh """#!/bin/bash -ex
+                    if [ "${verbose}" -ge 1 ]
+                    then
+                        df -h
+                    fi
+                """
+            } catch (Exception e) {
+                println 'Could not send email: ' + e
+            }
+        }
+    }
+}
