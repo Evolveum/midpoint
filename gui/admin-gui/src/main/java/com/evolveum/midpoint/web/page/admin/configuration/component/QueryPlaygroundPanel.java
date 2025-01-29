@@ -373,8 +373,6 @@ public class QueryPlaygroundPanel extends BasePanel<RepoQueryDto> {
             }
         });
 
-        // Content assist for AXQ lang
-        AxiomQueryContentAssist axiomQueryContentAssist = new AxiomQueryContentAssistImpl(getPrismContext());
         ObjectMapper mapper = new ObjectMapper();
 
         editorMidPoint.add(new AjaxFormComponentUpdatingBehavior("change") {
@@ -402,8 +400,9 @@ public class QueryPlaygroundPanel extends BasePanel<RepoQueryDto> {
                             getPrismContext().getSchemaRegistry().findItemDefinitionByType(repo.getObjectType());
 
                     try {
+                        // Content assist for AXQ lang
                         target.appendJavaScript("window.MidPointAceEditor.syncContentAssist(" +
-                                        mapper.writeValueAsString(axiomQueryContentAssist.process(
+                                        mapper.writeValueAsString(new AxiomQueryContentAssistImpl(getPrismContext()).process(
                                                 rootDef,
                                                 query == null ? "" : query,
                                                 params.getParameterValue("cursorPosition").toInt()
