@@ -12,7 +12,7 @@
     <parent>
         <artifactId>model</artifactId>
         <groupId>com.evolveum.midpoint.model</groupId>
-        <version>4.8.6-SNAPSHOT</version>
+        <version>4.8.6</version>
     </parent>
 
     <artifactId>certification-impl</artifactId>
