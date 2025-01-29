@@ -68,7 +68,6 @@ See bug:MID-9541[].
 * Fixed the error while opening the object details page. See bug:MID-10345[].
 * Fixed inappropriate error message displaying on the Shopping cart page.
 Within this issue improved AuthenticationException to use also localizable user-friendly message instead of only technical message. See bug:MID-10341[].
-* bug:MID-9300[] Secure schema usage in PostgresSQL (not using public schema).
 * Fixed refreshing names, help texts and titles of search items for all stored searches configurations. See bug:MID-10321[].
 * Fixing of unused matching request parameter in saved request for redirecting after fail/success authentication. See bug:MID-10184[].
 * Fixed regression when user assignments can not be searched by name in GUI. See bug:MID-9732[]
