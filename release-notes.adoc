@@ -72,11 +72,12 @@ Within this issue improved AuthenticationException to use also localizable user-
 * Fixed refreshing names, help texts and titles of search items for all stored searches configurations. See bug:MID-10321[].
 * Fixing of unused matching request parameter in saved request for redirecting after fail/success authentication. See bug:MID-10184[].
 * Fixed regression when user assignments can not be searched by name in GUI. See bug:MID-9732[]
-* Fixed searchObjectsIterative not working in scripts when ordering by OID. See bug:MID-10310[] 
+* Fixed searchObjectsIterative not working in scripts when ordering by OID. See bug:MID-10310[]
 * Fixed UnsupportedOperationException when using TypedQuery in scripts. See bug:MID-10351[]
 * Updated reports in initial objects to use Midpoint Query Language. See bug:MID-9618[].
 * Fixed All Cases panel sometime not working. See bug:MID-10137[].
-
+* bug:MID-9683[] and bug:MID-10096[] Search filter not being submitted on enter.
+* bug:MID-10330[], bug:MID-10317[] and bug:10319[] Messages localization fixes.
 
 == Changes with Respect To Version 4.8.4
 
@@ -165,8 +166,6 @@ See bug:MID-9580[] and bug:MID-9834[].
 * Upgraded DatabaseTable Connector to 1.5.2.0 version.
 * Upgraded CSV Connector to 2.8 version.
 * Upgraded LDAP and AD Connector to 3.7.2 version.
-* bug:MID-9683[] and bug:MID-10096[] Search filter not being submitted on enter.
-* bug:MID-10330[], bug:MID-10317[] and bug:10319[] Messages localization fixes.
 
 == Changes with Respect To Version 4.8.2
 
