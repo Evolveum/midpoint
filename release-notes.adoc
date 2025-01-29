@@ -7,7 +7,7 @@ release-version: '4.8.6'
 :page-liquid:
 :page-toc: top
 
-Release {release-version} is a sixty-first midPoint release, code-named _Curie_.
+Release {release-version} is a sixty-second midPoint release, code-named _Curie_.
 The {release-version} release brings security, stability and miscellaneous bugfixes.
 
 ++++
