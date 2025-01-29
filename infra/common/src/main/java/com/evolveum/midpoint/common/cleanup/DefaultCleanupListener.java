@@ -8,7 +8,6 @@
 package com.evolveum.midpoint.common.cleanup;
 
 import java.lang.module.ModuleDescriptor;
-import java.util.Map;
 import javax.xml.namespace.QName;
 
 import org.apache.commons.lang3.StringUtils;
@@ -18,7 +17,6 @@ import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.PrismQuerySerialization;
 import com.evolveum.midpoint.prism.query.builder.S_MatchingRuleEntry;
-import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.util.SingleLocalizableMessage;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -125,10 +123,10 @@ public class DefaultCleanupListener implements CleanerListener {
                                 .type(typeName)));
     }
 
-    private void clearOidFromReference(PrismReferenceValue value) {
+    private void cleanupConnectorRef(PrismReferenceValue value) {
         value.setOid(null);
         value.setRelation(null);
-        value.setTargetType(null);
+        value.setTargetType(ConnectorType.COMPLEX_TYPE);
     }
 
     private void processConnectorRef(CleanupEvent<PrismReference> event) {
@@ -139,12 +137,8 @@ public class DefaultCleanupListener implements CleanerListener {
 
         PrismReferenceValue val = ref.getValue();
         String oid = val.getOid();
-        if (StringUtils.isEmpty(oid)) {
-            return;
-        }
-
-        if (val.getFilter() != null) {
-            clearOidFromReference(val);
+        if (StringUtils.isEmpty(oid) || val.getFilter() != null) {
+            cleanupConnectorRef(val);
             return;
         }
 
@@ -169,7 +163,7 @@ public class DefaultCleanupListener implements CleanerListener {
             SearchFilterType searchFilter = createSearchFilterType(ref, connectorType);
             if (searchFilter != null) {
                 val.setFilter(searchFilter);
-                clearOidFromReference(val);
+                cleanupConnectorRef(val);
             }
         } catch (Exception ex) {
             TRACE.debug("Couldn't resolve connector reference", ex);
