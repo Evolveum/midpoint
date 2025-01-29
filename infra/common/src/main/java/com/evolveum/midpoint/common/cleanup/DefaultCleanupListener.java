@@ -136,6 +136,10 @@ public class DefaultCleanupListener implements CleanerListener {
         }
 
         PrismReferenceValue val = ref.getValue();
+        if (val.isEmpty()) {
+            return;
+        }
+
         String oid = val.getOid();
         if (StringUtils.isEmpty(oid) || val.getFilter() != null) {
             cleanupConnectorRef(val);
