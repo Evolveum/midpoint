@@ -40,25 +40,27 @@ podTemplate(
         }
         stage("build") {
             container('maven') {
-                sh """#!/bin/bash -ex
-                    # .m2 is mutable and short-term, we just sym-link the settings.xml there.
-                    mkdir -p /root/.m2
-                    ln -s ../jenkins-nexus/settings.xml /root/.m2/settings.xml
+                withCredentials([usernamePassword(credentialsId:"dependencyTrack", usernameVariable:"DTRACK_URL", passwordVariable: "DTRACK_TOKEN")]) {
+                    sh """#!/bin/bash -ex
+                        # .m2 is mutable and short-term, we just sym-link the settings.xml there.
+                        mkdir -p /root/.m2
+                        ln -s ../jenkins-nexus/settings.xml /root/.m2/settings.xml
 
-                    if [ "${verbose}" -ge 1 ]
-                    then
-                        env | sort
-                        mvn --version
-                        df -h
-                    fi
+                        if [ "${verbose}" -ge 1 ]
+                        then
+                            env | sort
+                            mvn --version
+                            df -h
+                        fi
 
-                    mvn -B -ntp -DskipTests clean deploy -DdeployAtEnd=true
+                        mvn -B -ntp -DskipTests -P sbom,dependencytrack clean deploy -DdeployAtEnd=true
 
-                    if [ "${verbose}" -ge 1 ]
-                    then
-                        df -h
-                    fi
-                """
+                        if [ "${verbose}" -ge 1 ]
+                        then
+                            df -h
+                        fi
+                    """
+                }
             }
         }
         stage("tests-default") {
