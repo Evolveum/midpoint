@@ -1,5 +1,5 @@
-MidPoint 4.9 Support Branch
----------------------------
+MidPoint 4.9 Update 1
+---------------------
 
 General information:
 
