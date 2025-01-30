@@ -91,7 +91,7 @@ export default class MidPointAceEditor {
 
         editor.commands.addCommand({
             name: 'runAutocomplete',
-            bindKey: { win: 'Ctrl-M', mac: 'Command-M' },
+            bindKey: { win: "Ctrl-Space", mac: "Ctrl-Space" },
             exec: function (editor) {
                 $(jqTextArea).trigger('change');
                 editor.execCommand("startAutocomplete"); // trigger autocomplete
