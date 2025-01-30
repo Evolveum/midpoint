@@ -16,14 +16,17 @@ import com.evolveum.midpoint.gui.impl.component.icon.IconCssStyle;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.web.component.AjaxButton;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+
+import org.apache.wicket.model.LoadableDetachableModel;
 
 public class ObjectReferenceColumnPanel extends BasePanel<ObjectReferenceType> {
 
     private static final String ID_IMAGE = "image";
     private static final String ID_NAME = "name";
+
+    IModel<PrismObject<? extends ObjectType>> target;
 
     public ObjectReferenceColumnPanel(String id, IModel<ObjectReferenceType> object) {
         super(id, object);
@@ -32,7 +35,30 @@ public class ObjectReferenceColumnPanel extends BasePanel<ObjectReferenceType> {
     @Override
     protected void onInitialize() {
         super.onInitialize();
+        initTargetModel();
         initLayout();
+    }
+
+    private void initTargetModel() {
+        target = new LoadableDetachableModel<>() {
+            @Override
+            protected PrismObject<? extends ObjectType> load() {
+                ObjectReferenceType rowValue = getModelObject();
+                if (rowValue == null) {
+                    return null;
+                }
+
+                if (rowValue.getObject() != null) {
+                    return rowValue.getObject();
+                }
+
+                if (rowValue.getOid() != null) {
+                    return WebModelServiceUtils.loadObject(rowValue, getPageBase());
+                }
+
+                return null;
+            }
+        };
     }
 
     private void initLayout() {
@@ -41,7 +67,7 @@ public class ObjectReferenceColumnPanel extends BasePanel<ObjectReferenceType> {
         CompositedIconPanel iconPanel = new CompositedIconPanel(ID_IMAGE, createCompositedIconModel());
         add(iconPanel);
 
-        AjaxButton name = new AjaxButton(ID_NAME, () -> WebComponentUtil.getDisplayNameOrName(getResolvedTarget())) {
+        AjaxButton name = new AjaxButton(ID_NAME, () -> WebComponentUtil.getDisplayNameOrName(target.getObject())) {
 
             @Override
             public void onClick(AjaxRequestTarget target) {
@@ -49,26 +75,6 @@ public class ObjectReferenceColumnPanel extends BasePanel<ObjectReferenceType> {
             }
         };
         add(name);
-    }
-
-    private <R extends AbstractRoleType> PrismObject<R> getResolvedTarget() {
-        ObjectReferenceType rowValue = getModelObject();
-        if (rowValue == null) {
-            return null;
-        }
-
-        if (rowValue.getObject() != null) {
-            return rowValue.getObject();
-        }
-
-        if (rowValue.getOid() != null) {
-            PrismObject<R> resolvedTarget = WebModelServiceUtils.loadObject(rowValue, getPageBase());
-            if (resolvedTarget != null) {
-                return resolvedTarget;
-            }
-        }
-
-        return null;
     }
 
     private IModel<CompositedIcon> createCompositedIconModel() {
@@ -79,6 +85,11 @@ public class ObjectReferenceColumnPanel extends BasePanel<ObjectReferenceType> {
             }
 
             PrismObject<? extends ObjectType> object = ref.getObject();
+
+            if (object == null) {
+                object = target.getObject();
+            }
+
             if (object != null) {
                 return WebComponentUtil.createCompositeIconForObject(object.asObjectable(),
                         new OperationResult("create_assignment_composited_icon"), getPageBase());
@@ -88,5 +99,11 @@ public class ObjectReferenceColumnPanel extends BasePanel<ObjectReferenceType> {
             iconBuilder.setBasicIcon(displayType, IconCssStyle.IN_ROW_STYLE);
             return iconBuilder.build();
         };
+    }
+
+    @Override
+    protected void onDetach() {
+        super.onDetach();
+        target.detach();
     }
 }
