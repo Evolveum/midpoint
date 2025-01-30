@@ -258,7 +258,12 @@ public class QObjectMapping<S extends ObjectType, Q extends QObject<R>, R extend
             }
         }
         ret.version(Objects.requireNonNull(row.get(entityPath.version)).toString());
-        upgradeLegacyMetadataToValueMetadata(ret);
+        var reindexNeeded = upgradeLegacyMetadataToValueMetadata(ret, ret.getMetadata());
+        if (reindexNeeded) {
+            // Metadata were updated during read, object requires reindex.
+            ret.setMetadata(null);
+            ret.asPrismObject().setUserData(SqaleUtils.REINDEX_NEEDED, true);
+        }
         return ret;
     }
 
@@ -300,10 +305,9 @@ public class QObjectMapping<S extends ObjectType, Q extends QObject<R>, R extend
         return rootExcluded;
     }
 
-    private void upgradeLegacyMetadataToValueMetadata(S ret) {
-        var legacyMeta = ret.getMetadata();
+    protected boolean upgradeLegacyMetadataToValueMetadata(Containerable ret, MetadataType legacyMeta) {
         if (legacyMeta == null || !ret.asPrismContainerValue().getValueMetadata().isEmpty()) {
-            return;
+            return false;
         }
 
         var converted = ValueMetadataTypeUtil.fromLegacy(legacyMeta);
@@ -311,13 +315,10 @@ public class QObjectMapping<S extends ObjectType, Q extends QObject<R>, R extend
 
         try {
             ret.asPrismContainerValue().getValueMetadata().add(converted.asPrismContainerValue());
-            ret.setMetadata(null);
-            ret.asPrismObject().setUserData(SqaleUtils.REINDEX_NEEDED, true);
-
         } catch (SchemaException e) {
             e.getMessage(); // Should not happen.
         }
-
+        return true;
     }
 
     /**
