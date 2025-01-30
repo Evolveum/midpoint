@@ -12,7 +12,7 @@
     <parent>
         <artifactId>infra</artifactId>
         <groupId>com.evolveum.midpoint.infra</groupId>
-        <version>4.9.1</version>
+        <version>4.9.2-SNAPSHOT</version>
     </parent>
 
     <artifactId>test-util</artifactId>
