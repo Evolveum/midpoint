@@ -21118,6 +21118,10 @@
         <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
 
+    <xsd:element name="operationExecution" type="tns:OperationExecutionType">
+
+    </xsd:element>
+
     <xsd:simpleType name="OperationExecutionRecordTypeType">
         <xsd:annotation>
             <xsd:documentation>

@@ -798,4 +798,10 @@ public class TestQueryConverter extends AbstractUnitTest {
                 .item(ObjectType.F_NAME).eq("role-name")
                 .build();
     }
+
+    @Test
+    public void test960MidpointQueryForOperationExecution() throws SchemaException {
+        var filter = PrismContext.get().createQueryParser().parseFilter(OperationExecutionType.class, "taskRef matches (targetType = TaskType)");
+        assertNotNull(filter);
+    }
 }
