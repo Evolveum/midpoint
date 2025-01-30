@@ -97,7 +97,7 @@ Tree node search is now the same for all nodes.
 * Schema extension
 ** Adding a new SchemaType that is supported in native repository. SchemaType contains an attribute that contains xsd schema.
 ** SchemaType can be configured by GUI. Configuration via GUI contains some limitations that related with schema lifecycle.
-** For more information can see xrefv:/midpoint/reference/support-4.9/schema/custom-schema-extension.adoc[].
+** For more information can see xrefv:/midpoint/reference/support-4.9/schema/custom-schema-extension/[].
 
 * Object marks
 ** Supported for all object types including assignments when executed via policy rules
