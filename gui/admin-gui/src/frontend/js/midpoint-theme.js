@@ -960,7 +960,7 @@ export default class MidPointTheme {
             const commands = query.slice(0, cursorPosition).split(" ");
             const positionCommand = commands[commands.length - 1];
 
-            const regex = new RegExp(`(${commands})`, "gi");
+            const regex = new RegExp(`(${positionCommand})`, "gi");
 
             let renderSuggestions = (name, alias) => autocomplete.append('<div class="line suggestion">' +
                     '<span class="name">' + name + '</span>' +

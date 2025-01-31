@@ -62,7 +62,8 @@ podTemplate(
                     withCredentials([
                         string(credentialsId: params.PASSWORD_SINGING_JAR, variable: 'MIDPOINT_BUILD_STOREPASS'),
                         string(credentialsId: params.PASSWORD_SINGING_JAR, variable: 'MIDPOINT_BUILD_KEYPASS'),
-                        file(credentialsId: params.KEYSTORE_SINGING_JAR, variable: 'MIDPOINT_BUILD_KEYSTORE')
+                        file(credentialsId: params.KEYSTORE_SINGING_JAR, variable: 'MIDPOINT_BUILD_KEYSTORE'),
+                        usernamePassword(credentialsId:"dependencyTrack", usernameVariable:"DTRACK_URL", passwordVariable: "DTRACK_TOKEN")
                         ]) {
                             sh """#!/bin/bash -ex
                             # .m2 is mutable and short-term, we just sym-link the settings.xml there.
@@ -75,7 +76,7 @@ podTemplate(
                                 df -h
                             fi
 
-                            mvn -B -ntp -DskipTests -P jar-signing clean ${params.SKIP_DEPLOY ? 'install' : 'deploy -DdeployAtEnd=true'}
+                            mvn -B -ntp -DskipTests -P sbom,dependencytrack,jar-signing clean ${params.SKIP_DEPLOY ? 'install' : 'deploy -DdeployAtEnd=true'}
 
                             if [ "${verbose}" -ge 1 ]; then
                                 df -h

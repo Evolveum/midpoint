@@ -2139,15 +2139,62 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
     }
 
     @Test
-    public void test210ChangeDeeplyNestedFocusPasswordCreateTimestamp()
+    public void test210AddingDeeplyNestedEmbeddedContainer()
             throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException {
         OperationResult result = createOperationResult();
         MUser originalRow = selectObjectByOid(QUser.class, user1Oid);
 
-        given("delta adding credential/password/metadata/createTimestamp value for user 1");
+        given("delta adding whole credential/password container user 1");
+        var valueMeta = new ValueMetadataType()
+                .id(1L)
+                .storage(new StorageMetadataType()
+                        .modifyTimestamp(MiscUtil.asXMLGregorianCalendar(1L)));
+        var password = new PasswordType();
+        password.asPrismContainerValue().getValueMetadataAsContainer().add(valueMeta.asPrismContainerValue());
+
+        ObjectDelta<UserType> delta = prismContext.deltaFor(UserType.class)
+                .item(FocusType.F_CREDENTIALS, CredentialsType.F_PASSWORD)
+                .replace(password)
+                .asObjectDelta(user1Oid);
+
+        when("modifyObject is called");
+        repositoryService.modifyObject(UserType.class, user1Oid, delta.getModifications(), result);
+
+        then("operation is successful");
+        assertThatOperationResult(result).isSuccess();
+
+        and("serialized form (fullObject) is updated");
+        UserType user = repositoryService.getObject(UserType.class, user1Oid, null, result)
+                .asObjectable();
+        assertThat(user.getVersion()).isEqualTo(String.valueOf(originalRow.version + 1));
+        assertThat(user.getCredentials().getPassword()
+                .asPrismContainerValue().getValueMetadataAsContainer()
+                .getAnyValue().<ValueMetadataType>getRealValue()
+                .getStorage()
+                .getModifyTimestamp().getMillisecond()).isEqualTo(1);
+
+        and("externalized column is updated");
+        MUser row = selectObjectByOid(QUser.class, user1Oid);
+        assertThat(row.version).isEqualTo(originalRow.version + 1);
+        assertThat(row.passwordCreateTimestamp).isNull(); // not set, left as null
+        assertThat(row.passwordModifyTimestamp).isEqualTo(Instant.ofEpochMilli(1));
+    }
+
+    /**
+     * Test used to create deep hierarchy of containers using metadata.
+     * Now repurposed to modify hierarchy created in previous test
+    **/
+    @Test
+    public void test211ChangeDeeplyNestedFocusPasswordCreateTimestamp()
+            throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException {
+        OperationResult result = createOperationResult();
+        MUser originalRow = selectObjectByOid(QUser.class, user1Oid);
+
+        given("delta adding credential/password/@metadata/1L/storage/createTimestamp value for user 1");
         ObjectDelta<UserType> delta = prismContext.deltaFor(UserType.class)
                 .item(FocusType.F_CREDENTIALS, CredentialsType.F_PASSWORD,
-                        PasswordType.F_METADATA, MetadataType.F_CREATE_TIMESTAMP)
+                        InfraItemName.METADATA, 1L, ValueMetadataType.F_STORAGE,
+                        MetadataType.F_CREATE_TIMESTAMP)
                 .add(MiscUtil.asXMLGregorianCalendar(1L))
                 .asObjectDelta(user1Oid);
 
@@ -2161,7 +2208,11 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
         UserType user = repositoryService.getObject(UserType.class, user1Oid, null, result)
                 .asObjectable();
         assertThat(user.getVersion()).isEqualTo(String.valueOf(originalRow.version + 1));
-        assertThat(user.getCredentials().getPassword().getMetadata()
+        and("metadata are converted to value metadata");
+        assertThat(user.getCredentials().getPassword()
+                .asPrismContainerValue().getValueMetadataAsContainer()
+                .getAnyValue().<ValueMetadataType>getRealValue()
+                .getStorage()
                 .getCreateTimestamp().getMillisecond()).isEqualTo(1);
 
         and("externalized column is updated");
@@ -2171,14 +2222,14 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
     }
 
     @Test
-    public void test211DeleteDeeplyNestedFocusPasswordCreateTimestamp()
+    public void test212DeleteDeeplyNestedFocusPasswordCreateTimestamp()
             throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException {
         OperationResult result = createOperationResult();
 
         given("delta with metadata/createChannel status replace to null ('delete') for user 1");
         ObjectDelta<UserType> delta = prismContext.deltaFor(UserType.class)
                 .item(FocusType.F_CREDENTIALS, CredentialsType.F_PASSWORD,
-                        PasswordType.F_METADATA, MetadataType.F_CREATE_TIMESTAMP)
+                        InfraItemName.METADATA, 1L, ValueMetadataType.F_STORAGE, MetadataType.F_CREATE_TIMESTAMP)
                 .replace()
                 .asObjectDelta(user1Oid);
 
@@ -2208,39 +2259,7 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
         assertThat(row.passwordCreateTimestamp).isNull();
     }
 
-    @Test
-    public void test212AddingDeeplyNestedEmbeddedContainer()
-            throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException {
-        OperationResult result = createOperationResult();
-        MUser originalRow = selectObjectByOid(QUser.class, user1Oid);
 
-        given("delta adding whole credential/password container user 1");
-        ObjectDelta<UserType> delta = prismContext.deltaFor(UserType.class)
-                .item(FocusType.F_CREDENTIALS, CredentialsType.F_PASSWORD)
-                .replace(new PasswordType()
-                        .metadata(new MetadataType()
-                                .modifyTimestamp(MiscUtil.asXMLGregorianCalendar(1L))))
-                .asObjectDelta(user1Oid);
-
-        when("modifyObject is called");
-        repositoryService.modifyObject(UserType.class, user1Oid, delta.getModifications(), result);
-
-        then("operation is successful");
-        assertThatOperationResult(result).isSuccess();
-
-        and("serialized form (fullObject) is updated");
-        UserType user = repositoryService.getObject(UserType.class, user1Oid, null, result)
-                .asObjectable();
-        assertThat(user.getVersion()).isEqualTo(String.valueOf(originalRow.version + 1));
-        assertThat(user.getCredentials().getPassword().getMetadata()
-                .getModifyTimestamp().getMillisecond()).isEqualTo(1);
-
-        and("externalized column is updated");
-        MUser row = selectObjectByOid(QUser.class, user1Oid);
-        assertThat(row.version).isEqualTo(originalRow.version + 1);
-        assertThat(row.passwordCreateTimestamp).isNull(); // not set, left as null
-        assertThat(row.passwordModifyTimestamp).isEqualTo(Instant.ofEpochMilli(1));
-    }
 
     @Test
     public void test213OverwritingParentOfDeeplyNestedEmbeddedContainer()
@@ -2249,12 +2268,16 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
         MUser originalRow = selectObjectByOid(QUser.class, user1Oid);
 
         given("delta adding whole credential/password container user 1");
+        var password = new PasswordType().name("test");
+        password.asPrismContainerValue().getValueMetadataAsContainer()
+                .add(new ValueMetadataType()
+                                .storage(new StorageMetadataType()
+                                        .createTimestamp(MiscUtil.asXMLGregorianCalendar(1L)))
+                                .asPrismContainerValue());
         ObjectDelta<UserType> delta = prismContext.deltaFor(UserType.class)
                 .item(FocusType.F_CREDENTIALS)
                 .replace(new CredentialsType()
-                        .password(new PasswordType()
-                                .metadata(new MetadataType()
-                                        .createTimestamp(MiscUtil.asXMLGregorianCalendar(1L)))))
+                        .password(password))
                 .asObjectDelta(user1Oid);
 
         when("modifyObject is called");
@@ -2267,9 +2290,16 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
         UserType user = repositoryService.getObject(UserType.class, user1Oid, null, result)
                 .asObjectable();
         assertThat(user.getVersion()).isEqualTo(String.valueOf(originalRow.version + 1));
-        assertThat(user.getCredentials().getPassword().getMetadata()
+        assertThat(user.getCredentials().getPassword()
+                .asPrismContainerValue().getValueMetadataAsContainer()
+                .getAnyValue().<ValueMetadataType>getRealValue()
+                .getStorage()
                 .getCreateTimestamp().getMillisecond()).isEqualTo(1);
-        assertThat(user.getCredentials().getPassword().getMetadata().getModifyTimestamp())
+        assertThat(user.getCredentials().getPassword()
+                .asPrismContainerValue().getValueMetadataAsContainer()
+                .getAnyValue().<ValueMetadataType>getRealValue()
+                .getStorage()
+                .getModifyTimestamp())
                 .isNull();
 
         and("externalized column is updated");

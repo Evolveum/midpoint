@@ -4,7 +4,7 @@
 The range defines what are the possible outputs of the mapping.
 The xref:/midpoint/reference/concepts/clockwork/clockwork-and-projector/[projector] can use this information to determine what values to remove when the mapping is authoritative.
 
-If needed, a custom mapping range specification can be created by using a condition:
+Custom mapping range specification can be created by using a condition:
 
 [source,xml]
 ----
@@ -61,7 +61,7 @@ MidPoint detects the change and executes inbound mapping designed to automatical
 Following diagram illustrates the situation at the beginning of mapping evaluation.
 The data in the source (HR) system is already changed, the expression was not evaluated yet, and the target data still have the original (old) value.
 
-image::mapping-range-single-1.png[Mapping range part 1]
+image::custom-mapping-range-single-1.png[Mapping range part 1]
 
 Evaluation of the mapping begins.
 Source definitions are processed, and mapping expression is evaluated.
@@ -71,7 +71,7 @@ This value was just produced by the mapping expression.
 It is not stored anywhere yet.
 User's `assignment` container still contains old values.
 
-image::mapping-range-single-2.png[Mapping range part 2]
+image::custom-mapping-range-single-2.png[Mapping range part 2]
 
 At this point midPoint has results of mapping expressions, and it is trying to figure out the way to properly and consistently apply results of all the mappings.
 MidPoint has to construct a xref:/midpoint/devel/prism/concepts/deltas/[delta] that will later be applied to the user object.
@@ -95,49 +95,16 @@ The values are places in _plus_ and _minus_ parts of a data structure that we ca
 It has _plus_, _zero_ and _minus_ parts, and it is used as an intermediary data structure to merge results of several mappings.
 However, we have only one mapping here, therefore we can ignore such details for now.
 
-image::mapping-range-single-3.png[Mapping range part 3]
+image::custom-mapping-range-single-3.png[Mapping range part 3]
 
 The results of mapping expression are _consolidated_ at this point.
 Data from all the mappings are considered and merged.
 The deltas are all computed and ready to use.
 All that remains it to apply them to user object.
 
-image::mapping-range-single-4.png[Mapping range part 4]
+image::custom-mapping-range-single-4.png[Mapping range part 4]
 
 The assignment of HR role `Sales Assistant` was replaced by assignment of `Sales Manager` role, all other assignments were left untouched.
-
-== Simple Cases
-
-There are few simple cases of mapping range use, such as extending range to all possible values and reducing it to no values.
-As such cases are relatively common, there are pre-defined value set definitions to make configuration easier.
-
-[%autowidth]
-|====
-| Range | predefined keyword | Summary | Description
-
-| All values
-| `all`
-| Mapping is *authoritative* for all values.
-| Mapping will always remove all the values that were not produced by the mapping (except for the "overlap" case, see below).
-
-| No values
-| `none`
-| Mapping is *non-authoritative* for any value.
-| Mapping will not remove any value, except for the case when the removal is result of relativistic computation (see below).
-
-| Values with matching provenance
-| `matchingProvenance`
-| Mapping is authoritative only for the values that it produced.
-| Mapping will remove only the values that were created by the same mapping in the past.
-
-|====
-
-Please note that mapping range is not the only mechanism that can cause removal of target values.
-Even with an empty range (non-authoritative mapping), target values can be removed due to mapping relativity.
-In case that mapping reacts to removal of source value, the result is likely to be removal of target value.
-This is evaluated by the mapping expression, even before processing of mapping range takes place.
-Please see xref:../mapping-relativity/[] for more details.
-
 
 == Multiple Mappings
 
@@ -156,7 +123,7 @@ Authoritative information about project teams is stored in the project managemen
 The `project` attribute of user accounts contains a multi-valued list of project identifiers that a user belongs to.
 The mapping is processing the values of `project` attribute, creating assignments to appropriate xref:/midpoint/reference/org/[orgs].
 
-image::mapping-range-multiple-1.png[Multiple mappings with ranges part 1]
+image::custom-mapping-range-multiple-1.png[Multiple mappings with ranges part 1]
 
 Both mappings are evaluated almost independently, producing values for their respective sources.
 As in the usual case, the _plus_ part of the detlas (or _triples_) is produced by mapping expressions.
@@ -164,13 +131,13 @@ The _minus_ values in deltas are what makes this case interesting.
 Each of the mapping is applying its range, looking for values to remove.
 The `Sales Assistant` value is removed by the HR mapping, the `Project Dinosaur` is removed by the project management system mapping.
 
-image::mapping-range-multiple-2.png[Multiple mappings with ranges part 2]
+image::custom-mapping-range-multiple-2.png[Multiple mappings with ranges part 2]
 
 Finally, the deltas are applied to the target values.
 Even though the deltas target the same item (`assignment`), the value sets are disjoint.
 There are no conflicts, everything goes smoothly.
 
-image::mapping-range-multiple-3.png[Multiple mappings with ranges part 3]
+image::custom-mapping-range-multiple-3.png[Multiple mappings with ranges part 3]
 
 TIP: When constructing mappings that target the same item, the best strategy is to make sure that the mappings do not "overlap".
 I.e. make sure only one mapping is used to produce any particular value at any time.

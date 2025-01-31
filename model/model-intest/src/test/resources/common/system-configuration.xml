@@ -683,6 +683,11 @@
     </audit>
 
     <secretsProviders>
+        <file>
+            <identifier>file-provider</identifier>
+            <parentDirectoryPath>./src/test/resources/file-secret-provider</parentDirectoryPath>
+            <cache>PT10M</cache>
+        </file>
         <properties>
             <identifier>properties-provider</identifier>
             <cache>PT5S</cache>

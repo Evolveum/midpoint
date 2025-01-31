@@ -11,6 +11,8 @@ import static org.testng.AssertJUnit.assertEquals;
 
 import java.util.concurrent.atomic.AtomicInteger;
 
+import com.evolveum.midpoint.prism.crypto.ProtectedData;
+
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
@@ -167,5 +169,21 @@ public class TestSecretProviders extends AbstractInitializedModelIntegrationTest
         AssertJUnit.assertEquals(2, counter.get());
 
         Clock.get().resetOverride();
+    }
+
+    /**
+     * Decrypts first as if it's byte[] via {@link Protector#decrypt(ProtectedData)},
+     * cache and then try to use {@link Protector#decryptString(ProtectedData)}
+     */
+    @Test
+    public void test140TestMismatchedAccessToProtectedString() throws Exception {
+        ProtectedStringType ps = createProtectedString("file-provider","file-secret");
+
+        // real secret value not yet cached
+        protector.decrypt(ps); // <-- we're working with it as it's byte[] - decrypt()
+
+        // secret value already cached, now we try get it as string
+        ProtectedStringType ps1 = createProtectedString("file-provider","file-secret");
+        protector.decryptString(ps1);   // <-- we're thinking about String here - decryptString()
     }
 }
