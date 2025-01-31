@@ -259,7 +259,7 @@
         <j2html.version>1.4.0</j2html.version>
         <bouncycastle.version>1.78</bouncycastle.version>
         <javax.persistence.version>2.2</javax.persistence.version>
-        <keycloak.version>25.0.5</keycloak.version>
+        <keycloak.version>26.0.6</keycloak.version>
 
         <maven.api.version>3.8.5</maven.api.version>
         <!-- With M6 we get [WARNING] Corrupted channel by directly writing to native stream in forked JVM 1,
