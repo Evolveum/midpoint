@@ -12,6 +12,7 @@ import java.util.Map;
 
 import com.evolveum.midpoint.authentication.api.util.AuthUtil;
 
+import com.evolveum.midpoint.authentication.impl.MidpointAutowiredBeanFactoryObjectPostProcessor;
 import com.evolveum.midpoint.authentication.impl.channel.IdentityRecoveryAuthenticationChannel;
 import com.evolveum.midpoint.model.api.ModelInteractionService;
 
@@ -87,6 +88,9 @@ public class MidpointAuthFilter extends GenericFilterBean {
         ModuleWebSecurityConfigurer<?, ?> module =
                 objectObjectPostProcessor.postProcess(new ModuleWebSecurityConfigurer<>());
         module.setObjectPostProcessor(objectObjectPostProcessor);
+        if (objectObjectPostProcessor instanceof MidpointAutowiredBeanFactoryObjectPostProcessor midpointPostProcessor) {
+            midpointPostProcessor.setAfterInitialization();
+        }
     }
 
     @Override
