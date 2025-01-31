@@ -15,6 +15,7 @@ import com.evolveum.midpoint.authentication.api.config.MidpointAuthentication;
 
 import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -95,6 +96,11 @@ public class AbstractRestController {
 
     protected <T> ResponseEntity<?> createResponse(HttpStatus httpStatus,
             T body, OperationResult result, boolean sendOriginObjectIfNotSuccess) {
+        return createResponse(httpStatus, body, result, sendOriginObjectIfNotSuccess, null);
+    }
+
+    protected <T> ResponseEntity<?> createResponse(HttpStatus httpStatus,
+            T body, OperationResult result, boolean sendOriginObjectIfNotSuccess, HttpHeaders headers) {
         result.computeStatusIfUnknown();
 
         if (result.isPartialError()) {
@@ -103,7 +109,12 @@ public class AbstractRestController {
             return createBody(status(240), sendOriginObjectIfNotSuccess, body, result);
         }
 
-        return status(httpStatus).body(body);
+        ResponseEntity.BodyBuilder responseBuilder = status(httpStatus);
+        if (headers != null && !headers.isEmpty()) {
+            responseBuilder.headers(headers);
+        }
+
+        return responseBuilder.body(body);
     }
 
     protected ResponseEntity<?> createResponseWithLocation(

@@ -21,6 +21,7 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.Validate;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -636,6 +637,7 @@ public class ModelRestController extends AbstractRestController {
             @RequestParam(value = "include", required = false) List<String> include,
             @RequestParam(value = "exclude", required = false) List<String> exclude,
             @RequestParam(value = "resolveNames", required = false) List<String> resolveNames,
+            @RequestParam(value = "returnTotalCount", required = false) Boolean returnTotalCount,
             @RequestBody QueryType queryType) {
 
         Task task = initRequest();
@@ -658,7 +660,15 @@ public class ModelRestController extends AbstractRestController {
                 listType.getObject().add(o.asObjectable());
             }
 
-            response = createResponse(HttpStatus.OK, listType, result, true);
+            HttpHeaders headers = null;
+            if (Boolean.TRUE.equals(returnTotalCount)) {
+                ObjectQuery countQuery = query.clone();
+                countQuery.setPaging(null);
+                int totalCount = modelService.countObjects(clazz, countQuery, searchOptions, task, result);
+                headers = addHeader("X-Total-Count", String.valueOf(totalCount), headers);
+            }
+
+            response = createResponse(HttpStatus.OK, listType, result, true, headers);
         } catch (Exception ex) {
             response = handleException(result, ex);
         }
@@ -666,6 +676,14 @@ public class ModelRestController extends AbstractRestController {
         result.computeStatus();
         finishRequest(task, result);
         return response;
+    }
+
+    private HttpHeaders addHeader(String headerName, String headerValue, HttpHeaders headers) {
+        if (headers == null) {
+            headers = new HttpHeaders();
+        }
+        headers.add(headerName, headerValue);
+        return headers;
     }
 
     private void removeExcludes(PrismObject<? extends ObjectType> object, List<String> exclude)
