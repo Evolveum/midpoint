@@ -88,18 +88,16 @@ public class QFocusMapping<S extends FocusType, Q extends QFocus<R>, R extends M
         addItemMapping(F_TIMEZONE, stringMapper(q -> q.timezone));
         addItemMapping(F_TELEPHONE_NUMBER, stringMapper(q -> q.telephoneNumber));
         // passwordModify/CreateTimestamps are just a bit deeper
-        addNestedMapping(F_CREDENTIALS, CredentialsType.class)
-                .addNestedMapping(CredentialsType.F_PASSWORD, PasswordType.class)
-                .addNestedMapping(PasswordType.F_METADATA, MetadataType.class)
+        var passwordMapping = addNestedMapping(F_CREDENTIALS, CredentialsType.class)
+                .addNestedMapping(CredentialsType.F_PASSWORD, PasswordType.class);
+
+        passwordMapping.addNestedMapping(PasswordType.F_METADATA, MetadataType.class)
                 .addItemMapping(MetadataType.F_CREATE_TIMESTAMP,
                         timestampMapper(q -> q.passwordCreateTimestamp))
                 .addItemMapping(MetadataType.F_MODIFY_TIMESTAMP,
                         timestampMapper(q -> q.passwordModifyTimestamp));
 
-        // credentials timestamps via @metadata
-        addNestedMapping(F_CREDENTIALS, CredentialsType.class)
-                .addNestedMapping(CredentialsType.F_PASSWORD, PasswordType.class)
-                .addNestedMapping(InfraItemName.METADATA, ValueMetadataType.class)
+        passwordMapping.addNestedMapping(InfraItemName.METADATA, ValueMetadataType.class)
                 .addNestedMapping(ValueMetadataType.F_STORAGE, StorageMetadataType.class)
                 .addItemMapping(StorageMetadataType.F_CREATE_TIMESTAMP,
                         timestampMapper(q -> q.passwordCreateTimestamp))
