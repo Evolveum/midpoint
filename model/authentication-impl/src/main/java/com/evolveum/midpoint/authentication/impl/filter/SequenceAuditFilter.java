@@ -15,6 +15,8 @@ import com.evolveum.midpoint.security.api.ProfileCompilerOptions;
 
 import com.evolveum.midpoint.util.exception.*;
 
+import jakarta.servlet.ServletRequest;
+import jakarta.servlet.ServletResponse;
 import org.apache.commons.lang3.StringUtils;
 
 import java.io.IOException;
@@ -31,6 +33,7 @@ import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import org.jetbrains.annotations.VisibleForTesting;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
+import org.springframework.web.filter.GenericFilterBean;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import com.evolveum.midpoint.authentication.api.config.MidpointAuthentication;
@@ -54,7 +57,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
  * - focus/behavior/authentication
  * - audit
  */
-public class SequenceAuditFilter extends OncePerRequestFilter {
+public class SequenceAuditFilter extends GenericFilterBean {
 
     private static final Trace LOGGER = TraceManager.getTrace(SequenceAuditFilter.class);
 
@@ -82,7 +85,7 @@ public class SequenceAuditFilter extends OncePerRequestFilter {
     }
 
     @Override
-    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
+    public void doFilter(ServletRequest request, ServletResponse response, FilterChain filterChain)
             throws ServletException, IOException {
         LOGGER.trace("Running SequenceAuditFilter");
 
@@ -108,7 +111,7 @@ public class SequenceAuditFilter extends OncePerRequestFilter {
             return;
         }
 
-        writeRecord(request, mpAuthentication);
+        writeRecord((HttpServletRequest) request, mpAuthentication);
 
         if (!recordOnEndOfChain) {
             filterChain.doFilter(request, response);

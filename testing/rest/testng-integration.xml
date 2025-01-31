@@ -17,7 +17,7 @@
             <class name="com.evolveum.midpoint.testing.rest.TestSecurityQuestionChallengeResponse"/>
             <class name="com.evolveum.midpoint.testing.rest.TestRestServiceProxyAuthentication"/>
             <class name="com.evolveum.midpoint.testing.rest.TestRestWithoutAuditingLoginAndLogout"/>
-            <class name="com.evolveum.midpoint.testing.rest.authentication.TestOptionForSkipUpdatingAuthFocusBehavior"></class>
+            <class name="com.evolveum.midpoint.testing.rest.authentication.TestBasicAuthentication"/>
         </classes>
     </test>
 </suite>

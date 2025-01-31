@@ -10,9 +10,12 @@ import java.util.ArrayList;
 import java.util.List;
 import jakarta.servlet.Filter;
 
+import org.springframework.aop.support.AopUtils;
 import org.springframework.beans.factory.DisposableBean;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.SmartInitializingSingleton;
 import org.springframework.beans.factory.config.AutowireCapableBeanFactory;
+import org.springframework.core.NativeDetector;
 import org.springframework.security.config.annotation.ObjectPostProcessor;
 import org.springframework.util.Assert;
 
@@ -28,6 +31,7 @@ public class MidpointAutowiredBeanFactoryObjectPostProcessor implements ObjectPo
     private final AutowireCapableBeanFactory autowiredBeanFactory;
     private final List<DisposableBean> disposableBeans = new ArrayList<>();
     private final List<SmartInitializingSingleton> smartSingletons = new ArrayList<>();
+    private boolean isAfterInitialization = false;
 
     public MidpointAutowiredBeanFactoryObjectPostProcessor(AutowireCapableBeanFactory autowiredBeanFactory) {
         Assert.notNull(autowiredBeanFactory, "autowiredBeanFactory cannot be null");
@@ -41,7 +45,7 @@ public class MidpointAutowiredBeanFactoryObjectPostProcessor implements ObjectPo
             Object result;
 
             try {
-                result = this.autowiredBeanFactory.initializeBean(object, object.toString());
+                result = initializeBeanIfNeeded(object);
             } catch (RuntimeException var5) {
                 Class<?> type = object.getClass();
                 throw new RuntimeException("Could not postProcess " + object + " of type " + type, var5);
@@ -58,6 +62,27 @@ public class MidpointAutowiredBeanFactoryObjectPostProcessor implements ObjectPo
 
             return (T) result;
         }
+    }
+
+    private <T> T initializeBeanIfNeeded(T object) {
+        if (!NativeDetector.inNativeImage() || !AopUtils.isCglibProxy(object)) {
+            String beanName = object.toString();
+            if (isAfterInitialization) {
+                beanName = object.getClass().toString();
+            }
+            return (T) this.autowiredBeanFactory.initializeBean(object, beanName);
+        }
+        ObjectProvider<?> provider = this.autowiredBeanFactory.getBeanProvider(object.getClass());
+        Object bean = provider.getIfUnique();
+        if (bean == null) {
+            String msg = """
+                    Failed to resolve an unique bean (single or primary) of type [%s] from the BeanFactory.
+                    Because the object is a CGLIB Proxy, a raw bean cannot be initialized during runtime in a native image.
+                    """
+                    .formatted(object.getClass());
+            throw new IllegalStateException(msg);
+        }
+        return (T) bean;
     }
 
     public void afterSingletonsInstantiated() {
@@ -94,5 +119,9 @@ public class MidpointAutowiredBeanFactoryObjectPostProcessor implements ObjectPo
         } catch (Exception e) {
             LOGGER.error("Couldn't destroy bean :" + disposableBean, e);
         }
+    }
+
+    public void setAfterInitialization() {
+        this.isAfterInitialization = true;
     }
 }
