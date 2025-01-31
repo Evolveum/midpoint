@@ -560,9 +560,6 @@ Please refer to the xrefv:/midpoint/reference/support-4.9/upgrade/upgrade-guide/
 The guide describes the steps applicable for upgrades of all midPoint releases.
 Following sections provide details regarding release {release-version}.
 
-=== Upgrade From MidPoint 4.9
-TODO
-
 === Upgrade From MidPoint 4.8
 
 MidPoint {release-version} data model is backwards compatible with previous midPoint version.
@@ -591,9 +588,6 @@ Note that:
 Upgrade from midPoint versions other than 4.8.x to midPoint {release-version} is not supported directly.
 Please upgrade to 4.8.5 first.
 
-=== Deprecation, Feature Removal And Major Incompatible Changes Since 4.9
-TODO
-
 === Deprecation, Feature Removal And Major Incompatible Changes Since 4.8
 
 NOTE: This section is relevant to the majority of midPoint deployments.
@@ -617,7 +611,42 @@ It refers to the most significant functionality removals and changes in this ver
 // More info xrefv:/midpoint/reference/support-4.9/deployment/ninja[here] and in bug:MID-7483[].
 
 === Changes In Initial Objects Since 4.9
-TODO
+
+* 000-system-configuration.xml:
+Task execution constraints panel added to task advanced options GUI.
+Schema handling input, object type attribute volatility for incoming/outgoing operation now visible.
+* 010-value-policy.xml:
+Removed `maxLength` limit to 14 characters. Now avoiding characters `#&amp; "*'` when generating new password.
+* 040-role-enduser.xml:
+Hidden `serviceAssignments`, `policyAssignments` and `focusMarks` panels.
+* 041-role-approver.xml:
+Added authorization for `#orgDetails` and `#serviceDetails`.
+* 042-role-reviewer.xml:
+Added authorization for `#myActiveCertificationCampaigns`. Added authorization for `AccessCertificationCampaignType` items `state`, `iteration` and `startTimestamp`.
+* 090-report-audit.xml:
+Changed XML query to midpoint query language.
+* 100-report-reconciliation.xml:
+Changed XML query to midpoint query language.
+* 110-report-user-list.xml:
+Changed XML query to midpoint query language.
+* 140-report-certification-campaigns.xml:
+Changed XML query to midpoint query language.
+* 150-report-certification-cases.xml:
+Changed XML query to midpoint query language.
+* 160-report-certification-work-items.xml:
+Changed XML query to midpoint query language.
+* 200-report-indirect-assignments.xml:
+Changed XML query to midpoint query language.
+* 023-archetype-manual-provisioning-case.xml:
+Icon color change.
+* 025-archetype-approval-case.xml:
+Icon color change.
+* 029-archetype-application.xml:
+`governance` panel configuration change.
+* 536-archetype-task-certification-start-campaign.xml:
+Updated configuration of `activity` `work` panel.
+* 538-archetype-task-certification-reiterate-campaign.xml:
+Updated configuration of `activity` `work` panel.
 
 === Changes In Initial Objects Since 4.8
 
@@ -657,7 +686,25 @@ TIP: Copies of initial object files are located in `config/initial-objects` dire
 On-line version can be found in https://github.com/Evolveum/midpoint/tree/v{release-version}/config/initial-objects[midPoint source code].
 
 === Schema Changes Since 4.9
-TODO
+
+.Items being deprecated
+[%autowidth]
+|===
+| Type | Item or value | Note
+
+| `DetectedAnomalyStatistics`
+| `memberCoverageConfidence`
+|
+
+| `DetectedAnomalyStatistics`
+| `frequency`
+|
+
+| `ResourceItemDefinitionType`
+| `volatilityTrigger`
+| Use `volatility` instead.
+
+|===
 
 === Schema Changes Since 4.8
 
@@ -704,10 +751,6 @@ Make sure you don't use any removed items.
 You can use `ninja` tool for this.
 
 * Be sure to apply the changes to initial objects 800-804 (object marks), as well as to your custom object marks to handle the membership in the expected way.
-
-[#_behavior_changes_since_4_9]
-=== Behavior Changes Since 4.9
-TODO
 
 [#_behavior_changes_since_4_8]
 === Behavior Changes Since 4.8
@@ -800,9 +843,6 @@ All these features can be configured - or even turned off in the extreme case - 
 Moreover, we plan to improve the performance in the forthcoming releases.
 
 === Java and REST API Changes Since 4.8
-TODO
-
-=== Java and REST API Changes Since 4.8
 
 NOTE: As for the Java API, this section describes changes in `midpoint` and `basic` function libraries.
 (MidPoint does not have explicitly defined Java API, yet.
@@ -816,9 +856,6 @@ But these two objects are something that can be unofficially considered to be th
 // * The following methods were not checking authorizations of currently logged-in user, and were fixed to do so:
 // `midpoint.countAccounts`, `midpoint.getObjectsInConflictOnPropertyValue`, `midpoint.isUniquePropertyValue`.
 // See bug:MID-6241[] and commit https://github.com/Evolveum/midpoint/commit/1471bba52e363f81feabbec6f997507d8a7655fb[1471bb].
-
-=== Internal Changes Since 4.9
-TODO
 
 === Internal Changes Since 4.8
 
