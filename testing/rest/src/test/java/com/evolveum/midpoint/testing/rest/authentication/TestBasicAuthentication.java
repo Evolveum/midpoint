@@ -7,38 +7,47 @@
 package com.evolveum.midpoint.testing.rest.authentication;
 
 import com.evolveum.midpoint.prism.PrismObject;
+
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthenticationBehavioralDataType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
+import jakarta.ws.rs.core.Response;
 import org.apache.cxf.jaxrs.client.WebClient;
+import org.assertj.core.api.Assertions;
+import org.springframework.aop.framework.autoproxy.AbstractAutoProxyCreator;
+import org.springframework.aop.framework.autoproxy.BeanNameAutoProxyCreator;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.testng.annotations.Test;
 
-import jakarta.ws.rs.core.Response;
 import java.io.File;
+import java.util.Map;
 import java.util.Optional;
 
 import static org.testng.AssertJUnit.assertEquals;
 
-public class TestOptionForSkipUpdatingAuthFocusBehavior extends TestAbstractAuthentication {
+public class TestBasicAuthentication extends TestAbstractAuthentication {
 
     public static final File SECURITY_POLICY_DEFAULT = new File(BASE_AUTH_REPO_DIR, "security-policy-default.xml");
     public static final File SECURITY_POLICY_ENABLED = new File(BASE_AUTH_REPO_DIR, "security-policy-enabled.xml");
     public static final File SECURITY_POLICY_DISABLED = new File(BASE_AUTH_REPO_DIR, "security-policy-disabled.xml");
     public static final File SECURITY_POLICY_ONLY_UNSUCCESSFUL = new File(BASE_AUTH_REPO_DIR, "security-policy-unsuccessful.xml");
 
+    @Autowired
+    protected BeanNameAutoProxyCreator beanNameAutoProxyCreator;
+
     @Test
-    public void test001DefaultOption() throws Exception {
+    public void test001DefaultOptionForSkipUpdatingAuthFocusBehavior() throws Exception {
         runEnabledOptionTest(SECURITY_POLICY_DEFAULT);
     }
 
     @Test
-    public void test002EnabledOption() throws Exception {
+    public void test002EnabledOptionForSkipUpdatingAuthFocusBehavior() throws Exception {
         runEnabledOptionTest(SECURITY_POLICY_ENABLED);
     }
 
     @Test
-    public void test003DisabledOption() throws Exception {
+    public void test003DisabledOptionForSkipUpdatingAuthFocusBehavior() throws Exception {
         replaceSecurityPolicy(SECURITY_POLICY_DISABLED);
 
         WebClient client = prepareUnsuccessfulClient();
@@ -52,7 +61,7 @@ public class TestOptionForSkipUpdatingAuthFocusBehavior extends TestAbstractAuth
     }
 
     @Test
-    public void test004OnlyUnsuccessfulOption() throws Exception {
+    public void test004OnlyUnsuccessfulOptionForSkipUpdatingAuthFocusBehavior() throws Exception {
         replaceSecurityPolicy(SECURITY_POLICY_ONLY_UNSUCCESSFUL);
 
         WebClient clientUnsuccessful = prepareUnsuccessfulClient();
@@ -79,6 +88,30 @@ public class TestOptionForSkipUpdatingAuthFocusBehavior extends TestAbstractAuth
                 adminAfterSuccess2.asObjectable().getCredentials().getPassword().beginLastSuccessfulLogin());
     }
 
+    @Test
+    public void test005MemoryLeakBecauseOfAuthFilters() throws Exception {
+        replaceSecurityPolicy(SECURITY_POLICY_DEFAULT);
+
+        when();
+        for (int i = 0; i < 100; i++){
+            Response responseSuccessful = prepareSuccessfulClient().get();
+            assertStatus(responseSuccessful, 200);
+        }
+
+        then();
+        beanNameAutoProxyCreator.isExposeProxy();
+        var field = AbstractAutoProxyCreator.class.getDeclaredField("advisedBeans");
+        field.setAccessible(true);
+
+        // can fail if increase number of beans in application, then please increase count
+        int count = 1500;
+        Assertions.assertThat(
+                        ((Map)field.get(beanNameAutoProxyCreator)).size())
+                .as("Size of advisedBeans field in beanNameAutoProxyCreator")
+                .withFailMessage("Field contains more than " + count + " advisedBeans, possible memory leak")
+                .isLessThan(count);
+    }
+
     private void runEnabledOptionTest(File securityPolicy) throws Exception {
         replaceSecurityPolicy(securityPolicy);
 
@@ -99,14 +132,14 @@ public class TestOptionForSkipUpdatingAuthFocusBehavior extends TestAbstractAuth
         assertNumberOfFailedLogin(adminAfterSuccess, 0);
     }
 
-    private WebClient prepareSuccessfulClient() {
-        WebClient client = prepareClient(USER_ADMINISTRATOR_USERNAME, USER_ADMINISTRATOR_PASSWORD);
+    private WebClient prepareUnsuccessfulClient() {
+        WebClient client = prepareClient(USER_ADMINISTRATOR_USERNAME, "wrong");
         client.path("/users/" + SystemObjectsType.USER_ADMINISTRATOR.value());
         return client;
     }
 
-    private WebClient prepareUnsuccessfulClient() {
-        WebClient client = prepareClient(USER_ADMINISTRATOR_USERNAME, "wrong");
+    protected WebClient prepareSuccessfulClient() {
+        WebClient client = prepareClient(USER_ADMINISTRATOR_USERNAME, USER_ADMINISTRATOR_PASSWORD);
         client.path("/users/" + SystemObjectsType.USER_ADMINISTRATOR.value());
         return client;
     }
@@ -120,5 +153,4 @@ public class TestOptionForSkipUpdatingAuthFocusBehavior extends TestAbstractAuth
         }
         assertEquals("Expected failed login " + expectedFails + " but got " + actualFails, expectedFails, actualFails);
     }
-
 }
