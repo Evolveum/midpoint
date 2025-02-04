@@ -6,13 +6,11 @@
   ~ and European Union Public License. See LICENSE file for details.
   -->
 <valuePolicy oid="00000000-0000-0000-0000-000000000003"
-        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-        xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
-        version="0">
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
     <name>Default Password Policy</name>
     <description>Default password policy</description>
     <stringPolicy>
-        <description>Testing string policy</description>
+        <description>String policy for the password value</description>
         <limitations>
             <minLength>8</minLength>
             <maxLength>14</maxLength>
@@ -22,13 +20,18 @@
             <checkExpression>
                 <expression>
                     <script>
-                        <code>
-                            if (object instanceof com.evolveum.midpoint.xml.ns._public.common.common_3.UserType) {
-                            return !basic.containsIgnoreCase(input, object.getName()) &amp;&amp; !basic.containsIgnoreCase(input, object.getFamilyName()) &amp;&amp; !basic.containsIgnoreCase(input, object.getGivenName()) &amp;&amp; !basic.containsIgnoreCase(input, object.getAdditionalName())
+                        <code><![CDATA[
+                            import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType
+
+                            if (object instanceof UserType) {
+                                return !basic.containsIgnoreCase(input, object.getName())
+                                        && !basic.containsIgnoreCase(input, object.getFamilyName())
+                                        && !basic.containsIgnoreCase(input, object.getGivenName())
+                                        && !basic.containsIgnoreCase(input, object.getAdditionalName())
                             } else {
-                            return true
+                                return true
                             }
-                        </code>
+                        ]]></code>
                     </script>
                 </expression>
                 <failureMessage>must not contain username, family name and given name and additional names</failureMessage>
@@ -58,11 +61,20 @@
                 </characterClass>
             </limit>
             <limit>
-                <description>Special characters</description>
+                <description>Special characters (allowed when generating)</description>
                 <minOccurs>0</minOccurs>
                 <mustBeFirst>false</mustBeFirst>
                 <characterClass>
-                    <value> !"#$%&amp;'()*+,-.:;&lt;&gt;?@[]^_`{|}~</value>
+                    <value>!$%()+,-.:;&lt;&gt;?@[]^_`{|}~</value>
+                </characterClass>
+            </limit>
+            <limit>
+                <description>Special characters (avoided when generating)</description>
+                <minOccurs>0</minOccurs>
+                <mustBeFirst>false</mustBeFirst>
+                <ignoreWhenGenerating>true</ignoreWhenGenerating>
+                <characterClass>
+                    <value>#&amp; "*'</value>
                 </characterClass>
             </limit>
         </limitations>
