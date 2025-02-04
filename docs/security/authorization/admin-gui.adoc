@@ -84,6 +84,10 @@ structure (including the actions)
 The authorization is also check while deciding if previewButton should be shown.
 | Since 4.1
 
+| http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#adminCSVexport
+| 'Export csv' component authorization on the object list pages (e.g. 'Export csv' toolbar button on the All Users page)
+|
+
 |===
 
 == Self-service Actions
