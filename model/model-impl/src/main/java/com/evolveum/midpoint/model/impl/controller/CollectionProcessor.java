@@ -564,6 +564,7 @@ public class CollectionProcessor {
         compileSearchBox(existingView, objectListViewType, replaceIfExist);
         compileRefreshInterval(existingView, objectListViewType, replaceIfExist);
         compilePaging(existingView, objectListViewType, replaceIfExist);
+        compilePagingOptions(existingView, objectListViewType, replaceIfExist);
         compileViewIdentifier(existingView, objectListViewType, replaceIfExist);
         compileVisibility(existingView, objectListViewType);
         compileApplicableForOperation(existingView, objectListViewType);
@@ -716,7 +717,22 @@ public class CollectionProcessor {
         }
     }
 
-    private void compilePaging(CompiledObjectCollectionView existingView, GuiObjectListViewType objectListViewType, boolean replaceIfExist) {
+    public void compileDefaultObjectListConfiguration(DefaultGuiObjectListPanelConfigurationType existingConfig,
+            DefaultGuiObjectListPanelConfigurationType newConfig) {
+        compileDefaultObjectListConfiguration(existingConfig, newConfig, true);
+    }
+
+    public void compileDefaultObjectListConfiguration(DefaultGuiObjectListPanelConfigurationType existingConfig,
+            DefaultGuiObjectListPanelConfigurationType newConfig, boolean replaceIfExist) {
+        if (newConfig == null) {
+            return;
+        }
+        compilePaging(existingConfig, newConfig, replaceIfExist);
+        compilePagingOptions(existingConfig, newConfig, replaceIfExist);
+    }
+
+    private <DC extends DefaultGuiObjectListPanelConfigurationType> void compilePaging(CompiledObjectCollectionView existingView,
+            DC objectListViewType, boolean replaceIfExist) {
         PagingType newPaging = objectListViewType.getPaging();
         if (newPaging == null) {
             return;
@@ -725,6 +741,45 @@ public class CollectionProcessor {
             existingView.setPaging(newPaging);
         } else if (replaceIfExist) {
             MiscSchemaUtil.mergePaging(existingView.getPaging(), newPaging);
+        }
+    }
+
+    private <DC extends DefaultGuiObjectListPanelConfigurationType> void compilePaging(DC existingConfig,
+            DC newConfig, boolean replaceIfExist) {
+        PagingType newPaging = newConfig.getPaging();
+        if (newConfig.getPaging() == null) {
+            return;
+        }
+        if (existingConfig.getPaging() == null) {
+            existingConfig.setPaging(newConfig.getPaging());
+        } else if (replaceIfExist) {
+            MiscSchemaUtil.mergePaging(existingConfig.getPaging(), newPaging);
+        }
+    }
+
+    private <DC extends DefaultGuiObjectListPanelConfigurationType> void compilePagingOptions(
+            CompiledObjectCollectionView existingView, DC newConfig, boolean replaceIfExist) {
+        PagingOptionsType newPagingOptions = newConfig.getPagingOptions();
+        if (newPagingOptions == null) {
+            return;
+        }
+        if (existingView.getPagingOptions() == null) {
+            existingView.setPagingOptions(newPagingOptions);
+        } else if (replaceIfExist) {
+            MiscSchemaUtil.mergePagingOptions(existingView.getPagingOptions(), newPagingOptions);
+        }
+    }
+
+    private <DC extends DefaultGuiObjectListPanelConfigurationType> void compilePagingOptions(
+            DC existingConfig, DC newConfig, boolean replaceIfExist) {
+        PagingOptionsType newPagingOptions = newConfig.getPagingOptions();
+        if (newPagingOptions == null) {
+            return;
+        }
+        if (existingConfig.getPagingOptions() == null) {
+            existingConfig.setPagingOptions(newPagingOptions);
+        } else if (replaceIfExist) {
+            MiscSchemaUtil.mergePagingOptions(existingConfig.getPagingOptions(), newPagingOptions);
         }
     }
 

@@ -102,6 +102,8 @@ import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import com.evolveum.wicket.chartjs.ChartConfiguration;
 
+import org.jetbrains.annotations.Nullable;
+
 /**
  * @param <C> the container of displayed objects in table
  * @param <PO> the type of the object processed by provider
@@ -640,9 +642,21 @@ public abstract class ContainerableListPanel<C extends Serializable, PO extends 
         return UserProfileStorage.DEFAULT_PAGING_SIZE;
     }
 
-    private Integer getViewPagingMaxSize() {
+    private @Nullable Integer getViewPagingMaxSize() {
         CompiledObjectCollectionView view = getObjectCollectionView();
         return view != null && view.getPaging() != null ? view.getPaging().getMaxSize() : null;
+    }
+
+    protected @Nullable Integer getConfiguredPageSize() {
+        return null;    //todo
+    }
+
+    protected @Nullable List<Integer> getAvailablePageSizeList() {
+        return null;    //todo
+    }
+
+    private @Nullable DefaultGuiObjectListPanelConfigurationType getDefaultObjectListConfiguration() {
+        return WebComponentUtil.getDefaultObjectCollectionViewsSettings();
     }
 
     protected void customProcessNewRowItem(Item<PO> item, IModel<PO> model) {

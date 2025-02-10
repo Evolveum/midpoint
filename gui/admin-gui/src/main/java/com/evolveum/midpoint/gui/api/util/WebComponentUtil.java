@@ -3996,6 +3996,16 @@ public final class WebComponentUtil {
         comp.add(AttributeAppender.append("aria-disabled", () -> !comp.isEnabledInHierarchy() ? "true" : "false"));
     }
 
+    public static DefaultGuiObjectListPanelConfigurationType getDefaultObjectCollectionViewsSettings() {
+        var compiledGuiProfile = getCompiledGuiProfile();
+        return compiledGuiProfile.getDefaultObjectCollectionViewsSettings();
+    }
+
+    public static DefaultGuiObjectListPanelConfigurationType getDefaultObjectDetailsSettings() {
+        var compiledGuiProfile = getCompiledGuiProfile();
+        return compiledGuiProfile.getDefaultObjectDetailsSettings();
+    }
+
     public static CompiledGuiProfile getCompiledGuiProfile(Page page) {
         if (page instanceof PageAdminLTE) {
             return ((PageAdminLTE) page).getCompiledGuiProfile();

@@ -59,9 +59,11 @@ public class CompiledGuiProfile implements DebugDumpable, Serializable {
     private List<CompiledObjectCollectionView> objectCollectionViews = new ArrayList<>();
     private List<CompiledShadowCollectionView> shadowCollectionViews = new ArrayList<>();
     private CompiledObjectCollectionView defaultObjectCollectionView = null;
+    private DefaultGuiObjectListPanelConfigurationType defaultObjectCollectionViewsSettings;
     private List<CompiledDashboardType> configurableDashboards = new ArrayList<>();
     private GuiExportSettingsType defaultExportSettings;
     private GuiObjectDetailsSetType objectDetails;
+    private DefaultGuiObjectListPanelConfigurationType defaultObjectDetailsSettings;
     private FeedbackMessagesHookType feedbackMessagesHook;
     @Deprecated
     private AdminGuiConfigurationRoleManagementType roleManagement;
@@ -260,6 +262,14 @@ public class CompiledGuiProfile implements DebugDumpable, Serializable {
         this.defaultObjectCollectionView = defaultObjectCollectionView;
     }
 
+    public DefaultGuiObjectListPanelConfigurationType getDefaultObjectCollectionViewsSettings() {
+        return defaultObjectCollectionViewsSettings;
+    }
+
+    public void setDefaultObjectCollectionViewsSettings(DefaultGuiObjectListPanelConfigurationType defaultObjectCollectionViewsSettings) {
+        this.defaultObjectCollectionViewsSettings = defaultObjectCollectionViewsSettings;
+    }
+
     public GuiExportSettingsType getDefaultExportSettings() {
         return defaultExportSettings;
     }
@@ -281,6 +291,13 @@ public class CompiledGuiProfile implements DebugDumpable, Serializable {
         this.objectDetails = objectDetails;
     }
 
+    public DefaultGuiObjectListPanelConfigurationType getDefaultObjectDetailsSettings() {
+        return defaultObjectDetailsSettings;
+    }
+
+    public void setDefaultObjectDetailsSettings(DefaultGuiObjectListPanelConfigurationType defaultObjectDetailsSettings) {
+        this.defaultObjectDetailsSettings = defaultObjectDetailsSettings;
+    }
 
     public <O extends ObjectType> GuiObjectDetailsPageType findObjectDetailsConfiguration(Class<O> compileTimeClass) {
         if (objectDetails == null) {

@@ -5027,7 +5027,7 @@
             </xsd:documentation>
         </xsd:annotation>
         <xsd:sequence>
-            <xsd:element minOccurs="0" maxOccurs="unbound" name="availablePageSize" type="xsd:integer">
+            <xsd:element minOccurs="0" maxOccurs="unbounded" name="availablePageSize" type="xsd:integer">
                 <xsd:annotation>
                     <xsd:documentation>
                         Defines a set of available page size values which will be suggested to the user
