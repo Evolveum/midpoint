@@ -1,0 +1,12 @@
+<!--
+  ~ Copyright (C) 2010-2025 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<service xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        oid="2ef9a343-d293-4bf8-852f-ff22a6d43509">
+    <name>risk-high</name>
+    <riskLevel>high</riskLevel>
+</service>
