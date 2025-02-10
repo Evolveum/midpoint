@@ -3797,6 +3797,35 @@ public class TestSecurityBasic extends AbstractInitializedSecurityTest {
         }
     }
 
+    /**
+     * Tests searching for abstract roles (roles and services) with limited authorizations: The `riskLevel` search
+     * is authorized only for services.
+     *
+     * MID-10206
+     */
+    @Test(enabled = false) // the test fails now
+    public void test500SearchForAbstractRolesWithLimitedAuthorizations() throws Exception {
+        var task = getTestTask();
+        var result = task.getResult();
+
+        given();
+        cleanupAutzTest(USER_JACK_OID);
+        assignRole(USER_JACK_OID, ROLE_LIMITED_ROLE_SEARCH.oid);
+
+        when();
+        login(USER_JACK_USERNAME);
+
+        var query = queryFor(AbstractRoleType.class)
+                .item(AbstractRoleType.F_RISK_LEVEL).eq("low")
+                .build();
+
+        then();
+
+        assertSearch(RoleType.class, query, 0); // cannot query roles by riskLevel
+        assertSearch(ServiceType.class, query, SERVICE_RISK_LOW.oid);
+        assertSearch(AbstractRoleType.class, query, 0); // not allowed even for the supertype - TODO ok?
+    }
+
     @SuppressWarnings("SameParameterValue")
     private void assertTaskAddAllow(String oid, String name, String ownerOid, String handlerUri) throws Exception {
         assertAllow("add task " + name,

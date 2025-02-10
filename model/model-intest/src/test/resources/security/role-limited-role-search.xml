@@ -1,0 +1,36 @@
+<!--
+  ~ Copyright (C) 2010-2025 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<role xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        oid="e23d96ec-7a73-4815-9abd-f49fc4726111">
+    <name>limited-role-search</name>
+    <authorization>
+        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#search</action>
+        <object>
+            <type>RoleType</type>
+        </object>
+        <item>name</item>
+    </authorization>
+    <authorization>
+        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#search</action>
+        <object>
+            <type>ServiceType</type>
+        </object>
+        <item>name</item>
+        <item>riskLevel</item>
+    </authorization>
+    <authorization>
+        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#get</action>
+        <object>
+            <type>RoleType</type>
+        </object>
+        <object>
+            <type>ServiceType</type>
+        </object>
+        <!-- We can get all the data. Only searching is limited. -->
+    </authorization>
+</role>
