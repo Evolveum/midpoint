@@ -1201,6 +1201,18 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
+            <xsd:element name="defaultSettings" type="tns:DefaultGuiObjectListPanelConfigurationType" minOccurs="0" maxOccurs="1">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Defines the configuration which is applied as a default to all table panels on the details object pages.
+                        Can be overridden within a specific list view configuration for a specific panel.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>GuiObjectListViewsType.objectCollectionView</a:displayName>
+                        <a:since>4.0</a:since>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
             <xsd:element name="objectDetailsPage" type="tns:GuiObjectDetailsPageType" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
                     <xsd:appinfo>
@@ -2041,7 +2053,7 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:complexContent>
-            <xsd:extension base="tns:UserInterfaceFeatureType">
+            <xsd:extension base="tns:DefaultGuiObjectListPanelConfigurationType">
                 <xsd:sequence>
                     <xsd:element name="searchBoxConfiguration" type="tns:SearchBoxConfigurationType" minOccurs="0" maxOccurs="1">
                         <xsd:annotation>
@@ -2100,18 +2112,6 @@
                             </xsd:documentation>
                             <xsd:appinfo>
                                 <a:displayName>GuiObjectListViewType.refreshInterval</a:displayName>
-                            </xsd:appinfo>
-                        </xsd:annotation>
-                    </xsd:element>
-                    <xsd:element name="paging" type="q:PagingType" minOccurs="0" maxOccurs="1">
-                        <xsd:annotation>
-                            <xsd:documentation>
-                                Paging for query.
-                            </xsd:documentation>
-                            <xsd:appinfo>
-                                <a:experimental>true</a:experimental>
-                                <a:since>4.4</a:since>
-                                <a:displayName>GuiObjectListPanelConfigurationType.paging</a:displayName>
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
