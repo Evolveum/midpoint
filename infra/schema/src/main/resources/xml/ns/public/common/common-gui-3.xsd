@@ -5027,11 +5027,19 @@
             </xsd:documentation>
         </xsd:annotation>
         <xsd:sequence>
-            <xsd:element minOccurs="0" a:maxOccurs="unbound" name="availablePageSize" type="xsd:integer">
+            <xsd:element minOccurs="0" maxOccurs="unbound" name="availablePageSize" type="xsd:integer">
                 <xsd:annotation>
                     <xsd:documentation>
                         Defines a set of available page size values which will be suggested to the user
                         on the table panels.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element minOccurs="0" name="defaultPageSize" type="xsd:integer">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Defines the value for the default page size. This value can be one of those defined in
+                        availablePageSize set or any other value (will be added then to the list of the available page sizes).
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
