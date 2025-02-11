@@ -243,10 +243,18 @@ public abstract class ContainerableListPanel<C extends Serializable, PO extends 
         if (view != null) {
             paging = ObjectQueryUtil.convertToObjectPaging(view.getPaging());
         }
+
+        if (paging == null) {
+            var defaultConfig = getDefaultObjectListConfiguration();
+            if (defaultConfig != null) {
+                paging = ObjectQueryUtil.convertToObjectPaging(defaultConfig.getPaging());
+            }
+        }
+
         if (paging == null) {
             paging = ObjectPagingImpl.createEmptyPaging();
-            paging.setMaxSize(getDefaultPageSize());
         }
+        paging.setMaxSize(getDefaultPageSize());
         return paging;
     }
 
@@ -425,8 +433,8 @@ public abstract class ContainerableListPanel<C extends Serializable, PO extends 
             }
 
             @Override
-            protected Integer getConfiguredPageSize() {
-                return getViewPagingMaxSize();
+            protected List<Integer> getPagingSizes() {
+                return ContainerableListPanel.this.getAvailablePageSizes();
             }
 
             @Override
@@ -630,7 +638,12 @@ public abstract class ContainerableListPanel<C extends Serializable, PO extends 
             }
         }
 
-        Integer collectionViewPagingSize = getViewPagingMaxSize();
+        Integer configuredDefaultPageSize = getConfiguredDefaultPageSize();
+        if (configuredDefaultPageSize != null) {
+            return configuredDefaultPageSize;
+        }
+
+        Integer collectionViewPagingSize = getPagingMaxSize();
         if (collectionViewPagingSize != null) {
             return collectionViewPagingSize;
         }
@@ -642,20 +655,100 @@ public abstract class ContainerableListPanel<C extends Serializable, PO extends 
         return UserProfileStorage.DEFAULT_PAGING_SIZE;
     }
 
-    private @Nullable Integer getViewPagingMaxSize() {
+    /**
+     * Returns the paging max size for the query
+     * @return
+     */
+    private @Nullable Integer getPagingMaxSize() {
         CompiledObjectCollectionView view = getObjectCollectionView();
-        return view != null && view.getPaging() != null ? view.getPaging().getMaxSize() : null;
+        Integer maxSize = view != null && view.getPaging() != null ? view.getPaging().getMaxSize() : null;
+        if (maxSize != null) {
+            return maxSize;
+        }
+
+        var defaultListViewConfigurations = getDefaultObjectListConfiguration();
+        if (defaultListViewConfigurations == null) {
+            return null;
+        }
+        return defaultListViewConfigurations.getPaging() != null ? defaultListViewConfigurations.getPaging().getMaxSize() : null;
     }
 
-    protected @Nullable Integer getConfiguredPageSize() {
-        return null;    //todo
+    /**
+     * Returns configured default page size from view configuration or default settings.
+     * @return
+     */
+    private @Nullable Integer getConfiguredDefaultPageSize() {
+        CompiledObjectCollectionView view = getObjectCollectionView();
+        Integer defaultPageSize = view != null && view.getPagingOptions() != null ?
+                view.getPagingOptions().getDefaultPageSize() : null;
+        if (defaultPageSize != null) {
+            return defaultPageSize;
+        }
+
+        var defaultListViewConfigurations = getDefaultObjectListConfiguration();
+        if (defaultListViewConfigurations == null) {
+            return null;
+        }
+        return defaultListViewConfigurations.getPagingOptions() != null ?
+                defaultListViewConfigurations.getPagingOptions().getDefaultPageSize() : null;
     }
 
-    protected @Nullable List<Integer> getAvailablePageSizeList() {
-        return null;    //todo
+    protected @Nullable List<Integer> getAvailablePageSizes() {
+        CompiledObjectCollectionView view = getObjectCollectionView();
+        PagingOptionsType viewPagingOptions = view != null ? view.getPagingOptions() : null;
+        PagingType viewPaging = view != null ? view.getPaging() : null;
+        var defaultSettings = getDefaultObjectListConfiguration();
+
+        return collectPageSizesFromPagingConfiguration(viewPagingOptions, viewPaging, defaultSettings);
     }
 
-    private @Nullable DefaultGuiObjectListPanelConfigurationType getDefaultObjectListConfiguration() {
+    private <DC extends DefaultGuiObjectListPanelConfigurationType> List<Integer> collectPageSizesFromPagingConfiguration(
+            PagingOptionsType viewPagingOptions, PagingType viewPaging, DC defaultSettings) {
+        //first, try to get available page sizes from view configuration
+        List<Integer> availablePageSizes = new ArrayList<>();
+        if (viewPagingOptions != null && viewPagingOptions.getAvailablePageSize() != null) {
+            availablePageSizes.addAll(viewPagingOptions.getAvailablePageSize());
+        }
+        //if there are no available page sizes in view configuration, try to get them from default settings
+        if (availablePageSizes.isEmpty() && availablePageSizesListExist(defaultSettings)) {
+            availablePageSizes.addAll(defaultSettings.getPagingOptions().getAvailablePageSize());
+        }
+
+        //try to get default page size at first from view configuration, then from default settings
+        Integer defaultPageSize = viewPagingOptions != null ? viewPagingOptions.getDefaultPageSize() : null;
+        if (defaultPageSize == null) {
+            defaultPageSize = defaultPageSizeExists(defaultSettings) ? defaultSettings.getPagingOptions().getDefaultPageSize() : null;
+        }
+        if (defaultPageSize != null && !availablePageSizes.contains(defaultPageSize)) {
+            availablePageSizes.add(defaultPageSize);
+        }
+
+        //now we get the max size from query paging configuration
+        Integer pagingMaxSize = viewPaging != null ? viewPaging.getMaxSize() : null;
+        if (pagingMaxSize == null) {
+            pagingMaxSize = pagingMaxSizeExists(defaultSettings) ? defaultSettings.getPaging().getMaxSize() : null;
+        }
+        if (pagingMaxSize != null && !availablePageSizes.contains(pagingMaxSize)) {
+            availablePageSizes.add(pagingMaxSize);
+        }
+
+        return availablePageSizes;
+    }
+
+    private <DC extends DefaultGuiObjectListPanelConfigurationType> boolean availablePageSizesListExist(DC config) {
+        return config != null && config.getPagingOptions() != null
+                && config.getPagingOptions().getAvailablePageSize() != null;
+    }
+
+    private <DC extends DefaultGuiObjectListPanelConfigurationType> boolean defaultPageSizeExists(DC config) {
+        return config != null && config.getPagingOptions() != null && config.getPagingOptions().getDefaultPageSize() != null;
+    }
+
+    private <DC extends DefaultGuiObjectListPanelConfigurationType> boolean pagingMaxSizeExists(DC config) {
+        return config != null && config.getPaging() != null && config.getPaging().getMaxSize() != null;
+    }
+
+    protected @Nullable DefaultGuiObjectListPanelConfigurationType getDefaultObjectListConfiguration() {
         return WebComponentUtil.getDefaultObjectCollectionViewsSettings();
     }
 

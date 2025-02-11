@@ -11,6 +11,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
 import org.apache.wicket.behavior.AttributeAppender;
@@ -68,17 +69,16 @@ public class PagingSizePanel extends BasePanel<Integer> {
 
     }
 
-    //TODO this is not entirely correct. If the getPagingSizes is overriden, the getConfiguredPagingSize is not called.
-    protected List<Integer> getPagingSizes() {
+    private List<Integer> getPagingSizes() {
         List<Integer> predefinedSizes = new ArrayList<>(Arrays.asList(UserProfileStorage.DEFAULT_PAGING_SIZES));
-        Integer configuredSize = getConfiguredPagingSize();
-        if (configuredSize != null && !predefinedSizes.contains(configuredSize)) {
-            predefinedSizes.add(configuredSize);
+        List<Integer> customPagingSizes = getCustomPagingSizes();
+        if (CollectionUtils.isNotEmpty(customPagingSizes)) {
+            return customPagingSizes.stream().sorted().toList();
         }
         return predefinedSizes.stream().sorted().toList();
     }
 
-    protected Integer getConfiguredPagingSize() {
+    protected List<Integer> getCustomPagingSizes() {
         return null;
     }
 

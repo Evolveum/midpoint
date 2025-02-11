@@ -308,8 +308,8 @@ public class BoxedTablePanel<T> extends BasePanel<T> implements Table {
             }
 
             @Override
-            protected Integer getConfiguredPageSize() {
-                return BoxedTablePanel.this.getConfiguredPageSize();
+            protected List<Integer> getPagingSizes() {
+                return BoxedTablePanel.this.getPagingSizes();
             }
 
             @Override
@@ -323,7 +323,7 @@ public class BoxedTablePanel<T> extends BasePanel<T> implements Table {
         return true;
     }
 
-    protected Integer getConfiguredPageSize() {
+    protected List<Integer> getPagingSizes() {
         return null;
     }
 
@@ -432,8 +432,8 @@ public class BoxedTablePanel<T> extends BasePanel<T> implements Table {
                 }
 
                 @Override
-                protected Integer getConfiguredPagingSize() {
-                    return PagingFooter.this.getConfiguredPageSize();
+                protected List<Integer> getCustomPagingSizes() {
+                    return PagingFooter.this.getPagingSizes();
                 }
             };
             // todo nasty hack, we should decide whether paging should be normal or "small"
@@ -466,7 +466,7 @@ public class BoxedTablePanel<T> extends BasePanel<T> implements Table {
             return true;
         }
 
-        protected Integer getConfiguredPageSize() {
+        protected List<Integer> getPagingSizes() {
             return null;
         }
 
