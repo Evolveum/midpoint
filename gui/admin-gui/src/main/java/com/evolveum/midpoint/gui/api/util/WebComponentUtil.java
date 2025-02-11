@@ -4003,7 +4003,8 @@ public final class WebComponentUtil {
 
     public static DefaultGuiObjectListPanelConfigurationType getDefaultObjectDetailsSettings() {
         var compiledGuiProfile = getCompiledGuiProfile();
-        return compiledGuiProfile.getDefaultObjectDetailsSettings();
+        return compiledGuiProfile.getObjectDetails() != null ?
+                compiledGuiProfile.getObjectDetails().getDefaultSettings() : null;
     }
 
     public static CompiledGuiProfile getCompiledGuiProfile(Page page) {

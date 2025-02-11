@@ -63,7 +63,6 @@ public class CompiledGuiProfile implements DebugDumpable, Serializable {
     private List<CompiledDashboardType> configurableDashboards = new ArrayList<>();
     private GuiExportSettingsType defaultExportSettings;
     private GuiObjectDetailsSetType objectDetails;
-    private DefaultGuiObjectListPanelConfigurationType defaultObjectDetailsSettings;
     private FeedbackMessagesHookType feedbackMessagesHook;
     @Deprecated
     private AdminGuiConfigurationRoleManagementType roleManagement;
@@ -289,14 +288,6 @@ public class CompiledGuiProfile implements DebugDumpable, Serializable {
     @Experimental
     public void setObjectDetails(GuiObjectDetailsSetType objectDetails) {
         this.objectDetails = objectDetails;
-    }
-
-    public DefaultGuiObjectListPanelConfigurationType getDefaultObjectDetailsSettings() {
-        return defaultObjectDetailsSettings;
-    }
-
-    public void setDefaultObjectDetailsSettings(DefaultGuiObjectListPanelConfigurationType defaultObjectDetailsSettings) {
-        this.defaultObjectDetailsSettings = defaultObjectDetailsSettings;
     }
 
     public <O extends ObjectType> GuiObjectDetailsPageType findObjectDetailsConfiguration(Class<O> compileTimeClass) {

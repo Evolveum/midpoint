@@ -11,6 +11,7 @@ import java.io.Serializable;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
 
+import com.evolveum.midpoint.gui.impl.page.admin.AbstractPageObjectDetails;
 import com.evolveum.midpoint.gui.impl.page.admin.certification.column.AbstractGuiColumn;
 
 import com.evolveum.midpoint.gui.impl.page.admin.certification.helpers.ColumnTypeConfigContext;
@@ -748,7 +749,10 @@ public abstract class ContainerableListPanel<C extends Serializable, PO extends 
         return config != null && config.getPaging() != null && config.getPaging().getMaxSize() != null;
     }
 
-    protected @Nullable DefaultGuiObjectListPanelConfigurationType getDefaultObjectListConfiguration() {
+    private @Nullable DefaultGuiObjectListPanelConfigurationType getDefaultObjectListConfiguration() {
+        if (isPartOfDetailsPage()) {
+            return WebComponentUtil.getDefaultObjectDetailsSettings();
+        }
         return WebComponentUtil.getDefaultObjectCollectionViewsSettings();
     }
 
@@ -1696,6 +1700,12 @@ public abstract class ContainerableListPanel<C extends Serializable, PO extends 
 
     protected String getInlineMenuItemCssClass() {
         return "btn btn-default btn-xs";
+    }
+
+    //todo how to differentiate a panel from object details page
+    private boolean isPartOfDetailsPage() {
+        return config != null && StringUtils.isNotEmpty(config.getPanelType());
+//        return findParent(AbstractPageObjectDetails.class) != null;
     }
 
 }

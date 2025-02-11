@@ -345,10 +345,10 @@ public class GuiProfileCompiler {
                 DefaultGuiObjectListPanelConfigurationType objectDetailsDefaultSettings =
                         adminGuiConfiguration.getObjectDetails().getDefaultSettings();
                 if (objectDetailsDefaultSettings != null) {
-                    if (composite.getDefaultObjectDetailsSettings() == null) {
-                        composite.setDefaultObjectDetailsSettings(new DefaultGuiObjectListPanelConfigurationType());
+                    if (composite.getObjectDetails().getDefaultSettings() == null) {
+                        composite.getObjectDetails().setDefaultSettings(new DefaultGuiObjectListPanelConfigurationType());
                     }
-                    compileDefaultListViewSettings(composite.getDefaultObjectCollectionViewsSettings(), objectDetailsDefaultSettings);
+                    compileDefaultListViewSettings(composite.getObjectDetails().getDefaultSettings(), objectDetailsDefaultSettings);
                 }
 
                 for (GuiObjectDetailsPageType objectDetails : adminGuiConfiguration.getObjectDetails().getObjectDetailsPage()) {
