@@ -6,26 +6,15 @@
  */
 package com.evolveum.midpoint.web.page.admin.server;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import javax.xml.datatype.XMLGregorianCalendar;
 
-import com.evolveum.midpoint.gui.api.util.GuiDisplayTypeUtil;
-import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconCssStyle;
-import com.evolveum.midpoint.gui.impl.util.DetailsPageUtil;
-import com.evolveum.midpoint.model.api.ActivitySubmissionOptions;
-import com.evolveum.midpoint.model.api.AssignmentObjectRelation;
-import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
-import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
-import com.evolveum.midpoint.schema.util.task.ActivityDefinitionBuilder;
-import com.evolveum.midpoint.schema.util.task.TaskInformation;
-import com.evolveum.midpoint.web.component.util.SerializableBiConsumer;
-import com.evolveum.midpoint.web.component.util.SerializableFunction;
-import com.evolveum.midpoint.web.page.admin.server.dto.TaskDtoExecutionState;
-
-import com.evolveum.midpoint.web.page.admin.server.dto.TaskInformationUtil;
-import com.evolveum.midpoint.web.util.TaskOperationUtils;
+import com.evolveum.midpoint.schema.util.task.TaskTypeUtil;
 
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
@@ -36,27 +25,37 @@ import org.apache.wicket.extensions.markup.html.repeater.data.table.export.Abstr
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.LoadableDetachableModel;
 import org.apache.wicket.model.Model;
 import org.jetbrains.annotations.NotNull;
 
-import com.evolveum.midpoint.gui.api.GuiStyleConstants;
-import com.evolveum.midpoint.gui.api.component.MainObjectListPanel;
-import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
-import com.evolveum.midpoint.model.api.TaskService;
-import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
-import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.result.OperationResultStatus;
-import com.evolveum.midpoint.schema.util.task.ActivityStateUtil;
-import com.evolveum.midpoint.security.api.AuthorizationConstants;
-import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.task.api.TaskManager;
-import com.evolveum.midpoint.util.exception.*;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.authentication.api.authorization.AuthorizationAction;
 import com.evolveum.midpoint.authentication.api.authorization.PageDescriptor;
 import com.evolveum.midpoint.authentication.api.authorization.Url;
+import com.evolveum.midpoint.gui.api.GuiStyleConstants;
+import com.evolveum.midpoint.gui.api.component.MainObjectListPanel;
+import com.evolveum.midpoint.gui.api.util.GuiDisplayTypeUtil;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
+import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconCssStyle;
+import com.evolveum.midpoint.gui.impl.util.DetailsPageUtil;
+import com.evolveum.midpoint.model.api.ActivitySubmissionOptions;
+import com.evolveum.midpoint.model.api.AssignmentObjectRelation;
+import com.evolveum.midpoint.model.api.TaskService;
+import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
+import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.result.OperationResultStatus;
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
+import com.evolveum.midpoint.schema.util.task.ActivityDefinitionBuilder;
+import com.evolveum.midpoint.schema.util.task.ActivityStateUtil;
+import com.evolveum.midpoint.schema.util.task.TaskInformation;
+import com.evolveum.midpoint.security.api.AuthorizationConstants;
+import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.task.api.TaskManager;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.AjaxIconButton;
 import com.evolveum.midpoint.web.component.data.column.ColumnMenuAction;
 import com.evolveum.midpoint.web.component.data.column.IconColumn;
@@ -64,7 +63,12 @@ import com.evolveum.midpoint.web.component.menu.cog.ButtonInlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
+import com.evolveum.midpoint.web.component.util.SerializableBiConsumer;
+import com.evolveum.midpoint.web.component.util.SerializableFunction;
 import com.evolveum.midpoint.web.page.admin.server.dto.OperationResultStatusPresentationProperties;
+import com.evolveum.midpoint.web.page.admin.server.dto.TaskDtoExecutionState;
+import com.evolveum.midpoint.web.page.admin.server.dto.TaskInformationUtil;
+import com.evolveum.midpoint.web.util.TaskOperationUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 @PageDescriptor(
@@ -95,17 +99,8 @@ public abstract class TaskTablePanel extends MainObjectListPanel<TaskType> {
 
     public static final long WAIT_FOR_TASK_STOP = 2000L;
 
-    /**
-     * Does this panel show root tasks only?
-     */
-    private boolean rootTasksOnly;
-
     public TaskTablePanel(String id) {
         super(id, TaskType.class);
-    }
-
-    void setRootTasksOnly(boolean rootTasksOnly) {
-        this.rootTasksOnly = rootTasksOnly;
     }
 
     @Override
@@ -252,43 +247,15 @@ public abstract class TaskTablePanel extends MainObjectListPanel<TaskType> {
 
     private List<IColumn<SelectableBean<TaskType>, String>> initTaskColumns() {
         List<IColumn<SelectableBean<TaskType>, String>> columns = new ArrayList<>();
-
-        if (!isCollectionViewPanelForCompiledView()) {
-            columns.add(createTaskCategoryColumn());
-        }
         columns.addAll(initCustomTaskColumns());
 
         return columns;
-    }
-
-    private IColumn<SelectableBean<TaskType>, String> createTaskCategoryColumn() {
-        return new AbstractExportableColumn<>(createStringResource("pageTasks.task.category")) {
-
-            @Override
-            public void populateItem(Item<ICellPopulator<SelectableBean<TaskType>>> item, String componentId,
-                    final IModel<SelectableBean<TaskType>> rowModel) {
-                item.add(new Label(componentId, WebComponentUtil.createSimulatedCategoryNameModel(TaskTablePanel.this, rowModel)));
-            }
-
-            @Override
-            public IModel<String> getDataModel(IModel<SelectableBean<TaskType>> rowModel) {
-                return WebComponentUtil.createSimulatedCategoryNameModel(TaskTablePanel.this, rowModel);
-            }
-        };
-
     }
 
     protected List<IColumn<SelectableBean<TaskType>, String>> initCustomTaskColumns() {
         List<IColumn<SelectableBean<TaskType>, String>> columns = new ArrayList<>();
 
         columns.add(createTaskExecutionStateColumn());
-
-        // We should display "Executing at" (the Nodes column) only for root tasks. The reason is that
-        // the TaskInformation does not provide adequate methods to get the information for subtasks.
-        // See MID-7309.
-        if (rootTasksOnly) {
-            columns.add(createNodesColumn());
-        }
 
         columns.add(createProgressColumn());
         columns.add(createErrorsColumn());
@@ -303,30 +270,61 @@ public abstract class TaskTablePanel extends MainObjectListPanel<TaskType> {
 
             @Override
             public IModel<String> getDataModel(IModel<SelectableBean<TaskType>> rowModel) {
-                if (rowModel != null && rowModel.getObject() != null && rowModel.getObject().getValue() != null) {
-                    TaskType task = rowModel.getObject().getValue();
-                    TaskDtoExecutionState status = TaskDtoExecutionState.fromTaskExecutionState(task.getExecutionState(), task.getNodeAsObserved() != null);
-                    if (status != null) {
-                        return getPageBase().createStringResource(status);
+                return new LoadableDetachableModel<>() {
+
+                    @Override
+                    protected String load() {
+                        if (rowModel == null || rowModel.getObject() == null || rowModel.getObject().getValue() == null) {
+                            return "";
+                        }
+
+                        SelectableBean<TaskType> bean = rowModel.getObject();
+                        TaskType task = bean.getValue();
+                        TaskDtoExecutionState state =
+                                TaskDtoExecutionState.fromTaskExecutionState(
+                                        task.getExecutionState(), task.getNodeAsObserved() != null);
+
+                        if (state == null) {
+                            return "";
+                        }
+
+                        return createExecutionStateMessage(bean, state);
                     }
-                }
-                return Model.of("");
+                };
             }
         };
     }
 
-    private AbstractColumn<SelectableBean<TaskType>, String> createNodesColumn() {
-        return new AbstractColumn<>(createStringResource("pageTasks.task.executingAt")) {
-            @Override
-            public void populateItem(Item<ICellPopulator<SelectableBean<TaskType>>> cellItem, String componentId,
-                    IModel<SelectableBean<TaskType>> rowModel) {
-                TaskInformation taskInformation = getAttachedTaskInformation(rowModel.getObject());
-                cellItem.add(
-                        new Label(
-                                componentId,
-                                taskInformation.getNodesDescription()));
-            }
-        };
+    private String createExecutionStateMessage(SelectableBean<TaskType> bean, TaskDtoExecutionState state) {
+        TaskType task = bean.getValue();
+
+        switch (state) {
+            case RUNNING:
+                TaskInformation taskInformation = getAttachedTaskInformation(bean);
+                String executingAt = taskInformation.getNodesDescription();
+                if (StringUtils.isNotEmpty(executingAt)) {
+                    return getString("PageTasks.task.execution.runningAt", executingAt);
+                }
+            case RUNNABLE:
+            case RUNNING_OR_RUNNABLE:
+                List<Object> localizationObjects = new ArrayList<>();
+                String key = TaskTypeUtil.createScheduledToRunAgain(task, localizationObjects);
+                return getString(key, localizationObjects.toArray());
+            case WAITING:
+            case SUSPENDED:
+            case SUSPENDING:
+                return getString(state);
+            case CLOSED:
+                XMLGregorianCalendar completionTimestamp = task.getCompletionTimestamp();
+                if (completionTimestamp == null) {
+                    return getString("PageTasks.task.execution.closed");
+                } else {
+                    String date = WebComponentUtil.getShortDateTimeFormattedValue(XmlTypeConverter.toDate(completionTimestamp), getPageBase());
+                    return getString("PageTasks.task.execution.closedAt", new Object[] { date });
+                }
+        }
+
+        return getString(state);
     }
 
     private AbstractExportableColumn<SelectableBean<TaskType>, String> createProgressColumn() {
