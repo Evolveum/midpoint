@@ -30,6 +30,10 @@ public class TaskTypeUtil {
     private static final long RUNS_CONTINUALLY = -1L;
     private static final long ALREADY_PASSED = -2L;
 
+    /**
+     * Returns key for localization representing execution status of a task, additionally populates {@code localizationObject}
+     * with additional parameters for the localization key.
+     */
     public static String createScheduledToRunAgain(TaskType task, List<Object> localizationObject) {
         boolean runnable = task.getSchedulingState() == TaskSchedulingStateType.READY;
         Long scheduledAfter = getScheduledToStartAgain(task);
@@ -64,7 +68,9 @@ public class TaskTypeUtil {
         } else {
             key = "pageTasks.inForNotRunningTasks";
         }
-        localizationObject.add(DurationFormatUtils.formatDurationWords(displayTime, true, true));
+        localizationObject.add(
+                DurationFormatUtils.formatDurationWords(displayTime, true, true));
+
         return key;
     }
 
