@@ -749,7 +749,7 @@ public abstract class ContainerableListPanel<C extends Serializable, PO extends 
         return config != null && config.getPaging() != null && config.getPaging().getMaxSize() != null;
     }
 
-    private @Nullable DefaultGuiObjectListPanelConfigurationType getDefaultObjectListConfiguration() {
+    protected @Nullable DefaultGuiObjectListPanelConfigurationType getDefaultObjectListConfiguration() {
         if (isPartOfDetailsPage()) {
             return WebComponentUtil.getDefaultObjectDetailsSettings();
         }
@@ -1702,10 +1702,8 @@ public abstract class ContainerableListPanel<C extends Serializable, PO extends 
         return "btn btn-default btn-xs";
     }
 
-    //todo how to differentiate a panel from object details page
     private boolean isPartOfDetailsPage() {
-        return config != null && StringUtils.isNotEmpty(config.getPanelType());
-//        return findParent(AbstractPageObjectDetails.class) != null;
+        return findParent(AbstractPageObjectDetails.class) != null;
     }
 
 }
