@@ -1,12 +1,12 @@
-MidPoint 4.9 "Verne"
-----------------------
+MidPoint 4.9.1 "Verne" Update 1
+-------------------------------
 
-Release 4.9 is a sixtieth midPoint release code-named Verne.
-The 4.9 release brings improvements in role engineering, certification, approvals, stability and miscellaneous improvements.
+Release 4.9.1 is a sixty-third midPoint release code-named Verne.
+The 4.9.1 release brings security, stability and miscellaneous bugfixes.
 
-Release date: 18th October 2024
+Release date: 30th January 2025
 Release type: Feature release
-End of support: 17th October 2026
+End of support: 18th October 2026
 
 Please see the release notes for detailed list of changes:
-https://docs.evolveum.com/midpoint/release/4.9/
+https://docs.evolveum.com/midpoint/release/4.9.1/

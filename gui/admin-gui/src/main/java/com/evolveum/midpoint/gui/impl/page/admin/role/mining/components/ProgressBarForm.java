@@ -106,31 +106,17 @@ public class ProgressBarForm extends BasePanel<RoleAnalysisAttributeAnalysisDto>
                 .filter(a -> pathToMark.contains(a.getAttributeValue()))
                 .collect(Collectors.toList());
         Collections.reverse(markedAttributes); // reverse to keep original order for marked attributes
-        for (var markedAttr: markedAttributes) {
+        for (var markedAttr : markedAttributes) {
             // keep marked attributes at the top (used to highlight outlier's attributes)
             roleAnalysisAttributeStructures.remove(markedAttr);
             roleAnalysisAttributeStructures.add(0, markedAttr);
         }
 
         int maxVisibleBars = 5;
-        boolean isCompactView = roleAnalysisAttributeStructures.size() > 10;
-        Map<Double, List<RoleAnalysisAttributeStatistics>> map = new TreeMap<>(Comparator.reverseOrder());
-
-        if (isCompactView) {
-            roleAnalysisAttributeStructures.forEach(item -> map.computeIfAbsent(item.getFrequency(), k -> new ArrayList<>()).add(item));
-            for (Map.Entry<Double, List<RoleAnalysisAttributeStatistics>> entry : map.entrySet()) {
-                Double frequency = entry.getKey();
-                List<RoleAnalysisAttributeStatistics> stats = entry.getValue();
-                boolean isMarkedAttribute = pathToMark != null && stats.stream().anyMatch(item -> pathToMark.contains(item.getAttributeValue()));
-                RoleAnalysisAttributeProgressBar progressBar = createProgressBar(repeatingProgressBar, frequency, stats, isMarkedAttribute);
-                repeatingProgressBar.add(progressBar);
-            }
-        } else {
-            for (RoleAnalysisAttributeStatistics item : roleAnalysisAttributeStructures) {
-                boolean isMarkedAttribute = pathToMark != null && pathToMark.contains(item.getAttributeValue());
-                RoleAnalysisAttributeProgressBar progressBar = createProgressBar(repeatingProgressBar, item.getFrequency(), List.of(item), isMarkedAttribute);
-                repeatingProgressBar.add(progressBar);
-            }
+        for (RoleAnalysisAttributeStatistics item : roleAnalysisAttributeStructures) {
+            boolean isMarkedAttribute = pathToMark != null && pathToMark.contains(item.getAttributeValue());
+            RoleAnalysisAttributeProgressBar progressBar = createProgressBar(repeatingProgressBar, item.getFrequency(), item, isMarkedAttribute);
+            repeatingProgressBar.add(progressBar);
         }
 
         var bars = repeatingProgressBar.stream().toList();
@@ -149,7 +135,7 @@ public class ProgressBarForm extends BasePanel<RoleAnalysisAttributeAnalysisDto>
         }
     }
 
-    private RoleAnalysisAttributeProgressBar createProgressBar(RepeatingView repeatingProgressBar, double frequency, List<RoleAnalysisAttributeStatistics> value, boolean isMarkedAttribute) {
+    private RoleAnalysisAttributeProgressBar createProgressBar(RepeatingView repeatingProgressBar, double frequency, RoleAnalysisAttributeStatistics value, boolean isMarkedAttribute) {
 
         IModel<RoleAnalysisAttributeProgressBarDto> model = () -> {
             String colorClass = null;

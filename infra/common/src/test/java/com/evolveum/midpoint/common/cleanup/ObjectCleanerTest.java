@@ -11,7 +11,6 @@ import java.io.File;
 import java.io.IOException;
 import java.util.List;
 import java.util.Objects;
-import javax.xml.namespace.QName;
 
 import org.assertj.core.api.Assertions;
 import org.jetbrains.annotations.NotNull;
@@ -24,7 +23,6 @@ import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.MidPointPrismContextFactory;
-import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
 import com.evolveum.midpoint.tools.testng.AbstractUnitTest;
 import com.evolveum.midpoint.util.QNameUtil;
@@ -93,10 +91,12 @@ public class ObjectCleanerTest extends AbstractUnitTest {
         SearchFilterType filter = resource.asObjectable().getConnectorRef().getFilter();
         Assertions.assertThat(filter.getText())
                 .isEqualTo("connectorType = 'testconnector' and connectorVersion = '99.0' and available = true");
-        PrismNamespaceContext ctx = filter.getFilterClauseXNode().namespaceContext();
 
-        // FIXME: This assertion should take into account that prefixes could come from different place.
-        // Assertions.assertThat(ctx.localPrefixes().size()).isEqualTo(1);
+        Assertions.assertThat(
+                        resource.findReference(
+                                ItemPath.create(ResourceType.F_CONNECTOR_REF)
+                        ).getValue().getTargetType())
+                .isEqualTo(ConnectorType.COMPLEX_TYPE);
 
         Assertions.assertThat(
                         resource.findItem(
@@ -156,6 +156,24 @@ public class ObjectCleanerTest extends AbstractUnitTest {
         user.findProperty(UserType.F_GIVEN_NAME).getValues().forEach(value -> {
             Assertions.assertThat(value.getValueMetadata().getValues()).isEmpty();
         });
+        Assertions.assertThat(user.getVersion()).isEqualTo("123");
+    }
+
+    @Test
+    public void test210CleanupObjectVersion() throws Exception {
+        File file = new File(TEST_DIR, "user.xml");
+        PrismObject<ResourceType> user = getPrismContext().parseObject(file);
+
+        Assertions.assertThat(user.findItem(UserType.F_METADATA))
+                .isNotNull();
+        Assertions.assertThat(user.findItem(UserType.F_OPERATION_EXECUTION))
+                .isNotNull();
+
+        ObjectCleaner processor = new ObjectCleaner();
+        processor.setRemoveObjectVersion(true);
+        processor.process(user);
+
+        Assertions.assertThat(user.getVersion()).isNull();
     }
 
     @Test

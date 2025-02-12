@@ -38,13 +38,13 @@ public class RoleAnalysisAttributeProgressBarDto extends RoleAnalysisProgressBar
 
     private String barToolTip;
 
-    transient List<RoleAnalysisAttributeStatistics> attributeStats;
+    transient RoleAnalysisAttributeStatistics attributeStats;
 
-    private transient List<PrismObject<ObjectType>> objectValues = new ArrayList<>();
+    private transient PrismObject<ObjectType> objectValue = null;
 
     public RoleAnalysisAttributeProgressBarDto(PageBase pageBase, double actualValue,
             @Nullable String progressColor,
-            @NotNull List<RoleAnalysisAttributeStatistics> attributeStats) {
+            RoleAnalysisAttributeStatistics attributeStats) {
         loadActualValue(actualValue);
 
         if (progressColor != null) {
@@ -86,65 +86,55 @@ public class RoleAnalysisAttributeProgressBarDto extends RoleAnalysisProgressBar
     private void extractFocusObjectsFromAttributeAnalysis(
             @NotNull PageBase pageBase) {
 
-        if (attributeStats == null || attributeStats.isEmpty()) {
+        if (attributeStats == null) {
             return;
         }
 
         Task task = pageBase.createSimpleTask("resolveTitleLabel");
         OperationResult result = task.getResult();
 
-        for (RoleAnalysisAttributeStatistics attributeStatsItem : attributeStats) {
-            String attributeValue = attributeStatsItem.getAttributeValue();
-            if (isValidUUID(attributeValue)) {
-                @Nullable PrismObject<ObjectType> focusObject = WebModelServiceUtils.loadObject(
-                        ObjectType.class, attributeValue, pageBase, task, result);
-                if (focusObject != null) {
-                    objectValues.add(focusObject);
-                }
+        String attributeValue = attributeStats.getAttributeValue();
+        if (isValidUUID(attributeValue)) {
+            @Nullable PrismObject<ObjectType> focusObject = WebModelServiceUtils.loadObject(
+                    ObjectType.class, attributeValue, pageBase, task, result);
+            if (focusObject != null) {
+                this.objectValue = focusObject;
             }
         }
 
-        updateBarTitle(objectValues, attributeStats);
+        updateBarTitle(objectValue, attributeStats);
     }
 
     private void updateBarTitle(
-            List<PrismObject<ObjectType>> objectValues,
-            @Nullable List<RoleAnalysisAttributeStatistics> roleAnalysisAttributeResult) {
-        if ((objectValues == null || objectValues.isEmpty())
-                && (roleAnalysisAttributeResult != null && !roleAnalysisAttributeResult.isEmpty())) {
+            PrismObject<ObjectType> objectValue,
+            RoleAnalysisAttributeStatistics roleAnalysisAttributeResult) {
+        if ((objectValue == null)
+                && (roleAnalysisAttributeResult != null)) {
             setBarTitleForEmptyFocusObjects(roleAnalysisAttributeResult);
-        } else if (objectValues != null && !objectValues.isEmpty()) {
-            setBarTitleForNonEmptyFocusObjects(objectValues);
-        }
-    }
-
-    private void setBarTitleForEmptyFocusObjects(@NotNull List<RoleAnalysisAttributeStatistics> roleAnalysisAttributeResult) {
-        if (roleAnalysisAttributeResult.size() == 1) {
-            this.barTitle = roleAnalysisAttributeResult.get(0).getAttributeValue();
-        } else if (roleAnalysisAttributeResult.size() > 1) {
-            this.barTitle = "(" + roleAnalysisAttributeResult.size() + ") values";
-        }
-    }
-
-    private void setBarTitleForNonEmptyFocusObjects(List<PrismObject<ObjectType>> objectValues) {
-        this.isLinkTitle = true;
-        if (objectValues.size() == 1) {
-            PolyString name = objectValues.get(0).getName();
-            this.barTitle = name != null && name.getOrig() != null ? name.getOrig() : this.barTitle;
         } else {
-            this.barTitle = "(" + objectValues.size() + ") objects";
+            setBarTitleForNonEmptyFocusObjects(objectValue);
         }
     }
 
-    private void resolveHelpTooltip(List<RoleAnalysisAttributeStatistics> attributeStats) {
-        if (attributeStats == null || attributeStats.isEmpty()) {
+    private void setBarTitleForEmptyFocusObjects(RoleAnalysisAttributeStatistics roleAnalysisAttributeResult) {
+        this.barTitle = roleAnalysisAttributeResult.getAttributeValue();
+    }
+
+    private void setBarTitleForNonEmptyFocusObjects(PrismObject<ObjectType> objectValues) {
+        this.isLinkTitle = true;
+        PolyString name = objectValues.getName();
+        this.barTitle = name != null && name.getOrig() != null ? name.getOrig() : this.barTitle;
+    }
+
+    private void resolveHelpTooltip(RoleAnalysisAttributeStatistics attributeStats) {
+        if (attributeStats == null) {
             return;
         }
 
-        Integer inGroup = attributeStats.get(0).getInGroup();
-        Integer inRepo = attributeStats.get(0).getInRepo();
+        Integer inGroup = attributeStats.getInGroup();
+        Integer inRepo = attributeStats.getInRepo();
+        Boolean isUnusual = attributeStats.getIsUnusual();
 
-        Boolean isUnusual = attributeStats.get(0).getIsUnusual();
         if (isUnusual != null) {
             this.isUnusual = isUnusual;
         }
@@ -173,8 +163,8 @@ public class RoleAnalysisAttributeProgressBarDto extends RoleAnalysisProgressBar
         return helpTooltip;
     }
 
-    public List<PrismObject<ObjectType>> getObjectValues() {
-        return objectValues;
+    public PrismObject<ObjectType> getObjectValue() {
+        return objectValue;
     }
 }
 

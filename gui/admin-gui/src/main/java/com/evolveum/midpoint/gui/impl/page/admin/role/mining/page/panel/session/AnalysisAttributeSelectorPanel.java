@@ -102,7 +102,9 @@ public class AnalysisAttributeSelectorPanel extends InputPanel {
 
         // mark values to be deleted. The delta is later, when wrappers are processed.
         for (PrismPropertyValueWrapper<ItemPathType> value : values) {
-            if (!shouldValueExist(value, selectedRules)) {
+            if (shouldValueExist(value, selectedRules)) {
+                value.setStatus(ValueStatus.MODIFIED);
+            } else {
                 value.setStatus(ValueStatus.DELETED);
             }
         }

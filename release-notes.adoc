@@ -9,8 +9,8 @@ visibility: hidden
 :page-liquid:
 :page-toc: top
 
-Release {release-version} is a TODO midPoint release, code-named _Verne_.
-The {release-version} release brings improvements TODO and miscellaneous bugfixes.
+Release {release-version} is a sixty-third midPoint release, code-named _Verne_.
+The {release-version} release brings security, stability and miscellaneous bugfixes.
 
 ++++
 {% include release-data.html %}
@@ -75,11 +75,62 @@ Overall, midPoint 4.9 is a major step from the past into the future.
 * Stopped generating passwords with "problematic" characters, like comma, apostrophe, ampersand, and so on.
 Now it's possible to define characters that are accepted in the password, but not used when generating a new password value.
 The default password policy was updated in this regard.
-See bug:MID-9541[].
+See bug:MID-9541[] and the xref:/midpoint/reference/security/credentials/password-policy/#_ignoreWhenGenerating[docs].
 * Stopped displaying some shadow operational properties (like the synchronization timestamp, iteration, and so on) among changes in simulation results. See bug:MID-9737[] and bug:MID-9986[].
+* Midpoint Query Language Fixed inconsistent whitespace behavior when using `not` filter, modified grammar of query language. See bug:MID-9351[].
+* Fixed code completions & validation for @metadata language concept in Midpoint Query language. See bug:MID-10324[].
+* Fixed problem with handling syntax error in Midpoint Query Language. See bug:MID-8196[] and bug:MID-9585[].
 * bug:MID-10048[] Fix ClassCastException when creating duplicates of object types with new archetype
 * bug:MID-9683[] and bug:MID-10096[] Search filter not being submitted on enter.
 * bug:MID-10330[], bug:MID-10317[] and bug:10319[] Messages localization fixes.
+* bug:MID-9300[] Secure schema usage in PostgresSQL (not using public schema).
+* Fixed regression when user assignments can not be searched by name in GUI. See bug:MID-9732[]
+* Fixed searchObjectsIterative not working in scripts when ordering by OID. See bug:MID-10310[]
+* Fixed UnsupportedOperationException when using TypedQuery in scripts. See bug:MID-10351[]
+* Updated reports in initial objects to use Midpoint Query Language. See bug:MID-9618[].
+* Fixed All Cases panel sometimes not working. See bug:MID-10137[].
+* Fixed deadlock in Native PostgreSQL repository when shadow partitions are created and some URIs are not yet cached. See bug:MID-10231[].
+* Fixed NPE in Native PostgreSQL repository when adding inducement with runtime targetRef filter. See bug:MID-10305[].
+* Fixed too verbose logging when user in GUI entered syntacticly incorrect filter. See bug:MID-9342[].
+* Fixed All Access page crashing if assignment has multiple provenances. See bug:MID-10217[] and bug:MID-10358[].
+* bug:MID-10278[] Fix non-clickable part of a button in Edit Schema popup panel.
+* Allow volatility configuration per mapping through the Resource Wizard. See bug:MID-10170[].
+* Change the CSS style of sub-containers in the vertical form panel to create a new object for reference. See bug:MID-10030[].
+* Fixed removal of the shadow transition mark in the mark table panel. See bug:MID-10228[].
+* Fixed refresh names, help texts and search items for all saved search configurations. See bug:MID-10321[].
+* Fixed phantom changes when displaying an existing object type in the resource wizard. See bug:MID-10284[].
+* Added a popup to create a new item for the Schema Extension panel. See bug:MID-10283[].
+* Harmonize the design of the mapping table panel for object template and resource object type mapping. See bug:MID-10291[].
+* Removed the use of page parameters for view collection in popup tables. See bug:MID-10254[].
+* Fixed display of row without object name for Task Errors panel. See bug:MID-10354[].
+* Fixed the display of the 'User Dashboard Links' panel in the System Configuration panel. See bug:MID-10133[].
+* Fixed the object class name column in the Resource Details panel. See bug:MID-10005[].
+* Fixed saving of audit record with malformed username as parameter during login (User-Enumeration attack). See bug:MID-10383[].
+* Add a save button to the wizard's table of object and association types. See bug:MID-10046[].
+* Add an error message when the 'securityQuestionsForm' authentication module is the first in the authentication sequence. See bug:MID-10149[].
+
+* Role Analysis Improvements:
+** Improve overall performance.
+** Improved user experience (UX).
+** Added explanations for outlier objects and identified anomalies.
+** Introduced categorization for unclassified objects.
+** Refined the outlier detection algorithm.
+** Implemented a resolver for unusual attributes.
+** Fixed issues with multivalued department mode analysis.
+** Added an option to specify the minimum object popularity.
+
+* Anonymous Export Improvements:
+** Added support for exporting anonymized attributes.
+
+* Performance improvements in Native PostgreSQL repository:
+** Lazy parsing for value metadata in Native PostgreSQL repository. Value metadata are parsed only if they are actually used
+** Partial updates which takes use of splitted full objects. When modification only changes assignments, linkRef, operationExecution or roleMembershipRef, there is no need to load / modify and serialize full object, only changed parts.
+** Decreased audit insert time when auditing large adds / modifications.
+
+* Performance tuning improvements:
+** Added quick option to SystemConfiguration/internals/valueMetadata to disable default provenance metadata for multivalue items (excepts assignments).
+** Added `iterationPageSize` to GetOperationOptions which allows to customize size of page in search*Iterative in Groovy Scripts.
+
 
 == Changes With Respect To Version 4.8
 
@@ -509,9 +560,6 @@ Please refer to the xrefv:/midpoint/reference/support-4.9/upgrade/upgrade-guide/
 The guide describes the steps applicable for upgrades of all midPoint releases.
 Following sections provide details regarding release {release-version}.
 
-=== Upgrade From MidPoint 4.9
-TODO
-
 === Upgrade From MidPoint 4.8
 
 MidPoint {release-version} data model is backwards compatible with previous midPoint version.
@@ -540,9 +588,6 @@ Note that:
 Upgrade from midPoint versions other than 4.8.x to midPoint {release-version} is not supported directly.
 Please upgrade to 4.8.5 first.
 
-=== Deprecation, Feature Removal And Major Incompatible Changes Since 4.9
-TODO
-
 === Deprecation, Feature Removal And Major Incompatible Changes Since 4.8
 
 NOTE: This section is relevant to the majority of midPoint deployments.
@@ -566,7 +611,42 @@ It refers to the most significant functionality removals and changes in this ver
 // More info xrefv:/midpoint/reference/support-4.9/deployment/ninja[here] and in bug:MID-7483[].
 
 === Changes In Initial Objects Since 4.9
-TODO
+
+* 000-system-configuration.xml:
+Task execution constraints panel added to task advanced options GUI.
+Schema handling input, object type attribute volatility for incoming/outgoing operation now visible.
+* 010-value-policy.xml:
+Removed `maxLength` limit to 14 characters. Now avoiding characters `#&amp; "*'` when generating new password.
+* 040-role-enduser.xml:
+Hidden `serviceAssignments`, `policyAssignments` and `focusMarks` panels.
+* 041-role-approver.xml:
+Added authorization for `#orgDetails` and `#serviceDetails`.
+* 042-role-reviewer.xml:
+Added authorization for `#myActiveCertificationCampaigns`. Added authorization for `AccessCertificationCampaignType` items `state`, `iteration` and `startTimestamp`.
+* 090-report-audit.xml:
+Changed XML query to midpoint query language.
+* 100-report-reconciliation.xml:
+Changed XML query to midpoint query language.
+* 110-report-user-list.xml:
+Changed XML query to midpoint query language.
+* 140-report-certification-campaigns.xml:
+Changed XML query to midpoint query language.
+* 150-report-certification-cases.xml:
+Changed XML query to midpoint query language.
+* 160-report-certification-work-items.xml:
+Changed XML query to midpoint query language.
+* 200-report-indirect-assignments.xml:
+Changed XML query to midpoint query language.
+* 023-archetype-manual-provisioning-case.xml:
+Icon color change.
+* 025-archetype-approval-case.xml:
+Icon color change.
+* 029-archetype-application.xml:
+`governance` panel configuration change.
+* 536-archetype-task-certification-start-campaign.xml:
+Updated configuration of `activity` `work` panel.
+* 538-archetype-task-certification-reiterate-campaign.xml:
+Updated configuration of `activity` `work` panel.
 
 === Changes In Initial Objects Since 4.8
 
@@ -606,7 +686,25 @@ TIP: Copies of initial object files are located in `config/initial-objects` dire
 On-line version can be found in https://github.com/Evolveum/midpoint/tree/v{release-version}/config/initial-objects[midPoint source code].
 
 === Schema Changes Since 4.9
-TODO
+
+.Items being deprecated
+[%autowidth]
+|===
+| Type | Item or value | Note
+
+| `DetectedAnomalyStatistics`
+| `memberCoverageConfidence`
+|
+
+| `DetectedAnomalyStatistics`
+| `frequency`
+|
+
+| `ResourceItemDefinitionType`
+| `volatilityTrigger`
+| Use `volatility` instead.
+
+|===
 
 === Schema Changes Since 4.8
 
@@ -653,10 +751,6 @@ Make sure you don't use any removed items.
 You can use `ninja` tool for this.
 
 * Be sure to apply the changes to initial objects 800-804 (object marks), as well as to your custom object marks to handle the membership in the expected way.
-
-[#_behavior_changes_since_4_9]
-=== Behavior Changes Since 4.9
-TODO
 
 [#_behavior_changes_since_4_8]
 === Behavior Changes Since 4.8
@@ -749,9 +843,6 @@ All these features can be configured - or even turned off in the extreme case - 
 Moreover, we plan to improve the performance in the forthcoming releases.
 
 === Java and REST API Changes Since 4.8
-TODO
-
-=== Java and REST API Changes Since 4.8
 
 NOTE: As for the Java API, this section describes changes in `midpoint` and `basic` function libraries.
 (MidPoint does not have explicitly defined Java API, yet.
@@ -765,9 +856,6 @@ But these two objects are something that can be unofficially considered to be th
 // * The following methods were not checking authorizations of currently logged-in user, and were fixed to do so:
 // `midpoint.countAccounts`, `midpoint.getObjectsInConflictOnPropertyValue`, `midpoint.isUniquePropertyValue`.
 // See bug:MID-6241[] and commit https://github.com/Evolveum/midpoint/commit/1471bba52e363f81feabbec6f997507d8a7655fb[1471bb].
-
-=== Internal Changes Since 4.9
-TODO
 
 === Internal Changes Since 4.8
 

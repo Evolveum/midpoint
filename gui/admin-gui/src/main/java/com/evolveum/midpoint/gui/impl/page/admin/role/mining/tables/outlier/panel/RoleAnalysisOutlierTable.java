@@ -66,17 +66,22 @@ public class RoleAnalysisOutlierTable extends BasePanel<AssignmentHolderType> {
     private static final String ID_DATATABLE = "datatable";
     private static final String DOT_CLASS = RoleAnalysisOutlierTable.class.getName() + ".";
     private static final String OP_PREPARE_OBJECTS = DOT_CLASS + "prepareObjects";
-
-    PageBase pageBase;
+    private static final String OP_EXPLAIN_PARTITION = DOT_CLASS + "explainPartition";
+    private static final String OP_PREPARE_ANOMALY_OBJECT = DOT_CLASS + "prepareAnomalyObject";
 
     public RoleAnalysisOutlierTable(
             @NotNull String id,
-            @NotNull PageBase pageBase,
             @NotNull LoadableDetachableModel<AssignmentHolderType> sessionModel) {
         super(id, sessionModel);
+    }
 
-        RoleAnalysisService roleAnalysisService = pageBase.getRoleAnalysisService();
-        Task task = pageBase.createSimpleTask(OP_PREPARE_OBJECTS);
+    @Override
+    protected void onInitialize() {
+        super.onInitialize();
+
+        //TODO rework to proper model initialization
+        RoleAnalysisService roleAnalysisService = getPageBase().getRoleAnalysisService();
+        Task task = getPageBase().createSimpleTask(OP_PREPARE_OBJECTS);
         OperationResult result = task.getResult();
 
         List<PartitionObjectDto> partitionObjectDtoList = new ArrayList<>();
@@ -87,8 +92,8 @@ public class RoleAnalysisOutlierTable extends BasePanel<AssignmentHolderType> {
             partitionObjectDtoList = buildPartitionObjectList(
                     roleAnalysisService, clusterObject, getLimit(), matchOutlierCategory(), task, result);
         }
+        //end of TODO
 
-        this.pageBase = pageBase;
         RoleMiningProvider<PartitionObjectDto> provider = new RoleMiningProvider<>(
                 this, new ListModel<>(partitionObjectDtoList), true);
 
@@ -142,10 +147,6 @@ public class RoleAnalysisOutlierTable extends BasePanel<AssignmentHolderType> {
 
     public List<IColumn<PartitionObjectDto, String>> initColumns() {
 
-        RoleAnalysisService roleAnalysisService = pageBase.getRoleAnalysisService();
-        Task task = pageBase.createSimpleTask(OP_PREPARE_OBJECTS);
-        OperationResult result = task.getResult();
-
         List<IColumn<PartitionObjectDto, String>> columns = new ArrayList<>();
 
         initIconColumn(columns);
@@ -156,9 +157,9 @@ public class RoleAnalysisOutlierTable extends BasePanel<AssignmentHolderType> {
             initCategoryColumn(columns);
         }
 
-        initExplanationColumn(roleAnalysisService, columns, task, result);
+        initExplanationColumn(columns);
 
-        initAnomalyAccessColumn(roleAnalysisService, columns, task, result);
+        initAnomalyAccessColumn(columns);
 
         initPartitionScoreColumn(columns);
 
@@ -253,7 +254,7 @@ public class RoleAnalysisOutlierTable extends BasePanel<AssignmentHolderType> {
         });
     }
 
-    private void initExplanationColumn(RoleAnalysisService roleAnalysisService, @NotNull List<IColumn<PartitionObjectDto, String>> columns, Task task, OperationResult result) {
+    private void initExplanationColumn(@NotNull List<IColumn<PartitionObjectDto, String>> columns) {
         columns.add(new AbstractColumn<>(createStringResource("RoleAnalysisOutlierTable.outlier.explanation")) {
 
             @Override
@@ -265,8 +266,12 @@ public class RoleAnalysisOutlierTable extends BasePanel<AssignmentHolderType> {
             public void populateItem(Item<ICellPopulator<PartitionObjectDto>> item, String componentId,
                     IModel<PartitionObjectDto> rowModel) {
                 RoleAnalysisOutlierPartitionType partition = rowModel.getObject().getPartition();
+
+                Task task = getPageBase().createSimpleTask(OP_EXPLAIN_PARTITION);
+                OperationResult result = task.getResult();
+
                 Model<String> explanationTranslatedModel = explainPartition(
-                        roleAnalysisService, partition, true, task, result);
+                        getPageBase().getRoleAnalysisService(), partition, true, task, result);
                 item.add(new Label(componentId, explanationTranslatedModel));
             }
 
@@ -285,7 +290,7 @@ public class RoleAnalysisOutlierTable extends BasePanel<AssignmentHolderType> {
         });
     }
 
-    private void initAnomalyAccessColumn(RoleAnalysisService roleAnalysisService, @NotNull List<IColumn<PartitionObjectDto, String>> columns, Task task, OperationResult result) {
+    private void initAnomalyAccessColumn(@NotNull List<IColumn<PartitionObjectDto, String>> columns) {
         columns.add(new AbstractColumn<>(
                 createStringResource("")) {
 
@@ -343,7 +348,7 @@ public class RoleAnalysisOutlierTable extends BasePanel<AssignmentHolderType> {
                             webMarkupContainerUser.setExpanded(true);
 
                             PartitionObjectDto modelObject = model.getObject();
-                            RoleAnalysisDetectedAnomalyTable detectedAnomalyTable = buildDetectedAnomalyTable(roleAnalysisService, modelObject, modelObject.getPartition(), task, result);
+                            RoleAnalysisDetectedAnomalyTable detectedAnomalyTable = buildDetectedAnomalyTable(modelObject, modelObject.getPartition());
                             webMarkupContainerUser.add(detectedAnomalyTable);
 
                             collapseContainerUser.replaceWith(webMarkupContainerUser);
@@ -361,15 +366,15 @@ public class RoleAnalysisOutlierTable extends BasePanel<AssignmentHolderType> {
     }
 
     private @NotNull RoleAnalysisDetectedAnomalyTable buildDetectedAnomalyTable(
-            @NotNull RoleAnalysisService roleAnalysisService,
             @NotNull PartitionObjectDto modelObject,
-            @NotNull RoleAnalysisOutlierPartitionType partition,
-            @NotNull Task task,
-            @NotNull OperationResult result) {
+            @NotNull RoleAnalysisOutlierPartitionType partition) {
 
         RoleAnalysisOutlierType outlierObject = modelObject.getOutlier();
+        Task task = getPageBase().createSimpleTask(OP_PREPARE_ANOMALY_OBJECT);
+        OperationResult result = task.getResult();
+
         AnomalyObjectDto dto = new AnomalyObjectDto(
-                roleAnalysisService, outlierObject, partition, false, task, result);
+                getPageBase().getRoleAnalysisService(), outlierObject, partition, false, task, result);
         RoleAnalysisDetectedAnomalyTable detectedAnomalyTable = new RoleAnalysisDetectedAnomalyTable(ID_COLLAPSABLE_CONTENT, Model.of(dto)) {
 
             @Contract(pure = true)
@@ -439,7 +444,7 @@ public class RoleAnalysisOutlierTable extends BasePanel<AssignmentHolderType> {
 
                         @Override
                         public void onClick(AjaxRequestTarget target) {
-                            DetailsPageUtil.dispatchToObjectDetailsPage(outlierObject.asPrismObject(), this);
+                            DetailsPageUtil.dispatchToObjectDetailsPage(RoleAnalysisOutlierType.class, outlierObject.getOid(), this, true);
                         }
                     };
                     component.setOutputMarkupId(true);
@@ -467,11 +472,6 @@ public class RoleAnalysisOutlierTable extends BasePanel<AssignmentHolderType> {
                 return createDisplayType(GuiStyleConstants.CLASS_ICON_OUTLIER, "red", "");
             }
         });
-    }
-
-    @Override
-    public PageBase getPageBase() {
-        return pageBase;
     }
 
     private static void initDensityProgressPanel(

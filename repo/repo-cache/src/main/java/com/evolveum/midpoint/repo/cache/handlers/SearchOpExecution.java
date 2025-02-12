@@ -11,9 +11,9 @@ import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
 
 import java.util.Collection;
 
-import org.jetbrains.annotations.NotNull;
+import com.evolveum.midpoint.repo.api.RepositoryService;
+import com.evolveum.midpoint.repo.cache.local.QueryKey;
 
-import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.repo.cache.global.GlobalQueryCache;
@@ -30,7 +30,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.RepositorySearchObje
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TracingLevelType;
 
 /**
- * Context of searchObjects/searchObjectsIteratively operation.
+ * Context of `searchObjects` and `searchObjectsIteratively` operations.
  *
  * Responsible also for reporting on operation execution.
  */
@@ -38,14 +38,23 @@ class SearchOpExecution<O extends ObjectType>
         extends CachedOpExecution<RepositorySearchObjectsTraceType, LocalQueryCache, GlobalQueryCache, O> {
 
     final ObjectQuery query;
+    final QueryKey<O> queryKey;
     private final int maxFullObjectsToTrace;
     private final int maxReferencesToTrace;
 
-    SearchOpExecution(Class<O> type, Collection<SelectorOptions<GetOperationOptions>> options, OperationResult result,
-            ObjectQuery query, RepositorySearchObjectsTraceType trace, TracingLevelType tracingLevel,
-            PrismContext prismContext, CacheSetAccessInfo<O> caches, String opName) {
-        super(type, options, result, caches, caches.localQuery, caches.globalQuery, trace, tracingLevel, prismContext, opName);
+    SearchOpExecution(
+            Class<O> type,
+            Collection<SelectorOptions<GetOperationOptions>> options,
+            OperationResult result,
+            ObjectQuery query,
+            RepositorySearchObjectsTraceType trace,
+            TracingLevelType tracingLevel,
+            CacheSetAccessInfo<O> caches,
+            CacheUseMode cacheUseMode,
+            String opName) {
+        super(type, options, result, caches, caches.localQuery, caches.globalQuery, trace, tracingLevel, cacheUseMode, opName);
         this.query = query;
+        this.queryKey = new QueryKey<>(type, query);
 
         CompiledTracingProfile tracingProfile = result.getTracingProfile();
         if (tracingProfile != null) {
@@ -57,25 +66,12 @@ class SearchOpExecution<O extends ObjectType>
             maxFullObjectsToTrace = 0;
             maxReferencesToTrace = 0;
         }
-
     }
 
-    @NotNull SearchResultList<PrismObject<O>> prepareReturnValueAsIs(SearchResultList<PrismObject<O>> list) {
-        recordResult(list);
-        return list;
-    }
-
-    @NotNull SearchResultList<PrismObject<O>> prepareReturnValueWhenImmutable(SearchResultList<PrismObject<O>> immutableList) {
-        immutableList.checkImmutable();
-        recordResult(immutableList);
-        if (readOnly) {
-            return immutableList;
-        } else {
-            return immutableList.deepClone();
+    void recordSearchResult(SearchResultList<PrismObject<O>> objectsFound) {
+        if (objectsFound == null) {
+            return;
         }
-    }
-
-    private void recordResult(SearchResultList<PrismObject<O>> objectsFound) {
         recordNumberOfObjectsFound(objectsFound.size());
         if (trace != null) {
             trace.setResultSize(objectsFound.size());
@@ -88,14 +84,14 @@ class SearchOpExecution<O extends ObjectType>
         }
     }
 
-    void recordResult(int numberOfObjectsFound, boolean wasInterrupted) {
+    void recordSearchResult(int numberOfObjectsFound, boolean wasInterrupted) {
         recordNumberOfObjectsFound(numberOfObjectsFound);
-        result.addReturn("interrupted", wasInterrupted);
-        // objects themselves were already recorded by RecordingResultHandler
+        result.addReturn(RepositoryService.RETURN_INTERRUPTED, wasInterrupted);
+        // objects themselves were already recorded by ReportingResultHandler
     }
 
     private void recordNumberOfObjectsFound(int number) {
-        result.addReturn("objectsFound", number);
+        result.addReturn(RepositoryService.RETURN_OBJECTS_FOUND, number);
     }
 
     /**

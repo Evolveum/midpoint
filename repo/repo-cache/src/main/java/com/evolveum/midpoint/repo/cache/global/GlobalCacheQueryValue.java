@@ -9,25 +9,25 @@ package com.evolveum.midpoint.repo.cache.global;
 
 import org.jetbrains.annotations.NotNull;
 
+import com.evolveum.midpoint.repo.cache.values.CachedQueryValue;
 import com.evolveum.midpoint.schema.SearchResultList;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
-public class GlobalCacheQueryValue<T extends ObjectType> extends AbstractGlobalCacheValue {
+public class GlobalCacheQueryValue extends AbstractGlobalCacheValue implements CachedQueryValue {
 
-    @NotNull private final SearchResultList<T> result;
+    @NotNull private final SearchResultList<String> oidOnlyResult;
 
-    GlobalCacheQueryValue(@NotNull SearchResultList<T> result) {
-        this.result = result;
+    GlobalCacheQueryValue(@NotNull SearchResultList<String> oidOnlyResult) {
+        CachedQueryValue.checkConsistency(oidOnlyResult);
+        this.oidOnlyResult = oidOnlyResult;
     }
 
-    public @NotNull SearchResultList<T> getResult() {
-        return result;
+    @Override
+    public @NotNull SearchResultList<String> getOidOnlyResult() {
+        return oidOnlyResult;
     }
 
     @Override
     public String toString() {
-        return "GlobalCacheQueryValue{" +
-                "result=" + result +
-                '}';
+        return "GlobalCacheQueryValue{" + oidOnlyResult + '}';
     }
 }

@@ -1,0 +1,37 @@
+= Performance Tuning
+:page-since: 4.9
+:page-upkeep-status: green
+
+MidPoint 4.9 introduced new functionality, intended for ease of use, which is enabled by default and may impact performance of existing deployments. 
+This new functionality is not necessary for some deployments (depending on their configuration) and can be fine-tuned or turned off to gain performance. 
+
+
+== Default provenance metadata for multivalues
+
+MidPoint 4.9 has provenance metadata enabled by default for multivalue properties, which are created / edited by mappings. 
+This functionality simplifies writing of mappings and makes default behaviour more predictable, where mappings can only remove values, they emmited.
+
+=== Impact
+
+The provenance metadata for multivalue properties results in larger data structures (instead of storing just value, identifiers of resource and mapping, which emitted this value). 
+This increases memory consuption, storage consumption at database level and processing time necessary for creation, serialization and deserialization of these metadata.
+
+The performance impact increases with number of multivalue properties in use and mappings.
+
+=== Mitigation
+
+If deployment does use mappings for multivalue metadata, but all such mappings has custom range defined, default provenance metadata can be turned off in system configuration.
+The option for disabling provenance metadata by default is `internals/valueMetadata/disableDefaultMultivalueProvenance`
+
+[source, xml]
+----
+<systemConfiguration>
+    ...
+    <internals>
+        <valueMetadata>
+            <disableDefaultMultivalueProvenance>true</disableDefaultMultivalueProvenance>
+        </valueMetadata>
+    </internals>
+    ...
+</systemConfiguration>
+----

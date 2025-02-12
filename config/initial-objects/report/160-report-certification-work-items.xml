@@ -20,16 +20,14 @@
     <objectCollection>
         <collection>
             <filter>
-                <q:inOid>
-                    <expression>
-                        <queryInterpretationOfNoValue>filterAll</queryInterpretationOfNoValue>
-                        <script>
-                            <objectVariableMode>prismReference</objectVariableMode>
-                            <code>campaignRef?.oid</code>
-                        </script>
-                    </expression>
-                    <q:considerOwner>true</q:considerOwner>
-                </q:inOid>
+                <q:text>
+                    . ownedByOid yaml```
+                        queryInterpretationOfNoValue: filterAll
+                        script:
+                            objectVariableMode: prismReference
+                            code: campaignRef?.oid
+                    ```
+                </q:text>
             </filter>
         </collection>
         <view>

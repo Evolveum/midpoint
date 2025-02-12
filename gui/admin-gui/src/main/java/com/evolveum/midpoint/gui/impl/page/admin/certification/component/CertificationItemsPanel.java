@@ -36,27 +36,17 @@ import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.impl.page.admin.certification.helpers.CampaignProcessingHelper;
 import com.evolveum.midpoint.gui.impl.page.admin.certification.helpers.CertMiscUtil;
 import com.evolveum.midpoint.gui.impl.page.admin.simulation.DetailsTableItem;
-import com.evolveum.midpoint.prism.PrismContainer;
-import com.evolveum.midpoint.prism.PrismContainerDefinition;
-import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.report.api.ReportConstants;
-import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.ReportParameterTypeUtil;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.component.AjaxIconButton;
 import com.evolveum.midpoint.web.component.DateLabelComponent;
 import com.evolveum.midpoint.web.component.form.MidpointForm;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.session.CertDecisionsStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportParameterType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportType;
 import com.evolveum.wicket.chartjs.ChartConfiguration;
 import com.evolveum.wicket.chartjs.ChartJsPanel;
 
@@ -73,7 +63,7 @@ public class CertificationItemsPanel extends BasePanel<String> {
     private static final String ID_MAIN_FORM = "mainForm";
     private static final String ID_DECISIONS_TABLE = "decisionsTable";
 
-    IModel<AccessCertificationCampaignType> campaignModel;
+    LoadableDetachableModel<AccessCertificationCampaignType> campaignModel;
 
     public CertificationItemsPanel(String id) {
         super(id);
@@ -293,7 +283,7 @@ public class CertificationItemsPanel extends BasePanel<String> {
 
                     @Override
                     public Component createValueComponent(String id) {
-                        DeadlinePanel deadlinePanel = new DeadlinePanel(id, new LoadableModel<>() {
+                        DeadlinePanel deadlinePanel = new DeadlinePanel(id, new LoadableDetachableModel<XMLGregorianCalendar>() {
                             @Override
                             protected XMLGregorianCalendar load() {
                                 return campaign != null ? CampaignProcessingHelper.computeDeadline(
@@ -455,12 +445,15 @@ public class CertificationItemsPanel extends BasePanel<String> {
     }
 
     public IModel<String> getCampaignStartDateModel(AccessCertificationCampaignType campaign) {
-        return () -> {
-            if (campaign == null) {
-                return "";
+        return new LoadableDetachableModel<String>() {
+            @Override
+            protected String load() {
+                if (campaign == null) {
+                    return "";
+                }
+                XMLGregorianCalendar startDate = campaign.getStartTimestamp();
+                return WebComponentUtil.getLocalizedDate(startDate, DateLabelComponent.SHORT_NOTIME_STYLE);
             }
-            XMLGregorianCalendar startDate = campaign.getStartTimestamp();
-            return WebComponentUtil.getLocalizedDate(startDate, DateLabelComponent.SHORT_NOTIME_STYLE);
         };
     }
 
@@ -474,6 +467,12 @@ public class CertificationItemsPanel extends BasePanel<String> {
 
     protected void onBackPerformed(AjaxRequestTarget target) {
         getPageBase().redirectBack();
+    }
+
+    @Override
+    protected void onDetach() {
+        campaignModel.detach();
+        super.onDetach();
     }
 
 }

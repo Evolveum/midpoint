@@ -84,6 +84,10 @@ structure (including the actions)
 The authorization is also check while deciding if previewButton should be shown.
 | Since 4.1
 
+| http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#adminCSVexport
+| 'Export csv' component authorization on the object list pages (e.g. 'Export csv' toolbar button on the All Users page)
+|
+
 |===
 
 == Self-service Actions
@@ -563,7 +567,7 @@ use #selfRequestAssignments instead
 
 |===
 
-== Policy actions
+== Schemas
 
 [%autowidth]
 |===
@@ -590,11 +594,6 @@ use #selfRequestAssignments instead
 == Access certification actions
 
 Please see xref:/midpoint/reference/roles-policies/certification/authorization/[Access Certification Security] for detailed list.
-
-== Focal object tabs authorizations
-
-Display of object detail tabs is *not* controlled by authorizations.
-xref:/midpoint/reference/admin-gui/admin-gui-config/[Admin GUI Configuration] is used to control this behavior.
 
 == See also:
 

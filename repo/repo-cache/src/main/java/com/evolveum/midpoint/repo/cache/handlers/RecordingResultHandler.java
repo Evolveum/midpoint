@@ -13,16 +13,16 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 /**
- * Reports on objects being found by searchObjectsIterative method.
+ * Records objects being found by `searchObjectsIterative` method (to {@link OperationResult} object).
  */
-class ReportingResultHandler<T extends ObjectType> implements ResultHandler<T> {
+class RecordingResultHandler<T extends ObjectType> implements ResultHandler<T> {
 
     private final ResultHandler<T> innerHandler;
     private final SearchOpExecution<T> execution;
     private int objectsFound;
     private boolean wasInterrupted;
 
-    ReportingResultHandler(ResultHandler<T> innerHandler, SearchOpExecution<T> execution) {
+    RecordingResultHandler(ResultHandler<T> innerHandler, SearchOpExecution<T> execution) {
         this.innerHandler = innerHandler;
         this.execution = execution;
     }
@@ -39,6 +39,6 @@ class ReportingResultHandler<T extends ObjectType> implements ResultHandler<T> {
     }
 
     void recordResult() {
-        execution.recordResult(objectsFound, wasInterrupted);
+        execution.recordSearchResult(objectsFound, wasInterrupted);
     }
 }

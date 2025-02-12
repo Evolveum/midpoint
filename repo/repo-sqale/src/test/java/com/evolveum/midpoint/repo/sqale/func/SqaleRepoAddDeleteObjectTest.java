@@ -243,13 +243,14 @@ public class SqaleRepoAddDeleteObjectTest extends SqaleRepoBaseTest {
     }
 
     @Test
-    public void test119ModifyLegacyPreservesData() throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException {
+    public void test117ModifyLegacyPreservesData() throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException {
         OperationResult result = createOperationResult();
         QUserMapping.getUserMapping().setStoreSplitted(false);
         QAssignmentMapping.getAssignmentMapping().setStoreFullObject(false);
         long baseCount = count(QObject.CLASS);
 
         UserType user = new UserType().name("user" + getTestNumber())
+                .familyName("Test")
                 .assignment(new AssignmentType().targetRef(UUID.randomUUID().toString(), RoleType.COMPLEX_TYPE));
         try {
             given("user already in the repository with legacy format (assignment.full_object is null)");
@@ -272,13 +273,90 @@ public class SqaleRepoAddDeleteObjectTest extends SqaleRepoBaseTest {
             readed = repositoryService.getObject(UserType.class, oid, null, result).asObjectable();
             assertThat(readed.getAssignment()).hasSize(1);
             assertThat(readed.getActivation()).isNotNull();
-
-
+            assertThat(readed.getFamilyName()).isEqualTo(user.getFamilyName());
         } finally {
             QUserMapping.getUserMapping().setStoreSplitted(true);
             QAssignmentMapping.getAssignmentMapping().setStoreFullObject(true);
         }
     }
+
+    @Test
+    public void test118PartialModifyLegacyPreservesData() throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException {
+        OperationResult result = createOperationResult();
+        QUserMapping.getUserMapping().setStoreSplitted(false);
+        QAssignmentMapping.getAssignmentMapping().setStoreFullObject(false);
+        long baseCount = count(QObject.CLASS);
+
+        UserType user = new UserType().name("user" + getTestNumber())
+                .familyName("Test")
+                .roleMembershipRef(UUID.randomUUID().toString(), RoleType.COMPLEX_TYPE)
+                .activation(new ActivationType().administrativeStatus(ActivationStatusType.ENABLED));
+        try {
+            given("user already in the repository with legacy format (assignment.full_object is null)");
+            String oid = repositoryService.addObject(user.asPrismObject(), null, result);
+            assertThat(count(QObject.CLASS)).isEqualTo(baseCount + 1);
+
+            QUserMapping.getUserMapping().setStoreSplitted(true);
+            QAssignmentMapping.getAssignmentMapping().setStoreFullObject(true);
+            expect("should be readed correctly with activation present");
+            UserType readed = repositoryService.getObject(UserType.class, oid, null, result).asObjectable();
+
+
+            and("when assignment modification is applied (which triggers partial read)");
+            var deltas = prismContext.deltaFor(UserType.class)
+                    .item(UserType.F_ASSIGNMENT).add(new AssignmentType().targetRef(UUID.randomUUID().toString(), RoleType.COMPLEX_TYPE))
+                    .asItemDeltas();
+            repositoryService.modifyObject(UserType.class, oid, deltas, result);
+            and("roleMembershipRef should be still there and reindexed");
+            readed = repositoryService.getObject(UserType.class, oid, null, result).asObjectable();
+            assertThat(readed.getAssignment()).hasSize(1);
+            assertThat(readed.getRoleMembershipRef()).hasSize(1);
+            assertThat(readed.getActivation()).isNotNull();
+            assertThat(readed.getFamilyName()).isEqualTo(user.getFamilyName());
+        } finally {
+            QUserMapping.getUserMapping().setStoreSplitted(true);
+            QAssignmentMapping.getAssignmentMapping().setStoreFullObject(true);
+        }
+    }
+
+    @Test
+    public void test119PartialModifyLegacyPreservesData() throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException {
+        OperationResult result = createOperationResult();
+        QUserMapping.getUserMapping().setStoreSplitted(false);
+        QAssignmentMapping.getAssignmentMapping().setStoreFullObject(false);
+        long baseCount = count(QObject.CLASS);
+
+        UserType user = new UserType().name("user" + getTestNumber())
+                .familyName("Test")
+                .activation(new ActivationType().administrativeStatus(ActivationStatusType.ENABLED))
+                .assignment(new AssignmentType().targetRef(UUID.randomUUID().toString(), RoleType.COMPLEX_TYPE));;
+        try {
+            given("user already in the repository with legacy format (assignment.full_object is null)");
+            String oid = repositoryService.addObject(user.asPrismObject(), null, result);
+            assertThat(count(QObject.CLASS)).isEqualTo(baseCount + 1);
+
+            QUserMapping.getUserMapping().setStoreSplitted(true);
+            QAssignmentMapping.getAssignmentMapping().setStoreFullObject(true);
+            expect("should be readed correctly with activation present");
+            UserType readed = repositoryService.getObject(UserType.class, oid, null, result).asObjectable();
+            // Modify with splitted -
+
+            and("when assignment modification is applied (which triggers partial read)");
+            var deltas = prismContext.deltaFor(UserType.class)
+                    .item(UserType.F_ASSIGNMENT).add(new AssignmentType().targetRef(UUID.randomUUID().toString(), RoleType.COMPLEX_TYPE))
+                    .asItemDeltas();
+            repositoryService.modifyObject(UserType.class, oid, deltas, result);
+            and("assignment should be still there and reindexed");
+            readed = repositoryService.getObject(UserType.class, oid, null, result).asObjectable();
+            assertThat(readed.getAssignment()).hasSize(2);
+            assertThat(readed.getActivation()).isNotNull();
+            assertThat(readed.getFamilyName()).isEqualTo(user.getFamilyName());
+        } finally {
+            QUserMapping.getUserMapping().setStoreSplitted(true);
+            QAssignmentMapping.getAssignmentMapping().setStoreFullObject(true);
+        }
+    }
+
 
     // detailed container tests are from test200 on, this one has overwrite priority :-)
     @Test

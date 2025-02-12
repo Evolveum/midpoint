@@ -214,53 +214,6 @@ public class RoleAnalysisPartitionOverviewPanel extends BasePanel<RoleAnalysisOu
 
                     @Override
                     public Component createTitleComponent(String id) {
-                        return new Label(id, createStringResource("RoleAnalysisOutlierType.widget.patterns"));
-                    }
-
-                    @Override
-                    public Component createDescriptionComponent(String id) {
-                        if (patternAnalysis == null) {
-                            return new Label(id, 0);
-                        }
-
-                        String localizedKey = "RoleAnalysisOutlierType.widget.patterns.description.single";
-                        if (patternAnalysis.getDetectedPatternCount() > 1) {
-                            localizedKey = "RoleAnalysisOutlierType.widget.patterns.description.multiple";
-                        }
-                        return new Label(id, createStringResource(localizedKey, patternAnalysis.getTotalRelations()));
-                    }
-
-                    @Override
-                    public Component createValueComponent(String id) {
-                        Double confidence = 0.0;
-                        if (patternAnalysis != null) {
-                            confidence = patternAnalysis.getConfidence();
-                        }
-                        String title = createStringResource("RoleAnalysisOutlierType.widget.patterns.confidence")
-                                .getString();
-                        return buildDensityProgressPanel(id, confidence, title);
-                    }
-
-                    @Override
-                    protected String replaceValueCssClass() {
-                        return "pt-3 pb-1";
-                    }
-
-                    @Override
-                    public Component createFooterComponent(String id) {
-                        int detectedPatternCount = 0;
-                        if (patternAnalysis != null) {
-                            detectedPatternCount = patternAnalysis.getDetectedPatternCount();
-                        }
-                        return new Label(id, createStringResource("RoleAnalysisOutlierType.widget.patterns.footer",
-                                detectedPatternCount));
-                    }
-                },
-                new WidgetItemModel(createStringResource(""),
-                        Model.of("")) {
-
-                    @Override
-                    public Component createTitleComponent(String id) {
                         return new Label(id, createStringResource("RoleAnalysisOutlierType.widget.similarity"));
                     }
 
@@ -303,6 +256,7 @@ public class RoleAnalysisPartitionOverviewPanel extends BasePanel<RoleAnalysisOu
                                 similarObjectsCount));
                     }
                 },
+
                 new WidgetItemModel(createStringResource(""),
                         Model.of("")) {
 
@@ -320,9 +274,13 @@ public class RoleAnalysisPartitionOverviewPanel extends BasePanel<RoleAnalysisOu
                     @Override
                     public Component createValueComponent(String id) {
                         double confidence = 0.0;
-                        if (partitionAnalysis.getSimilarObjectsConfidence() != null) {
-                            confidence = partitionAnalysis.getSimilarObjectsConfidence();
+                        AttributeAnalysis attributeAnalysis = partitionAnalysis.getAttributeAnalysis();
+                        if (attributeAnalysis != null
+                                && attributeAnalysis.getUserClusterCompare() != null
+                                && attributeAnalysis.getUserClusterCompare().getScore() != null) {
+                            confidence = attributeAnalysis.getUserClusterCompare().getScore();
                         }
+
                         String title = createStringResource("RoleAnalysisOutlierType.widget.attribute.confidence")
                                 .getString();
                         return buildDensityProgressPanel(id, confidence, title);
@@ -360,6 +318,55 @@ public class RoleAnalysisPartitionOverviewPanel extends BasePanel<RoleAnalysisOu
                                 attributeAboveThreshold));
                     }
                 },
+
+                new WidgetItemModel(createStringResource(""),
+                        Model.of("")) {
+
+                    @Override
+                    public Component createTitleComponent(String id) {
+                        return new Label(id, createStringResource("RoleAnalysisOutlierType.widget.patterns"));
+                    }
+
+                    @Override
+                    public Component createDescriptionComponent(String id) {
+                        if (patternAnalysis == null) {
+                            return new Label(id, 0);
+                        }
+
+                        String localizedKey = "RoleAnalysisOutlierType.widget.patterns.description.single";
+                        if (patternAnalysis.getDetectedPatternCount() > 1) {
+                            localizedKey = "RoleAnalysisOutlierType.widget.patterns.description.multiple";
+                        }
+                        return new Label(id, createStringResource(localizedKey, patternAnalysis.getTotalRelations()));
+                    }
+
+                    @Override
+                    public Component createValueComponent(String id) {
+                        Double confidence = 0.0;
+                        if (patternAnalysis != null) {
+                            confidence = patternAnalysis.getConfidence();
+                        }
+                        String title = createStringResource("RoleAnalysisOutlierType.widget.patterns.confidence")
+                                .getString();
+                        return buildDensityProgressPanel(id, confidence, title);
+                    }
+
+                    @Override
+                    protected String replaceValueCssClass() {
+                        return "pt-3 pb-1";
+                    }
+
+                    @Override
+                    public Component createFooterComponent(String id) {
+                        int detectedPatternCount = 0;
+                        if (patternAnalysis != null) {
+                            detectedPatternCount = patternAnalysis.getDetectedPatternCount();
+                        }
+                        return new Label(id, createStringResource("RoleAnalysisOutlierType.widget.patterns.footer",
+                                detectedPatternCount));
+                    }
+                },
+
                 new WidgetItemModel(createStringResource(""),
                         Model.of("")) {
 

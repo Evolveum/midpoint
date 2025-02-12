@@ -66,6 +66,9 @@ public class RoleAnalysisOutlierAnomalyPanel extends AbstractObjectMainPanel<Rol
     private static final String ID_CONTAINER = "container";
     private static final String ID_HEADER_ITEMS = "header-items";
     private static final String ID_PANEL = "panelId";
+    private static final String DOT_CLASS = RoleAnalysisOutlierAnomalyPanel.class.getName() + ".";
+    private static final String OP_LOAD_DETECTED_ANOMALIES = DOT_CLASS + "loadDetectedAnomalies";
+    private static final String OP_RESOLVE_SESSION_NAME = DOT_CLASS + "resolveSessionName";
 
     public RoleAnalysisOutlierAnomalyPanel(String id, ObjectDetailsModels<RoleAnalysisOutlierType> model,
             ContainerPanelConfigurationType config) {
@@ -129,11 +132,6 @@ public class RoleAnalysisOutlierAnomalyPanel extends AbstractObjectMainPanel<Rol
     }
 
     protected List<ITab> createPartitionTabs(RoleAnalysisOutlierType outlier) {
-        PageBase pageBase = getPageBase();
-        RoleAnalysisService roleAnalysisService = pageBase.getRoleAnalysisService();
-        Task task = getPageBase().createSimpleTask("loadPartitionTabsDetails");
-        OperationResult result = task.getResult();
-
         List<ITab> tabs = new ArrayList<>();
         tabs.add(new PanelTab(getPageBase().createStringResource("RoleAnalysisOutlierAnomalyPanel.all.access.anomaly.tab.title"), new VisibleEnableBehaviour()) {
 
@@ -141,8 +139,11 @@ public class RoleAnalysisOutlierAnomalyPanel extends AbstractObjectMainPanel<Rol
 
             @Override
             public WebMarkupContainer createPanel(String panelId) {
+
+                Task task = getPageBase().createSimpleTask(OP_LOAD_DETECTED_ANOMALIES);
+                OperationResult result = task.getResult();
                 AnomalyObjectDto dto = new AnomalyObjectDto(
-                        roleAnalysisService, outlier, null, true, task, result);
+                        getPageBase().getRoleAnalysisService(), outlier, null, true, task, result);
                 RoleAnalysisDetectedAnomalyTable detectedAnomalyTable = new RoleAnalysisDetectedAnomalyTable(panelId, Model.of(dto));
                 detectedAnomalyTable.setOutputMarkupId(true);
                 return detectedAnomalyTable;
@@ -155,7 +156,9 @@ public class RoleAnalysisOutlierAnomalyPanel extends AbstractObjectMainPanel<Rol
             ObjectReferenceType targetSessionRef = partition.getTargetSessionRef();
             PolyStringType targetName = partition.getTargetSessionRef().getTargetName();
             String partitionName;
+            //TODO rework so the partition is get with names resolved
             if (targetName == null) {
+                Task task = getPageBase().createSimpleTask(OP_RESOLVE_SESSION_NAME);
                 partitionName = WebModelServiceUtils.resolveReferenceName(targetSessionRef, getPageBase(), task, task.getResult());
             } else {
                 partitionName = targetName.toString();
@@ -167,8 +170,10 @@ public class RoleAnalysisOutlierAnomalyPanel extends AbstractObjectMainPanel<Rol
 
                 @Override
                 public WebMarkupContainer createPanel(String panelId) {
+                    Task task = getPageBase().createSimpleTask(OP_LOAD_DETECTED_ANOMALIES);
+                    OperationResult result = task.getResult();
                     AnomalyObjectDto dto = new AnomalyObjectDto(
-                            roleAnalysisService, outlier, partition, false, task, result);
+                            getPageBase().getRoleAnalysisService(), outlier, partition, false, task, result);
                     RoleAnalysisDetectedAnomalyTable detectedAnomalyTable = new RoleAnalysisDetectedAnomalyTable(panelId, Model.of(dto));
                     detectedAnomalyTable.setOutputMarkupId(true);
                     return detectedAnomalyTable;

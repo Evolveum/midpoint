@@ -1399,7 +1399,8 @@ NOTE: For preparation of queries use names in the Item name column.
 |===
 | Item Name | Display Name +
 (GUI Name) | Item Type | Inherited from | Note
-| lastLoginTimestamp | Last Login | xsd:dateTime
+
+| lastLoginTimestamp | Last Login | xsd:dateTime | |
 |===
 
 [#_simulationdefinitiontype]
