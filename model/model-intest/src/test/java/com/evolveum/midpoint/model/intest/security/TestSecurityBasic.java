@@ -3797,6 +3797,59 @@ public class TestSecurityBasic extends AbstractInitializedSecurityTest {
         }
     }
 
+    /**
+     * Tests searching for abstract roles (roles and services) with limited authorizations: The `riskLevel` search
+     * is authorized only for services.
+     *
+     * MID-10206
+     */
+    @Test
+    public void test500SearchForAbstractRolesWithLimitedAuthorizations() throws Exception {
+        var task = getTestTask();
+        var result = task.getResult();
+
+        given();
+        cleanupAutzTest(USER_JACK_OID);
+        assignRole(USER_JACK_OID, ROLE_LIMITED_ROLE_SEARCH.oid);
+        login(USER_JACK_USERNAME);
+
+        when("using simple riskLevel='low' query");
+
+        var query = queryFor(AbstractRoleType.class)
+                .item(AbstractRoleType.F_RISK_LEVEL).eq("low")
+                .build();
+
+        then("authorizations are correctly applied");
+
+        // There's no authorization for searching by riskLevel on RoleType -> no results
+        assertSearch(RoleType.class, query, 0);
+
+        // There is an authorization for searching by riskLevel on ServiceType -> one result
+        assertSearch(ServiceType.class, query, SERVICE_RISK_LOW.oid);
+
+        // This does not work for now: we should deny the search for AbstractRoleType.
+        // Unfortunately, it passes now.
+        //assertSearch(AbstractRoleType.class, query, 0);
+
+        when("using OR-style query for roles and services separately");
+
+        var query2 = queryFor(AbstractRoleType.class)
+                .type(RoleType.COMPLEX_TYPE)
+                .item(RoleType.F_RISK_LEVEL).eq("low")
+                .or()
+                .type(ServiceType.COMPLEX_TYPE)
+                .item(ServiceType.F_RISK_LEVEL).eq("low")
+                .build();
+
+        then("the query is forbidden to execute on any type");
+
+        // The query asks for RoleType:riskLevel, so it cannot be executed (even on ServiceType)
+
+        assertSearch(AbstractRoleType.class, query2, 0);
+        assertSearch(RoleType.class, query2, 0);
+        assertSearch(ServiceType.class, query2, 0);
+    }
+
     @SuppressWarnings("SameParameterValue")
     private void assertTaskAddAllow(String oid, String name, String ownerOid, String handlerUri) throws Exception {
         assertAllow("add task " + name,

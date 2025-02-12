@@ -97,7 +97,6 @@ public class PageTasks extends PageAdmin {
                 return UserProfileStorage.TableId.TABLE_TASKS;
             }
         };
-        tablePanel.setRootTasksOnly(true);
         add(tablePanel);
     }
 
@@ -113,7 +112,7 @@ public class PageTasks extends PageAdmin {
     }
 
     private void addCustomColumns(List<IColumn<SelectableBean<TaskType>, String>> columns) {
-        columns.add(2, new ObjectReferenceColumn<>(createStringResource("pageTasks.task.objectRef"), SelectableBeanImpl.F_VALUE + "." + TaskType.F_OBJECT_REF.getLocalPart()) {
+        columns.add(0, new ObjectReferenceColumn<>(createStringResource("pageTasks.task.objectRef"), SelectableBeanImpl.F_VALUE + "." + TaskType.F_OBJECT_REF.getLocalPart()) {
             @Serial private static final long serialVersionUID = 1L;
 
             @Override
@@ -124,63 +123,6 @@ public class PageTasks extends PageAdmin {
                     objectRef.asReferenceValue().clearParent();
                 }
                 return Model.ofList(Collections.singletonList(objectRef));
-
-            }
-        });
-        columns.add(4, new AbstractExportableColumn<>(createStringResource("pageTasks.task.currentRunTime"), TaskType.F_COMPLETION_TIMESTAMP.getLocalPart()) {
-            @Serial private static final long serialVersionUID = 1L;
-
-            @Override
-            public void populateItem(final Item<ICellPopulator<SelectableBean<TaskType>>> item, final String componentId,
-                    final IModel<SelectableBean<TaskType>> rowModel) {
-
-                DateLabelComponent dateLabel = new DateLabelComponent(
-                        componentId,
-                        () -> getCurrentRuntime(rowModel),
-                        WebComponentUtil.getShortDateTimeFormat(PageTasks.this));
-                dateLabel.customizeDateString((dateAsString, date) -> {
-                    SelectableBean<TaskType> task = rowModel.getObject();
-                    String prefix;
-                    if (task.getValue().getExecutionState() == TaskExecutionStateType.CLOSED) {
-                        prefix = getString("pageTasks.task.closedAt") + " ";
-                    } else {
-                        prefix = WebComponentUtil.formatDurationWordsForLocal(
-                                date.getTime(), true, true);
-                    }
-                    return prefix + dateAsString;
-                });
-                item.add(dateLabel);
-            }
-
-            @Override
-            public IModel<String> getDataModel(IModel<SelectableBean<TaskType>> rowModel) {
-                SelectableBean<TaskType> task = rowModel.getObject();
-                Date date = getCurrentRuntime(rowModel);
-                String displayValue = "";
-                if (date != null) {
-                    if (task.getValue().getExecutionState() == TaskExecutionStateType.CLOSED) {
-                        displayValue =
-                                createStringResource("pageTasks.task.closedAt").getString() +
-                                        WebComponentUtil.getShortDateTimeFormattedValue(date, PageTasks.this);
-                    } else {
-                        displayValue = WebComponentUtil.formatDurationWordsForLocal(date.getTime(), true, true);
-                    }
-                }
-                return Model.of(displayValue);
-            }
-        });
-        columns.add(5, new AbstractExportableColumn<>(createStringResource("pageTasks.task.scheduledToRunAgain")) {
-            @Serial private static final long serialVersionUID = 1L;
-
-            @Override
-            public void populateItem(Item<ICellPopulator<SelectableBean<TaskType>>> item, String componentId,
-                    final IModel<SelectableBean<TaskType>> rowModel) {
-                item.add(new Label(componentId, () -> createScheduledToRunAgain(rowModel)));
-            }
-
-            @Override
-            public IModel<String> getDataModel(IModel<SelectableBean<TaskType>> rowModel) {
-                return Model.of(createScheduledToRunAgain(rowModel));
             }
         });
     }
@@ -215,14 +157,6 @@ public class PageTasks extends PageAdmin {
 
     public Long getCompletionTimestamp(TaskType taskType) {
         return xgc2long(taskType.getCompletionTimestamp());
-    }
-
-    private String createScheduledToRunAgain(IModel<SelectableBean<TaskType>> taskModel) {
-        List<Object> localizationObjects = new ArrayList<>();
-        String key = TaskTypeUtil.createScheduledToRunAgain(taskModel.getObject().getValue(), localizationObjects);
-
-        return PageBase.createStringResourceStatic(key, localizationObjects.isEmpty() ? null : localizationObjects.toArray())
-                .getString();
     }
 
     private Long xgc2long(XMLGregorianCalendar gc) {

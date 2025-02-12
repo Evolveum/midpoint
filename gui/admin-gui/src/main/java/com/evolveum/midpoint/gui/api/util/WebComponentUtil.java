@@ -841,20 +841,6 @@ public final class WebComponentUtil {
         };
     }
 
-    /**
-     * Simulates task category using task archetype.
-     */
-    @Experimental
-    public static IModel<String> createSimulatedCategoryNameModel(final Component component,
-            final IModel<SelectableBean<TaskType>> taskModel) {
-        return () -> {
-            PageBase pageBase = getPageBase(component);
-            TaskType task = taskModel.getObject().getValue();
-            DisplayType display = GuiDisplayTypeUtil.getArchetypePolicyDisplayType(task, pageBase);
-            return getTranslatedLabel(display);
-        };
-    }
-
     @Experimental
     private static String getTranslatedLabel(DisplayType display) {
         if (display == null) {
