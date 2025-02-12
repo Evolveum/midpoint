@@ -177,6 +177,7 @@ public abstract class AbstractInitializedSecurityTest extends AbstractInitialize
     protected static final TestObject<RoleType> ROLE_ROLE_OWNER_FULL_CONTROL = TestObject.file(TEST_DIR, "role-role-owner-full-control.xml", "9c6e597e-dbd7-11e5-a538-97834c1cd5ba");
     protected static final TestObject<RoleType> ROLE_ROLE_OWNER_ASSIGN = TestObject.file(TEST_DIR, "role-role-owner-assign.xml", "91b9e546-ded6-11e5-9e87-171d047c57d1");
     protected static final TestObject<RoleType> ROLE_LIMITED_ROLE_SEARCH = TestObject.file(TEST_DIR, "role-limited-role-search.xml", "e23d96ec-7a73-4815-9abd-f49fc4726111");
+    protected static final TestObject<RoleType> ROLE_INTERFERING_AUTHORIZATIONS = TestObject.file(TEST_DIR, "role-interfering-authorizations.xml", "3130b6be-46c3-421f-9642-c7aa0d72e0a9");
 
     protected static final TestObject<RoleType> ROLE_RISK_LOW = TestObject.file(TEST_DIR, "role-risk-low.xml", "730a4aea-5f62-46a3-a871-57137c7abaf2");
     protected static final TestObject<RoleType> SERVICE_RISK_LOW = TestObject.file(TEST_DIR, "service-risk-low.xml", "9499c0e2-f920-4a17-81e6-2a5dee7b6574");
@@ -212,7 +213,7 @@ public abstract class AbstractInitializedSecurityTest extends AbstractInitialize
     protected static final XMLGregorianCalendar JACK_VALID_TO_LONG_AHEAD = XmlTypeConverter.createXMLGregorianCalendar(10000000000000L);
 
     protected static final int NUMBER_OF_ALL_USERS = 13;
-    protected static final int NUMBER_OF_IMPORTED_ROLES = 82;
+    protected static final int NUMBER_OF_IMPORTED_ROLES = 83;
     protected static final int NUMBER_OF_ALL_ORGS = 11;
 
     protected String userRumRogersOid;
@@ -323,6 +324,7 @@ public abstract class AbstractInitializedSecurityTest extends AbstractInitialize
         repoAdd(ROLE_ROLE_OWNER_FULL_CONTROL, initResult);
         repoAdd(ROLE_ROLE_OWNER_ASSIGN, initResult);
         repoAdd(ROLE_LIMITED_ROLE_SEARCH, initResult);
+        repoAdd(ROLE_INTERFERING_AUTHORIZATIONS, initResult);
 
         repoAdd(ROLE_RISK_LOW, initResult);
         repoAdd(SERVICE_RISK_LOW, initResult);

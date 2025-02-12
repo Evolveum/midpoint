@@ -3805,9 +3805,6 @@ public class TestSecurityBasic extends AbstractInitializedSecurityTest {
      */
     @Test
     public void test500SearchForAbstractRolesWithLimitedAuthorizations() throws Exception {
-        var task = getTestTask();
-        var result = task.getResult();
-
         given();
         cleanupAutzTest(USER_JACK_OID);
         assignRole(USER_JACK_OID, ROLE_LIMITED_ROLE_SEARCH.oid);
@@ -3848,6 +3845,31 @@ public class TestSecurityBasic extends AbstractInitializedSecurityTest {
         assertSearch(AbstractRoleType.class, query2, 0);
         assertSearch(RoleType.class, query2, 0);
         assertSearch(ServiceType.class, query2, 0);
+    }
+
+    /**
+     * There is a item-limited role search authorization in `role-limited-role-search`.
+     * However, other (at first sight unrelated) authorizations in `role-interfering-authorizations` interfere with it.
+     *
+     * MID-10438
+     */
+    @Test
+    public void test510SearchByItemsWithInterferingAuthorizations() throws Exception {
+        given();
+        cleanupAutzTest(USER_JACK_OID);
+        assignRole(USER_JACK_OID, ROLE_LIMITED_ROLE_SEARCH.oid);
+        assignRole(USER_JACK_OID, ROLE_INTERFERING_AUTHORIZATIONS.oid);
+        login(USER_JACK_USERNAME);
+
+        when("using simple riskLevel='low' query");
+
+        var query = queryFor(AbstractRoleType.class)
+                .item(AbstractRoleType.F_RISK_LEVEL).eq("low")
+                .build();
+
+        then("authorizations are correctly applied");
+
+        assertSearch(RoleType.class, query, 0);
     }
 
     @SuppressWarnings("SameParameterValue")
