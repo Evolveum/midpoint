@@ -81,13 +81,25 @@ It is only partially implemented.
 
 == Object details
 
-Object details configuration influences the look and feel of the pages for creating and editing object. MidPoint comes with default panels and default pre-defined configuration for each object available to edit and create in GUI. It is basic configuration which might be adjusted according to customer's needs. Custom configuration defined by customer is merged with default pre-defined configuration according to the rules described in _How it works_.
+Object details configuration influences the look and feel of the pages for creating and editing object.
+Default settings can be configured within object details set type to be applied to all details pages within midPoint.
+To learn more about default object details configuration, see chapter xref:#_object_details_default_settings[Object details default settings].
 
-Comparing the behavior before 4.4, there is a change in merging mechanism. Before 4.4 if any customization was made, it meant that the default configuration wasn't taken into the account while displaying the corresponding page. Since 4.4 this behavior was changed, so any custom configuration is additional to one coming with midPoint by default. If the behavior or settings of the default panel needs to be changed, it is done with adjusting such configuration. To be able to adjust and override default configuration the `identifier` have to be specified and correctly used.
+MidPoint comes with default panels and default pre-defined configuration for each object available to edit and create in GUI.
+It is basic configuration which might be adjusted according to customer's needs.
+Custom configuration defined by customer is merged with default pre-defined configuration according to the rules described in _How it works_.
 
-Every configurable feature containing `identifier` requires to have the identifier filled in. According to the identifier, configurations for same feature are merged. There are system defined default identifiers used for default panels which can be used to override behavior of default panels, e.g. visibility, virtual sections, etc.
+Comparing the behavior before 4.4, there is a change in merging mechanism.
+Before 4.4 if any customization was made, it meant that the default configuration wasn't taken into the account while displaying the corresponding page.
+Since 4.4 this behavior was changed, so any custom configuration is additional to one coming with midPoint by default.
+If the behavior or settings of the default panel needs to be changed, it is done with adjusting such configuration.
+To be able to adjust and override default configuration the `identifier` have to be specified and correctly used.
 
-Basis structure for object details configuration is:
+Every configurable feature containing `identifier` requires to have the identifier filled in.
+According to the identifier, configurations for same feature are merged.
+There are system defined default identifiers used for default panels which can be used to override behavior of default panels, e.g. visibility, virtual sections, etc.
+
+Basis structure for object details page configuration is:
 
 * `*type*`: Defines for which type is the configuration used.
 
@@ -96,6 +108,18 @@ Basis structure for object details configuration is:
 * `*saveMethod*`: Specifies the method how page save/preview buttons are shown and processed. Only few options are supported and might be changed in the future.
 
 * `*panel*`: Definition of individual panels which will be used on details page. According to the panel definition, also link in the detail menu to corresponding panel is generated. One panel can be nested to another. In such a case, link in the detail navigation menu will be shown as a submenu under the link of the parent panel.
+
+[#_object_details_default_settings]
+=== Object details default settings
+
+Default settings are aimed to easily apply some common configuration to all details pages within midPoint.
+For the moment, only '_paging_' and '_pagingOptions_' configuration is available.
+'_paging_' configuration is intended to be used while querying on the list view panels.
+'_pagingOptions_' configuration defines a set of the available page sizes for the list view panel with a possibility to set the default page size.
+
+TODO table here
+
+All default settings can be overridden in the concrete object details page configuration.
 
 === Panel configuration
 
