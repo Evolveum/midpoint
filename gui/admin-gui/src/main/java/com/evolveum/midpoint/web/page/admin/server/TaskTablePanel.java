@@ -261,8 +261,23 @@ public abstract class TaskTablePanel extends MainObjectListPanel<TaskType> {
         columns.add(createErrorsColumn());
         columns.add(createTaskStatusIconColumn());
 
-        return columns;
+//        columns.add(createStatusColumn());
 
+        return columns;
+    }
+
+    private AbstractExportableColumn<SelectableBean<TaskType>, String> createStatusColumn() {
+        return new AbstractExportableColumn<>(createStringResource("pageTasks.task.status")) {
+            @Override
+            public IModel<?> getDataModel(IModel<SelectableBean<TaskType>> rowModel) {
+                return Model.of("asdf");
+            }
+
+            @Override
+            protected Component createDisplayComponent(String componentId, IModel<?> dataModel) {
+                return new TaskProgressPanel(componentId, Model.of(new TaskProgress()));
+            }
+        };
     }
 
     private AbstractExportableColumn<SelectableBean<TaskType>, String> createTaskExecutionStateColumn() {
