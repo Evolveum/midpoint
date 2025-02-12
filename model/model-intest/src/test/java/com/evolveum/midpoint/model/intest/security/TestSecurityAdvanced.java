@@ -824,9 +824,7 @@ public class TestSecurityAdvanced extends AbstractInitializedSecurityTest {
         // allow read, so no users are returned
         assertSearch(UserType.class, null, 0);
 
-        assertSearch(UserType.class, createMembersQuery(UserType.class, ROLE_APPROVER_UNASSIGN_ROLES.oid), 0);
-
-        // list approver role members, this is not allowed (taken out from assert15xCommon, see comment there)
+        // list approver role members, this is not allowed
         assertSearch(UserType.class, createMembersQuery(UserType.class, ROLE_APPROVER_UNASSIGN_ROLES.oid), 0);
         assertSearch(FocusType.class, createMembersQuery(FocusType.class, ROLE_APPROVER_UNASSIGN_ROLES.oid), 0);
 
@@ -866,6 +864,42 @@ public class TestSecurityAdvanced extends AbstractInitializedSecurityTest {
 
         // The appr-read-users authorization is maySkipOnSearch and the readonly role allows read.
         assertSearch(UserType.class, null, NUMBER_OF_ALL_USERS);
+
+        // Listing role members for role which I am not an approver for: this was not allowed in 4.8 and earlier, but after
+        // commit 60928672b8e51946edf01fcbe0d253e4ae65c4cf it is allowed.
+        //
+        // The explanation:
+        //
+        // - role-read-basic-items allows searching for name and description of all objects (including users).
+        // - role-approver-unassign-roles allows searching for roles by ALL items, but only for selected roles (those that
+        // the current user is an approver of).
+        //
+        // Normally, when you have two applicable search authorizations (each with or without restriction on objects found),
+        // the "items" part of the authorizations is combined.
+        //
+        // There was an exception in 4.8 and before: "Items" part of an authorization that yielded NONE filter
+        // (or was not applicable for the search) was ignored.
+        //
+        // Since 4.9, there is no such exception. One of the reasons is efficiency: we don't want to compute the filter for all
+        // authorizations, just to check if it is NONE or not applicable. In 4.8, we evaluated only authorizations related
+        // to the type being searched for. But since 4.9, we must evaluate all authorizations, because of the improvements in
+        // handling search item restrictions, see MID-9670.
+        //
+        // Note that having search authorizations yielding NONE filter should be quite rare. Explicit NONE filter in such
+        // authorization makes no sense. But it can happen indirectly: Typical examples are orgRelation, roleRelation,
+        // or filter with expressions. However, the list of selectors making an authorization not applicable is much more
+        // broader. It often happens when having e.g. #search authorization with a clause that IMPLICITLY restricts types
+        // it can be applied to (like "owner" clause that applies only to tasks and abstract roles, or "requester" clause that
+        // applies only to cases, and so on). Since 4.9, #search authorization with such clause would provide allowed items for
+        // all object types.
+        //
+        // See MID-10438 and TestSecurityBasic.test510SearchByItemsWithInterferingAuthorizations.
+        //
+        // The mitigation (for the majority of cases) is to specify <type> explicitly in each selector (like type=CaseType for
+        // "approver" clause). That would make the current code see that the particular authorization should be ignored
+        // when looking for unrelated types, e.g. users or roles.
+        assertSearch(UserType.class, createMembersQuery(UserType.class, ROLE_APPROVER_UNASSIGN_ROLES.oid), 1);
+        assertSearch(FocusType.class, createMembersQuery(FocusType.class, ROLE_APPROVER_UNASSIGN_ROLES.oid), 1);
 
         assert15xCommon();
     }
@@ -1117,14 +1151,6 @@ public class TestSecurityAdvanced extends AbstractInitializedSecurityTest {
         // list ordinary role members, this is allowed
         assertSearch(UserType.class, createMembersQuery(UserType.class, ROLE_ORDINARY.oid), 2);
         assertSearch(FocusType.class, createMembersQuery(FocusType.class, ROLE_ORDINARY.oid), 2);
-
-        // list approver role members, this is not allowed
-        // TEMPORARILY DISABLED because failing in test151. The reason is that role-read-basic-items allows searching
-        // for name and description of all objects (including users). The role-approver-unassign-roles does NOT generally
-        // prevent from searching by roleMembershipRef (after this commit), because the content-related selector clauses
-        // (roleRelation, in this case) are not evaluated when search items are considered.
-        //assertSearch(UserType.class, createMembersQuery(UserType.class, ROLE_APPROVER_UNASSIGN_ROLES.oid), 0);
-        //assertSearch(FocusType.class, createMembersQuery(FocusType.class, ROLE_APPROVER_UNASSIGN_ROLES.oid), 0);
 
         assertAllow("unassign ordinary role from cobb",
                 (task, result) -> unassignRole(userCobbOid, ROLE_ORDINARY.oid, task, result));
