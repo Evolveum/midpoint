@@ -97,6 +97,9 @@ xref:/midpoint/reference/interfaces/rest/concepts/using-rest-examples.adoc[How t
 include::../../rest/operations/examples/raw/modify-attr-user.adoc[]
 include::../../rest/operations/examples/raw/modify-attr.adoc[]
 
+include::../../rest/operations/examples/raw/modify-attr-user-op-reconcile.adoc[]
+include::../../rest/operations/examples/raw/modify-attr-empty.adoc[]
+
 == See Also
 
 - xref:/midpoint/reference/interfaces/rest/concepts/media-types-rest/[Supported Media Types]
