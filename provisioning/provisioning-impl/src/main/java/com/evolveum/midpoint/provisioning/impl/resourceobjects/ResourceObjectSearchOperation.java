@@ -44,6 +44,8 @@ class ResourceObjectSearchOperation {
 
     @NotNull private final ProvisioningContext ctx;
 
+    private static final String OP_HANDLE_OBJECT_FOUND = ResourceObjectSearchOperation.class.getName() + ".handleObjectFound";
+
     @NotNull private final ResourceObjectHandler resultHandler;
 
     /** Query as requested by the client. */
@@ -175,7 +177,7 @@ class ResourceObjectSearchOperation {
             Task task = ctx.getTask();
             try {
                 OperationResult objResult = parentResult
-                        .subresult(OperationConstants.OPERATION_SEARCH_RESULT)
+                        .subresult(OP_HANDLE_OBJECT_FOUND)
                         .setMinor()
                         .addParam("number", objectNumber)
                         .addArbitraryObjectAsParam("primaryIdentifierValue", ucfObject.getPrimaryIdentifierValue())

@@ -552,10 +552,12 @@ public class TestSystemPerformance extends AbstractStoryTest implements Performa
         taskExecutionDenormalizedReportSection
                 .addRow(ListUtils.union(summaryReportDataRow, dataRow).toArray());
 
-        TestReportUtil.reportTaskOperationPerformance(testMonitor(), desc, taskAfter.asObjectable(),
-                numberOfAccounts, executionTimeSeconds);
-        TestReportUtil.reportTaskRepositoryPerformance(testMonitor(), desc, taskAfter.asObjectable(),
-                numberOfAccounts, executionTimeSeconds);
+        TestReportUtil.reportTaskOperationPerformance(
+                testMonitor(), desc, taskAfter.asObjectable(), numberOfAccounts, executionTimeSeconds);
+        TestReportUtil.reportTaskComponentPerformance(
+                testMonitor(), desc, taskAfter.asObjectable(), numberOfAccounts);
+        TestReportUtil.reportTaskRepositoryPerformance(
+                testMonitor(), desc, taskAfter.asObjectable(), numberOfAccounts, executionTimeSeconds);
         TestReportUtil.reportTaskCachesPerformance(testMonitor(), desc, taskAfter.asObjectable());
         TestReportUtil.reportTaskProvisioningStatistics(testMonitor(), desc, taskAfter.asObjectable());
     }
