@@ -1,0 +1,12 @@
+:page-visibility: hidden
+:page-upkeep-status: green
+
+.*Modification with empty delta and execution of reconciliation*
+[source,bash]
+----
+curl --user administrator:y0uR_P455woR*d \
+-H "Content-Type: application/json" \
+-X PATCH http://localhost:8080/midpoint/ws/rest/users/00000000-0000-0000-0000-000000000002?options=reconcile \
+-v \
+--data-binary @./samples/rest/delta-empty.json
+----
