@@ -8,9 +8,8 @@ package com.evolveum.midpoint.schema.result;
 
 public class OperationConstants {
 
-    public static final String PREFIX = "com.evolveum.midpoint.common.operation";
+    private static final String PREFIX = "com.evolveum.midpoint.common.operation";
 
     public static final String LIVE_SYNC_STATISTICS = PREFIX + ".liveSync.statistics";
     public static final String IMPORT_OBJECT = PREFIX + ".import.object";
-    public static final String OPERATION_SEARCH_RESULT = "com.evolveum.midpoint.schema.result.searchResult";
 }

@@ -116,6 +116,9 @@ public class ProvisioningServiceImpl implements ProvisioningService, SystemConfi
     private static final String OP_TEST_RESOURCE = ProvisioningService.class.getName() + ".testResource";
 
     private static final String OP_GET_NATIVE_CAPABILITIES = ProvisioningService.class.getName() + ".getNativeCapabilities";
+    private static final String OP_INITIALIZE = ProvisioningService.class.getName() + ".initialize";
+    public static final String OP_DISCOVER_CONNECTORS = ProvisioningService.class.getName()
+            + ".discoverConnectors";
 
     @Autowired ShadowsFacade shadowsFacade;
     @Autowired ResourceManager resourceManager;
@@ -766,22 +769,22 @@ public class ProvisioningServiceImpl implements ProvisioningService, SystemConfi
     @Override
     public Set<ConnectorType> discoverConnectors(ConnectorHostType hostType, OperationResult parentResult)
             throws CommunicationException {
-        OperationResult result = parentResult.createSubresult(ProvisioningService.class.getName()
-                + ".discoverConnectors");
-        result.addParam("host", hostType);
-        result.addContext(OperationResult.CONTEXT_IMPLEMENTATION_CLASS, ProvisioningServiceImpl.class);
-
-        Set<ConnectorType> discoverConnectors;
+        OperationResult result = parentResult.subresult(OP_DISCOVER_CONNECTORS)
+                .addParam("host", hostType)
+                .addContext(OperationResult.CONTEXT_IMPLEMENTATION_CLASS, ProvisioningServiceImpl.class)
+                .build();
         try {
-            discoverConnectors = connectorManager.discoverConnectors(hostType, result);
+            return connectorManager.discoverConnectors(hostType, result);
         } catch (CommunicationException ex) {
             ProvisioningUtil.recordFatalErrorWhileRethrowing(LOGGER, result, "Discovery failed: " + ex.getMessage(), ex);
             throw ex;
+        } catch (Throwable t) {
+            result.recordException(t);
+            throw t;
+        } finally {
+            result.close();
+            result.cleanup();
         }
-
-        result.computeStatus("Connector discovery failed");
-        result.cleanupResult();
-        return discoverConnectors;
     }
 
     @Override
@@ -973,17 +976,21 @@ public class ProvisioningServiceImpl implements ProvisioningService, SystemConfi
     @Override
     public void postInit(OperationResult parentResult) {
 
-        OperationResult result = parentResult.createSubresult(ProvisioningService.class.getName() + ".initialize");
-        result.addContext(OperationResult.CONTEXT_IMPLEMENTATION_CLASS, ProvisioningServiceImpl.class);
-
-        // Discover local connectors
-        Set<ConnectorType> discoverLocalConnectors = connectorManager.discoverLocalConnectors(result);
-        for (ConnectorType connector : discoverLocalConnectors) {
-            LOGGER.info("Discovered local connector {}", ObjectTypeUtil.toShortString(connector));
+        OperationResult result = parentResult.subresult(OP_INITIALIZE)
+                .addContext(OperationResult.CONTEXT_IMPLEMENTATION_CLASS, ProvisioningServiceImpl.class)
+                .build();
+        try {
+            Set<ConnectorType> discoveredConnectors = connectorManager.discoverLocalConnectors(result);
+            for (ConnectorType connector : discoveredConnectors) {
+                LOGGER.info("Discovered local connector {}", ObjectTypeUtil.toShortString(connector));
+            }
+        } catch (Throwable t) {
+            result.recordException(t);
+            throw t;
+        } finally {
+            result.close();
+            result.cleanup();
         }
-
-        result.computeStatus("Provisioning post-initialization failed");
-        result.cleanupResult();
     }
 
     @PostConstruct

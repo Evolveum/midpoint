@@ -44,6 +44,8 @@ class ResourceObjectSearchOperation extends AbstractResourceObjectRetrievalOpera
 
     private static final Trace LOGGER = TraceManager.getTrace(ResourceObjectSearchOperation.class);
 
+    private static final String OP_HANDLE_OBJECT_FOUND = ResourceObjectSearchOperation.class.getName() + ".handleObjectFound";
+
     @NotNull private final ResourceObjectHandler resultHandler;
 
     /** Query with delineation applied. */
@@ -205,7 +207,7 @@ class ResourceObjectSearchOperation extends AbstractResourceObjectRetrievalOpera
 
             try {
                 OperationResult objResult = parentResult
-                        .subresult(OperationConstants.OPERATION_SEARCH_RESULT)
+                        .subresult(OP_HANDLE_OBJECT_FOUND)
                         .setMinor()
                         .addParam("number", objectNumber)
                         .addArbitraryObjectAsParam("primaryIdentifierValue", ucfObject.getPrimaryIdentifierValue())

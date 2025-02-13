@@ -256,6 +256,7 @@ public class OperationResult
     private Long start;
     private Long end;
     private Long microseconds;
+    private Long ownMicroseconds;
     private Long cpuMicroseconds;
     private Long invocationId;
 
@@ -497,8 +498,10 @@ public class OperationResult
             // This is not quite clean. We should report the exception via processException method - but that does not allow
             // showing return values that can be present in operation result. So this is a hack until InvocationRecord is fixed.
             invocationRecord.processReturnValue(getReturns(), cause);
-            invocationRecord.afterCall();
+            invocationRecord.afterCall(
+                    computeNotOwnTimeMicros());
             microseconds = invocationRecord.getElapsedTimeMicros();
+            ownMicroseconds = invocationRecord.getOwnTimeMicros();
             cpuMicroseconds = invocationRecord.getCpuTimeMicros();
             if (collectingLogEntries) {
                 logRecorder.close();
@@ -514,6 +517,14 @@ public class OperationResult
         if (executedMonitoredOperationsAtStart != null) {
             stopOperationMonitoring();
         }
+    }
+
+    private long computeNotOwnTimeMicros() {
+        long total = 0;
+        for (OperationResult subresult : getSubresults()) {
+            total += or0(subresult.getMicroseconds());
+        }
+        return total;
     }
 
     /**
@@ -2021,6 +2032,7 @@ public class OperationResult
             result.setEnd(XmlTypeConverter.toMillis(bean.getEnd()));
         }
         result.setMicroseconds(bean.getMicroseconds());
+        result.setOwnMicroseconds(bean.getOwnMicroseconds());
         result.setCpuMicroseconds(bean.getCpuMicroseconds());
         result.setInvocationId(bean.getInvocationId());
         result.logSegments.addAll(bean.getLog());
@@ -2125,6 +2137,7 @@ public class OperationResult
         bean.setStart(XmlTypeConverter.createXMLGregorianCalendar(opResult.start));
         bean.setEnd(XmlTypeConverter.createXMLGregorianCalendar(opResult.end));
         bean.setMicroseconds(opResult.microseconds);
+        bean.setOwnMicroseconds(opResult.ownMicroseconds);
         bean.setCpuMicroseconds(opResult.cpuMicroseconds);
         bean.setInvocationId(opResult.invocationId);
         bean.getLog().addAll(opResult.logSegments); // consider cloning here
@@ -2837,6 +2850,14 @@ public class OperationResult
 
     public void setMicroseconds(Long microseconds) {
         this.microseconds = microseconds;
+    }
+
+    public Long getOwnMicroseconds() {
+        return ownMicroseconds;
+    }
+
+    public void setOwnMicroseconds(Long ownMicroseconds) {
+        this.ownMicroseconds = ownMicroseconds;
     }
 
     public Long getCpuMicroseconds() {
