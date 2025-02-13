@@ -1136,6 +1136,7 @@
                     <availablePageSize>10</availablePageSize>
                     <availablePageSize>20</availablePageSize>
                     <availablePageSize>50</availablePageSize>
+                    <availablePageSize>100</availablePageSize>
                 </pagingOptions>
             </defaultSettings>
             <objectDetailsPage id="83">
