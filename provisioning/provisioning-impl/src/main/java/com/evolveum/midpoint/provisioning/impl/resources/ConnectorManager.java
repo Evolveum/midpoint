@@ -422,16 +422,13 @@ public class ConnectorManager implements Cache, ConnectorDiscoveryListener {
         return connectorWithSchema;
     }
 
-    public Set<ConnectorType> discoverLocalConnectors(OperationResult parentResult) {
+    public Set<ConnectorType> discoverLocalConnectors(OperationResult result) {
         try {
             // Postpone discovery
-            inactivateLocalConnectors(parentResult);
-            //
-            return discoverConnectors(null, parentResult);
+            inactivateLocalConnectors(result);
+            return discoverConnectors(null, result);
         } catch (CommunicationException e) {
-            // This should never happen as no remote operation is executed
-            // convert to runtime exception and record in result.
-            parentResult.recordFatalError("Unexpected error: " + e.getMessage(), e);
+            // This should never happen as no remote operation is executed -> convert to runtime exception
             throw new SystemException("Unexpected error: " + e.getMessage(), e);
         }
     }
@@ -449,68 +446,70 @@ public class ConnectorManager implements Cache, ConnectorDiscoveryListener {
     public Set<ConnectorType> discoverConnectors(ConnectorHostType hostType, OperationResult parentResult)
             throws CommunicationException {
 
-        OperationResult result = parentResult.createSubresult(ConnectorManager.class.getName() + ".discoverConnectors");
-        result.addParam("host", hostType);
-
-        // Make sure that the provided host has an OID.
-        // We need the host to have OID, so we can properly link connectors to
-        // it
-        if (hostType != null && hostType.getOid() == null) {
-            throw new SystemException("Discovery attempt with non-persistent " + hostType);
-        }
-
         Set<ConnectorType> discoveredConnectors = new HashSet<>();
 
-        for (ConnectorFactory connectorFactory: getConnectorFactories()) {
+        OperationResult result = parentResult.createSubresult(ConnectorManager.class.getName() + ".discoverConnectors");
+        result.addParam("host", hostType);
+        try {
 
-            Set<ConnectorType> foundConnectors;
-            try {
-
-                foundConnectors = connectorFactory.listConnectors(hostType, result);
-
-            } catch (CommunicationException ex) {
-                result.recordFatalError("Discovery failed: " + ex.getMessage(), ex);
-                throw new CommunicationException("Discovery failed: " + ex.getMessage(), ex);
+            // Make sure that the provided host has an OID.
+            // We need the host to have OID, so we can properly link connectors to
+            // it
+            if (hostType != null && hostType.getOid() == null) {
+                throw new SystemException("Discovery attempt with non-persistent " + hostType);
             }
 
-            if (foundConnectors == null) {
-                LOGGER.trace("Connector factory {} discovered null connectors, skipping", connectorFactory);
-                continue;
-            }
+            for (ConnectorFactory connectorFactory : getConnectorFactories()) {
 
-            if (LOGGER.isTraceEnabled()) {
-                LOGGER.trace("Got {} connectors from {}: {}", foundConnectors.size(), hostType, foundConnectors );
-            }
+                Set<ConnectorType> foundConnectors;
+                try {
+                    foundConnectors = connectorFactory.listConnectors(hostType, result);
+                } catch (CommunicationException ex) {
+                    throw new CommunicationException("Discovery failed: " + ex.getMessage(), ex);
+                }
 
-            for (ConnectorType foundConnector : foundConnectors) {
-                LOGGER.trace("Examining connector {}", foundConnector);
-                String oid = findRepoOid(foundConnector, hostType, result);
-                if (oid != null) {
-                    LOGGER.trace("Connector {} is in the repository, marking active", foundConnector);
-                    // mark active
-                    updateConnectorStatus(oid, true, parentResult);
-                } else {
-                    if (notInRepoConsumer != null) {
-                        notInRepoConsumer.accept(foundConnector);
-                    }
-                    if (addConnectorToRepo(foundConnector, result, hostType)) {
-                        discoveredConnectors.add(foundConnector);
-                        LOGGER.info("Discovered new connector {}", foundConnector);
+                if (foundConnectors == null) {
+                    LOGGER.trace("Connector factory {} discovered null connectors, skipping", connectorFactory);
+                    continue;
+                }
+
+                if (LOGGER.isTraceEnabled()) {
+                    LOGGER.trace("Got {} connectors from {}: {}", foundConnectors.size(), hostType, foundConnectors);
+                }
+
+                for (ConnectorType foundConnector : foundConnectors) {
+                    LOGGER.trace("Examining connector {}", foundConnector);
+                    String oid = findRepoOid(foundConnector, hostType, result);
+                    if (oid != null) {
+                        LOGGER.trace("Connector {} is in the repository, marking active", foundConnector);
+                        // mark active
+                        updateConnectorStatus(oid, true, result);
+                    } else {
+                        if (notInRepoConsumer != null) {
+                            notInRepoConsumer.accept(foundConnector);
+                        }
+                        if (addConnectorToRepo(foundConnector, result, hostType)) {
+                            discoveredConnectors.add(foundConnector);
+                            LOGGER.info("Discovered new connector {}", foundConnector);
+                        }
                     }
                 }
             }
+        } catch (Throwable t) {
+            result.recordException(t);
+            throw t;
+        } finally {
+            result.close();
         }
-
-        result.recordSuccess();
         return discoveredConnectors;
     }
 
-    private void inactivateLocalConnectors(OperationResult parentResult) {
+    private void inactivateLocalConnectors(OperationResult result) {
         // Walk all connectors, mark them inactive
 
         SearchResultList<PrismObject<ConnectorType>> allConnectors;
         try {
-            allConnectors = repositoryService.searchObjects(ConnectorType.class, null, null, parentResult);
+            allConnectors = repositoryService.searchObjects(ConnectorType.class, null, null, result);
 
         } catch (SchemaException e) {
             // FIXME: Fail properly
@@ -519,7 +518,7 @@ public class ConnectorManager implements Cache, ConnectorDiscoveryListener {
         for (PrismObject<ConnectorType> connector : allConnectors) {
             if (connector.asObjectable().getConnectorHostRef() == null) {
                 // Inactivate only if connector is local
-                updateConnectorStatus(connector.getOid(), false, parentResult);
+                updateConnectorStatus(connector.getOid(), false, result);
             }
         }
     }
@@ -530,12 +529,11 @@ public class ConnectorManager implements Cache, ConnectorDiscoveryListener {
         try {
             LOGGER.debug("Updating connector {} availability to {}", oid, status);
             repositoryService.modifyObject(ConnectorType.class, oid, activeStatusDelta(status), result);
-
         } catch (ObjectNotFoundException | SchemaException | ObjectAlreadyExistsException e) {
             // Is this skippable error?
             result.muteError();
         } finally {
-            result.computeStatusIfUnknown();
+            result.close();
         }
     }
 

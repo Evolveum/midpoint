@@ -1070,6 +1070,62 @@
             <xsd:element name="totalTime" type="xsd:long" minOccurs="0" />
             <xsd:element name="minTime" type="xsd:long" minOccurs="0" />
             <xsd:element name="maxTime" type="xsd:long" minOccurs="0" />
+            <xsd:element name="ownTime" type="xsd:long" minOccurs="0" />
+            <xsd:element name="minOwnTime" type="xsd:long" minOccurs="0" />
+            <xsd:element name="maxOwnTime" type="xsd:long" minOccurs="0" />
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="ComponentsPerformanceInformationType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Information about the time spent in individual components.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:since>4.10</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="component" type="tns:SingleComponentPerformanceInformationType" minOccurs="0" maxOccurs="unbounded"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="SingleComponentPerformanceInformationType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Information about the time spent in a single component.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:since>4.10</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="name" type="xsd:string">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        The component name (or other identification). The content depends on the component classification used.
+                        For example, we may be interested in coarse-grained components (model, provisioning, repository), or
+                        finer-grained ones (model-mappings, model-scripts, model-assignments, and so on).
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="invocationCount" type="xsd:int" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Number of invocations of methods in this component.
+                        May not be very informative, as there are potentially very heterogeneous methods in the component,
+                        and some of them are called from within the component itself; but it provides at least some indication
+                        about the volume of calls.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="totalTime" type="xsd:long" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Time spent in the component - in microseconds.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
         </xsd:sequence>
     </xsd:complexType>
 
