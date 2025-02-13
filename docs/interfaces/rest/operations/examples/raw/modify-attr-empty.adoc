@@ -1,0 +1,14 @@
+:page-visibility: hidden
+:page-upkeep-status: green
+
+.*Show* data source example for *"Modify with empty delta"*
+[%collapsible]
+====
+
+link:https://raw.githubusercontent.com/Evolveum/midpoint-samples/master/samples/rest/modify-attribute-empty-delta.json[GitHub]
+
+sampleRef::samples/rest/modify-attribute-empty-delta.json[]
+====
+
+The response is an HTTP 204 code in case of success *without* a response body.
+

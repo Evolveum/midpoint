@@ -1,21 +1,13 @@
 :page-visibility: hidden
 :page-upkeep-status: green
 
-.*Show* data source example for *"Modify attribute value"* | link:https://raw.githubusercontent.com/Evolveum/midpoint-samples/master/samples/rest/modify-attribute-gen.json[GitHub]
+.*Show* data source example for *"Modify attribute value"*
 [%collapsible]
 ====
-[source, json]
-----
-{
-	"objectModification": {
-		"itemDelta": {
-			"modificationType": "add",
-			"path": "description",
-			"value": "Description parameter modified via REST"
-		}
-	}
-}
-----
+
+link:https://raw.githubusercontent.com/Evolveum/midpoint-samples/master/samples/rest/modify-attribute-gen.json[GitHub]
+
+sampleRef::samples/rest/modify-attribute-gen.json[]
 ====
 
 The response is an HTTP 204 code in case of success *without* a response body.
