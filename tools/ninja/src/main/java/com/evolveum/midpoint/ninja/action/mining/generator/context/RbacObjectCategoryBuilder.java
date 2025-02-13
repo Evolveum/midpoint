@@ -26,6 +26,8 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
+import org.jetbrains.annotations.Nullable;
+
 public class RbacObjectCategoryBuilder {
 
     /**
@@ -50,7 +52,7 @@ public class RbacObjectCategoryBuilder {
             initPrimaryRole();
         }
 
-        public void initPrimaryRole(){
+        public void initPrimaryRole() {
             List<InitialObjectsDefinition.JobInitialBusinessRole> primaryRoles = new ArrayList<>();
 
             InitialObjectsDefinition.JobInitialBusinessRole assistant = InitialObjectsDefinition.JobInitialBusinessRole.ASSISTANT;
@@ -152,15 +154,13 @@ public class RbacObjectCategoryBuilder {
         }
 
         @Override
-        public String getLocality() {
+        public @Nullable Boolean isNotAssignToLocationOrg() {
             InitialObjectsDefinition.LocationInitialBusinessRole locationBusinessRole = getLocationRole();
             if (locationBusinessRole != null) {
                 boolean candidate = isCandidate(90);
-                if (candidate) {
-                    return locationBusinessRole.getLocale();
-                }
+                return !candidate;
             }
-            return null;
+            return true;
         }
 
         @Override
@@ -295,15 +295,12 @@ public class RbacObjectCategoryBuilder {
         }
 
         @Override
-        public String getLocality() {
+        public @Nullable Boolean isNotAssignToLocationOrg() {
             if (locationOrg != null) {
                 boolean candidate = isCandidate(90);
-                if (candidate) {
-                    InitialObjectsDefinition.LocationInitialBusinessRole locationRole = locationOrg.getAssociatedLocationRole();
-                    return locationRole.getLocale();
-                }
+                return !candidate;
             }
-            return null;
+            return true;
         }
 
         @Override

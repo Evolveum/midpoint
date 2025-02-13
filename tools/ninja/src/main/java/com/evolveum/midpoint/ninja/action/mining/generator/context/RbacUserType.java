@@ -26,6 +26,8 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
+import org.jetbrains.annotations.Nullable;
+
 /**
  * This abstract class represents a user type generator used for initial user object RBAC generation.
  * <p>
@@ -137,12 +139,10 @@ public abstract class RbacUserType implements RbacBasicStructure {
 
         user.getAssignment().add(createRoleAssignment(businessRole.getOidValue()));
 
-        String locality = getLocality();
-        if (locality == null) {
+        @Nullable Boolean ignoreLocationOrg = isNotAssignToLocationOrg();
+        if (ignoreLocationOrg == null || ignoreLocationOrg) {
             return;
         }
-
-        user.setLocality(PolyStringType.fromOrig(locality));
 
         InitialOrg locationOrg = getLocalityOrg();
         if (locationOrg != null) {

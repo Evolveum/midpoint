@@ -52,14 +52,10 @@ public interface RbacBasicStructure {
         return null;
     }
 
-    @Nullable
-    default String getLocality(){
-        InitialObjectsDefinition.LocationInitialBusinessRole locationRole = getLocationRole();
-        if (locationRole != null) {
-            return locationRole.getLocale();
-        }
-        return null;
+    default @Nullable Boolean isNotAssignToLocationOrg(){
+        return getLocationRole() == null;
     }
+
     @Nullable
     InitialObjectsDefinition.LocationOrg getLocalityOrg();
 
