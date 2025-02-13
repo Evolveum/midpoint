@@ -20,6 +20,8 @@ import com.evolveum.midpoint.ninja.impl.Log;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.result.OperationResult;
 
+import org.jetbrains.annotations.Nullable;
+
 /**
  * This interface represents a basic property used for rbac user type generation.
  * <p>
@@ -29,18 +31,39 @@ public interface RbacBasicStructure {
 
     String getBirthRole();
 
-    String getOrganizationOid();
+    String getProfessionOrganizationOid();
 
     String getCorrespondingArchetypeOid();
 
-    InitialBusinessRole getPrimaryRole(boolean generateNew);
+    @NotNull
+    InitialBusinessRole getPrimaryRole();
 
-    InitialObjectsDefinition.LocationInitialBusinessRole getLocationRole(boolean generateNew);
+    @Nullable
+    default InitialObjectsDefinition.LocationInitialBusinessRole getLocationRole(){
+        InitialObjectsDefinition.LocationOrg localityOrg = getLocalityOrg();
+        if (localityOrg == null) {
+            return null;
+        }
+        return localityOrg.getAssociatedLocationRole();
+    }
 
-    List<InitialObjectsDefinition.PlanktonApplicationBusinessAbstractRole> getPlanktonApplicationRoles();
+    @Nullable
+    default List<InitialObjectsDefinition.PlanktonApplicationBusinessAbstractRole> getPlanktonApplicationRoles(){
+        return null;
+    }
 
-    String getLocality();
+    @Nullable
+    default String getLocality(){
+        InitialObjectsDefinition.LocationInitialBusinessRole locationRole = getLocationRole();
+        if (locationRole != null) {
+            return locationRole.getLocale();
+        }
+        return null;
+    }
+    @Nullable
+    InitialObjectsDefinition.LocationOrg getLocalityOrg();
 
+    @Nullable
     String getTitle();
 
     void buildAndImportObjects(

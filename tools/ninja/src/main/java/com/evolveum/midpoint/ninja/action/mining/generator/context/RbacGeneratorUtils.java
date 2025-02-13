@@ -39,13 +39,12 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 public class RbacGeneratorUtils {
 
     /**
-     * Retrieves a randomly selected location business role.
+     * Retrieves a randomly selected location org.
      *
-     * @return The randomly selected location business role.
+     * @return The randomly selected location org.
      */
-    protected static @NotNull InitialObjectsDefinition.LocationInitialBusinessRole getRandomLocationBusinessRole() {
-        InitialObjectsDefinition.LocationInitialBusinessRole[] roles = InitialObjectsDefinition
-                .LocationInitialBusinessRole.values();
+    protected static @NotNull InitialObjectsDefinition.LocationOrg getRandomLocationOrg() {
+        InitialObjectsDefinition.LocationOrg[] roles = InitialObjectsDefinition.LocationOrg.values();
         Random random = new Random();
         return roles[random.nextInt(roles.length)];
     }
@@ -185,7 +184,7 @@ public class RbacGeneratorUtils {
      * @param oid The OID of the organization.
      * @return The created assignment.
      */
-    protected static @NotNull AssignmentType createOrgAssignment(@NotNull String oid) {
+    public static @NotNull AssignmentType createOrgAssignment(@NotNull String oid) {
         ObjectReferenceType ref = new ObjectReferenceType()
                 .oid(oid)
                 .type(OrgType.COMPLEX_TYPE);

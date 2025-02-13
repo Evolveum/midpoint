@@ -6,10 +6,7 @@
  */
 package com.evolveum.midpoint.ninja.action.mining.generator.object;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Random;
-import java.util.UUID;
+import java.util.*;
 
 import com.evolveum.midpoint.ninja.action.mining.generator.GeneratorOptions;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ArchetypeType;
@@ -69,7 +66,8 @@ public class InitialObjectsDefinition {
 
     public List<OrgType> getOrgObjects() {
         List<OrgType> orgObjects = new ArrayList<>();
-        addOrgObjects(Organization.values(), orgObjects);
+        addOrgObjects(ProfessionOrg.values(), orgObjects);
+        addOrgObjects(LocationOrg.values(), orgObjects);
         return orgObjects;
     }
 
@@ -603,21 +601,25 @@ public class InitialObjectsDefinition {
         }
     }
 
-    public enum Organization implements InitialOrg {
+    public enum ProfessionOrg implements InitialOrg {
 
-        REGULAR("2f59f927-d1c5-4a61-93c6-6662041257af", "Regular"),
-        SEMI_REGULAR("9685e38d-df23-4d8b-9c2c-24d634c45adb", "Semi-regular"),
-        IRREGULAR("ab51f75b-8afd-4599-ba8f-b246b477d03d", "Irregular"),
-        MANAGERS("95feba24-bd40-45d4-b9ea-9b074b454c1b", "Managers"),
-        SALES("7ad7d97e-0326-401f-8cfd-36e6c8dddd58", "Sales"),
-        SECURITY_OFFICERS("020e866e-a5ac-40bb-8644-24525203bb03", "Security officers"),
-        CONTRACTORS("2e734ccb-c924-4388-b0a8-b02b461389fd", "Contractors");
+        PROFESSION("758bb200-a922-4faa-9b3f-921abdf64e9d", "Profession", null),
+        REGULAR("2f59f927-d1c5-4a61-93c6-6662041257af", "Regular", PROFESSION.oid),
+        SEMI_REGULAR("9685e38d-df23-4d8b-9c2c-24d634c45adb", "Semi-regular", PROFESSION.oid),
+        IRREGULAR("ab51f75b-8afd-4599-ba8f-b246b477d03d", "Irregular", PROFESSION.oid),
+        MANAGERS("95feba24-bd40-45d4-b9ea-9b074b454c1b", "Managers", PROFESSION.oid),
+        SALES("7ad7d97e-0326-401f-8cfd-36e6c8dddd58", "Sales", PROFESSION.oid),
+        SECURITY_OFFICERS("020e866e-a5ac-40bb-8644-24525203bb03", "Security officers", PROFESSION.oid),
+        CONTRACTORS("2e734ccb-c924-4388-b0a8-b02b461389fd", "Contractors", PROFESSION.oid);
+
         private final String oid;
         private final String name;
+        private final String parentOid;
 
-        Organization(String oid, String name) {
+        ProfessionOrg(String oid, String name, String parentOid) {
             this.oid = oid;
             this.name = name;
+            this.parentOid = parentOid;
         }
 
         @Override
@@ -626,10 +628,57 @@ public class InitialObjectsDefinition {
         }
 
         @Override
+        public String parentOid() {
+            return parentOid;
+        }
+
+        @Override
         public String getName() {
             return name;
         }
 
+    }
+
+    public enum LocationOrg implements InitialOrg {
+
+        LOCATION_ROOT("1f048ec2-9dcb-487d-b760-fe9d0a416a1e", "Location", null, null),
+        LONDON("9919048c-5d1e-4039-901c-9edfd03ddaf0", "London group", LOCATION_ROOT.oid, LocationInitialBusinessRole.LOCATION_LONDON),
+        PARIS("3cf173a9-9f9e-48f5-a385-365500f2c288", "Paris group", LOCATION_ROOT.oid, LocationInitialBusinessRole.LOCATION_PARIS),
+        BERLIN("d676a9f5-6384-4719-83e1-b507f3771ef9", "Berlin group", LOCATION_ROOT.oid, LocationInitialBusinessRole.LOCATION_BERLIN),
+        NEW_YORK("04772af9-4e0c-4ba1-8362-4b41ecfdb071", "New York group", LOCATION_ROOT.oid, LocationInitialBusinessRole.LOCATION_NEW_YORK),
+        TOKYO("e71b843b-06e6-49c6-9d72-e0d75ae53496", "Tokyo group", LOCATION_ROOT.oid, LocationInitialBusinessRole.LOCATION_TOKYO);
+        // NOT_DEFINED("13c0b991-37bc-404b-9011-c00caea79825", "Not defined", LOCATION.parentOid()); //do we want to have this?
+
+        private final String oid;
+        private final String name;
+        private final String parentOid;
+        private final LocationInitialBusinessRole associatedWith;
+
+        LocationOrg(String oid, String name, String parentOid, LocationInitialBusinessRole associatedWith) {
+            this.oid = oid;
+            this.name = name;
+            this.parentOid = parentOid;
+            this.associatedWith = associatedWith;
+        }
+
+        @Override
+        public String getOidValue() {
+            return oid;
+        }
+
+        @Override
+        public String parentOid() {
+            return parentOid;
+        }
+
+        @Override
+        public String getName() {
+            return name;
+        }
+
+        public LocationInitialBusinessRole getAssociatedLocationRole() {
+            return associatedWith;
+        }
     }
 
     public enum Archetypes implements InitialArchetype {

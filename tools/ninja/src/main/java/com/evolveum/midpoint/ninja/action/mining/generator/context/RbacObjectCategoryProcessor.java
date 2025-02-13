@@ -235,31 +235,31 @@ public class RbacObjectCategoryProcessor {
         switch (category) {
             case REGULR -> {
                 return new
-                        RbacObjectCategoryBuilder.RegularUserType(generatorOptions).getOrganizationOid();
+                        RbacObjectCategoryBuilder.RegularUserType(generatorOptions).getProfessionOrganizationOid();
             }
             case SEMI_REGULAR -> {
                 return new
-                        RbacObjectCategoryBuilder.SemiRegularUserType(generatorOptions).getOrganizationOid();
+                        RbacObjectCategoryBuilder.SemiRegularUserType(generatorOptions).getProfessionOrganizationOid();
             }
             case IRREGULAR -> {
                 return new
-                        RbacObjectCategoryBuilder.IrregularUserType(generatorOptions).getOrganizationOid();
+                        RbacObjectCategoryBuilder.IrregularUserType(generatorOptions).getProfessionOrganizationOid();
             }
             case MANAGERS -> {
                 return new
-                        RbacObjectCategoryBuilder.ManagerUserType(generatorOptions).getOrganizationOid();
+                        RbacObjectCategoryBuilder.ManagerUserType(generatorOptions).getProfessionOrganizationOid();
             }
             case SALES -> {
                 return new
-                        RbacObjectCategoryBuilder.SalesUserType(generatorOptions).getOrganizationOid();
+                        RbacObjectCategoryBuilder.SalesUserType(generatorOptions).getProfessionOrganizationOid();
             }
             case SECURITY_OFFICERS -> {
                 return new
-                        RbacObjectCategoryBuilder.SecurityOfficer(generatorOptions).getOrganizationOid();
+                        RbacObjectCategoryBuilder.SecurityOfficer(generatorOptions).getProfessionOrganizationOid();
             }
             case CONTRACTORS -> {
                 return new
-                        RbacObjectCategoryBuilder.Contractor(generatorOptions).getOrganizationOid();
+                        RbacObjectCategoryBuilder.Contractor(generatorOptions).getProfessionOrganizationOid();
             }
         }
         return null;
@@ -272,37 +272,37 @@ public class RbacObjectCategoryProcessor {
         switch (category) {
             case REGULR -> {
                 InitialBusinessRole primaryRole = new RbacObjectCategoryBuilder.RegularUserType(generatorOptions)
-                        .getPrimaryRole(true);
+                        .getPrimaryRole();
                 user.getAssignment().add(createRoleAssignment(primaryRole.getOidValue()));
             }
             case SEMI_REGULAR -> {
                 InitialBusinessRole primaryRole = new RbacObjectCategoryBuilder.SemiRegularUserType(generatorOptions)
-                        .getPrimaryRole(true);
+                        .getPrimaryRole();
                 user.getAssignment().add(createRoleAssignment(primaryRole.getOidValue()));
             }
             case IRREGULAR -> {
                 InitialBusinessRole primaryRole = new RbacObjectCategoryBuilder.IrregularUserType(generatorOptions)
-                        .getPrimaryRole(true);
+                        .getPrimaryRole();
                 user.getAssignment().add(createRoleAssignment(primaryRole.getOidValue()));
             }
             case MANAGERS -> {
                 InitialBusinessRole primaryRole = new RbacObjectCategoryBuilder.ManagerUserType(generatorOptions)
-                        .getPrimaryRole(true);
+                        .getPrimaryRole();
                 user.getAssignment().add(createRoleAssignment(primaryRole.getOidValue()));
             }
             case SALES -> {
                 InitialBusinessRole primaryRole = new RbacObjectCategoryBuilder.SalesUserType(generatorOptions)
-                        .getPrimaryRole(true);
+                        .getPrimaryRole();
                 user.getAssignment().add(createRoleAssignment(primaryRole.getOidValue()));
             }
             case SECURITY_OFFICERS -> {
                 InitialBusinessRole primaryRole = new RbacObjectCategoryBuilder.SecurityOfficer(generatorOptions)
-                        .getPrimaryRole(true);
+                        .getPrimaryRole();
                 user.getAssignment().add(createRoleAssignment(primaryRole.getOidValue()));
             }
             case CONTRACTORS -> {
                 InitialBusinessRole primaryRole = new RbacObjectCategoryBuilder.Contractor(generatorOptions)
-                        .getPrimaryRole(true);
+                        .getPrimaryRole();
                 user.getAssignment().add(createRoleAssignment(primaryRole.getOidValue()));
             }
         }
