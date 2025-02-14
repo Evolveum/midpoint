@@ -582,6 +582,18 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
     }
 
     @Override
+    public <T extends ObjectType> ObjectFilter getAccessibleForAssignmentObjectsFilter(
+            Class<T> searchResultType, ObjectFilter origFilter, Task task, OperationResult parentResult)
+            throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException,
+            ConfigurationException, SecurityViolationException {
+        return securityEnforcer.preProcessObjectFilter(
+                securityEnforcer.getMidPointPrincipal(), ModelAuthorizationAction.AUTZ_ACTIONS_URLS_ASSIGN,
+                ModelAuthorizationAction.AUTZ_ACTIONS_URLS_SEARCH_BY,
+                AuthorizationPhaseType.REQUEST, searchResultType, origFilter, null,
+                List.of(), SecurityEnforcer.Options.create(), task, parentResult);
+    }
+
+    @Override
     public AuthenticationsPolicyType getAuthenticationPolicy(PrismObject<UserType> user, Task task,
             OperationResult parentResult) throws SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
         // TODO: check for user membership in an organization (later versions)
