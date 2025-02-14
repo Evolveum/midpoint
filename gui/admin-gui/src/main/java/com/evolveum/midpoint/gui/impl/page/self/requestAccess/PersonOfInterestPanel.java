@@ -73,6 +73,7 @@ public class PersonOfInterestPanel extends BasicWizardStepPanel<RequestAccess> i
     private static final String OPERATION_LOAD_USERS = DOT_CLASS + "loadUsers";
     private static final String OPERATION_COMPILE_TARGET_SELECTION_COLLECTION = DOT_CLASS + "compileTargetSelectionCollection";
     private static final String OPERATION_EVALUATE_FILTER_EXPRESSION = DOT_CLASS + "evaluateFilterExpression";
+    private static final String OPERATION_GET_ASSIGNMENT_OPERATION_OBJECT_FILTER = DOT_CLASS + "getAssignmentOperationObjectFilter";
 
     private static final int MULTISELECT_PAGE_SIZE = 10;
 
@@ -539,6 +540,7 @@ public class PersonOfInterestPanel extends BasicWizardStepPanel<RequestAccess> i
     }
 
     private void selectManuallyPerformed(AjaxRequestTarget target) {
+        ObjectQuery query = getPrismContext().queryFor(UserType.class).build();
         ObjectFilter filter = null;
 
         Tile<PersonOfInterest> selected = getSelectedTile();
@@ -547,6 +549,15 @@ public class PersonOfInterestPanel extends BasicWizardStepPanel<RequestAccess> i
             filter = WebComponentUtil.evaluateExpressionsInFilter(
                     createObjectFilterFromGroupSelection(identifier),
                     new OperationResult(OPERATION_EVALUATE_FILTER_EXPRESSION), page);
+        }
+        if (filter != null) {
+            query.addFilter(filter);
+        }
+
+        //apply filter from the @assign authorization from object section
+        filter = getAssignmentOperationObjectFilter();
+        if (filter != null) {
+            query.addFilter(filter);
         }
 
         ObjectBrowserPanel<UserType> panel = new ObjectBrowserPanel<>(page.getMainPopupBodyId(), UserType.class,
@@ -579,6 +590,7 @@ public class PersonOfInterestPanel extends BasicWizardStepPanel<RequestAccess> i
         return new ObjectReferenceType()
                 .oid(ref.getOid())
                 .type(ref.getType())
+                .relation(ref.getRelation())        //we need relation as well, e.g. to analyze defaultAssignmentConstraints (#10425)
                 .targetName(ref.getTargetName());
     }
 
@@ -729,14 +741,22 @@ public class PersonOfInterestPanel extends BasicWizardStepPanel<RequestAccess> i
                 full = panel.getPrismContext().queryFactory().createAnd(filter, autocompleteFilter);
             }
 
+            OperationResult result = new OperationResult(OPERATION_GET_ASSIGNMENT_OPERATION_OBJECT_FILTER);
+            Task task = panel.page.createSimpleTask(OPERATION_GET_ASSIGNMENT_OPERATION_OBJECT_FILTER);
+            //get filter from the @assign authorization from object section
+            filter = WebComponentUtil.getAccessibleForAssignmentObjectsFilter(result, task, panel.page);
+            if (filter != null) {
+                full = panel.getPrismContext().queryFactory().createAnd(full, filter);
+            }
+
             ObjectQuery query = panel.getPrismContext()
                     .queryFor(UserType.class)
                     .filter(full)
                     .asc(UserType.F_NAME)
                     .maxSize(MULTISELECT_PAGE_SIZE).offset(page * MULTISELECT_PAGE_SIZE).build();
 
-            Task task = panel.page.createSimpleTask(OPERATION_LOAD_USERS);
-            OperationResult result = task.getResult();
+            task = panel.page.createSimpleTask(OPERATION_LOAD_USERS);
+            result = task.getResult();
 
             try {
                 List<PrismObject<UserType>> objects = WebModelServiceUtils.searchObjects(UserType.class, query, result, panel.page);
@@ -781,5 +801,11 @@ public class PersonOfInterestPanel extends BasicWizardStepPanel<RequestAccess> i
                             .oid(oid)
                             .type(UserType.COMPLEX_TYPE)).collect(Collectors.toList());
         }
+    }
+
+    private ObjectFilter getAssignmentOperationObjectFilter() {
+        OperationResult result = new OperationResult(OPERATION_GET_ASSIGNMENT_OPERATION_OBJECT_FILTER);
+        Task task = page.createSimpleTask(OPERATION_GET_ASSIGNMENT_OPERATION_OBJECT_FILTER);
+        return WebComponentUtil.getAccessibleForAssignmentObjectsFilter(result, task, page);
     }
 }
