@@ -11,8 +11,6 @@ import java.util.Collections;
 import java.util.List;
 import javax.xml.datatype.XMLGregorianCalendar;
 
-import com.evolveum.midpoint.schema.util.task.TaskTypeUtil;
-
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.Component;
@@ -50,6 +48,7 @@ import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.task.ActivityDefinitionBuilder;
 import com.evolveum.midpoint.schema.util.task.ActivityStateUtil;
 import com.evolveum.midpoint.schema.util.task.TaskInformation;
+import com.evolveum.midpoint.schema.util.task.TaskTypeUtil;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
@@ -268,16 +267,42 @@ public abstract class TaskTablePanel extends MainObjectListPanel<TaskType> {
 
     private AbstractExportableColumn<SelectableBean<TaskType>, String> createStatusColumn() {
         return new AbstractExportableColumn<>(createStringResource("pageTasks.task.status")) {
+
             @Override
             public IModel<?> getDataModel(IModel<SelectableBean<TaskType>> rowModel) {
-                return Model.of("asdf");
+                return new LoadableDetachableModel<TaskProgress>() {
+
+                    @Override
+                    protected TaskProgress load() {
+                        return createTaskProgress(rowModel.getObject());
+                    }
+                };
             }
 
             @Override
             protected Component createDisplayComponent(String componentId, IModel<?> dataModel) {
-                return new TaskProgressPanel(componentId, Model.of(new TaskProgress()));
+                return new TaskProgressPanel(componentId, (IModel<TaskProgress>) dataModel);
             }
         };
+    }
+
+    private TaskProgress createTaskProgress(SelectableBean<TaskType> bean) {
+        TaskProgress progress = new TaskProgress();
+
+        TaskInformation info = getAttachedTaskInformation(bean);
+
+        progress.setComplete(info.isComplete());
+
+        progress.setProgress((int) info.getProgress());
+        progress.setProgressLabel(info.getProgressDescriptionShort());
+
+        progress.setProcessedObjectsStatus(OperationResultStatus.WARNING);
+        progress.setProcessedObjectsErrorCount(info.getAllErrors());
+
+        progress.setTaskStatus(OperationResultStatus.parseStatusType(info.getResultStatus()));  // todo fix this status
+//        progress.setTaskStatusMessage(taskInformation.getResultStatusMessage());  // todo fix this message
+
+        return progress;
     }
 
     private AbstractExportableColumn<SelectableBean<TaskType>, String> createTaskExecutionStateColumn() {

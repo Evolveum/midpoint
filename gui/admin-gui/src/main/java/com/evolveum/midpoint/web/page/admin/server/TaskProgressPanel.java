@@ -49,6 +49,7 @@ public class TaskProgressPanel extends BasePanel<TaskProgress> {
         };
 
         ProgressBarPanel progress = new ProgressBarPanel(ID_PROGRESS, progressModel);
+        progress.add(new VisibleBehaviour(() -> !getModelObject().isComplete()));
         add(progress);
 
         Label progressLabel = new Label(ID_PROGRESS_LABEL, () -> getModelObject().getProgressLabel());
@@ -62,6 +63,7 @@ public class TaskProgressPanel extends BasePanel<TaskProgress> {
         add(progressProblemIcon);
 
         Label progressProblemLabel = new Label(ID_PROGRESS_PROBLEM_LABEL, () -> getModelObject().getProcessedObjectsErrorCount());
+        progressProblemLabel.add(new VisibleBehaviour(() -> getModelObject().getProcessedObjectsErrorCount() > 0));
         add(progressProblemLabel);
 
         WebMarkupContainer taskProblemIcon = new WebMarkupContainer(ID_TASK_PROBLEM_ICON);
