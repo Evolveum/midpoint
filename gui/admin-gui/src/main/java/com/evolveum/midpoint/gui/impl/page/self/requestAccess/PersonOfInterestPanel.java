@@ -573,6 +573,7 @@ public class PersonOfInterestPanel extends BasicWizardStepPanel<RequestAccess> i
         return new ObjectReferenceType()
                 .oid(ref.getOid())
                 .type(ref.getType())
+                .relation(ref.getRelation())        //we need relation as well, e.g. to analyze defaultAssignmentConstraints (#10425)
                 .targetName(ref.getTargetName());
     }
 
