@@ -774,7 +774,7 @@
             <plugin>
                 <groupId>com.github.eirslett</groupId>
                 <artifactId>frontend-maven-plugin</artifactId>
-                <version>1.12.1</version>
+                <version>1.15.1</version>
 
                 <executions>
                     <execution>
@@ -812,8 +812,8 @@
                 <configuration>
                     <nodeDownloadRoot>https://nexus.evolveum.com/nexus/repository/nodejs-dist/</nodeDownloadRoot>
                     <npmDownloadRoot>https://nexus.evolveum.com/nexus/repository/npmjs-dist/</npmDownloadRoot>
-                    <nodeVersion>v18.12.1</nodeVersion>
-                    <npmVersion>8.19.2</npmVersion>
+                    <nodeVersion>v22.14.0</nodeVersion>
+                    <npmVersion>11.1.0</npmVersion>
                     <installDirectory>target</installDirectory>
                 </configuration>
             </plugin>
