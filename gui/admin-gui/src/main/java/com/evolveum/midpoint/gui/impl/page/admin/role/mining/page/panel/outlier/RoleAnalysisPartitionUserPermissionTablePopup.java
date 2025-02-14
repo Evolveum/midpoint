@@ -37,20 +37,20 @@ public class RoleAnalysisPartitionUserPermissionTablePopup extends BasePanel<Rol
 
     private static final String ID_TABLE = "table";
 
-    transient IModel<List<DetectedAnomalyResult>> anomalyModel;
+    transient IModel<List<DetectedAnomalyResultType>> anomalyModel;
     transient IModel<RoleAnalysisOutlierType> outlierModel;
 
     public RoleAnalysisPartitionUserPermissionTablePopup(
             @NotNull String id,
             @NotNull IModel<RoleAnalysisOutlierPartitionType> partitionModel,
-            @Nullable IModel<List<DetectedAnomalyResult>> anomalyModel,
+            @Nullable IModel<List<DetectedAnomalyResultType>> anomalyModel,
             @NotNull IModel<RoleAnalysisOutlierType> outlierModel) {
         super(id, partitionModel);
         this.anomalyModel = anomalyModel;
         this.outlierModel = outlierModel;
     }
 
-    public List<DetectedAnomalyResult> getAnomalyModelObject() {
+    public List<DetectedAnomalyResultType> getAnomalyModelObject() {
         if (anomalyModel == null) {
             return Collections.emptyList();
         }

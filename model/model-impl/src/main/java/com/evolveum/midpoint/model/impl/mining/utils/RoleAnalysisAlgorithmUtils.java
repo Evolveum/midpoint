@@ -592,13 +592,13 @@ public class RoleAnalysisAlgorithmUtils {
         List<AttributeAnalysisStructure> roleAttributeAnalysisStructures = clusterStatistic.getRoleAttributeAnalysisStructures();
         List<AttributeAnalysisStructure> userAttributeAnalysisStructures = clusterStatistic.getUserAttributeAnalysisStructures();
         if (roleAttributeAnalysisStructures != null && !roleAttributeAnalysisStructures.isEmpty()) {
-            RoleAnalysisAttributeAnalysisResult roleAnalysis = new RoleAnalysisAttributeAnalysisResult();
+            RoleAnalysisAttributeAnalysisResultType roleAnalysis = new RoleAnalysisAttributeAnalysisResultType();
             for (AttributeAnalysisStructure roleAttributeAnalysisStructure : roleAttributeAnalysisStructures) {
                 double density = roleAttributeAnalysisStructure.getDensity();
                 if (density == 0) {
                     continue;
                 }
-                RoleAnalysisAttributeAnalysis roleAnalysisAttributeAnalysis = roleAttributeAnalysisStructure
+                RoleAnalysisAttributeAnalysisType roleAnalysisAttributeAnalysis = roleAttributeAnalysisStructure
                         .buildRoleAnalysisAttributeAnalysisContainer();
                 roleAnalysis.getAttributeAnalysis().add(roleAnalysisAttributeAnalysis);
             }
@@ -606,13 +606,13 @@ public class RoleAnalysisAlgorithmUtils {
         }
 
         if (userAttributeAnalysisStructures != null && !userAttributeAnalysisStructures.isEmpty()) {
-            RoleAnalysisAttributeAnalysisResult userAnalysis = new RoleAnalysisAttributeAnalysisResult();
+            RoleAnalysisAttributeAnalysisResultType userAnalysis = new RoleAnalysisAttributeAnalysisResultType();
             for (AttributeAnalysisStructure userAttributeAnalysisStructure : userAttributeAnalysisStructures) {
                 double density = userAttributeAnalysisStructure.getDensity();
                 if (density == 0) {
                     continue;
                 }
-                RoleAnalysisAttributeAnalysis userAnalysisAttributeAnalysis = userAttributeAnalysisStructure
+                RoleAnalysisAttributeAnalysisType userAnalysisAttributeAnalysis = userAttributeAnalysisStructure
                         .buildRoleAnalysisAttributeAnalysisContainer();
                 userAnalysis.getAttributeAnalysis().add(userAnalysisAttributeAnalysis);
             }

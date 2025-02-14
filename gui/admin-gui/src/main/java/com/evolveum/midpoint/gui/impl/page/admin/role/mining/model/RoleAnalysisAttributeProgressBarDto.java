@@ -17,7 +17,7 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisAttributeStatistics;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisAttributeStatisticsType;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -38,13 +38,13 @@ public class RoleAnalysisAttributeProgressBarDto extends RoleAnalysisProgressBar
 
     private String barToolTip;
 
-    transient RoleAnalysisAttributeStatistics attributeStats;
+    transient RoleAnalysisAttributeStatisticsType attributeStats;
 
     private transient PrismObject<ObjectType> objectValue = null;
 
     public RoleAnalysisAttributeProgressBarDto(PageBase pageBase, double actualValue,
             @Nullable String progressColor,
-            RoleAnalysisAttributeStatistics attributeStats) {
+            RoleAnalysisAttributeStatisticsType attributeStats) {
         loadActualValue(actualValue);
 
         if (progressColor != null) {
@@ -78,7 +78,7 @@ public class RoleAnalysisAttributeProgressBarDto extends RoleAnalysisProgressBar
      * Extracts a list of {@link PrismObject} instances of type {@link FocusType} from the given attribute
      * analysis results (if attributeValue reflect to PrismObject).
      *
-     * <p>This method processes a list of {@link RoleAnalysisAttributeStatistics}, extracting attribute values and resolving
+     * <p>This method processes a list of {@link RoleAnalysisAttributeStatisticsType}, extracting attribute values and resolving
      * them to {@link FocusType} objects. If valid UUIDs are found in the attribute values, the corresponding
      * {@link PrismObject} instances are loaded and added to the result list. Additionally, the method updates the
      * {@code barTitle} based on the results.</p>
@@ -107,7 +107,7 @@ public class RoleAnalysisAttributeProgressBarDto extends RoleAnalysisProgressBar
 
     private void updateBarTitle(
             PrismObject<ObjectType> objectValue,
-            RoleAnalysisAttributeStatistics roleAnalysisAttributeResult) {
+            RoleAnalysisAttributeStatisticsType roleAnalysisAttributeResult) {
         if ((objectValue == null)
                 && (roleAnalysisAttributeResult != null)) {
             setBarTitleForEmptyFocusObjects(roleAnalysisAttributeResult);
@@ -116,7 +116,7 @@ public class RoleAnalysisAttributeProgressBarDto extends RoleAnalysisProgressBar
         }
     }
 
-    private void setBarTitleForEmptyFocusObjects(RoleAnalysisAttributeStatistics roleAnalysisAttributeResult) {
+    private void setBarTitleForEmptyFocusObjects(RoleAnalysisAttributeStatisticsType roleAnalysisAttributeResult) {
         this.barTitle = roleAnalysisAttributeResult.getAttributeValue();
     }
 
@@ -126,7 +126,7 @@ public class RoleAnalysisAttributeProgressBarDto extends RoleAnalysisProgressBar
         this.barTitle = name != null && name.getOrig() != null ? name.getOrig() : this.barTitle;
     }
 
-    private void resolveHelpTooltip(RoleAnalysisAttributeStatistics attributeStats) {
+    private void resolveHelpTooltip(RoleAnalysisAttributeStatisticsType attributeStats) {
         if (attributeStats == null) {
             return;
         }

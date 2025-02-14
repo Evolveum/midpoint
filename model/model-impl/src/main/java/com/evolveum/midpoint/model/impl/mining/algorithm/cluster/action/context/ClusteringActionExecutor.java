@@ -218,7 +218,7 @@ public class ClusteringActionExecutor extends BaseAction {
         Set<String> sessionOutlierOids = new HashSet<>();
         allSessionOutlierPartitions.forEach((partition, outlier) -> {
             sessionOutlierOids.add(outlier.getObjectRef().getOid());
-            List<DetectedAnomalyResult> detectedAnomalyResult = partition.getDetectedAnomalyResult();
+            List<DetectedAnomalyResultType> detectedAnomalyResult = partition.getDetectedAnomalyResult();
             if (detectedAnomalyResult != null) {
                 detectedAnomalyResult.forEach(anomaly -> {
                     String anomalyRoleOid = anomaly.getTargetObjectRef().getOid();

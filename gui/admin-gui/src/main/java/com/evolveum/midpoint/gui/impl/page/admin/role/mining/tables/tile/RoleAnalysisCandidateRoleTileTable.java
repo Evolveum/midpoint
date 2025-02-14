@@ -483,7 +483,7 @@ public class RoleAnalysisCandidateRoleTileTable extends BasePanel<String> {
                         clusterPrism, candidateRoleType,
                         result, task);
 
-                RoleAnalysisOperationStatus operationStatus = candidateRoleType.getOperationStatus();
+                RoleAnalysisOperationStatusType operationStatus = candidateRoleType.getOperationStatus();
                 if (operationStatus != null
                         && operationStatus.getTaskRef() != null
                         && operationStatus.getTaskRef().getOid() != null) {
@@ -534,7 +534,7 @@ public class RoleAnalysisCandidateRoleTileTable extends BasePanel<String> {
                                             null,
                                             result,
                                             task,
-                                            RoleAnalysisOperation.MIGRATION,
+                                            RoleAnalysisOperationType.MIGRATION,
                                             user.getFocus());
                                     navigateToRoleAnalysisCluster(getClusterRef().getOid());
                                 }
@@ -666,7 +666,7 @@ public class RoleAnalysisCandidateRoleTileTable extends BasePanel<String> {
     }
 
     @NotNull
-    private AjaxLinkPanel taskLinkPanel(String componentId, String stateString, RoleAnalysisOperationStatus operationExecution) {
+    private AjaxLinkPanel taskLinkPanel(String componentId, String stateString, RoleAnalysisOperationStatusType operationExecution) {
         AjaxLinkPanel ajaxLinkPanel = new AjaxLinkPanel(componentId, Model.of(stateString)) {
             @Override
             public void onClick(AjaxRequestTarget target) {

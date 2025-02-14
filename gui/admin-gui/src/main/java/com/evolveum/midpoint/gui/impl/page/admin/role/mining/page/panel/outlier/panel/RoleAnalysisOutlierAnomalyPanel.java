@@ -195,7 +195,7 @@ public class RoleAnalysisOutlierAnomalyPanel extends AbstractObjectMainPanel<Rol
         List<RoleAnalysisOutlierPartitionType> outlierPartitions = outlier.getPartition();
         Set<String> anomalies = new HashSet<>();
         for (RoleAnalysisOutlierPartitionType outlierPartition : outlierPartitions) {
-            List<DetectedAnomalyResult> detectedAnomalyResult = outlierPartition.getDetectedAnomalyResult();
+            List<DetectedAnomalyResultType> detectedAnomalyResult = outlierPartition.getDetectedAnomalyResult();
             detectedAnomalyResult.forEach(anomaly -> anomalies.add(anomaly.getTargetObjectRef().getOid()));
         }
 

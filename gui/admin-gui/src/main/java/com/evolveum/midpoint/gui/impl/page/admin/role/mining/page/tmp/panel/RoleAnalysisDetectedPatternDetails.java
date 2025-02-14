@@ -22,7 +22,7 @@ import com.evolveum.midpoint.common.mining.objects.detection.DetectedPattern;
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.tmp.model.InfoBoxModel;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisAttributeAnalysisResult;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisAttributeAnalysisResultType;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -171,8 +171,8 @@ public class RoleAnalysisDetectedPatternDetails extends BasePanel<DetectedPatter
 
     private void initStatisticsPanel(WebMarkupContainer container) {
 
-        RoleAnalysisAttributeAnalysisResult userAttributeAnalysisResult = null;
-        RoleAnalysisAttributeAnalysisResult roleAttributeAnalysisResult = null;
+        RoleAnalysisAttributeAnalysisResultType userAttributeAnalysisResult = null;
+        RoleAnalysisAttributeAnalysisResultType roleAttributeAnalysisResult = null;
         if (getModel().getObject() != null) {
             DetectedPattern pattern = getModel().getObject();
             userAttributeAnalysisResult = pattern.getUserAttributeAnalysisResult();

@@ -36,7 +36,7 @@ public class OutlierExplanationUtil {
             @NotNull Task task,
             @NotNull OperationResult result) {
 
-        List<DetectedAnomalyResult> detectedAnomalyResults = partition.getDetectedAnomalyResult();
+        List<DetectedAnomalyResultType> detectedAnomalyResults = partition.getDetectedAnomalyResult();
         partition.setId((long) partitionCount);
 
         List<OutlierExplanationResolver.AnomalyExplanationInput> anomalyExplanationInputs = new ArrayList<>(
@@ -44,7 +44,7 @@ public class OutlierExplanationUtil {
         AnomalyExplanationUtil anomalyExplanationUtil = new AnomalyExplanationUtil();
 
         long id = 1;
-        for (DetectedAnomalyResult anomalyResult : detectedAnomalyResults) {
+        for (DetectedAnomalyResultType anomalyResult : detectedAnomalyResults) {
             anomalyResult.setId(id++);
             anomalyExplanationInputs.add(anomalyExplanationUtil.prepareOutlierExplanationAnomalyInput(
                     roleAnalysisService, anomalyResult, task, result));
@@ -84,10 +84,10 @@ public class OutlierExplanationUtil {
     private static @Nullable String getOutlierUserGroupByValue(
             @NotNull RoleAnalysisOutlierPartitionType partition,
             ItemPathType groupByPath) {
-        List<RoleAnalysisAttributeAnalysis> attributeAnalyses = Optional.ofNullable(partition.getPartitionAnalysis())
+        List<RoleAnalysisAttributeAnalysisType> attributeAnalyses = Optional.ofNullable(partition.getPartitionAnalysis())
                 .map(RoleAnalysisPartitionAnalysisType::getAttributeAnalysis)
-                .map(AttributeAnalysis::getUserAttributeAnalysisResult)
-                .map(RoleAnalysisAttributeAnalysisResult::getAttributeAnalysis)
+                .map(AttributeAnalysisType::getUserAttributeAnalysisResult)
+                .map(RoleAnalysisAttributeAnalysisResultType::getAttributeAnalysis)
                 .orElse(null);
 
         if (attributeAnalyses == null) {
@@ -132,9 +132,9 @@ public class OutlierExplanationUtil {
                 .orElse(null);
     }
 
-    private static @Nullable String extractFirstAttributeValue(@NotNull List<RoleAnalysisAttributeStatistics> attributeStatistics) {
+    private static @Nullable String extractFirstAttributeValue(@NotNull List<RoleAnalysisAttributeStatisticsType> attributeStatistics) {
         return attributeStatistics.stream()
-                .map(RoleAnalysisAttributeStatistics::getAttributeValue)
+                .map(RoleAnalysisAttributeStatisticsType::getAttributeValue)
                 .filter(Objects::nonNull)
                 .findFirst()
                 .orElse(null);

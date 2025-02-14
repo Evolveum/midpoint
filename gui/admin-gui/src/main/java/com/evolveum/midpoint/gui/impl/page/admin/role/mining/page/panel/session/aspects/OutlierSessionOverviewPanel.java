@@ -528,7 +528,7 @@ public class OutlierSessionOverviewPanel extends AbstractObjectMainPanel<RoleAna
             List<RoleAnalysisOutlierPartitionType> outlierPartitions = outlier.getPartition();
 
             for (RoleAnalysisOutlierPartitionType outlierPartition : outlierPartitions) {
-                List<DetectedAnomalyResult> detectedAnomalyResult = outlierPartition.getDetectedAnomalyResult();
+                List<DetectedAnomalyResultType> detectedAnomalyResult = outlierPartition.getDetectedAnomalyResult();
                 RoleAnalysisPartitionAnalysisType partitionAnalysis = outlierPartition.getPartitionAnalysis();
                 ObjectReferenceType targetSessionRef = outlierPartition.getTargetSessionRef();
 

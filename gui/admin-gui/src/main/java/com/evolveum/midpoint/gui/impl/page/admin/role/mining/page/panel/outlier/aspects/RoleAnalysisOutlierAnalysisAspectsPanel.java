@@ -545,8 +545,8 @@ public class RoleAnalysisOutlierAnalysisAspectsPanel extends AbstractObjectMainP
     private int getAnomalyCount() {
         Set<String> anomalySet = new HashSet<>();
         for (RoleAnalysisOutlierPartitionType outlierPartition : getObjectDetailsModels().getObjectType().getPartition()) {
-            List<DetectedAnomalyResult> detectedAnomalyResult = outlierPartition.getDetectedAnomalyResult();
-            for (DetectedAnomalyResult anomalyResult : detectedAnomalyResult) {
+            List<DetectedAnomalyResultType> detectedAnomalyResult = outlierPartition.getDetectedAnomalyResult();
+            for (DetectedAnomalyResultType anomalyResult : detectedAnomalyResult) {
                 anomalySet.add(anomalyResult.getTargetObjectRef().getOid());
             }
         }

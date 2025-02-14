@@ -37,9 +37,10 @@ import static com.evolveum.midpoint.common.mining.utils.values.RoleAnalysisObjec
  * It is used to update the role analysis operation status, submit the operation status, and remove redundant patterns.
  */
 public class RoleAnalysisUtils {
-    public static @Nullable RoleAnalysisOperationStatus updateRoleAnalysisOperationStatus(
+
+    public static @Nullable RoleAnalysisOperationStatusType updateRoleAnalysisOperationStatus(
             @NotNull RepositoryService repositoryService,
-            @NotNull RoleAnalysisOperationStatus status,
+            @NotNull RoleAnalysisOperationStatusType status,
             boolean isSession,
             @NotNull Trace logger,
             @NotNull OperationResult result) {
@@ -127,14 +128,14 @@ public class RoleAnalysisUtils {
     }
 
     @NotNull
-    public static RoleAnalysisOperationStatus buildOpExecution(
+    public static RoleAnalysisOperationStatusType buildOpExecution(
             @NotNull String taskOid,
             OperationResultStatusType operationResultStatusType,
             String message,
-            RoleAnalysisOperation operationType,
+            RoleAnalysisOperationType operationType,
             XMLGregorianCalendar createTimestamp,
             @Nullable FocusType owner) {
-        RoleAnalysisOperationStatus operationExecutionType = new RoleAnalysisOperationStatus();
+        RoleAnalysisOperationStatusType operationExecutionType = new RoleAnalysisOperationStatusType();
         XMLGregorianCalendar xmlGregorianCalendar = XmlTypeConverter.createXMLGregorianCalendar(new Date());
 
         if (createTimestamp == null) {
@@ -166,13 +167,13 @@ public class RoleAnalysisUtils {
             @NotNull ModelService modelService,
             @NotNull PrismObject<RoleAnalysisClusterType> cluster,
             @NotNull String taskOid,
-            @NotNull RoleAnalysisOperation operationChannel,
+            @NotNull RoleAnalysisOperationType operationChannel,
             @NotNull FocusType initiator,
             Trace logger,
             @NotNull Task task,
             @NotNull OperationResult result) {
 
-        @NotNull RoleAnalysisOperationStatus operationStatus = buildOpExecution(
+        @NotNull RoleAnalysisOperationStatusType operationStatus = buildOpExecution(
                 taskOid,
                 OperationResultStatusType.IN_PROGRESS,
                 null,
@@ -204,11 +205,11 @@ public class RoleAnalysisUtils {
             @NotNull Task task,
             @NotNull OperationResult result) {
 
-        @NotNull RoleAnalysisOperationStatus operationStatus = buildOpExecution(
+        @NotNull RoleAnalysisOperationStatusType operationStatus = buildOpExecution(
                 taskOid,
                 OperationResultStatusType.IN_PROGRESS,
                 null,
-                RoleAnalysisOperation.CLUSTERING,
+                RoleAnalysisOperationType.CLUSTERING,
                 null,
                 initiator);
 

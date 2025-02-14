@@ -643,7 +643,7 @@ public class RoleAnalysisSessionTileTable extends BasePanel<String> {
                         session.asPrismObject(),
                         result, task);
 
-                RoleAnalysisOperationStatus operationStatus = session.getOperationStatus();
+                RoleAnalysisOperationStatusType operationStatus = session.getOperationStatus();
                 ObjectReferenceType taskRef = resolveTaskRef(roleAnalysisService, operationStatus, task, result);
 
                 AjaxLinkPanel ajaxLinkPanel = buildTaskPanel(componentId, taskRef, stateString);
@@ -682,7 +682,7 @@ public class RoleAnalysisSessionTileTable extends BasePanel<String> {
     }
 
     @NotNull
-    private static String resolveTaskButtonClass(@NotNull RoleAnalysisOperationStatus operationStatus) {
+    private static String resolveTaskButtonClass(@NotNull RoleAnalysisOperationStatusType operationStatus) {
         OperationResultStatusType status = operationStatus.getStatus();
         String message = operationStatus.getMessage();
         String buttonClass = "btn-outline-secondary bg-secondary";
@@ -701,7 +701,7 @@ public class RoleAnalysisSessionTileTable extends BasePanel<String> {
 
     private static @Nullable ObjectReferenceType resolveTaskRef(
             @NotNull RoleAnalysisService roleAnalysisService,
-            @Nullable RoleAnalysisOperationStatus operationStatus,
+            @Nullable RoleAnalysisOperationStatusType operationStatus,
             @NotNull Task task,
             @NotNull OperationResult result) {
         ObjectReferenceType taskRef = null;

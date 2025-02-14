@@ -101,7 +101,7 @@ public class OutlierAttributeItemPanel<T extends Serializable>
     private RoleAnalysisWidgetsPanel loadDetailsPanel(@NotNull String id, Task task) {
 
         RoleAnalysisOutlierPartitionType partition = getPartitionModel().getObject();
-        AttributeAnalysis attributeAnalysis = partition.getPartitionAnalysis().getAttributeAnalysis();
+        AttributeAnalysisType attributeAnalysis = partition.getPartitionAnalysis().getAttributeAnalysis();
         if (attributeAnalysis == null) {
             return new RoleAnalysisWidgetsPanel(id, loadDetailsModel());
         }
@@ -172,19 +172,19 @@ public class OutlierAttributeItemPanel<T extends Serializable>
 
         RoleAnalysisOutlierPartitionType partition = getPartitionModel().getObject();
         RoleAnalysisPartitionAnalysisType partitionAnalysis = partition.getPartitionAnalysis();
-        AttributeAnalysis attributeAnalysis = partitionAnalysis.getAttributeAnalysis();
+        AttributeAnalysisType attributeAnalysis = partitionAnalysis.getAttributeAnalysis();
         if (attributeAnalysis == null) {
             return Model.ofList(List.of());
         }
-        RoleAnalysisAttributeAnalysisResult userAttributeAnalysisResult = attributeAnalysis.getUserAttributeAnalysisResult();
-        RoleAnalysisAttributeAnalysisResult clusterCompare = attributeAnalysis.getUserClusterCompare();
+        RoleAnalysisAttributeAnalysisResultType userAttributeAnalysisResult = attributeAnalysis.getUserAttributeAnalysisResult();
+        RoleAnalysisAttributeAnalysisResultType clusterCompare = attributeAnalysis.getUserClusterCompare();
 
         List<WidgetItemModel> detailsModel = List.of(
                 new WidgetItemModel(createStringResource(""),
                         Model.of("")) {
                     @Override
                     public Component createValueComponent(String id) {
-                        List<RoleAnalysisAttributeAnalysis> attributeAnalysisCluster = userAttributeAnalysisResult.getAttributeAnalysis();
+                        List<RoleAnalysisAttributeAnalysisType> attributeAnalysisCluster = userAttributeAnalysisResult.getAttributeAnalysis();
 
                         double itemsConfidence = resolveItemConfidence(attributeAnalysisCluster);
 
@@ -205,7 +205,7 @@ public class OutlierAttributeItemPanel<T extends Serializable>
                     @Override
                     public Component createValueComponent(String id) {
 
-                        List<RoleAnalysisAttributeAnalysis> attributeAnalysisCluster = clusterCompare.getAttributeAnalysis();
+                        List<RoleAnalysisAttributeAnalysisType> attributeAnalysisCluster = clusterCompare.getAttributeAnalysis();
 
                         double itemsConfidence = resolveItemConfidence(attributeAnalysisCluster);
                         Label label = new Label(id, itemsConfidence + "%");
@@ -224,7 +224,7 @@ public class OutlierAttributeItemPanel<T extends Serializable>
                         Model.of("Sort")) {
                     @Override
                     public Component createValueComponent(String id) {
-                        List<RoleAnalysisAttributeAnalysis> attributeAnalysisCluster = clusterCompare.getAttributeAnalysis();
+                        List<RoleAnalysisAttributeAnalysisType> attributeAnalysisCluster = clusterCompare.getAttributeAnalysis();
 
                         int items = 0;
                         if (attributeAnalysisCluster != null) {
@@ -267,7 +267,7 @@ public class OutlierAttributeItemPanel<T extends Serializable>
         return Model.ofList(detailsModel);
     }
 
-    private double resolveItemConfidence(List<RoleAnalysisAttributeAnalysis> attributeAnalysisCluster) {
+    private double resolveItemConfidence(List<RoleAnalysisAttributeAnalysisType> attributeAnalysisCluster) {
         double totalDensity = 0.0;
         int totalCount = 0;
         if (attributeAnalysisCluster != null) {
@@ -285,9 +285,9 @@ public class OutlierAttributeItemPanel<T extends Serializable>
         return itemsConfidence;
     }
 
-    private double calculateDensity(@NotNull List<RoleAnalysisAttributeAnalysis> attributeAnalysisList) {
+    private double calculateDensity(@NotNull List<RoleAnalysisAttributeAnalysisType> attributeAnalysisList) {
         double totalDensity = 0.0;
-        for (RoleAnalysisAttributeAnalysis attributeAnalysis : attributeAnalysisList) {
+        for (RoleAnalysisAttributeAnalysisType attributeAnalysis : attributeAnalysisList) {
             Double density = attributeAnalysis.getDensity();
             if (density != null) {
                 totalDensity += density;

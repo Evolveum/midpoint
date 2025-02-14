@@ -753,8 +753,8 @@ public abstract class RoleAnalysisAbstractClusteringResultPanel extends Abstract
                 .findParent(Item.class).get(ID_SECOND_COLLAPSABLE_CONTAINER);
 
         if (!collapseContainerUser.isExpanded()) {
-            RoleAnalysisAttributeAnalysisResult userAttributeAnalysisResult = null;
-            RoleAnalysisAttributeAnalysisResult roleAttributeAnalysisResult = null;
+            RoleAnalysisAttributeAnalysisResultType userAttributeAnalysisResult = null;
+            RoleAnalysisAttributeAnalysisResultType roleAttributeAnalysisResult = null;
             if (model.getObject() != null) {
                 RoleAnalysisClusterType value = model.getObject().getValue();
                 AnalysisClusterStatisticType clusterStatistics = value.getClusterStatistics();

@@ -197,8 +197,8 @@ public class AnalysisInfoWidgetDto implements Serializable {
     private static void loadAnomaliesSet(
             @NotNull RoleAnalysisOutlierPartitionType outlierPartition,
             @NotNull Set<String> anomalies) {
-        List<DetectedAnomalyResult> detectedAnomalyResult = outlierPartition.getDetectedAnomalyResult();
-        for (DetectedAnomalyResult detectedAnomaly : detectedAnomalyResult) {
+        List<DetectedAnomalyResultType> detectedAnomalyResult = outlierPartition.getDetectedAnomalyResult();
+        for (DetectedAnomalyResultType detectedAnomaly : detectedAnomalyResult) {
             if (detectedAnomaly.getTargetObjectRef() != null) {
                 anomalies.add(detectedAnomaly.getTargetObjectRef().getOid());
             }

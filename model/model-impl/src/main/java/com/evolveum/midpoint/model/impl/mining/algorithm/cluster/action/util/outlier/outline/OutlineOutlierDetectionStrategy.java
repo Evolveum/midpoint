@@ -115,7 +115,7 @@ public class OutlineOutlierDetectionStrategy implements OutlierDetectionStrategy
         List<RoleAnalysisAttributeDef> attributesForUserAnalysis = roleAnalysisService.resolveAnalysisAttributes(
                 session, UserType.COMPLEX_TYPE);
 
-        ListMultimap<String, DetectedAnomalyResult> userRoleMap = ArrayListMultimap.create();
+        ListMultimap<String, DetectedAnomalyResultType> userRoleMap = ArrayListMultimap.create();
 
         List<String> members = new ArrayList<>();
         members.add(memberOid);
@@ -140,7 +140,7 @@ public class OutlineOutlierDetectionStrategy implements OutlierDetectionStrategy
             }
         }
 
-        Collection<DetectedAnomalyResult> detectedAnomalyResults = userRoleMap.get(memberOid);
+        Collection<DetectedAnomalyResultType> detectedAnomalyResults = userRoleMap.get(memberOid);
 
         RoleAnalysisOutlierPartitionType partition;
         if (!detectedAnomalyResults.isEmpty()) {
