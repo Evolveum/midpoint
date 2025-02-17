@@ -76,9 +76,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
     private static final int MAX_CONFLICT_WATCHERS = 10;
     public static final int MAX_CONSTRAINT_NAME_LENGTH = 40;
 
-    private final MatchingRuleRegistry matchingRuleRegistry;
     private final PrismContext prismContext;
-    private final RelationRegistry relationRegistry;
 
     // autowired because sadly these involve dependency cycles
     @Autowired private SequenceHelper sequenceHelper;
@@ -100,9 +98,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 
         super(baseHelper);
 
-        this.matchingRuleRegistry = matchingRuleRegistry;
         this.prismContext = prismContext;
-        this.relationRegistry = relationRegistry;
     }
 
     @PostConstruct
@@ -777,15 +773,16 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
                     if (isCustomPagingOkWithPagedSeqIteration(query)) {
                         iterationMethod = IterationMethodType.STRICTLY_SEQUENTIAL_PAGING;
                     } else if (isCustomPagingOkWithFetchAllIteration(query)) {
-                        LOGGER.debug("Iterative search by paging was defined in the repository configuration, and strict sequentiality "
-                                + "was requested. However, a custom paging precludes its application. Therefore switching to "
-                                + "'fetch all' iteration method. Paging requested: " + query.getPaging());
+                        LOGGER.debug("Iterative search by paging was defined in the repository configuration, and strictly "
+                                + "sequential search was requested. However, a custom paging precludes its application. "
+                                + "Therefore switching to 'fetch all' iteration method. Paging requested: {}", query.getPaging());
                         iterationMethod = IterationMethodType.FETCH_ALL;
                     } else {
-                        LOGGER.warn("Iterative search by paging was defined in the repository configuration, and strict sequentiality "
-                                + "was requested. However, a custom paging precludes its application and maxSize is either "
-                                + "undefined or too large (over " + sqlConfiguration().getMaxObjectsForImplicitFetchAllIterationMethod()
-                                + "). Therefore switching to simple paging iteration method. Paging requested: " + query.getPaging());
+                        LOGGER.warn("Iterative search by paging was defined in the repository configuration, and strictly "
+                                + "sequential search was requested. However, a custom paging precludes its application "
+                                + "and maxSize is either undefined or too large (over {}). Therefore switching to "
+                                + "simple paging iteration method. Paging requested: {}",
+                                sqlConfiguration().getMaxObjectsForImplicitFetchAllIterationMethod(), query.getPaging());
                         iterationMethod = IterationMethodType.SIMPLE_PAGING;
                     }
                 } else {
@@ -808,19 +805,22 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 
         LOGGER.trace("Using iteration method {} for type={}, query={}", iterationMethod, type, query);
 
+        var resultProvidingHandler = handler.providingOwnOperationResult(HANDLE_OBJECT_FOUND);
+
         SearchResultMetadata rv = null; // todo what about returning values from other search methods?
         switch (iterationMethod) {
             case SINGLE_TRANSACTION:
-                rv = searchObjectsIterativeBySingleTransaction(type, query, handler, options, subResult);
+                rv = searchObjectsIterativeBySingleTransaction(type, query, resultProvidingHandler, options, subResult);
                 break;
             case SIMPLE_PAGING:
-                objectRetriever.searchObjectsIterativeByPaging(type, query, handler, options, subResult);
+                objectRetriever.searchObjectsIterativeByPaging(type, query, resultProvidingHandler, options, subResult);
                 break;
             case STRICTLY_SEQUENTIAL_PAGING:
-                objectRetriever.searchObjectsIterativeByPagingStrictlySequential(type, query, handler, options, subResult);
+                objectRetriever.searchObjectsIterativeByPagingStrictlySequential(
+                        type, query, resultProvidingHandler, options, subResult);
                 break;
             case FETCH_ALL:
-                objectRetriever.searchObjectsIterativeByFetchAll(type, query, handler, options, subResult);
+                objectRetriever.searchObjectsIterativeByFetchAll(type, query, resultProvidingHandler, options, subResult);
                 break;
             default:
                 throw new AssertionError("iterationMethod: " + iterationMethod);

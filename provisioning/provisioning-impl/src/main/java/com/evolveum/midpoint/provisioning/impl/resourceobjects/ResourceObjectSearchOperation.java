@@ -29,6 +29,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.FetchErrorReportingM
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.PagedSearchCapabilityType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ReadCapabilityType;
 
+import static com.evolveum.midpoint.schema.result.OperationResult.HANDLE_OBJECT_FOUND;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -44,7 +46,7 @@ class ResourceObjectSearchOperation {
 
     @NotNull private final ProvisioningContext ctx;
 
-    private static final String OP_HANDLE_OBJECT_FOUND = ResourceObjectSearchOperation.class.getName() + ".handleObjectFound";
+    private static final String OP_HANDLE_OBJECT_FOUND = ResourceObjectSearchOperation.class.getName() + "." + HANDLE_OBJECT_FOUND;
 
     @NotNull private final ResourceObjectHandler resultHandler;
 
@@ -186,17 +188,10 @@ class ResourceObjectSearchOperation {
                     objectFound.initialize(task, objResult);
                     return resultHandler.handle(objectFound, objResult);
                 } catch (Throwable t) {
-                    objResult.recordFatalError(t);
+                    objResult.recordException(t);
                     throw t;
                 } finally {
-                    objResult.computeStatusIfUnknown();
-                    // FIXME: hack. Hardcoded ugly summarization of successes. something like
-                    //  AbstractSummarizingResultHandler [lazyman]
-                    if (objResult.isSuccess() && objResult.canBeCleanedUp()) {
-                        objResult.getSubresults().clear();
-                    }
-                    // TODO Reconsider this. It is quite dubious to touch the global result from the inside.
-                    parentResult.summarize();
+                    objResult.close();
                 }
             } finally {
                 RepositoryCache.exitLocalCaches();

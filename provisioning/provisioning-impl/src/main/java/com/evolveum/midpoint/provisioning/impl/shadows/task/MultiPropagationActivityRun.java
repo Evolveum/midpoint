@@ -10,6 +10,8 @@ package com.evolveum.midpoint.provisioning.impl.shadows.task;
 import com.evolveum.midpoint.repo.common.activity.run.ActivityRunException;
 import com.evolveum.midpoint.repo.common.activity.run.SearchBasedActivityRun;
 
+import com.evolveum.midpoint.schema.ResultHandler;
+
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
@@ -29,6 +31,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractActivityWork
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
+import static com.evolveum.midpoint.schema.result.OperationResult.HANDLE_OBJECT_FOUND;
+
 /**
  * Run of a multi-propagation activity.
  */
@@ -40,6 +44,8 @@ public final class MultiPropagationActivityRun
                 AbstractActivityWorkStateType> {
 
     private static final Trace LOGGER = TraceManager.getTrace(MultiPropagationActivityRun.class);
+
+    private static final String OP_HANDLE_OBJECT_FOUND = MultiPropagationActivityRun.class.getName() + "." + HANDLE_OBJECT_FOUND;
 
     MultiPropagationActivityRun(
             @NotNull ActivityRunInstantiationContext<MultiPropagationWorkDefinition, MultiPropagationActivityHandler> context) {
@@ -73,10 +79,14 @@ public final class MultiPropagationActivityRun
                 .exists(ShadowType.F_PENDING_OPERATION)
                 .build();
 
-        getBeans().repositoryService.searchObjectsIterative(ShadowType.class, shadowQuery, (shadow, lResult) -> {
+        ResultHandler<ShadowType> handler = (shadow, lResult) -> {
             propagateOperationsOnShadow(shadow.asObjectable(), resource, workerTask, lResult);
             return true;
-        }, null, true, result);
+        };
+        getBeans().repositoryService.searchObjectsIterative(
+                ShadowType.class, shadowQuery,
+                handler.providingOwnOperationResult(OP_HANDLE_OBJECT_FOUND),
+                null, true, result);
 
         LOGGER.trace("Propagation of {} done", resource);
         return true;

@@ -7,7 +7,10 @@
 
 package com.evolveum.midpoint.repo.cache.handlers;
 
+import static com.evolveum.midpoint.repo.api.RepositoryService.*;
 import static com.evolveum.midpoint.repo.cache.RepositoryCache.CLASS_NAME_WITH_DOT;
+import static com.evolveum.midpoint.repo.cache.RepositoryCache.OP_SEARCH_OBJECTS_IMPL;
+import static com.evolveum.midpoint.repo.cache.RepositoryCache.OP_SEARCH_OBJECTS_ITERATIVE_IMPL;
 import static com.evolveum.midpoint.repo.cache.other.MonitoringUtil.repoOpEnd;
 import static com.evolveum.midpoint.repo.cache.other.MonitoringUtil.repoOpStart;
 import static com.evolveum.midpoint.schema.GetOperationOptions.isReadOnly;
@@ -37,32 +40,19 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 @Component
 public class SearchOpHandler extends CachedOpHandler {
 
-    private static final String SEARCH_OBJECTS = "searchObjects";
-    private static final String SEARCH_OBJECTS_ITERATIVE = "searchObjectsIterative";
-
-    private static final String OP_SEARCH_CONTAINERS = CLASS_NAME_WITH_DOT + "searchContainers";
-    private static final String OP_SEARCH_SHADOW_OWNER = CLASS_NAME_WITH_DOT + "searchShadowOwner";
-    private static final String OP_COUNT_CONTAINERS = CLASS_NAME_WITH_DOT + "countContainers";
-    private static final String OP_COUNT_OBJECTS = CLASS_NAME_WITH_DOT + "countObjects";
-    private static final String OP_SEARCH_REFERENCES = CLASS_NAME_WITH_DOT + "searchReferences";
-    private static final String OP_COUNT_REFERENCES = CLASS_NAME_WITH_DOT + "countReferences";
-    private static final String OP_SEARCH_REFERENCES_ITERATIVE = CLASS_NAME_WITH_DOT + "searchReferencesIterative";
-
-    private static final String OP_SEARCH_CONTAINERS_ITERATIVE = CLASS_NAME_WITH_DOT + "searchContainersIterative";
-
-
     /**
      * Queries resulting in more objects will not be cached "as such" - although individual objects/versions can be cached.
      */
     public static final int QUERY_RESULT_SIZE_LIMIT = 100;
 
-    private static final String OP_ITERATE_OVER_QUERY_RESULT = RepositoryCache.class.getName() + ".iterateOverQueryResult";
+    private static final String OP_SEARCH_SHADOW_OWNER = CLASS_NAME_WITH_DOT + "searchShadowOwner";
 
     @NotNull
     public <T extends ObjectType> SearchResultList<PrismObject<T>> searchObjects(Class<T> type, ObjectQuery query,
             Collection<SelectorOptions<GetOperationOptions>> options, OperationResult parentResult) throws SchemaException {
 
-        SearchOpExecution<T> exec = initializeExecution(type, query, options, parentResult, SEARCH_OBJECTS);
+        SearchOpExecution<T> exec = initializeExecution(
+                type, query, options, parentResult, SEARCH_OBJECTS, OP_SEARCH_OBJECTS_IMPL);
 
         try {
             QueryKey<T> key = new QueryKey<>(type, query);
@@ -130,7 +120,9 @@ public class SearchOpHandler extends CachedOpHandler {
             ResultHandler<T> handler, Collection<SelectorOptions<GetOperationOptions>> options,
             boolean strictlySequential, OperationResult parentResult) throws SchemaException {
 
-        SearchOpExecution<T> exec = initializeExecution(type, query, options, parentResult, SEARCH_OBJECTS_ITERATIVE);
+        SearchOpExecution<T> exec = initializeExecution(
+                type, query, options, parentResult,
+                SEARCH_OBJECTS_ITERATIVE, OP_SEARCH_OBJECTS_ITERATIVE_IMPL);
         ReportingResultHandler<T> reportingHandler = new ReportingResultHandler<>(handler, exec);
 
         try {
@@ -189,9 +181,10 @@ public class SearchOpHandler extends CachedOpHandler {
     }
 
     private <T extends ObjectType> SearchOpExecution<T> initializeExecution(Class<T> type, ObjectQuery query,
-            Collection<SelectorOptions<GetOperationOptions>> options, OperationResult parentResult, String opName)
+            Collection<SelectorOptions<GetOperationOptions>> options, OperationResult parentResult,
+            String localOpName, String fullOpName)
             throws SchemaException {
-        OperationResult result = parentResult.subresult(CLASS_NAME_WITH_DOT + opName)
+        OperationResult result = parentResult.subresult(fullOpName)
                 .addQualifier(type.getSimpleName())
                 .addParam("type", type)
                 .addParam("query", query)
@@ -211,7 +204,7 @@ public class SearchOpHandler extends CachedOpHandler {
             trace = null;
         }
         CacheSetAccessInfo<T> caches = cacheSetAccessInfoFactory.determine(type);
-        return new SearchOpExecution<>(type, options, result, query, trace, level, prismContext, caches, opName);
+        return new SearchOpExecution<>(type, options, result, query, trace, level, prismContext, caches, localOpName);
     }
 
     // returns directly returnable list (frozen if readonly, mutable if not readonly)
@@ -277,6 +270,7 @@ public class SearchOpHandler extends CachedOpHandler {
             boolean strictlySequential, OperationResult parentResult) throws SchemaException {
         Long startTime = repoOpStart();
         try {
+            // Not providing own operation result here, as there's no processing in this module.
             return repositoryService.searchObjectsIterative(type, query, handler, options, strictlySequential, parentResult);
         } finally {
             repoOpEnd(startTime);
@@ -284,17 +278,20 @@ public class SearchOpHandler extends CachedOpHandler {
     }
 
     private <T extends ObjectType> SearchResultMetadata iterateOverImmutableQueryResult(
-            SearchOpExecution<T> exec, SearchResultList<PrismObject<T>> immutableList, ResultHandler<T> handler) {
-        OperationResult result = exec.result.subresult(OP_ITERATE_OVER_QUERY_RESULT)
+            SearchOpExecution<T> exec,
+            SearchResultList<PrismObject<T>> immutableList,
+            ReportingResultHandler<T> reportingHandler) {
+        // We provide our own handler here so that the result will be correctly aggregated, even for naive clients
+        var resultProvidingHandler = reportingHandler.providingOwnOperationResult(RepositoryCache.OP_HANDLE_OBJECT_FOUND_IMPL);
+        OperationResult result = exec.result.subresult(RepositoryCache.OP_ITERATE_OVER_QUERY_RESULT)
                 .setMinor()
                 .addParam("objects", immutableList.size())
-                .addArbitraryObjectAsParam("handler", handler)
                 .build();
         try {
             for (PrismObject<T> immutableObject : immutableList) {
                 immutableObject.checkImmutable();
                 PrismObject<T> objectToHandle = exec.readOnly ? immutableObject : immutableObject.clone();
-                if (!handler.handle(objectToHandle, result)) {
+                if (!resultProvidingHandler.handle(objectToHandle, result)) {
                     break;
                 }
             }
@@ -302,10 +299,10 @@ public class SearchOpHandler extends CachedOpHandler {
             //   ...and is it correct to return cached metadata at all?
             return immutableList.getMetadata() != null ? immutableList.getMetadata().clone() : null;
         } catch (Throwable t) {
-            result.recordFatalError(t);
+            result.recordException(t);
             throw t;
         } finally {
-            result.computeStatusIfUnknown();
+            result.close();
         }
     }
 
@@ -344,7 +341,7 @@ public class SearchOpHandler extends CachedOpHandler {
     public @NotNull <T extends Containerable> SearchResultList<T> searchContainers(Class<T> type,
             ObjectQuery query, Collection<SelectorOptions<GetOperationOptions>> options, OperationResult parentResult)
             throws SchemaException {
-        OperationResult result = parentResult.subresult(OP_SEARCH_CONTAINERS)
+        OperationResult result = parentResult.subresult(RepositoryCache.OP_SEARCH_CONTAINERS_IMPL)
                 .addQualifier(type.getSimpleName())
                 .addParam("type", type)
                 .addParam("query", query)
@@ -364,7 +361,7 @@ public class SearchOpHandler extends CachedOpHandler {
 
     public <T extends Containerable> int countContainers(Class<T> type, ObjectQuery query,
             Collection<SelectorOptions<GetOperationOptions>> options, OperationResult parentResult) {
-        OperationResult result = parentResult.subresult(OP_COUNT_CONTAINERS)
+        OperationResult result = parentResult.subresult(RepositoryCache.OP_COUNT_CONTAINERS_IMPL)
                 .addQualifier(type.getSimpleName())
                 .addParam("type", type)
                 .addParam("query", query)
@@ -385,7 +382,7 @@ public class SearchOpHandler extends CachedOpHandler {
 
     public SearchResultList<ObjectReferenceType> searchReferences(ObjectQuery query,
             Collection<SelectorOptions<GetOperationOptions>> options, OperationResult parentResult) throws SchemaException {
-        OperationResult result = parentResult.subresult(OP_SEARCH_REFERENCES)
+        OperationResult result = parentResult.subresult(RepositoryCache.OP_SEARCH_REFERENCES_IMPL)
                 .addParam("query", query)
                 .addArbitraryObjectAsParam("options", options)
                 .build();
@@ -403,7 +400,7 @@ public class SearchOpHandler extends CachedOpHandler {
 
     public int countReferences(ObjectQuery query,
             Collection<SelectorOptions<GetOperationOptions>> options, OperationResult parentResult) {
-        OperationResult result = parentResult.subresult(OP_COUNT_REFERENCES)
+        OperationResult result = parentResult.subresult(RepositoryCache.OP_COUNT_REFERENCES_IMPL)
                 .addParam("query", query)
                 .addArbitraryObjectCollectionAsParam("options", options)
                 .build();
@@ -425,7 +422,7 @@ public class SearchOpHandler extends CachedOpHandler {
             @NotNull ObjectHandler<ObjectReferenceType> handler,
             @Nullable Collection<SelectorOptions<GetOperationOptions>> options,
             @NotNull OperationResult parentResult) throws SchemaException {
-        OperationResult result = parentResult.subresult(OP_SEARCH_REFERENCES_ITERATIVE)
+        OperationResult result = parentResult.subresult(RepositoryCache.OP_SEARCH_REFERENCES_ITERATIVE_IMPL)
                 .addParam("query", query)
                 .addArbitraryObjectAsParam("options", options)
                 .build();
@@ -447,7 +444,7 @@ public class SearchOpHandler extends CachedOpHandler {
             @NotNull ObjectHandler<T> handler,
             @Nullable Collection<SelectorOptions<GetOperationOptions>> options,
             @NotNull OperationResult parentResult) throws SchemaException {
-        OperationResult result = parentResult.subresult(OP_SEARCH_CONTAINERS_ITERATIVE)
+        OperationResult result = parentResult.subresult(RepositoryCache.OP_SEARCH_CONTAINERS_ITERATIVE_IMPL)
                 .addQualifier(type.getSimpleName())
                 .addParam("type", type)
                 .addParam("query", query)
@@ -469,7 +466,7 @@ public class SearchOpHandler extends CachedOpHandler {
             Collection<SelectorOptions<GetOperationOptions>> options, OperationResult parentResult)
             throws SchemaException {
         // TODO use cached query result if applicable
-        OperationResult result = parentResult.subresult(OP_COUNT_OBJECTS)
+        OperationResult result = parentResult.subresult(RepositoryCache.OP_COUNT_OBJECTS_IMPL)
                 .addQualifier(type.getSimpleName())
                 .addParam("type", type)
                 .addParam("query", query)

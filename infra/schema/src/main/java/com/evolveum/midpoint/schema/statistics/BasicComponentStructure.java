@@ -20,7 +20,7 @@ import com.evolveum.midpoint.util.MiscUtil;
  *
  * Note that the order of components is important, as the first match counts.
  */
-enum BasicComponentStructure {
+public enum BasicComponentStructure {
 
     MODEL("Model",
             "com.evolveum.midpoint.model.*"),
@@ -82,6 +82,10 @@ enum BasicComponentStructure {
                         .map(MiscUtil::toRegex)
                         .toList(),
                 List.of());
+    }
+
+    public String getComponentName() {
+        return description.getName();
     }
 
     public ComponentDescription getDescription() {

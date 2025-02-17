@@ -43,6 +43,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
  */
 class ShadowSearchLikeOperation {
 
+    private static final String OP_PROCESS_REPO_SHADOW = ShadowSearchLikeOperation.class.getName() + ".processRepoShadow";
+
     private static final Trace LOGGER = TraceManager.getTrace(ShadowSearchLikeOperation.class);
 
     @NotNull private final ProvisioningContext ctx;
@@ -159,14 +161,7 @@ class ShadowSearchLikeOperation {
             shadowedObjectFound.initialize(ctx.getTask(), lResult);
             ShadowType shadowedObject = shadowedObjectFound.getResultingObject(ucfErrorReportingMethod);
 
-            try {
-                return handler.handle(shadowedObject.asPrismObject(), lResult);
-            } catch (Throwable t) {
-                lResult.recordException(t);
-                throw t;
-            } finally {
-                lResult.close();
-            }
+            return handler.handle(shadowedObject.asPrismObject(), lResult);
         };
 
         boolean fetchAssociations = SelectorOptions.hasToIncludePath(ShadowType.F_ASSOCIATION, options, true);
@@ -312,7 +307,7 @@ class ShadowSearchLikeOperation {
      */
     private ResultHandler<ShadowType> createRepoShadowHandler(ResultHandler<ShadowType> upstreamHandler) {
         return (PrismObject<ShadowType> shadow, OperationResult result) -> {
-            OperationResult lResult = result.createMinorSubresult(ShadowsFacade.OP_HANDLE_OBJECT);
+            OperationResult lResult = result.createMinorSubresult(OP_PROCESS_REPO_SHADOW);
             boolean cont;
             try {
                 processRepoShadow(shadow, lResult);
