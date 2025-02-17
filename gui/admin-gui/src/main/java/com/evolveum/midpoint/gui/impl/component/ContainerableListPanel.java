@@ -16,6 +16,7 @@ import com.evolveum.midpoint.gui.impl.page.admin.certification.column.AbstractGu
 
 import com.evolveum.midpoint.gui.impl.page.admin.certification.helpers.ColumnTypeConfigContext;
 
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.reflect.ConstructorUtils;
@@ -439,6 +440,11 @@ public abstract class ContainerableListPanel<C extends Serializable, PO extends 
             }
 
             @Override
+            protected boolean shouldAddPredefinedPagingSizes() {
+                return ContainerableListPanel.this.shouldAddPredefinedPagingSizes();
+            }
+
+            @Override
             protected void savePagingNewValue(Integer newPageSize) {
                 setPagingSizeNewValue(newPageSize);
             }
@@ -701,6 +707,18 @@ public abstract class ContainerableListPanel<C extends Serializable, PO extends 
         var defaultSettings = getDefaultObjectListConfiguration();
 
         return collectPageSizesFromPagingConfiguration(viewPagingOptions, viewPaging, defaultSettings);
+    }
+
+    private boolean shouldAddPredefinedPagingSizes() {
+        CompiledObjectCollectionView view = getObjectCollectionView();
+        PagingOptionsType viewPagingOptions = view != null ? view.getPagingOptions() : null;
+        var defaultSettings = getDefaultObjectListConfiguration();
+        return !isAvailableSizeConfigured(viewPagingOptions) &&
+                (defaultSettings == null || !isAvailableSizeConfigured(defaultSettings.getPagingOptions()));
+    }
+
+    private boolean isAvailableSizeConfigured(PagingOptionsType pagingOptions) {
+        return pagingOptions != null && CollectionUtils.isNotEmpty(pagingOptions.getAvailablePageSize());
     }
 
     private <DC extends DefaultGuiObjectListPanelConfigurationType> List<Integer> collectPageSizesFromPagingConfiguration(
