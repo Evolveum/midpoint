@@ -13,6 +13,8 @@ import javax.xml.datatype.XMLGregorianCalendar;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 
+import com.evolveum.midpoint.util.LocalizableMessage;
+
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultStatusType;
@@ -74,7 +76,12 @@ public class LegacyTaskInformation extends TaskInformation {
 
     @Override
     public boolean isComplete() {
-        return false; // It couldn't be determined from the legacy task. Just a guess bases on progress and expected total.
+        return false; // It couldn't be determined from the legacy task.
+    }
+
+    @Override
+    public LocalizableMessage getTaskStatusDescription() {
+        return null; // It couldn't be determined from the legacy task.
     }
 
     @Override
