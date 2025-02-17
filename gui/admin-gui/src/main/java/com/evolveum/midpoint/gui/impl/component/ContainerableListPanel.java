@@ -686,8 +686,7 @@ public abstract class ContainerableListPanel<C extends Serializable, PO extends 
      */
     private @Nullable Integer getConfiguredDefaultPageSize() {
         CompiledObjectCollectionView view = getObjectCollectionView();
-        Integer defaultPageSize = view != null && view.getPagingOptions() != null ?
-                view.getPagingOptions().getDefaultPageSize() : null;
+        Integer defaultPageSize = view != null && view.getPaging() != null ? view.getPaging().getMaxSize() : null;
         if (defaultPageSize != null) {
             return defaultPageSize;
         }
@@ -696,8 +695,8 @@ public abstract class ContainerableListPanel<C extends Serializable, PO extends 
         if (defaultListViewConfigurations == null) {
             return null;
         }
-        return defaultListViewConfigurations.getPagingOptions() != null ?
-                defaultListViewConfigurations.getPagingOptions().getDefaultPageSize() : null;
+        return defaultListViewConfigurations.getPaging() != null ?
+                defaultListViewConfigurations.getPaging().getMaxSize() : null;
     }
 
     protected @Nullable List<Integer> getAvailablePageSizes() {
@@ -733,15 +732,6 @@ public abstract class ContainerableListPanel<C extends Serializable, PO extends 
             availablePageSizes.addAll(defaultSettings.getPagingOptions().getAvailablePageSize());
         }
 
-        //try to get default page size at first from view configuration, then from default settings
-        Integer defaultPageSize = viewPagingOptions != null ? viewPagingOptions.getDefaultPageSize() : null;
-        if (defaultPageSize == null) {
-            defaultPageSize = defaultPageSizeExists(defaultSettings) ? defaultSettings.getPagingOptions().getDefaultPageSize() : null;
-        }
-        if (defaultPageSize != null && !availablePageSizes.contains(defaultPageSize)) {
-            availablePageSizes.add(defaultPageSize);
-        }
-
         //now we get the max size from query paging configuration
         Integer pagingMaxSize = viewPaging != null ? viewPaging.getMaxSize() : null;
         if (pagingMaxSize == null) {
@@ -757,10 +747,6 @@ public abstract class ContainerableListPanel<C extends Serializable, PO extends 
     private <DC extends DefaultGuiObjectListPanelConfigurationType> boolean availablePageSizesListExist(DC config) {
         return config != null && config.getPagingOptions() != null
                 && config.getPagingOptions().getAvailablePageSize() != null;
-    }
-
-    private <DC extends DefaultGuiObjectListPanelConfigurationType> boolean defaultPageSizeExists(DC config) {
-        return config != null && config.getPagingOptions() != null && config.getPagingOptions().getDefaultPageSize() != null;
     }
 
     private <DC extends DefaultGuiObjectListPanelConfigurationType> boolean pagingMaxSizeExists(DC config) {
