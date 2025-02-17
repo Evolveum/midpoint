@@ -13,14 +13,23 @@ import java.io.File;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
-import javax.xml.transform.dom.DOMSource;
-import javax.xml.validation.Validator;
 
+import com.evolveum.midpoint.model.impl.controller.ModelController;
+import com.evolveum.midpoint.repo.api.RepositoryService;
+import com.evolveum.midpoint.repo.cache.RepositoryCache;
+import com.evolveum.midpoint.schema.cache.CacheConfigurationManager;
+import com.evolveum.midpoint.schema.statistics.BasicComponentStructure;
+import com.evolveum.midpoint.util.DebugUtil;
+import com.evolveum.midpoint.util.MiscUtil;
+import com.evolveum.midpoint.util.exception.*;
+
+import com.evolveum.midpoint.util.statistics.OperationsPerformanceMonitor;
+
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Test;
-import org.w3c.dom.Document;
 
 import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -40,9 +49,6 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.DummyResourceContoller;
 import com.evolveum.midpoint.test.TestObject;
 import com.evolveum.midpoint.test.util.TestUtil;
-import com.evolveum.midpoint.util.DOMUtil;
-import com.evolveum.midpoint.util.exception.PolicyViolationException;
-import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 @ContextConfiguration(locations = { "classpath:ctx-model-intest-test-main.xml" })
@@ -57,15 +63,19 @@ public class TestMisc extends AbstractMiscTest {
 
     private static final TestObject<ArchetypeType> ARCHETYPE_NODE_GROUP_GUI = TestObject.file(TEST_DIR, "archetype-node-group-gui.xml", "05b6933a-b7fc-4543-b8fa-fd8b278ff9ee");
 
-    protected static final File RESOURCE_SCRIPTY_FILE = new File(TEST_DIR, "resource-dummy-scripty.xml");
-    protected static final String RESOURCE_SCRIPTY_OID = "399f5308-0447-11e8-91e9-a7f9c4100ffb";
-    protected static final String RESOURCE_DUMMY_SCRIPTY_NAME = "scripty";
+    private static final File RESOURCE_SCRIPTY_FILE = new File(TEST_DIR, "resource-dummy-scripty.xml");
+    private static final String RESOURCE_SCRIPTY_OID = "399f5308-0447-11e8-91e9-a7f9c4100ffb";
+    private static final String RESOURCE_DUMMY_SCRIPTY_NAME = "scripty";
 
     private static final byte[] KEY = { 0x01, 0x02, 0x03, 0x04, 0x05 };
 
     private static final String USER_CLEAN_NAME = "clean";
     private static final String USER_CLEAN_GIVEN_NAME = "John";
     private static final String USER_CLEAN_FAMILY_NAME = "Clean";
+    private static final int ROLE_PROCESSING_DELAY = 100;
+    private static final double SAFETY_MARGIN = 1.5;
+
+    @Autowired private CacheConfigurationManager cacheConfigurationManager;
 
     private String userCleanOid;
     private Integer lastDummyConnectorNumber;
@@ -603,6 +613,186 @@ public class TestMisc extends AbstractMiscTest {
                 getDummyResourceController(RESOURCE_DUMMY_SCRIPTY_NAME).getAttributeQName(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_WEALTH_NAME));
         assertEquals("Connector number hash changed: " + lastDummyConnectorNumber + " -> " + dummyConnectorNumber,
                 dummyConnectorNumber, lastDummyConnectorNumber);
+    }
+
+    /**
+     * Iterative search (from repo and repo cache) should provide correct operation names for the whole chain: going down
+     * from model to repo cache to repo impl, and then stepping up the result handlers.
+     *
+     * MID-10446
+     */
+    @Test
+    public void test520OperationResultInHandlersForRepoIterativeSearch() throws Exception {
+        var task = getTestTask();
+        var result = task.getResult();
+
+        int numGeneratedRoles = 30;
+
+        // Please adapt if the internals of the iterative search change
+
+        // model level
+        var modelSearchIterativeOpName = ModelController.SEARCH_OBJECTS;
+
+        // repo cache level
+        var repoCacheSearchIterativeOpName = RepositoryCache.OP_SEARCH_OBJECTS_ITERATIVE_IMPL;
+        var repoCacheIterateOverQueryResultOpName = RepositoryCache.OP_ITERATE_OVER_QUERY_RESULT;
+        var repoCacheHandleObjectFoundOpName = RepositoryCache.OP_HANDLE_OBJECT_FOUND_IMPL;
+
+        // repo impl level
+        var repoSearchObjectsIterativeOpName = isNativeRepository() ?
+                "SqaleRepositoryService.searchObjectsIterative" : RepositoryService.SEARCH_OBJECTS_ITERATIVE;
+        var repoHandleObjectFoundOpName = isNativeRepository() ?
+                "SqaleRepositoryService.handleObjectFound" : RepositoryService.HANDLE_OBJECT_FOUND;
+
+        long expectedTotalLow = numGeneratedRoles * ROLE_PROCESSING_DELAY * 1000L;
+        long expectedTotalHigh = (long) (expectedTotalLow * SAFETY_MARGIN) * 1000L;
+        long expectedNoOpOwnHigh = 100 * 1000L;
+        long expectedOwnLow = numGeneratedRoles * ROLE_PROCESSING_DELAY * 1000L;
+        long expectedOwnHigh = (long) (expectedOwnLow * SAFETY_MARGIN) * 1000L;
+
+        RepositoryCache.enterLocalCaches(cacheConfigurationManager);
+
+        try {
+
+            given("%s generated roles".formatted(numGeneratedRoles));
+            generateRoles(numGeneratedRoles, "generated-role-%04d", null, null, result);
+
+            when("searching for users iteratively");
+            OperationsPerformanceMonitor.INSTANCE.clearGlobalPerformanceInformation();
+            var result1 = result.createSubresult(TestMisc.class.getName() + ".first");
+            searchGeneratedRolesIteratively(task, result1);
+
+            then("result is OK");
+            var previous = DebugUtil.setDetailedDebugDump(true);
+            displayDumpable("result", result1);
+            DebugUtil.setDetailedDebugDump(previous);
+            // To be adapted if the internals of the iterative search change
+            var handlingResults1 = assertThatOperationResult(result1)
+                    .firstSubResultMatching(sr -> sr.getOperation().equals(modelSearchIterativeOpName))
+                    .firstSubResultMatching(sr -> sr.getOperation().equals(repoCacheSearchIterativeOpName))
+                    .firstSubResultMatching(sr -> sr.getOperation().equals(repoSearchObjectsIterativeOpName))
+                    .getAllSubResultsMatching(sr -> sr.getOperation().equals(repoHandleObjectFoundOpName));
+            // The following two numbers should include summarized (hidden) subresults
+            var totalHandlingTime1 = handlingResults1.stream()
+                    .mapToLong(sr -> sr.getMicroseconds())
+                    .sum();
+            var ownHandlingTime1 = handlingResults1.stream()
+                    .mapToLong(sr -> sr.getOwnMicroseconds())
+                    .sum();
+
+            and("performance info is OK");
+            var info1 = assertGlobalOperationsPerformance()
+                    .display()
+                    .assertInvocationCount(modelSearchIterativeOpName, 1)
+                    .assertTotalTimeBetween(modelSearchIterativeOpName, expectedTotalLow, expectedTotalHigh)
+                    .assertOwnTimeBetween(modelSearchIterativeOpName, 0, expectedNoOpOwnHigh)
+                    .assertInvocationCount(repoCacheSearchIterativeOpName, 1)
+                    .assertTotalTimeBetween(repoCacheSearchIterativeOpName, expectedTotalLow, expectedTotalHigh)
+                    .assertOwnTimeBetween(repoCacheSearchIterativeOpName, 0, expectedNoOpOwnHigh)
+                    .assertInvocationCount(repoSearchObjectsIterativeOpName, 1)
+                    .assertTotalTimeBetween(repoSearchObjectsIterativeOpName, expectedTotalLow, expectedTotalHigh)
+                    .assertOwnTimeBetween(repoSearchObjectsIterativeOpName, 0, expectedNoOpOwnHigh)
+                    .assertInvocationCount(repoHandleObjectFoundOpName, numGeneratedRoles)
+                    .assertTotalTimeBetween(repoHandleObjectFoundOpName, expectedTotalLow, expectedTotalHigh)
+                    .assertOwnTimeBetween(repoHandleObjectFoundOpName, 0, expectedNoOpOwnHigh)
+                    .get();
+            // Checking that summarized (hidden) subresults are correctly included in the total time.
+            assertThat(info1.getTotalTime(repoHandleObjectFoundOpName))
+                    .as("Total handling time (repo level)")
+                    .isEqualTo(totalHandlingTime1);
+            assertThat(info1.getOwnTime(repoHandleObjectFoundOpName))
+                    .as("Own handling time (repo level)")
+                    .isEqualTo(ownHandlingTime1);
+
+            and("components performance info is OK");
+            assertGlobalOperationsPerformanceByStandardComponents()
+                    .display()
+                    .assertTotalTimeBetween(BasicComponentStructure.MODEL.getComponentName(), expectedOwnLow, expectedOwnHigh)
+                    .assertTotalTimeBetween(BasicComponentStructure.REPOSITORY_CACHE.getComponentName(), 0, expectedNoOpOwnHigh)
+                    .assertTotalTimeBetween(BasicComponentStructure.REPOSITORY.getComponentName(), 0, expectedNoOpOwnHigh);
+
+            given("putting the search result into the repo cache");
+            // Iterative search contains the delay that makes the result too old to be cached, so we must do normal search
+            searchGeneratedRoles(task, result);
+
+            when("searching for users iteratively again (from the cache)");
+            OperationsPerformanceMonitor.INSTANCE.clearGlobalPerformanceInformation();
+            var result2 = result.createSubresult(TestMisc.class.getName() + ".second");
+            searchGeneratedRolesIteratively(task, result2);
+
+            then("result is OK");
+            DebugUtil.setDetailedDebugDump(true);
+            displayDumpable("result", result2);
+            DebugUtil.setDetailedDebugDump(previous);
+            // To be adapted if the internals of the iterative search change
+            var handlingResults2 = assertThatOperationResult(result2)
+                    .firstSubResultMatching(sr -> sr.getOperation().equals(modelSearchIterativeOpName))
+                    .firstSubResultMatching(sr -> sr.getOperation().equals(repoCacheSearchIterativeOpName))
+                    .firstSubResultMatching(sr -> sr.getOperation().equals(repoCacheIterateOverQueryResultOpName))
+                    .getAllSubResultsMatching(sr -> sr.getOperation().equals(repoCacheHandleObjectFoundOpName));
+            // The following two numbers should include summarized (hidden) subresults
+            var totalHandlingTime2 = handlingResults2.stream()
+                    .mapToLong(sr -> sr.getMicroseconds())
+                    .sum();
+            var ownHandlingTime2 = handlingResults2.stream()
+                    .mapToLong(sr -> sr.getOwnMicroseconds())
+                    .sum();
+
+            and("performance info is OK");
+            var info2 = assertGlobalOperationsPerformance()
+                    .display()
+                    .assertInvocationCount(modelSearchIterativeOpName, 1)
+                    .assertTotalTimeBetween(modelSearchIterativeOpName, expectedTotalLow, expectedTotalHigh)
+                    .assertOwnTimeBetween(modelSearchIterativeOpName, 0, expectedNoOpOwnHigh)
+                    .assertInvocationCount(repoCacheSearchIterativeOpName, 1)
+                    .assertTotalTimeBetween(repoCacheSearchIterativeOpName, expectedTotalLow, expectedTotalHigh)
+                    .assertOwnTimeBetween(repoCacheSearchIterativeOpName, 0, expectedNoOpOwnHigh)
+                    .assertInvocationCount(repoCacheIterateOverQueryResultOpName, 1)
+                    .assertTotalTimeBetween(repoCacheIterateOverQueryResultOpName, expectedTotalLow, expectedTotalHigh)
+                    .assertOwnTimeBetween(repoCacheIterateOverQueryResultOpName, 0, expectedNoOpOwnHigh)
+                    .assertInvocationCount(repoCacheHandleObjectFoundOpName, numGeneratedRoles)
+                    .assertTotalTimeBetween(repoCacheHandleObjectFoundOpName, expectedTotalLow, expectedTotalHigh)
+                    .assertOwnTimeBetween(repoCacheHandleObjectFoundOpName, 0, expectedNoOpOwnHigh)
+                    .get();
+            // Checking that summarized (hidden) subresults are correctly included in the total time.
+            assertThat(info2.getTotalTime(repoCacheHandleObjectFoundOpName))
+                    .as("Total handling time (repo cache level)")
+                    .isEqualTo(totalHandlingTime2);
+            assertThat(info2.getOwnTime(repoCacheHandleObjectFoundOpName))
+                    .as("Own handling time (repo cache level)")
+                    .isEqualTo(ownHandlingTime2);
+
+            and("components performance info is OK");
+            assertGlobalOperationsPerformanceByStandardComponents()
+                    .display()
+                    .assertTotalTimeBetween(BasicComponentStructure.MODEL.getComponentName(), expectedOwnLow, expectedOwnHigh)
+                    .assertTotalTimeBetween(BasicComponentStructure.REPOSITORY_CACHE.getComponentName(), 0, expectedNoOpOwnHigh)
+                    .assertTotalTime(BasicComponentStructure.REPOSITORY.getComponentName(), null);
+
+        } finally {
+            RepositoryCache.exitLocalCaches();
+        }
+    }
+
+    private void searchGeneratedRolesIteratively(Task task, OperationResult result) throws CommonException {
+        modelService.searchObjectsIterative(
+                RoleType.class, generatedRolesQuery(),
+                (object, lResult) -> {
+                    lResult.setMessage("Hello");
+                    MiscUtil.sleepCatchingInterruptedException(ROLE_PROCESSING_DELAY);
+                    return true;
+                },
+                null, task, result);
+    }
+
+    private void searchGeneratedRoles(Task task, OperationResult result) throws CommonException {
+        modelService.searchObjects(RoleType.class, generatedRolesQuery(), null, task, result);
+    }
+
+    private ObjectQuery generatedRolesQuery() {
+        return prismContext.queryFor(RoleType.class)
+                .item(RoleType.F_NAME).startsWith("generated-role-").matchingOrig()
+                .build();
     }
 
     /**
