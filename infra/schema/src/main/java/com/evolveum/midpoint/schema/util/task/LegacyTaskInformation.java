@@ -68,6 +68,16 @@ public class LegacyTaskInformation extends TaskInformation {
     }
 
     @Override
+    public double getProgress() {
+        return -1; // It couldn't be determined from the legacy task, there are no activities.
+    }
+
+    @Override
+    public boolean isComplete() {
+        return false; // It couldn't be determined from the legacy task. Just a guess bases on progress and expected total.
+    }
+
+    @Override
     public Integer getAllErrors() {
         return null; // This counter is not supported for legacy (non-activity-based) tasks.
     }

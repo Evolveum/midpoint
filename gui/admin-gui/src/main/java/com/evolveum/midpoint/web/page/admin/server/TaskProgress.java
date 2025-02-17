@@ -14,6 +14,8 @@ import com.evolveum.midpoint.util.LocalizableMessage;
 
 public class TaskProgress implements Serializable {
 
+    private boolean complete;
+
     private int progress;
 
     private String progressLabel;
@@ -25,6 +27,14 @@ public class TaskProgress implements Serializable {
     private OperationResultStatus taskStatus;
 
     private LocalizableMessage taskStatusMessage;
+
+    public boolean isComplete() {
+        return complete;
+    }
+
+    public void setComplete(boolean complete) {
+        this.complete = complete;
+    }
 
     public int getProcessedObjectsErrorCount() {
         return processedObjectsErrorCount;

@@ -102,6 +102,16 @@ public class ActivityBasedTaskInformation extends TaskInformation {
     }
 
     @Override
+    public double getProgress() {
+        return -1.0; // todo implement
+    }
+
+    @Override
+    public boolean isComplete() {
+        return progressInformation.isComplete();
+    }
+
+    @Override
     public Integer getAllErrors() {
         return progressInformation.getErrorsRecursive();
     }

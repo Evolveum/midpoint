@@ -135,6 +135,18 @@ public abstract class TaskInformation implements DebugDumpable, Serializable {
     public abstract String getProgressDescription(boolean longForm);
 
     /**
+     * Returns the progress of the task based on activity tree state.
+     *
+     * Progress (%) is based on the number of completed activities to all activities.
+     * Each activity represents the same amount of work.
+     *
+     * @return The progress is a number between 0 and 100. If the progress is unknown, the method returns -1.
+     */
+    public abstract double getProgress();
+
+    public abstract boolean isComplete();
+
+    /**
      * Returns number of items failed to be processed by the task and its children, if known.
      *
      * BEWARE: Fatal errors (e.g. resource not found for import task) are not counted here.
