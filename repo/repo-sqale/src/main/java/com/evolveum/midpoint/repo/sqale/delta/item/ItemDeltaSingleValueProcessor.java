@@ -27,12 +27,19 @@ import com.evolveum.midpoint.util.exception.SchemaException;
  */
 public abstract class ItemDeltaSingleValueProcessor<T> extends ItemDeltaValueProcessor<T> {
 
+    protected final boolean excludeFromFullObject;
+
     protected ItemDeltaSingleValueProcessor(SqaleUpdateContext<?, ?, ?> context) {
+        this(context, false);
+    }
+
+    protected ItemDeltaSingleValueProcessor(SqaleUpdateContext<?, ?, ?> context, boolean excludeFromFullObject) {
         super(context);
+        this.excludeFromFullObject = excludeFromFullObject;
     }
 
     @Override
-    public void process(ItemDelta<?, ?> modification) throws RepositoryException, SchemaException {
+    public ProcessingHint process(ItemDelta<?, ?> modification) throws RepositoryException, SchemaException {
         T value = getAnyValue(modification);
 
         if ((modification.isReplace() || modification.isAdd()) && value != null) {
@@ -43,6 +50,7 @@ public abstract class ItemDeltaSingleValueProcessor<T> extends ItemDeltaValuePro
             // This should be handled already by narrowing the modifications.
             delete();
         }
+        return new ProcessingHint(excludeFromFullObject);
     }
 
     /**

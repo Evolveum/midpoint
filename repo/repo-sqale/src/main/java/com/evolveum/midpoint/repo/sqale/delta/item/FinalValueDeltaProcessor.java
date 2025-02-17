@@ -40,7 +40,7 @@ public abstract class FinalValueDeltaProcessor<T> extends ItemDeltaValueProcesso
     }
 
     @Override
-    public void process(ItemDelta<?, ?> modification) throws RepositoryException, SchemaException {
+    public ProcessingHint process(ItemDelta<?, ?> modification) throws RepositoryException, SchemaException {
         Item<PrismValue, ?> item = context.findValueOrItem(modification.getPath());
         Collection<?> realValues = item != null ? item.getRealValues() : null;
 
@@ -50,5 +50,6 @@ public abstract class FinalValueDeltaProcessor<T> extends ItemDeltaValueProcesso
             // Whatever the operation is, we just set the new value here.
             setRealValues(realValues);
         }
+        return DEFAULT_PROCESSING;
     }
 }

@@ -50,10 +50,10 @@ public abstract class ItemDeltaValueProcessor<T> implements ItemDeltaProcessor {
      * are independent, it's not usable for array update where a single `SET` clause is allowed.
      */
     @Override
-    public void process(ItemDelta<?, ?> modification) throws RepositoryException, SchemaException {
+    public ProcessingHint process(ItemDelta<?, ?> modification) throws RepositoryException, SchemaException {
         if (modification.isReplace()) {
             setRealValues(modification.getRealValuesToReplace());
-            return;
+            return DEFAULT_PROCESSING;
         }
 
 
@@ -64,7 +64,8 @@ public abstract class ItemDeltaValueProcessor<T> implements ItemDeltaProcessor {
             for (var result : applyResults) {
                 processResult(result);
             }
-            return;
+            // if apply results is empty, we may skip full object altogether
+            return DEFAULT_PROCESSING;
         }
 
 
@@ -75,6 +76,7 @@ public abstract class ItemDeltaValueProcessor<T> implements ItemDeltaProcessor {
         if (modification.isAdd()) {
             addRealValues(modification.getRealValuesToAdd());
         }
+        return DEFAULT_PROCESSING;
     }
 
     protected boolean useRealDeltaApplyResults() {

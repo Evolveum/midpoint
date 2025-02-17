@@ -17,5 +17,19 @@ import com.evolveum.midpoint.util.exception.SchemaException;
  */
 public interface ItemDeltaProcessor {
 
-    void process(ItemDelta<?, ?> modification) throws RepositoryException, SchemaException;
+    ProcessingHint DEFAULT_PROCESSING = new ProcessingHint(false);
+    ProcessingHint SKIP_FULL_OBJECT_UPDATE = new ProcessingHint(true);
+
+
+    ProcessingHint process(ItemDelta<?, ?> modification) throws RepositoryException, SchemaException;
+
+
+    record ProcessingHint(boolean skipFullObject) {
+
+        public ProcessingHint combine(ProcessingHint other) {
+            /* We can only skip full object if both hints allows it */
+            var skipFullObject = this.skipFullObject && other.skipFullObject;
+            return new ProcessingHint(skipFullObject);
+        }
+    }
 }

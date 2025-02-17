@@ -206,6 +206,14 @@ public abstract class SqaleTableMapping<S, Q extends FlexibleRelationalPathBase<
                 rootToQueryItem);
     }
 
+    protected <T extends Comparable<T>> ItemSqlMapper<Q, R> timestampMapper(
+            Function<Q, DateTimePath<T>> rootToQueryItem, boolean excludeFromFullObject) {
+        return new SqaleItemSqlMapper<>(
+                ctx -> new TimestampItemFilterProcessor<>(ctx, rootToQueryItem),
+                ctx -> new TimestampItemDeltaProcessor<>(ctx, rootToQueryItem, excludeFromFullObject),
+                rootToQueryItem);
+    }
+
     /**
      * Returns the mapper creating the polystring filter/delta processors from context.
      */

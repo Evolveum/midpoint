@@ -11,6 +11,8 @@ import static com.evolveum.midpoint.repo.sqale.SqaleUtils.objectVersionAsInt;
 import java.util.Collection;
 import java.util.UUID;
 
+import com.evolveum.midpoint.repo.sqale.delta.ItemDeltaProcessor;
+
 import com.querydsl.core.types.Expression;
 import com.querydsl.core.types.Path;
 import com.querydsl.sql.dml.SQLUpdateClause;
@@ -49,7 +51,7 @@ public class RootUpdateContext<S extends ObjectType, Q extends QObject<R>, R ext
     private final Q rootPath;
     private final SQLUpdateClause update;
     private final int objectVersion;
-    private final boolean skipFullObject;
+    private boolean skipFullObject;
 
     private ContainerValueIdGenerator cidGenerator;
 
@@ -134,9 +136,13 @@ public class RootUpdateContext<S extends ObjectType, Q extends QObject<R>, R ext
         cidGenerator.processModification(modification);
         resolveContainerIdsForValuesToDelete(modification);
         modification.applyTo(getPrismObject());
+        var processing = ItemDeltaProcessor.SKIP_FULL_OBJECT_UPDATE;
         if (updateTables) {
-            new DelegatingItemDeltaProcessor(this).process(modification);
+            var hint = new DelegatingItemDeltaProcessor(this).process(modification);
+            processing = processing.combine(hint);
         }
+        this.skipFullObject = skipFullObject || processing.skipFullObject();
+
     }
 
     private void resolveContainerIdsForValuesToDelete(ItemDelta<?, ?> modification) {

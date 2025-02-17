@@ -42,18 +42,18 @@ public class DelegatingItemDeltaProcessor implements ItemDeltaProcessor {
     }
 
     @Override
-    public void process(ItemDelta<?, ?> modification) throws RepositoryException, SchemaException {
+    public ProcessingHint process(ItemDelta<?, ?> modification) throws RepositoryException, SchemaException {
         QName itemName = resolvePath(modification);
         if (itemName == null) {
             // This may indicate forgotten mapping, but normally it means that the item is simply
             // not externalized and there is nothing to, update is only in fullObject.
-            return;
+            return DEFAULT_PROCESSING;
         }
 
         QueryModelMapping<?, ?, ?> mapping = context.mapping();
         ItemSqlMapper<?, ?> itemSqlMapper = mapping.getItemMapper(itemName);
         if (itemSqlMapper instanceof UpdatableItemSqlMapper) {
-            ((UpdatableItemSqlMapper<?, ?>) itemSqlMapper)
+            return ((UpdatableItemSqlMapper<?, ?>) itemSqlMapper)
                     .createItemDeltaProcessor(context)
                     .process(modification);
         } else if (itemSqlMapper != null) {
@@ -64,6 +64,7 @@ public class DelegatingItemDeltaProcessor implements ItemDeltaProcessor {
 
         // If the mapper is null, the item is not indexed ("externalized") attribute, no action.
         // It's a similar case like the fast return after resolving the path.
+        return DEFAULT_PROCESSING;
     }
 
     private QName resolvePath(ItemDelta<?, ?> modification) throws RepositoryException {

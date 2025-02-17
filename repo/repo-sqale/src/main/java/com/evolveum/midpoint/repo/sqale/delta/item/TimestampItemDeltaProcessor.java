@@ -28,6 +28,12 @@ public class TimestampItemDeltaProcessor<T extends Comparable<T>>
         super(context, rootToQueryItem);
     }
 
+    public <Q extends FlexibleRelationalPathBase<R>, R> TimestampItemDeltaProcessor(
+            SqaleUpdateContext<?, Q, R> context,
+            Function<Q, DateTimePath<T>> rootToQueryItem, boolean excludeFromFullObject) {
+        super(context, rootToQueryItem, excludeFromFullObject);
+    }
+
     @Override
     @Nullable
     public T convertRealValue(Object realValue) {

@@ -41,10 +41,10 @@ public class ExtensionItemDeltaProcessor implements ItemDeltaProcessor {
     }
 
     @Override
-    public void process(ItemDelta<?, ?> modification) throws RepositoryException, SchemaException {
+    public ProcessingHint process(ItemDelta<?, ?> modification) throws RepositoryException, SchemaException {
         ItemPath itemPath = modification.getPath();
         if (modification.getDefinition() instanceof PrismContainerDefinition<?>) {
-            return; // We do not index containers
+            return DEFAULT_PROCESSING; // We do not index containers
         }
 
         Item<PrismValue, ?> item = context.findValueOrItem(itemPath);
@@ -56,7 +56,7 @@ public class ExtensionItemDeltaProcessor implements ItemDeltaProcessor {
         ExtensionProcessor.ExtItemInfo extItemInfo =
                 extProcessor.findExtensionItem(definition, holderType);
         if (extItemInfo == null) {
-            return; // not-indexed, no action
+            return DEFAULT_PROCESSING; // not-indexed, no action
         }
 
         // If the extension is single value (and we know it now), we should proceed with deletion of
@@ -69,11 +69,12 @@ public class ExtensionItemDeltaProcessor implements ItemDeltaProcessor {
 
         if (realValues == null || realValues.isEmpty()) {
             context.deleteItem(extItemInfo.getId());
-            return;
+            return DEFAULT_PROCESSING;
         }
 
         // changed value
         context.setChangedItem(extItemInfo.getId(), extProcessor.extItemValue(item, extItemInfo));
+        return DEFAULT_PROCESSING;
     }
 
     private String reverseCardinality(MExtItem extItem) {

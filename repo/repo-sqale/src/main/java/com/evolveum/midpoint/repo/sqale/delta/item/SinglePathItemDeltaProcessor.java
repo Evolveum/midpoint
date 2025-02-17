@@ -8,6 +8,10 @@ package com.evolveum.midpoint.repo.sqale.delta.item;
 
 import java.util.function.Function;
 
+import com.evolveum.midpoint.prism.delta.ItemDelta;
+import com.evolveum.midpoint.repo.sqlbase.RepositoryException;
+import com.evolveum.midpoint.util.exception.SchemaException;
+
 import com.querydsl.core.types.Path;
 
 import com.evolveum.midpoint.repo.sqale.update.SqaleUpdateContext;
@@ -24,14 +28,18 @@ public class SinglePathItemDeltaProcessor<T, P extends Path<T>>
         extends ItemDeltaSingleValueProcessor<T> {
 
     protected final P path;
-
     /**
      * @param <Q> entity query type from which the attribute is resolved
      * @param <R> row type related to {@link Q}
      */
     public <Q extends FlexibleRelationalPathBase<R>, R> SinglePathItemDeltaProcessor(
             SqaleUpdateContext<?, Q, R> context, Function<Q, P> rootToQueryItem) {
-        super(context);
+        this(context, rootToQueryItem, false);
+    }
+
+    public <Q extends FlexibleRelationalPathBase<R>, R> SinglePathItemDeltaProcessor(
+            SqaleUpdateContext<?, Q, R> context, Function<Q, P> rootToQueryItem, boolean excludeFromFullObject) {
+        super(context, excludeFromFullObject);
         this.path = rootToQueryItem.apply(context.entityPath());
     }
 
@@ -44,4 +52,5 @@ public class SinglePathItemDeltaProcessor<T, P extends Path<T>>
     public void delete() {
         context.setNull(path);
     }
+
 }
