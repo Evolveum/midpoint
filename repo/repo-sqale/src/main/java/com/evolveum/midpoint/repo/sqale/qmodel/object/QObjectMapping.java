@@ -40,7 +40,6 @@ import com.google.common.collect.*;
 import com.querydsl.core.Tuple;
 import com.querydsl.core.types.Path;
 import com.querydsl.core.types.Predicate;
-import org.apache.commons.collections4.CollectionUtils;
 import org.jetbrains.annotations.MustBeInvokedByOverriders;
 import org.jetbrains.annotations.NotNull;
 
@@ -257,14 +256,18 @@ public class QObjectMapping<S extends ObjectType, Q extends QObject<R>, R extend
                 ret.asPrismContainer().setUserData(RepositoryService.KEY_DIAG_DATA, diagData);
             }
         }
-        ret.version(Objects.requireNonNull(row.get(entityPath.version)).toString());
         var reindexNeeded = upgradeLegacyMetadataToValueMetadata(ret, ret.getMetadata());
         if (reindexNeeded) {
             // Metadata were updated during read, object requires reindex.
             ret.setMetadata(null);
             ret.asPrismObject().setUserData(SqaleUtils.REINDEX_NEEDED, true);
         }
+        attachColumnOnlyData(row, entityPath, ret);
         return ret;
+    }
+
+    protected void attachColumnOnlyData(@NotNull Tuple row, @NotNull Q entityPath,@NotNull  S ret) {
+        ret.version(Objects.requireNonNull(row.get(entityPath.version)).toString());
     }
 
     protected boolean isExcludeAll(@Nullable Collection<SelectorOptions<GetOperationOptions>> options) {

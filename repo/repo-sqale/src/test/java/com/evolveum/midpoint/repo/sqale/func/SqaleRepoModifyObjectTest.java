@@ -1065,6 +1065,41 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
         assertThat(row.version).isEqualTo(originalRow.version + 1);
         assertThat(row.pendingOperationCount).isZero();
     }
+
+    @Test
+    public void test153ModifySynchronizationTimestampDoesNotUpdateFullObject() throws Exception {
+        OperationResult result = createOperationResult();
+        var syncTime = MiscUtil.asXMLGregorianCalendar(1L);
+        given("delta modifying synchronization timestamp (which is excluded from full object)");
+        ObjectDelta<ShadowType> delta = prismContext.deltaFor(ShadowType.class)
+                .item(ShadowType.F_SYNCHRONIZATION_TIMESTAMP).replace(syncTime)
+                .asObjectDelta(shadow1Oid);
+
+        and("shadow row previously having non-zero count of pending operations");
+        MShadow originalRow = selectObjectByOid(QShadow.class, shadow1Oid);
+        //assertThat(originalRow.pendingOperationCount).isNotZero();
+
+        when("modifyObject is called");
+        repositoryService.modifyObject(
+                ShadowType.class, shadow1Oid, delta.getModifications(), result);
+
+        then("operation is successful");
+        assertThatOperationResult(result).isSuccess();
+
+        and("serialized form (fullObject) is updated");
+        var query = PrismContext.get().queryFor(ShadowType.class)
+                .item(ShadowType.F_SYNCHRONIZATION_TIMESTAMP).eq(syncTime)
+                .build();
+        var shadowObject = repositoryService.searchObjects(ShadowType.class, query,null, result).get(0).asObjectable();
+
+        assertThat(shadowObject.getVersion()).isEqualTo(String.valueOf(originalRow.version + 1));
+        assertThat(shadowObject.getSynchronizationTimestamp()).isEqualTo(syncTime);
+
+        and("externalized column is updated to zero, not null");
+        MShadow row = selectObjectByOid(QShadow.class, shadow1Oid);
+        assertThat(row.version).isEqualTo(originalRow.version + 1);
+        assertThat(row.pendingOperationCount).isZero();
+    }
     // endregion
 
     // region multi-value refs

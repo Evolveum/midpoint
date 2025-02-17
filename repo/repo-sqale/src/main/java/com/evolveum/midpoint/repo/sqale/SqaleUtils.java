@@ -7,9 +7,14 @@
 package com.evolveum.midpoint.repo.sqale;
 
 import java.lang.reflect.Field;
+import java.time.Instant;
+import java.time.ZoneId;
 import java.util.Objects;
 import java.util.UUID;
+import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
+
+import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
@@ -179,6 +184,10 @@ public class SqaleUtils {
     public static <S extends ObjectType> boolean isWithoutFullObject(S ret) {
         // FIXME: Figure out better marking
         return ret.asPrismObject().isIncomplete();
+    }
+
+    public static XMLGregorianCalendar toCalendar(Instant time) {
+        return XmlTypeConverter.createXMLGregorianCalendar(time.atZone(ZoneId.systemDefault()));
     }
 
     private static class ToStringUtil extends ReflectionToStringBuilder {

@@ -8,12 +8,17 @@ package com.evolveum.midpoint.repo.sqale.qmodel.shadow;
 
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType.*;
 
+import java.time.ZoneId;
 import java.util.*;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.PrismReference;
 import com.evolveum.midpoint.prism.path.PathSet;
 
+import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
+import com.evolveum.midpoint.prism.xml.XsdTypeMapper;
+import com.evolveum.midpoint.repo.sqale.SqaleUtils;
+import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import com.querydsl.core.Tuple;
@@ -87,7 +92,7 @@ public class QShadowMapping
         addItemMapping(F_PRIMARY_IDENTIFIER_VALUE, stringMapper(q -> q.primaryIdentifierValue));
         addItemMapping(F_SYNCHRONIZATION_SITUATION, enumMapper(q -> q.synchronizationSituation));
         addItemMapping(F_SYNCHRONIZATION_TIMESTAMP,
-                timestampMapper(q -> q.synchronizationTimestamp));
+                timestampMapper(q -> q.synchronizationTimestamp, true));
         addExtensionMapping(F_ATTRIBUTES, MExtItemHolderType.ATTRIBUTES, q -> q.attributes);
         addNestedMapping(F_CORRELATION, ShadowCorrelationStateType.class)
                 .addItemMapping(ShadowCorrelationStateType.F_CORRELATION_START_TIMESTAMP,
@@ -182,6 +187,16 @@ public class QShadowMapping
     }
 
     @Override
+    protected void attachColumnOnlyData(@NotNull Tuple row, @NotNull QShadow entityPath, @NotNull ShadowType ret) {
+        super.attachColumnOnlyData(row, entityPath, ret);
+        // If storing data in separate column do not forget it to add to selectExpressions
+        var syncTimestamp = row.get(entityPath.synchronizationTimestamp);
+        if (syncTimestamp != null) {
+            ret.setSynchronizationTimestamp(SqaleUtils.toCalendar(syncTimestamp));
+        }
+    }
+
+    @Override
     public void storeRelatedEntities(@NotNull MShadow row, @NotNull ShadowType shadow, @NotNull JdbcSession jdbcSession) throws SchemaException {
         super.storeRelatedEntities(row, shadow, jdbcSession);
         insertReferenceAttributes(shadow.getReferenceAttributes(), row, jdbcSession);
@@ -262,7 +277,7 @@ public class QShadowMapping
         if (isExcludeAll(options)) {
             return ret;
         }
-        return appendPaths(ret, entity.attributes);
+        return appendPaths(ret, entity.attributes, entity.synchronizationTimestamp);
     }
 
     @SuppressWarnings({ "unchecked", "rawtypes" })
