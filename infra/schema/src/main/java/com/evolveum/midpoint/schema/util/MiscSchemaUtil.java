@@ -468,9 +468,9 @@ public class MiscSchemaUtil {
     }
 
     public static void mergePagingOptions(PagingOptionsType existPagingOptions, PagingOptionsType newPagingOptions) {
-        if (existPagingOptions.getDefaultPageSize() == null) {
-            existPagingOptions.setDefaultPageSize(newPagingOptions.getDefaultPageSize());
-        }
+//        if (existPagingOptions.getDefaultPageSize() == null) {
+//            existPagingOptions.setDefaultPageSize(newPagingOptions.getDefaultPageSize());
+//        }
         if (existPagingOptions.getAvailablePageSize().isEmpty()) {
             existPagingOptions.getAvailablePageSize().addAll(newPagingOptions.getAvailablePageSize());
         }

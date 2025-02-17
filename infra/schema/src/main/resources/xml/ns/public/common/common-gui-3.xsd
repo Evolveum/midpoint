@@ -5035,14 +5035,6 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element minOccurs="0" name="defaultPageSize" type="xsd:int">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Defines the value for the default page size. This value can be one of those defined in
-                        availablePageSize set or any other value (will be added then to the list of the available page sizes).
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
         </xsd:sequence>
     </xsd:complexType>
 
