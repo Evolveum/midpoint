@@ -12,7 +12,6 @@ import java.util.Collection;
 import java.util.List;
 
 import com.evolveum.midpoint.gui.impl.util.TableUtil;
-import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.gui.api.component.data.provider.ISelectableDataProvider;
 
@@ -22,6 +21,7 @@ import com.evolveum.midpoint.web.session.ObjectListStorage;
 
 import com.evolveum.midpoint.web.session.PageStorage;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.DefaultGuiObjectListPanelConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.GuiObjectColumnType;
 
@@ -44,6 +44,8 @@ import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.component.util.SerializableSupplier;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+
+import org.jetbrains.annotations.Nullable;
 
 public abstract class PopupObjectListPanel<O extends ObjectType> extends ObjectListPanel<O> {
     private static final long serialVersionUID = 1L;
@@ -195,6 +197,11 @@ public abstract class PopupObjectListPanel<O extends ObjectType> extends ObjectL
 
     @Override
     protected String getCollectionNameFromPageParameters() {
+        return null;
+    }
+
+    @Override
+    protected @Nullable DefaultGuiObjectListPanelConfigurationType getDefaultObjectListConfiguration() {
         return null;
     }
 }

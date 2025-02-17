@@ -11,10 +11,12 @@ import java.io.Serializable;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
 
+import com.evolveum.midpoint.gui.impl.page.admin.AbstractPageObjectDetails;
 import com.evolveum.midpoint.gui.impl.page.admin.certification.column.AbstractGuiColumn;
 
 import com.evolveum.midpoint.gui.impl.page.admin.certification.helpers.ColumnTypeConfigContext;
 
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.reflect.ConstructorUtils;
@@ -101,6 +103,8 @@ import com.evolveum.prism.xml.ns._public.query_3.PagingType;
 import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import com.evolveum.wicket.chartjs.ChartConfiguration;
+
+import org.jetbrains.annotations.Nullable;
 
 /**
  * @param <C> the container of displayed objects in table
@@ -241,10 +245,18 @@ public abstract class ContainerableListPanel<C extends Serializable, PO extends 
         if (view != null) {
             paging = ObjectQueryUtil.convertToObjectPaging(view.getPaging());
         }
+
+        if (paging == null) {
+            var defaultConfig = getDefaultObjectListConfiguration();
+            if (defaultConfig != null) {
+                paging = ObjectQueryUtil.convertToObjectPaging(defaultConfig.getPaging());
+            }
+        }
+
         if (paging == null) {
             paging = ObjectPagingImpl.createEmptyPaging();
-            paging.setMaxSize(getDefaultPageSize());
         }
+        paging.setMaxSize(getDefaultPageSize());
         return paging;
     }
 
@@ -423,8 +435,13 @@ public abstract class ContainerableListPanel<C extends Serializable, PO extends 
             }
 
             @Override
-            protected Integer getConfiguredPageSize() {
-                return getViewPagingMaxSize();
+            protected List<Integer> getPagingSizes() {
+                return ContainerableListPanel.this.getAvailablePageSizes();
+            }
+
+            @Override
+            protected boolean shouldAddPredefinedPagingSizes() {
+                return ContainerableListPanel.this.shouldAddPredefinedPagingSizes();
             }
 
             @Override
@@ -628,7 +645,12 @@ public abstract class ContainerableListPanel<C extends Serializable, PO extends 
             }
         }
 
-        Integer collectionViewPagingSize = getViewPagingMaxSize();
+        Integer configuredDefaultPageSize = getConfiguredDefaultPageSize();
+        if (configuredDefaultPageSize != null) {
+            return configuredDefaultPageSize;
+        }
+
+        Integer collectionViewPagingSize = getPagingMaxSize();
         if (collectionViewPagingSize != null) {
             return collectionViewPagingSize;
         }
@@ -640,9 +662,102 @@ public abstract class ContainerableListPanel<C extends Serializable, PO extends 
         return UserProfileStorage.DEFAULT_PAGING_SIZE;
     }
 
-    private Integer getViewPagingMaxSize() {
+    /**
+     * Returns the paging max size for the query
+     * @return
+     */
+    private @Nullable Integer getPagingMaxSize() {
         CompiledObjectCollectionView view = getObjectCollectionView();
-        return view != null && view.getPaging() != null ? view.getPaging().getMaxSize() : null;
+        Integer maxSize = view != null && view.getPaging() != null ? view.getPaging().getMaxSize() : null;
+        if (maxSize != null) {
+            return maxSize;
+        }
+
+        var defaultListViewConfigurations = getDefaultObjectListConfiguration();
+        if (defaultListViewConfigurations == null) {
+            return null;
+        }
+        return defaultListViewConfigurations.getPaging() != null ? defaultListViewConfigurations.getPaging().getMaxSize() : null;
+    }
+
+    /**
+     * Returns configured default page size from view configuration or default settings.
+     * @return
+     */
+    private @Nullable Integer getConfiguredDefaultPageSize() {
+        CompiledObjectCollectionView view = getObjectCollectionView();
+        Integer defaultPageSize = view != null && view.getPaging() != null ? view.getPaging().getMaxSize() : null;
+        if (defaultPageSize != null) {
+            return defaultPageSize;
+        }
+
+        var defaultListViewConfigurations = getDefaultObjectListConfiguration();
+        if (defaultListViewConfigurations == null) {
+            return null;
+        }
+        return defaultListViewConfigurations.getPaging() != null ?
+                defaultListViewConfigurations.getPaging().getMaxSize() : null;
+    }
+
+    protected @Nullable List<Integer> getAvailablePageSizes() {
+        CompiledObjectCollectionView view = getObjectCollectionView();
+        PagingOptionsType viewPagingOptions = view != null ? view.getPagingOptions() : null;
+        PagingType viewPaging = view != null ? view.getPaging() : null;
+        var defaultSettings = getDefaultObjectListConfiguration();
+
+        return collectPageSizesFromPagingConfiguration(viewPagingOptions, viewPaging, defaultSettings);
+    }
+
+    private boolean shouldAddPredefinedPagingSizes() {
+        CompiledObjectCollectionView view = getObjectCollectionView();
+        PagingOptionsType viewPagingOptions = view != null ? view.getPagingOptions() : null;
+        var defaultSettings = getDefaultObjectListConfiguration();
+        return !isAvailableSizeConfigured(viewPagingOptions) &&
+                (defaultSettings == null || !isAvailableSizeConfigured(defaultSettings.getPagingOptions()));
+    }
+
+    private boolean isAvailableSizeConfigured(PagingOptionsType pagingOptions) {
+        return pagingOptions != null && CollectionUtils.isNotEmpty(pagingOptions.getAvailablePageSize());
+    }
+
+    private <DC extends DefaultGuiObjectListPanelConfigurationType> List<Integer> collectPageSizesFromPagingConfiguration(
+            PagingOptionsType viewPagingOptions, PagingType viewPaging, DC defaultSettings) {
+        //first, try to get available page sizes from view configuration
+        List<Integer> availablePageSizes = new ArrayList<>();
+        if (viewPagingOptions != null && viewPagingOptions.getAvailablePageSize() != null) {
+            availablePageSizes.addAll(viewPagingOptions.getAvailablePageSize());
+        }
+        //if there are no available page sizes in view configuration, try to get them from default settings
+        if (availablePageSizes.isEmpty() && availablePageSizesListExist(defaultSettings)) {
+            availablePageSizes.addAll(defaultSettings.getPagingOptions().getAvailablePageSize());
+        }
+
+        //now we get the max size from query paging configuration
+        Integer pagingMaxSize = viewPaging != null ? viewPaging.getMaxSize() : null;
+        if (pagingMaxSize == null) {
+            pagingMaxSize = pagingMaxSizeExists(defaultSettings) ? defaultSettings.getPaging().getMaxSize() : null;
+        }
+        if (pagingMaxSize != null && !availablePageSizes.contains(pagingMaxSize)) {
+            availablePageSizes.add(pagingMaxSize);
+        }
+
+        return availablePageSizes;
+    }
+
+    private <DC extends DefaultGuiObjectListPanelConfigurationType> boolean availablePageSizesListExist(DC config) {
+        return config != null && config.getPagingOptions() != null
+                && config.getPagingOptions().getAvailablePageSize() != null;
+    }
+
+    private <DC extends DefaultGuiObjectListPanelConfigurationType> boolean pagingMaxSizeExists(DC config) {
+        return config != null && config.getPaging() != null && config.getPaging().getMaxSize() != null;
+    }
+
+    protected @Nullable DefaultGuiObjectListPanelConfigurationType getDefaultObjectListConfiguration() {
+        if (isPartOfDetailsPage()) {
+            return WebComponentUtil.getDefaultObjectDetailsSettings();
+        }
+        return WebComponentUtil.getDefaultObjectCollectionViewsSettings();
     }
 
     protected void customProcessNewRowItem(Item<PO> item, IModel<PO> model) {
@@ -1589,6 +1704,10 @@ public abstract class ContainerableListPanel<C extends Serializable, PO extends 
 
     protected String getInlineMenuItemCssClass() {
         return "btn btn-default btn-xs";
+    }
+
+    private boolean isPartOfDetailsPage() {
+        return findParent(AbstractPageObjectDetails.class) != null;
     }
 
 }

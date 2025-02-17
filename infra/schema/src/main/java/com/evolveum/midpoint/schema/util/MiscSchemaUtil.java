@@ -467,6 +467,12 @@ public class MiscSchemaUtil {
         }
     }
 
+    public static void mergePagingOptions(PagingOptionsType existPagingOptions, PagingOptionsType newPagingOptions) {
+        if (existPagingOptions.getAvailablePageSize().isEmpty()) {
+            existPagingOptions.getAvailablePageSize().addAll(newPagingOptions.getAvailablePageSize());
+        }
+    }
+
     public static void mergeColumns(List<GuiObjectColumnType> existingColumns, List<GuiObjectColumnType> newColumns) {
         newColumns.forEach(newColumn -> {
             Optional<GuiObjectColumnType> matchesColumn = existingColumns.stream().filter(

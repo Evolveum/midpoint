@@ -728,22 +728,152 @@ However, the algorithm should be deterministic: the same ordering should be used
 ====
 [source,xml]
 ----
-<adminGuiConfiguration>
-   <objectLists>
-      <objectList>
-         <type>OrgType</type>
-         <additionalPanels>
-            <memberPanel>
-                <searchBoxConfiguration>
-                    <defaultScope>oneLevel</defaultScope> <!-- or "subtree" -->
-					<defaultObjectType>UserType</defaultObjectType>
-                </searchBoxConfiguration>
-                <disableSorting>true</disableSorting>
-            </memberPanel>
-         </additionalPanels>
-       </objectList>
-   </objectLists>
-</adminGuiConfiguration>
+    <adminGuiConfiguration>
+        <objectCollectionViews>
+            <objectCollectionView>
+                <identifier>orgMember</identifier>
+                <type>OrgType</type>
+                <additionalPanels>
+                    <memberPanel>
+                        <searchBoxConfiguration>
+                            <defaultScope>oneLevel</defaultScope> <!-- or "subtree" -->
+                            <defaultObjectType>UserType</defaultObjectType>
+                        </searchBoxConfiguration>
+                        <disableSorting>true</disableSorting>
+                    </memberPanel>
+                </additionalPanels>
+            </objectCollectionView>
+        </objectCollectionViews>
+    </adminGuiConfiguration>
+----
+====
+
+== Default settings for object details pages
+
+This part of the configuration is already included in the initial system configuration object.
+
+.Example
+[%collapsible]
+====
+[source,xml]
+----
+    <adminGuiConfiguration>
+        <objectDetails>
+            <defaultSettings>
+                <pagingOptions>
+                    <defaultPageSize>20</defaultPageSize>
+                    <availablePageSize>10</availablePageSize>
+                    <availablePageSize>20</availablePageSize>
+                    <availablePageSize>50</availablePageSize>
+                    <availablePageSize>100</availablePageSize>
+                </pagingOptions>
+            </defaultSettings>
+            ....
+        </objectDetails>
+    </adminGuiConfiguration>
+----
+====
+
+== Overriding default paging settings for 'All Assignments' panel on the User details page
+
+This example shows how the default paging settings can be overridden for the 'All Assignments' panel on the User details page.
+The page size component will contain the values 10, 30, 60, 80, 100 with the default page size set to 10 and the maximum page size set to 100.
+
+.Example
+[%collapsible]
+====
+[source,xml]
+----
+    <adminGuiConfiguration>
+        <objectDetails>
+            <objectDetailsPage>
+                <type>c:UserType</type>
+                <panel>
+                    <identifier>assignments</identifier>
+                    <panel>
+                        <identifier>allAssignments</identifier>
+                        <listView>
+                            <paging>
+                                <maxSize>100</maxSize>
+                            </paging>
+                            <pagingOptions>
+                                <defaultPageSize>10</defaultPageSize>
+                                <availablePageSize>10</availablePageSize>
+                                <availablePageSize>30</availablePageSize>
+                                <availablePageSize>60</availablePageSize>
+                                <availablePageSize>80</availablePageSize>
+                            </pagingOptions>
+                        </listView>
+                    </panel>
+                </panel>
+            </objectDetailsPage>
+        </objectDetails>
+    </adminGuiConfiguration>
+----
+====
+
+== Default settings for object collection views
+
+This part of the configuration is already included in the initial system configuration object.
+
+.Example
+[%collapsible]
+====
+[source,xml]
+----
+    <adminGuiConfiguration>
+        <objectCollectionViews>
+            <defaultSettings>
+                <pagingOptions>
+                    <defaultPageSize>20</defaultPageSize>
+                    <availablePageSize>10</availablePageSize>
+                    <availablePageSize>20</availablePageSize>
+                    <availablePageSize>50</availablePageSize>
+                    <availablePageSize>100</availablePageSize>
+                </pagingOptions>
+            </defaultSettings>
+            ....
+        </objectCollectionViews>
+    </adminGuiConfiguration>
+----
+====
+
+== Overriding default paging settings for 'Persons' collection view
+
+This example shows how the default paging settings can be overridden for the 'Persons' collection view.
+The page size component will contain the values 50, 100, 150, 200 with the default page size set to 50 and the maximum page size set to 200.
+
+.Example
+[%collapsible]
+====
+[source,xml]
+----
+    <adminGuiConfiguration>
+        <objectCollectionViews>
+            <objectCollectionView>
+                <description>Persons</description>
+                <documentation>This view displays all users with archetype "Person"</documentation>
+                <identifier>person-view</identifier>
+                <displayOrder>10</displayOrder>
+                <type>UserType</type>
+                <collection>
+                    <collectionRef oid="00000000-0000-0000-0000-000000000702" relation="org:default" type="c:ArchetypeType">
+                        <!-- Person -->
+                    </collectionRef>
+                </collection>
+                <paging>
+                    <maxSize>200</maxSize>
+                </paging>
+                <pagingOptions>
+                    <defaultPageSize>50</defaultPageSize>
+                    <availablePageSize>100</availablePageSize>
+                    <availablePageSize>150</availablePageSize>
+                    <availablePageSize>200</availablePageSize>
+                </pagingOptions>
+                ....
+            </objectCollectionView>
+        </objectCollectionViews>
+    </adminGuiConfiguration>
 ----
 ====
 
