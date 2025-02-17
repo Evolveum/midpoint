@@ -260,8 +260,8 @@ public class TaskSynchronizer {
                 LOGGER.trace("There are {} task(s) in repository", tasksCount);
             }
 
-            this.repositoryService.searchObjectsIterative(TaskType.class, null, synchronizationHandler, null, true,
-                    result);
+            this.repositoryService.searchObjectsIterative(
+                    TaskType.class, null, synchronizationHandler, null, true, result);
             return true;
         } catch(SchemaException|RuntimeException e) {
             LoggingUtils.logUnexpectedException(LOGGER, "Synchronization cannot be done, because tasks cannot be "

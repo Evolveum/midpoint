@@ -84,9 +84,7 @@ public class MetadataItemProcessingSpecImpl implements MetadataItemProcessingSpe
         } else {
             ObjectTemplateType template = objectResolver.resolve(templateRef, ObjectTemplateType.class, null,
                     "metadata handling determination", task, result);
-            if (template != null) {
-                addFromObjectTemplate(template, objectResolver, contextDesc, task, result);
-            }
+            addFromObjectTemplate(template, objectResolver, contextDesc, task, result);
         }
     }
 

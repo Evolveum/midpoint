@@ -54,7 +54,6 @@ import static com.evolveum.midpoint.provisioning.impl.shadows.ShadowsUtil.*;
 public class ShadowsFacade {
 
     static final String OP_DELAYED_OPERATION = ShadowsFacade.class.getName() + ".delayedOperation";
-    static final String OP_HANDLE_OBJECT = ShadowsFacade.class.getName() + ".handleObject";
 
     @Autowired private DefinitionsHelper definitionsHelper;
     @Autowired private ShadowOperationPropagationHelper propagationHelper;

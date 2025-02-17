@@ -14,8 +14,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
-import com.evolveum.midpoint.provisioning.impl.RepoShadow;
-
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowContentDescriptionType;
 
 import org.jetbrains.annotations.NotNull;
@@ -165,14 +163,7 @@ class ShadowSearchLikeOperation {
             shadowedObject.setContentDescription(
                     determineContentDescription(options, shadowedObjectFound.isError()));
 
-            try {
-                return handler.handle(shadowedObject.asPrismObject(), lResult);
-            } catch (Throwable t) {
-                lResult.recordException(t);
-                throw t;
-            } finally {
-                lResult.close();
-            }
+            return handler.handle(shadowedObject.asPrismObject(), lResult);
         };
 
         boolean fetchAssociations = SelectorOptions.hasToIncludePath(ShadowType.F_ASSOCIATIONS, options, true);
@@ -284,24 +275,15 @@ class ShadowSearchLikeOperation {
             ConfigurationException, ObjectNotFoundException {
         try {
             var repoShadowHandler = (ResultHandler<ShadowType>) (repoShadow, lResult) -> {
-                OperationResult result = lResult.createMinorSubresult(ShadowsFacade.OP_HANDLE_OBJECT);
                 try {
-                    var processedShadow = processRepoShadow(repoShadow, result);
-                    var cont = upstreamHandler.handle(processedShadow, lResult);
-                    lResult.summarize();
-                    return cont;
+                    var processedShadow = processRepoShadow(repoShadow, lResult);
+                    return upstreamHandler.handle(processedShadow, lResult);
                 } catch (CommonException e) {
-                    result.recordException(e);
+                    lResult.recordException(e);
                     throw new TunnelException(e);
-                } catch (Throwable t) {
-                    result.recordException(t);
-                    throw t;
-                } finally {
-                    result.close();
                 }
             };
-            return b.shadowFinder.searchShadowsIterative(
-                    ctx, query, options, repoShadowHandler, parentResult);
+            return b.shadowFinder.searchShadowsIterative(ctx, query, options, repoShadowHandler, parentResult);
         } catch (TunnelException e) {
             unwrapAndThrowSearchingTunnelException(e);
             throw new AssertionError();

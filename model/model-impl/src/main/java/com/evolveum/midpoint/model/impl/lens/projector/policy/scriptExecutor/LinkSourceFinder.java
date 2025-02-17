@@ -199,7 +199,9 @@ class LinkSourceFinder implements AutoCloseable {
     @NotNull
     private List<PrismReferenceValue> searchForSourceReferences(CompleteQuery<?> completeQuery) throws SchemaException {
         List<PrismReferenceValue> references = new ArrayList<>();
-        beans.repositoryService.searchObjectsIterative(completeQuery.getType(), completeQuery.getQuery(),
+        // not providing own operation result, as the processing is minimal here
+        beans.repositoryService.searchObjectsIterative(
+                completeQuery.getType(), completeQuery.getQuery(),
                 (object, parentResult) ->
                         references.add(ObjectTypeUtil.createObjectRef(object).asReferenceValue()),
                 completeQuery.getOptions(), false, result);
