@@ -1,0 +1,131 @@
+<!--
+  ~ Copyright (C) 2010-2025 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<role xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+        xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-3"
+        oid="3130b6be-46c3-421f-9642-c7aa0d72e0a9">
+    <name>interfering-authorizations</name>
+    <documentation>
+        Authorizations that evaluate to NONE filter, or are not generally applicable to searching for roles.
+
+        However, they currently cause role search to allow all items, as they are not item-limited themselves.
+        Commented out for now, as they would make the test fail.
+
+        See TestSecurityBasic.test510SearchByItemsWithInterferingAuthorizations.
+    </documentation>
+    <!--<authorization>-->
+    <!--    <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#search</action>-->
+    <!--    <object>-->
+    <!--        <type>RoleType</type>-->
+    <!--        <filter>-->
+    <!--            <q:none/>-->
+    <!--        </filter>-->
+    <!--    </object>-->
+    <!--</authorization>-->
+    <!--<authorization>-->
+    <!--    <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#search</action>-->
+    <!--    <object>-->
+    <!--        <filter>-->
+    <!--            <q:none/>-->
+    <!--        </filter>-->
+    <!--    </object>-->
+    <!--</authorization>-->
+    <!--<authorization>-->
+    <!--    <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>-->
+    <!--    <object>-->
+    <!--        <delegator>-->
+    <!--            <special>self</special>-->
+    <!--        </delegator>-->
+    <!--    </object>-->
+    <!--</authorization>-->
+    <!--<authorization>-->
+    <!--    <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>-->
+    <!--    <documentation>This allows RoleType search by any items also in 4.8.</documentation>-->
+    <!--    <object>-->
+    <!--        <special>self</special>-->
+    <!--    </object>-->
+    <!--</authorization>-->
+    <!--<authorization>-->
+    <!--    <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>-->
+    <!--    <object>-->
+    <!--        <assignee>-->
+    <!--            <special>self</special>-->
+    <!--        </assignee>-->
+    <!--    </object>-->
+    <!--</authorization>-->
+    <!--<authorization>-->
+    <!--    <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>-->
+    <!--    <object>-->
+    <!--        <candidateAssignee>-->
+    <!--            <special>self</special>-->
+    <!--        </candidateAssignee>-->
+    <!--    </object>-->
+    <!--</authorization>-->
+    <!--<authorization>-->
+    <!--    <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>-->
+    <!--    <documentation>On 4.8, this allows the search only if the logged-in user belongs to an org.</documentation>-->
+    <!--    <object>-->
+    <!--        <orgRelation>-->
+    <!--            <subjectRelation>org:default</subjectRelation>-->
+    <!--        </orgRelation>-->
+    <!--    </object>-->
+    <!--</authorization>-->
+    <authorization>
+        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>
+        <documentation>This is OK even for 4.9+. The parent clause "induces" a type clause.</documentation>
+        <object>
+            <parent>
+                <type>CaseType</type>
+                <path>workItem</path>
+            </parent>
+            <assignee>
+                <special>self</special>
+            </assignee>
+        </object>
+    </authorization>
+    <!--<authorization>-->
+    <!--    <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>-->
+    <!--    <object>-->
+    <!--        <relatedObject>-->
+    <!--            <special>self</special>-->
+    <!--        </relatedObject>-->
+    <!--    </object>-->
+    <!--</authorization>-->
+    <!--<authorization>-->
+    <!--    <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>-->
+    <!--    <object>-->
+    <!--        <requester>-->
+    <!--            <special>self</special>-->
+    <!--        </requester>-->
+    <!--    </object>-->
+    <!--</authorization>-->
+    <!--<authorization>-->
+    <!--    <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>-->
+    <!--    <documentation>-->
+    <!--        This one is questionable. It presents a difference between 4.8 and 4.9, but is not probably strictly a bug.-->
+    <!--        But if the search was for a specific role (as in TestSecurityAdvanced.test151), then it's a bug.-->
+    <!--    </documentation>-->
+    <!--    <enforcementStrategy>maySkipOnSearch</enforcementStrategy>-->
+    <!--    <object>-->
+    <!--        <type>RoleType</type>-->
+    <!--        <roleRelation>-->
+    <!--            <subjectRelation>org:approver</subjectRelation>-->
+    <!--            <includeMembers>false</includeMembers>-->
+    <!--            <includeReferenceRole>true</includeReferenceRole>-->
+    <!--        </roleRelation>-->
+    <!--    </object>-->
+    <!--</authorization>-->
+    <!--<authorization>-->
+    <!--    <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>-->
+    <!--    <object>-->
+    <!--        <tenant>-->
+    <!--            <sameAsSubject>true</sameAsSubject>-->
+    <!--        </tenant>-->
+    <!--    </object>-->
+    <!--</authorization>-->
+</role>

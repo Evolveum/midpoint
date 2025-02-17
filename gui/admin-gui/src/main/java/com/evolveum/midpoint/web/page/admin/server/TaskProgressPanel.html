@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (C) 2010-2025 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:wicket="http://wicket.apache.org">
+<body>
+<wicket:panel>
+    <div class="d-flex flex-column">
+        <div class="d-flex w-100 gap-2 align-items-center">
+            <div style="min-width: 100px; width: 100px;" wicket:id="progress"/>
+            <div class="ml-auto" wicket:id="progressLabel"/>
+            <wicket:enclosure child="progressProblemLabel">
+                <div style="min-width: fit-content;">
+                    <i class="mr-1" wicket:id="progressProblemIcon"/>
+                    <span wicket:id="progressProblemLabel"/>
+                </div>
+            </wicket:enclosure>
+        </div>
+        <wicket:enclosure child="taskProblemLabel">
+            <div class="d-flex w-100 gap-2 align-items-center">
+                <i wicket:id="taskProblemIcon"/>
+                <span wicket:id="taskProblemLabel"/>
+            </div>
+        </wicket:enclosure>
+    </div>
+</wicket:panel>
+</body>
+</html>

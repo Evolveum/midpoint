@@ -841,20 +841,6 @@ public final class WebComponentUtil {
         };
     }
 
-    /**
-     * Simulates task category using task archetype.
-     */
-    @Experimental
-    public static IModel<String> createSimulatedCategoryNameModel(final Component component,
-            final IModel<SelectableBean<TaskType>> taskModel) {
-        return () -> {
-            PageBase pageBase = getPageBase(component);
-            TaskType task = taskModel.getObject().getValue();
-            DisplayType display = GuiDisplayTypeUtil.getArchetypePolicyDisplayType(task, pageBase);
-            return getTranslatedLabel(display);
-        };
-    }
-
     @Experimental
     private static String getTranslatedLabel(DisplayType display) {
         if (display == null) {
@@ -2237,6 +2223,25 @@ public final class WebComponentUtil {
         } catch (Exception ex) {
             LoggingUtils.logUnexpectedException(LOGGER, "Couldn't load available roles", ex);
             result.recordFatalError(pageBase.createStringResource("WebComponentUtil.message.getAssignableRolesFilter.fatalError").getString(), ex);
+        } finally {
+            result.recomputeStatus();
+        }
+        if (!result.isSuccess() && !result.isHandledError()) {
+            pageBase.showResult(result);
+        }
+        return filter;
+    }
+
+    public static ObjectFilter getAccessibleForAssignmentObjectsFilter(OperationResult result, Task task, PageBase pageBase) {
+        ObjectFilter filter = null;
+        LOGGER.debug("Loading users which are allowed to be an object during assign operation.");
+        try {
+            ModelInteractionService mis = pageBase.getModelInteractionService();
+            filter = mis.getAccessibleForAssignmentObjectsFilter(UserType.class, null, task, result);
+        } catch (Exception ex) {
+            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't load users which are allowed to be an object during assign operation.", ex);
+            result.recordFatalError(pageBase.createStringResource(
+                    "WebComponentUtil.message.getAccessibleForAssignmentObjectsFilter.fatalError").getString(), ex);
         } finally {
             result.recomputeStatus();
         }

@@ -39,6 +39,8 @@ It can be used to point the user to other services in your deployment.
 
 * `*feedbackMessagesHook*`: Configuration for modifying of feedback messages showed in GUI.
 
+* `*configurableUserDashboard*`: Defines the configurable dashboards which can be accessed from the left menu.
+
 Since midPoint 4.4, the look and feel of GUI has been significantly changed. The aim was to provide better user experience and more configuration options. The old look is still available in midPoint for preview. It can be turned on in adminGuiConfiguration setting `useNewDesign` property to _false_. However, bugs and improvements will be fixed and implemented only for the new look and the old look will be completely removed in release 4.6. Old look is no more supported Please, migrate your configuration as soon as possible.
 
 == How It Works

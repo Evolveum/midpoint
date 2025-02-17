@@ -113,6 +113,8 @@ public abstract class AccessCertificationStageManagementRun<
                 CertCampaignTypeUtil.findStageDefinition(campaign, stageToBe).getTimedActions()));
 
         updateHelper.modifyCampaignPreAuthorized(campaign.getOid(), rv, getRunningTask(), result);
+        //#10373 if the campaign is not updated, it gets to the notifier with the old data which causes the problem
+        campaign = getBeans().repositoryService.getObject(AccessCertificationCampaignType.class, campaign.getOid(), null, result).asObjectable();
 
         Task task = getRunningTask();
         AccCertEventHelper eventHelper = getActivityHandler().getEventHelper();

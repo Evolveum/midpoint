@@ -8,6 +8,7 @@ package com.evolveum.midpoint.gui.impl.page.admin.task.component;
 
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
 import com.evolveum.midpoint.gui.impl.page.admin.AbstractObjectMainPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.task.TaskDetailsModel;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -118,7 +119,12 @@ public class TaskInternalPerformancePanel extends AbstractObjectMainPanel<TaskTy
     @SuppressWarnings("Duplicates")
     private String getStatistics() {
         PrismObjectWrapper<TaskType> taskWrapper = getObjectWrapper();
-        TaskType task = taskWrapper != null ? PrismObject.asObjectable(taskWrapper.getObject()) : null;
+        if (taskWrapper == null) {
+            return "No task available";
+        }
+        var taskObj = taskWrapper.getObject();
+        WebPrismUtil.cleanupEmptyContainers(taskObj);
+        TaskType task = PrismObject.asObjectable(taskWrapper.getObject());
         if (task == null) {
             return "No task available";
         }

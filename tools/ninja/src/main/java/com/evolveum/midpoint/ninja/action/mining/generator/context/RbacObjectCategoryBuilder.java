@@ -26,6 +26,8 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
+import org.jetbrains.annotations.Nullable;
+
 public class RbacObjectCategoryBuilder {
 
     /**
@@ -35,7 +37,7 @@ public class RbacObjectCategoryBuilder {
     public static class RegularUserType extends RbacUserType {
 
         InitialBusinessRole primaryRole;
-        InitialObjectsDefinition.LocationInitialBusinessRole locationBusinessRole;
+        InitialObjectsDefinition.LocationOrg locationOrg;
 
         /**
          * Default constructor for the RegularUser class.
@@ -45,13 +47,34 @@ public class RbacObjectCategoryBuilder {
         }
 
         @Override
+        protected void updateParameters() {
+            locationOrg = getRandomLocationOrg();
+            initPrimaryRole();
+        }
+
+        public void initPrimaryRole() {
+            List<InitialObjectsDefinition.JobInitialBusinessRole> primaryRoles = new ArrayList<>();
+
+            InitialObjectsDefinition.JobInitialBusinessRole assistant = InitialObjectsDefinition.JobInitialBusinessRole.ASSISTANT;
+            InitialObjectsDefinition.JobInitialBusinessRole supervisor = InitialObjectsDefinition.JobInitialBusinessRole.SUPERVISOR;
+            InitialObjectsDefinition.JobInitialBusinessRole hrClerkAssistant = InitialObjectsDefinition.JobInitialBusinessRole.HR_CLERK;
+            primaryRoles.add(assistant);
+            primaryRoles.add(supervisor);
+            primaryRoles.add(hrClerkAssistant);
+
+            Random random = new Random();
+            int index = random.nextInt(primaryRoles.size());
+            primaryRole = primaryRoles.get(index);
+        }
+
+        @Override
         public String getBirthRole() {
             return InitialObjectsDefinition.BirthrightBusinessRole.EMPLOYEE.getOidValue();
         }
 
         @Override
-        public String getOrganizationOid() {
-            return InitialObjectsDefinition.Organization.REGULAR.getOidValue();
+        public String getProfessionOrganizationOid() {
+            return InitialObjectsDefinition.ProfessionOrg.REGULAR.getOidValue();
         }
 
         @Override
@@ -60,44 +83,13 @@ public class RbacObjectCategoryBuilder {
         }
 
         @Override
-        public InitialBusinessRole getPrimaryRole(boolean generateNew) {
-            if (generateNew) {
-                List<InitialObjectsDefinition.JobInitialBusinessRole> primaryRoles = new ArrayList<>();
-
-                InitialObjectsDefinition.JobInitialBusinessRole assistant = InitialObjectsDefinition.JobInitialBusinessRole.ASSISTANT;
-                InitialObjectsDefinition.JobInitialBusinessRole supervisor = InitialObjectsDefinition.JobInitialBusinessRole.SUPERVISOR;
-                InitialObjectsDefinition.JobInitialBusinessRole hrClerkAssistant = InitialObjectsDefinition.JobInitialBusinessRole.HR_CLERK;
-                primaryRoles.add(assistant);
-                primaryRoles.add(supervisor);
-                primaryRoles.add(hrClerkAssistant);
-
-                Random random = new Random();
-                int index = random.nextInt(primaryRoles.size());
-                primaryRole = primaryRoles.get(index);
-            }
-
+        public @NotNull InitialBusinessRole getPrimaryRole() {
             return primaryRole;
         }
 
         @Override
-        public InitialObjectsDefinition.@NotNull LocationInitialBusinessRole getLocationRole(boolean generateNew) {
-            if (generateNew) {
-                locationBusinessRole = getRandomLocationBusinessRole();
-            }
-            return locationBusinessRole;
-        }
-
-        @Override
-        public List<InitialObjectsDefinition.PlanktonApplicationBusinessAbstractRole> getPlanktonApplicationRoles() {
-            return null;
-        }
-
-        @Override
-        public String getLocality() {
-            if (locationBusinessRole != null) {
-                return locationBusinessRole.getLocale();
-            }
-            return null;
+        public InitialObjectsDefinition.LocationOrg getLocalityOrg() {
+            return locationOrg;
         }
 
         @Override
@@ -125,11 +117,15 @@ public class RbacObjectCategoryBuilder {
      */
     public static class SemiRegularUserType extends RbacUserType {
 
-        InitialBusinessRole primaryRole;
-        InitialObjectsDefinition.LocationInitialBusinessRole locationBusinessRole;
+        InitialObjectsDefinition.LocationOrg locationOrg;
 
         public SemiRegularUserType(GeneratorOptions generatorOptions) {
             super(generatorOptions);
+        }
+
+        @Override
+        protected void updateParameters() {
+            locationOrg = getRandomLocationOrg();
         }
 
         @Override
@@ -138,8 +134,8 @@ public class RbacObjectCategoryBuilder {
         }
 
         @Override
-        public String getOrganizationOid() {
-            return InitialObjectsDefinition.Organization.SEMI_REGULAR.getOidValue();
+        public String getProfessionOrganizationOid() {
+            return InitialObjectsDefinition.ProfessionOrg.SEMI_REGULAR.getOidValue();
         }
 
         @Override
@@ -148,33 +144,27 @@ public class RbacObjectCategoryBuilder {
         }
 
         @Override
-        public InitialBusinessRole getPrimaryRole(boolean generateNew) {
-            primaryRole = InitialObjectsDefinition.JobInitialBusinessRole.HQ_CLERK;
+        public @NotNull InitialBusinessRole getPrimaryRole() {
             return InitialObjectsDefinition.JobInitialBusinessRole.HQ_CLERK;
         }
 
         @Override
-        public InitialObjectsDefinition.@NotNull LocationInitialBusinessRole getLocationRole(boolean generateNew) {
-            if (generateNew) {
-                locationBusinessRole = getRandomLocationBusinessRole();
-            }
-            return locationBusinessRole;
-        }
-
-        @Override
         public List<InitialObjectsDefinition.PlanktonApplicationBusinessAbstractRole> getPlanktonApplicationRoles() {
-            return getRandomPlanktonRoles(
-                    0, 4, generatorOptions);
+            return getRandomPlanktonRoles(0, 4, generatorOptions);
         }
 
         @Override
-        public String getLocality() {
+        public @Nullable Boolean isNotAssignToLocationOrg() {
+            InitialObjectsDefinition.LocationInitialBusinessRole locationBusinessRole = getLocationRole();
             if (locationBusinessRole != null) {
                 boolean candidate = isCandidate(90);
-                if (candidate) {
-                    return locationBusinessRole.getLocale();
-                }
+                return !candidate;
             }
+            return true;
+        }
+
+        @Override
+        public InitialObjectsDefinition.LocationOrg getLocalityOrg() {
             return null;
         }
 
@@ -199,15 +189,19 @@ public class RbacObjectCategoryBuilder {
      * It contains methods to build a UserType object with attributes specific to an Irregular User.
      */
     public static class IrregularUserType extends RbacUserType {
-        InitialBusinessRole primaryRole;
 
         public IrregularUserType(GeneratorOptions generatorOptions) {
             super(generatorOptions);
         }
 
         @Override
-        public String getOrganizationOid() {
-            return InitialObjectsDefinition.Organization.IRREGULAR.getOidValue();
+        protected void updateParameters() {
+            // no additional changes
+        }
+
+        @Override
+        public String getProfessionOrganizationOid() {
+            return InitialObjectsDefinition.ProfessionOrg.IRREGULAR.getOidValue();
         }
 
         @Override
@@ -216,7 +210,7 @@ public class RbacObjectCategoryBuilder {
         }
 
         @Override
-        public String getLocality() {
+        public InitialObjectsDefinition.LocationOrg getLocalityOrg() {
             return null;
         }
 
@@ -236,14 +230,8 @@ public class RbacObjectCategoryBuilder {
         }
 
         @Override
-        public InitialBusinessRole getPrimaryRole(boolean generateNew) {
-            primaryRole = InitialObjectsDefinition.JobInitialBusinessRole.IRREGULAR;
-            return primaryRole;
-        }
-
-        @Override
-        public InitialObjectsDefinition.LocationInitialBusinessRole getLocationRole(boolean generateNew) {
-            return null;
+        public @NotNull InitialBusinessRole getPrimaryRole() {
+            return InitialObjectsDefinition.JobInitialBusinessRole.IRREGULAR;
         }
 
         @Override
@@ -262,8 +250,7 @@ public class RbacObjectCategoryBuilder {
      * It contains methods to build a UserType object with attributes specific to a Manager User.
      */
     public static class ManagerUserType extends RbacUserType {
-        InitialBusinessRole primaryRole;
-        InitialObjectsDefinition.LocationInitialBusinessRole locationBusinessRole;
+        InitialObjectsDefinition.LocationOrg locationOrg;
 
         /**
          * Default constructor for the ManagerUser class.
@@ -273,8 +260,13 @@ public class RbacObjectCategoryBuilder {
         }
 
         @Override
-        public String getOrganizationOid() {
-            return InitialObjectsDefinition.Organization.MANAGERS.getOidValue();
+        public void updateParameters() {
+            this.locationOrg = getRandomLocationOrg();
+        }
+
+        @Override
+        public String getProfessionOrganizationOid() {
+            return InitialObjectsDefinition.ProfessionOrg.MANAGERS.getOidValue();
         }
 
         @Override
@@ -283,17 +275,13 @@ public class RbacObjectCategoryBuilder {
         }
 
         @Override
-        public InitialBusinessRole getPrimaryRole(boolean generateNew) {
-            primaryRole = InitialObjectsDefinition.JobInitialBusinessRole.MANAGER;
-            return primaryRole;
+        public @NotNull InitialBusinessRole getPrimaryRole() {
+            return InitialObjectsDefinition.JobInitialBusinessRole.MANAGER;
         }
 
         @Override
-        public InitialObjectsDefinition.LocationInitialBusinessRole getLocationRole(boolean generateNew) {
-            if (generateNew) {
-                locationBusinessRole = getRandomLocationBusinessRole();
-            }
-            return locationBusinessRole;
+        public InitialObjectsDefinition.LocationOrg getLocalityOrg() {
+            return locationOrg;
         }
 
         @Override
@@ -307,14 +295,12 @@ public class RbacObjectCategoryBuilder {
         }
 
         @Override
-        public String getLocality() {
-            if (locationBusinessRole != null) {
+        public @Nullable Boolean isNotAssignToLocationOrg() {
+            if (locationOrg != null) {
                 boolean candidate = isCandidate(90);
-                if (candidate) {
-                    return locationBusinessRole.getLocale();
-                }
+                return !candidate;
             }
-            return null;
+            return true;
         }
 
         @Override
@@ -338,16 +324,30 @@ public class RbacObjectCategoryBuilder {
      * It contains methods to build a UserType object with attributes specific to a Sales User.
      */
     public static class SalesUserType extends RbacUserType {
-        InitialBusinessRole primaryRole;
-        InitialObjectsDefinition.LocationInitialBusinessRole locationBusinessRole;
+        InitialObjectsDefinition.LocationOrg locationOrg;
 
         public SalesUserType(GeneratorOptions generatorOptions) {
             super(generatorOptions);
         }
 
         @Override
-        public String getOrganizationOid() {
-            return InitialObjectsDefinition.Organization.SALES.getOidValue();
+        public void updateParameters() {
+            boolean candidate = isCandidate(10);
+            if (candidate) {
+                this.locationOrg = null;
+            } else {
+                candidate = isCandidate(20);
+                if (candidate) {
+                    this.locationOrg = getRandomLocationOrg();
+                } else {
+                    this.locationOrg = InitialObjectsDefinition.LocationOrg.NEW_YORK;
+                }
+            }
+        }
+
+        @Override
+        public String getProfessionOrganizationOid() {
+            return InitialObjectsDefinition.ProfessionOrg.SALES.getOidValue();
         }
 
         @Override
@@ -361,40 +361,13 @@ public class RbacObjectCategoryBuilder {
         }
 
         @Override
-        public InitialBusinessRole getPrimaryRole(boolean generateNew) {
-            primaryRole = InitialObjectsDefinition.JobInitialBusinessRole.SALES;
-            return primaryRole;
+        public @NotNull InitialBusinessRole getPrimaryRole() {
+            return InitialObjectsDefinition.JobInitialBusinessRole.SALES;
         }
 
         @Override
-        public InitialObjectsDefinition.LocationInitialBusinessRole getLocationRole(boolean generateNew) {
-            if (generateNew) {
-                boolean candidate = isCandidate(10);
-                if (candidate) {
-                    locationBusinessRole = null;
-                } else {
-                    candidate = isCandidate(20);
-                    if (candidate) {
-                        locationBusinessRole = getRandomLocationBusinessRole();
-                    } else {
-                        locationBusinessRole = InitialObjectsDefinition.LocationInitialBusinessRole.LOCATION_NEW_YORK;
-                    }
-                }
-            }
-            return locationBusinessRole;
-        }
-
-        @Override
-        public List<InitialObjectsDefinition.PlanktonApplicationBusinessAbstractRole> getPlanktonApplicationRoles() {
-            return null;
-        }
-
-        @Override
-        public String getLocality() {
-            if (locationBusinessRole != null) {
-                return locationBusinessRole.getLocale();
-            }
-            return null;
+        public InitialObjectsDefinition.LocationOrg getLocalityOrg() {
+            return locationOrg;
         }
 
         @Override
@@ -423,8 +396,6 @@ public class RbacObjectCategoryBuilder {
      */
     public static class SecurityOfficer extends RbacUserType {
 
-        InitialBusinessRole primaryRole;
-
         /**
          * Default constructor for the SecurityOfficer class.
          */
@@ -433,8 +404,13 @@ public class RbacObjectCategoryBuilder {
         }
 
         @Override
-        public String getOrganizationOid() {
-            return InitialObjectsDefinition.Organization.SECURITY_OFFICERS.getOidValue();
+        protected void updateParameters() {
+            // no additional changes
+        }
+
+        @Override
+        public String getProfessionOrganizationOid() {
+            return InitialObjectsDefinition.ProfessionOrg.SECURITY_OFFICERS.getOidValue();
         }
 
         @Override
@@ -448,23 +424,12 @@ public class RbacObjectCategoryBuilder {
         }
 
         @Override
-        public InitialBusinessRole getPrimaryRole(boolean generateNew) {
-            primaryRole = InitialObjectsDefinition.JobInitialBusinessRole.SECURITY_OFFICER;
-            return primaryRole;
+        public @NotNull InitialBusinessRole getPrimaryRole() {
+            return InitialObjectsDefinition.JobInitialBusinessRole.SECURITY_OFFICER;
         }
 
         @Override
-        public InitialObjectsDefinition.LocationInitialBusinessRole getLocationRole(boolean generateNew) {
-            return null;
-        }
-
-        @Override
-        public List<InitialObjectsDefinition.PlanktonApplicationBusinessAbstractRole> getPlanktonApplicationRoles() {
-            return null;
-        }
-
-        @Override
-        public String getLocality() {
+        public InitialObjectsDefinition.LocationOrg getLocalityOrg() {
             return null;
         }
 
@@ -493,7 +458,6 @@ public class RbacObjectCategoryBuilder {
      * It contains methods to build a UserType object with attributes specific to a Contractor.
      */
     public static class Contractor extends RbacUserType {
-        InitialBusinessRole primaryRole;
 
         /**
          * Default constructor for the Contractor class.
@@ -503,13 +467,18 @@ public class RbacObjectCategoryBuilder {
         }
 
         @Override
+        protected void updateParameters() {
+            // no additional changes
+        }
+
+        @Override
         public String getBirthRole() {
             return InitialObjectsDefinition.BirthrightBusinessRole.CONTRACTOR.getOidValue();
         }
 
         @Override
-        public String getOrganizationOid() {
-            return InitialObjectsDefinition.Organization.CONTRACTORS.getOidValue();
+        public String getProfessionOrganizationOid() {
+            return InitialObjectsDefinition.ProfessionOrg.CONTRACTORS.getOidValue();
         }
 
         @Override
@@ -518,14 +487,8 @@ public class RbacObjectCategoryBuilder {
         }
 
         @Override
-        public InitialBusinessRole getPrimaryRole(boolean generateNew) {
-            primaryRole = InitialObjectsDefinition.BirthrightBusinessRole.CONTRACTOR;
-            return primaryRole;
-        }
-
-        @Override
-        public InitialObjectsDefinition.LocationInitialBusinessRole getLocationRole(boolean generateNew) {
-            return null;
+        public @NotNull InitialBusinessRole getPrimaryRole() {
+            return InitialObjectsDefinition.BirthrightBusinessRole.CONTRACTOR;
         }
 
         @Override
@@ -534,7 +497,7 @@ public class RbacObjectCategoryBuilder {
         }
 
         @Override
-        public String getLocality() {
+        public InitialObjectsDefinition.LocationOrg getLocalityOrg() {
             return null;
         }
 
@@ -680,7 +643,7 @@ public class RbacObjectCategoryBuilder {
         }
     }
 
-    protected static void additionalChangesOnAllUsers(UserType user){
+    protected static void additionalChangesOnAllUsers(UserType user) {
 //            user.extension(new ExtensionType());
 //            ExtensionType ext = user.getExtension();
 //            addExtensionValue(ext, "itemPath", "value");

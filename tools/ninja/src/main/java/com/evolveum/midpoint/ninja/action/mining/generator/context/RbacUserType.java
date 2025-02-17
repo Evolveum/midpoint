@@ -13,6 +13,8 @@ import static com.evolveum.midpoint.ninja.action.mining.generator.context.RbacGe
 import java.util.List;
 import java.util.Set;
 
+import com.evolveum.midpoint.ninja.action.mining.generator.object.InitialOrg;
+
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.ninja.action.mining.generator.GeneratorOptions;
@@ -24,6 +26,8 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
+import org.jetbrains.annotations.Nullable;
+
 /**
  * This abstract class represents a user type generator used for initial user object RBAC generation.
  * <p>
@@ -33,9 +37,18 @@ public abstract class RbacUserType implements RbacBasicStructure {
 
     protected GeneratorOptions generatorOptions;
 
-    public RbacUserType(GeneratorOptions generatorOptions) {
+    protected RbacUserType(GeneratorOptions generatorOptions) {
         this.generatorOptions = generatorOptions;
+        updateParameters();
     }
+
+    /**
+     * Updates the parameters for the RegularUserType.
+     * This method is primary designated to sets the location organization and initializes the primary role.
+     * It is called in the constructor of the RegularUserType for default initialization and in the build() method for
+     * dynamic initialization.
+     */
+    protected abstract void updateParameters();
 
     /**
      * This method is responsible for building a UserType object with specific attributes.
@@ -47,42 +60,28 @@ public abstract class RbacUserType implements RbacBasicStructure {
      * @return The built UserType object with specific attributes.
      */
     public UserType build(@NotNull UserType user) {
-        String correspondingArchetypeOid = getCorrespondingArchetypeOid();
-        if (correspondingArchetypeOid != null) {
-            setUpArchetypeUser(user, correspondingArchetypeOid);
-        }
+        updateParameters();
 
-        String organizationOid = getOrganizationOid();
-        if (organizationOid != null) {
-            user.getAssignment().add(createOrgAssignment(organizationOid));
-        }
+        setupUserArchetype(user);
 
-        String birthRole = getBirthRole();
-        if (birthRole != null) {
-            user.getAssignment().add(createRoleAssignment(getBirthRole()));
-        }
+        setupUserProfessionOrganization(user);
 
-        InitialObjectsDefinition.LocationInitialBusinessRole locationRole = getLocationRole(true);
-        if (locationRole != null) {
-            user.getAssignment().add(createRoleAssignment(locationRole.getOidValue()));
+        setupUserBirthRole(user);
 
-            String locality = getLocality();
-            if (locality != null) {
-                user.setLocality(PolyStringType.fromOrig(locality));
-            }
-        }
+        setupUserLocationProperties(user);
 
         additionalChanges(user);
 
-        InitialBusinessRole primaryRole = getPrimaryRole(true);
-        if (primaryRole != null) {
-            user.getAssignment().add(createRoleAssignment(primaryRole.getOidValue()));
-        }
+        setupUserPrimaryRoles(user);
 
-        String title = getTitle();
-        if (title != null) {
-            user.setTitle(PolyStringType.fromOrig(title));
-        }
+        setupUserTitle(user);
+
+        setupUserPlanktonRoles(user);
+
+        return user;
+    }
+
+    private void setupUserPlanktonRoles(@NotNull UserType user) {
         List<InitialObjectsDefinition.PlanktonApplicationBusinessAbstractRole> planktonApplicationRoles
                 = getPlanktonApplicationRoles();
         if (planktonApplicationRoles != null && !planktonApplicationRoles.isEmpty()) {
@@ -91,8 +90,64 @@ public abstract class RbacUserType implements RbacBasicStructure {
                 user.getAssignment().add(createRoleAssignment(planktonApplicationRole.getOidValue()));
             }
         }
+    }
 
-        return user;
+    private void setupUserTitle(@NotNull UserType user) {
+        String title = getTitle();
+        if (title != null) {
+            user.setTitle(PolyStringType.fromOrig(title));
+        }
+    }
+
+    private void setupUserPrimaryRoles(@NotNull UserType user) {
+        InitialBusinessRole primaryRole = getPrimaryRole();
+        user.getAssignment().add(createRoleAssignment(primaryRole.getOidValue()));
+    }
+
+    private void setupUserBirthRole(@NotNull UserType user) {
+        String birthRole = getBirthRole();
+        if (birthRole != null) {
+            user.getAssignment().add(createRoleAssignment(getBirthRole()));
+        }
+    }
+
+    private void setupUserProfessionOrganization(@NotNull UserType user) {
+        String organizationOid = getProfessionOrganizationOid();
+        if (organizationOid != null) {
+            user.getAssignment().add(createOrgAssignment(organizationOid));
+        }
+    }
+
+    private void setupUserArchetype(@NotNull UserType user) {
+        String correspondingArchetypeOid = getCorrespondingArchetypeOid();
+        if (correspondingArchetypeOid != null) {
+            setUpArchetypeUser(user, correspondingArchetypeOid);
+        }
+    }
+
+    /**
+     * Sets up the location properties for the given user.
+     * This method assigns the location role, setup user locality attribute, and add location organization assignment to the user.
+     *
+     * @param user The UserType object to which the location properties will be assigned.
+     */
+    private void setupUserLocationProperties(@NotNull UserType user) {
+        InitialObjectsDefinition.LocationInitialBusinessRole businessRole = getLocationRole();
+        if (businessRole == null) {
+            return;
+        }
+
+        user.getAssignment().add(createRoleAssignment(businessRole.getOidValue()));
+
+        @Nullable Boolean ignoreLocationOrg = isNotAssignToLocationOrg();
+        if (ignoreLocationOrg == null || ignoreLocationOrg) {
+            return;
+        }
+
+        InitialOrg locationOrg = getLocalityOrg();
+        if (locationOrg != null) {
+            user.getAssignment().add(createOrgAssignment(locationOrg.getOidValue()));
+        }
     }
 
     /**
@@ -124,30 +179,6 @@ public abstract class RbacUserType implements RbacBasicStructure {
             importUserAndResolveAuxRoles(user, repository, generatorOptions, result, log);
         }
     }
-
-    @Override
-    public abstract String getBirthRole();
-
-    @Override
-    public abstract String getOrganizationOid();
-
-    @Override
-    public abstract String getCorrespondingArchetypeOid();
-
-    @Override
-    public abstract InitialBusinessRole getPrimaryRole(boolean generateNew);
-
-    @Override
-    public abstract InitialObjectsDefinition.LocationInitialBusinessRole getLocationRole(boolean generateNew);
-
-    @Override
-    public abstract List<InitialObjectsDefinition.PlanktonApplicationBusinessAbstractRole> getPlanktonApplicationRoles();
-
-    @Override
-    public abstract String getLocality();
-
-    @Override
-    public abstract String getTitle();
 
     protected abstract String getDisplayName();
 

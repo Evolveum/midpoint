@@ -69,9 +69,10 @@ public class ImportAction {
         }
 
         if (generatorOptions.isTransform()) {
-            log.info("Make sure that RoleType objects is recomputed");
             remakeUsersBusinessRoles(context, result, generatorOptions, null, null);
         }
+        
+        log.info("NOTE: Do not forget to recompute FocusType objects");
     }
 
     private void initialObjectsImport(@NotNull RepositoryService repositoryService) {
