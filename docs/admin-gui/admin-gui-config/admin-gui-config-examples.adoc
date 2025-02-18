@@ -761,7 +761,6 @@ This part of the configuration is already included in the initial system configu
         <objectDetails>
             <defaultSettings>
                 <pagingOptions>
-                    <defaultPageSize>20</defaultPageSize>
                     <availablePageSize>10</availablePageSize>
                     <availablePageSize>20</availablePageSize>
                     <availablePageSize>50</availablePageSize>
@@ -777,7 +776,7 @@ This part of the configuration is already included in the initial system configu
 == Overriding default paging settings for 'All Assignments' panel on the User details page
 
 This example shows how the default paging settings can be overridden for the 'All Assignments' panel on the User details page.
-The page size component will contain the values 10, 30, 60, 80, 100 with the default page size set to 10 and the maximum page size set to 100.
+The page size component will contain the values 10, 30, 60, 80, 100 with the default page size set to 30.
 
 .Example
 [%collapsible]
@@ -794,10 +793,9 @@ The page size component will contain the values 10, 30, 60, 80, 100 with the def
                         <identifier>allAssignments</identifier>
                         <listView>
                             <paging>
-                                <maxSize>100</maxSize>
+                                <maxSize>30</maxSize>
                             </paging>
                             <pagingOptions>
-                                <defaultPageSize>10</defaultPageSize>
                                 <availablePageSize>10</availablePageSize>
                                 <availablePageSize>30</availablePageSize>
                                 <availablePageSize>60</availablePageSize>
@@ -825,7 +823,6 @@ This part of the configuration is already included in the initial system configu
         <objectCollectionViews>
             <defaultSettings>
                 <pagingOptions>
-                    <defaultPageSize>20</defaultPageSize>
                     <availablePageSize>10</availablePageSize>
                     <availablePageSize>20</availablePageSize>
                     <availablePageSize>50</availablePageSize>
@@ -841,7 +838,7 @@ This part of the configuration is already included in the initial system configu
 == Overriding default paging settings for 'Persons' collection view
 
 This example shows how the default paging settings can be overridden for the 'Persons' collection view.
-The page size component will contain the values 50, 100, 150, 200 with the default page size set to 50 and the maximum page size set to 200.
+The page size component will contain the values 50, 100, 150, 200 with the default page size set to 200.
 
 .Example
 [%collapsible]
@@ -865,7 +862,6 @@ The page size component will contain the values 50, 100, 150, 200 with the defau
                     <maxSize>200</maxSize>
                 </paging>
                 <pagingOptions>
-                    <defaultPageSize>50</defaultPageSize>
                     <availablePageSize>100</availablePageSize>
                     <availablePageSize>150</availablePageSize>
                     <availablePageSize>200</availablePageSize>

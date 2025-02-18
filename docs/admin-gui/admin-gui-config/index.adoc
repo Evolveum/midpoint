@@ -158,12 +158,7 @@ If not specified, unlimited maximum size is assumed.
 | NO
 | PagingOptionsType
 | Paging options which can be applied to list view in GUI.
-Available options are:
-
-_availablePageSize_ Defines a set of available page size values which will be suggested to the user on the table panels.
-
-_defaultPageSize_ Defines the value for the default page size.
-This value can be one of those defined in availablePageSize set or any other value (will be added then to the list of the available page sizes).
+Contains a multivalue element _availablePageSize_ (defines a set of available page size values which will be suggested to the user on the table panels).
 
 |===
 
