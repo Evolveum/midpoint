@@ -108,14 +108,17 @@ public class RootUpdateContext<S extends ObjectType, Q extends QObject<R>, R ext
         cidGenerator = new ContainerValueIdGenerator(getPrismObject())
                 .forModifyObject(row.containerIdSeq);
 
+        var processing = ItemDeltaProcessor.DEFAULT_PROCESSING;
         for (ItemDelta<?, ?> modification : modifications) {
             try {
-                processModification(modification, updateTables);
+                var hint = processModification(modification, updateTables);
+                processing = processing.combine(hint);
             } catch (IllegalArgumentException e) {
                 logger.warn("Modification failed with '{}': {}", e, modification);
                 throw new SystemException("Modification failed: " + modification, e);
             }
         }
+        this.skipFullObject = skipFullObject || processing.skipFullObject();
         updateFullTextInfo(modifications, prismObject);
 
         repositoryContext().normalizeAllRelations(prismObject.getValue());
@@ -131,18 +134,16 @@ public class RootUpdateContext<S extends ObjectType, Q extends QObject<R>, R ext
         }
     }
 
-    private void processModification(ItemDelta<?, ?> modification, boolean updateTables)
+    private ItemDeltaProcessor.ProcessingHint processModification(ItemDelta<?, ?> modification, boolean updateTables)
             throws RepositoryException, SchemaException {
         cidGenerator.processModification(modification);
         resolveContainerIdsForValuesToDelete(modification);
         modification.applyTo(getPrismObject());
         var processing = ItemDeltaProcessor.SKIP_FULL_OBJECT_UPDATE;
         if (updateTables) {
-            var hint = new DelegatingItemDeltaProcessor(this).process(modification);
-            processing = processing.combine(hint);
+            return new DelegatingItemDeltaProcessor(this).process(modification);
         }
-        this.skipFullObject = skipFullObject || processing.skipFullObject();
-
+        return ItemDeltaProcessor.DEFAULT_PROCESSING;
     }
 
     private void resolveContainerIdsForValuesToDelete(ItemDelta<?, ?> modification) {
