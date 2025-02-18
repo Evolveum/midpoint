@@ -7,6 +7,7 @@
 package com.evolveum.midpoint.provisioning.ucf.impl.connid;
 
 import static com.evolveum.midpoint.prism.polystring.PolyString.getOrig;
+import static com.evolveum.midpoint.schema.result.OperationResult.HANDLE_OBJECT_FOUND;
 import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
 import static com.evolveum.midpoint.util.MiscUtil.stateNonNull;
 
@@ -75,6 +76,8 @@ import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.*;
 import com.evolveum.prism.xml.ns._public.query_3.OrderDirectionType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
+import org.jetbrains.annotations.VisibleForTesting;
+
 /**
  * Implementation of {@link ConnectorInstance} for ConnId connectors.
  *
@@ -84,11 +87,13 @@ import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
  *
  * @author Radovan Semancik
  */
-class ConnectorInstanceConnIdImpl implements ConnectorInstance, ConnectorContext {
+@VisibleForTesting // Used when testing operation results & performance recording
+public class ConnectorInstanceConnIdImpl implements ConnectorInstance, ConnectorContext {
 
     private static final Trace LOGGER = TraceManager.getTrace(ConnectorInstanceConnIdImpl.class);
 
-    private static final String FACADE_OP_GET_OBJECT = ConnectorFacade.class.getName() + ".getObject";
+    @VisibleForTesting
+    public static final String FACADE_OP_GET_OBJECT = ConnectorFacade.class.getName() + ".getObject";
     private static final String FACADE_OP_CREATE = ConnectorFacade.class.getName() + ".create";
     private static final String FACADE_OP_UPDATE_DELTA = ConnectorFacade.class.getName() + ".updateDelta";
     private static final String FACADE_OP_ADD_ATTRIBUTE_VALUES = ConnectorFacade.class.getName() + ".addAttributeValues";
@@ -96,7 +101,10 @@ class ConnectorInstanceConnIdImpl implements ConnectorInstance, ConnectorContext
     private static final String FACADE_OP_REMOVE_ATTRIBUTE_VALUES = ConnectorFacade.class.getName() + ".removeAttributeValues";
     private static final String FACADE_OP_DELETE = ConnectorFacade.class.getName() + ".delete";
     private static final String FACADE_OP_SYNC = ConnectorFacade.class.getName() + ".sync";
-    static final String FACADE_OP_SEARCH = ConnectorFacade.class.getName() + ".search";
+    @VisibleForTesting
+    public static final String FACADE_OP_SEARCH = ConnectorFacade.class.getName() + ".search";
+    @VisibleForTesting
+    public static final String OP_HANDLE_OBJECT_FOUND = ConnectorInstanceConnIdImpl.class.getName() + "." + HANDLE_OBJECT_FOUND;
     private static final String FACADE_OP_RUN_SCRIPT_ON_CONNECTOR = ConnectorFacade.class.getName() + ".runScriptOnConnector";
     private static final String FACADE_OP_RUN_SCRIPT_ON_RESOURCE = ConnectorFacade.class.getName() + ".runScriptOnResource";
 
