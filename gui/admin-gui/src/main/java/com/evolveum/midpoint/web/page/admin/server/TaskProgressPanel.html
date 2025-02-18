@@ -12,9 +12,10 @@
     <div class="d-flex flex-column">
         <div class="d-flex w-100 gap-2 align-items-center">
             <div style="min-width: 100px; width: 100px;" wicket:id="progress"/>
+            <i wicket:id="doneIcon"/>
             <div class="ml-auto" wicket:id="progressLabel"/>
             <wicket:enclosure child="progressProblemLabel">
-                <div style="min-width: fit-content;">
+                <div style="min-width: fit-content;" wicket:message="title:TaskProgressPanel.progressProblemLabel.title">
                     <i class="mr-1" wicket:id="progressProblemIcon"/>
                     <span wicket:id="progressProblemLabel"/>
                 </div>

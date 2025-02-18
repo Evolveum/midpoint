@@ -23,10 +23,13 @@ import com.evolveum.midpoint.gui.api.util.LocalizationUtil;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.util.LocalizableMessage;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
+import com.evolveum.midpoint.web.page.admin.server.dto.OperationResultStatusPresentationProperties;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskExecutionStateType;
 
 public class TaskProgressPanel extends BasePanel<TaskProgress> {
 
     private static final String ID_PROGRESS = "progress";
+    private static final String ID_DONE_ICON = "doneIcon";
     private static final String ID_PROGRESS_LABEL = "progressLabel";
     private static final String ID_PROGRESS_PROBLEM_ICON = "progressProblemIcon";
     private static final String ID_PROGRESS_PROBLEM_LABEL = "progressProblemLabel";
@@ -39,6 +42,20 @@ public class TaskProgressPanel extends BasePanel<TaskProgress> {
         initLayout();
     }
 
+    private boolean showProgressBar() {
+        if (getModelObject().getProgress() < 0) {
+            // useless for tasks that can't report on progress
+            return false;
+        }
+
+        if (getModelObject().getExecutionState() == TaskExecutionStateType.SUSPENDED
+                || getModelObject().getExecutionState() == TaskExecutionStateType.CLOSED) {
+            return false;
+        }
+
+        return !getModelObject().isComplete();
+    }
+
     private void initLayout() {
         IModel<List<ProgressBar>> progressModel = new LoadableDetachableModel<>() {
 
@@ -49,8 +66,17 @@ public class TaskProgressPanel extends BasePanel<TaskProgress> {
         };
 
         ProgressBarPanel progress = new ProgressBarPanel(ID_PROGRESS, progressModel);
-        progress.add(new VisibleBehaviour(() -> !getModelObject().isComplete()));
+        progress.add(new VisibleBehaviour(() -> showProgressBar()));
         add(progress);
+
+        WebMarkupContainer doneIcon = new WebMarkupContainer(ID_DONE_ICON);
+        // todo task status should be here? [this is probably ok, status few lines below should be related not to
+        //  overall task status but to task subtasks status if they were fatal or something infra related]
+        doneIcon.add(AttributeAppender.append("class", () -> OperationResultStatusPresentationProperties
+                .parseOperationalResultStatus(getModelObject().getTaskStatus()).getIcon()));
+        doneIcon.add(AttributeAppender.append("title", () -> getString(getModelObject().getTaskStatus())));
+        doneIcon.add(new VisibleBehaviour(() -> !showProgressBar()));
+        add(doneIcon);
 
         Label progressLabel = new Label(ID_PROGRESS_LABEL, () -> getModelObject().getProgressLabel());
         add(progressLabel);
@@ -70,7 +96,7 @@ public class TaskProgressPanel extends BasePanel<TaskProgress> {
         taskProblemIcon.add(
                 AttributeAppender.append(
                         "class",
-                        () -> "fa fa-exclamation-triangle " + getIconColor(getModelObject().getTaskStatus())));
+                        () -> "fa fa-exclamation-triangle " + getIconColor(getModelObject().getTaskStatus()))); // todo task status is also here
         add(taskProblemIcon);
 
         IModel<String> taskProblemModel = new LoadableDetachableModel<>() {

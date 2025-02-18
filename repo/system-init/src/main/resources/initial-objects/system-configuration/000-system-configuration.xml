@@ -474,7 +474,6 @@
         <objectCollectionViews>
             <defaultSettings>
                 <pagingOptions>
-                    <defaultPageSize>20</defaultPageSize>
                     <availablePageSize>10</availablePageSize>
                     <availablePageSize>20</availablePageSize>
                     <availablePageSize>50</availablePageSize>
@@ -1132,7 +1131,6 @@
         <objectDetails>
             <defaultSettings>
                 <pagingOptions>
-                    <defaultPageSize>20</defaultPageSize>
                     <availablePageSize>10</availablePageSize>
                     <availablePageSize>20</availablePageSize>
                     <availablePageSize>50</availablePageSize>
