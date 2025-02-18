@@ -14,6 +14,7 @@ import static com.evolveum.midpoint.schema.util.task.ActivityProgressInformation
 import static java.util.Objects.requireNonNullElseGet;
 
 import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.util.LocalizableMessage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.jetbrains.annotations.NotNull;
@@ -21,6 +22,7 @@ import org.jetbrains.annotations.NotNull;
 import com.evolveum.midpoint.util.DebugUtil;
 
 import javax.xml.datatype.XMLGregorianCalendar;
+import java.util.List;
 import java.util.Objects;
 
 /**
@@ -103,12 +105,25 @@ public class ActivityBasedTaskInformation extends TaskInformation {
 
     @Override
     public double getProgress() {
-        return -1.0; // todo implement
+        if (progressInformation.isComplete()){
+            return 1.0;
+        }
+
+//        List<ActivityProgressInformation> children = progressInformation.getChildren();
+//        long completed = children.stream().filter(ActivityProgressInformation::isComplete).count();
+//        return (double) completed / children.size();
+
+        return -1;// todo implement
     }
 
     @Override
     public boolean isComplete() {
         return progressInformation.isComplete();
+    }
+
+    @Override
+    public LocalizableMessage getTaskStatusDescription() {
+        return null;    // todo implement
     }
 
     @Override

@@ -11,8 +11,11 @@ import java.io.Serializable;
 
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.util.LocalizableMessage;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskExecutionStateType;
 
 public class TaskProgress implements Serializable {
+
+    private TaskExecutionStateType executionState;
 
     private boolean complete;
 
@@ -82,5 +85,13 @@ public class TaskProgress implements Serializable {
 
     public void setTaskStatusMessage(LocalizableMessage taskStatusMessage) {
         this.taskStatusMessage = taskStatusMessage;
+    }
+
+    public TaskExecutionStateType getExecutionState() {
+        return executionState;
+    }
+
+    public void setExecutionState(TaskExecutionStateType executionState) {
+        this.executionState = executionState;
     }
 }
