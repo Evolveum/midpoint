@@ -8,8 +8,11 @@ package com.evolveum.midpoint.repo.sqale.qmodel.shadow;
 
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType.*;
 
+import java.time.Instant;
 import java.time.ZoneId;
 import java.util.*;
+import java.util.function.Consumer;
+import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.PrismReference;
@@ -23,6 +26,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import com.querydsl.core.Tuple;
 import com.querydsl.core.types.Path;
+import com.querydsl.core.types.dsl.DateTimePath;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.Item;
@@ -88,7 +92,7 @@ public class QShadowMapping
         addItemMapping(F_DEAD, booleanMapper(q -> q.dead));
         addItemMapping(F_EXISTS, booleanMapper(q -> q.exist));
         addItemMapping(F_FULL_SYNCHRONIZATION_TIMESTAMP,
-                timestampMapper(q -> q.fullSynchronizationTimestamp));
+                timestampMapper(q -> q.fullSynchronizationTimestamp, true));
         addItemMapping(F_PRIMARY_IDENTIFIER_VALUE, stringMapper(q -> q.primaryIdentifierValue));
         addItemMapping(F_SYNCHRONIZATION_SITUATION, enumMapper(q -> q.synchronizationSituation));
         addItemMapping(F_SYNCHRONIZATION_TIMESTAMP,
@@ -186,14 +190,20 @@ public class QShadowMapping
         return row;
     }
 
+    protected static void attachTimestamp(Consumer<XMLGregorianCalendar> setter, Tuple row, DateTimePath<Instant> path) {
+        var timestamp = row.get(path);
+        if (timestamp != null) {
+            setter.accept(SqaleUtils.toCalendar(timestamp));
+        } else {
+            setter.accept(null);
+        }
+    }
+
     @Override
     protected void attachColumnOnlyData(@NotNull Tuple row, @NotNull QShadow entityPath, @NotNull ShadowType ret) {
         super.attachColumnOnlyData(row, entityPath, ret);
-        // If storing data in separate column do not forget it to add to selectExpressions
-        var syncTimestamp = row.get(entityPath.synchronizationTimestamp);
-        if (syncTimestamp != null) {
-            ret.setSynchronizationTimestamp(SqaleUtils.toCalendar(syncTimestamp));
-        }
+        attachTimestamp(ret::setSynchronizationTimestamp, row,  entityPath.synchronizationTimestamp);
+        attachTimestamp(ret::setFullSynchronizationTimestamp, row,  entityPath.fullSynchronizationTimestamp);
     }
 
     @Override
@@ -277,7 +287,7 @@ public class QShadowMapping
         if (isExcludeAll(options)) {
             return ret;
         }
-        return appendPaths(ret, entity.attributes, entity.synchronizationTimestamp);
+        return appendPaths(ret, entity.attributes, entity.synchronizationTimestamp, entity.fullSynchronizationTimestamp);
     }
 
     @SuppressWarnings({ "unchecked", "rawtypes" })
