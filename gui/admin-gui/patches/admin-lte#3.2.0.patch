@@ -1,7 +1,7 @@
-diff --git a/node_modules/admin-lte/build/scss/mixins/_backgrounds.scss b/node_modules/admin-lte/build/scss/mixins/_backgrounds.scss
+diff --git admin-lte/build/scss/mixins/_backgrounds.scss admin-lte/build/scss/mixins/_backgrounds.scss
 index a4a031c..531ae12 100644
---- a/node_modules/admin-lte/build/scss/mixins/_backgrounds.scss
-+++ b/node_modules/admin-lte/build/scss/mixins/_backgrounds.scss
+--- admin-lte/build/scss/mixins/_backgrounds.scss
++++ admin-lte/build/scss/mixins/_backgrounds.scss
 @@ -4,7 +4,7 @@
 
  // Background Variant
@@ -11,10 +11,10 @@ index a4a031c..531ae12 100644
      background-color: #{$color} !important;
 
      &,
-diff --git a/node_modules/admin-lte/build/scss/mixins/_toasts.scss b/node_modules/admin-lte/build/scss/mixins/_toasts.scss
+diff --git admin-lte/build/scss/mixins/_toasts.scss admin-lte/build/scss/mixins/_toasts.scss
 index 563f329..4f3a735 100644
---- a/node_modules/admin-lte/build/scss/mixins/_toasts.scss
-+++ b/node_modules/admin-lte/build/scss/mixins/_toasts.scss
+--- admin-lte/build/scss/mixins/_toasts.scss
++++ admin-lte/build/scss/mixins/_toasts.scss
 @@ -4,7 +4,7 @@
 
  // Toast Variant
