@@ -14,6 +14,7 @@ import com.evolveum.midpoint.provisioning.impl.shadows.manager.ShadowFinder;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.VisibleForTesting;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -37,8 +38,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationProvisionin
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
-import static com.evolveum.midpoint.provisioning.impl.shadows.ShadowsUtil.*;
-
 /**
  * Facade for the whole "shadows" package.
  *
@@ -54,6 +53,8 @@ import static com.evolveum.midpoint.provisioning.impl.shadows.ShadowsUtil.*;
 public class ShadowsFacade {
 
     static final String OP_DELAYED_OPERATION = ShadowsFacade.class.getName() + ".delayedOperation";
+    @VisibleForTesting
+    public static final String OP_HANDLE_RESOURCE_OBJECT_FOUND = ShadowsFacade.class.getName() + ".handleResourceObjectFound";
 
     @Autowired private DefinitionsHelper definitionsHelper;
     @Autowired private ShadowOperationPropagationHelper propagationHelper;

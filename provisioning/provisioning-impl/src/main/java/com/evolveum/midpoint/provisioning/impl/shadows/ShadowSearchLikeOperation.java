@@ -47,7 +47,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
  */
 class ShadowSearchLikeOperation {
 
-    private static final String OP_PROCESS_SHADOW = ShadowSearchLikeOperation.class.getName() + ".processShadow";
+    private static final String OP_PROCESS_REPO_SHADOW = ShadowSearchLikeOperation.class.getName() + ".processRepoShadow";
 
     private static final Trace LOGGER = TraceManager.getTrace(ShadowSearchLikeOperation.class);
 
@@ -146,7 +146,7 @@ class ShadowSearchLikeOperation {
     }
 
     private SearchResultMetadata executeIterativeSearchOnResource(
-            @NotNull ResultHandler<ShadowType> handler, OperationResult result)
+            @NotNull ResultHandler<ShadowType> handler, OperationResult parentResult)
             throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
             ExpressionEvaluationException, SecurityViolationException {
 
@@ -155,21 +155,36 @@ class ShadowSearchLikeOperation {
         // We need to record the fetch down here. Now it is certain that we are going to fetch from resource.
         InternalMonitor.recordCount(InternalCounters.SHADOW_FETCH_OPERATION_COUNT);
 
-        ResourceObjectHandler shadowHandler = (ResourceObjectFound objectFound, OperationResult lResult) -> {
+        ResourceObjectHandler shadowHandler = (ResourceObjectFound objectFound, OperationResult objParentResult) -> {
 
-            ShadowedObjectFound shadowedObjectFound = new ShadowedObjectFound(objectFound);
-            shadowedObjectFound.initialize(ctx.getTask(), lResult);
-            ShadowType shadowedObject = shadowedObjectFound.getResultingObject(ucfErrorReportingMethod, lResult);
-            shadowedObject.setContentDescription(
-                    determineContentDescription(options, shadowedObjectFound.isError()));
+            // See ResultHandler#providingOwnOperationResult
+            var objResult = objParentResult
+                    .subresult(ShadowsFacade.OP_HANDLE_RESOURCE_OBJECT_FOUND)
+                    .addArbitraryObjectAsParam(OperationResult.PARAM_OBJECT, objectFound)
+                    .setMinor()
+                    .build();
+            try {
+                ShadowedObjectFound shadowedObjectFound = new ShadowedObjectFound(objectFound);
+                shadowedObjectFound.initialize(ctx.getTask(), objResult);
+                ShadowType shadowedObject = shadowedObjectFound.getResultingObject(ucfErrorReportingMethod, objResult);
+                shadowedObject.setContentDescription(
+                        determineContentDescription(options, shadowedObjectFound.isError()));
 
-            return handler.handle(shadowedObject.asPrismObject(), lResult);
+                return handler.handle(shadowedObject.asPrismObject(), objResult);
+            } catch (Throwable t) {
+                objResult.recordException(t);
+                throw t;
+            } finally {
+                objResult.close();
+                objResult.deleteSubresultsIfPossible();
+                objParentResult.summarize();
+            }
         };
 
         boolean fetchAssociations = SelectorOptions.hasToIncludePath(ShadowType.F_ASSOCIATIONS, options, true);
         try {
             return b.resourceObjectConverter.searchResourceObjects(
-                    ctx, shadowHandler, createOnResourceQuery(), fetchAssociations, ucfErrorReportingMethod, result);
+                    ctx, shadowHandler, createOnResourceQuery(), fetchAssociations, ucfErrorReportingMethod, parentResult);
         } catch (TunnelException e) {
             unwrapAndThrowSearchingTunnelException(e);
             throw new AssertionError();
@@ -309,7 +324,7 @@ class ShadowSearchLikeOperation {
             ExpressionEvaluationException, SecurityViolationException {
 
         PrismObject<ShadowType> resultingShadow;
-        var result = parentResult.createMinorSubresult(OP_PROCESS_SHADOW);
+        var result = parentResult.createMinorSubresult(OP_PROCESS_REPO_SHADOW);
         try {
             if (isRaw()) {
                 ctx.applyDefinitionInNewCtx(rawRepoShadow); // TODO is this really OK?

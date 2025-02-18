@@ -22,6 +22,7 @@ import com.evolveum.midpoint.util.DebugUtil;
 import com.google.common.base.Preconditions;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.VisibleForTesting;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
@@ -67,7 +68,8 @@ public class ShadowFinder {
 
     private static final Trace LOGGER = TraceManager.getTrace(ShadowFinder.class);
 
-    private static final String OP_HANDLE_OBJECT_FOUND = ShadowFinder.class.getName() + "." + HANDLE_OBJECT_FOUND;
+    @VisibleForTesting
+    public static final String OP_HANDLE_OBJECT_FOUND = ShadowFinder.class.getName() + "." + HANDLE_OBJECT_FOUND;
 
     @Autowired @Qualifier("cacheRepositoryService") private RepositoryService repositoryService;
     @Autowired private PrismContext prismContext;

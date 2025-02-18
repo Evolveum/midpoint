@@ -24,7 +24,6 @@ import com.evolveum.midpoint.repo.cache.RepositoryCache;
 import com.evolveum.midpoint.schema.SearchResultMetadata;
 import com.evolveum.midpoint.schema.internals.InternalsConfig;
 import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
-import com.evolveum.midpoint.schema.result.OperationConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.*;
@@ -33,8 +32,6 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FetchErrorReportingMethodType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.PagedSearchCapabilityType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ReadCapabilityType;
-
-import static com.evolveum.midpoint.schema.result.OperationResult.HANDLE_OBJECT_FOUND;
 
 /**
  * Searches for the resource objects, implementing this method:
@@ -45,8 +42,6 @@ import static com.evolveum.midpoint.schema.result.OperationResult.HANDLE_OBJECT_
 class ResourceObjectSearchOperation extends AbstractResourceObjectRetrievalOperation {
 
     private static final Trace LOGGER = TraceManager.getTrace(ResourceObjectSearchOperation.class);
-
-    private static final String OP_HANDLE_OBJECT_FOUND = ResourceObjectSearchOperation.class.getName() + "." + HANDLE_OBJECT_FOUND;
 
     @NotNull private final ResourceObjectHandler resultHandler;
 
@@ -209,7 +204,7 @@ class ResourceObjectSearchOperation extends AbstractResourceObjectRetrievalOpera
 
             try {
                 OperationResult objResult = parentResult
-                        .subresult(OP_HANDLE_OBJECT_FOUND)
+                        .subresult(ResourceObjectConverter.OP_HANDLE_OBJECT_FOUND)
                         .setMinor()
                         .addParam("number", objectNumber)
                         .addArbitraryObjectAsParam("primaryIdentifierValue", ucfObject.getPrimaryIdentifierValue())

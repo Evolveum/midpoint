@@ -55,6 +55,8 @@ public class RepositoryCache implements RepositoryService, Cache {
 
     public static final String CLASS_NAME_WITH_DOT = RepositoryCache.class.getName() + ".";
 
+    public static final String OP_GET_OBJECT_IMPL = CLASS_NAME_WITH_DOT + "getObject";
+
     public static final String OP_SEARCH_OBJECTS_IMPL = CLASS_NAME_WITH_DOT + OP_SEARCH_OBJECTS;
     public static final String OP_SEARCH_OBJECTS_ITERATIVE_IMPL = CLASS_NAME_WITH_DOT + OP_SEARCH_OBJECTS_ITERATIVE;
     public static final String OP_SEARCH_CONTAINERS_ITERATIVE_IMPL = CLASS_NAME_WITH_DOT + OP_SEARCH_CONTAINERS_ITERATIVE;
