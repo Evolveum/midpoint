@@ -7,6 +7,11 @@
 
 package com.evolveum.midpoint.provisioning.impl.resourceobjects;
 
+import java.util.concurrent.atomic.AtomicInteger;
+
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.provisioning.api.GenericConnectorException;
 import com.evolveum.midpoint.provisioning.impl.ProvisioningContext;
@@ -18,7 +23,6 @@ import com.evolveum.midpoint.repo.cache.RepositoryCache;
 import com.evolveum.midpoint.schema.SearchResultMetadata;
 import com.evolveum.midpoint.schema.internals.InternalsConfig;
 import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
-import com.evolveum.midpoint.schema.result.OperationConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.MiscUtil;
@@ -29,13 +33,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.FetchErrorReportingM
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.PagedSearchCapabilityType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ReadCapabilityType;
 
-import static com.evolveum.midpoint.schema.result.OperationResult.HANDLE_OBJECT_FOUND;
-
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import java.util.concurrent.atomic.AtomicInteger;
-
 /**
  * Handles {@link ResourceObjectConverter#searchResourceObjects(ProvisioningContext, ResourceObjectHandler, ObjectQuery,
  * boolean, FetchErrorReportingMethodType, OperationResult)} method call.
@@ -45,8 +42,6 @@ class ResourceObjectSearchOperation {
     private static final Trace LOGGER = TraceManager.getTrace(ResourceObjectSearchOperation.class);
 
     @NotNull private final ProvisioningContext ctx;
-
-    private static final String OP_HANDLE_OBJECT_FOUND = ResourceObjectSearchOperation.class.getName() + "." + HANDLE_OBJECT_FOUND;
 
     @NotNull private final ResourceObjectHandler resultHandler;
 
@@ -179,7 +174,7 @@ class ResourceObjectSearchOperation {
             Task task = ctx.getTask();
             try {
                 OperationResult objResult = parentResult
-                        .subresult(OP_HANDLE_OBJECT_FOUND)
+                        .subresult(ResourceObjectConverter.OP_HANDLE_OBJECT_FOUND)
                         .setMinor()
                         .addParam("number", objectNumber)
                         .addArbitraryObjectAsParam("primaryIdentifierValue", ucfObject.getPrimaryIdentifierValue())

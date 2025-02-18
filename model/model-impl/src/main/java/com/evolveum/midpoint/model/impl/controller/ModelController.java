@@ -32,6 +32,7 @@ import com.evolveum.midpoint.security.api.SecurityUtil;
 import org.apache.commons.lang3.Validate;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.VisibleForTesting;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.DependsOn;
@@ -126,7 +127,8 @@ public class ModelController implements ModelService, TaskService, CaseService, 
     private static final String OP_APPLY_PROVISIONING_DEFINITION = CLASS_NAME_WITH_DOT + "applyProvisioningDefinition";
     static final String OP_REEVALUATE_SEARCH_FILTERS = CLASS_NAME_WITH_DOT + "reevaluateSearchFilters";
     private static final String OP_AUTHORIZE_CHANGE_EXECUTION_START = CLASS_NAME_WITH_DOT + "authorizeChangeExecutionStart";
-    private static final String OP_HANDLE_OBJECT_FOUND = CLASS_NAME_WITH_DOT + HANDLE_OBJECT_FOUND;
+    @VisibleForTesting
+    public static final String OP_HANDLE_OBJECT_FOUND = CLASS_NAME_WITH_DOT + HANDLE_OBJECT_FOUND;
 
     private static final int OID_GENERATION_ATTEMPTS = 5;
 

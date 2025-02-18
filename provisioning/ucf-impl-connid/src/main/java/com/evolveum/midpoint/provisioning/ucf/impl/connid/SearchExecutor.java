@@ -9,7 +9,6 @@ package com.evolveum.midpoint.provisioning.ucf.impl.connid;
 
 import static com.evolveum.midpoint.provisioning.ucf.impl.connid.ConnIdUtil.processConnIdException;
 import static com.evolveum.midpoint.provisioning.ucf.impl.connid.ConnectorInstanceConnIdImpl.toShadowDefinition;
-import static com.evolveum.midpoint.schema.result.OperationResult.HANDLE_OBJECT_FOUND;
 
 import java.util.concurrent.atomic.AtomicInteger;
 import javax.xml.namespace.QName;
@@ -52,8 +51,6 @@ import com.evolveum.prism.xml.ns._public.query_3.OrderDirectionType;
 class SearchExecutor {
 
     private static final Trace LOGGER = TraceManager.getTrace(SearchExecutor.class);
-
-    private static final String OP_HANDLE_OBJECT_FOUND = SearchExecutor.class.getName() + "." + HANDLE_OBJECT_FOUND;
 
     @NotNull private final ResourceObjectDefinition resourceObjectDefinition;
     @NotNull private final PrismObjectDefinition<ShadowType> prismObjectDefinition;
@@ -332,7 +329,7 @@ class SearchExecutor {
             Validate.notNull(connectorObject, "null connector object"); // todo apply error reporting method?
 
             int number = objectsFetched.getAndIncrement(); // The numbering starts at 0
-            var result = parentResult.subresult(OP_HANDLE_OBJECT_FOUND)
+            var result = parentResult.subresult(ConnectorInstanceConnIdImpl.OP_HANDLE_OBJECT_FOUND)
                     .addParam("objectNumber", number)
                     .addParam("uid", connectorObject.getUid().getUidValue())
                     .addParam("name", connectorObject.getName().getNameValue())

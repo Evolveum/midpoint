@@ -50,6 +50,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 public class ShadowsFacade {
 
     static final String OP_DELAYED_OPERATION = ShadowsFacade.class.getName() + ".delayedOperation";
+    @VisibleForTesting
+    public static final String OP_HANDLE_RESOURCE_OBJECT_FOUND = ShadowsFacade.class.getName() + ".handleResourceObjectFound";
 
     @Autowired private ShadowRefreshHelper refreshHelper;
     @Autowired private DefinitionsHelper definitionsHelper;

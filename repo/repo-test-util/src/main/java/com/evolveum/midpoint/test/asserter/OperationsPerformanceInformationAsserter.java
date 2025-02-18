@@ -15,6 +15,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import java.util.Objects;
 
 import com.evolveum.midpoint.schema.statistics.AbstractStatisticsPrinter;
+import com.evolveum.midpoint.schema.statistics.AbstractStatisticsPrinter.SortBy;
 import com.evolveum.midpoint.schema.statistics.OperationsPerformanceInformationPrinter;
 import com.evolveum.midpoint.schema.statistics.OperationsPerformanceInformationUtil;
 import com.evolveum.midpoint.test.IntegrationTestTools;
@@ -38,13 +39,17 @@ public class OperationsPerformanceInformationAsserter<RA> extends AbstractAssert
     }
 
     public OperationsPerformanceInformationAsserter<RA> display() {
+        return display(TIME);
+    }
+
+    public OperationsPerformanceInformationAsserter<RA> display(SortBy sortBy) {
         var performanceInformation =
                 OperationsPerformanceInformationUtil.toOperationsPerformanceInformationType(
                         OperationsPerformanceMonitor.INSTANCE.getGlobalPerformanceInformation());
 
         var printer = new OperationsPerformanceInformationPrinter(
                 performanceInformation,
-                new AbstractStatisticsPrinter.Options(TEXT, TIME),
+                new AbstractStatisticsPrinter.Options(TEXT, sortBy),
                 null, null, false);
 
         IntegrationTestTools.display(desc(), printer.print());

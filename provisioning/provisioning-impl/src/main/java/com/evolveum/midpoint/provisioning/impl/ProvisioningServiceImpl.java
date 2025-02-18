@@ -102,22 +102,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 @Primary
 public class ProvisioningServiceImpl implements ProvisioningService, SystemConfigurationChangeListener {
 
-    private static final String OP_GET_OBJECT = ProvisioningService.class.getName() + ".getObject";
-    private static final String OP_SEARCH_OBJECTS = ProvisioningService.class.getName() + ".searchObjects";
-    private static final String OP_COUNT_OBJECTS = ProvisioningService.class.getName() + ".countObjects";
-    private static final String OP_REFRESH_SHADOW = ProvisioningServiceImpl.class.getName() + ".refreshShadow";
-    private static final String OP_DELETE_OBJECT = ProvisioningService.class.getName() + ".deleteObject";
-    private static final String OP_DISCOVER_CONFIGURATION = ProvisioningService.class.getName() + ".discoverConfiguration";
-    private static final String OP_EXPAND_CONFIGURATION_OBJECT = ProvisioningService.class.getName()
-            + ".expandConfigurationObject";
-    // TODO reconsider names of these operations
-    private static final String OP_TEST_RESOURCE = ProvisioningService.class.getName() + ".testResource";
-
-    private static final String OP_GET_NATIVE_CAPABILITIES = ProvisioningService.class.getName() + ".getNativeCapabilities";
-    private static final String OP_INITIALIZE = ProvisioningService.class.getName() + ".initialize";
-    public static final String OP_DISCOVER_CONNECTORS = ProvisioningService.class.getName()
-            + ".discoverConnectors";
-
     @Autowired ShadowsFacade shadowsFacade;
     @Autowired ResourceManager resourceManager;
     @Autowired ConnectorManager connectorManager;
@@ -757,7 +741,7 @@ public class ProvisioningServiceImpl implements ProvisioningService, SystemConfi
 
         LOGGER.trace("Start of (iterative) search objects. Query:\n{}", DebugUtil.debugDumpLazily(query, 1));
 
-        OperationResult result = parentResult.createSubresult(ProvisioningService.class.getName() + ".searchObjectsIterative");
+        OperationResult result = parentResult.createSubresult(OP_SEARCH_OBJECTS_ITERATIVE);
         result.setSummarizeSuccesses(true);
         result.setSummarizeErrors(true);
         result.setSummarizePartialErrors(true);

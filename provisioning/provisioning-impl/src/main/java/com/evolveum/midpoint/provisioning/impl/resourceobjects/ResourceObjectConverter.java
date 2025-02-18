@@ -26,6 +26,7 @@ import org.apache.commons.lang3.Validate;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.jetbrains.annotations.VisibleForTesting;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.audit.api.AuditEventType;
@@ -63,6 +64,8 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.*;
 
+import static com.evolveum.midpoint.schema.result.OperationResult.HANDLE_OBJECT_FOUND;
+
 /**
  * Responsibilities:
  *
@@ -90,7 +93,10 @@ public class ResourceObjectConverter {
     private static final String OPERATION_DELETE_RESOURCE_OBJECT = DOT_CLASS + "deleteResourceObject";
     private static final String OPERATION_REFRESH_OPERATION_STATUS = DOT_CLASS + "refreshOperationStatus";
     private static final String OPERATION_HANDLE_CHANGE = DOT_CLASS + "handleChange";
-    static final String OP_SEARCH_RESOURCE_OBJECTS = DOT_CLASS + "searchResourceObjects";
+    @VisibleForTesting
+    public static final String OP_SEARCH_RESOURCE_OBJECTS = DOT_CLASS + "searchResourceObjects";
+    @VisibleForTesting
+    public static final String OP_HANDLE_OBJECT_FOUND = DOT_CLASS + HANDLE_OBJECT_FOUND;
     static final String OP_COUNT_RESOURCE_OBJECTS = DOT_CLASS + "countResourceObjects";
 
     @Autowired private EntitlementConverter entitlementConverter;

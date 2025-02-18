@@ -146,7 +146,7 @@ class ShadowSearchLikeOperation {
         }
     }
 
-    private SearchResultMetadata executeIterativeSearchOnResource(ResultHandler<ShadowType> handler, OperationResult result)
+    private SearchResultMetadata executeIterativeSearchOnResource(ResultHandler<ShadowType> handler, OperationResult parentResult)
             throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
             ExpressionEvaluationException, SecurityViolationException {
 
@@ -155,19 +155,34 @@ class ShadowSearchLikeOperation {
         // We need to record the fetch down here. Now it is certain that we are going to fetch from resource.
         InternalMonitor.recordCount(InternalCounters.SHADOW_FETCH_OPERATION_COUNT);
 
-        ResourceObjectHandler shadowHandler = (ResourceObjectFound objectFound, OperationResult lResult) -> {
+        ResourceObjectHandler shadowHandler = (ResourceObjectFound objectFound, OperationResult objParentResult) -> {
 
-            ShadowedObjectFound shadowedObjectFound = new ShadowedObjectFound(objectFound, localBeans, ctx);
-            shadowedObjectFound.initialize(ctx.getTask(), lResult);
-            ShadowType shadowedObject = shadowedObjectFound.getResultingObject(ucfErrorReportingMethod);
+            // See ResultHandler#providingOwnOperationResult
+            var objResult = objParentResult
+                    .subresult(ShadowsFacade.OP_HANDLE_RESOURCE_OBJECT_FOUND)
+                    .addArbitraryObjectAsParam(OperationResult.PARAM_OBJECT, objectFound)
+                    .setMinor()
+                    .build();
+            try {
+                ShadowedObjectFound shadowedObjectFound = new ShadowedObjectFound(objectFound, localBeans, ctx);
+                shadowedObjectFound.initialize(ctx.getTask(), objResult);
+                ShadowType shadowedObject = shadowedObjectFound.getResultingObject(ucfErrorReportingMethod);
 
-            return handler.handle(shadowedObject.asPrismObject(), lResult);
+                return handler.handle(shadowedObject.asPrismObject(), objResult);
+            } catch (Throwable t) {
+                objResult.recordException(t);
+                throw t;
+            } finally {
+                objResult.close();
+                objResult.deleteSubresultsIfPossible();
+                objParentResult.summarize();
+            }
         };
 
         boolean fetchAssociations = SelectorOptions.hasToIncludePath(ShadowType.F_ASSOCIATION, options, true);
         try {
             return localBeans.resourceObjectConverter.searchResourceObjects(
-                    ctx, shadowHandler, createOnResourceQuery(), fetchAssociations, ucfErrorReportingMethod, result);
+                    ctx, shadowHandler, createOnResourceQuery(), fetchAssociations, ucfErrorReportingMethod, parentResult);
         } catch (TunnelException e) {
             unwrapAndThrowSearchingTunnelException(e);
             throw new AssertionError();

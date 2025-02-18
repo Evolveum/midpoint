@@ -6,6 +6,12 @@
  */
 package com.evolveum.midpoint.model.intest.misc;
 
+import static com.evolveum.midpoint.schema.GetOperationOptions.createNoFetchCollection;
+import static com.evolveum.midpoint.schema.constants.SchemaConstants.ICFS_NAME;
+import static com.evolveum.midpoint.schema.constants.SchemaConstants.INTENT_DEFAULT;
+
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType.ACCOUNT;
+
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.testng.AssertJUnit.*;
 
@@ -14,12 +20,23 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.model.impl.controller.ModelController;
+import com.evolveum.midpoint.provisioning.api.ProvisioningService;
+import com.evolveum.midpoint.provisioning.impl.resourceobjects.ResourceObjectConverter;
+import com.evolveum.midpoint.provisioning.impl.shadows.ShadowsFacade;
+import com.evolveum.midpoint.provisioning.impl.shadows.manager.ShadowFinder;
+import com.evolveum.midpoint.provisioning.ucf.api.ConnectorInstance;
+import com.evolveum.midpoint.provisioning.ucf.impl.connid.ConnectorInstanceConnIdImpl;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.cache.RepositoryCache;
 import com.evolveum.midpoint.schema.cache.CacheConfigurationManager;
+import com.evolveum.midpoint.schema.statistics.AbstractStatisticsPrinter.SortBy;
 import com.evolveum.midpoint.schema.statistics.BasicComponentStructure;
 import com.evolveum.midpoint.util.DOMUtil;
+import com.evolveum.midpoint.schema.util.Resource;
+import com.evolveum.midpoint.test.DummyObjectsCreator;
+import com.evolveum.midpoint.test.DummyTestResource;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.*;
@@ -85,12 +102,16 @@ public class TestMisc extends AbstractMiscTest {
     private static final String RESOURCE_SCRIPTY_OID = "399f5308-0447-11e8-91e9-a7f9c4100ffb";
     private static final String RESOURCE_DUMMY_SCRIPTY_NAME = "scripty";
 
+    private static final DummyTestResource RESOURCE_DUMMY_PERF = new DummyTestResource(
+            TEST_DIR, "resource-dummy-perf.xml", "5d9cdc84-09cd-45f0-a60c-522ccc8fca88", "perf");
+
     private static final byte[] KEY = { 0x01, 0x02, 0x03, 0x04, 0x05 };
 
     private static final String USER_CLEAN_NAME = "clean";
     private static final String USER_CLEAN_GIVEN_NAME = "John";
     private static final String USER_CLEAN_FAMILY_NAME = "Clean";
-    private static final int ROLE_PROCESSING_DELAY = 100;
+
+    private static final int OBJECT_PROCESSING_DELAY = 100;
     private static final double SAFETY_MARGIN = 1.5;
 
     @Autowired private CacheConfigurationManager cacheConfigurationManager;
@@ -111,6 +132,8 @@ public class TestMisc extends AbstractMiscTest {
 
         initTestObjects(initTask, initResult,
                 ORG_ROOT, TEMPLATE_SCRIPTED, ARCHETYPE_SCRIPTED);
+
+        initAndTestDummyResource(RESOURCE_DUMMY_PERF, initTask, initResult);
     }
 
     @Test
@@ -636,8 +659,8 @@ public class TestMisc extends AbstractMiscTest {
     }
 
     /**
-     * Iterative search (from repo and repo cache) should provide correct operation names for the whole chain: going down
-     * from model to repo cache to repo impl, and then stepping up the result handlers.
+     * Iterative search (from repo and repo cache) should provide correct operation names and execution times for the whole chain:
+     * going down from model to repo cache to repo impl, and then stepping up the result handlers.
      *
      * MID-10446
      */
@@ -652,6 +675,7 @@ public class TestMisc extends AbstractMiscTest {
 
         // model level
         var modelSearchIterativeOpName = ModelController.SEARCH_OBJECTS;
+        var modelHandleObjectFoundOpName = ModelController.OP_HANDLE_OBJECT_FOUND;
 
         // repo cache level
         var repoCacheSearchIterativeOpName = RepositoryCache.OP_SEARCH_OBJECTS_ITERATIVE_IMPL;
@@ -664,12 +688,13 @@ public class TestMisc extends AbstractMiscTest {
         var repoHandleObjectFoundOpName = isNativeRepository() ?
                 "SqaleRepositoryService.handleObjectFound" : RepositoryService.HANDLE_OBJECT_FOUND;
 
-        long expectedTotalLow = numGeneratedRoles * ROLE_PROCESSING_DELAY * 1000L;
+        long expectedTotalLow = numGeneratedRoles * OBJECT_PROCESSING_DELAY * 1000L;
         long expectedTotalHigh = (long) (expectedTotalLow * SAFETY_MARGIN) * 1000L;
         long expectedNoOpOwnHigh = 100 * 1000L;
-        long expectedOwnLow = numGeneratedRoles * ROLE_PROCESSING_DELAY * 1000L;
+        long expectedOwnLow = numGeneratedRoles * OBJECT_PROCESSING_DELAY * 1000L;
         long expectedOwnHigh = (long) (expectedOwnLow * SAFETY_MARGIN) * 1000L;
 
+        // Needed for returning objects from the local cache (roles are not cached globally by default)
         RepositoryCache.enterLocalCaches(cacheConfigurationManager);
 
         try {
@@ -702,7 +727,7 @@ public class TestMisc extends AbstractMiscTest {
 
             and("performance info is OK");
             var info1 = assertGlobalOperationsPerformance()
-                    .display()
+                    .display(SortBy.NAME)
                     .assertInvocationCount(modelSearchIterativeOpName, 1)
                     .assertTotalTimeBetween(modelSearchIterativeOpName, expectedTotalLow, expectedTotalHigh)
                     .assertOwnTimeBetween(modelSearchIterativeOpName, 0, expectedNoOpOwnHigh)
@@ -715,6 +740,9 @@ public class TestMisc extends AbstractMiscTest {
                     .assertInvocationCount(repoHandleObjectFoundOpName, numGeneratedRoles)
                     .assertTotalTimeBetween(repoHandleObjectFoundOpName, expectedTotalLow, expectedTotalHigh)
                     .assertOwnTimeBetween(repoHandleObjectFoundOpName, 0, expectedNoOpOwnHigh)
+                    .assertInvocationCount(modelHandleObjectFoundOpName, numGeneratedRoles)
+                    .assertTotalTimeBetween(modelHandleObjectFoundOpName, expectedTotalLow, expectedTotalHigh)
+                    .assertOwnTimeBetween(modelHandleObjectFoundOpName, expectedOwnLow, expectedOwnHigh)
                     .get();
             // Checking that summarized (hidden) subresults are correctly included in the total time.
             assertThat(info1.getTotalTime(repoHandleObjectFoundOpName))
@@ -760,7 +788,7 @@ public class TestMisc extends AbstractMiscTest {
 
             and("performance info is OK");
             var info2 = assertGlobalOperationsPerformance()
-                    .display()
+                    .display(SortBy.NAME)
                     .assertInvocationCount(modelSearchIterativeOpName, 1)
                     .assertTotalTimeBetween(modelSearchIterativeOpName, expectedTotalLow, expectedTotalHigh)
                     .assertOwnTimeBetween(modelSearchIterativeOpName, 0, expectedNoOpOwnHigh)
@@ -773,6 +801,9 @@ public class TestMisc extends AbstractMiscTest {
                     .assertInvocationCount(repoCacheHandleObjectFoundOpName, numGeneratedRoles)
                     .assertTotalTimeBetween(repoCacheHandleObjectFoundOpName, expectedTotalLow, expectedTotalHigh)
                     .assertOwnTimeBetween(repoCacheHandleObjectFoundOpName, 0, expectedNoOpOwnHigh)
+                    .assertInvocationCount(modelHandleObjectFoundOpName, numGeneratedRoles)
+                    .assertTotalTimeBetween(modelHandleObjectFoundOpName, expectedTotalLow, expectedTotalHigh)
+                    .assertOwnTimeBetween(modelHandleObjectFoundOpName, expectedOwnLow, expectedOwnHigh)
                     .get();
             // Checking that summarized (hidden) subresults are correctly included in the total time.
             assertThat(info2.getTotalTime(repoCacheHandleObjectFoundOpName))
@@ -799,7 +830,7 @@ public class TestMisc extends AbstractMiscTest {
                 RoleType.class, generatedRolesQuery(),
                 (object, lResult) -> {
                     lResult.setMessage("Hello");
-                    MiscUtil.sleepCatchingInterruptedException(ROLE_PROCESSING_DELAY);
+                    MiscUtil.sleepCatchingInterruptedException(OBJECT_PROCESSING_DELAY);
                     return true;
                 },
                 null, task, result);
@@ -813,6 +844,329 @@ public class TestMisc extends AbstractMiscTest {
         return prismContext.queryFor(RoleType.class)
                 .item(RoleType.F_NAME).startsWith("generated-role-").matchingOrig()
                 .build();
+    }
+
+    /**
+     * Iterative search (from provisioning: both fetch and no-fetch) should provide correct operation names and execution times
+     * for the whole chain: going down from model to provisioning to UCF to ConnId, and then stepping up the result handlers.
+     *
+     * MID-10446
+     */
+    @Test
+    public void test530OperationResultInHandlersForProvisioningIterativeSearch() throws Exception {
+        var task = getTestTask();
+        var result = task.getResult();
+
+        int numCreatedAccounts = 30;
+
+        // Please adapt if the internals of the iterative search change
+
+        // model level
+        var modelSearchIterativeOpName = ModelService.SEARCH_OBJECTS;
+        var modelHandleObjectFoundOpName = ModelController.OP_HANDLE_OBJECT_FOUND;
+
+        // provisioning - upper (shadows) level
+        var provisioningSearchIterativeOpName = ProvisioningService.OP_SEARCH_OBJECTS_ITERATIVE;
+        var shadowsHandleObjectFoundOpName = ShadowsFacade.OP_HANDLE_RESOURCE_OBJECT_FOUND;
+        var shadowManagerHandleObjectFoundOpName = ShadowFinder.OP_HANDLE_OBJECT_FOUND;
+
+        // provisioning - lower (resource objects) level
+        var resourceObjectsSearchOpName = ResourceObjectConverter.OP_SEARCH_RESOURCE_OBJECTS;
+        var resourceObjectsHandleObjectFound = ResourceObjectConverter.OP_HANDLE_OBJECT_FOUND;
+
+        // UCF level
+        var ucfSearchOpName = ConnectorInstance.OP_SEARCH;
+
+        // ConnId level
+        var connIdSearchOpName = ConnectorInstanceConnIdImpl.FACADE_OP_SEARCH;
+        var connIdHandleObjectFoundOpName = ConnectorInstanceConnIdImpl.OP_HANDLE_OBJECT_FOUND;
+
+        // repo cache level
+        var repoCacheSearchIterativeOpName = RepositoryCache.OP_SEARCH_OBJECTS_ITERATIVE_IMPL;
+
+        // repo impl level
+        var repoSearchObjectsIterativeOpName = isNativeRepository() ?
+                "SqaleRepositoryService.searchObjectsIterative" : RepositoryService.SEARCH_OBJECTS_ITERATIVE;
+        var repoHandleObjectFoundOpName = isNativeRepository() ?
+                "SqaleRepositoryService.handleObjectFound" : RepositoryService.HANDLE_OBJECT_FOUND;
+
+        long expectedTotalLow = numCreatedAccounts * OBJECT_PROCESSING_DELAY * 1000L;
+        long expectedTotalHigh = (long) (expectedTotalLow * SAFETY_MARGIN) * 1000L;
+        long expectedNoOpOwnHigh = 100 * 1000L;
+        long expectedOwnLow = numCreatedAccounts * OBJECT_PROCESSING_DELAY * 1000L;
+        long expectedOwnHigh = (long) (expectedOwnLow * SAFETY_MARGIN) * 1000L;
+
+        given("%s created accounts".formatted(numCreatedAccounts));
+        DummyObjectsCreator.accounts()
+                .withObjectCount(numCreatedAccounts)
+                .withNamePattern("generated-account-%04d")
+                .withController(RESOURCE_DUMMY_PERF.controller)
+                .execute();
+
+        when("searching for accounts iteratively (initially: creating shadows)");
+        OperationsPerformanceMonitor.INSTANCE.clearGlobalPerformanceInformation();
+        var result0 = result.createSubresult(TestMisc.class.getName() + ".initial");
+        searchCreatedAccounts(false, task, result0);
+        assertGlobalOperationsPerformance()
+                .display(SortBy.NAME);
+        assertGlobalOperationsPerformanceByStandardComponents()
+                .display();
+
+        when("searching for accounts iteratively (first time with shadows)");
+        OperationsPerformanceMonitor.INSTANCE.clearGlobalPerformanceInformation();
+        var result1 = result.createSubresult(TestMisc.class.getName() + ".first");
+        searchCreatedAccounts(false, task, result1);
+
+        then("result is OK");
+        var previous = DebugUtil.setDetailedDebugDump(true);
+        displayDumpable("result", result1);
+        DebugUtil.setDetailedDebugDump(previous);
+        // To be adapted if the internals of the iterative search change
+        var handlingResults1 = assertThatOperationResult(result1)
+                .firstSubResultMatching(sr -> sr.getOperation().equals(modelSearchIterativeOpName))
+                .firstSubResultMatching(sr -> sr.getOperation().equals(provisioningSearchIterativeOpName))
+                .firstSubResultMatching(sr -> sr.getOperation().equals(resourceObjectsSearchOpName))
+                .firstSubResultMatching(sr -> sr.getOperation().equals(ucfSearchOpName))
+                .firstSubResultMatching(sr -> sr.getOperation().equals(connIdSearchOpName))
+                .getAllSubResultsMatching(sr -> sr.getOperation().equals(connIdHandleObjectFoundOpName));
+        // The following two numbers should include summarized (hidden) subresults
+        var totalHandlingTime1 = handlingResults1.stream()
+                .mapToLong(sr -> sr.getMicroseconds())
+                .sum();
+        var ownHandlingTime1 = handlingResults1.stream()
+                .mapToLong(sr -> sr.getOwnMicroseconds())
+                .sum();
+
+        and("performance info is OK");
+        var info1 = assertGlobalOperationsPerformance()
+                .display(SortBy.NAME)
+                .assertInvocationCount(modelSearchIterativeOpName, 1)
+                .assertTotalTimeBetween(modelSearchIterativeOpName, expectedTotalLow, expectedTotalHigh)
+                .assertOwnTimeBetween(modelSearchIterativeOpName, 0, expectedNoOpOwnHigh)
+                .assertInvocationCount(provisioningSearchIterativeOpName, 1)
+                .assertTotalTimeBetween(provisioningSearchIterativeOpName, expectedTotalLow, expectedTotalHigh)
+                .assertOwnTimeBetween(provisioningSearchIterativeOpName, 0, expectedNoOpOwnHigh)
+                .assertInvocationCount(resourceObjectsSearchOpName, 1)
+                .assertTotalTimeBetween(resourceObjectsSearchOpName, expectedTotalLow, expectedTotalHigh)
+                .assertOwnTimeBetween(resourceObjectsSearchOpName, 0, expectedNoOpOwnHigh)
+                .assertInvocationCount(ucfSearchOpName, 1)
+                .assertTotalTimeBetween(ucfSearchOpName, expectedTotalLow, expectedTotalHigh)
+                .assertOwnTimeBetween(ucfSearchOpName, 0, expectedNoOpOwnHigh)
+                .assertInvocationCount(connIdSearchOpName, 1)
+                .assertTotalTimeBetween(connIdSearchOpName, expectedTotalLow, expectedTotalHigh)
+                .assertOwnTimeBetween(connIdSearchOpName, 0, expectedNoOpOwnHigh)
+                .assertInvocationCount(connIdHandleObjectFoundOpName, numCreatedAccounts)
+                .assertTotalTimeBetween(connIdHandleObjectFoundOpName, expectedTotalLow, expectedTotalHigh)
+                .assertOwnTimeBetween(connIdHandleObjectFoundOpName, 0, expectedNoOpOwnHigh)
+                .assertInvocationCount(resourceObjectsHandleObjectFound, numCreatedAccounts)
+                .assertTotalTimeBetween(resourceObjectsHandleObjectFound, expectedTotalLow, expectedTotalHigh)
+                .assertOwnTimeBetween(resourceObjectsHandleObjectFound, 0, expectedNoOpOwnHigh)
+                .assertInvocationCount(shadowsHandleObjectFoundOpName, numCreatedAccounts)
+                .assertTotalTimeBetween(shadowsHandleObjectFoundOpName, expectedTotalLow, expectedTotalHigh)
+                .assertOwnTimeBetween(shadowsHandleObjectFoundOpName, 0, expectedNoOpOwnHigh)
+                .assertInvocationCount(modelHandleObjectFoundOpName, numCreatedAccounts)
+                .assertTotalTimeBetween(modelHandleObjectFoundOpName, expectedTotalLow, expectedTotalHigh)
+                .assertOwnTimeBetween(modelHandleObjectFoundOpName, expectedOwnLow, expectedOwnHigh)
+                .get();
+        // Checking that summarized (hidden) subresults are correctly included in the total time.
+        assertThat(info1.getTotalTime(connIdHandleObjectFoundOpName))
+                .as("Total handling time (repo level)")
+                .isEqualTo(totalHandlingTime1);
+        assertThat(info1.getOwnTime(connIdHandleObjectFoundOpName))
+                .as("Own handling time (repo level)")
+                .isEqualTo(ownHandlingTime1);
+
+        and("components performance info is OK");
+        assertGlobalOperationsPerformanceByStandardComponents()
+                .display()
+                .assertTotalTimeBetween(BasicComponentStructure.MODEL.getComponentName(), expectedOwnLow, expectedOwnHigh)
+                .assertTotalTimeBetween(BasicComponentStructure.PROVISIONING.getComponentName(), 0, expectedNoOpOwnHigh)
+                .assertTotalTimeBetween(BasicComponentStructure.UCF.getComponentName(), 0, expectedNoOpOwnHigh)
+                .assertTotalTimeBetween(BasicComponentStructure.CONN_ID.getComponentName(), 0, expectedNoOpOwnHigh);
+
+        when("searching for accounts iteratively again (noFetch)");
+        OperationsPerformanceMonitor.INSTANCE.clearGlobalPerformanceInformation();
+        var result2 = result.createSubresult(TestMisc.class.getName() + ".second");
+        searchCreatedAccounts(true, task, result2);
+
+        then("result is OK");
+        DebugUtil.setDetailedDebugDump(true);
+        displayDumpable("result", result2);
+        DebugUtil.setDetailedDebugDump(previous);
+        // To be adapted if the internals of the iterative search change
+        var handlingResults2 = assertThatOperationResult(result2)
+                .firstSubResultMatching(sr -> sr.getOperation().equals(modelSearchIterativeOpName))
+                .firstSubResultMatching(sr -> sr.getOperation().equals(provisioningSearchIterativeOpName))
+                .firstSubResultMatching(sr -> sr.getOperation().equals(repoCacheSearchIterativeOpName))
+                .firstSubResultMatching(sr -> sr.getOperation().equals(repoSearchObjectsIterativeOpName))
+                .getAllSubResultsMatching(sr -> sr.getOperation().equals(repoHandleObjectFoundOpName));
+        // The following two numbers should include summarized (hidden) subresults
+        var totalHandlingTime2 = handlingResults2.stream()
+                .mapToLong(sr -> sr.getMicroseconds())
+                .sum();
+        var ownHandlingTime2 = handlingResults2.stream()
+                .mapToLong(sr -> sr.getOwnMicroseconds())
+                .sum();
+
+        and("performance info is OK");
+        var info2 = assertGlobalOperationsPerformance()
+                .display(SortBy.NAME)
+                .assertInvocationCount(modelSearchIterativeOpName, 1)
+                .assertTotalTimeBetween(modelSearchIterativeOpName, expectedTotalLow, expectedTotalHigh)
+                .assertOwnTimeBetween(modelSearchIterativeOpName, 0, expectedNoOpOwnHigh)
+                .assertInvocationCount(provisioningSearchIterativeOpName, 1)
+                .assertTotalTimeBetween(provisioningSearchIterativeOpName, expectedTotalLow, expectedTotalHigh)
+                .assertOwnTimeBetween(provisioningSearchIterativeOpName, 0, expectedNoOpOwnHigh)
+                .assertInvocationCount(repoCacheSearchIterativeOpName, 1)
+                .assertTotalTimeBetween(repoCacheSearchIterativeOpName, expectedTotalLow, expectedTotalHigh)
+                .assertOwnTimeBetween(repoCacheSearchIterativeOpName, 0, expectedNoOpOwnHigh)
+                .assertInvocationCount(repoSearchObjectsIterativeOpName, 1)
+                .assertTotalTimeBetween(repoSearchObjectsIterativeOpName, expectedTotalLow, expectedTotalHigh)
+                .assertOwnTimeBetween(repoSearchObjectsIterativeOpName, 0, expectedNoOpOwnHigh)
+                .assertInvocationCount(repoHandleObjectFoundOpName, numCreatedAccounts)
+                .assertTotalTimeBetween(repoHandleObjectFoundOpName, expectedTotalLow, expectedTotalHigh)
+                .assertOwnTimeBetween(repoHandleObjectFoundOpName, 0, expectedNoOpOwnHigh)
+                .assertInvocationCount(shadowManagerHandleObjectFoundOpName, numCreatedAccounts)
+                .assertTotalTimeBetween(shadowManagerHandleObjectFoundOpName, expectedTotalLow, expectedTotalHigh)
+                .assertOwnTimeBetween(shadowManagerHandleObjectFoundOpName, 0, expectedNoOpOwnHigh)
+                .assertInvocationCount(modelHandleObjectFoundOpName, numCreatedAccounts)
+                .assertTotalTimeBetween(modelHandleObjectFoundOpName, expectedTotalLow, expectedTotalHigh)
+                .assertOwnTimeBetween(modelHandleObjectFoundOpName, expectedOwnLow, expectedOwnHigh)
+                .get();
+        // Checking that summarized (hidden) subresults are correctly included in the total time.
+        assertThat(info2.getTotalTime(repoHandleObjectFoundOpName))
+                .as("Total handling time (repo level)")
+                .isEqualTo(totalHandlingTime2);
+        assertThat(info2.getOwnTime(repoHandleObjectFoundOpName))
+                .as("Own handling time (repo level)")
+                .isEqualTo(ownHandlingTime2);
+
+        and("components performance info is OK");
+        assertGlobalOperationsPerformanceByStandardComponents()
+                .display()
+                .assertTotalTimeBetween(BasicComponentStructure.MODEL.getComponentName(), expectedOwnLow, expectedOwnHigh)
+                .assertTotalTimeBetween(BasicComponentStructure.PROVISIONING.getComponentName(), 0, expectedNoOpOwnHigh)
+                .assertTotalTimeBetween(BasicComponentStructure.REPOSITORY_CACHE.getComponentName(), 0, expectedNoOpOwnHigh)
+                .assertTotalTimeBetween(BasicComponentStructure.REPOSITORY.getComponentName(), 0, expectedNoOpOwnHigh)
+                .assertTotalTime(BasicComponentStructure.UCF.getComponentName(), null)
+                .assertTotalTime(BasicComponentStructure.CONN_ID.getComponentName(), null);
+    }
+
+    private void searchCreatedAccounts(boolean noFetch, Task task, OperationResult result) throws CommonException {
+        modelService.searchObjectsIterative(
+                ShadowType.class,
+                Resource.of(RESOURCE_DUMMY_PERF.get())
+                        .queryFor(ACCOUNT, INTENT_DEFAULT)
+                        .and()
+                        .item(ShadowType.F_ATTRIBUTES, ICFS_NAME)
+                        .startsWith("generated-account-")
+                        .build(),
+                (object, lResult) -> {
+                    lResult.setMessage("Hello");
+                    MiscUtil.sleepCatchingInterruptedException(OBJECT_PROCESSING_DELAY);
+                    return true;
+                },
+                noFetch ? createNoFetchCollection() : null,
+                task, result);
+    }
+
+    /**
+     * "Get object" (from provisioning: both fetch and no-fetch) should provide correct operation names and execution times
+     * for the whole chain.
+     *
+     * MID-10446
+     */
+    @Test
+    public void test540OperationResultInHandlersForProvisioningGetObject() throws Exception {
+        var task = getTestTask();
+        var result = task.getResult();
+
+        var modelGetObjectOpName = ModelService.GET_OBJECT;
+        var provisioningGetObjectOpName = ProvisioningService.OP_GET_OBJECT;
+        var shadowsGetObjectOpName = "com.evolveum.midpoint.provisioning.impl.shadows.ShadowGetOperation.getResourceObject";
+        var ucfFetchObjectOpName = ConnectorInstance.OP_FETCH_OBJECT;
+        var connIdGetObjectOpName = ConnectorInstanceConnIdImpl.FACADE_OP_GET_OBJECT;
+        var repoCacheGetObjectOpName = RepositoryCache.OP_GET_OBJECT_IMPL;
+        var repoGetObjectOpName = isNativeRepository() ? "SqaleRepositoryService.getObject" : RepositoryService.GET_OBJECT;
+        var expectedTimeMax = 500_000; // microseconds
+
+        given("an account");
+        var accountName = getTestNameShort();
+        DummyObjectsCreator.accounts()
+                .withObjectCount(1)
+                .withNamePattern(accountName)
+                .withController(RESOURCE_DUMMY_PERF.controller)
+                .execute();
+
+        var shadows = provisioningService.searchObjects(
+                ShadowType.class,
+                Resource.of(RESOURCE_DUMMY_PERF.get())
+                        .queryFor(ACCOUNT, INTENT_DEFAULT)
+                        .and()
+                        .item(ShadowType.F_ATTRIBUTES, ICFS_NAME)
+                        .eq(accountName)
+                        .build(),
+                null, task, result);
+        var shadowOid = MiscUtil.extractSingletonRequired(shadows).getOid();
+
+        when("getting the shadow from the resource");
+        OperationsPerformanceMonitor.INSTANCE.clearGlobalPerformanceInformation();
+        var result1 = result.createSubresult(TestMisc.class.getName() + ".first");
+        modelService.getObject(ShadowType.class, shadowOid, null, task, result1);
+
+        then("result is OK");
+        var previous = DebugUtil.setDetailedDebugDump(true);
+        displayDumpable("result", result1);
+        DebugUtil.setDetailedDebugDump(previous);
+        // To be adapted if the internals of the operation change
+        assertThatOperationResult(result1)
+                .firstSubResultMatching(sr -> sr.getOperation().equals(modelGetObjectOpName))
+                .firstSubResultMatching(sr -> sr.getOperation().equals(provisioningGetObjectOpName))
+                .firstSubResultMatching(sr -> sr.getOperation().equals(shadowsGetObjectOpName))
+                .firstSubResultMatching(sr -> sr.getOperation().equals(ucfFetchObjectOpName))
+                .firstSubResultMatching(sr -> sr.getOperation().equals(connIdGetObjectOpName));
+
+        and("performance info is OK");
+        assertGlobalOperationsPerformance()
+                .display(SortBy.NAME);
+
+        and("components performance info is OK");
+        assertGlobalOperationsPerformanceByStandardComponents()
+                .display()
+                .assertTotalTimeBetween(BasicComponentStructure.MODEL.getComponentName(), 0, expectedTimeMax)
+                .assertTotalTimeBetween(BasicComponentStructure.PROVISIONING.getComponentName(), 0, expectedTimeMax)
+                .assertTotalTimeBetween(BasicComponentStructure.UCF.getComponentName(), 0, expectedTimeMax)
+                .assertTotalTimeBetween(BasicComponentStructure.CONN_ID.getComponentName(), 0, expectedTimeMax);
+
+        when("getting the shadow with 'noFetch' option");
+        OperationsPerformanceMonitor.INSTANCE.clearGlobalPerformanceInformation();
+        var result2 = result.createSubresult(TestMisc.class.getName() + ".second");
+        modelService.getObject(ShadowType.class, shadowOid, createNoFetchCollection(), task, result2);
+
+        then("result is OK");
+        DebugUtil.setDetailedDebugDump(true);
+        displayDumpable("result", result2);
+        DebugUtil.setDetailedDebugDump(previous);
+        // To be adapted if the internals of the operation change
+        assertThatOperationResult(result2)
+                .firstSubResultMatching(sr -> sr.getOperation().equals(modelGetObjectOpName))
+                .firstSubResultMatching(sr -> sr.getOperation().equals(provisioningGetObjectOpName))
+                .firstSubResultMatching(sr -> sr.getOperation().equals(repoCacheGetObjectOpName))
+                .firstSubResultMatching(sr -> sr.getOperation().equals(repoGetObjectOpName));
+
+        and("performance info is OK");
+        assertGlobalOperationsPerformance()
+                .display(SortBy.NAME);
+
+        and("components performance info is OK");
+        assertGlobalOperationsPerformanceByStandardComponents()
+                .display()
+                .assertTotalTimeBetween(BasicComponentStructure.MODEL.getComponentName(), 0, expectedTimeMax)
+                .assertTotalTimeBetween(BasicComponentStructure.PROVISIONING.getComponentName(), 0, expectedTimeMax)
+                .assertTotalTimeBetween(BasicComponentStructure.REPOSITORY_CACHE.getComponentName(), 0, expectedTimeMax)
+                .assertTotalTimeBetween(BasicComponentStructure.REPOSITORY.getComponentName(), 0, expectedTimeMax)
+                .assertTotalTime(BasicComponentStructure.UCF.getComponentName(), null)
+                .assertTotalTime(BasicComponentStructure.CONN_ID.getComponentName(), null);
     }
 
     /**
