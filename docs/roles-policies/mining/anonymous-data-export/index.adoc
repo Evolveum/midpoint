@@ -297,7 +297,7 @@ GUI export does not support exporting of anonymized object's attributes. This fe
 
 === Command-line Export (ninja)
 
-Exporting anonymized role mining data using the Ninja tool is available. To perform the export, refer to the  xref:https://docs.evolveum.com/midpoint/reference/deployment/ninja/command/export-mining/[/midpoint/reference/deployment/ninja/#role-mining-exportimport][Ninja documentation].
+Exporting anonymized role mining data using the Ninja tool is available. To perform the export, refer to the  xref:/midpoint/reference/deployment/ninja/command/export-mining[Ninja documentation].
 
 Command line exports anonymized object's attributes, this can behaviour be disabled with `--disable-attribute` cli option.
 By default, attribute names and ordinal values are not anonymized, but this can be controlled with cli options (see `help export-mining` command)
