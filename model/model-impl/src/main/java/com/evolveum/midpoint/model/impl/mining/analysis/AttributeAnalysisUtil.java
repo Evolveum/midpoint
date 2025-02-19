@@ -27,7 +27,7 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisAttributeStatistics;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisAttributeStatisticsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
@@ -314,7 +314,7 @@ public class AttributeAnalysisUtil {
 
             double percentageFrequency = (double) inGroupCount / prismObjectsCount * 100;
 
-            RoleAnalysisAttributeStatistics attributeStatistic = new RoleAnalysisAttributeStatistics();
+            RoleAnalysisAttributeStatisticsType attributeStatistic = new RoleAnalysisAttributeStatisticsType();
             attributeStatistic.setAttributeValue(attributeSimpleValue);
             attributeStatistic.setFrequency(percentageFrequency);
             if (percentageFrequency > 100) {

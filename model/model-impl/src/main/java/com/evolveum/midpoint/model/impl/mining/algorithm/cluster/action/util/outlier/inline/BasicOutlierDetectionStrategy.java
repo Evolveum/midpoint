@@ -70,7 +70,7 @@ public class BasicOutlierDetectionStrategy implements OutlierDetectionStrategy {
         List<RoleAnalysisAttributeDef> attributesForUserAnalysis = model.getAttributesForUserAnalysis();
         ZScoreData zScoreData = model.getZScoreData();
         List<MiningRoleTypeChunk> miningRoleTypeChunks = model.getMiningRoleTypeChunks();
-        ListMultimap<String, DetectedAnomalyResult> userRoleMap = ArrayListMultimap.create();
+        ListMultimap<String, DetectedAnomalyResultType> userRoleMap = ArrayListMultimap.create();
 
         long startTime = System.currentTimeMillis();
 
@@ -104,7 +104,7 @@ public class BasicOutlierDetectionStrategy implements OutlierDetectionStrategy {
 
         for (String memberOid : keySet) {
             PrismObject<UserType> userObject = roleAnalysisService.getUserTypeObject(memberOid, task, result);
-            Collection<DetectedAnomalyResult> detectedAnomalyResults = userRoleMap.get(memberOid);
+            Collection<DetectedAnomalyResultType> detectedAnomalyResults = userRoleMap.get(memberOid);
             if (userObject == null || detectedAnomalyResults.isEmpty()) {
                 continue;
             }

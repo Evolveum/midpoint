@@ -36,7 +36,6 @@ public class PatternStatistics<T extends MiningBaseTypeChunk> implements Seriali
 
     public PatternStatistics(RoleAnalysisObjectDto roleAnalysisObjectDto, List<String> members, List<String> mustMeet, ModelServiceLocator serviceLocator) {
         loadStatistics(roleAnalysisObjectDto, members, mustMeet, serviceLocator);
-
     }
 
     //addtionalObject -> in User mode those are roles, in Role mode those are users
@@ -136,8 +135,8 @@ public class PatternStatistics<T extends MiningBaseTypeChunk> implements Seriali
 
         double totalDensity = 0.0;
         int totalCount = 0;
-        RoleAnalysisAttributeAnalysisResult roleAttributeAnalysisResult = pattern.getRoleAttributeAnalysisResult();
-        RoleAnalysisAttributeAnalysisResult userAttributeAnalysisResult = pattern.getUserAttributeAnalysisResult();
+        RoleAnalysisAttributeAnalysisResultType roleAttributeAnalysisResult = pattern.getRoleAttributeAnalysisResult();
+        RoleAnalysisAttributeAnalysisResultType userAttributeAnalysisResult = pattern.getUserAttributeAnalysisResult();
 
         if (roleAttributeAnalysisResult != null) {
             totalDensity += calculateDensity(roleAttributeAnalysisResult.getAttributeAnalysis());
@@ -159,9 +158,9 @@ public class PatternStatistics<T extends MiningBaseTypeChunk> implements Seriali
         detectedPattern = transformPatternWithAttributes(pattern);
     }
 
-    private double calculateDensity(@NotNull List<RoleAnalysisAttributeAnalysis> attributeAnalysisList) {
+    private double calculateDensity(@NotNull List<RoleAnalysisAttributeAnalysisType> attributeAnalysisList) {
         double totalDensity = 0.0;
-        for (RoleAnalysisAttributeAnalysis attributeAnalysis : attributeAnalysisList) {
+        for (RoleAnalysisAttributeAnalysisType attributeAnalysis : attributeAnalysisList) {
             Double density = attributeAnalysis.getDensity();
             if (density != null) {
                 totalDensity += density;

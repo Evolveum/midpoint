@@ -109,7 +109,7 @@ public class OutlierClusterItemPanel<T extends Serializable>
                 if (cluster == null) {
                     return super.getPanelComponent(id1);
                 }
-                List<DetectedAnomalyResult> detectedAnomalyResult = partition.getDetectedAnomalyResult();
+                List<DetectedAnomalyResultType> detectedAnomalyResult = partition.getDetectedAnomalyResult();
                 RoleAnalysisTable<MiningUserTypeChunk, MiningRoleTypeChunk> table = loadRoleAnalysisTempTable(
                         id1, pageBase, detectedAnomalyResult, partition, outlier, cluster);
                 table.setOutputMarkupId(true);
@@ -133,7 +133,7 @@ public class OutlierClusterItemPanel<T extends Serializable>
     private @NotNull IModel<List<WidgetItemModel>> loadDetailsModel() {
         RoleAnalysisOutlierPartitionType partition = getPartitionModel().getObject();
         RoleAnalysisPartitionAnalysisType partitionAnalysis = partition.getPartitionAnalysis();
-        RoleAnalysisOutlierSimilarObjectsAnalysisResult similarObjectAnalysis = partitionAnalysis.getSimilarObjectAnalysis();
+        RoleAnalysisOutlierSimilarObjectsAnalysisResultType similarObjectAnalysis = partitionAnalysis.getSimilarObjectAnalysis();
 
         if (similarObjectAnalysis == null) {
             return Model.ofList(List.of());

@@ -7,6 +7,16 @@
 
 package com.evolveum.midpoint.schema.util.task;
 
+import java.io.Serializable;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+import javax.xml.datatype.XMLGregorianCalendar;
+
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
@@ -14,22 +24,13 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import javax.xml.datatype.XMLGregorianCalendar;
-import java.io.Serializable;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
-
 /**
  * State of the worker tasks (in the broad sense - i.e. tasks that do the real execution) in an activity:
  *
  * - how many workers are there in total,
  * - how many workers (of them) are executing,
  * - how many workers (of executing ones) have been stalled,
+ * - how many workers (of executing ones) have failed,
  * - on what cluster nodes,
  * - if stalled, then since when.
  */
@@ -45,6 +46,8 @@ public class ActivityWorkersInformation implements DebugDumpable, Serializable {
     /** If stalled, then since when. To be set, all executing workers must be stalled; and the latest time is taken here. */
     @Nullable private XMLGregorianCalendar completelyStalledSince;
 
+    @Nullable private OperationResultStatusType healthStatus;
+
     static @NotNull ActivityWorkersInformation fromActivityStateOverview(
             @NotNull ActivityStateOverviewType stateOverview) {
         ActivityWorkersInformation workersInformation = new ActivityWorkersInformation();
@@ -53,6 +56,7 @@ public class ActivityWorkersInformation implements DebugDumpable, Serializable {
             if (state.getRealizationState() == ActivitySimplifiedRealizationStateType.IN_PROGRESS) {
                 workersInformation.updateWorkersCounters(state.getTask());
                 workersInformation.updateCompletelyStalledSince(state.getTask());
+                workersInformation.updateWorkersHealthStatus(state.getTask());
             }
         });
 
@@ -74,11 +78,29 @@ public class ActivityWorkersInformation implements DebugDumpable, Serializable {
         if (task.getExecutionState() == TaskExecutionStateType.RUNNING) {
             updateWorkersCounters(task.getNode(),
                     true,
-                    task.getStalledSince() != null);
+                    task.getStalledSince() != null,
+                    isTaskFailed(task));
             if (task.getStalledSince() != null) {
                 completelyStalledSince = task.getStalledSince();
             }
         }
+    }
+
+    private void updateWorkersHealthStatus(@NotNull List<ActivityTaskStateOverviewType> tasks) {
+        boolean hasFailedTasks = tasks.stream().anyMatch(this::isTaskFailed);
+
+        healthStatus = hasFailedTasks ? OperationResultStatusType.FATAL_ERROR : OperationResultStatusType.SUCCESS;
+    }
+
+    private boolean isTaskFailed(TaskType task) {
+        // todo this doesn't seem right
+        return task.getExecutionState() == TaskExecutionStateType.SUSPENDED
+                && task.getResultStatus() == OperationResultStatusType.FATAL_ERROR;
+    }
+
+    private boolean isTaskFailed(ActivityTaskStateOverviewType task) {
+        return task.getExecutionState() == ActivityTaskExecutionStateType.NOT_RUNNING
+                && task.getResultStatus() == OperationResultStatusType.FATAL_ERROR;
     }
 
     private void updateWorkersCounters(@NotNull List<ActivityTaskStateOverviewType> tasks) {
@@ -91,13 +113,14 @@ public class ActivityWorkersInformation implements DebugDumpable, Serializable {
             }
             updateWorkersCounters(task.getNode(),
                     task.getExecutionState() == ActivityTaskExecutionStateType.RUNNING,
-                    task.getStalledSince() != null);
+                    task.getStalledSince() != null,
+                    isTaskFailed(task));
         }
     }
 
-    private void updateWorkersCounters(@Nullable String node, boolean executing, boolean stalled) {
+    private void updateWorkersCounters(@Nullable String node, boolean executing, boolean stalled, boolean failed) {
         workersCountersPerNode.compute(node,
-                (key, counters) -> WorkerCounters.increment(counters, executing, stalled));
+                (key, counters) -> WorkerCounters.increment(counters, executing, stalled, failed));
     }
 
     private void updateCompletelyStalledSince(List<ActivityTaskStateOverviewType> tasks) {
@@ -136,8 +159,18 @@ public class ActivityWorkersInformation implements DebugDumpable, Serializable {
                 .sum();
     }
 
+    public int getWorkersFailed() {
+        return workersCountersPerNode.values().stream()
+                .mapToInt(v -> v.workersFailed)
+                .sum();
+    }
+
     public @Nullable XMLGregorianCalendar getCompletelyStalledSince() {
         return completelyStalledSince;
+    }
+
+    public @Nullable OperationResultStatusType getHealthStatus() {
+        return healthStatus;
     }
 
     @Override
@@ -160,18 +193,21 @@ public class ActivityWorkersInformation implements DebugDumpable, Serializable {
         private final int workersCreated;
         private final int workersExecuting;
         private final int workersStalled;
+        private final int workersFailed;
 
-        WorkerCounters(int workersCreated, int workersExecuting, int workersStalled) {
+        WorkerCounters(int workersCreated, int workersExecuting, int workersStalled, int workersFailed) {
             this.workersCreated = workersCreated;
             this.workersExecuting = workersExecuting;
             this.workersStalled = workersStalled;
+            this.workersFailed = workersFailed;
         }
 
-        public static WorkerCounters increment(@Nullable ActivityWorkersInformation.WorkerCounters oldCounts, boolean executing, boolean stalled) {
+        public static WorkerCounters increment(@Nullable ActivityWorkersInformation.WorkerCounters oldCounts, boolean executing, boolean stalled, boolean failed) {
             return new WorkerCounters(
                     (oldCounts != null ? oldCounts.workersCreated : 0) + 1,
                     (oldCounts != null ? oldCounts.workersExecuting : 0) + (executing ? 1 : 0),
-                    (oldCounts != null ? oldCounts.workersStalled : 0) + (stalled ? 1 : 0));
+                    (oldCounts != null ? oldCounts.workersStalled : 0) + (stalled ? 1 : 0),
+                    (oldCounts != null ? oldCounts.workersFailed : 0) + (failed ? 1 : 0));
         }
 
         @Override
@@ -179,6 +215,7 @@ public class ActivityWorkersInformation implements DebugDumpable, Serializable {
             return "all workers: " + workersCreated +
                     ", executing: " + workersExecuting +
                     ", stalled: " + workersStalled +
+                    ", failed: " + workersFailed +
                     '}';
         }
     }

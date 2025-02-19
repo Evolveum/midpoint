@@ -39,7 +39,7 @@ public class MembersDetailsPopupPanel extends BasePanel<String> implements Popup
 
     List<String> elements;
     RoleAnalysisProcessModeType processModeType;
-    Map<String, RoleAnalysisAttributeStatistics> map;
+    Map<String, RoleAnalysisAttributeStatisticsType> map;
 
     public MembersDetailsPopupPanel(String id, IModel<String> messageModel, List<String> members,
             RoleAnalysisProcessModeType processModeType) {
@@ -89,7 +89,7 @@ public class MembersDetailsPopupPanel extends BasePanel<String> implements Popup
                     public void populateItem(Item<ICellPopulator<SelectableBean<FocusType>>> cellItem, String componentId,
                             IModel<SelectableBean<FocusType>> rowModel) {
                         String object = rowModel.getObject().getValue().getOid();
-                        RoleAnalysisAttributeStatistics roleAnalysisAttributeStatistics = map.get(object);
+                        RoleAnalysisAttributeStatisticsType roleAnalysisAttributeStatistics = map.get(object);
                         Integer inGroup;
                         if (roleAnalysisAttributeStatistics == null) {
                             inGroup = 0;
@@ -108,7 +108,7 @@ public class MembersDetailsPopupPanel extends BasePanel<String> implements Popup
                     public void populateItem(Item<ICellPopulator<SelectableBean<FocusType>>> cellItem, String componentId,
                             IModel<SelectableBean<FocusType>> rowModel) {
                         String object = rowModel.getObject().getValue().getOid();
-                        RoleAnalysisAttributeStatistics roleAnalysisAttributeStatistics = map.get(object);
+                        RoleAnalysisAttributeStatisticsType roleAnalysisAttributeStatistics = map.get(object);
                         Integer inRepo;
                         if (roleAnalysisAttributeStatistics == null) {
                             inRepo = 0;
@@ -194,11 +194,11 @@ public class MembersDetailsPopupPanel extends BasePanel<String> implements Popup
         return null;
     }
 
-    public Map<String, RoleAnalysisAttributeStatistics> getMap() {
+    public Map<String, RoleAnalysisAttributeStatisticsType> getMap() {
         return map;
     }
 
-    public void setMap(@Nullable Map<String, RoleAnalysisAttributeStatistics> map) {
+    public void setMap(@Nullable Map<String, RoleAnalysisAttributeStatisticsType> map) {
         this.map = map;
     }
 

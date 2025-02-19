@@ -133,8 +133,8 @@ public class RoleAnalysisClusterOperationPanel extends AbstractObjectMainPanel<R
                 if (outlierPartition.getClusterRef() != null
                         && outlierPartition.getClusterRef().getOid() != null
                         && outlierPartition.getClusterRef().getOid().equals(cluster.getOid())) {
-                    List<DetectedAnomalyResult> detectedAnomalyResult = outlierPartition.getDetectedAnomalyResult();
-                    for (DetectedAnomalyResult detectedAnomaly : detectedAnomalyResult) {
+                    List<DetectedAnomalyResultType> detectedAnomalyResult = outlierPartition.getDetectedAnomalyResult();
+                    for (DetectedAnomalyResultType detectedAnomaly : detectedAnomalyResult) {
                         roles.add(detectedAnomaly.getTargetObjectRef().getOid());
 //                    anomalies.add(detectedAnomaly.getTargetObjectRef().getOid());
                     }
@@ -181,10 +181,10 @@ public class RoleAnalysisClusterOperationPanel extends AbstractObjectMainPanel<R
     }
 
     private boolean isRoleMigrated(RoleAnalysisCandidateRoleType candidateRole) {
-        RoleAnalysisOperationStatus operationStatus = candidateRole.getOperationStatus();
+        RoleAnalysisOperationStatusType operationStatus = candidateRole.getOperationStatus();
         return operationStatus != null
                 && operationStatus.getOperationChannel() != null
-                && operationStatus.getOperationChannel().equals(RoleAnalysisOperation.MIGRATION);
+                && operationStatus.getOperationChannel().equals(RoleAnalysisOperationType.MIGRATION);
     }
 
     private DetectedPattern transformCandidateRole(RoleAnalysisCandidateRoleType candidateRole,

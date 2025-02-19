@@ -12,7 +12,7 @@ import java.util.Set;
 
 import com.evolveum.midpoint.prism.impl.binding.AbstractReferencable;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisAttributeAnalysisResult;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisAttributeAnalysisResultType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisDetectionPatternType;
 
 public abstract class BasePattern implements Serializable {
@@ -28,8 +28,8 @@ public abstract class BasePattern implements Serializable {
     protected double reductionFactorConfidence = 0.0;
     String roleOid;
 
-    RoleAnalysisAttributeAnalysisResult roleAttributeAnalysisResult;
-    RoleAnalysisAttributeAnalysisResult userAttributeAnalysisResult;
+    RoleAnalysisAttributeAnalysisResultType roleAttributeAnalysisResult;
+    RoleAnalysisAttributeAnalysisResultType userAttributeAnalysisResult;
 
     private PatternType patternType;
 
@@ -151,19 +151,19 @@ public abstract class BasePattern implements Serializable {
         this.associatedColor = associatedColor;
     }
 
-    public RoleAnalysisAttributeAnalysisResult getRoleAttributeAnalysisResult() {
+    public RoleAnalysisAttributeAnalysisResultType getRoleAttributeAnalysisResult() {
         return roleAttributeAnalysisResult;
     }
 
-    public void setRoleAttributeAnalysisResult(RoleAnalysisAttributeAnalysisResult roleAttributeAnalysisResult) {
+    public void setRoleAttributeAnalysisResult(RoleAnalysisAttributeAnalysisResultType roleAttributeAnalysisResult) {
         this.roleAttributeAnalysisResult = roleAttributeAnalysisResult;
     }
 
-    public RoleAnalysisAttributeAnalysisResult getUserAttributeAnalysisResult() {
+    public RoleAnalysisAttributeAnalysisResultType getUserAttributeAnalysisResult() {
         return userAttributeAnalysisResult;
     }
 
-    public void setUserAttributeAnalysisResult(RoleAnalysisAttributeAnalysisResult userAttributeAnalysisResult) {
+    public void setUserAttributeAnalysisResult(RoleAnalysisAttributeAnalysisResultType userAttributeAnalysisResult) {
         this.userAttributeAnalysisResult = userAttributeAnalysisResult;
     }
 

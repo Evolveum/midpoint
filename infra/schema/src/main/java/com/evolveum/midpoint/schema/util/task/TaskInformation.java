@@ -184,12 +184,18 @@ public abstract class TaskInformation implements DebugDumpable, Serializable {
     public abstract Object getLiveSyncToken();
 
     /**
+     *
+     * @return
+     */
+    public abstract OperationResultStatusType getTaskHealthStatus();
+
+    /**
      * Returns the message that describes primarily the overall status (health) of the task and it's subtasks.
      *
      * Description should not be based on errors created as a result of items/objects processing,
-     * just state of tasks/subtasks and their operation.
+     * just state of tasks/subtasks and their execution.
      *
      * This should be a short message that is suitable for displaying to the user/table.
      */
-    public abstract LocalizableMessage getTaskStatusDescription();
+    public abstract LocalizableMessage getTaskHealthDescription();
 }

@@ -43,17 +43,34 @@ public class TaskProgressPanel extends BasePanel<TaskProgress> {
     }
 
     private boolean showProgressBar() {
-        if (getModelObject().getProgress() < 0) {
+        TaskProgress progress = getModelObject();
+        if (progress.getProgress() < 0) {
             // useless for tasks that can't report on progress
             return false;
         }
 
-        if (getModelObject().getExecutionState() == TaskExecutionStateType.SUSPENDED
-                || getModelObject().getExecutionState() == TaskExecutionStateType.CLOSED) {
+        if (progress.getExecutionState() == TaskExecutionStateType.SUSPENDED
+                || progress.getExecutionState() == TaskExecutionStateType.CLOSED) {
             return false;
         }
 
         return !getModelObject().isComplete();
+    }
+
+    private boolean showTaskHealth() {
+        TaskProgress progress = getModelObject();
+
+        if (progress.getExecutionState() == TaskExecutionStateType.SUSPENDED
+                || progress.getExecutionState() == TaskExecutionStateType.CLOSED) {
+            return false;
+        }
+
+        if (getModelObject().isComplete()) {
+            return false;
+        }
+
+        OperationResultStatus health = progress.getTaskHealthStatus();
+        return health != null && health != OperationResultStatus.SUCCESS;
     }
 
     private void initLayout() {
@@ -70,8 +87,6 @@ public class TaskProgressPanel extends BasePanel<TaskProgress> {
         add(progress);
 
         WebMarkupContainer doneIcon = new WebMarkupContainer(ID_DONE_ICON);
-        // todo task status should be here? [this is probably ok, status few lines below should be related not to
-        //  overall task status but to task subtasks status if they were fatal or something infra related]
         doneIcon.add(AttributeAppender.append("class", () -> OperationResultStatusPresentationProperties
                 .parseOperationalResultStatus(getModelObject().getTaskStatus()).getIcon()));
         doneIcon.add(AttributeAppender.append("title", () -> getString(getModelObject().getTaskStatus())));
@@ -96,14 +111,14 @@ public class TaskProgressPanel extends BasePanel<TaskProgress> {
         taskProblemIcon.add(
                 AttributeAppender.append(
                         "class",
-                        () -> "fa fa-exclamation-triangle " + getIconColor(getModelObject().getTaskStatus()))); // todo task status is also here
+                        () -> "fa fa-exclamation-triangle " + getIconColor(getModelObject().getTaskHealthStatus())));
         add(taskProblemIcon);
 
         IModel<String> taskProblemModel = new LoadableDetachableModel<>() {
 
             @Override
             protected String load() {
-                LocalizableMessage msg = getModelObject().getTaskStatusMessage();
+                LocalizableMessage msg = getModelObject().getTaskHealthStatusMessage();
                 if (msg == null) {
                     return null;
                 }
@@ -113,7 +128,7 @@ public class TaskProgressPanel extends BasePanel<TaskProgress> {
         };
 
         Label taskProblemLabel = new Label(ID_TASK_PROBLEM_LABEL, taskProblemModel);
-        taskProblemLabel.add(new VisibleBehaviour(() -> StringUtils.isNotEmpty(taskProblemModel.getObject())));
+        taskProblemLabel.add(new VisibleBehaviour(() -> showTaskHealth() && StringUtils.isNotEmpty(taskProblemModel.getObject())));
         add(taskProblemLabel);
     }
 

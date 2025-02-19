@@ -8,7 +8,6 @@ package com.evolveum.midpoint.gui.impl.page.admin.role.mining.tables.outlier.pan
 
 import static com.evolveum.midpoint.gui.api.util.GuiDisplayTypeUtil.createDisplayType;
 import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.RoleAnalysisWebUtils.*;
-import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.tables.outlier.panel.PartitionObjectDto.buildPartitionObjectList;
 import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.table.RoleAnalysisTableTools.densityBasedColorOposite;
 import static com.evolveum.midpoint.web.component.data.mining.RoleAnalysisCollapsableTablePanel.*;
 
@@ -39,10 +38,8 @@ import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.panel.EmptyPanel;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.LoadableDetachableModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
-import org.apache.wicket.model.util.ListModel;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 
@@ -51,7 +48,6 @@ import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.component.LabelWithHelpPanel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
-import com.evolveum.midpoint.model.api.mining.RoleAnalysisService;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.web.component.AjaxCompositedIconSubmitButton;
@@ -61,50 +57,39 @@ import com.evolveum.midpoint.web.component.data.mining.RoleAnalysisCollapsableTa
 import com.evolveum.midpoint.web.component.util.RoleMiningProvider;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
-public class RoleAnalysisOutlierTable extends BasePanel<AssignmentHolderType> {
+public class RoleAnalysisOutlierTable extends BasePanel<PartitionObjectDtos> {
 
     private static final String ID_DATATABLE = "datatable";
     private static final String DOT_CLASS = RoleAnalysisOutlierTable.class.getName() + ".";
-    private static final String OP_PREPARE_OBJECTS = DOT_CLASS + "prepareObjects";
     private static final String OP_EXPLAIN_PARTITION = DOT_CLASS + "explainPartition";
     private static final String OP_PREPARE_ANOMALY_OBJECT = DOT_CLASS + "prepareAnomalyObject";
 
     public RoleAnalysisOutlierTable(
             @NotNull String id,
-            @NotNull LoadableDetachableModel<AssignmentHolderType> sessionModel) {
-        super(id, sessionModel);
+            @NotNull IModel<PartitionObjectDtos> partitionModel) {
+        super(id, partitionModel);
     }
 
     @Override
     protected void onInitialize() {
         super.onInitialize();
 
-        //TODO rework to proper model initialization
-        RoleAnalysisService roleAnalysisService = getPageBase().getRoleAnalysisService();
-        Task task = getPageBase().createSimpleTask(OP_PREPARE_OBJECTS);
-        OperationResult result = task.getResult();
+        RoleMiningProvider<PartitionObjectDto> provider = buildProvider();
+        initTable(provider);
+    }
 
-        List<PartitionObjectDto> partitionObjectDtoList = new ArrayList<>();
-        if (getModel().getObject() instanceof RoleAnalysisSessionType sessionObject) {
-            partitionObjectDtoList = buildPartitionObjectList(
-                    roleAnalysisService, sessionObject, getLimit(), matchOutlierCategory(), task, result);
-        } else if (getModel().getObject() instanceof RoleAnalysisClusterType clusterObject) {
-            partitionObjectDtoList = buildPartitionObjectList(
-                    roleAnalysisService, clusterObject, getLimit(), matchOutlierCategory(), task, result);
-        }
-        //end of TODO
-
-        RoleMiningProvider<PartitionObjectDto> provider = new RoleMiningProvider<>(
-                this, new ListModel<>(partitionObjectDtoList), true);
-
-        provider.setSort(PartitionObjectDto.F_OUTLIER_PARTITION_SCORE, SortOrder.DESCENDING);
-
-        RoleAnalysisCollapsableTablePanel<PartitionObjectDto> table = buildTableComponent(
-                provider);
+    private void initTable(RoleMiningProvider<PartitionObjectDto> provider) {
+        RoleAnalysisCollapsableTablePanel<PartitionObjectDto> table = buildTableComponent(provider);
         table.getDataTable().setItemsPerPage(10);
         table.enableSavePageSize();
-
         add(table);
+    }
+
+    private @NotNull RoleMiningProvider<PartitionObjectDto> buildProvider() {
+        RoleMiningProvider<PartitionObjectDto> provider = new RoleMiningProvider<>(
+                this, () -> getModelObject().partitionObjectDtoList, true);
+        provider.setSort(PartitionObjectDto.F_OUTLIER_PARTITION_SCORE, SortOrder.DESCENDING);
+        return provider;
     }
 
     private @NotNull RoleAnalysisCollapsableTablePanel<PartitionObjectDto> buildTableComponent(
@@ -479,32 +464,24 @@ public class RoleAnalysisOutlierTable extends BasePanel<AssignmentHolderType> {
             @NotNull String componentId,
             @NotNull IModel<PartitionObjectDto> rowModel) {
 
-       IModel<RoleAnalysisProgressBarDto> model = () -> {
-           RoleAnalysisOutlierPartitionType partition = rowModel.getObject().getPartition();
-           RoleAnalysisPartitionAnalysisType partitionAnalysis = partition.getPartitionAnalysis();
-           if (partitionAnalysis == null) {
-               return null;
-           }
+        IModel<RoleAnalysisProgressBarDto> model = () -> {
+            RoleAnalysisOutlierPartitionType partition = rowModel.getObject().getPartition();
+            RoleAnalysisPartitionAnalysisType partitionAnalysis = partition.getPartitionAnalysis();
+            if (partitionAnalysis == null) {
+                return null;
+            }
 
-           Double overallConfidence = partitionAnalysis.getOverallConfidence();
-           double finalOverallConfidence = overallConfidence != null ? overallConfidence : 0;
+            Double overallConfidence = partitionAnalysis.getOverallConfidence();
+            double finalOverallConfidence = overallConfidence != null ? overallConfidence : 0;
 
-           String colorClass = densityBasedColorOposite(finalOverallConfidence);
-           return new RoleAnalysisProgressBarDto(finalOverallConfidence, colorClass);
-       };
+            String colorClass = densityBasedColorOposite(finalOverallConfidence);
+            return new RoleAnalysisProgressBarDto(finalOverallConfidence, colorClass);
+        };
 
         RoleAnalysisInlineProgressBar progressBar = new RoleAnalysisInlineProgressBar(componentId, model);
         progressBar.add(new VisibleBehaviour(() -> model.getObject() != null)); //TODO visibility? or default dto values?
         progressBar.setOutputMarkupId(true);
         cellItem.add(progressBar);
-    }
-
-    public Integer getLimit() {
-        return null;
-    }
-
-    public OutlierCategoryType matchOutlierCategory() {
-        return null;
     }
 
     public boolean isPaginationVisible() {

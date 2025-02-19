@@ -7,8 +7,6 @@
 
 package com.evolveum.midpoint.model.impl.mining.algorithm.cluster.action.clustering;
 
-import java.util.List;
-
 import com.evolveum.midpoint.common.mining.objects.analysis.cache.AttributeAnalysisCache;
 import com.evolveum.midpoint.common.mining.objects.analysis.cache.ObjectCategorisationCache;
 import com.evolveum.midpoint.common.mining.objects.handler.RoleAnalysisProgressIncrement;
@@ -19,9 +17,7 @@ import com.evolveum.midpoint.task.api.Task;
 
 import org.jetbrains.annotations.NotNull;
 
-import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisClusterType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisSessionType;
 
 /**
@@ -40,10 +36,9 @@ public interface Clusterable {
      * @param objectCategorisationCache The cache for object categorisation.
      * @param task The task being executed.
      * @param result The operation result.
-     * @return A list of PrismObject instances representing the cluster.
      * @throws IllegalArgumentException If session is null.
      */
-    @NotNull List<PrismObject<RoleAnalysisClusterType>> executeClustering(
+    void executeClustering(
             @NotNull RoleAnalysisService roleAnalysisService,
             @NotNull ModelService modelService,
             @NotNull RoleAnalysisSessionType session,

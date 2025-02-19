@@ -8,8 +8,8 @@
 package com.evolveum.midpoint.gui.impl.page.admin.role.mining.model;
 
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisAttributeAnalysis;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisAttributeAnalysisResult;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisAttributeAnalysisType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisAttributeAnalysisResultType;
 
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 
@@ -67,17 +67,17 @@ public class RoleAnalysisSimpleModel implements Serializable {
     }
 
     public static @NotNull List<RoleAnalysisSimpleModel> getRoleAnalysisSimpleModel(
-            @Nullable RoleAnalysisAttributeAnalysisResult roleAttributeAnalysisResult,
-            @Nullable RoleAnalysisAttributeAnalysisResult userAttributeAnalysisResult) {
+            @Nullable RoleAnalysisAttributeAnalysisResultType roleAttributeAnalysisResult,
+            @Nullable RoleAnalysisAttributeAnalysisResultType userAttributeAnalysisResult) {
         List<RoleAnalysisSimpleModel> roleAnalysisSimpleModel = new ArrayList<>();
 
         if (roleAttributeAnalysisResult == null || userAttributeAnalysisResult == null) {
             return roleAnalysisSimpleModel;
         }
-        List<RoleAnalysisAttributeAnalysis> roleAttributeAnalysis = roleAttributeAnalysisResult.getAttributeAnalysis();
-        List<RoleAnalysisAttributeAnalysis> userAttributeAnalysis = userAttributeAnalysisResult.getAttributeAnalysis();
+        List<RoleAnalysisAttributeAnalysisType> roleAttributeAnalysis = roleAttributeAnalysisResult.getAttributeAnalysis();
+        List<RoleAnalysisAttributeAnalysisType> userAttributeAnalysis = userAttributeAnalysisResult.getAttributeAnalysis();
 
-        for (RoleAnalysisAttributeAnalysis attributeAnalysis : roleAttributeAnalysis) {
+        for (RoleAnalysisAttributeAnalysisType attributeAnalysis : roleAttributeAnalysis) {
             ItemPathType itemDescriptionType = attributeAnalysis.getItemPath();
             if (itemDescriptionType == null) {
                 continue;
@@ -88,7 +88,7 @@ public class RoleAnalysisSimpleModel implements Serializable {
                             "(Role) " + itemDescription));
         }
 
-        for (RoleAnalysisAttributeAnalysis attributeAnalysis : userAttributeAnalysis) {
+        for (RoleAnalysisAttributeAnalysisType attributeAnalysis : userAttributeAnalysis) {
             ItemPathType itemDescriptionType = attributeAnalysis.getItemPath();
             if (itemDescriptionType == null) {
                 continue;
@@ -107,34 +107,34 @@ public class RoleAnalysisSimpleModel implements Serializable {
     }
 
     public static @NotNull List<RoleAnalysisSimpleModel> getRoleAnalysisSimpleComparedModel(
-            @Nullable RoleAnalysisAttributeAnalysisResult roleAttributeAnalysisResult,
-            @Nullable RoleAnalysisAttributeAnalysisResult userAttributeAnalysisResult,
-            @Nullable RoleAnalysisAttributeAnalysisResult roleAttributeAnalysisResultCompared,
-            @Nullable RoleAnalysisAttributeAnalysisResult userAttributeAnalysisResultCompared) {
+            @Nullable RoleAnalysisAttributeAnalysisResultType roleAttributeAnalysisResult,
+            @Nullable RoleAnalysisAttributeAnalysisResultType userAttributeAnalysisResult,
+            @Nullable RoleAnalysisAttributeAnalysisResultType roleAttributeAnalysisResultCompared,
+            @Nullable RoleAnalysisAttributeAnalysisResultType userAttributeAnalysisResultCompared) {
         List<RoleAnalysisSimpleModel> roleAnalysisSimpleModel = new ArrayList<>();
 
         if (roleAttributeAnalysisResult == null && userAttributeAnalysisResult == null) {
             return roleAnalysisSimpleModel;
         }
 
-        Map<ItemPath, RoleAnalysisAttributeAnalysis> roleAttributeAnalysisComparedMap = new HashMap<>();
-        Map<ItemPath, RoleAnalysisAttributeAnalysis> userAttributeAnalysisComparedMap = new HashMap<>();
+        Map<ItemPath, RoleAnalysisAttributeAnalysisType> roleAttributeAnalysisComparedMap = new HashMap<>();
+        Map<ItemPath, RoleAnalysisAttributeAnalysisType> userAttributeAnalysisComparedMap = new HashMap<>();
 
         if (roleAttributeAnalysisResultCompared != null) {
-            for (RoleAnalysisAttributeAnalysis attributeAnalysis : roleAttributeAnalysisResultCompared.getAttributeAnalysis()) {
+            for (RoleAnalysisAttributeAnalysisType attributeAnalysis : roleAttributeAnalysisResultCompared.getAttributeAnalysis()) {
                 roleAttributeAnalysisComparedMap.put(attributeAnalysis.getItemPath().getItemPath(), attributeAnalysis);
             }
         }
 
         if (userAttributeAnalysisResultCompared != null) {
-            for (RoleAnalysisAttributeAnalysis attributeAnalysis : userAttributeAnalysisResultCompared.getAttributeAnalysis()) {
+            for (RoleAnalysisAttributeAnalysisType attributeAnalysis : userAttributeAnalysisResultCompared.getAttributeAnalysis()) {
                 userAttributeAnalysisComparedMap.put(attributeAnalysis.getItemPath().getItemPath(), attributeAnalysis);
             }
         }
 
         if (roleAttributeAnalysisResult != null) {
-            List<RoleAnalysisAttributeAnalysis> roleAttributeAnalysis = roleAttributeAnalysisResult.getAttributeAnalysis();
-            for (RoleAnalysisAttributeAnalysis attributeAnalysis : roleAttributeAnalysis) {
+            List<RoleAnalysisAttributeAnalysisType> roleAttributeAnalysis = roleAttributeAnalysisResult.getAttributeAnalysis();
+            for (RoleAnalysisAttributeAnalysisType attributeAnalysis : roleAttributeAnalysis) {
                 ItemPathType itemDescriptionType = attributeAnalysis.getItemPath();
                 if (itemDescriptionType == null) {
                     continue;
@@ -156,8 +156,8 @@ public class RoleAnalysisSimpleModel implements Serializable {
         }
 
         if (userAttributeAnalysisResult != null) {
-            List<RoleAnalysisAttributeAnalysis> userAttributeAnalysis = userAttributeAnalysisResult.getAttributeAnalysis();
-            for (RoleAnalysisAttributeAnalysis attributeAnalysis : userAttributeAnalysis) {
+            List<RoleAnalysisAttributeAnalysisType> userAttributeAnalysis = userAttributeAnalysisResult.getAttributeAnalysis();
+            for (RoleAnalysisAttributeAnalysisType attributeAnalysis : userAttributeAnalysis) {
                 ItemPathType itemDescriptionType = attributeAnalysis.getItemPath();
                 if (itemDescriptionType == null) {
                     continue;

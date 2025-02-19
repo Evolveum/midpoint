@@ -93,7 +93,7 @@ public class OutlierPatternItemPanel<T extends Serializable>
     @NotNull
     private RoleAnalysisWidgetsPanel loadOutlierDetailsPanel(@NotNull String id) {
         RoleAnalysisOutlierPartitionType partition = getPartitionModel().getObject();
-        RoleAnalysisPatternAnalysis patternAnalysis = partition.getPartitionAnalysis().getPatternAnalysis();
+        RoleAnalysisPatternAnalysisType patternAnalysis = partition.getPartitionAnalysis().getPatternAnalysis();
         if(patternAnalysis == null) {
             return new RoleAnalysisWidgetsPanel(id, Model.ofList(List.of())) {
                 @Override
@@ -180,7 +180,7 @@ public class OutlierPatternItemPanel<T extends Serializable>
 
         RoleAnalysisOutlierPartitionType partition = getPartitionModel().getObject();
         RoleAnalysisPartitionAnalysisType partitionAnalysis = partition.getPartitionAnalysis();
-        RoleAnalysisPatternAnalysis patternAnalysis = partitionAnalysis.getPatternAnalysis();
+        RoleAnalysisPatternAnalysisType patternAnalysis = partitionAnalysis.getPatternAnalysis();
         RoleAnalysisDetectionPatternType topDetectedPattern = patternAnalysis.getTopDetectedPattern();
         List<WidgetItemModel> detailsModel = List.of(
                 new WidgetItemModel(createStringResource(""),
