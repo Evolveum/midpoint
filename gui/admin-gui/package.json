@@ -6,12 +6,15 @@
   "scripts": {
     "prepare": "custompatch",
     "build": "webpack build --env production --config ./webpack.config.js --progress --profile --bail",
-    "watch": "webpack watch --env development --config ./webpack.config.js --progress --profile"
+    "watch": "webpack watch --env development --config ./webpack.config.js --progress --profile",
+    "sbom": "cyclonedx-npm --output-format xml --output-file ../target/sbom-frontend.xml",
+    "sbom_maven": "cyclonedx-npm --output-format ${OUTPUT_FORMAT} --output-file ${OUTPUT_BOM_DIRECTORY}/${OUTPUT_BOM_NAME}.${OUTPUT_FORMAT}"
   },
   "author": "Evolveum",
   "license": "Apache License 2.0 and European Union Public License",
   "devDependencies": {
     "@babel/traverse": "^7.26.9",
+    "@cyclonedx/cyclonedx-npm": "^2.0.0",
     "@eonasdan/tempus-dominus": "^6.9.11",
     "@fontsource/source-sans-pro": "^5.1.0",
     "@fortawesome/fontawesome-free": "^6.7.2",
