@@ -27,9 +27,7 @@ import com.evolveum.midpoint.schema.util.task.ActivityPerformanceInformation;
 import com.evolveum.midpoint.test.util.TestReportUtil;
 
 import com.evolveum.midpoint.util.TreeNode;
-import com.evolveum.midpoint.util.exception.CommonException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.*;
 
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -55,7 +53,6 @@ import com.evolveum.midpoint.test.util.MidPointTestConstants;
 import com.evolveum.midpoint.testing.story.AbstractStoryTest;
 import com.evolveum.midpoint.tools.testng.PerformanceTestClassMixin;
 import com.evolveum.midpoint.tools.testng.TestReportSection;
-import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
@@ -363,12 +360,30 @@ public class TestSystemPerformance extends AbstractStoryTest implements Performa
 
         LOGGER.info("user:\n{}", prismContext.xmlSerializer().serialize(user));
 
+        dumpRepresentativeShadows();
+
         // temporarily disabled
 //        if (TARGETS_CONFIGURATION.getNumberOfResources() > 0) {
 //            assertThat(user.asObjectable().getRoleMembershipRef().size())
 //                    .as("# of role membership refs")
 //                    .isEqualTo(roles.size() + technicalRoles.size() + 2); // 1. archetype, 2. role-targets)
 //        }
+    }
+
+    private void dumpRepresentativeShadows() throws CommonException {
+        String accountName = SourceInitializer.getAccountName(0);
+        var asserter = assertUserAfterByUsername(accountName)
+                .links()
+                .by().resourceOid(RESOURCE_SOURCE_LIST.get(0).oid).find()
+                .resolveTarget()
+                .display()
+                .end()
+                .end();
+        if (!RESOURCE_TARGET_LIST.isEmpty()) {
+            asserter.by().resourceOid(RESOURCE_TARGET_LIST.get(0).oid).find()
+                    .resolveTarget()
+                    .display();
+        }
     }
 
     private String getTechnicalRoleName(String membership) {
@@ -430,6 +445,9 @@ public class TestSystemPerformance extends AbstractStoryTest implements Performa
                 taskDumper.dumpTask(taskAfter, getTestNameShort());
             }
         }
+
+        dumpRepresentativeShadows();
+
     }
 
     @Test
@@ -470,6 +488,9 @@ public class TestSystemPerformance extends AbstractStoryTest implements Performa
                 taskDumper.dumpTask(taskAfter, getTestNameShort());
             }
         }
+
+        dumpRepresentativeShadows();
+
     }
 
     @Test
@@ -494,6 +515,9 @@ public class TestSystemPerformance extends AbstractStoryTest implements Performa
 
         logTaskFinish(taskAfter, "", result);
         taskDumper.dumpTask(taskAfter, getTestNameShort());
+
+        dumpRepresentativeShadows();
+
     }
 
     @Test
