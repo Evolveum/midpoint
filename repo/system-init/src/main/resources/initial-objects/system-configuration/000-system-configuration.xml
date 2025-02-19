@@ -177,6 +177,9 @@
         <repository>
             <autoCreatePartitionsOnAdd>true</autoCreatePartitionsOnAdd>
         </repository>
+        <operationExecutionRecording>
+            <skipWhenSuccess>true</skipWhenSuccess>
+        </operationExecutionRecording>
     </internals>
     <adminGuiConfiguration>
         <homePage id="21">
