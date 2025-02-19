@@ -202,7 +202,7 @@ public class RoleAnalysisCandidateTilePanel<T extends Serializable> extends Base
                 return null;
             }
 
-            RoleAnalysisOperationStatus operationStatus = candidateRole.getOperationStatus();
+            RoleAnalysisOperationStatusType operationStatus = candidateRole.getOperationStatus();
 
             int[] taskProgressIfExist = roleAnalysisService.getTaskProgressIfExist(operationStatus, result);
 
@@ -424,7 +424,7 @@ public class RoleAnalysisCandidateTilePanel<T extends Serializable> extends Base
                 cluster.asPrismObject(), candidateRole,
                 result, task);
 
-        RoleAnalysisOperationStatus operationStatus = candidateRole.getOperationStatus();
+        RoleAnalysisOperationStatusType operationStatus = candidateRole.getOperationStatus();
         if (operationStatus != null
                 && operationStatus.getTaskRef() != null
                 && operationStatus.getTaskRef().getOid() != null) {
@@ -471,7 +471,7 @@ public class RoleAnalysisCandidateTilePanel<T extends Serializable> extends Base
                                     null,
                                     result,
                                     task,
-                                    RoleAnalysisOperation.MIGRATION,
+                                    RoleAnalysisOperationType.MIGRATION,
                                     user.getFocus());
                             navigateToRoleAnalysisCluster(clusterOid);
                         }
@@ -521,7 +521,7 @@ public class RoleAnalysisCandidateTilePanel<T extends Serializable> extends Base
     }
 
     private @NotNull AjaxCompositedIconSubmitButton taskLinkPanel(String stateString,
-            RoleAnalysisOperationStatus operationExecution) {
+            RoleAnalysisOperationStatusType operationExecution) {
 
         CompositedIconBuilder iconBuilder = new CompositedIconBuilder().setBasicIcon(
                 GuiStyleConstants.CLASS_OBJECT_TASK_ICON, IconCssStyle.IN_ROW_STYLE);

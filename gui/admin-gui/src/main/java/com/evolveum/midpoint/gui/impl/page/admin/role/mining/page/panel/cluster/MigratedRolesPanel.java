@@ -7,21 +7,20 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.cluster;
 
-import java.util.ArrayList;
-import java.util.List;
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.tables.tile.component.RoleAnalysisMigrationRoleTileTable;
+
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.tables.tile.model.RoleAnalysisMigratedRolesDto;
+import com.evolveum.midpoint.model.api.mining.RoleAnalysisService;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.WebMarkupContainer;
-import org.apache.wicket.model.LoadableDetachableModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.impl.page.admin.AbstractObjectMainPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.ObjectDetailsModels;
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.tables.tile.RoleAnalysisMigrationRoleTileTable;
 import com.evolveum.midpoint.gui.impl.util.DetailsPageUtil;
-import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.web.application.PanelDisplay;
@@ -29,9 +28,9 @@ import com.evolveum.midpoint.web.application.PanelInstance;
 import com.evolveum.midpoint.web.application.PanelType;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ContainerPanelConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisClusterType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
+
+import org.jetbrains.annotations.NotNull;
 
 @PanelType(name = "migratedRoles")
 @PanelInstance(
@@ -60,40 +59,20 @@ public class MigratedRolesPanel extends AbstractObjectMainPanel<RoleAnalysisClus
 
     @Override
     protected void initLayout() {
-        RoleAnalysisClusterType cluster = getObjectDetailsModels().getObjectType();
-        List<ObjectReferenceType> reductionObject = cluster.getResolvedPattern();
-        Task task = getPageBase().createSimpleTask("resolve role object");
-
-        List<RoleType> roles = new ArrayList<>();
-        for (ObjectReferenceType objectReferenceType : reductionObject) {
-            String oid = objectReferenceType.getOid();
-            if (oid != null) {
-                PrismObject<RoleType> roleTypeObject = getPageBase().getRoleAnalysisService()
-                        .getRoleTypeObject(oid, task, result);
-                if (roleTypeObject != null) {
-                    roles.add(roleTypeObject.asObjectable());
-                }
-            }
-        }
-
         WebMarkupContainer container = new WebMarkupContainer(ID_CONTAINER);
         container.setOutputMarkupId(true);
         add(container);
 
-        ObjectReferenceType clusterRef = new ObjectReferenceType()
-                .oid(cluster.getOid())
-                .type(RoleAnalysisClusterType.COMPLEX_TYPE)
-                .targetName(cluster.getName());
-
         RoleAnalysisMigrationRoleTileTable roleAnalysisMigrationRoleTileTable = new RoleAnalysisMigrationRoleTileTable(ID_PANEL,
-                getPageBase(), new LoadableDetachableModel<>() {
+                getPageBase(), () -> {
+            PageBase pageBase = MigratedRolesPanel.this.getPageBase();
+            Task task = pageBase.createSimpleTask(OP_PREPARE_OBJECTS);
+            RoleAnalysisClusterType cluster = getObjectDetailsModels().getObjectType();
+            RoleAnalysisService roleAnalysisService = pageBase.getRoleAnalysisService();
+            return new RoleAnalysisMigratedRolesDto(roleAnalysisService, cluster, task, result);
+        }) {
             @Override
-            protected List<RoleType> load() {
-                return roles;
-            }
-        }, clusterRef, cluster.getRoleAnalysisSessionRef()) {
-            @Override
-            protected void onRefresh(AjaxRequestTarget target) {
+            protected void onRefresh(@NotNull AjaxRequestTarget target) {
                 performOnRefresh();
             }
         };
@@ -111,6 +90,7 @@ public class MigratedRolesPanel extends AbstractObjectMainPanel<RoleAnalysisClus
         getPageBase().navigateToNext(detailsPageClass, parameters);
     }
 
+    @Override
     public PageBase getPageBase() {
         return ((PageBase) getPage());
     }

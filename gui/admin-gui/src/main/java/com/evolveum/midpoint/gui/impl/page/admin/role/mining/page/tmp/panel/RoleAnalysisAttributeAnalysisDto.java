@@ -18,8 +18,8 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisAttributeAnalysis;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisAttributeStatistics;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisAttributeAnalysisType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisAttributeStatisticsType;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 
 public class RoleAnalysisAttributeAnalysisDto implements Serializable {
@@ -28,13 +28,13 @@ public class RoleAnalysisAttributeAnalysisDto implements Serializable {
     private boolean selected = true;
     private int attributeValuesSize;
     private Class<?> type;
-    private List<RoleAnalysisAttributeStatistics> attributeStatistics;
+    private List<RoleAnalysisAttributeStatisticsType> attributeStatistics;
 
     private RoleAnalysisAttributeAnalysisDto() {
 
     }
 
-    public RoleAnalysisAttributeAnalysisDto(RoleAnalysisAttributeAnalysis analysis, Class<? extends FocusType> type) {
+    public RoleAnalysisAttributeAnalysisDto(RoleAnalysisAttributeAnalysisType analysis, Class<? extends FocusType> type) {
         this.attributeStatistics = analysis.getAttributeStatistics();
         this.attributeValuesSize = analysis.getAttributeStatistics().size();
         this.type = type;
@@ -81,7 +81,7 @@ public class RoleAnalysisAttributeAnalysisDto implements Serializable {
         this.selected = selected;
     }
 
-    private static @Nullable ItemPath resolveItemPath(@NotNull RoleAnalysisAttributeAnalysis analysis) {
+    private static @Nullable ItemPath resolveItemPath(@NotNull RoleAnalysisAttributeAnalysisType analysis) {
 
         ItemPathType itemDescription = analysis.getItemPath();
         if (itemDescription == null) {
@@ -98,7 +98,7 @@ public class RoleAnalysisAttributeAnalysisDto implements Serializable {
         return type;
     }
 
-    public List<RoleAnalysisAttributeStatistics> getAttributeStatistics() {
+    public List<RoleAnalysisAttributeStatisticsType> getAttributeStatistics() {
         return attributeStatistics;
     }
 

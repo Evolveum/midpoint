@@ -25,7 +25,7 @@ import org.jetbrains.annotations.NotNull;
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.tmp.panel.IconWithLabel;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisAttributeStatistics;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisAttributeStatisticsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 /**
@@ -75,7 +75,7 @@ public class ProgressBarForm extends BasePanel<RoleAnalysisAttributeAnalysisDto>
 
             @Override
             protected Component getSubComponent(String id) {
-                List<RoleAnalysisAttributeStatistics> attributeStatistics = ProgressBarForm.this.getModelObject().getAttributeStatistics();
+                List<RoleAnalysisAttributeStatisticsType> attributeStatistics = ProgressBarForm.this.getModelObject().getAttributeStatistics();
                 if (attributeStatistics == null) {
                     return super.getSubComponent(id);
                 }
@@ -99,8 +99,8 @@ public class ProgressBarForm extends BasePanel<RoleAnalysisAttributeAnalysisDto>
 
     private void initProgressBars(@NotNull RepeatingView repeatingProgressBar, WebMarkupContainer container) {
         //TODO incorrect model unwrapping.
-        List<RoleAnalysisAttributeStatistics> roleAnalysisAttributeStructures = new ArrayList<>(getModelObject().getAttributeStatistics());
-        roleAnalysisAttributeStructures.sort(Comparator.comparingDouble(RoleAnalysisAttributeStatistics::getFrequency).reversed());
+        List<RoleAnalysisAttributeStatisticsType> roleAnalysisAttributeStructures = new ArrayList<>(getModelObject().getAttributeStatistics());
+        roleAnalysisAttributeStructures.sort(Comparator.comparingDouble(RoleAnalysisAttributeStatisticsType::getFrequency).reversed());
 
         var markedAttributes = roleAnalysisAttributeStructures.stream()
                 .filter(a -> pathToMark.contains(a.getAttributeValue()))
@@ -113,7 +113,7 @@ public class ProgressBarForm extends BasePanel<RoleAnalysisAttributeAnalysisDto>
         }
 
         int maxVisibleBars = 5;
-        for (RoleAnalysisAttributeStatistics item : roleAnalysisAttributeStructures) {
+        for (RoleAnalysisAttributeStatisticsType item : roleAnalysisAttributeStructures) {
             boolean isMarkedAttribute = pathToMark != null && pathToMark.contains(item.getAttributeValue());
             RoleAnalysisAttributeProgressBar progressBar = createProgressBar(repeatingProgressBar, item.getFrequency(), item, isMarkedAttribute);
             repeatingProgressBar.add(progressBar);
@@ -135,7 +135,11 @@ public class ProgressBarForm extends BasePanel<RoleAnalysisAttributeAnalysisDto>
         }
     }
 
-    private RoleAnalysisAttributeProgressBar createProgressBar(RepeatingView repeatingProgressBar, double frequency, RoleAnalysisAttributeStatistics value, boolean isMarkedAttribute) {
+    private RoleAnalysisAttributeProgressBar createProgressBar(
+            RepeatingView repeatingProgressBar,
+            double frequency,
+            RoleAnalysisAttributeStatisticsType value,
+            boolean isMarkedAttribute) {
 
         IModel<RoleAnalysisAttributeProgressBarDto> model = () -> {
             String colorClass = null;

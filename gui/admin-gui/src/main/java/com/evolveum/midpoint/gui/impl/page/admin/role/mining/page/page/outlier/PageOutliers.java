@@ -369,8 +369,8 @@ public class PageOutliers extends PageAdmin {
         Set<String> anomalies = new HashSet<>();
         List<RoleAnalysisOutlierPartitionType> outlierPartitions = outlierObject.getPartition();
         for (RoleAnalysisOutlierPartitionType outlierPartition : outlierPartitions) {
-            List<DetectedAnomalyResult> detectedAnomalyResult = outlierPartition.getDetectedAnomalyResult();
-            for (DetectedAnomalyResult detectedAnomaly : detectedAnomalyResult) {
+            List<DetectedAnomalyResultType> detectedAnomalyResult = outlierPartition.getDetectedAnomalyResult();
+            for (DetectedAnomalyResultType detectedAnomaly : detectedAnomalyResult) {
                 anomalies.add(detectedAnomaly.getTargetObjectRef().getOid());
             }
         }

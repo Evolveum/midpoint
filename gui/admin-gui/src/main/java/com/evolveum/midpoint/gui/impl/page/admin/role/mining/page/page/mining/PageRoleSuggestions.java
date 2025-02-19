@@ -8,17 +8,14 @@
 package com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.page.mining;
 
 import java.io.Serial;
-import java.util.List;
 
-import com.evolveum.midpoint.common.mining.objects.detection.DetectedPattern;
 import com.evolveum.midpoint.gui.impl.component.tile.ViewToggle;
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.tables.tile.RoleAnalysisDetectedPatternTileTable;
-import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.tables.tile.component.RoleAnalysisDetectedPatternTileTable;
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.tables.tile.model.RoleAnalysisDetectedPatternsDto;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.form.Form;
-import org.apache.wicket.model.LoadableDetachableModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.jetbrains.annotations.Contract;
@@ -32,7 +29,6 @@ import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.model.api.mining.RoleAnalysisService;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
-import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.web.application.CollectionInstance;
 import com.evolveum.midpoint.web.application.PanelDisplay;
 import com.evolveum.midpoint.web.component.form.MidpointForm;
@@ -81,25 +77,14 @@ public class PageRoleSuggestions extends PageAdmin {
         mainForm.add(components);
     }
 
-    private @NotNull LoadableDetachableModel<List<DetectedPattern>> loadRoleSuggestions() {
-        PageBase pageBase = (PageBase) getPage();
-        RoleAnalysisService roleAnalysisService = pageBase.getRoleAnalysisService();
-        OperationResult result = new OperationResult(OPERATION_LOAD_OBJECTS);
-
-        List<DetectedPattern> detectedPatterns = roleAnalysisService.getAllRoleSuggestions(null, true, result);
-
-        return new LoadableDetachableModel<>() {
-            @Override
-            protected List<DetectedPattern> load() {
-                return detectedPatterns;
-            }
-        };
-    }
-
     private @NotNull RoleAnalysisDetectedPatternTileTable loadTable() {
 
         RoleAnalysisDetectedPatternTileTable components = new RoleAnalysisDetectedPatternTileTable(ID_TABLE, (PageBase) getPage(),
-                loadRoleSuggestions()) {
+                () -> {
+                    RoleAnalysisService roleAnalysisService = ((PageBase) getPage()).getRoleAnalysisService();
+                    OperationResult result = new OperationResult(OPERATION_LOAD_OBJECTS);
+                    return new RoleAnalysisDetectedPatternsDto(roleAnalysisService, result);
+                }) {
 
             @Override
             protected void onRefresh(@NotNull AjaxRequestTarget target) {

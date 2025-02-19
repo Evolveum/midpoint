@@ -31,11 +31,11 @@ public class AnomalyExplanationUtil {
 
     public static OutlierExplanationResolver.AnomalyExplanationInput prepareOutlierExplanationAnomalyInput(
             @NotNull RoleAnalysisService roleAnalysisService,
-            @NotNull DetectedAnomalyResult detectedAnomalyResult,
+            @NotNull DetectedAnomalyResultType detectedAnomalyResult,
             @NotNull Task task,
             @NotNull OperationResult result) {
 
-        DetectedAnomalyStatistics statistics = detectedAnomalyResult.getStatistics();
+        DetectedAnomalyStatisticsType statistics = detectedAnomalyResult.getStatistics();
         OutlierExplanationResolver.RoleStats repoRoleStats = createRoleStats(statistics, true);
         OutlierExplanationResolver.RoleStats groupRoleStats = createRoleStats(statistics, false);
 
@@ -52,7 +52,7 @@ public class AnomalyExplanationUtil {
 
     private static @NotNull List<OutlierExplanationResolver.ExplanationAttribute> prepareOutlierExplanationAttributeInput(
             @NotNull RoleAnalysisService roleAnalysisService,
-            DetectedAnomalyResult detectedAnomalyResult,
+            DetectedAnomalyResultType detectedAnomalyResult,
             @NotNull Task task,
             @NotNull OperationResult result) {
         var userAttributeAnalysisResults = getUserAttributeAnalysis(detectedAnomalyResult);
@@ -80,7 +80,7 @@ public class AnomalyExplanationUtil {
 
     @Contract("_, _ -> new")
     private static OutlierExplanationResolver.@NotNull RoleStats createRoleStats(
-            @Nullable DetectedAnomalyStatistics statistics,
+            @Nullable DetectedAnomalyStatisticsType statistics,
             boolean isOverall) {
         if (statistics == null) {
             return new OutlierExplanationResolver.RoleStats(0, 0);

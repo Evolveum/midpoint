@@ -37,7 +37,7 @@ public class RoleAnalysisSessionTileModel<T extends Serializable> extends Tile<T
     RoleAnalysisProcessModeType processMode;
     RoleAnalysisCategoryType category;
     RoleAnalysisProcedureType procedureType;
-    private RoleAnalysisOperationStatus status;
+    private RoleAnalysisOperationStatusType status;
     ObjectReferenceType taskRef;
     String stateString;
     String progressBarTitle;
@@ -134,7 +134,7 @@ public class RoleAnalysisSessionTileModel<T extends Serializable> extends Tile<T
                 result, task);
 
         ObjectReferenceType resultTaskRef = null;
-        RoleAnalysisOperationStatus operationStatus = sessionTypeObject.asObjectable().getOperationStatus();
+        RoleAnalysisOperationStatusType operationStatus = sessionTypeObject.asObjectable().getOperationStatus();
         if (operationStatus != null) {
             resultTaskRef = operationStatus.getTaskRef();
             if (resultTaskRef == null || resultTaskRef.getOid() == null) {
@@ -191,11 +191,11 @@ public class RoleAnalysisSessionTileModel<T extends Serializable> extends Tile<T
         return clusterCount;
     }
 
-    public RoleAnalysisOperationStatus getStatus() {
+    public RoleAnalysisOperationStatusType getStatus() {
         return status;
     }
 
-    public void setStatus(RoleAnalysisOperationStatus status) {
+    public void setStatus(RoleAnalysisOperationStatusType status) {
         this.status = status;
     }
 

@@ -149,7 +149,7 @@ public class RoleAnalysisSessionSummaryPanel extends ObjectVerticalSummaryPanel<
     @Override
     protected String defineDescription(RoleAnalysisSessionType object) {
         String lastRebuild = "Last rebuild: ";
-        RoleAnalysisOperationStatus operationStatus = object.getOperationStatus();
+        RoleAnalysisOperationStatusType operationStatus = object.getOperationStatus();
         if (operationStatus != null) {
             XMLGregorianCalendar createTimestamp = operationStatus.getCreateTimestamp();
             if (createTimestamp != null) {

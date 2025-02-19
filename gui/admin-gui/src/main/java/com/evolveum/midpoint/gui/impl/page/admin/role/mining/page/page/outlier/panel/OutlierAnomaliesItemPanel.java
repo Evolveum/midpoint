@@ -17,7 +17,8 @@ import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.outlier.
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.tables.outlier.panel.AnomalyObjectDto;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.DetectedAnomalyResult;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.DetectedAnomalyResultType;
 
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
@@ -125,7 +126,7 @@ public class OutlierAnomaliesItemPanel<T extends Serializable>
 
     private @NotNull IModel<List<WidgetItemModel>> loadDetailsModel() {
         RoleAnalysisOutlierPartitionType partition = getPartitionModel().getObject();
-        List<DetectedAnomalyResult> detectedAnomalyResult = partition.getDetectedAnomalyResult();
+        List<DetectedAnomalyResultType> detectedAnomalyResult = partition.getDetectedAnomalyResult();
 
         List<WidgetItemModel> detailsModel = List.of(
                 new WidgetItemModel(createStringResource(""),

@@ -154,11 +154,11 @@ public class RoleAnalysisPartitionOverviewPanel extends BasePanel<RoleAnalysisOu
         RoleAnalysisOutlierType outlier = getOutlierModel().getObject();
         RoleAnalysisOutlierPartitionType partition = getModelObject();
         RoleAnalysisPartitionAnalysisType partitionAnalysis = partition.getPartitionAnalysis();
-        List<DetectedAnomalyResult> detectedAnomalyResult = partition.getDetectedAnomalyResult();
-        RoleAnalysisPatternAnalysis patternAnalysis = partitionAnalysis.getPatternAnalysis();
+        List<DetectedAnomalyResultType> detectedAnomalyResult = partition.getDetectedAnomalyResult();
+        RoleAnalysisPatternAnalysisType patternAnalysis = partitionAnalysis.getPatternAnalysis();
 
         Set<String> anomalyRoles = new HashSet<>();
-        for (DetectedAnomalyResult anomalyResult : detectedAnomalyResult) {
+        for (DetectedAnomalyResultType anomalyResult : detectedAnomalyResult) {
             anomalyRoles.add(anomalyResult.getTargetObjectRef().getOid());
         }
 
@@ -274,7 +274,7 @@ public class RoleAnalysisPartitionOverviewPanel extends BasePanel<RoleAnalysisOu
                     @Override
                     public Component createValueComponent(String id) {
                         double confidence = 0.0;
-                        AttributeAnalysis attributeAnalysis = partitionAnalysis.getAttributeAnalysis();
+                        AttributeAnalysisType attributeAnalysis = partitionAnalysis.getAttributeAnalysis();
                         if (attributeAnalysis != null
                                 && attributeAnalysis.getUserClusterCompare() != null
                                 && attributeAnalysis.getUserClusterCompare().getScore() != null) {
@@ -297,13 +297,13 @@ public class RoleAnalysisPartitionOverviewPanel extends BasePanel<RoleAnalysisOu
                         int attributeAboveThreshold = 0;
                         int threshold = 80;
 
-                        AttributeAnalysis attributeAnalysis1 = partitionAnalysis.getAttributeAnalysis();
+                        AttributeAnalysisType attributeAnalysis1 = partitionAnalysis.getAttributeAnalysis();
                         if (attributeAnalysis1 != null) {
-                            RoleAnalysisAttributeAnalysisResult userClusterCompare = attributeAnalysis1.getUserClusterCompare();
+                            RoleAnalysisAttributeAnalysisResultType userClusterCompare = attributeAnalysis1.getUserClusterCompare();
                             if (userClusterCompare != null && userClusterCompare.getAttributeAnalysis() != null) {
-                                List<RoleAnalysisAttributeAnalysis> attributeAnalysis = userClusterCompare.getAttributeAnalysis();
+                                List<RoleAnalysisAttributeAnalysisType> attributeAnalysis = userClusterCompare.getAttributeAnalysis();
 
-                                for (RoleAnalysisAttributeAnalysis attribute : attributeAnalysis) {
+                                for (RoleAnalysisAttributeAnalysisType attribute : attributeAnalysis) {
                                     Double density = attribute.getDensity();
                                     if (density != null) {
                                         if (density >= threshold) {

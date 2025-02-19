@@ -277,6 +277,7 @@ public class ActivityProgressInformationBuilder {
             return List.of();
         } else {
             return fullActivityState.getActivity().stream()
+                    .filter(subState -> subState.getIdentifier() != null)
                     .map(subState -> Child.fromFullState(activityPath, subState))
                     .collect(Collectors.toList());
         }
@@ -287,6 +288,7 @@ public class ActivityProgressInformationBuilder {
             return List.of();
         } else {
             return activityStateOverview.getActivity().stream()
+                    .filter(subOverview -> subOverview.getIdentifier() != null)
                     .map(subOverview -> Child.fromOverview(activityPath, subOverview))
                     .collect(Collectors.toList());
         }

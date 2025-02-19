@@ -27,9 +27,20 @@ public class TaskProgress implements Serializable {
 
     private int processedObjectsErrorCount;
 
-    private OperationResultStatus taskStatus;
+    /**
+     * Status related to task (and subtasks) execution health (e.g. failed workers).
+     */
+    private OperationResultStatus taskHealthStatus;
 
-    private LocalizableMessage taskStatusMessage;
+    /**
+     * Message describing task health status.
+     */
+    private LocalizableMessage taskHealthStatusMessage;
+
+    /**
+     * Overall task status.
+     */
+    private OperationResultStatus taskStatus;
 
     public boolean isComplete() {
         return complete;
@@ -79,12 +90,12 @@ public class TaskProgress implements Serializable {
         this.taskStatus = taskStatus;
     }
 
-    public LocalizableMessage getTaskStatusMessage() {
-        return taskStatusMessage;
+    public LocalizableMessage getTaskHealthStatusMessage() {
+        return taskHealthStatusMessage;
     }
 
-    public void setTaskStatusMessage(LocalizableMessage taskStatusMessage) {
-        this.taskStatusMessage = taskStatusMessage;
+    public void setTaskHealthStatusMessage(LocalizableMessage taskHealthStatusMessage) {
+        this.taskHealthStatusMessage = taskHealthStatusMessage;
     }
 
     public TaskExecutionStateType getExecutionState() {
@@ -93,5 +104,13 @@ public class TaskProgress implements Serializable {
 
     public void setExecutionState(TaskExecutionStateType executionState) {
         this.executionState = executionState;
+    }
+
+    public OperationResultStatus getTaskHealthStatus() {
+        return taskHealthStatus;
+    }
+
+    public void setTaskHealthStatus(OperationResultStatus taskHealthStatus) {
+        this.taskHealthStatus = taskHealthStatus;
     }
 }

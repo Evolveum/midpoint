@@ -264,6 +264,7 @@ public class RoleAnalysisClusteringAttributeTable extends BasePanel<PrismContain
         return columns;
     }
 
+    @Override
     public PageBase getPageBase() {
         return ((PageBase) getPage());
     }

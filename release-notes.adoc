@@ -244,7 +244,7 @@ xrefv:/midpoint/reference/support-4.9/repository/generic/[Generic repository imp
 mapping abstraction (Hibernate), supporting several database engines with the same code.
 Following database engines are supported with this implementation:
 
-* Oracle 21c
+* Oracle 21c, 23ai
 * Microsoft SQL Server 2019
 
 Support for xrefv:/midpoint/reference/support-4.9/repository/generic/[generic repository implementation] together with all the database engines supported by this implementation is *deprecated*.

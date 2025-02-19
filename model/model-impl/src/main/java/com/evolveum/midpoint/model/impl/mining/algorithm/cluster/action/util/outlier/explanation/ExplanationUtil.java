@@ -36,14 +36,14 @@ public class ExplanationUtil {
         return getUserDefinition().findItemDefinition(itemPath.getItemPath());
     }
 
-    protected static List<RoleAnalysisAttributeAnalysis> getUserAttributeAnalysis(@NotNull DetectedAnomalyResult result) {
+    protected static List<RoleAnalysisAttributeAnalysisType> getUserAttributeAnalysis(@NotNull DetectedAnomalyResultType result) {
         return result.getStatistics()
                 .getAttributeAnalysis()
                 .getUserAttributeAnalysisResult()
                 .getAttributeAnalysis();
     }
 
-    protected static Stream<RoleAnalysisAttributeStatistics> getUnusualAttributes(@NotNull RoleAnalysisAttributeAnalysis analysis) {
+    protected static Stream<RoleAnalysisAttributeStatisticsType> getUnusualAttributes(@NotNull RoleAnalysisAttributeAnalysisType analysis) {
         return analysis.getAttributeStatistics().stream()
                 .filter(attribute -> Boolean.TRUE.equals(attribute.getIsUnusual()));
     }
@@ -51,7 +51,7 @@ public class ExplanationUtil {
     @Contract("_, _, _, _, _, _ -> new")
     protected static OutlierExplanationResolver.@NotNull ExplanationAttribute createExplanationAttribute(
             @NotNull RoleAnalysisService roleAnalysisService,
-            @NotNull RoleAnalysisAttributeStatistics attribute,
+            @NotNull RoleAnalysisAttributeStatisticsType attribute,
             ItemPathType itemPath,
             ItemDefinition<?> userItemDefinition,
             @NotNull Task task,

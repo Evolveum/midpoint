@@ -49,7 +49,6 @@ import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.web.util.TooltipBehavior;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
-import static com.evolveum.midpoint.gui.api.util.LocalizationUtil.translateMessage;
 import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.RoleAnalysisWebUtils.*;
 
 public class RoleAnalysisOutlierPartitionTilePanel<T extends Serializable> extends BasePanel<RoleAnalysisOutlierPartitionTileModel<T>> {
@@ -186,7 +185,7 @@ public class RoleAnalysisOutlierPartitionTilePanel<T extends Serializable> exten
         RoleAnalysisOutlierPartitionType partition = getModelObject().getPartition();
         RoleAnalysisPartitionAnalysisType partitionAnalysis = partition.getPartitionAnalysis();
         Double anomalyObjectsConfidence = partitionAnalysis.getAnomalyObjectsConfidence();
-        List<DetectedAnomalyResult> detectedAnomalyResult = partition.getDetectedAnomalyResult();
+        List<DetectedAnomalyResultType> detectedAnomalyResult = partition.getDetectedAnomalyResult();
 
         BigDecimal bd = new BigDecimal(Double.toString(anomalyObjectsConfidence));
         bd = bd.setScale(2, RoundingMode.HALF_UP);
@@ -219,7 +218,7 @@ public class RoleAnalysisOutlierPartitionTilePanel<T extends Serializable> exten
         assignmentAnomalyPanel.setOutputMarkupId(true);
         items.add(assignmentAnomalyPanel);
 
-        RoleAnalysisOutlierSimilarObjectsAnalysisResult similarObjectAnalysis = partitionAnalysis.getSimilarObjectAnalysis();
+        RoleAnalysisOutlierSimilarObjectsAnalysisResultType similarObjectAnalysis = partitionAnalysis.getSimilarObjectAnalysis();
         Integer similarObjectsCount = similarObjectAnalysis.getSimilarObjectsCount();
 
         if (similarObjectsCount == null) {
@@ -279,9 +278,9 @@ public class RoleAnalysisOutlierPartitionTilePanel<T extends Serializable> exten
 
             @Override
             protected @NotNull Component getValueComponent(String id) {
-                AttributeAnalysis attributeAnalysis = partition.getPartitionAnalysis().getAttributeAnalysis();
-                RoleAnalysisAttributeAnalysisResult userAttributeAnalysisResult = attributeAnalysis.getUserAttributeAnalysisResult();
-                List<RoleAnalysisAttributeAnalysis> attributeAnalysisCluster = userAttributeAnalysisResult.getAttributeAnalysis();
+                AttributeAnalysisType attributeAnalysis = partition.getPartitionAnalysis().getAttributeAnalysis();
+                RoleAnalysisAttributeAnalysisResultType userAttributeAnalysisResult = attributeAnalysis.getUserAttributeAnalysisResult();
+                List<RoleAnalysisAttributeAnalysisType> attributeAnalysisCluster = userAttributeAnalysisResult.getAttributeAnalysis();
 
                 double totalDensity = 0.0;
                 int totalCount = 0;
@@ -307,7 +306,7 @@ public class RoleAnalysisOutlierPartitionTilePanel<T extends Serializable> exten
         attributeAnalysisPanel.setOutputMarkupId(true);
         items.add(attributeAnalysisPanel);
 
-        RoleAnalysisPatternAnalysis patternAnalysis = partitionAnalysis.getPatternAnalysis();
+        RoleAnalysisPatternAnalysisType patternAnalysis = partitionAnalysis.getPatternAnalysis();
         Double confidence = patternAnalysis.getConfidence();
         if (confidence == null) {
             confidence = 0.0;
@@ -507,9 +506,9 @@ public class RoleAnalysisOutlierPartitionTilePanel<T extends Serializable> exten
         add(confidencePanel);
     }
 
-    private double calculateDensity(@NotNull List<RoleAnalysisAttributeAnalysis> attributeAnalysisList) {
+    private double calculateDensity(@NotNull List<RoleAnalysisAttributeAnalysisType> attributeAnalysisList) {
         double totalDensity = 0.0;
-        for (RoleAnalysisAttributeAnalysis attributeAnalysis : attributeAnalysisList) {
+        for (RoleAnalysisAttributeAnalysisType attributeAnalysis : attributeAnalysisList) {
             Double density = attributeAnalysis.getDensity();
             if (density != null) {
                 totalDensity += density;

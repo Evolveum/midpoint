@@ -35,17 +35,17 @@ public class RoleAnalysisAttributesDto implements Serializable {
 
     public static RoleAnalysisAttributesDto loadFromDetectedPattern(String displayKey, DetectedPattern detectedPattern) {
 
-        RoleAnalysisAttributeAnalysisResult userAttributeAnalysisResult = detectedPattern.getUserAttributeAnalysisResult();
-        RoleAnalysisAttributeAnalysisResult roleAttributeAnalysisResult = detectedPattern.getRoleAttributeAnalysisResult();
+        RoleAnalysisAttributeAnalysisResultType userAttributeAnalysisResult = detectedPattern.getUserAttributeAnalysisResult();
+        RoleAnalysisAttributeAnalysisResultType roleAttributeAnalysisResult = detectedPattern.getRoleAttributeAnalysisResult();
 
         return loadModel(displayKey, userAttributeAnalysisResult, roleAttributeAnalysisResult);
 //                attributeStatistics.addAll(collectAttributesStatistics(detectedPattern.getRoleAttributeAnalysisResult()));//TODO do we need this? where is this set?
     }
 
     private static RoleAnalysisAttributesDto loadModel(String displayKey,
-            RoleAnalysisAttributeAnalysisResult userAttributeAnalysisResult,
-            RoleAnalysisAttributeAnalysisResult roleAttributeAnalysisResult) {
-        List<RoleAnalysisAttributeAnalysis> attributeStatistics = collectAttributesStatistics(userAttributeAnalysisResult);
+            RoleAnalysisAttributeAnalysisResultType userAttributeAnalysisResult,
+            RoleAnalysisAttributeAnalysisResultType roleAttributeAnalysisResult) {
+        List<RoleAnalysisAttributeAnalysisType> attributeStatistics = collectAttributesStatistics(userAttributeAnalysisResult);
         List<RoleAnalysisAttributeAnalysisDto> attributesModel = attributeStatistics.stream()
                 .map(attribute -> new RoleAnalysisAttributeAnalysisDto(attribute, UserType.class))
                 .toList();
@@ -64,8 +64,8 @@ public class RoleAnalysisAttributesDto implements Serializable {
             return new RoleAnalysisAttributesDto(displayKey, new ArrayList<>(), new ArrayList<>());
         }
 
-        RoleAnalysisAttributeAnalysisResult userAttributeAnalysisResult = clusterStatistics.getUserAttributeAnalysisResult();
-        RoleAnalysisAttributeAnalysisResult roleAttributeAnalysisResult = clusterStatistics.getRoleAttributeAnalysisResult();
+        RoleAnalysisAttributeAnalysisResultType userAttributeAnalysisResult = clusterStatistics.getUserAttributeAnalysisResult();
+        RoleAnalysisAttributeAnalysisResultType roleAttributeAnalysisResult = clusterStatistics.getRoleAttributeAnalysisResult();
 
         return loadModel(displayKey, userAttributeAnalysisResult, roleAttributeAnalysisResult);
 
@@ -73,27 +73,27 @@ public class RoleAnalysisAttributesDto implements Serializable {
 
     public static RoleAnalysisAttributesDto fromPartitionAttributeAnalysis(String displayKey, RoleAnalysisOutlierPartitionType partition) {
 
-        AttributeAnalysis attributeAnalysis = partition.getPartitionAnalysis().getAttributeAnalysis();
+        AttributeAnalysisType attributeAnalysis = partition.getPartitionAnalysis().getAttributeAnalysis();
         if (attributeAnalysis == null) {
             return new RoleAnalysisAttributesDto(displayKey, new ArrayList<>(), new ArrayList<>());
         }
 
-        RoleAnalysisAttributeAnalysisResult userAttributeAnalysisResult = attributeAnalysis.getUserAttributeAnalysisResult();
-        RoleAnalysisAttributeAnalysisResult clusterCompare = attributeAnalysis.getUserClusterCompare();
+        RoleAnalysisAttributeAnalysisResultType userAttributeAnalysisResult = attributeAnalysis.getUserAttributeAnalysisResult();
+        RoleAnalysisAttributeAnalysisResultType clusterCompare = attributeAnalysis.getUserClusterCompare();
 
         return loadCompared(displayKey, userAttributeAnalysisResult, clusterCompare);
     }
 
     public static RoleAnalysisAttributesDto ofCompare(String displayKey,
-            RoleAnalysisAttributeAnalysisResult userAttributeAnalysisResult,
-            RoleAnalysisAttributeAnalysisResult compareAttributeResult) {
+            RoleAnalysisAttributeAnalysisResultType userAttributeAnalysisResult,
+            RoleAnalysisAttributeAnalysisResultType compareAttributeResult) {
         return loadCompared(displayKey, userAttributeAnalysisResult, compareAttributeResult);
     }
 
     private static RoleAnalysisAttributesDto loadCompared(String displayKey,
-            RoleAnalysisAttributeAnalysisResult userAttributeAnalysisResult,
-            RoleAnalysisAttributeAnalysisResult compareAttributeResult) {
-        List<RoleAnalysisAttributeAnalysis> attributeStatistics = collectAttributesStatistics(userAttributeAnalysisResult);
+            RoleAnalysisAttributeAnalysisResultType userAttributeAnalysisResult,
+            RoleAnalysisAttributeAnalysisResultType compareAttributeResult) {
+        List<RoleAnalysisAttributeAnalysisType> attributeStatistics = collectAttributesStatistics(userAttributeAnalysisResult);
         List<RoleAnalysisAttributeAnalysisDto> attributesModel = attributeStatistics.stream()
                 .map(attribute -> new RoleAnalysisAttributeAnalysisDto(attribute, UserType.class))
                 .toList();
@@ -106,15 +106,15 @@ public class RoleAnalysisAttributesDto implements Serializable {
         return attributesDto;
     }
 
-    public static RoleAnalysisAttributesDto fromAnomalyStatistics(String displayKey, DetectedAnomalyStatistics anomalyModelStatistics) {
-         AttributeAnalysis attributeAnalysis = anomalyModelStatistics.getAttributeAnalysis();
+    public static RoleAnalysisAttributesDto fromAnomalyStatistics(String displayKey, DetectedAnomalyStatisticsType anomalyModelStatistics) {
+        AttributeAnalysisType attributeAnalysis = anomalyModelStatistics.getAttributeAnalysis();
         if (attributeAnalysis == null) {
             return new RoleAnalysisAttributesDto(displayKey, new ArrayList<>(), new ArrayList<>());
         }
 
-        RoleAnalysisAttributeAnalysisResult roleAttributeAnalysisResult = attributeAnalysis
+        RoleAnalysisAttributeAnalysisResultType roleAttributeAnalysisResult = attributeAnalysis
                 .getRoleAttributeAnalysisResult();
-        RoleAnalysisAttributeAnalysisResult userRoleMembersCompare = attributeAnalysis
+        RoleAnalysisAttributeAnalysisResultType userRoleMembersCompare = attributeAnalysis
                 .getUserRoleMembersCompare();
 
         if (roleAttributeAnalysisResult == null || userRoleMembersCompare == null) {
@@ -124,7 +124,7 @@ public class RoleAnalysisAttributesDto implements Serializable {
         return loadCompared(displayKey, roleAttributeAnalysisResult, userRoleMembersCompare);
     }
 
-    private static List<RoleAnalysisAttributeAnalysis> collectAttributesStatistics(RoleAnalysisAttributeAnalysisResult attributeAnalysisResult) {
+    private static List<RoleAnalysisAttributeAnalysisType> collectAttributesStatistics(RoleAnalysisAttributeAnalysisResultType attributeAnalysisResult) {
         if (attributeAnalysisResult == null) {
             return new ArrayList<>();
         }
