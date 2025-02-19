@@ -10,21 +10,18 @@ package com.evolveum.midpoint.testing.story.sysperf;
 import static com.evolveum.midpoint.testing.story.sysperf.TestSystemPerformance.*;
 
 import java.io.File;
-import java.io.FileNotFoundException;
-import java.net.ConnectException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.UUID;
-
-import com.evolveum.icf.dummy.resource.*;
-
-import com.evolveum.midpoint.test.TestObject;
 
 import org.jetbrains.annotations.NotNull;
 
+import com.evolveum.icf.dummy.resource.DummyGroup;
+import com.evolveum.icf.dummy.resource.DummyObjectClass;
+import com.evolveum.icf.dummy.resource.DummyResource;
 import com.evolveum.midpoint.test.DummyResourceContoller;
 import com.evolveum.midpoint.test.DummyTestResource;
+import com.evolveum.midpoint.test.TestObject;
 
 class TargetsConfiguration {
 
@@ -95,7 +92,7 @@ class TargetsConfiguration {
     private List<DummyTestResource> generateDummyTestResources() {
         List<DummyTestResource> resources = new ArrayList<>();
         for (int i = 0; i < numberOfResources; i++) {
-            String oid = UUID.randomUUID().toString();
+            String oid = RandomSource.randomUUID().toString();
             String resourceDefinitionFile = createResourceDefinition(i, oid);
             resources.add(new DummyTestResource(TARGET_DIR, resourceDefinitionFile, oid, getResourceInstance(i),
                     controller -> {
@@ -129,8 +126,7 @@ class TargetsConfiguration {
         return String.format(RESOURCE_INSTANCE_TEMPLATE, i);
     }
 
-    private void createAttributes(DummyResourceContoller controller, String name, int number, boolean multi)
-            throws ConflictException, FileNotFoundException, SchemaViolationException, InterruptedException, ConnectException {
+    private void createAttributes(DummyResourceContoller controller, String name, int number, boolean multi) {
         DummyObjectClass objectClass = controller.getDummyResource().getAccountObjectClass();
         for (int i = 0; i < number; i++) {
             controller.addAttrDef(objectClass, String.format(name, i), String.class, false, multi);
