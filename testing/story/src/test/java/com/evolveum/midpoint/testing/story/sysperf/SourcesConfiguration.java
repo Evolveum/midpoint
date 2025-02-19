@@ -13,9 +13,14 @@ import static com.evolveum.midpoint.testing.story.sysperf.TestSystemPerformance.
 import static com.evolveum.midpoint.testing.story.sysperf.TestSystemPerformance.TEST_DIR;
 
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.net.ConnectException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+
+import com.evolveum.icf.dummy.resource.ConflictException;
+import com.evolveum.icf.dummy.resource.SchemaViolationException;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -145,7 +150,8 @@ class SourcesConfiguration {
         return String.format(RESOURCE_INSTANCE_TEMPLATE, i);
     }
 
-    private void createAttributes(DummyResourceContoller controller, String name, int number, boolean multi) {
+    private void createAttributes(DummyResourceContoller controller, String name, int number, boolean multi)
+            throws ConflictException, FileNotFoundException, SchemaViolationException, InterruptedException, ConnectException {
         DummyObjectClass objectClass = controller.getDummyResource().getAccountObjectClass();
         for (int i = 0; i < number; i++) {
             controller.addAttrDef(objectClass, String.format(name, i), String.class, false, multi);
