@@ -14,7 +14,6 @@ import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
-import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.model.IModel;
 import org.jetbrains.annotations.Contract;
@@ -50,13 +49,13 @@ public class RoleAnalysisOutlierDashboardPanel<T extends Serializable> extends B
 
         WebMarkupContainer container = new WebMarkupContainer(ID_CONTAINER);
         container.setOutputMarkupId(true);
-        container.add(AttributeAppender.replace("class", getContainerCssClass()));
-        container.add(AttributeAppender.replace("style", getContainerCssStyle()));
+        container.add(AttributeModifier.replace("class", getContainerCssClass()));
+        container.add(AttributeModifier.replace("style", getContainerCssStyle()));
         add(container);
 
         WebMarkupContainer panelContainer = new WebMarkupContainer(ID_PANEL_CONTAINER);
         panelContainer.setOutputMarkupId(true);
-        panelContainer.add(AttributeAppender.replace("class", getPanelContainerCssClass()));
+        panelContainer.add(AttributeModifier.replace("class", getPanelContainerCssClass()));
         container.add(panelContainer);
         IconWithLabel iconWithLabel = new IconWithLabel(ID_TITLE, getModel()) {
             @Contract(pure = true)

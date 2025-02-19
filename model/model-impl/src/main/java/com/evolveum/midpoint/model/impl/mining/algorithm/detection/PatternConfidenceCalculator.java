@@ -1,6 +1,12 @@
+/*
+ * Copyright (C) 2010-2025 Evolveum and contributors
+ *
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
+ */
+
 package com.evolveum.midpoint.model.impl.mining.algorithm.detection;
 
-import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
@@ -23,15 +29,12 @@ public class PatternConfidenceCalculator implements Serializable {
 
     protected RoleAnalysisDetectionPatternType pattern;
     protected RoleAnalysisSessionType session;
-    protected double maxReduction;
     protected int itemCount;
 
     public PatternConfidenceCalculator(
             @NotNull RoleAnalysisSessionType session,
-            @NotNull RoleAnalysisDetectionPatternType pattern,
-            double maxReduction) {
+            @NotNull RoleAnalysisDetectionPatternType pattern) {
         this.pattern = pattern;
-        this.maxReduction = maxReduction;
         this.session = session;
         initializeItemCount();
     }
@@ -63,11 +66,6 @@ public class PatternConfidenceCalculator implements Serializable {
             return null;
         }
         return analysisAttributeSetting.getPath();
-    }
-
-    public double calculateReductionFactorConfidence() {
-        Double clusterMetric = pattern.getReductionCount();
-        return reductionFactorConfidence = (clusterMetric == null ? 0.0 : (clusterMetric / maxReduction) * 100);
     }
 
     public double calculateItemConfidence() {

@@ -8,7 +8,6 @@
 package com.evolveum.midpoint.model.impl.mining.utils;
 
 import com.evolveum.midpoint.model.api.ModelService;
-import com.evolveum.midpoint.model.api.mining.RoleAnalysisService;
 import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -22,13 +21,11 @@ import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
-import com.google.common.collect.ListMultimap;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 import java.util.*;
-import java.util.stream.Collectors;
 
 import static com.evolveum.midpoint.common.mining.utils.values.RoleAnalysisObjectState.isStable;
 
@@ -226,83 +223,5 @@ public class RoleAnalysisUtils {
                 CommunicationException | ConfigurationException | PolicyViolationException | SecurityViolationException e) {
             logger.error("Couldn't add operation status {}", cluster.getOid(), e);
         }
-    }
-
-    public static Double removeRedundantPatterns(
-            @NotNull RoleAnalysisService roleAnalysisService,
-            @NotNull Collection<RoleAnalysisDetectionPatternType> detectedPattern,
-            Set<String> clusterUsersOidSet,
-            Set<String> clusterRolesOidSet,
-            ListMultimap<String, String> map,
-            List<ObjectReferenceType> resolvedPattern,
-            @NotNull Task task,
-            @NotNull OperationResult result) {
-
-        double updatedReductionMetric = 0.0;
-
-        Iterator<RoleAnalysisDetectionPatternType> patternIterator = detectedPattern.iterator();
-        while (patternIterator.hasNext()) {
-            RoleAnalysisDetectionPatternType singlePattern = patternIterator.next();
-
-            List<ObjectReferenceType> userOccupancy = singlePattern.getUserOccupancy();
-            List<ObjectReferenceType> rolesOccupancy = singlePattern.getRolesOccupancy();
-
-            Set<String> usersInPattern = userOccupancy.stream()
-                    .map(ObjectReferenceType::getOid)
-                    .collect(Collectors.toSet());
-
-            Set<String> rolesInPattern = rolesOccupancy.stream()
-                    .map(ObjectReferenceType::getOid)
-                    .collect(Collectors.toSet());
-
-            boolean isPatternRedundant = false;
-            if (resolvedPattern != null) {
-                for (ObjectReferenceType objectReferenceType : resolvedPattern) {
-                    String oid = objectReferenceType.getOid();
-                    PrismObject<RoleType> migratedRole = roleAnalysisService.getRoleTypeObject(oid, task, result);
-                    if (migratedRole == null) {
-                        continue;
-                    }
-
-                    List<AssignmentType> inducement = migratedRole.asObjectable().getInducement();
-                    Set<String> inducementsOid = inducement.stream()
-                            .map(assignmentType -> assignmentType.getTargetRef().getOid())
-                            .collect(Collectors.toSet());
-
-                    if (map.containsKey(oid)) {
-                        Set<String> users = new HashSet<>(map.get(oid));
-
-                        if (users.containsAll(usersInPattern)
-                                && inducementsOid.containsAll(rolesInPattern)) {
-                            patternIterator.remove();
-                            isPatternRedundant = true;
-                            break;
-                        } else {
-                            Double clusterMetric = singlePattern.getReductionCount();
-                            if (clusterMetric == null) {
-                                clusterMetric = 0.0;
-                            }
-                            updatedReductionMetric = Math.max(updatedReductionMetric, clusterMetric);
-                        }
-
-                    }
-                }
-            }
-
-            if (!isPatternRedundant) {
-
-                if (!clusterUsersOidSet.containsAll(usersInPattern)
-                        || !clusterRolesOidSet.containsAll(rolesInPattern)) {
-                    patternIterator.remove();
-                } else {
-                    Double clusterMetric = singlePattern.getReductionCount();
-                    if (clusterMetric == null) {
-                        clusterMetric = 0.0;
-                    }
-                    updatedReductionMetric = Math.max(updatedReductionMetric, clusterMetric);
-                }
-            }
-        }
-        return updatedReductionMetric;
     }
 }

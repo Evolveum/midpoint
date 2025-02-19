@@ -21,7 +21,6 @@ import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.outlier.
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.outlier.WidgetItemModel;
 
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.tables.outlier.panel.AnomalyObjectDto;
-import com.evolveum.midpoint.model.api.mining.RoleAnalysisService;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;

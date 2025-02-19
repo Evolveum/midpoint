@@ -36,7 +36,6 @@ public class PatternStatistics<T extends MiningBaseTypeChunk> implements Seriali
 
     public PatternStatistics(RoleAnalysisObjectDto roleAnalysisObjectDto, List<String> members, List<String> mustMeet, ModelServiceLocator serviceLocator) {
         loadStatistics(roleAnalysisObjectDto, members, mustMeet, serviceLocator);
-
     }
 
     //addtionalObject -> in User mode those are roles, in Role mode those are users

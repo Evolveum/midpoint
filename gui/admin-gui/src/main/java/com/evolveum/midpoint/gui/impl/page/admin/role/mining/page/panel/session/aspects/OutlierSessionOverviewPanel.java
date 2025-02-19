@@ -21,7 +21,6 @@ import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.repeater.RepeatingView;
 import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.LoadableDetachableModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
@@ -58,6 +57,9 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
                 icon = GuiStyleConstants.CLASS_LINE_CHART_ICON,
                 order = 10))
 public class OutlierSessionOverviewPanel extends AbstractObjectMainPanel<RoleAnalysisSessionType, ObjectDetailsModels<RoleAnalysisSessionType>> {
+
+    private static final String DOT_CLASS = OutlierSessionOverviewPanel.class.getName() + ".";
+    private static final String OP_INIT_PARTITION_DTO = DOT_CLASS + "initPartitionDto";
 
     private static final String ID_CONTAINER = "container";
     private static final String ID_HEADER_ITEMS = "header-items";
@@ -155,19 +157,17 @@ public class OutlierSessionOverviewPanel extends AbstractObjectMainPanel<RoleAna
 
             @Override
             protected @NotNull Component getPanelComponent(String id) {
-                RoleAnalysisOutlierTable table = new RoleAnalysisOutlierTable(id,
-                        new LoadableDetachableModel<>() {
-                            @Override
-                            protected RoleAnalysisSessionType load() {
-                                return session;
-                            }
-                        }) {
-
-                    @Contract(pure = true)
-                    @Override
-                    public @NotNull Integer getLimit() {
-                        return 5;
-                    }
+                RoleAnalysisOutlierTable table = new RoleAnalysisOutlierTable(id, () -> {
+                    Task task = getPageBase().createSimpleTask(OP_INIT_PARTITION_DTO);
+                    OperationResult result = task.getResult();
+                    RoleAnalysisService roleAnalysisService = getPageBase().getRoleAnalysisService();
+                    return new PartitionObjectDtos(getObjectDetailsModels().getObjectType(), roleAnalysisService, task, result) {
+                        @Override
+                        public @NotNull Integer getLimit() {
+                            return 5;
+                        }
+                    };
+                }) {
 
                     @Override
                     public boolean isPaginationVisible() {

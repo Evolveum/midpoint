@@ -5,9 +5,11 @@
  * and European Union Public License. See LICENSE file for details.
  */
 
-package com.evolveum.midpoint.gui.impl.page.admin.role.mining.tables.tile;
+package com.evolveum.midpoint.gui.impl.page.admin.role.mining.tables.tile.component;
 
 import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.RoleAnalysisWebUtils.TITLE_CSS;
+import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.tables.tile.RoleAnalysisTileTableUtils.buildViewToggleTablePanel;
+import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.tables.tile.RoleAnalysisTileTableUtils.initToggleItems;
 import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.table.RoleAnalysisTableTools.densityBasedColor;
 import static com.evolveum.midpoint.gui.impl.util.DetailsPageUtil.dispatchToObjectDetailsPage;
 
@@ -93,49 +95,21 @@ public class RoleAnalysisSessionTileTable extends BasePanel<String> {
     private static final String OP_DELETE_SESSION = DOT_CLASS + "deleteSession";
     private static final String OP_UPDATE_STATUS = DOT_CLASS + "updateOperationStatus";
 
-    @Override
-    public PageBase getPageBase() {
-        return pageBase;
-    }
-
     PageBase pageBase;
-    private IModel<Search<?>> searchModel;
-
-    public IModel<List<Toggle<ViewToggle>>> getItems() {
-        return items;
-    }
-
-    ObjectDataProvider<?, RoleAnalysisSessionType> provider;
-
-    IModel<List<Toggle<ViewToggle>>> items = new LoadableModel<>(false) {
-
-        @Override
-        protected List<Toggle<ViewToggle>> load() {
-            List<Toggle<ViewToggle>> list = new ArrayList<>();
-
-            Toggle<ViewToggle> asList = new Toggle<>("fa-solid fa-table-list", null);
-
-            ViewToggle object = getTable().getViewToggleModel().getObject();
-
-            asList.setValue(ViewToggle.TABLE);
-            asList.setActive(object == ViewToggle.TABLE);
-            list.add(asList);
-
-            Toggle<ViewToggle> asTile = new Toggle<>("fa-solid fa-table-cells", null);
-            asTile.setValue(ViewToggle.TILE);
-            asTile.setActive(object == ViewToggle.TILE);
-            list.add(asTile);
-
-            return list;
-        }
-    };
+    IModel<List<Toggle<ViewToggle>>> items;
 
     public RoleAnalysisSessionTileTable(
             @NotNull String id, PageBase page) {
         super(id);
         this.pageBase = page;
-        initSearchModel();
+
         add(initTable());
+    }
+
+    @Override
+    protected void onInitialize() {
+        super.onInitialize();
+        this.items = initToggleItems(getTable());
     }
 
     protected IColumn<SelectableBean<RoleAnalysisSessionType>, String> createCheckboxColumn() {
@@ -190,7 +164,7 @@ public class RoleAnalysisSessionTileTable extends BasePanel<String> {
     @SuppressWarnings({ "rawtypes", "unchecked" })
     public TileTablePanel<RoleAnalysisSessionTileModel<SelectableBean<RoleAnalysisSessionType>>, SelectableBean<RoleAnalysisSessionType>> initTable() {
 
-        searchModel = new LoadableDetachableModel<>() {
+        IModel<Search<?>> searchModel = new LoadableDetachableModel<>() {
 
             @Override
             protected Search<?> load() {
@@ -200,7 +174,7 @@ public class RoleAnalysisSessionTileTable extends BasePanel<String> {
             }
         };
 
-        provider = new ObjectDataProvider(this, searchModel) {
+        ObjectDataProvider<?, RoleAnalysisSessionType> provider = new ObjectDataProvider(this, searchModel) {
 
             @Override
             protected ObjectQuery getCustomizeContentQuery() {
@@ -213,7 +187,7 @@ public class RoleAnalysisSessionTileTable extends BasePanel<String> {
         provider.setOptions(null);
         return new TileTablePanel<>(
                 ID_DATATABLE,
-                Model.of(ViewToggle.TILE),
+                RoleAnalysisSessionTileTable.this.defaultViewToggleModel(),
                 UserProfileStorage.TableId.TABLE_SESSION) {
 
             @Override
@@ -249,18 +223,9 @@ public class RoleAnalysisSessionTileTable extends BasePanel<String> {
                 refreshTable.add(AttributeModifier.replace(TITLE_CSS, createStringResource("Refresh table")));
                 refreshTable.add(new TooltipBehavior());
                 fragment.add(refreshTable);
-                TogglePanel<ViewToggle> viewToggle = new TogglePanel<>("viewToggle", items) {
 
-                    @Override
-                    protected void itemSelected(@NotNull AjaxRequestTarget target, @NotNull IModel<Toggle<ViewToggle>> item) {
-                        getViewToggleModel().setObject(item.getObject().getValue());
-                        target.add(this);
-                        target.add(RoleAnalysisSessionTileTable.this);
-                    }
-                };
-
-                viewToggle.add(AttributeModifier.replace(TITLE_CSS, createStringResource("Change view")));
-                viewToggle.add(new TooltipBehavior());
+                TogglePanel<ViewToggle> viewToggle = buildViewToggleTablePanel(
+                        "viewToggle", items, getViewToggleModel(), this);
                 fragment.add(viewToggle);
 
                 return fragment;
@@ -277,7 +242,8 @@ public class RoleAnalysisSessionTileTable extends BasePanel<String> {
                         getPageBase().navigateToNext(PageRoleAnalysisSession.class);
                     }
                 };
-                newObjectButton.add(AttributeModifier.replace(TITLE_CSS, createStringResource("Create new session")));
+                newObjectButton.add(AttributeModifier.replace(TITLE_CSS, createStringResource(
+                        "RoleAnalysisTable.create.new.session")));
                 newObjectButton.add(new TooltipBehavior());
                 newObjectButton.setOutputMarkupId(true);
                 fragment.add(newObjectButton);
@@ -289,24 +255,16 @@ public class RoleAnalysisSessionTileTable extends BasePanel<String> {
                     }
                 };
 
-                refreshTable.add(AttributeModifier.replace(TITLE_CSS, createStringResource("Refresh table")));
+                refreshTable.add(AttributeModifier.replace(TITLE_CSS, createStringResource(
+                        "RoleAnalysisTable.refresh")));
                 refreshTable.add(new TooltipBehavior());
                 refreshTable.setOutputMarkupId(true);
                 fragment.add(refreshTable);
-
-                TogglePanel<ViewToggle> viewToggle = new TogglePanel<>("viewToggle", items) {
-
-                    @Override
-                    protected void itemSelected(@NotNull AjaxRequestTarget target, @NotNull IModel<Toggle<ViewToggle>> item) {
-                        getViewToggleModel().setObject(item.getObject().getValue());
-                        getTable().refreshSearch();
-                        target.add(RoleAnalysisSessionTileTable.this);
-                    }
-                };
-
-                fragment.add(viewToggle);
-                fragment.add(new TooltipBehavior());
                 fragment.setOutputMarkupId(true);
+
+                TogglePanel<ViewToggle> viewToggle = buildViewToggleTablePanel(
+                        "viewToggle", items, getViewToggleModel(), this);
+                fragment.add(viewToggle);
 
                 return fragment;
             }
@@ -385,18 +343,6 @@ public class RoleAnalysisSessionTileTable extends BasePanel<String> {
                         return inlineMenuItems;
                     }
                 };
-            }
-        };
-    }
-
-    private void initSearchModel() {
-        searchModel = new LoadableDetachableModel<>() {
-            @Override
-            protected Search<?> load() {
-                SearchBuilder<?> searchBuilder = new SearchBuilder<>(getSearchableType())
-                        .modelServiceLocator(getPageBase());
-
-                return searchBuilder.build();
             }
         };
     }
@@ -948,5 +894,14 @@ public class RoleAnalysisSessionTileTable extends BasePanel<String> {
         } catch (Exception e) {
             throw new SystemException("Couldn't delete object(s): " + e.getMessage(), e);
         }
+    }
+
+    protected Model<ViewToggle> defaultViewToggleModel() {
+        return Model.of(ViewToggle.TILE);
+    }
+
+    @Override
+    public PageBase getPageBase() {
+        return pageBase;
     }
 }

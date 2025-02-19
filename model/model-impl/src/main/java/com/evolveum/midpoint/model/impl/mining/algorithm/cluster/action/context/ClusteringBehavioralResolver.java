@@ -13,7 +13,6 @@ import com.evolveum.midpoint.common.mining.objects.handler.RoleAnalysisProgressI
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.model.api.mining.RoleAnalysisService;
 import com.evolveum.midpoint.model.impl.mining.algorithm.cluster.action.clustering.*;
-import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -21,8 +20,6 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.jetbrains.annotations.NotNull;
-
-import java.util.List;
 
 /**
  * Resolves the clustering behavior for role analysis.
@@ -32,7 +29,7 @@ public class ClusteringBehavioralResolver implements Clusterable {
     public static final Trace LOGGER = TraceManager.getTrace(ClusteringBehavioralResolver.class);
 
     @Override
-    public @NotNull List<PrismObject<RoleAnalysisClusterType>> executeClustering(
+    public void executeClustering(
             @NotNull RoleAnalysisService roleAnalysisService,
             @NotNull ModelService modelService,
             @NotNull RoleAnalysisSessionType session,
@@ -50,30 +47,27 @@ public class ClusteringBehavioralResolver implements Clusterable {
         RoleAnalysisProcessModeType processMode = analysisOption.getProcessMode();
         validateNotNull(processMode, "process mode");
 
-        List<PrismObject<RoleAnalysisClusterType>> clusteringResult = switch (analysisCategory) {
-//            case STANDARD, BALANCED, EXACT, EXPLORATION ->
+        switch (analysisCategory) {
             case BALANCED, EXACT, EXPLORATION, BIRTHRIGHT ->
                     executeStandardClustering(roleAnalysisService, modelService, session, handler,
                             attributeAnalysisCache, objectCategorisationCache, task, result);
             case ADVANCED, DEPARTMENT, ATTRIBUTE_BASED -> {
                 RoleAnalysisProcedureType analysisProcedureType = analysisOption.getAnalysisProcedureType();
                 if (analysisProcedureType == RoleAnalysisProcedureType.OUTLIER_DETECTION) {
-                    yield executeOutlierClustering(roleAnalysisService, modelService, session, handler,
+                    executeOutlierClustering(roleAnalysisService, modelService, session, handler,
                             attributeAnalysisCache, objectCategorisationCache, task, result);
+                    return;
                 }
-                yield executeAdvancedClustering(roleAnalysisService, modelService, session, handler,
+
+                executeAdvancedClustering(roleAnalysisService, modelService, session, handler,
                         attributeAnalysisCache, objectCategorisationCache, task, result);
             }
             case OUTLIERS_DEPARTMENT -> executeOutlierClustering(roleAnalysisService, modelService, session, handler,
                     attributeAnalysisCache, objectCategorisationCache, task, result);
-        };
-
-        validateNotNull(clusteringResult, "clustering result");
-
-        return clusteringResult;
+        }
     }
 
-    private @NotNull List<PrismObject<RoleAnalysisClusterType>> executeOutlierClustering(
+    private void executeOutlierClustering(
             @NotNull RoleAnalysisService roleAnalysisService,
             @NotNull ModelService modelService,
             @NotNull RoleAnalysisSessionType session,
@@ -82,12 +76,12 @@ public class ClusteringBehavioralResolver implements Clusterable {
             @NotNull ObjectCategorisationCache objectCategorisationCache,
             @NotNull Task task,
             @NotNull OperationResult result) {
-        return new OutlierClustering()
+        new OutlierClustering()
                 .executeClustering(roleAnalysisService, modelService, session, handler,
                         attributeAnalysisCache, objectCategorisationCache, task, result);
     }
 
-    private @NotNull List<PrismObject<RoleAnalysisClusterType>> executeStandardClustering(
+    private void executeStandardClustering(
             @NotNull RoleAnalysisService roleAnalysisService,
             @NotNull ModelService modelService,
             @NotNull RoleAnalysisSessionType session,
@@ -96,12 +90,12 @@ public class ClusteringBehavioralResolver implements Clusterable {
             @NotNull ObjectCategorisationCache objectCategorisationCache,
             @NotNull Task task,
             @NotNull OperationResult result) {
-        return new StandardClustering()
+        new StandardClustering()
                 .executeClustering(roleAnalysisService, modelService, session, handler,
                         attributeAnalysisCache, objectCategorisationCache, task, result);
     }
 
-    private @NotNull List<PrismObject<RoleAnalysisClusterType>> executeAdvancedClustering(
+    private void executeAdvancedClustering(
             @NotNull RoleAnalysisService roleAnalysisService,
             @NotNull ModelService modelService,
             @NotNull RoleAnalysisSessionType session,
@@ -110,7 +104,7 @@ public class ClusteringBehavioralResolver implements Clusterable {
             @NotNull ObjectCategorisationCache objectCategorisationCache,
             @NotNull Task task,
             @NotNull OperationResult result) {
-        return new AdvancedClustering()
+        new AdvancedClustering()
                 .executeClustering(roleAnalysisService, modelService, session, handler,
                         attributeAnalysisCache, objectCategorisationCache, task, result);
     }

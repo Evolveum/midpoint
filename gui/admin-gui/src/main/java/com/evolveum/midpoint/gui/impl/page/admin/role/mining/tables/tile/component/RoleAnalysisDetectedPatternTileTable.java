@@ -5,12 +5,13 @@
  * and European Union Public License. See LICENSE file for details.
  */
 
-package com.evolveum.midpoint.gui.impl.page.admin.role.mining.tables.tile;
+package com.evolveum.midpoint.gui.impl.page.admin.role.mining.tables.tile.component;
 
 import static com.evolveum.midpoint.gui.api.util.GuiDisplayTypeUtil.createDisplayType;
 import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.RoleAnalysisWebUtils.*;
 import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.cluster.RoleAnalysisClusterOperationPanel.PARAM_DETECTED_PATER_ID;
 import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.cluster.RoleAnalysisClusterOperationPanel.PARAM_TABLE_SETTING;
+import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.tables.tile.RoleAnalysisTileTableUtils.*;
 import static com.evolveum.midpoint.model.common.expression.functions.BasicExpressionFunctions.LOGGER;
 
 import java.io.Serial;
@@ -22,6 +23,7 @@ import java.util.Set;
 import com.evolveum.midpoint.gui.impl.component.icon.IconCssStyle;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.tmp.panel.LinkIconLabelIconPanel;
 
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.tables.tile.model.RoleAnalysisDetectedPatternsDto;
 import com.evolveum.midpoint.web.component.data.column.AjaxLinkPanel;
 
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
@@ -43,10 +45,8 @@ import org.apache.wicket.markup.html.panel.Fragment;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.markup.repeater.RepeatingView;
 import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.LoadableDetachableModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.StringResourceModel;
-import org.apache.wicket.model.util.ListModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.util.string.StringValue;
 import org.jetbrains.annotations.Contract;
@@ -58,7 +58,6 @@ import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.component.LabelWithHelpPanel;
 import com.evolveum.midpoint.gui.api.component.Toggle;
 import com.evolveum.midpoint.gui.api.component.TogglePanel;
-import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
@@ -85,64 +84,35 @@ import com.evolveum.midpoint.web.component.util.RoleMiningProvider;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
-import com.evolveum.midpoint.web.util.TooltipBehavior;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
-public class RoleAnalysisDetectedPatternTileTable extends BasePanel<String> {
+public class RoleAnalysisDetectedPatternTileTable extends BasePanel<RoleAnalysisDetectedPatternsDto> {
 
     private static final String DOT_CLASS = RoleAnalysisDetectedPatternTileTable.class.getName() + ".";
     private static final String OP_PREPARE_OBJECTS = DOT_CLASS + "prepareObjects";
     private static final String ID_DATATABLE = "datatable";
+
     PageBase pageBase;
     IModel<List<Toggle<ViewToggle>>> items;
-    int totalRoleToUserAssignments;
 
     public RoleAnalysisDetectedPatternTileTable(
             @NotNull String id,
             @NotNull PageBase pageBase,
-            @NotNull LoadableDetachableModel<List<DetectedPattern>> detectedPatternList) {
-        super(id);
+            @NotNull IModel<RoleAnalysisDetectedPatternsDto> detectedPatternsDtoIModel) {
+        super(id, detectedPatternsDtoIModel);
         this.pageBase = pageBase;
-        this.items = new LoadableModel<>(false) {
 
-            @Override
-            protected @NotNull List<Toggle<ViewToggle>> load() {
-                List<Toggle<ViewToggle>> list = new ArrayList<>();
-
-                Toggle<ViewToggle> asList = new Toggle<>("fa-solid fa-table-list", null);
-
-                ViewToggle object = getTable().getViewToggleModel().getObject();
-
-                asList.setValue(ViewToggle.TABLE);
-                asList.setActive(object == ViewToggle.TABLE);
-                list.add(asList);
-
-                Toggle<ViewToggle> asTile = new Toggle<>("fa-solid fa-table-cells", null);
-                asTile.setValue(ViewToggle.TILE);
-                asTile.setActive(object == ViewToggle.TILE);
-                list.add(asTile);
-
-                return list;
-            }
-        };
-
-        RoleAnalysisService roleAnalysisService = pageBase.getRoleAnalysisService();
-        OperationResult result = new OperationResult("countUserOwnedRoleAssignment");
-        this.totalRoleToUserAssignments = roleAnalysisService.countUserOwnedRoleAssignment(result);
-        add(initTable(detectedPatternList));
+        add(initTable());
     }
 
-    public TileTablePanel<RoleAnalysisPatternTileModel<DetectedPattern>, DetectedPattern> initTable(
-            @NotNull LoadableDetachableModel<List<DetectedPattern>> detectedPatternList) {
+    @Override
+    protected void onInitialize() {
+        super.onInitialize();
+        this.items = initToggleItems(getTable());
+    }
 
-        RoleMiningProvider<DetectedPattern> provider = new RoleMiningProvider<>(
-                this, new ListModel<>(detectedPatternList.getObject()) {
+    public TileTablePanel<RoleAnalysisPatternTileModel<DetectedPattern>, DetectedPattern> initTable() {
 
-            @Serial private static final long serialVersionUID = 1L;
-
-        }, true);
-
-        provider.setSort(DetectedPattern.F_METRIC, SortOrder.DESCENDING);
         return new TileTablePanel<>(
                 ID_DATATABLE,
                 RoleAnalysisDetectedPatternTileTable.this.defaultViewToggleModel(),
@@ -165,67 +135,23 @@ public class RoleAnalysisDetectedPatternTileTable extends BasePanel<String> {
 
             @Override
             protected WebMarkupContainer createTableButtonToolbar(String id) {
-                Fragment fragment = new Fragment(id, "tableFooterFragment",
-                        RoleAnalysisDetectedPatternTileTable.this);
-
-                AjaxIconButton refreshTable = new AjaxIconButton("refreshTable",
-                        Model.of("fa fa-refresh"),
-                        Model.of()) {
-                    @Override
-                    public void onClick(AjaxRequestTarget ajaxRequestTarget) {
-                        onRefresh(ajaxRequestTarget);
-                    }
-                };
-
-                refreshTable.setOutputMarkupId(true);
-                refreshTable.add(AttributeModifier.replace("title",
-                        createStringResource("Refresh table")));
-                refreshTable.add(new TooltipBehavior());
-                fragment.add(refreshTable);
-                TogglePanel<ViewToggle> viewToggle = new TogglePanel<>("viewToggle", items) {
-
-                    @Override
-                    protected void itemSelected(AjaxRequestTarget target, IModel<Toggle<ViewToggle>> item) {
-                        getViewToggleModel().setObject(item.getObject().getValue());
-//                        RoleAnalysisSessionTileTable.this.getTable().refresh();
-                        target.add(this);
-                        target.add(RoleAnalysisDetectedPatternTileTable.this);
-                    }
-                };
-
-                viewToggle.add(AttributeModifier.replace("title", createStringResource("Change view")));
-                viewToggle.add(new TooltipBehavior());
-                fragment.add(viewToggle);
-
-                return fragment;
+                return initButtonToolbar(id);
             }
 
             @Override
             protected WebMarkupContainer createTilesButtonToolbar(String id) {
+                return initButtonToolbar(id);
+            }
+
+            private @NotNull Fragment initButtonToolbar(String id) {
                 Fragment fragment = new Fragment(id, "tableFooterFragment",
                         RoleAnalysisDetectedPatternTileTable.this);
 
-                AjaxIconButton refreshTable = new AjaxIconButton("refreshTable",
-                        Model.of("fa fa-refresh"), Model.of()) {
-                    @Override
-                    public void onClick(AjaxRequestTarget ajaxRequestTarget) {
-                        onRefresh(ajaxRequestTarget);
-                    }
-                };
-
-                refreshTable.setOutputMarkupId(true);
+                AjaxIconButton refreshTable = buildRefreshToggleTablePanel("refreshTable", target -> onRefresh(target));
                 fragment.add(refreshTable);
 
-                TogglePanel<ViewToggle> viewToggle = new TogglePanel<>("viewToggle", items) {
-
-                    @Override
-                    protected void itemSelected(@NotNull AjaxRequestTarget target, @NotNull IModel<Toggle<ViewToggle>> item) {
-                        getViewToggleModel().setObject(item.getObject().getValue());
-                        getTable().refreshSearch();
-                        target.add(RoleAnalysisDetectedPatternTileTable.this);
-                    }
-                };
-
+                TogglePanel<ViewToggle> viewToggle = buildViewToggleTablePanel(
+                        "viewToggle", items, getViewToggleModel(), this);
                 fragment.add(viewToggle);
 
                 return fragment;
@@ -243,6 +169,10 @@ public class RoleAnalysisDetectedPatternTileTable extends BasePanel<String> {
 
             @Override
             protected ISortableDataProvider<?, ?> createProvider() {
+                RoleMiningProvider<DetectedPattern> provider = new RoleMiningProvider<>(
+                        this, () -> RoleAnalysisDetectedPatternTileTable.this.getModelObject().getDetectedPatterns(),
+                        true);
+                provider.setSort(DetectedPattern.F_METRIC, SortOrder.DESCENDING);
                 return provider;
             }
 
@@ -252,7 +182,8 @@ public class RoleAnalysisDetectedPatternTileTable extends BasePanel<String> {
                 Long id = pattern.getId();
                 StringResourceModel patternName = pageBase.createStringResource(
                         "RoleAnalysis.role.suggestion.title", (id));
-                return new RoleAnalysisPatternTileModel<>(pattern, patternName.getString(), totalRoleToUserAssignments);
+                return new RoleAnalysisPatternTileModel<>(pattern, patternName.getString(),
+                        RoleAnalysisDetectedPatternTileTable.this.getModelObject().getTotalRoleToUserAssignments());
             }
 
             @Override
@@ -293,209 +224,81 @@ public class RoleAnalysisDetectedPatternTileTable extends BasePanel<String> {
 
         List<IColumn<DetectedPattern, String>> columns = new ArrayList<>();
 
-        columns.add(new IconColumn<>(null) {
-            @Override
-            protected DisplayType getIconDisplayType(IModel<DetectedPattern> rowModel) {
-                return createDisplayType(GuiStyleConstants.CLASS_DETECTED_PATTERN_ICON, "", "");
+        initIconColumn(columns);
 
-            }
-        });
         if (displaySessionNameColumn()) {
-            columns.add(new AbstractColumn<>(getHeaderTitle("")) {
-
-                @Override
-                public void populateItem(Item<ICellPopulator<DetectedPattern>> item, String componentId, IModel<DetectedPattern> rowModel) {
-                    @NotNull AjaxLinkPanel linkPanel = buildSessionLinkPanel(componentId, rowModel);
-                    linkPanel.setOutputMarkupId(true);
-                    item.add(linkPanel);
-                }
-
-                @Override
-                public boolean isSortable() {
-                    return false;
-                }
-
-                @Override
-                public Component getHeader(String componentId) {
-                    return new LabelWithHelpPanel(componentId,
-                            createStringResource("RoleMining.cluster.table.column.header.session.link")) {
-                        @Override
-                        protected IModel<String> getHelpModel() {
-                            return createStringResource("RoleMining.cluster.table.column.header.session.link.help");
-                        }
-                    };
-
-                }
-
-            });
+            initSessionNameColumn(columns);
         }
 
         if (displayClusterNameColumn()) {
-            columns.add(new AbstractColumn<>(getHeaderTitle("")) {
-
-                @Override
-                public void populateItem(Item<ICellPopulator<DetectedPattern>> item, String componentId, IModel<DetectedPattern> rowModel) {
-                    @NotNull AjaxLinkPanel linkPanel = buildClusterLinkPanel(componentId, rowModel);
-                    linkPanel.setOutputMarkupId(true);
-                    item.add(linkPanel);
-                }
-
-                @Override
-                public boolean isSortable() {
-                    return false;
-                }
-
-                @Override
-                public Component getHeader(String componentId) {
-                    return new LabelWithHelpPanel(componentId,
-                            createStringResource("RoleMining.cluster.table.column.header.cluster.link")) {
-                        @Override
-                        protected IModel<String> getHelpModel() {
-                            return createStringResource("RoleMining.cluster.table.column.header.cluster.link.help");
-                        }
-                    };
-
-                }
-
-            });
+            initClusterNameColumn(columns);
         }
-        RoleAnalysisService roleAnalysisService = getPageBase().getRoleAnalysisService();
-        OperationResult result = new OperationResult("countUserOwnedRoleAssignment");
-        int allUserOwnedRoleAssignments = roleAnalysisService.countUserOwnedRoleAssignment(result);
 
-        columns.add(new AbstractColumn<>(getHeaderTitle("")) {
+        initReductionColumn(columns);
+
+        initMemberCountColumn(columns);
+
+        initRoleCountCoulumn(columns);
+
+        initAttributeStatisticsColumn(columns);
+
+        initExploreColumn(columns);
+
+        return columns;
+    }
+
+    private void initExploreColumn(@NotNull List<IColumn<DetectedPattern, String>> columns) {
+        columns.add(new AbstractExportableColumn<>(getHeaderTitle("display")) {
 
             @Override
-            public void populateItem(Item<ICellPopulator<DetectedPattern>> item, String componentId, IModel<DetectedPattern> rowModel) {
-
-                IconWithLabel icon = buildReductionPanel(componentId, rowModel, allUserOwnedRoleAssignments);
-
-                item.add(icon);
-            }
-
-            @Override
-            public String getSortProperty() {
-                return DetectedPattern.F_METRIC;
+            public IModel<?> getDataModel(IModel<DetectedPattern> iModel) {
+                return null;
             }
 
             @Override
             public boolean isSortable() {
-                return true;
+                return false;
+            }
+
+            @Override
+            public void populateItem(Item<ICellPopulator<DetectedPattern>> item, String componentId,
+                    IModel<DetectedPattern> rowModel) {
+
+                if (rowModel.getObject() == null) {
+                    item.add(new EmptyPanel(componentId));
+                } else {
+                    RepeatingView repeatingView = new RepeatingView(componentId);
+                    item.add(AttributeModifier.append(CLASS_CSS, "d-flex align-items-center justify-content-center"));
+                    item.add(repeatingView);
+
+                    AjaxCompositedIconSubmitButton migrationButton = buildCandidateButton(repeatingView.newChildId(), rowModel);
+                    migrationButton.add(AttributeModifier.append(CLASS_CSS, "mr-1"));
+                    repeatingView.add(migrationButton);
+
+                    AjaxCompositedIconSubmitButton exploreButton = buildExploreButton(repeatingView.newChildId(), rowModel);
+                    repeatingView.add(exploreButton);
+                }
+
             }
 
             @Override
             public Component getHeader(String componentId) {
-                return new LabelWithHelpPanel(componentId,
-                        createStringResource("RoleMining.cluster.table.column.header.reduction.factor.confidence")) {
+                LabelWithHelpPanel display = new LabelWithHelpPanel(componentId,
+                        getHeaderTitle("display")) {
                     @Override
                     protected IModel<String> getHelpModel() {
                         return createStringResource("RoleAnalysisCluster.table.header.cluster.attribute.statistic.help");
                     }
                 };
-
+                display.setOutputMarkupId(true);
+                display.add(AttributeModifier.append(CLASS_CSS, "d-flex align-items-center justify-content-center"));
+                return display;
             }
 
         });
+    }
 
-        columns.add(new AbstractColumn<>(createStringResource("")) {
-
-            @Override
-            public boolean isSortable() {
-                return false;
-            }
-
-            @Override
-            public void populateItem(Item<ICellPopulator<DetectedPattern>> item, String componentId,
-                    IModel<DetectedPattern> rowModel) {
-
-                if (rowModel.getObject() == null || rowModel.getObject().getUsers() == null) {
-                    item.add(new EmptyPanel(componentId));
-                    return;
-                }
-                DetectedPattern pattern = rowModel.getObject();
-                Set<String> users = pattern.getUsers();
-                IModel<String> userObjectCount = Model.of(String.valueOf(users.size()));
-
-                IconWithLabel components = new IconWithLabel(componentId, userObjectCount) {
-                    @Contract(pure = true)
-                    @Override
-                    public @NotNull String getIconCssClass() {
-                        return GuiStyleConstants.CLASS_OBJECT_USER_ICON;
-                    }
-
-                    @Override
-                    protected @NotNull String getComponentCssClass() {
-                        return super.getComponentCssClass() + TEXT_MUTED;
-                    }
-                };
-
-                components.setOutputMarkupId(true);
-                item.add(components);
-            }
-
-            @Override
-            public Component getHeader(String componentId) {
-                return new LabelWithHelpPanel(componentId,
-                        createStringResource("RoleAnalysis.tile.panel.users")) {
-                    @Override
-                    protected IModel<String> getHelpModel() {
-                        return createStringResource("RoleAnalysisCluster.table.header.cluster.occupation.help");
-                    }
-                };
-            }
-
-        });
-
-        columns.add(new AbstractColumn<>(createStringResource("")) {
-
-            @Override
-            public boolean isSortable() {
-                return false;
-            }
-
-            @Override
-            public void populateItem(Item<ICellPopulator<DetectedPattern>> item, String componentId,
-                    IModel<DetectedPattern> rowModel) {
-
-                if (rowModel.getObject() == null || rowModel.getObject().getRoles() == null) {
-                    item.add(new EmptyPanel(componentId));
-                    return;
-                }
-
-                DetectedPattern pattern = rowModel.getObject();
-                Set<String> roles = pattern.getRoles();
-                IModel<String> roleObjectCount = Model.of(String.valueOf(roles.size()));
-
-                IconWithLabel components = new IconWithLabel(componentId, roleObjectCount) {
-                    @Contract(pure = true)
-                    @Override
-                    public @NotNull String getIconCssClass() {
-                        return GuiStyleConstants.CLASS_OBJECT_ROLE_ICON;
-                    }
-
-                    @Override
-                    protected @NotNull String getComponentCssClass() {
-                        return super.getComponentCssClass() + TEXT_MUTED;
-                    }
-                };
-
-                components.setOutputMarkupId(true);
-                item.add(components);
-            }
-
-            @Override
-            public Component getHeader(String componentId) {
-                return new LabelWithHelpPanel(componentId,
-                        createStringResource("RoleAnalysis.tile.panel.roles")) {
-                    @Override
-                    protected IModel<String> getHelpModel() {
-                        return createStringResource("RoleAnalysisCluster.table.header.cluster.occupation.help");
-                    }
-                };
-            }
-
-        });
-
+    private void initAttributeStatisticsColumn(@NotNull List<IColumn<DetectedPattern, String>> columns) {
         columns.add(new AbstractColumn<>(
                 createStringResource("")) {
 
@@ -549,13 +352,10 @@ public class RoleAnalysisDetectedPatternTileTable extends BasePanel<String> {
             }
 
         });
+    }
 
-        columns.add(new AbstractExportableColumn<>(getHeaderTitle("display")) {
-
-            @Override
-            public IModel<?> getDataModel(IModel<DetectedPattern> iModel) {
-                return null;
-            }
+    private void initRoleCountCoulumn(@NotNull List<IColumn<DetectedPattern, String>> columns) {
+        columns.add(new AbstractColumn<>(createStringResource("")) {
 
             @Override
             public boolean isSortable() {
@@ -566,40 +366,200 @@ public class RoleAnalysisDetectedPatternTileTable extends BasePanel<String> {
             public void populateItem(Item<ICellPopulator<DetectedPattern>> item, String componentId,
                     IModel<DetectedPattern> rowModel) {
 
-                if (rowModel.getObject() == null) {
+                if (rowModel.getObject() == null || rowModel.getObject().getRoles() == null) {
                     item.add(new EmptyPanel(componentId));
-                } else {
-                    RepeatingView repeatingView = new RepeatingView(componentId);
-                    item.add(AttributeModifier.append(CLASS_CSS, "d-flex align-items-center justify-content-center"));
-                    item.add(repeatingView);
-
-                    AjaxCompositedIconSubmitButton migrationButton = buildCandidateButton(repeatingView.newChildId(), rowModel);
-                    migrationButton.add(AttributeModifier.append(CLASS_CSS, "mr-1"));
-                    repeatingView.add(migrationButton);
-
-                    AjaxCompositedIconSubmitButton exploreButton = buildExploreButton(repeatingView.newChildId(), rowModel);
-                    repeatingView.add(exploreButton);
+                    return;
                 }
 
+                DetectedPattern pattern = rowModel.getObject();
+                Set<String> roles = pattern.getRoles();
+                IModel<String> roleObjectCount = Model.of(String.valueOf(roles.size()));
+
+                IconWithLabel components = new IconWithLabel(componentId, roleObjectCount) {
+                    @Contract(pure = true)
+                    @Override
+                    public @NotNull String getIconCssClass() {
+                        return GuiStyleConstants.CLASS_OBJECT_ROLE_ICON;
+                    }
+
+                    @Override
+                    protected @NotNull String getComponentCssClass() {
+                        return super.getComponentCssClass() + TEXT_MUTED;
+                    }
+                };
+
+                components.setOutputMarkupId(true);
+                item.add(components);
             }
 
             @Override
             public Component getHeader(String componentId) {
-                LabelWithHelpPanel display = new LabelWithHelpPanel(componentId,
-                        getHeaderTitle("display")) {
+                return new LabelWithHelpPanel(componentId,
+                        createStringResource("RoleAnalysis.tile.panel.roles")) {
+                    @Override
+                    protected IModel<String> getHelpModel() {
+                        return createStringResource("RoleAnalysisCluster.table.header.cluster.occupation.help");
+                    }
+                };
+            }
+
+        });
+    }
+
+    private void initMemberCountColumn(@NotNull List<IColumn<DetectedPattern, String>> columns) {
+        columns.add(new AbstractColumn<>(createStringResource("")) {
+
+            @Override
+            public boolean isSortable() {
+                return false;
+            }
+
+            @Override
+            public void populateItem(Item<ICellPopulator<DetectedPattern>> item, String componentId,
+                    IModel<DetectedPattern> rowModel) {
+
+                if (rowModel.getObject() == null || rowModel.getObject().getUsers() == null) {
+                    item.add(new EmptyPanel(componentId));
+                    return;
+                }
+                DetectedPattern pattern = rowModel.getObject();
+                Set<String> users = pattern.getUsers();
+                IModel<String> userObjectCount = Model.of(String.valueOf(users.size()));
+
+                IconWithLabel components = new IconWithLabel(componentId, userObjectCount) {
+                    @Contract(pure = true)
+                    @Override
+                    public @NotNull String getIconCssClass() {
+                        return GuiStyleConstants.CLASS_OBJECT_USER_ICON;
+                    }
+
+                    @Override
+                    protected @NotNull String getComponentCssClass() {
+                        return super.getComponentCssClass() + TEXT_MUTED;
+                    }
+                };
+
+                components.setOutputMarkupId(true);
+                item.add(components);
+            }
+
+            @Override
+            public Component getHeader(String componentId) {
+                return new LabelWithHelpPanel(componentId,
+                        createStringResource("RoleAnalysis.tile.panel.users")) {
+                    @Override
+                    protected IModel<String> getHelpModel() {
+                        return createStringResource("RoleAnalysisCluster.table.header.cluster.occupation.help");
+                    }
+                };
+            }
+
+        });
+    }
+
+    private void initReductionColumn(@NotNull List<IColumn<DetectedPattern, String>> columns) {
+        columns.add(new AbstractColumn<>(getHeaderTitle("")) {
+
+            @Override
+            public void populateItem(Item<ICellPopulator<DetectedPattern>> item, String componentId, IModel<DetectedPattern> rowModel) {
+
+                IconWithLabel icon = buildReductionPanel(componentId, rowModel,
+                        RoleAnalysisDetectedPatternTileTable.this.getModelObject().getTotalRoleToUserAssignments());
+                item.add(icon);
+            }
+
+            @Override
+            public String getSortProperty() {
+                return DetectedPattern.F_METRIC;
+            }
+
+            @Override
+            public boolean isSortable() {
+                return true;
+            }
+
+            @Override
+            public Component getHeader(String componentId) {
+                return new LabelWithHelpPanel(componentId,
+                        createStringResource("RoleMining.cluster.table.column.header.reduction.factor.confidence")) {
                     @Override
                     protected IModel<String> getHelpModel() {
                         return createStringResource("RoleAnalysisCluster.table.header.cluster.attribute.statistic.help");
                     }
                 };
-                display.setOutputMarkupId(true);
-                display.add(AttributeModifier.append(CLASS_CSS, "d-flex align-items-center justify-content-center"));
-                return display;
+
             }
 
         });
+    }
 
-        return columns;
+    private void initClusterNameColumn(@NotNull List<IColumn<DetectedPattern, String>> columns) {
+        columns.add(new AbstractColumn<>(getHeaderTitle("")) {
+
+            @Override
+            public void populateItem(Item<ICellPopulator<DetectedPattern>> item, String componentId, IModel<DetectedPattern> rowModel) {
+                @NotNull AjaxLinkPanel linkPanel = buildClusterLinkPanel(componentId, rowModel);
+                linkPanel.setOutputMarkupId(true);
+                item.add(linkPanel);
+            }
+
+            @Override
+            public boolean isSortable() {
+                return false;
+            }
+
+            @Override
+            public Component getHeader(String componentId) {
+                return new LabelWithHelpPanel(componentId,
+                        createStringResource("RoleMining.cluster.table.column.header.cluster.link")) {
+                    @Override
+                    protected IModel<String> getHelpModel() {
+                        return createStringResource("RoleMining.cluster.table.column.header.cluster.link.help");
+                    }
+                };
+
+            }
+
+        });
+    }
+
+    private void initSessionNameColumn(@NotNull List<IColumn<DetectedPattern, String>> columns) {
+        columns.add(new AbstractColumn<>(getHeaderTitle("")) {
+
+            @Override
+            public void populateItem(Item<ICellPopulator<DetectedPattern>> item, String componentId, IModel<DetectedPattern> rowModel) {
+                @NotNull AjaxLinkPanel linkPanel = buildSessionLinkPanel(componentId, rowModel);
+                linkPanel.setOutputMarkupId(true);
+                item.add(linkPanel);
+            }
+
+            @Override
+            public boolean isSortable() {
+                return false;
+            }
+
+            @Override
+            public Component getHeader(String componentId) {
+                return new LabelWithHelpPanel(componentId,
+                        createStringResource("RoleMining.cluster.table.column.header.session.link")) {
+                    @Override
+                    protected IModel<String> getHelpModel() {
+                        return createStringResource("RoleMining.cluster.table.column.header.session.link.help");
+                    }
+                };
+
+            }
+
+        });
+    }
+
+    private static void initIconColumn(@NotNull List<IColumn<DetectedPattern, String>> columns) {
+        columns.add(new IconColumn<>(null) {
+            @Override
+            protected DisplayType getIconDisplayType(IModel<DetectedPattern> rowModel) {
+                return createDisplayType(GuiStyleConstants.CLASS_DETECTED_PATTERN_ICON, "", "");
+            }
+        });
     }
 
     private @NotNull AjaxLinkPanel buildSessionLinkPanel(String componentId, @NotNull IModel<DetectedPattern> rowModel) {
@@ -662,22 +622,6 @@ public class RoleAnalysisDetectedPatternTileTable extends BasePanel<String> {
                 return label;
             }
         };
-    }
-
-    private static @NotNull IModel<String> extractProcessMode(@NotNull PageBase pageBase, @NotNull DetectedPattern pattern) {
-        RoleAnalysisService roleAnalysisService = pageBase.getRoleAnalysisService();
-        Task task = pageBase.createSimpleTask("getClusterOptionType");
-        OperationResult result = task.getResult();
-        PrismObject<RoleAnalysisClusterType> clusterPrism = roleAnalysisService
-                .getClusterTypeObject(pattern.getClusterRef().getOid(), task, result);
-        if (clusterPrism == null) {
-            return Model.of("");
-        } else {
-            RoleAnalysisOptionType analysisOptionType = roleAnalysisService.resolveClusterOptionType(clusterPrism, task, result);
-            RoleAnalysisProcessModeType processMode = analysisOptionType.getProcessMode();
-            RoleAnalysisCategoryType analysisCategory = analysisOptionType.getAnalysisCategory();
-            return Model.of(processMode.value() + "/" + analysisCategory.value());
-        }
     }
 
     @SuppressWarnings("unchecked")

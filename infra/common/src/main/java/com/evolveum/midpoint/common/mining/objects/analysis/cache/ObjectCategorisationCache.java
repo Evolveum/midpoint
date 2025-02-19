@@ -231,7 +231,7 @@ public class ObjectCategorisationCache {
 
             List<String> excludeRoleRef = excludeObject.getExcludeRoleRef();
             if (excludeRoleRef != null) {
-                manuallyUnwantedAccess.addAll(excludeRoleRef);
+                manuallyUnwantedAccess.addAll(CloneUtil.cloneCollectionMembers(excludeRoleRef));
             }
 
             List<RoleAnalysisObjectCategorizationType> excludeRoleCategory = excludeObject.getExcludeRoleCategory();
@@ -242,7 +242,7 @@ public class ObjectCategorisationCache {
 
             List<String> excludeUserRef = excludeObject.getExcludeUserRef();
             if (excludeUserRef != null) {
-                manuallyUnwantedUsers.addAll(excludeUserRef);
+                manuallyUnwantedUsers.addAll(CloneUtil.cloneCollectionMembers(excludeUserRef));
             }
 
             List<RoleAnalysisObjectCategorizationType> excludeUserCategory = excludeObject.getExcludeUserCategory();
@@ -314,13 +314,13 @@ public class ObjectCategorisationCache {
 
         if (identifiedCharacteristics.getRoles() == null) {
             identifiedCharacteristics.setRoles(new RoleAnalysisIdentifiedCharacteristicsItemsType());
-            identifiedCharacteristics.getRoles().getItem().addAll(rolesCategoryMap.values());
+            identifiedCharacteristics.getRoles().getItem().addAll(CloneUtil.cloneCollectionMembers(rolesCategoryMap.values()));
             roleDone = true;
         }
 
         if (identifiedCharacteristics.getUsers() == null) {
             identifiedCharacteristics.setUsers(new RoleAnalysisIdentifiedCharacteristicsItemsType());
-            identifiedCharacteristics.getUsers().getItem().addAll(usersCategoryMap.values());
+            identifiedCharacteristics.getUsers().getItem().addAll(CloneUtil.cloneCollectionMembers(usersCategoryMap.values()));
             userDone = true;
         }
 

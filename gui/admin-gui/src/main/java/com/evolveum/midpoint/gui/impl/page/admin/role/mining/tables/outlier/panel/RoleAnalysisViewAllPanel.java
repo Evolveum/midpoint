@@ -10,9 +10,9 @@ package com.evolveum.midpoint.gui.impl.page.admin.role.mining.tables.outlier.pan
 import java.io.Serial;
 import java.io.Serializable;
 
+import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.model.IModel;
 import org.jetbrains.annotations.Contract;
@@ -40,8 +40,8 @@ public class RoleAnalysisViewAllPanel<T extends Serializable> extends BasePanel<
 
         WebMarkupContainer container = new WebMarkupContainer(ID_CONTAINER);
         container.setOutputMarkupId(true);
-        container.add(AttributeAppender.replace("class", getContainerCssClass()));
-        container.add(AttributeAppender.replace("style", getContainerCssStyle()));
+        container.add(AttributeModifier.replace("class", getContainerCssClass()));
+        container.add(AttributeModifier.replace("style", getContainerCssStyle()));
         add(container);
         IconWithLabel iconWithLabel = new IconWithLabel(ID_TITLE, getModel()) {
             @Contract(pure = true)
