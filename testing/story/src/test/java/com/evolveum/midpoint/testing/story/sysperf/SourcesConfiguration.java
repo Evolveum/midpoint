@@ -7,26 +7,21 @@
 
 package com.evolveum.midpoint.testing.story.sysperf;
 
-import com.evolveum.icf.dummy.resource.ConflictException;
-import com.evolveum.icf.dummy.resource.DummyObjectClass;
-import com.evolveum.icf.dummy.resource.SchemaViolationException;
-import com.evolveum.midpoint.test.DummyResourceContoller;
-import com.evolveum.midpoint.test.DummyTestResource;
-
-import org.jetbrains.annotations.NotNull;
-
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.net.ConnectException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import static java.util.Collections.emptyList;
 
 import static com.evolveum.midpoint.testing.story.sysperf.TestSystemPerformance.TARGET_DIR;
 import static com.evolveum.midpoint.testing.story.sysperf.TestSystemPerformance.TEST_DIR;
 
-import static java.util.Collections.emptyList;
+import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+
+import org.jetbrains.annotations.NotNull;
+
+import com.evolveum.icf.dummy.resource.DummyObjectClass;
+import com.evolveum.midpoint.test.DummyResourceContoller;
+import com.evolveum.midpoint.test.DummyTestResource;
 
 class SourcesConfiguration {
 
@@ -116,7 +111,7 @@ class SourcesConfiguration {
         List<DummyTestResource> resources = new ArrayList<>();
         for (int i = 0; i < numberOfResources; i++) {
             boolean primary = i == 0;
-            String oid = UUID.randomUUID().toString();
+            String oid = RandomSource.randomUUID().toString();
             String resourceDefinitionFile = createResourceDefinition(i, oid, primary);
             resources.add(new DummyTestResource(TARGET_DIR, resourceDefinitionFile, oid, getResourceInstance(i),
                     controller -> {
@@ -150,8 +145,7 @@ class SourcesConfiguration {
         return String.format(RESOURCE_INSTANCE_TEMPLATE, i);
     }
 
-    private void createAttributes(DummyResourceContoller controller, String name, int number, boolean multi)
-            throws ConflictException, FileNotFoundException, SchemaViolationException, InterruptedException, ConnectException {
+    private void createAttributes(DummyResourceContoller controller, String name, int number, boolean multi) {
         DummyObjectClass objectClass = controller.getDummyResource().getAccountObjectClass();
         for (int i = 0; i < number; i++) {
             controller.addAttrDef(objectClass, String.format(name, i), String.class, false, multi);
