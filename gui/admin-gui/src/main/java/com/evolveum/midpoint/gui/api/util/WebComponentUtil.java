@@ -2232,6 +2232,25 @@ public final class WebComponentUtil {
         return filter;
     }
 
+    public static ObjectFilter getAccessibleForAssignmentObjectsFilter(OperationResult result, Task task, PageBase pageBase) {
+        ObjectFilter filter = null;
+        LOGGER.debug("Loading users which are allowed to be an object during assign operation.");
+        try {
+            ModelInteractionService mis = pageBase.getModelInteractionService();
+            filter = mis.getAccessibleForAssignmentObjectsFilter(UserType.class, null, task, result);
+        } catch (Exception ex) {
+            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't load users which are allowed to be an object during assign operation.", ex);
+            result.recordFatalError(pageBase.createStringResource(
+                    "WebComponentUtil.message.getAccessibleForAssignmentObjectsFilter.fatalError").getString(), ex);
+        } finally {
+            result.recomputeStatus();
+        }
+        if (!result.isSuccess() && !result.isHandledError()) {
+            pageBase.showResult(result);
+        }
+        return filter;
+    }
+
     /**
      * This seems to be just invalid piece of JS code.
      * die() function not really defined, and there's no use of about="XXX" attribute in html for jquery to find.
@@ -3980,6 +3999,17 @@ public final class WebComponentUtil {
 
         comp.add(AttributeAppender.append("class", () -> !comp.isEnabledInHierarchy() ? "disabled" : null));
         comp.add(AttributeAppender.append("aria-disabled", () -> !comp.isEnabledInHierarchy() ? "true" : "false"));
+    }
+
+    public static DefaultGuiObjectListPanelConfigurationType getDefaultObjectCollectionViewsSettings() {
+        var compiledGuiProfile = getCompiledGuiProfile();
+        return compiledGuiProfile.getDefaultObjectCollectionViewsSettings();
+    }
+
+    public static DefaultGuiObjectListPanelConfigurationType getDefaultObjectDetailsSettings() {
+        var compiledGuiProfile = getCompiledGuiProfile();
+        return compiledGuiProfile.getObjectDetails() != null ?
+                compiledGuiProfile.getObjectDetails().getDefaultSettings() : null;
     }
 
     public static CompiledGuiProfile getCompiledGuiProfile(Page page) {

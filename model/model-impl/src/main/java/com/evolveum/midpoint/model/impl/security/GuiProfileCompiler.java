@@ -342,6 +342,15 @@ public class GuiProfileCompiler {
             if (composite.getObjectDetails() == null) {
                 composite.setObjectDetails(adminGuiConfiguration.getObjectDetails().clone());
             } else {
+                DefaultGuiObjectListPanelConfigurationType objectDetailsDefaultSettings =
+                        adminGuiConfiguration.getObjectDetails().getDefaultSettings();
+                if (objectDetailsDefaultSettings != null) {
+                    if (composite.getObjectDetails().getDefaultSettings() == null) {
+                        composite.getObjectDetails().setDefaultSettings(new DefaultGuiObjectListPanelConfigurationType());
+                    }
+                    compileDefaultListViewSettings(composite.getObjectDetails().getDefaultSettings(), objectDetailsDefaultSettings);
+                }
+
                 for (GuiObjectDetailsPageType objectDetails : adminGuiConfiguration.getObjectDetails().getObjectDetailsPage()) {
                     joinObjectDetails(composite.getObjectDetails(), objectDetails);
                 }
@@ -598,6 +607,13 @@ public class GuiProfileCompiler {
             return;
         }
 
+        if (viewsType.getDefaultSettings() != null) {
+            if (composite.getDefaultObjectCollectionViewsSettings() == null) {
+                composite.setDefaultObjectCollectionViewsSettings(new DefaultGuiObjectListPanelConfigurationType());
+            }
+            compileDefaultListViewSettings(composite.getDefaultObjectCollectionViewsSettings(), viewsType.getDefaultSettings());
+        }
+
         if (viewsType.getDefault() != null) {
             if (composite.getDefaultObjectCollectionView() == null) {
                 composite.setDefaultObjectCollectionView(new CompiledObjectCollectionView());
@@ -665,6 +681,11 @@ public class GuiProfileCompiler {
             composite.getShadowCollectionViews().add(existingView);
         }
         return existingView;
+    }
+
+    public void compileDefaultListViewSettings(DefaultGuiObjectListPanelConfigurationType existingSettings,
+            DefaultGuiObjectListPanelConfigurationType defaultViewsSettings) {
+        collectionProcessor.compileDefaultObjectListConfiguration(existingSettings, defaultViewsSettings);
     }
 
     public void compileView(CompiledObjectCollectionView existingView, GuiObjectListViewType objectListViewType, Task task, OperationResult result)

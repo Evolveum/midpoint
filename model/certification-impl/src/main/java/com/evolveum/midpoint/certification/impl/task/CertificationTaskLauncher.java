@@ -10,6 +10,7 @@ import com.evolveum.midpoint.model.api.ActivitySubmissionOptions;
 import com.evolveum.midpoint.model.api.ModelInteractionService;
 import com.evolveum.midpoint.model.impl.lens.tasks.TaskOperationalDataManager;
 import com.evolveum.midpoint.repo.api.RepositoryService;
+import com.evolveum.midpoint.schema.constants.Channel;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.security.api.SecurityContextManager;
@@ -53,6 +54,7 @@ public class CertificationTaskLauncher {
         startTask(
                 campaign,
                 activityDef,
+                Channel.REMEDIATION.getUri(),
                 "Remediation for " + campaign.getName(),
                 "remediation",
                 "PageCertCampaign.taskName.remediation",
@@ -69,6 +71,7 @@ public class CertificationTaskLauncher {
         startTask(
                 campaign,
                 activityDef,
+                Channel.REMEDIATION.getUri(),
                 "Campaign open first stage for " + campaign.getName(),
                 "first stage",
                 "PageCertCampaign.taskName.openFirstStage",
@@ -132,6 +135,18 @@ public class CertificationTaskLauncher {
             String userMessageKey,
             OperationResult parentResult,
             @NotNull String archetypeOid) {
+        startTask(campaign, activityDef, null, taskName, description, userMessageKey, parentResult, archetypeOid);
+    }
+
+    private void startTask(
+            AccessCertificationCampaignType campaign,
+            ActivityDefinitionType activityDef,
+            String channelUri,
+            String taskName,
+            String description,
+            String userMessageKey,
+            OperationResult parentResult,
+            @NotNull String archetypeOid) {
         String campaignOid = campaign.getOid();
         LOGGER.info("Launching " + description + "task for campaign {} as asynchronous task", campaignOid);
 
@@ -139,6 +154,9 @@ public class CertificationTaskLauncher {
         result.addParam("campaignOid", campaignOid);
 
         Task task = taskManager.createTaskInstance();
+        if (StringUtils.isNotEmpty(channelUri)) {
+            task.setChannel(channelUri);
+        }
 
         UserType owner;
         try {

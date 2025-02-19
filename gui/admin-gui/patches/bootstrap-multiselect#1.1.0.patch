@@ -1,7 +1,7 @@
-diff --git a/node_modules/bootstrap-multiselect/dist/js/bootstrap-multiselect.js b/node_modules/bootstrap-multiselect/dist/js/bootstrap-multiselect.js
+diff --git bootstrap-multiselect/dist/js/bootstrap-multiselect.js bootstrap-multiselect/dist/js/bootstrap-multiselect.js
 index 17d8633..e1e67ad 100644
---- a/node_modules/bootstrap-multiselect/dist/js/bootstrap-multiselect.js
-+++ b/node_modules/bootstrap-multiselect/dist/js/bootstrap-multiselect.js
+--- bootstrap-multiselect/dist/js/bootstrap-multiselect.js
++++ bootstrap-multiselect/dist/js/bootstrap-multiselect.js
 @@ -43,9 +43,7 @@
   */
  (function (root, factory) {

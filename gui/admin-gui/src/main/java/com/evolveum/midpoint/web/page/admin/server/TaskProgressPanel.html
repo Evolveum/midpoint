@@ -9,14 +9,17 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xmlns:wicket="http://wicket.apache.org">
 <body>
 <wicket:panel>
-    <div class="d-flex flex-column" style="min-width: 200px;">
+    <div class="d-flex flex-column">
         <div class="d-flex w-100 gap-2 align-items-center">
-            <div class="w-100" wicket:id="progress"/>
-            <div wicket:id="progressLabel"/>
-            <div style="min-width: fit-content;">
-                <i class="mr-1" wicket:id="progressProblemIcon"/>
-                <span wicket:id="progressProblemLabel"/>
-            </div>
+            <div style="min-width: 100px; width: 100px;" wicket:id="progress"/>
+            <i wicket:id="doneIcon"/>
+            <div class="ml-auto" wicket:id="progressLabel"/>
+            <wicket:enclosure child="progressProblemLabel">
+                <div style="min-width: fit-content;" wicket:message="title:TaskProgressPanel.progressProblemLabel.title">
+                    <i class="mr-1" wicket:id="progressProblemIcon"/>
+                    <span wicket:id="progressProblemLabel"/>
+                </div>
+            </wicket:enclosure>
         </div>
         <wicket:enclosure child="taskProblemLabel">
             <div class="d-flex w-100 gap-2 align-items-center">

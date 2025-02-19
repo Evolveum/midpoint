@@ -1023,6 +1023,18 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element name="defaultSettings" type="tns:DefaultGuiObjectListPanelConfigurationType" minOccurs="0" maxOccurs="1">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Defines the configuration which is applied as a default to all object collection views
+                        which are specified within GuiObjectListViewsType. Can be overridden in specific object collection view.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>GuiObjectListViewsType.objectCollectionView</a:displayName>
+                        <a:since>4.0</a:since>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
             <xsd:element name="objectCollectionView" type="tns:GuiObjectListViewType" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -1189,6 +1201,18 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
+            <xsd:element name="defaultSettings" type="tns:DefaultGuiObjectListPanelConfigurationType" minOccurs="0" maxOccurs="1">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Defines the configuration which is applied as a default to all table panels on the details object pages.
+                        Can be overridden within a specific list view configuration for a specific panel.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>GuiObjectListViewsType.objectCollectionView</a:displayName>
+                        <a:since>4.0</a:since>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
             <xsd:element name="objectDetailsPage" type="tns:GuiObjectDetailsPageType" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
                     <xsd:appinfo>
@@ -1976,6 +2000,48 @@
         </xsd:restriction>
     </xsd:simpleType>
 
+    <xsd:complexType name="DefaultGuiObjectListPanelConfigurationType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Specifies the default configuration applicable for to all object list panels. Can be overridden
+                in the concrete panel configuration.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+                <a:since>4.10</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:UserInterfaceFeatureType">
+                <xsd:sequence>
+                    <xsd:element name="paging" type="q:PagingType" minOccurs="0" maxOccurs="1">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Paging for query.
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:experimental>true</a:experimental>
+                                <a:since>4.4</a:since>
+                                <a:displayName>GuiObjectListPanelConfigurationType.paging</a:displayName>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="pagingOptions" type="tns:PagingOptionsType" minOccurs="0" maxOccurs="1">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Defines the paging options which are applied to the object list panels in GUI.
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:since>4.10</a:since>
+                                <a:displayName>DefaultGuiObjectListPanelConfigurationType.pagingOptions</a:displayName>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+
     <xsd:complexType name="GuiObjectListPanelConfigurationType">
         <xsd:annotation>
             <xsd:documentation>
@@ -1987,7 +2053,7 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:complexContent>
-            <xsd:extension base="tns:UserInterfaceFeatureType">
+            <xsd:extension base="tns:DefaultGuiObjectListPanelConfigurationType">
                 <xsd:sequence>
                     <xsd:element name="searchBoxConfiguration" type="tns:SearchBoxConfigurationType" minOccurs="0" maxOccurs="1">
                         <xsd:annotation>
@@ -2049,18 +2115,6 @@
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
-                    <xsd:element name="paging" type="q:PagingType" minOccurs="0" maxOccurs="1">
-                        <xsd:annotation>
-                            <xsd:documentation>
-                                Paging for query.
-                            </xsd:documentation>
-                            <xsd:appinfo>
-                                <a:experimental>true</a:experimental>
-                                <a:since>4.4</a:since>
-                                <a:displayName>GuiObjectListPanelConfigurationType.paging</a:displayName>
-                            </xsd:appinfo>
-                        </xsd:annotation>
-                    </xsd:element>
                     <xsd:element name="dataProvider" type="tns:GuiListDataProviderType" minOccurs="0" maxOccurs="1">
                         <xsd:annotation>
                             <xsd:documentation>
@@ -2080,7 +2134,7 @@
         </xsd:complexContent>
     </xsd:complexType>
 
-<xsd:complexType name="GuiObjectListViewType">
+    <xsd:complexType name="GuiObjectListViewType">
         <xsd:annotation>
             <xsd:documentation>
                 Specifies the page used to list specific object type or object collection.
@@ -4964,6 +5018,24 @@
                 </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>
+    </xsd:complexType>
+
+    <xsd:complexType name="PagingOptionsType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Paging options which can be applied to list view in GUI.
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element minOccurs="0" maxOccurs="unbounded" name="availablePageSize" type="xsd:int">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Defines a set of available page size values which will be suggested to the user
+                        on the table panels.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
     </xsd:complexType>
 
     <!--<xsd:simpleType name="GuiParameterTypeType">-->

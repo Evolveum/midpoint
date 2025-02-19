@@ -1870,6 +1870,13 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element name="policies" type="tns:ActivityPoliciesType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Policies for the activity.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
             <xsd:element name="tailoring" type="tns:ActivitiesTailoringType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -1879,6 +1886,75 @@
             </xsd:element>
         </xsd:sequence>
         <xsd:attribute name="id" type="xsd:long"/>
+    </xsd:complexType>
+
+    <xsd:complexType name="ActivityPoliciesType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Policies for the activity.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:since>4.10</a:since>
+                <a:container>true</a:container>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="policy" type="tns:ActivityPolicyType" minOccurs="0" maxOccurs="unbounded"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="ActivityPolicyType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Policy for the activity execution.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:since>4.10</a:since>
+                <a:container>true</a:container>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="activityConstraints" type="tns:TaskActivityPolicyConstraintsType" minOccurs="0"/>
+            <xsd:element name="actions" type="tns:ActivityPolicyActionsType" minOccurs="0"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="TaskActivityPolicyConstraintsType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Set of governance, risk management, compliance (GRC) and similar policy constraints
+                related to tasks. These constraints act as triggers for the rules.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:since>4.10</a:since>
+                <a:container>true</a:container>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:AbstractPolicyConstraintType">
+                <xsd:sequence>
+                    <xsd:element name="taskTimeValidity" type="tns:TimeValidityPolicyConstraintType" minOccurs="0"/>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+
+    <xsd:complexType name="ActivityPolicyActionsType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Actions to be taken when the activity is executed.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:since>4.10</a:since>
+                <a:container>true</a:container>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <!-- Currently only suspendTask/notify are supported -->
+            <!-- markRef will be a part of record action later on -->
+            <xsd:element name="notification" type="tns:NotificationPolicyActionType" minOccurs="0"/>
+            <xsd:element name="suspendTask" type="tns:SuspendTaskPolicyActionType" minOccurs="0"/>
+        </xsd:sequence>
     </xsd:complexType>
 
     <xsd:complexType name="WorkDefinitionsType">

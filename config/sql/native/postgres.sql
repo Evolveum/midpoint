@@ -1124,12 +1124,11 @@ CREATE OR REPLACE FUNCTION m_shadow_create_partition() RETURNS trigger AS $BODY$
 
       IF NOT new.partition THEN
         IF new.resourceOid IS NULL THEN
-          RAISE EXCEPTION 'Can not create partionioned table without resource oid';
+          RAISE EXCEPTION 'Can not create partitioned table without resource oid';
         END IF;
         EXECUTE format('CREATE TABLE %I (like m_shadow INCLUDING ALL ) PARTITION BY LIST(objectClassId); ', new."table");
         RETURN new;
       END IF;
-
 
       /* Real partitions holding data */
       IF new.objectClassId IS NOT NULL THEN
@@ -1163,7 +1162,7 @@ CREATE OR REPLACE FUNCTION m_shadow_create_partition() RETURNS trigger AS $BODY$
                 CHECK (objectType = ''SHADOW'')', new.table);
 
       /* We should skip drop triggers for m_oid table (also probably in resource default table (if exists)) */
-      EXECUTE format('ALTER TABLE %I DISABLE TRIGGER ALL;', sourceTable);
+      EXECUTE format('ALTER TABLE %I DISABLE TRIGGER USER;', sourceTable);
       IF new.objectClassId IS NULL THEN
         EXECUTE format('DELETE FROM %I
             where resourceRefTargetOid = ''%s''', sourceTable, new.resourceOid);
@@ -1172,17 +1171,15 @@ CREATE OR REPLACE FUNCTION m_shadow_create_partition() RETURNS trigger AS $BODY$
             where resourceRefTargetOid = ''%s'' AND objectClassId = %s', sourceTable, new.resourceOid, new.objectClassId);
       END IF;
       /* Reenable triggers in original table */
-      EXECUTE format('ALTER TABLE %I ENABLE TRIGGER ALL;', sourceTable);
+      EXECUTE format('ALTER TABLE %I ENABLE TRIGGER USER;', sourceTable);
 
       IF new.objectClassId IS  NULL THEN
         /* Attach table as default partition */
         EXECUTE FORMAT ('ALTER TABLE %I ATTACH PARTITION %I DEFAULT', partitionParent, new."table");
       ELSE
         EXECUTE FORMAT ('ALTER TABLE %I ATTACH PARTITION %I FOR VALUES IN (%s)', partitionParent, new."table", new.objectClassId);
-        /* Attach table as objectClass partiion */
+        /* Attach table as objectClass partition */
       END IF;
-
-
 
       RETURN new;
     END;
@@ -2648,4 +2645,4 @@ END $$;
 -- This is important to avoid applying any change more than once.
 -- Also update SqaleUtils.CURRENT_SCHEMA_CHANGE_NUMBER
 -- repo/repo-sqale/src/main/java/com/evolveum/midpoint/repo/sqale/SqaleUtils.java
-call apply_change(50, $$ SELECT 1 $$, true);
+call apply_change(51, $$ SELECT 1 $$, true);

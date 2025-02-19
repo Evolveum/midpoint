@@ -11,8 +11,13 @@ import java.io.Serializable;
 
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.util.LocalizableMessage;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskExecutionStateType;
 
 public class TaskProgress implements Serializable {
+
+    private TaskExecutionStateType executionState;
+
+    private boolean complete;
 
     private int progress;
 
@@ -22,9 +27,28 @@ public class TaskProgress implements Serializable {
 
     private int processedObjectsErrorCount;
 
+    /**
+     * Status related to task (and subtasks) execution health (e.g. failed workers).
+     */
+    private OperationResultStatus taskHealthStatus;
+
+    /**
+     * Message describing task health status.
+     */
+    private LocalizableMessage taskHealthStatusMessage;
+
+    /**
+     * Overall task status.
+     */
     private OperationResultStatus taskStatus;
 
-    private LocalizableMessage taskStatusMessage;
+    public boolean isComplete() {
+        return complete;
+    }
+
+    public void setComplete(boolean complete) {
+        this.complete = complete;
+    }
 
     public int getProcessedObjectsErrorCount() {
         return processedObjectsErrorCount;
@@ -66,11 +90,27 @@ public class TaskProgress implements Serializable {
         this.taskStatus = taskStatus;
     }
 
-    public LocalizableMessage getTaskStatusMessage() {
-        return taskStatusMessage;
+    public LocalizableMessage getTaskHealthStatusMessage() {
+        return taskHealthStatusMessage;
     }
 
-    public void setTaskStatusMessage(LocalizableMessage taskStatusMessage) {
-        this.taskStatusMessage = taskStatusMessage;
+    public void setTaskHealthStatusMessage(LocalizableMessage taskHealthStatusMessage) {
+        this.taskHealthStatusMessage = taskHealthStatusMessage;
+    }
+
+    public TaskExecutionStateType getExecutionState() {
+        return executionState;
+    }
+
+    public void setExecutionState(TaskExecutionStateType executionState) {
+        this.executionState = executionState;
+    }
+
+    public OperationResultStatus getTaskHealthStatus() {
+        return taskHealthStatus;
+    }
+
+    public void setTaskHealthStatus(OperationResultStatus taskHealthStatus) {
+        this.taskHealthStatus = taskHealthStatus;
     }
 }

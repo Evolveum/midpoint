@@ -11,19 +11,13 @@ import java.util.Collections;
 import java.util.List;
 import javax.xml.datatype.XMLGregorianCalendar;
 
-import com.evolveum.midpoint.schema.util.task.TaskTypeUtil;
-
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
-import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.export.AbstractExportableColumn;
-import org.apache.wicket.markup.html.basic.Label;
-import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.LoadableDetachableModel;
 import org.apache.wicket.model.Model;
@@ -34,7 +28,6 @@ import com.evolveum.midpoint.authentication.api.authorization.PageDescriptor;
 import com.evolveum.midpoint.authentication.api.authorization.Url;
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.component.MainObjectListPanel;
-import com.evolveum.midpoint.gui.api.util.GuiDisplayTypeUtil;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconCssStyle;
@@ -50,6 +43,7 @@ import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.task.ActivityDefinitionBuilder;
 import com.evolveum.midpoint.schema.util.task.ActivityStateUtil;
 import com.evolveum.midpoint.schema.util.task.TaskInformation;
+import com.evolveum.midpoint.schema.util.task.TaskTypeUtil;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
@@ -58,14 +52,12 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.AjaxIconButton;
 import com.evolveum.midpoint.web.component.data.column.ColumnMenuAction;
-import com.evolveum.midpoint.web.component.data.column.IconColumn;
 import com.evolveum.midpoint.web.component.menu.cog.ButtonInlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.component.util.SerializableBiConsumer;
 import com.evolveum.midpoint.web.component.util.SerializableFunction;
-import com.evolveum.midpoint.web.page.admin.server.dto.OperationResultStatusPresentationProperties;
 import com.evolveum.midpoint.web.page.admin.server.dto.TaskDtoExecutionState;
 import com.evolveum.midpoint.web.page.admin.server.dto.TaskInformationUtil;
 import com.evolveum.midpoint.web.util.TaskOperationUtils;
@@ -256,28 +248,52 @@ public abstract class TaskTablePanel extends MainObjectListPanel<TaskType> {
         List<IColumn<SelectableBean<TaskType>, String>> columns = new ArrayList<>();
 
         columns.add(createTaskExecutionStateColumn());
-
-        columns.add(createProgressColumn());
-        columns.add(createErrorsColumn());
-        columns.add(createTaskStatusIconColumn());
-
-//        columns.add(createStatusColumn());
+        columns.add(createStatusColumn());
 
         return columns;
     }
 
     private AbstractExportableColumn<SelectableBean<TaskType>, String> createStatusColumn() {
         return new AbstractExportableColumn<>(createStringResource("pageTasks.task.status")) {
+
             @Override
             public IModel<?> getDataModel(IModel<SelectableBean<TaskType>> rowModel) {
-                return Model.of("asdf");
+                return new LoadableDetachableModel<TaskProgress>() {
+
+                    @Override
+                    protected TaskProgress load() {
+                        return createTaskProgress(rowModel.getObject());
+                    }
+                };
             }
 
             @Override
             protected Component createDisplayComponent(String componentId, IModel<?> dataModel) {
-                return new TaskProgressPanel(componentId, Model.of(new TaskProgress()));
+                return new TaskProgressPanel(componentId, (IModel<TaskProgress>) dataModel);
             }
         };
+    }
+
+    private TaskProgress createTaskProgress(SelectableBean<TaskType> bean) {
+        TaskProgress progress = new TaskProgress();
+
+        TaskInformation info = getAttachedTaskInformation(bean);
+
+        progress.setExecutionState(info.getTask().getExecutionState());
+        progress.setComplete(info.isComplete());
+
+        progress.setProgress((int) (info.getProgress() * 100));
+        progress.setProgressLabel(info.getProgressDescriptionShort());
+
+        progress.setProcessedObjectsStatus(OperationResultStatus.WARNING);
+        progress.setProcessedObjectsErrorCount(info.getAllErrors() == null ? 0 : info.getAllErrors());
+
+        progress.setTaskHealthStatus(OperationResultStatus.parseStatusType(info.getTaskHealthStatus()));
+        progress.setTaskHealthStatusMessage(info.getTaskHealthDescription());
+
+        progress.setTaskStatus(OperationResultStatus.parseStatusType(info.getResultStatus()));
+
+        return progress;
     }
 
     private AbstractExportableColumn<SelectableBean<TaskType>, String> createTaskExecutionStateColumn() {
@@ -340,48 +356,6 @@ public abstract class TaskTablePanel extends MainObjectListPanel<TaskType> {
         }
 
         return getString(state);
-    }
-
-    private AbstractExportableColumn<SelectableBean<TaskType>, String> createProgressColumn() {
-        return new AbstractExportableColumn<>(createStringResource("pageTasks.task.progress")) {
-            @Override
-            public IModel<String> getDataModel(IModel<SelectableBean<TaskType>> rowModel) {
-                TaskInformation taskInformation = getAttachedTaskInformation(rowModel.getObject());
-                return Model.of(
-                        getComplexProgressDescription(taskInformation));
-            }
-        };
-    }
-
-    private AbstractColumn<SelectableBean<TaskType>, String> createErrorsColumn() {
-        return new AbstractColumn<>(createStringResource("pageTasks.task.errors")) {
-            @Override
-            public void populateItem(Item<ICellPopulator<SelectableBean<TaskType>>> cellItem, String componentId, IModel<SelectableBean<TaskType>> rowModel) {
-                TaskInformation taskInformation = getAttachedTaskInformation(rowModel.getObject());
-                cellItem.add(
-                        new Label(
-                                componentId,
-                                taskInformation.getAllErrors()));
-            }
-        };
-    }
-
-    private IconColumn<SelectableBean<TaskType>> createTaskStatusIconColumn() {
-        return new IconColumn<>(createStringResource("pageTasks.task.status"), TaskType.F_RESULT_STATUS.getLocalPart()) {
-
-            @Override
-            protected DisplayType getIconDisplayType(final IModel<SelectableBean<TaskType>> rowModel) {
-                TaskInformation taskInformation = getAttachedTaskInformation(rowModel.getObject());
-                OperationResultStatusType status = taskInformation.getResultStatus();
-
-                String icon = OperationResultStatusPresentationProperties
-                        .parseOperationalResultStatus(status).getIcon()
-                        + " fa-lg";
-                String title = createStringResource(status).getString();
-
-                return GuiDisplayTypeUtil.createDisplayType(icon, "", title);
-            }
-        };
     }
 
     private @NotNull String getComplexProgressDescription(@NotNull TaskInformation taskInformation) {

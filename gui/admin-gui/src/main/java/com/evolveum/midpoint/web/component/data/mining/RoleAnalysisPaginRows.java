@@ -107,7 +107,7 @@ public class RoleAnalysisPaginRows extends Fragment {
         PagingSizePanel menu = new PagingSizePanel(ID_PAGE_SIZE) {
 
             @Override
-            protected List<Integer> getPagingSizes() {
+            protected List<Integer> getCustomPagingSizes() {
                 return List.of(new Integer[] { 50, 100, 150, 200 });
             }
 
