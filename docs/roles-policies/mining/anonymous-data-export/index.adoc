@@ -88,6 +88,10 @@ be excluded from the export.
 ** `assignments`: Only org assignments (`OrgType`) are exported, representing parent org. units (organizational hierarchy).
 ** `attributes (optional)`: Organization attribute elements name and value are re-written according to export settings.
 
+[NOTE]
+If the export attribute is enabled, the following attributes will not be exported by default:
+ `description`, `documentation`, `emailAddress`, `telephoneNumber`, `fullName`, `givenName`, `familyName`, `additionalName`, `nickName`, `personalNumber`, `identifier`, `jpegPhoto`.
+
 The data are anonymized by using encryption with a single-use key.
 The key is randomly generated for each export and it is discarded after the export.
 The key is not stored anywhere in midPoint, and it is not part of the export, which makes the anonymization a one-way process.
