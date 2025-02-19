@@ -10,17 +10,14 @@ package com.evolveum.midpoint.schema.util.task;
 import javax.xml.datatype.DatatypeConstants;
 import javax.xml.datatype.XMLGregorianCalendar;
 
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
-
 import com.evolveum.midpoint.util.LocalizableMessage;
-
-import org.jetbrains.annotations.NotNull;
-
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
-
-import org.jetbrains.annotations.Nullable;
 
 /**
  * The {@link TaskInformation} based on a legacy task structure. Very limited.
@@ -80,7 +77,12 @@ public class LegacyTaskInformation extends TaskInformation {
     }
 
     @Override
-    public LocalizableMessage getTaskStatusDescription() {
+    public OperationResultStatusType getTaskHealthStatus() {
+        return null; // It couldn't be determined from the legacy task.
+    }
+
+    @Override
+    public LocalizableMessage getTaskHealthDescription() {
         return null; // It couldn't be determined from the legacy task.
     }
 
