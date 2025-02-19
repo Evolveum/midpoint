@@ -808,6 +808,21 @@
                             <arguments>run build</arguments>
                         </configuration>
                     </execution>
+                    <execution>
+                        <id>npm sbom</id>
+                        <goals>
+                            <goal>npm</goal>
+                        </goals>
+                        <configuration>
+                            <environmentVariables>
+                                <!-- this variable will be used by package.json -->
+                                <OUTPUT_FORMAT>xml</OUTPUT_FORMAT>
+                                <OUTPUT_BOM_NAME>bom-frontend</OUTPUT_BOM_NAME>
+                                <OUTPUT_BOM_DIRECTORY>${project.build.directory}</OUTPUT_BOM_DIRECTORY>
+                            </environmentVariables>
+                            <arguments>run sbom_maven</arguments>
+                        </configuration>
+                    </execution>
                 </executions>
                 <configuration>
                     <nodeDownloadRoot>https://nexus.evolveum.com/nexus/repository/nodejs-dist/</nodeDownloadRoot>
@@ -835,6 +850,36 @@
                             <suiteXmlFiles>
                                 <suiteXmlFile>testng-perf.xml</suiteXmlFile>
                             </suiteXmlFiles>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+        <profile>
+            <id>dependencytrack</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>io.github.pmckeown</groupId>
+                        <artifactId>dependency-track-maven-plugin</artifactId>
+                        <executions>
+                            <execution>
+                                <id>upload-bom</id>
+                                <phase>verify</phase>
+                                <goals>
+                                    <goal>upload-bom</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                        <configuration>
+                            <projectName>admin-gui-frontend</projectName>
+                            <bomLocation>./gui/admin-gui/target/bom-frontend.xml</bomLocation>
+                            <pollingConfig>
+                                <enabled>true</enabled>
+                                <pause>500</pause>
+                                <attempts>100</attempts>
+                                <timeUnit>MILLIS</timeUnit>
+                            </pollingConfig>
                         </configuration>
                     </plugin>
                 </plugins>
