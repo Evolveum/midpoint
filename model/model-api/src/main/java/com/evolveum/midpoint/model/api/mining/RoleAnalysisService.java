@@ -620,7 +620,7 @@ public interface RoleAnalysisService {
             @NotNull OperationResult result, Task task);
 
     int[] getTaskProgressIfExist(
-            @Nullable RoleAnalysisOperationStatus operationStatus,
+            @Nullable RoleAnalysisOperationStatusType operationStatus,
             @NotNull OperationResult result);
 
     /**
@@ -656,7 +656,7 @@ public interface RoleAnalysisService {
             @Nullable OperationResultStatusType operationResultStatusType,
             @Nullable String message,
             @NotNull OperationResult result, Task task,
-            @NotNull RoleAnalysisOperation operationType,
+            @NotNull RoleAnalysisOperationType operationType,
             @Nullable FocusType focus);
 
     /**
@@ -911,21 +911,21 @@ public interface RoleAnalysisService {
             @NotNull Task task,
             @NotNull OperationResult result);
 
-    RoleAnalysisAttributeAnalysisResult resolveUserAttributes(
+    RoleAnalysisAttributeAnalysisResultType resolveUserAttributes(
             @NotNull PrismObject<UserType> prismUser,
             @NotNull List<RoleAnalysisAttributeDef> attributesForUserAnalysis);
 
-    @Nullable RoleAnalysisAttributeAnalysisResult resolveSimilarAspect(
-            @NotNull RoleAnalysisAttributeAnalysisResult compared,
-            @NotNull RoleAnalysisAttributeAnalysisResult comparison);
+    @Nullable RoleAnalysisAttributeAnalysisResultType resolveSimilarAspect(
+            @NotNull RoleAnalysisAttributeAnalysisResultType compared,
+            @NotNull RoleAnalysisAttributeAnalysisResultType comparison);
 
-    RoleAnalysisAttributeAnalysisResult resolveRoleMembersAttribute(
+    RoleAnalysisAttributeAnalysisResultType resolveRoleMembersAttribute(
             @NotNull String objectOid,
             @NotNull Task task,
             @NotNull OperationResult result,
             @NotNull List<RoleAnalysisAttributeDef> attributeDefSet);
 
-    RoleAnalysisAttributeAnalysisResult resolveRoleMembersAttributeCached(
+    RoleAnalysisAttributeAnalysisResultType resolveRoleMembersAttributeCached(
             @NotNull String objectOid,
             @NotNull AttributeAnalysisCache userAnalysisCache,
             @NotNull Task task,
@@ -944,7 +944,7 @@ public interface RoleAnalysisService {
             @NotNull PrismObject<UserType> prismUser,
             @NotNull List<RoleAnalysisAttributeDef> itemDef);
 
-    @Nullable Set<String> resolveUserValueToMark(RoleAnalysisAttributeAnalysisResult userAttributeAnalysisResult);
+    @Nullable Set<String> resolveUserValueToMark(RoleAnalysisAttributeAnalysisResultType userAttributeAnalysisResult);
 
     /**
      * Resolve object attribute value.
@@ -1459,7 +1459,7 @@ public interface RoleAnalysisService {
      * @return A list of explanation results for the outlier anomaly access.
      */
     List<OutlierExplanationResolver.ExplanationResult> explainOutlierAnomalyAccess(
-            @NotNull DetectedAnomalyResult detectedAnomalyResult,
+            @NotNull DetectedAnomalyResultType detectedAnomalyResult,
             @NotNull Task task,
             @NotNull OperationResult result);
 

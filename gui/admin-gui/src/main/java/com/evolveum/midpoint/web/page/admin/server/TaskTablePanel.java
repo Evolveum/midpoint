@@ -254,7 +254,9 @@ public abstract class TaskTablePanel extends MainObjectListPanel<TaskType> {
     }
 
     private AbstractExportableColumn<SelectableBean<TaskType>, String> createStatusColumn() {
-        return new AbstractExportableColumn<>(createStringResource("pageTasks.task.status")) {
+        return new AbstractExportableColumn<>(
+                createStringResource("pageTasks.task.status"),
+                TaskType.F_RESULT_STATUS.getLocalPart()) {
 
             @Override
             public IModel<?> getDataModel(IModel<SelectableBean<TaskType>> rowModel) {
@@ -282,20 +284,23 @@ public abstract class TaskTablePanel extends MainObjectListPanel<TaskType> {
         progress.setExecutionState(info.getTask().getExecutionState());
         progress.setComplete(info.isComplete());
 
-        progress.setProgress((int) info.getProgress());
+        progress.setProgress((int) (info.getProgress() * 100));
         progress.setProgressLabel(info.getProgressDescriptionShort());
 
         progress.setProcessedObjectsStatus(OperationResultStatus.WARNING);
         progress.setProcessedObjectsErrorCount(info.getAllErrors() == null ? 0 : info.getAllErrors());
 
+        progress.setTaskHealthStatus(OperationResultStatus.parseStatusType(info.getTaskHealthStatus()));
+        progress.setTaskHealthStatusMessage(info.getTaskHealthDescription());
+
         progress.setTaskStatus(OperationResultStatus.parseStatusType(info.getResultStatus()));
-        progress.setTaskStatusMessage(info.getTaskStatusDescription());
 
         return progress;
     }
 
     private AbstractExportableColumn<SelectableBean<TaskType>, String> createTaskExecutionStateColumn() {
-        return new AbstractExportableColumn<>(createStringResource("pageTasks.task.execution")) {
+        return new AbstractExportableColumn<>(
+                createStringResource("pageTasks.task.execution")) {
 
             @Override
             public IModel<String> getDataModel(IModel<SelectableBean<TaskType>> rowModel) {

@@ -177,8 +177,8 @@ public class RoleAnalysisAttributeChartPanel extends BasePanel<String> {
             @NotNull RoleAnalysisClusterType cluster,
             @NotNull WebMarkupContainer cardContainer) {
 
-        RoleAnalysisAttributeAnalysisResult roleAttributeAnalysisResult = null;
-        RoleAnalysisAttributeAnalysisResult userAttributeAnalysisResult = null;
+        RoleAnalysisAttributeAnalysisResultType roleAttributeAnalysisResult = null;
+        RoleAnalysisAttributeAnalysisResultType userAttributeAnalysisResult = null;
 
         AnalysisClusterStatisticType clusterStatistics = cluster.getClusterStatistics();
         if (clusterStatistics != null) {
@@ -251,21 +251,21 @@ public class RoleAnalysisAttributeChartPanel extends BasePanel<String> {
             @NotNull List<AttributeAnalysisStructure> attributeAnalysisStructureList,
             @NotNull WebMarkupContainer cardContainer) {
 
-        RoleAnalysisAttributeAnalysisResult userAnalysis = new RoleAnalysisAttributeAnalysisResult();
+        RoleAnalysisAttributeAnalysisResultType userAnalysis = new RoleAnalysisAttributeAnalysisResultType();
         for (AttributeAnalysisStructure attributeAnalysisStructure : attributeAnalysisStructureList) {
             double density = attributeAnalysisStructure.getDensity();
             if (density == 0) {
                 continue;
             }
-            RoleAnalysisAttributeAnalysis roleAnalysisAttributeAnalysis = new RoleAnalysisAttributeAnalysis();
+            RoleAnalysisAttributeAnalysisType roleAnalysisAttributeAnalysis = new RoleAnalysisAttributeAnalysisType();
             roleAnalysisAttributeAnalysis.setDensity(density);
             roleAnalysisAttributeAnalysis.setItemPath(attributeAnalysisStructure.getItemPathType());
 //            roleAnalysisAttributeAnalysis.setIsMultiValue(attributeAnalysisStructure.isMultiValue()); //TODO
             roleAnalysisAttributeAnalysis.setDescription(attributeAnalysisStructure.getDescription());
             roleAnalysisAttributeAnalysis.setParentType(attributeAnalysisStructure.getComplexType());
 
-            List<RoleAnalysisAttributeStatistics> attributeStatistics = attributeAnalysisStructure.getAttributeStatistics();
-            for (RoleAnalysisAttributeStatistics attributeStatistic : attributeStatistics) {
+            List<RoleAnalysisAttributeStatisticsType> attributeStatistics = attributeAnalysisStructure.getAttributeStatistics();
+            for (RoleAnalysisAttributeStatisticsType attributeStatistic : attributeStatistics) {
                 roleAnalysisAttributeAnalysis.getAttributeStatistics().add(attributeStatistic.clone());
             }
 

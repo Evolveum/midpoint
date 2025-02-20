@@ -9,22 +9,27 @@ package com.evolveum.midpoint.gui.impl.page.admin.role.mining.tables.outlier.pan
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 
+import com.evolveum.midpoint.gui.api.component.progressbar.ProgressBar;
+import com.evolveum.midpoint.gui.api.component.progressbar.ProgressBarPanel;
+import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.outlier.MetricValuePanel;
 
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.tmp.panel.IconWithLabel;
 
+import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
-import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.Serial;
-import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.List;
 
-public class RoleAnalysisAccessDistributionPanel<T extends Serializable> extends BasePanel<String> {
+public class RoleAnalysisAccessDistributionPanel extends BasePanel<AccessDistributionDto> {
 
     @Serial private static final long serialVersionUID = 1L;
 
@@ -40,8 +45,9 @@ public class RoleAnalysisAccessDistributionPanel<T extends Serializable> extends
     private static final String ID_INDIRECT = "indirect";
     private static final String ID_DUPLICATED = "duplicated";
     private static final String ID_ACTION_BUTTON = "actionButton";
-    public RoleAnalysisAccessDistributionPanel(String id) {
-        super(id);
+
+    public RoleAnalysisAccessDistributionPanel(String id, IModel<AccessDistributionDto> model) {
+        super(id, model);
         initLayout();
     }
 
@@ -60,10 +66,7 @@ public class RoleAnalysisAccessDistributionPanel<T extends Serializable> extends
             @Contract("_ -> new")
             @Override
             protected @NotNull Component getValueComponent(String id) {
-                Label label = new Label(id, getCount());
-                label.add(AttributeAppender.append("class", "d-flex pl-3 m-0"));
-                label.add(AttributeAppender.append("style", "font-size:20px"));
-                return label;
+                return createLabel(id, getTotalAccessesCount());
             }
         };
         leftMetric.setOutputMarkupId(true);
@@ -80,8 +83,8 @@ public class RoleAnalysisAccessDistributionPanel<T extends Serializable> extends
             @Override
             protected @NotNull Component getValueComponent(String id) {
                 Label label = new Label(id, getAverageCount());
-                label.add(AttributeAppender.append("class", "d-flex justify-content-end m-0"));
-                label.add(AttributeAppender.append("style", "font-size:20px"));
+                label.add(AttributeModifier.append("class", "d-flex justify-content-end m-0"));
+                label.add(AttributeModifier.append("style", "font-size:20px"));
                 return label;
             }
         };
@@ -125,10 +128,7 @@ public class RoleAnalysisAccessDistributionPanel<T extends Serializable> extends
             @Contract("_ -> new")
             @Override
             protected @NotNull Component getValueComponent(String id) {
-                Label label = new Label(id, getDirectCount());
-                label.add(AttributeAppender.append("class", "d-flex pl-3 m-0"));
-                label.add(AttributeAppender.append("style", "font-size:20px"));
-                return label;
+                return createLabel(id, getDirectCount());
             }
         };
         direct.setOutputMarkupId(true);
@@ -160,10 +160,7 @@ public class RoleAnalysisAccessDistributionPanel<T extends Serializable> extends
             @Contract("_ -> new")
             @Override
             protected @NotNull Component getValueComponent(String id) {
-                Label label = new Label(id, getIndirectCount());
-                label.add(AttributeAppender.append("class", "d-flex pl-3 m-0"));
-                label.add(AttributeAppender.append("style", "font-size:20px"));
-                return label;
+                return createLabel(id, getIndirectCount());
             }
         };
         indirect.setOutputMarkupId(true);
@@ -194,10 +191,7 @@ public class RoleAnalysisAccessDistributionPanel<T extends Serializable> extends
             @Contract("_ -> new")
             @Override
             protected @NotNull Component getValueComponent(String id) {
-                Label label = new Label(id, getDuplicatedCount());
-                label.add(AttributeAppender.append("class", "d-flex pl-3 m-0"));
-                label.add(AttributeAppender.append("style", "font-size:20px"));
-                return label;
+                return createLabel(id, getDuplicatedCount());
             }
         };
         duplicated.setOutputMarkupId(true);
@@ -209,31 +203,57 @@ public class RoleAnalysisAccessDistributionPanel<T extends Serializable> extends
 
     }
 
+    private @NotNull Label createLabel(String id, int directCount) {
+        Label label = new Label(id, directCount);
+        label.add(AttributeModifier.append("class", "d-flex pl-3 m-0"));
+        label.add(AttributeModifier.append("style", "font-size:20px"));
+        return label;
+    }
+
     protected Component getActionComponent(String id) {
         return new WebMarkupContainer(id);
     }
 
     protected Component getPanelComponent(String id) {
-        return new WebMarkupContainer(id);
+        List<ProgressBar> progressBars = new ArrayList<>();
+        addProgressBar(progressBars, ProgressBar.State.SUCCESS, getDirectCount(), getTotalAccessesCount());
+        addProgressBar(progressBars, ProgressBar.State.WARNING, getIndirectCount(), getTotalAccessesCount());
+        addProgressBar(progressBars, ProgressBar.State.DANGER, getDuplicatedCount(), getTotalAccessesCount());
+
+        ProgressBarPanel progressBarPanel = new ProgressBarPanel(id, new LoadableModel<>() {
+            @Serial private static final long serialVersionUID = 1L;
+
+            @Override
+            protected List<ProgressBar> load() {
+                return progressBars;
+            }
+        });
+        progressBarPanel.add(AttributeModifier.append("class", "p-0 m-3 justify-content-center"));
+        return progressBarPanel;
     }
 
-    protected String getCount() {
-        return "0";
+    protected int getTotalAccessesCount() {
+        return getModelObject().getAllAssignmentCount();
     }
 
-    protected String getAverageCount() {
-        return "0 (TBD)";
+    protected double getAverageCount() {
+        return getModelObject().getAverageAccessPerUser();
     }
 
-    protected String getDirectCount() {
-        return "0";
+    protected int getDirectCount() {
+        return getModelObject().getDirectAssignment();
     }
 
-    protected String getIndirectCount() {
-        return "0";
+    protected int getIndirectCount() {
+        return getModelObject().getIndirectAssignment();
     }
 
-    protected String getDuplicatedCount() {
-        return "0";
+    protected int getDuplicatedCount() {
+        return getModelObject().getDuplicatedRoleAssignmentCount();
+    }
+
+    private void addProgressBar(@NotNull List<ProgressBar> list, @NotNull ProgressBar.State state, int value, int totalValue) {
+        //disabled legend
+        list.add(new ProgressBar(value * 100 / (double) totalValue, state));
     }
 }

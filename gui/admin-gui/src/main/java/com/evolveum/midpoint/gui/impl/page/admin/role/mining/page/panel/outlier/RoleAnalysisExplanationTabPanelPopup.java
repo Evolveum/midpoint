@@ -91,7 +91,7 @@ public class RoleAnalysisExplanationTabPanelPopup extends BasePanel<AnomalyObjec
     }
 
     private @NotNull RoleAnalysisAttributePanel buildAttributePanel(
-            String panelId, DetectedAnomalyResult anomalyResult,
+            String panelId, DetectedAnomalyResultType anomalyResult,
             Set<String> userValueToMark) {
 
         RoleAnalysisAttributePanel roleAnalysisAttributePanel = new RoleAnalysisAttributePanel(
@@ -113,7 +113,7 @@ public class RoleAnalysisExplanationTabPanelPopup extends BasePanel<AnomalyObjec
         return roleAnalysisAttributePanel;
     }
 
-    private static @NotNull LoadableModel<RoleAnalysisAttributesDto> loadAttributeModel(DetectedAnomalyResult anomalyResult) {
+    private static @NotNull LoadableModel<RoleAnalysisAttributesDto> loadAttributeModel(DetectedAnomalyResultType anomalyResult) {
         return new LoadableModel<>(false) {
             @Override
             protected @NotNull RoleAnalysisAttributesDto load() {
@@ -156,17 +156,17 @@ public class RoleAnalysisExplanationTabPanelPopup extends BasePanel<AnomalyObjec
                 AnomalyObjectDto anomalyObjectDto = getModel().getObject();
                 AnomalyObjectDto.AnomalyPartitionMap anomalyPartitionMap = anomalyObjectDto
                         .getAnomalyPartitionMap(selectedRoleOid);
-                DetectedAnomalyResult anomalyResult = anomalyPartitionMap.anomalyResult();
+                DetectedAnomalyResultType anomalyResult = anomalyPartitionMap.anomalyResult();
 
                 RoleAnalysisService roleAnalysisService = getPageBase().getRoleAnalysisService();
 
-                DetectedAnomalyStatistics statistics = anomalyResult.getStatistics();
+                DetectedAnomalyStatisticsType statistics = anomalyResult.getStatistics();
                 if (statistics == null || statistics.getAttributeAnalysis() == null) {
                     return new WebMarkupContainer(panelId);
                 }
 
-                AttributeAnalysis attributeAnalysis = statistics.getAttributeAnalysis();
-                RoleAnalysisAttributeAnalysisResult userAttributeAnalysisResult = attributeAnalysis
+                AttributeAnalysisType attributeAnalysis = statistics.getAttributeAnalysis();
+                RoleAnalysisAttributeAnalysisResultType userAttributeAnalysisResult = attributeAnalysis
                         .getUserAttributeAnalysisResult();
                 if (userAttributeAnalysisResult == null) {
                     return new WebMarkupContainer(panelId);
@@ -232,7 +232,7 @@ public class RoleAnalysisExplanationTabPanelPopup extends BasePanel<AnomalyObjec
     }
 
     private @Nullable PolyStringType getAnomalyName() {
-        DetectedAnomalyResult anomalyResult = getModelObject().getAnomalyResult(selectedRoleOid);
+        DetectedAnomalyResultType anomalyResult = getModelObject().getAnomalyResult(selectedRoleOid);
         ObjectReferenceType targetObjectRef = anomalyResult.getTargetObjectRef();
         if (targetObjectRef == null) {
             return null;

@@ -13,7 +13,6 @@ import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractAnalysisSessionOptionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AttributeAnalysis;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 
 import org.springframework.stereotype.Component;

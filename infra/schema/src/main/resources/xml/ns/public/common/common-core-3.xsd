@@ -11081,6 +11081,16 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element name="ownMicroseconds" type="xsd:long" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        How long the operation took, except for the children (if known).
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:since>4.10</a:since>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
             <xsd:element name="cpuMicroseconds" type="xsd:long" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -13699,12 +13709,10 @@
         <xsd:annotation>
             <xsd:documentation>
                 How operationExecution records should be updated.
-                EXPERIMENTAL
             </xsd:documentation>
             <xsd:appinfo>
                 <a:container/>
                 <a:since>4.0</a:since>
-                <a:experimental>true</a:experimental>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>

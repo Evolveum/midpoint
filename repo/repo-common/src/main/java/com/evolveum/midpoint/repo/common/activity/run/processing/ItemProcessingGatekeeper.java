@@ -155,6 +155,8 @@ class ItemProcessingGatekeeper<I> {
             var oldSimulationTransaction = workerTask.setSimulationTransaction(activityRun.getSimulationTransaction());
             try {
                 startLocalConnIdListeningIfNeeded(result);
+
+                // After this call, "processingResult.operationResult" will be a closed child of "result".
                 processingResult = doProcessItem(result);
             } finally {
                 workerTask.setSimulationTransaction(oldSimulationTransaction);
@@ -347,12 +349,8 @@ class ItemProcessingGatekeeper<I> {
     }
 
     private void cleanupAndSummarizeResults(OperationResult parentResult) {
-        OperationResult itemProcessingResult = processingResult.operationResult;
-        if (itemProcessingResult.isSuccess() && itemProcessingResult.canBeCleanedUp()) {
-            // FIXME: hack. Hardcoded ugly summarization of successes. something like
-            //   AbstractSummarizingResultHandler [lazyman]
-            itemProcessingResult.getSubresults().clear();
-        }
+        assert processingResult.operationResult.isClosed();
+        processingResult.operationResult.deleteSubresultsIfPossible();
 
         // parentResult is worker-thread-specific result (because of concurrency issues)
         // or parentResult as obtained in handle(..) method in single-thread scenario
@@ -581,7 +579,9 @@ class ItemProcessingGatekeeper<I> {
          */
         @NotNull private final OperationResult operationResult;
 
-        private ProcessingResult(@NotNull ItemProcessingOutcomeType outcome, @Nullable Throwable exception,
+        private ProcessingResult(
+                @NotNull ItemProcessingOutcomeType outcome,
+                @Nullable Throwable exception,
                 @NotNull OperationResult operationResult) {
             this.operationResult = operationResult;
             this.outcome = new QualifiedItemProcessingOutcomeType()
@@ -603,27 +603,27 @@ class ItemProcessingGatekeeper<I> {
             }
         }
 
-        public static ProcessingResult fromException(OperationResult result, Throwable e) {
+        static ProcessingResult fromException(OperationResult result, Throwable e) {
             return new ProcessingResult(ItemProcessingOutcomeType.FAILURE, e, result);
         }
 
-        public boolean isError() {
+        boolean isError() {
             return outcome.getOutcome() == ItemProcessingOutcomeType.FAILURE;
         }
 
-        public boolean isSuccess() {
+        boolean isSuccess() {
             return outcome.getOutcome() == ItemProcessingOutcomeType.SUCCESS;
         }
 
-        public boolean isSkip() {
+        boolean isSkip() {
             return outcome.getOutcome() == ItemProcessingOutcomeType.SKIP;
         }
 
-        public String getMessage() {
+        String getMessage() {
             return exception != null ? exception.getMessage() : null;
         }
 
-        public Throwable getExceptionRequired() {
+        Throwable getExceptionRequired() {
             return requireNonNull(exception, "Error without exception");
         }
 

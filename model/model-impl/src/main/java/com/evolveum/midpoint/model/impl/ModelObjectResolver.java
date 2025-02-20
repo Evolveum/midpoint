@@ -8,6 +8,7 @@ package com.evolveum.midpoint.model.impl;
 
 import static com.evolveum.midpoint.model.impl.controller.ModelController.getObjectManager;
 import static com.evolveum.midpoint.schema.GetOperationOptions.createReadOnlyCollection;
+import static com.evolveum.midpoint.schema.result.OperationResult.HANDLE_OBJECT_FOUND;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -25,7 +26,6 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.model.api.hooks.HookRegistry;
-import com.evolveum.midpoint.model.api.hooks.ReadHook;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
@@ -55,6 +55,8 @@ public class ModelObjectResolver implements ObjectResolver {
     @Autowired(required = false) private HookRegistry hookRegistry;
 
     private static final Trace LOGGER = TraceManager.getTrace(ModelObjectResolver.class);
+
+    private static final String OP_HANDLE_OBJECT_FOUND = ModelObjectResolver.class.getName() + "." + HANDLE_OBJECT_FOUND;
 
     @Override
     public <O extends ObjectType> @NotNull O resolve(
@@ -148,11 +150,7 @@ public class ModelObjectResolver implements ObjectResolver {
                         GetOperationOptions.isAllowNotFound(options));
             }
 
-            if (hookRegistry != null) {
-                for (ReadHook hook : hookRegistry.getAllReadHooks()) {
-                    hook.invoke(object, options, task, result);
-                }
-            }
+            hookRegistry.invokeReadHooks(object, options, task, result);
         } catch (RuntimeException | Error ex) {
             LoggingUtils.logUnexpectedException(LOGGER, "Error resolving object with oid {}, expected type was {}.", ex, oid, clazz);
             throw new SystemException("Error resolving object with oid '" + oid + "': " + ex.getMessage(), ex);
@@ -165,15 +163,18 @@ public class ModelObjectResolver implements ObjectResolver {
             Collection<SelectorOptions<GetOperationOptions>> options, ResultHandler<O> handler, Task task, OperationResult result)
             throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
             SecurityViolationException, ExpressionEvaluationException {
+        // This is maybe not strictly necessary, beause there's no processing here.
+        // But we're definitely at the components boundary, so let us mark it in the operation result.
+        var resultProvidingHandler = handler.providingOwnOperationResult(OP_HANDLE_OBJECT_FOUND);
         switch (getObjectManager(type, options)) {
             case PROVISIONING:
-                provisioning.searchObjectsIterative(type, query, options, handler, task, result);
+                provisioning.searchObjectsIterative(type, query, options, resultProvidingHandler, task, result);
                 break;
             case TASK_MANAGER:
-                taskManager.searchObjectsIterative(type, query, options, handler, result);
+                taskManager.searchObjectsIterative(type, query, options, resultProvidingHandler, result);
                 break;
             default:
-                cacheRepositoryService.searchObjectsIterative(type, query, handler, options, true, result);
+                cacheRepositoryService.searchObjectsIterative(type, query, resultProvidingHandler, options, true, result);
         }
     }
 

@@ -57,7 +57,7 @@ public class RepeatingAttributeForm extends BasePanel<String> {
     boolean isResultExpanded = false;
 
     public RepeatingAttributeForm(String id,
-            @NotNull RoleAnalysisAttributeAnalysisResult attributeAnalysisResult,
+            @NotNull RoleAnalysisAttributeAnalysisResultType attributeAnalysisResult,
             @NotNull Set<String> objectsOid,
             @NotNull RoleAnalysisProcessModeType processMode) {
         super(id);
@@ -105,16 +105,16 @@ public class RepeatingAttributeForm extends BasePanel<String> {
     }
 
     private void initProgressBars(
-            @NotNull RoleAnalysisAttributeAnalysisResult attributeAnalysisResult,
+            @NotNull RoleAnalysisAttributeAnalysisResultType attributeAnalysisResult,
             @NotNull RepeatingView repeatingProgressBar,
             @NotNull WebMarkupContainer containerFirstGroup, Set<String> pathToMark) {
         int maxVisibleBars = 3;
         int totalBars = 0;
 
-        List<RoleAnalysisAttributeAnalysis> attributeAnalysis = attributeAnalysisResult.getAttributeAnalysis();
-        List<RoleAnalysisAttributeAnalysis> toSort = new ArrayList<>();
-        for (RoleAnalysisAttributeAnalysis roleAnalysisAttributeAnalysis : attributeAnalysis) {
-            List<RoleAnalysisAttributeStatistics> attributeStatistics = roleAnalysisAttributeAnalysis.getAttributeStatistics();
+        List<RoleAnalysisAttributeAnalysisType> attributeAnalysis = attributeAnalysisResult.getAttributeAnalysis();
+        List<RoleAnalysisAttributeAnalysisType> toSort = new ArrayList<>();
+        for (RoleAnalysisAttributeAnalysisType roleAnalysisAttributeAnalysis : attributeAnalysis) {
+            List<RoleAnalysisAttributeStatisticsType> attributeStatistics = roleAnalysisAttributeAnalysis.getAttributeStatistics();
             if (attributeStatistics != null && !attributeStatistics.isEmpty()) {
                 toSort.add(roleAnalysisAttributeAnalysis);
             }
@@ -125,7 +125,7 @@ public class RepeatingAttributeForm extends BasePanel<String> {
             return Double.compare(density2, density1);
         });
 
-        for (RoleAnalysisAttributeAnalysis roleAnalysisAttributeAnalysis : toSort) {
+        for (RoleAnalysisAttributeAnalysisType roleAnalysisAttributeAnalysis : toSort) {
 
             ProgressBarForm progressBarForm = new ProgressBarForm(
                     repeatingProgressBar.newChildId(),

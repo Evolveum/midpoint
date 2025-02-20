@@ -2,7 +2,7 @@ package com.evolveum.midpoint.common.mining.objects.analysis.cache;
 
 import com.evolveum.midpoint.common.mining.objects.analysis.AttributePathResult;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisAttributeAnalysisResult;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisAttributeAnalysisResultType;
 
 import com.google.common.collect.ListMultimap;
 
@@ -42,11 +42,11 @@ public class AttributeAnalysisCache {
         memberUserCache.putPathResult(user, key, value);
     }
 
-    public void putUserAttributeAnalysisCache(String user, RoleAnalysisAttributeAnalysisResult value) {
+    public void putUserAttributeAnalysisCache(String user, RoleAnalysisAttributeAnalysisResultType value) {
         userCache.put(user, value);
     }
 
-    public void putRoleMemberAnalysisCache(String role, RoleAnalysisAttributeAnalysisResult value) {
+    public void putRoleMemberAnalysisCache(String role, RoleAnalysisAttributeAnalysisResultType value) {
         roleMemberAttributeCache.put(role, value);
     }
 
@@ -62,11 +62,11 @@ public class AttributeAnalysisCache {
         memberUserCache.putUserResult(user, value);
     }
 
-    public RoleAnalysisAttributeAnalysisResult getUserAttributeAnalysisCache(String user) {
+    public RoleAnalysisAttributeAnalysisResultType getUserAttributeAnalysisCache(String user) {
         return userCache.get(user);
     }
 
-    public RoleAnalysisAttributeAnalysisResult getRoleMemberAnalysisCache(String role) {
+    public RoleAnalysisAttributeAnalysisResultType getRoleMemberAnalysisCache(String role) {
         return roleMemberAttributeCache.get(role);
     }
 

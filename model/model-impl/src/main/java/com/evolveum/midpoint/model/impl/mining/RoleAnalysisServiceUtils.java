@@ -369,9 +369,9 @@ public class RoleAnalysisServiceUtils {
         return createAssignmentTo(unassignedRole, ObjectTypes.ROLE);
     }
 
-    protected static double calculateDensity(@NotNull List<RoleAnalysisAttributeAnalysis> attributeAnalysisList) {
+    protected static double calculateDensity(@NotNull List<RoleAnalysisAttributeAnalysisType> attributeAnalysisList) {
         double totalDensity = 0.0;
-        for (RoleAnalysisAttributeAnalysis attributeAnalysis : attributeAnalysisList) {
+        for (RoleAnalysisAttributeAnalysisType attributeAnalysis : attributeAnalysisList) {
             Double density = attributeAnalysis.getDensity();
             if (density != null) {
                 totalDensity += density;
@@ -381,12 +381,12 @@ public class RoleAnalysisServiceUtils {
     }
 
     protected static @Nullable Set<String> extractCorrespondingOutlierValues(
-            @NotNull RoleAnalysisAttributeAnalysisResult outlierCandidateAttributeAnalysisResult, String itemPath) {
-        List<RoleAnalysisAttributeAnalysis> outlier = outlierCandidateAttributeAnalysisResult.getAttributeAnalysis();
-        for (RoleAnalysisAttributeAnalysis outlierAttribute : outlier) {
+            @NotNull RoleAnalysisAttributeAnalysisResultType outlierCandidateAttributeAnalysisResult, String itemPath) {
+        List<RoleAnalysisAttributeAnalysisType> outlier = outlierCandidateAttributeAnalysisResult.getAttributeAnalysis();
+        for (RoleAnalysisAttributeAnalysisType outlierAttribute : outlier) {
             if (outlierAttribute.getItemPath().equals(itemPath)) {
                 Set<String> outlierValues = new HashSet<>();
-                for (RoleAnalysisAttributeStatistics attributeStatistic : outlierAttribute.getAttributeStatistics()) {
+                for (RoleAnalysisAttributeStatisticsType attributeStatistic : outlierAttribute.getAttributeStatistics()) {
                     outlierValues.add(attributeStatistic.getAttributeValue());
                 }
                 return outlierValues;

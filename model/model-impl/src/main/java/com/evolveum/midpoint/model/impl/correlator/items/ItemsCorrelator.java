@@ -230,6 +230,7 @@ public class ItemsCorrelator extends BaseCorrelator<ItemsCorrelatorType> {
                     (Class<ObjectType>) correlationContext.getFocusType(),
                     query,
                     (prismObject, lResult) -> {
+                        // not providing own operation result, as the processing is minimal here
                         //noinspection unchecked
                         candidates.add((C) prismObject.asObjectable());
                         if (candidates.size() > MAX_CANDIDATES) {

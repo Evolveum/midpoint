@@ -9,7 +9,6 @@ package com.evolveum.midpoint.model.impl.mining.algorithm.cluster.action.cluster
 
 import static com.evolveum.midpoint.model.impl.mining.algorithm.cluster.action.util.ClusteringUtils.*;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import com.evolveum.midpoint.common.mining.objects.analysis.cache.AttributeAnalysisCache;
@@ -26,7 +25,6 @@ import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.model.api.mining.RoleAnalysisService;
 import com.evolveum.midpoint.model.impl.mining.algorithm.cluster.mechanism.*;
 import com.evolveum.midpoint.model.impl.mining.utils.RoleAnalysisAlgorithmUtils;
-import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -39,7 +37,6 @@ public class RoleBasedClustering implements Clusterable {
 
     public static final Trace LOGGER = TraceManager.getTrace(RoleBasedClustering.class);
 
-
     /**
      * Executes the clustering operation for role analysis.
      *
@@ -51,10 +48,9 @@ public class RoleBasedClustering implements Clusterable {
      * @param objectCategorisationCache The cache for storing object categorisation data.
      * @param task The task being executed.
      * @param result The operation result to record the outcome.
-     * @return A list of PrismObject instances representing the role analysis clusters.
      */
     @Override
-    public @NotNull List<PrismObject<RoleAnalysisClusterType>> executeClustering(
+    public void executeClustering(
             @NotNull RoleAnalysisService roleAnalysisService,
             @NotNull ModelService modelService,
             @NotNull RoleAnalysisSessionType session,
@@ -92,7 +88,7 @@ public class RoleBasedClustering implements Clusterable {
 
         if (chunkMap.isEmpty()) {
             LOGGER.warn("No data to process.");
-            return new ArrayList<>();
+            return;
         }
 
         handler.enterNewStep(PREPARING_DATA_POINTS_STEP);
@@ -108,7 +104,7 @@ public class RoleBasedClustering implements Clusterable {
 
         List<Cluster<DataPoint>> clusters = dbscan.cluster(dataPoints, handler);
 
-        return new RoleAnalysisAlgorithmUtils().processClusters(roleAnalysisService, dataPoints, clusters, session,
+        new RoleAnalysisAlgorithmUtils().processClusters(roleAnalysisService, dataPoints, clusters, session,
                 attributeAnalysisCache, objectCategorisationCache, handler, task, result);
 
     }

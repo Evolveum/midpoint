@@ -7,24 +7,19 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.cluster;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Objects;
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.tables.tile.component.RoleAnalysisCandidateRoleTileTable;
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.tables.tile.model.RoleAnalysisCandidateRolesDto;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.WebMarkupContainer;
-import org.apache.wicket.model.LoadableDetachableModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.impl.page.admin.AbstractObjectMainPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.ObjectDetailsModels;
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.tables.tile.RoleAnalysisCandidateRoleTileTable;
 import com.evolveum.midpoint.gui.impl.util.DetailsPageUtil;
 import com.evolveum.midpoint.model.api.mining.RoleAnalysisService;
-import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.web.application.PanelDisplay;
@@ -32,6 +27,7 @@ import com.evolveum.midpoint.web.application.PanelInstance;
 import com.evolveum.midpoint.web.application.PanelType;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import org.jetbrains.annotations.NotNull;
 
 @PanelType(name = "candidateRoles")
 @PanelInstance(
@@ -66,37 +62,18 @@ public class CandidateRolesPanel extends AbstractObjectMainPanel<RoleAnalysisClu
         container.setOutputMarkupId(true);
         add(container);
 
-        Task task = getPageBase().createSimpleTask(OP_PREPARE_OBJECTS);
-        RoleAnalysisClusterType cluster = getObjectDetailsModels().getObjectType();
-        List<RoleAnalysisCandidateRoleType> candidateRoles = cluster.getCandidateRoles();
-        ObjectReferenceType roleAnalysisSessionRef = cluster.getRoleAnalysisSessionRef();
-        RoleAnalysisService roleAnalysisService = getPageBase().getRoleAnalysisService();
-
-        HashMap<String, RoleAnalysisCandidateRoleType> cacheCandidate = new HashMap<>();
-        List<RoleType> roles = new ArrayList<>();
-        for (RoleAnalysisCandidateRoleType candidateRoleType : candidateRoles) {
-            ObjectReferenceType candidateRoleRef = candidateRoleType.getCandidateRoleRef();
-            PrismObject<RoleType> role = roleAnalysisService.getRoleTypeObject(candidateRoleRef.getOid(), task, result);
-            if (Objects.nonNull(role)) {
-                cacheCandidate.put(candidateRoleRef.getOid(), candidateRoleType);
-                roles.add(role.asObjectable());
-            }
-        }
-
-        ObjectReferenceType clusterRef = new ObjectReferenceType().oid(cluster.getOid())
-                .type(RoleAnalysisClusterType.COMPLEX_TYPE)
-                .targetName(cluster.getName());
-
-        RoleAnalysisCandidateRoleTileTable components = new RoleAnalysisCandidateRoleTileTable(ID_PANEL, getPageBase(),
-                new LoadableDetachableModel<>() {
-                    @Override
-                    protected List<RoleType> load() {
-                        return roles;
-                    }
-                }, cacheCandidate, clusterRef, roleAnalysisSessionRef) {
+        RoleAnalysisCandidateRoleTileTable components = new RoleAnalysisCandidateRoleTileTable(ID_PANEL,
+                CandidateRolesPanel.this.getPageBase(),
+                () -> {
+                    PageBase pageBase = CandidateRolesPanel.this.getPageBase();
+                    Task task = pageBase.createSimpleTask(OP_PREPARE_OBJECTS);
+                    RoleAnalysisClusterType cluster = getObjectDetailsModels().getObjectType();
+                    RoleAnalysisService roleAnalysisService = pageBase.getRoleAnalysisService();
+                    return new RoleAnalysisCandidateRolesDto(roleAnalysisService, cluster, task, result);
+                }) {
 
             @Override
-            protected void onRefresh(AjaxRequestTarget target) {
+            protected void onRefresh(@NotNull AjaxRequestTarget target) {
                 performRefresh();
             }
         };
@@ -125,6 +102,7 @@ public class CandidateRolesPanel extends AbstractObjectMainPanel<RoleAnalysisClu
                 result, task, false, getPageBase().getModelInteractionService());
     }
 
+    @Override
     public PageBase getPageBase() {
         return ((PageBase) getPage());
     }

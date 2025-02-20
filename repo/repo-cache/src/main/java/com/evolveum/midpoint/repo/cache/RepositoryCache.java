@@ -54,7 +54,21 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 public class RepositoryCache implements RepositoryService, Cache {
 
     public static final String CLASS_NAME_WITH_DOT = RepositoryCache.class.getName() + ".";
-    private static final String EXECUTE_QUERY_DIAGNOSTICS = CLASS_NAME_WITH_DOT + "executeQueryDiagnostics";
+
+    public static final String OP_GET_OBJECT_IMPL = CLASS_NAME_WITH_DOT + "getObject";
+
+    public static final String OP_SEARCH_OBJECTS_IMPL = CLASS_NAME_WITH_DOT + OP_SEARCH_OBJECTS;
+    public static final String OP_SEARCH_OBJECTS_ITERATIVE_IMPL = CLASS_NAME_WITH_DOT + OP_SEARCH_OBJECTS_ITERATIVE;
+    public static final String OP_SEARCH_CONTAINERS_ITERATIVE_IMPL = CLASS_NAME_WITH_DOT + OP_SEARCH_CONTAINERS_ITERATIVE;
+    public static final String OP_SEARCH_REFERENCES_ITERATIVE_IMPL = CLASS_NAME_WITH_DOT + OP_SEARCH_REFERENCES_ITERATIVE;
+    public static final String OP_COUNT_REFERENCES_IMPL = CLASS_NAME_WITH_DOT + OP_COUNT_REFERENCES;
+    public static final String OP_SEARCH_REFERENCES_IMPL = CLASS_NAME_WITH_DOT + OP_SEARCH_REFERENCES;
+    public static final String OP_COUNT_OBJECTS_IMPL = CLASS_NAME_WITH_DOT + OP_COUNT_OBJECTS;
+    public static final String OP_COUNT_CONTAINERS_IMPL = CLASS_NAME_WITH_DOT + OP_COUNT_CONTAINERS;
+    public static final String OP_SEARCH_CONTAINERS_IMPL = CLASS_NAME_WITH_DOT + OP_SEARCH_CONTAINERS;
+    private static final String OP_EXECUTE_QUERY_DIAGNOSTICS_IMPL = CLASS_NAME_WITH_DOT + OP_EXECUTE_QUERY_DIAGNOSTICS;
+    public static final String OP_ITERATE_OVER_QUERY_RESULT = CLASS_NAME_WITH_DOT + "iterateOverQueryResult";
+    public static final String OP_HANDLE_OBJECT_FOUND_IMPL = CLASS_NAME_WITH_DOT + OperationResult.HANDLE_OBJECT_FOUND;
 
     @Autowired private RepositoryService repositoryService;
     @Autowired private CacheRegistry cacheRegistry;
@@ -131,7 +145,12 @@ public class RepositoryCache implements RepositoryService, Cache {
     }
 
     @Override
-    public <T extends Containerable> SearchResultMetadata searchContainersIterative(Class<T> type, ObjectQuery query, ObjectHandler<T> handler, Collection<SelectorOptions<GetOperationOptions>> options, OperationResult parentResult) throws SchemaException {
+    public <T extends Containerable> SearchResultMetadata searchContainersIterative(
+            @NotNull Class<T> type,
+            ObjectQuery query,
+            @NotNull ObjectHandler<T> handler,
+            Collection<SelectorOptions<GetOperationOptions>> options,
+            @NotNull OperationResult parentResult) throws SchemaException {
         return searchOpHandler.searchContainersIterative(type, query, handler, options, parentResult);
     }
 
@@ -345,7 +364,7 @@ public class RepositoryCache implements RepositoryService, Cache {
 
     @Override
     public RepositoryQueryDiagResponse executeQueryDiagnostics(RepositoryQueryDiagRequest request, OperationResult parentResult) {
-        OperationResult result = parentResult.subresult(EXECUTE_QUERY_DIAGNOSTICS)
+        OperationResult result = parentResult.subresult(OP_EXECUTE_QUERY_DIAGNOSTICS_IMPL)
                 .build();
         try {
             Long startTime = repoOpStart();

@@ -13,7 +13,6 @@ import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.table.
 import java.io.Serial;
 import java.util.List;
 
-import com.google.common.collect.ListMultimap;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -28,7 +27,6 @@ import org.jetbrains.annotations.Nullable;
 import com.evolveum.midpoint.common.mining.objects.analysis.RoleAnalysisAttributeDef;
 import com.evolveum.midpoint.common.mining.objects.chunk.DisplayValueOption;
 import com.evolveum.midpoint.common.mining.objects.chunk.MiningBaseTypeChunk;
-import com.evolveum.midpoint.common.mining.objects.detection.PatternDetectionOption;
 import com.evolveum.midpoint.common.mining.utils.values.RoleAnalysisChunkMode;
 import com.evolveum.midpoint.common.mining.utils.values.RoleAnalysisOperationMode;
 import com.evolveum.midpoint.common.mining.utils.values.RoleAnalysisSortMode;
@@ -37,15 +35,12 @@ import com.evolveum.midpoint.gui.impl.component.icon.CompositedIcon;
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
 import com.evolveum.midpoint.gui.impl.component.icon.IconCssStyle;
 import com.evolveum.midpoint.gui.impl.component.icon.LayeredIconCssStyle;
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.tables.operation.OutlierPatternResolver;
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.tables.operation.SimpleHeatPattern;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.web.component.AjaxCompositedIconSubmitButton;
 import com.evolveum.midpoint.web.component.data.RoleAnalysisObjectDto;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisProcessModeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
@@ -170,30 +165,6 @@ public abstract class RoleAnalysisObjectColumn<A extends MiningBaseTypeChunk> ex
             return title;
         }
         return null;
-    }
-
-    //Experimental method
-    private String computeOutlierExperimentalInfo(@NotNull IModel<A> rowModel, String title) {
-        PatternDetectionOption detectionOption = new PatternDetectionOption(
-                10, 100, 2, 2);
-        //This is overhead operation. Just for testing.
-        ListMultimap<String, SimpleHeatPattern> totalRelationOfPatternsForChunk = new OutlierPatternResolver()
-                .performDetection(RoleAnalysisProcessModeType.USER, getAdditionalMiningChunk(), detectionOption);
-
-        A object = rowModel.getObject();
-        List<String> members = object.getMembers();
-        //All members dispose of the same access rights
-        String memberOid = members.get(0);
-        List<SimpleHeatPattern> simpleHeatPatterns = totalRelationOfPatternsForChunk.get(memberOid);
-        if (!simpleHeatPatterns.isEmpty()) {
-            int totalRelations = 0;
-            for (SimpleHeatPattern simpleHeatPattern : simpleHeatPatterns) {
-                totalRelations += simpleHeatPattern.getTotalRelations();
-            }
-
-            title = title + " (" + totalRelations + "relations) " + " (" + simpleHeatPatterns.size() + " patterns)";
-        }
-        return title;
     }
 
     @Override

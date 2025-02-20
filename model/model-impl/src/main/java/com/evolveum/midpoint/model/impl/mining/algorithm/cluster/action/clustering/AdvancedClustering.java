@@ -44,7 +44,7 @@ public class AdvancedClustering implements Clusterable {
     public static final Trace LOGGER = TraceManager.getTrace(AdvancedClustering.class);
 
     @Override
-    public @NotNull List<PrismObject<RoleAnalysisClusterType>> executeClustering(
+    public void executeClustering(
             @NotNull RoleAnalysisService roleAnalysisService,
             @NotNull ModelService modelService,
             @NotNull RoleAnalysisSessionType session,
@@ -58,15 +58,15 @@ public class AdvancedClustering implements Clusterable {
         RoleAnalysisProcessModeType processMode = analysisOption.getProcessMode();
 
         if (processMode.equals(RoleAnalysisProcessModeType.ROLE)) {
-            return executeRoleBasedAdvancedClustering(roleAnalysisService, session,
+            executeRoleBasedAdvancedClustering(roleAnalysisService, session,
                     attributeAnalysisCache, objectCategorisationCache, handler, task, result);
         } else {
-            return executeUserBasedAdvancedClustering(roleAnalysisService, session,
+            executeUserBasedAdvancedClustering(roleAnalysisService, session,
                     attributeAnalysisCache, objectCategorisationCache, handler, task, result);
         }
     }
 
-    public @NotNull List<PrismObject<RoleAnalysisClusterType>> executeRoleBasedAdvancedClustering(
+    public void executeRoleBasedAdvancedClustering(
             @NotNull RoleAnalysisService roleAnalysisService,
             @NotNull RoleAnalysisSessionType session,
             @NotNull AttributeAnalysisCache attributeAnalysisCache,
@@ -97,7 +97,7 @@ public class AdvancedClustering implements Clusterable {
 
         if (dataPoints.isEmpty()) {
             LOGGER.warn("No data to process.");
-            return new ArrayList<>();
+            return;
         }
 
         DistanceMeasure distanceMeasure = new JaccardDistancesMeasure(
@@ -111,11 +111,11 @@ public class AdvancedClustering implements Clusterable {
 
         List<Cluster<DataPoint>> clusters = dbscan.cluster(dataPoints, handler);
 
-        return new RoleAnalysisAlgorithmUtils().processClusters(roleAnalysisService, dataPoints, clusters, session,
+        new RoleAnalysisAlgorithmUtils().processClusters(roleAnalysisService, dataPoints, clusters, session,
                 attributeAnalysisCache, objectCategorisationCache, handler, task, result);
     }
 
-    public @NotNull List<PrismObject<RoleAnalysisClusterType>> executeUserBasedAdvancedClustering(
+    public void executeUserBasedAdvancedClustering(
             @NotNull RoleAnalysisService roleAnalysisService,
             @NotNull RoleAnalysisSessionType session,
             @NotNull AttributeAnalysisCache attributeAnalysisCache,
@@ -156,7 +156,7 @@ public class AdvancedClustering implements Clusterable {
 
         if (dataPoints.isEmpty()) {
             LOGGER.info("No data to process.");
-            return new ArrayList<>();
+            return;
         }
 
         DistanceMeasure distanceMeasure = new JaccardDistancesMeasure(
@@ -170,7 +170,7 @@ public class AdvancedClustering implements Clusterable {
 
         List<Cluster<DataPoint>> clusters = dbscan.cluster(dataPoints, handler);
 
-        return new RoleAnalysisAlgorithmUtils().processClusters(roleAnalysisService, dataPoints, clusters, session,
+        new RoleAnalysisAlgorithmUtils().processClusters(roleAnalysisService, dataPoints, clusters, session,
                 attributeAnalysisCache, objectCategorisationCache, handler, task, result);
     }
 

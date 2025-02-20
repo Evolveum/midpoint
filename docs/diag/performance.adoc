@@ -1,0 +1,106 @@
+= Performance Tuning
+:page-since: 4.9
+:page-upkeep-status: green
+
+MidPoint 4.9 introduced new functionality, intended for ease of use, which is enabled by default and may impact performance of existing deployments.
+This new functionality is not necessary for some deployments (depending on their configuration) and can be fine-tuned or turned off to gain performance.
+
+
+== Default provenance metadata for multivalues
+
+MidPoint 4.9 has provenance metadata enabled by default for multivalue properties, which are created / edited by mappings.
+This functionality simplifies writing of mappings and makes default behaviour more predictable, where mappings can only remove values, they emmited.
+
+=== Impact
+
+The provenance metadata for multivalue properties results in larger data structures (instead of storing just value, identifiers of resource and mapping, which emitted this value).
+This increases memory consumption, storage consumption at database level and processing time necessary for creation, serialization and deserialization of these metadata.
+
+The performance impact increases with number of multivalue properties in use and mappings.
+
+=== Mitigation
+
+If deployment does use mappings for multivalue metadata, but all such mappings has custom range defined, default provenance metadata can be turned off in system configuration.
+The option for disabling provenance metadata by default is `internals/valueMetadata/disableDefaultMultivalueProvenance`
+
+[source, xml]
+----
+<systemConfiguration>
+    ...
+    <internals>
+        <valueMetadata>
+            <disableDefaultMultivalueProvenance>true</disableDefaultMultivalueProvenance>
+        </valueMetadata>
+    </internals>
+    ...
+</systemConfiguration>
+----
+
+[#_shadow_caching]
+== Shadow Caching
+
+Since 4.9, the xref:/midpoint/reference/resources/attribute-caching/[shadow caching] is enabled by default.
+It means that shadow attributes and other items (like activation or credentials) are stored in midPoint repository.
+This improves the performance and reliability for slow and/or unreliable resources, especially when dealing with ones in cloud.
+It also broadens possibilities related to reporting, as the required data are stored right in midPoint.
+
+=== Impact
+
+However, storing additional information in midPoint repository has a performance impact.
+
+First, there is more data to be stored, so the database tables are larger.
+When processing this data, more RAM and processing power (CPU) is needed.
+Finally, if the caching is enabled, the maintenance of caching metadata (in particular the `retrievalTimestamp`) costs additional midPoint repository update on each read operation executed against the resource - even if there is no real change of the data on the resource.
+
+This impact is more profound if the cache is used in the default mode (`useFresh`), where it is updated, but not used for regular operation - only for reporting.
+
+=== Mitigation
+
+For slow resources, we suggest turning on `useCachedOrFresh` mode.
+It will reduce the number of resource read operations, as well as the number of corresponding updates of `retrievalTimestamp` in midPoint repository.
+
+For fast resources with the need of instant reporting, we suggest using the (experimental) feature that turns off the maintenance of the `retrievalTimestamp` property:
+
+[source, xml]
+----
+<resource>
+    ...
+    <caching>
+        ...
+        <retrievalTimestampMaintenance>false</retrievalTimestampMaintenance>
+    </caching>
+</resource>
+----
+
+(It can be done at any level: system configuration, resource, or object type.)
+
+Finally, if the shadow caching is not needed, it is recommended to turn it off.
+
+[#_operation_execution_recording]
+== Operation Execution Recording
+
+The majority of objects in midPoint repository (like users and accounts) contain the information about most recent operations that were executed on them.
+This feature is crucial when displaying objects that failed during processing within a specific task.
+It also provides more visibility into what recent actions were done with a particular object.
+(In addition to audit records.)
+
+However, maintaining this information comes at a price: both space and processing time.
+The space penalty is bound by the maximum number of records kept per object, which is 10 by default: 5 simple ones and 5 complex ones.
+However, the processing time penalty is incurred each time an operation is completed for the object, even if the object is not modified by the operation (in case of complex execution records that reflect the fact that an object was processed by a task).
+
+If necessary, the operation execution recording can be limited to non-success states, by using the following configuration:
+
+[source,xml]
+----
+<systemConfiguration xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+    ...
+    <internals>
+        ...
+        <operationExecutionRecording>
+            <skipWhenSuccess>true</skipWhenSuccess>
+        </operationExecutionRecording>
+    </internals>
+</systemConfiguration>
+----
+
+It is the default setting for new installations.

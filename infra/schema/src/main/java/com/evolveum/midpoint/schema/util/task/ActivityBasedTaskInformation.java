@@ -8,22 +8,21 @@
 package com.evolveum.midpoint.schema.util.task;
 
 import static java.util.Objects.requireNonNull;
+import static java.util.Objects.requireNonNullElseGet;
 
 import static com.evolveum.midpoint.schema.util.task.ActivityProgressInformationBuilder.InformationSource.FULL_STATE_PREFERRED;
 
-import static java.util.Objects.requireNonNullElseGet;
-
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.util.LocalizableMessage;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
+import javax.xml.datatype.XMLGregorianCalendar;
 
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.util.DebugUtil;
-
-import javax.xml.datatype.XMLGregorianCalendar;
-import java.util.List;
-import java.util.Objects;
+import com.evolveum.midpoint.util.LocalizableMessage;
+import com.evolveum.midpoint.util.SingleLocalizableMessage;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
  * Implementation of {@link TaskInformation} based on new, activity-based tasks.
@@ -71,7 +70,7 @@ public class ActivityBasedTaskInformation extends TaskInformation {
     private static @NotNull ActivityStateType getLocalRootActivityState(@NotNull TaskType task) {
         return requireNonNullElseGet( // null only in very rare conditions
                 task.getActivityState().getActivity(),
-                () -> new ActivityStateType(PrismContext.get()));
+                () -> new ActivityStateType());
     }
 
     static @NotNull ActivityBasedTaskInformation fromActivityBasedSubtask(@NotNull TaskType task, @NotNull TaskType rootTask) {
@@ -94,7 +93,7 @@ public class ActivityBasedTaskInformation extends TaskInformation {
                     ActivityWorkersInformation.empty(),
                     OperationResultStatusType.UNKNOWN,
                     ActivityProgressInformation.unknown(activityPath),
-                    new ActivityStateType(PrismContext.get()));
+                    new ActivityStateType());
         }
     }
 
@@ -105,15 +104,29 @@ public class ActivityBasedTaskInformation extends TaskInformation {
 
     @Override
     public double getProgress() {
-        if (progressInformation.isComplete()){
+        if (progressInformation.isComplete()) {
             return 1.0;
         }
 
-//        List<ActivityProgressInformation> children = progressInformation.getChildren();
-//        long completed = children.stream().filter(ActivityProgressInformation::isComplete).count();
-//        return (double) completed / children.size();
+        // We need to list only leaf activities. Then compare them to the completed ones.
+        // Current drawback is that activities and their sub activities are created when they
+        // start, not during the task creation. This means that progress is not accurate for
+        // the whole task duration - 100% mark is "running away" as new sub activities are created.
+        List<ActivityProgressInformation> leafActivities = progressInformation.getChildren().stream()
+                .map(a -> {
+                    List<ActivityProgressInformation> l = new ArrayList<>(List.of(a));
+                    l.addAll(a.getChildren());
+                    return l;
+                })
+                .flatMap(List::stream)
+                .filter(a -> a.getChildren().isEmpty())
+                .toList();
 
-        return -1;// todo implement
+        long completed = leafActivities.stream()
+                .filter(ActivityProgressInformation::isComplete)
+                .count();
+
+        return (double) completed / leafActivities.size();
     }
 
     @Override
@@ -122,8 +135,45 @@ public class ActivityBasedTaskInformation extends TaskInformation {
     }
 
     @Override
-    public LocalizableMessage getTaskStatusDescription() {
-        return null;    // todo implement
+    public OperationResultStatusType getTaskHealthStatus() {
+        return workersInformation.getHealthStatus();
+    }
+
+    @Override
+    public LocalizableMessage getTaskHealthDescription() {
+        int executing = workersInformation.getWorkersExecuting();
+        int failed = workersInformation.getWorkersFailed();
+        int stalled = workersInformation.getWorkersStalled();
+
+        if (executing == 0) {
+            return new SingleLocalizableMessage("ActivityBasedTaskInformation.taskStatusDescription.zeroExecuting");
+        }
+
+        if (failed == 0 && stalled == 0) {
+            return new SingleLocalizableMessage(
+                    "ActivityBasedTaskInformation.taskStatusDescription.allExecuting",
+                    new Object[] { executing });
+        }
+
+        if (failed > 0 && stalled == 0) {
+            return new SingleLocalizableMessage(
+                    "ActivityBasedTaskInformation.taskStatusDescription.someFailed",
+                    new Object[] { failed, executing });
+        }
+
+        if (failed == 0 && stalled > 0) {
+            return new SingleLocalizableMessage(
+                    "ActivityBasedTaskInformation.taskStatusDescription.someStalled",
+                    new Object[] { stalled, executing });
+        }
+
+        if (failed > 0 && stalled > 0) {
+            return new SingleLocalizableMessage(
+                    "ActivityBasedTaskInformation.taskStatusDescription.someFailedAndStalled",
+                    new Object[] { failed, stalled, executing });
+        }
+
+        return null;
     }
 
     @Override

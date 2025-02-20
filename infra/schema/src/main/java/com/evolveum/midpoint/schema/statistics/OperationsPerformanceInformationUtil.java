@@ -17,6 +17,8 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 
+import static com.evolveum.midpoint.util.MiscUtil.or0;
+
 /**
  *
  */
@@ -37,6 +39,9 @@ public class OperationsPerformanceInformationUtil {
         rv.setTotalTime(info.getTotalTime());
         rv.setMinTime(info.getMinTime());
         rv.setMaxTime(info.getMaxTime());
+        rv.setOwnTime(info.getOwnTime());
+        rv.setMinOwnTime(info.getMinOwnTime());
+        rv.setMaxOwnTime(info.getMaxOwnTime());
         return rv;
     }
 
@@ -66,6 +71,12 @@ public class OperationsPerformanceInformationUtil {
         aggregate.setTotalTime(aggregate.getTotalTime() + part.getTotalTime());
         aggregate.setMinTime(min(aggregate.getMinTime(), part.getMinTime()));
         aggregate.setMaxTime(max(aggregate.getMaxTime(), part.getMaxTime()));
+        var partOwnTime = part.getOwnTime();
+        if (partOwnTime != null) {
+            aggregate.setOwnTime(or0(aggregate.getOwnTime()) + partOwnTime);
+        }
+        aggregate.setMinOwnTime(min(aggregate.getMinOwnTime(), part.getMinOwnTime()));
+        aggregate.setMaxOwnTime(max(aggregate.getMaxOwnTime(), part.getMaxOwnTime()));
     }
 
     private static Long min(Long a, Long b) {

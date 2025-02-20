@@ -54,6 +54,12 @@ ninja.sh export-mining -o role-mining-export.xml --disable-attribute
 ninja.sh export-mining -o role-mining-export.xml --anonymize-attribute-names --anonymize-ordinal-attribute-values
 ----
 
+.Example: role mining export with attribute values anonymization while excluding specific user attributes.
+[source,bash]
+----
+ninja.sh export-mining -o role-mining-export.xml --exclude-user-attribute="attribute_name_x, attribute_name_y"
+----
+
 .Example: role mining import.
 [source,bash]
 ----

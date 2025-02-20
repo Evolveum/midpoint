@@ -1007,49 +1007,58 @@ public abstract class AbstractMappingImpl<V extends PrismValue, D extends ItemDe
     }
 
     /**
-     * Special treatment of values present in both original item and zero/plus sets: values that were previously computed by this
-     * mapping (and are computed also now) are removed.
+     * Special treatment of values present in both original item and zero/plus sets: metadata values that were previously
+     * computed by this mapping - recognized by provenance - and are computed also now, but with different content, are removed.
+     *
+     * This is quite an expensive operation, so it should be optimized.
      */
-    private void deleteOwnYieldFromNonNegativeValues() throws SchemaException {
+    private void deleteOwnYieldFromNonNegativeValues() {
         if (outputTriple == null || originalTargetValues == null) {
             return;
         }
 
         for (V nonNegativeValue : outputTriple.getNonNegativeValues()) {
             if (nonNegativeValue != null) {
-                List<V> matchingOriginalValues = originalTargetValues.stream()
-                        .filter(originalValue ->
-                                nonNegativeValue.equals(originalValue, EquivalenceStrategy.REAL_VALUE_CONSIDER_DIFFERENT_IDS))
-                        .toList();
-                for (V matchingOriginalValue : matchingOriginalValues) {
-
-                    // Looking for metadata with the same mapping spec but not present in "new" value.
-                    // What about the equivalence strategy?
-                    //
-                    // - One option is DATA: This will remove all values that are not exactly the same as the newly
-                    //   computed one. It will provide "clean slate" to reflect even some minor non-real-value affecting changes.
-                    //   The cost is that phantom adds could be generated.
-                    //
-                    // - Another option is REAL_VALUE. This is currently a little bit complicated because some of the metadata
-                    //   that are important is now marked as operational. But we will gradually fix that.
-                    List<PrismContainerValue<ValueMetadataType>> matchingMetadata =
-                            matchingOriginalValue.<ValueMetadataType>getValueMetadataAsContainer().getValues().stream()
-                                    .filter(md -> hasMappingSpecification(md.asContainerable(), mappingSpecification)
-                                                    && !nonNegativeValue.<ValueMetadataType>getValueMetadataAsContainer().contains(md, REAL_VALUE))
-                                    .collect(Collectors.toList());
-
-                    if (!matchingMetadata.isEmpty()) {
-                        PrismValue valueToDelete = matchingOriginalValue.clone();
-                        valueToDelete.getValueMetadataAsContainer().clear();
-                        valueToDelete.<ValueMetadataType>getValueMetadataAsContainer().addAll(CloneUtil.cloneCollectionMembers(matchingMetadata));
-                        LOGGER.trace("Found an existing value with the metadata indicating it was created by this mapping: putting into minus set:\n{}\nMetadata:\n{}",
-                                DebugUtil.debugDumpLazily(valueToDelete, 1),
-                                DebugUtil.debugDumpLazily(valueToDelete.getValueMetadata(), 1));
-                        //noinspection unchecked
-                        outputTriple.addToMinusSet((V) valueToDelete);
+                for (V originalValue : originalTargetValues) {
+                    if (nonNegativeValue.equals(originalValue, EquivalenceStrategy.REAL_VALUE_CONSIDER_DIFFERENT_IDS)) {
+                        deleteOwnYieldIfDifferent(nonNegativeValue, originalValue);
                     }
                 }
             }
+        }
+    }
+
+    private void deleteOwnYieldIfDifferent(V nonNegativeValue, V matchingOriginalValue) {
+        // Looking for metadata with the same mapping spec but not present in "new" value.
+        // What about the equivalence strategy?
+        //
+        // - One option is DATA: This will remove all values that are not exactly the same as the newly
+        //   computed one. It will provide "clean slate" to reflect even some minor non-real-value affecting changes.
+        //   The cost is that phantom adds could be generated.
+        //
+        // - Another option is REAL_VALUE. This is currently a little bit complicated because some of the metadata
+        //   that are important is now marked as operational. But we will gradually fix that.
+        Collection<PrismContainerValue<ValueMetadataType>> matchingMetadataValues =
+                matchingOriginalValue.<ValueMetadataType>getValueMetadataAsContainer().getValues().stream()
+                        .filter(md -> hasMappingSpecification(md.asContainerable(), mappingSpecification)
+                                        && !nonNegativeValue.<ValueMetadataType>getValueMetadataAsContainer().contains(md, REAL_VALUE))
+                        .toList();
+
+        if (!matchingMetadataValues.isEmpty()) {
+            var valueToDelete = matchingOriginalValue.cloneComplex(CloneStrategy.LITERAL_NO_METADATA);
+            var mdContainer = valueToDelete.<ValueMetadataType>getValueMetadataAsContainer();
+            for (var matchingMetadataValue : matchingMetadataValues) {
+                try {
+                    mdContainer.addIgnoringEquivalents(matchingMetadataValue.clone());
+                } catch (SchemaException e) {
+                    throw SystemException.unexpected(e, "(metadata values should have the schema checked)");
+                }
+            }
+            LOGGER.trace("Found an existing value with the metadata indicating it was created by this mapping: putting into minus set:\n{}\nMetadata:\n{}",
+                    DebugUtil.debugDumpLazily(valueToDelete, 1),
+                    DebugUtil.debugDumpLazily(valueToDelete.getValueMetadata(), 1));
+            //noinspection unchecked
+            outputTriple.addToMinusSet((V) valueToDelete);
         }
     }
 

@@ -147,7 +147,7 @@ public class RoleAnalysisObjectDto implements Serializable {
                 .getClusterOutlierPartitionsMap(cluster.getOid(), null, true, null, task, result);
 
         clusterTopOutliers.keySet().forEach(partition -> partition.getDetectedAnomalyResult().stream()
-                .map(DetectedAnomalyResult::getTargetObjectRef)
+                .map(DetectedAnomalyResultType::getTargetObjectRef)
                 .filter(ref -> ref != null && ref.getOid() != null)
                 .map(ObjectReferenceType::getOid)
                 .forEach(markedRoles::add));

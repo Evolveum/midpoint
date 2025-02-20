@@ -5,7 +5,7 @@
  * and European Union Public License. See LICENSE file for details.
  */
 
-package com.evolveum.midpoint.gui.impl.page.admin.role.mining.tables.tile;
+package com.evolveum.midpoint.gui.impl.page.admin.role.mining.tables.tile.component;
 
 import java.io.Serial;
 import java.util.ArrayList;
@@ -17,12 +17,10 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.ISortableDataProvider;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.panel.Fragment;
-import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.util.ListModel;
@@ -39,7 +37,6 @@ import com.evolveum.midpoint.gui.impl.component.tile.ViewToggle;
 import com.evolveum.midpoint.gui.impl.component.tile.mining.outlier.RoleAnalysisOutlierPartitionTileModel;
 import com.evolveum.midpoint.gui.impl.component.tile.mining.outlier.RoleAnalysisOutlierPartitionTilePanel;
 import com.evolveum.midpoint.gui.impl.component.tile.mining.session.RoleAnalysisSessionTileModel;
-import com.evolveum.midpoint.gui.impl.page.self.requestAccess.PageableListView;
 import com.evolveum.midpoint.gui.impl.util.IconAndStylesUtil;
 import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
 import com.evolveum.midpoint.web.component.AjaxIconButton;
@@ -49,19 +46,18 @@ import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.web.util.TooltipBehavior;
 
-public class RoleAnalysisOutlierPartitionTileTable extends BasePanel<String> {
+public class RoleAnalysisOutlierPartitionTileTable extends BasePanel<RoleAnalysisOutlierType> {
     private static final String ID_DATATABLE = "datatable";
     PageBase pageBase;
     IModel<List<Toggle<ViewToggle>>> items;
-    IModel<RoleAnalysisOutlierType> outlierModel;
 
     public RoleAnalysisOutlierPartitionTileTable(
             @NotNull String id,
             @NotNull PageBase pageBase,
             @NotNull IModel<RoleAnalysisOutlierType> outlierModel) {
-        super(id);
+        super(id, outlierModel);
+
         this.pageBase = pageBase;
-        this.outlierModel = outlierModel;
         this.items = new LoadableModel<>(false) {
 
             @Override
@@ -89,18 +85,6 @@ public class RoleAnalysisOutlierPartitionTileTable extends BasePanel<String> {
 
     public TileTablePanel<RoleAnalysisOutlierPartitionTileModel<RoleAnalysisOutlierPartitionType>, RoleAnalysisOutlierPartitionType> initTable() {
 
-        RoleMiningProvider<RoleAnalysisOutlierPartitionType> provider = new RoleMiningProvider<>(
-                this, new ListModel<>(getOutlierPartitionsToDisplay()) {
-
-            @Serial private static final long serialVersionUID = 1L;
-
-            @Override
-            public void setObject(List<RoleAnalysisOutlierPartitionType> object) {
-                super.setObject(object);
-            }
-
-        }, false);
-
         return new TileTablePanel<>(
                 ID_DATATABLE,
                 Model.of(ViewToggle.TILE),
@@ -114,11 +98,6 @@ public class RoleAnalysisOutlierPartitionTileTable extends BasePanel<String> {
             @Override
             protected List<IColumn<RoleAnalysisOutlierPartitionType, String>> createColumns() {
                 return RoleAnalysisOutlierPartitionTileTable.this.initColumns();
-            }
-
-            @Override
-            public void refresh(AjaxRequestTarget target) {
-                super.refresh(target);
             }
 
             @Override
@@ -189,11 +168,6 @@ public class RoleAnalysisOutlierPartitionTileTable extends BasePanel<String> {
             }
 
             @Override
-            protected void onInitialize() {
-                super.onInitialize();
-            }
-
-            @Override
             protected String getTilesFooterCssClasses() {
                 return "";
             }
@@ -205,18 +179,14 @@ public class RoleAnalysisOutlierPartitionTileTable extends BasePanel<String> {
 
             @Override
             protected ISortableDataProvider<?, ?> createProvider() {
-                return provider;
-            }
-
-            @Override
-            protected PageableListView<?, ?> createTilesPanel(String tilesId, ISortableDataProvider<RoleAnalysisOutlierPartitionType, String> provider1) {
-                return super.createTilesPanel(tilesId, provider1);
+                return new RoleMiningProvider<>(
+                        this, new ListModel<>(getOutlierPartitionsToDisplay()), false);
             }
 
             @SuppressWarnings({ "rawtypes", "unchecked" })
             @Override
             protected RoleAnalysisOutlierPartitionTileModel createTileObject(RoleAnalysisOutlierPartitionType partition) {
-                return new RoleAnalysisOutlierPartitionTileModel<>(partition, "TBA", getOutlierModel().getObject(), getPageBase());
+                return new RoleAnalysisOutlierPartitionTileModel<>(partition, "TBA", getOutlierObject(), getPageBase());
             }
 
             @Override
@@ -253,12 +223,6 @@ public class RoleAnalysisOutlierPartitionTileTable extends BasePanel<String> {
             @Serial private static final long serialVersionUID = 1L;
 
             @Override
-            public void populateItem(Item<ICellPopulator<RoleAnalysisOutlierPartitionType>> cellItem, String componentId,
-                    IModel<RoleAnalysisOutlierPartitionType> rowModel) {
-                super.populateItem(cellItem, componentId, rowModel);
-            }
-
-            @Override
             protected DisplayType getIconDisplayType(IModel<RoleAnalysisOutlierPartitionType> rowModel) {
                 return GuiDisplayTypeUtil
                         .createDisplayType(IconAndStylesUtil.createDefaultBlackIcon(RoleAnalysisOutlierPartitionType.COMPLEX_TYPE));
@@ -274,25 +238,8 @@ public class RoleAnalysisOutlierPartitionTileTable extends BasePanel<String> {
                 get(createComponentPath(ID_DATATABLE));
     }
 
-    public IModel<List<Toggle<ViewToggle>>> getItems() {
-        return items;
-    }
-
-    @Override
-    public PageBase getPageBase() {
-        return pageBase;
-    }
-
-    protected void onRefresh(AjaxRequestTarget target) {
-
-    }
-
-    protected String getAnomalyOid() {
-        return null;
-    }
-
     private List<RoleAnalysisOutlierPartitionType> getOutlierPartitionsToDisplay() {
-        List<RoleAnalysisOutlierPartitionType> outlierPartitions = getOutlierModel().getObject().getPartition();
+        List<RoleAnalysisOutlierPartitionType> outlierPartitions = getOutlierObject().getPartition();
 
         String anomalyOid = getAnomalyOid();
         if (anomalyOid == null) {
@@ -305,13 +252,25 @@ public class RoleAnalysisOutlierPartitionTileTable extends BasePanel<String> {
                 .collect(Collectors.toList());
     }
 
-    public IModel<RoleAnalysisOutlierType> getOutlierModel() {
-        return outlierModel;
+    protected String getAnomalyOid() {
+        return null;
+    }
+
+    public RoleAnalysisOutlierType getOutlierObject() {
+        return RoleAnalysisOutlierPartitionTileTable.this.getModelObject();
+    }
+
+    public IModel<List<Toggle<ViewToggle>>> getItems() {
+        return items;
     }
 
     @Override
-    protected void onDetach() {
-        super.onDetach();
+    public PageBase getPageBase() {
+        return pageBase;
+    }
+
+    protected void onRefresh(@NotNull AjaxRequestTarget target) {
+        target.add(this);
     }
 
 

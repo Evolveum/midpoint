@@ -8,7 +8,6 @@
 package com.evolveum.midpoint.model.impl.mining.utils;
 
 import com.evolveum.midpoint.model.api.ModelService;
-import com.evolveum.midpoint.model.api.mining.RoleAnalysisService;
 import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -22,13 +21,11 @@ import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
-import com.google.common.collect.ListMultimap;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 import java.util.*;
-import java.util.stream.Collectors;
 
 import static com.evolveum.midpoint.common.mining.utils.values.RoleAnalysisObjectState.isStable;
 
@@ -37,9 +34,10 @@ import static com.evolveum.midpoint.common.mining.utils.values.RoleAnalysisObjec
  * It is used to update the role analysis operation status, submit the operation status, and remove redundant patterns.
  */
 public class RoleAnalysisUtils {
-    public static @Nullable RoleAnalysisOperationStatus updateRoleAnalysisOperationStatus(
+
+    public static @Nullable RoleAnalysisOperationStatusType updateRoleAnalysisOperationStatus(
             @NotNull RepositoryService repositoryService,
-            @NotNull RoleAnalysisOperationStatus status,
+            @NotNull RoleAnalysisOperationStatusType status,
             boolean isSession,
             @NotNull Trace logger,
             @NotNull OperationResult result) {
@@ -127,14 +125,14 @@ public class RoleAnalysisUtils {
     }
 
     @NotNull
-    public static RoleAnalysisOperationStatus buildOpExecution(
+    public static RoleAnalysisOperationStatusType buildOpExecution(
             @NotNull String taskOid,
             OperationResultStatusType operationResultStatusType,
             String message,
-            RoleAnalysisOperation operationType,
+            RoleAnalysisOperationType operationType,
             XMLGregorianCalendar createTimestamp,
             @Nullable FocusType owner) {
-        RoleAnalysisOperationStatus operationExecutionType = new RoleAnalysisOperationStatus();
+        RoleAnalysisOperationStatusType operationExecutionType = new RoleAnalysisOperationStatusType();
         XMLGregorianCalendar xmlGregorianCalendar = XmlTypeConverter.createXMLGregorianCalendar(new Date());
 
         if (createTimestamp == null) {
@@ -166,13 +164,13 @@ public class RoleAnalysisUtils {
             @NotNull ModelService modelService,
             @NotNull PrismObject<RoleAnalysisClusterType> cluster,
             @NotNull String taskOid,
-            @NotNull RoleAnalysisOperation operationChannel,
+            @NotNull RoleAnalysisOperationType operationChannel,
             @NotNull FocusType initiator,
             Trace logger,
             @NotNull Task task,
             @NotNull OperationResult result) {
 
-        @NotNull RoleAnalysisOperationStatus operationStatus = buildOpExecution(
+        @NotNull RoleAnalysisOperationStatusType operationStatus = buildOpExecution(
                 taskOid,
                 OperationResultStatusType.IN_PROGRESS,
                 null,
@@ -204,11 +202,11 @@ public class RoleAnalysisUtils {
             @NotNull Task task,
             @NotNull OperationResult result) {
 
-        @NotNull RoleAnalysisOperationStatus operationStatus = buildOpExecution(
+        @NotNull RoleAnalysisOperationStatusType operationStatus = buildOpExecution(
                 taskOid,
                 OperationResultStatusType.IN_PROGRESS,
                 null,
-                RoleAnalysisOperation.CLUSTERING,
+                RoleAnalysisOperationType.CLUSTERING,
                 null,
                 initiator);
 
@@ -225,83 +223,5 @@ public class RoleAnalysisUtils {
                 CommunicationException | ConfigurationException | PolicyViolationException | SecurityViolationException e) {
             logger.error("Couldn't add operation status {}", cluster.getOid(), e);
         }
-    }
-
-    public static Double removeRedundantPatterns(
-            @NotNull RoleAnalysisService roleAnalysisService,
-            @NotNull Collection<RoleAnalysisDetectionPatternType> detectedPattern,
-            Set<String> clusterUsersOidSet,
-            Set<String> clusterRolesOidSet,
-            ListMultimap<String, String> map,
-            List<ObjectReferenceType> resolvedPattern,
-            @NotNull Task task,
-            @NotNull OperationResult result) {
-
-        double updatedReductionMetric = 0.0;
-
-        Iterator<RoleAnalysisDetectionPatternType> patternIterator = detectedPattern.iterator();
-        while (patternIterator.hasNext()) {
-            RoleAnalysisDetectionPatternType singlePattern = patternIterator.next();
-
-            List<ObjectReferenceType> userOccupancy = singlePattern.getUserOccupancy();
-            List<ObjectReferenceType> rolesOccupancy = singlePattern.getRolesOccupancy();
-
-            Set<String> usersInPattern = userOccupancy.stream()
-                    .map(ObjectReferenceType::getOid)
-                    .collect(Collectors.toSet());
-
-            Set<String> rolesInPattern = rolesOccupancy.stream()
-                    .map(ObjectReferenceType::getOid)
-                    .collect(Collectors.toSet());
-
-            boolean isPatternRedundant = false;
-            if (resolvedPattern != null) {
-                for (ObjectReferenceType objectReferenceType : resolvedPattern) {
-                    String oid = objectReferenceType.getOid();
-                    PrismObject<RoleType> migratedRole = roleAnalysisService.getRoleTypeObject(oid, task, result);
-                    if (migratedRole == null) {
-                        continue;
-                    }
-
-                    List<AssignmentType> inducement = migratedRole.asObjectable().getInducement();
-                    Set<String> inducementsOid = inducement.stream()
-                            .map(assignmentType -> assignmentType.getTargetRef().getOid())
-                            .collect(Collectors.toSet());
-
-                    if (map.containsKey(oid)) {
-                        Set<String> users = new HashSet<>(map.get(oid));
-
-                        if (users.containsAll(usersInPattern)
-                                && inducementsOid.containsAll(rolesInPattern)) {
-                            patternIterator.remove();
-                            isPatternRedundant = true;
-                            break;
-                        } else {
-                            Double clusterMetric = singlePattern.getReductionCount();
-                            if (clusterMetric == null) {
-                                clusterMetric = 0.0;
-                            }
-                            updatedReductionMetric = Math.max(updatedReductionMetric, clusterMetric);
-                        }
-
-                    }
-                }
-            }
-
-            if (!isPatternRedundant) {
-
-                if (!clusterUsersOidSet.containsAll(usersInPattern)
-                        || !clusterRolesOidSet.containsAll(rolesInPattern)) {
-                    patternIterator.remove();
-                } else {
-                    Double clusterMetric = singlePattern.getReductionCount();
-                    if (clusterMetric == null) {
-                        clusterMetric = 0.0;
-                    }
-                    updatedReductionMetric = Math.max(updatedReductionMetric, clusterMetric);
-                }
-            }
-        }
-        return updatedReductionMetric;
     }
 }

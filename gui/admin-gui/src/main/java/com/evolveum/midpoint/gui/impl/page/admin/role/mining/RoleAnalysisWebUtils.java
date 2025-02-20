@@ -247,7 +247,7 @@ public class RoleAnalysisWebUtils {
     public static RoleAnalysisTable<MiningUserTypeChunk, MiningRoleTypeChunk> loadRoleAnalysisTempTable(
             @NotNull String id,
             @NotNull PageBase pageBase,
-            @Nullable List<DetectedAnomalyResult> detectedAnomalyResult,
+            @Nullable List<DetectedAnomalyResultType> detectedAnomalyResult,
             RoleAnalysisOutlierPartitionType partition,
             @NotNull RoleAnalysisOutlierType outlier,
             @NotNull RoleAnalysisClusterType cluster) {
@@ -259,7 +259,7 @@ public class RoleAnalysisWebUtils {
     public static RoleAnalysisTable<MiningUserTypeChunk, MiningRoleTypeChunk> loadRoleAnalysisTempTable(
             @NotNull String id,
             @NotNull PageBase pageBase,
-            @Nullable List<DetectedAnomalyResult> detectedAnomalyResult,
+            @Nullable List<DetectedAnomalyResultType> detectedAnomalyResult,
             String uniqRoleOid,
             RoleAnalysisOutlierPartitionType partition,
             @NotNull RoleAnalysisOutlierType outlier,
@@ -281,7 +281,7 @@ public class RoleAnalysisWebUtils {
                 String outlierOid = outlier.getObjectRef().getOid();
 
                 if (detectedAnomalyResult == null) {
-                    List<DetectedAnomalyResult> partitionDetectedAnomalyResult = partition.getDetectedAnomalyResult();
+                    List<DetectedAnomalyResultType> partitionDetectedAnomalyResult = partition.getDetectedAnomalyResult();
                     if (partitionDetectedAnomalyResult == null) {
                         return roleAnalysisObjectDto;
                     } else {
@@ -299,7 +299,7 @@ public class RoleAnalysisWebUtils {
                 String cssClass = "p-2 d-flex align-items-center justify-content-center bg-danger";
                 String cssClassUniq = cssClass + " corner-hashed-bg";
                 if (detectedAnomalyResult != null) {
-                    for (DetectedAnomalyResult item : detectedAnomalyResult) {
+                    for (DetectedAnomalyResultType item : detectedAnomalyResult) {
                         ObjectReferenceType targetObjectRef = item.getTargetObjectRef();
                         if (targetObjectRef == null || targetObjectRef.getOid() == null) {
                             continue;
@@ -397,7 +397,7 @@ public class RoleAnalysisWebUtils {
      */
     public static @NotNull Model<String> explainAnomaly(
             @NotNull RoleAnalysisService roleAnalysisService,
-            @NotNull DetectedAnomalyResult anomalyResult,
+            @NotNull DetectedAnomalyResultType anomalyResult,
             @NotNull Task task,
             @NotNull OperationResult result) {
         List<OutlierExplanationResolver.ExplanationResult> explanations = roleAnalysisService.explainOutlierAnomalyAccess(

@@ -10,9 +10,9 @@ import com.evolveum.midpoint.schema.MidPointPrismContextFactory;
 import com.evolveum.midpoint.tools.testng.AbstractUnitTest;
 
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisAttributeAnalysis;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisAttributeAnalysisType;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisAttributeStatistics;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisAttributeStatisticsType;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 
 import org.testng.annotations.BeforeSuite;
@@ -112,7 +112,7 @@ public class OutlierAttributeResolverTest extends AbstractUnitTest {
         var attributeDetails = List.of(
                 makeAttributeAnalysis("attr1", "v11", 20)
         );
-        List<RoleAnalysisAttributeAnalysis> userAttributeDetails = List.of();
+        List<RoleAnalysisAttributeAnalysisType> userAttributeDetails = List.of();
         var resolver = new OutlierAttributeResolver(0.1);
 
         when();
@@ -129,7 +129,7 @@ public class OutlierAttributeResolverTest extends AbstractUnitTest {
                 makeAttributeAnalysis("attr1", "v11", 20, "v12", 20, "v13", 20),
                 makeAttributeAnalysis("attr2", "v21", 20, "v22", 1, "v23", 1)
         );
-        List<RoleAnalysisAttributeAnalysis> userAttributeDetails = List.of(
+        List<RoleAnalysisAttributeAnalysisType> userAttributeDetails = List.of(
                 makeAttributeAnalysis("attr1", "v12", null, "v13", null),
                 makeAttributeAnalysis("attr2", "v21", null, "v22", null)
         );
@@ -151,12 +151,12 @@ public class OutlierAttributeResolverTest extends AbstractUnitTest {
         return new ItemPathType(ItemPath.fromString(path));
     }
 
-    private RoleAnalysisAttributeAnalysis makeAttributeAnalysis(String path, Object... valueCountTuples) {
-        var result = new RoleAnalysisAttributeAnalysis();
+    private RoleAnalysisAttributeAnalysisType makeAttributeAnalysis(String path, Object... valueCountTuples) {
+        var result = new RoleAnalysisAttributeAnalysisType();
         result.setItemPath(makePath(path));
         result.createAttributeStatisticsList();
         for (var i = 0; i < valueCountTuples.length; i += 2) {
-            var stats = new RoleAnalysisAttributeStatistics();
+            var stats = new RoleAnalysisAttributeStatisticsType();
             stats.setAttributeValue((String) valueCountTuples[i]);
             stats.setInGroup((Integer) valueCountTuples[i + 1]);
             result.getAttributeStatistics().add(stats);
@@ -164,7 +164,7 @@ public class OutlierAttributeResolverTest extends AbstractUnitTest {
         return result;
     }
 
-    private RoleAnalysisAttributeAnalysis makeUserAttributeAnalysis(String path, String value) {
+    private RoleAnalysisAttributeAnalysisType makeUserAttributeAnalysis(String path, String value) {
         return makeAttributeAnalysis(path, value, null);
     }
 

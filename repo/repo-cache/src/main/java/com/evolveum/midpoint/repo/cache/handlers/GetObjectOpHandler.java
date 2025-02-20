@@ -7,7 +7,6 @@
 
 package com.evolveum.midpoint.repo.cache.handlers;
 
-import static com.evolveum.midpoint.repo.cache.RepositoryCache.CLASS_NAME_WITH_DOT;
 import static com.evolveum.midpoint.repo.cache.other.MonitoringUtil.repoOpEnd;
 import static com.evolveum.midpoint.repo.cache.other.MonitoringUtil.repoOpStart;
 import static com.evolveum.midpoint.schema.util.TraceUtil.isAtLeastMinimal;
@@ -18,6 +17,7 @@ import java.util.Objects;
 import com.evolveum.midpoint.prism.Freezable;
 import com.evolveum.midpoint.prism.util.CloneUtil;
 
+import com.evolveum.midpoint.repo.cache.RepositoryCache;
 import com.evolveum.midpoint.repo.cache.values.CachedObjectValue;
 
 import org.jetbrains.annotations.NotNull;
@@ -41,8 +41,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.TracingLevelType;
  */
 @Component
 public class GetObjectOpHandler extends CachedOpHandler {
-
-    private static final String GET_OBJECT = CLASS_NAME_WITH_DOT + "getObject";
 
     @NotNull
     public <T extends ObjectType> PrismObject<T> getObject(
@@ -155,7 +153,7 @@ public class GetObjectOpHandler extends CachedOpHandler {
 
     private <T extends ObjectType> GetObjectOpExecution<T> initializeExecution(Class<T> type, String oid,
             Collection<SelectorOptions<GetOperationOptions>> options, OperationResult parentResult) {
-        OperationResult result = parentResult.subresult(GET_OBJECT)
+        OperationResult result = parentResult.subresult(RepositoryCache.OP_GET_OBJECT_IMPL)
                 .addQualifier(type.getSimpleName())
                 .addParam("type", type)
                 .addParam("oid", oid)
