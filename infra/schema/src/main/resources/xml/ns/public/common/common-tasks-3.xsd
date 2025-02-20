@@ -1967,11 +1967,27 @@
             <xsd:appinfo>
                 <a:since>4.10</a:since>
                 <a:container>true</a:container>
+                <a:naturalKey>tns:name</a:naturalKey>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
-            <xsd:element name="activityConstraints" type="tns:TaskActivityPolicyConstraintsType" minOccurs="0"/>
-            <xsd:element name="actions" type="tns:ActivityPolicyActionsType" minOccurs="0"/>
+            <xsd:element name="name" type="xsd:string">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Unique identifier of the policy rule. It's used for diagnostic purposes
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="description" type="xsd:string" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Free-form description of the rule (comment).
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element ref="tns:documentation" minOccurs="0"/>
+            <xsd:element name="policyConstraints" type="tns:TaskActivityPolicyConstraintsType" minOccurs="0"/>
+            <xsd:element name="policyActions" type="tns:ActivityPolicyActionsType" minOccurs="0"/>
         </xsd:sequence>
     </xsd:complexType>
 
@@ -1989,7 +2005,33 @@
         <xsd:complexContent>
             <xsd:extension base="tns:AbstractPolicyConstraintType">
                 <xsd:sequence>
-                    <xsd:element name="taskTimeValidity" type="tns:TimeValidityPolicyConstraintType" minOccurs="0"/>
+                    <xsd:element name="taskExecution" type="tns:TaskExecutionPolicyConstraintType" minOccurs="0"/>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+
+    <xsd:complexType name="TaskExecutionPolicyConstraintType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Constraints related to task execution.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:since>4.10</a:since>
+                <a:container>true</a:container>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:AbstractPolicyConstraintType">
+                <xsd:sequence>
+                    <xsd:element name="duration" type="xsd:duration">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Duration of the task execution. When the task execution exceeds this duration,
+                                the policy action is triggered.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
                 </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>
