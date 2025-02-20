@@ -13,6 +13,10 @@ import java.util.*;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.web.component.dialog.ConfirmationPanel;
+
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -24,7 +28,6 @@ import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.markup.html.panel.Fragment;
 import org.apache.wicket.model.IModel;
-import org.checkerframework.checker.index.qual.SameLen;
 import org.wicketstuff.select2.ChoiceProvider;
 import org.wicketstuff.select2.Response;
 import org.wicketstuff.select2.Select2MultiChoice;
@@ -67,11 +70,12 @@ public class PersonOfInterestPanel extends BasicWizardStepPanel<RequestAccess> i
 
     private static final Trace LOGGER = TraceManager.getTrace(TileType.class);
 
-    private static final String DOT_CLASS = RelationPanel.class.getName() + ".";
+    private static final String DOT_CLASS = PersonOfInterestPanel.class.getName() + ".";
     private static final String OPERATION_LOAD_USERS = DOT_CLASS + "loadUsers";
     private static final String OPERATION_COMPILE_TARGET_SELECTION_COLLECTION = DOT_CLASS + "compileTargetSelectionCollection";
     private static final String OPERATION_EVALUATE_FILTER_EXPRESSION = DOT_CLASS + "evaluateFilterExpression";
     private static final String OPERATION_GET_ASSIGNMENT_OPERATION_OBJECT_FILTER = DOT_CLASS + "getAssignmentOperationObjectFilter";
+    private static final String OPERATION_CALCULATE_AUTHORIZATION_INCONSISTENCY = DOT_CLASS + "calculateAuthorizationInconsistency";
 
     private static final int MULTISELECT_PAGE_SIZE = 10;
 
@@ -123,6 +127,7 @@ public class PersonOfInterestPanel extends BasicWizardStepPanel<RequestAccess> i
     private IModel<SelectionState> selectionState;
 
     private IModel<Map<ObjectReferenceType, List<ObjectReferenceType>>> selectedGroupOfUsers;
+    private IModel<Collection<ObjectReferenceType>> multiselectModel;
 
     public PersonOfInterestPanel(IModel<RequestAccess> model, PageBase page) {
         super(model);
@@ -224,7 +229,7 @@ public class PersonOfInterestPanel extends BasicWizardStepPanel<RequestAccess> i
             }
         };
 
-        selectedGroupOfUsers = new LoadableModel<>(false) {
+        selectedGroupOfUsers = new LoadableModel<>() {
 
             @Override
             protected Map<ObjectReferenceType, List<ObjectReferenceType>> load() {
@@ -345,15 +350,16 @@ public class PersonOfInterestPanel extends BasicWizardStepPanel<RequestAccess> i
     private Fragment initSelectionFragment() {
         Fragment fragment = new Fragment(ID_FRAGMENTS, ID_SELECTION_FRAGMENT, this);
 
-        IModel<Collection<ObjectReferenceType>> multiselectModel = new IModel<>() {
+        multiselectModel = new LoadableModel<>() {
 
             @Override
-            public Collection<ObjectReferenceType> getObject() {
+            public Collection<ObjectReferenceType> load() {
                 return new ArrayList<>(selectedGroupOfUsers.getObject().keySet());
             }
 
             @Override
             public void setObject(Collection<ObjectReferenceType> object) {
+                super.setObject(object);
                 updateSelectedGroupOfUsers(object);
             }
         };
@@ -443,7 +449,7 @@ public class PersonOfInterestPanel extends BasicWizardStepPanel<RequestAccess> i
 
         if (canSkipStep()) {
             // no user input needed, we'll populate model with data
-            submitData();
+            submitDataPerformed();
         }
     }
 
@@ -503,18 +509,20 @@ public class PersonOfInterestPanel extends BasicWizardStepPanel<RequestAccess> i
     }
 
     private ObjectFilter createObjectFilterFromGroupSelection(String identifier) {
+        ObjectFilter assignAuthorizationRestrictionFilter = getAssignmentOperationObjectFilter();
+
         if (identifier == null) {
-            return null;
+            return assignAuthorizationRestrictionFilter;
         }
 
         GroupSelectionType selection = getSelectedGroupSelection();
         if (selection == null) {
-            return null;
+            return assignAuthorizationRestrictionFilter;
         }
 
         CollectionRefSpecificationType collection = selection.getCollection();
         if (collection == null) {
-            return null;
+            return assignAuthorizationRestrictionFilter;
         }
 
         Task task = getPageBase().createSimpleTask(OPERATION_COMPILE_TARGET_SELECTION_COLLECTION);
@@ -530,7 +538,14 @@ public class PersonOfInterestPanel extends BasicWizardStepPanel<RequestAccess> i
             return null;
         }
 
-        return compiledObjectCollectionView.getFilter();
+        if (compiledObjectCollectionView.getFilter() == null) {
+            return assignAuthorizationRestrictionFilter;
+        } else if (assignAuthorizationRestrictionFilter == null) {
+            return compiledObjectCollectionView.getFilter();
+        }
+        return page.getPrismContext()
+                .queryFactory()
+                .createAnd(assignAuthorizationRestrictionFilter, compiledObjectCollectionView.getFilter());
     }
 
     private void selectManuallyPerformed(AjaxRequestTarget target) {
@@ -548,7 +563,7 @@ public class PersonOfInterestPanel extends BasicWizardStepPanel<RequestAccess> i
             query.addFilter(filter);
         }
 
-        //apply filter from the @assign authorization from object section
+        //apply filter from the #assign authorization from object section
         filter = getAssignmentOperationObjectFilter();
         if (filter != null) {
             query.addFilter(filter);
@@ -633,18 +648,26 @@ public class PersonOfInterestPanel extends BasicWizardStepPanel<RequestAccess> i
 
     @Override
     public boolean onNextPerformed(AjaxRequestTarget target) {
-        boolean submitted = submitData();
-        if (!submitted) {
+        if (shoppingCartDataToBeRecalculated() && shoppingCartInconsistencyExists()) {
+            confirmShoppingCartDataRecalculation(target);
             return false;
+        }
+
+        submitAndRedirect(target);
+        return false;
+    }
+
+    private void submitAndRedirect(AjaxRequestTarget target) {
+        boolean submitted = submitDataPerformed();
+        if (!submitted) {
+            return;
         }
 
         getWizard().next();
         target.add(getWizard().getPanel());
-
-        return false;
     }
 
-    private boolean submitData() {
+    private boolean submitDataPerformed() {
         Tile<PersonOfInterest> selected = getSelectedTile();
         if (selected == null) {
             return false;
@@ -677,6 +700,119 @@ public class PersonOfInterestPanel extends BasicWizardStepPanel<RequestAccess> i
         }
 
         return true;
+    }
+
+    /**
+     *  Check if new person of interest was added. If so, we need to recalculate shopping cart data
+     *  (e.g. analyze if the requester has authorization to assign already existing shopping cart items
+     *  to the newly added person of interest).
+     * @return
+     */
+    private boolean shoppingCartDataToBeRecalculated() {
+        Tile<PersonOfInterest> selected = getSelectedTile();
+        if (selected == null) {
+            return false;
+        }
+
+        RequestAccess access = getModelObject();
+        if (access.getPoiCount() == 0) {
+            return false;
+        }
+
+        PersonOfInterest poi = selected.getValue();
+        if (poi.type() == TileType.MYSELF && access.isPoiMyself()) {
+            return false;
+        }
+
+        Map<ObjectReferenceType, List<ObjectReferenceType>> userMemberships = selectedGroupOfUsers.getObject();
+
+        if (!userMemberships.isEmpty() && poi.type() == TileType.MYSELF) {
+            //this means that Person of interest was changed from group to myself,
+            //so we need to recalculate shopping cart data
+            return true;
+        }
+
+        List<ObjectReferenceType> newPersonOfInterestRefs = new ArrayList<>(userMemberships.keySet());
+        return access.newPersonOfInterestExists(newPersonOfInterestRefs);
+    }
+
+    private <AR extends AbstractRoleType> boolean shoppingCartInconsistencyExists() {
+        Map<ObjectReferenceType, List<ObjectReferenceType>> userMemberships = selectedGroupOfUsers.getObject();
+        RequestAccess access = getModelObject();
+        List<String> newPois = access.getNewPersonOfInterestOids(new ArrayList<>(userMemberships.keySet()));
+
+        if (tileTypeWasChangedFromGroupToMyself()) {
+            if (newPois == null) {
+                newPois = new ArrayList<>();
+            }
+            newPois.add(page.getPrincipal().getOid());
+        }
+
+        if (CollectionUtils.isEmpty(newPois)) {
+            return false;
+        }
+
+        OperationResult result = new OperationResult(OPERATION_CALCULATE_AUTHORIZATION_INCONSISTENCY);
+        Task task = page.createSimpleTask(OPERATION_CALCULATE_AUTHORIZATION_INCONSISTENCY);
+        Set<AssignmentType> existingShoppingCartItems = access.getTemplateAssignments();
+        for (String newPoiOid : newPois) {
+            for (AssignmentType assignment : existingShoppingCartItems) {
+                Class<AR> targetType =
+                        (Class<AR>) WebComponentUtil.qnameToClass(PrismContext.get(), assignment.getTargetRef().getType());
+                PrismObject<UserType> poiUser = WebModelServiceUtils.loadObject(UserType.class, newPoiOid, page, task, result);
+                if (poiUser == null) {
+                    continue;
+                }
+                String assignmentOid = assignment.getTargetRef().getOid();
+                ObjectFilter assignableRolesFilter = access.getAssignableRolesFilter(poiUser, page, targetType);
+                if (assignableRolesFilter == null) {
+                    continue;
+                }
+                ObjectQuery query = page.getPrismContext().queryFor(targetType)
+                        .id(assignmentOid)
+                        .build();
+                query.addFilter(assignableRolesFilter);
+                List<PrismObject<AR>> targetObj = WebModelServiceUtils.searchObjects(targetType, query, result, page);
+                if (targetObj.isEmpty()) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    private void confirmShoppingCartDataRecalculation(AjaxRequestTarget target) {
+        ConfirmationPanel dialog = new ConfirmationPanel(page.getMainPopupBodyId(), createStringResource("PersonOfInterestPanel.confirmShoppingCartDataRecalculation")) {
+            @Serial private static final long serialVersionUID = 1L;
+
+            @Override
+            protected IModel<String> createYesLabel() {
+                return createStringResource("PersonOfInterestPanel.confirmPopup.shoppingCartCleanup");
+            }
+
+            @Override
+            protected IModel<String> createNoLabel() {
+                return createStringResource("PersonOfInterestPanel.confirmPopup.personOfInterestCleanup");
+            }
+
+            @Override
+            public void yesPerformed(AjaxRequestTarget target) {
+                page.getSessionStorage().getRequestAccess().clearCart();
+                submitAndRedirect(target);
+            }
+
+            @Override
+            public void noPerformed(AjaxRequestTarget target) {
+                getPageBase().hideMainPopup(target);
+                selectedGroupOfUsers.detach();
+                multiselectModel.detach();
+                if (tileTypeWasChangedFromGroupToMyself()) {
+                    tiles.getObject().forEach(t -> t.setSelected(false));
+                }
+                target.add(PersonOfInterestPanel.this);
+            }
+        };
+        page.showMainPopup(dialog, target);
     }
 
     private TargetSelectionType getTargetSelectionConfiguration() {
@@ -735,6 +871,10 @@ public class PersonOfInterestPanel extends BasicWizardStepPanel<RequestAccess> i
             Task task = panel.page.createSimpleTask(OPERATION_GET_ASSIGNMENT_OPERATION_OBJECT_FILTER);
             //get filter from the @assign authorization from object section
             filter = WebComponentUtil.getAccessibleForAssignmentObjectsFilter(result, task, panel.page);
+            result.close();
+            if (!result.isSuccess() && !result.isHandledError()) {
+                panel.page.showResult(result);
+            }
             if (filter != null) {
                 full = panel.getPrismContext().queryFactory().createAnd(full, filter);
             }
@@ -793,9 +933,27 @@ public class PersonOfInterestPanel extends BasicWizardStepPanel<RequestAccess> i
         }
     }
 
+    /**
+     * Returns filter from the #assign authorization from object section
+     * @return
+     */
     private ObjectFilter getAssignmentOperationObjectFilter() {
         OperationResult result = new OperationResult(OPERATION_GET_ASSIGNMENT_OPERATION_OBJECT_FILTER);
         Task task = page.createSimpleTask(OPERATION_GET_ASSIGNMENT_OPERATION_OBJECT_FILTER);
-        return WebComponentUtil.getAccessibleForAssignmentObjectsFilter(result, task, page);
+        ObjectFilter filter = WebComponentUtil.getAccessibleForAssignmentObjectsFilter(result, task, page);
+        result.close();
+        if (!result.isSuccess() && !result.isHandledError()) {
+            page.showResult(result);
+        }
+        return filter;
+    }
+
+    private boolean tileTypeWasChangedFromGroupToMyself() {
+        Tile<PersonOfInterest> selected = getSelectedTile();
+        if (selected == null) {
+            return false;
+        }
+        PersonOfInterest poi = selected.getValue();
+        return poi.type() == TileType.MYSELF && !getModelObject().isPoiMyself();
     }
 }

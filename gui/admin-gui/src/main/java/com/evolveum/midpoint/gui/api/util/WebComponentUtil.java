@@ -2224,9 +2224,6 @@ public final class WebComponentUtil {
         } finally {
             result.recomputeStatus();
         }
-        if (!result.isSuccess() && !result.isHandledError()) {
-            pageBase.showResult(result);
-        }
         return filter;
     }
 

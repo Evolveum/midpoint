@@ -18,6 +18,8 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.gui.api.component.result.OpResult;
 
+import com.evolveum.midpoint.gui.impl.component.tile.Tile;
+
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -258,6 +260,25 @@ public class RequestAccess implements Serializable {
         if (changed) {
             markConflictsDirty();
         }
+    }
+
+    public boolean newPersonOfInterestExists(List<ObjectReferenceType> newPersonOfInterestRefs) {
+        return CollectionUtils.isNotEmpty(getNewPersonOfInterestOids(newPersonOfInterestRefs));
+    }
+
+    /**
+     * Returns the list of new person of interest oids that are not yet in the requestItems.
+     * @param newPersonOfInterestRefs
+     * @return
+     */
+    public List<String> getNewPersonOfInterestOids(List<ObjectReferenceType> newPersonOfInterestRefs) {
+        Set<String> newOids = newPersonOfInterestRefs.stream().map(AbstractReferencable::getOid).collect(Collectors.toSet());
+        Set<ObjectReferenceType> existing = new HashSet<>(requestItems.keySet());
+        Set<String> existingOids = existing.stream().map(AbstractReferencable::getOid).collect(Collectors.toSet());
+        return newOids
+                .stream()
+                .filter(newOid -> !existingOids.contains(newOid))
+                .collect(Collectors.toList());
     }
 
     /**
@@ -928,11 +949,16 @@ public class RequestAccess implements Serializable {
     }
 
     public ObjectFilter getAssignableRolesFilter(PageBase page, Class<? extends AbstractRoleType> targetType) {
+        PrismObject<UserType> focus = resolveFirstPoiReference(page);
+        return getAssignableRolesFilter(focus, page, targetType);
+    }
+
+    public ObjectFilter getAssignableRolesFilter(PrismObject<UserType> focus, PageBase page,
+            Class<? extends AbstractRoleType> targetType) {
         if (targetType == null) {
             return null;
         }
 
-        PrismObject<UserType> focus = resolveFirstPoiReference(page);
         if (focus == null) {
             return null;
         }
