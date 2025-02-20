@@ -15,6 +15,7 @@ import com.evolveum.midpoint.model.impl.mining.utils.DebugOutlierDetectionEvalua
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
+import org.apache.commons.math3.util.Precision;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
@@ -35,12 +36,28 @@ import static org.testng.AssertJUnit.assertEquals;
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 public class TestRoleAnalysis extends AbstractInitializedModelIntegrationTest {
 
+    private static Double round5(Double num) {
+        // round double values with less precision to avoid (de)serialization issues
+        return Precision.round(num, 5);
+    }
+
     private record RoleMiningResult(
             Integer processedObjectCount,
             Integer clusterCount,
             Double meanDensity,
             Integer reduction
     ) {
+        public RoleMiningResult(
+                Integer processedObjectCount,
+                Integer clusterCount,
+                Double meanDensity,
+                Integer reduction
+        ) {
+            this.processedObjectCount = processedObjectCount;
+            this.clusterCount = clusterCount;
+            this.meanDensity = round5(meanDensity);
+            this.reduction = reduction;
+        }
     }
 
     private record OutlierDetectionResult(
@@ -50,6 +67,19 @@ public class TestRoleAnalysis extends AbstractInitializedModelIntegrationTest {
             Double f1score,
             Double maxOutlierConfidence
     ) {
+        public OutlierDetectionResult(
+                Integer processedObjectCount,
+                Integer innerOutlierCount,
+                Integer outerOutlierCount,
+                Double f1score,
+                Double maxOutlierConfidence
+        ) {
+            this.processedObjectCount = processedObjectCount;
+            this.innerOutlierCount = innerOutlierCount;
+            this.outerOutlierCount = outerOutlierCount;
+            this.f1score = round5(f1score);
+            this.maxOutlierConfidence = round5(maxOutlierConfidence);
+        }
     }
 
     //TODO think about default timeout per specific test

@@ -136,6 +136,7 @@ public interface RepositoryService extends OrgTreeEvaluator, CaseSupportMixin, A
     String OP_SEARCH_OBJECTS = "searchObjects";
     String OP_SEARCH_OBJECTS_ITERATIVE = "searchObjectsIterative";
     String OP_SEARCH_OBJECTS_ITERATIVE_PAGE = "searchObjectsIterativePage";
+    String OP_HANDLE_OBJECT_FOUND = OperationResult.HANDLE_OBJECT_FOUND;
     String OP_SEARCH_CONTAINERS = "searchContainers";
 
     String OP_SEARCH_CONTAINERS_ITERATIVE = "searchContainersIterative";
@@ -143,14 +144,12 @@ public interface RepositoryService extends OrgTreeEvaluator, CaseSupportMixin, A
     String OP_COUNT_CONTAINERS = "countContainers";
     String OP_SEARCH_REFERENCES = "searchReferences";
 
-
     String OP_SEARCH_REFERENCES_ITERATIVE = "searchReferencesIterative";
     String OP_SEARCH_REFERENCES_ITERATIVE_PAGE = "searchReferencesIterativePage";
     String OP_COUNT_REFERENCES = "countReferences";
 
     String OP_SEARCH_AGGREGATE = "searchAggregate";
     String OP_COUNT_AGGREGATE = "countAggregate";
-
 
     String OP_FETCH_EXT_ITEMS = "fetchExtItems";
     String OP_ADD_DIAGNOSTIC_INFORMATION = "addDiagnosticInformation";
@@ -175,6 +174,7 @@ public interface RepositoryService extends OrgTreeEvaluator, CaseSupportMixin, A
     String MODIFY_OBJECT_DYNAMICALLY = CLASS_NAME_WITH_DOT + OP_MODIFY_OBJECT_DYNAMICALLY;
     String GET_VERSION = CLASS_NAME_WITH_DOT + OP_GET_VERSION;
     String SEARCH_OBJECTS_ITERATIVE = CLASS_NAME_WITH_DOT + OP_SEARCH_OBJECTS_ITERATIVE;
+    String HANDLE_OBJECT_FOUND = CLASS_NAME_WITH_DOT + OP_HANDLE_OBJECT_FOUND;
     String ADVANCE_SEQUENCE = CLASS_NAME_WITH_DOT + OP_ADVANCE_SEQUENCE;
     String RETURN_UNUSED_VALUES_TO_SEQUENCE = CLASS_NAME_WITH_DOT + OP_RETURN_UNUSED_VALUES_TO_SEQUENCE;
     String EXECUTE_QUERY_DIAGNOSTICS = CLASS_NAME_WITH_DOT + OP_EXECUTE_QUERY_DIAGNOSTICS;

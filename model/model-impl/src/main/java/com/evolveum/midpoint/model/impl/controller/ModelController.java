@@ -6,6 +6,7 @@
  */
 package com.evolveum.midpoint.model.impl.controller;
 
+import static com.evolveum.midpoint.schema.result.OperationResult.HANDLE_OBJECT_FOUND;
 import static com.evolveum.midpoint.util.MiscUtil.argCheck;
 
 import static java.util.Collections.emptyList;
@@ -33,6 +34,7 @@ import com.evolveum.midpoint.security.api.SecurityUtil;
 import org.apache.commons.lang3.Validate;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.VisibleForTesting;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
@@ -46,7 +48,6 @@ import com.evolveum.midpoint.common.LocalizationService;
 import com.evolveum.midpoint.model.api.*;
 import com.evolveum.midpoint.model.api.authentication.GuiProfiledPrincipalManager;
 import com.evolveum.midpoint.model.api.hooks.HookRegistry;
-import com.evolveum.midpoint.model.api.hooks.ReadHook;
 import com.evolveum.midpoint.repo.common.AuditHelper;
 import com.evolveum.midpoint.model.impl.ModelObjectResolver;
 import com.evolveum.midpoint.model.impl.importer.ObjectImporter;
@@ -77,7 +78,6 @@ import com.evolveum.midpoint.schema.constants.ObjectTypes.ObjectManager;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.internals.InternalsConfig;
-import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultRunner;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
@@ -126,7 +126,9 @@ public class ModelController implements ModelService, TaskService, CaseService, 
     static final String RESOLVE_REFERENCE = CLASS_NAME_WITH_DOT + "resolveReference";
     private static final String OP_APPLY_PROVISIONING_DEFINITION = CLASS_NAME_WITH_DOT + "applyProvisioningDefinition";
     static final String OP_REEVALUATE_SEARCH_FILTERS = CLASS_NAME_WITH_DOT + "reevaluateSearchFilters";
-    static final String OP_AUTHORIZE_CHANGE_EXECUTION_START = CLASS_NAME_WITH_DOT + "authorizeChangeExecutionStart";
+    private static final String OP_AUTHORIZE_CHANGE_EXECUTION_START = CLASS_NAME_WITH_DOT + "authorizeChangeExecutionStart";
+    @VisibleForTesting
+    public static final String OP_HANDLE_OBJECT_FOUND = CLASS_NAME_WITH_DOT + HANDLE_OBJECT_FOUND;
 
     private static final int OID_GENERATION_ATTEMPTS = 5;
 
@@ -671,11 +673,7 @@ public class ModelController implements ModelService, TaskService, CaseService, 
                 LOGGER.trace("Basic search returned {} results (before hooks, security, etc.)", list.size());
 
                 for (PrismObject<T> object : list) {
-                    if (hookRegistry != null) {
-                        for (ReadHook hook : hookRegistry.getAllReadHooks()) {
-                            hook.invoke(object, options, task, result);
-                        }
-                    }
+                    hookRegistry.invokeReadHooks(object, options, task, result);
                     executeResolveOptions(object.asObjectable(), parsedOptions, task, result);
                 }
 
@@ -736,7 +734,7 @@ public class ModelController implements ModelService, TaskService, CaseService, 
         //       queries.
         // if they contain shadow dereferencing, also nested queries should be normalized
         // if possible
-        if(ShadowType.class.equals(queryType)) {
+        if (ShadowType.class.equals(queryType)) {
             return resourceSchemaRegistry.tryToNormalizeQuery(processedQuery);
         }
         return processedQuery;
@@ -1127,15 +1125,11 @@ public class ModelController implements ModelService, TaskService, CaseService, 
             ResultHandler<T> internalHandler = (object, lResult) -> {
                 try {
                     object = object.cloneIfImmutable();
-                    if (hookRegistry != null) {
-                        for (ReadHook hook : hookRegistry.getAllReadHooks()) {
-                            hook.invoke(object, options, task, lResult);
-                        }
-                    }
+                    hookRegistry.invokeReadHooks(object, options, task, lResult);
                     executeResolveOptions(object.asObjectable(), parsedOptions, task, lResult);
                     schemaTransformer.applySchemasAndSecurityToObject(object, parsedOptions, task, lResult);
                 } catch (CommonException ex) {
-                    lResult.recordException(ex); // We should create a subresult for this
+                    lResult.recordException(ex);
                     throw new SystemException(ex.getMessage(), ex);
                 }
 
@@ -1146,6 +1140,10 @@ public class ModelController implements ModelService, TaskService, CaseService, 
 
                 return handler.handle(object, lResult);
             };
+            var resultProvidingHandler = internalHandler.providingOwnOperationResult(OP_HANDLE_OBJECT_FOUND);
+
+            // This is to correctly report time spent as "model" time
+            // (the objParentResult can come from provisioning or repository).
 
             SearchResultMetadata metadata;
             try {
@@ -1155,13 +1153,16 @@ public class ModelController implements ModelService, TaskService, CaseService, 
                 switch (searchProvider) {
                     case REPOSITORY:
                         metadata = cacheRepositoryService.searchObjectsIterative(
-                                type, normalizeQueryIfShadowUsed(type, processedQuery), internalHandler, options, true, result);
+                                type, normalizeQueryIfShadowUsed(type, processedQuery),
+                                resultProvidingHandler, options, true, result);
                         break;
                     case PROVISIONING:
-                        metadata = provisioning.searchObjectsIterative(type, processedQuery, options, internalHandler, task, result);
+                        metadata = provisioning.searchObjectsIterative(
+                                type, processedQuery, options, resultProvidingHandler, task, result);
                         break;
                     case TASK_MANAGER:
-                        metadata = taskManager.searchObjectsIterative(type, processedQuery, options, internalHandler, result);
+                        metadata = taskManager.searchObjectsIterative(
+                                type, processedQuery, options, resultProvidingHandler, result);
                         break;
                     default:
                         throw new AssertionError("Unexpected search provider: " + searchProvider);

@@ -8,6 +8,7 @@ package com.evolveum.midpoint.provisioning.impl.shadows.manager;
 
 import static com.evolveum.midpoint.schema.processor.ShadowsNormalizationUtil.transformQueryValues;
 import static com.evolveum.midpoint.schema.GetOperationOptions.zeroStalenessOptions;
+import static com.evolveum.midpoint.schema.result.OperationResult.HANDLE_OBJECT_FOUND;
 import static com.evolveum.midpoint.util.DebugUtil.lazy;
 
 import java.util.Collection;
@@ -21,6 +22,7 @@ import com.evolveum.midpoint.util.DebugUtil;
 import com.google.common.base.Preconditions;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.VisibleForTesting;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
@@ -65,6 +67,9 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 public class ShadowFinder {
 
     private static final Trace LOGGER = TraceManager.getTrace(ShadowFinder.class);
+
+    @VisibleForTesting
+    public static final String OP_HANDLE_OBJECT_FOUND = ShadowFinder.class.getName() + "." + HANDLE_OBJECT_FOUND;
 
     @Autowired @Qualifier("cacheRepositoryService") private RepositoryService repositoryService;
     @Autowired private PrismContext prismContext;
@@ -130,7 +135,9 @@ public class ShadowFinder {
         ObjectQuery repoQuery = transformQueryValues(query, ctx.getObjectDefinitionRequired());
         LOGGER.trace("Searching shadows iteratively using transformed query:\n{}", DebugUtil.debugDumpLazily(repoQuery, 1));
         return repositoryService.searchObjectsIterative(
-                ShadowType.class, repoQuery, repoHandler, options, true, result);
+                ShadowType.class, repoQuery,
+                repoHandler.providingOwnOperationResult(OP_HANDLE_OBJECT_FOUND),
+                options, true, result);
     }
 
     /** Non-iteratively searches for shadows in the repository. No magic except for handling matching rules. */

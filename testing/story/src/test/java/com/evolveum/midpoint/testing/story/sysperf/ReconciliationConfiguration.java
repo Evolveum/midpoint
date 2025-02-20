@@ -15,7 +15,6 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.UUID;
 
 import static com.evolveum.midpoint.testing.story.sysperf.TestSystemPerformance.TARGET_DIR;
 import static com.evolveum.midpoint.testing.story.sysperf.TestSystemPerformance.TEST_DIR;
@@ -70,7 +69,7 @@ class ReconciliationConfiguration {
         List<TestObject<TaskType>> tasks = new ArrayList<>();
         List<DummyTestResource> sourceResources = TestSystemPerformance.SOURCES_CONFIGURATION.getGeneratedResources();
         for (int i = 0; i < sourceResources.size(); i++) {
-            String taskOid = UUID.randomUUID().toString();
+            String taskOid = RandomSource.randomUUID().toString();
             tasks.add(TestObject.file(TARGET_DIR, createFile(i, sourceResources.get(i), taskOid), taskOid));
         }
         return tasks;

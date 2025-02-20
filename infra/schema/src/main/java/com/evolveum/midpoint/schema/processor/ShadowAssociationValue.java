@@ -201,7 +201,7 @@ public class ShadowAssociationValue extends PrismContainerValueImpl<ShadowAssoci
     }
 
     @Override
-    public ShadowAssociationValue cloneComplex(CloneStrategy strategy) {
+    public ShadowAssociationValue cloneComplex(@NotNull CloneStrategy strategy) {
         ShadowAssociationValue clone = new ShadowAssociationValue(
                 getOriginType(), getOriginObject(), getParent(), null, definition);
         copyValues(strategy, clone);

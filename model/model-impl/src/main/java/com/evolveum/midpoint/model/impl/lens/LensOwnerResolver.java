@@ -100,8 +100,9 @@ public class LensOwnerResolver<F extends ObjectType> implements OwnerResolver {
                     .item(FocusType.F_PERSONA_REF).ref(object.getOid()).build();
             List<PrismObject<FO>> owners = new ArrayList<>();
             try {
+                //noinspection unchecked
                 objectResolver.searchIterative(UserType.class, query, createReadOnlyCollection(),
-                        (o,result) -> owners.add((PrismObject) o), task, result);
+                        (o,result) -> owners.add((PrismObject<FO>) o), task, result);
             } catch (ObjectNotFoundException | CommunicationException | ConfigurationException
                     | SecurityViolationException | SchemaException | ExpressionEvaluationException e) {
                 LOGGER.warn("Cannot resolve owner of {}: {}", object, e.getMessage(), e);
@@ -113,7 +114,6 @@ public class LensOwnerResolver<F extends ObjectType> implements OwnerResolver {
             if (owners.size() > 1) {
                 LOGGER.warn("More than one owner of {}: {}", object, owners);
             }
-            //noinspection unchecked
             return owners;
         } else if (object.canRepresent(AbstractRoleType.class)) {
             var prismRefs = SchemaService.get().relationRegistry().getAllRelationsFor(RelationKindType.OWNER)
@@ -127,8 +127,9 @@ public class LensOwnerResolver<F extends ObjectType> implements OwnerResolver {
                     .item(FocusType.F_ROLE_MEMBERSHIP_REF).ref(prismRefs).build();
             List<PrismObject<FO>> owners = new ArrayList<>();
             try {
+                //noinspection unchecked
                 objectResolver.searchIterative(FocusType.class, query, createReadOnlyCollection(),
-                        (o,result) -> owners.add((PrismObject) o), task, result);
+                        (o,result) -> owners.add((PrismObject<FO>) o), task, result);
             } catch (ObjectNotFoundException | CommunicationException | ConfigurationException
                     | SecurityViolationException | SchemaException | ExpressionEvaluationException e) {
                 LOGGER.warn("Cannot resolve owner of {}: {}", object, e.getMessage(), e);
@@ -142,10 +143,8 @@ public class LensOwnerResolver<F extends ObjectType> implements OwnerResolver {
                 return null;
             }
             try {
-                ObjectType ownerType = objectResolver.resolve(ownerRef, ObjectType.class, null, "resolving owner of "+object, task, result);
-                if (ownerType == null) {
-                    return null;
-                }
+                ObjectType ownerType = objectResolver.resolve(
+                        ownerRef, ObjectType.class, null, "resolving owner of " + object, task, result);
                 //noinspection unchecked
                 return Collections.singletonList((PrismObject<FO>) ownerType.asPrismObject());
             } catch (ObjectNotFoundException | SchemaException e) {

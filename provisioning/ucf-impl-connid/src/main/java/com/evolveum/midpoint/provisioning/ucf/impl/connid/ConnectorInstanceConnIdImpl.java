@@ -7,6 +7,7 @@
 package com.evolveum.midpoint.provisioning.ucf.impl.connid;
 
 import static com.evolveum.midpoint.prism.polystring.PolyString.getOrig;
+import static com.evolveum.midpoint.schema.result.OperationResult.HANDLE_OBJECT_FOUND;
 import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
 import static com.evolveum.midpoint.util.MiscUtil.stateNonNull;
 
@@ -75,6 +76,8 @@ import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.*;
 import com.evolveum.prism.xml.ns._public.query_3.OrderDirectionType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
+import org.jetbrains.annotations.VisibleForTesting;
+
 /**
  * Implementation of {@link ConnectorInstance} for ConnId connectors.
  *
@@ -84,11 +87,26 @@ import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
  *
  * @author Radovan Semancik
  */
-class ConnectorInstanceConnIdImpl implements ConnectorInstance, ConnectorContext {
+@VisibleForTesting // Used when testing operation results & performance recording
+public class ConnectorInstanceConnIdImpl implements ConnectorInstance, ConnectorContext {
 
     private static final Trace LOGGER = TraceManager.getTrace(ConnectorInstanceConnIdImpl.class);
 
-    private static final String FACADE_OP_GET_OBJECT = ConnectorFacade.class.getName() + ".getObject";
+    @VisibleForTesting
+    public static final String FACADE_OP_GET_OBJECT = ConnectorFacade.class.getName() + ".getObject";
+    private static final String FACADE_OP_CREATE = ConnectorFacade.class.getName() + ".create";
+    private static final String FACADE_OP_UPDATE_DELTA = ConnectorFacade.class.getName() + ".updateDelta";
+    private static final String FACADE_OP_ADD_ATTRIBUTE_VALUES = ConnectorFacade.class.getName() + ".addAttributeValues";
+    private static final String FACADE_OP_UPDATE = ConnectorFacade.class.getName() + ".update";
+    private static final String FACADE_OP_REMOVE_ATTRIBUTE_VALUES = ConnectorFacade.class.getName() + ".removeAttributeValues";
+    private static final String FACADE_OP_DELETE = ConnectorFacade.class.getName() + ".delete";
+    private static final String FACADE_OP_SYNC = ConnectorFacade.class.getName() + ".sync";
+    @VisibleForTesting
+    public static final String FACADE_OP_SEARCH = ConnectorFacade.class.getName() + ".search";
+    @VisibleForTesting
+    public static final String OP_HANDLE_OBJECT_FOUND = ConnectorInstanceConnIdImpl.class.getName() + "." + HANDLE_OBJECT_FOUND;
+    private static final String FACADE_OP_RUN_SCRIPT_ON_CONNECTOR = ConnectorFacade.class.getName() + ".runScriptOnConnector";
+    private static final String FACADE_OP_RUN_SCRIPT_ON_RESOURCE = ConnectorFacade.class.getName() + ".runScriptOnResource";
 
     /** MidPoint connector definition bean. */
     @NotNull private final ConnectorType connectorBean;
@@ -724,7 +742,7 @@ class ConnectorInstanceConnIdImpl implements ConnectorInstance, ConnectorContext
             OperationOptionsBuilder operationOptionsBuilder = new OperationOptionsBuilder();
             OperationOptions options = operationOptionsBuilder.build();
 
-            OperationResult connIdResult = result.createSubresult(ConnectorFacade.class.getName() + ".create");
+            OperationResult connIdResult = result.createSubresult(FACADE_OP_CREATE);
             connIdResult.addArbitraryObjectAsParam("objectClass", connIdInfo.objectClass());
             connIdResult.addArbitraryObjectCollectionAsParam("auxiliaryObjectClasses", connIdInfo.auxiliaryObjectClasses());
             connIdResult.addArbitraryObjectCollectionAsParam("attributes", connIdInfo.attributes());
@@ -886,7 +904,7 @@ class ConnectorInstanceConnIdImpl implements ConnectorInstance, ConnectorContext
         Set<AttributeDelta> attributesDelta = converter.getAttributesDeltas();
         if (!attributesDelta.isEmpty()) {
             OperationOptions connIdOptions = createConnIdOptions(options, changes);
-            connIdResult = result.createSubresult(ConnectorFacade.class.getName() + ".updateDelta");
+            connIdResult = result.createSubresult(FACADE_OP_UPDATE_DELTA);
             connIdResult.addParam("objectClass", objectClassDef.toString());
             connIdResult.addParam("uid", uid.getUidValue());
             connIdResult.addParam("attributesDelta", attributesDelta.toString());
@@ -1033,7 +1051,7 @@ class ConnectorInstanceConnIdImpl implements ConnectorInstance, ConnectorContext
         if (!attributesToAdd.isEmpty()) {
 
             OperationOptions connIdOptions = createConnIdOptions(options, changes);
-            connIdResult = result.createSubresult(ConnectorFacade.class.getName() + ".addAttributeValues");
+            connIdResult = result.createSubresult(FACADE_OP_ADD_ATTRIBUTE_VALUES);
             connIdResult.addArbitraryObjectAsParam("objectClass", objectClassDef);
             connIdResult.addParam("uid", uid.getUidValue());
             connIdResult.addArbitraryObjectAsParam("attributes", attributesToAdd);
@@ -1092,7 +1110,7 @@ class ConnectorInstanceConnIdImpl implements ConnectorInstance, ConnectorContext
         Set<Attribute> attributesToUpdate = converter.getAttributesToUpdate();
         if (!attributesToUpdate.isEmpty()) {
             OperationOptions connIdOptions = createConnIdOptions(options, changes);
-            connIdResult = result.createSubresult(ConnectorFacade.class.getName() + ".update");
+            connIdResult = result.createSubresult(FACADE_OP_UPDATE);
             connIdResult.addArbitraryObjectAsParam("objectClass", objectClassDef);
             connIdResult.addParam("uid", uid==null?"null":uid.getUidValue());
             connIdResult.addArbitraryObjectAsParam("attributes", attributesToUpdate);
@@ -1151,7 +1169,7 @@ class ConnectorInstanceConnIdImpl implements ConnectorInstance, ConnectorContext
         if (!attributesToRemove.isEmpty()) {
 
             OperationOptions connIdOptions = createConnIdOptions(options, changes);
-            connIdResult = result.createSubresult(ConnectorFacade.class.getName() + ".removeAttributeValues");
+            connIdResult = result.createSubresult(FACADE_OP_REMOVE_ATTRIBUTE_VALUES);
             connIdResult.addArbitraryObjectAsParam("objectClass", objectClassDef);
             connIdResult.addParam("uid", uid.getUidValue());
             connIdResult.addArbitraryObjectAsParam("attributes", attributesToRemove);
@@ -1325,7 +1343,7 @@ class ConnectorInstanceConnIdImpl implements ConnectorInstance, ConnectorContext
             InternalMonitor.recordConnectorModification("delete");
             ConnIdOperation operation = recordIcfOperationStart(ctx, ProvisioningOperation.ICF_DELETE, objectDefinition, uid);
 
-            OperationResult icfResult = result.createSubresult(ConnectorFacade.class.getName() + ".delete");
+            OperationResult icfResult = result.createSubresult(FACADE_OP_DELETE);
             icfResult.addArbitraryObjectAsParam("uid", uid);
             icfResult.addArbitraryObjectAsParam("objectClass", objClass);
             icfResult.addContext("connector", getConnIdConnectorFacadeRequired().getClass());
@@ -1386,7 +1404,7 @@ class ConnectorInstanceConnIdImpl implements ConnectorInstance, ConnectorContext
             icfObjectClass = objectClassToConnId(objectDefinition);
         }
 
-        OperationResult icfResult = result.createSubresult(ConnectorFacade.class.getName() + ".sync");
+        OperationResult icfResult = result.createSubresult(FACADE_OP_SYNC);
         icfResult.addContext("connector", getConnIdConnectorFacadeRequired().getClass());
         icfResult.addArbitraryObjectAsParam("icfObjectClass", icfObjectClass);
 
@@ -1473,7 +1491,7 @@ class ConnectorInstanceConnIdImpl implements ConnectorInstance, ConnectorContext
             AtomicBoolean allChangesFetched = new AtomicBoolean(true);
             UcfFetchChangesResult fetchChangesResult;
 
-            OperationResult connIdResult = result.subresult(ConnectorFacade.class.getName() + ".sync")
+            OperationResult connIdResult = result.subresult(FACADE_OP_SYNC)
                     .addContext("connector", getConnIdConnectorFacadeRequired().getClass())
                     .addArbitraryObjectAsParam("objectClass", requestConnIdObjectClass)
                     .addArbitraryObjectAsParam("initialToken", initialToken)
@@ -1763,7 +1781,7 @@ class ConnectorInstanceConnIdImpl implements ConnectorInstance, ConnectorContext
 
         // Connector operation cannot create result for itself, so we need to
         // create result for it
-        OperationResult icfResult = result.createSubresult(ConnectorFacade.class.getName() + ".search");
+        OperationResult icfResult = result.createSubresult(FACADE_OP_SEARCH);
         icfResult.addArbitraryObjectAsParam("objectClass", icfObjectClass);
         icfResult.addContext("connector", getConnIdConnectorFacadeRequired().getClass());
 
@@ -1780,7 +1798,7 @@ class ConnectorInstanceConnIdImpl implements ConnectorInstance, ConnectorContext
             ResultsHandler connIdHandler = new ResultsHandler() {
                 @Override
                 public boolean handle(ConnectorObject connectorObject) {
-                    fetched.setValue(fetched.getValue()+1);         // actually, this should execute at most once
+                    fetched.setValue(fetched.getValue() + 1); // actually, this should execute at most once
                     return false;
                 }
 
@@ -1926,10 +1944,13 @@ class ConnectorInstanceConnIdImpl implements ConnectorInstance, ConnectorContext
     private Object executeScriptIcf(UcfExecutionContext reporter, ExecuteProvisioningScriptOperation scriptOperation, OperationResult parentResult) throws CommunicationException, GenericFrameworkException {
 
         String icfOpName;
+        String opName;
         if (scriptOperation.isConnectorHost()) {
             icfOpName = "runScriptOnConnector";
+            opName = FACADE_OP_RUN_SCRIPT_ON_CONNECTOR;
         } else if (scriptOperation.isResourceHost()) {
             icfOpName = "runScriptOnResource";
+            opName = FACADE_OP_RUN_SCRIPT_ON_RESOURCE;
         } else {
             throw new IllegalArgumentException("Where to execute the script?");
         }
@@ -1938,7 +1959,7 @@ class ConnectorInstanceConnIdImpl implements ConnectorInstance, ConnectorContext
         // the connector
         ScriptContext scriptContext = convertToScriptContext(scriptOperation);
 
-        OperationResult icfResult = parentResult.createSubresult(ConnectorFacade.class.getName() + "." + icfOpName);
+        OperationResult icfResult = parentResult.createSubresult(opName);
         icfResult.addContext("connector", getConnIdConnectorFacadeRequired().getClass());
 
         ConnIdOperation operation = recordIcfOperationStart(reporter, ProvisioningOperation.ICF_SCRIPT, null);
