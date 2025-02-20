@@ -831,7 +831,9 @@
             </xsd:documentation>
             <xsd:appinfo>
                 <a:operational>false</a:operational> <!-- intentionally -->
-                <a:container/>
+                <!-- Experiment: mappingSpecification is structured bean / not property
+                  <a:container/>
+                  -->
                 <a:since>4.2</a:since>
             </xsd:appinfo>
         </xsd:annotation>
