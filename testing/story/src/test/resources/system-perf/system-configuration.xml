@@ -92,9 +92,6 @@
                 <classification>perOperationAndObjectType</classification>
             </statistics>
         </repository>
-        <valueMetadata>
-            <disableDefaultMultivalueProvenance>true</disableDefaultMultivalueProvenance>
-        </valueMetadata>
     </internals>
     <workflowConfiguration>
         <useDefaultApprovalPolicyRules>never</useDefaultApprovalPolicyRules>
