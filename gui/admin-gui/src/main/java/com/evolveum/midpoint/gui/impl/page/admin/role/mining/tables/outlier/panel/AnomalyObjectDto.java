@@ -37,7 +37,7 @@ public class AnomalyObjectDto implements Serializable {
     transient AnomalyTableCategory category;
     transient boolean isPartitionCountVisible;
 
-    public record AnomalyPartitionMap(DetectedAnomalyResult anomalyResult,
+    public record AnomalyPartitionMap(DetectedAnomalyResultType anomalyResult,
                                       RoleAnalysisOutlierPartitionType associatedPartition,
                                       List<OutlierExplanationResolver.ExplanationResult> explanation,
                                       int partitionCount,
@@ -86,7 +86,7 @@ public class AnomalyObjectDto implements Serializable {
 
         List<RoleAnalysisOutlierPartitionType> partition = outlier.getPartition();
         partition.forEach(partitionType -> {
-            List<DetectedAnomalyResult> detectedAnomalyResult = partitionType.getDetectedAnomalyResult();
+            List<DetectedAnomalyResultType> detectedAnomalyResult = partitionType.getDetectedAnomalyResult();
             detectedAnomalyResult.forEach(detectedAnomalyResult1 -> {
                 ObjectReferenceType targetObjectRef = detectedAnomalyResult1.getTargetObjectRef();
                 if (targetObjectRef != null) {
@@ -104,8 +104,8 @@ public class AnomalyObjectDto implements Serializable {
             @NotNull Map<String, Integer> countPartitionsMap,
             @NotNull Task task,
             @NotNull OperationResult result) {
-        List<DetectedAnomalyResult> detectedAnomalyResultList = partition.getDetectedAnomalyResult();
-        for (DetectedAnomalyResult detectedAnomalyResult : detectedAnomalyResultList) {
+        List<DetectedAnomalyResultType> detectedAnomalyResultList = partition.getDetectedAnomalyResult();
+        for (DetectedAnomalyResultType detectedAnomalyResult : detectedAnomalyResultList) {
             updateAnomalyRecordIfNeeded(roleAnalysisService, partition, detectedAnomalyResult, countPartitionsMap, task, result);
         }
     }
@@ -113,13 +113,13 @@ public class AnomalyObjectDto implements Serializable {
     private void updateAnomalyRecordIfNeeded(
             @NotNull RoleAnalysisService roleAnalysisService,
             @NotNull RoleAnalysisOutlierPartitionType partition,
-            @NotNull DetectedAnomalyResult detectedAnomalyResult,
+            @NotNull DetectedAnomalyResultType detectedAnomalyResult,
             @NotNull Map<String, Integer> countPartitionsMap,
             @NotNull Task task,
             @NotNull OperationResult result) {
 
         ObjectReferenceType targetObjectRef = detectedAnomalyResult.getTargetObjectRef();
-        DetectedAnomalyStatistics statistics = detectedAnomalyResult.getStatistics();
+        DetectedAnomalyStatisticsType statistics = detectedAnomalyResult.getStatistics();
         if (targetObjectRef == null || statistics == null) {
             return;
         }
@@ -279,7 +279,7 @@ public class AnomalyObjectDto implements Serializable {
         return roleAnomalyMap.get(oid).explanation();
     }
 
-    public DetectedAnomalyResult getAnomalyResult(String oid) {
+    public DetectedAnomalyResultType getAnomalyResult(String oid) {
         return roleAnomalyMap.get(oid).anomalyResult();
     }
 }

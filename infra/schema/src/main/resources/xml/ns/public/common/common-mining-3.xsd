@@ -131,7 +131,6 @@
     </xsd:complexType>
     <xsd:element name="roleAnalysisOutlier" type="tns:RoleAnalysisOutlierType" substitutionGroup="tns:object"/>
 
-
     <xsd:complexType name="RoleAnalysisOutlierPartitionType">
         <xsd:annotation>
             <xsd:documentation>
@@ -191,7 +190,7 @@
             </xsd:element>
 
             <!-- TODO clean, design what's, where and when we need store statistics -->
-            <xsd:element name="detectedAnomalyResult" type="c:DetectedAnomalyResult" minOccurs="0" maxOccurs="unbounded">
+            <xsd:element name="detectedAnomalyResult" type="c:DetectedAnomalyResultType" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
                     <xsd:documentation>
                         Statistical information about the outlier.
@@ -207,7 +206,6 @@
     </xsd:complexType>
     <xsd:element name="roleAnalysisOutlierPartitionsType" type="tns:RoleAnalysisOutlierPartitionType"/>
 
-    <!--TODO better name?-->
     <xsd:complexType name="RoleAnalysisPartitionAnalysisType">
         <xsd:annotation>
             <xsd:documentation>
@@ -263,7 +261,7 @@
                 </xsd:annotation>
             </xsd:element>
 
-            <xsd:element name="attributeAnalysis" type="c:AttributeAnalysis" minOccurs="0">
+            <xsd:element name="attributeAnalysis" type="c:AttributeAnalysisType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
                         <p>
@@ -277,7 +275,7 @@
             </xsd:element>
 
             <!--TODO move to similarObjectAnalysis-->
-            <xsd:element name="patternAnalysis" type="c:RoleAnalysisPatternAnalysis" minOccurs="0">
+            <xsd:element name="patternAnalysis" type="c:RoleAnalysisPatternAnalysisType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
                         Pattern analysis result above the similar object group.
@@ -285,7 +283,7 @@
                 </xsd:annotation>
             </xsd:element>
 
-            <xsd:element name="similarObjectAnalysis" type="c:RoleAnalysisOutlierSimilarObjectsAnalysisResult" minOccurs="0">
+            <xsd:element name="similarObjectAnalysis" type="c:RoleAnalysisOutlierSimilarObjectsAnalysisResultType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
                         Analysis of similar objects.
@@ -308,156 +306,7 @@
     </xsd:complexType>
     <xsd:element name="roleAnalysisPartitionAnalysisType" type="tns:RoleAnalysisPartitionAnalysisType"/>
 
-
-    <xsd:simpleType name="OutlierClusterCategoryType">
-        <xsd:annotation>
-            <xsd:documentation>
-                Represents the outlier status in role analysis.
-            </xsd:documentation>
-            <xsd:appinfo>
-                <jaxb:typesafeEnumClass/>
-            </xsd:appinfo>
-        </xsd:annotation>
-        <xsd:restriction base="xsd:string">
-            <xsd:enumeration value="inner_outlier">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Inner outlier: An outlier that is inside the cluster.
-                    </xsd:documentation>
-                    <xsd:appinfo>
-                        <jaxb:typesafeEnumMember name="INNER_OUTLIER"/>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:enumeration>
-            <xsd:enumeration value="outer_outlier">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Outer outlier: An outlier that is outside the cluster.
-                    </xsd:documentation>
-                    <xsd:appinfo>
-                        <jaxb:typesafeEnumMember name="OUTER_OUTLIER"/>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:enumeration>
-        </xsd:restriction>
-    </xsd:simpleType>
-
-    <xsd:simpleType name="OutlierNoiseCategoryType">
-        <xsd:annotation>
-            <xsd:documentation>
-                Category classification.
-            </xsd:documentation>
-            <xsd:appinfo>
-                <a:experimental>true</a:experimental>
-                <a:since>4.9</a:since>
-            </xsd:appinfo>
-        </xsd:annotation>
-        <xsd:restriction base="xsd:string">
-
-            <xsd:enumeration value="suitable">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        There is detected cluster/group that meet business definition.
-                    </xsd:documentation>
-                    <xsd:appinfo>
-                        <jaxb:typesafeEnumMember name="SUITABLE"/>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:enumeration>
-
-            <xsd:enumeration value="access_or_rule_noise">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Not required members that meet access or rule definition (not both together).
-                    </xsd:documentation>
-                    <xsd:appinfo>
-                        <jaxb:typesafeEnumMember name="ACCESS_OR_RULE_NOISE"/>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:enumeration>
-
-            <xsd:enumeration value="members_noise">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Not required members that meet business definition.
-                    </xsd:documentation>
-                    <xsd:appinfo>
-                        <jaxb:typesafeEnumMember name="MEMBERS_NOISE"/>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:enumeration>
-
-            <xsd:enumeration value="access_noise">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Not required members count that meet access definition.
-                    </xsd:documentation>
-                    <xsd:appinfo>
-                        <jaxb:typesafeEnumMember name="ACCESS_NOISE"/>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:enumeration>
-
-            <xsd:enumeration value="rule_noise">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Not required members count that meet rule definition.
-                    </xsd:documentation>
-                    <xsd:appinfo>
-                        <jaxb:typesafeEnumMember name="RULE_NOISE"/>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:enumeration>
-
-            <xsd:enumeration value="overal_noise">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Not required members count that meet business definition.
-                    </xsd:documentation>
-                    <xsd:appinfo>
-                        <jaxb:typesafeEnumMember name="OVERAL_NOISE"/>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:enumeration>
-
-        </xsd:restriction>
-    </xsd:simpleType>
-
-    <xsd:simpleType name="OutlierSpecificCategoryType">
-        <xsd:annotation>
-            <xsd:documentation>
-                Represents the outlier status in role analysis.
-            </xsd:documentation>
-            <xsd:appinfo>
-                <jaxb:typesafeEnumClass/>
-            </xsd:appinfo>
-        </xsd:annotation>
-        <xsd:restriction base="xsd:string">
-            <xsd:enumeration value="access_noise">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Object that contains duplicate access right.
-                    </xsd:documentation>
-                    <xsd:appinfo>
-                        <jaxb:typesafeEnumMember name="ACCESS_NOISE"/>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:enumeration>
-            <xsd:enumeration value="unique_object">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Object that is unique in the system.
-                    </xsd:documentation>
-                    <xsd:appinfo>
-                        <jaxb:typesafeEnumMember name="UNIQUE_OBJECT"/>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:enumeration>
-        </xsd:restriction>
-    </xsd:simpleType>
-
-    <!--TODO better name?-->
-    <xsd:complexType name="DetectedAnomalyResult">
+    <xsd:complexType name="DetectedAnomalyResultType">
         <xsd:annotation>
             <xsd:documentation>
                 Contains information about the outlier assignment anomaly result.
@@ -492,7 +341,7 @@
                 </xsd:annotation>
             </xsd:element>
 
-            <xsd:element name="statistics" type="c:DetectedAnomalyStatistics" minOccurs="0">
+            <xsd:element name="statistics" type="c:DetectedAnomalyStatisticsType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
                         Pattern result.
@@ -503,10 +352,9 @@
         </xsd:sequence>
         <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
-    <xsd:element name="detectedAnomalyResult" type="tns:DetectedAnomalyResult"/>
+    <xsd:element name="detectedAnomalyResult" type="tns:DetectedAnomalyResultType"/>
 
-    <!--TODO better name?-->
-    <xsd:complexType name="DetectedAnomalyStatistics">
+    <xsd:complexType name="DetectedAnomalyStatisticsType">
         <xsd:annotation>
             <xsd:documentation>
                 Contains information about the outlier assignment anomaly result.
@@ -517,7 +365,7 @@
         </xsd:annotation>
         <xsd:sequence>
 
-            <xsd:element name="attributeAnalysis" type="c:AttributeAnalysis" minOccurs="0">
+            <xsd:element name="attributeAnalysis" type="c:AttributeAnalysisType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
                         <p>
@@ -598,7 +446,7 @@
                 </xsd:annotation>
             </xsd:element>
 
-            <xsd:element name="patternAnalysis" type="c:RoleAnalysisPatternAnalysis" minOccurs="0">
+            <xsd:element name="patternAnalysis" type="c:RoleAnalysisPatternAnalysisType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
                         Pattern result.
@@ -608,9 +456,9 @@
         </xsd:sequence>
         <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
-    <xsd:element name="detectedAnomalyStatistics" type="tns:DetectedAnomalyStatistics"/>
+    <xsd:element name="detectedAnomalyStatistics" type="tns:DetectedAnomalyStatisticsType"/>
 
-    <xsd:complexType name="RoleAnalysisOutlierSimilarObjectsAnalysisResult">
+    <xsd:complexType name="RoleAnalysisOutlierSimilarObjectsAnalysisResultType">
         <xsd:annotation>
             <xsd:documentation>
                 Contains detailed information about similar objects analysis.
@@ -687,10 +535,9 @@
         </xsd:sequence>
         <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
-    <xsd:element name="roleAnalysisOutlierSimilarObjectsAnalysisResult" type="tns:RoleAnalysisOutlierSimilarObjectsAnalysisResult"/>
+    <xsd:element name="roleAnalysisOutlierSimilarObjectsAnalysisResult" type="tns:RoleAnalysisOutlierSimilarObjectsAnalysisResultType"/>
 
-
-    <xsd:complexType name="AttributeAnalysis">
+    <xsd:complexType name="AttributeAnalysisType">
         <xsd:annotation>
             <xsd:documentation>
                 The container consists of statistical data about object.
@@ -700,7 +547,7 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
-            <xsd:element name="roleAttributeAnalysisResult" type="c:RoleAnalysisAttributeAnalysisResult" minOccurs="0">
+            <xsd:element name="roleAttributeAnalysisResult" type="c:RoleAnalysisAttributeAnalysisResultType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
                         <p>
@@ -712,7 +559,7 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="userAttributeAnalysisResult" type="c:RoleAnalysisAttributeAnalysisResult" minOccurs="0">
+            <xsd:element name="userAttributeAnalysisResult" type="c:RoleAnalysisAttributeAnalysisResultType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
                         <p>
@@ -724,7 +571,7 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="userClusterCompare" type="c:RoleAnalysisAttributeAnalysisResult" minOccurs="0">
+            <xsd:element name="userClusterCompare" type="c:RoleAnalysisAttributeAnalysisResultType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
                         <p>
@@ -736,7 +583,7 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="userRoleMembersCompare" type="c:RoleAnalysisAttributeAnalysisResult" minOccurs="0">
+            <xsd:element name="userRoleMembersCompare" type="c:RoleAnalysisAttributeAnalysisResultType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
                         <p>
@@ -752,7 +599,7 @@
         </xsd:sequence>
         <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
-    <xsd:element name="attributeAnalysis" type="tns:AttributeAnalysis"/>
+    <xsd:element name="attributeAnalysis" type="tns:AttributeAnalysisType"/>
 
     <xsd:complexType name="RoleAnalysisClusterType">
         <xsd:annotation>
@@ -867,7 +714,7 @@
                         </xsd:annotation>
                     </xsd:element>
 
-                    <xsd:element name="operationStatus" type="tns:RoleAnalysisOperationStatus" minOccurs="0" maxOccurs="unbounded">
+                    <xsd:element name="operationStatus" type="tns:RoleAnalysisOperationStatusType" minOccurs="0" maxOccurs="unbounded">
                         <xsd:annotation>
                             <xsd:documentation>
                                 <p>
@@ -1025,7 +872,7 @@
                         </xsd:annotation>
                     </xsd:element>
 
-                    <xsd:element name="operationStatus" type="tns:RoleAnalysisOperationStatus" minOccurs="0">
+                    <xsd:element name="operationStatus" type="tns:RoleAnalysisOperationStatusType" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>
                                 <p>
@@ -1139,7 +986,7 @@
                 </xsd:annotation>
             </xsd:element>
 
-            <xsd:element name="roleAttributeAnalysisResult" type="c:RoleAnalysisAttributeAnalysisResult" minOccurs="0">
+            <xsd:element name="roleAttributeAnalysisResult" type="c:RoleAnalysisAttributeAnalysisResultType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
                         <p>
@@ -1151,7 +998,7 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="userAttributeAnalysisResult" type="c:RoleAnalysisAttributeAnalysisResult" minOccurs="0">
+            <xsd:element name="userAttributeAnalysisResult" type="c:RoleAnalysisAttributeAnalysisResultType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
                         <p>
@@ -1167,7 +1014,6 @@
         <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
     <xsd:element name="analysisClusterStatisticType" type="tns:AnalysisClusterStatisticType"/>
-
 
     <xsd:complexType name="AbstractAnalysisSessionOptionType">
         <xsd:annotation>
@@ -1613,7 +1459,7 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="roleAttributeAnalysisResult" type="c:RoleAnalysisAttributeAnalysisResult" minOccurs="0">
+            <xsd:element name="roleAttributeAnalysisResult" type="c:RoleAnalysisAttributeAnalysisResultType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
                         <p>
@@ -1625,7 +1471,7 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="userAttributeAnalysisResult" type="c:RoleAnalysisAttributeAnalysisResult" minOccurs="0">
+            <xsd:element name="userAttributeAnalysisResult" type="c:RoleAnalysisAttributeAnalysisResultType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
                         <p>
@@ -1643,7 +1489,7 @@
     </xsd:complexType>
     <xsd:element name="roleAnalysisDetectionPattern" type="tns:RoleAnalysisDetectionPatternType"/>
 
-    <xsd:complexType name="RoleAnalysisAttributeAnalysisResult">
+    <xsd:complexType name="RoleAnalysisAttributeAnalysisResultType">
         <xsd:annotation>
             <xsd:documentation>
                 Contains information about...
@@ -1668,7 +1514,7 @@
                 </xsd:annotation>
             </xsd:element>
 
-            <xsd:element name="attributeAnalysis" type="c:RoleAnalysisAttributeAnalysis" minOccurs="0" maxOccurs="unbounded">
+            <xsd:element name="attributeAnalysis" type="c:RoleAnalysisAttributeAnalysisType" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
                     <xsd:documentation>
                         <p>
@@ -1683,10 +1529,9 @@
         </xsd:sequence>
         <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
-    <xsd:element name="roleAnalysisAttributeAnalysisResult" type="tns:RoleAnalysisAttributeAnalysisResult"/>
+    <xsd:element name="roleAnalysisAttributeAnalysisResult" type="tns:RoleAnalysisAttributeAnalysisResultType"/>
 
-
-    <xsd:complexType name="RoleAnalysisAttributeAnalysis">
+    <xsd:complexType name="RoleAnalysisAttributeAnalysisType">
         <xsd:annotation>
             <xsd:documentation>
                 Contains information about...
@@ -1710,7 +1555,7 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="attributeStatistics" type="c:RoleAnalysisAttributeStatistics" minOccurs="0" maxOccurs="unbounded">
+            <xsd:element name="attributeStatistics" type="c:RoleAnalysisAttributeStatisticsType" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
                     <xsd:documentation>
                         <p>
@@ -1801,10 +1646,9 @@
         </xsd:sequence>
         <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
-    <xsd:element name="roleAnalysisAttributeAnalysis" type="tns:RoleAnalysisAttributeAnalysis"/>
+    <xsd:element name="roleAnalysisAttributeAnalysis" type="tns:RoleAnalysisAttributeAnalysisType"/>
 
-
-    <xsd:complexType name="RoleAnalysisAttributeStatistics">
+    <xsd:complexType name="RoleAnalysisAttributeStatisticsType">
         <xsd:annotation>
             <xsd:documentation>
                 Contains information about...
@@ -1875,7 +1719,7 @@
         </xsd:sequence>
         <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
-    <xsd:element name="roleAnalysisAttributeStatistics" type="tns:RoleAnalysisAttributeStatistics"/>
+    <xsd:element name="roleAnalysisAttributeStatistics" type="tns:RoleAnalysisAttributeStatisticsType"/>
 
     <xsd:complexType name="RoleAnalysisDetectionOptionType">
         <xsd:annotation>
@@ -2005,160 +1849,6 @@
         <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
 
-    <xsd:simpleType name="RoleAnalysisProcedureType">
-        <xsd:annotation>
-            <xsd:documentation>
-                Role analysis type.
-            </xsd:documentation>
-            <xsd:appinfo>
-                <a:experimental>true</a:experimental>
-                <a:since>4.8</a:since>
-            </xsd:appinfo>
-        </xsd:annotation>
-        <xsd:restriction base="xsd:string">
-            <xsd:enumeration value="role_mining">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        This mapping should be used during role mining analysis.
-                    </xsd:documentation>
-                    <xsd:appinfo>
-                        <jaxb:typesafeEnumMember name="ROLE_MINING"/>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:enumeration>
-            <xsd:enumeration value="outlier_detection">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        This mapping should be used during outlier detection analysis.
-                    </xsd:documentation>
-                    <xsd:appinfo>
-                        <jaxb:typesafeEnumMember name="OUTLIER_DETECTION"/>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:enumeration>
-        </xsd:restriction>
-    </xsd:simpleType>
-
-    <xsd:simpleType name="RoleAnalysisProcessModeType">
-        <xsd:annotation>
-            <xsd:documentation>
-                Role analysis processing mode (user or role).
-            </xsd:documentation>
-            <xsd:appinfo>
-                <a:experimental>true</a:experimental>
-                <a:since>4.8</a:since>
-            </xsd:appinfo>
-        </xsd:annotation>
-        <xsd:restriction base="xsd:string">
-            <xsd:enumeration value="role">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        This mapping should be used during parsing over role objects
-                    </xsd:documentation>
-                    <xsd:appinfo>
-                        <jaxb:typesafeEnumMember name="ROLE"/>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:enumeration>
-            <xsd:enumeration value="user">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        This mapping should be used during parsing over user objects
-                    </xsd:documentation>
-                    <xsd:appinfo>
-                        <jaxb:typesafeEnumMember name="USER"/>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:enumeration>
-        </xsd:restriction>
-    </xsd:simpleType>
-
-    <xsd:simpleType name="RoleAnalysisDetectionProcessType">
-        <xsd:annotation>
-            <xsd:documentation>
-                Role analysis detection processing mode.
-            </xsd:documentation>
-            <xsd:appinfo>
-                <a:experimental>true</a:experimental>
-                <a:since>4.8</a:since>
-            </xsd:appinfo>
-        </xsd:annotation>
-        <xsd:restriction base="xsd:string">
-            <xsd:enumeration value="full">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        This mapping should be used during detection pattern on all cluster objects.
-                    </xsd:documentation>
-                    <xsd:appinfo>
-                        <jaxb:typesafeEnumMember name="FULL"/>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:enumeration>
-            <xsd:enumeration value="partial">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        This mapping should be used for skipping potential large clustering objects.
-                    </xsd:documentation>
-                    <xsd:appinfo>
-                        <jaxb:typesafeEnumMember name="PARTIAL"/>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:enumeration>
-            <xsd:enumeration value="skip">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        This mapping should be used for skipping detection pattern on clustering objects.
-                    </xsd:documentation>
-                    <xsd:appinfo>
-                        <jaxb:typesafeEnumMember name="SKIP"/>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:enumeration>
-        </xsd:restriction>
-    </xsd:simpleType>
-
-    <xsd:complexType name="RangeType">
-        <xsd:annotation>
-            <xsd:documentation>
-                TODO
-            </xsd:documentation>
-        </xsd:annotation>
-        <xsd:sequence>
-            <xsd:element name="min" type="xsd:double" minOccurs="0">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        <p>
-                            Minimum required frequency.
-                        </p>
-                    </xsd:documentation>
-                    <xsd:appinfo>
-                        <a:displayName>RangeType.min</a:displayName>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="max" type="xsd:double" minOccurs="0">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        <p>
-                            Maximum required frequency.
-                        </p>
-                    </xsd:documentation>
-                    <xsd:appinfo>
-                        <a:displayName>RangeType.max</a:displayName>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:element>
-        </xsd:sequence>
-    </xsd:complexType>
-
-    <xsd:element name="range" type="tns:RangeType">
-        <xsd:annotation>
-            <xsd:documentation>
-                Min - max range.
-            </xsd:documentation>
-        </xsd:annotation>
-    </xsd:element>
-
     <xsd:complexType name="RoleAnalysisCandidateRoleType">
         <xsd:annotation>
             <xsd:documentation>
@@ -2201,7 +1891,7 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="operationStatus" type="tns:RoleAnalysisOperationStatus" minOccurs="0">
+            <xsd:element name="operationStatus" type="tns:RoleAnalysisOperationStatusType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
                         <p>
@@ -2216,7 +1906,7 @@
     </xsd:complexType>
     <xsd:element name="roleAnalysisCandidateRoleType" type="tns:RoleAnalysisCandidateRoleType"/>
 
-    <xsd:complexType name="RoleAnalysisOperationStatus">
+    <xsd:complexType name="RoleAnalysisOperationStatusType">
         <xsd:annotation>
             <xsd:documentation>
                 Information about an operation executed on an object.
@@ -2237,7 +1927,7 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="operationChannel" type="tns:RoleAnalysisOperation" minOccurs="0">
+            <xsd:element name="operationChannel" type="tns:RoleAnalysisOperationType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
                         Type of operation that was executed.
@@ -2287,66 +1977,6 @@
         </xsd:sequence>
         <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
-
-    <xsd:simpleType name="RoleAnalysisOperation">
-        <xsd:annotation>
-            <xsd:documentation>
-                Role analysis operation.
-            </xsd:documentation>
-            <xsd:appinfo>
-                <jaxb:typesafeEnumClass/>
-            </xsd:appinfo>
-        </xsd:annotation>
-        <xsd:restriction base="xsd:string">
-            <xsd:enumeration value="clustering">
-                <xsd:annotation>
-                    <xsd:appinfo>
-                        <jaxb:typesafeEnumMember name="CLUSTERING"/>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:enumeration>
-            <xsd:enumeration value="detection">
-                <xsd:annotation>
-                    <xsd:appinfo>
-                        <jaxb:typesafeEnumMember name="DETECTION"/>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:enumeration>
-            <xsd:enumeration value="migration">
-                <xsd:annotation>
-                    <xsd:appinfo>
-                        <jaxb:typesafeEnumMember name="MIGRATION"/>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:enumeration>
-        </xsd:restriction>
-    </xsd:simpleType>
-    <xsd:simpleType name="RoleAnalysisClusterCategory">
-        <xsd:annotation>
-            <xsd:documentation>
-                Role analysis relation
-            </xsd:documentation>
-            <xsd:appinfo>
-                <jaxb:typesafeEnumClass/>
-            </xsd:appinfo>
-        </xsd:annotation>
-        <xsd:restriction base="xsd:string">
-            <xsd:enumeration value="inliers">
-                <xsd:annotation>
-                    <xsd:appinfo>
-                        <jaxb:typesafeEnumMember name="INLIERS"/>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:enumeration>
-            <xsd:enumeration value="outliers">
-                <xsd:annotation>
-                    <xsd:appinfo>
-                        <jaxb:typesafeEnumMember name="OUTLIERS"/>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:enumeration>
-        </xsd:restriction>
-    </xsd:simpleType>
 
     <xsd:complexType name="AnalysisAttributeRuleType">
         <xsd:annotation>
@@ -2547,7 +2177,7 @@
         </xsd:annotation>
     </xsd:element>
 
-    <xsd:complexType name="RoleAnalysisPatternAnalysis">
+    <xsd:complexType name="RoleAnalysisPatternAnalysisType">
         <xsd:annotation>
             <xsd:documentation>
                 Contains detailed information about pattern analysis.
@@ -2605,7 +2235,7 @@
         </xsd:sequence>
         <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
-    <xsd:element name="roleAnalysisPatternAnalysis" type="tns:RoleAnalysisPatternAnalysis"/>
+    <xsd:element name="roleAnalysisPatternAnalysis" type="tns:RoleAnalysisPatternAnalysisType"/>
 
     <xsd:complexType name="RoleAnalysisOptionType">
         <xsd:annotation>
@@ -2695,110 +2325,6 @@
         <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
     <xsd:element name="roleAnalysisOptionType" type="tns:RoleAnalysisOptionType"/>
-
-    <xsd:simpleType name="RoleAnalysisCategoryType">
-        <xsd:annotation>
-            <xsd:documentation>
-                Category classification.
-            </xsd:documentation>
-            <xsd:appinfo>
-                <a:experimental>true</a:experimental>
-                <a:since>4.9</a:since>
-            </xsd:appinfo>
-        </xsd:annotation>
-        <xsd:restriction base="xsd:string">
-            <!--<xsd:enumeration value="standard">-->
-            <!--    <xsd:annotation>-->
-            <!--        <xsd:documentation>-->
-            <!--            This mapping should be used during basic analysis.-->
-            <!--        </xsd:documentation>-->
-            <!--        <xsd:appinfo>-->
-            <!--            <jaxb:typesafeEnumMember name="STANDARD"/>-->
-            <!--        </xsd:appinfo>-->
-            <!--    </xsd:annotation>-->
-            <!--</xsd:enumeration>-->
-            <xsd:enumeration value="balanced">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        This mapping should be used during basic analysis.
-                    </xsd:documentation>
-                    <xsd:appinfo>
-                        <jaxb:typesafeEnumMember name="BALANCED"/>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:enumeration>
-            <xsd:enumeration value="exact">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        This mapping should be used during basic analysis.
-                    </xsd:documentation>
-                    <xsd:appinfo>
-                        <jaxb:typesafeEnumMember name="EXACT"/>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:enumeration>
-            <xsd:enumeration value="exploration">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        This mapping should be used during basic analysis.
-                    </xsd:documentation>
-                    <xsd:appinfo>
-                        <jaxb:typesafeEnumMember name="EXPLORATION"/>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:enumeration>
-            <xsd:enumeration value="department">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        This mapping should be used during basic analysis.
-                    </xsd:documentation>
-                    <xsd:appinfo>
-                        <jaxb:typesafeEnumMember name="DEPARTMENT"/>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:enumeration>
-            <xsd:enumeration value="attribute_based">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        This mapping should be used during basic analysis.
-                    </xsd:documentation>
-                    <xsd:appinfo>
-                        <jaxb:typesafeEnumMember name="ATTRIBUTE_BASED"/>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:enumeration>
-            <xsd:enumeration value="advanced">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        This mapping should be used during advanced analysis (matching rules).
-                    </xsd:documentation>
-                    <xsd:appinfo>
-                        <jaxb:typesafeEnumMember name="ADVANCED"/>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:enumeration>
-            <xsd:enumeration value="outliers_department">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        This mapping should be used during outlier analysis.
-                    </xsd:documentation>
-                    <xsd:appinfo>
-                        <jaxb:typesafeEnumMember name="OUTLIERS_DEPARTMENT"/>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:enumeration>
-            <xsd:enumeration value="birthright">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        This mapping should be used during outlier analysis.
-                    </xsd:documentation>
-                    <xsd:appinfo>
-                        <jaxb:typesafeEnumMember name="BIRTHRIGHT"/>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:enumeration>
-        </xsd:restriction>
-    </xsd:simpleType>
 
     <xsd:complexType name="OutlierCategoryType">
         <xsd:annotation>
@@ -2907,8 +2433,6 @@
     </xsd:complexType>
     <xsd:element name="roleAnalysisExcludeType" type="tns:RoleAnalysisExcludeType"/>
 
-
-    <!--TODO: better naming-->
     <xsd:complexType name="RoleAnalysisIdentifiedCharacteristicsType">
         <xsd:annotation>
             <xsd:documentation>
@@ -2989,7 +2513,6 @@
     </xsd:complexType>
     <xsd:element name="identifiedCharacteristics" type="tns:RoleAnalysisIdentifiedCharacteristicsType"/>
 
-    <!--TODO: better naming-->
     <xsd:complexType name="RoleAnalysisIdentifiedCharacteristicsItemsType">
         <xsd:annotation>
             <xsd:documentation>
@@ -3124,7 +2647,6 @@
     </xsd:complexType>
     <xsd:element name="items" type="tns:RoleAnalysisIdentifiedCharacteristicsItemsType"/>
 
-    <!--TODO: better naming-->
     <xsd:complexType name="RoleAnalysisIdentifiedCharacteristicsItemType">
         <xsd:annotation>
             <xsd:documentation>
@@ -3157,7 +2679,193 @@
     </xsd:complexType>
     <xsd:element name="item" type="tns:RoleAnalysisIdentifiedCharacteristicsItemType"/>
 
-    <!--TODO: better naming-->
+    <xsd:complexType name="FrequencyType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Represents frequency-related information.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container>true</a:container>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+
+            <xsd:element name="percentageRatio" type="xsd:double" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Providing information about the percentage-based
+                        frequency.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+
+            <xsd:element name="valueRatio" type="xsd:int" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Providing information about the number-based
+                        frequency.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+
+            <xsd:element name="entiretyCount" type="xsd:int" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Providing information about entire count of objects.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+
+        </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
+    </xsd:complexType>
+    <xsd:element name="frequencyType" type="tns:FrequencyType"/>
+
+    <xsd:complexType name="RangeType">
+        <xsd:annotation>
+            <xsd:documentation>
+                TODO
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="min" type="xsd:double" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        <p>
+                            Minimum required frequency.
+                        </p>
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>RangeType.min</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="max" type="xsd:double" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        <p>
+                            Maximum required frequency.
+                        </p>
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>RangeType.max</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+    <xsd:element name="range" type="tns:RangeType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Min - max range.
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+
+    <xsd:simpleType name="RoleAnalysisCategoryType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Category classification.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:experimental>true</a:experimental>
+                <a:since>4.9</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:string">
+            <!--<xsd:enumeration value="standard">-->
+            <!--    <xsd:annotation>-->
+            <!--        <xsd:documentation>-->
+            <!--            This mapping should be used during basic analysis.-->
+            <!--        </xsd:documentation>-->
+            <!--        <xsd:appinfo>-->
+            <!--            <jaxb:typesafeEnumMember name="STANDARD"/>-->
+            <!--        </xsd:appinfo>-->
+            <!--    </xsd:annotation>-->
+            <!--</xsd:enumeration>-->
+            <xsd:enumeration value="balanced">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        This mapping should be used during basic analysis.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="BALANCED"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="exact">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        This mapping should be used during basic analysis.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="EXACT"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="exploration">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        This mapping should be used during basic analysis.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="EXPLORATION"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="department">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        This mapping should be used during basic analysis.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="DEPARTMENT"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="attribute_based">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        This mapping should be used during basic analysis.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="ATTRIBUTE_BASED"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="advanced">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        This mapping should be used during advanced analysis (matching rules).
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="ADVANCED"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="outliers_department">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        This mapping should be used during outlier analysis.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="OUTLIERS_DEPARTMENT"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="birthright">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        This mapping should be used during outlier analysis.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="BIRTHRIGHT"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+        </xsd:restriction>
+    </xsd:simpleType>
+
     <xsd:simpleType name="RoleAnalysisObjectCategorizationType">
         <xsd:annotation>
             <xsd:documentation>
@@ -3290,47 +2998,325 @@
         </xsd:restriction>
     </xsd:simpleType>
 
-    <xsd:complexType name="FrequencyType">
+    <xsd:simpleType name="OutlierClusterCategoryType">
         <xsd:annotation>
             <xsd:documentation>
-                Represents frequency-related information.
+                Represents the outlier status in role analysis.
             </xsd:documentation>
             <xsd:appinfo>
-                <a:container>true</a:container>
+                <jaxb:typesafeEnumClass/>
             </xsd:appinfo>
         </xsd:annotation>
-        <xsd:sequence>
-
-            <xsd:element name="percentageRatio" type="xsd:double" minOccurs="0">
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="inner_outlier">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Providing information about the percentage-based
-                        frequency.
+                        Inner outlier: An outlier that is inside the cluster.
                     </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="INNER_OUTLIER"/>
+                    </xsd:appinfo>
                 </xsd:annotation>
-            </xsd:element>
-
-            <xsd:element name="valueRatio" type="xsd:int" minOccurs="0">
+            </xsd:enumeration>
+            <xsd:enumeration value="outer_outlier">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Providing information about the number-based
-                        frequency.
+                        Outer outlier: An outlier that is outside the cluster.
                     </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="OUTER_OUTLIER"/>
+                    </xsd:appinfo>
                 </xsd:annotation>
-            </xsd:element>
+            </xsd:enumeration>
+        </xsd:restriction>
+    </xsd:simpleType>
 
-            <xsd:element name="entiretyCount" type="xsd:int" minOccurs="0">
+    <xsd:simpleType name="OutlierNoiseCategoryType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Category classification.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:experimental>true</a:experimental>
+                <a:since>4.9</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:string">
+
+            <xsd:enumeration value="suitable">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Providing information about entire count of objects.
+                        There is detected cluster/group that meet business definition.
                     </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="SUITABLE"/>
+                    </xsd:appinfo>
                 </xsd:annotation>
-            </xsd:element>
+            </xsd:enumeration>
 
-        </xsd:sequence>
-        <xsd:attribute name="id" type="xsd:long"/>
-    </xsd:complexType>
-    <xsd:element name="frequencyType" type="tns:FrequencyType"/>
+            <xsd:enumeration value="access_or_rule_noise">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Not required members that meet access or rule definition (not both together).
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="ACCESS_OR_RULE_NOISE"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+
+            <xsd:enumeration value="members_noise">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Not required members that meet business definition.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="MEMBERS_NOISE"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+
+            <xsd:enumeration value="access_noise">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Not required members count that meet access definition.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="ACCESS_NOISE"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+
+            <xsd:enumeration value="rule_noise">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Not required members count that meet rule definition.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="RULE_NOISE"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+
+            <xsd:enumeration value="overal_noise">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Not required members count that meet business definition.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="OVERAL_NOISE"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+
+        </xsd:restriction>
+    </xsd:simpleType>
+
+    <xsd:simpleType name="OutlierSpecificCategoryType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Represents the outlier status in role analysis.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <jaxb:typesafeEnumClass/>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="access_noise">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Object that contains duplicate access right.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="ACCESS_NOISE"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="unique_object">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Object that is unique in the system.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="UNIQUE_OBJECT"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+        </xsd:restriction>
+    </xsd:simpleType>
+
+    <xsd:simpleType name="RoleAnalysisOperationType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Role analysis operation.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <jaxb:typesafeEnumClass/>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="clustering">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="CLUSTERING"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="detection">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="DETECTION"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="migration">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="MIGRATION"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+        </xsd:restriction>
+    </xsd:simpleType>
+
+    <xsd:simpleType name="RoleAnalysisClusterCategory">
+        <xsd:annotation>
+            <xsd:documentation>
+                Role analysis relation
+            </xsd:documentation>
+            <xsd:appinfo>
+                <jaxb:typesafeEnumClass/>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="inliers">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="INLIERS"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="outliers">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="OUTLIERS"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+        </xsd:restriction>
+    </xsd:simpleType>
+
+    <xsd:simpleType name="RoleAnalysisProcedureType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Role analysis type.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:experimental>true</a:experimental>
+                <a:since>4.8</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="role_mining">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        This mapping should be used during role mining analysis.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="ROLE_MINING"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="outlier_detection">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        This mapping should be used during outlier detection analysis.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="OUTLIER_DETECTION"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+        </xsd:restriction>
+    </xsd:simpleType>
+
+    <xsd:simpleType name="RoleAnalysisProcessModeType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Role analysis processing mode (user or role).
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:experimental>true</a:experimental>
+                <a:since>4.8</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="role">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        This mapping should be used during parsing over role objects
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="ROLE"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="user">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        This mapping should be used during parsing over user objects
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="USER"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+        </xsd:restriction>
+    </xsd:simpleType>
+
+    <xsd:simpleType name="RoleAnalysisDetectionProcessType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Role analysis detection processing mode.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:experimental>true</a:experimental>
+                <a:since>4.8</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="full">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        This mapping should be used during detection pattern on all cluster objects.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="FULL"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="partial">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        This mapping should be used for skipping potential large clustering objects.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="PARTIAL"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="skip">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        This mapping should be used for skipping detection pattern on clustering objects.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="SKIP"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+        </xsd:restriction>
+    </xsd:simpleType>
 
 </xsd:schema>
 

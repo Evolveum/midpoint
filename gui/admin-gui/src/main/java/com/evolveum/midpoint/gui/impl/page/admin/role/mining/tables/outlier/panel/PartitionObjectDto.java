@@ -48,7 +48,7 @@ public class PartitionObjectDto implements Serializable {
         this.partition = partition;
         this.associatedOutlierName = outlier.getName().getOrig();
         this.outlierPartitionScore = partition.getPartitionAnalysis().getOverallConfidence();
-        List<DetectedAnomalyResult> detectedAnomalyResult = partition.getDetectedAnomalyResult();
+        List<DetectedAnomalyResultType> detectedAnomalyResult = partition.getDetectedAnomalyResult();
         this.anomalyAccessCount = detectedAnomalyResult != null ? detectedAnomalyResult.size() : 0;
         ObjectReferenceType clusterRef = partition.getClusterRef();
         if (clusterRef != null) {

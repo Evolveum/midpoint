@@ -774,7 +774,7 @@
             <plugin>
                 <groupId>com.github.eirslett</groupId>
                 <artifactId>frontend-maven-plugin</artifactId>
-                <version>1.12.1</version>
+                <version>1.15.1</version>
 
                 <executions>
                     <execution>
@@ -808,12 +808,27 @@
                             <arguments>run build</arguments>
                         </configuration>
                     </execution>
+                    <execution>
+                        <id>npm sbom</id>
+                        <goals>
+                            <goal>npm</goal>
+                        </goals>
+                        <configuration>
+                            <environmentVariables>
+                                <!-- this variable will be used by package.json -->
+                                <OUTPUT_FORMAT>xml</OUTPUT_FORMAT>
+                                <OUTPUT_BOM_NAME>bom-frontend</OUTPUT_BOM_NAME>
+                                <OUTPUT_BOM_DIRECTORY>${project.build.directory}</OUTPUT_BOM_DIRECTORY>
+                            </environmentVariables>
+                            <arguments>run sbom_maven</arguments>
+                        </configuration>
+                    </execution>
                 </executions>
                 <configuration>
                     <nodeDownloadRoot>https://nexus.evolveum.com/nexus/repository/nodejs-dist/</nodeDownloadRoot>
                     <npmDownloadRoot>https://nexus.evolveum.com/nexus/repository/npmjs-dist/</npmDownloadRoot>
-                    <nodeVersion>v18.12.1</nodeVersion>
-                    <npmVersion>8.19.2</npmVersion>
+                    <nodeVersion>v22.14.0</nodeVersion>
+                    <npmVersion>11.1.0</npmVersion>
                     <installDirectory>target</installDirectory>
                 </configuration>
             </plugin>
@@ -835,6 +850,36 @@
                             <suiteXmlFiles>
                                 <suiteXmlFile>testng-perf.xml</suiteXmlFile>
                             </suiteXmlFiles>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+        <profile>
+            <id>dependencytrack</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>io.github.pmckeown</groupId>
+                        <artifactId>dependency-track-maven-plugin</artifactId>
+                        <executions>
+                            <execution>
+                                <id>upload-bom</id>
+                                <phase>verify</phase>
+                                <goals>
+                                    <goal>upload-bom</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                        <configuration>
+                            <projectName>admin-gui-frontend</projectName>
+                            <bomLocation>./gui/admin-gui/target/bom-frontend.xml</bomLocation>
+                            <pollingConfig>
+                                <enabled>true</enabled>
+                                <pause>500</pause>
+                                <attempts>100</attempts>
+                                <timeUnit>MILLIS</timeUnit>
+                            </pollingConfig>
                         </configuration>
                     </plugin>
                 </plugins>

@@ -32,7 +32,7 @@ public class AttributeAnalysisStructure implements Serializable {
     private ItemPath itemPath;
     double density;
     String description;
-    private transient List<RoleAnalysisAttributeStatistics> attributeStatistics = new ArrayList<>();
+    private transient List<RoleAnalysisAttributeStatisticsType> attributeStatistics = new ArrayList<>();
     boolean isMultiValue;
     QName complexType;
     int analyzedObjectsCount;
@@ -62,8 +62,8 @@ public class AttributeAnalysisStructure implements Serializable {
             return attributeAnalysisStructures;
         }
 
-        RoleAnalysisAttributeAnalysisResult userAttributeAnalysisResult = clusterStatistics.getUserAttributeAnalysisResult();
-        RoleAnalysisAttributeAnalysisResult roleAttributeAnalysisResult = clusterStatistics.getRoleAttributeAnalysisResult();
+        RoleAnalysisAttributeAnalysisResultType userAttributeAnalysisResult = clusterStatistics.getUserAttributeAnalysisResult();
+        RoleAnalysisAttributeAnalysisResultType roleAttributeAnalysisResult = clusterStatistics.getRoleAttributeAnalysisResult();
 
         attributeAnalysisStructures.addAll(
                 extractAttributeAnalysis(userAttributeAnalysisResult.getAttributeAnalysis(), UserType.COMPLEX_TYPE));
@@ -74,10 +74,10 @@ public class AttributeAnalysisStructure implements Serializable {
     }
 
     public static @NotNull List<AttributeAnalysisStructure> extractAttributeAnalysis(
-            @NotNull List<RoleAnalysisAttributeAnalysis> attributeAnalysisList,
+            @NotNull List<RoleAnalysisAttributeAnalysisType> attributeAnalysisList,
             @NotNull QName complexType) {
         List<AttributeAnalysisStructure> analysisStructures = new ArrayList<>();
-        for (RoleAnalysisAttributeAnalysis attribute : attributeAnalysisList) {
+        for (RoleAnalysisAttributeAnalysisType attribute : attributeAnalysisList) {
             Double density = attribute.getDensity();
             ItemPath itemPath = attribute.getItemPath() != null ? attribute.getItemPath().getItemPath() : null;
             Integer analysedObjectCount = attribute.getAnalysedObjectCount();
@@ -86,7 +86,7 @@ public class AttributeAnalysisStructure implements Serializable {
         return analysisStructures;
     }
 
-    public AttributeAnalysisStructure(RoleAnalysisAttributeAnalysis attributeAnalysis) {
+    public AttributeAnalysisStructure(RoleAnalysisAttributeAnalysisType attributeAnalysis) {
         if (attributeAnalysis == null) {
             return;
         }
@@ -138,11 +138,11 @@ public class AttributeAnalysisStructure implements Serializable {
         this.description = description;
     }
 
-    public List<RoleAnalysisAttributeStatistics> getAttributeStatistics() {
+    public List<RoleAnalysisAttributeStatisticsType> getAttributeStatistics() {
         return attributeStatistics;
     }
 
-    public void setAttributeStatistics(List<RoleAnalysisAttributeStatistics> attributeStatistics) {
+    public void setAttributeStatistics(List<RoleAnalysisAttributeStatisticsType> attributeStatistics) {
         this.attributeStatistics = attributeStatistics;
     }
 
@@ -162,8 +162,8 @@ public class AttributeAnalysisStructure implements Serializable {
         return analyzedObjectsCount;
     }
 
-    public @NotNull RoleAnalysisAttributeAnalysis buildRoleAnalysisAttributeAnalysisContainer() {
-        RoleAnalysisAttributeAnalysis attributeAnalysisContainer = new RoleAnalysisAttributeAnalysis();
+    public @NotNull RoleAnalysisAttributeAnalysisType buildRoleAnalysisAttributeAnalysisContainer() {
+        RoleAnalysisAttributeAnalysisType attributeAnalysisContainer = new RoleAnalysisAttributeAnalysisType();
         attributeAnalysisContainer.setDensity(this.getDensity());
         attributeAnalysisContainer.setItemPath(this.getItemPathType());
         attributeAnalysisContainer.setDescription(this.getDescription());
@@ -175,8 +175,8 @@ public class AttributeAnalysisStructure implements Serializable {
 //        int possibleRelations = uniqueValues * this.getAnalyzedObjectsCount();
 //        attributeAnalysisContainer.setPossibleRelation((double) possibleRelations);
 
-        List<RoleAnalysisAttributeStatistics> attributeStatisticsResults = this.getAttributeStatistics();
-        for (RoleAnalysisAttributeStatistics attributeStatistic : attributeStatisticsResults) {
+        List<RoleAnalysisAttributeStatisticsType> attributeStatisticsResults = this.getAttributeStatistics();
+        for (RoleAnalysisAttributeStatisticsType attributeStatistic : attributeStatisticsResults) {
             attributeAnalysisContainer.getAttributeStatistics().add(attributeStatistic);
         }
 

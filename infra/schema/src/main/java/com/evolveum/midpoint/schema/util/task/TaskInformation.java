@@ -13,6 +13,8 @@ import static com.evolveum.midpoint.schema.util.task.TaskTypeUtil.isActivityBase
 import java.io.Serializable;
 import javax.xml.datatype.XMLGregorianCalendar;
 
+import com.evolveum.midpoint.util.LocalizableMessage;
+
 import com.google.common.base.MoreObjects;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -135,6 +137,18 @@ public abstract class TaskInformation implements DebugDumpable, Serializable {
     public abstract String getProgressDescription(boolean longForm);
 
     /**
+     * Returns the progress of the task based on activity tree state.
+     *
+     * Progress (%) is based on the number of completed activities to all activities.
+     * Each activity represents the same amount of work.
+     *
+     * @return The progress is a number between 0 and 1. If the progress is unknown, the method returns -1.
+     */
+    public abstract double getProgress();
+
+    public abstract boolean isComplete();
+
+    /**
      * Returns number of items failed to be processed by the task and its children, if known.
      *
      * BEWARE: Fatal errors (e.g. resource not found for import task) are not counted here.
@@ -157,7 +171,7 @@ public abstract class TaskInformation implements DebugDumpable, Serializable {
     }
 
     /**
-     * Returns the "start timestamp", whatever that means. Currently it is the execution start for trivial tasks
+     * Returns the "start timestamp", whatever that means. Currently, it is the execution start for trivial tasks
      * (a single non-bucketed activity, or a legacy task); and realization start otherwise.
      */
     public abstract XMLGregorianCalendar getStartTimestamp();
@@ -168,4 +182,20 @@ public abstract class TaskInformation implements DebugDumpable, Serializable {
     public abstract XMLGregorianCalendar getEndTimestamp();
 
     public abstract Object getLiveSyncToken();
+
+    /**
+     *
+     * @return
+     */
+    public abstract OperationResultStatusType getTaskHealthStatus();
+
+    /**
+     * Returns the message that describes primarily the overall status (health) of the task and it's subtasks.
+     *
+     * Description should not be based on errors created as a result of items/objects processing,
+     * just state of tasks/subtasks and their execution.
+     *
+     * This should be a short message that is suitable for displaying to the user/table.
+     */
+    public abstract LocalizableMessage getTaskHealthDescription();
 }

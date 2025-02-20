@@ -65,6 +65,7 @@ public class CompiledObjectCollectionView implements DebugDumpable, Serializable
     private Collection<SelectorOptions<GetOperationOptions>> options;
     private Collection<SelectorOptions<GetOperationOptions>> domainOptions;
     private PagingType paging;
+    private PagingOptionsType pagingOptions;
     private PolyString name;
 
     private UserInterfaceElementVisibilityType visibility;
@@ -260,6 +261,14 @@ public class CompiledObjectCollectionView implements DebugDumpable, Serializable
 
     public PagingType getPaging() {
         return paging;
+    }
+
+    public void setPagingOptions(PagingOptionsType pagingOptions) {
+        this.pagingOptions = pagingOptions;
+    }
+
+    public PagingOptionsType getPagingOptions() {
+        return pagingOptions;
     }
 
     public void setVisibility(UserInterfaceElementVisibilityType visibility) {

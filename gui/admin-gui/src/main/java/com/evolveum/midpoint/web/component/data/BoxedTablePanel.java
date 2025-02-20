@@ -308,8 +308,13 @@ public class BoxedTablePanel<T> extends BasePanel<T> implements Table {
             }
 
             @Override
-            protected Integer getConfiguredPageSize() {
-                return BoxedTablePanel.this.getConfiguredPageSize();
+            protected List<Integer> getPagingSizes() {
+                return BoxedTablePanel.this.getPagingSizes();
+            }
+
+            @Override
+            protected boolean shouldAddPredefinedPagingSizes() {
+                return BoxedTablePanel.this.shouldAddPredefinedPagingSizes();
             }
 
             @Override
@@ -323,8 +328,12 @@ public class BoxedTablePanel<T> extends BasePanel<T> implements Table {
         return true;
     }
 
-    protected Integer getConfiguredPageSize() {
+    protected List<Integer> getPagingSizes() {
         return null;
+    }
+
+    protected boolean shouldAddPredefinedPagingSizes() {
+        return false;
     }
 
     protected void savePagingNewValue(Integer newValue) {
@@ -432,8 +441,13 @@ public class BoxedTablePanel<T> extends BasePanel<T> implements Table {
                 }
 
                 @Override
-                protected Integer getConfiguredPagingSize() {
-                    return PagingFooter.this.getConfiguredPageSize();
+                protected List<Integer> getCustomPagingSizes() {
+                    return PagingFooter.this.getPagingSizes();
+                }
+
+                @Override
+                protected boolean shouldAddPredefinedPagingSizes() {
+                    return PagingFooter.this.shouldAddPredefinedPagingSizes();
                 }
             };
             // todo nasty hack, we should decide whether paging should be normal or "small"
@@ -466,8 +480,12 @@ public class BoxedTablePanel<T> extends BasePanel<T> implements Table {
             return true;
         }
 
-        protected Integer getConfiguredPageSize() {
+        protected List<Integer> getPagingSizes() {
             return null;
+        }
+
+        protected boolean shouldAddPredefinedPagingSizes() {
+            return false;
         }
 
         protected void setPageSize(Integer newPageSize) {

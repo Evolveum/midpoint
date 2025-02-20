@@ -53,6 +53,8 @@ module.exports = {
                         options: {
                             sassOptions: {
                                 outputStyle: "expanded",
+                                quietDeps: true,
+                                silenceDeprecations: ["abs-percent", "color-4-api", "import", "legacy-js-api", "color-functions", "fs-importer-cwd", "css-function-mixin", "duplicate-var-flags", "feature-exists", "global-builtin", "mixed-decls"]
                             }
                         },
                     },

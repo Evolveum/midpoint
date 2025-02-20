@@ -70,13 +70,13 @@ public class RoleAnalysisSinglePartitionAnomalyResultTabPopup extends BasePanel<
     private static final String ID_WARNING_MESSAGE = "warningMessage";
     private static final String ID_FORM = "form";
 
-    IModel<DetectedAnomalyResult> anomalyModel;
+    IModel<DetectedAnomalyResultType> anomalyModel;
     IModel<RoleAnalysisOutlierType> outlierModel;
 
     public RoleAnalysisSinglePartitionAnomalyResultTabPopup(
             @NotNull String id,
             @NotNull IModel<RoleAnalysisOutlierPartitionType> partitionModel,
-            @NotNull IModel<DetectedAnomalyResult> anomalyModel,
+            @NotNull IModel<DetectedAnomalyResultType> anomalyModel,
             @NotNull IModel<RoleAnalysisOutlierType> outlierModel) {
         super(id, partitionModel);
 
@@ -198,11 +198,11 @@ public class RoleAnalysisSinglePartitionAnomalyResultTabPopup extends BasePanel<
             @Override
             public WebMarkupContainer createPanel(String panelId) {
                 RoleAnalysisService roleAnalysisService = getPageBase().getRoleAnalysisService();
-                AttributeAnalysis attributeAnalysis = getAnomalyModelStatistics().getAttributeAnalysis();
+                AttributeAnalysisType attributeAnalysis = getAnomalyModelStatistics().getAttributeAnalysis();
                 if (attributeAnalysis == null || attributeAnalysis.getUserAttributeAnalysisResult() == null) {
                     return new WebMarkupContainer(panelId);
                 }
-                RoleAnalysisAttributeAnalysisResult userAttributeAnalysisResult = attributeAnalysis.getUserAttributeAnalysisResult();
+                RoleAnalysisAttributeAnalysisResultType userAttributeAnalysisResult = attributeAnalysis.getUserAttributeAnalysisResult();
 
                 Set<String> userPathToMark = roleAnalysisService.resolveUserValueToMark(userAttributeAnalysisResult);
 
@@ -238,8 +238,8 @@ public class RoleAnalysisSinglePartitionAnomalyResultTabPopup extends BasePanel<
             }
         });
 
-        DetectedAnomalyStatistics anomalyStatistics = getAnomalyModelStatistics();
-        RoleAnalysisPatternAnalysis patternAnalysis = anomalyStatistics.getPatternAnalysis();
+        DetectedAnomalyStatisticsType anomalyStatistics = getAnomalyModelStatistics();
+        RoleAnalysisPatternAnalysisType patternAnalysis = anomalyStatistics.getPatternAnalysis();
         RoleAnalysisDetectionPatternType topDetectedPattern = patternAnalysis.getTopDetectedPattern();
 
         if (topDetectedPattern != null) {
@@ -435,11 +435,11 @@ public class RoleAnalysisSinglePartitionAnomalyResultTabPopup extends BasePanel<
         return Model.ofList(detailsModel);
     }
 
-    public @NotNull DetectedAnomalyResult getAnomalyModelObject() {
+    public @NotNull DetectedAnomalyResultType getAnomalyModelObject() {
         return anomalyModel.getObject();
     }
 
-    public @NotNull DetectedAnomalyStatistics getAnomalyModelStatistics() {
+    public @NotNull DetectedAnomalyStatisticsType getAnomalyModelStatistics() {
         return getAnomalyModelObject().getStatistics();
     }
 
@@ -475,8 +475,8 @@ public class RoleAnalysisSinglePartitionAnomalyResultTabPopup extends BasePanel<
     }
 
     private @NotNull Component getAnomalyHeaderComponent(String id) {
-        DetectedAnomalyResult object = getAnomalyModelObject();
-        DetectedAnomalyStatistics statistics = object.getStatistics();
+        DetectedAnomalyResultType object = getAnomalyModelObject();
+        DetectedAnomalyStatisticsType statistics = object.getStatistics();
 
         PageBase pageBase = getPageBase();
         Task simpleTask = pageBase.createSimpleTask("Load object");
@@ -525,9 +525,9 @@ public class RoleAnalysisSinglePartitionAnomalyResultTabPopup extends BasePanel<
 
     private @NotNull IModel<List<WidgetItemModel>> loadDetailsModel() {
 
-        DetectedAnomalyResult anomalyModelObject = getAnomalyModelObject();
-        DetectedAnomalyStatistics anomalyModelStatistics = getAnomalyModelStatistics();
-        RoleAnalysisPatternAnalysis patternAnalysis = anomalyModelStatistics.getPatternAnalysis();
+        DetectedAnomalyResultType anomalyModelObject = getAnomalyModelObject();
+        DetectedAnomalyStatisticsType anomalyModelStatistics = getAnomalyModelStatistics();
+        RoleAnalysisPatternAnalysisType patternAnalysis = anomalyModelStatistics.getPatternAnalysis();
         RoleAnalysisOutlierType outlierModelObject = getOutlierModelObject();
         List<ObjectReferenceType> duplicatedRoleAssignment = outlierModelObject.getDuplicatedRoleAssignment();
         String oid = anomalyModelObject.getTargetObjectRef().getOid();
@@ -615,17 +615,16 @@ public class RoleAnalysisSinglePartitionAnomalyResultTabPopup extends BasePanel<
 
                     @Override
                     public Component createFooterComponent(String id) {
-
-                        AttributeAnalysis attributeAnalysis = anomalyModelStatistics.getAttributeAnalysis();
+                        AttributeAnalysisType attributeAnalysis = anomalyModelStatistics.getAttributeAnalysis();
 
                         int attributeAboveThreshold = 0;
                         int threshold = 80;
 
-                        RoleAnalysisAttributeAnalysisResult userClusterCompare = attributeAnalysis.getUserRoleMembersCompare();
+                        RoleAnalysisAttributeAnalysisResultType userClusterCompare = attributeAnalysis.getUserRoleMembersCompare();
                         if (userClusterCompare != null && userClusterCompare.getAttributeAnalysis() != null) {
-                            List<RoleAnalysisAttributeAnalysis> analysedAttributeAnalysis = userClusterCompare.getAttributeAnalysis();
+                            List<RoleAnalysisAttributeAnalysisType> analysedAttributeAnalysis = userClusterCompare.getAttributeAnalysis();
 
-                            for (RoleAnalysisAttributeAnalysis attribute : analysedAttributeAnalysis) {
+                            for (RoleAnalysisAttributeAnalysisType attribute : analysedAttributeAnalysis) {
                                 Double density = attribute.getDensity();
                                 if (density != null) {
                                     if (density >= threshold) {

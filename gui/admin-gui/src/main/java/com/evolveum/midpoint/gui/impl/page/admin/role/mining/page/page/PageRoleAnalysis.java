@@ -11,6 +11,7 @@ import java.io.Serial;
 
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.tables.tile.component.RoleAnalysisSessionTileTable;
 import com.evolveum.midpoint.task.api.Task;
 
 import org.apache.wicket.markup.html.form.Form;
@@ -24,7 +25,6 @@ import com.evolveum.midpoint.authentication.api.authorization.Url;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.impl.error.ErrorPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.chart.RoleAnalysisInfoPanel;
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.tables.tile.RoleAnalysisSessionTileTable;
 import com.evolveum.midpoint.model.api.mining.RoleAnalysisService;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;

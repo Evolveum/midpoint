@@ -22,6 +22,8 @@ Each point contains design/implementation notes.
 * _Repository stores midPoint objects (subtypes of `ObjectType`), assigning their OID if missing._
 For this `m_object` table with `oid` (UUID) and `fullObject` (BYTEA) columns would be enough.
 However, this is not acceptable for `searchObjects` performance see note there.
+** For some larger items (container, references) repository stores their content in separate tables and their own respectible `fullObject`
+
 * _Repository assigns any missing container IDs (CID) for object's containers._
 These IDs are unique inside a single object and assigned loosely sequentially.
 For this `m_object.cid_seq` is stored in the database and it contains the next available CID.
@@ -355,7 +357,7 @@ Even the search that returns nothing is better than none, because it executes th
 But it's easy to prepare new data at the start of the class and actually return some data as well.
 
 . And SQL alter script, of course!
-We need to prepare SQL command for upgrade script `postgres-new-upgrade.sql`.
+We need to prepare SQL command for upgrade script `postgres-upgrade.sql`.
 Prepare the right `ALTER` command and test it on an existing database without the change.
 Wrap the change inside `apply_change` call - use the examples already available in the file.
 Don't forget to bump the change identifier for each chagne.
@@ -369,7 +371,7 @@ change, because this change *must be committed* before it can be used.
 See the existing examples in the upgrade script - there definitely are some.
 
 . Update the last indicated change in the main SQL scipt!
-This is the last line in `postgres-new.sql` saying `call apply_change...`.
+This is the last line in `postgres.sql` saying `call apply_change...`.
 The number here should match the last used change identifier in the upgrade script.
 This is important to avoid applying any change more than once.
 
@@ -382,11 +384,11 @@ This is a simple example, only minimal `m_message_template` table will be added,
 for its containers, because these are not searchable (full text can be used for that, if required).
 
 . New persisted object type must be declared.
-Add the new value `MESSAGE_TEMPLATE` to the `ObjectType` enum in both `postgres-new.sql` and `postgres-new-upgrade-audit.sql`.
+Add the new value `MESSAGE_TEMPLATE` to the `ObjectType` enum in both `postgres.sql` and `postgres-upgrade-audit.sql`.
 This value will be later added in the `MObjectType` Java enum, but that requires some other classes we don't have yet.
 
 . Also, prepare and test upgrade command to the same effect just above the bottom comment in both
-`postgres-new-upgrade.sql` and `postgres-new-upgrade-audit.sql`.
+`postgres-upgrade.sql` and `postgres-upgrade-audit.sql`.
 Adding the type value in both files is critical for cases when audit is used in a separate schema/database.
 We will wrap this inside `apply_change` (or `apply_audit_change` for audit SQL) so it is executed only if not applied yet.
 We will write it in an idempotent fashion (`IF NOT EXISTS`), not only because we can and it is more flexible,
@@ -405,7 +407,7 @@ $aa$);
 As described in the comment, we make this a separate change, because the `apply_change` procedure
 manages the commits and we can't use `COMMIT` inside the change block.
 
-. Continue with the table definition in `postgres-new.sql`.
+. Continue with the table definition in `postgres.sql`.
 Again, this one is very simple, we can copy/paste and carefully modify existing simple tables like `m_dashboard` for instance.
 Use search to be sure all `m_dashboard` strings are replaced with `m_message_template` as appropriate,
 especially for the trigger and index names.
@@ -414,9 +416,9 @@ Replace the object type values in the `objectType` column definition.
 Place the tables in the proper section (region in IDEA).
 This can be "OTHER object tables", but we will create new region in this case, as we plan more Notification related tables in the future.
 Example for the complete table with triggers and indexes can be seen
-https://github.com/Evolveum/midpoint/blob/7a7c337d50b6cea1ad7c898b780f308c415c7cb5/config/sql/native-new/postgres-new.sql#L1647-L1669[here].
+https://github.com/Evolveum/midpoint/blob/7a7c337d50b6cea1ad7c898b780f308c415c7cb5/config/sql/native/postgres.sql#L1647-L1669[here].
 
-. Add the same creation statements in the upgrade script `postgres-new-upgrade.sql` just after the `ALTER` from the previous step.
+. Add the same creation statements in the upgrade script `postgres-upgrade.sql` just after the `ALTER` from the previous step.
 You can use a single `apply_change` block for it, unless commit is required after any of the statements.
 As always, use a new change number (first parameter) for each change.
 

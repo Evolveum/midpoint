@@ -295,9 +295,8 @@ public class RoleAnalysisSessionTilePanel<T extends Serializable> extends BasePa
     }
 
     public void initStatusBar() {
-
         String state;
-        RoleAnalysisOperationStatus status;
+        RoleAnalysisOperationStatusType status;
         ObjectReferenceType taskRef;
         if (getModelObject() != null) {
             state = getModelObject().getStateString();
@@ -332,7 +331,7 @@ public class RoleAnalysisSessionTilePanel<T extends Serializable> extends BasePa
     }
 
     @NotNull
-    private static String resolveButtonClass(@Nullable RoleAnalysisOperationStatus operationStatus) {
+    private static String resolveButtonClass(@Nullable RoleAnalysisOperationStatusType operationStatus) {
         if (operationStatus == null) {
             return "btn-outline-secondary";
         }

@@ -1016,6 +1016,91 @@ call apply_change(50, $aa$
 
 $aa$);
 
+call apply_change(51, $aa$
+    CREATE OR REPLACE FUNCTION m_shadow_create_partition() RETURNS trigger AS $BODY$
+    DECLARE
+      resource UUID;
+      partitionParent TEXT;
+      partitionName TEXT;
+      sourceTable TEXT;
+      tableOid TEXT;
+    BEGIN
+      IF NEW.resourceOid IS NULL THEN
+        /* Do not create new partition */
+        IF new."table" != 'm_shadow_default' THEN
+            RAISE EXCEPTION 'Only m_shadow_default partition is supported for any resource';
+        END IF;
+        RETURN NULL;
+      END IF;
+      tableOid := REPLACE(new.resourceOid::text,'-','_');
+      partitionParent := 'm_shadow_' || tableOid;
+
+      IF NOT new.partition THEN
+        IF new.resourceOid IS NULL THEN
+          RAISE EXCEPTION 'Can not create partitioned table without resource oid';
+        END IF;
+        EXECUTE format('CREATE TABLE %I (like m_shadow INCLUDING ALL ) PARTITION BY LIST(objectClassId); ', new."table");
+        RETURN new;
+      END IF;
+
+      /* Real partitions holding data */
+      IF new.objectClassId IS NOT NULL THEN
+        sourceTable := (SELECT p.table FROM m_shadow_partition_def AS p WHERE p.resourceOid = new.resourceOid AND p.objectClassId IS NULL AND p.partition LIMIT 1);
+      END IF;
+
+      IF sourceTable IS NULL THEN
+        sourceTable := 'm_shadow_default';
+      END IF;
+
+      /* We should check if resource and resource default table exists */
+
+      /* Create Partition table */
+      EXECUTE format('CREATE TABLE %I (like %I INCLUDING ALL ); ', new."table", sourceTable);
+      EXECUTE format('ALTER TABLE %I ALTER objecttype DROP EXPRESSION;', new."table");
+
+      /* Move data to new partition */
+      IF new.objectClassId IS NULL THEN
+        EXECUTE format('INSERT into %I SELECT * FROM %I
+            where resourceRefTargetOid = ''%s''',
+            new."table", sourceTable, new.resourceOid);
+      ELSE
+        EXECUTE format('INSERT into %I SELECT * FROM %I
+            where resourceRefTargetOid = ''%s'' AND objectClassId = %s',
+            new."table", sourceTable, new.resourceOid, new.objectClassId);
+      END IF;
+      EXECUTE format('ALTER TABLE %I DROP objecttype;', new.table);
+      EXECUTE format('ALTER TABLE %I ADD COLUMN objecttype ObjectType
+        GENERATED ALWAYS AS (''SHADOW'') STORED
+            CONSTRAINT m_shadow_objecttype_check
+                CHECK (objectType = ''SHADOW'')', new.table);
+
+      /* We should skip drop triggers for m_oid table (also probably in resource default table (if exists)) */
+      EXECUTE format('ALTER TABLE %I DISABLE TRIGGER USER;', sourceTable);
+      IF new.objectClassId IS NULL THEN
+        EXECUTE format('DELETE FROM %I
+            where resourceRefTargetOid = ''%s''', sourceTable, new.resourceOid);
+      ELSE
+        EXECUTE format('DELETE FROM %I
+            where resourceRefTargetOid = ''%s'' AND objectClassId = %s', sourceTable, new.resourceOid, new.objectClassId);
+      END IF;
+      /* Reenable triggers in original table */
+      EXECUTE format('ALTER TABLE %I ENABLE TRIGGER USER;', sourceTable);
+
+      IF new.objectClassId IS  NULL THEN
+        /* Attach table as default partition */
+        EXECUTE FORMAT ('ALTER TABLE %I ATTACH PARTITION %I DEFAULT', partitionParent, new."table");
+      ELSE
+        EXECUTE FORMAT ('ALTER TABLE %I ATTACH PARTITION %I FOR VALUES IN (%s)', partitionParent, new."table", new.objectClassId);
+        /* Attach table as objectClass partition */
+      END IF;
+
+      RETURN new;
+    END;
+  $BODY$
+LANGUAGE plpgsql;
+
+$aa$);
+
 ---
 -- WRITE CHANGES ABOVE ^^
 -- IMPORTANT: update apply_change number at the end of postgres-new.sql

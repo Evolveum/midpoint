@@ -46,8 +46,8 @@ public class RoleAnalysisOutlierSummaryPanel extends ObjectVerticalSummaryPanel<
 
         Set<String> anomalies = new HashSet<>();
         for (RoleAnalysisOutlierPartitionType outlierPartition : outlierPartitions) {
-            List<DetectedAnomalyResult> detectedAnomalyResult = outlierPartition.getDetectedAnomalyResult();
-            for (DetectedAnomalyResult detectedAnomaly : detectedAnomalyResult) {
+            List<DetectedAnomalyResultType> detectedAnomalyResult = outlierPartition.getDetectedAnomalyResult();
+            for (DetectedAnomalyResultType detectedAnomaly : detectedAnomalyResult) {
                 anomalies.add(detectedAnomaly.getTargetObjectRef().getOid());
             }
         }

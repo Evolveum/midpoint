@@ -549,6 +549,11 @@ In such cases, it is advised to turn off the password caching, eliminate the map
 
 . When applying changed policies using the xref:/midpoint/reference/tasks/shadow-refresh-task/#_cached_passwords[Shadow refresh task], pending operations may get executed as a natural effect of running that task.
 
+== Performance Aspects
+
+Shadow caching can have an impact on system performance, both positive and negative.
+Please see xref:/midpoint/reference/diag/performance#_shadow_caching[the related section in Performance Tuning document] for more information.
+
 == Migration Note
 
 Before 4.9, this feature was experimental.

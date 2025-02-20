@@ -1294,7 +1294,7 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
             submitClusterOperationStatus(modelService,
                     cluster,
                     taskOid,
-                    RoleAnalysisOperation.DETECTION,
+                    RoleAnalysisOperationType.DETECTION,
                     focus,
                     LOGGER,
                     task,
@@ -1354,7 +1354,7 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
         submitClusterOperationStatus(modelService,
                 cluster,
                 taskOid,
-                RoleAnalysisOperation.MIGRATION, focus, LOGGER, task, result
+                RoleAnalysisOperationType.MIGRATION, focus, LOGGER, task, result
         );
 
         switchRoleToActiveLifeState(modelService, roleObject, LOGGER, task, result);
@@ -1409,7 +1409,7 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
         }
 
         RoleAnalysisClusterType cluster = clusterPrism.asObjectable();
-        List<RoleAnalysisOperationStatus> operationStatus = cluster.getOperationStatus();
+        List<RoleAnalysisOperationStatusType> operationStatus = cluster.getOperationStatus();
 
         if (operationStatus == null || operationStatus.isEmpty()) {
             return RoleAnalysisObjectState.STABLE.getDisplayString();
@@ -1419,10 +1419,10 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
         boolean requestUpdatePattern = false;
         boolean requestUpdateOp = false;
 
-        for (RoleAnalysisOperationStatus roleAnalysisOperationStatus : operationStatus) {
+        for (RoleAnalysisOperationStatusType roleAnalysisOperationStatus : operationStatus) {
             Collection<PrismContainerValue<?>> collection = new ArrayList<>();
 
-            RoleAnalysisOperationStatus newStatus = updateRoleAnalysisOperationStatus(
+            RoleAnalysisOperationStatusType newStatus = updateRoleAnalysisOperationStatus(
                     repositoryService, roleAnalysisOperationStatus, false, LOGGER, result
             );
 
@@ -1433,7 +1433,7 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
                 if (progressStatus != null && progressStatus.equals(OperationResultStatusType.IN_PROGRESS)) {
                     stateString = RoleAnalysisObjectState.PROCESSING.getDisplayString();
                 } else if (progressStatus != null && progressStatus.equals(OperationResultStatusType.SUCCESS)) {
-                    if (newStatus.getOperationChannel().equals(RoleAnalysisOperation.MIGRATION)) {
+                    if (newStatus.getOperationChannel().equals(RoleAnalysisOperationType.MIGRATION)) {
                         requestUpdatePattern = true;
                     }
                 }
@@ -1497,12 +1497,12 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
 
         RoleAnalysisSessionType session = sessionTypeObject.asObjectable();
 
-        RoleAnalysisOperationStatus operationStatus = session.getOperationStatus();
+        RoleAnalysisOperationStatusType operationStatus = session.getOperationStatus();
         if (operationStatus == null) {
             return RoleAnalysisObjectState.STABLE.getDisplayString();
         }
 
-        RoleAnalysisOperationStatus newStatus = updateRoleAnalysisOperationStatus(repositoryService, operationStatus, true, LOGGER, result);
+        RoleAnalysisOperationStatusType newStatus = updateRoleAnalysisOperationStatus(repositoryService, operationStatus, true, LOGGER, result);
 
         if (newStatus != null) {
 
@@ -1534,7 +1534,7 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
             @NotNull PrismObject<RoleAnalysisClusterType> clusterPrismObject,
             @NotNull RoleAnalysisCandidateRoleType candidateRole,
             @NotNull OperationResult result, Task task) {
-        RoleAnalysisOperationStatus operationStatus = candidateRole.getOperationStatus();
+        RoleAnalysisOperationStatusType operationStatus = candidateRole.getOperationStatus();
 
         if (operationStatus == null) {
             return RoleAnalysisObjectState.STABLE.getDisplayString();
@@ -1542,7 +1542,7 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
 
         ObjectReferenceType taskRef = operationStatus.getTaskRef();
         String stateString = operationStatus.getMessage();
-        RoleAnalysisOperation operationChannel = operationStatus.getOperationChannel();
+        RoleAnalysisOperationType operationChannel = operationStatus.getOperationChannel();
         PrismObject<TaskType> object = null;
 
         boolean taskExist = true;
@@ -1580,7 +1580,7 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
 
     @Override
     public int[] getTaskProgressIfExist(
-            @Nullable RoleAnalysisOperationStatus operationStatus,
+            @Nullable RoleAnalysisOperationStatusType operationStatus,
             @NotNull OperationResult result) {
         if (operationStatus == null) {
             return new int[0];
@@ -1632,11 +1632,11 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
             @Nullable String message,
             @NotNull OperationResult result,
             @NotNull Task task,
-            @NotNull RoleAnalysisOperation operationType,
+            @NotNull RoleAnalysisOperationType operationType,
             @Nullable FocusType focus) {
 
         XMLGregorianCalendar createTimestamp = null;
-        RoleAnalysisOperationStatus opsOld = candidateRoleContainer.getOperationStatus();
+        RoleAnalysisOperationStatusType opsOld = candidateRoleContainer.getOperationStatus();
         if (opsOld != null
                 && opsOld.getStatus() != null
                 && opsOld.getMessage() != null
@@ -1653,7 +1653,7 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
             }
         }
 
-        @NotNull RoleAnalysisOperationStatus operationStatus = buildOpExecution(
+        @NotNull RoleAnalysisOperationStatusType operationStatus = buildOpExecution(
                 taskOid, operationResultStatusType, message, operationType, createTimestamp, focus);
         try {
             ObjectDelta<RoleAnalysisClusterType> delta = PrismContext.get().deltaFor(RoleAnalysisClusterType.class)
@@ -1949,7 +1949,7 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
             int totalCount = 0;
 
             if (userAttributeAnalysisStructures != null) {
-                RoleAnalysisAttributeAnalysisResult userAnalysis = new RoleAnalysisAttributeAnalysisResult();
+                RoleAnalysisAttributeAnalysisResultType userAnalysis = new RoleAnalysisAttributeAnalysisResultType();
                 for (AttributeAnalysisStructure userAttributeAnalysisStructure : userAttributeAnalysisStructures) {
                     double density = userAttributeAnalysisStructure.getDensity();
                     if (density == 0) {
@@ -1958,7 +1958,7 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
 
                     totalDensity += density;
 
-                    RoleAnalysisAttributeAnalysis roleAnalysisAttributeAnalysis = userAttributeAnalysisStructure
+                    RoleAnalysisAttributeAnalysisType roleAnalysisAttributeAnalysis = userAttributeAnalysisStructure
                             .buildRoleAnalysisAttributeAnalysisContainer();
 
                     userAnalysis.getAttributeAnalysis().add(roleAnalysisAttributeAnalysis);
@@ -1969,7 +1969,7 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
             }
 
             if (roleAttributeAnalysisStructures != null) {
-                RoleAnalysisAttributeAnalysisResult roleAnalysis = new RoleAnalysisAttributeAnalysisResult();
+                RoleAnalysisAttributeAnalysisResultType roleAnalysis = new RoleAnalysisAttributeAnalysisResultType();
                 for (AttributeAnalysisStructure roleAttributeAnalysisStructure : roleAttributeAnalysisStructures) {
                     double density = roleAttributeAnalysisStructure.getDensity();
                     if (density == 0) {
@@ -1978,7 +1978,7 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
 
                     totalDensity += density;
 
-                    RoleAnalysisAttributeAnalysis roleAnalysisAttributeAnalysis = roleAttributeAnalysisStructure
+                    RoleAnalysisAttributeAnalysisType roleAnalysisAttributeAnalysis = roleAttributeAnalysisStructure
                             .buildRoleAnalysisAttributeAnalysisContainer();
                     roleAnalysis.getAttributeAnalysis().add(roleAnalysisAttributeAnalysis);
                 }
@@ -1987,8 +1987,8 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
                 totalCount += roleAnalysis.getAttributeAnalysis().size();
             }
 
-            RoleAnalysisAttributeAnalysisResult roleAttributeAnalysisResult = detectedPattern.getRoleAttributeAnalysisResult();
-            RoleAnalysisAttributeAnalysisResult userAttributeAnalysisResult = detectedPattern.getUserAttributeAnalysisResult();
+            RoleAnalysisAttributeAnalysisResultType roleAttributeAnalysisResult = detectedPattern.getRoleAttributeAnalysisResult();
+            RoleAnalysisAttributeAnalysisResultType userAttributeAnalysisResult = detectedPattern.getUserAttributeAnalysisResult();
 
             int itemCount = (roleAttributeAnalysisResult != null
                     ? roleAttributeAnalysisResult.getAttributeAnalysis().size() : 0)
@@ -2042,7 +2042,7 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
             int totalCount = 0;
 
             if (userAttributeAnalysisStructures != null) {
-                RoleAnalysisAttributeAnalysisResult userAnalysis = new RoleAnalysisAttributeAnalysisResult();
+                RoleAnalysisAttributeAnalysisResultType userAnalysis = new RoleAnalysisAttributeAnalysisResultType();
                 for (AttributeAnalysisStructure userAttributeAnalysisStructure : userAttributeAnalysisStructures) {
                     double density = userAttributeAnalysisStructure.getDensity();
                     if (density == 0) {
@@ -2051,7 +2051,7 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
 
                     totalDensity += density;
 
-                    RoleAnalysisAttributeAnalysis roleAnalysisAttributeAnalysis = userAttributeAnalysisStructure
+                    RoleAnalysisAttributeAnalysisType roleAnalysisAttributeAnalysis = userAttributeAnalysisStructure
                             .buildRoleAnalysisAttributeAnalysisContainer();
                     userAnalysis.getAttributeAnalysis().add(roleAnalysisAttributeAnalysis);
                 }
@@ -2061,7 +2061,7 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
             }
 
             if (roleAttributeAnalysisStructures != null) {
-                RoleAnalysisAttributeAnalysisResult roleAnalysis = new RoleAnalysisAttributeAnalysisResult();
+                RoleAnalysisAttributeAnalysisResultType roleAnalysis = new RoleAnalysisAttributeAnalysisResultType();
                 for (AttributeAnalysisStructure roleAttributeAnalysisStructure : roleAttributeAnalysisStructures) {
                     double density = roleAttributeAnalysisStructure.getDensity();
                     if (density == 0) {
@@ -2070,7 +2070,7 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
 
                     totalDensity += density;
 
-                    RoleAnalysisAttributeAnalysis roleAnalysisAttributeAnalysis = roleAttributeAnalysisStructure
+                    RoleAnalysisAttributeAnalysisType roleAnalysisAttributeAnalysis = roleAttributeAnalysisStructure
                             .buildRoleAnalysisAttributeAnalysisContainer();
                     roleAnalysis.getAttributeAnalysis().add(roleAnalysisAttributeAnalysis);
                 }
@@ -2079,8 +2079,8 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
                 totalCount += roleAnalysis.getAttributeAnalysis().size();
             }
 
-            RoleAnalysisAttributeAnalysisResult roleAttributeAnalysisResult = detectedPattern.getRoleAttributeAnalysisResult();
-            RoleAnalysisAttributeAnalysisResult userAttributeAnalysisResult = detectedPattern.getUserAttributeAnalysisResult();
+            RoleAnalysisAttributeAnalysisResultType roleAttributeAnalysisResult = detectedPattern.getRoleAttributeAnalysisResult();
+            RoleAnalysisAttributeAnalysisResultType userAttributeAnalysisResult = detectedPattern.getUserAttributeAnalysisResult();
 
             int itemCount = (roleAttributeAnalysisResult != null
                     ? roleAttributeAnalysisResult.getAttributeAnalysis().size() : 0)
@@ -2180,14 +2180,14 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
             @NotNull RoleAnalysisProcessModeType processModeType,
             @NotNull AnalysisClusterStatisticType clusterStatistics) {
 
-        List<RoleAnalysisAttributeAnalysis> attributeAnalysis = new ArrayList<>();
+        List<RoleAnalysisAttributeAnalysisType> attributeAnalysis = new ArrayList<>();
 
-        RoleAnalysisAttributeAnalysisResult roleAttributeAnalysisResult = clusterStatistics.getRoleAttributeAnalysisResult();
+        RoleAnalysisAttributeAnalysisResultType roleAttributeAnalysisResult = clusterStatistics.getRoleAttributeAnalysisResult();
         if (roleAttributeAnalysisResult != null) {
             attributeAnalysis.addAll(roleAttributeAnalysisResult.getAttributeAnalysis());
         }
 
-        RoleAnalysisAttributeAnalysisResult userAttributeAnalysisResult = clusterStatistics.getUserAttributeAnalysisResult();
+        RoleAnalysisAttributeAnalysisResultType userAttributeAnalysisResult = clusterStatistics.getUserAttributeAnalysisResult();
         if (userAttributeAnalysisResult != null) {
             attributeAnalysis.addAll(userAttributeAnalysisResult.getAttributeAnalysis());
         }
@@ -2197,7 +2197,7 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
         }
 
         double attributeConfidence = 0;
-        for (RoleAnalysisAttributeAnalysis analysis : attributeAnalysis) {
+        for (RoleAnalysisAttributeAnalysisType analysis : attributeAnalysis) {
             Double density = analysis.getDensity();
             if (density != null) {
                 attributeConfidence += density;
@@ -2298,23 +2298,23 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
     }
 
     @Override
-    public @Nullable RoleAnalysisAttributeAnalysisResult resolveSimilarAspect(
-            @NotNull RoleAnalysisAttributeAnalysisResult compared,
-            @NotNull RoleAnalysisAttributeAnalysisResult comparison) {
+    public @Nullable RoleAnalysisAttributeAnalysisResultType resolveSimilarAspect(
+            @NotNull RoleAnalysisAttributeAnalysisResultType compared,
+            @NotNull RoleAnalysisAttributeAnalysisResultType comparison) {
         Objects.requireNonNull(compared);
         Objects.requireNonNull(comparison);
 
-        RoleAnalysisAttributeAnalysisResult outlierAttributeAnalysisResult = new RoleAnalysisAttributeAnalysisResult();
-        List<RoleAnalysisAttributeAnalysis> attributeAnalysis = comparison.getAttributeAnalysis();
+        RoleAnalysisAttributeAnalysisResultType outlierAttributeAnalysisResult = new RoleAnalysisAttributeAnalysisResultType();
+        List<RoleAnalysisAttributeAnalysisType> attributeAnalysis = comparison.getAttributeAnalysis();
 
-        for (RoleAnalysisAttributeAnalysis analysisItem : attributeAnalysis) {
+        for (RoleAnalysisAttributeAnalysisType analysisItem : attributeAnalysis) {
             ItemPathType clusterItemPath = analysisItem.getItemPath();
             Set<String> outlierValues = extractCorrespondingOutlierValues(compared, clusterItemPath);
             if (outlierValues == null) {
                 continue;
             }
 
-            RoleAnalysisAttributeAnalysis correspondingAttributeAnalysis = new RoleAnalysisAttributeAnalysis();
+            RoleAnalysisAttributeAnalysisType correspondingAttributeAnalysis = new RoleAnalysisAttributeAnalysisType();
             correspondingAttributeAnalysis.setItemPath(clusterItemPath);
             correspondingAttributeAnalysis.setParentType(analysisItem.getParentType());
             Double attributeDensity = analysisItem.getDensity();
@@ -2323,8 +2323,8 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
 
             int counter = 0;
             int sum = 0;
-            List<RoleAnalysisAttributeStatistics> attributeStatistics = analysisItem.getAttributeStatistics();
-            for (RoleAnalysisAttributeStatistics attributeStatistic : attributeStatistics) {
+            List<RoleAnalysisAttributeStatisticsType> attributeStatistics = analysisItem.getAttributeStatistics();
+            for (RoleAnalysisAttributeStatisticsType attributeStatistic : attributeStatistics) {
                 String clusterAttributeValue = attributeStatistic.getAttributeValue();
                 Integer inGroup = attributeStatistic.getInGroup();
                 sum += inGroup != null ? inGroup : 0;
@@ -2347,19 +2347,19 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
         return outlierAttributeAnalysisResult;
     }
 
-    private double getWeightedItemFactorConfidence(@Nullable RoleAnalysisAttributeAnalysisResult compareAttributeResult) {
+    private double getWeightedItemFactorConfidence(@Nullable RoleAnalysisAttributeAnalysisResultType compareAttributeResult) {
         if (compareAttributeResult == null) {
             return 0;
         }
 
-        List<RoleAnalysisAttributeAnalysis> attributeAnalysis = compareAttributeResult.getAttributeAnalysis();
+        List<RoleAnalysisAttributeAnalysisType> attributeAnalysis = compareAttributeResult.getAttributeAnalysis();
         if (attributeAnalysis.isEmpty()) {
             return 0;
         }
 
         double totalWeightedDensity = 0.0;
         double totalWeight = 0.0;
-        for (RoleAnalysisAttributeAnalysis analysisItem : attributeAnalysis) {
+        for (RoleAnalysisAttributeAnalysisType analysisItem : attributeAnalysis) {
             Double density = analysisItem.getDensity();
             Double weight = analysisItem.getWeight();
 
@@ -2371,16 +2371,16 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
     }
 
     @NotNull
-    public RoleAnalysisAttributeAnalysisResult resolveUserAttributes(
+    public RoleAnalysisAttributeAnalysisResultType resolveUserAttributes(
             @NotNull PrismObject<UserType> prismUser,
             @NotNull List<RoleAnalysisAttributeDef> attributesForUserAnalysis) {
-        RoleAnalysisAttributeAnalysisResult outlierCandidateAttributeAnalysisResult = new RoleAnalysisAttributeAnalysisResult();
+        RoleAnalysisAttributeAnalysisResultType outlierCandidateAttributeAnalysisResult = new RoleAnalysisAttributeAnalysisResultType();
 
         for (RoleAnalysisAttributeDef item : attributesForUserAnalysis) {
-            RoleAnalysisAttributeAnalysis roleAnalysisAttributeAnalysis = new RoleAnalysisAttributeAnalysis();
+            RoleAnalysisAttributeAnalysisType roleAnalysisAttributeAnalysis = new RoleAnalysisAttributeAnalysisType();
             roleAnalysisAttributeAnalysis.setItemPath(item.getPath().toBean());
             roleAnalysisAttributeAnalysis.setParentType(UserType.COMPLEX_TYPE);
-            List<RoleAnalysisAttributeStatistics> attributeStatistics = roleAnalysisAttributeAnalysis.getAttributeStatistics();
+            List<RoleAnalysisAttributeStatisticsType> attributeStatistics = roleAnalysisAttributeAnalysis.getAttributeStatistics();
 
             ItemPath path = item.getPath();
             boolean isMultiValue = item.isMultiValue();
@@ -2388,14 +2388,14 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
             if (isMultiValue) {
                 Set<String> values = item.resolveMultiValueItem(prismUser, path);
                 for (String value : values) {
-                    RoleAnalysisAttributeStatistics attributeStatistic = new RoleAnalysisAttributeStatistics();
+                    RoleAnalysisAttributeStatisticsType attributeStatistic = new RoleAnalysisAttributeStatisticsType();
                     attributeStatistic.setAttributeValue(value);
                     attributeStatistics.add(attributeStatistic);
                 }
             } else {
                 String value = item.resolveSingleValueItem(prismUser, path);
                 if (value != null) {
-                    RoleAnalysisAttributeStatistics attributeStatistic = new RoleAnalysisAttributeStatistics();
+                    RoleAnalysisAttributeStatisticsType attributeStatistic = new RoleAnalysisAttributeStatisticsType();
                     attributeStatistic.setAttributeValue(value);
                     attributeStatistics.add(attributeStatistic);
                 }
@@ -2406,12 +2406,12 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
     }
 
     private static @Nullable Set<String> extractCorrespondingOutlierValues(
-            @NotNull RoleAnalysisAttributeAnalysisResult outlierCandidateAttributeAnalysisResult, ItemPathType itemPath) {
-        List<RoleAnalysisAttributeAnalysis> outlier = outlierCandidateAttributeAnalysisResult.getAttributeAnalysis();
-        for (RoleAnalysisAttributeAnalysis outlierAttribute : outlier) {
+            @NotNull RoleAnalysisAttributeAnalysisResultType outlierCandidateAttributeAnalysisResult, ItemPathType itemPath) {
+        List<RoleAnalysisAttributeAnalysisType> outlier = outlierCandidateAttributeAnalysisResult.getAttributeAnalysis();
+        for (RoleAnalysisAttributeAnalysisType outlierAttribute : outlier) {
             if (outlierAttribute.getItemPath().equals(itemPath)) { //TODO equivalent
                 Set<String> outlierValues = new HashSet<>();
-                for (RoleAnalysisAttributeStatistics attributeStatistic : outlierAttribute.getAttributeStatistics()) {
+                for (RoleAnalysisAttributeStatisticsType attributeStatistic : outlierAttribute.getAttributeStatistics()) {
                     outlierValues.add(attributeStatistic.getAttributeValue());
                 }
                 return outlierValues;
@@ -2421,7 +2421,7 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
     }
 
     @Override
-    public RoleAnalysisAttributeAnalysisResult resolveRoleMembersAttribute(
+    public RoleAnalysisAttributeAnalysisResultType resolveRoleMembersAttribute(
             @NotNull String objectOid,
             @NotNull Task task,
             @NotNull OperationResult result,
@@ -2439,13 +2439,13 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
         List<AttributeAnalysisStructure> userAttributeAnalysisStructures = this
                 .userTypeAttributeAnalysis(users, 100.0, task, result, attributeDefSet);
 
-        RoleAnalysisAttributeAnalysisResult userAnalysis = new RoleAnalysisAttributeAnalysisResult();
+        RoleAnalysisAttributeAnalysisResultType userAnalysis = new RoleAnalysisAttributeAnalysisResultType();
         for (AttributeAnalysisStructure userAttributeAnalysisStructure : userAttributeAnalysisStructures) {
             double density = userAttributeAnalysisStructure.getDensity();
             if (density == 0) {
                 continue;
             }
-            RoleAnalysisAttributeAnalysis roleAnalysisAttributeAnalysis = userAttributeAnalysisStructure
+            RoleAnalysisAttributeAnalysisType roleAnalysisAttributeAnalysis = userAttributeAnalysisStructure
                     .buildRoleAnalysisAttributeAnalysisContainer();
             userAnalysis.getAttributeAnalysis().add(roleAnalysisAttributeAnalysis);
         }
@@ -2454,7 +2454,7 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
     }
 
     @Override
-    public RoleAnalysisAttributeAnalysisResult resolveRoleMembersAttributeCached(
+    public RoleAnalysisAttributeAnalysisResultType resolveRoleMembersAttributeCached(
             @NotNull String objectOid,
             @NotNull AttributeAnalysisCache userAnalysisCache,
             @NotNull Task task,
@@ -2487,13 +2487,13 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
         List<AttributeAnalysisStructure> userAttributeAnalysisStructures = this
                 .userTypeAttributeAnalysisCached(users, 100.0, userAnalysisCache, attributeDefSet, task, result);
 
-        RoleAnalysisAttributeAnalysisResult userAnalysis = new RoleAnalysisAttributeAnalysisResult();
+        RoleAnalysisAttributeAnalysisResultType userAnalysis = new RoleAnalysisAttributeAnalysisResultType();
         for (AttributeAnalysisStructure userAttributeAnalysisStructure : userAttributeAnalysisStructures) {
             double density = userAttributeAnalysisStructure.getDensity();
             if (density == 0) {
                 continue;
             }
-            RoleAnalysisAttributeAnalysis roleAnalysisAttributeAnalysis = userAttributeAnalysisStructure
+            RoleAnalysisAttributeAnalysisType roleAnalysisAttributeAnalysis = userAttributeAnalysisStructure
                     .buildRoleAnalysisAttributeAnalysisContainer();
             userAnalysis.getAttributeAnalysis().add(roleAnalysisAttributeAnalysis);
         }
@@ -2692,19 +2692,19 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
     }
 
     @Override
-    public @Nullable Set<String> resolveUserValueToMark(@NotNull RoleAnalysisAttributeAnalysisResult userAttributeAnalysisResult) {
+    public @Nullable Set<String> resolveUserValueToMark(@NotNull RoleAnalysisAttributeAnalysisResultType userAttributeAnalysisResult) {
         Set<String> valueToMark = new HashSet<>();
-        List<RoleAnalysisAttributeAnalysis> attributeAnalysis = userAttributeAnalysisResult.getAttributeAnalysis();
+        List<RoleAnalysisAttributeAnalysisType> attributeAnalysis = userAttributeAnalysisResult.getAttributeAnalysis();
         if (attributeAnalysis.isEmpty()) {
             return Collections.emptySet();
         }
 
-        for (RoleAnalysisAttributeAnalysis analysisItem : attributeAnalysis) {
-            List<RoleAnalysisAttributeStatistics> attributeStatistics = analysisItem.getAttributeStatistics();
+        for (RoleAnalysisAttributeAnalysisType analysisItem : attributeAnalysis) {
+            List<RoleAnalysisAttributeStatisticsType> attributeStatistics = analysisItem.getAttributeStatistics();
             if (attributeStatistics.isEmpty()) {
                 continue;
             }
-            for (RoleAnalysisAttributeStatistics attributeStatistic : attributeStatistics) {
+            for (RoleAnalysisAttributeStatisticsType attributeStatistic : attributeStatistics) {
                 String attributeValue = attributeStatistic.getAttributeValue();
                 valueToMark.add(attributeValue);
             }
@@ -2790,7 +2790,7 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
                 return;
             }
 
-            RoleAnalysisOperationStatus operationStatus = sessionTypeObject.asObjectable().getOperationStatus();
+            RoleAnalysisOperationStatusType operationStatus = sessionTypeObject.asObjectable().getOperationStatus();
             if (operationStatus == null) {
                 return;
             }
@@ -2827,7 +2827,7 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
                 return null;
             }
 
-            RoleAnalysisOperationStatus operationStatus = sessionTypeObject.asObjectable().getOperationStatus();
+            RoleAnalysisOperationStatusType operationStatus = sessionTypeObject.asObjectable().getOperationStatus();
             if (operationStatus == null) {
                 return null;
             }
@@ -4217,7 +4217,7 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
             @NotNull DisplayValueOption displayValueOption,
             @NotNull Task task) {
         RoleAnalysisPartitionAnalysisType partitionAnalysis = partition.getPartitionAnalysis();
-        RoleAnalysisOutlierSimilarObjectsAnalysisResult similarObjectAnalysis = partitionAnalysis.getSimilarObjectAnalysis();
+        RoleAnalysisOutlierSimilarObjectsAnalysisResultType similarObjectAnalysis = partitionAnalysis.getSimilarObjectAnalysis();
         if (similarObjectAnalysis == null) {
             return null;
         }
@@ -4306,7 +4306,7 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
 
     @Override
     public List<OutlierExplanationResolver.ExplanationResult> explainOutlierAnomalyAccess(
-            @NotNull DetectedAnomalyResult detectedAnomalyResult,
+            @NotNull DetectedAnomalyResultType detectedAnomalyResult,
             @NotNull Task task,
             @NotNull OperationResult result) {
 

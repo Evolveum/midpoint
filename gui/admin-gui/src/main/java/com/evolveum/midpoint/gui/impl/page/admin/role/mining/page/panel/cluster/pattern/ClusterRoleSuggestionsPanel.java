@@ -7,9 +7,9 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.cluster.pattern;
 
-import java.util.List;
-
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.cluster.RoleAnalysisClusterAction;
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.tables.tile.component.RoleAnalysisDetectedPatternTileTable;
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.tables.tile.model.RoleAnalysisDetectedPatternsDto;
 import com.evolveum.midpoint.gui.impl.util.DetailsPageUtil;
 import com.evolveum.midpoint.model.api.mining.RoleAnalysisService;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -18,17 +18,13 @@ import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.WebMarkupContainer;
-import org.apache.wicket.model.LoadableDetachableModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.jetbrains.annotations.NotNull;
 
-import com.evolveum.midpoint.common.mining.objects.detection.DetectedPattern;
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.impl.page.admin.AbstractObjectMainPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.ObjectDetailsModels;
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.tables.outlier.panel.RoleAnalysisDetectedPatternTable;
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.tables.tile.RoleAnalysisDetectedPatternTileTable;
 import com.evolveum.midpoint.web.application.PanelDisplay;
 import com.evolveum.midpoint.web.application.PanelInstance;
 import com.evolveum.midpoint.web.application.PanelType;
@@ -47,6 +43,9 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisClusterT
         )
 )
 public class ClusterRoleSuggestionsPanel extends AbstractObjectMainPanel<RoleAnalysisClusterType, ObjectDetailsModels<RoleAnalysisClusterType>> {
+
+    private static final String DOT_CLASS = ClusterRoleSuggestionsPanel.class.getName() + ".";
+    private static final String OPERATION_LOAD_OBJECTS = DOT_CLASS + "loadObjects";
 
     private static final String ID_CONTAINER = "container";
     private static final String ID_PANEL = "panelId";
@@ -69,16 +68,13 @@ public class ClusterRoleSuggestionsPanel extends AbstractObjectMainPanel<RoleAna
     }
 
     private @NotNull RoleAnalysisDetectedPatternTileTable loadTable() {
-        RoleAnalysisClusterType cluster = getObjectDetailsModels().getObjectType();
-        LoadableDetachableModel<List<DetectedPattern>> loadableDetachableModel = new LoadableDetachableModel<>() {
-            @Override
-            protected @NotNull List<DetectedPattern> load() {
-                return loadClusterRoleSuggestions(cluster);
-            }
-        };
-
         RoleAnalysisDetectedPatternTileTable components = new RoleAnalysisDetectedPatternTileTable(ID_PANEL, getPageBase(),
-                loadableDetachableModel) {
+                () -> {
+                    RoleAnalysisClusterType cluster = getObjectDetailsModels().getObjectType();
+                    RoleAnalysisService roleAnalysisService = ((PageBase) getPage()).getRoleAnalysisService();
+                    OperationResult result = new OperationResult(OPERATION_LOAD_OBJECTS);
+                    return new RoleAnalysisDetectedPatternsDto(roleAnalysisService, cluster, result);
+                }) {
 
             @Override
             protected void onRefresh(AjaxRequestTarget target) {
@@ -94,10 +90,6 @@ public class ClusterRoleSuggestionsPanel extends AbstractObjectMainPanel<RoleAna
         return ((PageBase) getPage());
     }
 
-    protected RoleAnalysisDetectedPatternTable getTable() {
-        return (RoleAnalysisDetectedPatternTable) get(((PageBase) getPage()).createComponentPath(ID_CONTAINER, ID_PANEL));
-    }
-
     private void performOnRefresh() {
         updatePatternIfRequired();
 
@@ -107,12 +99,6 @@ public class ClusterRoleSuggestionsPanel extends AbstractObjectMainPanel<RoleAna
         Class<? extends PageBase> detailsPageClass = DetailsPageUtil
                 .getObjectDetailsPage(RoleAnalysisClusterType.class);
         getPageBase().navigateToNext(detailsPageClass, parameters);
-    }
-
-    private List<DetectedPattern> loadClusterRoleSuggestions(@NotNull RoleAnalysisClusterType cluster) {
-        RoleAnalysisService roleAnalysisService = getPageBase().getRoleAnalysisService();
-        Task task = getPageBase().createSimpleTask("loadClusterRoleSuggestions");
-        return roleAnalysisService.getClusterRoleSuggestions(cluster.getOid(), null, true, task.getResult());
     }
 
     private void updatePatternIfRequired() {

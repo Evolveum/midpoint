@@ -1,7 +1,7 @@
 package com.evolveum.midpoint.model.impl.mining.algorithm.cluster.action.util.outlier;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisAttributeAnalysis;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisAttributeStatistics;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisAttributeAnalysisType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisAttributeStatisticsType;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 
 import java.util.List;
@@ -28,8 +28,8 @@ public class OutlierAttributeResolver {
     public record UnusualSingleValueDetail(String value, boolean isUnusual, double relativeFrequency) {}
     public record UnusualAttributeValueResult(ItemPathType path, boolean isUnusual, List<UnusualSingleValueDetail> partialResults) {}
 
-    private RoleAnalysisAttributeStatistics findMedianAttributeValueStats(List<RoleAnalysisAttributeStatistics> stats) {
-        var usersWithAttributeCount = stats.stream().mapToInt(RoleAnalysisAttributeStatistics::getInGroup).sum();
+    private RoleAnalysisAttributeStatisticsType findMedianAttributeValueStats(List<RoleAnalysisAttributeStatisticsType> stats) {
+        var usersWithAttributeCount = stats.stream().mapToInt(RoleAnalysisAttributeStatisticsType::getInGroup).sum();
         var halfUsersStack = usersWithAttributeCount / 2;
         var sortedDescStats = stats.stream().sorted((a, b) -> a.getInGroup().compareTo(b.getInGroup())).toList();
         for (var stat: sortedDescStats) {
@@ -41,7 +41,7 @@ public class OutlierAttributeResolver {
         throw new RuntimeException("Invariant violation: there always have to be median value");
     }
 
-    private UnusualSingleValueDetail analyzeAttributeValue(RoleAnalysisAttributeAnalysis attributeDetail, String userAttributeValue ) {
+    private UnusualSingleValueDetail analyzeAttributeValue(RoleAnalysisAttributeAnalysisType attributeDetail, String userAttributeValue ) {
         var allStats = attributeDetail.getAttributeStatistics();
         var medianValueStats = findMedianAttributeValueStats(allStats);
         var userValueInGroup = allStats.stream()
@@ -55,9 +55,9 @@ public class OutlierAttributeResolver {
         return new UnusualSingleValueDetail(userAttributeValue, isUnusual, relativeUserValueFrequency);
     }
 
-    private UnusualAttributeValueResult analyzeAttribute(RoleAnalysisAttributeAnalysis attributeDetail, RoleAnalysisAttributeAnalysis userAttributeDetail ) {
+    private UnusualAttributeValueResult analyzeAttribute(RoleAnalysisAttributeAnalysisType attributeDetail, RoleAnalysisAttributeAnalysisType userAttributeDetail ) {
         var userValues = userAttributeDetail.getAttributeStatistics().stream()
-                .map(RoleAnalysisAttributeStatistics::getAttributeValue)
+                .map(RoleAnalysisAttributeStatisticsType::getAttributeValue)
                 .toList();
 
         var partialResults = userValues.stream()
@@ -70,8 +70,8 @@ public class OutlierAttributeResolver {
     }
 
     public List<UnusualAttributeValueResult> resolveUnusualAttributes(
-            List<RoleAnalysisAttributeAnalysis> attributeDetails,
-            List<RoleAnalysisAttributeAnalysis> userAttributeDetails
+            List<RoleAnalysisAttributeAnalysisType> attributeDetails,
+            List<RoleAnalysisAttributeAnalysisType> userAttributeDetails
     ) {
         return attributeDetails.stream()
                 .map(attributeDetail -> {

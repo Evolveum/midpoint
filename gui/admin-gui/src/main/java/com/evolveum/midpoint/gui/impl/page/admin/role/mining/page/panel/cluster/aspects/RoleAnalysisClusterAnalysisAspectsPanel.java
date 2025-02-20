@@ -563,7 +563,7 @@ public class RoleAnalysisClusterAnalysisAspectsPanel extends AbstractObjectMainP
         if (allPartitions != null) {
             outlierCount = allPartitions.size();
             for (RoleAnalysisOutlierPartitionType allPartition : allPartitions) {
-                List<DetectedAnomalyResult> detectedAnomalyResult = allPartition.getDetectedAnomalyResult();
+                List<DetectedAnomalyResultType> detectedAnomalyResult = allPartition.getDetectedAnomalyResult();
                 if (detectedAnomalyResult != null) {
                     anomalyCount += detectedAnomalyResult.size();
                 }

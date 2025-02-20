@@ -16,9 +16,6 @@ import com.evolveum.midpoint.gui.api.component.LabelWithHelpPanel;
 import com.evolveum.midpoint.gui.impl.component.data.provider.SelectableBeanObjectDataProvider;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.outlier.RoleAnalysisExplanationTabPanelPopup;
 
-import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.task.api.Task;
-
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -55,10 +52,8 @@ import static com.evolveum.midpoint.gui.api.page.PageAdminLTE.createStringResour
 import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.RoleAnalysisWebUtils.explainAnomaly;
 
 public class RoleAnalysisDetectedAnomalyTable extends BasePanel<AnomalyObjectDto> {
-    private static final String ID_DATATABLE = "datatable";
-    private static final String DOT_CLASS = RoleAnalysisDetectedAnomalyTable.class.getName() + ".";
-    private static final String OP_PREPARE_OBJECTS = DOT_CLASS + "prepareObjects";
 
+    private static final String ID_DATATABLE = "datatable";
     protected static final String SORT_ANOMALY_SCORE = "anomalyScore";
 
     public RoleAnalysisDetectedAnomalyTable(String id,
@@ -113,7 +108,8 @@ public class RoleAnalysisDetectedAnomalyTable extends BasePanel<AnomalyObjectDto
 
             @Override
             protected boolean isPagingVisible() {
-                if (RoleAnalysisDetectedAnomalyTable.this.getModelObject().getCategory() == AnomalyObjectDto.AnomalyTableCategory.OUTLIER_OVERVIEW) {
+                if (RoleAnalysisDetectedAnomalyTable.this.getModelObject().getCategory()
+                        == AnomalyObjectDto.AnomalyTableCategory.OUTLIER_OVERVIEW) {
                     return false;
                 }
                 return super.isPagingVisible();
@@ -122,15 +118,19 @@ public class RoleAnalysisDetectedAnomalyTable extends BasePanel<AnomalyObjectDto
             @Override
             protected @NotNull List<InlineMenuItem> createInlineMenu() {
                 List<InlineMenuItem> menuItems = new ArrayList<>();
-                AnomalyObjectDto.AnomalyTableCategory category = RoleAnalysisDetectedAnomalyTable.this.getModelObject().getCategory();
+                AnomalyObjectDto.AnomalyTableCategory category = RoleAnalysisDetectedAnomalyTable
+                        .this.getModelObject().getCategory();
                 if (category == AnomalyObjectDto.AnomalyTableCategory.PARTITION_ANOMALY) {
-                    menuItems.add(RoleAnalysisDetectedAnomalyTable.this.createViewDetailsMenu(RoleAnalysisDetectedAnomalyTable.this.getModelObject()));
+                    menuItems.add(RoleAnalysisDetectedAnomalyTable.this.createViewDetailsMenu(
+                            RoleAnalysisDetectedAnomalyTable.this.getModelObject()));
                     return menuItems;
                 }
 
                 if (category == AnomalyObjectDto.AnomalyTableCategory.OUTLIER_OVERVIEW) {
-                    menuItems.add(RoleAnalysisDetectedAnomalyTable.this.createViewDetailsPeerGroupMenu(RoleAnalysisDetectedAnomalyTable.this.getModelObject()));
-                    menuItems.add(RoleAnalysisDetectedAnomalyTable.this.createViewDetailsAccessAnalysisMenu(RoleAnalysisDetectedAnomalyTable.this.getModelObject()));
+                    menuItems.add(RoleAnalysisDetectedAnomalyTable.this.createViewDetailsPeerGroupMenu(
+                            RoleAnalysisDetectedAnomalyTable.this.getModelObject()));
+                    menuItems.add(RoleAnalysisDetectedAnomalyTable.this.createViewDetailsAccessAnalysisMenu(
+                            RoleAnalysisDetectedAnomalyTable.this.getModelObject()));
                     return menuItems;
                 }
                 return menuItems;
@@ -269,7 +269,8 @@ public class RoleAnalysisDetectedAnomalyTable extends BasePanel<AnomalyObjectDto
                         RoleType role = object.getValue();
                         String oid = role.getOid();
 
-                        List<OutlierExplanationResolver.ExplanationResult> explanation = RoleAnalysisDetectedAnomalyTable.this.getModelObject().getExplanation(oid);
+                        List<OutlierExplanationResolver.ExplanationResult> explanation = RoleAnalysisDetectedAnomalyTable
+                                .this.getModelObject().getExplanation(oid);
                         Model<String> explainAnomaly = explainAnomaly(explanation);
                         cellItem.add(new Label(componentId, explainAnomaly));
                     }
@@ -492,7 +493,8 @@ public class RoleAnalysisDetectedAnomalyTable extends BasePanel<AnomalyObjectDto
             @NotNull ButtonInlineMenuItem buttonInlineMenuItem,
             @NotNull AnomalyObjectDto anomalyObjectDto,
             @NotNull OutlierExplanationResolver.OutlierDetectionExplanationCategory requiredCategory) {
-        IModel<SelectableBean<RoleType>> rowModel = ((ColumnMenuAction<SelectableBean<RoleType>>) buttonInlineMenuItem.getAction()).getRowModel();
+        IModel<SelectableBean<RoleType>> rowModel = ((ColumnMenuAction<SelectableBean<RoleType>>) buttonInlineMenuItem
+                .getAction()).getRowModel();
         if (rowModel != null && rowModel.getObject() != null && rowModel.getObject().getValue() != null) {
             RoleType role = rowModel.getObject().getValue();
             List<OutlierExplanationResolver.ExplanationResult> explanation = anomalyObjectDto.getExplanation(role.getOid());
