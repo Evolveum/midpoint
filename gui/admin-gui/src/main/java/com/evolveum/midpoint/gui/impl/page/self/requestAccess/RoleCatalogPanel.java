@@ -7,6 +7,7 @@
 
 package com.evolveum.midpoint.gui.impl.page.self.requestAccess;
 
+import java.io.Serial;
 import java.util.*;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
@@ -1031,7 +1032,19 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> implements 
     private List<IColumn<SelectableBean<ObjectType>, String>> createColumns() {
         List<IColumn<SelectableBean<ObjectType>, String>> columns = new ArrayList<>();
 
-        columns.add(new CheckBoxHeaderColumn());
+        columns.add(new CheckBoxHeaderColumn<>() {
+            @Serial private static final long serialVersionUID = 1L;
+
+            @Override
+            protected IModel<Boolean> getEnabled(IModel<SelectableBean<ObjectType>> model) {
+                if (model == null || model.getObject() == null || model.getObject().getValue() == null) {
+                    return Model.of(true);
+                }
+                RequestAccess ra = getModelObject();
+                boolean isAssignedToAll = ra.isAssignedToAll(model.getObject().getValue().getOid());
+                return Model.of(!isAssignedToAll);
+            }
+        });
         columns.add(new RoundedIconColumn<>(null) {
 
             @Override
