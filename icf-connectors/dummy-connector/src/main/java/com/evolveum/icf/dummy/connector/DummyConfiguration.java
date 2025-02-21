@@ -47,6 +47,7 @@ public class DummyConfiguration extends AbstractConfiguration {
     private boolean tolerateDuplicateValues = true;
     private boolean varyLetterCase = false;
     private boolean referentialIntegrity = false;
+    private boolean memberOfAttribute = false;
     private String uselessString;
     private GuardedString uselessGuardedString;
     private boolean requireUselessString = false;
@@ -300,6 +301,19 @@ public class DummyConfiguration extends AbstractConfiguration {
 
     public void setReferentialIntegrity(boolean referentialIntegrity) {
         this.referentialIntegrity = referentialIntegrity;
+    }
+
+    /**
+     * If set to true, the connector will expose a special read-only attribute "memberOf" that will contain the groups
+     * the account is member of. Supported for accounts; for other object classes it may or may not work.
+     */
+    @ConfigurationProperty(displayMessageKey = "UI_MEMBER_OF_ATTRIBUTE", helpMessageKey = "UI_MEMBER_OF_ATTRIBUTE_HELP")
+    public boolean isMemberOfAttribute() {
+        return memberOfAttribute;
+    }
+
+    public void setMemberOfAttribute(boolean memberOfAttribute) {
+        this.memberOfAttribute = memberOfAttribute;
     }
 
     @ConfigurationProperty(displayMessageKey = "UI_GENERATE_ACCOUNT_DESCRIPTION_ON_CREATE",
