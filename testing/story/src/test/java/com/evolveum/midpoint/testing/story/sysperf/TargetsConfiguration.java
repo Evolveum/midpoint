@@ -32,6 +32,7 @@ class TargetsConfiguration {
     private static final String PROP_SINGLE_MAPPINGS = PROP + ".single-mappings";
     private static final String PROP_MULTI_MAPPINGS = PROP + ".multi-mappings";
     private static final String PROP_MAPPING_STRENGTH = PROP + ".mapping-strength";
+    private static final String PROP_ASSOCIATION_SHORTCUT = PROP + ".association-shortcut";
 
     private static final String RESOURCE_INSTANCE_TEMPLATE = "target-%03d";
     private static final String A_SINGLE_NAME = "a-single-%04d";
@@ -45,6 +46,7 @@ class TargetsConfiguration {
     private final int singleValuedMappings;
     private final int multiValuedMappings;
     private final String mappingStrength;
+    private final boolean associationShortcut;
 
     @NotNull private final OperationDelay operationDelay;
 
@@ -55,6 +57,7 @@ class TargetsConfiguration {
         singleValuedMappings = Integer.parseInt(System.getProperty(PROP_SINGLE_MAPPINGS, "0"));
         multiValuedMappings = Integer.parseInt(System.getProperty(PROP_MULTI_MAPPINGS, "0"));
         mappingStrength = System.getProperty(PROP_MAPPING_STRENGTH, MappingStrengthType.NORMAL.value());
+        associationShortcut = Boolean.parseBoolean(System.getProperty(PROP_ASSOCIATION_SHORTCUT, "false"));
 
         operationDelay = OperationDelay.fromSystemProperties(PROP);
 
@@ -95,6 +98,7 @@ class TargetsConfiguration {
                 ", singleValuedMappings=" + singleValuedMappings +
                 ", multiValuedMappings=" + multiValuedMappings +
                 ", mappingStrength=" + mappingStrength +
+                ", associationShortcut=" + associationShortcut +
                 ", operationDelay=" + operationDelay +
                 '}';
     }
@@ -127,7 +131,8 @@ class TargetsConfiguration {
                         "resourceInstance", getResourceInstance(index),
                         "multiValuedIndexList", Util.createIndexList(multiValuedMappings),
                         "singleValuedIndexList", Util.createIndexList(singleValuedMappings),
-                        "mappingStrength", mappingStrength));
+                        "mappingStrength", mappingStrength,
+                        "associationShortcut", associationShortcut));
 
         return generatedFileName;
     }

@@ -2834,7 +2834,7 @@ public class TestDummy extends AbstractBasicDummyTest {
         then();
         displayDumpable("Shadow", shadow);
         assertSuccess(result);
-        assertCounterIncrement(InternalCounters.CONNECTOR_OPERATION_COUNT, 3);
+        assertCounterIncrement(InternalCounters.CONNECTOR_OPERATION_COUNT, supportsMemberOf() ? 2 : 3);
 
         assertDummyResourceGroupMembersReadCountIncrement(null, 0);
 

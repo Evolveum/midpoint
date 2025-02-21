@@ -53,6 +53,8 @@ public abstract class AbstractObjectDummyConnector
     // We want to see if the ICF framework logging works properly
     private static final Log LOG = Log.getLog(AbstractObjectDummyConnector.class);
 
+    private static final String ATTR_MEMBER_OF = "memberOf";
+
     public AbstractObjectDummyConnector() {
         super();
     }
@@ -378,6 +380,15 @@ public abstract class AbstractObjectDummyConnector
             objClassBuilder.addAttributeInfo(AttributeInfoBuilder.build(DummyResource.ATTRIBUTE_CONNECTOR_TO_STRING, String.class));
             objClassBuilder.addAttributeInfo(AttributeInfoBuilder.build(DummyResource.ATTRIBUTE_CONNECTOR_STATIC_VAL, String.class));
             objClassBuilder.addAttributeInfo(AttributeInfoBuilder.build(DummyResource.ATTRIBUTE_CONNECTOR_CONFIGURATION_TO_STRING, String.class));
+        }
+
+        if (configuration.isMemberOfAttribute()) {
+            objClassBuilder.addAttributeInfo(
+                    AttributeInfoBuilder.define(ATTR_MEMBER_OF, String.class)
+                            .setMultiValued(true)
+                            .setCreateable(false)
+                            .setUpdateable(false)
+                            .build());
         }
 
         // __NAME__ will be added by default
@@ -1110,6 +1121,10 @@ public abstract class AbstractObjectDummyConnector
         }
 
         addLinks(builder, dummyObject, attributesToGet);
+
+        if (configuration.isMemberOfAttribute()) {
+            builder.addAttribute(ATTR_MEMBER_OF, resource.getMemberOf(dummyObject));
+        }
 
         addAdditionalCommonAttributes(builder, dummyObject);
 
