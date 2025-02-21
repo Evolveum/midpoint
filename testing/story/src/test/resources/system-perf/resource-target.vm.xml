@@ -14,6 +14,7 @@ Configuration parameters:
  - singleValuedIndexList: list of formatted indices of single-valued property->attribute mappings (e.g. 0000, 0001, ...)
  - mappingStrength
  - associationShortcut
+ - nativeReferences
 -->
 
 <resource oid="$resourceOid"
@@ -109,6 +110,7 @@ Configuration parameters:
                 <!-- filled in by constructions in technical roles -->
             </attribute>
 
+#if(!$nativeReferences)
             <association>
                 <ref>ri:group</ref>
                 <tolerant>true</tolerant>
@@ -122,6 +124,7 @@ Configuration parameters:
                 <shortcutValueAttribute>icfs:name</shortcutValueAttribute>
 #end
             </association>
+#end
 
         </objectType>
 
@@ -145,6 +148,27 @@ Configuration parameters:
             </attribute>
         </objectType>
 
+#if($nativeReferences)
+        <associationType>
+            <name>ri:groupMembership</name>
+            <subject>
+                <objectType>
+                    <kind>account</kind>
+                    <intent>default</intent>
+                </objectType>
+                <association>
+                    <ref>ri:group</ref>
+                    <tolerant>true</tolerant>
+                </association>
+            </subject>
+            <object>
+                <objectType>
+                    <kind>entitlement</kind>
+                    <intent>group</intent>
+                </objectType>
+            </object>
+        </associationType>
+#end
     </schemaHandling>
 
     <synchronization>
