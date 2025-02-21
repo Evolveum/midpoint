@@ -278,6 +278,10 @@ public abstract class AbstractDummyTest extends AbstractProvisioningIntegrationT
         return true;
     }
 
+    protected boolean supportsMemberOf() {
+        return false;
+    }
+
     protected void checkUniqueness(Collection<? extends AbstractShadow> shadows) throws SchemaException {
         for (AbstractShadow shadow : shadows) {
             checkUniqueness(shadow);
