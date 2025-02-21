@@ -159,6 +159,9 @@ public class MarksOfObjectListPanel<O extends ObjectType> extends MainObjectList
 
                 try {
                     PrismContainerWrapper<PolicyStatementType> container = objectModel.getObject().findContainer(ObjectType.F_POLICY_STATEMENT);
+                    if (container == null) {
+                        return count;
+                    }
                     List<PrismContainerValueWrapper<PolicyStatementType>> emptyValues = container.getValues().stream()
                             .filter(value -> addStatementPolicyMarkValue(value))
                             .toList();
@@ -502,8 +505,8 @@ public class MarksOfObjectListPanel<O extends ObjectType> extends MainObjectList
     }
 
     @Override
-    protected boolean isNewObjectButtonEnabled() {
-        return objectModel != null && objectModel.getObject() != null;
+    protected boolean isCreateNewObjectVisible() {
+        return super.isCreateNewObjectVisible() && policyStatementExists();
     }
 
     @Override
@@ -514,9 +517,22 @@ public class MarksOfObjectListPanel<O extends ObjectType> extends MainObjectList
             PrismContainerValueWrapper<PolicyStatementType> newItemWrapper = WebPrismUtil.createNewValueWrapper(container, newValue, getPageBase());
             container.getValues().add(newItemWrapper);
         } catch (SchemaException e) {
-            LOGGER.error("Couldn't delete policy statement container in " + objectModel.getObject());
+            LOGGER.error("Couldn't find policy statement container in " + objectModel.getObject());
         }
         refreshTable(target);
+    }
+
+    private boolean policyStatementExists() {
+        if (objectModel == null || objectModel.getObject() == null) {
+            return false;
+        }
+        try {
+            PrismContainerWrapper<PolicyStatementType> container = objectModel.getObject().findContainer(ObjectType.F_POLICY_STATEMENT);
+            return container != null;
+        } catch (SchemaException e) {
+            LOGGER.warn("Couldn't find policy statement container in " + objectModel.getObject());
+        }
+        return false;
     }
 
     @Override
