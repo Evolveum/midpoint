@@ -11,6 +11,7 @@ Parameters:
  - oid
  - resourceOid
  - metarole (boolean)
+ - mappingStrength
 -->
 <role oid="$oid"
         xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
@@ -41,6 +42,7 @@ Parameters:
             <attribute>
                 <ref>ri:membership</ref>
                 <outbound>
+                    <strength>$mappingStrength</strength>
                     <expression>
                         <script>
                             <code>
@@ -54,6 +56,7 @@ Parameters:
             <association>
                 <ref>ri:group</ref>
                 <outbound>
+                    <strength>$mappingStrength</strength>
                     <expression>
                         <associationFromLink>
                             <projectionDiscriminator>

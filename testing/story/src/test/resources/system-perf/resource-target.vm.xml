@@ -12,6 +12,7 @@ Configuration parameters:
  - resourceInstance
  - multiValuedIndexList: list of formatted indices of multi-valued property->attribute mappings (e.g. 0000, 0001, ...)
  - singleValuedIndexList: list of formatted indices of single-valued property->attribute mappings (e.g. 0000, 0001, ...)
+ - mappingStrength
 -->
 
 <resource oid="$resourceOid"
@@ -58,6 +59,7 @@ Configuration parameters:
             <attribute>
                 <ref>icfs:name</ref>
                 <outbound>
+                    <strength>$mappingStrength</strength>
                     <source>
                         <path>c:name</path>
                     </source>
@@ -67,6 +69,7 @@ Configuration parameters:
             <attribute>
                 <ref>ri:a-single-$index</ref>
                 <outbound>
+                    <strength>$mappingStrength</strength>
                     <source>
                         <name>data</name>
                         <path>c:extension/ext:p-single-$index</path>
@@ -83,6 +86,7 @@ Configuration parameters:
             <attribute>
                 <ref>ri:a-multi-$index</ref>
                 <outbound>
+                    <strength>$mappingStrength</strength>
                     <source>
                         <name>data</name>
                         <path>c:extension/ext:p-multi-$index</path>
@@ -121,6 +125,7 @@ Configuration parameters:
             <attribute>
                 <ref>icfs:name</ref>
                 <outbound>
+                    <strength>$mappingStrength</strength>
                     <source>
                         <path>c:identifier</path>
                     </source>
