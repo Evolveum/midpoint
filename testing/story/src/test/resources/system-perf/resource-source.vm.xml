@@ -12,6 +12,7 @@ Configuration parameters:
  - resourceInstance
  - multiValuedIndexList: list of formatted indices of multi-valued attribute->property mappings (e.g. 0000, 0001, ...)
  - singleValuedIndexList: list of formatted indices of single-valued attribute->property mappings (e.g. 0000, 0001, ...)
+ - mappingStrength
 -->
 
 <resource oid="$resourceOid"
@@ -58,11 +59,13 @@ Configuration parameters:
             <attribute>
                 <ref>icfs:name</ref>
                 <inbound>
+                    <strength>$mappingStrength</strength>
                     <target>
                         <path>c:name</path>
                     </target>
                 </inbound>
                 <inbound>
+                    <strength>$mappingStrength</strength>
                     <expression>
                         <assignmentTargetSearch>
                             <targetType>ArchetypeType</targetType>
@@ -78,6 +81,7 @@ Configuration parameters:
             <attribute>
                 <ref>ri:a-single-$index</ref>
                 <inbound>
+                    <strength>$mappingStrength</strength>
                     <expression>
                         <script>
                             <code>input</code>
@@ -93,6 +97,7 @@ Configuration parameters:
             <attribute>
                 <ref>ri:a-multi-$index</ref>
                 <inbound>
+                    <strength>$mappingStrength</strength>
                     <expression>
                         <script>
                             <code>'$resourceInstance:' + input</code>
@@ -117,6 +122,7 @@ Configuration parameters:
             <attribute>
                 <ref>ri:role</ref>
                 <inbound>
+                    <strength>$mappingStrength</strength>
                     <expression>
                         <assignmentTargetSearch>
                             <targetType>RoleType</targetType>
