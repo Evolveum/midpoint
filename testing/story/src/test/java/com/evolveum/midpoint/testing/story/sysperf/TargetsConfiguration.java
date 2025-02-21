@@ -7,6 +7,8 @@
 
 package com.evolveum.midpoint.testing.story.sysperf;
 
+import static com.evolveum.icf.dummy.resource.LinkClassDefinition.LinkClassDefinitionBuilder.aLinkClassDefinition;
+import static com.evolveum.icf.dummy.resource.LinkClassDefinition.Participant.ParticipantBuilder.aParticipant;
 import static com.evolveum.midpoint.testing.story.sysperf.TestSystemPerformance.*;
 
 import java.io.File;
@@ -14,6 +16,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import com.evolveum.icf.dummy.resource.DummyAccount;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingStrengthType;
 
 import org.jetbrains.annotations.NotNull;
@@ -33,6 +36,7 @@ class TargetsConfiguration {
     private static final String PROP_MULTI_MAPPINGS = PROP + ".multi-mappings";
     private static final String PROP_MAPPING_STRENGTH = PROP + ".mapping-strength";
     private static final String PROP_ASSOCIATION_SHORTCUT = PROP + ".association-shortcut";
+    private static final String PROP_NATIVE_REFERENCES = PROP + ".native-references";
 
     private static final String RESOURCE_INSTANCE_TEMPLATE = "target-%03d";
     private static final String A_SINGLE_NAME = "a-single-%04d";
@@ -47,6 +51,7 @@ class TargetsConfiguration {
     private final int multiValuedMappings;
     private final String mappingStrength;
     private final boolean associationShortcut;
+    private final boolean nativeReferences;
 
     @NotNull private final OperationDelay operationDelay;
 
@@ -58,6 +63,7 @@ class TargetsConfiguration {
         multiValuedMappings = Integer.parseInt(System.getProperty(PROP_MULTI_MAPPINGS, "0"));
         mappingStrength = System.getProperty(PROP_MAPPING_STRENGTH, MappingStrengthType.NORMAL.value());
         associationShortcut = Boolean.parseBoolean(System.getProperty(PROP_ASSOCIATION_SHORTCUT, "false"));
+        nativeReferences = Boolean.parseBoolean(System.getProperty(PROP_NATIVE_REFERENCES, "false"));
 
         operationDelay = OperationDelay.fromSystemProperties(PROP);
 
@@ -99,6 +105,7 @@ class TargetsConfiguration {
                 ", multiValuedMappings=" + multiValuedMappings +
                 ", mappingStrength=" + mappingStrength +
                 ", associationShortcut=" + associationShortcut +
+                ", nativeReferences=" + nativeReferences +
                 ", operationDelay=" + operationDelay +
                 '}';
     }
@@ -117,6 +124,23 @@ class TargetsConfiguration {
                                 A_MEMBERSHIP, String.class, false, true);
                         controller.addAttrDef(dummyResource.getGroupObjectClass(),
                                 DummyGroup.ATTR_MEMBERS_NAME, String.class, false, true);
+
+                        controller.addLinkClassDefinition(
+                                aLinkClassDefinition()
+                                        .withName("groupMembership")
+                                        .withFirstParticipant(aParticipant()
+                                                .withObjectClassNames(
+                                                        DummyAccount.OBJECT_CLASS_NAME,
+                                                        DummyGroup.OBJECT_CLASS_NAME)
+                                                .withLinkAttributeName("group")
+                                                .withMaxOccurs(-1)
+                                                .withReturnedByDefault(true)
+                                                .withExpandedByDefault(false)
+                                                .build())
+                                        .withSecondParticipant(aParticipant()
+                                                .withObjectClassNames(DummyGroup.OBJECT_CLASS_NAME)
+                                                .build())
+                                        .build());
                     }));
         }
         return resources;
@@ -132,7 +156,8 @@ class TargetsConfiguration {
                         "multiValuedIndexList", Util.createIndexList(multiValuedMappings),
                         "singleValuedIndexList", Util.createIndexList(singleValuedMappings),
                         "mappingStrength", mappingStrength,
-                        "associationShortcut", associationShortcut));
+                        "associationShortcut", associationShortcut,
+                        "nativeReferences", nativeReferences));
 
         return generatedFileName;
     }

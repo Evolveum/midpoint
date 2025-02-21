@@ -335,6 +335,12 @@ public class TestSystemPerformance extends AbstractStoryTest implements Performa
         Set<String> roles = account.getAttributeValues(SourcesConfiguration.A_ROLE, String.class);
         displayValue("Roles for " + accountName, roles);
 
+        if (!RESOURCE_TARGET_LIST.isEmpty()) {
+            displayDumpable(
+                    "target 0 account",
+                    RESOURCE_TARGET_LIST.get(0).getDummyResource().getAccountByName(accountName));
+        }
+
         Set<String> memberships = RESOURCE_TARGET_LIST.stream()
                 .flatMap(r -> emptyIfNull(getMemberships(accountName, r)).stream())
                 .collect(Collectors.toSet());
