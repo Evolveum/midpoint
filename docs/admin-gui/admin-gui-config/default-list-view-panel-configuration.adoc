@@ -1,7 +1,4 @@
-= Default List View Panel Configuration
-:page-nav-title: Default List Configuration
-:page-keywords: [ "adminGuiConfig", "collection view", "object details" ]
-:page-toc: top
+:page-visibility: hidden
 :page-upkeep-status: green
 
 This section describes the default configuration for the list view panels in the GUI.

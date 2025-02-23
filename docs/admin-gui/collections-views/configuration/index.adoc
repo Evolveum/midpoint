@@ -476,7 +476,7 @@ Use case for such search configuration is described more detailed xref:/midpoint
             </searchItems>
         </searchBoxConfiguration>
 ----
-
+== Default List View Panel Configuration
 include::../../admin-gui-config/default-list-view-panel-configuration.adoc[]
 
 == Limitations

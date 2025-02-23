@@ -119,6 +119,7 @@ Basis structure for object details page configuration is:
 * `*panel*`: Definition of individual panels which will be used on details page. According to the panel definition, also link in the detail menu to corresponding panel is generated. One panel can be nested to another. In such a case, link in the detail navigation menu will be shown as a submenu under the link of the parent panel.
 
 [#_default_gui_object_list_panel_configuration]
+=== Default List View Panel Configuration
 include::./default-list-view-panel-configuration.adoc[]
 
 
