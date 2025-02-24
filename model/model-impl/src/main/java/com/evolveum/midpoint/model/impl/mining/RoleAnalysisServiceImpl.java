@@ -3881,9 +3881,10 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
             loadDetectedPattern(repositoryService, pattern, mappedClusters, options, detectedPatterns, result);
             return true;
         };
+
         try {
             repositoryService.searchContainersIterative(RoleAnalysisDetectionPatternType.class, query, handler,
-                    null, result);
+                    getDefaultRmIterativeSearchPageSizeOptions(), result);
         } catch (Exception ex) {
             throw new SystemException("Couldn't search role suggestions", ex);
         }
@@ -3927,7 +3928,7 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
         };
         try {
             repositoryService.searchContainersIterative(RoleAnalysisDetectionPatternType.class, query, handler,
-                    null, result);
+                    getDefaultRmIterativeSearchPageSizeOptions(), result);
         } catch (Exception ex) {
             throw new SystemException("Couldn't search session role suggestions", ex);
         }
