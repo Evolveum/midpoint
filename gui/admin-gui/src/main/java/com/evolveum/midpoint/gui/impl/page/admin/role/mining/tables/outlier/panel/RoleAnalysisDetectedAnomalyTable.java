@@ -122,15 +122,15 @@ public class RoleAnalysisDetectedAnomalyTable extends BasePanel<AnomalyObjectDto
                         .this.getModelObject().getCategory();
                 if (category == AnomalyObjectDto.AnomalyTableCategory.PARTITION_ANOMALY) {
                     menuItems.add(RoleAnalysisDetectedAnomalyTable.this.createViewDetailsMenu(
-                            RoleAnalysisDetectedAnomalyTable.this.getModelObject()));
+                            RoleAnalysisDetectedAnomalyTable.this.getModel()));
                     return menuItems;
                 }
 
                 if (category == AnomalyObjectDto.AnomalyTableCategory.OUTLIER_OVERVIEW) {
                     menuItems.add(RoleAnalysisDetectedAnomalyTable.this.createViewDetailsPeerGroupMenu(
-                            RoleAnalysisDetectedAnomalyTable.this.getModelObject()));
+                            RoleAnalysisDetectedAnomalyTable.this.getModel()));
                     menuItems.add(RoleAnalysisDetectedAnomalyTable.this.createViewDetailsAccessAnalysisMenu(
-                            RoleAnalysisDetectedAnomalyTable.this.getModelObject()));
+                            RoleAnalysisDetectedAnomalyTable.this.getModel()));
                     return menuItems;
                 }
                 return menuItems;
@@ -326,7 +326,7 @@ public class RoleAnalysisDetectedAnomalyTable extends BasePanel<AnomalyObjectDto
     }
 
     @Contract("_ -> new")
-    private @NotNull InlineMenuItem createViewDetailsMenu(AnomalyObjectDto anomalyObjectDto) {
+    private @NotNull InlineMenuItem createViewDetailsMenu(IModel<AnomalyObjectDto> anomalyObjectDto) {
 
         return new ButtonInlineMenuItem(
                 createStringResource("RoleAnalysisDetectedAnomalyTable.inline.view.details.title")) {
@@ -354,7 +354,8 @@ public class RoleAnalysisDetectedAnomalyTable extends BasePanel<AnomalyObjectDto
                         RoleType role = getRowModel().getObject().getValue();
                         String oid = role.getOid();
 
-                        AnomalyObjectDto.AnomalyPartitionMap anomalyResult = anomalyObjectDto.getAnomalyPartitionMap(oid);
+                        AnomalyObjectDto.AnomalyPartitionMap anomalyResult = anomalyObjectDto.getObject()
+                                .getAnomalyPartitionMap(oid);
                         if (anomalyResult == null) {
                             return;
                         }
@@ -364,7 +365,7 @@ public class RoleAnalysisDetectedAnomalyTable extends BasePanel<AnomalyObjectDto
                                         ((PageBase) getPage()).getMainPopupBodyId(),
                                         Model.of(anomalyResult.associatedPartition()),
                                         Model.of(anomalyResult.anomalyResult()),
-                                        Model.of(anomalyObjectDto.getOutlier()));
+                                        Model.of(anomalyObjectDto.getObject().getOutlier()));
                         ((PageBase) getPage()).showMainPopup(detailsPanel, target);
 
                     }
@@ -380,7 +381,7 @@ public class RoleAnalysisDetectedAnomalyTable extends BasePanel<AnomalyObjectDto
     }
 
     @Contract("_ -> new")
-    private @NotNull InlineMenuItem createViewDetailsPeerGroupMenu(AnomalyObjectDto anomalyObjectDto) {
+    private @NotNull InlineMenuItem createViewDetailsPeerGroupMenu(IModel<AnomalyObjectDto> anomalyObjectDto) {
 
         return new ButtonInlineMenuItem(
                 createStringResource("RoleAnalysisDetectedAnomalyTable.createViewDetailsPeerGroupMenu.title")) {
@@ -407,8 +408,7 @@ public class RoleAnalysisDetectedAnomalyTable extends BasePanel<AnomalyObjectDto
                         SelectableBean<RoleType> object = getRowModel().getObject();
 
                         RoleAnalysisExplanationTabPanelPopup components = new RoleAnalysisExplanationTabPanelPopup(
-                                getPageBase().getMainPopupBodyId(),
-                                Model.of(anomalyObjectDto),
+                                getPageBase().getMainPopupBodyId(), anomalyObjectDto,
                                 object);
 
                         getPageBase().showMainPopup(components, target);
@@ -418,8 +418,7 @@ public class RoleAnalysisDetectedAnomalyTable extends BasePanel<AnomalyObjectDto
 
             @Override
             public IModel<Boolean> getVisible() {
-                return resolveButtonVisibilityByCategory(this,
-                        anomalyObjectDto,
+                return resolveButtonVisibilityByCategory(this, anomalyObjectDto.getObject(),
                         OutlierExplanationResolver.OutlierDetectionExplanationCategory.UNUSUAL_ACCESS);
             }
 
@@ -431,7 +430,7 @@ public class RoleAnalysisDetectedAnomalyTable extends BasePanel<AnomalyObjectDto
     }
 
     @Contract("_ -> new")
-    private @NotNull InlineMenuItem createViewDetailsAccessAnalysisMenu(AnomalyObjectDto anomalyObjectDto) {
+    private @NotNull InlineMenuItem createViewDetailsAccessAnalysisMenu(IModel<AnomalyObjectDto> anomalyObjectDto) {
 
         return new ButtonInlineMenuItem(
                 createStringResource("RoleAnalysisDetectedAnomalyTable.createViewDetailsAccessAnalysisMenu.title")) {
@@ -460,7 +459,7 @@ public class RoleAnalysisDetectedAnomalyTable extends BasePanel<AnomalyObjectDto
 
                         RoleAnalysisExplanationTabPanelPopup components = new RoleAnalysisExplanationTabPanelPopup(
                                 getPageBase().getMainPopupBodyId(),
-                                Model.of(anomalyObjectDto),
+                                anomalyObjectDto,
                                 object) {
                             @Override
                             public TabType defaultTab() {
@@ -477,7 +476,7 @@ public class RoleAnalysisDetectedAnomalyTable extends BasePanel<AnomalyObjectDto
             @Override
             public IModel<Boolean> getVisible() {
                 return resolveButtonVisibilityByCategory(this,
-                        anomalyObjectDto,
+                        anomalyObjectDto.getObject(),
                         OutlierExplanationResolver.OutlierDetectionExplanationCategory.IRREGULAR_ATTRIBUTES);
             }
 

@@ -53,7 +53,7 @@ public class RoleAnalysisExplanationTabPanelPopup extends BasePanel<AnomalyObjec
 
     public RoleAnalysisExplanationTabPanelPopup(
             @NotNull String id,
-            @NotNull Model<AnomalyObjectDto> anomalyObjectDtoModel,
+            @NotNull IModel<AnomalyObjectDto> anomalyObjectDtoModel,
             @NotNull SelectableBean<RoleType> selectedRoleObject) {
         super(id, anomalyObjectDtoModel);
         selectedRoleOid = selectedRoleObject.getValue().getOid();
