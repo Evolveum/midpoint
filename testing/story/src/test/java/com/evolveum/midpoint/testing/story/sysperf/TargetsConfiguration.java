@@ -15,16 +15,14 @@ import java.net.ConnectException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.UUID;
 
 import com.evolveum.icf.dummy.resource.*;
-
-import com.evolveum.midpoint.test.TestObject;
 
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.test.DummyResourceContoller;
 import com.evolveum.midpoint.test.DummyTestResource;
+import com.evolveum.midpoint.test.TestObject;
 
 class TargetsConfiguration {
 
@@ -95,7 +93,7 @@ class TargetsConfiguration {
     private List<DummyTestResource> generateDummyTestResources() {
         List<DummyTestResource> resources = new ArrayList<>();
         for (int i = 0; i < numberOfResources; i++) {
-            String oid = UUID.randomUUID().toString();
+            String oid = RandomSource.randomUUID().toString();
             String resourceDefinitionFile = createResourceDefinition(i, oid);
             resources.add(new DummyTestResource(TARGET_DIR, resourceDefinitionFile, oid, getResourceInstance(i),
                     controller -> {

@@ -36,7 +36,7 @@ public abstract class AbstractStatisticsPrinter<T> {
     }
 
     public enum SortBy {
-        NAME, COUNT, TIME
+        NAME, COUNT, TIME, OWN_TIME
     }
 
     /**

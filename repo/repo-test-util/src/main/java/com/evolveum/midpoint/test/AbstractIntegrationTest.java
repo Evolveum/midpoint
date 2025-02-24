@@ -50,6 +50,9 @@ import java.util.stream.Collectors;
 
 import com.evolveum.midpoint.schema.config.ConfigurationItemOrigin;
 
+import com.evolveum.midpoint.schema.statistics.ComponentsPerformanceInformationUtil;
+import com.evolveum.midpoint.util.statistics.OperationsPerformanceInformation;
+
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
 import javax.net.ssl.TrustManager;
@@ -4219,6 +4222,29 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
         return asserter;
     }
 
+    protected OperationsPerformanceInformationAsserter<Void> assertGlobalOperationsPerformance() {
+        return assertPerformance(OperationsPerformanceMonitor.INSTANCE.getGlobalPerformanceInformation(), "global");
+    }
+
+    protected OperationsPerformanceInformationAsserter<Void> assertPerformance(
+            @NotNull OperationsPerformanceInformation information, String details) {
+        var asserter = new OperationsPerformanceInformationAsserter<Void>(information, null, details);
+        initializeAsserter(asserter);
+        return asserter;
+    }
+
+    protected ComponentsPerformanceInformationAsserter<Void> assertGlobalOperationsPerformanceByStandardComponents() {
+        var opPerfInfo = OperationsPerformanceMonitor.INSTANCE.getGlobalPerformanceInformation();
+        return assertPerformance(ComponentsPerformanceInformationUtil.computeBasic(opPerfInfo), "global");
+    }
+
+    protected ComponentsPerformanceInformationAsserter<Void> assertPerformance(
+            @NotNull ComponentsPerformanceInformationType information, String details) {
+        var asserter = new ComponentsPerformanceInformationAsserter<Void>(information, null, details);
+        initializeAsserter(asserter);
+        return asserter;
+    }
+
     /**
      * @return Creator of repository objects.
      */
@@ -4258,7 +4284,7 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
     }
 
     protected void createNode(String nodeId, OperationResult result) throws CommonException {
-        NodeType node = new NodeType(prismContext)
+        NodeType node = new NodeType()
                 .name(nodeId)
                 .nodeIdentifier(nodeId)
                 .operationalState(NodeOperationalStateType.UP)

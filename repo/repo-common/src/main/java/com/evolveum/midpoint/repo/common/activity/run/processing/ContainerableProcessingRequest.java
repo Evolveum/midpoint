@@ -36,11 +36,11 @@ public class ContainerableProcessingRequest<C extends Containerable> extends Ite
      */
     public static <C extends Containerable> @NotNull ContainerableProcessingRequest<C> create(
             int sequentialNumber, @NotNull C item, @NotNull IterativeActivityRun<C, ?, ?, ?> activityRun) {
-        if (item instanceof ObjectType) {
+        if (item instanceof ObjectType object) {
             //noinspection unchecked
             return (ContainerableProcessingRequest<C>) new ObjectProcessingRequest<>(
                     sequentialNumber,
-                    (ObjectType) item,
+                    object,
                     (IterativeActivityRun<ObjectType, ?, ?, ?>) activityRun);
         } else {
             return new ContainerableProcessingRequest<>(sequentialNumber, item, activityRun);

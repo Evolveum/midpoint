@@ -51,7 +51,6 @@ public class ObjectTemplateIncludeProcessor {
         for (ObjectReferenceType includeRef: objectTemplate.getIncludeRef()) {
             PrismObject<ObjectTemplateType> includedObject;
             if (includeRef.asReferenceValue().getObject() != null) {
-                //noinspection unchecked
                 includedObject = includeRef.asReferenceValue().getObject();
             } else {
                 ObjectTemplateType includedObjectBean =

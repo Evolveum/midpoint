@@ -44,6 +44,8 @@ public class RepoObjectResolver implements ObjectResolver {
             Collection<SelectorOptions<GetOperationOptions>> options, ResultHandler<O> handler, Task task,
             OperationResult parentResult)
             throws SchemaException {
+        // Not providing own operation result in the handler, as the processing is minimal here.
+        // Callers of this method should do it.
         cacheRepositoryService.searchObjectsIterative(type, query, handler, options, true, parentResult);
     }
 

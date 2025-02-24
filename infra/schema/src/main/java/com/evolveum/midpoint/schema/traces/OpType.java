@@ -16,6 +16,8 @@ import java.util.List;
 import java.util.function.Predicate;
 import java.util.regex.Pattern;
 
+import com.evolveum.midpoint.util.MiscUtil;
+
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.Nullable;
 
@@ -239,7 +241,7 @@ public enum OpType {
             for (String operationPattern : operationPatterns) {
                 this.operationPatterns.add(
                         Pattern.compile(
-                                toRegex(operationPattern)));
+                                MiscUtil.toRegex(operationPattern)));
             }
         } else {
             this.operationPatterns = null;
@@ -361,10 +363,6 @@ public enum OpType {
     // todo move somewhere
     public static String getLast(String operation) {
         return StringUtils.substringAfterLast(operation, ".");
-    }
-
-    private String toRegex(String pattern) {
-        return pattern.replace(".", "\\.").replace("*", ".*");
     }
 
     public static OpType determine(OperationResultType operation) {

@@ -872,8 +872,8 @@ public class ObjectRetriever {
                     }
                 }
 
-                if (objects.size() == 0) {
-                    break;                      // should not occur, but let's check for this to avoid endless loops
+                if (objects.isEmpty()) {
+                    break; // should not occur, but let's check for this to avoid endless loops
                 }
                 offset += objects.size();
                 remaining -= objects.size();

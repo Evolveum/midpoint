@@ -1048,8 +1048,6 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
                 }
             }
 
-
-
             ObjectQuery pagedQuery = prismContext().queryFactory().createQuery();
             ObjectPaging paging = prismContext().queryFactory().createPaging();
             if (originalPaging != null && originalPaging.getOrderingInstructions() != null) {
@@ -1092,7 +1090,9 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
                 // process page results
                 for (PrismObject<T> object : objects) {
                     lastProcessedObject = object;
-                    if (!handler.handle(object, operationResult)) {
+                    var resultProvidingHandler =
+                            handler.providingOwnOperationResult(opNamePrefix + OP_HANDLE_OBJECT_FOUND);
+                    if (!resultProvidingHandler.handle(object, operationResult)) {
                         return new SearchResultMetadata()
                                 .approxNumberOfAllResults(handledObjectsTotal + 1)
                                 .pagingCookie(lastProcessedObject.getOid())

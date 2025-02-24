@@ -2079,6 +2079,15 @@
                       <assemblyAnalyzerEnabled>false</assemblyAnalyzerEnabled>
                     </configuration>
                 </plugin>
+                <plugin>
+                    <groupId>io.github.pmckeown</groupId>
+                    <artifactId>dependency-track-maven-plugin</artifactId>
+                    <version>1.7.0</version>
+                    <configuration>
+                        <dependencyTrackBaseUrl>${env.DTRACK_URL}</dependencyTrackBaseUrl>
+                        <apiKey>${env.DTRACK_TOKEN}</apiKey>
+                    </configuration>
+                </plugin>
             </plugins>
         </pluginManagement>
     </build>
@@ -2165,6 +2174,55 @@
                 <surefire.args>-Xmx4g --add-exports java.management/sun.management=ALL-UNNAMED -Dtest.config.file=test-config-new-repo.xml</surefire.args>
                 <failsafe.args>-Xmx4g --add-exports java.management/sun.management=ALL-UNNAMED -Duser.language=en -Dtest.config.file=test-config-new-repo.xml</failsafe.args>
             </properties>
+        </profile>
+        <profile>
+            <id>coverage</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.jacoco</groupId>
+                        <artifactId>jacoco-maven-plugin</artifactId>
+                        <executions>
+                            <execution>
+                                <id>jacoco-initialize</id>
+                                <goals>
+                                    <goal>prepare-agent</goal>
+                                </goals>
+                            </execution>
+                            <execution>
+                                <id>jacoco-site</id>
+                                <phase>package</phase>
+                                <goals>
+                                    <goal>report</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                        <configuration>
+                            <propertyName>jacoco.argLine</propertyName>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+        <profile>
+            <id>sbom</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.cyclonedx</groupId>
+                        <artifactId>cyclonedx-maven-plugin</artifactId>
+                        <executions>
+                            <execution>
+                                <id>sbom-package</id>
+                                <phase>package</phase>
+                                <goals>
+                                    <goal>makeBom</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
         </profile>
     </profiles>
 </project>

@@ -43,6 +43,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
  */
 class ShadowSearchLikeOperation {
 
+    private static final String OP_PROCESS_REPO_SHADOW = ShadowSearchLikeOperation.class.getName() + ".processRepoShadow";
+
     private static final Trace LOGGER = TraceManager.getTrace(ShadowSearchLikeOperation.class);
 
     @NotNull private final ProvisioningContext ctx;
@@ -144,7 +146,7 @@ class ShadowSearchLikeOperation {
         }
     }
 
-    private SearchResultMetadata executeIterativeSearchOnResource(ResultHandler<ShadowType> handler, OperationResult result)
+    private SearchResultMetadata executeIterativeSearchOnResource(ResultHandler<ShadowType> handler, OperationResult parentResult)
             throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
             ExpressionEvaluationException, SecurityViolationException {
 
@@ -153,26 +155,34 @@ class ShadowSearchLikeOperation {
         // We need to record the fetch down here. Now it is certain that we are going to fetch from resource.
         InternalMonitor.recordCount(InternalCounters.SHADOW_FETCH_OPERATION_COUNT);
 
-        ResourceObjectHandler shadowHandler = (ResourceObjectFound objectFound, OperationResult lResult) -> {
+        ResourceObjectHandler shadowHandler = (ResourceObjectFound objectFound, OperationResult objParentResult) -> {
 
-            ShadowedObjectFound shadowedObjectFound = new ShadowedObjectFound(objectFound, localBeans, ctx);
-            shadowedObjectFound.initialize(ctx.getTask(), lResult);
-            ShadowType shadowedObject = shadowedObjectFound.getResultingObject(ucfErrorReportingMethod);
-
+            // See ResultHandler#providingOwnOperationResult
+            var objResult = objParentResult
+                    .subresult(ShadowsFacade.OP_HANDLE_RESOURCE_OBJECT_FOUND)
+                    .addArbitraryObjectAsParam(OperationResult.PARAM_OBJECT, objectFound)
+                    .setMinor()
+                    .build();
             try {
-                return handler.handle(shadowedObject.asPrismObject(), lResult);
+                ShadowedObjectFound shadowedObjectFound = new ShadowedObjectFound(objectFound, localBeans, ctx);
+                shadowedObjectFound.initialize(ctx.getTask(), objResult);
+                ShadowType shadowedObject = shadowedObjectFound.getResultingObject(ucfErrorReportingMethod);
+
+                return handler.handle(shadowedObject.asPrismObject(), objResult);
             } catch (Throwable t) {
-                lResult.recordException(t);
+                objResult.recordException(t);
                 throw t;
             } finally {
-                lResult.close();
+                objResult.close();
+                objResult.deleteSubresultsIfPossible();
+                objParentResult.summarize();
             }
         };
 
         boolean fetchAssociations = SelectorOptions.hasToIncludePath(ShadowType.F_ASSOCIATION, options, true);
         try {
             return localBeans.resourceObjectConverter.searchResourceObjects(
-                    ctx, shadowHandler, createOnResourceQuery(), fetchAssociations, ucfErrorReportingMethod, result);
+                    ctx, shadowHandler, createOnResourceQuery(), fetchAssociations, ucfErrorReportingMethod, parentResult);
         } catch (TunnelException e) {
             unwrapAndThrowSearchingTunnelException(e);
             throw new AssertionError();
@@ -312,7 +322,7 @@ class ShadowSearchLikeOperation {
      */
     private ResultHandler<ShadowType> createRepoShadowHandler(ResultHandler<ShadowType> upstreamHandler) {
         return (PrismObject<ShadowType> shadow, OperationResult result) -> {
-            OperationResult lResult = result.createMinorSubresult(ShadowsFacade.OP_HANDLE_OBJECT);
+            OperationResult lResult = result.createMinorSubresult(OP_PROCESS_REPO_SHADOW);
             boolean cont;
             try {
                 processRepoShadow(shadow, lResult);

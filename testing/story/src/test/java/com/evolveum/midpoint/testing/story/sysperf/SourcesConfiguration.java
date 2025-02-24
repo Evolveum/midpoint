@@ -7,13 +7,10 @@
 
 package com.evolveum.midpoint.testing.story.sysperf;
 
-import com.evolveum.icf.dummy.resource.ConflictException;
-import com.evolveum.icf.dummy.resource.DummyObjectClass;
-import com.evolveum.icf.dummy.resource.SchemaViolationException;
-import com.evolveum.midpoint.test.DummyResourceContoller;
-import com.evolveum.midpoint.test.DummyTestResource;
+import static java.util.Collections.emptyList;
 
-import org.jetbrains.annotations.NotNull;
+import static com.evolveum.midpoint.testing.story.sysperf.TestSystemPerformance.TARGET_DIR;
+import static com.evolveum.midpoint.testing.story.sysperf.TestSystemPerformance.TEST_DIR;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -21,12 +18,15 @@ import java.net.ConnectException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.UUID;
 
-import static com.evolveum.midpoint.testing.story.sysperf.TestSystemPerformance.TARGET_DIR;
-import static com.evolveum.midpoint.testing.story.sysperf.TestSystemPerformance.TEST_DIR;
+import com.evolveum.icf.dummy.resource.ConflictException;
+import com.evolveum.icf.dummy.resource.SchemaViolationException;
 
-import static java.util.Collections.emptyList;
+import org.jetbrains.annotations.NotNull;
+
+import com.evolveum.icf.dummy.resource.DummyObjectClass;
+import com.evolveum.midpoint.test.DummyResourceContoller;
+import com.evolveum.midpoint.test.DummyTestResource;
 
 class SourcesConfiguration {
 
@@ -116,7 +116,7 @@ class SourcesConfiguration {
         List<DummyTestResource> resources = new ArrayList<>();
         for (int i = 0; i < numberOfResources; i++) {
             boolean primary = i == 0;
-            String oid = UUID.randomUUID().toString();
+            String oid = RandomSource.randomUUID().toString();
             String resourceDefinitionFile = createResourceDefinition(i, oid, primary);
             resources.add(new DummyTestResource(TARGET_DIR, resourceDefinitionFile, oid, getResourceInstance(i),
                     controller -> {

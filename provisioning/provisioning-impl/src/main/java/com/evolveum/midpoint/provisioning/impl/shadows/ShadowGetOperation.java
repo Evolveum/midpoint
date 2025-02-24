@@ -57,7 +57,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
  */
 class ShadowGetOperation {
 
-    private static final String OP_GET_RESOURCE_OBJECT = ShadowGetOperation.class + ".getResourceObject";
+    private static final String OP_GET_RESOURCE_OBJECT = ShadowGetOperation.class.getName() + ".getResourceObject";
 
     private static final Trace LOGGER = TraceManager.getTrace(ShadowGetOperation.class);
 
