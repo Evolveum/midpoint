@@ -164,6 +164,8 @@ class ValueChecker {
 
                 ResultHandler<R> handler = (object, lResult) -> {
 
+                    // Not providing own operation result, as the processing is minimal here.
+
                     PrismProperty<Object> objectProperty = object.findProperty(itemPath);
                     if (objectProperty == null) {
                         return true;

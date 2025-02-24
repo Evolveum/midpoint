@@ -24,8 +24,8 @@
         <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#claimableWorkItems</action>
         <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#userDetails</action>
         <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#roleDetails</action>
-        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#orgUnit</action>
-        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#service</action>
+        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#orgDetails</action>
+        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#serviceDetails</action>
     </authorization>
     <authorization id="3">
         <name>own-workitems-read-complete-delegate</name>

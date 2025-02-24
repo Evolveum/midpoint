@@ -260,8 +260,10 @@ public class TaskErrorsPanel extends AbstractObjectMainPanel<TaskType, TaskDetai
             public void onClick(AjaxRequestTarget target, IModel<TaskErrorSelectableBeanImplOld<ObjectType>> rowModel) {
                 TaskErrorSelectableBeanImplOld<ObjectType> object = rowModel.getObject();
                 PrismObject<ObjectType> realOwner = object.getRealOwner();
-                DetailsPageUtil.dispatchToObjectDetailsPage(
-                        realOwner.getCompileTimeClass(), realOwner.getOid(), TaskErrorsPanel.this, false);
+                if (realOwner != null) {
+                    DetailsPageUtil.dispatchToObjectDetailsPage(
+                            realOwner.getCompileTimeClass(), realOwner.getOid(), TaskErrorsPanel.this, false);
+                }
             }
         });
 

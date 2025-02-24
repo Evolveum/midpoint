@@ -40,6 +40,7 @@ public class ProcessingCoordinator<I> {
 
     private static final String OP_HANDLE_ASYNCHRONOUSLY = ProcessingCoordinator.class.getName() + ".handleAsynchronously";
     private static final String OP_EXECUTE_WORKER = ProcessingCoordinator.class.getName() + ".executeWorker";
+    private static final String OP_SUBMIT_ITEM = ProcessingCoordinator.class.getName() + ".submitItem";
 
     @NotNull private final RunningTask coordinatorTask;
 
@@ -79,39 +80,52 @@ public class ProcessingCoordinator<I> {
         }
     }
 
-    public boolean submit(ItemProcessingRequest<I> request, OperationResult result) {
-        if (!canRun()) {
-            recordInterrupted(request, result);
-            request.acknowledge(false, result);
-            return false;
-        }
-
-        if (multithreaded) {
-            assert requestsBuffer != null;
-            try {
-                while (!requestsBuffer.offer(request)) {
-                    if (!canRun()) {
-                        recordInterrupted(request, result);
-                        request.acknowledge(false, result);
-                        return false;
-                    } else {
-                        updateCoordinatorTaskStatistics(result);
-                    }
-                }
-                updateCoordinatorTaskStatistics(result);
-            } catch (InterruptedException e) {
+    public boolean submit(ItemProcessingRequest<I> request, OperationResult parentResult) {
+        // For single-threaded case, this is is only a thin wrapper around request.process(..) method.
+        // But for the multi-threaded case, the coordinator thread can spend some time here, waiting for
+        // the request buffer to accept the request. Hence, it makes sense to provide an operation result here.
+        OperationResult result = parentResult.subresult(OP_SUBMIT_ITEM)
+                .addParam("requestIdentifier", request.getIdentifier())
+                .build();
+        try {
+            if (!canRun()) {
                 recordInterrupted(request, result);
                 request.acknowledge(false, result);
                 return false;
             }
 
-            // This is perhaps better than IN PROGRESS (e.g. because of tests).
-            // The processing will continue in a separate thread.
-            result.recordStatus(OperationResultStatus.SUCCESS, "Request submitted for processing");
-            return true;
-        } else {
-            // In this case the coordinator task is the worker.
-            return request.process(coordinatorTask, result);
+            if (multithreaded) {
+                assert requestsBuffer != null;
+                try {
+                    while (!requestsBuffer.offer(request)) {
+                        if (!canRun()) {
+                            recordInterrupted(request, result);
+                            request.acknowledge(false, result);
+                            return false;
+                        } else {
+                            updateCoordinatorTaskStatistics(result);
+                        }
+                    }
+                    updateCoordinatorTaskStatistics(result);
+                } catch (InterruptedException e) {
+                    recordInterrupted(request, result);
+                    request.acknowledge(false, result);
+                    return false;
+                }
+
+                // This is perhaps better than IN PROGRESS (e.g. because of tests).
+                // The processing will continue in a separate thread.
+                result.recordStatus(OperationResultStatus.SUCCESS, "Request submitted for processing");
+                return true;
+            } else {
+                // In this case the coordinator task is the worker.
+                return request.process(coordinatorTask, result);
+            }
+        } catch (Throwable t) {
+            result.recordException(t);
+            throw t;
+        } finally {
+            result.close();
         }
     }
 

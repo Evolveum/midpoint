@@ -35,6 +35,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
+import static com.evolveum.midpoint.schema.result.OperationResult.HANDLE_OBJECT_FOUND;
+
 /**
  * Handles `searchObjects`, `searchObjectsIterative`, and `countObjects` operations for resources, shadows,
  * and other kinds of objects.
@@ -45,6 +47,7 @@ public class ProvisioningSearchLikeOperation<T extends ObjectType> {
 
     private static final String OP_COMPLETE_OBJECTS = ProvisioningSearchLikeOperation.class.getName() + ".completeObjects";
     private static final String OP_COMPLETE_OBJECT = ProvisioningSearchLikeOperation.class.getName() + ".completeObject";
+    private static final String OP_HANDLE_OBJECT_FOUND = ProvisioningSearchLikeOperation.class.getName() + "." + HANDLE_OBJECT_FOUND;
 
     private static final Trace LOGGER = TraceManager.getTrace(ProvisioningSearchLikeOperation.class);
 
@@ -116,7 +119,9 @@ public class ProvisioningSearchLikeOperation<T extends ObjectType> {
                                     completeNonShadowRepoObject(object, objResult),
                                     objResult);
             return beans.repositoryService.searchObjectsIterative(
-                    type, query, internalHandler, createRepoOptions(), true, result);
+                    type, query,
+                    internalHandler.providingOwnOperationResult(OP_HANDLE_OBJECT_FOUND),
+                    createRepoOptions(), true, result);
         }
     }
 

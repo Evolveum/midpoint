@@ -39,6 +39,8 @@ It can be used to point the user to other services in your deployment.
 
 * `*feedbackMessagesHook*`: Configuration for modifying of feedback messages showed in GUI.
 
+* `*configurableUserDashboard*`: Defines the configurable dashboards which can be accessed from the left menu.
+
 Since midPoint 4.4, the look and feel of GUI has been significantly changed. The aim was to provide better user experience and more configuration options. The old look is still available in midPoint for preview. It can be turned on in adminGuiConfiguration setting `useNewDesign` property to _false_. However, bugs and improvements will be fixed and implemented only for the new look and the old look will be completely removed in release 4.6. Old look is no more supported Please, migrate your configuration as soon as possible.
 
 == How It Works
@@ -78,17 +80,6 @@ If users are placed to organizational units according to their physical location
 
 The step that applies admin GUI configuration from the user object is meant to store and re-apply user's own preferences about user interface look and feel.
 It is only partially implemented.
-
-=== Widgets before 4.6
-
-The merged configurations for widgets have one quite specific characteristic.
-If no configuration is present at all, then a default configuration will be used (all default widgets).
-However, if only a single widget is defined then the default configuration is not applied.
-All widgets need to be explicitly defined.
-There is a limited number of widgets and they all are built to have their fixed place.
-This may change in the future and the dashboards may become more flexible.
-But they are not that flexible yet.
-Therefore all the widgets need to be explicitly defined in order to appear in a customized dashboard.
 
 == Object details
 
@@ -1264,7 +1255,7 @@ You can find configuration of task template object at link:https://github.com/Ev
 
 After custom action is configured in the admin gui configuration section, you can find action link among menu items in the appropriate type object list panel.
 
-image::custom_action_screen.png[]
+image::custom_action_screen.png[width=85%]
 
 === Limitations
 

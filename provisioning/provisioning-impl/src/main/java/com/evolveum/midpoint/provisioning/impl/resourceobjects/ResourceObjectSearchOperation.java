@@ -24,7 +24,6 @@ import com.evolveum.midpoint.repo.cache.RepositoryCache;
 import com.evolveum.midpoint.schema.SearchResultMetadata;
 import com.evolveum.midpoint.schema.internals.InternalsConfig;
 import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
-import com.evolveum.midpoint.schema.result.OperationConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.*;
@@ -205,7 +204,7 @@ class ResourceObjectSearchOperation extends AbstractResourceObjectRetrievalOpera
 
             try {
                 OperationResult objResult = parentResult
-                        .subresult(OperationConstants.OPERATION_SEARCH_RESULT)
+                        .subresult(ResourceObjectConverter.OP_HANDLE_OBJECT_FOUND)
                         .setMinor()
                         .addParam("number", objectNumber)
                         .addArbitraryObjectAsParam("primaryIdentifierValue", ucfObject.getPrimaryIdentifierValue())
@@ -215,17 +214,10 @@ class ResourceObjectSearchOperation extends AbstractResourceObjectRetrievalOpera
                     // Intentionally not initializing the object here. Let us be flexible and let the ultimate caller decide.
                     return resultHandler.handle(objectFound, objResult);
                 } catch (Throwable t) {
-                    objResult.recordFatalError(t);
+                    objResult.recordException(t);
                     throw t;
                 } finally {
-                    objResult.computeStatusIfUnknown();
-                    // FIXME: hack. Hardcoded ugly summarization of successes. something like
-                    //  AbstractSummarizingResultHandler [lazyman]
-                    if (objResult.isSuccess() && objResult.canBeCleanedUp()) {
-                        objResult.getSubresults().clear();
-                    }
-                    // TODO Reconsider this. It is quite dubious to touch the global result from the inside.
-                    parentResult.summarize();
+                    objResult.close();
                 }
             } finally {
                 RepositoryCache.exitLocalCaches();

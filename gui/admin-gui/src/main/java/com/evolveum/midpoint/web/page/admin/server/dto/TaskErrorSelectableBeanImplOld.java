@@ -109,10 +109,13 @@ public class TaskErrorSelectableBeanImplOld<O extends ObjectType> extends Select
     }
 
     public PrismObject<O> getRealOwner() {
-        return (PrismObject<O>) realOwner.asPrismObject();
+        return realOwner != null ? (PrismObject<O>) realOwner.asPrismObject() : null;
     }
 
     public String getRealOwnerDescription() {
+        if (realOwner == null) {
+            return "";
+        }
         return WebComponentUtil.getName(realOwner) + " (" + realOwner.getClass().getSimpleName() + ")";
     }
 }

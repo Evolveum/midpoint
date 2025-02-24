@@ -13,7 +13,7 @@
     <parent>
         <artifactId>gui</artifactId>
         <groupId>com.evolveum.midpoint.gui</groupId>
-        <version>4.9.1-SNAPSHOT</version>
+        <version>4.9.2-SNAPSHOT</version>
     </parent>
 
     <artifactId>midpoint-jar</artifactId>
@@ -60,6 +60,26 @@
                             <storepass>${env.MIDPOINT_BUILD_STOREPASS}</storepass>
                             <keypass>${env.MIDPOINT_BUILD_KEYPASS}</keypass>
                         </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+        <profile>
+            <id>dependencytrack</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>io.github.pmckeown</groupId>
+                        <artifactId>dependency-track-maven-plugin</artifactId>
+                        <executions>
+                            <execution>
+                                <id>upload-bom</id>
+                                <phase>verify</phase>
+                                <goals>
+                                    <goal>upload-bom</goal>
+                                </goals>
+                            </execution>
+                        </executions>
                     </plugin>
                 </plugins>
             </build>
@@ -117,6 +137,13 @@
                         <version>${project.version}</version>
                     </dependency>
                 </dependencies>
+            </plugin>
+            <plugin>
+                <groupId>org.cyclonedx</groupId>
+                <artifactId>cyclonedx-maven-plugin</artifactId>
+                <configuration>
+                    <projectType>application</projectType>
+                </configuration>
             </plugin>
         </plugins>
     </build>

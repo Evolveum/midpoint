@@ -10,6 +10,7 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.provisioning.ucf.api.async.UcfAsyncUpdateChangeListener;
+import com.evolveum.midpoint.schema.ResultHandler;
 import com.evolveum.midpoint.schema.SearchResultMetadata;
 import com.evolveum.midpoint.schema.processor.*;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -216,6 +217,13 @@ public interface ConnectorInstance {
      * BEWARE: The implementation of the handler should be consistent with the value of errorReportingMethod parameter:
      * if the method is FETCH_RESULT, the handler must be ready to process also incomplete/malformed objects (flagged
      * by appropriate fetchResult).
+     *
+     * *For clients*: Please create your own {@link OperationResult} in the `handler`, unless there's only a negligible
+     * amount of processing. See {@link ResultHandler#providingOwnOperationResult(String)} docs for more information.
+     *
+     * *For implementors*: Please create a separate {@link OperationResult} object for each resource object found,
+     * with the parent being the result passed from the caller to this method in `result` parameter (or its descendant).
+     * Do not forget to keep the list of subresults short e.g. by calling {@link OperationResult#summarize()} method.
      *
      * @param objectDefinition Definition of the object class of the objects being searched for. May be class or type scoped.
      * @param query Object query to be used.

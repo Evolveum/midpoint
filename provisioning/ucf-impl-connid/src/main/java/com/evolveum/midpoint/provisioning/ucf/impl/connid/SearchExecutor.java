@@ -20,7 +20,6 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 
 import com.google.common.base.MoreObjects;
 import org.apache.commons.lang3.Validate;
-import org.identityconnectors.framework.api.ConnectorFacade;
 import org.identityconnectors.framework.common.objects.*;
 import org.identityconnectors.framework.common.objects.filter.Filter;
 import org.jetbrains.annotations.NotNull;
@@ -213,7 +212,7 @@ class SearchExecutor {
             SecurityViolationException {
 
         // Connector operation cannot create result for itself, so we need to create result for it
-        OperationResult result = parentResult.createSubresult(ConnectorFacade.class.getName() + ".search");
+        OperationResult result = parentResult.createSubresult(ConnectorInstanceConnIdImpl.FACADE_OP_SEARCH);
         result.addArbitraryObjectAsParam("objectClass", icfObjectClass);
 
         SearchResult connIdSearchResult;
@@ -242,7 +241,7 @@ class SearchExecutor {
             throwProperException(midpointEx, ex);
             throw new AssertionError("should not get here");
         } finally {
-            result.computeStatusIfUnknown();
+            result.close();
         }
         return connIdSearchResult;
     }
@@ -323,20 +322,28 @@ class SearchExecutor {
     private class SearchResultsHandler implements ResultsHandler {
 
         @NotNull private final ConnIdOperation operation;
-        private final OperationResult result;
 
-        SearchResultsHandler(@NotNull ConnIdOperation operation, OperationResult result) {
+        /** This is the operation result connected to the whole search operation. */
+        private final OperationResult parentResult;
+
+        SearchResultsHandler(@NotNull ConnIdOperation operation, OperationResult parentResult) {
             this.operation = operation;
-            this.result = result;
+            this.parentResult = parentResult;
         }
 
         @Override
         public boolean handle(ConnectorObject connectorObject) {
             Validate.notNull(connectorObject, "null connector object"); // todo apply error reporting method?
 
+            int number = objectsFetched.getAndIncrement(); // The numbering starts at 0
+            var result = parentResult.subresult(ConnectorInstanceConnIdImpl.OP_HANDLE_OBJECT_FOUND)
+                    .addParam("objectNumber", number)
+                    .addParam("uid", connectorObject.getUid().getUidValue())
+                    .addParam("name", connectorObject.getName().getNameValue())
+                    .setMinor()
+                    .build();
             recordIcfOperationSuspend(operation);
             try {
-                int number = objectsFetched.getAndIncrement(); // The numbering starts at 0
                 if (isNoConnectorPaging()) {
                     if (query != null && query.getPaging() != null) {
                         int offset = MoreObjects.firstNonNull(query.getPaging().getOffset(), 0);
@@ -356,9 +363,13 @@ class SearchExecutor {
                 return handler.handle(ucfObject, result);
 
             } catch (SchemaException e) {
+                result.recordException(e);
                 throw new IntermediateSchemaException(e);
             } finally {
                 recordIcfOperationResume(operation);
+                result.close();
+                result.deleteSubresultsIfPossible();
+                parentResult.summarize();
             }
         }
 

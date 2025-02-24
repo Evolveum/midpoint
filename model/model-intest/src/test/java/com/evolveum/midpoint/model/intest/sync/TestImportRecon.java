@@ -3404,15 +3404,11 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         display("Final delete task result", deleteTaskResultBean);
 
         TestUtil.assertSuccess(deleteTaskResultBean);
-        OperationResult deleteTaskResult = OperationResult.createOperationResult(deleteTaskResultBean);
-        TestUtil.assertSuccess(deleteTaskResult);
 
-        String opProcess = "com.evolveum.midpoint.repo.common.activity.run.processing.ItemProcessingGatekeeper.process";
-        List<OperationResult> processSearchResults = deleteTaskResult.findSubresultsDeeply(opProcess);
-        assertThat(processSearchResults).as("'process item' operation results").hasSize(11);
-        assertThat(processSearchResults.get(processSearchResults.size() - 1).getHiddenRecordsCount())
-                .as("hidden operation results")
-                .isEqualTo(8);
+        // We no longer assert on ItemProcessingGatekeeper.process operation in the result, as these are now
+        // cleaned up by the repository "found object" operation handler. See ResultHandler#providingOwnOperationResult method.
+        // But that asserts were not so important here. The correct raw mode option application is asserted by the fact
+        // that accounts are kept on the resource.
 
         assertUsers(getNumberOfUsers() + 20);
 
