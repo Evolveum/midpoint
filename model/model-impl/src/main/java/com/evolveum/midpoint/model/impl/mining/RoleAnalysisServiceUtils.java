@@ -44,6 +44,8 @@ import static com.evolveum.midpoint.prism.PrismConstants.Q_ANY;
 import static com.evolveum.midpoint.prism.PrismConstants.T_SELF;
 import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.createAssignmentTo;
 
+import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.createObjectRef;
+
 import static java.util.Collections.singleton;
 
 public class RoleAnalysisServiceUtils {
@@ -660,7 +662,11 @@ public class RoleAnalysisServiceUtils {
 
     public static void loadDetectedPattern(
             @NotNull RepositoryService repositoryService,
-            @NotNull RoleAnalysisDetectionPatternType pattern, @NotNull Map<String, RoleAnalysisClusterType> mappedClusters, @Nullable Collection<SelectorOptions<GetOperationOptions>> options, @NotNull List<DetectedPattern> detectedPatterns, @NotNull OperationResult result) {
+            @NotNull RoleAnalysisDetectionPatternType pattern,
+            @NotNull Map<String, RoleAnalysisClusterType> mappedClusters,
+            @Nullable Collection<SelectorOptions<GetOperationOptions>> options,
+            @NotNull List<DetectedPattern> detectedPatterns,
+            @NotNull OperationResult result) {
         PrismContainerValue<?> prismContainerValue = pattern.asPrismContainerValue();
         Map<String, Object> userData = prismContainerValue.getUserData();
         @SuppressWarnings("unchecked") List<Object> containerIdPath = (List<Object>) userData.get("containerIdPath");
@@ -679,19 +685,10 @@ public class RoleAnalysisServiceUtils {
         }
 
         RoleAnalysisClusterType cluster = mappedClusters.get(patternClusterOid);
-
-        ObjectReferenceType clusterRef = new ObjectReferenceType();
-        clusterRef.setOid(cluster.getOid());
-        clusterRef.setType(RoleAnalysisClusterType.COMPLEX_TYPE);
-        clusterRef.setTargetName(cluster.getName());
-
+        ObjectReferenceType clusterRef =  createObjectRef(cluster);
         ObjectReferenceType roleAnalysisSessionRef = cluster.getRoleAnalysisSessionRef();
-        ObjectReferenceType sessionRef = new ObjectReferenceType();
-        sessionRef.setOid(roleAnalysisSessionRef.getOid());
-        sessionRef.setType(RoleAnalysisSessionType.COMPLEX_TYPE);
-        sessionRef.setTargetName(roleAnalysisSessionRef.getTargetName());
 
-        DetectedPattern detectedPattern = transformDefaultPattern(pattern, clusterRef, sessionRef, patternId);
+        DetectedPattern detectedPattern = transformDefaultPattern(pattern, clusterRef, roleAnalysisSessionRef.clone(), patternId);
         detectedPatterns.add(detectedPattern);
     }
 

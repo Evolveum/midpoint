@@ -25,6 +25,8 @@ import com.evolveum.midpoint.gui.impl.component.tile.mining.candidate.RoleAnalys
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.tables.tile.model.RoleAnalysisCandidateRolesDto;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
 
+import com.evolveum.midpoint.web.util.TooltipBehavior;
+
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -122,7 +124,7 @@ public class RoleAnalysisCandidateRoleTileTable extends BasePanel<RoleAnalysisCa
                 Fragment fragment = new Fragment(id, "tableFooterFragment",
                         RoleAnalysisCandidateRoleTileTable.this);
 
-                AjaxIconButton refreshTable = buildRefreshToggleTablePanel("refreshTable", target -> onRefresh(target));
+                AjaxIconButton refreshTable = buildRefreshButton();
                 fragment.add(refreshTable);
 
                 TogglePanel<ViewToggle> viewToggle = buildViewToggleTablePanel(
@@ -433,6 +435,22 @@ public class RoleAnalysisCandidateRoleTileTable extends BasePanel<RoleAnalysisCa
         Class<? extends PageBase> detailsPageClass = DetailsPageUtil
                 .getObjectDetailsPage(RoleAnalysisClusterType.class);
         getPageBase().navigateToNext(detailsPageClass, parameters);
+    }
+
+    private @NotNull AjaxIconButton buildRefreshButton() {
+        AjaxIconButton refreshTable = new AjaxIconButton("refreshTable",
+                Model.of("fa fa-refresh"), Model.of()) {
+            @Override
+            public void onClick(AjaxRequestTarget ajaxRequestTarget) {
+                onRefresh(ajaxRequestTarget);
+            }
+        };
+
+        refreshTable.setOutputMarkupId(true);
+        refreshTable.add(AttributeModifier.replace("title",
+                createStringResource("RoleAnalysisTable.refresh")));
+        refreshTable.add(new TooltipBehavior());
+        return refreshTable;
     }
 
     @Override

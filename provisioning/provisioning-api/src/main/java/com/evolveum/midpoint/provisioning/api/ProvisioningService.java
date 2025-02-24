@@ -74,6 +74,21 @@ import static com.evolveum.midpoint.provisioning.api.ProvisioningOperationContex
  */
 public interface ProvisioningService {
 
+    String OP_GET_OBJECT = ProvisioningService.class.getName() + ".getObject";
+    String OP_SEARCH_OBJECTS = ProvisioningService.class.getName() + ".searchObjects";
+    String OP_SEARCH_OBJECTS_ITERATIVE = ProvisioningService.class.getName() + ".searchObjectsIterative";
+    String OP_COUNT_OBJECTS = ProvisioningService.class.getName() + ".countObjects";
+    String OP_REFRESH_SHADOW = ProvisioningService.class.getName() + ".refreshShadow";
+    String OP_DELETE_OBJECT = ProvisioningService.class.getName() + ".deleteObject";
+    String OP_DISCOVER_CONFIGURATION = ProvisioningService.class.getName() + ".discoverConfiguration";
+    String OP_EXPAND_CONFIGURATION_OBJECT = ProvisioningService.class.getName()
+            + ".expandConfigurationObject";
+    // TODO reconsider names of these operations
+    String OP_TEST_RESOURCE = ProvisioningService.class.getName() + ".testResource";
+    String OP_GET_NATIVE_CAPABILITIES = ProvisioningService.class.getName() + ".getNativeCapabilities";
+    String OP_INITIALIZE = ProvisioningService.class.getName() + ".initialize";
+    String OP_DISCOVER_CONNECTORS = ProvisioningService.class.getName() + ".discoverConnectors";
+
     /**
      * Returns the object with specified OID. (It must fail if there is no object with that OID in the repository.)
      * The functionality vary vastly by the type of object requested.

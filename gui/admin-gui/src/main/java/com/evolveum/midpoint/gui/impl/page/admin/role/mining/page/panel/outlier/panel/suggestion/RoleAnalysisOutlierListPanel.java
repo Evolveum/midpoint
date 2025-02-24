@@ -8,6 +8,7 @@
 package com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.outlier.panel.suggestion;
 
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
+import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.impl.page.admin.AbstractObjectMainPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.ObjectDetailsModels;
@@ -24,6 +25,7 @@ import com.evolveum.midpoint.web.application.PanelType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.wicket.markup.html.WebMarkupContainer;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 @PanelType(name = "outlierPanel")
@@ -123,20 +125,26 @@ public class RoleAnalysisOutlierListPanel extends AbstractObjectMainPanel<Assign
         container.setOutputMarkupId(true);
         add(container);
 
-        RoleAnalysisOutlierTable table = new RoleAnalysisOutlierTable(ID_PANEL, () -> {
-            Task task = getPageBase().createSimpleTask(OP_INIT_PARTITION_DTO);
-            OperationResult result = task.getResult();
-            RoleAnalysisService roleAnalysisService = getPageBase().getRoleAnalysisService();
-            return new PartitionObjectDtos(getObjectDetailsModels().getObjectType(), roleAnalysisService, task, result) {
-                @Override
-                public OutlierCategoryType matchOutlierCategory() {
-                    return getRequiredOutlierCategory();
-                }
-            };
-        });
-
+        RoleAnalysisOutlierTable table = new RoleAnalysisOutlierTable(ID_PANEL, buildModel());
         table.setOutputMarkupId(true);
         container.add(table);
+    }
+
+    private @NotNull LoadableModel<PartitionObjectDtos> buildModel() {
+        return new LoadableModel<>() {
+            @Override
+            protected PartitionObjectDtos load() {
+                Task task = getPageBase().createSimpleTask(OP_INIT_PARTITION_DTO);
+                OperationResult result = task.getResult();
+                RoleAnalysisService roleAnalysisService = getPageBase().getRoleAnalysisService();
+                return new PartitionObjectDtos(getObjectDetailsModels().getObjectType(), roleAnalysisService, task, result) {
+                    @Override
+                    public OutlierCategoryType matchOutlierCategory() {
+                        return getRequiredOutlierCategory();
+                    }
+                };
+            }
+        };
     }
 
     private @Nullable OutlierCategoryType getRequiredOutlierCategory() {

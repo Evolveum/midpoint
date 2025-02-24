@@ -9,6 +9,7 @@ package com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.page.mining;
 
 import java.io.Serial;
 
+import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.impl.component.tile.ViewToggle;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.tables.tile.component.RoleAnalysisDetectedPatternTileTable;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.tables.tile.model.RoleAnalysisDetectedPatternsDto;
@@ -78,13 +79,8 @@ public class PageRoleSuggestions extends PageAdmin {
     }
 
     private @NotNull RoleAnalysisDetectedPatternTileTable loadTable() {
-
         RoleAnalysisDetectedPatternTileTable components = new RoleAnalysisDetectedPatternTileTable(ID_TABLE, (PageBase) getPage(),
-                () -> {
-                    RoleAnalysisService roleAnalysisService = ((PageBase) getPage()).getRoleAnalysisService();
-                    OperationResult result = new OperationResult(OPERATION_LOAD_OBJECTS);
-                    return new RoleAnalysisDetectedPatternsDto(roleAnalysisService, result);
-                }) {
+                buildModel()) {
 
             @Override
             protected void onRefresh(@NotNull AjaxRequestTarget target) {
@@ -109,6 +105,17 @@ public class PageRoleSuggestions extends PageAdmin {
         };
         components.setOutputMarkupId(true);
         return components;
+    }
+
+    private @NotNull LoadableModel<RoleAnalysisDetectedPatternsDto> buildModel() {
+        return new LoadableModel<>() {
+            @Override
+            protected RoleAnalysisDetectedPatternsDto load() {
+                RoleAnalysisService roleAnalysisService = ((PageBase) getPage()).getRoleAnalysisService();
+                OperationResult result = new OperationResult(OPERATION_LOAD_OBJECTS);
+                return new RoleAnalysisDetectedPatternsDto(roleAnalysisService, result);
+            }
+        };
     }
 
 }

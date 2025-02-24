@@ -254,7 +254,9 @@ public abstract class TaskTablePanel extends MainObjectListPanel<TaskType> {
     }
 
     private AbstractExportableColumn<SelectableBean<TaskType>, String> createStatusColumn() {
-        return new AbstractExportableColumn<>(createStringResource("pageTasks.task.status")) {
+        return new AbstractExportableColumn<>(
+                createStringResource("pageTasks.task.status"),
+                TaskType.F_RESULT_STATUS.getLocalPart()) {
 
             @Override
             public IModel<?> getDataModel(IModel<SelectableBean<TaskType>> rowModel) {
@@ -297,7 +299,8 @@ public abstract class TaskTablePanel extends MainObjectListPanel<TaskType> {
     }
 
     private AbstractExportableColumn<SelectableBean<TaskType>, String> createTaskExecutionStateColumn() {
-        return new AbstractExportableColumn<>(createStringResource("pageTasks.task.execution")) {
+        return new AbstractExportableColumn<>(
+                createStringResource("pageTasks.task.execution")) {
 
             @Override
             public IModel<String> getDataModel(IModel<SelectableBean<TaskType>> rowModel) {

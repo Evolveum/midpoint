@@ -7,6 +7,7 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.cluster.pattern;
 
+import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.tables.tile.component.RoleAnalysisDetectedPatternTileTable;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.tables.tile.model.RoleAnalysisDetectedPatternsDto;
 import com.evolveum.midpoint.model.api.mining.RoleAnalysisService;
@@ -15,6 +16,7 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
+import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
@@ -65,12 +67,7 @@ public class SessionRoleSuggestionsPanel extends AbstractObjectMainPanel<RoleAna
 
     private @NotNull RoleAnalysisDetectedPatternTileTable loadTable() {
         RoleAnalysisDetectedPatternTileTable components = new RoleAnalysisDetectedPatternTileTable(ID_PANEL, getPageBase(),
-                () -> {
-                    RoleAnalysisSessionType session = getObjectDetailsModels().getObjectType();
-                    RoleAnalysisService roleAnalysisService = ((PageBase) getPage()).getRoleAnalysisService();
-                    OperationResult result = new OperationResult(OPERATION_LOAD_OBJECTS);
-                    return new RoleAnalysisDetectedPatternsDto(roleAnalysisService, session, result);
-                }) {
+                buildModel()) {
 
             @Override
             protected void onRefresh(AjaxRequestTarget target) {
@@ -79,6 +76,19 @@ public class SessionRoleSuggestionsPanel extends AbstractObjectMainPanel<RoleAna
         };
         components.setOutputMarkupId(true);
         return components;
+    }
+
+    @Contract(value = " -> new", pure = true)
+    private @NotNull LoadableModel<RoleAnalysisDetectedPatternsDto> buildModel(){
+        return new LoadableModel<>() {
+            @Override
+            protected @NotNull RoleAnalysisDetectedPatternsDto load() {
+                RoleAnalysisSessionType session = getObjectDetailsModels().getObjectType();
+                RoleAnalysisService roleAnalysisService = ((PageBase) getPage()).getRoleAnalysisService();
+                OperationResult result = new OperationResult(OPERATION_LOAD_OBJECTS);
+                return new RoleAnalysisDetectedPatternsDto(roleAnalysisService, session, result);
+            }
+        };
     }
 
     @Override

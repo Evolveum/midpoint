@@ -211,23 +211,7 @@ public class RoleAnalysisTileTableUtils {
         });
     }
 
-    public static @NotNull AjaxIconButton buildRefreshToggleTablePanel(String id, Consumer<AjaxRequestTarget> refreshHandler) {
-        AjaxIconButton refreshTable = new AjaxIconButton(id,
-                Model.of("fa fa-refresh"),
-                Model.of()) {
-            @Override
-            public void onClick(AjaxRequestTarget ajaxRequestTarget) {
-                refreshHandler.accept(ajaxRequestTarget);
-            }
-        };
 
-        refreshTable.setOutputMarkupId(true);
-        refreshTable.add(AttributeModifier.replace("title",
-                createStringResource("Refresh table")));
-        refreshTable.add(new TooltipBehavior());
-
-        return refreshTable;
-    }
 
     public static @NotNull TogglePanel<ViewToggle> buildViewToggleTablePanel(String id,
             IModel<List<Toggle<ViewToggle>>> items,

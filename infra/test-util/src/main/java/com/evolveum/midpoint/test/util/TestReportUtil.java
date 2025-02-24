@@ -16,6 +16,8 @@ import com.evolveum.midpoint.tools.testng.TestReportSection;
 import com.evolveum.midpoint.util.statistics.OperationsPerformanceMonitor;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
+import java.util.Objects;
+
 public class TestReportUtil {
 
     /**
@@ -48,15 +50,36 @@ public class TestReportUtil {
      */
     public static void reportTaskOperationPerformance(TestMonitor testMonitor, String label,
             TaskType task, Integer iterations, Integer seconds) {
-        OperationsPerformanceInformationType performanceInformationFromTask =
-                task.getOperationStats() != null ? task.getOperationStats().getOperationsPerformanceInformation() : null;
-        OperationsPerformanceInformationType performanceInformation = performanceInformationFromTask != null ?
-                performanceInformationFromTask : new OperationsPerformanceInformationType();
 
-        OperationsPerformanceInformationPrinter printer = new OperationsPerformanceInformationPrinter(performanceInformation,
-                new AbstractStatisticsPrinter.Options(RAW, TIME), iterations, seconds, false);
+        var info = task.getOperationStats() != null ? task.getOperationStats().getOperationsPerformanceInformation() : null;
+
+        var printer = new OperationsPerformanceInformationPrinter(
+                Objects.requireNonNullElseGet(info, OperationsPerformanceInformationType::new),
+                new AbstractStatisticsPrinter.Options(RAW, TIME),
+                iterations, seconds, false);
 
         addPrinterData(testMonitor, label + ":operationPerformance", printer);
+    }
+
+    /**
+     * Adds component performance for a given task to the {@link TestMonitor}.
+     */
+    public static void reportTaskComponentPerformance(
+            TestMonitor testMonitor, String label, TaskType task, Integer iterations) {
+
+        var operationsInfo =
+                Objects.requireNonNullElseGet(
+                        task.getOperationStats() != null ? task.getOperationStats().getOperationsPerformanceInformation() : null,
+                        OperationsPerformanceInformationType::new);
+
+        var componentsInfo = ComponentsPerformanceInformationUtil.computeBasic(operationsInfo);
+
+        var printer = new ComponentsPerformanceInformationPrinter(
+                componentsInfo,
+                new AbstractStatisticsPrinter.Options(RAW, TIME),
+                iterations);
+
+        addPrinterData(testMonitor, label + ":componentPerformance", printer);
     }
 
     /**

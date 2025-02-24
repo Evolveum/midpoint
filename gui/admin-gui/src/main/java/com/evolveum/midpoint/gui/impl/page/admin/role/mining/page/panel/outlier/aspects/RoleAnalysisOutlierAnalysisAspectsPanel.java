@@ -9,6 +9,7 @@ package com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.outlier
 import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.RoleAnalysisWebUtils.explainOutlier;
 import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.outlier.panel.OutlierPartitionPanel.PARAM_ANOMALY_OID;
 
+import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.impl.util.DetailsPageUtil;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
@@ -112,12 +113,7 @@ public class RoleAnalysisOutlierAnalysisAspectsPanel extends AbstractObjectMainP
             @Override
             protected @NotNull Component getPanelComponent(String id) {
                 RoleAnalysisDetectedAnomalyTable detectedAnomalyTable = new RoleAnalysisDetectedAnomalyTable(id,
-                        () -> {
-                            Task task = getPageBase().createSimpleTask(OP_INIT_ACCESS_ANOMALIES);
-                            OperationResult result = task.getResult();
-                            return new AnomalyObjectDto(getPageBase().getRoleAnalysisService(),
-                                    getObjectDetailsModels().getObjectType(), null, false, task, result);
-                        });
+                        buildAnomalyObjectModel());
 
                 detectedAnomalyTable.setOutputMarkupId(true);
                 detectedAnomalyTable.add(AttributeModifier.append("style", "min-height: 400px;"));
@@ -127,6 +123,18 @@ public class RoleAnalysisOutlierAnalysisAspectsPanel extends AbstractObjectMainP
 
         accessPanel.setOutputMarkupId(true);
         container.add(accessPanel);
+    }
+
+    private @NotNull LoadableModel<AnomalyObjectDto> buildAnomalyObjectModel() {
+        return new LoadableModel<>() {
+            @Override
+            protected AnomalyObjectDto load() {
+                Task task = getPageBase().createSimpleTask(OP_INIT_ACCESS_ANOMALIES);
+                OperationResult result = task.getResult();
+                return new AnomalyObjectDto(getPageBase().getRoleAnalysisService(),
+                        getObjectDetailsModels().getObjectType(), null, false, task, result);
+            }
+        };
     }
 
     protected void initDashboard(
@@ -282,7 +290,6 @@ public class RoleAnalysisOutlierAnalysisAspectsPanel extends AbstractObjectMainP
                             roleAnalysisService, result, simpleTask);
                 });
             }
-
 
         };
 

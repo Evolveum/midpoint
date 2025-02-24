@@ -17,9 +17,10 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisSessionT
 
 import org.jetbrains.annotations.NotNull;
 
+import java.io.Serializable;
 import java.util.List;
 
-public class RoleAnalysisDetectedPatternsDto {
+public class RoleAnalysisDetectedPatternsDto implements Serializable {
 
     List<DetectedPattern> detectedPatterns;
     int totalRoleToUserAssignments;

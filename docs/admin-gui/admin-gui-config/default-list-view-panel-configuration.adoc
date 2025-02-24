@@ -1,0 +1,63 @@
+:page-visibility: hidden
+:page-upkeep-status: green
+
+This section describes the default configuration for the list view panels in the GUI.
+List view panels are widely used in the GUI to display the list of entities (e.g. a list of the objects or the list of the containers).
+Currently, midPoint supports default list view panel configuration for:
+
+* *object collection views* - the list view panels which are presented on the list pages accessible from the left menu (e.g. All users, All roles pages).
+
+* *object details pages* - the list view panels which are a part of the details page (e.g. Assignments -> Role panel on the User details page).
+
+Depending on what part of the GUI you would like to configure, default settings can be configured in different parts of the adminGuiConfiguration.
+The location of the configuration defines the area where the configuration will be applied.
+E.g. default settings within object details set type will be applied to all list view panels which are a part of the details page.
+And default settings defined in the object collection views type will be applied to all collection views in the GUI.
+
+For the moment, only '_paging_' and '_pagingOptions_' configuration is available within default settings.
+'_paging_' configuration is intended to be used while querying on the list view panels.
+'_pagingOptions_' configuration defines a set of the available page sizes for the list view panel.
+The configured set of the available page sizes will be displayed to the user so that they can choose one of the options.
+
+Following table describes the possible configuration options.
+[%autowidth]
+
+|===
+| Property | Mandatory | Type | Description
+
+| paging
+| NO
+| PagingType
+| Parameters limiting the number of returned entries, offset, etc.
+Used in the web service operations such as list or search.
+Available parameters are:
+
+_orderBy_ Property by which the results should be sorted
+
+_ascending_ Property by which the results should be sorted
+
+_offset_ The index of the first returned entry, starting with zero.
+Therefore, if 0 is specified, the resulting list will start with first entry.
+If 1 is specified, the resulting set will start with second entry.
+If not specified, value of zero (0) is assumed.
+
+_maxSize_ The maximum number of entries returned.
+The operation may return specified number of entries or less.
+If not specified, unlimited maximum size is assumed.
+If configured for a list view, this value is taken as a default page size on the list view panel.
+If the configured value is not present in the set of the available page sizes (see pagingOptions), it will be added to this set as one of the options.
+
+| pagingOptions
+| NO
+| PagingOptionsType
+| Paging options which can be applied to list view in GUI.
+Contains a multivalue element _availablePageSize_ (defines a set of available page size values which will be suggested to the user on the table panels).
+
+|===
+
+Default settings can be overridden in the concrete list view configuration.
+The settings which are available for the configuration in the _defaultSettings_ element, also present in the collection view type.
+This means that _paging_ and _pagingOptions_ can be configured within concrete _objectCollectionView_ in object collection views configuration.
+Also, these options can be also configured within _listView_ element while configuring a concrete panel for some object details page.
+
+You can see some examples of the paging settings configuration by the xref:/midpoint/reference/admin-gui/admin-gui-config/admin-gui-config-examples/#default-settings-for-object-details-pages[link].

@@ -9,15 +9,12 @@ package com.evolveum.midpoint.schema.util.task;
 
 import java.util.stream.Stream;
 
+import com.evolveum.midpoint.schema.statistics.*;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.util.CloneUtil;
-import com.evolveum.midpoint.schema.statistics.CachePerformanceInformationUtil;
-import com.evolveum.midpoint.schema.statistics.EnvironmentalPerformanceInformation;
-import com.evolveum.midpoint.schema.statistics.OperationsPerformanceInformationUtil;
-import com.evolveum.midpoint.schema.statistics.RepositoryPerformanceInformationUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
@@ -120,24 +117,33 @@ public class TaskOperationStatsUtil {
             return "null";
         }
         StringBuilder sb = new StringBuilder();
-        if (statistics.getEnvironmentalPerformanceInformation() != null) {
+        var environmentalPerformanceInformation = statistics.getEnvironmentalPerformanceInformation();
+        if (environmentalPerformanceInformation != null) {
             sb.append("Environmental performance information\n\n")
-                    .append(EnvironmentalPerformanceInformation.format(statistics.getEnvironmentalPerformanceInformation()))
+                    .append(EnvironmentalPerformanceInformation.format(environmentalPerformanceInformation))
                     .append("\n");
         }
-        if (statistics.getRepositoryPerformanceInformation() != null) {
+        var repositoryPerformanceInformation = statistics.getRepositoryPerformanceInformation();
+        if (repositoryPerformanceInformation != null) {
             sb.append("Repository performance information\n\n")
-                    .append(RepositoryPerformanceInformationUtil.format(statistics.getRepositoryPerformanceInformation()))
+                    .append(RepositoryPerformanceInformationUtil.format(repositoryPerformanceInformation))
                     .append("\n");
         }
-        if (statistics.getCachesPerformanceInformation() != null) {
+        var cachesPerformanceInformation = statistics.getCachesPerformanceInformation();
+        if (cachesPerformanceInformation != null) {
             sb.append("Cache performance information\n\n")
-                    .append(CachePerformanceInformationUtil.format(statistics.getCachesPerformanceInformation()))
+                    .append(CachePerformanceInformationUtil.format(cachesPerformanceInformation))
                     .append("\n");
         }
-        if (statistics.getOperationsPerformanceInformation() != null) {
+        var operationsPerformanceInformation = statistics.getOperationsPerformanceInformation();
+        if (operationsPerformanceInformation != null) {
             sb.append("Methods performance information\n\n")
-                    .append(OperationsPerformanceInformationUtil.format(statistics.getOperationsPerformanceInformation()))
+                    .append(OperationsPerformanceInformationUtil.format(operationsPerformanceInformation))
+                    .append("\n");
+            var componentsPerformanceInformation =
+                    ComponentsPerformanceInformationUtil.computeBasic(operationsPerformanceInformation);
+            sb.append("Components performance information\n\n")
+                    .append(ComponentsPerformanceInformationUtil.format(componentsPerformanceInformation))
                     .append("\n");
         }
         return sb.toString();

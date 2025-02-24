@@ -145,7 +145,7 @@ public class ShadowReferenceAttributeValue extends PrismReferenceValueImpl {
     }
 
     @Override
-    public ShadowReferenceAttributeValue cloneComplex(CloneStrategy strategy) {
+    public ShadowReferenceAttributeValue cloneComplex(@NotNull CloneStrategy strategy) {
         var clone = new ShadowReferenceAttributeValue(getOid(), getOriginType(), getOriginObject());
         copyValues(strategy, clone);
         return clone;
