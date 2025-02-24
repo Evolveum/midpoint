@@ -17,6 +17,8 @@ import com.evolveum.midpoint.gui.impl.component.icon.IconCssStyle;
 
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.tables.tile.model.RoleAnalysisMigratedRolesDto;
 
+import com.evolveum.midpoint.web.util.TooltipBehavior;
+
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -128,7 +130,7 @@ public class RoleAnalysisMigrationRoleTileTable extends BasePanel<RoleAnalysisMi
                 Fragment fragment = new Fragment(id, "tableFooterFragment",
                         RoleAnalysisMigrationRoleTileTable.this);
 
-                AjaxIconButton refreshTable = buildRefreshToggleTablePanel("refreshTable", target -> onRefresh(target));
+                AjaxIconButton refreshTable = buildRefreshButton();
                 fragment.add(refreshTable);
 
                 TogglePanel<ViewToggle> viewToggle = buildViewToggleTablePanel(
@@ -310,6 +312,22 @@ public class RoleAnalysisMigrationRoleTileTable extends BasePanel<RoleAnalysisMi
         migrationButton.setOutputMarkupId(true);
         migrationButton.add(AttributeModifier.append("class", "btn btn-primary btn-sm"));
         return migrationButton;
+    }
+
+    private @NotNull AjaxIconButton buildRefreshButton() {
+        AjaxIconButton refreshTable = new AjaxIconButton("refreshTable",
+                Model.of("fa fa-refresh"), Model.of()) {
+            @Override
+            public void onClick(AjaxRequestTarget ajaxRequestTarget) {
+                onRefresh(ajaxRequestTarget);
+            }
+        };
+
+        refreshTable.setOutputMarkupId(true);
+        refreshTable.add(AttributeModifier.replace("title",
+                createStringResource("RoleAnalysisTable.refresh")));
+        refreshTable.add(new TooltipBehavior());
+        return refreshTable;
     }
 
     public IModel<List<Toggle<ViewToggle>>> getItems() {
