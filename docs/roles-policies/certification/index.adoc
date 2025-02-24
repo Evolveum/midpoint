@@ -28,7 +28,7 @@ For example, it could be a particular role assigned to a particular user.
 Reviewer can decide if such access should be accepted or revoked (what decisions will be available to reviewer depends on configuration).
 
 Certification campaign consists from one or more *stages*.
-Campaign stages allows, for example, to divide the certification process between different groups of reviewers.
+Campaign stages allow, for example, to divide the certification process between different groups of reviewers.
 First campaign stage is assessed by one group of reviewers, while second stage could be assessed by different group of reviewers.
 What cases are "transferred" between stages depends on the campaign definition.
 The default is that only cases which were not revoked/reduced are transferred.
