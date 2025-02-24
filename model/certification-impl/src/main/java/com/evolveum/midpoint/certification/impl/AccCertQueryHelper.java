@@ -8,16 +8,22 @@
 package com.evolveum.midpoint.certification.impl;
 
 import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.toShortString;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseType.F_WORK_ITEM;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationWorkItemType.*;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractWorkItemType.*;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseType.*;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
+import com.evolveum.midpoint.prism.impl.binding.AbstractReferencable;
+import com.evolveum.midpoint.schema.ObjectHandler;
 import com.evolveum.midpoint.schema.util.AccessCertificationCaseId;
 
 import com.evolveum.midpoint.schema.util.AccessCertificationWorkItemId;
 import com.evolveum.midpoint.schema.util.CertCampaignTypeUtil;
+import com.evolveum.midpoint.schema.util.cases.WorkItemTypeUtil;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 
 import org.jetbrains.annotations.NotNull;
@@ -53,12 +59,11 @@ public class AccCertQueryHelper {
     @VisibleForTesting // public because of certification tests
     public List<AccessCertificationCaseType> searchCases(
             String campaignOid, ObjectQuery query, OperationResult result) throws SchemaException {
-        return repositoryService.searchContainers(
-                AccessCertificationCaseType.class,
-                QueryUtils.addFilter(
-                        query,
-                        prismContext.queryFactory().createOwnerHasOidIn(campaignOid)),
-                null,
+        final ObjectQuery queryWithOwnerIdFilter = QueryUtils.addFilter(query,
+                prismContext.queryFor(AccessCertificationCaseType.class)
+                        .ownerId(campaignOid)
+                        .buildFilter());
+        return repositoryService.searchContainers(AccessCertificationCaseType.class, queryWithOwnerIdFilter, null,
                 result);
     }
 
@@ -74,6 +79,17 @@ public class AccCertQueryHelper {
                 result);
     }
 
+    public void iterateAllCampaignCases(String campaignOid, ObjectFilter filter,
+            ObjectHandler<AccessCertificationCaseType> certCaseHandler, OperationResult result) throws SchemaException {
+
+        final ObjectQuery query = prismContext.queryFor(AccessCertificationCaseType.class)
+                .ownerId(campaignOid)
+                .and().filter(filter)
+                .build();
+        this.repositoryService.searchContainersIterative(AccessCertificationCaseType.class, query, certCaseHandler,
+                Collections.emptyList(), result);
+    }
+
     List<AccessCertificationWorkItemType> searchOpenWorkItems(
             ObjectQuery baseWorkItemsQuery, boolean notDecidedOnly, OperationResult result)
             throws SchemaException {
@@ -84,42 +100,22 @@ public class AccCertQueryHelper {
                 result);
     }
 
-    private ObjectFilter getReviewerAndEnabledFilter(String reviewerOid) {
-        return prismContext.queryFor(AccessCertificationCaseType.class)
-                    .exists(F_WORK_ITEM)
-                    .block()
-                        .item(F_ASSIGNEE_REF).ref(reviewerOid, UserType.COMPLEX_TYPE)
-                        .and().item(F_CLOSE_TIMESTAMP).isNull()
-                    .endBlock()
-                    .buildFilter();
-    }
+    Map<String, List<AccessCertificationCaseType>> getOpenedCasesMappedToReviewers(String campaignOid,
+            boolean onlyCasesWithoutReviewerAnswer, OperationResult result) throws SchemaException {
+        final Map<String, List<AccessCertificationCaseType>> reviewerCases = new HashMap<>();
+        final boolean allCases = !onlyCasesWithoutReviewerAnswer;
+        final ObjectHandler<AccessCertificationCaseType> casesHandler = (aCase, parentResult) -> {
+            aCase.getWorkItem().stream()
+                    .filter(workItem -> allCases || WorkItemTypeUtil.isWithoutOutcome(workItem))
+                    .flatMap(workItem -> workItem.getAssigneeRef().stream())
+                    .map(AbstractReferencable::getOid)
+                    .forEach(reviewerOid -> reviewerCases.computeIfAbsent(reviewerOid, key -> new ArrayList<>())
+                            .add(aCase));
+            return true;
+        };
 
-    // TODO get work items for reviewer/campaign
-    List<AccessCertificationCaseType> getOpenCasesForReviewer(
-            AccessCertificationCampaignType campaign, String reviewerOid, OperationResult result) throws SchemaException {
-        // note: this is OK w.r.t. iterations, as we are looking for cases with non-closed work items here
-        ObjectFilter filter = getReviewerAndEnabledFilter(reviewerOid);
-        return searchCases(campaign.getOid(), prismContext.queryFactory().createQuery(filter), result);
-    }
-
-    public AccessCertificationCaseType getCase(
-            @NotNull AccessCertificationCaseId caseId, OperationResult result) throws SchemaException {
-        QueryFactory queryFactory = prismContext.queryFactory();
-        ObjectFilter filter = queryFactory.createAnd(
-                queryFactory.createOwnerHasOidIn(caseId.campaignOid()),
-                queryFactory.createInOid(String.valueOf(caseId.caseId()))
-        );
-        ObjectQuery query = queryFactory.createQuery(filter);
-
-        List<AccessCertificationCaseType> caseList =
-                repositoryService.searchContainers(AccessCertificationCaseType.class, query, null, result);
-        if (caseList.isEmpty()) {
-            return null;
-        } else if (caseList.size() == 1) {
-            return caseList.get(0);
-        } else {
-            throw new IllegalStateException("More than one certification case with ID " + caseId);
-        }
+        iterateAllCampaignCases(campaignOid, filterForCasesWithOpenedWorkItems(), casesHandler, result);
+        return reviewerCases;
     }
 
     @NotNull WorkItemInContext getWorkItemInContext(AccessCertificationWorkItemId workItemId, OperationResult result)
@@ -170,5 +166,34 @@ public class AccCertQueryHelper {
                 .and().item(AccessCertificationCaseType.F_OUTCOME).eq(SchemaConstants.MODEL_CERTIFICATION_OUTCOME_NO_RESPONSE)
                 .build();
         return repositoryService.countContainers(AccessCertificationCaseType.class, query, null, result) > 0;
+    }
+
+    private AccessCertificationCaseType getCase(
+            @NotNull AccessCertificationCaseId caseId, OperationResult result) throws SchemaException {
+        QueryFactory queryFactory = prismContext.queryFactory();
+        ObjectFilter filter = queryFactory.createAnd(
+                queryFactory.createOwnerHasOidIn(caseId.campaignOid()),
+                queryFactory.createInOid(String.valueOf(caseId.caseId()))
+        );
+        ObjectQuery query = queryFactory.createQuery(filter);
+
+        List<AccessCertificationCaseType> caseList =
+                repositoryService.searchContainers(AccessCertificationCaseType.class, query, null, result);
+        if (caseList.isEmpty()) {
+            return null;
+        } else if (caseList.size() == 1) {
+            return caseList.get(0);
+        } else {
+            throw new IllegalStateException("More than one certification case with ID " + caseId);
+        }
+    }
+
+    private ObjectFilter filterForCasesWithOpenedWorkItems() {
+        return this.prismContext.queryFor(AccessCertificationCaseType.class)
+                .exists(F_WORK_ITEM)
+                .block()
+                .item(F_CLOSE_TIMESTAMP).isNull()
+                .endBlock()
+                .buildFilter();
     }
 }
