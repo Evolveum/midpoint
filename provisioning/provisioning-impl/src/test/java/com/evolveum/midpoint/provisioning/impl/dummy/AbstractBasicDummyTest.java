@@ -1333,6 +1333,9 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
         if (areReferencesSupportedNatively()) {
             expectedValues.add(DummyDefaultScenario.Group.LinkNames.GROUP.local());
         }
+        if (supportsMemberOf()) {
+            expectedValues.add("memberOf");
+        }
         PrismAsserts.assertSets("Wrong attribute to return", attrsToGet, expectedValues);
 
         assertSteadyResource();
