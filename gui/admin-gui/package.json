@@ -49,7 +49,6 @@
     "webpack-merge": "^6.0.1"
   },
   "overrides": {
-    "summernote": "0.9.1",
-    "postcss": "8.5.2"
+    "summernote": "0.9.1"
   }
 }
