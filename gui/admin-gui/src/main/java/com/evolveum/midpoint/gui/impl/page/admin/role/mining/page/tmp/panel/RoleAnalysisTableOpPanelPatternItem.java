@@ -81,17 +81,18 @@ public class RoleAnalysisTableOpPanelPatternItem extends BasePanel<DetectedPatte
         container.setOutputMarkupId(true);
         add(container);
 
-        container.add(new AjaxEventBehavior("click") {
+        AjaxEventBehavior ajaxEventBehavior = new AjaxEventBehavior("click") {
             @Override
             protected void onEvent(AjaxRequestTarget ajaxRequestTarget) {
                 performOnClick(ajaxRequestTarget);
             }
-        });
+        };
 
         WebMarkupContainer iconPanel = new WebMarkupContainer(ID_ICON_PANEL);
         iconPanel.setOutputMarkupId(true);
         iconPanel.add(AttributeModifier.append(CLASS_CSS, appendIconPanelCssClass()));
         iconPanel.add(AttributeModifier.append(STYLE_CSS, appendIconPanelStyle()));
+        iconPanel.add(ajaxEventBehavior);
         container.add(iconPanel);
 
         Component icon = generateIconComponent(ID_ICON);
@@ -113,7 +114,7 @@ public class RoleAnalysisTableOpPanelPatternItem extends BasePanel<DetectedPatte
         descriptionPanel.setOutputMarkupId(true);
         container.add(descriptionPanel);
 
-        Component descriptionTitle = getDescriptionTitleComponent(ID_DESCRIPTION_TITLE);
+        Component descriptionTitle = getDescriptionTitleComponent(ID_DESCRIPTION_TITLE, container, ajaxEventBehavior);
         descriptionPanel.add(descriptionTitle);
 
         descriptionText = new RepeatingView(ID_DESCRIPTION_TEXT);
@@ -177,27 +178,40 @@ public class RoleAnalysisTableOpPanelPatternItem extends BasePanel<DetectedPatte
         }
     }
 
-    //TODO localizations
-    private void appendRoleSuggestionPanel(DetectedPattern pattern) {
+    private void appendRoleSuggestionPanel(@NotNull DetectedPattern pattern) {
         String formattedReductionFactorConfidence = String.format("%.0f", pattern.getMetric());
         String formattedItemConfidence = String.format("%.1f", pattern.getItemsConfidence());
         appendIcon("fe fe-assignment", "color: red;");
         appendText(" " + formattedReductionFactorConfidence, null);
-        appendText("relations - ", null);
+        appendText(getAssignmentsTranslatedString() + " - ", null);
         appendIcon("fa fa-leaf", "color: green");
         appendText(" " + formattedItemConfidence + "% ", null);
-        appendText(" attribute score", null);
+        appendText(getAttributeScoreTranslatedString(), null);
     }
 
-    //TODO localizations
-    private void appendOutlierPanel(DetectedPattern pattern) {
+    private void appendOutlierPanel(@NotNull DetectedPattern pattern) {
         String overallConfidence = String.format("%.0f", pattern.getMetric());
         appendIcon("fa fa-exclamation-circle", "color: red;");
-        appendText(" " + overallConfidence, null);
-        appendText("confidence ", null);
+        appendText(" " + overallConfidence + "%", null);
+        appendText(getOutlierScoreTranslatedString(), null);
 //        appendIcon("fa fa-leaf", "color: green");
 //        appendText(" " + formattedItemConfidence + "% ", null);
 //        appendText(" confidence", null);
+    }
+
+    private String getAttributeScoreTranslatedString() {
+        return createStringResource("RoleAnalysisTableOpPanel.description.attribute.score")
+                .getString();
+    }
+
+    private String getAssignmentsTranslatedString() {
+        return createStringResource("RoleAnalysisTableOpPanel.description.assignments")
+                .getString();
+    }
+
+    private String getOutlierScoreTranslatedString(){
+        return createStringResource("RoleAnalysisTableOpPanel.description.outlier.score")
+                .getString();
     }
 
     public String appendIconPanelCssClass() {
@@ -221,7 +235,7 @@ public class RoleAnalysisTableOpPanelPatternItem extends BasePanel<DetectedPatte
         return null;
     }
 
-    public Component getDescriptionTitleComponent(String id) {
+    public Component getDescriptionTitleComponent(String id, WebMarkupContainer container, AjaxEventBehavior ajaxEventBehavior) {
         LoadableDetachableModel<String> model = new LoadableDetachableModel<>() {
             @Override
             protected @NotNull String load() {
@@ -252,13 +266,13 @@ public class RoleAnalysisTableOpPanelPatternItem extends BasePanel<DetectedPatte
                 DetectedPattern pattern = RoleAnalysisTableOpPanelPatternItem.this.getModelObject();
                 if (pattern.getPatternType() == BasePattern.PatternType.OUTLIER) {
                     String outlierOid = pattern.getOutlierRef().getOid();
-                    dispatchToObjectDetailsPage(RoleAnalysisOutlierType.class, outlierOid, getPageBase(), true);
+                    dispatchToObjectDetailsPage(RoleAnalysisOutlierType.class, outlierOid, this, true);
                     return;
                 }
 
                 if (pattern.getPatternType() == BasePattern.PatternType.CANDIDATE) {
                     String roleOid = pattern.getRoleOid();
-                    dispatchToObjectDetailsPage(RoleType.class, roleOid, getPageBase(), true);
+                    dispatchToObjectDetailsPage(RoleType.class, roleOid, this, true);
                 }
 
                 if (pattern.getPatternType() == BasePattern.PatternType.PATTERN) {
