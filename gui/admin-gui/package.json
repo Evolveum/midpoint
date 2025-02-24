@@ -1,6 +1,6 @@
 {
   "name": "admin-gui",
-  "version": "4.10.0",
+  "version": "4.9.0",
   "description": "Evolveum midPoint admin-gui module npm project for css/javascript code",
   "main": "index.js",
   "scripts": {
