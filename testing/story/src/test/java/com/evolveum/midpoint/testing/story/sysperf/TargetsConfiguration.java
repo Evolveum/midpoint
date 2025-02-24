@@ -125,22 +125,30 @@ class TargetsConfiguration {
                         controller.addAttrDef(dummyResource.getGroupObjectClass(),
                                 DummyGroup.ATTR_MEMBERS_NAME, String.class, false, true);
 
-                        controller.addLinkClassDefinition(
-                                aLinkClassDefinition()
-                                        .withName("groupMembership")
-                                        .withFirstParticipant(aParticipant()
-                                                .withObjectClassNames(
-                                                        DummyAccount.OBJECT_CLASS_NAME,
-                                                        DummyGroup.OBJECT_CLASS_NAME)
-                                                .withLinkAttributeName("group")
-                                                .withMaxOccurs(-1)
-                                                .withReturnedByDefault(true)
-                                                .withExpandedByDefault(false)
-                                                .build())
-                                        .withSecondParticipant(aParticipant()
-                                                .withObjectClassNames(DummyGroup.OBJECT_CLASS_NAME)
-                                                .build())
-                                        .build());
+                        if (nativeReferences) {
+                            // The membership is intentionally defined only for accounts, not for groups.
+                            // The reason is that the current implementation of links in the dummy resource is quite slow:
+                            // iterating through all existing links. (Similar to the implementation of the "memberOf", which
+                            // iterates through all the groups to find the membership.) However, unfortunately, for native
+                            // references there's an extra problem in that membership of the groups an account is a member of
+                            // is checked as well, resulting in O(l^2) complexity, where l is the number of links. This is
+                            // observably worse than the complexity of the "memberOf" attribute determination, which is O(g),
+                            // where g is the number of groups. Both should be optimized in the future.
+                            controller.addLinkClassDefinition(
+                                    aLinkClassDefinition()
+                                            .withName("groupMembership")
+                                            .withFirstParticipant(aParticipant()
+                                                    .withObjectClassNames(DummyAccount.OBJECT_CLASS_NAME)
+                                                    .withLinkAttributeName("group")
+                                                    .withMaxOccurs(-1)
+                                                    .withReturnedByDefault(true)
+                                                    .withExpandedByDefault(false)
+                                                    .build())
+                                            .withSecondParticipant(aParticipant()
+                                                    .withObjectClassNames(DummyGroup.OBJECT_CLASS_NAME)
+                                                    .build())
+                                            .build());
+                        }
                     }));
         }
         return resources;
