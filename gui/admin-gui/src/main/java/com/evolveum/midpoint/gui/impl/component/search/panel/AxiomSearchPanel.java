@@ -10,6 +10,7 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.impl.query.lang.AxiomQueryContentAssistImpl;
 import com.evolveum.midpoint.prism.query.AxiomQueryContentAssist;
 import com.evolveum.midpoint.prism.query.ContentAssist;
+import com.evolveum.midpoint.prism.query.Suggestion;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
@@ -93,16 +94,15 @@ public class AxiomSearchPanel extends BasePanel<AxiomQueryWrapper> {
 
         ObjectMapper mapper = new ObjectMapper();
 
-        queryDslField.add(new AjaxFormComponentUpdatingBehavior("keyup") {
+        queryDslField.add(new AjaxFormComponentUpdatingBehavior("keydown") {
             @Override
             protected void updateAjaxAttributes(AjaxRequestAttributes attributes) {
                 super.updateAjaxAttributes(attributes);
                 attributes.setThrottlingSettings(
                         new ThrottlingSettings(ID_AXIOM_QUERY_FIELD, Duration.ofMillis(300), true)
                 );
-
                 attributes.getDynamicExtraParameters().add(
-                        "return {'cursorPosition': window.MidPointTheme.cursorPosition || 0};"
+                        "return {'cursorPosition': window.MidPointTheme.cursorPosition || 0, 'key': attrs.event.key};"
                 );
             }
 
@@ -110,19 +110,28 @@ public class AxiomSearchPanel extends BasePanel<AxiomQueryWrapper> {
             protected void onUpdate(AjaxRequestTarget target) {
                 AxiomQueryWrapper axiomQueryWrapper = getModel().getObject();
                 IRequestParameters params = RequestCycle.get().getRequest().getRequestParameters();
+                String keyPressed = String.valueOf(params.getParameterValue("key"));
 
-                if (axiomQueryWrapper != null) {
+                if (axiomQueryWrapper != null && !("ArrowUp".equals(keyPressed) || "ArrowDown".equals(keyPressed))) {
                     ItemDefinition<?> rootDef = axiomQueryWrapper.getContainerDefinitionOverride() != null ?
                             axiomQueryWrapper.getContainerDefinitionOverride() :
                             getPrismContext().getSchemaRegistry().findItemDefinitionByType(new QName(axiomQueryWrapper.getTypeClass().getSimpleName()));
 
+                    var suggestions = new AxiomQueryContentAssistImpl(getPrismContext()).process(
+                            rootDef,
+                            axiomQueryWrapper.getDslQuery() == null ? "" : axiomQueryWrapper.getDslQuery(),
+                            params.getParameterValue("cursorPosition").toInt()).autocomplete();
+
                     try {
-                        target.appendJavaScript("window.MidPointTheme.syncContentAssist(" +
-                                mapper.writeValueAsString(new AxiomQueryContentAssistImpl(getPrismContext()).process(
-                                        rootDef,
-                                        axiomQueryWrapper.getDslQuery() == null ? "" : axiomQueryWrapper.getDslQuery(),
-                                        params.getParameterValue("cursorPosition").toInt()
-                                )) + ", '" + idAxiomQueryInputField + "');"
+                        target.appendJavaScript("window.MidPointTheme.syncCodeCompletions(" +
+                                mapper.writeValueAsString(suggestions.isEmpty()
+                                        ? List.of(new Suggestion("", createStringResource("ContentAssist.codeCompletions.noSuggestion").toString(), 0)) // If list is empty, add noSuggestion item
+                                        : suggestions.stream()
+                                        .map(suggestion -> !suggestion.alias().isEmpty()
+                                                ? new Suggestion(suggestion.name(), createStringResource(suggestion.alias()).getString(), suggestion.priority()) // translate alias
+                                                : suggestion)
+                                        .toList()
+                                ) + ", '" + idAxiomQueryInputField + "');"
                         );
                     } catch (Exception e) {
                         LOGGER.error(e.getMessage());

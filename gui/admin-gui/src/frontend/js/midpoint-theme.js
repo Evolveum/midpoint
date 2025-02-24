@@ -915,11 +915,7 @@ export default class MidPointTheme {
     initAxiomSearchPanel(queryDslInputId) {
         const queryDslInput = $("#" + queryDslInputId);
 
-        queryDslInput.on('input keyup click', function () {
-            window.MidPointTheme.cursorPosition = this.selectionStart;
-        })
-
-        const autocomplete = $("<div></div>")
+        const autocomplete = $("<div/>")
             .hide()
             .attr('id', 'queryDslAutocomplete')
             .appendTo(queryDslInput.parent());
@@ -932,7 +928,7 @@ export default class MidPointTheme {
         });
     }
 
-    syncContentAssist(contentAssist, queryDslInputId) {
+    syncCodeCompletions(suggestions, queryDslInputId) {
         const queryDslInput = $("#" + queryDslInputId);
         const autocomplete = $("#queryDslAutocomplete");
         const inputOffset = queryDslInput.offset();
@@ -940,11 +936,9 @@ export default class MidPointTheme {
 
         // calculate position for autocomplete window
         autocomplete.css({
-            top: inputOffset.top + caretPosition.top + parseInt(queryDslInput.css('font-size')),
+            top: inputOffset.top + (caretPosition.top === 0 ? 21 : caretPosition.top) + parseInt(queryDslInput.css('font-size')),
             left: inputOffset.left + caretPosition.left
         });
-
-        const suggestions = contentAssist.autocomplete;
 
         autocomplete.empty()
         autocomplete.show()
@@ -969,11 +963,12 @@ export default class MidPointTheme {
             );
 
             suggestions.forEach(suggestion => {
-                const highlighted = suggestion.name.replace(regex, "<strong>$1</strong>");
+                const highlightedName = suggestion.name.replace(regex, "<strong>$1</strong>");
+                renderSuggestions(highlightedName, suggestion.alias)
                 if (positionCommand === " ") {
-                    renderSuggestions(highlighted, suggestion.alias)
+                    renderSuggestions(highlightedName, suggestion.alias)
                 } else if (suggestion.name.includes(positionCommand)) {
-                    renderSuggestions(highlighted, suggestion.alias)
+                    renderSuggestions(highlightedName, suggestion.alias)
                 }
             })
 
@@ -985,6 +980,32 @@ export default class MidPointTheme {
                 autocomplete.hide()
                 autocomplete.empty()
             });
+
+            let currentIndex = -1; // No selection initially
+
+            queryDslInput.on('input keydown click', function (e) {
+                // navigation in suggestions list
+                if (e.key === "ArrowDown" || e.key == "Arrow Down" || e.keyCode == 40)  {
+                    e.preventDefault();
+                    navigate(1)
+                } else if (e.key === "ArrowUp" || e.key == "Arrow Up" || e.keyCode == 38) {
+                    e.preventDefault();
+                    navigate(-1)
+                } else if (e.key === "Enter") {
+
+                } else {
+                    window.MidPointTheme.cursorPosition = this.selectionStart;
+                }
+            })
+
+            function navigate(direction) {
+                const suggestions = $("#queryDslAutocomplete").find(".suggestion");
+                if (suggestions.length === 0 || suggestions.length < currentIndex || currentIndex < -1) return;
+
+                currentIndex = (currentIndex + direction + suggestions.length) % suggestions.length;
+                suggestions.removeClass("active");
+                $(suggestions[currentIndex]).addClass("active");
+            }
         }
 
 //        $('.content-assist-error').remove()
