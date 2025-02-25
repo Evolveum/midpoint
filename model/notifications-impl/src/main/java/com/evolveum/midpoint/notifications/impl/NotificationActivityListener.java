@@ -6,6 +6,10 @@
  */
 package com.evolveum.midpoint.notifications.impl;
 
+import com.evolveum.midpoint.notifications.impl.events.ActivityPolicyRuleEventImpl;
+
+import com.evolveum.midpoint.repo.common.activity.policy.EvaluatedActivityPolicyRule;
+
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -32,6 +36,17 @@ public class NotificationActivityListener implements ActivityListener {
             @NotNull AbstractActivityRun<?, ?, ?> activityRun, @NotNull Task task, @NotNull OperationResult result) {
         ActivityEventImpl event = new ActivityRealizationCompleteEventImpl(activityRun);
         event.setRequesterAndRequesteeAsTaskOwner(task, result);
+        notificationManager.processEvent(event, task, result);
+    }
+
+    @Override
+    public void onActivityPolicyRuleTrigger(
+            @NotNull AbstractActivityRun<?, ?, ?> activityRun,
+            @NotNull EvaluatedActivityPolicyRule policyRule,
+            @NotNull Task task,
+            @NotNull OperationResult result) {
+
+        ActivityPolicyRuleEventImpl event = new ActivityPolicyRuleEventImpl(activityRun, policyRule);
         notificationManager.processEvent(event, task, result);
     }
 }
