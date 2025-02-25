@@ -43,7 +43,6 @@ import java.security.interfaces.RSAPrivateKey;
 import java.security.interfaces.RSAPublicKey;
 import java.util.*;
 import java.util.function.Function;
-import java.util.stream.Collectors;
 
 /**
  * @author skublik
@@ -62,11 +61,8 @@ public class OidcClientProvider extends RemoteModuleProvider {
         this.additionalConfiguration = additionalConfiguration;
         initJwkResolver();
         OidcIdTokenDecoderFactory decoder = new OidcIdTokenDecoderFactory();
-        OAuth2AuthorizationCodeGrantRequestEntityConverter requestEntityConverter =
-                new OAuth2AuthorizationCodeGrantRequestEntityConverter();
-        requestEntityConverter.addParametersConverter(createParameterConverter());
-        DefaultAuthorizationCodeTokenResponseClient client = new DefaultAuthorizationCodeTokenResponseClient();
-        client.setRequestEntityConverter(requestEntityConverter);
+        RestClientAuthorizationCodeTokenResponseClient client = new RestClientAuthorizationCodeTokenResponseClient();
+        client.setParametersConverter(createParameterConverter());
         decoder.setJwsAlgorithmResolver(getAlgorithmResolver());
         oidcProvider = new OidcAuthorizationCodeAuthenticationProvider(client, getUserService(decoder));
         oidcProvider.setJwtDecoderFactory(decoder);
