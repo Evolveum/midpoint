@@ -31,7 +31,6 @@ import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 
 import com.evolveum.midpoint.util.exception.*;
 
-import org.jetbrains.annotations.NotNull;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Test;
@@ -572,8 +571,7 @@ public class TestCertificationBasic extends AbstractCertificationTest {
         AccessCertificationCaseType superuserCase = findCase(caseList, USER_ADMINISTRATOR_OID, ROLE_SUPERUSER_OID);
 
         when();
-        AccessCertificationWorkItemType workItem =
-                CertCampaignTypeUtil.findWorkItem(superuserCase, 1, 1, USER_ADMINISTRATOR_OID);
+        AccessCertificationWorkItemType workItem = findWorkItem(superuserCase, 1, 1, USER_ADMINISTRATOR_OID);
         long id = superuserCase.asPrismContainerValue().getId();
         certificationService.recordDecision(campaignOid, id, workItem.getId(), ACCEPT, "no comment", task, result);
 
@@ -609,8 +607,7 @@ public class TestCertificationBasic extends AbstractCertificationTest {
         AccessCertificationCaseType ceoCase = findCase(caseList, USER_JACK_OID, ROLE_CEO_OID);
 
         when();
-        AccessCertificationWorkItemType workItem =
-                CertCampaignTypeUtil.findWorkItem(ceoCase, 1, 1, USER_ADMINISTRATOR_OID);
+        AccessCertificationWorkItemType workItem = findWorkItem(ceoCase, 1, 1, USER_ADMINISTRATOR_OID);
         // reviewerRef will be taken from the current user
         long id = ceoCase.asPrismContainerValue().getId();
         certificationService.recordDecision(campaignOid, id, workItem.getId(), ACCEPT, "ok", task, result);
@@ -648,8 +645,7 @@ public class TestCertificationBasic extends AbstractCertificationTest {
         when();
         // reviewerRef will be taken from the current user
         long id = ceoCase.asPrismContainerValue().getId();
-        AccessCertificationWorkItemType workItem =
-                CertCampaignTypeUtil.findWorkItem(ceoCase, 1, 1, USER_ADMINISTRATOR_OID);
+        AccessCertificationWorkItemType workItem = findWorkItem(ceoCase, 1, 1, USER_ADMINISTRATOR_OID);
         certificationService.recordDecision(campaignOid, id, workItem.getId(), REVOKE, "no way", task, result);
 
         then();

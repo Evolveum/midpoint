@@ -1,0 +1,71 @@
+<?xml version="1.0"?>
+<!--
+  ~ Copyright (c) 2010-2017 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<accessCertificationDefinition
+        xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
+        xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        oid="399e117a-baaa-4e59-b845-21bb838cb7bc">
+    <name>Basic User Assignment Certification (ERoot only) to test certification notifications</name>
+    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/certification/handlers-3#direct-assignment</handlerUri>
+    <scopeDefinition xsi:type="AccessCertificationAssignmentReviewScopeType">
+        <objectType>UserType</objectType>
+        <searchFilter>
+            <q:org>
+                <q:orgRef>
+                    <q:oid>00000000-8888-6666-0000-300000000000</q:oid>
+                    <q:scope>SUBTREE</q:scope>
+                </q:orgRef>
+            </q:org>
+        </searchFilter>
+        <relation>default</relation>        <!-- the default -->
+    </scopeDefinition>
+    <remediationDefinition>
+        <style>reportOnly</style>
+    </remediationDefinition>
+    <stageDefinition>
+        <number>1</number>
+        <duration>P14D</duration>
+        <reviewerSpecification>
+            <useObjectManager>
+                <allowSelf>false</allowSelf>
+            </useObjectManager>
+            <reviewerExpression>
+                <script>
+                    <code><![CDATA[
+                        import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType
+                        import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType
+
+                        // If target is ERoot organization and object is Admin user
+                        if (certificationCase.getTargetRef().getOid().equals("00000000-8888-6666-0000-300000000000")
+                          && certificationCase.getObjectRef().getOid().equals("00000000-0000-0000-0000-000000000002")) {
+                            def jackReference = new ObjectReferenceType()
+                            jackReference.setOid("c0c010c0-d34d-b33f-f00d-111111111111")
+                            jackReference.setType(UserType.COMPLEX_TYPE)
+                            return jackReference
+                        }
+                        ]]></code>
+                </script>
+            </reviewerExpression>
+            <defaultReviewerRef oid="00000000-0000-0000-0000-000000000002" type="UserType" />   <!-- administrator -->
+            <additionalReviewerRef oid="c0c010c0-d34d-b33f-f00d-111111111134" type="UserType" /> <!-- bob -->
+        </reviewerSpecification>
+        <timedActions>
+            <time>
+                <value>P1D</value>
+            </time>
+            <actions>
+                <escalate>
+                    <approverRef oid="c0c010c0-d34d-b33f-f00d-111111111111" type="UserType"/>   <!-- jack -->
+                    <delegationMethod>addAssignees</delegationMethod>
+                    <escalationLevelName>jack-level</escalationLevelName>
+                </escalate>
+            </actions>
+        </timedActions>
+    </stageDefinition>
+</accessCertificationDefinition>

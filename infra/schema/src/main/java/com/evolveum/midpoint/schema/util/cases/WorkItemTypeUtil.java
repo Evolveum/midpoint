@@ -119,4 +119,13 @@ public class WorkItemTypeUtil {
     public static String getEscalationLevelDisplayName(AbstractWorkItemType workItem) {
         return getEscalationLevelDisplayName(workItem.getEscalationLevel());
     }
+
+    public static boolean isWithoutOutcome(AccessCertificationWorkItemType workItem) {
+        return getOutcome(workItem) == null;
+    }
+
+    public static boolean isOpened(AccessCertificationWorkItemType workItem) {
+        return workItem.getCloseTimestamp() == null;
+    }
+
 }

@@ -1,3 +1,4 @@
+<?xml version="1.0" encoding="UTF-8"?>
 <!--
   ~ Copyright (c) 2010-2017 Evolveum and contributors
   ~
@@ -5,7 +6,8 @@
   ~ and European Union Public License. See LICENSE file for details.
   -->
 
-<user oid="c0c010c0-d34d-b33f-f00d-111111111134">
+<user oid="c0c010c0-d34d-b33f-f00d-111111111134"
+      xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
     <name>bob</name>
     <parentOrgRef oid="00000000-8888-6666-0000-200000000002" type="OrgType"/>
     <assignment>

@@ -9,8 +9,6 @@ package com.evolveum.midpoint.certification.impl;
 
 import static java.util.Collections.singleton;
 
-import static com.evolveum.midpoint.schema.util.CertCampaignTypeUtil.norm;
-
 import java.util.*;
 import javax.xml.datatype.XMLGregorianCalendar;
 
@@ -32,7 +30,6 @@ import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.ObjectDeltaOperation;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.CertCampaignTypeUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.cases.CaseTriggeringUtil;
 import com.evolveum.midpoint.task.api.Task;
@@ -181,21 +178,17 @@ public class AccCertUpdateHelper {
     //endregion
 
     public void notifyReviewers(AccessCertificationCampaignType campaign, boolean unansweredOnly, Task task, OperationResult result) throws SchemaException {
-        List<AccessCertificationCaseType> caseList = queryHelper.getAllCurrentIterationCases(
-                campaign.getOid(), norm(campaign.getIteration()), result);
-        Collection<String> reviewers = CertCampaignTypeUtil.getActiveReviewers(caseList);
-        for (String reviewerOid : reviewers) {
-            List<AccessCertificationCaseType> cases = queryHelper.getOpenCasesForReviewer(campaign, reviewerOid, result);
-            boolean notify = !unansweredOnly ||
-                    cases.stream()
-                            .flatMap(c -> c.getWorkItem().stream())
-                            .anyMatch(wi -> ObjectTypeUtil.containsOid(wi.getAssigneeRef(), reviewerOid) &&
-                                    (wi.getOutput() == null || wi.getOutput().getOutcome() == null));
-            if (notify) {
-                ObjectReferenceType actualReviewerRef = ObjectTypeUtil.createObjectRef(reviewerOid, ObjectTypes.USER);
-                for (ObjectReferenceType reviewerOrDeputyRef : getReviewerAndDeputies(actualReviewerRef, task, result)) {
-                    eventHelper.onReviewRequested(reviewerOrDeputyRef, actualReviewerRef, cases, campaign, task, result);
-                }
+        final Map<String, List<AccessCertificationCaseType>> reviewersCases =
+                this.queryHelper.getOpenedCasesMappedToReviewers(campaign.getOid(), unansweredOnly, result);
+
+        for (Map.Entry<String, List<AccessCertificationCaseType>> entry : reviewersCases.entrySet()) {
+            final String reviewerOid = entry.getKey();
+            final List<AccessCertificationCaseType> reviewerCases = entry.getValue();
+            final ObjectReferenceType actualReviewerRef = ObjectTypeUtil.createObjectRef(reviewerOid,
+                    ObjectTypes.USER);
+            for (ObjectReferenceType reviewerOrDeputyRef : getReviewerAndDeputies(actualReviewerRef, task, result)) {
+                this.eventHelper.onReviewRequested(reviewerOrDeputyRef, actualReviewerRef, reviewerCases, campaign,
+                        task, result);
             }
         }
     }
