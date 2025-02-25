@@ -11,7 +11,8 @@ import static com.evolveum.midpoint.gui.api.util.GuiDisplayTypeUtil.createDispla
 import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.RoleAnalysisWebUtils.*;
 import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.cluster.RoleAnalysisClusterOperationPanel.PARAM_DETECTED_PATER_ID;
 import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.cluster.RoleAnalysisClusterOperationPanel.PARAM_TABLE_SETTING;
-import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.tables.tile.RoleAnalysisTileTableUtils.*;
+import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.tables.tile.RoleAnalysisTileTableUtils.buildViewToggleTablePanel;
+import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.tables.tile.RoleAnalysisTileTableUtils.initToggleItems;
 import static com.evolveum.midpoint.model.common.expression.functions.BasicExpressionFunctions.LOGGER;
 
 import java.io.Serial;
@@ -84,6 +85,7 @@ import com.evolveum.midpoint.web.component.util.RoleMiningProvider;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
+import com.evolveum.midpoint.web.util.TooltipBehavior;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 public class RoleAnalysisDetectedPatternTileTable extends BasePanel<RoleAnalysisDetectedPatternsDto> {
@@ -102,7 +104,7 @@ public class RoleAnalysisDetectedPatternTileTable extends BasePanel<RoleAnalysis
         super(id, detectedPatternsDtoIModel);
         this.pageBase = pageBase;
 
-        add(initTable());
+        add(initTable(detectedPatternsDtoIModel.getObject().getDetectedPatterns()));
     }
 
     @Override
@@ -111,7 +113,7 @@ public class RoleAnalysisDetectedPatternTileTable extends BasePanel<RoleAnalysis
         this.items = initToggleItems(getTable());
     }
 
-    public TileTablePanel<RoleAnalysisPatternTileModel<DetectedPattern>, DetectedPattern> initTable() {
+    public TileTablePanel<RoleAnalysisPatternTileModel<DetectedPattern>, DetectedPattern> initTable(List<DetectedPattern> detectedPatterns) {
 
         return new TileTablePanel<>(
                 ID_DATATABLE,
@@ -147,7 +149,7 @@ public class RoleAnalysisDetectedPatternTileTable extends BasePanel<RoleAnalysis
                 Fragment fragment = new Fragment(id, "tableFooterFragment",
                         RoleAnalysisDetectedPatternTileTable.this);
 
-                AjaxIconButton refreshTable = buildRefreshToggleTablePanel("refreshTable", target -> onRefresh(target));
+                AjaxIconButton refreshTable = buildRefreshButton();
                 fragment.add(refreshTable);
 
                 TogglePanel<ViewToggle> viewToggle = buildViewToggleTablePanel(
@@ -754,6 +756,22 @@ public class RoleAnalysisDetectedPatternTileTable extends BasePanel<RoleAnalysis
         migrationButton.setOutputMarkupId(true);
         migrationButton.add(AttributeModifier.append(CLASS_CSS, "btn btn-primary btn-sm"));
         return migrationButton;
+    }
+
+    private @NotNull AjaxIconButton buildRefreshButton() {
+        AjaxIconButton refreshTable = new AjaxIconButton("refreshTable",
+                Model.of("fa fa-refresh"), Model.of()) {
+            @Override
+            public void onClick(AjaxRequestTarget ajaxRequestTarget) {
+                onRefresh(ajaxRequestTarget);
+            }
+        };
+
+        refreshTable.setOutputMarkupId(true);
+        refreshTable.add(AttributeModifier.replace("title",
+                createStringResource("RoleAnalysisTable.refresh")));
+        refreshTable.add(new TooltipBehavior());
+        return refreshTable;
     }
 
     public IModel<List<Toggle<ViewToggle>>> getItems() {

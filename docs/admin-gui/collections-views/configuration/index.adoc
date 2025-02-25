@@ -476,14 +476,8 @@ Use case for such search configuration is described more detailed xref:/midpoint
             </searchItems>
         </searchBoxConfiguration>
 ----
-
-== Default list view settings
-
-Default settings for all list views can be defined in the `objectCollectionViews` element.
-For example, paging configuration can be set up for all list views in the system.
-You can learn more about default list view settings in the xref:/midpoint/reference/admin-gui/admin-gui-config/index.adoc#_default_gui_object_list_panel_configuration[Default GUI object list panel configuration] chapter.
-Also, you can see some examples by following the xref:/midpoint/reference/admin-gui/admin-gui-config/admin-gui-config-examples/#default-settings-for-object-collection-views[link].
-
+== Default List View Panel Configuration
+include::../../admin-gui-config/default-list-view-panel-configuration.adoc[]
 
 == Limitations
 

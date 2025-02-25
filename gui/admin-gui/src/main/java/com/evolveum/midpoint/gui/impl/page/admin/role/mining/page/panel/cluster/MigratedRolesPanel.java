@@ -7,6 +7,7 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.cluster;
 
+import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.tables.tile.component.RoleAnalysisMigrationRoleTileTable;
 
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.tables.tile.model.RoleAnalysisMigratedRolesDto;
@@ -30,6 +31,7 @@ import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ContainerPanelConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisClusterType;
 
+import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 
 @PanelType(name = "migratedRoles")
@@ -64,13 +66,7 @@ public class MigratedRolesPanel extends AbstractObjectMainPanel<RoleAnalysisClus
         add(container);
 
         RoleAnalysisMigrationRoleTileTable roleAnalysisMigrationRoleTileTable = new RoleAnalysisMigrationRoleTileTable(ID_PANEL,
-                getPageBase(), () -> {
-            PageBase pageBase = MigratedRolesPanel.this.getPageBase();
-            Task task = pageBase.createSimpleTask(OP_PREPARE_OBJECTS);
-            RoleAnalysisClusterType cluster = getObjectDetailsModels().getObjectType();
-            RoleAnalysisService roleAnalysisService = pageBase.getRoleAnalysisService();
-            return new RoleAnalysisMigratedRolesDto(roleAnalysisService, cluster, task, result);
-        }) {
+                getPageBase(), builtModel()) {
             @Override
             protected void onRefresh(@NotNull AjaxRequestTarget target) {
                 performOnRefresh();
@@ -79,6 +75,20 @@ public class MigratedRolesPanel extends AbstractObjectMainPanel<RoleAnalysisClus
         roleAnalysisMigrationRoleTileTable.setOutputMarkupId(true);
         container.add(roleAnalysisMigrationRoleTileTable);
 
+    }
+
+    @Contract(value = " -> new", pure = true)
+    private @NotNull LoadableModel<RoleAnalysisMigratedRolesDto> builtModel() {
+        return new LoadableModel<>() {
+            @Override
+            protected @NotNull RoleAnalysisMigratedRolesDto load() {
+                PageBase pageBase = MigratedRolesPanel.this.getPageBase();
+                Task task = pageBase.createSimpleTask(OP_PREPARE_OBJECTS);
+                RoleAnalysisClusterType cluster = getObjectDetailsModels().getObjectType();
+                RoleAnalysisService roleAnalysisService = pageBase.getRoleAnalysisService();
+                return new RoleAnalysisMigratedRolesDto(roleAnalysisService, cluster, task, result);
+            }
+        };
     }
 
     private void performOnRefresh() {

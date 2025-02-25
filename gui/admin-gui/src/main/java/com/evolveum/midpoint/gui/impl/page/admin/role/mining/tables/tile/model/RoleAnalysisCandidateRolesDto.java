@@ -19,6 +19,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
 
 import org.jetbrains.annotations.NotNull;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -26,7 +27,7 @@ import java.util.Objects;
 
 import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.createObjectRef;
 
-public class RoleAnalysisCandidateRolesDto {
+public class RoleAnalysisCandidateRolesDto implements Serializable {
 
     List<RoleType> roles = new ArrayList<>();
     HashMap<String, RoleAnalysisCandidateRoleType> cacheCandidate = new HashMap<>();

@@ -12,6 +12,9 @@ Configuration parameters:
  - resourceInstance
  - multiValuedIndexList: list of formatted indices of multi-valued property->attribute mappings (e.g. 0000, 0001, ...)
  - singleValuedIndexList: list of formatted indices of single-valued property->attribute mappings (e.g. 0000, 0001, ...)
+ - mappingStrength
+ - associationShortcut
+ - nativeReferences
 -->
 
 <resource oid="$resourceOid"
@@ -41,6 +44,9 @@ Configuration parameters:
             xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3">
         <icfc:configurationProperties>
             <icfi:instanceId>$resourceInstance</icfi:instanceId>
+#if($associationShortcut)
+            <icfi:memberOfAttribute>true</icfi:memberOfAttribute>
+#end
         </icfc:configurationProperties>
         <icfc:resultsHandlerConfiguration>
             <icfc:enableNormalizingResultsHandler>false</icfc:enableNormalizingResultsHandler>
@@ -58,6 +64,7 @@ Configuration parameters:
             <attribute>
                 <ref>icfs:name</ref>
                 <outbound>
+                    <strength>$mappingStrength</strength>
                     <source>
                         <path>c:name</path>
                     </source>
@@ -67,6 +74,7 @@ Configuration parameters:
             <attribute>
                 <ref>ri:a-single-$index</ref>
                 <outbound>
+                    <strength>$mappingStrength</strength>
                     <source>
                         <name>data</name>
                         <path>c:extension/ext:p-single-$index</path>
@@ -83,6 +91,7 @@ Configuration parameters:
             <attribute>
                 <ref>ri:a-multi-$index</ref>
                 <outbound>
+                    <strength>$mappingStrength</strength>
                     <source>
                         <name>data</name>
                         <path>c:extension/ext:p-multi-$index</path>
@@ -101,6 +110,7 @@ Configuration parameters:
                 <!-- filled in by constructions in technical roles -->
             </attribute>
 
+#if(!$nativeReferences)
             <association>
                 <ref>ri:group</ref>
                 <tolerant>true</tolerant>
@@ -109,7 +119,12 @@ Configuration parameters:
                 <direction>objectToSubject</direction>
                 <associationAttribute>ri:members</associationAttribute>
                 <valueAttribute>icfs:name</valueAttribute>
+#if($associationShortcut)
+                <shortcutAssociationAttribute>ri:memberOf</shortcutAssociationAttribute>
+                <shortcutValueAttribute>icfs:name</shortcutValueAttribute>
+#end
             </association>
+#end
 
         </objectType>
 
@@ -121,6 +136,7 @@ Configuration parameters:
             <attribute>
                 <ref>icfs:name</ref>
                 <outbound>
+                    <strength>$mappingStrength</strength>
                     <source>
                         <path>c:identifier</path>
                     </source>
@@ -132,6 +148,27 @@ Configuration parameters:
             </attribute>
         </objectType>
 
+#if($nativeReferences)
+        <associationType>
+            <name>ri:groupMembership</name>
+            <subject>
+                <objectType>
+                    <kind>account</kind>
+                    <intent>default</intent>
+                </objectType>
+                <association>
+                    <ref>ri:group</ref>
+                    <tolerant>true</tolerant>
+                </association>
+            </subject>
+            <object>
+                <objectType>
+                    <kind>entitlement</kind>
+                    <intent>group</intent>
+                </objectType>
+            </object>
+        </associationType>
+#end
     </schemaHandling>
 
     <synchronization>

@@ -7,6 +7,7 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.cluster;
 
+import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.tables.tile.component.RoleAnalysisCandidateRoleTileTable;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.tables.tile.model.RoleAnalysisCandidateRolesDto;
 
@@ -64,13 +65,7 @@ public class CandidateRolesPanel extends AbstractObjectMainPanel<RoleAnalysisClu
 
         RoleAnalysisCandidateRoleTileTable components = new RoleAnalysisCandidateRoleTileTable(ID_PANEL,
                 CandidateRolesPanel.this.getPageBase(),
-                () -> {
-                    PageBase pageBase = CandidateRolesPanel.this.getPageBase();
-                    Task task = pageBase.createSimpleTask(OP_PREPARE_OBJECTS);
-                    RoleAnalysisClusterType cluster = getObjectDetailsModels().getObjectType();
-                    RoleAnalysisService roleAnalysisService = pageBase.getRoleAnalysisService();
-                    return new RoleAnalysisCandidateRolesDto(roleAnalysisService, cluster, task, result);
-                }) {
+                builtModel()) {
 
             @Override
             protected void onRefresh(@NotNull AjaxRequestTarget target) {
@@ -81,6 +76,19 @@ public class CandidateRolesPanel extends AbstractObjectMainPanel<RoleAnalysisClu
         components.setOutputMarkupId(true);
         container.add(components);
 
+    }
+
+    private @NotNull LoadableModel<RoleAnalysisCandidateRolesDto> builtModel() {
+        return new LoadableModel<>() {
+            @Override
+            protected @NotNull RoleAnalysisCandidateRolesDto load() {
+                PageBase pageBase = CandidateRolesPanel.this.getPageBase();
+                Task task = pageBase.createSimpleTask(OP_PREPARE_OBJECTS);
+                RoleAnalysisClusterType cluster = getObjectDetailsModels().getObjectType();
+                RoleAnalysisService roleAnalysisService = pageBase.getRoleAnalysisService();
+                return new RoleAnalysisCandidateRolesDto(roleAnalysisService, cluster, task, result);
+            }
+        };
     }
 
     private void performRefresh() {

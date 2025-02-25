@@ -157,7 +157,8 @@ class RolesConfiguration {
                 Map.of("oid", oid,
                         "index", String.format("%04d", index),
                         "resourceOid", resourceOid,
-                        "metarole", memberOfComputation));
+                        "metarole", memberOfComputation,
+                        "mappingStrength", TARGETS_CONFIGURATION.getMappingStrength()));
 
         return fileName;
     }

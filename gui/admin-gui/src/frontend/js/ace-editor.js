@@ -172,12 +172,12 @@ export default class MidPointAceEditor {
         }
     }
 
-    syncContentAssist(contentAssist, editorId) {
+    syncContentAssist(suggestions, errors, editorId) {
         const editor = ace.edit(editorId + ACE_EDITOR_POSTFIX);
 
         // validation
         let annotations = [];
-        contentAssist.validate.forEach(error => {
+        errors.forEach(error => {
             annotations.push({
                 row: error.lineStart - 1,
                 column: error.charPositionInLineStart,
@@ -191,17 +191,17 @@ export default class MidPointAceEditor {
         // code completions
         let customCompleter = {
             getCompletions: function (editor, session, pos, prefix, callback) {
-                const suggestions = [];
+                const aceSuggestions = [];
 
-                contentAssist.autocomplete.forEach(function (suggestion) {
-                    suggestions.push({caption: suggestion.name, value: suggestion.name, meta: suggestion.alias});
+                suggestions.forEach(function (suggestion) {
+                    aceSuggestions.push({caption: suggestion.name, value: suggestion.name, meta: suggestion.alias});
                 })
 
                 // select suggestions by prefix
                 if (prefix.length > 0) {
-                    callback(null, suggestions.filter((s) => s.caption.startsWith(prefix)));
+                    callback(null, aceSuggestions.filter((s) => s.caption.startsWith(prefix)));
                 } else {
-                    callback(null, suggestions);
+                    callback(null, aceSuggestions);
                 }
             },
         };

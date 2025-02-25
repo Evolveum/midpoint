@@ -98,7 +98,9 @@ public class RoleAnalysisTableOpPanelItemPanel extends BasePanel<OperationPanelM
 
     protected void initSubHeaderItem(RepeatingView subHeaderItems) {
         addCompareButtonItem(subHeaderItems);
-        addToggleModeItem(subHeaderItems);
+        if (!getModelObject().isOutlierView()) {
+            addToggleModeItem(subHeaderItems);
+        }
     }
 
     private IModel<List<DetectedPattern>> createPatternsModel() {
@@ -301,7 +303,7 @@ public class RoleAnalysisTableOpPanelItemPanel extends BasePanel<OperationPanelM
     }
 
     public void onPatternSelectionPerform(@NotNull AjaxRequestTarget ajaxRequestTarget) {
-    //override
+        //override
     }
 
     private void handleCompareModeClick(

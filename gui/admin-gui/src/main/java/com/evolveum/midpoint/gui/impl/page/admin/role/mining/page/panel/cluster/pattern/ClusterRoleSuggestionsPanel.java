@@ -7,6 +7,7 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.cluster.pattern;
 
+import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.cluster.RoleAnalysisClusterAction;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.tables.tile.component.RoleAnalysisDetectedPatternTileTable;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.tables.tile.model.RoleAnalysisDetectedPatternsDto;
@@ -69,12 +70,7 @@ public class ClusterRoleSuggestionsPanel extends AbstractObjectMainPanel<RoleAna
 
     private @NotNull RoleAnalysisDetectedPatternTileTable loadTable() {
         RoleAnalysisDetectedPatternTileTable components = new RoleAnalysisDetectedPatternTileTable(ID_PANEL, getPageBase(),
-                () -> {
-                    RoleAnalysisClusterType cluster = getObjectDetailsModels().getObjectType();
-                    RoleAnalysisService roleAnalysisService = ((PageBase) getPage()).getRoleAnalysisService();
-                    OperationResult result = new OperationResult(OPERATION_LOAD_OBJECTS);
-                    return new RoleAnalysisDetectedPatternsDto(roleAnalysisService, cluster, result);
-                }) {
+                builtModel()) {
 
             @Override
             protected void onRefresh(AjaxRequestTarget target) {
@@ -83,6 +79,18 @@ public class ClusterRoleSuggestionsPanel extends AbstractObjectMainPanel<RoleAna
         };
         components.setOutputMarkupId(true);
         return components;
+    }
+
+    private @NotNull LoadableModel<RoleAnalysisDetectedPatternsDto> builtModel() {
+        return new LoadableModel<>() {
+            @Override
+            protected @NotNull RoleAnalysisDetectedPatternsDto load() {
+                RoleAnalysisClusterType cluster = getObjectDetailsModels().getObjectType();
+                RoleAnalysisService roleAnalysisService = ((PageBase) getPage()).getRoleAnalysisService();
+                OperationResult result = new OperationResult(OPERATION_LOAD_OBJECTS);
+                return new RoleAnalysisDetectedPatternsDto(roleAnalysisService, cluster, result);
+            }
+        };
     }
 
     @Override

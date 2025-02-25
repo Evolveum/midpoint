@@ -23,6 +23,20 @@ Reviewer selection and decision gathering can be done multiple times, in case of
 Remediation process can be automated or manual.
 It is assumed that certification campaigns will be run regularly, e.g. yearly, twice a year, monthly, and so on.
 
+A *certification case* is a particular "access" item which could be assessed by a reviewer.
+For example, it could be a particular role assigned to a particular user.
+Reviewer can decide if such access should be accepted or revoked (what decisions will be available to reviewer depends on configuration).
+
+Certification campaign consists from one or more *stages*.
+Campaign stages allow, for example, to divide the certification process between different groups of reviewers.
+First campaign stage is assessed by one group of reviewers, while second stage could be assessed by different group of reviewers.
+What cases are "transferred" between stages depends on the campaign definition.
+The default is that only cases which were not revoked/reduced are transferred.
+
+Finished (closed) campaign can be *reiterated*.
+Reiteration starts the campaign over, giving another chance to reviewers who, for example, have not provided their responses (decisions) in time.
+More details on iterations can be found on xref:/midpoint/reference/roles-policies/certification/iteration/[this page]
+
 In the following we'll see how a campaign looks like.
 Then we'll go through a very quick tutorial.
 And after that we'll have a look at various possibilities connected to defining certification campaigns.

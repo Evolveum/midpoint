@@ -75,16 +75,6 @@ public class CertCampaignTypeUtil {
         return null;
     }
 
-    // to be used in tests (beware: there could be more work items)
-    // TODO move to a test class
-    public static AccessCertificationWorkItemType findWorkItem(AccessCertificationCaseType _case, int stageNumber, int iteration,
-            String reviewerOid) {
-        return _case.getWorkItem().stream()
-                .filter(wi -> wi.getStageNumber() == stageNumber && norm(wi.getIteration()) == iteration
-                        && ObjectTypeUtil.containsOid(wi.getAssigneeRef(), reviewerOid))
-                .findFirst().orElse(null);
-    }
-
     public static AccessCertificationWorkItemType findWorkItem(AccessCertificationCaseType _case, long workItemId) {
         return _case.getWorkItem().stream()
                 .filter(wi -> wi.getId() != null && wi.getId() == workItemId)
@@ -596,7 +586,7 @@ public class CertCampaignTypeUtil {
         Set<String> oids = new HashSet<>();
         for (AccessCertificationCaseType aCase : caseList) {
             for (AccessCertificationWorkItemType workItem : aCase.getWorkItem()) {
-                if (workItem.getCloseTimestamp() == null) {
+                if (workItem.getCloseTimestamp() == null) { // This basically means current active stage
                     for (ObjectReferenceType reviewerRef : workItem.getAssigneeRef()) {
                         oids.add(reviewerRef.getOid());
                     }
