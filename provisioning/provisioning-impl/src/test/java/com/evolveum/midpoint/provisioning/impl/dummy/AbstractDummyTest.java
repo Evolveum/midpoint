@@ -9,6 +9,8 @@ package com.evolveum.midpoint.provisioning.impl.dummy;
 import static com.evolveum.midpoint.schema.constants.SchemaConstants.RI_ACCOUNT_OBJECT_CLASS;
 import static com.evolveum.midpoint.schema.constants.SchemaConstants.RI_GROUP_OBJECT_CLASS;
 
+import static com.evolveum.midpoint.test.DummyResourceContoller.PIRATE_SCHEMA_NUMBER_OF_DEFINITIONS;
+
 import static java.util.Objects.requireNonNull;
 import static org.testng.AssertJUnit.*;
 
@@ -325,7 +327,9 @@ public abstract class AbstractDummyTest extends AbstractProvisioningIntegrationT
     }
 
     protected void assertBareSchemaSanity(BareResourceSchema resourceSchema, ResourceType resourceType) throws Exception {
-        dummyResourceCtl.assertDummyResourceSchemaSanityExtended(resourceSchema, resourceType, true);
+        dummyResourceCtl.assertDummyResourceSchemaSanityExtended(
+                resourceSchema, resourceType, !supportsMemberOf(),
+                PIRATE_SCHEMA_NUMBER_OF_DEFINITIONS + (supportsMemberOf() ? 1 : 0));
     }
 
     protected DummyAccount getDummyAccount(String icfName, String icfUid) throws ConnectException, FileNotFoundException, SchemaViolationException, ConflictException, InterruptedException {
