@@ -260,7 +260,7 @@
         <bouncycastle.version>1.78</bouncycastle.version>
         <javax.persistence.version>2.2</javax.persistence.version>
         <keycloak.version>26.0.6</keycloak.version>
-
+        <keycloak.client.version>26.0.4</keycloak.client.version>
         <maven.api.version>3.8.5</maven.api.version>
         <!-- With M6 we get [WARNING] Corrupted channel by directly writing to native stream in forked JVM 1,
         but M5 doesn't work for us anymore either (failing test initialization). -->

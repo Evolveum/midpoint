@@ -320,6 +320,7 @@
         <dependency>
             <groupId>org.keycloak</groupId>
             <artifactId>keycloak-authz-client</artifactId>
+            <version>${keycloak.client.version}</version>
             <scope>test</scope>
         </dependency>
         <dependency>
