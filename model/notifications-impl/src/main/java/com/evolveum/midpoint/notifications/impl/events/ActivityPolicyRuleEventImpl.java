@@ -7,6 +7,7 @@
 
 package com.evolveum.midpoint.notifications.impl.events;
 
+import com.evolveum.midpoint.notifications.api.events.ActivityPolicyRuleEvent;
 import com.evolveum.midpoint.repo.common.activity.policy.EvaluatedActivityPolicyRule;
 
 import com.evolveum.midpoint.util.DebugUtil;
@@ -18,7 +19,7 @@ import com.evolveum.midpoint.repo.common.activity.run.AbstractActivityRun;
 /**
  * Event that is triggered by the 'notification' policy rule action during activity execution.
  */
-public class ActivityPolicyRuleEventImpl extends ActivityEventImpl {
+public class ActivityPolicyRuleEventImpl extends ActivityEventImpl implements ActivityPolicyRuleEvent {
 
     private @NotNull EvaluatedActivityPolicyRule policyRule;
 
@@ -31,8 +32,14 @@ public class ActivityPolicyRuleEventImpl extends ActivityEventImpl {
         this.policyRule = policyRule;
     }
 
+    @Override
     public @NotNull EvaluatedActivityPolicyRule getPolicyRule() {
         return policyRule;
+    }
+
+    @Override
+    public String getRuleName() {
+        return policyRule.getName();
     }
 
     @Override

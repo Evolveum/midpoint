@@ -24,8 +24,9 @@ import java.util.Map;
 import com.evolveum.midpoint.repo.common.activity.definition.ActivityExecutionModeDefinition;
 
 import com.evolveum.midpoint.repo.common.activity.policy.ActivityPolicyRulesContext;
-import com.evolveum.midpoint.repo.common.activity.policy.ActivityPolicyRulesEvaluator;
+import com.evolveum.midpoint.repo.common.activity.policy.ActivityPolicyRulesProcessor;
 
+import com.evolveum.midpoint.repo.common.activity.policy.EvaluatedActivityPolicyRule;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.jetbrains.annotations.NotNull;
@@ -228,8 +229,8 @@ public abstract class AbstractActivityRun<
         }
 
         // TODO MID-10412 [viliam] create and load policy rules/context here
-        ActivityPolicyRulesEvaluator evaluator = new ActivityPolicyRulesEvaluator(this);
-        evaluator.collectRules(result);
+        ActivityPolicyRulesProcessor processor = new ActivityPolicyRulesProcessor(this);
+        processor.collectRules(result);
 
         noteStartTimestamp();
         logStart();
@@ -248,7 +249,7 @@ public abstract class AbstractActivityRun<
         }
 
         // TODO MID-10412 [viliam] evaluate "below" rules at the end of activity run!
-        evaluator.evaluateRules(result);
+        processor.evaluateAndEnforceRules(result);
 
         return runResult;
     }
@@ -586,6 +587,18 @@ public abstract class AbstractActivityRun<
             } catch (Exception e) {
                 LoggingUtils.logUnexpectedException(LOGGER,
                         "Activity listener {} failed when processing 'activity realization complete' event for {}", e,
+                        activityListener, this);
+            }
+        }
+    }
+
+    public void sendActivityPolicyRuleTriggeredEvent(EvaluatedActivityPolicyRule policyRule, OperationResult result) {
+        for (ActivityListener activityListener : emptyIfNull(getBeans().activityListeners)) {
+            try {
+                activityListener.onActivityPolicyRuleTriggered(this, policyRule, getRunningTask(), result);
+            } catch (Exception e) {
+                LoggingUtils.logUnexpectedException(LOGGER,
+                        "Activity listener {} failed when processing 'activity policy rule triggered' event for {}", e,
                         activityListener, this);
             }
         }

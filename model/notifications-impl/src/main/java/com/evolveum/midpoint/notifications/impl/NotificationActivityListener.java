@@ -6,6 +6,7 @@
  */
 package com.evolveum.midpoint.notifications.impl;
 
+import com.evolveum.midpoint.notifications.api.events.SimpleObjectRef;
 import com.evolveum.midpoint.notifications.impl.events.ActivityPolicyRuleEventImpl;
 
 import com.evolveum.midpoint.repo.common.activity.policy.EvaluatedActivityPolicyRule;
@@ -40,13 +41,16 @@ public class NotificationActivityListener implements ActivityListener {
     }
 
     @Override
-    public void onActivityPolicyRuleTrigger(
+    public void onActivityPolicyRuleTriggered(
             @NotNull AbstractActivityRun<?, ?, ?> activityRun,
             @NotNull EvaluatedActivityPolicyRule policyRule,
             @NotNull Task task,
             @NotNull OperationResult result) {
 
         ActivityPolicyRuleEventImpl event = new ActivityPolicyRuleEventImpl(activityRun, policyRule);
+        if (task.getOwnerRef() != null) {
+            event.setRequestee(SimpleObjectRefImpl.create(task.getOwnerRef()));
+        }
         notificationManager.processEvent(event, task, result);
     }
 }

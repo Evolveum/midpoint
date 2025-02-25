@@ -35,7 +35,7 @@ public interface ActivityListener {
     /**
      * Called when policy rule with notification action is triggered during activity execution.
      */
-    void onActivityPolicyRuleTrigger(
+    void onActivityPolicyRuleTriggered(
             @NotNull AbstractActivityRun<?, ?, ?> activityRun,
             @NotNull EvaluatedActivityPolicyRule policyRule,
             @NotNull Task task,

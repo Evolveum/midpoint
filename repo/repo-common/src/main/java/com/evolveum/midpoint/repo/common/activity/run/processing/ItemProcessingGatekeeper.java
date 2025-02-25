@@ -17,8 +17,7 @@ import org.jetbrains.annotations.Nullable;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.repo.cache.RepositoryCache;
 import com.evolveum.midpoint.repo.common.activity.definition.ActivityDefinition;
-import com.evolveum.midpoint.repo.common.activity.policy.ActivityPolicyRulesEnforcer;
-import com.evolveum.midpoint.repo.common.activity.policy.ActivityPolicyRulesEvaluator;
+import com.evolveum.midpoint.repo.common.activity.policy.ActivityPolicyRulesProcessor;
 import com.evolveum.midpoint.repo.common.activity.run.*;
 import com.evolveum.midpoint.repo.common.activity.run.processing.ItemProcessingConditionEvaluator.AdditionalVariableProvider;
 import com.evolveum.midpoint.repo.common.activity.run.reports.ActivityReportUtil;
@@ -150,11 +149,8 @@ class ItemProcessingGatekeeper<I> {
             workerTask.setExecutionSupport(activityRun);
 
             // TODO MID-10412 [viliam] evaluate policy rules here
-            ActivityPolicyRulesEvaluator evaluator = new ActivityPolicyRulesEvaluator(activityRun);
-            evaluator.evaluateRules(result);
-
-            ActivityPolicyRulesEnforcer enforcer = new ActivityPolicyRulesEnforcer(activityRun);
-            enforcer.enforceRules();
+            ActivityPolicyRulesProcessor processor = new ActivityPolicyRulesProcessor(activityRun);
+            processor.evaluateAndEnforceRules(result);
 
             logOperationStart();
             operation = updateStatisticsOnStart();

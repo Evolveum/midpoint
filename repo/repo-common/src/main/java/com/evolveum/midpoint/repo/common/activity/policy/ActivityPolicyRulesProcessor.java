@@ -9,20 +9,23 @@ package com.evolveum.midpoint.repo.common.activity.policy;
 
 import java.util.List;
 
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
+
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.repo.common.activity.run.AbstractActivityRun;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityPoliciesType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityPolicyConstraintsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityPolicyType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
-public class ActivityPolicyRulesEvaluator {
+public class ActivityPolicyRulesProcessor {
+
+    private static final Trace LOGGER = TraceManager.getTrace(ActivityPolicyRulesProcessor.class);
 
     @NotNull
     private final AbstractActivityRun<?, ?, ?> activityRun;
 
-    public ActivityPolicyRulesEvaluator(@NotNull AbstractActivityRun<?, ?, ?> activityRun) {
+    public ActivityPolicyRulesProcessor(@NotNull AbstractActivityRun<?, ?, ?> activityRun) {
         this.activityRun = activityRun;
     }
 
@@ -38,7 +41,7 @@ public class ActivityPolicyRulesEvaluator {
         activityRun.getActivityPolicyRulesContext().setPolicyRules(rules);
     }
 
-    public void evaluateRules(OperationResult result) {
+    public void evaluateAndEnforceRules(OperationResult result) {
         List<EvaluatedActivityPolicyRule> rules = getPolicyRulesContext().getPolicyRules();
         if (rules.isEmpty()) {
             return;
@@ -47,6 +50,8 @@ public class ActivityPolicyRulesEvaluator {
         for (EvaluatedActivityPolicyRule rule : rules) {
             evaluateRule(rule, result);
         }
+
+        enforceRules(result);
     }
 
     private void evaluateRule(EvaluatedActivityPolicyRule rule, OperationResult result) {
@@ -58,5 +63,29 @@ public class ActivityPolicyRulesEvaluator {
 
         List<EvaluatedActivityPolicyRuleTrigger<?>> triggers = evaluator.evaluateConstraints(constraints, context, result);
         rule.setTriggers(triggers);
+    }
+
+    private void enforceRules(OperationResult result) {
+        List<EvaluatedActivityPolicyRule> rules = activityRun.getActivityPolicyRulesContext().getPolicyRules();
+
+        if (rules.isEmpty()) {
+            return;
+        }
+
+        // todo check also whether action condition is enabled
+        for (EvaluatedActivityPolicyRule rule : rules) {
+            if (rule.containsAction(NotificationPolicyActionType.class)) {
+                LOGGER.debug("Sending notification because of policy violation, rule: {}", rule);
+                activityRun.sendActivityPolicyRuleTriggeredEvent(rule, result);
+            }
+
+            if (rule.containsAction(SuspendTaskPolicyActionType.class)) {
+                LOGGER.debug("Suspending task because of policy violation, rule: {}", rule);
+// todo how to handle this exception?
+//                throw new ThresholdPolicyViolationException("Policy violation, rule: " + rule);
+            }
+        }
+
+        // todo implement notification event
     }
 }

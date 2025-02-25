@@ -16,14 +16,22 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityPolicyAction
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityPolicyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyActionType;
 
+import org.jetbrains.annotations.Nullable;
+
 public class EvaluatedActivityPolicyRule {
 
-    private final ActivityPolicyType policy;
+
+    private final @NotNull ActivityPolicyType policy;
 
     private final List<EvaluatedActivityPolicyRuleTrigger<?>> triggers = new ArrayList<>();
 
-    public EvaluatedActivityPolicyRule(ActivityPolicyType policy) {
+    public EvaluatedActivityPolicyRule(@NotNull ActivityPolicyType policy) {
         this.policy = policy;
+    }
+
+    @Nullable
+    public String getName() {
+        return policy.getName();
     }
 
     public ActivityPolicyType getPolicy() {
