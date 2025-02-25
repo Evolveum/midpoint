@@ -10,6 +10,10 @@ package com.evolveum.midpoint.repo.common.activity.policy;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.util.PrismPrettyPrinter;
+import com.evolveum.midpoint.util.DebugDumpable;
+
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityPolicyActionsType;
@@ -18,8 +22,9 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyActionType;
 
 import org.jetbrains.annotations.Nullable;
 
-public class EvaluatedActivityPolicyRule {
+import static com.evolveum.midpoint.util.DebugUtil.*;
 
+public class EvaluatedActivityPolicyRule implements DebugDumpable {
 
     private final @NotNull ActivityPolicyType policy;
 
@@ -73,5 +78,18 @@ public class EvaluatedActivityPolicyRule {
         if (triggers != null) {
             this.triggers.addAll(triggers);
         }
+    }
+
+    @Override
+    public String debugDump(int indent) {
+        StringBuilder sb = new StringBuilder();
+        debugDumpLabelLn(sb, "EvaluatedActivityPolicyRule " + (getName() != null ? getName() + " " : "") + "(triggers: " + triggers.size() + ")", indent);
+        debugDumpWithLabelLn(sb, "name", getName(), indent + 1);
+        debugDumpLabelLn(sb, "policyRuleType", indent + 1);
+        indentDebugDump(sb, indent + 2);
+        PrismPrettyPrinter.debugDumpValue(sb, indent + 2, policy, ActivityPolicyType.COMPLEX_TYPE, PrismContext.LANG_XML);
+        sb.append('\n');
+        debugDumpWithLabelLn(sb, "triggers", triggers, indent + 1);
+        return sb.toString();
     }
 }

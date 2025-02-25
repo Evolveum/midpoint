@@ -11,10 +11,12 @@ import java.util.Objects;
 
 import org.jetbrains.annotations.NotNull;
 
+import com.evolveum.midpoint.util.DebugDumpable;
+import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.LocalizableMessage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractPolicyConstraintType;
 
-public class EvaluatedActivityPolicyRuleTrigger<AC extends AbstractPolicyConstraintType> {
+public class EvaluatedActivityPolicyRuleTrigger<AC extends AbstractPolicyConstraintType> implements DebugDumpable {
 
     @NotNull
     private final AC constraint;
@@ -63,5 +65,23 @@ public class EvaluatedActivityPolicyRuleTrigger<AC extends AbstractPolicyConstra
                 ", message=" + message +
                 ", shortMessage=" + shortMessage +
                 '}';
+    }
+
+    @Override
+    public String debugDump(int indent) {
+        StringBuilder sb = new StringBuilder();
+        DebugUtil.debugDumpLabelLn(sb, getClass().getSimpleName(), indent);
+        debugDumpCommon(sb, indent + 1);
+        debugDumpSpecific(sb, indent + 1);
+        return sb.toString();
+    }
+
+    private void debugDumpCommon(StringBuilder sb, int indent) {
+        DebugUtil.debugDumpWithLabelToStringLn(sb, "constraintName", constraint.getName(), indent);
+        DebugUtil.debugDumpWithLabelToStringLn(sb, "constraint", constraint, indent);
+        DebugUtil.debugDumpWithLabelToStringLn(sb, "message", message, indent);
+    }
+
+    protected void debugDumpSpecific(StringBuilder sb, int indent) {
     }
 }

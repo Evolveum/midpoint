@@ -47,8 +47,7 @@ public class SimpleActivityPolicyRuleNotifier
             EventProcessingContext<? extends ActivityPolicyRuleEvent> ctx,
             OperationResult result) throws SchemaException {
         return "Notification about policy rule-related event.\n\n"
-                // TODO MID-10412
-                + ctx.event().getPolicyRule(); //.debugDump();
+                + ctx.event().getPolicyRule().debugDump();
     }
 }
 
