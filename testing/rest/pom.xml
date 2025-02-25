@@ -323,6 +323,14 @@
             <version>${keycloak.client.version}</version>
             <scope>test</scope>
         </dependency>
+
+        <dependency>
+            <groupId>org.keycloak</groupId>
+            <artifactId>keycloak-client-common-synced</artifactId>
+            <version>${keycloak.client.version}</version>
+            <scope>test</scope>
+        </dependency>
+
         <dependency>
             <groupId>org.keycloak</groupId>
             <artifactId>keycloak-core</artifactId>
