@@ -100,7 +100,7 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-dependencies</artifactId>
-        <version>3.4.1</version>
+        <version>3.4.3</version>
         <!-- This parent also declares dependencies listed here:
         https://docs.spring.io/spring-boot/3.4/appendix/dependency-versions/coordinates.html
         Or for current version of Spring Boot:
