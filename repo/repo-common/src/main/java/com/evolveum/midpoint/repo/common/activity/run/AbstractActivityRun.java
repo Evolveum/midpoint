@@ -27,6 +27,7 @@ import com.evolveum.midpoint.repo.common.activity.policy.ActivityPolicyRulesCont
 import com.evolveum.midpoint.repo.common.activity.policy.ActivityPolicyRulesProcessor;
 
 import com.evolveum.midpoint.repo.common.activity.policy.EvaluatedActivityPolicyRule;
+import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.jetbrains.annotations.NotNull;
@@ -53,10 +54,6 @@ import com.evolveum.midpoint.task.api.ExecutionSupport;
 import com.evolveum.midpoint.task.api.RunningTask;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
-import com.evolveum.midpoint.util.exception.CommonException;
-import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -247,7 +244,11 @@ public abstract class AbstractActivityRun<
             sendActivityRealizationCompleteEvent(result);
         }
 
-        processor.evaluateAndEnforceRules(result);
+        try {
+            processor.evaluateAndEnforceRules(result);
+        } catch (ThresholdPolicyViolationException e) {
+            throw new ActivityRunException("Threshold policy violation", FATAL_ERROR, PERMANENT_ERROR, e);
+        }
 
         return runResult;
     }

@@ -11,6 +11,8 @@ import static java.util.Objects.requireNonNull;
 
 import static com.evolveum.midpoint.util.MiscUtil.argCheck;
 
+import com.evolveum.midpoint.util.exception.ThresholdPolicyViolationException;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -149,8 +151,15 @@ class ItemProcessingGatekeeper<I> {
             workerTask.setExecutionSupport(activityRun);
 
             // TODO MID-10412 [viliam] evaluate policy rules here
-            ActivityPolicyRulesProcessor processor = new ActivityPolicyRulesProcessor(activityRun);
-            processor.evaluateAndEnforceRules(result);
+            try {
+                ActivityPolicyRulesProcessor processor = new ActivityPolicyRulesProcessor(activityRun);
+                processor.evaluateAndEnforceRules(result);
+            } catch (ThresholdPolicyViolationException e) {
+                result.recordFatalError(e);
+                processingResult = ProcessingResult.fromException(result, e);
+
+                throw e;
+            }
 
             logOperationStart();
             operation = updateStatisticsOnStart();

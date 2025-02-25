@@ -9,6 +9,8 @@ package com.evolveum.midpoint.repo.common.activity.policy;
 
 import java.util.List;
 
+import com.evolveum.midpoint.util.exception.ThresholdPolicyViolationException;
+
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.repo.common.activity.run.AbstractActivityRun;
@@ -43,7 +45,7 @@ public class ActivityPolicyRulesProcessor {
         activityRun.getActivityPolicyRulesContext().setPolicyRules(rules);
     }
 
-    public void evaluateAndEnforceRules(OperationResult result) {
+    public void evaluateAndEnforceRules(OperationResult result) throws ThresholdPolicyViolationException {
         List<EvaluatedActivityPolicyRule> rules = getPolicyRulesContext().getPolicyRules();
         if (rules.isEmpty()) {
             return;
@@ -72,7 +74,7 @@ public class ActivityPolicyRulesProcessor {
         rule.setTriggers(triggers);
     }
 
-    private void enforceRules(OperationResult result) {
+    private void enforceRules(OperationResult result) throws ThresholdPolicyViolationException {
         List<EvaluatedActivityPolicyRule> rules = activityRun.getActivityPolicyRulesContext().getPolicyRules();
         if (rules.isEmpty()) {
             return;
@@ -104,8 +106,8 @@ public class ActivityPolicyRulesProcessor {
 
             if (rule.containsAction(SuspendTaskPolicyActionType.class)) {
                 LOGGER.debug("Suspending task because of policy violation, rule: {}", rule);
-// todo how to handle this exception?
-//                throw new ThresholdPolicyViolationException("Policy violation, rule: " + rule);
+                // todo how to handle this exception?
+                throw new ThresholdPolicyViolationException("Policy violation, rule: " + rule);
             }
         }
     }

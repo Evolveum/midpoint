@@ -25,6 +25,8 @@ public class ExecutionTimeConstraintEvaluator
 
     @Override
     protected Duration getDurationValue(ActivityPolicyRuleEvaluationContext context) {
+        // todo MID-10412 handle differently for worker vs for coordinator
+
         AbstractActivityRun<?, ?, ?> activityRun = context.getActivityRun();
 
         ActivityItemProcessingStatistics stats = activityRun.getActivityState().getLiveItemProcessingStatistics();
