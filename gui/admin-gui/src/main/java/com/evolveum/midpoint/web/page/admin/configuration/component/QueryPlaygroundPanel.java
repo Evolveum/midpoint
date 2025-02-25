@@ -399,15 +399,25 @@ public class QueryPlaygroundPanel extends BasePanel<RepoQueryDto> {
                             getPrismContext().getSchemaRegistry().findItemDefinitionByType(objectTypeChoice.getFirstChoice()) :
                             getPrismContext().getSchemaRegistry().findItemDefinitionByType(repo.getObjectType());
 
+                    var contentAssist = new AxiomQueryContentAssistImpl(getPrismContext()).process(
+                            rootDef,
+                            query == null ? "" : query,
+                            params.getParameterValue("cursorPosition").toInt()
+                    );
+
+                    var suggestions = contentAssist.autocomplete();
+
                     try {
                         // Content assist for AXQ lang
                         target.appendJavaScript("window.MidPointAceEditor.syncContentAssist(" +
-                                        mapper.writeValueAsString(new AxiomQueryContentAssistImpl(getPrismContext()).process(
-                                                rootDef,
-                                                query == null ? "" : query,
-                                                params.getParameterValue("cursorPosition").toInt()
-                                        ))
-                                + ", '" + editorMidPoint.getMarkupId() + "');"
+                            mapper.writeValueAsString(suggestions.isEmpty()
+                                    ? List.of(new Suggestion("", createStringResource("ContentAssist.codeCompletions.noSuggestion").toString(), 0)) // If list is empty, add noSuggestion item
+                                    : suggestions.stream()
+                                    .map(suggestion -> !suggestion.alias().isEmpty()
+                                            ? new Suggestion(suggestion.name(), createStringResource(suggestion.alias()).getString(), suggestion.priority()) // translate alias
+                                            : suggestion)
+                                    .toList()
+                            ) + ", " + mapper.writeValueAsString(contentAssist.validate()) + ", '" + editorMidPoint.getMarkupId() + "');"
                         );
                     } catch (Exception e) {
                         LOGGER.error(e.getMessage());

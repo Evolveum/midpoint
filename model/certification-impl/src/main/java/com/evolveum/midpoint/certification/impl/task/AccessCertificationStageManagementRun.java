@@ -132,8 +132,6 @@ public abstract class AccessCertificationStageManagementRun<
             updateHelper.modifyObjectPreAuthorized(AccessCertificationDefinitionType.class, campaign.getDefinitionRef().getOid(), deltas, task, result);
         }
 
-        //////
-
         super.afterRun(result);
     }
 

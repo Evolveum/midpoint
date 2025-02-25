@@ -31,12 +31,12 @@
       opacity: 0.5;
       margin: 0.9em;
     }
+  }
 
-    &:hover {
-      border: 1px solid #abbffe;
-      margin-top: -1px;
-      background: rgba(233,233,253,0.4);
-    }
+  .active, .suggestion:hover {
+    border: 1px solid #abbffe;
+    margin-top: -1px;
+    background: rgba(233,233,253,0.4);
   }
 
   .no-suggestion {
@@ -44,10 +44,5 @@
       opacity: 0.5;
       margin: 0.9em;
     }
-  }
-
-  .line-active {
-    background-color: #CAD6FA;
-    z-index: 1;
   }
 }
