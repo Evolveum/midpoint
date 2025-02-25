@@ -225,10 +225,12 @@
         <opendj.version>2.6.2</opendj.version>
         <quartz.version>2.3.2.e3</quartz.version>
         <opensaml.version>4.1.1</opensaml.version>
+        <!--
+          Spring Boot uses cache2k 2.6.1 Final
         <cache2k.version>2.0.0.Final</cache2k.version>
+        -->
         <testng.version>7.10.2</testng.version>
         <xml.resolver.version>1.2</xml.resolver.version>
-        <xmlunit.version>2.10.0</xmlunit.version>
 
         <!-- Spring Boot parent declares most fresh versions for JDBC drivers for all our servers. -->
 
@@ -238,19 +240,21 @@
         <wicket.version>10.4.0</wicket.version>
         <wicketstuff.version>10.1.1</wicketstuff.version>
         <wicket.chartjs.version>0.6-SNAPSHOT</wicket.chartjs.version>
-        <!-- Groovy 4.0.24 is also default for Spring Boot 3.4.0 -->
-        <groovy.version>4.0.24</groovy.version>
+
         <xmlsec.version>2.2.6</xmlsec.version>
         <!-- NOTE: also update the version number in TestConnectorManager -->
         <connid.version>1.6.0.0-RC1</connid.version>
-        <derby.version>10.16.1.1</derby.version>
+
         <poi.version>5.2.3</poi.version>
         <!-- Version for classgraph must the one declared in Prism -->
         <classgraph.version>4.8.162</classgraph.version>
         <guava.version>32.1.2-jre</guava.version>
         <jcommander.version>1.82</jcommander.version>
         <qpid-broker.version>8.0.4</qpid-broker.version>
-        <artemis.version>2.33.0</artemis.version> <!-- name matches property from Boot parent -->
+        <!--
+        name matches property from Boot parent
+        <artemis.version>2.33.0</artemis.version>
+        -->
         <asm.version>9.5</asm.version>
         <geronimo-ws-metadata_2.0_spec.version>1.1.3</geronimo-ws-metadata_2.0_spec.version>
         <checkstyle.version>3.1.2</checkstyle.version>
@@ -1169,16 +1173,6 @@
                 <version>2.5.2</version>
             </dependency>
 
-            <dependency>
-                <groupId>org.xmlunit</groupId>
-                <artifactId>xmlunit-core</artifactId>
-                <version>${xmlunit.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.xmlunit</groupId>
-                <artifactId>xmlunit-legacy</artifactId>
-                <version>${xmlunit.version}</version>
-            </dependency>
             <dependency>
                 <groupId>xml-resolver</groupId>
                 <artifactId>xml-resolver</artifactId>
