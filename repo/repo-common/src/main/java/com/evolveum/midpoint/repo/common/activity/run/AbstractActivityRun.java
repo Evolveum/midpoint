@@ -23,6 +23,9 @@ import java.util.Map;
 
 import com.evolveum.midpoint.repo.common.activity.definition.ActivityExecutionModeDefinition;
 
+import com.evolveum.midpoint.repo.common.activity.policy.ActivityPolicyRulesContext;
+import com.evolveum.midpoint.repo.common.activity.policy.ActivityPolicyRulesEvaluator;
+
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.jetbrains.annotations.NotNull;
@@ -115,7 +118,7 @@ public abstract class AbstractActivityRun<
 
     /**
      * Activity state object where [threshold] counters for the current activity reside.
-     * By default it is the activity state for the current standalone activity (e.g. reconciliation).
+     * By default, it is the activity state for the current standalone activity (e.g. reconciliation).
      *
      * Lazily evaluated.
      *
@@ -147,6 +150,8 @@ public abstract class AbstractActivityRun<
             Lazy.from(this::createReportingCharacteristics);
 
     @NotNull final SimulationSupport simulationSupport;
+
+    @NotNull final ActivityPolicyRulesContext activityPolicyRulesContext = new ActivityPolicyRulesContext();
 
     protected AbstractActivityRun(@NotNull ActivityRunInstantiationContext<WD, AH> context) {
         this.taskRun = context.getTaskRun();
@@ -222,6 +227,10 @@ public abstract class AbstractActivityRun<
             return ActivityRunResult.finished(activityState.getResultStatus());
         }
 
+        // TODO MID-10412 [viliam] create and load policy rules/context here
+        ActivityPolicyRulesEvaluator evaluator = new ActivityPolicyRulesEvaluator(this);
+        evaluator.collectRules(result);
+
         noteStartTimestamp();
         logStart();
 
@@ -237,6 +246,9 @@ public abstract class AbstractActivityRun<
             onActivityRealizationComplete(result);
             sendActivityRealizationCompleteEvent(result);
         }
+
+        // TODO MID-10412 [viliam] evaluate "below" rules at the end of activity run!
+        evaluator.evaluateRules(result);
 
         return runResult;
     }
@@ -642,5 +654,9 @@ public abstract class AbstractActivityRun<
         if (mode != ExecutionModeType.FULL) {
             throw new IllegalStateException("This activity can be run in full execution mode only. Requested mode: " + mode);
         }
+    }
+
+    public @NotNull ActivityPolicyRulesContext getActivityPolicyRulesContext() {
+        return activityPolicyRulesContext;
     }
 }
