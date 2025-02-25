@@ -13,6 +13,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityRunRecordType;
 
 import com.google.common.annotations.VisibleForTesting;
+import org.jetbrains.annotations.NotNull;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 import java.util.*;
@@ -44,6 +45,11 @@ public class WallClockTimeComputer {
                 .map(pair -> Interval.create(pair[0], pair[1]))
                 .collect(Collectors.toSet());
         nonOverlappingIntervals = eliminateOverlaps(this.intervals);
+    }
+
+    @SafeVarargs
+    public static WallClockTimeComputer create(@NotNull List<ActivityRunRecordType>... lists) {
+        return new WallClockTimeComputer(lists);
     }
 
     public long getSummaryTime() {

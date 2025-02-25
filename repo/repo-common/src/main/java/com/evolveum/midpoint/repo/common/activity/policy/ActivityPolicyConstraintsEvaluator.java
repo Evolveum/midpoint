@@ -46,7 +46,6 @@ public class ActivityPolicyConstraintsEvaluator {
         if (constraints.getExecutionTime() != null) {
             triggers.addAll(executionTimeEvaluator.evaluate(constraints.getExecutionTime(), context, result));
         }
-        // todo implement other constraints
 
         return triggers;
     }

@@ -9,15 +9,17 @@ package com.evolveum.midpoint.repo.common.activity.policy;
 
 import java.util.List;
 
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
-
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.repo.common.activity.run.AbstractActivityRun;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
+/**
+ * This processor is responsible for collecting, evaluating and enforcing activity policy rules.
+ */
 public class ActivityPolicyRulesProcessor {
 
     private static final Trace LOGGER = TraceManager.getTrace(ActivityPolicyRulesProcessor.class);
@@ -55,6 +57,11 @@ public class ActivityPolicyRulesProcessor {
     }
 
     private void evaluateRule(EvaluatedActivityPolicyRule rule, OperationResult result) {
+        if (rule.isTriggered()) {
+            LOGGER.trace("Policy rule {} was already triggered, skipping evaluation", rule);
+            return;
+        }
+
         ActivityPolicyConstraintsType constraints = rule.getPolicy().getPolicyConstraints();
 
         ActivityPolicyConstraintsEvaluator evaluator = ActivityPolicyConstraintsEvaluator.get();
@@ -67,13 +74,29 @@ public class ActivityPolicyRulesProcessor {
 
     private void enforceRules(OperationResult result) {
         List<EvaluatedActivityPolicyRule> rules = activityRun.getActivityPolicyRulesContext().getPolicyRules();
-
         if (rules.isEmpty()) {
             return;
         }
 
+        // todo make sure we store somewhere that rule was already triggered and enforced
+        //  e.g. we don't send notification after each processed item when execution time was exceeded
+
         // todo check also whether action condition is enabled
         for (EvaluatedActivityPolicyRule rule : rules) {
+            if (!rule.isTriggered()) {
+                LOGGER.trace("Policy rule {} was not triggered, skipping enforcement", rule);
+                continue;
+            }
+
+            if (rule.isEnforced()) {
+                LOGGER.trace("Policy rule {} was already enforced, skipping enforcement", rule);
+                continue;
+            }
+
+            LOGGER.trace("Enforcing policy rule {}", rule);
+
+            rule.enforced();
+
             if (rule.containsAction(NotificationPolicyActionType.class)) {
                 LOGGER.debug("Sending notification because of policy violation, rule: {}", rule);
                 activityRun.sendActivityPolicyRuleTriggeredEvent(rule, result);
@@ -85,7 +108,5 @@ public class ActivityPolicyRulesProcessor {
 //                throw new ThresholdPolicyViolationException("Policy violation, rule: " + rule);
             }
         }
-
-        // todo implement notification event
     }
 }

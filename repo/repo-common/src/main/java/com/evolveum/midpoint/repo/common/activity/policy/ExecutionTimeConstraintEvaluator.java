@@ -7,13 +7,16 @@
 
 package com.evolveum.midpoint.repo.common.activity.policy;
 
+import java.util.List;
 import javax.xml.datatype.Duration;
-
-import com.evolveum.midpoint.task.api.Task;
 
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
+import com.evolveum.midpoint.repo.common.activity.run.AbstractActivityRun;
+import com.evolveum.midpoint.repo.common.activity.run.state.ActivityItemProcessingStatistics;
+import com.evolveum.midpoint.schema.util.task.WallClockTimeComputer;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityRunRecordType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.DurationThresholdPolicyConstraintType;
 
 @Component
@@ -22,9 +25,14 @@ public class ExecutionTimeConstraintEvaluator
 
     @Override
     protected Duration getDurationValue(ActivityPolicyRuleEvaluationContext context) {
-        Task task = context.getActivityRun().getRunningTask();
+        AbstractActivityRun<?, ?, ?> activityRun = context.getActivityRun();
 
-        // todo get from context and from task
-        return XmlTypeConverter.createDuration("PT1M");
+        ActivityItemProcessingStatistics stats = activityRun.getActivityState().getLiveItemProcessingStatistics();
+        List<ActivityRunRecordType> runRecords = stats.getValueCopy().getRun();
+
+        WallClockTimeComputer computer = WallClockTimeComputer.create(runRecords);
+        long wallClockTime = computer.getSummaryTime();
+
+        return XmlTypeConverter.createDuration(wallClockTime);
     }
 }

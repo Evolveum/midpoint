@@ -228,7 +228,6 @@ public abstract class AbstractActivityRun<
             return ActivityRunResult.finished(activityState.getResultStatus());
         }
 
-        // TODO MID-10412 [viliam] create and load policy rules/context here
         ActivityPolicyRulesProcessor processor = new ActivityPolicyRulesProcessor(this);
         processor.collectRules(result);
 
@@ -248,7 +247,6 @@ public abstract class AbstractActivityRun<
             sendActivityRealizationCompleteEvent(result);
         }
 
-        // TODO MID-10412 [viliam] evaluate "below" rules at the end of activity run!
         processor.evaluateAndEnforceRules(result);
 
         return runResult;

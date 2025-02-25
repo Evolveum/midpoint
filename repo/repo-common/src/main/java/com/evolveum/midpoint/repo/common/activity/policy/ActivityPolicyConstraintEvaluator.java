@@ -12,9 +12,6 @@ import java.util.List;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractPolicyConstraintType;
 
-/**
- * TODO DOC
- */
 public interface ActivityPolicyConstraintEvaluator<
         C extends AbstractPolicyConstraintType,
         T extends EvaluatedActivityPolicyRuleTrigger<C>> {
