@@ -103,6 +103,7 @@ See bug:MID-9737[] and bug:MID-9986[].
 * Fixed saving of audit record with malformed username as parameter during login (User-Enumeration attack). See bug:MID-10383[].
 * Add a save button to the wizard's table of object and association types. See bug:MID-10046[].
 * Add an error message when the 'securityQuestionsForm' authentication module is the first in the authentication sequence. See bug:MID-10149[].
+* bug:MID-10225[] Fix issue where opening of certification campaign stage hangs indefinitely.
 
 
 === Releases Of Other Components

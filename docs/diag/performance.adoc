@@ -104,3 +104,33 @@ If necessary, the operation execution recording can be limited to non-success st
 ----
 
 It is the default setting for new installations.
+
+[#_database_tuning]
+== Database performance tuning
+
+If you are using native repository, and you observe that some action sometimes takes an unusual amount of time to finish, you may consider to try following Postgres tuning.
+
+=== Postgres autovacuum nap time
+
+Some midPoint actions may cause a big amount of inserts, followed by complex select (e.g. Opening certification campaign stage).
+In such situations, it may happen that the select will be executed before Postgres will even detect the need for `VACUUM`/`ANALYZE` operations (caused by big number of inserts).
+From our observations, such select could sometimes take a very long time (if at all) to finish.
+
+Even though we try to optimize such cases in the code, it sometimes may be necessary to mitigate this issues by lowering the autovacuum nap time Postgres configuration option.
+This property says, how big delay should be between two subsequent checks for need of `VACUUM`/`ANALYZE` operations.
+The default is 1 minute.
+We suggest you to experiment with lowering of that value to tens of seconds.
+
+NOTE: The autovacuum nap time does not directly affect the execution of the `VACUUM`/`ANALYZE` operations.
+It only affects how often the check for need of `VACUUM`/`ANALYZE` will run.
+So indirectly, it *MAY* but doesn't *HAVE TO* cause bigger number of `VACUUM`/`ANALYZE` executions.
+
+Autovacuum nap time can be configured in the postgresql.conf file in the AUTOVACUUM section:
+[source,conf]
+----
+autovacuum_naptime = 10s
+----
+
+WARNING: The autovacuum nap time is considered per database.
+That means, if your Postgres instance hosts more databases, each of those databases will be checked for need of `VACUUM`/`ANALYZE` once per period.
+Consequently, if the Postgres instance have N databases, there will be a check executed each `naptime/N` seconds, each time for different database.

@@ -27,8 +27,8 @@ import java.util.*;
 import java.util.stream.Collectors;
 import javax.xml.datatype.XMLGregorianCalendar;
 
-import com.evolveum.midpoint.certification.impl.task.startCampaign.AccessCertificationStartCampaignWorkDefinition;
 import com.evolveum.midpoint.model.test.CommonInitialObjects;
+import com.evolveum.midpoint.prism.impl.binding.AbstractReferencable;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.util.AccessCertificationWorkItemId;
 
@@ -346,14 +346,34 @@ public class AbstractCertificationTest extends AbstractUninitializedCertificatio
         throw new AssertionError("Assignment with ID " + id + " not found among assignments of " + focus);
     }
 
+    protected List<AccessCertificationCaseType> filterReviewerCases(Collection<AccessCertificationCaseType> caseList,
+            String reviewerOid) {
+        return caseList.stream()
+                .filter(aCase -> aCase.getWorkItem().stream()
+                        .map(AbstractWorkItemType::getAssigneeRef)
+                        .anyMatch(assignee -> ObjectTypeUtil.containsOid(assignee, reviewerOid)))
+                .toList();
+    }
+
+    /**
+     * Find any case with specified object and specified subject.
+     *
+     * **If there are more cases, which matches above condition, then there is no guarantee on which of them will be
+     * returned**
+     *
+     * @param caseList list of cases to filter
+     * @param subjectOid ID of the case subject (e.g. some role)
+     * @param targetOid ID of the object (e.g. some user)
+     * @return A matching case if any, or null
+     */
     protected AccessCertificationCaseType findCase(Collection<AccessCertificationCaseType> caseList, String subjectOid, String targetOid) {
-        for (AccessCertificationCaseType aCase : caseList) {
-            if (aCase.getTargetRef() != null && aCase.getTargetRef().getOid().equals(targetOid) &&
-                    aCase.getObjectRef() != null && aCase.getObjectRef().getOid().equals(subjectOid)) {
-                return aCase;
-            }
-        }
-        return null;
+        return caseList.stream()
+                .filter(aCase -> aCase.getTargetRef() != null)
+                .filter(aCase -> targetOid.equals(aCase.getTargetRef().getOid()))
+                .filter(aCase -> aCase.getObjectRef() != null)
+                .filter(aCase -> subjectOid.equals(aCase.getObjectRef().getOid()))
+                .findAny()
+                .orElse(null);
     }
 
     protected AccessCertificationWorkItemType findWorkItem(Collection<AccessCertificationWorkItemType> workItems,
@@ -525,7 +545,7 @@ public class AbstractCertificationTest extends AbstractUninitializedCertificatio
     protected void assertReviewerDecision(AccessCertificationCaseType aCase, AccessCertificationResponseType response,
             String comment, int stageNumber, int iteration, String reviewerOid, AccessCertificationResponseType currentStageOutcome,
             boolean checkHistory) {
-        AccessCertificationWorkItemType workItem = getWorkItemsForReviewer(aCase, stageNumber, iteration, reviewerOid);
+        AccessCertificationWorkItemType workItem = findWorkItem(aCase, stageNumber, iteration, reviewerOid);
         assertNotNull("No work item for reviewer " + reviewerOid + " in stage " + stageNumber, workItem);
         assertEquals("wrong response", response, OutcomeUtils.fromUri(WorkItemTypeUtil.getOutcome(workItem)));
         assertEquals("wrong comment", comment, WorkItemTypeUtil.getComment(workItem));
@@ -582,15 +602,13 @@ public class AbstractCertificationTest extends AbstractUninitializedCertificatio
         return rv;
     }
 
-    public AccessCertificationWorkItemType getWorkItemsForReviewer(AccessCertificationCaseType _case, int stageNumber,
+    protected static AccessCertificationWorkItemType findWorkItem(AccessCertificationCaseType aCase, int stageNumber,
             int iteration, String reviewerOid) {
-        for (AccessCertificationWorkItemType workItem : _case.getWorkItem()) {
-            if (workItem.getStageNumber() == stageNumber && norm(workItem.getIteration()) == iteration &&
-                    ObjectTypeUtil.containsOid(workItem.getAssigneeRef(), reviewerOid)) {
-                return workItem;
-            }
-        }
-        return null;
+        return aCase.getWorkItem().stream()
+                .filter(wi -> wi.getStageNumber() == stageNumber)
+                .filter(wi -> norm(wi.getIteration()) == iteration)
+                .filter(wi -> ObjectTypeUtil.containsOid(wi.getAssigneeRef(), reviewerOid))
+                .findFirst().orElse(null);
     }
 
     protected void assertNoDecision(AccessCertificationCaseType _case, int stageNumber, int iteration,
@@ -614,7 +632,7 @@ public class AbstractCertificationTest extends AbstractUninitializedCertificatio
 
     protected void assertDecision2(AccessCertificationCaseType _case, AccessCertificationResponseType response, String comment,
             int stageNumber, int iteration, String reviewerOid, AccessCertificationResponseType aggregatedResponse) {
-        AccessCertificationWorkItemType workItem = CertCampaignTypeUtil.findWorkItem(_case, stageNumber, iteration, reviewerOid);
+        AccessCertificationWorkItemType workItem = findWorkItem(_case, stageNumber, iteration, reviewerOid);
         assertNotNull("decision does not exist", workItem);
         assertEquals("wrong response", response, OutcomeUtils.fromUri(WorkItemTypeUtil.getOutcome(workItem)));
         assertEquals("wrong comment", comment, WorkItemTypeUtil.getComment(workItem));
