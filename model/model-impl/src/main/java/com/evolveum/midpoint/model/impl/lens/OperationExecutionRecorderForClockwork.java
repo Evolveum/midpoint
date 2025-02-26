@@ -81,7 +81,7 @@ class OperationExecutionRecorderForClockwork {
             return;
         }
 
-        if (writer.shouldSkipOperationExecutionRecording(OperationExecutionRecordTypeType.SIMPLE)) {
+        if (writer.shouldSkipAllOperationExecutionRecording(OperationExecutionRecordTypeType.SIMPLE)) {
             LOGGER.trace("Skipping operation execution recording (as set in system configuration)");
             return;
         }
