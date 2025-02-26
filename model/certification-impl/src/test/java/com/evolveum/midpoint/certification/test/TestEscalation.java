@@ -12,14 +12,12 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.CertCampaignTypeUtil;
-import com.evolveum.midpoint.schema.util.task.ActivityStateUtil;
 import com.evolveum.midpoint.schema.util.task.TaskInformation;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
-import org.jetbrains.annotations.NotNull;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Test;
@@ -214,9 +212,8 @@ public class TestEscalation extends AbstractCertificationTest {
 
         // WHEN
         when();
-        AccessCertificationWorkItemType workItem =
-                CertCampaignTypeUtil.findWorkItem(superuserCase, 1, 1, USER_ADMINISTRATOR_OID);
-        long id = superuserCase.asPrismContainerValue().getId();
+        AccessCertificationWorkItemType workItem = findWorkItem(superuserCase, 1, 1, USER_ADMINISTRATOR_OID);
+        long id = superuserCase.getId();
         certificationService.recordDecision(campaignOid, id, workItem.getId(), ACCEPT, "no comment", task, result);
 
         // THEN
@@ -268,7 +265,7 @@ public class TestEscalation extends AbstractCertificationTest {
         AccessCertificationCaseType ceoCase = findCase(caseList, USER_JACK_OID, ROLE_CEO_OID);
         display("CEO case after escalation", ceoCase);
 
-        AccessCertificationWorkItemType workItem = CertCampaignTypeUtil.findWorkItem(ceoCase, 1, 1, USER_ADMINISTRATOR_OID);
+        AccessCertificationWorkItemType workItem = findWorkItem(ceoCase, 1, 1, USER_ADMINISTRATOR_OID);
         assertObjectRefs("assignees", false, workItem.getAssigneeRef(), USER_JACK_OID, USER_ADMINISTRATOR_OID);
         assertEquals("Wrong originalAssignee OID", USER_ADMINISTRATOR_OID, workItem.getOriginalAssigneeRef().getOid());
         final WorkItemEscalationLevelType newEscalationLevel = new WorkItemEscalationLevelType().number(1).name("jack-level");
@@ -284,7 +281,7 @@ public class TestEscalation extends AbstractCertificationTest {
         assertEquals("Wrong new escalation level", newEscalationLevel, event.getNewEscalationLevel());
 
         AccessCertificationCaseType superuserCase = findCase(caseList, USER_ADMINISTRATOR_OID, ROLE_SUPERUSER_OID);
-        AccessCertificationWorkItemType superuserWorkItem = CertCampaignTypeUtil.findWorkItem(superuserCase, 1, 1,
+        AccessCertificationWorkItemType superuserWorkItem = findWorkItem(superuserCase, 1, 1,
                 USER_ADMINISTRATOR_OID);
         //noinspection SimplifiedTestNGAssertion
         assertEquals("Escalation info present even if it shouldn't be", null, superuserWorkItem.getEscalationLevel());
@@ -333,7 +330,7 @@ public class TestEscalation extends AbstractCertificationTest {
 
         AccessCertificationCaseType ceoCase = findCase(caseList, USER_JACK_OID, ROLE_CEO_OID);
         display("CEO case after escalation", ceoCase);
-        AccessCertificationWorkItemType workItem = CertCampaignTypeUtil.findWorkItem(ceoCase, 1, 1, USER_ELAINE_OID);
+        AccessCertificationWorkItemType workItem = findWorkItem(ceoCase, 1, 1, USER_ELAINE_OID);
         assertNotNull("No work item found", workItem);
         assertObjectRefs("assignees", false, workItem.getAssigneeRef(), USER_ELAINE_OID);
         assertEquals("Wrong originalAssignee OID", USER_ADMINISTRATOR_OID, workItem.getOriginalAssigneeRef().getOid());
@@ -352,7 +349,7 @@ public class TestEscalation extends AbstractCertificationTest {
         assertEquals("Wrong new escalation level", newEscalationLevel, event.getNewEscalationLevel());
 
         AccessCertificationCaseType superuserCase = findCase(caseList, USER_ADMINISTRATOR_OID, ROLE_SUPERUSER_OID);
-        AccessCertificationWorkItemType superuserWorkItem = CertCampaignTypeUtil.findWorkItem(superuserCase, 1, 1,
+        AccessCertificationWorkItemType superuserWorkItem = findWorkItem(superuserCase, 1, 1,
                 USER_ADMINISTRATOR_OID);
         //noinspection SimplifiedTestNGAssertion
         assertEquals("Escalation info present even if it shouldn't be", null, superuserWorkItem.getEscalationLevel());

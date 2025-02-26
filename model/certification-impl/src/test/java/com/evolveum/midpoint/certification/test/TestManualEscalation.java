@@ -214,7 +214,7 @@ public class TestManualEscalation extends AbstractCertificationTest {
 
         // WHEN
         when();
-        AccessCertificationWorkItemType workItem = CertCampaignTypeUtil.findWorkItem(superuserCase, 1, 1, USER_ADMINISTRATOR_OID);
+        AccessCertificationWorkItemType workItem = findWorkItem(superuserCase, 1, 1, USER_ADMINISTRATOR_OID);
         long id = superuserCase.asPrismContainerValue().getId();
         certificationService.recordDecision(campaignOid, id, workItem.getId(), ACCEPT, "no comment", task, result);
 
@@ -268,7 +268,7 @@ public class TestManualEscalation extends AbstractCertificationTest {
         AccessCertificationCaseType ceoCase = findCase(caseList, USER_JACK_OID, ROLE_CEO_OID);
         display("CEO case after escalation", ceoCase);
 
-        AccessCertificationWorkItemType workItem = CertCampaignTypeUtil.findWorkItem(ceoCase, 1, 1, USER_ADMINISTRATOR_OID);
+        AccessCertificationWorkItemType workItem = findWorkItem(ceoCase, 1, 1, USER_ADMINISTRATOR_OID);
         assertObjectRefs("assignees", false, workItem.getAssigneeRef(), USER_JACK_OID, USER_ADMINISTRATOR_OID);
         assertEquals("Wrong originalAssignee OID", USER_ADMINISTRATOR_OID, workItem.getOriginalAssigneeRef().getOid());
         final WorkItemEscalationLevelType newEscalationLevel = new WorkItemEscalationLevelType().number(1).name("ESC-1");
@@ -313,7 +313,7 @@ public class TestManualEscalation extends AbstractCertificationTest {
 
         AccessCertificationCaseType ceoCase = findCase(caseList, USER_JACK_OID, ROLE_CEO_OID);
         display("CEO case after escalation", ceoCase);
-        AccessCertificationWorkItemType workItem = CertCampaignTypeUtil.findWorkItem(ceoCase, 1, 1, USER_ELAINE_OID);
+        AccessCertificationWorkItemType workItem = findWorkItem(ceoCase, 1, 1, USER_ELAINE_OID);
         assertNotNull("No work item found", workItem);
         assertObjectRefs("assignees", false, workItem.getAssigneeRef(), USER_ELAINE_OID);
         assertEquals("Wrong originalAssignee OID", USER_ADMINISTRATOR_OID, workItem.getOriginalAssigneeRef().getOid());
@@ -349,7 +349,7 @@ public class TestManualEscalation extends AbstractCertificationTest {
 
         // WHEN
         when();
-        AccessCertificationWorkItemType workItem = CertCampaignTypeUtil.findWorkItem(ceoCase, 1, 1, USER_ELAINE_OID);
+        AccessCertificationWorkItemType workItem = findWorkItem(ceoCase, 1, 1, USER_ELAINE_OID);
         long id = ceoCase.asPrismContainerValue().getId();
         DelegateWorkItemActionType action = new DelegateWorkItemActionType()
                 .approverRef(USER_ADMINISTRATOR_OID, UserType.COMPLEX_TYPE)
@@ -368,7 +368,7 @@ public class TestManualEscalation extends AbstractCertificationTest {
         ceoCase = findCase(caseList, USER_JACK_OID, ROLE_CEO_OID);
         display("CEO case after escalation", ceoCase);
         assertEquals("changed case ID", Long.valueOf(id), ceoCase.asPrismContainerValue().getId());
-        workItem = CertCampaignTypeUtil.findWorkItem(ceoCase, 1, 1, USER_ADMINISTRATOR_OID);
+        workItem = findWorkItem(ceoCase, 1, 1, USER_ADMINISTRATOR_OID);
         assertNotNull("No work item found", workItem);
         assertObjectRefs("assignees", false, workItem.getAssigneeRef(), USER_ADMINISTRATOR_OID, USER_JACK_OID);
         assertEquals("Wrong originalAssignee OID", USER_ADMINISTRATOR_OID, workItem.getOriginalAssigneeRef().getOid());
