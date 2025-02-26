@@ -298,7 +298,7 @@ public class OperationExecutionWriter implements SystemConfigurationChangeListen
         }
     }
 
-    private boolean shouldSkipAllOperationExecutionRecording(OperationExecutionRecordTypeType recordType) {
+    public boolean shouldSkipAllOperationExecutionRecording(OperationExecutionRecordTypeType recordType) {
         var recordingStrategy = selectRecordingStrategy(recordType);
         return recordingStrategy != null && Boolean.TRUE.equals(recordingStrategy.isSkip());
     }
