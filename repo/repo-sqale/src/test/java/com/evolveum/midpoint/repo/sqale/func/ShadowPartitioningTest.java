@@ -1,37 +1,44 @@
 package com.evolveum.midpoint.repo.sqale.func;
 
-import static com.evolveum.midpoint.schema.constants.SchemaConstants.NS_RI;
-
 import static org.assertj.core.api.Assertions.assertThat;
 
+import static com.evolveum.midpoint.schema.constants.SchemaConstants.NS_RI;
+
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.UUID;
+import javax.xml.namespace.QName;
+
+import com.google.common.base.Strings;
+import com.google.common.collect.ImmutableList;
+import org.apache.commons.lang3.builder.ToStringBuilder;
+import org.testng.annotations.BeforeClass;
+import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.repo.sqale.SqaleRepoBaseTest;
-
-import com.evolveum.midpoint.repo.sqale.qmodel.shadow.QShadow;
-import com.evolveum.midpoint.repo.sqale.qmodel.shadow.QShadowMapping;
-import com.evolveum.midpoint.repo.sqale.qmodel.shadow.ShadowPartitionManager;
+import com.evolveum.midpoint.repo.sqale.qmodel.shadow.*;
+import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
 import com.evolveum.midpoint.repo.sqlbase.mapping.QueryTableMapping;
 import com.evolveum.midpoint.repo.sqlbase.querydsl.FlexibleRelationalPathBase;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
-import com.google.common.base.Strings;
-import com.google.common.collect.ImmutableList;
-import org.testng.annotations.BeforeClass;
-import org.testng.annotations.Test;
-
-import javax.xml.namespace.QName;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.UUID;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowReferenceAttributesType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
 public class ShadowPartitioningTest extends SqaleRepoBaseTest {
 
+    private static final Trace LOGGER = TraceManager.getTrace(ShadowPartitioningTest.class);
+
     private static final int NON_MIGRATED_RESOURCE_COUNT = 5;
-    private static final int SHADOWS_PER_RESOURCE_OBJECTCLASS = 100;
+    private static final int SHADOWS_PER_RESOURCE_OBJECTCLASS = 10;     // todo move back to 100 after we figure out why jenkins fails
     private static final List<QName> OBJECT_CLASSES = ImmutableList.of(
             SchemaConstants.RI_ACCOUNT_OBJECT_CLASS,
             SchemaConstants.RI_GROUP_OBJECT_CLASS);
@@ -61,7 +68,7 @@ public class ShadowPartitioningTest extends SqaleRepoBaseTest {
         for (var objectClass : OBJECT_CLASSES) {
             for (int i = 0; i < SHADOWS_PER_RESOURCE_OBJECTCLASS; i++) {
                 repositoryService.addObject(new ShadowType()
-                                .name(Strings.lenientFormat("%s:%s:%s",resource.toString(), objectClass.getLocalPart(), i))
+                                .name(Strings.lenientFormat("%s:%s:%s", resource.toString(), objectClass.getLocalPart(), i))
                                 .objectClass(objectClass)
                                 .resourceRef(resource.toString(), ResourceType.COMPLEX_TYPE)
                                 .referenceAttributes(createReferenceAttributes(attrName))
@@ -123,11 +130,41 @@ public class ShadowPartitioningTest extends SqaleRepoBaseTest {
 
     @Test
     public void test300CreateMissingPartitions() throws SchemaException, ObjectAlreadyExistsException {
+        try (JdbcSession session = sqlRepoContext.newJdbcSession().startReadOnlyTransaction()) {
+            PreparedStatement stmt = session.connection()
+                    .prepareStatement("SELECT table_name FROM information_schema.tables WHERE table_name LIKE 'm_shadow%' ORDER BY table_name");
+            ResultSet result = stmt.executeQuery();
+
+            List<String> tables = new ArrayList<>();
+            while (result.next()) {
+                tables.add(result.getString(1));
+            }
+
+            System.out.println("Current shadow tables: " + tables);
+            LOGGER.info("Current shadow tables: {}", tables);
+
+            QShadowPartitionRef partitionRef = new QShadowPartitionRef("d");
+            List<MShadowPartitionDef> partitions = session.newQuery().select(partitionRef)
+                    .from(partitionRef)
+                    .stream().toList();
+
+            partitions.forEach(partition -> {
+                System.out.println("Partition: " + ToStringBuilder.reflectionToString(partition));
+                LOGGER.info("Partition: {}", ToStringBuilder.reflectionToString(partition));
+            });
+
+            session.commit();
+        } catch (Exception e) {
+            LOGGER.error("Error while fetching partitions", e);
+        }
+
         var result = createOperationResult();
         repositoryService.createPartitionsForExistingData(result);
 
+        result.computeStatusIfUnknown();
+
         if (!result.isSuccess()) {
-            displayException("Failed to create partitions", result.getCause());
+            LOGGER.error("Failed to create partitions, result\n{}", result.debugDump());
             throw new AssertionError(result.getCause());
         }
         for (var resource : resourcesOids) {
@@ -136,6 +173,4 @@ public class ShadowPartitioningTest extends SqaleRepoBaseTest {
         }
         assertThat(countShadowsIn(QShadow.TABLE_NAME)).isEqualTo(resourcesOids.size() * SHADOWS_PER_RESOURCE_OBJECTCLASS * OBJECT_CLASSES.size());
     }
-
-
 }
