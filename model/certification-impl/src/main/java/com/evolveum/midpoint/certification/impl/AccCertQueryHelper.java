@@ -19,6 +19,7 @@ import java.util.Map;
 
 import com.evolveum.midpoint.prism.impl.binding.AbstractReferencable;
 import com.evolveum.midpoint.schema.ObjectHandler;
+import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.util.AccessCertificationCaseId;
 
 import com.evolveum.midpoint.schema.util.AccessCertificationWorkItemId;
@@ -79,6 +80,18 @@ public class AccCertQueryHelper {
                 result);
     }
 
+    /**
+     * Search all campaign cases iteratively.
+     *
+     * **Note:** In some cases (when backend does not support it), the search may be done non iteratively, using just
+     * one select query with limit of 10 000 records.
+     *
+     * @param campaignOid oid of campaign in to which cases belongs
+     * @param filter additional filter with more filtering criteria
+     * @param certCaseHandler handler used to process returned cases
+     * @param result parent operational result
+     * @throws SchemaException when exception occurs during the read from database
+     */
     public void iterateAllCampaignCases(String campaignOid, ObjectFilter filter,
             ObjectHandler<AccessCertificationCaseType> certCaseHandler, OperationResult result) throws SchemaException {
 
@@ -86,8 +99,14 @@ public class AccCertQueryHelper {
                 .ownerId(campaignOid)
                 .and().filter(filter)
                 .build();
-        this.repositoryService.searchContainersIterative(AccessCertificationCaseType.class, query, certCaseHandler,
-                Collections.emptyList(), result);
+        if (this.repositoryService.isNative()) {
+            this.repositoryService.searchContainersIterative(AccessCertificationCaseType.class, query, certCaseHandler,
+                    Collections.emptyList(), result);
+        } else {
+            final SearchResultList<AccessCertificationCaseType> certCases = this.repositoryService.searchContainers(
+                    AccessCertificationCaseType.class, query, Collections.emptyList(), result);
+            certCases.forEach(aCase -> certCaseHandler.handle(aCase, result));
+        }
     }
 
     List<AccessCertificationWorkItemType> searchOpenWorkItems(

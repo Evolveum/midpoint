@@ -233,6 +233,11 @@
 
         <!-- Spring Boot parent declares most fresh versions for JDBC drivers for all our servers. -->
 
+
+        <!-- Groovy 4.0.24 is also default for Spring Boot 3.4.0 -->
+        <groovy.version>4.0.24</groovy.version>
+
+
         <!-- START of Spring Boot dependencies overrides (temporary/security fixes, revise regularly!) -->
         <!-- END of Spring Boot dependencies overrides -->
 
