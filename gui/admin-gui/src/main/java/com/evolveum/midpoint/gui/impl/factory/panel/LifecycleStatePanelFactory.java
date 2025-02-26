@@ -6,8 +6,11 @@
  */
 package com.evolveum.midpoint.gui.impl.factory.panel;
 
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismPropertyWrapper;
 import com.evolveum.midpoint.gui.impl.component.input.LifecycleStateFormPanel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
 
 import jakarta.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,7 +33,9 @@ public class LifecycleStatePanelFactory extends AbstractInputGuiComponentFactory
 
     @Override
     public <IW extends ItemWrapper<?, ?>, VW extends PrismValueWrapper<?>> boolean match(IW wrapper, VW valueWrapper) {
-        return ObjectType.F_LIFECYCLE_STATE.equals(wrapper.getItemName());
+        return ObjectType.F_LIFECYCLE_STATE.equals(wrapper.getItemName())
+                && wrapper instanceof PrismPropertyWrapper<?> propertyWrapper
+                && SystemObjectsType.LOOKUP_LIFECYCLE_STATES.value().equals(propertyWrapper.getPredefinedValuesOid());
     }
 
     @Override
