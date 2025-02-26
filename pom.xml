@@ -219,7 +219,7 @@
         -->
         <h2.version>1.4.193</h2.version>
         <!-- Spring Boot parent declares most fresh versions for JDBC drivers for all our servers -->
-        <wicket.version>9.13.0</wicket.version>
+        <wicket.version>9.18.0</wicket.version>
         <wicket.chartjs.version>0.1</wicket.chartjs.version>
         <groovy.version>3.0.19</groovy.version>
         <xmlsec.version>2.2.5</xmlsec.version>
