@@ -194,7 +194,7 @@ export default class MidPointAceEditor {
                 const aceSuggestions = [];
 
                 suggestions.forEach(function (suggestion) {
-                    aceSuggestions.push({caption: suggestion.name, value: suggestion.name, meta: suggestion.alias});
+                    aceSuggestions.push({caption: suggestion.name, value: suggestion.name, score: suggestion.priority, meta: suggestion.alias});
                 })
 
                 // select suggestions by prefix
@@ -203,7 +203,7 @@ export default class MidPointAceEditor {
                 } else {
                     callback(null, aceSuggestions);
                 }
-            },
+            }
         };
 
         editor.completers = [customCompleter];
