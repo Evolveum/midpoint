@@ -641,7 +641,7 @@ H2 is intended only for development, demo and similar use cases.
 It is *not* supported for any production use.
 Also, upgrade of deployments based on H2 database are not supported.
 
-* Oracle 21c
+* Oracle 21c, 23ai
 * Microsoft SQL Server 2019
 
 Support for xrefv:/midpoint/reference/support-4.8/repository/generic/[generic repository implementation] together with all the database engines supported by this implementation is *deprecated*.
