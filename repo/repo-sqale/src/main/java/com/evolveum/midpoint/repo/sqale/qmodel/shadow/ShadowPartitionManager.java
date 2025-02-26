@@ -108,7 +108,7 @@ public class ShadowPartitionManager implements PartitionManager<MShadow> {
             defaultPartition.partition = true;
             defaultPartition.table = TABLE_PREFIX + tableOid(resourceOid) + DEFAULT_SUFFIX;
             defaultPartition.attached = false;
-            LOGGER.trace("Creating default partition for {}, table {}", resourceOid, table);
+            LOGGER.trace("Creating default partition for {}, table {}", defaultPartition.resourceOid, defaultPartition.table);
             jdbcSession.newInsert(alias()).populate(defaultPartition).execute();
         }
 
