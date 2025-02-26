@@ -1,0 +1,19 @@
+/*!
+ * Copyright (C) 2010-2025 Evolveum and contributors
+ *
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
+ */
+
+/*
+ * MID-10453 fix responsive for columns of table in Safari
+ */
+@each $breakpoint in map-keys($grid-breakpoints) {
+  $infix: breakpoint-infix($breakpoint, $grid-breakpoints);
+  @for $i from 1 through $grid-columns {
+    table tr th.col#{$infix}-#{$i}, table tr td.col#{$infix}-#{$i} {
+        flex: 0 0 auto;
+        width: percentage(calc($i / $grid-columns));
+    }
+  }
+}

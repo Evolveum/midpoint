@@ -20,6 +20,11 @@
     </item>
 
     <item>
+        <ref>emailAddress</ref>
+        <displayHint>emphasized</displayHint>
+    </item>
+
+    <item>
         <ref>additionalName</ref>
         <displayName>Middle Name</displayName>
         <help>Just a plain old middle name</help> <!--MID-5736-->

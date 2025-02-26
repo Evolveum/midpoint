@@ -17,6 +17,8 @@ import java.util.List;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.*;
+
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
@@ -28,9 +30,6 @@ import com.evolveum.icf.dummy.resource.DummyAccount;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.common.expression.evaluator.GenerateExpressionEvaluator;
 import com.evolveum.midpoint.model.impl.trigger.RecomputeTriggerHandler;
-import com.evolveum.midpoint.prism.ItemFactory;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.DeltaFactory;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
@@ -3608,5 +3607,31 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
                 .assertTriggers(3)      // for some reason two new triggers are created
                 .end()
                 .assertAssignments(1);
+    }
+
+    /**
+     * MID-10359
+     */
+    @Test
+    public void test999CheckItemEmphasizeOverride() throws Exception {
+        // GIVEN
+        setDefaultUserTemplate(USER_TEMPLATE_COMPLEX_OID);
+
+        // WHEN
+        when();
+        Task task = getTestTask();
+        OperationResult result = getTestOperationResult();
+
+        PrismObject<UserType> userJack = modelService.getObject(UserType.class, USER_JACK_OID, null, task, result);
+
+        PrismObjectDefinition<UserType> objectDef = modelInteractionService.getEditObjectDefinition(userJack, AuthorizationPhaseType.REQUEST, task, result);
+        userJack.applyDefinition(objectDef);
+
+        PrismProperty<Object> email = userJack.findProperty(UserType.F_EMAIL_ADDRESS);
+        PrismPropertyDefinition<Object> emailDef = email.getDefinition();
+
+        //THEN
+        then();
+        assertTrue("Expected that item email is emphasized", emailDef.isEmphasized());
     }
 }
