@@ -37,8 +37,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
-import static com.evolveum.midpoint.schema.GetOperationOptions.createNoFetchCollection;
-import static com.evolveum.midpoint.schema.GetOperationOptions.createReadOnlyCollection;
+import static com.evolveum.midpoint.schema.GetOperationOptions.*;
 
 /**
  * Refreshes a projection context after the shadow was found to be missing.
@@ -235,7 +234,7 @@ public class MissingShadowContextRefresher<F extends ObjectType> {
             return null;
         }
         try {
-            return beans.cacheRepositoryService.getObject(focusClass, focusContext.getOid(), createReadOnlyCollection(), result);
+            return beans.cacheRepositoryService.getObject(focusClass, focusContext.getOid(), readOnly(), result);
         } catch (ObjectNotFoundException e) {
             if (focusContext.isDelete()) {
                 // This may be OK. This may be later wave and the focus may be already deleted.

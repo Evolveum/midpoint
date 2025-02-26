@@ -7,7 +7,7 @@
 package com.evolveum.midpoint.model.impl.tasks;
 
 import static com.evolveum.midpoint.model.api.ModelExecuteOptions.fromModelExecutionOptionsType;
-import static com.evolveum.midpoint.schema.GetOperationOptions.createReadOnlyCollection;
+import static com.evolveum.midpoint.schema.GetOperationOptions.readOnly;
 import static com.evolveum.midpoint.util.MiscUtil.configNonNull;
 
 import java.util.List;
@@ -136,7 +136,7 @@ public class RoleMembershipManagementActivityHandler
             role = modelObjectResolver.resolve(
                     getWorkDefinition().roleRef,
                     AbstractRoleType.class,
-                    createReadOnlyCollection(),
+                    readOnly(),
                     "roleRef resolution",
                     getRunningTask(), result);
             inducedRolesOids = RoleManagementUtil.getInducedRolesOids(role);

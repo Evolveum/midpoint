@@ -9,7 +9,7 @@ package com.evolveum.midpoint.model.impl.lens.assignments;
 
 import static com.evolveum.midpoint.model.api.util.ReferenceResolver.Source.REPOSITORY;
 import static com.evolveum.midpoint.model.impl.lens.assignments.Util.isChanged;
-import static com.evolveum.midpoint.schema.GetOperationOptions.createReadOnlyCollection;
+import static com.evolveum.midpoint.schema.GetOperationOptions.readOnly;
 import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.asObjectable;
 
 import java.util.ArrayList;
@@ -231,7 +231,7 @@ class TargetsEvaluation<AH extends AssignmentHolderType> extends AbstractEvaluat
         var filterExpressionEvaluator =
                 createFilterExpressionEvaluator(segment.assignmentOrigin.child(AssignmentType.F_TARGET_REF));
         return ctx.ae.referenceResolver.resolve(
-                targetRef, createReadOnlyCollection(), REPOSITORY,
+                targetRef, readOnly(), REPOSITORY,
                 filterExpressionEvaluator, ctx.task, result);
     }
 

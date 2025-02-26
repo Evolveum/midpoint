@@ -36,7 +36,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
-import static com.evolveum.midpoint.schema.GetOperationOptions.createReadOnlyCollection;
+import static com.evolveum.midpoint.schema.GetOperationOptions.readOnly;
 
 /**
  * Originally, this class checks number of selected infra operations needed to execute "object add" operation.
@@ -214,7 +214,7 @@ public class TestOperationPerf extends AbstractStoryTest {
 
     private void executeGetUserIterations(String oid, int iterations) throws CommonException {
         var task = getTestTask();
-        var options = createReadOnlyCollection();
+        var options = readOnly();
         OperationResult result1 = null;
         for (int i = 0; i < iterations; i++) {
             if (i % 100 == 0) {

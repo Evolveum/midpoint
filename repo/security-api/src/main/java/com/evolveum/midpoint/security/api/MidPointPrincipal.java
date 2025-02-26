@@ -45,7 +45,6 @@ public class MidPointPrincipal implements UserDetails, DebugDumpable, ShortDumpa
     @Serial private static final long serialVersionUID = 8299738301872077768L;
 
     /** Focus should not be final in case of session refresh: we need new focus object there. */
-    @SuppressWarnings("NotNullFieldNotInitialized") // initialized, but IDEA is not smart enough here
     @NotNull private FocusType focus;
 
     /** OID of the {@link #focus}. Does not change in the case of session refresh; at least not now. */

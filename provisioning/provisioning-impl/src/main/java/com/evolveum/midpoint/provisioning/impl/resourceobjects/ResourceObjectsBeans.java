@@ -7,6 +7,8 @@
 
 package com.evolveum.midpoint.provisioning.impl.resourceobjects;
 
+import com.evolveum.midpoint.task.api.Tracer;
+
 import jakarta.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -42,4 +44,5 @@ class ResourceObjectsBeans {
     @Autowired LightweightIdentifierGenerator lightweightIdentifierGenerator;
     @Autowired ShadowAuditHelper shadowAuditHelper;
     @Autowired MatchingRuleRegistry matchingRuleRegistry;
+    @Autowired Tracer tracer;
 }

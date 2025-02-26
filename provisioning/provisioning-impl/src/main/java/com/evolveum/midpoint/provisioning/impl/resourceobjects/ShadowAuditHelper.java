@@ -44,7 +44,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
-import static com.evolveum.midpoint.schema.GetOperationOptions.createReadOnlyCollection;
+import static com.evolveum.midpoint.schema.GetOperationOptions.readOnly;
 
 @Component
 public class ShadowAuditHelper {
@@ -150,7 +150,7 @@ public class ShadowAuditHelper {
                 (objectClass, oid, lResult) ->
                         // Using read-only options to avoid cloning when fetching from the cache
                         repositoryService
-                                .getObject(objectClass, oid, createReadOnlyCollection(), lResult)
+                                .getObject(objectClass, oid, readOnly(), lResult)
                                 .getName();
 
         auditHelper.audit(auditRecord, nameResolver, ctx.getTask(), result);

@@ -47,7 +47,7 @@ import com.evolveum.midpoint.test.DummyTestResource;
 import static com.evolveum.midpoint.model.intest.dummys.ScenariosConstants.*;
 import static com.evolveum.midpoint.model.test.CommonInitialObjects.MARK_MANAGED;
 import static com.evolveum.midpoint.model.test.CommonInitialObjects.MARK_UNMANAGED;
-import static com.evolveum.midpoint.schema.GetOperationOptions.createReadOnlyCollection;
+import static com.evolveum.midpoint.schema.GetOperationOptions.readOnly;
 
 import static com.evolveum.midpoint.schema.constants.SchemaConstants.ICFS_NAME;
 
@@ -492,7 +492,7 @@ public class TestAssociations extends AbstractEmptyModelIntegrationTest {
                 .assertSize(2);
 
         var shadowReadAgain = provisioningService.getObject(
-                ShadowType.class, shadows.get(0).getOid(), createReadOnlyCollection(), task, result);
+                ShadowType.class, shadows.get(0).getOid(), readOnly(), task, result);
         assertShadowAfter(shadowReadAgain)
                 .display();
 

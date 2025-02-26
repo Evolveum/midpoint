@@ -675,6 +675,12 @@ public class GetOperationOptions extends AbstractOptions implements Serializable
         return opts;
     }
 
+    /** Shorter than {@link #createReadOnlyCollection()}. */
+    public static Collection<SelectorOptions<GetOperationOptions>> readOnly() {
+        return SelectorOptions.createCollection(createReadOnly());
+    }
+
+    @Deprecated // use readOnly() instead
     public static Collection<SelectorOptions<GetOperationOptions>> createReadOnlyCollection() {
         return SelectorOptions.createCollection(createReadOnly());
     }

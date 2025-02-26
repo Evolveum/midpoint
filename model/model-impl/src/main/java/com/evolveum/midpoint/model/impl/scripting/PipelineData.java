@@ -33,7 +33,7 @@ import javax.xml.namespace.QName;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import static com.evolveum.midpoint.schema.GetOperationOptions.createReadOnlyCollection;
+import static com.evolveum.midpoint.schema.GetOperationOptions.readOnly;
 
 /**
  * Data that are passed between individual scripting actions.
@@ -157,7 +157,7 @@ public class PipelineData implements DebugDumpable {
             SecurityViolationException, ExpressionEvaluationException {
         ObjectQuery query = context.getQueryConverter().createObjectQuery(type, queryBean);
         SearchResultList<? extends PrismObject<? extends ObjectType>> objects = context.getModelService()
-                .searchObjects(type, query, createReadOnlyCollection(), context.getTask(), result);
+                .searchObjects(type, query, readOnly(), context.getTask(), result);
         return objects.stream().map(o -> ObjectTypeUtil.createObjectRef(o)).collect(Collectors.toList());
     }
 

@@ -33,7 +33,7 @@ import org.jetbrains.annotations.TestOnly;
 import java.util.List;
 
 import static com.evolveum.midpoint.prism.xml.XmlTypeConverter.toMillis;
-import static com.evolveum.midpoint.schema.GetOperationOptions.createReadOnlyCollection;
+import static com.evolveum.midpoint.schema.GetOperationOptions.readOnly;
 
 /**
  *  This is a preliminary implementation.
@@ -163,7 +163,7 @@ public class OptimizingTriggerCreatorImpl implements OptimizingTriggerCreator {
         String oid = key.getOid();
         if (oid != null) {
             return repositoryService
-                    .getObject(key.getType(), oid, createReadOnlyCollection(), getCurrentResult())
+                    .getObject(key.getType(), oid, readOnly(), getCurrentResult())
                     .asObjectable();
         }
 
@@ -172,7 +172,7 @@ public class OptimizingTriggerCreatorImpl implements OptimizingTriggerCreator {
             throw new IllegalStateException("No OID nor query for " + key);
         }
         SearchResultList<? extends PrismObject<? extends ObjectType>> objects =
-                repositoryService.searchObjects(key.getType(), query, createReadOnlyCollection(), getCurrentResult());
+                repositoryService.searchObjects(key.getType(), query, readOnly(), getCurrentResult());
         if (objects.isEmpty()) {
             LOGGER.warn("No object found for {}; no trigger will be set", key); // or should we throw ObjectNotFoundException?
             return null;

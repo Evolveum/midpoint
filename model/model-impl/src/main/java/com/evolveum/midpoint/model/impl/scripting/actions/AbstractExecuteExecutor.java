@@ -207,18 +207,16 @@ abstract class AbstractExecuteExecutor<P extends AbstractExecuteExecutor.Paramet
             ConfigurationException, SecurityViolationException;
 
     private void addToData(@NotNull Object outObject, @NotNull OperationResult result, PipelineData output) {
-        if (outObject instanceof Collection) {
-            for (Object o : (Collection<?>) outObject) {
+        if (outObject instanceof Collection<?> objects) {
+            for (Object o : objects) {
                 addToData(o, result, output);
             }
         } else {
             PrismValue value;
-            if (outObject instanceof PrismValue) {
-                value = (PrismValue) outObject;
-            } else if (outObject instanceof Objectable) {
-                value = prismContext.itemFactory().createObjectValue((Objectable) outObject);
-            } else if (outObject instanceof Containerable) {
-                value = prismContext.itemFactory().createContainerValue((Containerable) outObject);
+            if (outObject instanceof PrismValue prismValue) {
+                value = prismValue;
+            } else if (outObject instanceof Containerable containerable) {
+                value = containerable.asPrismContainerValue();
             } else {
                 value = prismContext.itemFactory().createPropertyValue(outObject);
             }

@@ -35,6 +35,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
+import static com.evolveum.midpoint.schema.GetOperationOptions.readOnly;
 import static com.evolveum.midpoint.schema.result.OperationResult.HANDLE_OBJECT_FOUND;
 
 /**
@@ -239,7 +240,7 @@ public class ProvisioningSearchLikeOperation<T extends ObjectType> {
 
     private Collection<SelectorOptions<GetOperationOptions>> createRepoOptions() {
         if (GetOperationOptions.isReadOnly(rootOptions)) {
-            return SelectorOptions.createCollection(GetOperationOptions.createReadOnly());
+            return readOnly();
         } else {
             return null;
         }

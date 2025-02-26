@@ -6,6 +6,8 @@
  */
 package com.evolveum.midpoint.model.intest;
 
+import static com.evolveum.midpoint.schema.GetOperationOptions.readOnly;
+
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.testng.AssertJUnit.*;
 
@@ -555,12 +557,9 @@ public class TestResources extends AbstractConfiguredModelIntegrationTest {
 
         rememberCounter(InternalCounters.PRISM_OBJECT_CLONE_COUNT);
 
-        Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(
-                GetOperationOptions.createReadOnly());
-
         when();
-        PrismObject<ResourceType> resource = modelService.getObject(ResourceType.class, RESOURCE_DUMMY_OID,
-                options, task, result);
+        PrismObject<ResourceType> resource = modelService.getObject(
+                ResourceType.class, RESOURCE_DUMMY_OID, readOnly(), task, result);
 
         then();
         assertSuccess(result);

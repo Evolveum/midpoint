@@ -6,12 +6,12 @@
  */
 package com.evolveum.midpoint.model.impl.expr;
 
+import static com.evolveum.midpoint.schema.GetOperationOptions.*;
+
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singleton;
 
 import static com.evolveum.midpoint.prism.delta.ObjectDelta.isAdd;
-import static com.evolveum.midpoint.schema.GetOperationOptions.createNoFetchCollection;
-import static com.evolveum.midpoint.schema.GetOperationOptions.createReadOnlyCollection;
 import static com.evolveum.midpoint.schema.constants.SchemaConstants.PATH_CREDENTIALS_PASSWORD;
 import static com.evolveum.midpoint.schema.constants.SchemaConstants.PATH_CREDENTIALS_PASSWORD_VALUE;
 import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.asObjectable;
@@ -874,7 +874,7 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
             }
         };
 
-        modelService.searchObjectsIterative(ShadowType.class, query, handler, createReadOnlyCollection(), task, result);
+        modelService.searchObjectsIterative(ShadowType.class, query, handler, readOnly(), task, result);
 
         return isUniqueHolder.getValue();
     }
