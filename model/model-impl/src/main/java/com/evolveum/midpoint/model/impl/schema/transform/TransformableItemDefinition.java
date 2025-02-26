@@ -296,7 +296,7 @@ public abstract class TransformableItemDefinition<I extends Item<?,?>,D extends 
 
     @Override
     public boolean isEmphasized() {
-        return preferLocal(this.emphasized, delegate().isEmphasized());
+        return preferLocal(this.emphasized, delegate().isEmphasized()) || getDisplayHint() == DisplayHint.EMPHASIZED;
     }
 
     @Override
