@@ -38,7 +38,7 @@ public class ShadowPartitioningTest extends SqaleRepoBaseTest {
     private static final Trace LOGGER = TraceManager.getTrace(ShadowPartitioningTest.class);
 
     private static final int NON_MIGRATED_RESOURCE_COUNT = 5;
-    private static final int SHADOWS_PER_RESOURCE_OBJECTCLASS = 10;     // todo move back to 100 after we figure out why jenkins fails
+    private static final int SHADOWS_PER_RESOURCE_OBJECTCLASS = 100;
     private static final List<QName> OBJECT_CLASSES = ImmutableList.of(
             SchemaConstants.RI_ACCOUNT_OBJECT_CLASS,
             SchemaConstants.RI_GROUP_OBJECT_CLASS);
@@ -140,7 +140,9 @@ public class ShadowPartitioningTest extends SqaleRepoBaseTest {
                 tables.add(result.getString(1));
             }
 
-            System.out.println("Current shadow tables: " + tables);
+            result.close();
+            stmt.close();
+
             LOGGER.info("Current shadow tables: {}", tables);
 
             QShadowPartitionRef partitionRef = new QShadowPartitionRef("d");
@@ -148,10 +150,7 @@ public class ShadowPartitioningTest extends SqaleRepoBaseTest {
                     .from(partitionRef)
                     .stream().toList();
 
-            partitions.forEach(partition -> {
-                System.out.println("Partition: " + ToStringBuilder.reflectionToString(partition));
-                LOGGER.info("Partition: {}", ToStringBuilder.reflectionToString(partition));
-            });
+            partitions.forEach(partition -> LOGGER.info("Partition: {}", ToStringBuilder.reflectionToString(partition)));
 
             session.commit();
         } catch (Exception e) {
