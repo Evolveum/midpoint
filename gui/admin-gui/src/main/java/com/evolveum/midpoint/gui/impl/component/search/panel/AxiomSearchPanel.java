@@ -45,6 +45,7 @@ import org.apache.wicket.request.cycle.RequestCycle;
 import javax.xml.namespace.QName;
 import java.time.Duration;
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.List;
 
 public class AxiomSearchPanel extends BasePanel<AxiomQueryWrapper> {
@@ -130,6 +131,7 @@ public class AxiomSearchPanel extends BasePanel<AxiomQueryWrapper> {
                                         .map(suggestion -> !suggestion.alias().isEmpty()
                                                 ? new Suggestion(suggestion.name(), createStringResource(suggestion.alias()).getString(), suggestion.priority()) // translate alias
                                                 : suggestion)
+                                        .sorted(Comparator.comparingInt(Suggestion::priority).reversed()) // sorted suggestions by priority from max to min weigh
                                         .toList()
                                 ) + ", '" + idAxiomQueryInputField + "');"
                         );

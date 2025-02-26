@@ -63,6 +63,11 @@ public class TestDummyUuidNonUniqueName extends TestDummyUuid {
         return false;
     }
 
+    @Override
+    protected boolean supportsMemberOf() {
+        return false;
+    }
+
     // runAs is using name as an identifier. But name is not unique in this case. runAs won't work.
     @Override
     protected void assertRunAsCapability(RunAsCapabilityType capRunAs) {

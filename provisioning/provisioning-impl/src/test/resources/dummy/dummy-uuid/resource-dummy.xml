@@ -30,6 +30,7 @@
             </icfi:uselessGuardedString>
             <icfi:supportValidity>true</icfi:supportValidity>
             <icfi:requireNameHint>true</icfi:requireNameHint>
+            <icfi:memberOfAttribute>true</icfi:memberOfAttribute>
         </icfc:configurationProperties>
 
         <icfc:resultsHandlerConfiguration>
@@ -69,6 +70,8 @@
                 <direction>objectToSubject</direction>
                 <associationAttribute>ri:members</associationAttribute>
                 <valueAttribute>icfs:name</valueAttribute>
+                <shortcutAssociationAttribute>ri:memberOf</shortcutAssociationAttribute>
+                <shortcutValueAttribute>icfs:name</shortcutValueAttribute>
             </association>
             <association>
                 <ref>ri:priv</ref>
