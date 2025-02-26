@@ -126,6 +126,10 @@ public class ShadowPartitioningTest extends SqaleRepoBaseTest {
         var result = createOperationResult();
         repositoryService.createPartitionsForExistingData(result);
 
+        if (!result.isSuccess()) {
+            displayException("Failed to create partitions", result.getCause());
+            throw new AssertionError(result.getCause());
+        }
         for (var resource : resourcesOids) {
             var resourceTableInfo = partitionManager.getResourceTable(resource);
             assertThat(countShadowsIn(resourceTableInfo.getTableName())).isEqualTo(SHADOWS_PER_RESOURCE_OBJECTCLASS * OBJECT_CLASSES.size());
