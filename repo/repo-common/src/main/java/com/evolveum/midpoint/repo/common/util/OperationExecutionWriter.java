@@ -95,7 +95,7 @@ public class OperationExecutionWriter implements SystemConfigurationChangeListen
                 .setMinor()
                 .build();
         try {
-            if (shouldSkipOperationExecutionRecording(currentRecordType)) {
+            if (shouldSkipAllOperationExecutionRecording(currentRecordType)) {
                 LOGGER.trace("Skipping operation execution recording because it's turned off.");
                 return;
             }
@@ -106,10 +106,10 @@ public class OperationExecutionWriter implements SystemConfigurationChangeListen
             if (cleaningSpec.isKeepNone()) {
                 LOGGER.trace("Will skip operation execution recording because it's turned off (recordsToKeep is set to 0).");
                 addingRecord = false;
-            } else if (request.recordToAdd.getStatus() == OperationResultStatusType.SUCCESS &&
-                    shouldSkipOperationExecutionRecordingWhenSuccess(currentRecordType)) {
+            } else if (request.recordToAdd.getStatus() == OperationResultStatusType.SUCCESS
+                    && shouldSkipOperationExecutionRecordingWhenSuccess(currentRecordType)) {
                 LOGGER.trace("Will skip operation execution recording because it's turned off for successful processing.");
-                addingRecord = false;
+                addingRecord = false; // we may still delete old records
             } else {
                 addingRecord = true;
             }
@@ -117,7 +117,9 @@ public class OperationExecutionWriter implements SystemConfigurationChangeListen
             try {
                 List<OperationExecutionType> recordsToAdd = addingRecord ? singletonList(request.recordToAdd) : emptyList();
                 List<OperationExecutionType> recordsToDelete = getRecordsToDelete(request, cleaningSpec, addingRecord, result);
-                executeChanges(request, recordsToAdd, recordsToDelete, result);
+                if (!recordsToAdd.isEmpty() || !recordsToDelete.isEmpty()) {
+                    executeChanges(request, recordsToAdd, recordsToDelete, result);
+                }
             } catch (ObjectNotFoundException e) {
                 if (!request.deletedOk) {
                     throw e;
@@ -296,13 +298,13 @@ public class OperationExecutionWriter implements SystemConfigurationChangeListen
         }
     }
 
-    public boolean shouldSkipOperationExecutionRecording(OperationExecutionRecordTypeType recordType) {
-        OperationExecutionRecordingStrategyType recordingStrategy = selectRecordingStrategy(recordType);
+    private boolean shouldSkipAllOperationExecutionRecording(OperationExecutionRecordTypeType recordType) {
+        var recordingStrategy = selectRecordingStrategy(recordType);
         return recordingStrategy != null && Boolean.TRUE.equals(recordingStrategy.isSkip());
     }
 
     private boolean shouldSkipOperationExecutionRecordingWhenSuccess(OperationExecutionRecordTypeType recordType) {
-        OperationExecutionRecordingStrategyType recordingStrategy = selectRecordingStrategy(recordType);
+        var recordingStrategy = selectRecordingStrategy(recordType);
         return recordingStrategy != null && Boolean.TRUE.equals(recordingStrategy.isSkipWhenSuccess());
     }
 
