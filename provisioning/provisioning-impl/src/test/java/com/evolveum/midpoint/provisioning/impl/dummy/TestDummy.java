@@ -3157,6 +3157,88 @@ public class TestDummy extends AbstractBasicDummyTest {
     }
 
     /**
+     * An account is a member of a group that is deleted and re-created again.
+     * The provisioning module should treat this situation correctly.
+     *
+     * This test is primarily indented for "UUID" ICF UID mode (see {@link TestDummyUuid}), but it should pass also
+     * in the default mode (where ICF UID is the same as ICF NAME).
+     *
+     * MID-10408
+     */
+    @Test
+    public void test250FlickeringGroup() throws Exception {
+        var task = getTestTask();
+        var result = task.getResult();
+        var accountName = "a-" + getTestNameShort();
+        var groupName = "g-" + getTestNameShort();
+
+        skipTestIf(!isNameUnique(), "This test requires unique names");
+        skipTestIf(areReferencesSupportedNatively(), "This test requires simulated references");
+
+        given("an account");
+        var account = Resource.of(resource)
+                .shadow(ResourceObjectTypeIdentification.defaultAccount())
+                .withSimpleAttribute(ICFS_NAME, accountName)
+                .asPrismObject();
+        var accountOid = provisioningService.addObject(account, null, null, task, result);
+
+        and("a new group");
+        var group = Resource.of(resource)
+                .shadow(ResourceObjectTypeIdentification.of(ShadowKindType.ENTITLEMENT, RESOURCE_DUMMY_INTENT_GROUP))
+                .withSimpleAttribute(ICFS_NAME, groupName)
+                .asPrismObject();
+        var groupOidBefore = provisioningService.addObject(group, null, null, task, result);
+
+        try {
+
+            dummyResource
+                    .getGroupByName(groupName)
+                    .addMember(accountName);
+
+            when("account is retrieved");
+            var shadowBefore = provisioningService.getObject(ShadowType.class, accountOid, null, task, result);
+
+            then("account is member of the group");
+            assertShadow(shadowBefore, "before")
+                    .display()
+                    .associations()
+                    .association(RI_GROUP)
+                    .assertShadowOids(groupOidBefore);
+
+            when("group object is deleted and re-created");
+            displayDumpable("dummy resource before", dummyResource);
+            dummyResource.deleteGroupById(
+                    dummyResource.getGroupByName(groupName).getId());
+            dummyResourceCtl.addGroup(groupName)
+                    .addMember(accountName);
+            displayDumpable("dummy resource after", dummyResource);
+
+            and("account is retrieved again");
+            var shadowAfter = provisioningService.getObject(ShadowType.class, accountOid, null, task, result);
+
+            then("result is success and the account is member of the group (with new OID)");
+            assertSuccess(result);
+            var groupOidAfter = assertShadow(shadowAfter, "after")
+                    .display()
+                    .associations()
+                    .association(RI_GROUP)
+                    .getSingleTargetRef().getOid();
+
+            assertRepoShadow(groupOidAfter)
+                    .display()
+                    .assertName(groupName)
+                    .assertKind(ShadowKindType.ENTITLEMENT)
+                    .assertIntent(RESOURCE_DUMMY_INTENT_GROUP)
+                    .assertLive();
+        } finally {
+            dummyResource.deleteAccountByName(accountName);
+            dummyResource.deleteGroupByName(groupName);
+            repositoryService.deleteObject(ShadowType.class, accountOid, result);
+            repositoryService.deleteObject(ShadowType.class, groupOidBefore, result);
+        }
+    }
+
+    /**
      * LeChuck has both group and priv entitlement. Let's add him together with these entitlements.
      */
     @Test

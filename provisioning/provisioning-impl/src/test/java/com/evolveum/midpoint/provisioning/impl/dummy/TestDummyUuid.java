@@ -36,8 +36,8 @@ public class TestDummyUuid extends TestDummy {
     }
 
     @Override
-    protected boolean isNameUnique() {
-        return false;
+    protected boolean supportsMemberOf() {
+        return true;
     }
 
     @Override

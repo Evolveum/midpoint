@@ -943,12 +943,7 @@ export default class MidPointTheme {
         autocomplete.empty()
         autocomplete.show()
 
-        if (suggestions === undefined || suggestions.length === 0) {
-            autocomplete.append('<div class="line no-suggestion">' +
-                    '<span> No suggestions </span>' +
-                '</div>'
-            )
-        } else {
+        if (suggestions != undefined && suggestions.length != 0) {
             const query = queryDslInput.val();
             const cursorPosition = queryDslInput[0].selectionStart;
             const commands = query.slice(0, cursorPosition).split(" ");
@@ -964,11 +959,10 @@ export default class MidPointTheme {
 
             suggestions.forEach(suggestion => {
                 const highlightedName = suggestion.name.replace(regex, "<strong>$1</strong>");
-                renderSuggestions(highlightedName, suggestion.alias)
-                if (positionCommand === " ") {
+                if (positionCommand === " " || suggestion.name.includes(positionCommand)) {
                     renderSuggestions(highlightedName, suggestion.alias)
-                } else if (suggestion.name.includes(positionCommand)) {
-                    renderSuggestions(highlightedName, suggestion.alias)
+                } else {
+
                 }
             })
 
@@ -992,7 +986,14 @@ export default class MidPointTheme {
                     e.preventDefault();
                     navigate(-1)
                 } else if (e.key === "Enter") {
-
+                    // select active suggestion by touch Enter key
+//                    const items = autocomplete.find("div");
+//                    if (currentIndex >= 0 && currentIndex < items.length) {
+//                        queryDslInput.val($(items[currentIndex]).text()); // Set input value
+//                        autocomplete.hide();
+//                        autocomplete.empty();
+//                        currentIndex = -1;
+//                    }
                 } else {
                     window.MidPointTheme.cursorPosition = this.selectionStart;
                 }
@@ -1004,7 +1005,8 @@ export default class MidPointTheme {
 
                 currentIndex = (currentIndex + direction + suggestions.length) % suggestions.length;
                 suggestions.removeClass("active");
-                $(suggestions[currentIndex]).addClass("active");
+                const activeItem = $(suggestions[currentIndex]).addClass("active");
+                activeItem[0].scrollIntoView({ block: "nearest", behavior: "smooth" });
             }
         }
 
