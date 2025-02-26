@@ -1162,7 +1162,7 @@ CREATE OR REPLACE FUNCTION m_shadow_create_partition() RETURNS trigger AS $BODY$
                 CHECK (objectType = ''SHADOW'')', new.table);
 
       /* We should skip drop triggers for m_oid table (also probably in resource default table (if exists)) */
-    EXECUTE format('ALTER TABLE %I DISABLE TRIGGER m_shadow_oid_delete_tr;', sourceTable);
+    EXECUTE format('ALTER TABLE %I DISABLE TRIGGER USER;', sourceTable);
       IF new.objectClassId IS NULL THEN
         EXECUTE format('DELETE FROM %I
             where resourceRefTargetOid = ''%s''', sourceTable, new.resourceOid);
@@ -1171,7 +1171,7 @@ CREATE OR REPLACE FUNCTION m_shadow_create_partition() RETURNS trigger AS $BODY$
             where resourceRefTargetOid = ''%s'' AND objectClassId = %s', sourceTable, new.resourceOid, new.objectClassId);
       END IF;
       /* Reenable triggers in original table */
-      EXECUTE format('ALTER TABLE %I ENABLE TRIGGER m_shadow_oid_delete_tr;', sourceTable);
+      EXECUTE format('ALTER TABLE %I ENABLE TRIGGER USER;', sourceTable);
 
       IF new.objectClassId IS  NULL THEN
         /* Attach table as default partition */
