@@ -13,6 +13,8 @@ import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
 import com.evolveum.midpoint.repo.sqlbase.querydsl.FlexibleRelationalPathBase;
 import com.evolveum.midpoint.schema.result.OperationResult;
 
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ArchetypeAdminGuiConfigurationType;
 
 import com.google.common.base.Preconditions;
@@ -24,6 +26,9 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class ShadowPartitionManager implements PartitionManager<MShadow> {
+
+    private static final Trace LOGGER = TraceManager.getTrace(ShadowPartitionManager.class);
+
     public static final String DEFAULT_PARTITION = "m_shadow_default";
     private static final String TABLE_PREFIX = "m_shadow_";
     private static final String DEFAULT_SUFFIX = "_default";
@@ -84,6 +89,8 @@ public class ShadowPartitionManager implements PartitionManager<MShadow> {
     }
 
     private ResourceTable createResourceView(UUID resourceOid, JdbcSession jdbcSession, boolean createDefault) {
+        LOGGER.trace("Creating resource view for {}, createDefault={}", resourceOid, createDefault);
+
         var resourceTable = new MShadowPartitionDef();
         resourceTable.resourceOid = resourceOid;
         resourceTable.objectClassId = null;
@@ -101,6 +108,7 @@ public class ShadowPartitionManager implements PartitionManager<MShadow> {
             defaultPartition.partition = true;
             defaultPartition.table = TABLE_PREFIX + tableOid(resourceOid) + DEFAULT_SUFFIX;
             defaultPartition.attached = false;
+            LOGGER.trace("Creating default partition for {}, table {}", resourceOid, table);
             jdbcSession.newInsert(alias()).populate(defaultPartition).execute();
         }
 
@@ -141,6 +149,8 @@ public class ShadowPartitionManager implements PartitionManager<MShadow> {
 
     @Override
     public synchronized void createMissingPartitions(OperationResult parentResult) {
+        LOGGER.trace("Creating missing partitions");
+
         try (var session = repoContext.newJdbcSession()) {
             var s = new QShadow("s", FlexibleRelationalPathBase.DEFAULT_SCHEMA_NAME, DEFAULT_PARTITION);
             List<Tuple> existingCombinations = session.newQuery().from(s)
@@ -162,8 +172,10 @@ public class ShadowPartitionManager implements PartitionManager<MShadow> {
                }
                resource.getOrCreateObjectClassTable(row.objectClassId, session);
             }
-            for (var resouce : toAttach.values()) {
-                resouce.attach(session);
+            for (var resource : toAttach.values()) {
+                LOGGER.info("Attaching resource {}", resource.row.resourceOid);
+
+                resource.attach(session);
             }
 
             session.commit();
@@ -197,6 +209,8 @@ public class ShadowPartitionManager implements PartitionManager<MShadow> {
                 dbRow.partition = true;
                 dbRow.attached = true;
                 dbRow.table = TABLE_PREFIX + tableOid(row.resourceOid) + "_" + objectClassId;
+                LOGGER.trace("Creating object class table {}", dbRow.table);
+
                 jdbcSession.newInsert(defAlias)
                         .populate(dbRow)
                         .execute();
@@ -215,6 +229,7 @@ public class ShadowPartitionManager implements PartitionManager<MShadow> {
         public void attach(JdbcSession session) {
             var partitionDef = alias();
 
+            LOGGER.trace("Attaching resource {}, table {}", row.resourceOid, row.table);
             session.newUpdate(partitionDef)
                     .set(partitionDef.attached, true)
                     .where(partitionViewPredicate(row.resourceOid, partitionDef)).execute();
