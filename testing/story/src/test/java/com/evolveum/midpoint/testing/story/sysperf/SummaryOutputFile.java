@@ -29,7 +29,8 @@ class SummaryOutputFile {
         writer.printf("Targets: %s\n", TARGETS_CONFIGURATION);
         writer.printf("Roles: %s\n", ROLES_CONFIGURATION);
         writer.printf("Import: %s\n", IMPORTS_CONFIGURATION);
-        writer.printf("Reconciliation: %s\n", RECONCILIATIONS_CONFIGURATION);
+        writer.printf("Reconciliation (with source): %s\n", RECONCILIATION_WITH_SOURCE_CONFIGURATION);
+        writer.printf("Reconciliation (with target): %s\n", RECONCILIATION_WITH_TARGET_CONFIGURATION);
         writer.printf("Recomputation: %s\n\n", RECOMPUTATION_CONFIGURATION);
         writer.flush();
     }
