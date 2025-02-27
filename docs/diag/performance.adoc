@@ -103,8 +103,6 @@ If necessary, the operation execution recording can be limited to non-success st
 </systemConfiguration>
 ----
 
-It is the default setting for new installations.
-
 [#_database_tuning]
 == Database performance tuning
 
