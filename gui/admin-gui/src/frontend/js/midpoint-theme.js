@@ -989,19 +989,26 @@ export default class MidPointTheme {
                 } else if (e.key === "ArrowUp" || e.key == "Arrow Up" || e.keyCode == 38) {
                     e.preventDefault();
                     navigate(-1)
-                } else if (e.key === "Enter") {
-                    // TODO action after touch Enter (send content or selected active suggestion)
-//                    // select active suggestion by touch Enter key
-//                    const suggestions = $("#queryDslAutocomplete").find(".suggestion");
-//                    if (currentIndex >= 0 && currentIndex < suggestions.length) {
-//                        commands[commands.length - 1] = $(suggestions[currentIndex]).find(".name").text()
-//                        queryDslInput.val(commands.join(" ") + query.substring(cursorPosition))
-//                        queryDslInput[0].focus()
-//                        queryDslInput[0].setSelectionRange(commands.join(" ").length, commands.join(" ").length)
-//                        autocomplete.hide();
-//                        autocomplete.empty();
-//                        currentIndex = -1;
-//                    }
+                } else if (e.key === "Enter" || e.keyCode == 13) {
+                    // select active suggestion by touch Enter key
+                    if (autocomplete.is(":visible")) {
+                        const suggestions = $("#queryDslAutocomplete").find(".suggestion");
+                        if (currentIndex >= 0 && currentIndex < suggestions.length) {
+                            e.preventDefault();
+                            const selectedCommand = $(suggestions[currentIndex]).find(".name").text();
+
+                            if (selectedCommand != "") {
+                                commands[commands.length - 1] = $(suggestions[currentIndex]).find(".name").text()
+                                queryDslInput.val(commands.join(" ") + query.substring(cursorPosition))
+                                queryDslInput[0].focus()
+                                queryDslInput[0].setSelectionRange(commands.join(" ").length, commands.join(" ").length)
+                            }
+
+                            autocomplete.hide();
+                            autocomplete.empty();
+                            currentIndex = -1;
+                        }
+                    }
                 } else {
                     window.MidPointTheme.cursorPosition = this.selectionStart;
                 }
