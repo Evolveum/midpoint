@@ -35,8 +35,7 @@ class TargetsConfiguration {
     private static final String PROP_SINGLE_MAPPINGS = PROP + ".single-mappings";
     private static final String PROP_MULTI_MAPPINGS = PROP + ".multi-mappings";
     private static final String PROP_MAPPING_STRENGTH = PROP + ".mapping-strength";
-    private static final String PROP_ASSOCIATION_SHORTCUT = PROP + ".association-shortcut";
-    private static final String PROP_NATIVE_REFERENCES = PROP + ".native-references";
+    private static final String PROP_ASSOCIATIONS = PROP + ".associations";
 
     private static final String RESOURCE_INSTANCE_TEMPLATE = "target-%03d";
     private static final String A_SINGLE_NAME = "a-single-%04d";
@@ -50,8 +49,7 @@ class TargetsConfiguration {
     private final int singleValuedMappings;
     private final int multiValuedMappings;
     private final String mappingStrength;
-    private final boolean associationShortcut;
-    private final boolean nativeReferences;
+    @NotNull private final Associations associations;
 
     @NotNull private final OperationDelay operationDelay;
 
@@ -61,9 +59,8 @@ class TargetsConfiguration {
         numberOfResources = Integer.parseInt(System.getProperty(PROP_RESOURCES, "0"));
         singleValuedMappings = Integer.parseInt(System.getProperty(PROP_SINGLE_MAPPINGS, "0"));
         multiValuedMappings = Integer.parseInt(System.getProperty(PROP_MULTI_MAPPINGS, "0"));
-        mappingStrength = System.getProperty(PROP_MAPPING_STRENGTH, MappingStrengthType.NORMAL.value());
-        associationShortcut = Boolean.parseBoolean(System.getProperty(PROP_ASSOCIATION_SHORTCUT, "false"));
-        nativeReferences = Boolean.parseBoolean(System.getProperty(PROP_NATIVE_REFERENCES, "false"));
+        mappingStrength = System.getProperty(PROP_MAPPING_STRENGTH, MappingStrengthType.STRONG.value());
+        associations = Associations.fromValue(System.getProperty(PROP_ASSOCIATIONS));
 
         operationDelay = OperationDelay.fromSystemProperties(PROP);
 
@@ -104,8 +101,7 @@ class TargetsConfiguration {
                 ", singleValuedMappings=" + singleValuedMappings +
                 ", multiValuedMappings=" + multiValuedMappings +
                 ", mappingStrength=" + mappingStrength +
-                ", associationShortcut=" + associationShortcut +
-                ", nativeReferences=" + nativeReferences +
+                ", associations=" + associations +
                 ", operationDelay=" + operationDelay +
                 '}';
     }
@@ -125,7 +121,7 @@ class TargetsConfiguration {
                         controller.addAttrDef(dummyResource.getGroupObjectClass(),
                                 DummyGroup.ATTR_MEMBERS_NAME, String.class, false, true);
 
-                        if (nativeReferences) {
+                        if (associations.isNativeReferences()) {
                             // The membership is intentionally defined only for accounts, not for groups.
                             // The reason is that the current implementation of links in the dummy resource is quite slow:
                             // iterating through all existing links. (Similar to the implementation of the "memberOf", which
@@ -164,8 +160,8 @@ class TargetsConfiguration {
                         "multiValuedIndexList", Util.createIndexList(multiValuedMappings),
                         "singleValuedIndexList", Util.createIndexList(singleValuedMappings),
                         "mappingStrength", mappingStrength,
-                        "associationShortcut", associationShortcut,
-                        "nativeReferences", nativeReferences));
+                        "associationShortcut", associations.isAssociationShortcut(),
+                        "nativeReferences", associations.isNativeReferences()));
 
         return generatedFileName;
     }

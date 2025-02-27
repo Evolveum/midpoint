@@ -594,7 +594,9 @@ public class TestSystemPerformance extends AbstractStoryTest implements Performa
 
         TestReportUtil.reportTaskOperationPerformance(
                 testMonitor(), desc, taskAfter.asObjectable(), numberOfAccounts, executionTimeSeconds);
-        TestReportUtil.reportTaskComponentPerformance(
+        TestReportUtil.reportTaskComponentPerformanceAsSeparateSection(
+                testMonitor(), desc, taskAfter.asObjectable(), numberOfAccounts);
+        TestReportUtil.reportTaskComponentPerformanceToSingleSection(
                 testMonitor(), desc, taskAfter.asObjectable(), numberOfAccounts);
         TestReportUtil.reportTaskRepositoryPerformance(
                 testMonitor(), desc, taskAfter.asObjectable(), numberOfAccounts, executionTimeSeconds);
