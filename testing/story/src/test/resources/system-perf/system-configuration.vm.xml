@@ -6,6 +6,10 @@
   ~ and European Union Public License. See LICENSE file for details.
   -->
 
+<!--
+Parameters:
+ - disableDefaultMultivalueProvenance
+-->
 <systemConfiguration oid="00000000-0000-0000-0000-000000000001" version="0"
     xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
     xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
@@ -93,7 +97,7 @@
             </statistics>
         </repository>
         <valueMetadata>
-            <disableDefaultMultivalueProvenance>true</disableDefaultMultivalueProvenance>
+            <disableDefaultMultivalueProvenance>$disableDefaultMultivalueProvenance</disableDefaultMultivalueProvenance>
         </valueMetadata>
     </internals>
     <workflowConfiguration>
