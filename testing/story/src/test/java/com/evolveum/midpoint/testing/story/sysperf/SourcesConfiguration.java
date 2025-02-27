@@ -48,7 +48,7 @@ class SourcesConfiguration {
     private final int singleValuedMappings;
     private final int multiValuedMappings;
     private final int attributeValues;
-    private final boolean defaultRange;
+    final boolean defaultRange;
     private final String mappingStrength;
 
     @NotNull private final OperationDelay operationDelay;
