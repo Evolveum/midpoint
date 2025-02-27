@@ -15,7 +15,6 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
-import java.util.stream.Collectors;
 
 /**
  * Describes formatting at abstract level.
@@ -26,10 +25,10 @@ public abstract class Formatting {
 
     final List<Column> columns = new ArrayList<>();
 
-    public List<String> getColumnLabels() {
+    String[] getColumnLabelsAsArray() {
         return columns.stream()
                 .map(column -> column.label)
-                .collect(Collectors.toList());
+                .toArray(String[]::new);
     }
 
     static class Column {
