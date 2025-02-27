@@ -33,7 +33,7 @@ class TargetsConfiguration {
     private static final String PROP_SINGLE_MAPPINGS = PROP + ".single-mappings";
     private static final String PROP_MULTI_MAPPINGS = PROP + ".multi-mappings";
     private static final String PROP_MAPPING_STRENGTH = PROP + ".mapping-strength";
-    private static final String PROP_ASSOCIATION_SHORTCUT = PROP + ".association-shortcut";
+    private static final String PROP_ASSOCIATIONS = PROP + ".associations";
 
     private static final String RESOURCE_INSTANCE_TEMPLATE = "target-%03d";
     private static final String A_SINGLE_NAME = "a-single-%04d";
@@ -47,7 +47,7 @@ class TargetsConfiguration {
     private final int singleValuedMappings;
     private final int multiValuedMappings;
     private final String mappingStrength;
-    private final boolean associationShortcut;
+    @NotNull private final Associations associations;
 
     @NotNull private final OperationDelay operationDelay;
 
@@ -57,8 +57,8 @@ class TargetsConfiguration {
         numberOfResources = Integer.parseInt(System.getProperty(PROP_RESOURCES, "0"));
         singleValuedMappings = Integer.parseInt(System.getProperty(PROP_SINGLE_MAPPINGS, "0"));
         multiValuedMappings = Integer.parseInt(System.getProperty(PROP_MULTI_MAPPINGS, "0"));
-        mappingStrength = System.getProperty(PROP_MAPPING_STRENGTH, MappingStrengthType.NORMAL.value());
-        associationShortcut = Boolean.parseBoolean(System.getProperty(PROP_ASSOCIATION_SHORTCUT, "false"));
+        mappingStrength = System.getProperty(PROP_MAPPING_STRENGTH, MappingStrengthType.STRONG.value());
+        associations = Associations.fromValue(System.getProperty(PROP_ASSOCIATIONS));
 
         operationDelay = OperationDelay.fromSystemProperties(PROP);
 
@@ -99,7 +99,7 @@ class TargetsConfiguration {
                 ", singleValuedMappings=" + singleValuedMappings +
                 ", multiValuedMappings=" + multiValuedMappings +
                 ", mappingStrength=" + mappingStrength +
-                ", associationShortcut=" + associationShortcut +
+                ", associations=" + associations +
                 ", operationDelay=" + operationDelay +
                 '}';
     }
@@ -133,7 +133,7 @@ class TargetsConfiguration {
                         "multiValuedIndexList", Util.createIndexList(multiValuedMappings),
                         "singleValuedIndexList", Util.createIndexList(singleValuedMappings),
                         "mappingStrength", mappingStrength,
-                        "associationShortcut", associationShortcut));
+                        "associationShortcut", associations.isAssociationShortcut()));
 
         return generatedFileName;
     }
