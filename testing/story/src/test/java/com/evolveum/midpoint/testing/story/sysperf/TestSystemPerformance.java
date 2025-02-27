@@ -72,7 +72,9 @@ public class TestSystemPerformance extends AbstractStoryTest implements Performa
     public static final File TEST_DIR = new File(MidPointTestConstants.TEST_RESOURCES_DIR, "system-perf");
     static final File TARGET_DIR = new File(TARGET_DIR_PATH);
 
-    private static final File SYSTEM_CONFIGURATION_FILE = new File(TEST_DIR, "system-configuration.xml");
+    /** Generated in {@link OtherParameters#createSystemConfigurationFile()}. */
+    static final File GENERATED_SYSTEM_CONFIGURATION_FILE =
+            new File(TARGET_DIR, "generated-system-configuration.xml");
 
     private static final String NS_EXT = "http://midpoint.evolveum.com/xml/ns/test/system-perf";
     private static final ItemName EXT_MEMBER_OF = new ItemName(NS_EXT, "memberOf");
@@ -138,6 +140,8 @@ public class TestSystemPerformance extends AbstractStoryTest implements Performa
 
         OTHER_PARAMETERS = OtherParameters.setup();
 
+        checkConfigurationConsistence();
+
         RESOURCE_SOURCE_LIST = SOURCES_CONFIGURATION.getGeneratedResources();
         RESOURCE_TARGET_LIST = TARGETS_CONFIGURATION.getGeneratedResources();
         BUSINESS_ROLE_LIST = ROLES_CONFIGURATION.getGeneratedBusinessRoles();
@@ -148,6 +152,10 @@ public class TestSystemPerformance extends AbstractStoryTest implements Performa
         TASK_RECOMPUTE = RECOMPUTATION_CONFIGURATION.getGeneratedTask();
 
         System.setProperty(PERF_REPORT_PREFIX_PROPERTY_NAME, createReportFilePrefix());
+    }
+
+    private static void checkConfigurationConsistence() {
+        // provide checks eventually here
     }
 
     private static String createReportFilePrefix() {
@@ -243,7 +251,7 @@ public class TestSystemPerformance extends AbstractStoryTest implements Performa
 
     @Override
     protected File getSystemConfigurationFile() {
-        return SYSTEM_CONFIGURATION_FILE;
+        return GENERATED_SYSTEM_CONFIGURATION_FILE;
     }
 
     @Override
@@ -274,6 +282,7 @@ public class TestSystemPerformance extends AbstractStoryTest implements Performa
         logger.info("Reconciliation (with source): {}", RECONCILIATION_WITH_SOURCE_CONFIGURATION);
         logger.info("Reconciliation (with target): {}", RECONCILIATION_WITH_TARGET_CONFIGURATION);
         logger.info("Recomputation: {}", RECOMPUTATION_CONFIGURATION);
+        logger.info("Other: {}", OTHER_PARAMETERS);
 
         summaryOutputFile.logStart();
     }
