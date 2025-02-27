@@ -411,7 +411,7 @@ public class QueryPlaygroundPanel extends BasePanel<RepoQueryDto> {
                         // Content assist for AXQ lang
                         target.appendJavaScript("window.MidPointAceEditor.syncContentAssist(" +
                             mapper.writeValueAsString(suggestions.isEmpty()
-                                    ? List.of(new Suggestion("", createStringResource("ContentAssist.codeCompletions.noSuggestion").toString(), 0)) // If list is empty, add noSuggestion item
+                                    ? List.of(new Suggestion("", createStringResource("QueryLanguage.contentAssist.codeCompletions.noSuggestion").getString(), 0)) // If list is empty, add noSuggestion item
                                     : suggestions.stream()
                                     .map(suggestion -> !suggestion.alias().isEmpty()
                                             ? new Suggestion(suggestion.name(), createStringResource(suggestion.alias()).getString(), suggestion.priority()) // translate alias
