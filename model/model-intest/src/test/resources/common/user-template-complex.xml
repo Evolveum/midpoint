@@ -17,6 +17,7 @@
     <item>
         <ref>givenName</ref>
         <emphasized>false</emphasized>
+        <displayHint>regular</displayHint>
     </item>
 
     <item>
