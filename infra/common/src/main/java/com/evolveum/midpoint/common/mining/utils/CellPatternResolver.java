@@ -5,20 +5,20 @@
  * and European Union Public License. See LICENSE file for details.
  */
 
-package com.evolveum.midpoint.gui.impl.page.admin.role.mining.tables.operation;
-
-import java.io.Serializable;
-import java.util.*;
-
-import org.jetbrains.annotations.NotNull;
+package com.evolveum.midpoint.common.mining.utils;
 
 import com.evolveum.midpoint.common.mining.objects.chunk.MiningBaseTypeChunk;
 import com.evolveum.midpoint.common.mining.objects.chunk.MiningRoleTypeChunk;
 import com.evolveum.midpoint.common.mining.objects.chunk.MiningUserTypeChunk;
 import com.evolveum.midpoint.common.mining.objects.detection.PatternDetectionOption;
+import com.evolveum.midpoint.common.mining.objects.detection.SimpleHeatPattern;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisProcessModeType;
 
-//TODO: move at better place
+import org.jetbrains.annotations.NotNull;
+
+import java.io.Serializable;
+import java.util.*;
+
 /**
  * The `PatternResolver` class implements the `DetectionOperation` interface and provides
  * the algorithms for performing user-based and role-based pattern detection within the
@@ -26,8 +26,9 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisProcessM
  * <p>
  * This class plays a crucial role in identifying patterns within the analyzed data, assisting
  * in making informed decisions about role and user assignments.
+ * NOTE: There is possibility to specify required properties and allowed properties that must be present or meet in found pattern.
  */
-public class OutlierPatternResolver implements Serializable {
+public class CellPatternResolver implements Serializable {
 
     public static class Connection {
 

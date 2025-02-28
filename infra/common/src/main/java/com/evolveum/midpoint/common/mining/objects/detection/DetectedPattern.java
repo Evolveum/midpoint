@@ -11,7 +11,6 @@ import java.io.Serializable;
 import java.util.Set;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisDetectionPatternType;
 
 /**
  * The `DetectedPattern` class represents a detected pattern in role analysis. It contains information about the roles,
