@@ -13709,12 +13709,10 @@
         <xsd:annotation>
             <xsd:documentation>
                 How operationExecution records should be updated.
-                EXPERIMENTAL
             </xsd:documentation>
             <xsd:appinfo>
                 <a:container/>
                 <a:since>4.0</a:since>
-                <a:experimental>true</a:experimental>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>

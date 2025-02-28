@@ -76,6 +76,33 @@ For fast resources with the need of instant reporting, we suggest using the (exp
 
 Finally, if the shadow caching is not needed, it is recommended to turn it off.
 
+[#_operation_execution_recording]
+== Operation Execution Recording
+
+The majority of objects in midPoint repository (like users and accounts) contain the information about most recent operations that were executed on them.
+This feature is crucial when displaying objects that failed during processing within a specific task.
+It also provides more visibility into what recent actions were done with a particular object.
+(In addition to audit records.)
+
+However, maintaining this information comes at a price: both space and processing time.
+The space penalty is bound by the maximum number of records kept per object, which is 10 by default: 5 simple ones and 5 complex ones.
+However, the processing time penalty is incurred each time an operation is completed for the object, even if the object is not modified by the operation (in case of complex execution records that reflect the fact that an object was processed by a task).
+
+If necessary, the operation execution recording can be limited to non-success states, by using the following configuration:
+
+[source,xml]
+----
+<systemConfiguration xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+    ...
+    <internals>
+        ...
+        <operationExecutionRecording>
+            <skipWhenSuccess>true</skipWhenSuccess>
+        </operationExecutionRecording>
+    </internals>
+</systemConfiguration>
+----
+
 [#_database_tuning]
 == Database performance tuning
 

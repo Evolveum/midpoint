@@ -72,7 +72,9 @@ public class TestSystemPerformance extends AbstractStoryTest implements Performa
     public static final File TEST_DIR = new File(MidPointTestConstants.TEST_RESOURCES_DIR, "system-perf");
     static final File TARGET_DIR = new File(TARGET_DIR_PATH);
 
-    private static final File SYSTEM_CONFIGURATION_FILE = new File(TEST_DIR, "system-configuration.xml");
+    /** Generated in {@link OtherParameters#createSystemConfigurationFile()}. */
+    static final File GENERATED_SYSTEM_CONFIGURATION_FILE =
+            new File(TARGET_DIR, "generated-system-configuration.xml");
 
     private static final String NS_EXT = "http://midpoint.evolveum.com/xml/ns/test/system-perf";
     private static final ItemName EXT_MEMBER_OF = new ItemName(NS_EXT, "memberOf");
@@ -82,7 +84,8 @@ public class TestSystemPerformance extends AbstractStoryTest implements Performa
     static final TargetsConfiguration TARGETS_CONFIGURATION;
     static final RolesConfiguration ROLES_CONFIGURATION;
     static final ImportConfiguration IMPORTS_CONFIGURATION;
-    static final ReconciliationConfiguration RECONCILIATIONS_CONFIGURATION;
+    static final ReconciliationWithSourceConfiguration RECONCILIATION_WITH_SOURCE_CONFIGURATION;
+    static final ReconciliationWithTargetConfiguration RECONCILIATION_WITH_TARGET_CONFIGURATION;
     static final RecomputationConfiguration RECOMPUTATION_CONFIGURATION;
 
     static final OtherParameters OTHER_PARAMETERS;
@@ -102,7 +105,8 @@ public class TestSystemPerformance extends AbstractStoryTest implements Performa
     private static final List<TestObject<RoleType>> BUSINESS_ROLE_LIST;
     private static final List<TestObject<RoleType>> TECHNICAL_ROLE_LIST;
     private static final List<TestObject<TaskType>> TASK_IMPORT_LIST;
-    private static final List<TestObject<TaskType>> TASK_RECONCILIATION_LIST;
+    private static final List<TestObject<TaskType>> TASK_RECONCILIATION_WITH_SOURCE_LIST;
+    private static final List<TestObject<TaskType>> TASK_RECONCILIATION_WITH_TARGET_LIST;
     private static final TestObject<TaskType> TASK_RECOMPUTE;
 
     static final long START = System.currentTimeMillis();
@@ -130,20 +134,30 @@ public class TestSystemPerformance extends AbstractStoryTest implements Performa
         TARGETS_CONFIGURATION = TargetsConfiguration.setup();
         ROLES_CONFIGURATION = RolesConfiguration.setup();
         IMPORTS_CONFIGURATION = ImportConfiguration.setup();
-        RECONCILIATIONS_CONFIGURATION = ReconciliationConfiguration.setup();
+        RECONCILIATION_WITH_SOURCE_CONFIGURATION = ReconciliationWithSourceConfiguration.setup();
+        RECONCILIATION_WITH_TARGET_CONFIGURATION = ReconciliationWithTargetConfiguration.setup();
         RECOMPUTATION_CONFIGURATION = RecomputationConfiguration.setup();
 
         OTHER_PARAMETERS = OtherParameters.setup();
+
+        checkConfigurationConsistence();
 
         RESOURCE_SOURCE_LIST = SOURCES_CONFIGURATION.getGeneratedResources();
         RESOURCE_TARGET_LIST = TARGETS_CONFIGURATION.getGeneratedResources();
         BUSINESS_ROLE_LIST = ROLES_CONFIGURATION.getGeneratedBusinessRoles();
         TECHNICAL_ROLE_LIST = ROLES_CONFIGURATION.getGeneratedTechnicalRoles();
         TASK_IMPORT_LIST = IMPORTS_CONFIGURATION.getGeneratedTasks();
-        TASK_RECONCILIATION_LIST = RECONCILIATIONS_CONFIGURATION.getGeneratedTasks();
+        TASK_RECONCILIATION_WITH_SOURCE_LIST = RECONCILIATION_WITH_SOURCE_CONFIGURATION.getGeneratedTasks();
+        TASK_RECONCILIATION_WITH_TARGET_LIST = RECONCILIATION_WITH_TARGET_CONFIGURATION.getGeneratedTasks();
         TASK_RECOMPUTE = RECOMPUTATION_CONFIGURATION.getGeneratedTask();
 
         System.setProperty(PERF_REPORT_PREFIX_PROPERTY_NAME, createReportFilePrefix());
+    }
+
+    private static void checkConfigurationConsistence() {
+        if (OTHER_PARAMETERS.disableDefaultMultivalueProvenance && SOURCES_CONFIGURATION.defaultRange) {
+            throw new IllegalStateException("Cannot use default ranges without multivalue provenance");
+        }
     }
 
     private static String createReportFilePrefix() {
@@ -238,7 +252,7 @@ public class TestSystemPerformance extends AbstractStoryTest implements Performa
                         SCHEMA_CONFIGURATION.getIndexedPercentage(),
 
                         IMPORTS_CONFIGURATION.getThreads(),
-                        RECONCILIATIONS_CONFIGURATION.getThreads(),
+                        RECONCILIATION_WITH_SOURCE_CONFIGURATION.getThreads(),
                         RECOMPUTATION_CONFIGURATION.getThreads()));
     }
 
@@ -249,7 +263,7 @@ public class TestSystemPerformance extends AbstractStoryTest implements Performa
 
     @Override
     protected File getSystemConfigurationFile() {
-        return SYSTEM_CONFIGURATION_FILE;
+        return GENERATED_SYSTEM_CONFIGURATION_FILE;
     }
 
     @Override
@@ -277,8 +291,10 @@ public class TestSystemPerformance extends AbstractStoryTest implements Performa
         logger.info("Targets: {}", TARGETS_CONFIGURATION);
         logger.info("Roles: {}", ROLES_CONFIGURATION);
         logger.info("Import: {}", IMPORTS_CONFIGURATION);
-        logger.info("Reconciliation: {}", RECONCILIATIONS_CONFIGURATION);
+        logger.info("Reconciliation (with source): {}", RECONCILIATION_WITH_SOURCE_CONFIGURATION);
+        logger.info("Reconciliation (with target): {}", RECONCILIATION_WITH_TARGET_CONFIGURATION);
         logger.info("Recomputation: {}", RECOMPUTATION_CONFIGURATION);
+        logger.info("Other: {}", OTHER_PARAMETERS);
 
         summaryOutputFile.logStart();
     }
@@ -323,6 +339,8 @@ public class TestSystemPerformance extends AbstractStoryTest implements Performa
 
             PrismObject<TaskType> taskAfter = assertTask(taskImport.oid, "after")
                     .display()
+                    .assertSuccess()
+                    .assertClosed()
                     .getObject();
 
             logTaskFinish(taskAfter, label, result);
@@ -334,6 +352,12 @@ public class TestSystemPerformance extends AbstractStoryTest implements Performa
         DummyAccount account = RESOURCE_SOURCE_LIST.get(0).controller.getDummyResource().getAccountByName(accountName);
         Set<String> roles = account.getAttributeValues(SourcesConfiguration.A_ROLE, String.class);
         displayValue("Roles for " + accountName, roles);
+
+        if (!RESOURCE_TARGET_LIST.isEmpty()) {
+            displayDumpable(
+                    "target 0 account",
+                    RESOURCE_TARGET_LIST.get(0).getDummyResource().getAccountByName(accountName));
+        }
 
         Set<String> memberships = RESOURCE_TARGET_LIST.stream()
                 .flatMap(r -> emptyIfNull(getMemberships(accountName, r)).stream())
@@ -449,6 +473,8 @@ public class TestSystemPerformance extends AbstractStoryTest implements Performa
 
                 PrismObject<TaskType> taskAfter = assertTask(taskImport.oid, "after")
                         .display()
+                        .assertSuccess()
+                        .assertClosed()
                         .getObject();
 
                 logTaskFinish(taskAfter, label, result);
@@ -467,15 +493,15 @@ public class TestSystemPerformance extends AbstractStoryTest implements Performa
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
-        for (int run = 0; run < RECONCILIATIONS_CONFIGURATION.getRuns(); run++) {
+        for (int run = 0; run < RECONCILIATION_WITH_SOURCE_CONFIGURATION.getRuns(); run++) {
             String label = String.format("run-%d-of-", run + 1);
 
-            for (int taskIndex = 0; taskIndex < TASK_RECONCILIATION_LIST.size(); taskIndex++) {
+            for (int taskIndex = 0; taskIndex < TASK_RECONCILIATION_WITH_SOURCE_LIST.size(); taskIndex++) {
                 String importName = String.format("reconciliation #%d of resource #%d", run+1, taskIndex);
 
                 when(importName);
 
-                TestObject<TaskType> reconTask = TASK_RECONCILIATION_LIST.get(taskIndex);
+                TestObject<TaskType> reconTask = TASK_RECONCILIATION_WITH_SOURCE_LIST.get(taskIndex);
 
                 lastProgress = 0;
                 if (run == 0) {
@@ -492,6 +518,53 @@ public class TestSystemPerformance extends AbstractStoryTest implements Performa
 
                 PrismObject<TaskType> taskAfter = assertTask(reconTask.oid, "after")
                         .display()
+                        .assertSuccess()
+                        .assertClosed()
+                        .getObject();
+
+                logTaskFinish(taskAfter, label, result);
+                taskDumper.dumpTask(taskAfter, getTestNameShort());
+            }
+        }
+
+        dumpRepresentativeShadows();
+
+    }
+
+    @Test
+    public void test125ReconciliationWithTarget() throws Exception {
+        given();
+
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        for (int run = 0; run < RECONCILIATION_WITH_TARGET_CONFIGURATION.getRuns(); run++) {
+            String label = String.format("run-%d-of-", run + 1);
+
+            for (int taskIndex = 0; taskIndex < TASK_RECONCILIATION_WITH_TARGET_LIST.size(); taskIndex++) {
+                String importName = String.format("reconciliation #%d of resource #%d", run+1, taskIndex);
+
+                when(importName);
+
+                TestObject<TaskType> reconTask = TASK_RECONCILIATION_WITH_TARGET_LIST.get(taskIndex);
+
+                lastProgress = 0;
+                if (run == 0) {
+                    addTask(reconTask, result);
+                } else {
+                    restartTask(reconTask.oid, result);
+                    Thread.sleep(500);
+                }
+
+                waitForTaskFinish(reconTask.oid, 0, OTHER_PARAMETERS.taskTimeout, false, 0,
+                        builder -> builder.taskConsumer(task1 -> recordProgress(label, task1)));
+
+                then(importName);
+
+                PrismObject<TaskType> taskAfter = assertTask(reconTask.oid, "after")
+                        .display()
+                        .assertSuccess()
+                        .assertClosed()
                         .getObject();
 
                 logTaskFinish(taskAfter, label, result);
@@ -521,6 +594,8 @@ public class TestSystemPerformance extends AbstractStoryTest implements Performa
 
         PrismObject<TaskType> taskAfter = assertTask(TASK_RECOMPUTE.oid, "after")
                 .display()
+                .assertSuccess()
+                .assertClosed()
                 .getObject();
 
         logTaskFinish(taskAfter, "", result);
@@ -588,7 +663,9 @@ public class TestSystemPerformance extends AbstractStoryTest implements Performa
 
         TestReportUtil.reportTaskOperationPerformance(
                 testMonitor(), desc, taskAfter.asObjectable(), numberOfAccounts, executionTimeSeconds);
-        TestReportUtil.reportTaskComponentPerformance(
+        TestReportUtil.reportTaskComponentPerformanceAsSeparateSection(
+                testMonitor(), desc, taskAfter.asObjectable(), numberOfAccounts);
+        TestReportUtil.reportTaskComponentPerformanceToSingleSection(
                 testMonitor(), desc, taskAfter.asObjectable(), numberOfAccounts);
         TestReportUtil.reportTaskRepositoryPerformance(
                 testMonitor(), desc, taskAfter.asObjectable(), numberOfAccounts, executionTimeSeconds);

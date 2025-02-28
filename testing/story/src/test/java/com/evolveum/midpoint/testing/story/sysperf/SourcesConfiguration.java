@@ -17,6 +17,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingStrengthType;
+
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.icf.dummy.resource.DummyObjectClass;
@@ -32,6 +34,7 @@ class SourcesConfiguration {
     private static final String PROP_MULTI_MAPPINGS = PROP + ".multi-mappings";
     private static final String PROP_MULTI_ATTR_VALUES = PROP + ".multi-attr-values";
     private static final String PROP_DEFAULT_RANGE = PROP + ".default-range";
+    private static final String PROP_MAPPING_STRENGTH = PROP + ".mapping-strength";
 
     private static final String RESOURCE_INSTANCE_TEMPLATE = "source-%03d";
     static final String A_SINGLE_NAME = "a-single-%04d";
@@ -45,7 +48,8 @@ class SourcesConfiguration {
     private final int singleValuedMappings;
     private final int multiValuedMappings;
     private final int attributeValues;
-    private final boolean defaultRange;
+    final boolean defaultRange;
+    private final String mappingStrength;
 
     @NotNull private final OperationDelay operationDelay;
 
@@ -58,6 +62,7 @@ class SourcesConfiguration {
         multiValuedMappings = Integer.parseInt(System.getProperty(PROP_MULTI_MAPPINGS, "1"));
         attributeValues = Integer.parseInt(System.getProperty(PROP_MULTI_ATTR_VALUES, "5"));
         defaultRange = Boolean.parseBoolean(System.getProperty(PROP_DEFAULT_RANGE, "false"));
+        mappingStrength = System.getProperty(PROP_MAPPING_STRENGTH, MappingStrengthType.NORMAL.value());
         operationDelay = OperationDelay.fromSystemProperties(PROP);
 
         generatedResources = generateDummyTestResources();
@@ -99,6 +104,7 @@ class SourcesConfiguration {
                 ", singleValuedMappings=" + singleValuedMappings +
                 ", multiValuedMappings=" + multiValuedMappings +
                 ", attributeValues=" + attributeValues +
+                ", mappingStrength=" + mappingStrength +
                 ", operationDelay=" + operationDelay +
                 ", defaultRange=" + defaultRange +
                 '}';
@@ -140,7 +146,8 @@ class SourcesConfiguration {
                         "singleValuedIndexList", primary ?
                                 Util.createIndexList(singleValuedMappings) : emptyList(),
                         "primary", primary,
-                        "defaultRange", defaultRange));
+                        "defaultRange", defaultRange,
+                        "mappingStrength", mappingStrength));
         return generatedFileName;
     }
 

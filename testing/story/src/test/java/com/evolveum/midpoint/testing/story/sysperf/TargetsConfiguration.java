@@ -7,12 +7,17 @@
 
 package com.evolveum.midpoint.testing.story.sysperf;
 
+import static com.evolveum.icf.dummy.resource.LinkClassDefinition.LinkClassDefinitionBuilder.aLinkClassDefinition;
+import static com.evolveum.icf.dummy.resource.LinkClassDefinition.Participant.ParticipantBuilder.aParticipant;
 import static com.evolveum.midpoint.testing.story.sysperf.TestSystemPerformance.*;
 
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+
+import com.evolveum.icf.dummy.resource.DummyAccount;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingStrengthType;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -29,6 +34,8 @@ class TargetsConfiguration {
     private static final String PROP_RESOURCES = PROP + ".resources";
     private static final String PROP_SINGLE_MAPPINGS = PROP + ".single-mappings";
     private static final String PROP_MULTI_MAPPINGS = PROP + ".multi-mappings";
+    private static final String PROP_MAPPING_STRENGTH = PROP + ".mapping-strength";
+    private static final String PROP_ASSOCIATIONS = PROP + ".associations";
 
     private static final String RESOURCE_INSTANCE_TEMPLATE = "target-%03d";
     private static final String A_SINGLE_NAME = "a-single-%04d";
@@ -41,6 +48,8 @@ class TargetsConfiguration {
     private final int numberOfResources;
     private final int singleValuedMappings;
     private final int multiValuedMappings;
+    private final String mappingStrength;
+    @NotNull private final Associations associations;
 
     @NotNull private final OperationDelay operationDelay;
 
@@ -50,6 +59,8 @@ class TargetsConfiguration {
         numberOfResources = Integer.parseInt(System.getProperty(PROP_RESOURCES, "0"));
         singleValuedMappings = Integer.parseInt(System.getProperty(PROP_SINGLE_MAPPINGS, "0"));
         multiValuedMappings = Integer.parseInt(System.getProperty(PROP_MULTI_MAPPINGS, "0"));
+        mappingStrength = System.getProperty(PROP_MAPPING_STRENGTH, MappingStrengthType.STRONG.value());
+        associations = Associations.fromValue(System.getProperty(PROP_ASSOCIATIONS));
 
         operationDelay = OperationDelay.fromSystemProperties(PROP);
 
@@ -69,6 +80,10 @@ class TargetsConfiguration {
         return numberOfResources;
     }
 
+    public String getMappingStrength() {
+        return mappingStrength;
+    }
+
     @NotNull OperationDelay getOperationDelay() {
         return operationDelay;
     }
@@ -85,6 +100,8 @@ class TargetsConfiguration {
                 "numberOfResources=" + numberOfResources +
                 ", singleValuedMappings=" + singleValuedMappings +
                 ", multiValuedMappings=" + multiValuedMappings +
+                ", mappingStrength=" + mappingStrength +
+                ", associations=" + associations +
                 ", operationDelay=" + operationDelay +
                 '}';
     }
@@ -103,6 +120,31 @@ class TargetsConfiguration {
                                 A_MEMBERSHIP, String.class, false, true);
                         controller.addAttrDef(dummyResource.getGroupObjectClass(),
                                 DummyGroup.ATTR_MEMBERS_NAME, String.class, false, true);
+
+                        if (associations.isNativeReferences()) {
+                            // The membership is intentionally defined only for accounts, not for groups.
+                            // The reason is that the current implementation of links in the dummy resource is quite slow:
+                            // iterating through all existing links. (Similar to the implementation of the "memberOf", which
+                            // iterates through all the groups to find the membership.) However, unfortunately, for native
+                            // references there's an extra problem in that membership of the groups an account is a member of
+                            // is checked as well, resulting in O(l^2) complexity, where l is the number of links. This is
+                            // observably worse than the complexity of the "memberOf" attribute determination, which is O(g),
+                            // where g is the number of groups. Both should be optimized in the future.
+                            controller.addLinkClassDefinition(
+                                    aLinkClassDefinition()
+                                            .withName("groupMembership")
+                                            .withFirstParticipant(aParticipant()
+                                                    .withObjectClassNames(DummyAccount.OBJECT_CLASS_NAME)
+                                                    .withLinkAttributeName("group")
+                                                    .withMaxOccurs(-1)
+                                                    .withReturnedByDefault(true)
+                                                    .withExpandedByDefault(false)
+                                                    .build())
+                                            .withSecondParticipant(aParticipant()
+                                                    .withObjectClassNames(DummyGroup.OBJECT_CLASS_NAME)
+                                                    .build())
+                                            .build());
+                        }
                     }));
         }
         return resources;
@@ -116,7 +158,10 @@ class TargetsConfiguration {
                 Map.of("resourceOid", oid,
                         "resourceInstance", getResourceInstance(index),
                         "multiValuedIndexList", Util.createIndexList(multiValuedMappings),
-                        "singleValuedIndexList", Util.createIndexList(singleValuedMappings)));
+                        "singleValuedIndexList", Util.createIndexList(singleValuedMappings),
+                        "mappingStrength", mappingStrength,
+                        "associationShortcut", associations.isAssociationShortcut(),
+                        "nativeReferences", associations.isNativeReferences()));
 
         return generatedFileName;
     }
