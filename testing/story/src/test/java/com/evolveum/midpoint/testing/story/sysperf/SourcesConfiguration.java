@@ -22,6 +22,8 @@ import java.util.Map;
 import com.evolveum.icf.dummy.resource.ConflictException;
 import com.evolveum.icf.dummy.resource.SchemaViolationException;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingStrengthType;
+
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.icf.dummy.resource.DummyObjectClass;
@@ -36,6 +38,7 @@ class SourcesConfiguration {
     private static final String PROP_SINGLE_MAPPINGS = PROP + ".single-mappings";
     private static final String PROP_MULTI_MAPPINGS = PROP + ".multi-mappings";
     private static final String PROP_MULTI_ATTR_VALUES = PROP + ".multi-attr-values";
+    private static final String PROP_MAPPING_STRENGTH = PROP + ".mapping-strength";
 
     private static final String RESOURCE_INSTANCE_TEMPLATE = "source-%03d";
     static final String A_SINGLE_NAME = "a-single-%04d";
@@ -49,6 +52,7 @@ class SourcesConfiguration {
     private final int singleValuedMappings;
     private final int multiValuedMappings;
     private final int attributeValues;
+    private final String mappingStrength;
 
     @NotNull private final OperationDelay operationDelay;
 
@@ -60,7 +64,7 @@ class SourcesConfiguration {
         singleValuedMappings = Integer.parseInt(System.getProperty(PROP_SINGLE_MAPPINGS, "1"));
         multiValuedMappings = Integer.parseInt(System.getProperty(PROP_MULTI_MAPPINGS, "1"));
         attributeValues = Integer.parseInt(System.getProperty(PROP_MULTI_ATTR_VALUES, "5"));
-
+        mappingStrength = System.getProperty(PROP_MAPPING_STRENGTH, MappingStrengthType.NORMAL.value());
         operationDelay = OperationDelay.fromSystemProperties(PROP);
 
         generatedResources = generateDummyTestResources();
@@ -102,6 +106,7 @@ class SourcesConfiguration {
                 ", singleValuedMappings=" + singleValuedMappings +
                 ", multiValuedMappings=" + multiValuedMappings +
                 ", attributeValues=" + attributeValues +
+                ", mappingStrength=" + mappingStrength +
                 ", operationDelay=" + operationDelay +
                 '}';
     }
@@ -141,7 +146,8 @@ class SourcesConfiguration {
                         "multiValuedIndexList", Util.createIndexList(multiValuedMappings),
                         "singleValuedIndexList", primary ?
                                 Util.createIndexList(singleValuedMappings) : emptyList(),
-                        "primary", primary));
+                        "primary", primary,
+                        "mappingStrength", mappingStrength));
         return generatedFileName;
     }
 

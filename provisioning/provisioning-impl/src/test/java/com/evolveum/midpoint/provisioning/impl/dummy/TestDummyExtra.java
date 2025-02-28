@@ -78,6 +78,11 @@ public class TestDummyExtra extends TestDummy {
     }
 
     @Override
+    protected boolean supportsMemberOf() {
+        return true;
+    }
+
+    @Override
     protected void extraDummyResourceInit() throws Exception {
         DummyObjectClass accountObjectClass = dummyResource.getAccountObjectClass();
         dummyResourceCtl.addAttrDef(accountObjectClass, DUMMY_ACCOUNT_ATTRIBUTE_MATE_NAME, String.class, false, true);
@@ -91,7 +96,7 @@ public class TestDummyExtra extends TestDummy {
     @Override
     protected void assertSchemaSanity(ResourceSchema resourceSchema, ResourceType resourceType) throws Exception {
         // schema is extended, displayOrders are changed
-        dummyResourceCtl.assertDummyResourceSchemaSanityExtended(resourceSchema, resourceType, false, 20);
+        dummyResourceCtl.assertDummyResourceSchemaSanityExtended(resourceSchema, resourceType, false, 21);
 
         ResourceSchema refinedSchema = ResourceSchemaFactory.getCompleteSchema(resource);
         ResourceObjectDefinition accountRDef = refinedSchema.findDefaultDefinitionForKindRequired(ShadowKindType.ACCOUNT);

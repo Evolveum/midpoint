@@ -1164,6 +1164,14 @@ public class DummyResource implements DebugDumpable {
         }
     }
 
+    public synchronized Collection<String> getMemberOf(DummyObject dummyObject) {
+        var name = dummyObject.getName();
+        return groups.values().stream()
+                .filter(group -> group.containsMember(name))
+                .map(DummyObject::getName)
+                .toList();
+    }
+
     @Override
     public String debugDump(int indent) {
         StringBuilder sb = new StringBuilder(toString());
