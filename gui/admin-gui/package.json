@@ -7,7 +7,6 @@
     "prepare": "custompatch",
     "build": "webpack build --env production --config ./webpack.config.js --progress --profile --bail",
     "watch": "webpack watch --env development --config ./webpack.config.js --progress --profile",
-    "sbom": "cyclonedx-npm --output-format xml --output-file ../target/sbom-frontend.xml",
     "sbom_maven": "cyclonedx-npm --output-format ${OUTPUT_FORMAT} --output-file ${OUTPUT_BOM_DIRECTORY}/${OUTPUT_BOM_NAME}.${OUTPUT_FORMAT}"
   },
   "author": "Evolveum",
