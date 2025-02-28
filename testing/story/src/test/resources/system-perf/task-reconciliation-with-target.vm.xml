@@ -18,7 +18,7 @@ Parameters:
       xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
       xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">
 
-    <name>task-reconciliation-$index</name>
+    <name>task-reconciliation-target-$index</name>
 
     <ownerRef oid="00000000-0000-0000-0000-000000000002"/>
     <executionState>runnable</executionState>
