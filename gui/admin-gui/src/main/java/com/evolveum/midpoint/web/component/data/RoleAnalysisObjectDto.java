@@ -42,7 +42,7 @@ public class RoleAnalysisObjectDto implements Serializable {
     public static final String F_DISPLAY_VALUE_OPTION = "displayValueOption";
 
     private MiningOperationChunk miningOperationChunk;
-    private boolean isRoleMode;
+    public boolean isRoleMode;
     private boolean isOutlierDetection;
     private DisplayValueOption displayValueOption;
 

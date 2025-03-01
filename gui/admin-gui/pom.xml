@@ -808,21 +808,6 @@
                             <arguments>run build</arguments>
                         </configuration>
                     </execution>
-                    <execution>
-                        <id>npm sbom</id>
-                        <goals>
-                            <goal>npm</goal>
-                        </goals>
-                        <configuration>
-                            <environmentVariables>
-                                <!-- this variable will be used by package.json -->
-                                <OUTPUT_FORMAT>xml</OUTPUT_FORMAT>
-                                <OUTPUT_BOM_NAME>bom-frontend</OUTPUT_BOM_NAME>
-                                <OUTPUT_BOM_DIRECTORY>${project.build.directory}</OUTPUT_BOM_DIRECTORY>
-                            </environmentVariables>
-                            <arguments>run sbom_maven</arguments>
-                        </configuration>
-                    </execution>
                 </executions>
                 <configuration>
                     <nodeDownloadRoot>https://nexus.evolveum.com/nexus/repository/nodejs-dist/</nodeDownloadRoot>
@@ -859,6 +844,27 @@
             <id>dependencytrack</id>
             <build>
                 <plugins>
+                    <plugin>
+                        <groupId>com.github.eirslett</groupId>
+                        <artifactId>frontend-maven-plugin</artifactId>
+                        <executions>
+                            <execution>
+                                <id>npm sbom</id>
+                                <goals>
+                                    <goal>npm</goal>
+                                </goals>
+                                <configuration>
+                                    <environmentVariables>
+                                        <!-- this variable will be used by package.json -->
+                                        <OUTPUT_FORMAT>xml</OUTPUT_FORMAT>
+                                        <OUTPUT_BOM_NAME>bom-frontend</OUTPUT_BOM_NAME>
+                                        <OUTPUT_BOM_DIRECTORY>${project.build.directory}</OUTPUT_BOM_DIRECTORY>
+                                    </environmentVariables>
+                                    <arguments>run sbom_maven</arguments>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
                     <plugin>
                         <groupId>io.github.pmckeown</groupId>
                         <artifactId>dependency-track-maven-plugin</artifactId>

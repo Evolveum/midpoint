@@ -14,6 +14,10 @@ import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.table.
 
 import java.util.*;
 
+import com.evolveum.midpoint.gui.api.model.LoadableModel;
+
+import com.evolveum.midpoint.gui.impl.component.icon.IconCssStyle;
+
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxEventBehavior;
@@ -35,7 +39,6 @@ import com.evolveum.midpoint.common.mining.utils.values.RoleAnalysisSortMode;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIcon;
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
-import com.evolveum.midpoint.gui.impl.component.icon.LayeredIconCssStyle;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.tables.operation.DetailedPatternSelectionPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.tables.operation.PatternStatistics;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.table.RoleAnalysisTableCellFillResolver;
@@ -49,7 +52,7 @@ public abstract class RoleAnalysisIntersectionColumn<B extends MiningBaseTypeChu
     private final B baseMiningChunk;
     private final RoleAnalysisTableTools.StyleResolution styleWidth;
 
-    public RoleAnalysisIntersectionColumn(
+    protected RoleAnalysisIntersectionColumn(
             B baseMiningChunk,
             IModel<RoleAnalysisObjectDto> model,
             PageBase pageBase) {
@@ -194,7 +197,7 @@ public abstract class RoleAnalysisIntersectionColumn<B extends MiningBaseTypeChu
     private @NotNull AjaxLinkTruncateDto loadColumnHeaderModelObject() {
         String defaultBlackIcon = IconAndStylesUtil.createDefaultBlackIcon(UserType.COMPLEX_TYPE);
         CompositedIconBuilder compositedIconBuilder = new CompositedIconBuilder().setBasicIcon(defaultBlackIcon,
-                LayeredIconCssStyle.IN_ROW_STYLE);
+                IconCssStyle.IN_ROW_STYLE);
 
         String iconColor = baseMiningChunk.getIconColor();
         if (iconColor != null) {
@@ -260,8 +263,15 @@ public abstract class RoleAnalysisIntersectionColumn<B extends MiningBaseTypeChu
 
     @NotNull
     private DetailedPatternSelectionPanel createDebugLabelPanel(List<String> members, List<String> mustMeet, RoleAnalysisObjectDto roleAnalysisObjectDto) {
-        DetailedPatternSelectionPanel detailedPatternSelectionPanel = new DetailedPatternSelectionPanel(getPageBase().getMainPopupBodyId(), () -> new PatternStatistics<>(
-                roleAnalysisObjectDto, members, mustMeet, getPageBase())) {
+
+        LoadableModel<PatternStatistics<?>> model = new LoadableModel<>() {
+            @Override
+            protected @NotNull PatternStatistics<?> load() {
+                return new PatternStatistics<>(roleAnalysisObjectDto, members, mustMeet, getPageBase());
+            }
+        };
+
+        DetailedPatternSelectionPanel detailedPatternSelectionPanel = new DetailedPatternSelectionPanel(getPageBase().getMainPopupBodyId(), model) {
 
             @Override
             protected void explorePatternPerform(@NotNull DetectedPattern pattern, AjaxRequestTarget target) {
