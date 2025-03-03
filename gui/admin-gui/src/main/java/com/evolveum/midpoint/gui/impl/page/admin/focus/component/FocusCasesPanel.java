@@ -13,9 +13,12 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.web.application.*;
 import com.evolveum.midpoint.web.page.admin.server.CasesTablePanel;
+import com.evolveum.midpoint.web.session.SessionStorage;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.cases.api.util.QueryUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
+import java.io.Serial;
 
 /**
  * @author semancik
@@ -28,7 +31,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 @Counter(provider = FocusCasesCounter.class)
 public class FocusCasesPanel<F extends FocusType>
         extends AbstractObjectMainPanel<F, FocusDetailsModels<F>> {
-    private static final long serialVersionUID = 1L;
+    @Serial private static final long serialVersionUID = 1L;
 
     private static final String ID_TASK_TABLE = "taskTable";
 
@@ -38,7 +41,7 @@ public class FocusCasesPanel<F extends FocusType>
 
     protected void initLayout() {
         CasesTablePanel casesPanel = new CasesTablePanel(ID_TASK_TABLE, getPanelConfiguration()) {
-            private static final long serialVersionUID = 1L;
+            @Serial private static final long serialVersionUID = 1L;
 
             @Override
             protected ObjectFilter getCasesFilter() {
@@ -50,8 +53,20 @@ public class FocusCasesPanel<F extends FocusType>
 
             @Override
             protected UserProfileStorage.TableId getTableId() {
-                return UserProfileStorage.TableId.PAGE_CASE_CHILD_CASES_TAB;
+                return UserProfileStorage.TableId.PAGE_FOCUS_DETAILS_CASES_PANEL;
             }
+
+            //fix for #10473. Implemented in the same way as for Assignments panel (the search is remembered for Cases table
+            // on the details pages of a particular focus type but session storage is not shared between different
+            // focus types)
+            @Override
+            protected String getStorageKey() {
+                String objectListKey = SessionStorage.KEY_OBJECT_LIST;
+                String casesKey = SessionStorage.KEY_FOCUS_CASES_TABLE;
+                String focusTypeName = getObjectDetailsModels().getObjectType().getClass().getSimpleName();
+                return objectListKey + "_" + focusTypeName + "_" + casesKey;
+            }
+
         };
         casesPanel.setOutputMarkupId(true);
         add(casesPanel);
