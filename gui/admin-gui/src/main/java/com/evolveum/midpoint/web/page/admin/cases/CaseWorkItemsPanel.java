@@ -85,7 +85,7 @@ public class CaseWorkItemsPanel extends ContainerableListPanel<CaseWorkItemType,
 
     @Override
     protected List<IColumn<PrismContainerValueWrapper<CaseWorkItemType>, String>> createDefaultColumns() {
-        return ColumnUtils.getDefaultWorkItemColumns(getPageBase(), !isPreview());
+        return ColumnUtils.getDefaultWorkItemColumns(getPageBase(), !isPreview(), false);
     }
 
     @Override
