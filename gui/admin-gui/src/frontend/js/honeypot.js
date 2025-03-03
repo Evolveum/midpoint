@@ -20,6 +20,11 @@ export default class MidPointAceEditor {
                     continue;
                 }
 
+                let originalValue = input.getAttribute("value");
+                if (originalValue != null) {
+                    input.setAttribute("original-value", originalValue);
+                }
+
                 let clone = input.cloneNode(true);
 
                 input.classList.add("midpoint-input-prefix");
@@ -97,7 +102,13 @@ export default class MidPointAceEditor {
             let name = input.getAttribute("name");
             if (name != null) {
                 if (input.classList.contains("midpoint-input-suffix")) {
-                    valuesForAdd.set("hpField-" + name, input.value);
+                    let originalValue = input.getAttribute("original-value");
+                    let inputValue = input.value;
+                    if (originalValue != null && originalValue === input.value) {
+                        inputValue = "";
+
+                    }
+                    valuesForAdd.set("hpField-" + name, inputValue);
                 }
             }
         }
