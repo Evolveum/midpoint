@@ -516,6 +516,7 @@ public class GuiProfiledPrincipalManagerImpl
             LifecycleStateModelType lifecycleModel = getLifecycleModel(focus, systemConfiguration);
             focusComputer.recompute(focus, lifecycleModel);
             principal.clearAuthorizations();
+            principal.clearOtherPrivilegesLimitations();
             // For refreshing current logged-in principal, we need to support GUI config
             initializePrincipalFromAssignments(
                     principal,
