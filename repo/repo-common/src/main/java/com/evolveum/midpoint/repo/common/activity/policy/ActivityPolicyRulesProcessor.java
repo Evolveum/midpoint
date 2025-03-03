@@ -7,17 +7,23 @@
 
 package com.evolveum.midpoint.repo.common.activity.policy;
 
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
-
-import com.evolveum.midpoint.util.exception.ThresholdPolicyViolationException;
-
-import org.jetbrains.annotations.NotNull;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 import com.evolveum.midpoint.repo.common.activity.run.AbstractActivityRun;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.LocalizationUtil;
+import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.ThresholdPolicyViolationException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
+import org.jetbrains.annotations.NotNull;
 
 /**
  * This processor is responsible for collecting, evaluating and enforcing activity policy rules.
@@ -41,27 +47,54 @@ public class ActivityPolicyRulesProcessor {
         ActivityPoliciesType activityPolicy = activityRun.getActivity().getDefinition().getPoliciesDefinition().getPolicies();
         List<ActivityPolicyType> policies = activityPolicy.getPolicy();
 
-        List<EvaluatedActivityPolicyRule> rules = policies.stream().map(EvaluatedActivityPolicyRule::new).toList();
+        String taskOid = activityRun.getRunningTask().getOid();
+
+        List<EvaluatedActivityPolicyRule> rules = policies.stream()
+                .map(ap -> new EvaluatedActivityPolicyRule(ap, taskOid))
+                .toList();
         activityRun.getActivityPolicyRulesContext().setPolicyRules(rules);
     }
 
-    public void evaluateAndEnforceRules(OperationResult result) throws ThresholdPolicyViolationException {
+    public void evaluateAndEnforceRules(OperationResult result)
+            throws ThresholdPolicyViolationException, SchemaException, ObjectNotFoundException {
+
         List<EvaluatedActivityPolicyRule> rules = getPolicyRulesContext().getPolicyRules();
         if (rules.isEmpty()) {
             return;
         }
 
+        Collection<ActivityPolicyStateType> policyStates = new ArrayList<>();
         for (EvaluatedActivityPolicyRule rule : rules) {
-            evaluateRule(rule, result);
+            ActivityPolicyStateType state = evaluateRule(rule, result);
+            if (state != null) {
+                policyStates.add(state);
+            }
         }
 
-        enforceRules(result);
+        try {
+            // we'll enforce all triggered rules at once
+            enforceRules(result);
+        } finally {
+            // update policy states after all rules were enforced (even if ThresholdPolicyViolationException was thrown)
+            Map<String, EvaluatedActivityPolicyRule> ruleMap = rules.stream()
+                    .collect(Collectors.toMap(r -> r.getRuleId(), r -> r));
+
+            Map<String, ActivityPolicyStateType> updated = activityRun.updateActivityPolicyState(policyStates, result);
+            updated.forEach((id, state) -> ruleMap.get(id).setCurrentState(state));
+        }
     }
 
-    private void evaluateRule(EvaluatedActivityPolicyRule rule, OperationResult result) {
+    private ActivityPolicyStateType evaluateRule(EvaluatedActivityPolicyRule rule, OperationResult result) {
         if (rule.isTriggered()) {
             LOGGER.trace("Policy rule {} was already triggered, skipping evaluation", rule);
-            return;
+            return null;
+        }
+
+        // todo check activity state whether rule was not already triggered
+        ActivityPolicyStateType state = rule.getCurrentState();
+        if (state != null && !state.getTriggers().isEmpty()) {
+            LOGGER.trace("Policy rule {} was already triggered, triggers stored in policy state, skipping evaluation", rule);
+            return null; // no state change
         }
 
         ActivityPolicyConstraintsType constraints = rule.getPolicy().getPolicyConstraints();
@@ -72,14 +105,31 @@ public class ActivityPolicyRulesProcessor {
 
         List<EvaluatedActivityPolicyRuleTrigger<?>> triggers = evaluator.evaluateConstraints(constraints, context, result);
         rule.setTriggers(triggers);
+
+        if (triggers.isEmpty()) {
+            return null;
+        }
+
+        ActivityPolicyStateType newState = new ActivityPolicyStateType();
+        triggers.stream()
+                .map(t -> createActivityStateTrigger(rule, t))
+                .forEach(t -> newState.getTriggers().add(t));
+
+        return newState;
+    }
+
+    private ActivityPolicyTriggerType createActivityStateTrigger(
+            EvaluatedActivityPolicyRule rule, EvaluatedActivityPolicyRuleTrigger trigger) {
+
+        ActivityPolicyTriggerType state = new ActivityPolicyTriggerType();
+        state.setConstraintIdentifier(rule.getName());
+        state.setMessage(LocalizationUtil.createLocalizableMessageType(trigger.getMessage()));
+
+        return state;
     }
 
     private void enforceRules(OperationResult result) throws ThresholdPolicyViolationException {
         List<EvaluatedActivityPolicyRule> rules = activityRun.getActivityPolicyRulesContext().getPolicyRules();
-        if (rules.isEmpty()) {
-            return;
-        }
-
         // todo make sure we store somewhere that rule was already triggered and enforced
         //  e.g. we don't send notification after each processed item when execution time was exceeded
 
@@ -96,7 +146,6 @@ public class ActivityPolicyRulesProcessor {
             }
 
             LOGGER.trace("Enforcing policy rule {}", rule);
-
             rule.enforced();
 
             if (rule.containsAction(NotificationPolicyActionType.class)) {

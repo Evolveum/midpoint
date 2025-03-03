@@ -12,16 +12,17 @@ import static com.evolveum.midpoint.util.DebugUtil.*;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.jetbrains.annotations.NotNull;
-
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.util.PrismPrettyPrinter;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityPolicyActionsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityPolicyStateType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityPolicyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyActionType;
+
+import org.jetbrains.annotations.NotNull;
 
 public class EvaluatedActivityPolicyRule implements DebugDumpable {
 
@@ -29,12 +30,24 @@ public class EvaluatedActivityPolicyRule implements DebugDumpable {
 
     private final @NotNull ActivityPolicyType policy;
 
+    private final @NotNull String ownerObjectOid;
+
     private final List<EvaluatedActivityPolicyRuleTrigger<?>> triggers = new ArrayList<>();
 
+    /**
+     * Whether the rule was enforced (i.e. the action was taken).
+     */
     private boolean enforced;
 
-    public EvaluatedActivityPolicyRule(@NotNull ActivityPolicyType policy) {
+    private ActivityPolicyStateType currentState;
+
+    public EvaluatedActivityPolicyRule(@NotNull ActivityPolicyType policy, @NotNull String ownerObjectOid) {
         this.policy = policy;
+        this.ownerObjectOid = ownerObjectOid;
+    }
+
+    public String getRuleId() {
+        return ownerObjectOid + ":" + policy.getId();
     }
 
     public String getName() {
@@ -83,8 +96,16 @@ public class EvaluatedActivityPolicyRule implements DebugDumpable {
         }
     }
 
+    public ActivityPolicyStateType getCurrentState() {
+        return currentState;
+    }
+
+    public void setCurrentState(ActivityPolicyStateType currentState) {
+        this.currentState = currentState;
+    }
+
     public boolean isTriggered() {
-        return !triggers.isEmpty();
+        return !triggers.isEmpty() || (currentState != null && !currentState.getTriggers().isEmpty());
     }
 
     public boolean isEnforced() {

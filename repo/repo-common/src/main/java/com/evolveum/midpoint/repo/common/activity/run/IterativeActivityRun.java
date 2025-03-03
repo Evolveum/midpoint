@@ -766,7 +766,7 @@ public abstract class IterativeActivityRun<
             OperationResult result) throws ActivityRunException, CommonException;
 
     @Override
-    protected final @NotNull ActivityState determineActivityStateForCounters(@NotNull OperationResult result)
+    protected final @NotNull ActivityState determineActivityStateForThresholds(@NotNull OperationResult result)
             throws SchemaException, ObjectNotFoundException {
 
         ActivityState explicit = useOtherActivityStateForCounters(result);

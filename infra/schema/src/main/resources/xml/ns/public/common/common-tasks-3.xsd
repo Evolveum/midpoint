@@ -19,7 +19,7 @@
         elementFormDefault="qualified"
         xmlns:xjc="http://java.sun.com/xml/ns/jaxb/xjc"
         jaxb:extensionBindingPrefixes="xjc"
-        jaxb:version="3.0">
+        jaxb:version="3.0" xmlns:xsdS="http://www.w3.org/2001/XMLSchema">
 
     <xsd:annotation>
         <xsd:documentation>
@@ -3304,6 +3304,16 @@
                         One of the categories are counters needed to implement thresholds for policy rules.
 
                         Note: The counters may be moved to separate repository object later to improve performance.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="policies" type="tns:ActivityPolicyGroupsType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        State of the policies related to the execution of the activity, grouped into related categories.
+                        One of the categories are policies needed to implement thresholds for policy rules.
+
+                        Note: The policies may be moved to separate repository object later to improve performance.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
@@ -8630,6 +8640,102 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="ActivityPolicyGroupsType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Policies related to the execution of the activity, grouped into related categories.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container>true</a:container>
+                <a:since>4.10</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="activityPolicies" type="tns:ActivityPolicyGroupType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Policies related to the execution of the activity.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="ActivityPolicyGroupType">
+        <xsd:annotation>
+            <xsd:documentation>
+                A group of related policies.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container>true</a:container>
+                <a:since>4.10</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="policy" type="tns:ActivityPolicyStateType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        A single policy state.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <!-- TODO this is just an idea, data structure has to be polished, improved (status, messages, etc) -->
+    <xsd:complexType name="ActivityPolicyStateType">
+        <xsd:annotation>
+            <xsd:documentation>
+                A single policy state.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container>true</a:container>
+                <a:since>4.10</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="identifier" type="xsd:string" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Policy identifier (key).
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="enforced" type="xsd:boolean" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        True if triggered policy was already enforced, e.g. policy actions were executed at least once.
+
+                        For example to avoid sending multiple notifications for the same policy trigger.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="triggers" type="tns:ActivityPolicyTriggerType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Triggers associated with the policy.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="ActivityPolicyTriggerType">
+        <xsd:annotation>
+            <xsd:documentation>
+                A single policy trigger.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container>true</a:container>
+                <a:since>4.10</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="constraintIdentifier" type="xsd:string"/>
+            <xsd:element name="message" type="tns:LocalizableMessageType"/>
         </xsd:sequence>
     </xsd:complexType>
 

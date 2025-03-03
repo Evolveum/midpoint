@@ -115,16 +115,16 @@ public abstract class AbstractActivityRun<
     @NotNull protected final CurrentActivityState<WS> activityState;
 
     /**
-     * Activity state object where [threshold] counters for the current activity reside.
+     * Activity state object where [threshold] counters and policy states for the current activity reside.
      * By default, it is the activity state for the current standalone activity (e.g. reconciliation).
      *
      * Lazily evaluated.
      *
-     * Guarded by {@link #activityStateForCountersLock}.
+     * Guarded by {@link #activityStateForThresholdsLock}.
      */
-    private ActivityState activityStateForCounters;
+    private ActivityState activityStateForThresholds;
 
-    private final Object activityStateForCountersLock = new Object();
+    private final Object activityStateForThresholdsLock = new Object();
 
     /** When did this run start? */
     protected Long startTimestamp;
@@ -242,12 +242,13 @@ public abstract class AbstractActivityRun<
             // TODO Is this really called only once on activity completion? Not sure about distributed/delegated ones.
             onActivityRealizationComplete(result);
             sendActivityRealizationCompleteEvent(result);
-        }
 
-        try {
-            processor.evaluateAndEnforceRules(result);
-        } catch (ThresholdPolicyViolationException e) {
-            throw new ActivityRunException("Threshold policy violation", FATAL_ERROR, PERMANENT_ERROR, e);
+            try {
+                // this evaluation handles activity policy rules with "below" constraints (at the end of activity run)
+                processor.evaluateAndEnforceRules(result);
+            } catch (Exception e) {
+                throw new ActivityRunException("Threshold policy violation", FATAL_ERROR, PERMANENT_ERROR, e);
+            }
         }
 
         return runResult;
@@ -483,15 +484,26 @@ public abstract class AbstractActivityRun<
     public Map<String, Integer> incrementCounters(@NotNull CountersGroup counterGroup,
             @NotNull Collection<String> countersIdentifiers, @NotNull OperationResult result)
             throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException {
-        synchronized (activityStateForCountersLock) {
-            if (activityStateForCounters == null) {
-                activityStateForCounters = determineActivityStateForCounters(result);
+        synchronized (activityStateForThresholdsLock) {
+            if (activityStateForThresholds == null) {
+                activityStateForThresholds = determineActivityStateForThresholds(result);
             }
         }
-        return activityStateForCounters.incrementCounters(counterGroup, countersIdentifiers, result);
+        return activityStateForThresholds.incrementCounters(counterGroup, countersIdentifiers, result);
     }
 
-    protected @NotNull ActivityState determineActivityStateForCounters(@NotNull OperationResult result)
+    public Map<String, ActivityPolicyStateType> updateActivityPolicyState(
+            @NotNull Collection<ActivityPolicyStateType> states, @NotNull OperationResult result)
+            throws SchemaException, ObjectNotFoundException {
+        synchronized (activityStateForThresholdsLock) {
+            if (activityStateForThresholds == null) {
+                activityStateForThresholds = determineActivityStateForThresholds(result);
+            }
+        }
+        return activityStateForThresholds.updatePolicies(states, result);
+    }
+
+    protected @NotNull ActivityState determineActivityStateForThresholds(@NotNull OperationResult result)
             throws SchemaException, ObjectNotFoundException {
         return activityState;
     }
