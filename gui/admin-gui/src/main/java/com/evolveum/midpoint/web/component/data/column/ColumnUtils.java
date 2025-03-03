@@ -590,7 +590,15 @@ public class ColumnUtils {
         return new ArrayList<>(ColumnUtils.createColumns(columnsDefs));
     }
 
-    public static List<IColumn<PrismContainerValueWrapper<CaseWorkItemType>, String>> getDefaultWorkItemColumns(PageBase pageBase, boolean isFullView) {
+    /**
+     * Returns default columns for work items table.
+     * @param pageBase
+     * @param isFullView    if true, all columns will be displayed, otherwise only basic columns will be displayed. Not full view is used e.g. on dashboard.
+     * @param showOnlyWorkItemData if true, only those data which are related to the work item will be displayed, otherwise also some case related data will be displayed (e.g. target, object)
+     * @return
+     */
+    public static List<IColumn<PrismContainerValueWrapper<CaseWorkItemType>, String>> getDefaultWorkItemColumns(PageBase pageBase,
+            boolean isFullView, boolean showOnlyWorkItemData) {
         List<IColumn<PrismContainerValueWrapper<CaseWorkItemType>, String>> columns = new ArrayList<>();
         columns.add(new AbstractExportableColumn<>(
                 createStringResource("WorkItemsPanel.stage")) {
@@ -627,105 +635,106 @@ public class ColumnUtils {
                 return Model.of(parentCase != null ? parentCase.getState() : "");
             }
         });
+        if (!showOnlyWorkItemData) {
+            columns.add(new AjaxLinkColumn<>(createStringResource("WorkItemsPanel.object")) {
+                private static final long serialVersionUID = 1L;
 
-        columns.add(new AjaxLinkColumn<>(createStringResource("WorkItemsPanel.object")) {
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            protected IModel<String> createLinkModel(IModel<PrismContainerValueWrapper<CaseWorkItemType>> rowModel) {
-                CaseWorkItemType caseWorkItemType = unwrapRowModel(rowModel);
-                CaseType caseType = CaseTypeUtil.getCase(caseWorkItemType);
-                return Model.of(WebComponentUtil.getReferencedObjectDisplayNameAndName(caseType.getObjectRef(), true, pageBase));
-            }
-
-            @Override
-            public void onClick(AjaxRequestTarget target, IModel<PrismContainerValueWrapper<CaseWorkItemType>> rowModel) {
-                CaseWorkItemType caseWorkItemType = unwrapRowModel(rowModel);
-                CaseType caseType = CaseTypeUtil.getCase(caseWorkItemType);
-
-                dispatchToObjectDetailsPage(caseType.getObjectRef(), pageBase, false);
-            }
-
-            @Override
-            public void populateItem(Item<ICellPopulator<PrismContainerValueWrapper<CaseWorkItemType>>> cellItem, String componentId,
-                    final IModel<PrismContainerValueWrapper<CaseWorkItemType>> rowModel) {
-                CaseWorkItemType caseWorkItemType = unwrapRowModel(rowModel);
-                CaseType caseType = CaseTypeUtil.getCase(caseWorkItemType);
-                AssignmentHolderType object = WebComponentUtil.getObjectFromAddDeltaForCase(caseType);
-                if (object == null) {
-                    super.populateItem(cellItem, componentId, rowModel);
-                } else {
-                    IModel model = createLinkModel(rowModel);
-                    cellItem.add(new Label(componentId, model));
+                @Override
+                protected IModel<String> createLinkModel(IModel<PrismContainerValueWrapper<CaseWorkItemType>> rowModel) {
+                    CaseWorkItemType caseWorkItemType = unwrapRowModel(rowModel);
+                    CaseType caseType = CaseTypeUtil.getCase(caseWorkItemType);
+                    return Model.of(WebComponentUtil.getReferencedObjectDisplayNameAndName(caseType.getObjectRef(), true, pageBase));
                 }
 
-                Component c = cellItem.get(componentId);
+                @Override
+                public void onClick(AjaxRequestTarget target, IModel<PrismContainerValueWrapper<CaseWorkItemType>> rowModel) {
+                    CaseWorkItemType caseWorkItemType = unwrapRowModel(rowModel);
+                    CaseType caseType = CaseTypeUtil.getCase(caseWorkItemType);
 
-                String descriptionValue = "";
-                ObjectReferenceType objectRef = caseType.getObjectRef();
-                if (objectRef != null) {
-                    PrismReferenceValue refVal = objectRef.asReferenceValue();
-                    if (refVal.getObject() != null) {
-                        descriptionValue = refVal.getObject().asObjectable().getDescription();
+                    dispatchToObjectDetailsPage(caseType.getObjectRef(), pageBase, false);
+                }
+
+                @Override
+                public void populateItem(Item<ICellPopulator<PrismContainerValueWrapper<CaseWorkItemType>>> cellItem, String componentId,
+                        final IModel<PrismContainerValueWrapper<CaseWorkItemType>> rowModel) {
+                    CaseWorkItemType caseWorkItemType = unwrapRowModel(rowModel);
+                    CaseType caseType = CaseTypeUtil.getCase(caseWorkItemType);
+                    AssignmentHolderType object = WebComponentUtil.getObjectFromAddDeltaForCase(caseType);
+                    if (object == null) {
+                        super.populateItem(cellItem, componentId, rowModel);
+                    } else {
+                        IModel model = createLinkModel(rowModel);
+                        cellItem.add(new Label(componentId, model));
                     }
+
+                    Component c = cellItem.get(componentId);
+
+                    String descriptionValue = "";
+                    ObjectReferenceType objectRef = caseType.getObjectRef();
+                    if (objectRef != null) {
+                        PrismReferenceValue refVal = objectRef.asReferenceValue();
+                        if (refVal.getObject() != null) {
+                            descriptionValue = refVal.getObject().asObjectable().getDescription();
+                        }
+                    }
+
+                    c.add(new AttributeAppender("title", descriptionValue));
                 }
 
-                c.add(new AttributeAppender("title", descriptionValue));
-            }
+                @Override
+                public boolean isEnabled(IModel<PrismContainerValueWrapper<CaseWorkItemType>> rowModel) {
+                    CaseWorkItemType caseWorkItemType = unwrapRowModel(rowModel);
+                    CaseType caseType = CaseTypeUtil.getCase(caseWorkItemType);
+                    return CollectionUtils.isNotEmpty(WebComponentUtil.loadReferencedObjectList(
+                            Collections.singletonList(caseType.getObjectRef()), "loadCaseWorkItemObjectRef", pageBase));
+                }
+            });
+            columns.add(new AjaxLinkColumn<>(createStringResource("WorkItemsPanel.target")) {
 
-            @Override
-            public boolean isEnabled(IModel<PrismContainerValueWrapper<CaseWorkItemType>> rowModel) {
-                CaseWorkItemType caseWorkItemType = unwrapRowModel(rowModel);
-                CaseType caseType = CaseTypeUtil.getCase(caseWorkItemType);
-                return CollectionUtils.isNotEmpty(WebComponentUtil.loadReferencedObjectList(
-                        Collections.singletonList(caseType.getObjectRef()), "loadCaseWorkItemObjectRef", pageBase));
-            }
-        });
-        columns.add(new AjaxLinkColumn<>(createStringResource("WorkItemsPanel.target")) {
+                private static final long serialVersionUID = 1L;
 
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            protected IModel<String> createLinkModel(IModel<PrismContainerValueWrapper<CaseWorkItemType>> rowModel) {
-                CaseWorkItemType caseWorkItemType = unwrapRowModel(rowModel);
-                CaseType caseType = CaseTypeUtil.getCase(caseWorkItemType);
-                return Model.of(WebComponentUtil.getReferencedObjectDisplayNameAndName(caseType.getTargetRef(), false, pageBase));
-            }
-
-            @Override
-            public void onClick(AjaxRequestTarget target, IModel<PrismContainerValueWrapper<CaseWorkItemType>> rowModel) {
-                CaseWorkItemType caseWorkItemType = unwrapRowModel(rowModel);
-                CaseType caseType = CaseTypeUtil.getCase(caseWorkItemType);
-                dispatchToObjectDetailsPage(caseType.getTargetRef(), pageBase, false);
-            }
-
-            @Override
-            public void populateItem(Item<ICellPopulator<PrismContainerValueWrapper<CaseWorkItemType>>> cellItem, String componentId,
-                    final IModel<PrismContainerValueWrapper<CaseWorkItemType>> rowModel) {
-                super.populateItem(cellItem, componentId, rowModel);
-                Component c = cellItem.get(componentId);
-
-                CaseWorkItemType caseWorkItemType = unwrapRowModel(rowModel);
-                CaseType caseType = CaseTypeUtil.getCase(caseWorkItemType);
-                PrismReferenceValue refVal = caseType.getTargetRef() != null ? caseType.getTargetRef().asReferenceValue() : null;
-                String descriptionValue = refVal != null && refVal.getObject() != null ?
-                        refVal.getObject().asObjectable().getDescription() : "";
-
-                c.add(new AttributeAppender("title", descriptionValue));
-            }
-
-            @Override
-            public boolean isEnabled(IModel<PrismContainerValueWrapper<CaseWorkItemType>> rowModel) {
-                CaseWorkItemType caseWorkItem = unwrapRowModel(rowModel);
-                CaseType caseType = CaseTypeUtil.getCase(caseWorkItem);
-                if (caseType == null) {
-                    return false;
+                @Override
+                protected IModel<String> createLinkModel(IModel<PrismContainerValueWrapper<CaseWorkItemType>> rowModel) {
+                    CaseWorkItemType caseWorkItemType = unwrapRowModel(rowModel);
+                    CaseType caseType = CaseTypeUtil.getCase(caseWorkItemType);
+                    return Model.of(WebComponentUtil.getReferencedObjectDisplayNameAndName(caseType.getTargetRef(), false, pageBase));
                 }
 
-                ObjectReferenceType ref = caseType.getTargetRef();
-                return ref != null && ref.getOid() != null;
-            }
-        });
+                @Override
+                public void onClick(AjaxRequestTarget target, IModel<PrismContainerValueWrapper<CaseWorkItemType>> rowModel) {
+                    CaseWorkItemType caseWorkItemType = unwrapRowModel(rowModel);
+                    CaseType caseType = CaseTypeUtil.getCase(caseWorkItemType);
+                    dispatchToObjectDetailsPage(caseType.getTargetRef(), pageBase, false);
+                }
+
+                @Override
+                public void populateItem(Item<ICellPopulator<PrismContainerValueWrapper<CaseWorkItemType>>> cellItem, String componentId,
+                        final IModel<PrismContainerValueWrapper<CaseWorkItemType>> rowModel) {
+                    super.populateItem(cellItem, componentId, rowModel);
+                    Component c = cellItem.get(componentId);
+
+                    CaseWorkItemType caseWorkItemType = unwrapRowModel(rowModel);
+                    CaseType caseType = CaseTypeUtil.getCase(caseWorkItemType);
+                    PrismReferenceValue refVal = caseType.getTargetRef() != null ? caseType.getTargetRef().asReferenceValue() : null;
+                    String descriptionValue = refVal != null && refVal.getObject() != null ?
+                            refVal.getObject().asObjectable().getDescription() : "";
+
+                    c.add(new AttributeAppender("title", descriptionValue));
+                }
+
+                @Override
+                public boolean isEnabled(IModel<PrismContainerValueWrapper<CaseWorkItemType>> rowModel) {
+                    CaseWorkItemType caseWorkItem = unwrapRowModel(rowModel);
+                    CaseType caseType = CaseTypeUtil.getCase(caseWorkItem);
+                    if (caseType == null) {
+                        return false;
+                    }
+
+                    ObjectReferenceType ref = caseType.getTargetRef();
+                    return ref != null && ref.getOid() != null;
+                }
+            });
+        }
         if (isFullView) {
             columns.add(new AbstractExportableColumn<>(
                     createStringResource("WorkItemsPanel.actors")) {
@@ -765,24 +774,26 @@ public class ColumnUtils {
             }
         });
         if (isFullView) {
-            columns.add(new AbstractColumn<>(createStringResource("WorkItemsPanel.started")) {
-                private static final long serialVersionUID = 1L;
+            if (!showOnlyWorkItemData) {
+                columns.add(new AbstractColumn<>(createStringResource("WorkItemsPanel.started")) {
+                    private static final long serialVersionUID = 1L;
 
-                @Override
-                public void populateItem(Item<ICellPopulator<PrismContainerValueWrapper<CaseWorkItemType>>> cellItem, String componentId,
-                        final IModel<PrismContainerValueWrapper<CaseWorkItemType>> rowModel) {
-                    cellItem.add(new DateLabelComponent(componentId, new IModel<>() {
-                        private static final long serialVersionUID = 1L;
+                    @Override
+                    public void populateItem(Item<ICellPopulator<PrismContainerValueWrapper<CaseWorkItemType>>> cellItem, String componentId,
+                            final IModel<PrismContainerValueWrapper<CaseWorkItemType>> rowModel) {
+                        cellItem.add(new DateLabelComponent(componentId, new IModel<>() {
+                            private static final long serialVersionUID = 1L;
 
-                        @Override
-                        public Date getObject() {
-                            CaseWorkItemType workItem = rowModel.getObject().getRealValue();
-                            CaseType caseType = CaseTypeUtil.getCase(workItem);
-                            return XmlTypeConverter.toDate(CaseTypeUtil.getStartTimestamp(caseType));
-                        }
-                    }, WebComponentUtil.getShortDateTimeFormat(pageBase)));
-                }
-            });
+                            @Override
+                            public Date getObject() {
+                                CaseWorkItemType workItem = rowModel.getObject().getRealValue();
+                                CaseType caseType = CaseTypeUtil.getCase(workItem);
+                                return XmlTypeConverter.toDate(CaseTypeUtil.getStartTimestamp(caseType));
+                            }
+                        }, WebComponentUtil.getShortDateTimeFormat(pageBase)));
+                    }
+                });
+            }
             columns.add(new AbstractExportableColumn<>(
                     createStringResource("WorkItemsPanel.deadline")) {
                 private static final long serialVersionUID = 1L;

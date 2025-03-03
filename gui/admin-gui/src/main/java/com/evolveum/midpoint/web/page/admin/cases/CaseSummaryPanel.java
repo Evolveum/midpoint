@@ -6,10 +6,14 @@
  */
 package com.evolveum.midpoint.web.page.admin.cases;
 
+import java.io.Serial;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
+import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.util.cases.CaseTypeUtil;
+import com.evolveum.midpoint.web.component.DateLabelComponent;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SummaryPanelSpecificationType;
 
 import org.apache.commons.lang3.StringUtils;
@@ -47,6 +51,28 @@ public class CaseSummaryPanel extends ObjectSummaryPanel<CaseType> {
     @Override
     protected IModel<String> getTitleModel() {
         return new LoadableModel<String>() {
+            @Serial private static final long serialVersionUID = 1L;
+
+            @Override
+            public String load() {
+                ObjectReferenceType parentRef = getModelObject().getParentRef();
+                if (parentRef != null && StringUtils.isNotEmpty(parentRef.getOid())) {
+                    Date startDate = XmlTypeConverter.toDate(CaseTypeUtil.getStartTimestamp(getModelObject()));
+                    if (startDate != null) {
+                        return createStringResource("CaseSummaryPanel.started",
+                                WebComponentUtil.getLocalizedDate(startDate, DateLabelComponent.MEDIUM_MEDIUM_STYLE)).getString();
+                    }
+                }
+                return null;
+            }
+        };
+    }
+
+    @Override
+    protected IModel<String> getTitle2Model() {
+        return new LoadableModel<String>() {
+            @Serial private static final long serialVersionUID = 1L;
+
             @Override
             public String load() {
                 ObjectReferenceType parentRef = getModelObject().getParentRef();

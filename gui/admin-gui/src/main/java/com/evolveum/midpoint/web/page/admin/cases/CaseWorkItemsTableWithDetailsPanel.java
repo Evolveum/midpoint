@@ -55,6 +55,11 @@ public abstract class CaseWorkItemsTableWithDetailsPanel extends BasePanel<Prism
                     protected UserProfileStorage.TableId getTableId() {
                         return CaseWorkItemsTableWithDetailsPanel.this.getTableId();
                     }
+
+                    @Override
+                    protected boolean showOnlyWorkItemData() {
+                        return true;
+                    }
                 };
         caseWorkItems.setOutputMarkupId(true);
         add(caseWorkItems);
