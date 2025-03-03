@@ -54,6 +54,7 @@ public class SessionStorage implements Serializable, DebugDumpable {
     public static final String KEY_LOGGING_TAB_APPENDER_TABLE = "loggingTabAppenderTable";
     public static final String KEY_LOGGING_TAB_LOGGER_TABLE = "loggingTabLoggerTable";
     public static final String KEY_FOCUS_PROJECTION_TABLE = "focusProjectionTable";
+    public static final String KEY_FOCUS_CASES_TABLE = "focusCasesTable";
     public static final String KEY_NOTIFICATION_TAB_MAIL_SERVER_TABLE = "notificationTabMailServerTable";
     public static final String KEY_ROLE_MEMBER_PANEL = UserProfileStorage.TableId.ROLE_MEMBER_PANEL.name();
     public static final String KEY_ORG_MEMBER_PANEL = UserProfileStorage.TableId.ORG_MEMBER_PANEL.name();
