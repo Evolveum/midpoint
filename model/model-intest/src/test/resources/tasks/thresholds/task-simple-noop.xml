@@ -13,16 +13,16 @@
     <activity>
         <work>
             <noOp>
-                <steps>10</steps>
+                <steps>11</steps>
                 <delay>1000</delay>
             </noOp>
         </work>
         <policies>
             <policy>
-                <name>Max. 5s execution</name>
+                <name>Max. 6s execution</name>
                 <policyConstraints>
                     <executionTime>
-                        <exceeds>PT5S</exceeds>
+                        <exceeds>PT6S</exceeds>
                     </executionTime>
                 </policyConstraints>
                 <policyActions>

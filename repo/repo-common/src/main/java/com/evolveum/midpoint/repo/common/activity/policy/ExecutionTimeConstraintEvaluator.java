@@ -8,23 +8,21 @@
 package com.evolveum.midpoint.repo.common.activity.policy;
 
 import java.util.List;
-import javax.xml.datatype.Duration;
 
-import org.springframework.stereotype.Component;
-
-import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.repo.common.activity.run.AbstractActivityRun;
 import com.evolveum.midpoint.repo.common.activity.run.state.ActivityItemProcessingStatistics;
 import com.evolveum.midpoint.schema.util.task.WallClockTimeComputer;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityRunRecordType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.DurationThresholdPolicyConstraintType;
 
+import org.springframework.stereotype.Component;
+
 @Component
 public class ExecutionTimeConstraintEvaluator
         extends EvaluatedDurationThresholdConstraintEvaluator<DurationThresholdPolicyConstraintType> {
 
     @Override
-    protected Duration getDurationValue(ActivityPolicyRuleEvaluationContext context) {
+    protected Long getDurationValue(ActivityPolicyRuleEvaluationContext context) {
         // todo MID-10412 handle differently for worker vs for coordinator
 
         AbstractActivityRun<?, ?, ?> activityRun = context.getActivityRun();
@@ -33,8 +31,6 @@ public class ExecutionTimeConstraintEvaluator
         List<ActivityRunRecordType> runRecords = stats.getValueCopy().getRun();
 
         WallClockTimeComputer computer = WallClockTimeComputer.create(runRecords);
-        long wallClockTime = computer.getSummaryTime();
-
-        return XmlTypeConverter.createDuration(wallClockTime);
+        return computer.getSummaryTime();
     }
 }
