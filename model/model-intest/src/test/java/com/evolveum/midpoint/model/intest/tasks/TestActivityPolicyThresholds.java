@@ -85,7 +85,10 @@ public class TestActivityPolicyThresholds extends AbstractEmptyModelIntegrationT
                     .display()
                     .assertOnePolicyStateTriggers(identifier, 1)
                 .end()
-                .progress().display().end()
+                .assertInProgressLocal()
+                // 6 items are processed, 1 is successful - 6 because duration doesn't compare milliseconds,
+                // so after 5th item task time is 5s and some miliseconds
+                .progress().assertSuccessCount(1, 6).display().end()
                 .itemProcessingStatistics().display().end();
         // @formatter:on
     }

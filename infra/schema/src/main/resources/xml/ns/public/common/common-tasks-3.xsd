@@ -2034,6 +2034,9 @@
                         <xsd:annotation>
                             <xsd:documentation>
                                 When the activity metric ends quicker than this duration, the policy action is triggered.
+
+                                When testing activity execution, milliseconds are not being taken into account - smallest duration value is 1s.
+                                E.g. Activity executing for 1037ms is considered to be executing for 1s.
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
@@ -2041,6 +2044,9 @@
                         <xsd:annotation>
                             <xsd:documentation>
                                 When the activity metrics exceeds this duration, the policy action is triggered.
+
+                                When testing activity execution, milliseconds are not being taken into account - smallest duration value is 1s.
+                                E.g. Activity executing for 1037ms is considered to be executing for 1s.
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
