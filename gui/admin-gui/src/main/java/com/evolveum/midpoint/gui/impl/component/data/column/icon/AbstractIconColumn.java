@@ -46,4 +46,8 @@ public abstract class AbstractIconColumn<T, S> extends AbstractColumn<T, S> {
         return super.getHeader(componentId);
     }
 
+    @Override
+    public String getCssClass() {
+        return "align-middle";
+    }
 }

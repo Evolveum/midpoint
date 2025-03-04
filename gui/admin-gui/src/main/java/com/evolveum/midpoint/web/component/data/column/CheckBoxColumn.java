@@ -80,10 +80,10 @@ public class CheckBoxColumn<T extends Serializable> extends AbstractColumn<T, St
     public String getCssClass() {
         IModel<String> display = getDisplayModel();
         if (display != null && StringUtils.isNotEmpty(display.getObject())) {
-            return null;
+            return "align-middle";
         }
 
-        return "icon";
+        return "icon align-middle";
     }
 
     protected IModel<Boolean> getEnabled(IModel<T> rowModel) {
