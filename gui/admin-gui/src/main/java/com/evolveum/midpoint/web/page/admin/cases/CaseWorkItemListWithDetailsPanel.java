@@ -184,8 +184,16 @@ public abstract class CaseWorkItemListWithDetailsPanel extends MultivalueContain
             }
         });
 
-        columns.addAll(ColumnUtils.getDefaultWorkItemColumns(getPageBase(), true));
+        columns.addAll(ColumnUtils.getDefaultWorkItemColumns(getPageBase(), true, showOnlyWorkItemData()));
         return columns;
+    }
+
+    /**
+     * In case work items panel is displayed on the case details page, we need show only work item data. Such data
+     * as object, target, start time, etc. shouldn't be displayed as they are already displayed on the case details page.
+     */
+    protected boolean showOnlyWorkItemData() {
+        return false;
     }
 
     private CaseWorkItemType unwrapRowModel(IModel<PrismContainerValueWrapper<CaseWorkItemType>> rowModel) {

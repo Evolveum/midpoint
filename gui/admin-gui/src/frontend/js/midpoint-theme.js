@@ -950,6 +950,7 @@ export default class MidPointTheme {
             const positionCommand = commands[commands.length - 1];
 
             const regex = new RegExp(`(${positionCommand})`, "gi");
+            let hideAutocomplete = true;
 
             let renderSuggestions = (name, alias) => autocomplete.append('<div class="line suggestion">' +
                     '<span class="name">' + name + '</span>' +
@@ -960,11 +961,14 @@ export default class MidPointTheme {
             suggestions.forEach(suggestion => {
                 const highlightedName = suggestion.name.replace(regex, "<strong>$1</strong>");
                 if (positionCommand === " " || suggestion.name.includes(positionCommand)) {
+                    hideAutocomplete = false
                     renderSuggestions(highlightedName, suggestion.alias)
-                } else {
-
                 }
             })
+
+            if (hideAutocomplete) {
+                autocomplete.hide()
+            }
 
             autocomplete.on('click', '.suggestion', function() {
                 commands[commands.length - 1] = $(this).find('.name').text()
@@ -985,15 +989,26 @@ export default class MidPointTheme {
                 } else if (e.key === "ArrowUp" || e.key == "Arrow Up" || e.keyCode == 38) {
                     e.preventDefault();
                     navigate(-1)
-                } else if (e.key === "Enter") {
+                } else if (e.key === "Enter" || e.keyCode == 13) {
                     // select active suggestion by touch Enter key
-//                    const items = autocomplete.find("div");
-//                    if (currentIndex >= 0 && currentIndex < items.length) {
-//                        queryDslInput.val($(items[currentIndex]).text()); // Set input value
-//                        autocomplete.hide();
-//                        autocomplete.empty();
-//                        currentIndex = -1;
-//                    }
+                    if (autocomplete.is(":visible")) {
+                        const suggestions = $("#queryDslAutocomplete").find(".suggestion");
+                        if (currentIndex >= 0 && currentIndex < suggestions.length) {
+                            e.preventDefault();
+                            const selectedCommand = $(suggestions[currentIndex]).find(".name").text();
+
+                            if (selectedCommand != "") {
+                                commands[commands.length - 1] = $(suggestions[currentIndex]).find(".name").text()
+                                queryDslInput.val(commands.join(" ") + query.substring(cursorPosition))
+                                queryDslInput[0].focus()
+                                queryDslInput[0].setSelectionRange(commands.join(" ").length, commands.join(" ").length)
+                            }
+
+                            autocomplete.hide();
+                            autocomplete.empty();
+                            currentIndex = -1;
+                        }
+                    }
                 } else {
                     window.MidPointTheme.cursorPosition = this.selectionStart;
                 }

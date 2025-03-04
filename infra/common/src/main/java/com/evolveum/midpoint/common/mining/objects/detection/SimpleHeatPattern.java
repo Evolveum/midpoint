@@ -1,4 +1,4 @@
-package com.evolveum.midpoint.gui.impl.page.admin.role.mining.tables.operation;
+package com.evolveum.midpoint.common.mining.objects.detection;
 
 import java.io.Serializable;
 import java.util.List;
@@ -8,19 +8,19 @@ import org.jetbrains.annotations.NotNull;
 
 public class SimpleHeatPattern implements Serializable {
 
-    List<String> propertiesOids;
+    transient List<String> members;
     int propertiesCount = 0;
     int totalRelations = 0;
     int key;
 
-    public SimpleHeatPattern(List<String> propertiesOids, int key) {
-        this.propertiesOids = propertiesOids;
-        this.propertiesCount = propertiesOids.size();
+    public SimpleHeatPattern(@NotNull List<String> members, int key) {
+        this.members = members;
+        this.propertiesCount = members.size();
         this.key = key;
     }
 
-    public List<String> getPropertiesOids() {
-        return propertiesOids;
+    public List<String> getMembers() {
+        return members;
     }
 
     public int getKey() {
@@ -28,7 +28,7 @@ public class SimpleHeatPattern implements Serializable {
     }
 
     public boolean isPartOf(@NotNull Set<String> properties) {
-        return properties.containsAll(propertiesOids);
+        return properties.containsAll(members);
     }
 
     public int getPropertiesCount() {

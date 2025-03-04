@@ -406,6 +406,14 @@ public class MidPointPrincipal implements UserDetails, DebugDumpable, ShortDumpa
     }
 
     /**
+     * Clear all registered "membership delegation".
+     */
+    public void clearOtherPrivilegesLimitations(){
+        this.otherPrivilegesLimitations.clear();
+    }
+
+
+    /**
      * Checks if the midPoint object behind this principal is enabled. The method is placed here to be easily accessible
      * from various contexts. (Although it is a bit questionable if it isn't just too late to check the object after being
      * "installed" into {@link MidPointPrincipal}.)

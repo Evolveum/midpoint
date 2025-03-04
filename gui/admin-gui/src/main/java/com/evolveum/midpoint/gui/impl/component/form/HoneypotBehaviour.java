@@ -9,6 +9,10 @@ package com.evolveum.midpoint.gui.impl.component.form;
 
 import com.evolveum.midpoint.gui.api.util.LocalizationUtil;
 
+import com.evolveum.midpoint.gui.impl.factory.wrapper.ItemWrapperFactoryImpl;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
+
 import jp.try0.wicket.honeypot.behavior.HoneypotBehavior;
 import jp.try0.wicket.honeypot.behavior.HoneypotBehaviorConfig;
 import org.apache.wicket.Component;
@@ -25,6 +29,8 @@ import org.apache.wicket.util.string.StringValue;
  * Behaviour have to be added to form. Create fake fields for every input and validate their values.
  */
 public class HoneypotBehaviour extends AjaxFormSubmitBehavior {
+
+    private static final Trace LOGGER = TraceManager.getTrace(HoneypotBehaviour.class);
 
     private static final String HONEYPOT_FIELD_NAME = "hpField-";
 
@@ -50,15 +56,19 @@ public class HoneypotBehaviour extends AjaxFormSubmitBehavior {
             @Override
             public void validate(Form<?> form) {
 
+                LOGGER.debug("Starting validation honeypots on form " + form.getId());
+
                 IRequestParameters postParams = form.getRequest().getPostParameters();
 
                 boolean findSomeParameter = false;
 
                 for (String parameterName : postParams.getParameterNames()) {
                     if (parameterName.startsWith(HONEYPOT_FIELD_NAME)) {
+                        LOGGER.debug("Validating parameter with name " + parameterName);
                         findSomeParameter = true;
                         StringValue paramValue = postParams.getParameterValue(parameterName);
                         if (!paramValue.isEmpty()) {
+                            LOGGER.error("Parameter " + parameterName + " isn't empty, but it contains " + paramValue);
                             onError(form);
                             return;
                         }
@@ -66,8 +76,12 @@ public class HoneypotBehaviour extends AjaxFormSubmitBehavior {
                 }
 
                 if (!findSomeParameter) {
+                    LOGGER.error("Whole form " + form.getId() + " doesn't contain any honeypot field.");
                     onError(form);
+                    return;
                 }
+
+                LOGGER.debug("Finishing validation honeypots on form " + form.getId());
 
             }
 

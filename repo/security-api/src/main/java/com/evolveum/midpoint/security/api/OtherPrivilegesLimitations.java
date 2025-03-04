@@ -85,6 +85,10 @@ public class OtherPrivilegesLimitations implements DebugDumpable, Serializable {
                 .collect(Collectors.toSet());
     }
 
+    public void clear(){
+        limitationMap.clear();
+    }
+
     public enum Type {
         CASES, ACCESS_CERTIFICATION
     }

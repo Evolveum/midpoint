@@ -12,13 +12,27 @@ import static com.evolveum.midpoint.schema.statistics.AbstractStatisticsPrinter.
 
 import com.evolveum.midpoint.schema.statistics.*;
 import com.evolveum.midpoint.tools.testng.TestMonitor;
-import com.evolveum.midpoint.tools.testng.TestReportSection;
 import com.evolveum.midpoint.util.statistics.OperationsPerformanceMonitor;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
-import java.util.Objects;
+import org.jetbrains.annotations.NotNull;
 
+import java.util.Objects;
+import java.util.function.IntFunction;
+
+/**
+ * Reports performance-related statistical data collected in task or globally via reports in {@link TestMonitor}.
+ *
+ * Consider renaming this class.
+ */
 public class TestReportUtil {
+
+    private static final String GLOBAL_PERFORMANCE_INFORMATION = "globalPerformanceInformation";
+    private static final String OPERATION_PERFORMANCE = "operationPerformance";
+    private static final String COMPONENT_PERFORMANCE = "componentPerformance";
+    private static final String REPOSITORY_PERFORMANCE = "repositoryPerformance";
+    private static final String CACHE_PERFORMANCE = "cachePerformance";
+    private static final String PROVISIONING_STATISTICS = "provisioningStatistics";
 
     /**
      * Adds global performance information as a report section to the {@link TestMonitor}.
@@ -32,17 +46,41 @@ public class TestReportUtil {
         OperationsPerformanceInformationPrinter printer = new OperationsPerformanceInformationPrinter(performanceInformation,
                 new AbstractStatisticsPrinter.Options(RAW, TIME), null, null, false);
 
-        addPrinterData(testMonitor, "globalPerformanceInformation", printer);
+        addPrinterDataAsNewSection(testMonitor, GLOBAL_PERFORMANCE_INFORMATION, printer);
     }
 
-    private static void addPrinterData(TestMonitor testMonitor, String sectionName, AbstractStatisticsPrinter<?> printer) {
+    /** Adds data from `printer` as a new report section in the {@link TestMonitor}. */
+    private static void addPrinterDataAsNewSection(
+            @NotNull TestMonitor testMonitor, @NotNull String sectionName, @NotNull AbstractStatisticsPrinter<?> printer) {
         printer.prepare();
-        Data data = printer.getData();
-        Formatting formatting = printer.getFormatting();
+        var section = testMonitor.addReportSection(sectionName)
+                .withColumns(printer.getColumnLabelsAsArray());
+        printer.getRawDataStream().forEach(section::addRow);
+    }
 
-        TestReportSection section = testMonitor.addReportSection(sectionName)
-                .withColumns(formatting.getColumnLabels().toArray(new String[0]));
-        data.getRawDataStream().forEach(section::addRow);
+    /**
+     * Adds data from `printer` to report section in {@link TestMonitor} (created if not existing), discriminating by
+     * the column named `descColumnName` with the value of `descColumnValue`.
+     */
+    @SuppressWarnings("SameParameterValue")
+    private static void addPrinterDataAsNewOrExistingSection(
+            @NotNull TestMonitor testMonitor, @NotNull String sectionName,
+            @NotNull String descColumnName, Object descColumnValue,
+            @NotNull AbstractStatisticsPrinter<?> printer) {
+        printer.prepare();
+        var section = testMonitor.findOrAddReportSection(sectionName)
+                .withColumnsChecked(
+                        prefixArray(descColumnName, String[]::new, printer.getColumnLabelsAsArray()));
+        printer.getRawDataStream().forEach(
+                row -> section.addRow(
+                        prefixArray(descColumnValue, Object[]::new, row)));
+    }
+
+    private static <T> T[] prefixArray(@NotNull T first, IntFunction<T[]> arrayConstructor, T[] rest) {
+        var result = arrayConstructor.apply(rest.length + 1);
+        result[0] = first;
+        System.arraycopy(rest, 0, result, 1, rest.length);
+        return result;
     }
 
     /**
@@ -58,15 +96,33 @@ public class TestReportUtil {
                 new AbstractStatisticsPrinter.Options(RAW, TIME),
                 iterations, seconds, false);
 
-        addPrinterData(testMonitor, label + ":operationPerformance", printer);
+        addPrinterDataAsNewSection(testMonitor, label + ":" + OPERATION_PERFORMANCE, printer);
     }
 
     /**
      * Adds component performance for a given task to the {@link TestMonitor}.
      */
-    public static void reportTaskComponentPerformance(
+    public static void reportTaskComponentPerformanceAsSeparateSection(
             TestMonitor testMonitor, String label, TaskType task, Integer iterations) {
+        addPrinterDataAsNewSection(
+                testMonitor,
+                label + ":" + COMPONENT_PERFORMANCE,
+                getComponentsPerformanceInformationPrinter(task, iterations));
+    }
 
+    /**
+     * Adds component performance for a given task to the {@link TestMonitor}, into a section named `sectionName`
+     * that aggregates the performance of all components for all tasks.
+     */
+    public static void reportTaskComponentPerformanceToSingleSection(
+            TestMonitor testMonitor, String taskIdentification, TaskType task, Integer iterations) {
+        addPrinterDataAsNewOrExistingSection(
+                testMonitor, COMPONENT_PERFORMANCE, "task", taskIdentification,
+                getComponentsPerformanceInformationPrinter(task, iterations));
+    }
+
+    private static @NotNull ComponentsPerformanceInformationPrinter getComponentsPerformanceInformationPrinter(
+            TaskType task, Integer iterations) {
         var operationsInfo =
                 Objects.requireNonNullElseGet(
                         task.getOperationStats() != null ? task.getOperationStats().getOperationsPerformanceInformation() : null,
@@ -74,12 +130,10 @@ public class TestReportUtil {
 
         var componentsInfo = ComponentsPerformanceInformationUtil.computeBasic(operationsInfo);
 
-        var printer = new ComponentsPerformanceInformationPrinter(
+        return new ComponentsPerformanceInformationPrinter(
                 componentsInfo,
                 new AbstractStatisticsPrinter.Options(RAW, TIME),
                 iterations);
-
-        addPrinterData(testMonitor, label + ":componentPerformance", printer);
     }
 
     /**
@@ -95,7 +149,7 @@ public class TestReportUtil {
         RepositoryPerformanceInformationPrinter printer = new RepositoryPerformanceInformationPrinter(performanceInformation,
                 new AbstractStatisticsPrinter.Options(RAW, NAME), iterations, seconds);
 
-        addPrinterData(testMonitor, label + ":repositoryPerformance", printer);
+        addPrinterDataAsNewSection(testMonitor, label + ":" + REPOSITORY_PERFORMANCE, printer);
     }
 
     /**
@@ -110,7 +164,7 @@ public class TestReportUtil {
         CachePerformanceInformationPrinter printer = new CachePerformanceInformationPrinter(performanceInformation,
                 new AbstractStatisticsPrinter.Options(RAW, NAME));
 
-        addPrinterData(testMonitor, label + ":cachePerformance", printer);
+        addPrinterDataAsNewSection(testMonitor, label + ":" + CACHE_PERFORMANCE, printer);
     }
 
     /**
@@ -127,6 +181,6 @@ public class TestReportUtil {
         ProvisioningStatisticsPrinter printer = new ProvisioningStatisticsPrinter(provisioningStatistics,
                 new AbstractStatisticsPrinter.Options(RAW, NAME));
 
-        addPrinterData(testMonitor, label + ":provisioningStatistics", printer);
+        addPrinterDataAsNewSection(testMonitor, label + ":" + PROVISIONING_STATISTICS, printer);
     }
 }
