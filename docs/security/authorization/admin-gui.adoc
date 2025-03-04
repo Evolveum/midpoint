@@ -24,19 +24,19 @@ In the midPoint, we now support these GUI actions:
 | Administration dashboard (including the actions)
 | covers also #dashboard and #myPasswords
 
-|
+| http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#usersAll
 | All administration pages for users (including the actions)
 |
 
-|
+| http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#resourcesAll
 | All administration pages for resources (including the actions)
 |
 
-|
+| http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#rolesAll
 | All administration pages for roles (including the actions)
 |
 
-|
+| http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#configurationAll
 | All administration configuration pages (including the actions)
 |
 
@@ -48,20 +48,20 @@ In the midPoint, we now support these GUI actions:
 | All administration pages for reports (including the actions)
 |
 
-|
+| http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#tasksAll
 | All administration pages for tasks (including the actions)
 |
 
-|
+| http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#orgAll
 | All administration pages for org.
 structure (including the actions)
 |
 
-|
+| http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#certificationAll
 | All pages for access certification (including actions)
 | Since 3.4
 
-|
+| http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#archetypesAll
 | All pages for archetypes
 | Since 4.0
 
@@ -116,7 +116,7 @@ The authorization is also check while deciding if previewButton should be shown.
 | Self-service request a role
 | 3.4-3.5.x, not supported in 3.6+
 
-| http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#selfRequestAssignmentDEPRECATED
+| http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#selfRequestAssignment (DEPRECATED)
 | Self-service request a role
 | appeared in 3.6 +
 deprecated since 4.0.1 +
@@ -395,6 +395,10 @@ use #selfRequestAssignments instead
 
 | http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#casesView
 | Showing menu items for xref:/midpoint/reference/admin-gui/collections-views/[views] that are configured for cases.
+|
+
+| http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#case
+| Edit case (allowing to display case details including child cases and work items)
 |
 
 |===
