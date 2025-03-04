@@ -11,7 +11,7 @@ import com.evolveum.midpoint.gui.impl.page.self.requestAccess.CatalogItemDetails
 
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.ajax.markup.html.AjaxLink;
+import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.panel.Fragment;
@@ -80,6 +80,7 @@ public class ConfirmationPanel extends BasePanel<String> implements Popupable {
                 noPerformed(target);
             }
         };
+        noButton.add(AttributeAppender.append("class", getNoButtonCssClass()));
         footer.add(noButton);
 
         return footer;
@@ -144,5 +145,13 @@ public class ConfirmationPanel extends BasePanel<String> implements Popupable {
 
     protected IModel<String> createNoLabel() {
         return createStringResource("confirmationDialog.no");
+    }
+
+    protected String getYesButtonCssClass() {
+        return "btn btn-primary";
+    }
+
+    protected String getNoButtonCssClass() {
+        return "btn btn-default";
     }
 }

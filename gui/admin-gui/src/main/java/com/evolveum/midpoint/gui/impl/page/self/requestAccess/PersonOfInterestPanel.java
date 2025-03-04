@@ -30,7 +30,6 @@ import org.apache.wicket.markup.html.panel.Fragment;
 import org.apache.wicket.model.IModel;
 import org.wicketstuff.select2.ChoiceProvider;
 import org.wicketstuff.select2.Response;
-import org.wicketstuff.select2.Select2MultiChoice;
 
 import com.evolveum.midpoint.gui.api.component.ObjectBrowserPanel;
 import com.evolveum.midpoint.gui.api.component.autocomplete.AutocompleteConfigurationMixin;
@@ -58,6 +57,8 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
+import org.wicketstuff.select2.Select2MultiChoice;
 
 /**
  * Created by Viliam Repan (lazyman).
@@ -793,6 +794,11 @@ public class PersonOfInterestPanel extends BasicWizardStepPanel<RequestAccess> i
             @Override
             protected IModel<String> createNoLabel() {
                 return createStringResource("PersonOfInterestPanel.confirmPopup.personOfInterestCleanup");
+            }
+
+            @Override
+            protected String getNoButtonCssClass() {
+                return "btn btn-primary";
             }
 
             @Override
