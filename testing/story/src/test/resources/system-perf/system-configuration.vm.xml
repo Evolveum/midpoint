@@ -9,6 +9,7 @@
 <!--
 Parameters:
  - disableDefaultMultivalueProvenance
+ - cachedTypeNames
 -->
 <systemConfiguration oid="00000000-0000-0000-0000-000000000001" version="0"
     xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
@@ -71,16 +72,9 @@ Parameters:
                         <classification>perCacheAndObjectType</classification>
                     </statistics>
                     <objectTypeSettings>
-                        <objectType>SystemConfigurationType</objectType>
-                        <objectType>ArchetypeType</objectType>
-                        <objectType>ObjectTemplateType</objectType>
-                        <objectType>SecurityPolicyType</objectType>
-                        <objectType>ValuePolicyType</objectType>
-                        <objectType>ResourceType</objectType>
-                        <objectType>RoleType</objectType>
-                        <objectType>ShadowType</objectType>
-                        <objectType>MarkType</objectType>
-                        <objectType>ConnectorType</objectType>
+#foreach($cachedTypeName in $cachedTypeNames)
+                        <objectType>$cachedTypeName</objectType>
+#end
                     </objectTypeSettings>
                 </globalRepoCache>
                 <localRepoCache>
