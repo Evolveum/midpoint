@@ -64,12 +64,13 @@ public abstract class PageDashboard extends PageAdminHome {
     protected abstract void initLayout();
 
     protected <O extends ObjectType> void customizationObjectInfoBoxType(InfoBoxData infoBoxType, Class<O> type,
-            List<QName> items, Object eqObject, String bgColor, String icon, String keyPrefix, Integer totalCount,
+            ObjectQuery totalQuery, ObjectQuery activeQuery, String bgColor, String icon, String keyPrefix, Integer totalCount,
             Integer activeCount, OperationResult result, Task task) {
     }
 
-    protected <O extends ObjectType> IModel<InfoBoxData> getObjectInfoBoxTypeModel(Class<O> type, List<QName> items,
-            Object eqObject, String bgColor, String icon, String keyPrefix, OperationResult result, Task task, Class<? extends IRequestablePage> linkPage) {
+    protected <O extends ObjectType> IModel<InfoBoxData> getObjectInfoBoxTypeModel(Class<O> type, ObjectQuery totalQuery,
+            ObjectQuery activeQuery, String bgColor, String icon, String keyPrefix,
+            OperationResult result, Task task, Class<? extends IRequestablePage> linkPage) {
 
         InfoBoxData data = new InfoBoxData(bgColor, icon, getString(keyPrefix + ".label"));
         data.setLink(linkPage);
@@ -77,16 +78,12 @@ public abstract class PageDashboard extends PageAdminHome {
         Integer totalCount = null;
         Integer activeCount = null;
         try {
-            totalCount = getModelService().countObjects(type, null, null, task, result);
+            totalCount = getModelService().countObjects(type, totalQuery, null, task, result);
             if (totalCount == null) {
                 totalCount = 0;
             }
-            QName[] queryItems = new QName[items.size()];
-            ObjectQuery query = getPrismContext().queryFor(type)
-                    .item(items.toArray(queryItems)).eq(eqObject)
-                    .build();
 
-            activeCount = getModelService().countObjects(type, query, null, task, result);
+            activeCount = getModelService().countObjects(type, activeQuery, null, task, result);
             if (activeCount == null) {
                 activeCount = 0;
             }
@@ -105,8 +102,7 @@ public abstract class PageDashboard extends PageAdminHome {
             data.setNumber("ERROR: " + e.getMessage());
         }
 
-        customizationObjectInfoBoxType(data, type, items, eqObject, bgColor, icon,
-                keyPrefix, totalCount, activeCount, result, task);
+        customizationObjectInfoBoxType(data, type, totalQuery, activeQuery, bgColor, icon, keyPrefix, totalCount, activeCount, result, task);
 
         return Model.of(data);
     }
