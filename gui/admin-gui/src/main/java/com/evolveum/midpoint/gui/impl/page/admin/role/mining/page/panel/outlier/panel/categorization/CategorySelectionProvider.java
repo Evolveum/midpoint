@@ -11,6 +11,7 @@ import com.evolveum.midpoint.gui.api.component.progressbar.ProgressBar;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
+import org.apache.wicket.model.IModel;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.wicketstuff.select2.ChoiceProvider;
@@ -27,9 +28,9 @@ public class CategorySelectionProvider extends ChoiceProvider<RoleAnalysisObject
 
     boolean advanced;
     LoadableModel<Boolean> isRoleSelected;
-    transient RoleAnalysisOptionType sessionAnalysisOption;
+    transient IModel<RoleAnalysisOptionType> sessionAnalysisOption;
 
-    public CategorySelectionProvider(boolean advanced, LoadableModel<Boolean> isRoleSelected, RoleAnalysisOptionType sessionAnalysisOption) {
+    public CategorySelectionProvider(boolean advanced, LoadableModel<Boolean> isRoleSelected, IModel<RoleAnalysisOptionType> sessionAnalysisOption) {
         this.advanced = advanced;
         this.isRoleSelected = isRoleSelected;
         this.sessionAnalysisOption = sessionAnalysisOption;
@@ -47,13 +48,16 @@ public class CategorySelectionProvider extends ChoiceProvider<RoleAnalysisObject
 
     @Override
     public void query(String text, int page, Response<RoleAnalysisObjectCategorizationType> response) {
-        List<RoleAnalysisObjectCategorizationType> allowedValues = allowedValues(advanced, isRoleSelected, sessionAnalysisOption);
+        List<RoleAnalysisObjectCategorizationType> allowedValues = allowedValues(advanced, isRoleSelected, sessionAnalysisOption.getObject());
         if (text == null) {
             response.addAll(allowedValues);
             return;
         }
         for (RoleAnalysisObjectCategorizationType value : allowedValues) {
-            if (value.toString().toLowerCase().contains(text)) {
+            String categoryValueDisplayString = getCategoryValueDisplayString(value, isRoleSelected.getObject());
+            String inputLText = text.toLowerCase();
+            if (categoryValueDisplayString != null && categoryValueDisplayString.toLowerCase().contains(inputLText)
+                    || value.toString().toLowerCase().contains(inputLText)) {
                 response.add(value);
             }
         }
@@ -97,9 +101,9 @@ public class CategorySelectionProvider extends ChoiceProvider<RoleAnalysisObject
             boolean advanced,
             @NotNull RoleAnalysisIdentifiedCharacteristicsItemsType itemContainer,
             @NotNull LoadableModel<Boolean> isRoleSelected,
-            RoleAnalysisOptionType processMode) {
+            RoleAnalysisOptionType analysisOption) {
 
-        List<RoleAnalysisObjectCategorizationType> allowedValues = allowedValues(advanced, isRoleSelected, processMode);
+        List<RoleAnalysisObjectCategorizationType> allowedValues = allowedValues(advanced, isRoleSelected, analysisOption);
         Map<RoleAnalysisObjectCategorizationType, CategoryData> categoryDataMap = resolveClassificationCategoryStr(
                 isRoleSelected.getObject(), itemContainer);
 

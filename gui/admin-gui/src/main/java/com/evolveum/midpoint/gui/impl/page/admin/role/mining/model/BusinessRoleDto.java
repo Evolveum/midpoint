@@ -15,8 +15,6 @@ import java.util.*;
 
 import com.evolveum.midpoint.prism.PrismContainerValue;
 
-import com.evolveum.midpoint.prism.impl.binding.AbstractMutableObjectable;
-
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
