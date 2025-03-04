@@ -259,6 +259,8 @@ public abstract class TileTablePanel<T extends Tile, O extends Serializable> ext
 
                 getViewToggleModel().setObject(item.getObject().getValue());
                 target.add(TileTablePanel.this);
+
+                togglePanelItemSelectPerformed(target, item);
             }
         };
         viewToggle.add(new VisibleEnableBehaviour(this::isTogglePanelVisible));
@@ -393,5 +395,8 @@ public abstract class TileTablePanel<T extends Tile, O extends Serializable> ext
 
     protected final boolean isTileViewVisible() {
         return viewToggleModel.getObject() == ViewToggle.TILE;
+    }
+
+    protected  void togglePanelItemSelectPerformed(AjaxRequestTarget target, IModel<Toggle<ViewToggle>> item) {
     }
 }

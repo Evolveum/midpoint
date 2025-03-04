@@ -11,6 +11,8 @@ import java.io.Serial;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.evolveum.midpoint.gui.api.component.Toggle;
+
 import com.evolveum.midpoint.gui.impl.page.admin.certification.helpers.CampaignStateHelper;
 
 import com.evolveum.midpoint.gui.impl.util.TableUtil;
@@ -62,6 +64,7 @@ public class CampaignsPanel extends BasePanel<AccessCertificationCampaignType> {
     private static final String ID_NAVIGATION_PANEL = "navigationPanel";
 
     private LoadableDetachableModel<Search<AccessCertificationCampaignType>> searchModel;
+    private LoadableDetachableModel<ViewToggle> viewToggleModel;
 
     public CampaignsPanel(String id) {
         super(id);
@@ -75,6 +78,8 @@ public class CampaignsPanel extends BasePanel<AccessCertificationCampaignType> {
     }
 
     private void initModels() {
+        viewToggleModel = createViewToggleModel();
+
         searchModel = new LoadableDetachableModel<>() {
             @Serial private static final long serialVersionUID = 1L;
 
@@ -100,7 +105,7 @@ public class CampaignsPanel extends BasePanel<AccessCertificationCampaignType> {
 
         MultiSelectObjectTileTablePanel<AccessCertificationCampaignType,
                         AccessCertificationCampaignType> tilesTable =
-                new MultiSelectObjectTileTablePanel<>(ID_CAMPAIGNS_PANEL, createViewToggleModel(), UserProfileStorage.TableId.PAGE_CAMPAIGNS) {
+                new MultiSelectObjectTileTablePanel<>(ID_CAMPAIGNS_PANEL, viewToggleModel, UserProfileStorage.TableId.PAGE_CAMPAIGNS) {
 
                     @Serial private static final long serialVersionUID = 1L;
                     @Override
@@ -189,6 +194,17 @@ public class CampaignsPanel extends BasePanel<AccessCertificationCampaignType> {
                             ((SelectableBeanDataProvider) getProvider()).getSelected().add(model.getObject().getValue());
                         }
                     }
+
+                    @Override
+                    protected  void togglePanelItemSelectPerformed(AjaxRequestTarget target, IModel<Toggle<ViewToggle>> item) {
+                        if (item == null || item.getObject() == null) {
+                            return;
+                        }
+                        CertCampaignsStorage storage = getCampaignsStorage();
+                        if (storage != null) {
+                            storage.setViewToggle(item.getObject().getValue());
+                        }
+                    }
                 };
         add(tilesTable);
     }
@@ -213,8 +229,8 @@ public class CampaignsPanel extends BasePanel<AccessCertificationCampaignType> {
         return provider;
     }
 
-    private IModel<ViewToggle> createViewToggleModel() {
-        return new LoadableModel<>(false) {
+    private LoadableDetachableModel<ViewToggle> createViewToggleModel() {
+        return new LoadableDetachableModel<>() {
 
             @Serial private static final long serialVersionUID = 1L;
 
