@@ -17,7 +17,6 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityPolicyGroupType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityPolicyStateType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 
@@ -70,7 +69,7 @@ public class UpdateActivityPoliciesOperation {
             ItemDelta<?, ?> itemDelta;
             if (current == null) {
                 itemDelta = beans.prismContext.deltaFor(TaskType.class)
-                        .item(createPolicyStateItemPath())
+                        .item(policiesItemPath)
                         .add(policy)
                         .asItemDelta();
 
@@ -86,14 +85,10 @@ public class UpdateActivityPoliciesOperation {
         return deltas;
     }
 
-    private ItemPath createPolicyStateItemPath() {
-        return ItemPath.create(policiesItemPath, ActivityPolicyGroupType.F_POLICY);
-    }
-
     private ActivityPolicyStateType getCurrentPolicyState(TaskType task, String identifier) {
         //noinspection unchecked
         PrismContainer<ActivityPolicyStateType> policiesContainer =
-                (PrismContainer<ActivityPolicyStateType>) task.asPrismContainerValue().findItem(createPolicyStateItemPath());
+                (PrismContainer<ActivityPolicyStateType>) task.asPrismContainerValue().findItem(policiesItemPath);
 
         if (policiesContainer == null) {
             return null;

@@ -25,25 +25,47 @@ import org.testng.annotations.Test;
 
 @ContextConfiguration(locations = { "classpath:ctx-model-intest-test-main.xml" })
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
-public class TestActivityPolicyThresholds extends AbstractEmptyModelIntegrationTest {
+public class TestActivityExecutionTimeThresholds extends AbstractEmptyModelIntegrationTest {
 
     private static final File TEST_DIR = new File("src/test/resources/tasks/thresholds");
 
     private static final TestObject<TaskType> TASK_SIMPLE_NOOP =
             TestObject.file(TEST_DIR, "task-simple-noop.xml", "54464a8e-7cd3-47e3-9bf6-0d07692a893b");
 
+    private static final TestObject<TaskType> TASK_MULTI_NOOP =
+            TestObject.file(TEST_DIR, "task-simple-noop.xml", "54464a8e-7cd3-47e3-9bf6-0d07692a893b");
+
     @Test
-    public void test100SimpleTask() throws Exception {
+    public void test100SingleThread() throws Exception {
+        testTask(TASK_SIMPLE_NOOP, 0);
+    }
+
+    @Test
+    public void test150MultipleThreads() throws Exception {
+        testTask(TASK_SIMPLE_NOOP, 2);
+    }
+
+    @Test
+    public void test200MultiNodeTask() throws Exception {
+        testTask(TASK_MULTI_NOOP, 2);
+    }
+
+    public void testTask(TestObject<TaskType> task, int threads) throws Exception {
         given();
         Task testTask = getTestTask();
         OperationResult testResult = testTask.getResult();
 
-        TestObject<TaskType> task = TASK_SIMPLE_NOOP;
+        task.reset();
 
         when();
 
         deleteIfPresent(task, testResult);
-        addObject(task, getTestTask(), testResult);
+        addObject(task, getTestTask(), testResult, t -> {
+
+            if (threads > 0) {
+                rootActivityWorkerThreadsCustomizer(threads).accept(t);
+            }
+        });
         waitForTaskTreeCloseCheckingSuspensionWithError(task.oid, testResult, 7000L);
 
         then();
@@ -91,7 +113,29 @@ public class TestActivityPolicyThresholds extends AbstractEmptyModelIntegrationT
         // @formatter:on
     }
 
-    private void assertSimpleTaskRepeatedExecution(TestObject<TaskType> task) {
-        // todo implement
+    private void assertSimpleTaskRepeatedExecution(TestObject<TaskType> testObject) throws Exception {
+        var options = schemaService.getOperationOptionsBuilder()
+                .item(TaskType.F_RESULT).retrieve()
+                .item(TaskType.F_SUBTASK_REF).retrieve()
+                .build();
+        PrismObject<TaskType> task = taskManager.getObject(TaskType.class, testObject.oid, options, getTestOperationResult());
+
+        ActivityPolicyType policy = task.asObjectable().getActivity().getPolicies().getPolicy().get(0);
+        String identifier = ActivityPolicyUtils.createIdentifier(task.getOid(), policy);
+
+        // @formatter:off
+        var asserter = assertTaskTree(task.getOid(), "after")
+                .assertSuspended()
+                .assertFatalError()
+                .rootActivityState()
+                .display()
+                .activityPolicyStates()
+                .display()
+                .assertOnePolicyStateTriggers(identifier, 1)
+                .end()
+                .assertInProgressLocal()
+                .progress().assertSuccessCount(0,0).display().end()
+                .itemProcessingStatistics().display().end();
+        // @formatter:on
     }
 }

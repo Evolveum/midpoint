@@ -11,16 +11,16 @@ import java.util.List;
 
 import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.util.DebugUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityPolicyGroupType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityPoliciesStateType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityPolicyStateType;
 
 import org.assertj.core.api.Assertions;
 
-public class ActivityPolicyGroupAsserter<RA> extends AbstractAsserter<RA> {
+public class ActivityPoliciesStateAsserter<RA> extends AbstractAsserter<RA> {
 
-    private ActivityPolicyGroupType state;
+    private ActivityPoliciesStateType state;
 
-    public ActivityPolicyGroupAsserter(ActivityPolicyGroupType state, RA returnAsserter, String details) {
+    public ActivityPoliciesStateAsserter(ActivityPoliciesStateType state, RA returnAsserter, String details) {
         super(returnAsserter, details);
         this.state = state;
     }
@@ -30,13 +30,13 @@ public class ActivityPolicyGroupAsserter<RA> extends AbstractAsserter<RA> {
         return getDetails();
     }
 
-    public ActivityPolicyGroupAsserter<RA> display() {
+    public ActivityPoliciesStateAsserter<RA> display() {
         IntegrationTestTools.display(desc(), DebugUtil.debugDump(state));
         return this;
     }
 
-    public ActivityPolicyGroupAsserter<RA> assertOnePolicyStateTriggers(String identifier, int expectedCount) {
-        List<ActivityPolicyStateType> policyStates = state.getPolicy();
+    public ActivityPoliciesStateAsserter<RA> assertOnePolicyStateTriggers(String identifier, int expectedCount) {
+        List<ActivityPolicyStateType> policyStates = state.getActivityPolicies();
 
         Assertions.assertThat(policyStates).hasSize(1);
         ActivityPolicyStateType policyState = policyStates.get(0);

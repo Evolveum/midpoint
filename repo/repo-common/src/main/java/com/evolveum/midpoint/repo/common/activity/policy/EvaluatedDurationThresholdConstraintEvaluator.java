@@ -47,7 +47,6 @@ public abstract class EvaluatedDurationThresholdConstraintEvaluator<C extends Du
         if (below != null && context.getActivityRun().getActivityState().isComplete() && value < below) {
             LOGGER.trace("Duration value {} is below the threshold of constraint {}, creating trigger", value, constraint.getName());
 
-            // todo probably check whether we previously hit this one? or maybe sometime later (most probably)
             LocalizableMessage message = createMessage(constraint.getName(), value, constraint.getBelow(), ThresholdType.BELOW);
             LocalizableMessage shortMessage = createShortMessage(constraint.getName(), ThresholdType.BELOW);
 
@@ -59,7 +58,6 @@ public abstract class EvaluatedDurationThresholdConstraintEvaluator<C extends Du
         if (exceeds != null && value > exceeds) {
             LOGGER.trace("Duration value {}ms exceeds the threshold of constraint {}, creating trigger", value, constraint.getName());
 
-            // todo probably check whether we previously hit this one? or maybe sometime later (most probably)
             LocalizableMessage message = createMessage(constraint.getName(), value, constraint.getExceeds(), ThresholdType.EXCEEDS);
             LocalizableMessage shortMessage = createShortMessage(constraint.getName(), ThresholdType.EXCEEDS);
 

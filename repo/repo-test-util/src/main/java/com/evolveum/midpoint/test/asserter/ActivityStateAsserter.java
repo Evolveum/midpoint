@@ -11,8 +11,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.Objects;
 
-import org.jetbrains.annotations.NotNull;
-
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.schema.util.task.ActivityStateUtil;
 import com.evolveum.midpoint.schema.util.task.BucketingUtil;
@@ -20,6 +18,8 @@ import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.test.asserter.prism.PrismContainerValueAsserter;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
+import org.jetbrains.annotations.NotNull;
 
 /**
  * TODO
@@ -104,15 +104,12 @@ public class ActivityStateAsserter<RA> extends AbstractAsserter<RA> {
         return asserter;
     }
 
-    public ActivityPolicyGroupAsserter<ActivityStateAsserter<RA>> activityPolicyStates() {
-        ActivityPolicyGroupType state = Objects.requireNonNull(
-                Objects.requireNonNull(
-                        activityState.getPolicies(), "no policy groups")
-                        .getActivityPolicies(),
-                "no activity policy group");
+    public ActivityPoliciesStateAsserter<ActivityStateAsserter<RA>> activityPolicyStates() {
+        ActivityPoliciesStateType state = Objects.requireNonNull(
+                activityState.getPolicies(), "no policy groups");
 
-        ActivityPolicyGroupAsserter<ActivityStateAsserter<RA>> asserter =
-                new ActivityPolicyGroupAsserter<>(state, this, "activity policy group in "+ getDetails());
+        ActivityPoliciesStateAsserter<ActivityStateAsserter<RA>> asserter =
+                new ActivityPoliciesStateAsserter<>(state, this, "activity policy group in " + getDetails());
         copySetupTo(asserter);
         return asserter;
     }
@@ -120,12 +117,12 @@ public class ActivityStateAsserter<RA> extends AbstractAsserter<RA> {
     public ActivityCounterGroupAsserter<ActivityStateAsserter<RA>> previewModePolicyRulesCounters() {
         ActivityCounterGroupType counters = Objects.requireNonNull(
                 Objects.requireNonNull(
-                        activityState.getCounters(), "no counters")
+                                activityState.getCounters(), "no counters")
                         .getPreviewModePolicyRules(),
                 "no preview mode policy rules counters");
 
         ActivityCounterGroupAsserter<ActivityStateAsserter<RA>> asserter =
-                        new ActivityCounterGroupAsserter<>(counters, this, "preview rules counters in " + getDetails());
+                new ActivityCounterGroupAsserter<>(counters, this, "preview rules counters in " + getDetails());
         copySetupTo(asserter);
         return asserter;
     }
@@ -133,13 +130,13 @@ public class ActivityStateAsserter<RA> extends AbstractAsserter<RA> {
     public ActivityCounterGroupAsserter<ActivityStateAsserter<RA>> fullExecutionModePolicyRulesCounters() {
         ActivityCounterGroupType counters = Objects.requireNonNull(
                 Objects.requireNonNull(
-                        activityState.getCounters(), "no counters")
+                                activityState.getCounters(), "no counters")
                         .getFullExecutionModePolicyRules(),
                 "no full execution mode policy rules counters");
 
         ActivityCounterGroupAsserter<ActivityStateAsserter<RA>> asserter =
-                        new ActivityCounterGroupAsserter<>(counters, this,
-                                "full execution rules counters in " + getDetails());
+                new ActivityCounterGroupAsserter<>(counters, this,
+                        "full execution rules counters in " + getDetails());
         copySetupTo(asserter);
         return asserter;
     }

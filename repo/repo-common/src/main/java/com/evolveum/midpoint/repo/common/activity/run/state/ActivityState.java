@@ -564,7 +564,7 @@ public abstract class ActivityState implements DebugDumpable {
             @NotNull Collection<ActivityPolicyStateType> policies, @NotNull OperationResult result)
             throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException {
 
-        ItemPath policiesItemPath = stateItemPath.append(ActivityStateType.F_POLICIES, ActivityPolicyGroupsType.F_ACTIVITY_POLICIES);
+        ItemPath policiesItemPath = stateItemPath.append(ActivityStateType.F_POLICIES, ActivityPoliciesStateType.F_ACTIVITY_POLICIES);
 
         return new UpdateActivityPoliciesOperation(getTask(), policiesItemPath, policies, beans).execute(result);
     }

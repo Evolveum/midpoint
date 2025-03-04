@@ -13,7 +13,7 @@
     <activity>
         <work>
             <noOp>
-                <steps>11</steps>
+                <steps>23</steps>
                 <delay>1000</delay>
             </noOp>
         </work>
