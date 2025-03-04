@@ -22,7 +22,6 @@ import com.evolveum.midpoint.web.session.UserProfileStorage;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
@@ -32,12 +31,8 @@ import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.markup.html.panel.Fragment;
 import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.LoadableDetachableModel;
-import org.checkerframework.checker.index.qual.SameLen;
-import org.jetbrains.annotations.NotNull;
 import org.wicketstuff.select2.ChoiceProvider;
 import org.wicketstuff.select2.Response;
-import org.wicketstuff.select2.Select2MultiChoice;
 
 import com.evolveum.midpoint.gui.api.component.ObjectBrowserPanel;
 import com.evolveum.midpoint.gui.api.component.autocomplete.AutocompleteConfigurationMixin;
@@ -808,6 +803,11 @@ public class PersonOfInterestPanel extends BasicWizardStepPanel<RequestAccess> i
             @Override
             protected IModel<String> createNoLabel() {
                 return createStringResource("PersonOfInterestPanel.confirmPopup.personOfInterestCleanup");
+            }
+
+            @Override
+            protected String getNoButtonCssClass() {
+                return "btn btn-primary";
             }
 
             @Override
