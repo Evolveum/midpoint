@@ -55,6 +55,6 @@ public class RoundedIconColumn<T, S> extends AbstractIconColumn<T, S> {
 
     @Override
     public String getCssClass() {
-        return "rounded-icon-column";
+        return "rounded-icon-column align-middle";
     }
 }
