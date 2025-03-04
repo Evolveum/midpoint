@@ -8,9 +8,8 @@ package com.evolveum.midpoint.web.boot;
 
 import java.time.Duration;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.autoconfigure.web.ResourceProperties;
+import org.springframework.boot.autoconfigure.web.WebProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
@@ -50,8 +49,8 @@ public class WebConfig {
     @Configuration
     public static class StaticResourceConfiguration implements WebMvcConfigurer {
 
-        @Autowired
-        private ResourceProperties resourceProperties;
+        private final WebProperties.Resources resourceProperties = new WebProperties.Resources();
+
 
         @Value("${midpoint.home}")
         private String midpointHome;

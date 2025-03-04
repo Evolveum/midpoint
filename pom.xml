@@ -91,7 +91,7 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-dependencies</artifactId>
-        <version>2.5.15</version>
+        <version>2.7.18</version>
         <!-- This parent also declares dependencies listed here:
         https://docs.spring.io/spring-boot/docs/2.5.14/reference/html/dependency-versions.html#dependency-versions
         Or for current version of Spring Boot:
@@ -1535,6 +1535,19 @@
                     <exclusion>
                         <groupId>org.checkerframework</groupId>
                         <artifactId>checker-qual</artifactId>
+                    </exclusion>
+                </exclusions>
+            </dependency>
+
+
+            <dependency>
+                <groupId>org.mariadb.jdbc</groupId>
+                <artifactId>mariadb-java-client</artifactId>
+                <version>3.1.4</version>
+                <exclusions>
+                    <exclusion>
+                        <groupId>com.google.j2objc</groupId>
+                        <artifactId>j2objc-annotations</artifactId>
                     </exclusion>
                 </exclusions>
             </dependency>

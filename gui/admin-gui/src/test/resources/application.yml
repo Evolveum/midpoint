@@ -4,6 +4,8 @@ spring:
   main:
     # needed to override springSecurityFilterChain from Spring Security
     allow-bean-definition-overriding: true
+    # Added after upgrade to Boot 2.6.x because of objectRetriever<>certificationCaseHelper.
+    allow-circular-references: true
   servlet:
     multipart:
       max-file-size: 100MB
@@ -13,7 +15,7 @@ server:
   port: 18080
   tomcat:
     basedir: ${midpoint.home}
-    max-http-post-size: 104857600 # in bytes
+    max-http-form-post-size: 100MB
 ## Enable and configuration ajp connector for mp
 #    ajp:
 #      enabled: true

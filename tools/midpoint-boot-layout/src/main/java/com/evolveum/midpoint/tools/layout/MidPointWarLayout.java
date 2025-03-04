@@ -13,10 +13,7 @@ import java.security.CodeSource;
 import java.security.ProtectionDomain;
 import java.util.jar.JarFile;
 
-import org.springframework.boot.loader.tools.CustomLoaderLayout;
-import org.springframework.boot.loader.tools.JarWriter;
-import org.springframework.boot.loader.tools.Layouts;
-import org.springframework.boot.loader.tools.LoaderClassesWriter;
+import org.springframework.boot.loader.tools.*;
 
 public class MidPointWarLayout extends Layouts.War implements CustomLoaderLayout {
 
@@ -27,7 +24,8 @@ public class MidPointWarLayout extends Layouts.War implements CustomLoaderLayout
         // This writes this JAR (layout) to the root of the Spring Boot archive.
         // TODO: Is it possible to write *Launcher classes without layout and factory?
         JarFile self = createSelf();
-        ((JarWriter) writer).writeEntries(self);
+
+        Accessor.writeEntries(writer, self);
     }
 
     @Override

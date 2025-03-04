@@ -259,8 +259,8 @@
         Following drivers are excluded in repackaging, we don't want to distribute it (or can't).
         -->
         <dependency>
-            <groupId>mysql</groupId>
-            <artifactId>mysql-connector-java</artifactId>
+            <groupId>com.mysql</groupId>
+            <artifactId>mysql-connector-j</artifactId>
             <scope>provided</scope>
         </dependency>
         <dependency>
@@ -951,7 +951,7 @@
                                     <include>simplefan-*.jar</include>
                                     <include>ons-*.jar</include>
                                     <include>mssql-jdbc-*.jar</include>
-                                    <include>mysql-connector-java-*.jar</include>
+                                    <include>mysql-connector-j-*.jar</include>
                                 </includes>
                             </fileset>
                         </configuration>
