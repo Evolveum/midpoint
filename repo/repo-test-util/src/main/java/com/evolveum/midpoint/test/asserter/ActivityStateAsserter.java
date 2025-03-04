@@ -104,6 +104,19 @@ public class ActivityStateAsserter<RA> extends AbstractAsserter<RA> {
         return asserter;
     }
 
+    public ActivityPolicyGroupAsserter<ActivityStateAsserter<RA>> activityPolicyStates() {
+        ActivityPolicyGroupType state = Objects.requireNonNull(
+                Objects.requireNonNull(
+                        activityState.getPolicies(), "no policy groups")
+                        .getActivityPolicies(),
+                "no activity policy group");
+
+        ActivityPolicyGroupAsserter<ActivityStateAsserter<RA>> asserter =
+                new ActivityPolicyGroupAsserter<>(state, this, "activity policy group in "+ getDetails());
+        copySetupTo(asserter);
+        return asserter;
+    }
+
     public ActivityCounterGroupAsserter<ActivityStateAsserter<RA>> previewModePolicyRulesCounters() {
         ActivityCounterGroupType counters = Objects.requireNonNull(
                 Objects.requireNonNull(

@@ -494,7 +494,7 @@ public abstract class AbstractActivityRun<
 
     public Map<String, ActivityPolicyStateType> updateActivityPolicyState(
             @NotNull Collection<ActivityPolicyStateType> states, @NotNull OperationResult result)
-            throws SchemaException, ObjectNotFoundException {
+            throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException {
         synchronized (activityStateForThresholdsLock) {
             if (activityStateForThresholds == null) {
                 activityStateForThresholds = determineActivityStateForThresholds(result);

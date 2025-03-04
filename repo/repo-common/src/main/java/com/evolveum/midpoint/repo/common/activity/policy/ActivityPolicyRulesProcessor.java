@@ -16,6 +16,7 @@ import java.util.stream.Collectors;
 import com.evolveum.midpoint.repo.common.activity.run.AbstractActivityRun;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.LocalizationUtil;
+import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.ThresholdPolicyViolationException;
@@ -56,7 +57,7 @@ public class ActivityPolicyRulesProcessor {
     }
 
     public void evaluateAndEnforceRules(OperationResult result)
-            throws ThresholdPolicyViolationException, SchemaException, ObjectNotFoundException {
+            throws ThresholdPolicyViolationException, SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException {
 
         List<EvaluatedActivityPolicyRule> rules = getPolicyRulesContext().getPolicyRules();
         if (rules.isEmpty()) {
@@ -111,6 +112,7 @@ public class ActivityPolicyRulesProcessor {
         }
 
         ActivityPolicyStateType newState = new ActivityPolicyStateType();
+        newState.setIdentifier(rule.getRuleId());
         triggers.stream()
                 .map(t -> createActivityStateTrigger(rule, t))
                 .forEach(t -> newState.getTriggers().add(t));

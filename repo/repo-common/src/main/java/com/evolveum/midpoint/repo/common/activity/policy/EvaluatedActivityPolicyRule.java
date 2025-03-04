@@ -47,7 +47,7 @@ public class EvaluatedActivityPolicyRule implements DebugDumpable {
     }
 
     public String getRuleId() {
-        return ownerObjectOid + ":" + policy.getId();
+        return ActivityPolicyUtils.createIdentifier(ownerObjectOid, policy);
     }
 
     public String getName() {

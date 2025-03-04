@@ -7,25 +7,33 @@
 
 package com.evolveum.midpoint.repo.common.activity.run;
 
-import java.util.Collection;
-import java.util.Map;
+import java.util.*;
 
+import com.evolveum.midpoint.prism.PrismContainer;
+import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
+import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityPolicyGroupType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityPolicyStateType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 
 import org.jetbrains.annotations.NotNull;
 
 public class UpdateActivityPoliciesOperation {
 
-    private @NotNull Task task;
+    private final @NotNull Task task;
 
-    private @NotNull ItemPath policiesItemPath;
+    private final @NotNull ItemPath policiesItemPath;
 
-    private @NotNull Collection<ActivityPolicyStateType> policies;
+    private final @NotNull Collection<ActivityPolicyStateType> policies;
 
-    private @NotNull CommonTaskBeans beans;
+    private final @NotNull CommonTaskBeans beans;
+
+    private final @NotNull Map<String, ActivityPolicyStateType> updatedPolicies = new HashMap<>();
 
     public UpdateActivityPoliciesOperation(
             @NotNull Task task,
@@ -38,8 +46,65 @@ public class UpdateActivityPoliciesOperation {
         this.beans = beans;
     }
 
-    public Map<String, ActivityPolicyStateType> execute(OperationResult result) {
-        // todo MID-10412 implement
+    public Map<String, ActivityPolicyStateType> execute(OperationResult result)
+            throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException {
+
+        updatePolicyStates(result);
+
+        return updatedPolicies;
+    }
+
+    private void updatePolicyStates(OperationResult result)
+            throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException {
+
+        beans.plainRepositoryService.modifyObjectDynamically(
+                TaskType.class, task.getOid(), null, this::prepareModifications, null, result);
+    }
+
+    private @NotNull Collection<? extends ItemDelta<?, ?>> prepareModifications(TaskType task) throws SchemaException {
+        updatedPolicies.clear();
+
+        List<ItemDelta<?, ?>> deltas = new ArrayList<>();
+        for (ActivityPolicyStateType policy : policies) {
+            ActivityPolicyStateType current = getCurrentPolicyState(task, policy.getIdentifier());
+            ItemDelta<?, ?> itemDelta;
+            if (current == null) {
+                itemDelta = beans.prismContext.deltaFor(TaskType.class)
+                        .item(createPolicyStateItemPath())
+                        .add(policy)
+                        .asItemDelta();
+
+                deltas.add(itemDelta);
+                updatedPolicies.put(policy.getIdentifier(), policy);
+            } else {
+                // MID-10412 todo if policy state exists we probably don't want to update it??? (it should already contain triggers)
+                //  this looks shady
+                updatedPolicies.put(policy.getIdentifier(), current);
+            }
+        }
+
+        return deltas;
+    }
+
+    private ItemPath createPolicyStateItemPath() {
+        return ItemPath.create(policiesItemPath, ActivityPolicyGroupType.F_POLICY);
+    }
+
+    private ActivityPolicyStateType getCurrentPolicyState(TaskType task, String identifier) {
+        //noinspection unchecked
+        PrismContainer<ActivityPolicyStateType> policiesContainer =
+                (PrismContainer<ActivityPolicyStateType>) task.asPrismContainerValue().findItem(createPolicyStateItemPath());
+
+        if (policiesContainer == null) {
+            return null;
+        }
+
+        for (ActivityPolicyStateType policy : policiesContainer.getRealValues()) {
+            if (Objects.equals(identifier, policy.getIdentifier())) {
+                return policy;
+            }
+        }
+
         return null;
     }
 }
