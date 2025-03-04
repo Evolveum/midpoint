@@ -7,38 +7,27 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.table;
 
-import static com.evolveum.midpoint.common.mining.utils.RoleAnalysisUtils.getRolesOidAssignment;
 import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.table.RoleAnalysisTableCellFillResolver.Status.*;
 
 import java.util.*;
-import java.util.stream.IntStream;
 
 import com.evolveum.midpoint.common.mining.utils.values.FrequencyItem;
-import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
-import com.google.common.collect.ListMultimap;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.markup.html.panel.EmptyPanel;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.LoadableDetachableModel;
 import org.apache.wicket.model.Model;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.common.mining.objects.chunk.MiningBaseTypeChunk;
 import com.evolveum.midpoint.common.mining.objects.chunk.MiningRoleTypeChunk;
 import com.evolveum.midpoint.common.mining.objects.chunk.MiningUserTypeChunk;
-import com.evolveum.midpoint.common.mining.objects.detection.DetectedPattern;
 import com.evolveum.midpoint.common.mining.utils.values.RoleAnalysisObjectStatus;
 import com.evolveum.midpoint.common.mining.utils.values.RoleAnalysisOperationMode;
-import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.GuiDisplayTypeUtil;
-import com.evolveum.midpoint.model.api.mining.RoleAnalysisService;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.web.component.data.column.ImagePanel;
 import com.evolveum.midpoint.web.util.InfoTooltipBehavior;
 
@@ -63,34 +52,36 @@ public class RoleAnalysisTableCellFillResolver {
             double maxFrequency,
             boolean isOutlier) {
 
+        T rowObject = rowModel.getObject();
+        FrequencyItem frequencyItem = rowObject.getFrequencyItem();
+
         if (isOutlier) {
-            MiningBaseTypeChunk object = rowModel.getObject();
-            FrequencyItem frequencyItem = object.getFrequencyItem();
-            FrequencyItem.Status status = frequencyItem.getStatus();
-
-            if (status == null) {
-                return;
-            }
-
-            if (status.equals(FrequencyItem.Status.NEGATIVE_EXCLUDE)) {
-                object.setStatus(RoleAnalysisOperationMode.NEGATIVE_EXCLUDE);
-            } else if (status.equals(FrequencyItem.Status.POSITIVE_EXCLUDE)) {
-                object.setStatus(RoleAnalysisOperationMode.POSITIVE_EXCLUDE);
-            }
-
+            applyOutlierFqStatus(rowObject);
             return;
         }
 
-        T rowModelObject = rowModel.getObject();
-        FrequencyItem frequencyItem = rowModelObject.getFrequencyItem();
         //TODO i think there is a bug (100 fq) check it
         double frequency = frequencyItem.getFrequency();
-        boolean isInclude = rowModelObject.getStatus().isInclude();
+        boolean isInclude = rowObject.getStatus().isInclude();
 
         if (!isInclude && (minFrequency > frequency || maxFrequency < frequency)) {
             rowModel.getObject().setStatus(RoleAnalysisOperationMode.DISABLE);
         }
+    }
 
+    private static <T extends MiningBaseTypeChunk> void applyOutlierFqStatus(@NotNull T rowModel) {
+        FrequencyItem frequencyItem = rowModel.getFrequencyItem();
+        FrequencyItem.Status status = frequencyItem.getStatus();
+
+        if (status == null) {
+            return;
+        }
+
+        if (status == FrequencyItem.Status.NEGATIVE_EXCLUDE) {
+            rowModel.setStatus(RoleAnalysisOperationMode.NEGATIVE_EXCLUDE);
+        } else if (status == FrequencyItem.Status.POSITIVE_EXCLUDE) {
+            rowModel.setStatus(RoleAnalysisOperationMode.POSITIVE_EXCLUDE);
+        }
     }
 
     public enum Status {
@@ -106,93 +97,48 @@ public class RoleAnalysisTableCellFillResolver {
      * @param rowModel The row model (properties to compare).
      * @param colModel The column model (members to compare).
      */
-    public static <B extends MiningBaseTypeChunk, A extends MiningBaseTypeChunk> Status resolveCellTypeUserTable(@NotNull String componentId,
-            Item<ICellPopulator<A>> cellItem,
+    public static <B extends MiningBaseTypeChunk, A extends MiningBaseTypeChunk> Status resolveCellTypeUserTable(
+            @NotNull String componentId,
+            @NotNull Item<ICellPopulator<A>> cellItem,
             @NotNull A rowModel,
             @NotNull B colModel,
+            boolean isOutlierMode,
             @NotNull IModel<Map<String, String>> colorLoadableMap) {
         Map<String, String> colorMap = colorLoadableMap.getObject();
         RoleAnalysisObjectStatus rowObjectStatus = rowModel.getObjectStatus();
         RoleAnalysisObjectStatus colObjectStatus = colModel.getObjectStatus();
-        Set<String> rowContainerId = rowObjectStatus.getContainerId();
-        Set<String> colContainerId = colObjectStatus.getContainerId();
-        Set<String> duplicatedElements = new HashSet<>();
 
-        boolean secondStage;
-        if (rowContainerId.isEmpty() && colContainerId.isEmpty()) {
-            secondStage = true;
-        } else {
-            duplicatedElements = new HashSet<>(rowContainerId);
-            duplicatedElements.retainAll(colContainerId);
-            secondStage = !duplicatedElements.isEmpty();
-        }
+        Set<String> duplicatedElements = getDuplicatedElements(rowObjectStatus, colObjectStatus);
 
-        ArrayList<String> element = new ArrayList<>(duplicatedElements);
-        List<String> properties = rowModel.getProperties();
-        List<String> members = colModel.getMembers();
-        boolean firstStage = true;
-        for (String member : members) {
-            if (!properties.contains(member)) {
-                firstStage = false;
-                break;
-            }
-        }
-//        This took multiple times (20ms vs 800ms)
-//        boolean firstStage = new HashSet<>(properties).containsAll(members);
+        boolean firstStage = isFirstStage(rowModel, colModel);
+        boolean secondStage = isSecondStage(rowObjectStatus, colObjectStatus, duplicatedElements);
         boolean isCandidate = firstStage && secondStage;
+
+        if (!firstStage && !secondStage) {
+            emptyCell(componentId, cellItem);
+            return RELATION_NONE;
+        }
 
         RoleAnalysisOperationMode rowStatus = rowObjectStatus.getRoleAnalysisOperationMode();
         RoleAnalysisOperationMode colStatus = colObjectStatus.getRoleAnalysisOperationMode();
 
         if (rowStatus.isNegativeExclude() || colStatus.isNegativeExclude()) {
-            if (isCandidate) {
-                negativeDisabledCell(componentId, cellItem);
-                return RELATION_DISABLE;
-            }
-            emptyCell(componentId, cellItem);
-            return RELATION_NONE;
+            return handleExcludeStatus(componentId, cellItem, isOutlierMode, isCandidate, true);
         }
 
         if (rowStatus.isPositiveExclude() || colStatus.isPositiveExclude()) {
-            if (isCandidate) {
-                positiveDisabledCell(componentId, cellItem);
-                return RELATION_DISABLE;
-            }
-            emptyCell(componentId, cellItem);
-            return RELATION_NONE;
+            return handleExcludeStatus(componentId, cellItem, isOutlierMode, isCandidate, false);
         }
 
         if (rowStatus.isDisable() || colStatus.isDisable()) {
-            if (firstStage) {
-                disabledCell(componentId, cellItem);
-                return RELATION_DISABLE;
-            }
-            emptyCell(componentId, cellItem);
-            return RELATION_NONE;
+            return handleDisableStatus(componentId, cellItem, isOutlierMode, firstStage);
         }
-        int size = duplicatedElements.size();
 
         if (rowStatus.isInclude() && colStatus.isInclude()) {
             if (isCandidate) {
-                if (size > 1) {
-                    reducedDuplicateCell(componentId, cellItem, duplicatedElements);
-                    return RELATION_EXCLUDE;
-                } else if (size == 1) {
-                    reducedCell(componentId, cellItem, colorMap.get(element.get(0)), duplicatedElements);
-                    return RELATION_INCLUDE;
-                }
-                reducedCell(componentId, cellItem, "#28A745", duplicatedElements);
-                return RELATION_INCLUDE;
+                return handleIncludeCandidateStatus(componentId, cellItem, duplicatedElements, colorMap);
             } else if (secondStage) {
-                if (size > 1) {
-                    additionalDuplicateCell(componentId, cellItem, duplicatedElements);
-                    return RELATION_EXCLUDE;
-                } else if (size == 1) {
-                    additionalCell(componentId, cellItem, colorMap.get(element.get(0)), duplicatedElements);
-                    return RELATION_INCLUDE;
-                }
-                additionalCell(componentId, cellItem, "#28A745", duplicatedElements);
-                return RELATION_INCLUDE;
+                return handleIncludeDuplicateStatus(componentId, cellItem, duplicatedElements, colorMap);
             }
         }
 
@@ -205,93 +151,119 @@ public class RoleAnalysisTableCellFillResolver {
         }
     }
 
-    public static <T extends MiningBaseTypeChunk> boolean resolveCellTypeRoleTable(@NotNull String componentId,
-            Item<ICellPopulator<MiningUserTypeChunk>> cellItem,
-            @NotNull T rowModel,
-            @NotNull T colModel,
-            @NotNull LoadableDetachableModel<Map<String, String>> colorLoadableMap) {
-        Map<String, String> colorMap = colorLoadableMap.getObject();
-        RoleAnalysisObjectStatus rowObjectStatus = rowModel.getObjectStatus();
-        RoleAnalysisObjectStatus colObjectStatus = colModel.getObjectStatus();
-        Set<String> rowContainerId = rowObjectStatus.getContainerId();
-        Set<String> colContainerId = colObjectStatus.getContainerId();
-        Set<String> duplicatedElements = new HashSet<>();
-        boolean secondStage;
+    private static @NotNull Set<String> getDuplicatedElements(
+            @NotNull RoleAnalysisObjectStatus rowStatus,
+            @NotNull RoleAnalysisObjectStatus colStatus) {
+        Set<String> rowContainerId = rowStatus.getContainerId();
+        Set<String> colContainerId = colStatus.getContainerId();
+        if (rowContainerId.isEmpty() || colContainerId.isEmpty()) {
+            return new HashSet<>();
+        }
+        Set<String> duplicatedElements = new HashSet<>(rowContainerId);
+        duplicatedElements.retainAll(colContainerId);
+        return duplicatedElements;
+    }
+
+    private static boolean isSecondStage(
+            @NotNull RoleAnalysisObjectStatus rowStatus,
+            @NotNull RoleAnalysisObjectStatus colStatus, Set<String> duplicatedElements) {
+        Set<String> rowContainerId = rowStatus.getContainerId();
+        Set<String> colContainerId = colStatus.getContainerId();
+
         if (rowContainerId.isEmpty() && colContainerId.isEmpty()) {
-            secondStage = true;
-        } else {
-            duplicatedElements = new HashSet<>(rowContainerId);
-            duplicatedElements.retainAll(colContainerId);
-            secondStage = !duplicatedElements.isEmpty();
+            return true;
         }
 
-        ArrayList<String> element = new ArrayList<>(duplicatedElements);
+        return !duplicatedElements.isEmpty();
+    }
 
-        boolean firstStage = new HashSet<>(rowModel.getProperties()).containsAll(colModel.getMembers());
-        boolean isCandidate = firstStage && secondStage;
-
-        RoleAnalysisOperationMode rowStatus = rowObjectStatus.getRoleAnalysisOperationMode();
-        RoleAnalysisOperationMode colStatus = colObjectStatus.getRoleAnalysisOperationMode();
-
-        if (rowStatus.isNegativeExclude() || colStatus.isNegativeExclude()) {
-            if (isCandidate) {
-                negativeDisabledCell(componentId, cellItem);
+    private static <B extends MiningBaseTypeChunk, A extends MiningBaseTypeChunk> boolean isFirstStage(
+            @NotNull A rowModel,
+            @NotNull B colModel) {
+        List<String> properties = rowModel.getProperties();
+        List<String> members = colModel.getMembers();
+        for (String member : members) {
+            if (!properties.contains(member)) {
                 return false;
             }
-            emptyCell(componentId, cellItem);
-            return false;
         }
+        return true;
+    }
 
-        if (rowStatus.isPositiveExclude() || colStatus.isPositiveExclude()) {
-            if (isCandidate) {
-                positiveDisabledCell(componentId, cellItem);
-                return false;
-            }
-            emptyCell(componentId, cellItem);
-            return false;
+    private static <A extends MiningBaseTypeChunk> @NotNull Status handleIncludeDuplicateStatus(
+            @NotNull String componentId,
+            Item<ICellPopulator<A>> cellItem,
+            @NotNull Set<String> duplicatedElements,
+            Map<String, String> colorMap) {
+        int duplicatedElementsCount = duplicatedElements.size();
+
+        if (duplicatedElementsCount > 1) {
+            additionalDuplicateCell(componentId, cellItem, duplicatedElements);
+            return RELATION_EXCLUDE;
+        } else if (duplicatedElementsCount == 1) {
+            ArrayList<String> element = new ArrayList<>(duplicatedElements);
+            additionalCell(componentId, cellItem, colorMap.get(element.get(0)), duplicatedElements);
+            return RELATION_INCLUDE;
         }
+        additionalCell(componentId, cellItem, "#28A745", duplicatedElements);
+        return RELATION_INCLUDE;
+    }
 
-        if (rowStatus.isDisable() || colStatus.isDisable()) {
-            if (firstStage) {
-                disabledCell(componentId, cellItem);
-                return false;
-            }
-            emptyCell(componentId, cellItem);
-            return false;
+    private static <A extends MiningBaseTypeChunk> @NotNull Status handleIncludeCandidateStatus(
+            @NotNull String componentId,
+            Item<ICellPopulator<A>> cellItem,
+            @NotNull Set<String> duplicatedElements,
+            Map<String, String> colorMap) {
+        int duplicatedElementsCount = duplicatedElements.size();
+
+        if (duplicatedElementsCount > 1) {
+            reducedDuplicateCell(componentId, cellItem, duplicatedElements);
+            return RELATION_EXCLUDE;
+        } else if (duplicatedElementsCount == 1) {
+            ArrayList<String> element = new ArrayList<>(duplicatedElements);
+            reducedCell(componentId, cellItem, colorMap.get(element.get(0)), duplicatedElements);
+            return RELATION_INCLUDE;
         }
-        int size = duplicatedElements.size();
+        reducedCell(componentId, cellItem, "#28A745", duplicatedElements);
+        return RELATION_INCLUDE;
+    }
 
-        if (rowStatus.isInclude() && colStatus.isInclude()) {
-            if (isCandidate) {
-                if (size > 1) {
-                    reducedDuplicateCell(componentId, cellItem, duplicatedElements);
-                    return false;
-                } else if (size == 1) {
-
-                    reducedCell(componentId, cellItem, colorMap.get(element.get(0)), duplicatedElements);
-                    return true;
-                }
-                reducedCell(componentId, cellItem, "#28A745", duplicatedElements);
-                return true;
-            } else if (secondStage) {
-                if (size > 1) {
-                    additionalDuplicateCell(componentId, cellItem, duplicatedElements);
-                    return false;
-                } else if (size == 1) {
-                    additionalCell(componentId, cellItem, colorMap.get(element.get(0)), duplicatedElements);
-                    return true;
-                }
-                additionalCell(componentId, cellItem, "#28A745", duplicatedElements);
-                return true;
-            }
-        }
-
+    private static <A extends MiningBaseTypeChunk> @NotNull Status handleDisableStatus(
+            @NotNull String componentId,
+            Item<ICellPopulator<A>> cellItem,
+            boolean isOutlierMode,
+            boolean firstStage) {
         if (firstStage) {
-            relationCell(componentId, cellItem);
-        } else {
-            emptyCell(componentId, cellItem);
+            if (isOutlierMode) {
+                relationCell(componentId, cellItem);
+            } else {
+                disabledCell(componentId, cellItem);
+            }
+            return RELATION_DISABLE;
         }
-        return false;
+        emptyCell(componentId, cellItem);
+        return RELATION_NONE;
+    }
+
+    private static <A extends MiningBaseTypeChunk> @NotNull Status handleExcludeStatus(
+            @NotNull String componentId, Item<ICellPopulator<A>> cellItem,
+            boolean isOutlierMode,
+            boolean isCandidate,
+            boolean isNegative) {
+        if (isCandidate) {
+
+            if (isOutlierMode) {
+                relationCell(componentId, cellItem);
+            } else if (isNegative) {
+                negativeDisabledCell(componentId, cellItem);
+            } else {
+                positiveDisabledCell(componentId, cellItem);
+            }
+
+            return RELATION_DISABLE;
+        }
+        emptyCell(componentId, cellItem);
+        return RELATION_NONE;
     }
 
     public static void refreshCells(
@@ -302,70 +274,34 @@ public class RoleAnalysisTableCellFillResolver {
             double maxFrequency) {
 
         if (processMode.equals(RoleAnalysisProcessModeType.USER)) {
-
-            for (MiningRoleTypeChunk role : roles) {
-                FrequencyItem frequencyItem = role.getFrequencyItem();
-                double frequency = frequencyItem.getFrequency();
-                if (minFrequency > frequency && frequency < maxFrequency && !role.getStatus().isInclude()) {
-                    role.setStatus(RoleAnalysisOperationMode.DISABLE);
-                } else {
-                    role.setStatus(RoleAnalysisOperationMode.EXCLUDE);
-                }
-            }
-
-            for (MiningUserTypeChunk user : users) {
-                user.setStatus(RoleAnalysisOperationMode.EXCLUDE);
-            }
+            resetCellStatusByCondition(roles, minFrequency, maxFrequency);
+            excludeAll(users);
         } else {
-            for (MiningUserTypeChunk user : users) {
-                FrequencyItem frequencyItem = user.getFrequencyItem();
-                double frequency = frequencyItem.getFrequency();
-                if (minFrequency > frequency && frequency < maxFrequency && !user.getStatus().isInclude()) {
-                    user.setStatus(RoleAnalysisOperationMode.DISABLE);
-                } else {
-                    user.setStatus(RoleAnalysisOperationMode.EXCLUDE);
-                }
-            }
-
-            for (MiningRoleTypeChunk role : roles) {
-                role.setStatus(RoleAnalysisOperationMode.EXCLUDE);
-            }
+            resetCellStatusByCondition(users, minFrequency, maxFrequency);
+            excludeAll(roles);
         }
     }
 
-    public static @NotNull Map<String, String> generateObjectColors(List<String> containerIds) {
-        if (containerIds == null || containerIds.isEmpty()) {
-            return Collections.emptyMap();
-        }
+    private static <M extends MiningBaseTypeChunk> void resetCellStatusByCondition(
+            @NotNull List<M> chunk, double minFrequency, double maxFrequency) {
+        chunk.forEach(role -> {
+            FrequencyItem frequencyItem = role.getFrequencyItem();
+            double frequency = frequencyItem.getFrequency();
+            RoleAnalysisOperationMode status = role.getStatus();
 
-//        Collections.sort(containerIds);
+            role.setStatus(determineStatus(minFrequency, maxFrequency, frequency, status.isInclude()));
+        });
+    }
 
-        int numberOfObjects = containerIds.size();
+    private static <T extends MiningBaseTypeChunk> void excludeAll(@NotNull List<T> elements) {
+        elements.forEach(element -> element.setStatus(RoleAnalysisOperationMode.EXCLUDE));
+    }
 
-        Map<String, String> objectColorMap = new HashMap<>();
-
-        int baseGreen = 0x00A65A;
-        objectColorMap.put(containerIds.get(0), "#00A65A");
-        if (numberOfObjects == 1) {
-            return objectColorMap;
-        }
-
-        int brightnessStep = 255 / numberOfObjects;
-
-        if (numberOfObjects < 3) {
-            brightnessStep = 30;
-        } else if (numberOfObjects < 5) {
-            brightnessStep = 40;
-        }
-
-        for (int i = 1; i < numberOfObjects; i++) {
-            int brightness = 255 - (i * brightnessStep);
-            int greenValue = (baseGreen & 0xFF0000) | (brightness << 8) | (baseGreen & 0x0000FF);
-            String hexColor = String.format("#%06X", greenValue);
-            objectColorMap.put(containerIds.get(i), hexColor);
-        }
-
-        return objectColorMap;
+    private static RoleAnalysisOperationMode determineStatus(double minFrequency, double maxFrequency, double frequency,
+            boolean isIncluded) {
+        return (minFrequency > frequency && maxFrequency > frequency && !isIncluded) ?
+                RoleAnalysisOperationMode.DISABLE :
+                RoleAnalysisOperationMode.EXCLUDE;
     }
 
     protected static <T> void emptyCell(@NotNull String componentId, @NotNull Item<ICellPopulator<T>> cellItem) {
@@ -396,25 +332,62 @@ public class RoleAnalysisTableCellFillResolver {
             Set<String> duplicatedElements) {
         cellItem.add(AttributeModifier.append("class", "corner-hashed-bg"));
 
-        String joinedIds = String.join("\n ", duplicatedElements);
-        EmptyPanel components = new EmptyPanel(componentId);
-        components.add(AttributeModifier.append("style", "width: 100%;height: 100%;"));
-        components.add(new InfoTooltipBehavior() {
-            @Override
-            public String getCssClass() {
-                return " ";
-            }
-        });
-        components.add(AttributeModifier.replace("title", joinedIds));
-
+        EmptyPanel components = buildReducedCellComponent(componentId, duplicatedElements);
         cellItem.add(components);
     }
 
     protected static <T> void reducedCell(@NotNull String componentId, @NotNull Item<ICellPopulator<T>> cellItem, String color,
             Set<String> duplicatedElements) {
+        cellItem.add(AttributeModifier.append("style", "background-color: " + color + ";"));
+
+        EmptyPanel components = buildReducedCellComponent(componentId, duplicatedElements);
+        cellItem.add(components);
+    }
+
+    protected static <T> void additionalDuplicateCell(@NotNull String componentId, @NotNull Item<ICellPopulator<T>> cellItem,
+            @NotNull Set<String> duplicatedElements) {
+        String cssIconClass = getCssIconClass();
+        String cssIconColorClass = getCssIconColorClass();
+
+        cellItem.add(AttributeModifier.append("class", "corner-hashed-bg"));
+
+        ImagePanel components = buildAdditionalCellComponent(componentId, duplicatedElements, cssIconClass, cssIconColorClass);
+        cellItem.add(components);
+    }
+
+    protected static <T> void additionalCell(@NotNull String componentId, @NotNull Item<ICellPopulator<T>> cellItem, String color,
+            @NotNull Set<String> duplicatedElements) {
+        String cssIconClass = getCssIconClass();
+        String cssIconColorClass = getCssIconColorClass();
 
         cellItem.add(AttributeModifier.append("style", "background-color: " + color + ";"));
 
+        ImagePanel components = buildAdditionalCellComponent(componentId, duplicatedElements, cssIconClass, cssIconColorClass);
+
+        cellItem.add(components);
+    }
+
+    private static @NotNull ImagePanel buildAdditionalCellComponent(
+            @NotNull String componentId,
+            @NotNull Set<String> duplicatedElements,
+            String cssIconClass,
+            String cssIconColorClass) {
+        String joinedIds = String.join("\n ", duplicatedElements);
+        DisplayType warning = GuiDisplayTypeUtil.createDisplayType(cssIconClass, cssIconColorClass, joinedIds);
+
+        ImagePanel components = new ImagePanel(componentId, Model.of(warning));
+        components.add(new InfoTooltipBehavior() {
+            @Override
+            public String getCssClass() {
+                return " ";
+            }
+        });
+
+        components.add(AttributeModifier.replace("title", joinedIds));
+        return components;
+    }
+
+    private static @NotNull EmptyPanel buildReducedCellComponent(@NotNull String componentId, Set<String> duplicatedElements) {
         String joinedIds = String.join("\n ", duplicatedElements);
         EmptyPanel components = new EmptyPanel(componentId);
         components.add(AttributeModifier.append("style", "width: 100%;height: 100%;"));
@@ -425,64 +398,16 @@ public class RoleAnalysisTableCellFillResolver {
             }
         });
         components.add(AttributeModifier.replace("title", joinedIds));
-
-        cellItem.add(components);
+        return components;
     }
 
-    protected static <T> void additionalDuplicateCell(@NotNull String componentId, @NotNull Item<ICellPopulator<T>> cellItem,
-            Set<String> duplicatedElements) {
-        String cssIconClass = getCssIconClass();
-        String cssIconColorClass = getCssIconColorClass();
-
-        cellItem.add(AttributeModifier.append("class", "corner-hashed-bg"));
-
-        String joinedIds = String.join("\n ", duplicatedElements);
-        DisplayType warning = GuiDisplayTypeUtil.createDisplayType(cssIconClass, cssIconColorClass, joinedIds);
-
-        ImagePanel components = new ImagePanel(componentId, Model.of(warning));
-        components.add(new InfoTooltipBehavior() {
-            @Override
-            public String getCssClass() {
-                return " ";
-            }
-        });
-
-        components.add(AttributeModifier.replace("title", joinedIds));
-
-        cellItem.add(components);
-    }
-
-    protected static <T> void additionalCell(@NotNull String componentId,
-            @NotNull Item<ICellPopulator<T>> cellItem,
-            String color, Set<String> duplicatedElements) {
-        String cssIconClass = getCssIconClass();
-        String cssIconColorClass = getCssIconColorClass();
-
-        cellItem.add(AttributeModifier.append("style", "background-color: " + color + ";"));
-
-        String joinedIds = String.join("\n ", duplicatedElements);
-        DisplayType warning = GuiDisplayTypeUtil.createDisplayType(cssIconClass, cssIconColorClass, joinedIds);
-
-        ImagePanel components = new ImagePanel(componentId, Model.of(warning));
-        components.add(new InfoTooltipBehavior() {
-            @Override
-            public String getCssClass() {
-                return " ";
-            }
-        });
-
-        components.add(AttributeModifier.replace("title", joinedIds));
-
-        cellItem.add(components);
-    }
-
-    protected static String getCssIconClass() {
+    protected static @NotNull String getCssIconClass() {
         // return " fa fa-warning"
         // return " fas fa-plus-circle";
         return " fa fa-plus fa-lg";
     }
 
-    protected static String getCssIconColorClass() {
+    protected static @NotNull String getCssIconColorClass() {
         // return " fa fa-warning"
         return " black";
     }

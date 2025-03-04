@@ -47,10 +47,13 @@ import com.evolveum.midpoint.gui.impl.util.IconAndStylesUtil;
 import com.evolveum.midpoint.web.component.data.RoleAnalysisObjectDto;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
+import org.jetbrains.annotations.Nullable;
+
 public abstract class RoleAnalysisIntersectionColumn<B extends MiningBaseTypeChunk, A extends MiningBaseTypeChunk> extends RoleAnalysisMatrixColumn<A> {
 
     private final B baseMiningChunk;
     private final RoleAnalysisTableTools.StyleResolution styleWidth;
+    private final boolean isOutlierMode;
 
     protected RoleAnalysisIntersectionColumn(
             B baseMiningChunk,
@@ -58,7 +61,8 @@ public abstract class RoleAnalysisIntersectionColumn<B extends MiningBaseTypeChu
             PageBase pageBase) {
         super(model, pageBase);
         this.baseMiningChunk = baseMiningChunk;
-        this.styleWidth = RoleAnalysisTableTools.StyleResolution.resolveSize(baseMiningChunk.getUsers().size());
+        this.styleWidth = RoleAnalysisTableTools.StyleResolution.resolveSize(baseMiningChunk.getMembers().size());
+        this.isOutlierMode = getModel().getObject().isOutlierDetection();
     }
 
     @Override
@@ -71,121 +75,161 @@ public abstract class RoleAnalysisIntersectionColumn<B extends MiningBaseTypeChu
                 .StyleResolution
                 .resolveSize(propertiesCount);
 
-        RoleAnalysisTableTools.StyleResolution styleWidth = RoleAnalysisTableTools.StyleResolution.resolveSize(baseMiningChunk.getUsers().size());
-
         applySquareTableCell(cellItem, styleWidth, styleHeight);
 
-        RoleAnalysisTableCellFillResolver.Status isInclude = resolveCellTypeUserTable(componentId, cellItem, rowChunk, baseMiningChunk,
-                getColorPaletteModel());
+        RoleAnalysisTableCellFillResolver.Status isInclude = resolveCellTypeUserTable(componentId, cellItem, rowChunk,
+                baseMiningChunk, isOutlierMode, getColorPaletteModel());
 
         if (isInclude.equals(RoleAnalysisTableCellFillResolver.Status.RELATION_INCLUDE)) {
             setRelationSelected(true);
         }
 
-        boolean outlierDetection = getModel().getObject().isOutlierDetection();
+        markOutlierChunkIfRequested(cellItem, rowChunk, baseMiningChunk, isInclude);
 
-        //TODO: refactor this and markChunkIfRequested. We need design logic for this.
-        if (outlierDetection && isInclude.equals(RoleAnalysisTableCellFillResolver.Status.RELATION_DISABLE)) {
-            cellItem.add(AttributeModifier.replace("class",
-                    "p-2 d-flex align-items-center justify-content-center bg-dark"));
-        }
+        applyMarkAction(cellItem, rowChunk);
 
-        markChunkIfRequested(cellItem, rowChunk, baseMiningChunk, isInclude);
+    }
 
+    private void applyMarkAction(Item<ICellPopulator<A>> cellItem, A rowChunk) {
         RoleAnalysisChunkAction chunkAction = getChunkAction();
         if (!chunkAction.equals(RoleAnalysisChunkAction.SELECTION)) {
             patternCellResolver(cellItem, rowChunk, baseMiningChunk);
         } else {
             chunkActionSelectorBehavior(cellItem, rowChunk, baseMiningChunk);
         }
-
     }
 
-    //think about this
-    private boolean markChunkIfRequested(Item<ICellPopulator<A>> cellItem,
+    public boolean markOutlierRelations(
+            boolean isMarked,
+            @NotNull Item<ICellPopulator<A>> cellItem,
+            @NotNull A rowChunk,
+            @NotNull B colChunk,
+            @NotNull RoleAnalysisObjectDto roleAnalysis,
+            @Nullable Set<RoleAnalysisObjectDto.MarkedRelation> markedRelations,
+            @NotNull RoleAnalysisTableCellFillResolver.@NotNull Status isInclude) {
+
+        if (isMarked) {
+            return true;
+        }
+
+        if (isInclude.equals(RoleAnalysisTableCellFillResolver.Status.RELATION_NONE) ||
+                !roleAnalysis.isOutlierDetection() ||
+                markedRelations == null ||
+                markedRelations.isEmpty()) {
+            return false;
+        }
+
+        Set<String> members = new HashSet<>(colChunk.getUsers());
+        Set<String> roles = new HashSet<>(rowChunk.getRoles());
+
+        for (RoleAnalysisObjectDto.MarkedRelation markedRelation : markedRelations) {
+            if (members.stream().anyMatch(markedRelation.userOid()::contains)) {
+                cellItem.add(AttributeModifier.append("style", markedRelation.cssStyle()));
+
+                if (roles.stream().anyMatch(markedRelation.roleOid()::contains)) {
+                    cellItem.add(AttributeModifier.replace("class", markedRelation.cssClass()));
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
+    private boolean markOutlierPatterns(
+            boolean isMarked,
+            @NotNull Item<ICellPopulator<A>> cellItem,
+            @NotNull A rowChunk,
+            @NotNull RoleAnalysisObjectDto roleAnalysis,
+            @Nullable List<DetectedPattern> selectedPatterns,
+            @NotNull RoleAnalysisTableCellFillResolver.@NotNull Status isInclude) {
+
+        if (isMarked) {
+            return true;
+        }
+
+        if (!roleAnalysis.isOutlierDetection()
+                || selectedPatterns == null || selectedPatterns.isEmpty()
+                || !(isInclude.equals(RoleAnalysisTableCellFillResolver.Status.RELATION_INCLUDE) ||
+                isInclude.equals(RoleAnalysisTableCellFillResolver.Status.RELATION_DISABLE))) {
+            return false;
+        }
+
+        Set<String> members = new HashSet<>(this.baseMiningChunk.getMembers());
+
+        for (DetectedPattern pattern : selectedPatterns) {
+            String associatedColor = Optional.ofNullable(pattern.getAssociatedColor()).filter(c -> !c.isEmpty()).orElse("#28a745");
+
+            if (pattern.getUsers().stream().anyMatch(members::contains)) {
+                isMarked = true;
+                cellItem.add(AttributeModifier.append("style", "border: 5px solid " + associatedColor + ";"));
+
+                if (rowChunk.getRoles().stream().anyMatch(pattern.getRoles()::contains)) {
+                    cellItem.add(AttributeModifier.replace("class",
+                            "p-2 d-flex align-items-center justify-content-center bg-danger"));
+                }
+                break;
+            }
+        }
+
+        return isMarked;
+    }
+
+    private boolean markOutlierChunkIfRequested(Item<ICellPopulator<A>> cellItem,
             A rowChunk,
             B colChunk,
             RoleAnalysisTableCellFillResolver.@NotNull Status isInclude) {
         RoleAnalysisObjectDto roleAnalysis = getModel().getObject();
-        Set<String> markedUsers = getModel().getObject().getMarkedUsers();
-        Set<String> markedRoles = getModel().getObject().getMarkedRoles();
 
-        Set<RoleAnalysisObjectDto.MarkedRelation> markedRelations = getModel().getObject().getMarkedRelations();
-
-        if (!isInclude.equals(RoleAnalysisTableCellFillResolver.Status.RELATION_NONE)
-                && roleAnalysis.isOutlierDetection()
-                && markedRelations != null
-                && !markedRelations.isEmpty()) {
-            Set<String> members = new HashSet<>(colChunk.getUsers());
-            Set<String> roles = new HashSet<>(rowChunk.getRoles());
-            for (RoleAnalysisObjectDto.MarkedRelation markedRelation : markedRelations) {
-                boolean matchCol = members.stream().anyMatch(markedRelation.userOid()::contains);
-                if (matchCol) {
-                    cellItem.add(AttributeModifier.append("style", markedRelation.cssStyle()));
-
-                    boolean matchRow = roles.stream().anyMatch(markedRelation.roleOid()::contains);
-
-                    if (matchRow) {
-                        cellItem.add(AttributeModifier.replace("class", markedRelation.cssClass()));
-                        return true;
-                    }
-                }
-            }
+        if(!roleAnalysis.isOutlierDetection()){
+            return false;
         }
 
-        if (roleAnalysis.isOutlierDetection()
-                && (isInclude.equals(RoleAnalysisTableCellFillResolver.Status.RELATION_INCLUDE)
-                || isInclude.equals(RoleAnalysisTableCellFillResolver.Status.RELATION_DISABLE))) {
+        Set<RoleAnalysisObjectDto.MarkedRelation> markedRelations = roleAnalysis.getMarkedRelations();
+        boolean isMarked = false;
 
-            boolean isMarked = false;
-            if (getSelectedPatterns() != null && !getSelectedPatterns().isEmpty()) {
-                for (DetectedPattern pattern : getSelectedPatterns()) {
-                    String associatedColor = pattern.getAssociatedColor();
-                    if (associatedColor == null || associatedColor.isEmpty()) {
-                        associatedColor = "#28a745";
-                    }
-                    Set<String> usersInPatterns = pattern.getUsers();
-                    Set<String> roles = pattern.getRoles();
-                    List<String> rolesInRow = rowChunk.getRoles();
-                    for (String member : this.baseMiningChunk.getMembers()) {
-                        if (usersInPatterns.contains(member)) {
-                            isMarked = true;
-                            cellItem.add(AttributeModifier.append("style",
-                                    " border: 5px solid " + associatedColor + ";"));
-                            if (rolesInRow.stream().anyMatch(roles::contains)) {
-                                cellItem.add(AttributeModifier.replace("class",
-                                        "p-2 d-flex align-items-center justify-content-center bg-danger"));
-                            }
+        isMarked = markOutlierRelations(isMarked, cellItem, rowChunk, colChunk, roleAnalysis, markedRelations, isInclude);
 
-                            break;
-                        }
-                    }
-                }
-            }
+        isMarked = markOutlierPatterns(isMarked, cellItem, rowChunk, roleAnalysis, getSelectedPatterns(), isInclude);
 
-            if (!isMarked
-                    && markedUsers != null
-                    && !markedUsers.isEmpty()
-                    && this.baseMiningChunk.getMembers().stream().anyMatch(markedUsers::contains)) {
+        isMarked = markMarkedRequestedObjects(isMarked, cellItem, rowChunk, roleAnalysis, isInclude);
 
-                if (markedRoles != null && !markedRoles.isEmpty() && rowChunk.getRoles().stream().anyMatch(markedRoles::contains)) {
-                    cellItem.add(AttributeModifier.replace("class",
-                            "p-2 d-flex align-items-center justify-content-center bg-danger"));
-                }
+        return isMarked;
+    }
 
-                cellItem.add(AttributeModifier.append("style", " border: 5px solid #206f9d;"));
-                isMarked = true;
-            }
+    private boolean markMarkedRequestedObjects(
+            boolean isMarked,
+            @NotNull Item<ICellPopulator<A>> cellItem,
+            @NotNull A rowChunk,
+            @NotNull RoleAnalysisObjectDto roleAnalysis,
+            @NotNull RoleAnalysisTableCellFillResolver.@NotNull Status isInclude) {
+        Set<String> markedUsers = roleAnalysis.getMarkedUsers();
+        Set<String> markedRoles = roleAnalysis.getMarkedRoles();
 
-            return isMarked;
-//            if (RoleAnalysisOperationMode.INCLUDE == baseMiningChunk.getObjectStatus().getRoleAnalysisOperationMode()
-//                    && RoleAnalysisOperationMode.NEGATIVE_EXCLUDE == rowChunk.getObjectStatus().getRoleAnalysisOperationMode()) {
-//                cellItem.add(AttributeAppender.append("style", "border: 5px solid #206f9d;"));
-//            }
-
+        if (isMarked) {
+            return true;
         }
 
-        return false;
+        if (!roleAnalysis.isOutlierDetection()
+                || !(isInclude.equals(RoleAnalysisTableCellFillResolver.Status.RELATION_INCLUDE) ||
+                isInclude.equals(RoleAnalysisTableCellFillResolver.Status.RELATION_DISABLE))) {
+            return false;
+        }
+
+        if (markedUsers == null
+                || markedUsers.isEmpty()
+                || this.baseMiningChunk.getMembers().stream().noneMatch(markedUsers::contains)) {
+            return false;
+        }
+
+        if (markedRoles != null && !markedRoles.isEmpty() && rowChunk.getRoles().stream().anyMatch(markedRoles::contains)) {
+            cellItem.add(AttributeModifier.replace("class",
+                    "p-2 d-flex align-items-center justify-content-center bg-danger"));
+        }
+
+        cellItem.add(AttributeModifier.append("style", " border: 5px solid #206f9d;"));
+
+        return true;
     }
 
     @Override
@@ -240,7 +284,7 @@ public abstract class RoleAnalysisIntersectionColumn<B extends MiningBaseTypeChu
                 RoleAnalysisObjectDto roleAnalysis = getModel().getObject();
                 RoleAnalysisChunkAction chunkAction = roleAnalysis.getChunkAction();
                 if (chunkAction.equals(RoleAnalysisChunkAction.DETAILS_DETECTION)) {
-                    DetailedPatternSelectionPanel detailedPatternSelectionPanel = createDebugLabelPanel(
+                    DetailedPatternSelectionPanel detailedPatternSelectionPanel = createDetailedPatternSelectionPanel(
                             userChunk.getMembers(), roleChunk.getProperties(), roleAnalysis);
                     getPageBase().showMainPopup(detailedPatternSelectionPanel, ajaxRequestTarget);
                 } else {
@@ -262,7 +306,9 @@ public abstract class RoleAnalysisIntersectionColumn<B extends MiningBaseTypeChu
     }
 
     @NotNull
-    private DetailedPatternSelectionPanel createDebugLabelPanel(List<String> members, List<String> mustMeet, RoleAnalysisObjectDto roleAnalysisObjectDto) {
+    private DetailedPatternSelectionPanel createDetailedPatternSelectionPanel(List<String> members,
+            List<String> mustMeet,
+            RoleAnalysisObjectDto roleAnalysisObjectDto) {
 
         LoadableModel<PatternStatistics<?>> model = new LoadableModel<>() {
             @Override
@@ -355,8 +401,8 @@ public abstract class RoleAnalysisIntersectionColumn<B extends MiningBaseTypeChu
 
     protected abstract IModel<Map<String, String>> getColorPaletteModel(); //new PropertyModel<>(getOpPanelModel(), OperationPanelModel.F_PALLET_COLORS)
 
-    private void loadTemporaryPattern(DetectedPattern detectedPattern, PageBase PageBase, AjaxRequestTarget ajaxRequestTarget) {
-        updateWithPatterns(Collections.singletonList(detectedPattern), PageBase);
+    private void loadTemporaryPattern(DetectedPattern detectedPattern, PageBase pageBase, AjaxRequestTarget ajaxRequestTarget) {
+        updateWithPatterns(Collections.singletonList(detectedPattern), pageBase);
         onUniquePatternDetectionPerform(ajaxRequestTarget);
         refreshTable(ajaxRequestTarget);
     }
