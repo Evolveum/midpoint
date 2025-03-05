@@ -31,14 +31,14 @@ public class TaskOperationStatsUtil {
      *
      * Currently does NOT support some low-level performance statistics, namely:
      *
-     * 1. cachesPerformanceInformation,
-     * 2. operationsPerformanceInformation,
-     * 3. cachingConfiguration.
+     * . cachesPerformanceInformation,
+     * . cachingConfiguration.
      */
     public static OperationStatsType getOperationStatsFromTree(TaskType root, PrismContext prismContext) {
         OperationStatsType aggregate = new OperationStatsType()
                 .environmentalPerformanceInformation(new EnvironmentalPerformanceInformationType())
-                .repositoryPerformanceInformation(new RepositoryPerformanceInformationType());
+                .repositoryPerformanceInformation(new RepositoryPerformanceInformationType())
+                .operationsPerformanceInformation(new OperationsPerformanceInformationType());
 
         Stream<TaskType> tasks = TaskTreeUtil.getAllTasksStream(root);
         tasks.forEach(task -> {
@@ -46,6 +46,7 @@ public class TaskOperationStatsUtil {
             if (operationStatsBean != null) {
                 EnvironmentalPerformanceInformation.addTo(aggregate.getEnvironmentalPerformanceInformation(), operationStatsBean.getEnvironmentalPerformanceInformation());
                 RepositoryPerformanceInformationUtil.addTo(aggregate.getRepositoryPerformanceInformation(), operationStatsBean.getRepositoryPerformanceInformation());
+                OperationsPerformanceInformationUtil.addTo(aggregate.getOperationsPerformanceInformation(), operationStatsBean.getOperationsPerformanceInformation());
             }
         });
         return aggregate;

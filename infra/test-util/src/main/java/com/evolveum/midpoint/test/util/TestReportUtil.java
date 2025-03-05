@@ -86,10 +86,10 @@ public class TestReportUtil {
     /**
      * Adds operation performance for a given task to the {@link TestMonitor}.
      */
-    public static void reportTaskOperationPerformance(TestMonitor testMonitor, String label,
-            TaskType task, Integer iterations, Integer seconds) {
+    public static void reportTaskOperationPerformance(
+            TestMonitor testMonitor, String label, OperationStatsType stats, Integer iterations, Integer seconds) {
 
-        var info = task.getOperationStats() != null ? task.getOperationStats().getOperationsPerformanceInformation() : null;
+        var info = stats != null ? stats.getOperationsPerformanceInformation() : null;
 
         var printer = new OperationsPerformanceInformationPrinter(
                 Objects.requireNonNullElseGet(info, OperationsPerformanceInformationType::new),
@@ -103,11 +103,11 @@ public class TestReportUtil {
      * Adds component performance for a given task to the {@link TestMonitor}.
      */
     public static void reportTaskComponentPerformanceAsSeparateSection(
-            TestMonitor testMonitor, String label, TaskType task, Integer iterations) {
+            TestMonitor testMonitor, String label, OperationStatsType operationStats, Integer iterations) {
         addPrinterDataAsNewSection(
                 testMonitor,
                 label + ":" + COMPONENT_PERFORMANCE,
-                getComponentsPerformanceInformationPrinter(task, iterations));
+                getComponentsPerformanceInformationPrinter(operationStats, iterations));
     }
 
     /**
@@ -115,17 +115,17 @@ public class TestReportUtil {
      * that aggregates the performance of all components for all tasks.
      */
     public static void reportTaskComponentPerformanceToSingleSection(
-            TestMonitor testMonitor, String taskIdentification, TaskType task, Integer iterations) {
+            TestMonitor testMonitor, String taskIdentification, OperationStatsType operationStats, Integer iterations) {
         addPrinterDataAsNewOrExistingSection(
                 testMonitor, COMPONENT_PERFORMANCE, "task", taskIdentification,
-                getComponentsPerformanceInformationPrinter(task, iterations));
+                getComponentsPerformanceInformationPrinter(operationStats, iterations));
     }
 
     private static @NotNull ComponentsPerformanceInformationPrinter getComponentsPerformanceInformationPrinter(
-            TaskType task, Integer iterations) {
+            OperationStatsType operationStats, Integer iterations) {
         var operationsInfo =
                 Objects.requireNonNullElseGet(
-                        task.getOperationStats() != null ? task.getOperationStats().getOperationsPerformanceInformation() : null,
+                        operationStats != null ? operationStats.getOperationsPerformanceInformation() : null,
                         OperationsPerformanceInformationType::new);
 
         var componentsInfo = ComponentsPerformanceInformationUtil.computeBasic(operationsInfo);
@@ -140,9 +140,9 @@ public class TestReportUtil {
      * Adds repository performance for a given task to the {@link TestMonitor}.
      */
     public static void reportTaskRepositoryPerformance(TestMonitor testMonitor, String label,
-            TaskType task, Integer iterations, Integer seconds) {
+            OperationStatsType operationStats, Integer iterations, Integer seconds) {
         RepositoryPerformanceInformationType performanceInformationFromTask =
-                task.getOperationStats() != null ? task.getOperationStats().getRepositoryPerformanceInformation() : null;
+                operationStats != null ? operationStats.getRepositoryPerformanceInformation() : null;
         RepositoryPerformanceInformationType performanceInformation = performanceInformationFromTask != null ?
                 performanceInformationFromTask : new RepositoryPerformanceInformationType();
 
@@ -170,9 +170,9 @@ public class TestReportUtil {
     /**
      * Adds provisioning operations statistics for a given task to the {@link TestMonitor}.
      */
-    public static void reportTaskProvisioningStatistics(TestMonitor testMonitor, String label, TaskType task) {
+    public static void reportTaskProvisioningStatistics(TestMonitor testMonitor, String label, OperationStatsType operationStats) {
         EnvironmentalPerformanceInformationType envPerformanceInformationFromTask =
-                task.getOperationStats() != null ? task.getOperationStats().getEnvironmentalPerformanceInformation() : null;
+                operationStats != null ? operationStats.getEnvironmentalPerformanceInformation() : null;
         ProvisioningStatisticsType provisioningStatisticsFromTask = envPerformanceInformationFromTask != null ?
                 envPerformanceInformationFromTask.getProvisioningStatistics() : null;
         ProvisioningStatisticsType provisioningStatistics = provisioningStatisticsFromTask != null ?
