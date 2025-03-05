@@ -251,6 +251,22 @@ public interface ModelInteractionService {
             CommunicationException, ConfigurationException, SecurityViolationException;
 
     /**
+     * Returns a filter for lookup of users which are allowed to be objects during assign operation.
+     * "assign" authorization can define a filter for object. This means that logged in user
+     * can request an assignment only for those user(s) which satisfies the filter.
+     *
+     * @param searchResultType type of the expected search results
+     * @param origFilter original filter (e.g. taken from GUI search bar)
+     * @param task task
+     * @param parentResult operation result
+     * @return original filter with AND clause limiting the search.
+     */
+    <T extends ObjectType> ObjectFilter getAccessibleForAssignmentObjectsFilter(    // TODO better name? getAssignOperationObjectsFilter?
+            Class<T> searchResultType, ObjectFilter origFilter, Task task, OperationResult parentResult)
+            throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException,
+            CommunicationException, ConfigurationException, SecurityViolationException;
+
+    /**
      * Returns decisions for individual items for "assign" authorization. This is usually applicable to assignment parameters.
      * The decisions are evaluated using the security context of a currently logged-in user.
      *
