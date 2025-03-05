@@ -20,6 +20,7 @@ import java.util.stream.Stream;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.lazy.FlyweightClonedItem;
 import com.evolveum.midpoint.prism.lazy.ReparentedItem;
 import com.evolveum.midpoint.prism.lazy.LazyXNodeBasedPrismValue;
 import com.evolveum.midpoint.util.MiscUtil;
@@ -832,7 +833,7 @@ public class ObjectTypeUtil {
             Item<?, ?> magicItem = dstExtensionContainerValue.findItem(srcExtensionItem.getElementName());
             if (magicItem == null) {
                 //noinspection unchecked
-                dstExtensionContainerValue.add(ReparentedItem.copyOf(srcExtensionItem));
+                dstExtensionContainerValue.add(FlyweightClonedItem.copyOf(srcExtensionItem));
             }
         }
     }
