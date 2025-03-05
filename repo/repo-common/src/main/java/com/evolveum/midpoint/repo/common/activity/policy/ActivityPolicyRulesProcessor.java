@@ -44,7 +44,10 @@ public class ActivityPolicyRulesProcessor {
         return activityRun.getActivityPolicyRulesContext();
     }
 
-    public void collectRules(OperationResult result) {
+    public void collectRules() {
+        LOGGER.trace("Collecting activity policy rules for activity {} ({})",
+                activityRun.getActivity().getIdentifier(), activityRun.getActivityPath());
+
         ActivityPoliciesType activityPolicy = activityRun.getActivity().getDefinition().getPoliciesDefinition().getPolicies();
         List<ActivityPolicyType> policies = activityPolicy.getPolicy();
 
@@ -58,6 +61,9 @@ public class ActivityPolicyRulesProcessor {
 
     public void evaluateAndEnforceRules(OperationResult result)
             throws ThresholdPolicyViolationException, SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException {
+
+        LOGGER.trace("Evaluating activity policy rules for {} ({})",
+                activityRun.getActivity().getIdentifier(), activityRun.getActivityPath());
 
         List<EvaluatedActivityPolicyRule> rules = getPolicyRulesContext().getPolicyRules();
         if (rules.isEmpty()) {
@@ -116,12 +122,13 @@ public class ActivityPolicyRulesProcessor {
         triggers.stream()
                 .map(t -> createActivityStateTrigger(rule, t))
                 .forEach(t -> newState.getTriggers().add(t));
+        newState.freeze();
 
         return newState;
     }
 
     private ActivityPolicyTriggerType createActivityStateTrigger(
-            EvaluatedActivityPolicyRule rule, EvaluatedActivityPolicyRuleTrigger trigger) {
+            EvaluatedActivityPolicyRule rule, EvaluatedActivityPolicyRuleTrigger<?> trigger) {
 
         ActivityPolicyTriggerType state = new ActivityPolicyTriggerType();
         state.setConstraintIdentifier(rule.getName());
@@ -131,6 +138,9 @@ public class ActivityPolicyRulesProcessor {
     }
 
     private void enforceRules(OperationResult result) throws ThresholdPolicyViolationException {
+        LOGGER.trace("Enforcing activity policy rules for {} ({})",
+                activityRun.getActivity().getIdentifier(), activityRun.getActivityPath());
+
         List<EvaluatedActivityPolicyRule> rules = activityRun.getActivityPolicyRulesContext().getPolicyRules();
         // todo make sure we store somewhere that rule was already triggered and enforced
         //  e.g. we don't send notification after each processed item when execution time was exceeded
@@ -142,24 +152,35 @@ public class ActivityPolicyRulesProcessor {
                 continue;
             }
 
-            if (rule.isEnforced()) {
-                LOGGER.trace("Policy rule {} was already enforced, skipping enforcement", rule);
-                continue;
+            if (!rule.isEnforced()) {
+                LOGGER.trace("Enforcing policy rule {}", rule);
+                rule.enforced();
+
+                executeSoftActions(rule, result);
             }
 
-            LOGGER.trace("Enforcing policy rule {}", rule);
-            rule.enforced();
+            executeHardActions(rule, result);
+        }
+    }
 
-            if (rule.containsAction(NotificationPolicyActionType.class)) {
-                LOGGER.debug("Sending notification because of policy violation, rule: {}", rule);
-                activityRun.sendActivityPolicyRuleTriggeredEvent(rule, result);
-            }
+    /**
+     * Executes soft actions - actions that don't interrupt/suspend execution of activity
+     * (e.g. notifications) for the given rule.
+     */
+    private void executeSoftActions(EvaluatedActivityPolicyRule rule, OperationResult result) {
+        if (rule.containsAction(NotificationPolicyActionType.class)) {
+            LOGGER.debug("Sending notification because of policy violation, rule: {}", rule);
+            activityRun.sendActivityPolicyRuleTriggeredEvent(rule, result);
+        }
+    }
 
-            if (rule.containsAction(SuspendTaskPolicyActionType.class)) {
-                LOGGER.debug("Suspending task because of policy violation, rule: {}", rule);
-                // todo how to handle this exception?
-                throw new ThresholdPolicyViolationException("Policy violation, rule: " + rule);
-            }
+    private void executeHardActions(EvaluatedActivityPolicyRule rule, OperationResult result)
+            throws ThresholdPolicyViolationException {
+
+        if (rule.containsAction(SuspendTaskPolicyActionType.class)) {
+            LOGGER.debug("Suspending task because of policy violation, rule: {}", rule);
+            // todo how to handle this exception?
+            throw new ThresholdPolicyViolationException("Policy violation, rule: " + rule);
         }
     }
 }

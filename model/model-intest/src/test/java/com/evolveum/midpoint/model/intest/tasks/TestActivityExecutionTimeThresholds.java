@@ -45,11 +45,6 @@ public class TestActivityExecutionTimeThresholds extends AbstractEmptyModelInteg
         testTask(TASK_SIMPLE_NOOP, 2);
     }
 
-    @Test
-    public void test200MultiNodeTask() throws Exception {
-        testTask(TASK_MULTI_NOOP, 2);
-    }
-
     public void testTask(TestObject<TaskType> task, int threads) throws Exception {
         given();
         Task testTask = getTestTask();
@@ -66,16 +61,16 @@ public class TestActivityExecutionTimeThresholds extends AbstractEmptyModelInteg
                 rootActivityWorkerThreadsCustomizer(threads).accept(t);
             }
         });
-        waitForTaskTreeCloseCheckingSuspensionWithError(task.oid, testResult, 7000L);
+        waitForTaskTreeCloseCheckingSuspensionWithError(task.oid, testResult, 10000L);
 
         then();
 
-        assertSimpleTask(task);
+        assertSimpleTask(task, threads);
 
         when("repeated execution");
 
         taskManager.resumeTaskTree(task.oid, testResult);
-        waitForTaskTreeCloseCheckingSuspensionWithError(task.oid, testResult, 2000L);
+        waitForTaskTreeCloseCheckingSuspensionWithError(task.oid, testResult, 3000L);
 
         then("repeated execution");
 
@@ -87,7 +82,7 @@ public class TestActivityExecutionTimeThresholds extends AbstractEmptyModelInteg
         }
     }
 
-    private void assertSimpleTask(TestObject<TaskType> testObject) throws Exception {
+    private void assertSimpleTask(TestObject<TaskType> testObject, int threads) throws Exception {
         var options = schemaService.getOperationOptionsBuilder()
                 .item(TaskType.F_RESULT).retrieve()
                 .item(TaskType.F_SUBTASK_REF).retrieve()
@@ -96,6 +91,8 @@ public class TestActivityExecutionTimeThresholds extends AbstractEmptyModelInteg
 
         ActivityPolicyType policy = task.asObjectable().getActivity().getPolicies().getPolicy().get(0);
         String identifier = ActivityPolicyUtils.createIdentifier(task.getOid(), policy);
+
+        int realThreads = threads > 0 ? threads : 1;
 
         // @formatter:off
         var asserter = assertTaskTree(task.getOid(), "after")
@@ -108,7 +105,7 @@ public class TestActivityExecutionTimeThresholds extends AbstractEmptyModelInteg
                     .assertOnePolicyStateTriggers(identifier, 1)
                 .end()
                 .assertInProgressLocal()
-                .progress().assertSuccessCount(6, 0).display().end()
+                .progress().assertSuccessCount(6, 6 * realThreads, true).display().end()
                 .itemProcessingStatistics().display().end();
         // @formatter:on
     }

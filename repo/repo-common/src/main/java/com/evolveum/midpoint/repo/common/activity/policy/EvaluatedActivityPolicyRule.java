@@ -15,8 +15,6 @@ import java.util.List;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.util.PrismPrettyPrinter;
 import com.evolveum.midpoint.util.DebugDumpable;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityPolicyActionsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityPolicyStateType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityPolicyType;
@@ -25,8 +23,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyActionType;
 import org.jetbrains.annotations.NotNull;
 
 public class EvaluatedActivityPolicyRule implements DebugDumpable {
-
-    private static final Trace LOGGER = TraceManager.getTrace(EvaluatedActivityPolicyRule.class);
 
     private final @NotNull ActivityPolicyType policy;
 
@@ -109,7 +105,7 @@ public class EvaluatedActivityPolicyRule implements DebugDumpable {
     }
 
     public boolean isEnforced() {
-        return enforced;
+        return enforced || (currentState != null && currentState.isEnforced());
     }
 
     public void enforced() {

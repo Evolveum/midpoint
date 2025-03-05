@@ -226,7 +226,7 @@ public abstract class AbstractActivityRun<
         }
 
         ActivityPolicyRulesProcessor processor = new ActivityPolicyRulesProcessor(this);
-        processor.collectRules(result);
+        processor.collectRules();
 
         noteStartTimestamp();
         logStart();

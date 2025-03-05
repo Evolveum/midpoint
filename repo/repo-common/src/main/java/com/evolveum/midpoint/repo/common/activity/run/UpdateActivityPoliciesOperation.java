@@ -17,12 +17,16 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityPolicyStateType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 
 import org.jetbrains.annotations.NotNull;
 
 public class UpdateActivityPoliciesOperation {
+
+    private static final Trace LOGGER = TraceManager.getTrace(UpdateActivityPoliciesOperation.class);
 
     private final @NotNull Task task;
 
@@ -48,6 +52,8 @@ public class UpdateActivityPoliciesOperation {
     public Map<String, ActivityPolicyStateType> execute(OperationResult result)
             throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException {
 
+        LOGGER.trace("Updating activity policies");
+
         updatePolicyStates(result);
 
         return updatedPolicies;
@@ -67,19 +73,24 @@ public class UpdateActivityPoliciesOperation {
         for (ActivityPolicyStateType policy : policies) {
             ActivityPolicyStateType current = getCurrentPolicyState(task, policy.getIdentifier());
             ItemDelta<?, ?> itemDelta;
+
+            ActivityPolicyStateType updatedPolicy;
             if (current == null) {
                 itemDelta = beans.prismContext.deltaFor(TaskType.class)
                         .item(policiesItemPath)
-                        .add(policy)
+                        .add(policy.clone())
                         .asItemDelta();
 
                 deltas.add(itemDelta);
-                updatedPolicies.put(policy.getIdentifier(), policy);
+                updatedPolicy = policy;
             } else {
                 // MID-10412 todo if policy state exists we probably don't want to update it??? (it should already contain triggers)
                 //  this looks shady
-                updatedPolicies.put(policy.getIdentifier(), current);
+                updatedPolicy = current;
             }
+
+            updatedPolicy.freeze();
+            updatedPolicies.put(policy.getIdentifier(), updatedPolicy);
         }
 
         return deltas;
