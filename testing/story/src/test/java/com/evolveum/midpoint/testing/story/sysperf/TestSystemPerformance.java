@@ -626,7 +626,7 @@ public class TestSystemPerformance extends AbstractStoryTest implements Performa
         double timePerAccount = (double) executionTime / (double) numberOfAccounts;
 
         PrismObject<TaskType> taskTree = getTaskTree(taskAfter.getOid());
-        OperationStatsType operationStats = TaskOperationStatsUtil.getOperationStatsFromTree(taskTree.asObjectable());
+        OperationStatsType operationStats = TaskOperationStatsUtil.getOperationStatsFromTree(taskTree.asObjectable(), prismContext);
 
         logger.info("********** FINISHED: {} **********\n", desc);
         logger.info(String.format("Task execution time: %,d ms", executionTime));
