@@ -112,31 +112,6 @@ public class RoleAnalysisSessionTileTable extends BasePanel<String> {
         this.items = initToggleItems(getTable());
     }
 
-    protected IColumn<SelectableBean<RoleAnalysisSessionType>, String> createCheckboxColumn() {
-        return new CheckBoxHeaderColumn<>() {
-            @SuppressWarnings("rawtypes")
-            @Override
-            protected void onUpdateHeader(AjaxRequestTarget target, boolean selected, DataTable table) {
-                super.onUpdateHeader(target, selected, table);
-
-                updateSelectableProvider(target, selected, table, null);
-            }
-
-            @SuppressWarnings("rawtypes")
-            @Override
-            protected void onUpdateRow(
-                    Item<ICellPopulator<SelectableBean<RoleAnalysisSessionType>>> cellItem,
-                    AjaxRequestTarget target,
-                    DataTable table,
-                    IModel<SelectableBean<RoleAnalysisSessionType>> rowModel,
-                    IModel<Boolean> selected) {
-                super.onUpdateRow(cellItem, target, table, rowModel, selected);
-                updateSelectableProvider(target, selected.getObject(), table, rowModel.getObject().getValue().getOid());
-
-            }
-        };
-    }
-
     @SuppressWarnings({ "rawtypes", "unchecked" })
     private void updateSelectableProvider(AjaxRequestTarget target, boolean selected, DataTable table, String oid) {
         ISortableDataProvider<SelectableBean<RoleAnalysisSessionType>, String> tableProvider = getTable().getProvider();
@@ -364,197 +339,36 @@ public class RoleAnalysisSessionTileTable extends BasePanel<String> {
         LoadableModel<PrismContainerDefinition<RoleAnalysisOptionType>> analysisOptionDefinitionModel
                 = WebComponentUtil.getContainerDefinitionModel(RoleAnalysisOptionType.class);
 
+        IColumn<SelectableBean<RoleAnalysisSessionType>, String> column;
         columns.add(createCheckboxColumn());
 
-        IColumn<SelectableBean<RoleAnalysisSessionType>, String> iconColumn = ColumnUtils.createIconColumn(getPageBase());
-        columns.add(iconColumn);
-
-        ObjectNameColumn<RoleAnalysisSessionType> objectNameColumn = new ObjectNameColumn<>(
-                createStringResource("ObjectType.name")) {
-            @Override
-            protected void onClick(@NotNull IModel<SelectableBean<RoleAnalysisSessionType>> rowModel) {
-                dispatchToObjectDetailsPage(RoleAnalysisSessionType.class, rowModel.getObject().getValue().getOid(),
-                        RoleAnalysisSessionTileTable.this.getPageBase(), true);
-            }
-        };
-        columns.add(objectNameColumn);
-
-        IColumn<SelectableBean<RoleAnalysisSessionType>, String> column = new AbstractExportableColumn<>(
-                createStringResource("")) {
-
-            @Contract("_ -> new")
-            @Override
-            public @NotNull Component getHeader(String componentId) {
-                return createColumnHeader(
-                        componentId, analysisOptionDefinitionModel, RoleAnalysisOptionType.F_ANALYSIS_PROCEDURE_TYPE);
-            }
-
-            @Override
-            public void populateItem(@NotNull Item<ICellPopulator<SelectableBean<RoleAnalysisSessionType>>> cellItem,
-                    String componentId, IModel<SelectableBean<RoleAnalysisSessionType>> model) {
-                cellItem.add(new Label(componentId, extractProcessType(model)));
-
-            }
-
-            @Override
-            public @NotNull IModel<String> getDataModel(IModel<SelectableBean<RoleAnalysisSessionType>> rowModel) {
-                return extractProcessType(rowModel);
-            }
-
-        };
+        column = ColumnUtils.createIconColumn(getPageBase());
         columns.add(column);
 
-        column = new AbstractExportableColumn<>(
-                createStringResource("")) {
+        initNameColumn(columns);
 
-            @Contract("_ -> new")
-            @Override
-            public @NotNull Component getHeader(String componentId) {
-                return createColumnHeader(
-                        componentId, analysisOptionDefinitionModel, RoleAnalysisOptionType.F_PROCESS_MODE);
-            }
+        initProcessTypeColumn(analysisOptionDefinitionModel, columns);
 
-            @Override
-            public void populateItem(@NotNull Item<ICellPopulator<SelectableBean<RoleAnalysisSessionType>>> cellItem,
-                    String componentId, IModel<SelectableBean<RoleAnalysisSessionType>> model) {
-                cellItem.add(new Label(componentId, extractProcessMode(model)));
+        initProcessModeColumn(analysisOptionDefinitionModel, columns);
 
-            }
+        initCategoryColumn(analysisOptionDefinitionModel, columns);
 
-            @Override
-            public IModel<String> getDataModel(IModel<SelectableBean<RoleAnalysisSessionType>> rowModel) {
-                return extractProcessMode(rowModel);
-            }
+        initClusterObjectCountColumn(containerDefinitionModel, columns);
 
-        };
-        columns.add(column);
+        initProcessedObjectCountColumn(containerDefinitionModel, columns);
 
-        column = new AbstractExportableColumn<>(
-                createStringResource("")) {
+        initProgressColumn(containerDefinitionModel, columns);
 
-            @Override
-            public Component getHeader(String componentId) {
-                return createColumnHeader(componentId,
-                        analysisOptionDefinitionModel, RoleAnalysisOptionType.F_ANALYSIS_CATEGORY);
-            }
+        initStatusColumn(columns);
 
-            @Override
-            public void populateItem(Item<ICellPopulator<SelectableBean<RoleAnalysisSessionType>>> cellItem,
-                    String componentId, IModel<SelectableBean<RoleAnalysisSessionType>> model) {
-                cellItem.add(new Label(componentId, extractCategoryMode(model)));
-            }
+        InlineMenuButtonColumn<SelectableBean<RoleAnalysisSessionType>> inlineButtonColumn = createInlineButtonColumn();
+        columns.add(inlineButtonColumn);
 
-            @Override
-            public IModel<String> getDataModel(IModel<SelectableBean<RoleAnalysisSessionType>> rowModel) {
-                return extractCategoryMode(rowModel);
-            }
+        return columns;
+    }
 
-        };
-        columns.add(column);
-
-        column = new AbstractExportableColumn<>(createStringResource("")) {
-
-            @Override
-            public Component getHeader(String componentId) {
-                return createColumnHeader(componentId, containerDefinitionModel,
-                        ItemPath.create(RoleAnalysisSessionType.F_SESSION_STATISTIC,
-                                RoleAnalysisSessionStatisticType.F_CLUSTER_COUNT));
-            }
-
-            @Override
-            public void populateItem(Item<ICellPopulator<SelectableBean<RoleAnalysisSessionType>>> cellItem,
-                    String componentId, IModel<SelectableBean<RoleAnalysisSessionType>> model) {
-                IconWithLabel iconWithLabel = new IconWithLabel(componentId, extractClusterObjectCount(model)) {
-                    @Override
-                    public String getIconCssClass() {
-                        return GuiStyleConstants.CLASS_ROLE_ANALYSIS_CLUSTER_ICON;
-                    }
-                };
-
-                cellItem.add(iconWithLabel);
-
-            }
-
-            @Override
-            public IModel<String> getDataModel(IModel<SelectableBean<RoleAnalysisSessionType>> rowModel) {
-                return extractClusterObjectCount(rowModel);
-            }
-
-        };
-        columns.add(column);
-
-        column = new AbstractExportableColumn<>(createStringResource("")) {
-
-            @Override
-            public Component getHeader(String componentId) {
-                return createColumnHeader
-                        (componentId, containerDefinitionModel, ItemPath.create(RoleAnalysisSessionType.F_SESSION_STATISTIC,
-                                RoleAnalysisSessionStatisticType.F_PROCESSED_OBJECT_COUNT));
-            }
-
-            @Override
-            public void populateItem(Item<ICellPopulator<SelectableBean<RoleAnalysisSessionType>>> cellItem,
-                    String componentId, IModel<SelectableBean<RoleAnalysisSessionType>> model) {
-                IconWithLabel iconWithLabel = new IconWithLabel(componentId, extractProcessedObjectCount(model)) {
-                    @Override
-                    public String getIconCssClass() {
-                        RoleAnalysisSessionType value = model.getObject().getValue();
-                        RoleAnalysisOptionType analysisOption = value.getAnalysisOption();
-                        RoleAnalysisProcessModeType processMode = analysisOption.getProcessMode();
-                        if (processMode.equals(RoleAnalysisProcessModeType.ROLE)) {
-                            return GuiStyleConstants.CLASS_OBJECT_ROLE_ICON;
-                        }
-
-                        return GuiStyleConstants.CLASS_OBJECT_USER_ICON;
-                    }
-                };
-                cellItem.add(iconWithLabel);
-            }
-
-            @Override
-            public IModel<String> getDataModel(IModel<SelectableBean<RoleAnalysisSessionType>> rowModel) {
-                return extractProcessedObjectCount(rowModel);
-            }
-
-        };
-        columns.add(column);
-
-        column = new AbstractExportableColumn<>(createStringResource("")) {
-
-            @Override
-            public Component getHeader(String componentId) {
-                return createColumnHeader(
-                        componentId, containerDefinitionModel, ItemPath.create(RoleAnalysisSessionType.F_SESSION_STATISTIC,
-                                RoleAnalysisSessionStatisticType.F_MEAN_DENSITY));
-            }
-
-            @Override
-            public void populateItem(Item<ICellPopulator<SelectableBean<RoleAnalysisSessionType>>> cellItem,
-                    String componentId, IModel<SelectableBean<RoleAnalysisSessionType>> model) {
-
-                RoleAnalysisSessionType value = model.getObject().getValue();
-                String meanDensity = "0.00";
-                if (value != null
-                        && value.getSessionStatistic() != null
-                        && value.getSessionStatistic().getMeanDensity() != null) {
-
-                    Double density = value.getSessionStatistic().getMeanDensity();
-                    meanDensity = new DecimalFormat("#.###")
-                            .format(Math.round(density * 1000.0) / 1000.0);
-                }
-
-                initDensityProgressPanel(cellItem, componentId, meanDensity);
-
-            }
-
-            @Override
-            public IModel<String> getDataModel(IModel<SelectableBean<RoleAnalysisSessionType>> rowModel) {
-                return extractMeanDensity(rowModel);
-            }
-
-        };
-        columns.add(column);
-
+    private void initStatusColumn(List<IColumn<SelectableBean<RoleAnalysisSessionType>, String>> columns) {
+        IColumn<SelectableBean<RoleAnalysisSessionType>, String> column;
         column = new AbstractExportableColumn<>(
                 createStringResource("RoleAnalysis.modificationTargetPanel.status")) {
 
@@ -620,12 +434,252 @@ public class RoleAnalysisSessionTileTable extends BasePanel<String> {
             }
         };
         columns.add(column);
-
-        InlineMenuButtonColumn<SelectableBean<RoleAnalysisSessionType>> inlineButtonColumn = createInlineButtonColumn();
-        columns.add(inlineButtonColumn);
-
-        return columns;
     }
+
+    private void initProgressColumn(
+            @NotNull LoadableModel<PrismContainerDefinition<RoleAnalysisSessionType>> containerDefinitionModel,
+            @NotNull List<IColumn<SelectableBean<RoleAnalysisSessionType>, String>> columns) {
+        IColumn<SelectableBean<RoleAnalysisSessionType>, String> column;
+        column = new AbstractExportableColumn<>(createStringResource("")) {
+
+            @Override
+            public Component getHeader(String componentId) {
+                return createColumnHeader(
+                        componentId, containerDefinitionModel, ItemPath.create(RoleAnalysisSessionType.F_SESSION_STATISTIC,
+                                RoleAnalysisSessionStatisticType.F_MEAN_DENSITY));
+            }
+
+            @Override
+            public void populateItem(Item<ICellPopulator<SelectableBean<RoleAnalysisSessionType>>> cellItem,
+                    String componentId, IModel<SelectableBean<RoleAnalysisSessionType>> model) {
+
+                RoleAnalysisSessionType value = model.getObject().getValue();
+                String meanDensity = "0.00";
+                if (value != null
+                        && value.getSessionStatistic() != null
+                        && value.getSessionStatistic().getMeanDensity() != null) {
+
+                    Double density = value.getSessionStatistic().getMeanDensity();
+                    meanDensity = new DecimalFormat("#.###")
+                            .format(Math.round(density * 1000.0) / 1000.0);
+                }
+
+                initDensityProgressPanel(cellItem, componentId, meanDensity);
+
+            }
+
+            @Override
+            public IModel<String> getDataModel(IModel<SelectableBean<RoleAnalysisSessionType>> rowModel) {
+                return extractMeanDensity(rowModel);
+            }
+
+        };
+        columns.add(column);
+    }
+
+    private void initProcessedObjectCountColumn(
+            @NotNull LoadableModel<PrismContainerDefinition<RoleAnalysisSessionType>> containerDefinitionModel,
+            @NotNull List<IColumn<SelectableBean<RoleAnalysisSessionType>, String>> columns) {
+        IColumn<SelectableBean<RoleAnalysisSessionType>, String> column;
+        column = new AbstractExportableColumn<>(createStringResource("")) {
+
+            @Override
+            public Component getHeader(String componentId) {
+                return createColumnHeader
+                        (componentId, containerDefinitionModel, ItemPath.create(RoleAnalysisSessionType.F_SESSION_STATISTIC,
+                                RoleAnalysisSessionStatisticType.F_PROCESSED_OBJECT_COUNT));
+            }
+
+            @Override
+            public void populateItem(Item<ICellPopulator<SelectableBean<RoleAnalysisSessionType>>> cellItem,
+                    String componentId, IModel<SelectableBean<RoleAnalysisSessionType>> model) {
+                IconWithLabel iconWithLabel = new IconWithLabel(componentId, extractProcessedObjectCount(model)) {
+                    @Override
+                    public String getIconCssClass() {
+                        RoleAnalysisSessionType value = model.getObject().getValue();
+                        RoleAnalysisOptionType analysisOption = value.getAnalysisOption();
+                        RoleAnalysisProcessModeType processMode = analysisOption.getProcessMode();
+                        if (processMode.equals(RoleAnalysisProcessModeType.ROLE)) {
+                            return GuiStyleConstants.CLASS_OBJECT_ROLE_ICON;
+                        }
+
+                        return GuiStyleConstants.CLASS_OBJECT_USER_ICON;
+                    }
+                };
+                cellItem.add(iconWithLabel);
+            }
+
+            @Override
+            public IModel<String> getDataModel(IModel<SelectableBean<RoleAnalysisSessionType>> rowModel) {
+                return extractProcessedObjectCount(rowModel);
+            }
+
+        };
+        columns.add(column);
+    }
+
+    private void initClusterObjectCountColumn(
+            @NotNull LoadableModel<PrismContainerDefinition<RoleAnalysisSessionType>> containerDefinitionModel,
+            @NotNull List<IColumn<SelectableBean<RoleAnalysisSessionType>, String>> columns) {
+        IColumn<SelectableBean<RoleAnalysisSessionType>, String> column;
+        column = new AbstractExportableColumn<>(createStringResource("")) {
+
+            @Override
+            public Component getHeader(String componentId) {
+                return createColumnHeader(componentId, containerDefinitionModel,
+                        ItemPath.create(RoleAnalysisSessionType.F_SESSION_STATISTIC,
+                                RoleAnalysisSessionStatisticType.F_CLUSTER_COUNT));
+            }
+
+            @Override
+            public void populateItem(Item<ICellPopulator<SelectableBean<RoleAnalysisSessionType>>> cellItem,
+                    String componentId, IModel<SelectableBean<RoleAnalysisSessionType>> model) {
+                IconWithLabel iconWithLabel = new IconWithLabel(componentId, extractClusterObjectCount(model)) {
+                    @Override
+                    public String getIconCssClass() {
+                        return GuiStyleConstants.CLASS_ROLE_ANALYSIS_CLUSTER_ICON;
+                    }
+                };
+
+                cellItem.add(iconWithLabel);
+
+            }
+
+            @Override
+            public IModel<String> getDataModel(IModel<SelectableBean<RoleAnalysisSessionType>> rowModel) {
+                return extractClusterObjectCount(rowModel);
+            }
+
+        };
+        columns.add(column);
+    }
+
+    private void initCategoryColumn(
+            @NotNull LoadableModel<PrismContainerDefinition<RoleAnalysisOptionType>> analysisOptionDefinitionModel,
+            @NotNull List<IColumn<SelectableBean<RoleAnalysisSessionType>, String>> columns) {
+        IColumn<SelectableBean<RoleAnalysisSessionType>, String> column;
+        column = new AbstractExportableColumn<>(
+                createStringResource("")) {
+
+            @Override
+            public Component getHeader(String componentId) {
+                return createColumnHeader(componentId,
+                        analysisOptionDefinitionModel, RoleAnalysisOptionType.F_ANALYSIS_CATEGORY);
+            }
+
+            @Override
+            public void populateItem(Item<ICellPopulator<SelectableBean<RoleAnalysisSessionType>>> cellItem,
+                    String componentId, IModel<SelectableBean<RoleAnalysisSessionType>> model) {
+                cellItem.add(new Label(componentId, extractCategoryMode(model)));
+            }
+
+            @Override
+            public IModel<String> getDataModel(IModel<SelectableBean<RoleAnalysisSessionType>> rowModel) {
+                return extractCategoryMode(rowModel);
+            }
+
+        };
+        columns.add(column);
+    }
+
+    private void initProcessModeColumn(
+            @NotNull LoadableModel<PrismContainerDefinition<RoleAnalysisOptionType>> analysisOptionDefinitionModel,
+            @NotNull List<IColumn<SelectableBean<RoleAnalysisSessionType>, String>> columns) {
+        IColumn<SelectableBean<RoleAnalysisSessionType>, String> column;
+        column = new AbstractExportableColumn<>(
+                createStringResource("")) {
+
+            @Contract("_ -> new")
+            @Override
+            public @NotNull Component getHeader(String componentId) {
+                return createColumnHeader(
+                        componentId, analysisOptionDefinitionModel, RoleAnalysisOptionType.F_PROCESS_MODE);
+            }
+
+            @Override
+            public void populateItem(@NotNull Item<ICellPopulator<SelectableBean<RoleAnalysisSessionType>>> cellItem,
+                    String componentId, IModel<SelectableBean<RoleAnalysisSessionType>> model) {
+                cellItem.add(new Label(componentId, extractProcessMode(model)));
+
+            }
+
+            @Override
+            public IModel<String> getDataModel(IModel<SelectableBean<RoleAnalysisSessionType>> rowModel) {
+                return extractProcessMode(rowModel);
+            }
+
+        };
+        columns.add(column);
+    }
+
+    private void initProcessTypeColumn(
+            @NotNull LoadableModel<PrismContainerDefinition<RoleAnalysisOptionType>> analysisOptionDefinitionModel,
+            @NotNull List<IColumn<SelectableBean<RoleAnalysisSessionType>, String>> columns) {
+        IColumn<SelectableBean<RoleAnalysisSessionType>, String> column = new AbstractExportableColumn<>(
+                createStringResource("")) {
+
+            @Contract("_ -> new")
+            @Override
+            public @NotNull Component getHeader(String componentId) {
+                return createColumnHeader(
+                        componentId, analysisOptionDefinitionModel, RoleAnalysisOptionType.F_ANALYSIS_PROCEDURE_TYPE);
+            }
+
+            @Override
+            public void populateItem(@NotNull Item<ICellPopulator<SelectableBean<RoleAnalysisSessionType>>> cellItem,
+                    String componentId, IModel<SelectableBean<RoleAnalysisSessionType>> model) {
+                cellItem.add(new Label(componentId, extractProcessType(model)));
+
+            }
+
+            @Override
+            public @NotNull IModel<String> getDataModel(IModel<SelectableBean<RoleAnalysisSessionType>> rowModel) {
+                return extractProcessType(rowModel);
+            }
+
+        };
+        columns.add(column);
+    }
+
+    private void initNameColumn(
+            @NotNull List<IColumn<SelectableBean<RoleAnalysisSessionType>,
+            @NotNull  String>> columns) {
+        ObjectNameColumn<RoleAnalysisSessionType> objectNameColumn = new ObjectNameColumn<>(
+                createStringResource("ObjectType.name")) {
+            @Override
+            protected void onClick(@NotNull IModel<SelectableBean<RoleAnalysisSessionType>> rowModel) {
+                dispatchToObjectDetailsPage(RoleAnalysisSessionType.class, rowModel.getObject().getValue().getOid(),
+                        RoleAnalysisSessionTileTable.this.getPageBase(), true);
+            }
+        };
+        columns.add(objectNameColumn);
+    }
+
+    protected IColumn<SelectableBean<RoleAnalysisSessionType>, String> createCheckboxColumn() {
+        return new CheckBoxHeaderColumn<>() {
+            @SuppressWarnings("rawtypes")
+            @Override
+            protected void onUpdateHeader(AjaxRequestTarget target, boolean selected, DataTable table) {
+                super.onUpdateHeader(target, selected, table);
+
+                updateSelectableProvider(target, selected, table, null);
+            }
+
+            @SuppressWarnings("rawtypes")
+            @Override
+            protected void onUpdateRow(
+                    Item<ICellPopulator<SelectableBean<RoleAnalysisSessionType>>> cellItem,
+                    AjaxRequestTarget target,
+                    DataTable table,
+                    IModel<SelectableBean<RoleAnalysisSessionType>> rowModel,
+                    IModel<Boolean> selected) {
+                super.onUpdateRow(cellItem, target, table, rowModel, selected);
+                updateSelectableProvider(target, selected.getObject(), table, rowModel.getObject().getValue().getOid());
+
+            }
+        };
+    }
+
 
     @NotNull
     private static String resolveTaskButtonClass(@NotNull RoleAnalysisOperationStatusType operationStatus) {

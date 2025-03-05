@@ -14,7 +14,6 @@ import java.util.List;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
-import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.DataTable;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
@@ -30,7 +29,6 @@ import org.jetbrains.annotations.Nullable;
 import com.evolveum.midpoint.common.mining.objects.detection.BasePattern;
 import com.evolveum.midpoint.common.mining.objects.detection.DetectedPattern;
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
-import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
@@ -47,9 +45,12 @@ public class RoleAnalysisPagingColumns extends Fragment {
     private static final String ID_FORM = "form";
     private static final String ID_COUNT = "count";
     private static final String ID_PAGING = "paging";
+    private static final String ID_PROCESS_SELECTIONS_BUTTON = "process_selections_id";
+    private static final String ID_COL_COUNT_LABEL = "colCountOnPage";
+    private static final String ID_COL_PER_PAGE = "label_dropdown";
 
     private int pageSize = 100;
-    private int fromCol = 1 ;
+    private int fromCol = 1;
     private int toCol = 100;
 
     public RoleAnalysisPagingColumns(String id, String markupId, DataTable<?, String> table, RoleAnalysisTable markupProvider) {
@@ -78,8 +79,8 @@ public class RoleAnalysisPagingColumns extends Fragment {
         CompositedIconBuilder iconBuilder = new CompositedIconBuilder().setBasicIcon(GuiStyleConstants.CLASS_PLUS_CIRCLE,
                 LayeredIconCssStyle.IN_ROW_STYLE);
 
-        AjaxCompositedIconSubmitButton editButton = new AjaxCompositedIconSubmitButton("process_selections_id",
-                iconBuilder.build(), getButtonLabelModel()) {
+        AjaxCompositedIconSubmitButton editButton = new AjaxCompositedIconSubmitButton(ID_PROCESS_SELECTIONS_BUTTON,
+                iconBuilder.build(), this::getEditCreateButtonTitle) {
             @Serial private static final long serialVersionUID = 1L;
 
             @Override
@@ -93,15 +94,15 @@ public class RoleAnalysisPagingColumns extends Fragment {
             }
         };
         editButton.add(new AttributeModifier("style", "min-width: 150px;"));
-        editButton.add(new VisibleBehaviour(this::getMigrationButtonVisibility));
+        editButton.add(new VisibleBehaviour(() -> getMigrationButtonVisibility() && !isMultipleSelectedPatterns()));
         editButton.titleAsLabel(true);
         editButton.setOutputMarkupId(true);
-        editButton.add(AttributeAppender.append("class", "btn btn-default btn-sm"));
+        editButton.add(AttributeModifier.append("class", "btn btn-default btn-sm"));
 
         formBsProcess.add(editButton);
 
         List<Integer> integers = List.of(new Integer[] { 100, 200, 400 });
-        DropDownChoice<Integer> colPerPage = new DropDownChoice<>("colCountOnPage",
+        DropDownChoice<Integer> colPerPage = new DropDownChoice<>(ID_COL_COUNT_LABEL,
                 new Model<>(pageSize), integers);
         colPerPage.add(new AjaxFormComponentUpdatingBehavior("change") {
             @Override
@@ -112,7 +113,7 @@ public class RoleAnalysisPagingColumns extends Fragment {
         colPerPage.setOutputMarkupId(true);
         form.add(colPerPage);
 
-        Label colPerPageLabel = new Label("label_dropdown",
+        Label colPerPageLabel = new Label(ID_COL_PER_PAGE,
                 createStringResource("RoleAnalysisPagingColumns.cols.per.page.title"));
         colPerPageLabel.setOutputMarkupId(true);
         footerContainer.add(colPerPageLabel);
@@ -120,7 +121,6 @@ public class RoleAnalysisPagingColumns extends Fragment {
         Label count = new Label(ID_COUNT, createTitleModel());
         count.setOutputMarkupId(true);
         footerContainer.add(count);
-
 
         NavigatorPanel colNavigator = new NavigatorPanel(ID_PAGING, null, true) {
 
@@ -182,11 +182,11 @@ public class RoleAnalysisPagingColumns extends Fragment {
 
     }
 
-    protected @Nullable List<DetectedPattern> getSelectedPatterns(){
+    protected @Nullable List<DetectedPattern> getSelectedPatterns() {
         return null;
     }
 
-    private StringResourceModel createStringResource(String key, Object ... objects) {
+    private StringResourceModel createStringResource(String key, Object... objects) {
         return WebComponentUtil.getPageBase(RoleAnalysisPagingColumns.this).createStringResource(key,
                 objects);
     }
@@ -199,38 +199,36 @@ public class RoleAnalysisPagingColumns extends Fragment {
         return false;
     }
 
+    private boolean isMultipleSelectedPatterns() {
+        List<DetectedPattern> selectedPatterns = getSelectedPatterns();
+        return selectedPatterns != null && selectedPatterns.size() > 1;
+    }
+
     protected void refreshTable(long fromCol, long toCol, AjaxRequestTarget target) {
     }
 
-    private LoadableModel<String> getButtonLabelModel() {
-        return new LoadableModel<>() {
-            @Override
-            protected String load() {
-                List<DetectedPattern> selectedCandidateRoles = getSelectedCandidateRoles();
-                if (!selectedCandidateRoles.isEmpty()) {
-                    if (selectedCandidateRoles.size() == 1) {
-                        String targetName = selectedCandidateRoles.get(0).getIdentifier();
-                        WebComponentUtil.getPageBase(RoleAnalysisPagingColumns.this)
-                                .createStringResource("RoleMining.button.title.edit.candidate", targetName)
-                                .getString();
-                        return createStringResource("RoleMining.button.title.edit.candidate", targetName).getString();
-                    } else {
-                        return createStringResource("RoleMining.button.title.edit.candidate").getString();
-                    }
-                } else {
-                    return createStringResource("RoleMining.button.title.candidate").getString();
-                }
-            }
-        };
+    private @Nullable String getEditCreateButtonTitle() {
+        List<DetectedPattern> selectedCandidateRoles = getSelectedCandidateRoles();
+
+        if (selectedCandidateRoles.isEmpty()) {
+            return createStringResource("RoleMining.button.title.candidate").getString();
+        }
+
+        if (selectedCandidateRoles.size() == 1) {
+            String targetName = selectedCandidateRoles.get(0).getIdentifier();
+            return createStringResource("RoleMining.button.title.edit.candidate", targetName).getString();
+        }
+
+        return null;
     }
 
     @NotNull
     private List<DetectedPattern> getSelectedCandidateRoles() {
         List<DetectedPattern> selectedPatterns = getSelectedPatterns();
         List<DetectedPattern> selectedCandidateRoles = new ArrayList<>();
-        if(selectedPatterns != null) {
+        if (selectedPatterns != null) {
             for (DetectedPattern selectedPattern : selectedPatterns) {
-                if(selectedPattern.getPatternType() == BasePattern.PatternType.CANDIDATE) {
+                if (selectedPattern.getPatternType() == BasePattern.PatternType.CANDIDATE) {
                     selectedCandidateRoles.add(selectedPattern);
                 }
             }

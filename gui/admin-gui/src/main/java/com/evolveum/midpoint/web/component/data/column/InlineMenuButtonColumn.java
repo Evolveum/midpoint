@@ -202,6 +202,11 @@ public class InlineMenuButtonColumn<T extends Serializable> extends AbstractColu
             public void yesPerformed(AjaxRequestTarget target) {
                 menuItem.getAction().onClick(target);
             }
+
+            @Override
+            public String getCssClassForDialog() {
+                return "mt-popup-under-header";
+            }
         };
         pageBase.showMainPopup(dialog, target);
     }

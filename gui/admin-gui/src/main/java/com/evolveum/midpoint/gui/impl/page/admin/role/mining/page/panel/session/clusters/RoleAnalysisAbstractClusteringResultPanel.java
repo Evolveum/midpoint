@@ -28,6 +28,7 @@ import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.tmp.panel.Icon
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.tmp.panel.LinkIconLabelIconPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.tmp.panel.RoleAnalysisAttributePanel;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.tmp.panel.RoleAnalysisAttributesDto;
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.image.CustomImageResource;
 import com.evolveum.midpoint.gui.impl.prism.panel.PrismPropertyHeaderPanel;
 import com.evolveum.midpoint.gui.impl.util.IconAndStylesUtil;
 import com.evolveum.midpoint.model.api.ModelService;
@@ -92,6 +93,7 @@ public abstract class RoleAnalysisAbstractClusteringResultPanel extends Abstract
     private static final String DOT_CLASS = RoleAnalysisAbstractClusteringResultPanel.class.getName() + ".";
     private static final String OP_DELETE_CLUSTER = DOT_CLASS + "deleteCluster";
     private static final String OP_UPDATE_STATUS = DOT_CLASS + "updateOperationStatus";
+    private static final String OP_PREPARE_CLUSTER_IMAGE = DOT_CLASS + "prepareClusterImage";
 
     LoadableModel<ListMultimap<String, String>> mappedClusterOutliers;
 
@@ -201,7 +203,7 @@ public abstract class RoleAnalysisAbstractClusteringResultPanel extends Abstract
 
             @Override
             protected IColumn<SelectableBean<RoleAnalysisClusterType>, String> createCheckboxColumn() {
-                return new CheckBoxHeaderColumn<>(){
+                return new CheckBoxHeaderColumn<>() {
                     @Override
                     public Component getHeader(String componentId) {
                         Component header = super.getHeader(componentId);
@@ -915,8 +917,13 @@ public abstract class RoleAnalysisAbstractClusteringResultPanel extends Abstract
                     public void onClick(AjaxRequestTarget target) {
 
                         ImageDetailsPanel detailsPanel = new ImageDetailsPanel(((PageBase) getPage()).getMainPopupBodyId(),
-                                Model.of("Image"),
-                                getRowModel().getObject().getValue().asPrismObject().getOid());
+                                () -> {
+                                    PageBase pageBase = RoleAnalysisAbstractClusteringResultPanel.this.getPageBase();
+                                    RoleAnalysisClusterType cluster = getRowModel().getObject().getValue();
+                                    Task task = pageBase.createSimpleTask(OP_PREPARE_CLUSTER_IMAGE);
+                                    OperationResult result = task.getResult();
+                                    return new CustomImageResource(pageBase, cluster, task, result);
+                                });
                         ((PageBase) getPage()).showMainPopup(detailsPanel, target);
                     }
                 };

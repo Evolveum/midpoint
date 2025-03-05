@@ -503,6 +503,7 @@ public abstract class PageBase extends PageAdminLTE {
                 dialog.generateWidthHeightParameter("" + (popupable.getWidth() > 0 ? popupable.getWidth() : ""),
                         popupable.getWidthUnit(),
                         "" + (popupable.getHeight() > 0 ? popupable.getHeight() : ""), popupable.getHeightUnit())));
+        dialog.getDialogComponent().add(AttributeModifier.replace("class", "modal-dialog " + popupable.getCssClassForDialog()));
         dialog.setContent(popupable.getContent());
         dialog.setFooter(popupable.getFooter());
 

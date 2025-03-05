@@ -7,6 +7,7 @@
 
 package com.evolveum.midpoint.testing.story.sysperf;
 
+import static com.evolveum.midpoint.testing.story.sysperf.TaskDistribution.BUCKET_FACTOR_FOR_ACCOUNTS;
 import static com.evolveum.midpoint.testing.story.sysperf.TestSystemPerformance.TARGET_DIR;
 import static com.evolveum.midpoint.testing.story.sysperf.TestSystemPerformance.TEST_DIR;
 
@@ -19,28 +20,29 @@ import com.evolveum.midpoint.test.DummyTestResource;
 import com.evolveum.midpoint.test.TestObject;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 
+import org.jetbrains.annotations.NotNull;
+
 class ImportConfiguration {
 
     private static final String PROP = "import";
-    private static final String PROP_THREADS = PROP + ".threads";
     private static final String PROP_NO_OP_RUNS = PROP + ".no-op-runs";
 
     private static final File TASK_TEMPLATE_FILE = new File(TEST_DIR, "task-import.vm.xml");
 
-    private final int threads;
+    @NotNull private final TaskDistribution distribution;
     private final int noOpRuns;
 
     private final List<TestObject<TaskType>> generatedTasks;
 
     private ImportConfiguration() {
-        threads = Integer.parseInt(System.getProperty(PROP_THREADS, "0"));
+        distribution = TaskDistribution.fromSystemProperties(PROP, BUCKET_FACTOR_FOR_ACCOUNTS);
         noOpRuns = Integer.parseInt(System.getProperty(PROP_NO_OP_RUNS, "1"));
 
         generatedTasks = generateTasks();
     }
 
     int getThreads() {
-        return threads;
+        return distribution.threads();
     }
 
     int getNoOpRuns() {
@@ -54,7 +56,7 @@ class ImportConfiguration {
     @Override
     public String toString() {
         return "ImportConfiguration{" +
-                "threads=" + threads +
+                "distribution=" + distribution +
                 ", noOpRuns=" + noOpRuns +
                 '}';
     }
@@ -83,7 +85,11 @@ class ImportConfiguration {
                 Map.of("taskOid", taskOid,
                         "index", String.format("%03d", index),
                         "resourceOid", resource.oid,
-                        "workerThreads", threads));
+                        "workerThreads", getThreads(),
+                        "workerTasks", distribution.workerTasks(),
+                        "bucketing", distribution.isBucketing(),
+                        "fixedCharactersPositions", distribution.getFixedCharactersPositions(),
+                        "varyingCharactersPositions", distribution.getVaryingCharactersPositions()));
 
         return generatedFileName;
     }

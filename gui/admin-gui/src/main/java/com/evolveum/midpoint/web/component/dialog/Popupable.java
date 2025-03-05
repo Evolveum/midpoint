@@ -40,4 +40,9 @@ public interface Popupable {
     default Component getTitleComponent() {
         return null;
     }
+
+    default String getCssClassForDialog() {
+        return "";
+    }
+
 }

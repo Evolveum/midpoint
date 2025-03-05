@@ -36,10 +36,10 @@ public abstract class CompositedIconColumn<T> extends AbstractIconColumn<T, Stri
     public String getCssClass() {
         IModel<String> display = getDisplayModel();
         if (display != null && StringUtils.isNotEmpty(display.getObject())) {
-            return null;
+            return "align-middle";
         }
 
-        return "composited-icon";
+        return "composited-icon align-middle";
     }
 
     @Override

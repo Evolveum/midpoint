@@ -8,6 +8,8 @@ package com.evolveum.midpoint.web.page.admin.home;
 
 import java.util.Arrays;
 
+import com.evolveum.midpoint.prism.query.ObjectQuery;
+
 import org.apache.wicket.Component;
 import org.apache.wicket.request.component.IRequestablePage;
 
@@ -100,15 +102,37 @@ public class PageDashboardInfo extends PageDashboard {
     }
 
     private Component createResourceInfoBoxPanel(OperationResult result, Task task) {
+        ObjectQuery totalQuery = getPrismContext().queryFor(ResourceType.class)
+                .block()
+                .not()
+                .item(ResourceType.F_TEMPLATE).eq(true)
+                .endBlock()
+                .and()
+                .block()
+                .not()
+                .item(ResourceType.F_ABSTRACT).eq(true)
+                .endBlock()
+                .and()
+                .block()
+                .not()
+                .item(ResourceType.F_ARCHETYPE_REF).ref("00000000-0000-0000-0000-000000000703")
+                .endBlock()
+                .build();
+        ObjectQuery activeQuery = getPrismContext().queryFor(ResourceType.class)
+                .item(ResourceType.F_OPERATIONAL_STATE, OperationalStateType.F_LAST_AVAILABILITY_STATUS)
+                .eq(AvailabilityStatusType.UP)
+                .build();
+        activeQuery.addFilter(totalQuery.getFilter());
         return new InfoBox(ID_INFO_BOX_RESOURCES, getObjectInfoBoxTypeModel(ResourceType.class,
-                Arrays.asList(ResourceType.F_OPERATIONAL_STATE, OperationalStateType.F_LAST_AVAILABILITY_STATUS),
-                AvailabilityStatusType.UP, "object-resource-bg", GuiStyleConstants.CLASS_OBJECT_RESOURCE_ICON,
+                totalQuery, activeQuery, "object-resource-bg", GuiStyleConstants.CLASS_OBJECT_RESOURCE_ICON,
                 "PageDashboard.infobox.resources", result, task, PageResources.class));
     }
 
     private Component createTaskInfoBoxPanel(OperationResult result, Task task) {
-        return new InfoBox(ID_INFO_BOX_TASKS, getObjectInfoBoxTypeModel(TaskType.class,
-                Arrays.asList(TaskType.F_EXECUTION_STATE), TaskExecutionStateType.RUNNABLE, "object-task-bg",
+        ObjectQuery query = getPrismContext().queryFor(TaskType.class)
+                .item(TaskType.F_EXECUTION_STATE).eq(TaskExecutionStateType.RUNNABLE)
+                .build();
+        return new InfoBox(ID_INFO_BOX_TASKS, getObjectInfoBoxTypeModel(TaskType.class, null, query, "object-task-bg",
                 GuiStyleConstants.CLASS_OBJECT_TASK_ICON, "PageDashboard.infobox.tasks", result, task,
                 PageTasks.class));
     }
