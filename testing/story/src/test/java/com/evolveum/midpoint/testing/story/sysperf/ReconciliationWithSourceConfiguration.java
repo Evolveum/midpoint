@@ -15,25 +15,24 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.UUID;
 
 import static com.evolveum.midpoint.testing.story.sysperf.TestSystemPerformance.TARGET_DIR;
 import static com.evolveum.midpoint.testing.story.sysperf.TestSystemPerformance.TEST_DIR;
 
-class ReconciliationConfiguration {
+class ReconciliationWithSourceConfiguration {
 
-    private static final String PROP = "reconciliation";
+    private static final String PROP = "reconciliation"; // eventually we change this to reconciliation-with-source
     private static final String PROP_THREADS = PROP + ".threads";
     private static final String PROP_RUNS = PROP + ".runs";
 
-    private static final File TASK_TEMPLATE_FILE = new File(TEST_DIR, "task-reconciliation.vm.xml");
+    private static final File TASK_TEMPLATE_FILE = new File(TEST_DIR, "task-reconciliation-with-source.vm.xml");
 
     private final int threads;
     private final int runs;
 
     private final List<TestObject<TaskType>> generatedTasks;
 
-    private ReconciliationConfiguration() {
+    private ReconciliationWithSourceConfiguration() {
         threads = Integer.parseInt(System.getProperty(PROP_THREADS, "0"));
         runs = Integer.parseInt(System.getProperty(PROP_RUNS, "1"));
 
@@ -60,9 +59,9 @@ class ReconciliationConfiguration {
                 '}';
     }
 
-    public static ReconciliationConfiguration setup() {
-        ReconciliationConfiguration configuration = new ReconciliationConfiguration();
-        System.out.println("Import: " + configuration);
+    public static ReconciliationWithSourceConfiguration setup() {
+        ReconciliationWithSourceConfiguration configuration = new ReconciliationWithSourceConfiguration();
+        System.out.println("Reconciliation with sources: " + configuration);
         return configuration;
     }
 
@@ -70,14 +69,14 @@ class ReconciliationConfiguration {
         List<TestObject<TaskType>> tasks = new ArrayList<>();
         List<DummyTestResource> sourceResources = TestSystemPerformance.SOURCES_CONFIGURATION.getGeneratedResources();
         for (int i = 0; i < sourceResources.size(); i++) {
-            String taskOid = UUID.randomUUID().toString();
+            String taskOid = RandomSource.randomUUID().toString();
             tasks.add(TestObject.file(TARGET_DIR, createFile(i, sourceResources.get(i), taskOid), taskOid));
         }
         return tasks;
     }
 
     private String createFile(int index, DummyTestResource resource, String taskOid) {
-        String generatedFileName = String.format("generated-task-reconciliation-%03d.xml", index);
+        String generatedFileName = String.format("generated-task-reconciliation-with-source-%03d.xml", index);
 
         File generated = new File(TARGET_DIR, generatedFileName);
         VelocityGenerator.generate(TASK_TEMPLATE_FILE, generated,

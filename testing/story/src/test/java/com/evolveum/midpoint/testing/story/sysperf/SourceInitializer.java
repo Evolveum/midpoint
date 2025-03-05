@@ -84,7 +84,9 @@ public class SourceInitializer {
         for (int a = 0; a < attrs; a++) {
             String attrName = String.format(namePattern, a);
             for (int v = 0; v < values; v++) {
-                account.addAttributeValue(attrName, RandomStringUtils.random(10, true, true));
+                account.addAttributeValue(
+                        attrName,
+                        RandomStringUtils.random(10, 0, 0, true, true, null, RandomSource.FIXED_RANDOM));
             }
         }
     }

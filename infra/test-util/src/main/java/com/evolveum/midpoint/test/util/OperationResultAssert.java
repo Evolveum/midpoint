@@ -120,6 +120,20 @@ public class OperationResultAssert extends AbstractAssert<OperationResultAssert,
         return this;
     }
 
+    public OperationResultAssert firstSubResultMatching(Predicate<OperationResult> resultPredicate) {
+        var matching = actual.getResultStream()
+                .filter(resultPredicate)
+                .findFirst()
+                .orElseThrow(() -> new AssertionError("Found no subresult matching specified predicate"));
+        return new OperationResultAssert(matching);
+    }
+
+    public List<OperationResult> getAllSubResultsMatching(Predicate<OperationResult> resultPredicate) {
+        return actual.getResultStream()
+                .filter(resultPredicate)
+                .toList();
+    }
+
     /** Use after asserting success or failure to propagate the message from subresult(s). */
     public OperationResultAssert hasMessage(String message) {
         objects.assertEqual(info, actual.getMessage(), message);

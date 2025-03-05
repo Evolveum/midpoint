@@ -249,6 +249,10 @@ public abstract class AbstractDummyTest extends AbstractProvisioningIntegrationT
         return true;
     }
 
+    protected boolean supportsMemberOf() {
+        return false;
+    }
+
     protected <T extends ShadowType> void checkUniqueness(Collection<PrismObject<T>> shadows) throws SchemaException {
         for (PrismObject<T> shadow : shadows) {
             checkUniqueness(shadow);

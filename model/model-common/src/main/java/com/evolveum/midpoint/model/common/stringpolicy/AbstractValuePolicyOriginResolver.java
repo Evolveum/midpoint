@@ -74,7 +74,7 @@ public abstract class AbstractValuePolicyOriginResolver<O extends ObjectType> im
                 handleObject(handler, result);
                 break;
             case OWNER:
-                handleOwner(handler, contextDescription, task, result);
+                handleOwner(handler, task, result);
                 break;
             case PERSONA:
                 handlePersonas(handler, contextDescription, task, result);
@@ -162,7 +162,9 @@ public abstract class AbstractValuePolicyOriginResolver<O extends ObjectType> im
         }
     }
 
-    private <P extends ObjectType> void handleOwner(ResultHandler<P> handler, String contextDescription, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+    private <P extends ObjectType> void handleOwner(ResultHandler<P> handler, Task task, OperationResult result)
+            throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
+            SecurityViolationException, ExpressionEvaluationException {
         ObjectQuery ownerQuery = getOwnerQuery();
         if (ownerQuery != null) {
             objectResolver.searchIterative(getOwnerClass(), ownerQuery, createReadOnlyCollection(), handler, task, result);

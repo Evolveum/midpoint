@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (c) 2010-2019 Evolveum and contributors
+  ~ Copyright (C) 2010-2025 Evolveum and contributors
   ~
   ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
@@ -18,12 +18,11 @@ Parameters:
       xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
       xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">
 
-    <name>task-reconciliation-$index</name>
+    <name>task-reconciliation-target-$index</name>
 
     <ownerRef oid="00000000-0000-0000-0000-000000000002"/>
     <executionState>runnable</executionState>
 
-    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/synchronization/task/reconciliation/handler-3</handlerUri>
     <objectRef oid="$resourceOid" type="ResourceType" />
 
     <activity>

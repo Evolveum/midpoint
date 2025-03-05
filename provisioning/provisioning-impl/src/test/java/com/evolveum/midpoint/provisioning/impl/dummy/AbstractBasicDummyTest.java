@@ -1300,7 +1300,11 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
             attrs.add(attributeToReturnDef.getItemName().getLocalPart());
         }
         // No "members" attribute here
-        PrismAsserts.assertSets("Wrong attribute to return", attrs, "uid", "name", "description", "cc");
+        var expectedBasic = new ArrayList<>(Set.of("uid", "name", "description", "cc"));
+        if (supportsMemberOf()) {
+            expectedBasic.add("memberOf");
+        }
+        PrismAsserts.assertSets("Wrong attribute to return", attrs, expectedBasic.toArray(new String[0]));
 
         assertSteadyResource();
     }

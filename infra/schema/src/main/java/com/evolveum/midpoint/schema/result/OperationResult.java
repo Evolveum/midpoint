@@ -6,6 +6,8 @@
  */
 package com.evolveum.midpoint.schema.result;
 
+import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
+
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 import static org.apache.commons.collections4.CollectionUtils.emptyIfNull;
@@ -25,6 +27,8 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.schema.ResultHandler;
+import com.evolveum.midpoint.schema.statistics.BasicComponentStructure;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.statistics.OperationsPerformanceMonitorImpl;
 
@@ -125,6 +129,15 @@ import org.jetbrains.annotations.VisibleForTesting;
  * there's non-negligible processing after that point), {@link #setStatus(OperationResultStatus)} method or its variants
  * (like {@link #setSuccess()}) can be used. These fill-in {@link #status} field without closing the whole operation result.
  *
+ * === Principle 4: Preserve component boundaries
+ *
+ * {@link OperationResult} objects are used to monitor processing time spent in individual midPoint components.
+ * (See {@link BasicComponentStructure} for the mostly used structure.) Hence, it's crucial that an operation result
+ * is created when crossing component boundaries.
+ *
+ * A special case are result handlers, where the control flows upwards the structure.
+ * See {@link ResultHandler#providingOwnOperationResult(String)} for more information.
+ *
  * === Note: Recording Exceptions
  *
  * The Correct Closure Principle (#1) dictates that the operation result has to be correctly closed even in the case
@@ -222,6 +235,12 @@ public class OperationResult
     public static final String RETURN_COMMENT = "comment";
     public static final String DEFAULT = "";
 
+    /**
+     * Standard name for a method that handles an object found in a search operation.
+     * See {@link ResultHandler#providingOwnOperationResult(String)}.
+     */
+    public static final String HANDLE_OBJECT_FOUND = "handleObjectFound";
+
     private static long tokenCount = 1000000000000000000L;
 
     private final String operation;
@@ -256,6 +275,7 @@ public class OperationResult
     private Long start;
     private Long end;
     private Long microseconds;
+    private Long ownMicroseconds;
     private Long cpuMicroseconds;
     private Long invocationId;
 
@@ -497,8 +517,10 @@ public class OperationResult
             // This is not quite clean. We should report the exception via processException method - but that does not allow
             // showing return values that can be present in operation result. So this is a hack until InvocationRecord is fixed.
             invocationRecord.processReturnValue(getReturns(), cause);
-            invocationRecord.afterCall();
+            invocationRecord.afterCall(
+                    computeNotOwnTimeMicros());
             microseconds = invocationRecord.getElapsedTimeMicros();
+            ownMicroseconds = invocationRecord.getOwnTimeMicros();
             cpuMicroseconds = invocationRecord.getCpuTimeMicros();
             if (collectingLogEntries) {
                 logRecorder.close();
@@ -514,6 +536,14 @@ public class OperationResult
         if (executedMonitoredOperationsAtStart != null) {
             stopOperationMonitoring();
         }
+    }
+
+    private long computeNotOwnTimeMicros() {
+        long total = 0;
+        for (OperationResult subresult : getSubresults()) {
+            total += or0(subresult.getMicroseconds());
+        }
+        return total;
     }
 
     /**
@@ -613,7 +643,7 @@ public class OperationResult
         this.count = count;
     }
 
-    public void incrementCount() {
+    private void incrementCount() {
         this.count++;
     }
 
@@ -625,7 +655,7 @@ public class OperationResult
         this.hiddenRecordsCount = hiddenRecordsCount;
     }
 
-    public boolean representsHiddenRecords() {
+    private boolean representsHiddenRecords() {
         return this.hiddenRecordsCount > 0;
     }
 
@@ -1191,6 +1221,20 @@ public class OperationResult
     public void switchHandledErrorToSuccess() {
         if (status == OperationResultStatus.HANDLED_ERROR) {
             status = OperationResultStatus.SUCCESS;
+        }
+    }
+
+    /**
+     * Removes subresults if they can be safely removed.
+     *
+     * Used in places where we can expect a lot of children (although possibly summarized).
+     *
+     * Must be called on closed result, in order to avoid mis-computation of own time.
+     */
+    public void deleteSubresultsIfPossible() {
+        stateCheck(isClosed(), "operation result is not closed: %s", this);
+        if (isSuccess() && canBeCleanedUp()) {
+            getSubresults().clear();
         }
     }
 
@@ -2017,6 +2061,7 @@ public class OperationResult
             result.setEnd(XmlTypeConverter.toMillis(bean.getEnd()));
         }
         result.setMicroseconds(bean.getMicroseconds());
+        result.setOwnMicroseconds(bean.getOwnMicroseconds());
         result.setCpuMicroseconds(bean.getCpuMicroseconds());
         result.setInvocationId(bean.getInvocationId());
         result.logSegments.addAll(bean.getLog());
@@ -2121,6 +2166,7 @@ public class OperationResult
         bean.setStart(XmlTypeConverter.createXMLGregorianCalendar(opResult.start));
         bean.setEnd(XmlTypeConverter.createXMLGregorianCalendar(opResult.end));
         bean.setMicroseconds(opResult.microseconds);
+        bean.setOwnMicroseconds(opResult.ownMicroseconds);
         bean.setCpuMicroseconds(opResult.cpuMicroseconds);
         bean.setInvocationId(opResult.invocationId);
         bean.getLog().addAll(opResult.logSegments); // consider cloning here
@@ -2185,37 +2231,46 @@ public class OperationResult
             OperationStatusKey key = new OperationStatusKey(sr.getOperation(), sr.getStatus());
             if (recordsCounters.containsKey(key)) {
                 OperationStatusCounter counter = recordsCounters.get(key);
-                if (!sr.representsHiddenRecords()) {
+                if (sr.representsHiddenRecords()) {
+                    counter.hiddenCount += sr.hiddenRecordsCount;
+                    counter.addHiddenMicroseconds(sr.getMicroseconds(), sr.getOwnMicroseconds(), sr.getCpuMicroseconds());
+                    iterator.remove(); // will be re-added at the end (potentially with records counters)
+                } else {
                     if (counter.shownRecords < subresultStripThreshold) {
                         counter.shownRecords++;
                         counter.shownCount += sr.count;
                     } else {
                         counter.hiddenCount += sr.count;
+                        counter.addHiddenMicroseconds(sr.getMicroseconds(), sr.getOwnMicroseconds(), sr.getCpuMicroseconds());
                         iterator.remove();
                     }
-                } else {
-                    counter.hiddenCount += sr.hiddenRecordsCount;
-                    iterator.remove();        // will be re-added at the end (potentially with records counters)
                 }
             } else {
                 OperationStatusCounter counter = new OperationStatusCounter();
-                if (!sr.representsHiddenRecords()) {
+                if (sr.representsHiddenRecords()) {
+                    counter.hiddenCount = sr.hiddenRecordsCount;
+                    counter.addHiddenMicroseconds(sr.getMicroseconds(), sr.getOwnMicroseconds(), sr.getCpuMicroseconds());
+                    iterator.remove(); // will be re-added at the end (potentially with records counters)
+                } else {
                     counter.shownRecords = 1;
                     counter.shownCount = sr.count;
-                } else {
-                    counter.hiddenCount = sr.hiddenRecordsCount;
-                    iterator.remove();        // will be re-added at the end (potentially with records counters)
                 }
                 recordsCounters.put(key, counter);
             }
         }
         for (Map.Entry<OperationStatusKey, OperationStatusCounter> repeatingEntry : recordsCounters.entrySet()) {
-            int shownCount = repeatingEntry.getValue().shownCount;
-            int hiddenCount = repeatingEntry.getValue().hiddenCount;
+            OperationStatusCounter value = repeatingEntry.getValue();
+            int shownCount = value.shownCount;
+            int hiddenCount = value.hiddenCount;
             if (hiddenCount > 0) {
                 OperationStatusKey key = repeatingEntry.getKey();
-                OperationResult hiddenRecordsEntry = new OperationResult(key.operation, key.status,
-                        hiddenCount + " record(s) were hidden to save space. Total number of records: " + (shownCount + hiddenCount));
+                OperationResult hiddenRecordsEntry = new OperationResult(
+                        key.operation, key.status,
+                        "%d record(s) were hidden to save space. Total number of records: %d".formatted(
+                                hiddenCount, shownCount + hiddenCount));
+                hiddenRecordsEntry.setMicroseconds(value.hiddenMicroseconds);
+                hiddenRecordsEntry.setOwnMicroseconds(value.hiddenOwnMicroseconds);
+                hiddenRecordsEntry.setCpuMicroseconds(value.hiddenCpuMicroseconds);
                 hiddenRecordsEntry.setHiddenRecordsCount(hiddenCount);
                 addSubresult(hiddenRecordsEntry);
             }
@@ -2235,6 +2290,16 @@ public class OperationResult
         mergeMap(target.getContext(), source.getContext());
         mergeMap(target.getReturns(), source.getReturns());
         target.incrementCount();
+        target.setMicroseconds(
+                computeMicroseconds(target.getMicroseconds(), source.getMicroseconds()));
+        target.setOwnMicroseconds(
+                computeMicroseconds(target.getOwnMicroseconds(), source.getOwnMicroseconds()));
+        target.setCpuMicroseconds(
+                computeMicroseconds(target.getCpuMicroseconds(), source.getCpuMicroseconds()));
+    }
+
+    private static Long computeMicroseconds(Long fromTarget, Long fromSource) {
+        return fromTarget != null || fromSource != null ? or0(fromTarget) + or0(fromSource) : null;
     }
 
     private void mergeMap(Map<String, Collection<String>> targetMap, Map<String, Collection<String>> sourceMap) {
@@ -2424,6 +2489,15 @@ public class OperationResult
             sb.append("\n");
             DebugUtil.debugDumpWithLabel(sb, "asynchronousOperationReference", asynchronousOperationReference, indent + 2);
         }
+
+        if (DebugUtil.isDetailedDebugDump()) {
+            sb.append("\n");
+            DebugUtil.debugDumpWithLabel(
+                    sb, "duration",
+                    "%,.3f ms (%,.3f own)".formatted(formatMilliseconds(microseconds), formatMilliseconds(ownMicroseconds)),
+                    indent + 2);
+        }
+
         sb.append("\n");
 
         for (Map.Entry<String, Collection<String>> entry : getParams().entrySet()) {
@@ -2467,6 +2541,10 @@ public class OperationResult
         for (OperationResult sub : getSubresults()) {
             sub.dumpIndent(sb, indent + 1, printStackTrace);
         }
+    }
+
+    private Float formatMilliseconds(Long value) {
+        return value != null ? value / 1000.0f : null;
     }
 
     @Experimental
@@ -2597,42 +2675,35 @@ public class OperationResult
         }
     }
 
-    private static final class OperationStatusKey {
+    private record OperationStatusKey(String operation, OperationResultStatus status) {
 
-        private final String operation;
-        private final OperationResultStatus status;
-
-        private OperationStatusKey(String operation, OperationResultStatus status) {
-            this.operation = operation;
-            this.status = status;
-        }
-
-        @Override
-        public boolean equals(Object o) {
-            if (this == o) {
-                return true;
-            }
-            if (o == null || getClass() != o.getClass()) {
-                return false;
-            }
-
-            OperationStatusKey that = (OperationStatusKey) o;
-            return Objects.equals(operation, that.operation)
-                    && status == that.status;
-        }
-
-        @Override
-        public int hashCode() {
-            int result = operation != null ? operation.hashCode() : 0;
-            result = 31 * result + (status != null ? status.hashCode() : 0);
-            return result;
-        }
     }
 
     private static class OperationStatusCounter {
-        private int shownRecords;        // how many actual records will be shown (after this wave of stripping)
-        private int shownCount;            // how many entries will be shown (after this wave of stripping)
-        private int hiddenCount;        // how many entries will be hidden (after this wave of stripping)
+
+        /** How many actual records will be shown (after this wave of stripping) */
+        private int shownRecords;
+
+        /** How many entries will be shown (after this wave of stripping) */
+        private int shownCount;
+
+        /** How many entries will be hidden (after this wave of stripping) */
+        private int hiddenCount;
+
+        /** How many microseconds are in the hidden entries? */
+        private Long hiddenMicroseconds;
+
+        /** How many own microseconds are in the hidden entries? */
+        private Long hiddenOwnMicroseconds;
+
+        /** How many CPU microseconds are in the hidden entries? */
+        private Long hiddenCpuMicroseconds;
+
+        void addHiddenMicroseconds(Long deltaMicroseconds, Long deltaOwnMicroseconds, Long deltaCpuMicroseconds) {
+            hiddenMicroseconds = computeMicroseconds(hiddenMicroseconds, deltaMicroseconds);
+            hiddenOwnMicroseconds = computeMicroseconds(hiddenOwnMicroseconds, deltaOwnMicroseconds);
+            hiddenCpuMicroseconds = computeMicroseconds(hiddenCpuMicroseconds, deltaCpuMicroseconds);
+        }
     }
 
     @SuppressWarnings("MethodDoesntCallSuperMethod")
@@ -2833,6 +2904,14 @@ public class OperationResult
 
     public void setMicroseconds(Long microseconds) {
         this.microseconds = microseconds;
+    }
+
+    public Long getOwnMicroseconds() {
+        return ownMicroseconds;
+    }
+
+    public void setOwnMicroseconds(Long ownMicroseconds) {
+        this.ownMicroseconds = ownMicroseconds;
     }
 
     public Long getCpuMicroseconds() {

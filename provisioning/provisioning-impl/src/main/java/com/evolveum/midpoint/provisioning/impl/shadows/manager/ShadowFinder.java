@@ -12,6 +12,7 @@ import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.asObjectable;
 import static java.util.Collections.emptyList;
 
 import static com.evolveum.midpoint.provisioning.util.ProvisioningUtil.selectLiveShadow;
+import static com.evolveum.midpoint.schema.result.OperationResult.HANDLE_OBJECT_FOUND;
 import static com.evolveum.midpoint.util.DebugUtil.lazy;
 
 import java.util.Collection;
@@ -23,6 +24,7 @@ import com.evolveum.midpoint.schema.*;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.VisibleForTesting;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
@@ -57,10 +59,12 @@ public class ShadowFinder {
 
     private static final Trace LOGGER = TraceManager.getTrace(ShadowFinder.class);
 
+    @VisibleForTesting
+    public static final String OP_HANDLE_OBJECT_FOUND = ShadowFinder.class.getName() + "." + HANDLE_OBJECT_FOUND;
+
     @Autowired
     @Qualifier("cacheRepositoryService")
     private RepositoryService repositoryService;
-
     @Autowired private PrismContext prismContext;
     @Autowired private SchemaService schemaService;
 
@@ -76,7 +80,9 @@ public class ShadowFinder {
             OperationResult result) throws SchemaException {
         ObjectQuery repoQuery = normalizeQueryValues(query, ctx.getObjectDefinition());
         return repositoryService.searchObjectsIterative(
-                ShadowType.class, repoQuery, repoHandler, options, true, result);
+                ShadowType.class, repoQuery,
+                repoHandler.providingOwnOperationResult(OP_HANDLE_OBJECT_FOUND),
+                options, true, result);
     }
 
     /** Non-iteratively searches for shadows in the repository. No magic except for handling matching rules. No side effects. */

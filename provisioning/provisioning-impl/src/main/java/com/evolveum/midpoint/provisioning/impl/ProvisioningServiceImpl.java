@@ -102,19 +102,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 @Primary
 public class ProvisioningServiceImpl implements ProvisioningService, SystemConfigurationChangeListener {
 
-    private static final String OP_GET_OBJECT = ProvisioningService.class.getName() + ".getObject";
-    private static final String OP_SEARCH_OBJECTS = ProvisioningService.class.getName() + ".searchObjects";
-    private static final String OP_COUNT_OBJECTS = ProvisioningService.class.getName() + ".countObjects";
-    private static final String OP_REFRESH_SHADOW = ProvisioningServiceImpl.class.getName() + ".refreshShadow";
-    private static final String OP_DELETE_OBJECT = ProvisioningService.class.getName() + ".deleteObject";
-    private static final String OP_DISCOVER_CONFIGURATION = ProvisioningService.class.getName() + ".discoverConfiguration";
-    private static final String OP_EXPAND_CONFIGURATION_OBJECT = ProvisioningService.class.getName()
-            + ".expandConfigurationObject";
-    // TODO reconsider names of these operations
-    private static final String OP_TEST_RESOURCE = ProvisioningService.class.getName() + ".testResource";
-
-    private static final String OP_GET_NATIVE_CAPABILITIES = ProvisioningService.class.getName() + ".getNativeCapabilities";
-
     @Autowired ShadowsFacade shadowsFacade;
     @Autowired ResourceManager resourceManager;
     @Autowired ConnectorManager connectorManager;
@@ -754,7 +741,7 @@ public class ProvisioningServiceImpl implements ProvisioningService, SystemConfi
 
         LOGGER.trace("Start of (iterative) search objects. Query:\n{}", DebugUtil.debugDumpLazily(query, 1));
 
-        OperationResult result = parentResult.createSubresult(ProvisioningService.class.getName() + ".searchObjectsIterative");
+        OperationResult result = parentResult.createSubresult(OP_SEARCH_OBJECTS_ITERATIVE);
         result.setSummarizeSuccesses(true);
         result.setSummarizeErrors(true);
         result.setSummarizePartialErrors(true);
@@ -782,22 +769,22 @@ public class ProvisioningServiceImpl implements ProvisioningService, SystemConfi
     @Override
     public Set<ConnectorType> discoverConnectors(ConnectorHostType hostType, OperationResult parentResult)
             throws CommunicationException {
-        OperationResult result = parentResult.createSubresult(ProvisioningService.class.getName()
-                + ".discoverConnectors");
-        result.addParam("host", hostType);
-        result.addContext(OperationResult.CONTEXT_IMPLEMENTATION_CLASS, ProvisioningServiceImpl.class);
-
-        Set<ConnectorType> discoverConnectors;
+        OperationResult result = parentResult.subresult(OP_DISCOVER_CONNECTORS)
+                .addParam("host", hostType)
+                .addContext(OperationResult.CONTEXT_IMPLEMENTATION_CLASS, ProvisioningServiceImpl.class)
+                .build();
         try {
-            discoverConnectors = connectorManager.discoverConnectors(hostType, result);
+            return connectorManager.discoverConnectors(hostType, result);
         } catch (CommunicationException ex) {
             ProvisioningUtil.recordFatalErrorWhileRethrowing(LOGGER, result, "Discovery failed: " + ex.getMessage(), ex);
             throw ex;
+        } catch (Throwable t) {
+            result.recordException(t);
+            throw t;
+        } finally {
+            result.close();
+            result.cleanup();
         }
-
-        result.computeStatus("Connector discovery failed");
-        result.cleanupResult();
-        return discoverConnectors;
     }
 
     @Override
@@ -966,17 +953,21 @@ public class ProvisioningServiceImpl implements ProvisioningService, SystemConfi
     @Override
     public void postInit(OperationResult parentResult) {
 
-        OperationResult result = parentResult.createSubresult(ProvisioningService.class.getName() + ".initialize");
-        result.addContext(OperationResult.CONTEXT_IMPLEMENTATION_CLASS, ProvisioningServiceImpl.class);
-
-        // Discover local connectors
-        Set<ConnectorType> discoverLocalConnectors = connectorManager.discoverLocalConnectors(result);
-        for (ConnectorType connector : discoverLocalConnectors) {
-            LOGGER.info("Discovered local connector {}", ObjectTypeUtil.toShortString(connector));
+        OperationResult result = parentResult.subresult(OP_INITIALIZE)
+                .addContext(OperationResult.CONTEXT_IMPLEMENTATION_CLASS, ProvisioningServiceImpl.class)
+                .build();
+        try {
+            Set<ConnectorType> discoveredConnectors = connectorManager.discoverLocalConnectors(result);
+            for (ConnectorType connector : discoveredConnectors) {
+                LOGGER.info("Discovered local connector {}", ObjectTypeUtil.toShortString(connector));
+            }
+        } catch (Throwable t) {
+            result.recordException(t);
+            throw t;
+        } finally {
+            result.close();
+            result.cleanup();
         }
-
-        result.computeStatus("Provisioning post-initialization failed");
-        result.cleanupResult();
     }
 
     @PostConstruct

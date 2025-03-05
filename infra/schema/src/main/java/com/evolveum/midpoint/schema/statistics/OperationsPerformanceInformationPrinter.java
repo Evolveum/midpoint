@@ -26,6 +26,11 @@ import org.jetbrains.annotations.NotNull;
  */
 public class OperationsPerformanceInformationPrinter extends AbstractStatisticsPrinter<OperationsPerformanceInformationType> {
 
+    /**
+     * Should we report data obtained via Spring Aspect (names ending with `#`) or not?
+     *
+     * @see com.evolveum.midpoint.util.aspect.MidpointInterceptor
+     */
     private final boolean viaAspect;
 
     private List<SingleOperationPerformanceInformationType> operations;
@@ -64,13 +69,12 @@ public class OperationsPerformanceInformationPrinter extends AbstractStatisticsP
     }
 
     private Comparator<SingleOperationPerformanceInformationType> getComparator() {
-        if (options.sortBy == SortBy.COUNT) {
-            return Comparator.comparing(SingleOperationPerformanceInformationType::getInvocationCount).reversed();
-        } else if (options.sortBy == SortBy.TIME) {
-            return Comparator.comparing(SingleOperationPerformanceInformationType::getTotalTime).reversed();
-        } else {
-            return Comparator.comparing(SingleOperationPerformanceInformationType::getName);
-        }
+        return switch (options.sortBy) {
+            case COUNT -> Comparator.comparing(SingleOperationPerformanceInformationType::getInvocationCount).reversed();
+            case TIME -> Comparator.comparing(SingleOperationPerformanceInformationType::getTotalTime).reversed();
+            case OWN_TIME -> Comparator.comparing(SingleOperationPerformanceInformationType::getOwnTime).reversed();
+            default -> Comparator.comparing(SingleOperationPerformanceInformationType::getName);
+        };
     }
 
     private void createData(List<SingleOperationPerformanceInformationType> operations) {
@@ -83,9 +87,6 @@ public class OperationsPerformanceInformationPrinter extends AbstractStatisticsP
     private void createRecord(SingleOperationPerformanceInformationType op) {
         String name = StringUtils.stripEnd(op.getName(), "#");
         int count = zeroIfNull(op.getInvocationCount());
-        float totalTime = zeroIfNull(op.getTotalTime()) / 1000.0f;
-        float minTime = zeroIfNull(op.getMinTime()) / 1000.0f;
-        float maxTime = zeroIfNull(op.getMaxTime()) / 1000.0f;
 
         Data.Record record = data.createRecord();
         record.add(name);
@@ -96,12 +97,27 @@ public class OperationsPerformanceInformationPrinter extends AbstractStatisticsP
         if (seconds != null) {
             record.add(avg(count, seconds));
         }
+
+        float totalTime = zeroIfNull(op.getTotalTime()) / 1000.0f;
+        float minTime = zeroIfNull(op.getMinTime()) / 1000.0f;
+        float maxTime = zeroIfNull(op.getMaxTime()) / 1000.0f;
         record.add(totalTime);
         record.add(minTime);
         record.add(maxTime);
         record.add(avg(totalTime, count));
         if (iterations != null) {
             record.add(avg(totalTime, iterations));
+        }
+
+        float totalOwnTime = zeroIfNull(op.getOwnTime()) / 1000.0f;
+        float minOwnTime = zeroIfNull(op.getMinOwnTime()) / 1000.0f;
+        float maxOwnTime = zeroIfNull(op.getMaxOwnTime()) / 1000.0f;
+        record.add(totalOwnTime);
+        record.add(minOwnTime);
+        record.add(maxOwnTime);
+        record.add(avg(totalOwnTime, count));
+        if (iterations != null) {
+            record.add(avg(totalOwnTime, iterations));
         }
     }
 
@@ -122,6 +138,13 @@ public class OperationsPerformanceInformationPrinter extends AbstractStatisticsP
         addColumn("Avg", RIGHT, formatFloat1());
         if (iterations != null) {
             addColumn("Time/iter", RIGHT, formatFloat1());
+        }
+        addColumn("Own time (ms)", RIGHT, formatFloat1());
+        addColumn("Min", RIGHT, formatFloat1());
+        addColumn("Max", RIGHT, formatFloat1());
+        addColumn("Avg", RIGHT, formatFloat1());
+        if (iterations != null) {
+            addColumn("Own time/iter", RIGHT, formatFloat1());
         }
     }
 }

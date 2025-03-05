@@ -10,6 +10,7 @@ package com.evolveum.midpoint.schema.statistics;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.function.Supplier;
+import java.util.stream.Stream;
 
 import static com.evolveum.midpoint.util.MiscUtil.or0;
 
@@ -36,7 +37,7 @@ public abstract class AbstractStatisticsPrinter<T> {
     }
 
     public enum SortBy {
-        NAME, COUNT, TIME
+        NAME, COUNT, TIME, OWN_TIME
     }
 
     /**
@@ -179,7 +180,15 @@ public abstract class AbstractStatisticsPrinter<T> {
         return data;
     }
 
+    public Stream<Object[]> getRawDataStream() {
+        return data.getRawDataStream();
+    }
+
     public Formatting getFormatting() {
         return formatting;
+    }
+
+    public String[] getColumnLabelsAsArray() {
+        return formatting.getColumnLabelsAsArray();
     }
 }

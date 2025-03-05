@@ -134,7 +134,7 @@ class RolesConfiguration {
     private List<TestObject<RoleType>> generateTechnicalRoles() {
         List<TestObject<RoleType>> roles = new ArrayList<>();
         for (int i = 0; i < numberOfTechnicalRoles; i++) {
-            String oid = UUID.randomUUID().toString();
+            String oid = RandomSource.randomUUID().toString();
             String fileName = createTechnicalRoleDefinition(i, oid);
             roles.add(TestObject.file(TARGET_DIR, fileName, oid));
         }
@@ -157,7 +157,8 @@ class RolesConfiguration {
                 Map.of("oid", oid,
                         "index", String.format("%04d", index),
                         "resourceOid", resourceOid,
-                        "metarole", memberOfComputation));
+                        "metarole", memberOfComputation,
+                        "mappingStrength", TARGETS_CONFIGURATION.getMappingStrength()));
 
         return fileName;
     }
@@ -165,7 +166,7 @@ class RolesConfiguration {
     private List<TestObject<RoleType>> generateBusinessRoles() {
         List<TestObject<RoleType>> roles = new ArrayList<>();
         for (int i = 0; i < numberOfBusinessRoles; i++) {
-            String oid = UUID.randomUUID().toString();
+            String oid = RandomSource.randomUUID().toString();
             List<String> inducedOidList = createInducedOidList();
             String fileName = createBusinessRoleDefinition(i, oid, inducedOidList);
             roles.add(TestObject.file(TARGET_DIR, fileName, oid));
@@ -187,13 +188,13 @@ class RolesConfiguration {
 
     @NotNull
     private List<String> randomFromList(List<String> technicalRolesOidList, int size) {
-        Collections.shuffle(technicalRolesOidList);
+        Collections.shuffle(technicalRolesOidList, RandomSource.FIXED_RANDOM);
         return technicalRolesOidList.subList(0, size);
     }
 
     private int randomFromInterval(int min, int max) {
         //noinspection OptionalGetWithoutIsPresent
-        return new Random()
+        return RandomSource.FIXED_RANDOM
                 .ints(min, max + 1)
                 .findFirst().getAsInt();
     }

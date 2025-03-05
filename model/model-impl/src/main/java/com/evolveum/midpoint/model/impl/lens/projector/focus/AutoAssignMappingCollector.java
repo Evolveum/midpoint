@@ -7,6 +7,8 @@
 
 package com.evolveum.midpoint.model.impl.lens.projector.focus;
 
+import static com.evolveum.midpoint.schema.result.OperationResult.HANDLE_OBJECT_FOUND;
+
 import static org.apache.commons.lang3.BooleanUtils.isTrue;
 
 import static com.evolveum.midpoint.schema.GetOperationOptions.createReadOnlyCollection;
@@ -45,6 +47,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 public class AutoAssignMappingCollector {
 
     private static final Trace LOGGER = TraceManager.getTrace(ObjectTemplateProcessor.class);
+
+    private static final String OP_HANDLE_OBJECT_FOUND = AutoAssignMappingCollector.class.getName() + "." + HANDLE_OBJECT_FOUND;
 
     @Autowired @Qualifier("cacheRepositoryService") private RepositoryService cacheRepositoryService;
     @Autowired private PrismContext prismContext;
@@ -91,7 +95,9 @@ public class AutoAssignMappingCollector {
             return true;
         };
         cacheRepositoryService.searchObjectsIterative(
-                AbstractRoleType.class, query, handler, createReadOnlyCollection(), true, result);
+                AbstractRoleType.class, query,
+                handler.providingOwnOperationResult(OP_HANDLE_OBJECT_FOUND),
+                createReadOnlyCollection(), true, result);
     }
 
     private <AH extends AssignmentHolderType> boolean isApplicableFor(

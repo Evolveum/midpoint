@@ -44,13 +44,11 @@ public class RepositoryPerformanceInformationPrinter extends AbstractStatisticsP
     }
 
     private Comparator<RepositoryOperationPerformanceInformationType> getComparator() {
-        if (options.sortBy == SortBy.COUNT) {
-            return Comparator.comparing(RepositoryOperationPerformanceInformationType::getInvocationCount).reversed();
-        } else if (options.sortBy == SortBy.TIME) {
-            return Comparator.comparing(RepositoryOperationPerformanceInformationType::getTotalTime).reversed();
-        } else {
-            return Comparator.comparing(RepositoryOperationPerformanceInformationType::getName);
-        }
+        return switch (options.sortBy) {
+            case COUNT -> Comparator.comparing(RepositoryOperationPerformanceInformationType::getInvocationCount).reversed();
+            case TIME, OWN_TIME -> Comparator.comparing(RepositoryOperationPerformanceInformationType::getTotalTime).reversed();
+            default -> Comparator.comparing(RepositoryOperationPerformanceInformationType::getName);
+        };
     }
 
     private void createData(List<RepositoryOperationPerformanceInformationType> operations) {

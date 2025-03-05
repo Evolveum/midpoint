@@ -12,6 +12,7 @@ import com.evolveum.midpoint.provisioning.api.ProvisioningOperationContext;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.VisibleForTesting;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -49,7 +50,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 public class ShadowsFacade {
 
     static final String OP_DELAYED_OPERATION = ShadowsFacade.class.getName() + ".delayedOperation";
-    static final String OP_HANDLE_OBJECT = ShadowsFacade.class.getName() + ".handleObject";
+    @VisibleForTesting
+    public static final String OP_HANDLE_RESOURCE_OBJECT_FOUND = ShadowsFacade.class.getName() + ".handleResourceObjectFound";
 
     @Autowired private ShadowRefreshHelper refreshHelper;
     @Autowired private DefinitionsHelper definitionsHelper;
