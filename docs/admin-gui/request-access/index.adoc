@@ -192,3 +192,11 @@ image::step-4-conflicts-solved.png[Solved conflicts,100%]
 
 .Edit shopping cart item
 image::step-4-checkout-item-edit.png[Edit shopping cart item,100%]
+
+== Limitations
+
+* Role catalog panel should display only the assignable roles (items) for the selected user(s) on the Persons of interest step.
+The current implementation displays the roles (items) which are allowed to be requested only for the first person in the list.
+This implementation suppose that sometimes even the items that are not allowed to be requested for some person of interest can get to the shopping cart.
+Anyhow, the submitting of the request in this case will fail with the authorization error.
+Therefore, the current implementation doesn't have any security impact.
