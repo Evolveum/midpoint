@@ -27,7 +27,9 @@ public class SourceInitializer {
     private final List<DummyTestResource> resources;
     private final Task initTask;
 
-    private static final String ACCOUNT_NAME = "u-%08d";
+    static final int ACCOUNT_NAME_DIGITS = 8;
+
+    private static final String ACCOUNT_NAME = "u-%0" + ACCOUNT_NAME_DIGITS + "d";
 
     SourceInitializer(TestSystemPerformance test, List<DummyTestResource> resources, Task initTask) {
         this.test = test;
