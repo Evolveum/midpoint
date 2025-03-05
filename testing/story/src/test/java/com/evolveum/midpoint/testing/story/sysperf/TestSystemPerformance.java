@@ -9,6 +9,8 @@ package com.evolveum.midpoint.testing.story.sysperf;
 
 import static com.evolveum.midpoint.util.MiscUtil.emptyIfNull;
 
+import static com.evolveum.midpoint.util.MiscUtil.or0;
+
 import static org.assertj.core.api.Assertions.assertThat;
 
 import static com.evolveum.midpoint.test.util.MidPointTestConstants.TARGET_DIR_PATH;
@@ -639,9 +641,12 @@ public class TestSystemPerformance extends AbstractStoryTest implements Performa
             throws SchemaException, ObjectNotFoundException {
         String desc = label + taskAfter.getName().getOrig();
 
-        TreeNode<ActivityPerformanceInformation> performanceInformation =
+        TreeNode<ActivityPerformanceInformation> performanceInformationTree =
                 activityManager.getPerformanceInformation(taskAfter.getOid(), result);
-        long executionTime = getExecutionTime(taskAfter);
+        long executionTime =
+                performanceInformationTree.getAllDataDepthFirst().stream()
+                        .mapToLong(data -> or0(data.getWallClockTime()))
+                        .sum();
         int executionTimeSeconds = (int) (executionTime / 1000);
         int numberOfAccounts = SOURCES_CONFIGURATION.getNumberOfAccounts();
         double timePerAccount = (double) executionTime / (double) numberOfAccounts;
@@ -650,10 +655,10 @@ public class TestSystemPerformance extends AbstractStoryTest implements Performa
         logger.info(String.format("Task execution time: %,d ms", executionTime));
         logger.info(String.format("Time per account: %,.1f ms", timePerAccount));
         logger.info(TaskOperationStatsUtil.format(taskAfter.asObjectable().getOperationStats()));
-        logger.info(performanceInformation.debugDump());
+        logger.info(performanceInformationTree.debugDump());
 
         summaryOutputFile.logTaskFinish(desc, executionTime, timePerAccount);
-        detailsOutputFile.logTaskFinish(desc, taskAfter.asObjectable(), performanceInformation);
+        detailsOutputFile.logTaskFinish(desc, taskAfter.asObjectable(), performanceInformationTree);
 
         List<Object> dataRow = Arrays.asList(desc, executionTime, timePerAccount);
         taskExecutionReportSection
