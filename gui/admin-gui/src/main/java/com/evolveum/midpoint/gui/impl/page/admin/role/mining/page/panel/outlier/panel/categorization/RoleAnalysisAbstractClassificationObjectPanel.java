@@ -209,7 +209,10 @@ public abstract class RoleAnalysisAbstractClassificationObjectPanel extends Abst
         return ((PageBase) getPage());
     }
 
-    public WebMarkupContainer buildRoleCategoryTable(String panelId, @NotNull RoleAnalysisSessionType session, LoadableModel<List<RoleAnalysisObjectCategorizationType>> selectionModel, Class<?> typeClass) {
+    public WebMarkupContainer buildRoleCategoryTable(String panelId,
+            @NotNull RoleAnalysisSessionType session,
+            LoadableModel<List<RoleAnalysisObjectCategorizationType>> selectionModel,
+            Class<?> typeClass) {
 
         RoleAnalysisIdentifiedCharacteristicsType identifiedCharacteristics = session.getIdentifiedCharacteristics();
         if (identifiedCharacteristics == null || identifiedCharacteristics.getRoles() == null) {
@@ -331,11 +334,6 @@ public abstract class RoleAnalysisAbstractClassificationObjectPanel extends Abst
                 return (Class<FocusType>) typeClass;
             }
 
-            @Override
-            protected boolean isHeaderVisible() {
-                return true;
-            }
-
             @Contract(value = "_ -> new", pure = true)
             @Override
             protected @NotNull List<Component> createToolbarButtonsList(String buttonId) {
@@ -363,11 +361,9 @@ public abstract class RoleAnalysisAbstractClassificationObjectPanel extends Abst
     }
 
     private @NotNull Select2MultiChoice<RoleAnalysisObjectCategorizationType> createCategorySelectionButton() {
-        ObjectDetailsModels<RoleAnalysisSessionType> objectDetailsModels = getObjectDetailsModels();
-        RoleAnalysisSessionType session = objectDetailsModels.getObjectType();
 
-        CategorySelectionProvider choiceProvider = new CategorySelectionProvider(
-                options.advanced(), isRoleSelectedModel, session.getAnalysisOption());
+        CategorySelectionProvider choiceProvider = buildSelectionProvider();
+
         Select2MultiChoice<RoleAnalysisObjectCategorizationType> multiselect = new Select2MultiChoice<>(
                 RoleAnalysisAbstractClassificationObjectPanel.ID_SELECTION_PANEL,
                 initSelectedModel(),
@@ -387,6 +383,16 @@ public abstract class RoleAnalysisAbstractClassificationObjectPanel extends Abst
         });
 
         return multiselect;
+    }
+
+    private @NotNull CategorySelectionProvider buildSelectionProvider() {
+        return new CategorySelectionProvider(
+                options.advanced(), isRoleSelectedModel, () -> {
+            ObjectDetailsModels<RoleAnalysisSessionType> model = RoleAnalysisAbstractClassificationObjectPanel
+                    .this.getObjectDetailsModels();
+            RoleAnalysisSessionType session = model.getObjectType();
+            return session.getAnalysisOption();
+        });
     }
 
     @Contract(value = " -> new", pure = true)
