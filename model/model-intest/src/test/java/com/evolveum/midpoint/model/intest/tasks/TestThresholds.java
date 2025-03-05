@@ -22,12 +22,14 @@ import com.evolveum.icf.dummy.resource.ConflictException;
 import com.evolveum.icf.dummy.resource.DummyAccount;
 import com.evolveum.icf.dummy.resource.SchemaViolationException;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
+import com.evolveum.midpoint.prism.xml.XsdTypeMapper;
 import com.evolveum.midpoint.test.DummyResourceContoller;
 
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SimulationResultType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.jetbrains.annotations.NotNull;
 import org.springframework.test.annotation.DirtiesContext;
@@ -43,9 +45,6 @@ import com.evolveum.midpoint.test.DummyObjectsCreator;
 import com.evolveum.midpoint.test.DummyTestResource;
 import com.evolveum.midpoint.test.TestObject;
 import com.evolveum.midpoint.util.exception.CommonException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 /**
  * Tests the thresholds functionality.
@@ -607,6 +606,49 @@ public abstract class TestThresholds extends AbstractEmptyModelIntegrationTest {
                 .assertClosed()
                 .assertSuccess();
     }
+
+    @Test
+    public void test520ReconcileExecuteWithExecutionTime() throws Exception {
+        given();
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        TestObject<TaskType> reconTask = getReconciliationExecuteTask();
+
+        when();
+
+        deleteIfPresent(reconTask, result);
+        addObject(reconTask, task, result,
+                aggregateCustomizer(
+                        executionTimeCustomizer("PT3S"),
+                        getReconWorkerThreadsCustomizer()));
+        waitForTaskTreeCloseCheckingSuspensionWithError(reconTask.oid, result, getTimeout());
+
+        then();
+
+        assertTest520TaskAfter(reconTask);
+    }
+
+    protected Consumer<PrismObject<TaskType>> executionTimeCustomizer(String exceedsExecutionTimeThreshold) {
+        return object -> {
+            if (exceedsExecutionTimeThreshold == null) {
+                return;
+            }
+
+            object.asObjectable().getActivity()
+                    .beginPolicies()
+                        .beginPolicy()
+                            .beginPolicyConstraints()
+                                .beginExecutionTime()
+                                    .exceeds(XmlTypeConverter.createDuration(exceedsExecutionTimeThreshold))
+                                .<ActivityPolicyConstraintsType>end()
+                            .<ActivityPolicyType>end()
+                        .<ActivityPoliciesType>end()
+                    .<ActivityDefinitionType>end();
+        };
+    }
+
+    abstract void assertTest520TaskAfter(TestObject<TaskType> reconTask) throws SchemaException, ObjectNotFoundException;
 
     abstract void assertTest420TaskAfter(TestObject<TaskType> importTask) throws SchemaException, ObjectNotFoundException;
 

@@ -132,4 +132,10 @@ public class TestThresholdsMultiNode extends TestThresholds {
     @Override
     void assertTest420TaskAfter(TestObject<TaskType> importTask) {
     }
+
+    @Override
+    void assertTest520TaskAfter(TestObject<TaskType> reconTask) throws SchemaException, ObjectNotFoundException {
+        // todo assert something
+        fail("assertions not implemented yet");
+    }
 }

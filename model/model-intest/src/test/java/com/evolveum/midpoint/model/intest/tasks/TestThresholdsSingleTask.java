@@ -392,4 +392,10 @@ public abstract class TestThresholdsSingleTask extends TestThresholds {
                     .end();
         // @formatter:on
     }
+
+    @Override
+    void assertTest520TaskAfter(TestObject<TaskType> reconTask) throws SchemaException, ObjectNotFoundException {
+        // todo assert something
+        fail("assertions not implemented yet");
+    }
 }

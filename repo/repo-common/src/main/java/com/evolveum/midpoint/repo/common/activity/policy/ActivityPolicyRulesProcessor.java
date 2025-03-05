@@ -97,13 +97,6 @@ public class ActivityPolicyRulesProcessor {
             return null;
         }
 
-        // todo check activity state whether rule was not already triggered
-        ActivityPolicyStateType state = rule.getCurrentState();
-        if (state != null && !state.getTriggers().isEmpty()) {
-            LOGGER.trace("Policy rule {} was already triggered, triggers stored in policy state, skipping evaluation", rule);
-            return null; // no state change
-        }
-
         ActivityPolicyConstraintsType constraints = rule.getPolicy().getPolicyConstraints();
 
         ActivityPolicyConstraintsEvaluator evaluator = ActivityPolicyConstraintsEvaluator.get();
@@ -142,8 +135,6 @@ public class ActivityPolicyRulesProcessor {
                 activityRun.getActivity().getIdentifier(), activityRun.getActivityPath());
 
         List<EvaluatedActivityPolicyRule> rules = activityRun.getActivityPolicyRulesContext().getPolicyRules();
-        // todo make sure we store somewhere that rule was already triggered and enforced
-        //  e.g. we don't send notification after each processed item when execution time was exceeded
 
         // todo check also whether action condition is enabled
         for (EvaluatedActivityPolicyRule rule : rules) {
@@ -156,30 +147,33 @@ public class ActivityPolicyRulesProcessor {
                 LOGGER.trace("Enforcing policy rule {}", rule);
                 rule.enforced();
 
-                executeSoftActions(rule, result);
+                executeOneTimeActions(rule, result);
             }
 
-            executeHardActions(rule, result);
+            executeAlwaysActions(rule, result);
         }
     }
 
     /**
-     * Executes soft actions - actions that don't interrupt/suspend execution of activity
-     * (e.g. notifications) for the given rule.
+     * Actions that should be triggered once. E.g. notifications for the given rule.
      */
-    private void executeSoftActions(EvaluatedActivityPolicyRule rule, OperationResult result) {
+    private void executeOneTimeActions(EvaluatedActivityPolicyRule rule, OperationResult result) {
         if (rule.containsAction(NotificationPolicyActionType.class)) {
             LOGGER.debug("Sending notification because of policy violation, rule: {}", rule);
+            
             activityRun.sendActivityPolicyRuleTriggeredEvent(rule, result);
         }
     }
 
-    private void executeHardActions(EvaluatedActivityPolicyRule rule, OperationResult result)
+    /**
+     * Actions that should be triggered always. E.g. suspend task.
+     */
+    private void executeAlwaysActions(EvaluatedActivityPolicyRule rule, OperationResult result)
             throws ThresholdPolicyViolationException {
 
         if (rule.containsAction(SuspendTaskPolicyActionType.class)) {
             LOGGER.debug("Suspending task because of policy violation, rule: {}", rule);
-            // todo how to handle this exception?
+
             throw new ThresholdPolicyViolationException("Policy violation, rule: " + rule);
         }
     }
