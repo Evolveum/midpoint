@@ -12,11 +12,16 @@ Parameters:
  - index
  - resourceOid
  - workerThreads
+ - workerTasks
+ - bucketing
+ - fixedCharactersPositions
+ - varyingCharactersPositions
 -->
 
 <task oid="$taskOid"
-      xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-      xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
+        xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3">
 
     <name>task-reconciliation-target-$index</name>
 
@@ -36,7 +41,40 @@ Parameters:
         </work>
         <distribution>
             <workerThreads>$workerThreads</workerThreads>
+#if($workerTasks > 0)
+            <workers>
+                <workersPerNode>
+                    <count>$workerTasks</count>
+                </workersPerNode>
+            </workers>
+#end
+#if($bucketing)
+            <buckets>
+                <stringSegmentation>
+                    <discriminator>attributes/icfs:name</discriminator>
+                    <boundary>
+                        <position>1</position>
+                        <characters>u</characters>
+                    </boundary>
+                    <boundary>
+                        <position>2</position>
+                        <characters>\-</characters>
+                    </boundary>
+#foreach($fixed in $fixedCharactersPositions)
+                    <boundary>
+                        <position>$fixed</position>
+                        <characters>0</characters>
+                    </boundary>
+#end
+#foreach($varying in $varyingCharactersPositions)
+                    <boundary>
+                        <position>$varying</position>
+                        <characters>0-9</characters>
+                    </boundary>
+#end
+                </stringSegmentation>
+            </buckets>
+#end
         </distribution>
     </activity>
-
 </task>
