@@ -1,9 +1,14 @@
 package com.evolveum.midpoint.testing.story.sysperf;
 
+import com.evolveum.midpoint.schema.constants.ObjectTypes;
+import com.evolveum.midpoint.util.MiscUtil;
+
+import com.google.common.collect.Sets;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
-import java.util.Map;
+import java.util.*;
+import java.util.stream.Collectors;
 
 import static com.evolveum.midpoint.testing.story.sysperf.TestSystemPerformance.*;
 
@@ -12,19 +17,44 @@ public class OtherParameters {
     private static final String PROP_LABEL = "label";
     private static final String PROP_TASK_TIMEOUT = "taskTimeout";
     private static final String PROP_DISABLE_DEFAULT_MULTIVALUE_PROVENANCE = "disableDefaultMultivalueProvenance";
+    private static final String PROP_CACHED = "cached";
+    private static final String PROP_NOT_CACHED = "not-cached";
 
     private static final File SYSTEM_CONFIGURATION_TEMPLATE_FILE = new File(TEST_DIR, "system-configuration.vm.xml");
+
+    private static final Set<ObjectTypes> CACHED_BY_DEFAULT = Set.of(
+            ObjectTypes.SYSTEM_CONFIGURATION,
+            ObjectTypes.ARCHETYPE,
+            ObjectTypes.OBJECT_TEMPLATE,
+            ObjectTypes.SECURITY_POLICY,
+            ObjectTypes.PASSWORD_POLICY, // ValuePolicyType
+            ObjectTypes.RESOURCE,
+            ObjectTypes.ROLE,
+            ObjectTypes.SHADOW,
+            ObjectTypes.MARK,
+            ObjectTypes.CONNECTOR);
 
     final String label;
     final int taskTimeout;
     final boolean disableDefaultMultivalueProvenance;
+    final Set<ObjectTypes> cached;
+    final Set<ObjectTypes> notCached;
 
     private OtherParameters() {
         this.label = System.getProperty(PROP_LABEL, createDefaultLabel());
         this.taskTimeout = Integer.parseInt(System.getProperty(PROP_TASK_TIMEOUT, "1800000")); // 30 minutes
         this.disableDefaultMultivalueProvenance = Boolean.parseBoolean(System.getProperty(PROP_DISABLE_DEFAULT_MULTIVALUE_PROVENANCE, "false"));
+        this.cached = parseObjectTypeNames(System.getProperty(PROP_CACHED));
+        this.notCached = parseObjectTypeNames(System.getProperty(PROP_NOT_CACHED));
 
         createSystemConfigurationFile();
+    }
+
+    private Set<ObjectTypes> parseObjectTypeNames(String stringValue) {
+        return Arrays.stream(MiscUtil.emptyIfNull(stringValue).split(","))
+                .filter(s -> !s.isBlank())
+                .map(name -> ObjectTypes.getObjectType(name.trim()))
+                .collect(Collectors.toUnmodifiableSet());
     }
 
     private String createDefaultLabel() {
@@ -96,7 +126,18 @@ public class OtherParameters {
         VelocityGenerator.generate(
                 SYSTEM_CONFIGURATION_TEMPLATE_FILE,
                 GENERATED_SYSTEM_CONFIGURATION_FILE,
-                Map.of("disableDefaultMultivalueProvenance", disableDefaultMultivalueProvenance));
+                Map.of(
+                        "disableDefaultMultivalueProvenance", disableDefaultMultivalueProvenance,
+                        "cachedTypeNames", computeCachedTypeNames()));
+    }
+
+    private Collection<String> computeCachedTypeNames() {
+        var effective = Sets.difference(
+                Sets.union(CACHED_BY_DEFAULT, cached),
+                notCached);
+        return effective.stream()
+                .map(ObjectTypes::getValue)
+                .toList();
     }
 
     @Override
@@ -105,6 +146,8 @@ public class OtherParameters {
                 "label=" + label +
                 ", taskTimeout=" + taskTimeout +
                 ", disableDefaultMultivalueProvenance=" + disableDefaultMultivalueProvenance +
+                ", cached=" + cached +
+                ", notCached=" + notCached +
                 '}';
     }
 }
