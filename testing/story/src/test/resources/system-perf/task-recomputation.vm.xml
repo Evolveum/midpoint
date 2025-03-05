@@ -9,6 +9,9 @@
 <!--
 Parameters:
  - workerThreads
+ - workerTasks
+ - bucketing
+ - oidSegmentationDepth
 -->
 
 <task oid="f5920848-6c8f-4eda-ae26-2b961d6dae1b"
@@ -37,6 +40,20 @@ Parameters:
         </work>
         <distribution>
             <workerThreads>$workerThreads</workerThreads>
+#if($workerTasks > 0)
+            <workers>
+                <workersPerNode>
+                    <count>$workerTasks</count>
+                </workersPerNode>
+            </workers>
+#end
+#if($bucketing)
+            <buckets>
+                <oidSegmentation>
+                    <depth>$oidSegmentationDepth</depth>
+                </oidSegmentation>
+            </buckets>
+#end
         </distribution>
         <!--<reporting>-->
         <!--    <tracing>-->
