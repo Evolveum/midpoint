@@ -67,7 +67,12 @@ public class AxiomSearchPanel extends BasePanel<AxiomQueryWrapper> {
 
     private void initLayout() {
         TextField<String> queryDslField = new TextField<>(ID_AXIOM_QUERY_FIELD,
-                new PropertyModel<>(getModel(), AxiomQueryWrapper.F_DSL_QUERY));
+                new PropertyModel<>(getModel(), AxiomQueryWrapper.F_DSL_QUERY)) {
+            @Override
+            protected boolean shouldTrimInput() {
+                return false;
+            }
+        };
         queryDslField.add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
 
         idAxiomQueryInputField = queryDslField.getMarkupId();
@@ -113,7 +118,7 @@ public class AxiomSearchPanel extends BasePanel<AxiomQueryWrapper> {
                 IRequestParameters params = RequestCycle.get().getRequest().getRequestParameters();
                 String keyPressed = String.valueOf(params.getParameterValue("key"));
 
-                if (axiomQueryWrapper != null && !("ArrowUp".equals(keyPressed) || "ArrowDown".equals(keyPressed))) {
+                if (axiomQueryWrapper != null && !("ArrowUp".equals(keyPressed) || "ArrowDown".equals(keyPressed) || "Escape".equals(keyPressed))) {
                     ItemDefinition<?> rootDef = axiomQueryWrapper.getContainerDefinitionOverride() != null ?
                             axiomQueryWrapper.getContainerDefinitionOverride() :
                             getPrismContext().getSchemaRegistry().findItemDefinitionByType(new QName(axiomQueryWrapper.getTypeClass().getSimpleName()));
