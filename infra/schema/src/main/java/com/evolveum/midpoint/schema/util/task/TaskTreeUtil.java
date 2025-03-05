@@ -55,7 +55,6 @@ public class TaskTreeUtil {
             if (childRef.getOid() == null && childRef.getObject() == null) {
                 continue;
             }
-            //noinspection unchecked
             PrismObject<TaskType> child = childRef.getObject();
             @NotNull TaskType resolved;
             if (child != null) {

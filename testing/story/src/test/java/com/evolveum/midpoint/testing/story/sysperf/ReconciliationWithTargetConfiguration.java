@@ -87,7 +87,11 @@ class ReconciliationWithTargetConfiguration {
                 Map.of("taskOid", taskOid,
                         "index", String.format("%03d", index),
                         "resourceOid", resource.oid,
-                        "workerThreads", distribution.threads()));
+                        "workerThreads", distribution.threads(),
+                        "workerTasks", distribution.workerTasks(),
+                        "bucketing", distribution.isBucketing(),
+                        "fixedCharactersPositions", distribution.getFixedCharactersPositions(),
+                        "varyingCharactersPositions", distribution.getVaryingCharactersPositions()));
 
         return generatedFileName;
     }
