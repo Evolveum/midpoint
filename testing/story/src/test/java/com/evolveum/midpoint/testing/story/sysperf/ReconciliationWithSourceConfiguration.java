@@ -11,36 +11,38 @@ import com.evolveum.midpoint.test.DummyTestResource;
 import com.evolveum.midpoint.test.TestObject;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 
+import org.jetbrains.annotations.NotNull;
+
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import static com.evolveum.midpoint.testing.story.sysperf.TaskDistribution.BUCKET_FACTOR_FOR_ACCOUNTS;
 import static com.evolveum.midpoint.testing.story.sysperf.TestSystemPerformance.TARGET_DIR;
 import static com.evolveum.midpoint.testing.story.sysperf.TestSystemPerformance.TEST_DIR;
 
 class ReconciliationWithSourceConfiguration {
 
     private static final String PROP = "reconciliation"; // eventually we change this to reconciliation-with-source
-    private static final String PROP_THREADS = PROP + ".threads";
     private static final String PROP_RUNS = PROP + ".runs";
 
     private static final File TASK_TEMPLATE_FILE = new File(TEST_DIR, "task-reconciliation-with-source.vm.xml");
 
-    private final int threads;
+    @NotNull private final TaskDistribution distribution;
     private final int runs;
 
     private final List<TestObject<TaskType>> generatedTasks;
 
     private ReconciliationWithSourceConfiguration() {
-        threads = Integer.parseInt(System.getProperty(PROP_THREADS, "0"));
+        distribution = TaskDistribution.fromSystemProperties(PROP, BUCKET_FACTOR_FOR_ACCOUNTS);
         runs = Integer.parseInt(System.getProperty(PROP_RUNS, "1"));
 
         generatedTasks = generateTasks();
     }
 
     int getThreads() {
-        return threads;
+        return distribution.threads();
     }
 
     int getRuns() {
@@ -53,8 +55,8 @@ class ReconciliationWithSourceConfiguration {
 
     @Override
     public String toString() {
-        return "ReconciliationConfiguration{" +
-                "threads=" + threads +
+        return "ReconciliationWithSourceConfiguration{" +
+                "distribution=" + distribution +
                 ", runs=" + runs +
                 '}';
     }
@@ -83,7 +85,11 @@ class ReconciliationWithSourceConfiguration {
                 Map.of("taskOid", taskOid,
                         "index", String.format("%03d", index),
                         "resourceOid", resource.oid,
-                        "workerThreads", threads));
+                        "workerThreads", getThreads(),
+                        "workerTasks", distribution.workerTasks(),
+                        "bucketing", distribution.isBucketing(),
+                        "fixedCharactersPositions", distribution.getFixedCharactersPositions(),
+                        "varyingCharactersPositions", distribution.getVaryingCharactersPositions()));
 
         return generatedFileName;
     }

@@ -9,6 +9,8 @@ package com.evolveum.midpoint.testing.story.sysperf;
 
 import static com.evolveum.midpoint.util.MiscUtil.emptyIfNull;
 
+import static com.evolveum.midpoint.util.MiscUtil.or0;
+
 import static org.assertj.core.api.Assertions.assertThat;
 
 import static com.evolveum.midpoint.test.util.MidPointTestConstants.TARGET_DIR_PATH;
@@ -41,7 +43,6 @@ import com.evolveum.icf.dummy.resource.DummyAccount;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
-import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.internals.InternalsConfig;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.task.TaskOperationStatsUtil;
@@ -610,12 +611,6 @@ public class TestSystemPerformance extends AbstractStoryTest implements Performa
         logFinish();
     }
 
-    private long getExecutionTime(PrismObject<TaskType> taskAfter) {
-        long start = XmlTypeConverter.toMillis(taskAfter.asObjectable().getLastRunStartTimestamp());
-        long end = XmlTypeConverter.toMillis(taskAfter.asObjectable().getLastRunFinishTimestamp());
-        return end - start;
-    }
-
     @SuppressWarnings("SameParameterValue")
     private ItemName getSingleValuedPropertyQName(int i) {
         return new ItemName(NS_EXT, getSingleValuedPropertyName(i));
@@ -635,25 +630,30 @@ public class TestSystemPerformance extends AbstractStoryTest implements Performa
         return String.format("p-multi-%04d", i);
     }
 
-    private void logTaskFinish(PrismObject<TaskType> taskAfter, String label, OperationResult result)
-            throws SchemaException, ObjectNotFoundException {
+    private void logTaskFinish(PrismObject<TaskType> taskAfter, String label, OperationResult result) throws CommonException {
         String desc = label + taskAfter.getName().getOrig();
 
-        TreeNode<ActivityPerformanceInformation> performanceInformation =
+        TreeNode<ActivityPerformanceInformation> performanceInformationTree =
                 activityManager.getPerformanceInformation(taskAfter.getOid(), result);
-        long executionTime = getExecutionTime(taskAfter);
+        long executionTime =
+                performanceInformationTree.getAllDataDepthFirst().stream()
+                        .mapToLong(data -> or0(data.getWallClockTime()))
+                        .sum();
         int executionTimeSeconds = (int) (executionTime / 1000);
         int numberOfAccounts = SOURCES_CONFIGURATION.getNumberOfAccounts();
         double timePerAccount = (double) executionTime / (double) numberOfAccounts;
 
+        PrismObject<TaskType> taskTree = getTaskTree(taskAfter.getOid());
+        OperationStatsType operationStats = TaskOperationStatsUtil.getOperationStatsFromTree(taskTree.asObjectable());
+
         logger.info("********** FINISHED: {} **********\n", desc);
         logger.info(String.format("Task execution time: %,d ms", executionTime));
         logger.info(String.format("Time per account: %,.1f ms", timePerAccount));
-        logger.info(TaskOperationStatsUtil.format(taskAfter.asObjectable().getOperationStats()));
-        logger.info(performanceInformation.debugDump());
+        logger.info(TaskOperationStatsUtil.format(operationStats));
+        logger.info(performanceInformationTree.debugDump());
 
         summaryOutputFile.logTaskFinish(desc, executionTime, timePerAccount);
-        detailsOutputFile.logTaskFinish(desc, taskAfter.asObjectable(), performanceInformation);
+        detailsOutputFile.logTaskFinish(desc, performanceInformationTree, operationStats);
 
         List<Object> dataRow = Arrays.asList(desc, executionTime, timePerAccount);
         taskExecutionReportSection
@@ -662,15 +662,15 @@ public class TestSystemPerformance extends AbstractStoryTest implements Performa
                 .addRow(ListUtils.union(summaryReportDataRow, dataRow).toArray());
 
         TestReportUtil.reportTaskOperationPerformance(
-                testMonitor(), desc, taskAfter.asObjectable(), numberOfAccounts, executionTimeSeconds);
+                testMonitor(), desc, operationStats, numberOfAccounts, executionTimeSeconds);
         TestReportUtil.reportTaskComponentPerformanceAsSeparateSection(
-                testMonitor(), desc, taskAfter.asObjectable(), numberOfAccounts);
+                testMonitor(), desc, operationStats, numberOfAccounts);
         TestReportUtil.reportTaskComponentPerformanceToSingleSection(
-                testMonitor(), desc, taskAfter.asObjectable(), numberOfAccounts);
+                testMonitor(), desc, operationStats, numberOfAccounts);
         TestReportUtil.reportTaskRepositoryPerformance(
-                testMonitor(), desc, taskAfter.asObjectable(), numberOfAccounts, executionTimeSeconds);
-        TestReportUtil.reportTaskCachesPerformance(testMonitor(), desc, taskAfter.asObjectable());
-        TestReportUtil.reportTaskProvisioningStatistics(testMonitor(), desc, taskAfter.asObjectable());
+                testMonitor(), desc, operationStats, numberOfAccounts, executionTimeSeconds);
+        TestReportUtil.reportTaskCachesPerformance(testMonitor(), desc, taskAfter.asObjectable()); // FIXME aggregate!
+        TestReportUtil.reportTaskProvisioningStatistics(testMonitor(), desc, operationStats);
     }
 
     private void logFinish() {

@@ -1009,6 +1009,10 @@ export default class MidPointTheme {
                             currentIndex = -1;
                         }
                     }
+                } else if (e.key === "Escape" || e.keyCode == 27) {
+                    e.preventDefault();
+                    autocomplete.hide();
+                    autocomplete.empty();
                 } else {
                     window.MidPointTheme.cursorPosition = this.selectionStart;
                 }
