@@ -975,41 +975,11 @@ public class ColumnUtils {
                     }
                 };
 
-                Task task = pageBase.createSimpleTask("loadRunningCertTask");
                 OperationResult result = new OperationResult("loadRunningCertTask");
                 List<PrismObject<TaskType>> runningTasks = CertMiscUtil.loadRunningCertTask(campaign.getOid(), result, pageBase);
 
-                final String[] runningTaskOid = { runningTasks.isEmpty() ? null : runningTasks.get(0).getOid() };
-                IModel<String> runningTaskOidModel = new IModel<>() {
-                    @Override
-                    public String getObject() {
-                        return runningTaskOid[0];
-                    }
-
-                    @Override
-                    public void setObject(String object) {
-                        runningTaskOid[0] = object;
-                    }
-                };
-
-                LoadableDetachableModel<String> buttonLabelModel = new LoadableDetachableModel<>() {
-                    @Serial private static final long serialVersionUID = 1L;
-
-                    @Override
-                    protected String load() {
-                        if (StringUtils.isEmpty(runningTaskOidModel.getObject())) {
-                            return "";
-                        }
-
-                        PrismObject<TaskType> runningTask = WebModelServiceUtils.loadObject(TaskType.class,
-                                runningTaskOidModel.getObject(), pageBase, task, result);
-                        TaskType task = runningTask.asObjectable();
-
-                        TaskInformation taskInformation = TaskInformation.createForTask(task, task);
-                        String info = WebComponentUtil.getTaskProgressDescription(taskInformation, true, pageBase);
-                        return StringUtils.isEmpty(info) ? "" : info;
-                    }
-                };
+                final String[] runningTaskOid = { runningTasks.isEmpty() ? "" : runningTasks.get(0).getOid() };
+                LoadableDetachableModel<String> buttonLabelModel = getButtonLabelModel(runningTaskOid[0]);
 
                 CampaignActionButton actionButton = new CampaignActionButton(componentId, pageBase, campaignModel,
                         buttonLabelModel, runningTaskOid[0]) {
@@ -1067,6 +1037,32 @@ public class ColumnUtils {
                 cellItem.add(actionButton);
             }
 
+            private LoadableDetachableModel<String> getButtonLabelModel(String runningTaskOid) {
+                return new LoadableDetachableModel<>() {
+                    @Serial private static final long serialVersionUID = 1L;
+
+                    @Override
+                    protected String load() {
+                        if (StringUtils.isEmpty(runningTaskOid)) {
+                            return null;
+                        }
+                        Task task = pageBase.createSimpleTask("loadRunningCertTask");
+                        OperationResult result = new OperationResult("loadRunningCertTask");
+
+                        PrismObject<TaskType> runningTask = WebModelServiceUtils.loadObject(TaskType.class, runningTaskOid, pageBase, task, result);
+                        if (runningTask == null) {
+                            return "";
+                        }
+
+                        TaskType runningTaskObj = runningTask.asObjectable();
+
+                        TaskInformation taskInformation = TaskInformation.createForTask(runningTaskObj, runningTaskObj);
+                        String info = WebComponentUtil.getTaskProgressDescription(taskInformation, true, pageBase);
+                        return StringUtils.isEmpty(info) ? "" : info;
+                    }
+                };
+            }
+
         });
 
         return columns;
@@ -1075,7 +1071,6 @@ public class ColumnUtils {
     public static List<IColumn<SelectableBean<AccessCertificationCampaignType>, String>> getPreviewCampaignColumns(
             PageBase pageBase) {
         List<IColumn<SelectableBean<AccessCertificationCampaignType>, String>> columns = new ArrayList<>();
-        FocusType principal = pageBase.getPrincipalFocus();
 
         IColumn<SelectableBean<AccessCertificationCampaignType>, String> column;
 
