@@ -40,10 +40,10 @@ public abstract class IconColumn<T> extends AbstractIconColumn<T, String> {//imp
     public String getCssClass() {
         IModel<String> display = getDisplayModel();
         if (display != null && StringUtils.isNotEmpty(display.getObject())) {
-            return null;
+            return "align-middle";
         }
 
-        return "icon";
+        return "icon align-middle";
     }
 
     @Override

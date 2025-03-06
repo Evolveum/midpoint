@@ -7,6 +7,7 @@
 
 package com.evolveum.midpoint.testing.story.sysperf;
 
+import static com.evolveum.midpoint.testing.story.sysperf.TaskDistribution.BUCKET_FACTOR_FOR_OIDS;
 import static com.evolveum.midpoint.testing.story.sysperf.TestSystemPerformance.TARGET_DIR;
 import static com.evolveum.midpoint.testing.story.sysperf.TestSystemPerformance.TEST_DIR;
 
@@ -16,26 +17,27 @@ import java.util.Map;
 import com.evolveum.midpoint.test.TestObject;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 
+import org.jetbrains.annotations.NotNull;
+
 class RecomputationConfiguration {
 
     private static final String PROP = "recomputation";
-    private static final String PROP_THREADS = PROP + ".threads";
 
     private static final File TASK_TEMPLATE_FILE = new File(TEST_DIR, "task-recomputation.vm.xml");
 
     private static final String RECOMPUTE_TASK_OID = "f5920848-6c8f-4eda-ae26-2b961d6dae1b";
 
-    private final int threads;
+    @NotNull private final TaskDistribution distribution;
 
     private final TestObject<TaskType> generatedTask;
 
     private RecomputationConfiguration() {
-        threads = Integer.parseInt(System.getProperty(PROP_THREADS, "0"));
+        distribution = TaskDistribution.fromSystemProperties(PROP, BUCKET_FACTOR_FOR_OIDS);
         generatedTask = generateTask();
     }
 
     int getThreads() {
-        return threads;
+        return distribution.threads();
     }
 
     TestObject<TaskType> getGeneratedTask() {
@@ -45,7 +47,7 @@ class RecomputationConfiguration {
     @Override
     public String toString() {
         return "RecomputationConfiguration{" +
-                "threads=" + threads +
+                "distribution=" + distribution +
                 '}';
     }
 
@@ -64,8 +66,15 @@ class RecomputationConfiguration {
 
         File generated = new File(TARGET_DIR, generatedFileName);
         VelocityGenerator.generate(TASK_TEMPLATE_FILE, generated,
-                Map.of("workerThreads", threads));
+                Map.of("workerThreads", getThreads(),
+                "workerTasks", distribution.workerTasks(),
+                "bucketing", distribution.isBucketing(),
+                "oidSegmentationDepth", distribution.levels()));
 
         return generatedFileName;
+    }
+
+    private int computeSegmentationDepth() {
+        return 0;
     }
 }

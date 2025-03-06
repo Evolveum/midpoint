@@ -73,18 +73,7 @@ export default class MidPointAceEditor {
         });
 
         editor.on('change', function () {
-            const cursor = editor.getCursorPosition();
-            const lines = editor.session.getLines(0, cursor.row);
-            let position = cursor.column;
-
-            lines.forEach((line, key) => {
-                if (cursor.row > key) {
-                    position = position + line.length
-                }
-            })
-
-            window.MidPointAceEditor.cursorPosition = position;
-
+            window.MidPointAceEditor.cursorPosition = editor.session.getDocument().positionToIndex(editor.getCursorPosition());
             $(jqTextArea).val(editor.getSession().getValue());
             $(jqTextArea).trigger('change');
         });

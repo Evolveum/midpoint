@@ -338,7 +338,9 @@ public class PageCertCampaign extends PageAssignmentHolderDetails<AccessCertific
         if (buttonLabelModel != null) {
             buttonLabelModel.detach();
         }
-        campaignModel.detach();
+        if (campaignModel != null) {
+            campaignModel.detach();
+        }
         super.onDetach();
     }
 

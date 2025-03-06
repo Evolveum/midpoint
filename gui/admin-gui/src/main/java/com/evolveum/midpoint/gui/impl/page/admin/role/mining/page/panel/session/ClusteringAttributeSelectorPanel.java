@@ -46,7 +46,7 @@ public class ClusteringAttributeSelectorPanel extends InputPanel {
     private static final String ID_CONTAINER = "container";
 
     private IModel<PrismContainerWrapper<ClusteringAttributeSettingType>> model;
-    RoleAnalysisProcessModeType processModeType;
+    boolean isRoleMode = false;
 
     private boolean isSettingsPanelVisible;
 
@@ -55,7 +55,10 @@ public class ClusteringAttributeSelectorPanel extends InputPanel {
             @NotNull RoleAnalysisProcessModeType processModeType) {
         super(id);
         this.model = model;
-        this.processModeType = processModeType;
+
+        if (processModeType == RoleAnalysisProcessModeType.ROLE) {
+            isRoleMode = true;
+        }
     }
 
     @Override
@@ -95,7 +98,7 @@ public class ClusteringAttributeSelectorPanel extends InputPanel {
         PrismContainerWrapperModel<ClusteringAttributeSettingType, ClusteringAttributeRuleType> rulesModel = PrismContainerWrapperModel.fromContainerWrapper(model, ClusteringAttributeSettingType.F_CLUSTERING_ATTRIBUTE_RULE);
 
         RoleAnalysisClusteringAttributeTable clusteringAttributeTable = new RoleAnalysisClusteringAttributeTable(
-                ID_CONTAINER, rulesModel, true) {
+                ID_CONTAINER, rulesModel, isRoleMode) {
             @Override
             public boolean isEditable() {
                 return ClusteringAttributeSelectorPanel.this.isEditable();
@@ -107,7 +110,7 @@ public class ClusteringAttributeSelectorPanel extends InputPanel {
 
     @NotNull
     private ChoiceProvider<ClusteringAttributeRuleType> buildChoiceProvider() {
-        if (processModeType == RoleAnalysisProcessModeType.ROLE) {
+        if (isRoleMode) {
             return new ClusteringAttributeSelectionProvider(RoleType.class, getPageBase());
         }
         return new ClusteringAttributeSelectionProvider(UserType.class, getPageBase());

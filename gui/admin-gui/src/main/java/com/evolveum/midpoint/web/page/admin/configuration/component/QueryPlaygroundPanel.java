@@ -393,7 +393,6 @@ public class QueryPlaygroundPanel extends BasePanel<RepoQueryDto> {
                 RepoQueryDto repo = getModelObject();
 
                 if (repo != null) {
-                    String query = repo.getMidPointQuery();
                     IRequestParameters params = RequestCycle.get().getRequest().getRequestParameters();
                     ItemDefinition<?> rootDef = repo.getObjectType() == null ?
                             getPrismContext().getSchemaRegistry().findItemDefinitionByType(objectTypeChoice.getFirstChoice()) :
@@ -401,8 +400,8 @@ public class QueryPlaygroundPanel extends BasePanel<RepoQueryDto> {
 
                     var contentAssist = new AxiomQueryContentAssistImpl(getPrismContext()).process(
                             rootDef,
-                            query == null ? "" : query,
-                            params.getParameterValue("cursorPosition").toInt()
+                            repo.getMidPointQuery() == null ? "" : repo.getMidPointQuery(),
+                            params.getParameterValue("cursorPosition").toInt() + 1
                     );
 
                     var suggestions = contentAssist.autocomplete();

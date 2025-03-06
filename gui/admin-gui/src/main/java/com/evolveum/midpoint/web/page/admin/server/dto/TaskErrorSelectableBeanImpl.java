@@ -84,10 +84,13 @@ public class TaskErrorSelectableBeanImpl extends SelectableBeanImpl<OperationExe
 
     public PrismObject<ObjectType> getRealOwner() {
         //noinspection unchecked
-        return (PrismObject<ObjectType>) realOwner.asPrismObject();
+        return realOwner != null ? (PrismObject<ObjectType>) realOwner.asPrismObject() : null;
     }
 
     public String getRealOwnerDescription() {
+        if (realOwner == null) {
+            return "";
+        }
         return WebComponentUtil.getName(realOwner) + " (" + realOwner.getClass().getSimpleName() + ")";
     }
 }

@@ -192,6 +192,9 @@ public abstract class MainObjectListPanel<O extends ObjectType> extends ObjectLi
 
     protected boolean isObjectDetailsEnabled(IModel<SelectableBean<O>> rowModel) {
         O object = rowModel.getObject().getValue();
+        if (object == null) {
+            return false;
+        }
         return WebComponentUtil.isAuthorized(object.getClass());
     }
 

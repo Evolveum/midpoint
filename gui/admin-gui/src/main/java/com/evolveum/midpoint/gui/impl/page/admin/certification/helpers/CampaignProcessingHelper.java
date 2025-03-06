@@ -22,8 +22,6 @@ import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.component.dialog.ConfirmationPanel;
-import com.evolveum.midpoint.web.component.dialog.Popupable;
 import com.evolveum.midpoint.gui.impl.page.admin.certification.PageCertCampaign;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignType;
@@ -32,16 +30,10 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationS
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.StringResourceModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
-import org.jetbrains.annotations.NotNull;
-import org.opensaml.xmlsec.signature.P;
 
 import javax.xml.datatype.XMLGregorianCalendar;
-import java.io.Serial;
 import java.io.Serializable;
-import java.util.Collections;
 import java.util.List;
 
 import static com.evolveum.midpoint.util.MiscUtil.or0;

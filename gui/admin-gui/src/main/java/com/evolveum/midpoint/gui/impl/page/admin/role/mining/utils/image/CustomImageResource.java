@@ -11,8 +11,20 @@ import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.Serializable;
 import java.util.List;
 import javax.imageio.ImageIO;
+
+import com.evolveum.midpoint.common.mining.objects.chunk.MiningBaseTypeChunk;
+import com.evolveum.midpoint.gui.api.GuiStyleConstants;
+import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.model.api.mining.RoleAnalysisService;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
+import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 
 import org.apache.wicket.request.resource.DynamicImageResource;
 
@@ -22,31 +34,73 @@ import com.evolveum.midpoint.common.mining.objects.chunk.MiningUserTypeChunk;
 import com.evolveum.midpoint.common.mining.utils.values.RoleAnalysisSortMode;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisProcessModeType;
+
+import org.jetbrains.annotations.NotNull;
 
 /**
  * CustomImageResource generates images for role mining clusters based on a MiningOperationChunk.
  */
-public class CustomImageResource extends DynamicImageResource {
-
-    public int getWidth() {
-        return width;
-    }
-
-    public int getHeight() {
-        return height;
-    }
+public class CustomImageResource extends DynamicImageResource implements Serializable {
 
     int width;
     int height;
     MiningOperationChunk miningOperationChunk;
-    RoleAnalysisProcessModeType mode;
+    boolean isRoleMode;
 
     public static final Trace LOGGER = TraceManager.getTrace(CustomImageResource.class);
 
-    public CustomImageResource(MiningOperationChunk miningOperationChunk, RoleAnalysisProcessModeType mode) {
+    public CustomImageResource(
+            @NotNull PageBase pageBase,
+            @NotNull RoleAnalysisClusterType cluster,
+            @NotNull Task task,
+            @NotNull OperationResult result) {
+
+        RoleAnalysisService roleAnalysisService = pageBase.getRoleAnalysisService();
+        PrismObject<RoleAnalysisSessionType> sessionPrismObject = roleAnalysisService
+                .getSessionTypeObject(cluster.getRoleAnalysisSessionRef().getOid(), task, result);
+        if (sessionPrismObject == null) {
+            LOGGER.error("Couldn't find session object with oid {}", cluster.getRoleAnalysisSessionRef().getOid());
+            return;
+        }
+
+        RoleAnalysisSessionType session = sessionPrismObject.asObjectable();
+
+        RoleAnalysisOptionType analysisOption = session.getAnalysisOption();
+        RoleAnalysisProcessModeType processMode = analysisOption.getProcessMode();
+
+        this.isRoleMode = RoleAnalysisProcessModeType.ROLE.equals(processMode);
+
+        AbstractAnalysisSessionOptionType sessionOptions = processMode.equals(RoleAnalysisProcessModeType.ROLE) ?
+                session.getRoleModeOptions() : session.getUserModeOptions();
+
+        SearchFilterType userSearchFilter = sessionOptions.getUserSearchFilter();
+        SearchFilterType roleSearchFilter = sessionOptions.getRoleSearchFilter();
+        SearchFilterType assignmentSearchFilter = sessionOptions.getAssignmentSearchFilter();
+
+        this.miningOperationChunk = roleAnalysisService.prepareExpandedMiningStructure(cluster,
+                userSearchFilter, roleSearchFilter, assignmentSearchFilter,
+                true, processMode, result, task, null);
+    }
+
+    public String getColumnTitle() {
+        return isRoleMode ? "CustomImageResource.title.roles" : "CustomImageResource.title.users";
+    }
+
+    public String getRowTitle() {
+        return isRoleMode ? "CustomImageResource.title.users" : "CustomImageResource.title.roles";
+    }
+
+    public String getColumnIcon() {
+        return isRoleMode ? GuiStyleConstants.CLASS_OBJECT_ROLE_ICON_COLORED : GuiStyleConstants.CLASS_OBJECT_USER_ICON_COLORED;
+    }
+
+    public String getRowIcon() {
+        return isRoleMode ? GuiStyleConstants.CLASS_OBJECT_USER_ICON_COLORED : GuiStyleConstants.CLASS_OBJECT_ROLE_ICON_COLORED;
+    }
+
+    public CustomImageResource(MiningOperationChunk miningOperationChunk, @NotNull RoleAnalysisProcessModeType mode) {
         this.miningOperationChunk = miningOperationChunk;
-        this.mode = mode;
+        this.isRoleMode = mode.equals(RoleAnalysisProcessModeType.ROLE);
     }
 
     @Override
@@ -55,7 +109,7 @@ public class CustomImageResource extends DynamicImageResource {
         BufferedImage image;
         Graphics2D graphics;
 
-        if (mode.equals(RoleAnalysisProcessModeType.ROLE)) {
+        if (isRoleMode) {
             List<MiningRoleTypeChunk> miningRoleTypeChunks = miningOperationChunk.getMiningRoleTypeChunks(
                     RoleAnalysisSortMode.NONE);
             List<MiningUserTypeChunk> miningUserTypeChunks = miningOperationChunk.getMiningUserTypeChunks(
@@ -65,18 +119,8 @@ public class CustomImageResource extends DynamicImageResource {
             image = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
             graphics = image.createGraphics();
 
-            for (int x = 0; x < miningRoleTypeChunks.size(); x++) {
-                String point = miningRoleTypeChunks.get(x).getRoles().get(0);
-                for (int y = 0; y < miningUserTypeChunks.size(); y++) {
-                    if (miningUserTypeChunks.get(y).getRoles().contains(point)) {
-                        graphics.setColor(Color.BLACK);
-                    } else {
-                        graphics.setColor(Color.WHITE);
-                    }
+            fillGraphic(miningRoleTypeChunks, miningUserTypeChunks, graphics);
 
-                    graphics.fillRect(x, y, 1, 1);
-                }
-            }
         } else {
             List<MiningRoleTypeChunk> miningRoleTypeChunks = miningOperationChunk.getMiningRoleTypeChunks(
                     RoleAnalysisSortMode.JACCARD);
@@ -87,18 +131,7 @@ public class CustomImageResource extends DynamicImageResource {
             image = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
             graphics = image.createGraphics();
 
-            for (int x = 0; x < miningUserTypeChunks.size(); x++) {
-                String point = miningUserTypeChunks.get(x).getUsers().get(0);
-                for (int y = 0; y < miningRoleTypeChunks.size(); y++) {
-                    if (miningRoleTypeChunks.get(y).getUsers().contains(point)) {
-                        graphics.setColor(Color.BLACK);
-                    } else {
-                        graphics.setColor(Color.WHITE);
-                    }
-
-                    graphics.fillRect(x, y, 1, 1);
-                }
-            }
+            fillGraphic(miningUserTypeChunks, miningRoleTypeChunks, graphics);
         }
 
         graphics.dispose();
@@ -111,6 +144,32 @@ public class CustomImageResource extends DynamicImageResource {
         }
 
         return outputStream.toByteArray();
+    }
+
+    private static void fillGraphic(
+            @NotNull List<? extends MiningBaseTypeChunk> memberChunks,
+            @NotNull List<? extends MiningBaseTypeChunk> propertiesChunk,
+            @NotNull Graphics2D graphics) {
+        for (int x = 0; x < memberChunks.size(); x++) {
+            String point = memberChunks.get(x).getMembers().get(0);
+            for (int y = 0; y < propertiesChunk.size(); y++) {
+                if (propertiesChunk.get(y).getProperties().contains(point)) {
+                    graphics.setColor(Color.BLACK);
+                } else {
+                    graphics.setColor(Color.WHITE);
+                }
+
+                graphics.fillRect(x, y, 1, 1);
+            }
+        }
+    }
+
+    public int getWidth() {
+        return width;
+    }
+
+    public int getHeight() {
+        return height;
     }
 
     @Override

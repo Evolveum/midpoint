@@ -44,11 +44,6 @@ public class AnalysisInfoWidgetDto implements Serializable {
 
     private List<IdentifyWidgetItem> outlierModelData;
     private List<IdentifyWidgetItem> patternModelData;
-
-    public RoleAnalysisOutlierType getTopOutliers() {
-        return topOutliers;
-    }
-
     transient RoleAnalysisOutlierType topOutliers;
 
     boolean isOutlierLoaded;
@@ -366,6 +361,10 @@ public class AnalysisInfoWidgetDto implements Serializable {
 
     public boolean isOutlierLoaded() {
         return isOutlierLoaded;
+    }
+
+    public RoleAnalysisOutlierType getTopOutliers() {
+        return topOutliers;
     }
 
 }
