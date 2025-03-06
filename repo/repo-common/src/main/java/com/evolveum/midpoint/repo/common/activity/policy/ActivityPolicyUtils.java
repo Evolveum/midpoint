@@ -7,11 +7,12 @@
 
 package com.evolveum.midpoint.repo.common.activity.policy;
 
+import com.evolveum.midpoint.schema.util.task.ActivityPath;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityPolicyType;
 
 public class ActivityPolicyUtils {
 
-    public static String createIdentifier(String ownerObjectOid, ActivityPolicyType policy) {
-        return ownerObjectOid + ":" + policy.getId();
+    public static String createIdentifier(ActivityPath path, ActivityPolicyType policy) {
+        return path.toString() + ":" + policy.getId();
     }
 }

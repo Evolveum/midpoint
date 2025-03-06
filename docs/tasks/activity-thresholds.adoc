@@ -1,0 +1,91 @@
+= Activity policies and thresholds
+:page-since: "4.10"
+:page-toc: top
+:page-upkeep-status: green
+
+Tasks are not xref:/midpoint/reference/schema/focus-and-projections[focus] object (like users, roles, etc.).
+This means we cannot use assignments to assign roles with policies like it's described xref:/midpoint/reference/roles-policies/policy-rules/[here].
+Activity policies allows us to set constraints and actions directly on task activities.
+
+=== Constraints
+
+==== Execution time
+
+The `executionTime` constraint allows us to set a time limit for the activity execution.
+There are two options `below` and `exceeds`.
+The `below` option is used to set a time limit must exceed, otherwise policy actions will be triggered.
+The `exceeds` option the exact opposite/
+It is used to set a time limit that must not be exceeded, otherwise policy actions will be triggered.
+
+=== Actions
+
+==== Notification
+
+Notification action will send a notification.
+Notifications configuration is described xref:/midpoint/reference/misc/notifications[here].
+
+.Example of simple notification configuration for execution time policy action in system configuration
+[source, xml]
+----
+<systemConfiguration xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+    <!-- more content skipped for brevity -->
+    <messageTransportConfiguration>
+        <mail>
+            <name>mail</name>
+            <redirectToFile>/opt/midpoint-home/notifications.txt</redirectToFile>
+            <defaultFrom>idm@example.com</defaultFrom>
+        </mail>
+    </messageTransportConfiguration>
+    <notificationConfiguration>
+        <handler>
+            <simpleActivityPolicyRuleNotifier>
+                <transport>mail</transport>
+            </simpleActivityPolicyRuleNotifier>
+        </handler>
+    </notificationConfiguration>
+</systemConfiguration>
+----
+
+Previous example will send (redirect) notifications to the file `/opt/midpoint-home/notifications.txt`.
+Subject and body of the notification can be configured in the `simpleActivityPolicyRuleNotifier` handler.
+Default value for `to` field is the task owner `emailAddress` if available.
+If owner doesn't have `emailAddress` set, the notification will not be sent.
+
+==== Suspend task
+
+Suspend task action will suspend the task.
+
+== Configuration examples
+
+[source, xml]
+----
+<activity>
+    <policies>
+        <policy>
+            <name>Reconciliation run max. 4 hours</name>
+            <policyConstraints>
+                <executionTime> <!-- choice -->
+                    <!--<below>PT5M</below>-->
+                    <exceeds>PT4H</exceeds>
+                </executionTime>
+            </policyConstraints>
+            <policyActions>
+                <notification/>
+                <suspendTask/>
+            </policyActions>
+        </policy>
+    </policies>
+</activity>
+----
+
+== Limitations
+
+#TODO#
+
+== See also
+
+* xref:/midpoint/reference/tasks/thresholds[]
+* xref:/midpoint/reference/roles-policies/policy-rules/[Policy Rules]
+* xref:/midpoint/architecture/concepts/task/[Task]
+* xref:/midpoint/devel/design/multi-node-partitioned-and-stateful-tasks/task-partitioning/[Task partitioning]
+

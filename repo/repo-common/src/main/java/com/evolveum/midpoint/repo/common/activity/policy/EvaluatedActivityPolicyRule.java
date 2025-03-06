@@ -14,6 +14,7 @@ import java.util.List;
 
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.util.PrismPrettyPrinter;
+import com.evolveum.midpoint.schema.util.task.ActivityPath;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityPolicyActionsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityPolicyStateType;
@@ -26,7 +27,7 @@ public class EvaluatedActivityPolicyRule implements DebugDumpable {
 
     private final @NotNull ActivityPolicyType policy;
 
-    private final @NotNull String ownerObjectOid;
+    private final @NotNull ActivityPath path;
 
     private final List<EvaluatedActivityPolicyRuleTrigger<?>> triggers = new ArrayList<>();
 
@@ -37,13 +38,13 @@ public class EvaluatedActivityPolicyRule implements DebugDumpable {
 
     private ActivityPolicyStateType currentState;
 
-    public EvaluatedActivityPolicyRule(@NotNull ActivityPolicyType policy, @NotNull String ownerObjectOid) {
+    public EvaluatedActivityPolicyRule(@NotNull ActivityPolicyType policy, @NotNull ActivityPath path) {
         this.policy = policy;
-        this.ownerObjectOid = ownerObjectOid;
+        this.path = path;
     }
 
     public String getRuleId() {
-        return ActivityPolicyUtils.createIdentifier(ownerObjectOid, policy);
+        return ActivityPolicyUtils.createIdentifier(path, policy);
     }
 
     public String getName() {

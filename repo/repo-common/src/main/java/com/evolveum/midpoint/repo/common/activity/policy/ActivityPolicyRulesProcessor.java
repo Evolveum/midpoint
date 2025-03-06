@@ -51,10 +51,8 @@ public class ActivityPolicyRulesProcessor {
         ActivityPoliciesType activityPolicy = activityRun.getActivity().getDefinition().getPoliciesDefinition().getPolicies();
         List<ActivityPolicyType> policies = activityPolicy.getPolicy();
 
-        String taskOid = activityRun.getRunningTask().getOid();
-
         List<EvaluatedActivityPolicyRule> rules = policies.stream()
-                .map(ap -> new EvaluatedActivityPolicyRule(ap, taskOid))
+                .map(ap -> new EvaluatedActivityPolicyRule(ap, activityRun.getActivityPath()))
                 .toList();
         activityRun.getActivityPolicyRulesContext().setPolicyRules(rules);
     }
@@ -160,7 +158,7 @@ public class ActivityPolicyRulesProcessor {
     private void executeOneTimeActions(EvaluatedActivityPolicyRule rule, OperationResult result) {
         if (rule.containsAction(NotificationPolicyActionType.class)) {
             LOGGER.debug("Sending notification because of policy violation, rule: {}", rule);
-            
+
             activityRun.sendActivityPolicyRuleTriggeredEvent(rule, result);
         }
     }

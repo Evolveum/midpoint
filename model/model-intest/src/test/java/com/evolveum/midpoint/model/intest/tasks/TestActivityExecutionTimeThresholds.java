@@ -13,6 +13,8 @@ import com.evolveum.midpoint.model.intest.AbstractEmptyModelIntegrationTest;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.repo.common.activity.policy.ActivityPolicyUtils;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.task.ActivityPath;
+import com.evolveum.midpoint.schema.util.task.ActivityTreeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.TestObject;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityPolicyType;
@@ -90,7 +92,7 @@ public class TestActivityExecutionTimeThresholds extends AbstractEmptyModelInteg
         PrismObject<TaskType> task = taskManager.getObject(TaskType.class, testObject.oid, options, getTestOperationResult());
 
         ActivityPolicyType policy = task.asObjectable().getActivity().getPolicies().getPolicy().get(0);
-        String identifier = ActivityPolicyUtils.createIdentifier(task.getOid(), policy);
+        String identifier = ActivityPolicyUtils.createIdentifier(ActivityPath.empty(), policy);
 
         int realThreads = threads > 0 ? threads : 1;
 
@@ -118,7 +120,7 @@ public class TestActivityExecutionTimeThresholds extends AbstractEmptyModelInteg
         PrismObject<TaskType> task = taskManager.getObject(TaskType.class, testObject.oid, options, getTestOperationResult());
 
         ActivityPolicyType policy = task.asObjectable().getActivity().getPolicies().getPolicy().get(0);
-        String identifier = ActivityPolicyUtils.createIdentifier(task.getOid(), policy);
+        String identifier = ActivityPolicyUtils.createIdentifier(ActivityPath.empty(), policy);
 
         // @formatter:off
         var asserter = assertTaskTree(task.getOid(), "after")
