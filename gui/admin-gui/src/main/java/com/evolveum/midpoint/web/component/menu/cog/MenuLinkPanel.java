@@ -126,6 +126,11 @@ public class MenuLinkPanel<I extends InlineMenuItem> extends BasePanel<I> {
             public void yesPerformed(AjaxRequestTarget target) {
                 menuItem.getAction().onClick(target);
             }
+
+            @Override
+            public String getCssClassForDialog() {
+                return "mt-popup-under-header";
+            }
         };
         ((PageBase)getPage()).showMainPopup(dialog, target);
     }

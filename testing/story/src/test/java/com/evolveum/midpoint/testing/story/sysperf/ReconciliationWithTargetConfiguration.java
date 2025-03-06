@@ -7,6 +7,7 @@
 
 package com.evolveum.midpoint.testing.story.sysperf;
 
+import static com.evolveum.midpoint.testing.story.sysperf.TaskDistribution.BUCKET_FACTOR_FOR_ACCOUNTS;
 import static com.evolveum.midpoint.testing.story.sysperf.TestSystemPerformance.TARGET_DIR;
 import static com.evolveum.midpoint.testing.story.sysperf.TestSystemPerformance.TEST_DIR;
 
@@ -19,33 +20,30 @@ import com.evolveum.midpoint.test.DummyTestResource;
 import com.evolveum.midpoint.test.TestObject;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 
+import org.jetbrains.annotations.NotNull;
+
 class ReconciliationWithTargetConfiguration {
 
     private static final String PROP = "reconciliation-with-target";
 
     /** How many target resources should be covered by the reconciliation (-1 means "all"). */
     private static final String PROP_RESOURCES = PROP + ".resources";
-    private static final String PROP_THREADS = PROP + ".threads";
     private static final String PROP_RUNS = PROP + ".runs";
 
     private static final File TASK_TEMPLATE_FILE = new File(TEST_DIR, "task-reconciliation-with-target.vm.xml");
 
     private final int resources;
-    private final int threads;
+    @NotNull private final TaskDistribution distribution;
     private final int runs;
 
     private final List<TestObject<TaskType>> generatedTasks;
 
     private ReconciliationWithTargetConfiguration() {
         resources = Integer.parseInt(System.getProperty(PROP_RESOURCES, "-1"));
-        threads = Integer.parseInt(System.getProperty(PROP_THREADS, "0"));
+        distribution = TaskDistribution.fromSystemProperties(PROP, BUCKET_FACTOR_FOR_ACCOUNTS);
         runs = Integer.parseInt(System.getProperty(PROP_RUNS, "1"));
 
         generatedTasks = generateTasks();
-    }
-
-    int getThreads() {
-        return threads;
     }
 
     int getRuns() {
@@ -60,7 +58,7 @@ class ReconciliationWithTargetConfiguration {
     public String toString() {
         return "ReconciliationWithTargetConfiguration{" +
                 "resources=" + resources +
-                ", threads=" + threads +
+                ", distribution=" + distribution +
                 ", runs=" + runs +
                 '}';
     }
@@ -89,7 +87,11 @@ class ReconciliationWithTargetConfiguration {
                 Map.of("taskOid", taskOid,
                         "index", String.format("%03d", index),
                         "resourceOid", resource.oid,
-                        "workerThreads", threads));
+                        "workerThreads", distribution.threads(),
+                        "workerTasks", distribution.workerTasks(),
+                        "bucketing", distribution.isBucketing(),
+                        "fixedCharactersPositions", distribution.getFixedCharactersPositions(),
+                        "varyingCharactersPositions", distribution.getVaryingCharactersPositions()));
 
         return generatedFileName;
     }

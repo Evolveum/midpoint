@@ -74,6 +74,11 @@ public class AceEditor extends TextArea<String> {
     }
 
     @Override
+    protected boolean shouldTrimInput() {
+        return false;
+    }
+
+    @Override
     public void renderHead(IHeaderResponse response) {
         super.renderHead(response);
 

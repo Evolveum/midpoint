@@ -89,7 +89,7 @@ public class CheckBoxHeaderColumn<T extends Serializable> extends CheckBoxColumn
 
     @Override
     public String getCssClass() {
-        return "check";
+        return "align-middle check";
     }
 
     protected boolean isCheckboxVisible(){

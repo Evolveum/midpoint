@@ -92,6 +92,14 @@ image::step-1-group-user-selected.png[User selected,100%]
 If user can request only for himself then this step is not visible (and skipped).
 Restarting _Request access_ wizard and going through _Person of interest_ step again will overwrite previously selected users.
 
+There also can be scenarios when the shopping cart already contains some items and the user wants to add new person of interest.
+In this case, when the user selects new person of interest, midPoint will analyze if all items from the shopping cart are allowed to be requested for the newly selected person of interest.
+If so, the new person of interest will be added to the shopping cart and the user will be able to proceed the flow.
+If some items from the shopping cart are not allowed to be requested for the newly selected person of interest, the wizard will ask if the user wants to clear the shopping cart or to revert the selection of the new person of interest.
+The flow will continue based on the selected by the user option.
+In case the user selects to clear the shopping cart, all items will be removed and the new person of interest will be added.
+In case the user chooses to revert the selection of the new person of interest, the new person of interest will be removed and the user will be able to proceed the flow with the previous person(s) of interest and shopping cart items.
+
 == Relation
 
 .Person of interest
@@ -192,3 +200,11 @@ image::step-4-conflicts-solved.png[Solved conflicts,100%]
 
 .Edit shopping cart item
 image::step-4-checkout-item-edit.png[Edit shopping cart item,100%]
+
+== Limitations
+
+* Role catalog panel should display only the assignable roles (items) for the selected user(s) on the Persons of interest step.
+The current implementation displays the roles (items) which are allowed to be requested only for the first person in the list.
+This implementation suppose that sometimes even the items that are not allowed to be requested for some person of interest can get to the shopping cart.
+Anyhow, the submitting of the request in this case will fail with the authorization error.
+Therefore, the current implementation doesn't have any security impact.
