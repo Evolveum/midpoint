@@ -924,9 +924,8 @@ public class ProcessedObjectImpl<O extends ObjectType> implements ProcessedObjec
                 ItemPath path = modification.getPath();
                 var item = before.asPrismContainerValue().findItem(path);
                 //noinspection unchecked
-                modification.setEstimatedOldValues(
-                        item != null ?
-                                item.getClonedValues() : List.of());
+                modification.setEstimatedOldValuesWithCloning(
+                        item != null ? item.getValues() : List.of());
             }
         }
     }

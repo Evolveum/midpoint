@@ -652,8 +652,8 @@ public class LensUtil {
         }
         Item<?, ?> itemOld = ctx.getObjectOld().findItem(itemDelta.getPath());
         if (itemOld != null) {
-            //noinspection unchecked
-            itemDelta.setEstimatedOldValues((Collection) PrismValueCollectionsUtil.cloneCollection(itemOld.getValues()));
+            //noinspection unchecked, rawtypes
+            itemDelta.setEstimatedOldValuesWithCloning((Collection) itemOld.getValues());
             return;
         }
         // Here we need to distinguish whether the item is missing because it is not filled in (e.g. familyName in MID-4237)
@@ -666,8 +666,8 @@ public class LensUtil {
         if (ctx.getObjectCurrent() != null) {
             itemOld = ctx.getObjectCurrent().findItem(itemDelta.getPath());
             if (itemOld != null) {
-                //noinspection unchecked
-                itemDelta.setEstimatedOldValues((Collection) PrismValueCollectionsUtil.cloneCollection(itemOld.getValues()));
+                //noinspection unchecked, rawtypes
+                itemDelta.setEstimatedOldValuesWithCloning((Collection) itemOld.getValues());
             }
         }
     }

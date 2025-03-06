@@ -29,7 +29,6 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.google.common.base.Strings;
 import com.google.common.collect.ObjectArrays;
 import com.querydsl.core.Tuple;
-import com.querydsl.core.types.Path;
 import com.querydsl.core.types.dsl.Expressions;
 import com.querydsl.sql.SQLQuery;
 import org.apache.commons.lang3.Validate;
@@ -75,7 +74,6 @@ import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 /**
  * Repository implementation based on SQL, JDBC and Querydsl without any ORM.
@@ -606,7 +604,7 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
             RootUpdateContext<T, QObject<MObject>, MObject> updateContext =
                     prepareUpdateContext(jdbcSession, type, oidUuid, getOptions, modifyOptions);
 
-            PrismObject<T> object = updateContext.getPrismObject().clone();
+            PrismObject<T> object = updateContext.getPrismObject(); // NOT cloning; but the modification supplier must be careful!
             Collection<? extends ItemDelta<?, ?>> modifications =
                     modificationsSupplier.get(object.asObjectable());
 
@@ -656,7 +654,6 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
                         "Modification precondition does not hold for " + prismObject);
             }
             invokeConflictWatchers(w -> w.beforeModifyObject(prismObject));
-            PrismObject<T> originalObject = prismObject.clone(); // for result later
 
             // Use reindex instead of modify if reindex is required by user, or repository
             // itself detected need for reindex during preparation read for modify.
@@ -679,7 +676,7 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
             if (!modifications.isEmpty()) {
                 invokeConflictWatchers((w) -> w.afterModifyObject(prismObject.getOid()));
             }
-            return new ModifyObjectResult<>(originalObject, prismObject, modifications);
+            return new ModifyObjectResult<>(prismObject, modifications);
         }
     }
 
@@ -845,7 +842,7 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
             jdbcSession.newDelete(alias).where(predicate).execute();
             update.finishExecutionOwn();
             jdbcSession.commit();
-            return new ModifyObjectResult<>(update.getPrismObject(), update.getPrismObject(), Collections.emptyList());
+            return new ModifyObjectResult<>(update.getPrismObject(), Collections.emptyList());
         } catch (RepositoryException | RuntimeException e) {
             throw handledGeneralException(e, operationResult);
         } catch (Throwable t) {

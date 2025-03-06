@@ -166,7 +166,8 @@ class ObjectNotFoundHandler extends HardErrorHandler {
             // Otherwise the synchronization situation won't be updated because SynchronizationService could think that
             // there is not shadow at all.
             ctx.computeAndUpdateEffectiveMarksAndPolicies(repoShadow, RepoShadowWithState.ShadowState.EXISTING, result);
-            change.setShadowedResourceObject(repoShadow.getPrismObject());
+            // We are cloning here, because the change handler (most probably the model) will freeze the object.
+            change.setShadowedResourceObject(repoShadow.getPrismObject().clone());
             eventDispatcher.notifyChange(change, ctx.getTask(), result);
         } catch (CommonException e) {
             result.recordException(e);

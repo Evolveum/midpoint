@@ -1152,28 +1152,28 @@ public class ExpressionUtil {
 
         if (definition instanceof PrismReferenceDefinition) {
 
-            if (object instanceof Referencable) {
-                return ((Referencable) object).asReferenceValue();
-            } else if (object instanceof PrismReferenceValue) {
-                return (PrismReferenceValue) object;
+            if (object instanceof Referencable referencable) {
+                return referencable.asReferenceValue();
+            } else if (object instanceof PrismReferenceValue prismReferenceValue) {
+                return prismReferenceValue;
             } else {
                 throw new ExpressionEvaluationException(
                         "Expected Referencable or PrismReferenceValue as expression output, got " + object.getClass());
             }
 
-        } else if (definition instanceof PrismContainerDefinition) {
+        } else if (definition instanceof PrismContainerDefinition<?> pcd) {
 
-            if (object instanceof Containerable) {
+            if (object instanceof Containerable containerable) {
                 try {
-                    PrismContext.get().adopt((Containerable) object);
-                    return ((Containerable) object).asPrismContainerValue().applyDefinition(definition);
+                    PrismContext.get().adopt(containerable);
+                    return applyDefinitionIfNeeded(pcd, containerable.asPrismContainerValue());
                 } catch (SchemaException e) {
                     throw new ExpressionEvaluationException(e.getMessage() + " " + contextDescription, e);
                 }
-            } else if (object instanceof PrismContainerValue<?>) {
+            } else if (object instanceof PrismContainerValue<?> pcv) {
                 try {
-                    PrismContext.get().adopt((PrismContainerValue<?>) object);
-                    return ((PrismContainerValue<?>) object).applyDefinition(definition);
+                    PrismContext.get().adopt(pcv);
+                    return applyDefinitionIfNeeded(pcd, pcv);
                 } catch (SchemaException e) {
                     throw new ExpressionEvaluationException(e.getMessage() + " " + contextDescription, e);
                 }
@@ -1190,6 +1190,17 @@ public class ExpressionUtil {
             return PrismContext.get().itemFactory().createPropertyValue(object);
 
         }
+    }
+
+    private static PrismContainerValue<?> applyDefinitionIfNeeded(PrismContainerDefinition<?> pcd, PrismContainerValue<?> pcv)
+            throws SchemaException {
+        if (Objects.equals(pcd.getComplexTypeDefinition(), pcv.getComplexTypeDefinition())) {
+            return pcv;
+        }
+        if (pcv.isImmutable()) {
+            pcv = pcv.clone();
+        }
+        return pcv.applyDefinition(pcd);
     }
 
     public static Expression<PrismPropertyValue<Boolean>, PrismPropertyDefinition<Boolean>> createCondition(

@@ -1658,7 +1658,7 @@ public class ModelController implements ModelService, TaskService, CaseService, 
 
         try {
             // fetching the shadow just to get the resource OID (for the authorization)
-            var shadow = cacheRepositoryService.getObject(ShadowType.class, shadowOid, null, result);
+            var shadow = cacheRepositoryService.getObject(ShadowType.class, shadowOid, readOnly(), result);
             var resourceOid = ShadowUtil.getResourceOidRequired(shadow.asObjectable());
             authorizeResourceOperation(ModelAuthorizationAction.IMPORT_FROM_RESOURCE, resourceOid, task, result);
 

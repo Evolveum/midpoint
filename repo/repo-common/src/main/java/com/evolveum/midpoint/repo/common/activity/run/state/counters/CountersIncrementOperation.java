@@ -68,8 +68,8 @@ public class CountersIncrementOperation {
 
     private void incrementCountersInRepository(OperationResult result)
             throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
-        beans.plainRepositoryService.modifyObjectDynamically(TaskType.class, task.getOid(), null, this::prepareModifications,
-                null, result);
+        beans.plainRepositoryService.modifyObjectDynamically(
+                TaskType.class, task.getOid(), null, this::prepareModifications, null, result);
     }
 
     private @NotNull Collection<? extends ItemDelta<?, ?>> prepareModifications(TaskType task) throws SchemaException {
@@ -89,7 +89,7 @@ public class CountersIncrementOperation {
                 newValue = 1;
                 itemDelta = beans.prismContext.deltaFor(TaskType.class)
                         .item(countersItemPath)
-                        .add(new ActivityCounterType(beans.prismContext)
+                        .add(new ActivityCounterType()
                                 .identifier(counterIdentifier)
                                 .value(newValue))
                         .asItemDelta();

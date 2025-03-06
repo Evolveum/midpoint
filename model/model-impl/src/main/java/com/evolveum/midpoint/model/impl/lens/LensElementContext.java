@@ -13,6 +13,7 @@ import static com.evolveum.midpoint.util.MiscUtil.*;
 import java.io.Serial;
 import java.util.*;
 import java.util.function.Consumer;
+import java.util.function.Function;
 
 import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.model.impl.lens.ElementState.CurrentObjectAdjuster;
@@ -732,8 +733,8 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
         state.checkEncrypted();
     }
 
-    public void forEachObject(Consumer<PrismObject<O>> consumer) {
-        state.forEachObject(consumer);
+    public void forEachObject(Function<PrismObject<O>, PrismObject<O>> function) {
+        state.forEachObject(function);
     }
 
     public void forEachDelta(Consumer<ObjectDelta<O>> consumer) {

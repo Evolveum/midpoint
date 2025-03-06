@@ -31,6 +31,8 @@ import java.util.ArrayList;
 import static com.evolveum.midpoint.model.api.ProgressInformation.ActivityType.WAITING;
 import static com.evolveum.midpoint.model.api.ProgressInformation.StateType.EXITING;
 
+import static com.evolveum.midpoint.schema.GetOperationOptions.readOnly;
+
 import static org.apache.commons.collections4.CollectionUtils.emptyIfNull;
 import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
 
@@ -172,8 +174,7 @@ public class ClockworkConflictResolver {
             Class<F> focusClass = context.getFocusContext().getObjectTypeClass();
             String oid = context.getFocusContext().getOid();
 
-            // Not using read-only here because we are loading the focus (that will be worked with)
-            PrismObject<F> focus = repositoryService.getObject(focusClass, oid, null, result);
+            PrismObject<F> focus = repositoryService.getObject(focusClass, oid, readOnly(), result);
             LensContext<FocusType> contextNew = contextFactory.createRecomputeContext(focus, options, task, result);
             contextNew.setProgressListeners(new ArrayList<>(emptyIfNull(context.getProgressListeners())));
             contextNew.setConflictResolutionAttemptNumber(attemptNew);

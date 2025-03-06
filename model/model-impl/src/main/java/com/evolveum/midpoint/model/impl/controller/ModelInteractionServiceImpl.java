@@ -1031,8 +1031,8 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
         ValuePolicyType policy = null;
 
         if (noncePolicy != null && noncePolicy.getValuePolicyRef() != null) {
-            PrismObject<ValuePolicyType> valuePolicy = cacheRepositoryService.getObject(ValuePolicyType.class,
-                    noncePolicy.getValuePolicyRef().getOid(), null, result);
+            PrismObject<ValuePolicyType> valuePolicy = cacheRepositoryService.getObject(
+                    ValuePolicyType.class, noncePolicy.getValuePolicyRef().getOid(), readOnly(), result);
             policy = valuePolicy.asObjectable();
         }
 

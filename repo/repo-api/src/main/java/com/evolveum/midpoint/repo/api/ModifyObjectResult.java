@@ -21,16 +21,15 @@ import java.util.Collection;
  *  Because it is bound to the current (SQL) implementation of the repository, avoid using this information
  *  for any other purposes.
  *
- *  Note that objectBefore and objectAfter might be null if the object XML representation was not changed.
+ *  Note that objectAfter might be null if the object XML representation was not changed.
  *  It is currently the case for lookup tables (when rows are modified) and certification campaigns (when cases are modified).
  *  In all other cases these are non-null.
  *
- *  EXPERIMENTAL. We will probably drop objectBefore and modifications.
+ *  As split objects are there, it is also not always complete. TODO decide what to do with it.
  */
 @Experimental
 public class ModifyObjectResult<T extends ObjectType> implements RepositoryOperationResult {
 
-    private final PrismObject<T> objectBefore;
     private final PrismObject<T> objectAfter;
     private final Collection<? extends ItemDelta<?, ?>> modifications;
     private final boolean overwrite;
@@ -42,24 +41,18 @@ public class ModifyObjectResult<T extends ObjectType> implements RepositoryOpera
     private OperationRecord performanceRecord;
 
     public ModifyObjectResult(Collection<? extends ItemDelta<?, ?>> modifications) {
-        this(null, null, modifications, false);
+        this(null, modifications, false);
     }
 
-    public ModifyObjectResult(PrismObject<T> objectBefore, PrismObject<T> objectAfter,
+    public ModifyObjectResult(PrismObject<T> objectAfter,
             Collection<? extends ItemDelta<?, ?>> modifications) {
-        this(objectBefore, objectAfter, modifications, false);
+        this(objectAfter, modifications, false);
     }
 
-    public ModifyObjectResult(PrismObject<T> objectBefore, PrismObject<T> objectAfter,
-            Collection<? extends ItemDelta<?, ?>> modifications, boolean overwrite) {
-        this.objectBefore = objectBefore;
+    public ModifyObjectResult(PrismObject<T> objectAfter, Collection<? extends ItemDelta<?, ?>> modifications, boolean overwrite) {
         this.objectAfter = objectAfter;
         this.modifications = modifications;
         this.overwrite = overwrite;
-    }
-
-    public PrismObject<T> getObjectBefore() {
-        return objectBefore;
     }
 
     public PrismObject<T> getObjectAfter() {
@@ -68,10 +61,6 @@ public class ModifyObjectResult<T extends ObjectType> implements RepositoryOpera
 
     public Collection<? extends ItemDelta<?, ?>> getModifications() {
         return modifications;
-    }
-
-    public OperationRecord getPerformanceRecord() {
-        return performanceRecord;
     }
 
     public void setPerformanceRecord(OperationRecord performanceRecord) {
@@ -98,8 +87,7 @@ public class ModifyObjectResult<T extends ObjectType> implements RepositoryOpera
     @Override
     public String toString() {
         return "ModifyObjectResult{" +
-                "objectBefore=" + objectBefore +
-                ", objectAfter=" + objectAfter +
+                "objectAfter=" + objectAfter +
                 ", modifications=" + modifications +
                 ", performanceRecord=" + performanceRecord +
                 '}';
