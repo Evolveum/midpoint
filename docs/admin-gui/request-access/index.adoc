@@ -172,14 +172,6 @@ NOTE: Since 4.8 search behaviour can be customized using `autoCompleteConfigurat
 .Roles of teammate
 image::step-3-roles-of-teammate.png[Roles of teammate,100%]
 
-[NOTE]
-====
-Limitations:
-
-* Roles listed in the role catalog are also filtered by the authorization mechanism, and to compute authorizations, we only take the first user from the selected person of interest (first step) into account.
-* Role catalog table and search panel is currently not customizable via configuration.
-====
-
 == Shopping cart (checkout)
 
 .Shopping cart (checkout)
@@ -208,3 +200,5 @@ The current implementation displays the roles (items) which are allowed to be re
 This implementation suppose that sometimes even the items that are not allowed to be requested for some person of interest can get to the shopping cart.
 Anyhow, the submitting of the request in this case will fail with the authorization error.
 Therefore, the current implementation doesn't have any security impact.
+* Role catalog table and search panel is currently not customizable via configuration.
+
