@@ -11,10 +11,11 @@ import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
 import org.jetbrains.annotations.NotNull;
 
+import java.io.Serial;
 import java.io.Serializable;
 
 public class CertCampaignsSearchDto implements Serializable, DebugDumpable {
-    private static final long serialVersionUID = 1L;
+    @Serial private static final long serialVersionUID = 1L;
 
     public static final String F_STATE_FILTER = "stateFilter";
 
