@@ -164,6 +164,14 @@ NOTE: Since 4.8 search behaviour can be customized using `autoCompleteConfigurat
 .Roles of teammate
 image::step-3-roles-of-teammate.png[Roles of teammate,100%]
 
+[NOTE]
+====
+Limitations:
+
+* Roles listed in the role catalog are also filtered by the authorization mechanism, and to compute authorizations, we only take the first user from the selected person of interest (first step) into account.
+* Role catalog table and search panel is currently not customizable via configuration.
+====
+
 == Shopping cart (checkout)
 
 .Shopping cart (checkout)
