@@ -18,6 +18,8 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import static com.evolveum.midpoint.prism.PrismConstants.VALUE_METADATA_CONTAINER_NAME;
+
 public interface CachedObjectValue<T extends ObjectType> {
 
     /**
@@ -49,7 +51,8 @@ public interface CachedObjectValue<T extends ObjectType> {
                             return false;
                         }
                         // We are not interested in the value metadata, so we can skip visiting property & reference values
-                        return item instanceof PrismContainer<?>;
+                        return item instanceof PrismContainer<?>
+                                && !item.getElementName().equals(VALUE_METADATA_CONTAINER_NAME);
                     } else {
                         // Values should be visited
                         assert visitable instanceof PrismContainerValue<?>;
