@@ -21,7 +21,6 @@ import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.lazy.FlyweightClonedItem;
-import com.evolveum.midpoint.prism.lazy.ReparentedItem;
 import com.evolveum.midpoint.prism.lazy.LazyXNodeBasedPrismValue;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.SystemException;
