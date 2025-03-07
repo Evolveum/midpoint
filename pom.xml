@@ -218,6 +218,10 @@
         193 was used for 4 years with few problems, so it's still here to stay.
         -->
         <h2.version>1.4.193</h2.version>
+        
+        <!-- Updated to latest Spring Framework version of 5.3.x (before incompatible API changes introduced in 6) -->
+        <spring-framework.version>5.3.39</spring-framework.version>
+        
         <!-- Spring Boot parent declares most fresh versions for JDBC drivers for all our servers -->
         <wicket.version>9.18.0</wicket.version>
         <wicket.chartjs.version>0.1</wicket.chartjs.version>
