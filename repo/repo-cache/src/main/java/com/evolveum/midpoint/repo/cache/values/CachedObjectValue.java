@@ -8,6 +8,8 @@
 package com.evolveum.midpoint.repo.cache.values;
 
 import com.evolveum.midpoint.prism.Item;
+import com.evolveum.midpoint.prism.PrismContainer;
+import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
@@ -41,10 +43,16 @@ public interface CachedObjectValue<T extends ObjectType> {
                 visitable -> {
                     // TODO it would be better (from the performance viewpoint) if we could abort on the first occurrence
                     //  of an incomplete item
-                    if (visitable instanceof Item<?, ?> item && item.isIncomplete()) {
-                        allItemsComplete.set(false);
-                        return false;
+                    if (visitable instanceof Item<?, ?> item) {
+                        if (item.isIncomplete()) {
+                            allItemsComplete.set(false);
+                            return false;
+                        }
+                        // We are not interested in the value metadata, so we can skip visiting property & reference values
+                        return item instanceof PrismContainer<?>;
                     } else {
+                        // Values should be visited
+                        assert visitable instanceof PrismContainerValue<?>;
                         return true;
                     }
                 });
