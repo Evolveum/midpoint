@@ -90,7 +90,9 @@ class TaskCycleExecutor {
             while (task.canRun()) {
                 // Operation result should be initialized here (inside the loop), because for long-running tightly-bound
                 // recurring tasks it would otherwise bloat indefinitely.
-                OperationResult result = new OperationResult(OP_EXECUTE_RECURRING_TASK);
+                OperationResult result = OperationResult.newResult(OP_EXECUTE_RECURRING_TASK)
+                        .notRecordingValues() // temporary
+                        .build();
 
                 checkLatestExecutionTime();
 
@@ -164,7 +166,9 @@ class TaskCycleExecutor {
     }
 
     private void setNewOperationResult() {
-        OperationResult newResult = new OperationResult("run");
+        OperationResult newResult = OperationResult.newResult("run")
+                .notRecordingValues() // temporary
+                .build();
         newResult.setStatus(OperationResultStatus.IN_PROGRESS);
         task.setResult(newResult); // MID-4033
     }
