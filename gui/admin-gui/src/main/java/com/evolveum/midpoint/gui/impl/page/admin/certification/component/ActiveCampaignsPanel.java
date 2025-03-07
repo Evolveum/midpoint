@@ -7,6 +7,19 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.certification.component;
 
+import java.io.Serial;
+import java.util.List;
+
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.impl.page.admin.certification.PageCertItems;
+
+import org.apache.wicket.Component;
+import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.behavior.AttributeAppender;
+import org.apache.wicket.markup.html.WebMarkupContainer;
+import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.Model;
+
 import com.evolveum.midpoint.gui.api.component.progressbar.ProgressBar;
 import com.evolveum.midpoint.gui.api.component.wizard.NavigationPanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
@@ -114,7 +127,7 @@ public class ActiveCampaignsPanel extends CampaignsPanel {
                     }
                 };
                 showAll.showTitleAsLabel(true);
-                showAll.add(AttributeAppender.append("class", "btn btn-sm btn-secondary"));
+                showAll.add(AttributeAppender.append("class", "btn btn-default"));
 
                 return showAll;
             }
@@ -135,7 +148,26 @@ public class ActiveCampaignsPanel extends CampaignsPanel {
 
     @Override
     protected String getCampaignTileCssStyle() {
-        return "min-height: 250px;";
+        return " ";
     }
+
+    @Override
+    protected void nameColumnLinkClickPerformed(AjaxRequestTarget target,
+            IModel<SelectableBean<AccessCertificationCampaignType>> rowModel) {
+        if (rowModel == null || rowModel.getObject() == null || rowModel.getObject().getValue() == null) {
+            return;
+        }
+        showCertItems(rowModel.getObject().getValue().getOid(), target);
+    }
+
+    @Override
+    protected boolean isNameColumnLinkEnabled(IModel<SelectableBean<AccessCertificationCampaignType>> rowModel) {
+        return WebComponentUtil.isAuthorizedForPage(getCertItemsPage());
+    }
+
+    protected Class<? extends PageCertItems> getCertItemsPage() {
+        return PageCertItems.class;
+    }
+
 }
 

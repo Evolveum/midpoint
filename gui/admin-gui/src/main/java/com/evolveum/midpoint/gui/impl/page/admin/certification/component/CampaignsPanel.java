@@ -13,6 +13,10 @@ import java.util.List;
 
 import com.evolveum.midpoint.gui.api.component.Toggle;
 
+import com.evolveum.midpoint.web.component.data.column.AjaxLinkColumn;
+import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
+import com.evolveum.midpoint.web.component.util.SelectableBeanImpl;
+
 import com.evolveum.midpoint.gui.impl.page.admin.certification.helpers.CampaignStateHelper;
 
 import com.evolveum.midpoint.gui.impl.util.TableUtil;
@@ -118,7 +122,7 @@ public class CampaignsPanel extends BasePanel<AccessCertificationCampaignType> {
                         Component header = super.createHeader(id);
                         if (header instanceof SearchPanel) {
                             // mt-2 added because search panel now uses *-sm classes and it doesn't match rest of the layout
-                            header.add(AttributeAppender.append("class", "mt-2"));
+                            header.add(AttributeAppender.append("class", "align-content-center"));
                         }
 
                         return header;
@@ -147,7 +151,7 @@ public class CampaignsPanel extends BasePanel<AccessCertificationCampaignType> {
 
                     @Override
                     protected String getTileCssClasses() {
-                        return "col-12 col-md-4 col-lg-3 col-xxl-4i px-2";
+                        return "col-12 col-md-6 col-lg-4 col-xl-3 col-xxl-5i p-2 d-flex flex-column";
                     }
 
                     @Override
@@ -248,8 +252,26 @@ public class CampaignsPanel extends BasePanel<AccessCertificationCampaignType> {
 
     private List<IColumn<SelectableBean<AccessCertificationCampaignType>, String>> initColumns(
             IModel<List<AccessCertificationCampaignType>> campaignsModel) {
-        List<IColumn<SelectableBean<AccessCertificationCampaignType>, String>> columns =
-                ColumnUtils.getDefaultCertCampaignColumns(getPageBase());
+        List<IColumn<SelectableBean<AccessCertificationCampaignType>, String>> columns = new ArrayList<>();
+
+        IColumn<SelectableBean<AccessCertificationCampaignType>, String> column = new CheckBoxHeaderColumn<>();
+        columns.add(column);
+
+        column = new AjaxLinkColumn<>(createStringResource("PageCertCampaigns.table.name"),
+                SelectableBeanImpl.F_VALUE + "." + AccessCertificationCampaignType.F_NAME.getLocalPart()) {
+            @Override
+            public void onClick(AjaxRequestTarget target, IModel<SelectableBean<AccessCertificationCampaignType>> rowModel) {
+                nameColumnLinkClickPerformed(target, rowModel);
+            }
+
+            @Override
+            public boolean isEnabled(IModel<SelectableBean<AccessCertificationCampaignType>> rowModel) {
+                return isNameColumnLinkEnabled(rowModel);
+            }
+        };
+        columns.add(column);
+
+        columns.addAll(ColumnUtils.getDefaultCertCampaignColumns(getPageBase()));
 
         List<CampaignStateHelper.CampaignAction> campaignActions = CampaignStateHelper.getAllCampaignActions();
         List<InlineMenuItem> inlineMenuItems = campaignActions
@@ -302,6 +324,14 @@ public class CampaignsPanel extends BasePanel<AccessCertificationCampaignType> {
     }
 
     protected String getCampaignTileCssStyle() {
-        return "min-height: 340px;";
+        return " ";
+    }
+
+    protected void nameColumnLinkClickPerformed(AjaxRequestTarget target,
+            IModel<SelectableBean<AccessCertificationCampaignType>> rowModel) {
+    }
+
+    protected boolean isNameColumnLinkEnabled(IModel<SelectableBean<AccessCertificationCampaignType>> rowModel) {
+        return true;
     }
 }
