@@ -25,6 +25,7 @@ import com.evolveum.midpoint.schema.result.CompiledTracingProfile;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.TraceUtil;
+import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RepositorySearchObjectsTraceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TracingLevelType;
@@ -115,8 +116,8 @@ class SearchOpExecution<O extends ObjectType>
     }
 
     @Override
-    String getDescription() {
-        return type.getSimpleName() + ": " + query;
+    Object getDescription() {
+        return DebugUtil.lazy(() -> type.getSimpleName() + ": " + query);
     }
 
     @Override

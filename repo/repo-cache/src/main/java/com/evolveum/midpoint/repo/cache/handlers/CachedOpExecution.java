@@ -273,7 +273,7 @@ abstract class CachedOpExecution<
         return System.currentTimeMillis() - started;
     }
 
-    abstract String getDescription();
+    abstract Object getDescription();
     abstract Class<LC> getLocalCacheClass();
     abstract Class<GC> getGlobalCacheClass();
 }
