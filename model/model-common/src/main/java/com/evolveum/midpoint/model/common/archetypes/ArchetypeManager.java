@@ -9,9 +9,6 @@ package com.evolveum.midpoint.model.common.archetypes;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
-import com.evolveum.midpoint.schema.config.ConfigurationItemOrigin;
-
-import com.google.common.base.Preconditions;
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
 import javax.xml.namespace.QName;
@@ -38,7 +35,6 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.repo.api.Cache;
 import com.evolveum.midpoint.repo.api.CacheRegistry;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
-import com.evolveum.midpoint.schema.expression.ExpressionProfile;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ArchetypeTypeUtil;
 import com.evolveum.midpoint.schema.util.FocusTypeUtil;

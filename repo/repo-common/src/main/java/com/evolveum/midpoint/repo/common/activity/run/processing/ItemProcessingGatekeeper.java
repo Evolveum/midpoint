@@ -127,7 +127,8 @@ class ItemProcessingGatekeeper<I> {
      */
     @Nullable private ConnIdOperationsListener connIdOperationsListener;
 
-    ItemProcessingGatekeeper(@NotNull ItemProcessingRequest<I> request,
+    ItemProcessingGatekeeper(
+            @NotNull ItemProcessingRequest<I> request,
             @NotNull IterativeActivityRun<I, ?, ?, ?> activityRun,
             @NotNull RunningTask workerTask) {
         this.request = request;
@@ -412,7 +413,7 @@ class ItemProcessingGatekeeper<I> {
     private OperationResult initializeOperationResultIncludingTracingOrReporting(OperationResult parentResult) throws SchemaException {
         OperationResultBuilder builder = parentResult.subresult(OP_HANDLE)
                 .addParam("object", iterationItemInformation.toString());
-        if (workerTask.getTracingRequestedFor().contains(TracingRootType.ACTIVITY_ITEM_PROCESSING)) {
+        if (workerTask.isTracingRequestedFor(TracingRootType.ACTIVITY_ITEM_PROCESSING)) {
             tracingRequested = true;
             builder.tracingProfile(getTracer().compileProfile(workerTask.getTracingProfile(), parentResult));
         } else if (activityRun.shouldReportInternalOperations() &&

@@ -28,7 +28,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import java.util.List;
 
-import static com.evolveum.midpoint.schema.GetOperationOptions.createReadOnlyCollection;
+import static com.evolveum.midpoint.schema.GetOperationOptions.readOnly;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.ValuePolicyOriginType.OBJECT;
 
 import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
@@ -134,7 +134,7 @@ public abstract class AbstractValuePolicyOriginResolver<O extends ObjectType> im
                     .build();
             try {
                 List<PrismObject<FocusType>> objects =
-                        objectResolver.searchObjects(FocusType.class, query, createReadOnlyCollection(), task, result);
+                        objectResolver.searchObjects(FocusType.class, query, readOnly(), task, result);
                 if (objects.isEmpty()) {
                     return;
                 }
@@ -168,7 +168,7 @@ public abstract class AbstractValuePolicyOriginResolver<O extends ObjectType> im
             SecurityViolationException, ExpressionEvaluationException {
         ObjectQuery ownerQuery = getOwnerQuery();
         if (ownerQuery != null) {
-            objectResolver.searchIterative(getOwnerClass(), ownerQuery, createReadOnlyCollection(), handler, task, result);
+            objectResolver.searchIterative(getOwnerClass(), ownerQuery, readOnly(), handler, task, result);
         }
     }
 }

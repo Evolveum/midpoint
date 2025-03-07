@@ -40,7 +40,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
-import static com.evolveum.midpoint.schema.GetOperationOptions.createReadOnlyCollection;
+import static com.evolveum.midpoint.schema.GetOperationOptions.readOnly;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.UserInterfaceElementVisibilityType.*;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.UserInterfaceElementVisibilityType.AUTOMATIC;
 
@@ -69,7 +69,7 @@ public class DataPolicyProcessor {
         }
         for (ObjectReferenceType includeRef: objectTemplate.getIncludeRef()) {
             PrismObject<ObjectTemplateType> subTemplate = repositoryService.getObject(
-                    ObjectTemplateType.class, includeRef.getOid(), createReadOnlyCollection(), result);
+                    ObjectTemplateType.class, includeRef.getOid(), readOnly(), result);
             applyObjectTemplateToDefinition(objectDefinition, subTemplate.asObjectable(), task, result);
         }
         for (ObjectTemplateItemDefinitionType templateItemDef: objectTemplate.getItem()) {
@@ -97,7 +97,7 @@ public class DataPolicyProcessor {
         }
         for (ObjectReferenceType includeRef: objectTemplate.getIncludeRef()) {
             PrismObject<ObjectTemplateType> subTemplate = repositoryService.getObject(
-                    ObjectTemplateType.class, includeRef.getOid(), createReadOnlyCollection(), result);
+                    ObjectTemplateType.class, includeRef.getOid(), readOnly(), result);
             applyObjectTemplateToObject(object, subTemplate.asObjectable(), option, task, result);
         }
         for (ObjectTemplateItemDefinitionType templateItemDef: objectTemplate.getItem()) {

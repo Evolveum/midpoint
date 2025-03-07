@@ -6,11 +6,11 @@
  */
 package com.evolveum.midpoint.model.impl.lens;
 
+import static com.evolveum.midpoint.schema.GetOperationOptions.readOnly;
 import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.asObjectable;
 
 import static java.util.Collections.emptySet;
 
-import static com.evolveum.midpoint.schema.GetOperationOptions.createReadOnlyCollection;
 import static com.evolveum.midpoint.util.MiscUtil.or0;
 
 import java.util.*;
@@ -92,7 +92,7 @@ public class LensUtil {
         }
         // Fetching from provisioning to take advantage of caching and pre-parsed schema
         ResourceType retrieved = provisioningService
-                .getObject(ResourceType.class, resourceOid, createReadOnlyCollection(), task, result)
+                .getObject(ResourceType.class, resourceOid, readOnly(), task, result)
                 .asObjectable();
         context.rememberResource(retrieved);
         return retrieved;
@@ -380,7 +380,7 @@ public class LensUtil {
             objectResolver.searchIterative(
                     forcedAssignmentSpec.type(),
                     PrismContext.get().queryFactory().createQuery(forcedAssignmentSpec.filter()),
-                    createReadOnlyCollection(),
+                    readOnly(),
                     (object, result1) -> {
                         forcedAssignments.add( // [EP:APSO] this results in pure generated assignment, no expressions
                                 ObjectTypeUtil.createAssignmentTo(object));
@@ -652,8 +652,8 @@ public class LensUtil {
         }
         Item<?, ?> itemOld = ctx.getObjectOld().findItem(itemDelta.getPath());
         if (itemOld != null) {
-            //noinspection unchecked
-            itemDelta.setEstimatedOldValues((Collection) PrismValueCollectionsUtil.cloneCollection(itemOld.getValues()));
+            //noinspection unchecked, rawtypes
+            itemDelta.setEstimatedOldValuesWithCloning((Collection) itemOld.getValues());
             return;
         }
         // Here we need to distinguish whether the item is missing because it is not filled in (e.g. familyName in MID-4237)
@@ -666,8 +666,8 @@ public class LensUtil {
         if (ctx.getObjectCurrent() != null) {
             itemOld = ctx.getObjectCurrent().findItem(itemDelta.getPath());
             if (itemOld != null) {
-                //noinspection unchecked
-                itemDelta.setEstimatedOldValues((Collection) PrismValueCollectionsUtil.cloneCollection(itemOld.getValues()));
+                //noinspection unchecked, rawtypes
+                itemDelta.setEstimatedOldValuesWithCloning((Collection) itemOld.getValues());
             }
         }
     }

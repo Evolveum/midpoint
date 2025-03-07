@@ -92,8 +92,8 @@ public abstract class ItemProcessingRequest<I> implements AcknowledgementSink {
     public abstract @NotNull IterationItemInformation getIterationItemInformation();
 
     public boolean process(RunningTask workerTask, OperationResult result) {
-        ItemProcessingGatekeeper<I> gatekeeper = new ItemProcessingGatekeeper<>(this, activityRun, workerTask);
-        return gatekeeper.process(result);
+        return new ItemProcessingGatekeeper<>(this, activityRun, workerTask)
+                .process(result);
     }
 
     protected @NotNull String getRootTaskOid() {

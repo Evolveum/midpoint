@@ -120,8 +120,8 @@ class ItemDeltaBeanToNativeConversion<IV extends PrismValue, ID extends ItemDefi
         }
 
         if (!deltaBean.getEstimatedOldValue().isEmpty()) {
-            Collection<IV> parsedOldValues = getParsedValues(deltaBean.getEstimatedOldValue());
-            itemDelta.addEstimatedOldValues(parsedOldValues);
+            itemDelta.setEstimatedOldValues(
+                    getParsedValues(deltaBean.getEstimatedOldValue()));
         }
         return itemDelta;
     }

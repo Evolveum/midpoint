@@ -498,7 +498,7 @@ public class ObjectUpdater {
                     query.executeUpdate();
                     LOGGER.trace("Focus photo for {} was deleted", prismObject.getOid());
                 }
-                rv = new ModifyObjectResult<>(originalObject, prismObject, modifications);
+                rv = new ModifyObjectResult<>(prismObject, modifications);
             } else {
                 rv = new ModifyObjectResult<>(modifications);
             }
@@ -614,7 +614,7 @@ public class ObjectUpdater {
                 LOGGER.debug("Modification list is empty, nothing was modified.");
                 em.getTransaction().commit();
                 result.recordStatus(OperationResultStatus.SUCCESS, "Computed modification list is empty");
-                return new ModifyObjectResult<>(objectBefore, objectBefore, modifications);
+                return new ModifyObjectResult<>(objectBefore, modifications);
             }
 
             try {

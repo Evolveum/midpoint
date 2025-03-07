@@ -6,16 +6,15 @@
  */
 package com.evolveum.midpoint.model.impl.importer;
 
-import static org.apache.commons.lang3.BooleanUtils.*;
+import static com.evolveum.midpoint.schema.GetOperationOptions.readOnly;
 
-import static com.evolveum.midpoint.schema.GetOperationOptions.createReadOnlyCollection;
+import static org.apache.commons.lang3.BooleanUtils.*;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
-import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.schema.processor.ConnectorSchema;
 import com.evolveum.midpoint.schema.processor.ConnectorSchemaFactory;
@@ -311,7 +310,7 @@ public class ObjectImporter {
         if (isTrue(options.isKeepOid()) && object.getOid() == null) {
             // Try to check if there is existing object with the same type and name
             ObjectQuery query = ObjectQueryUtil.createNameQuery(object);
-            List<PrismObject<T>> foundObjects = repository.searchObjects(object.getCompileTimeClass(), query, createReadOnlyCollection(), result);
+            List<PrismObject<T>> foundObjects = repository.searchObjects(object.getCompileTimeClass(), query, readOnly(), result);
             if (foundObjects.size() == 1) {
                 String oid = foundObjects.iterator().next().getOid();
                 object.setOid(oid);
@@ -330,7 +329,7 @@ public class ObjectImporter {
                 PrismObject<T> foundObject;
                 if (object.getOid() == null) {
                     ObjectQuery query = ObjectQueryUtil.createNameQuery(object);
-                    List<PrismObject<T>> foundObjects = repository.searchObjects(object.getCompileTimeClass(), query, createReadOnlyCollection(), result);
+                    List<PrismObject<T>> foundObjects = repository.searchObjects(object.getCompileTimeClass(), query, readOnly(), result);
                     if (foundObjects.size() != 1) {
                         // Cannot locate conflicting object
                         String message = "Conflicting object already exists but it was not possible to precisely locate it, " + foundObjects.size() + " objects with same name exist";
@@ -340,9 +339,9 @@ public class ObjectImporter {
                     foundObject = foundObjects.iterator().next();
                 } else {
                     ObjectQuery queryByName = ObjectQueryUtil.createNameQuery(object);
-                    List<PrismObject<T>> foundObjectsByName = repository.searchObjects(object.getCompileTimeClass(), queryByName, createReadOnlyCollection(), result);
+                    List<PrismObject<T>> foundObjectsByName = repository.searchObjects(object.getCompileTimeClass(), queryByName, readOnly(), result);
                     ObjectQuery queryByOid = ObjectQueryUtil.createOidQuery(object);
-                    List<PrismObject<T>> foundObjectsByOid = repository.searchObjects(object.getCompileTimeClass(), queryByOid, createReadOnlyCollection(), result);
+                    List<PrismObject<T>> foundObjectsByOid = repository.searchObjects(object.getCompileTimeClass(), queryByOid, readOnly(), result);
                     if (foundObjectsByName.size() == 1 && foundObjectsByOid.isEmpty()) {
                         foundObject = foundObjectsByName.iterator().next();
                     } else if (foundObjectsByName.isEmpty() && foundObjectsByOid.size() == 1) {
@@ -480,10 +479,8 @@ public class ObjectImporter {
             }
 
             PrismObject<ConnectorType> connector;
-            ConnectorType connectorType;
             try {
                 connector = repository.getObject(ConnectorType.class, connectorOid, null, result);
-                connectorType = connector.asObjectable();
             } catch (ObjectNotFoundException e) {
                 // No connector, no fun. We can't check the schema. But this is referential integrity problem.
                 // Mark the error ... there is nothing more to do

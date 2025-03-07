@@ -299,7 +299,7 @@ public class Clockwork {
             builder.tracingProfile(
                     tracer.compileProfile(tracingProfile, parentResult));
             return true;
-        } else if (task.getTracingRequestedFor().contains(TracingRootType.CLOCKWORK_RUN)) {
+        } else if (task.isTracingRequestedFor(TracingRootType.CLOCKWORK_RUN)) {
             builder.tracingProfile(
                     tracer.compileProfile(
                             task.getTracingProfile(), parentResult));

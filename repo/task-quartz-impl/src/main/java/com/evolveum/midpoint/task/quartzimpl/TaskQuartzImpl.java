@@ -1828,19 +1828,35 @@ public class TaskQuartzImpl implements Task {
     //endregion
 
     //region Tracing
-    @NotNull
+
     @Override
-    public Collection<TracingRootType> getTracingRequestedFor() {
+    public boolean isTracingRequestedFor(@NotNull TracingRootType point) {
         if (taskManager.isTracingOverridden()) {
-            return taskManager.getGlobalTracingRequestedFor();
+            return taskManager.getGlobalTracingRequestedFor().contains(point);
         } else {
-            return tracingRequestedFor;
+            return tracingRequestedFor.contains(point);
         }
+    }
+
+    @Override
+    public @NotNull Collection<TracingRootType> getTracingRequestedFor() {
+        return tracingRequestedFor;
+    }
+
+    @Override
+    public void setTracingRequestedFor(@NotNull Collection<TracingRootType> points) {
+        tracingRequestedFor.clear();
+        tracingRequestedFor.addAll(points);
     }
 
     @Override
     public void addTracingRequest(TracingRootType point) {
         tracingRequestedFor.add(point);
+    }
+
+    @Override
+    public void removeTracingRequest(TracingRootType point) {
+        tracingRequestedFor.remove(point);
     }
 
     @Override

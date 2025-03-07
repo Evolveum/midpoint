@@ -1399,9 +1399,18 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
         lastCountMap.put(counter, currentCount);
     }
 
+    protected void displayCounterIncrement(InternalCounters counter) {
+        long currentCount = InternalMonitor.getCount(counter);
+        long actualIncrement = currentCount - getLastCount(counter);
+        displayValue("Increment for " + counter, actualIncrement);
+        lastCountMap.put(counter, currentCount);
+    }
+
     protected void assertCounterIncrement(InternalCounters counter, int expectedIncrementMin, int expectedIncrementMax) {
         long currentCount = InternalMonitor.getCount(counter);
         long actualIncrement = currentCount - getLastCount(counter);
+        System.out.printf("Increment for %s: %d (expected %d-%d)\n",
+                counter, actualIncrement, expectedIncrementMin, expectedIncrementMax);
         LOGGER.debug("Increment for {}: {}, expected: {}-{}",
                 counter, actualIncrement, expectedIncrementMin, expectedIncrementMax);
         assertTrue(actualIncrement >= expectedIncrementMin && actualIncrement <= expectedIncrementMax,

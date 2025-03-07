@@ -6,12 +6,12 @@
  */
 package com.evolveum.midpoint.model.impl.controller;
 
+import static com.evolveum.midpoint.schema.GetOperationOptions.*;
+
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singleton;
 import static org.apache.commons.collections4.CollectionUtils.addIgnoreNull;
 
-import static com.evolveum.midpoint.schema.GetOperationOptions.createExecutionPhase;
-import static com.evolveum.midpoint.schema.GetOperationOptions.createReadOnlyCollection;
 import static com.evolveum.midpoint.schema.SelectorOptions.createCollection;
 import static com.evolveum.midpoint.schema.config.ConfigurationItemOrigin.embedded;
 import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.asObjectable;
@@ -277,7 +277,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
         if (resourceOid != null) {
             PrismObject<ResourceType> resource;
             try {
-                resource = provisioning.getObject(ResourceType.class, resourceOid, createReadOnlyCollection(), task, result);
+                resource = provisioning.getObject(ResourceType.class, resourceOid, readOnly(), task, result);
             } catch (CommunicationException | SecurityViolationException | ExpressionEvaluationException e) {
                 throw new ConfigurationException(e.getMessage(), e);
             }
@@ -304,7 +304,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
                 ObjectReferenceType objectTemplateRef = archetypePolicy.getObjectTemplateRef();
                 if (objectTemplateRef != null) {
                     PrismObject<ObjectTemplateType> objectTemplate = cacheRepositoryService.getObject(
-                            ObjectTemplateType.class, objectTemplateRef.getOid(), createReadOnlyCollection(), result);
+                            ObjectTemplateType.class, objectTemplateRef.getOid(), readOnly(), result);
                     schemaTransformer.applyObjectTemplateToDefinition(
                             objectDefinition, objectTemplate.asObjectable(), task, result);
                 }
@@ -468,7 +468,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
     private @NotNull <O extends ObjectType> PrismObject<O> getFullObjectReadOnly(PrismObject<O> object, OperationResult result)
             throws ObjectNotFoundException, SchemaException {
         if (object.getOid() != null) {
-            return cacheRepositoryService.getObject(object.getCompileTimeClass(), object.getOid(), createReadOnlyCollection(), result);
+            return cacheRepositoryService.getObject(object.getCompileTimeClass(), object.getOid(), readOnly(), result);
         } else {
             return object;
         }
@@ -1031,8 +1031,8 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
         ValuePolicyType policy = null;
 
         if (noncePolicy != null && noncePolicy.getValuePolicyRef() != null) {
-            PrismObject<ValuePolicyType> valuePolicy = cacheRepositoryService.getObject(ValuePolicyType.class,
-                    noncePolicy.getValuePolicyRef().getOid(), null, result);
+            PrismObject<ValuePolicyType> valuePolicy = cacheRepositoryService.getObject(
+                    ValuePolicyType.class, noncePolicy.getValuePolicyRef().getOid(), readOnly(), result);
             policy = valuePolicy.asObjectable();
         }
 

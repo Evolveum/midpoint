@@ -174,6 +174,7 @@ public class SynchronizationActionExecutor<F extends FocusType> {
 
         try {
             for (var actionDefinition : reactionDefinition.getActions()) {
+                syncCtx.freezeShadowedResourceObject(); // To avoid cloning in the clockwork
                 ModelBeans.get().synchronizationActionFactory
                         .getActionInstance(
                                 new ActionInstantiationContext<>(

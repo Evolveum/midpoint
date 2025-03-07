@@ -64,8 +64,9 @@ public class CompleteBucketOperation extends BucketOperation {
         statisticsKeeper.register(BucketingConstants.COMPLETE_WORK_BUCKET);
     }
 
-    private @NotNull Collection<ItemDelta<?, ?>> computeCompletionModifications(@NotNull TaskType task) {
+    private @NotNull Collection<ItemDelta<?, ?>> computeCompletionModifications(@NotNull TaskType existingTask) {
 
+        var task = existingTask.clone(); // todo check if the code below can change the data
         ActivityStateType activityState = ActivityStateUtil.getActivityStateRequired(task.getActivityState(), activityPath);
         ActivityBucketingStateType bucketing = activityState.getBucketing();
         List<WorkBucketType> buckets = CloneUtil.cloneCollectionMembers(bucketing.getBucket());

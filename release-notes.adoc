@@ -453,6 +453,14 @@ You can use `ninja` tool for this.
 
 * Be sure to apply the changes to initial objects 800-804 (object marks), as well as to your custom object marks to handle the membership in the expected way.
 
+[#_behavior_changes_since_4_9]
+=== Behavior Changes Since 4.9
+
+* The contract for `ModificationsSupplier` in dynamic object modifications (repo API) was changed.
++
+The original approach was that the caller, i.e., repository, cloned the existing object before handling it to the callback (modifications supplier).
+Now, the implementor of the callback is responsible for not modifying the provided object in any way.
+
 [#_behavior_changes_since_4_8]
 === Behavior Changes Since 4.8
 

@@ -6,7 +6,7 @@
  */
 package com.evolveum.midpoint.model.impl.lens.projector.loader;
 
-import static com.evolveum.midpoint.schema.GetOperationOptions.createReadOnlyCollection;
+import static com.evolveum.midpoint.schema.GetOperationOptions.readOnly;
 import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.asObjectable;
 import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.getOid;
 import static com.evolveum.midpoint.util.DebugUtil.debugDumpLazily;
@@ -363,7 +363,7 @@ public class ContextLoader implements ProjectorProcessor {
         if (newOid != null) {
             focusContext.setFocusTemplate(
                     cacheRepositoryService
-                            .getObject(ObjectTemplateType.class, newOid, createReadOnlyCollection(), result)
+                            .getObject(ObjectTemplateType.class, newOid, readOnly(), result)
                             .asObjectable());
             focusContext.setExpandedFocusTemplate(
                     archetypeManager.getExpandedObjectTemplate(newOid, task.getExecutionMode(), result));

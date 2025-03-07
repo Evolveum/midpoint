@@ -488,6 +488,7 @@ public class ProjectionsLoadOperation<F extends FocusType> {
                 return; // "Gone" projection context is already created
             }
 
+            shadow.freeze(); // to avoid unnecessary cloning when shadow enters the projection context
             ContextAcquisitionResult acqResult =
                     new ShadowLevelLoadOperation(shadow.asObjectable())
                             .getOrCreate(result);
@@ -535,7 +536,7 @@ public class ProjectionsLoadOperation<F extends FocusType> {
             var options = SchemaService.get().getOperationOptionsBuilder()
                     .noFetch()
                     .futurePointInTime()
-                    //.readOnly() [not yet]
+                    .readOnly()
                     .build();
             LOGGER.trace("Loading shadow {} from linkRef, options={}", oid, options);
             try {

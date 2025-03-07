@@ -517,15 +517,18 @@ public abstract class CredentialPolicyEvaluator<R extends AbstractCredentialType
     }
 
     // TODO: generalize for other credentials
-    private void createDeleteHistoryDeltasIfNeeded(int historyLength, int addedValues, PrismContainer<R> currentCredentialContainer) throws SchemaException {
+    private void createDeleteHistoryDeltasIfNeeded(
+            int historyLength, int addedValues, PrismContainer<R> currentCredentialContainer) throws SchemaException {
 
-        PrismContainer<PasswordHistoryEntryType> historyEntriesContainer = currentCredentialContainer.findOrCreateContainer(PasswordType.F_HISTORY_ENTRY);
-        List<PrismContainerValue<PasswordHistoryEntryType>> historyEntryValues = historyEntriesContainer.getValues();
+        PrismContainer<PasswordHistoryEntryType> historyEntriesContainer =
+                currentCredentialContainer.findContainer(PasswordType.F_HISTORY_ENTRY);
+        List<PrismContainerValue<PasswordHistoryEntryType>> historyEntryValues =
+                historyEntriesContainer != null ? historyEntriesContainer.getValues() : List.of();
 
         if (!historyEntryValues.isEmpty()) {
             // We need to delete one more entry than intuitively expected - because we are computing from the history entries
             // in the old object. In the new object there will be one new history entry for the changed password.
-            int numberOfHistoryEntriesToDelete = historyEntriesContainer.size() - historyLength + addedValues + 1;
+            int numberOfHistoryEntriesToDelete = historyEntryValues.size() - historyLength + addedValues + 1;
 
             Iterator<PrismContainerValue<PasswordHistoryEntryType>> historyEntryIterator = historyEntryValues.iterator();
 

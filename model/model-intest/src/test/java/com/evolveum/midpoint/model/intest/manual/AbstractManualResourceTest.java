@@ -479,14 +479,14 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
         OperationResult result = task.getResult();
 
         modelService.getObject(ResourceType.class, getResourceOid(),
-                GetOperationOptions.createReadOnlyCollection(), task, result);
+                GetOperationOptions.readOnly(), task, result);
 
         assertSteadyResources();
 
         // WHEN
         when();
         modelService.getObject(ResourceType.class, getResourceOid(),
-                GetOperationOptions.createReadOnlyCollection(), task, result);
+                GetOperationOptions.readOnly(), task, result);
 
         assertSteadyResources();
 

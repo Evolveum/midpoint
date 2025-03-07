@@ -488,7 +488,7 @@ public class ProjectionMappingSetEvaluator {
         if (nonPositiveValues.isEmpty()) {
             return;
         }
-        targetItemDelta.setEstimatedOldValues(PrismValueCollectionsUtil.cloneCollection(nonPositiveValues));
+        targetItemDelta.setEstimatedOldValuesWithCloning(nonPositiveValues);
     }
 
     private <V extends PrismValue> boolean isMeaningful(PrismValueDeltaSetTriple<V> mappingOutputTriple) {

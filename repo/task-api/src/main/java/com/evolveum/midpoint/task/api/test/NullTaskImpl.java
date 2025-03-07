@@ -696,6 +696,11 @@ public class NullTaskImpl implements Task {
     public void setExecutionEnvironment(TaskExecutionEnvironmentType value) {
     }
 
+    @Override
+    public boolean isTracingRequestedFor(@NotNull TracingRootType point) {
+        return false;
+    }
+
     @NotNull
     @Override
     public Collection<TracingRootType> getTracingRequestedFor() {
@@ -703,12 +708,19 @@ public class NullTaskImpl implements Task {
     }
 
     @Override
+    public void setTracingRequestedFor(@NotNull Collection<TracingRootType> points) {
+    }
+
+    @Override
     public void addTracingRequest(TracingRootType point) {
     }
 
     @Override
-    public void removeTracingRequests() {
+    public void removeTracingRequest(TracingRootType point) {
+    }
 
+    @Override
+    public void removeTracingRequests() {
     }
 
     @Override

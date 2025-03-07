@@ -37,6 +37,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
+import static com.evolveum.midpoint.schema.GetOperationOptions.readOnly;
 import static com.evolveum.midpoint.schema.constants.SchemaConstants.*;
 
 /**
@@ -168,7 +169,7 @@ class CorrelationProcessing<F extends FocusType> {
             return beans.cacheRepositoryService.getObject(
                             ObjectTypeUtil.getTargetClassFromReference(ownerRef),
                             ownerRef.getOid(),
-                            null,
+                            readOnly(),
                             result)
                     .asObjectable();
         } catch (ObjectNotFoundException e) {

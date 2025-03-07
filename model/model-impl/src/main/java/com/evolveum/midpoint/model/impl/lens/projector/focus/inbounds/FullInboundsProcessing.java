@@ -12,6 +12,7 @@ import static com.evolveum.midpoint.util.DebugUtil.lazy;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Objects;
 import java.util.function.Function;
 
 import org.jetbrains.annotations.NotNull;
@@ -370,16 +371,20 @@ public class FullInboundsProcessing<F extends FocusType> extends AbstractInbound
                             return false;
                         }
 
-                        PrismObjectDefinition<F> focusDefinition = lensContext.getFocusContext().getObjectDefinition();
+                        var focusDefinition = lensContext.getFocusContext().getObjectDefinition();
+                        var targetPropertyDef = focusDefinition.findPropertyDefinition(targetPath);
                         @SuppressWarnings("rawtypes")
-                        PrismProperty mResult = focusDefinition.findPropertyDefinition(targetPath).instantiate();
+                        PrismProperty mResult = targetPropertyDef.instantiate();
                         //noinspection unchecked
                         mResult.addAll(PrismValueCollectionsUtil.cloneCollection(outputTriple.getNonNegativeValues()));
 
                         @SuppressWarnings("rawtypes")
-                        PrismProperty targetPropertyNew = focus.asPrismObject().findOrCreateProperty(targetPath);
+                        PrismProperty targetPropertyNew =
+                                Objects.requireNonNullElseGet(
+                                        focus.asPrismObject().findProperty(targetPath),
+                                        () -> targetPropertyDef.instantiate());
                         PropertyDelta<?> delta;
-                        if (ProtectedStringType.COMPLEX_TYPE.equals(targetPropertyNew.getDefinition().getTypeName())) {
+                        if (ProtectedStringType.COMPLEX_TYPE.equals(targetPropertyDef.getTypeName())) {
                             // We have to compare this in a special way. The cipherdata may be different due to a different
                             // IV, but the value may still be the same
                             ProtectedStringType resultValue = (ProtectedStringType) mResult.getRealValue();
@@ -398,9 +403,8 @@ public class FullInboundsProcessing<F extends FocusType> extends AbstractInbound
                             //noinspection unchecked
                             delta = targetPropertyNew.diff(mResult);
                         }
-                        if (LOGGER.isTraceEnabled()) {
-                            LOGGER.trace("targetPropertyNew:\n{}\ndelta:\n{}", targetPropertyNew.debugDump(1), DebugUtil.debugDump(delta, 1));
-                        }
+                        LOGGER.trace("targetPropertyNew:\n{}\ndelta:\n{}",
+                                targetPropertyNew.debugDumpLazily(1), DebugUtil.debugDumpLazily(delta, 1));
                         if (delta != null && !delta.isEmpty()) {
                             delta.setParentPath(targetPath.allExceptLast());
                             lensContext.getFocusContext().swallowToSecondaryDelta(delta);

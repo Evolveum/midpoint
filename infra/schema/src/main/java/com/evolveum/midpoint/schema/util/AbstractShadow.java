@@ -428,6 +428,11 @@ public interface AbstractShadow extends ShadowLikeValue, ShortDumpable, DebugDum
         return ShadowUtil.hasFetchError(getBean());
     }
 
+    /** Temporary implementation. */
+    default void freeze() {
+        getPrismObject().freeze();
+    }
+
     /**
      * The default implementation. Other specific implementations reside in particular modules like `provisioning-impl`.
      * (At least for now, until they are stabilized and proved to be generally useful.

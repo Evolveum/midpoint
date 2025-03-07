@@ -11,7 +11,7 @@ import static com.evolveum.midpoint.model.impl.lens.LensUtil.getExportType;
 import static com.evolveum.midpoint.schema.GetOperationOptions.createNoFetchCollection;
 import static com.evolveum.midpoint.util.MiscUtil.argCheck;
 
-import java.util.Collection;
+import com.evolveum.midpoint.schema.GetOperationOptionsBuilder;
 
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
@@ -23,8 +23,6 @@ import com.evolveum.midpoint.model.impl.lens.LensProjectionContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.GetOperationOptions;
-import com.evolveum.midpoint.schema.SchemaService;
-import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
@@ -133,11 +131,14 @@ class FocusLoadOperation<F extends ObjectType> {
             // Always load a complete object here, including the not-returned-by-default properties.
             // This is temporary measure to make sure that the mappings will have all they need.
             // See MID-2635
-            Collection<SelectorOptions<GetOperationOptions>> options = SchemaService.get().getOperationOptionsBuilder()
-                    .retrieve()
-                    //.readOnly() [not yet]
-                    .build();
-            object = beans.cacheRepositoryService.getObject(focusContext.getObjectTypeClass(), focusOid, options, result);
+            object = beans.cacheRepositoryService.getObject(
+                    focusContext.getObjectTypeClass(),
+                    focusOid,
+                    GetOperationOptionsBuilder.create()
+                            .retrieve()
+                            .readOnly()
+                            .build(),
+                    result);
             result.addReturnComment("Loaded from repository");
         }
         setLoadedFocusInTrace(object);

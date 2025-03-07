@@ -142,7 +142,8 @@ public class GetBucketOperation extends BucketOperation {
             Holder<GetBucketOperationAttempt> lastAttemptHolder = new Holder<>();
             ModifyObjectResult<TaskType> modifyResult = plainRepositoryService.modifyObjectDynamically(TaskType.class,
                     coordinatorTaskOid, null,
-                    coordinatorTask -> {
+                    existingCoordinatorTask -> {
+                        var coordinatorTask = existingCoordinatorTask.clone(); // todo check if the code below can change the data
                         GetBucketOperationAttempt attempt =
                                 new GetBucketOperationAttempt(coordinatorTask, workerTaskOid, activityPath,
                                         bucketFactory, bucketsToGet, bucketProgressHolder);

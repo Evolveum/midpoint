@@ -26,7 +26,6 @@ import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.cache.CacheConfigurationManager;
 import com.evolveum.midpoint.schema.cache.CacheType;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.util.LocalizableMessage;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.SingleLocalizableMessage;
 import com.evolveum.midpoint.util.caching.AbstractThreadLocalCache;
@@ -41,7 +40,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
-import static com.evolveum.midpoint.schema.GetOperationOptions.createReadOnlyCollection;
+import static com.evolveum.midpoint.schema.GetOperationOptions.readOnly;
 
 import static java.util.Objects.requireNonNull;
 
@@ -167,7 +166,7 @@ public class FocusConstraintsChecker<AH extends AssignmentHolderType> {
                 .build();
         }
 
-        List<PrismObject<AH>> foundObjects = repositoryService.searchObjects(objectClass, query, createReadOnlyCollection(), result);
+        List<PrismObject<AH>> foundObjects = repositoryService.searchObjects(objectClass, query, readOnly(), result);
         LOGGER.trace("Uniqueness check of {}, property {} resulted in {} results, using query:\n{}",
                 objectNew, propPath, foundObjects.size(), query.debugDumpLazily());
         if (foundObjects.isEmpty()) {

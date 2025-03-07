@@ -6,7 +6,7 @@
  */
 package com.evolveum.midpoint.model.impl.sync.tasks.imp;
 
-import static com.evolveum.midpoint.schema.GetOperationOptions.createReadOnlyCollection;
+import static com.evolveum.midpoint.schema.GetOperationOptions.readOnly;
 
 import javax.xml.namespace.QName;
 
@@ -56,7 +56,7 @@ public class ImportFromResourceLauncher {
         OperationResult result = parentResult.createSubresult(OP_IMPORT_SINGLE_SHADOW);
         try {
             ShadowType shadow = provisioningService
-                    .getObject(ShadowType.class, shadowOid, createReadOnlyCollection(), task, result)
+                    .getObject(ShadowType.class, shadowOid, readOnly(), task, result)
                     .asObjectable();
             ProcessingScope spec = syncTaskHelper.createProcessingScopeForShadow(shadow, task, result);
             Synchronizer synchronizer = new Synchronizer(

@@ -163,7 +163,8 @@ public class Resolver {
                     if (originalObject != null) {
                         Item<?, ?> originalItem = originalObject.findItem(itemDelta.getPath());
                         if (originalItem != null) {
-                            itemDelta.setEstimatedOldValues(CloneUtil.cloneCollectionMembers(originalItem.getValues()));
+                            //noinspection unchecked
+                            itemDelta.setEstimatedOldValuesWithCloning(originalItem.getValues());
                         }
                     }
                 }

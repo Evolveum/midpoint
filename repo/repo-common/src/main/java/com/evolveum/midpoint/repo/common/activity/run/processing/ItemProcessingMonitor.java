@@ -63,6 +63,9 @@ class ItemProcessingMonitor<I> {
     /** Tracing definition that was selected and applied (if any). */
     @Nullable private ActivityTracingDefinitionType tracingDefinitionUsed;
 
+    private Collection<TracingRootType> previousTracingPoints;
+    private TracingProfileType previousTracingProfile;
+
     ItemProcessingMonitor(ItemProcessingGatekeeper<I> itemProcessingGatekeeper) {
         this.workerTask = itemProcessingGatekeeper.getWorkerTask();
         this.activityRun = itemProcessingGatekeeper.getActivityRun();
@@ -93,6 +96,9 @@ class ItemProcessingMonitor<I> {
 
     private void startTracingIfNeeded(OperationResult result) {
         for (ActivityTracingDefinitionType tracing : reportingDefinition.getTracingConfigurationsSorted()) {
+            if (!arePointsApplicable(tracing)) {
+                continue;
+            }
             if (conditionEvaluator.legacyIntervalRejects(tracing.getInterval())) {
                 continue;
             }
@@ -101,6 +107,18 @@ class ItemProcessingMonitor<I> {
                 break;
             }
         }
+    }
+
+    private boolean arePointsApplicable(ActivityTracingDefinitionType tracing) {
+        var points = tracing.getTracingPoint();
+        return points.isEmpty() || points.stream().anyMatch(this::isPointApplicable);
+    }
+
+    private boolean isPointApplicable(TracingRootType point) {
+        // These are treated elsewhere
+        return point != TracingRootType.RETRIEVED_RESOURCE_OBJECT_PROCESSING
+                && point != TracingRootType.ASYNCHRONOUS_MESSAGE_PROCESSING
+                && point != TracingRootType.LIVE_SYNC_CHANGE_PROCESSING;
     }
 
     private void startProfiling() {
@@ -120,24 +138,27 @@ class ItemProcessingMonitor<I> {
         // and write trace only if after-condition is true.
         LOGGER.debug("Starting tracing for object number {}", activityRun.getItemsProcessed());
 
-        TracingProfileType configuredProfile = tracingDefinition.getTracingProfile();
-        List<TracingRootType> configuredPoints = tracingDefinition.getTracingPoint();
+        var configuredProfile = tracingDefinition.getTracingProfile();
+        var effectiveProfile = configuredProfile != null ? configuredProfile : activityRun.getBeans().tracer.getDefaultProfile();
 
-        TracingProfileType profile = configuredProfile != null ?
-                configuredProfile : activityRun.getBeans().tracer.getDefaultProfile();
-        Collection<TracingRootType> points = !configuredPoints.isEmpty() ?
-                configuredPoints : List.of(TracingRootType.ACTIVITY_ITEM_PROCESSING);
+        var configuredPoints = tracingDefinition.getTracingPoint();
+        var effectivePoints = !configuredPoints.isEmpty() ? configuredPoints : List.of(TracingRootType.ACTIVITY_ITEM_PROCESSING);
 
-        points.forEach(workerTask::addTracingRequest);
-        workerTask.setTracingProfile(profile);
+        previousTracingPoints = workerTask.getTracingRequestedFor();
+        previousTracingProfile = workerTask.getTracingProfile();
+
+        effectivePoints.forEach(workerTask::addTracingRequest);
+        workerTask.setTracingProfile(effectiveProfile);
     }
 
     private void stopTracing() {
-        workerTask.removeTracingRequests();
-        workerTask.setTracingProfile(null);
+        if (tracingDefinitionUsed != null) {
+            workerTask.setTracingRequestedFor(previousTracingPoints);
+            workerTask.setTracingProfile(previousTracingProfile);
+        }
     }
 
-    public void storeTrace(@NotNull Tracer tracer, @NotNull AdditionalVariableProvider additionalVariableProvider,
+    void storeTrace(@NotNull Tracer tracer, @NotNull AdditionalVariableProvider additionalVariableProvider,
             @NotNull RunningTask workerTask, @NotNull OperationResult resultToStore, OperationResult opResult) {
 
         if (tracingDefinitionUsed != null) {
