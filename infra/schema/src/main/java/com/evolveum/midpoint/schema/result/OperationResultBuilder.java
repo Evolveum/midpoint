@@ -97,4 +97,6 @@ public interface OperationResultBuilder {
     OperationResultBuilder operationKind(OperationKindType kind);
 
     OperationResultBuilder preserve();
+
+    OperationResultBuilder notRecordingValues();
 }

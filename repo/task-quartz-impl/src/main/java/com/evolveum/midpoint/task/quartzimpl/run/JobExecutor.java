@@ -65,7 +65,9 @@ public class JobExecutor implements InterruptableJob {
     public void execute(JobExecutionContext context) throws JobExecutionException {
         try {
             this.context = context;
-            this.executionResult = new OperationResult(OP_EXECUTE);
+            this.executionResult = OperationResult.newResult(OP_EXECUTE)
+                    .notRecordingValues() // TEMPORARY
+                    .build();
             executeInternal(executionResult);
         } catch (StopJobException e) {
             e.log(LOGGER);
