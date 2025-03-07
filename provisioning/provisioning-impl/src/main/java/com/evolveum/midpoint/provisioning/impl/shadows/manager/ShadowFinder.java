@@ -271,7 +271,7 @@ public class ShadowFinder {
         List<PrismObject<ShadowType>> shadows = searchRepoShadows(query, null, result);
 
         RawRepoShadow rawRepoShadow =
-                RawRepoShadow.selectLiveShadow(shadows, "when looking by attributes: " + attributes);
+                RawRepoShadow.selectLiveShadow(shadows, DebugUtil.lazy(() -> "when looking by attributes: " + attributes));
         if (rawRepoShadow != null) {
             return ctx.adoptRawRepoShadow(rawRepoShadow);
         } else {

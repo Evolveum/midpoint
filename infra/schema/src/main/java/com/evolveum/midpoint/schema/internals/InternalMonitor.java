@@ -8,6 +8,7 @@ package com.evolveum.midpoint.schema.internals;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Supplier;
 
 import com.evolveum.midpoint.prism.Objectable;
@@ -39,7 +40,7 @@ public class InternalMonitor implements PrismMonitor, DebugDumpable {
 
     private static final String CLONE_START_TIMESTAMP_KEY = InternalMonitor.class.getName()+".cloneStartTimestamp";
 
-    private static final Map<InternalCounters,Long> COUNTER_MAP = new HashMap<>();
+    private static final Map<InternalCounters, AtomicLong> COUNTER_MAP = new HashMap<>();
     private static final Map<InternalOperationClasses,Boolean> TRACE_CLASS_MAP = new HashMap<>();
     private static final Map<InternalCounters,Boolean> TRACE_COUNTER_MAP = new HashMap<>();
 
@@ -52,11 +53,8 @@ public class InternalMonitor implements PrismMonitor, DebugDumpable {
     private static InternalInspector inspector;
 
     public static long getCount(InternalCounters counter) {
-        Long count = COUNTER_MAP.get(counter);
-        if (count == null) {
-            return 0;
-        }
-        return count;
+        var count = COUNTER_MAP.get(counter);
+        return count != null ? count.get() : 0;
     }
 
     public static void recordCount(InternalCounters counter) {
@@ -67,13 +65,9 @@ public class InternalMonitor implements PrismMonitor, DebugDumpable {
     }
 
     private static synchronized long recordCountInternal(InternalCounters counter) {
-        Long count = COUNTER_MAP.get(counter);
-        if (count == null) {
-            count = 0L;
-        }
-        count++;
-        COUNTER_MAP.put(counter, count);
-        return count;
+        return COUNTER_MAP
+                .computeIfAbsent(counter, k -> new AtomicLong())
+                .incrementAndGet();
     }
 
     public static boolean isTrace(InternalOperationClasses operationClass) {
@@ -205,8 +199,8 @@ public class InternalMonitor implements PrismMonitor, DebugDumpable {
         long count = recordCountInternal(InternalCounters.PRISM_OBJECT_CLONE_COUNT);
         if (cloneTimingEnabled) {
             Object cloneStartObject = orig.getUserData(CLONE_START_TIMESTAMP_KEY);
-            if (cloneStartObject instanceof Long) {
-                long cloneDurationNanos = System.nanoTime() - (Long)cloneStartObject;
+            if (cloneStartObject instanceof Long aLong) {
+                long cloneDurationNanos = System.nanoTime() - aLong;
                 prismObjectCloneDurationNanos += cloneDurationNanos;
                 LOGGER.debug("MONITOR prism object clone end: {} (duration {} ns)", orig, cloneDurationNanos);
             } else {

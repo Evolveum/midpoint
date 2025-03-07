@@ -118,8 +118,8 @@ public class AssociationFromLinkExpressionEvaluator
                     "; the expression may be used in a wrong place. It is only supposed to work in a role.");
         }
         Object orderOneObject = orderOneObjectTypedValue.getValue();
-        if (orderOneObject instanceof AbstractRoleType) {
-            return (AbstractRoleType) orderOneObject;
+        if (orderOneObject instanceof AbstractRoleType abstractRole) {
+            return abstractRole;
         } else {
             throw new ExpressionEvaluationException("Order one object variable in " + context.getContextDescription() +
                     " is not a role, it is "+orderOneObject.getClass().getName() +
