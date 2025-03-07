@@ -106,8 +106,14 @@ public class PageActiveCampaigns extends PageAdminCertification {
                 return PageActiveCampaigns.this.getPrincipalAsReviewer();
             }
 
+            @Override
             protected IModel<String> getActiveCampaignsPanelTitleModel() {
                 return PageActiveCampaigns.this.getActiveCampaignsPanelTitleModel();
+            }
+
+            @Override
+            protected Class<? extends PageCertItems> getCertItemsPage() {
+                return PageActiveCampaigns.this.getCertItemsPage();
             }
 
         };

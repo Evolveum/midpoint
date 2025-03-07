@@ -10,6 +10,9 @@ package com.evolveum.midpoint.gui.impl.page.admin.certification.component;
 import java.io.Serial;
 import java.util.List;
 
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.impl.page.admin.certification.PageCertItems;
+
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
@@ -137,5 +140,24 @@ public class ActiveCampaignsPanel extends CampaignsPanel {
     protected String getCampaignTileCssStyle() {
         return " ";
     }
+
+    @Override
+    protected void nameColumnLinkClickPerformed(AjaxRequestTarget target,
+            IModel<SelectableBean<AccessCertificationCampaignType>> rowModel) {
+        if (rowModel == null || rowModel.getObject() == null || rowModel.getObject().getValue() == null) {
+            return;
+        }
+        showCertItems(rowModel.getObject().getValue().getOid(), target);
+    }
+
+    @Override
+    protected boolean isNameColumnLinkEnabled(IModel<SelectableBean<AccessCertificationCampaignType>> rowModel) {
+        return WebComponentUtil.isAuthorizedForPage(getCertItemsPage());
+    }
+
+    protected Class<? extends PageCertItems> getCertItemsPage() {
+        return PageCertItems.class;
+    }
+
 }
 
