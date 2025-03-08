@@ -30,6 +30,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.commons.lang3.StringUtils;
 
+import static com.evolveum.midpoint.schema.GetOperationOptions.readOnly;
+
 public class TransportUtil {
 
     private static final Trace LOGGER = TraceManager.getTrace(TransportUtil.class);
@@ -154,7 +156,7 @@ public class TransportUtil {
             return repositoryService
                     .getObject(
                             SystemConfigurationType.class, SystemObjectsType.SYSTEM_CONFIGURATION.value(),
-                            null, result)
+                            readOnly(), result)
                     .asObjectable();
         } catch (ObjectNotFoundException | SchemaException e) {
             if (errorIfNotFound) {

@@ -98,7 +98,7 @@ public class WorkItemManager {
 
     private boolean startTracingIfRequested(OperationResultBuilder builder, Task task, OperationResult parentResult)
             throws SchemaException {
-        if (task.getTracingRequestedFor().contains(TracingRootType.WORKFLOW_OPERATION)) {
+        if (task.isTracingRequestedFor(TracingRootType.WORKFLOW_OPERATION)) {
             builder.tracingProfile(
                     tracer.compileProfile(
                             task.getTracingProfile(), parentResult));

@@ -6,6 +6,8 @@
  */
 package com.evolveum.midpoint.repo.cache;
 
+import static com.evolveum.midpoint.schema.GetOperationOptions.*;
+
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.fail;
@@ -13,8 +15,6 @@ import static org.testng.AssertJUnit.fail;
 import static com.evolveum.midpoint.prism.util.PrismTestUtil.displayCollection;
 import static com.evolveum.midpoint.prism.util.PrismTestUtil.getPrismContext;
 import static com.evolveum.midpoint.repo.sqale.SqaleRepositoryService.REPOSITORY_IMPL_NAME;
-import static com.evolveum.midpoint.schema.GetOperationOptions.createReadOnlyCollection;
-import static com.evolveum.midpoint.schema.GetOperationOptions.createRetrieveCollection;
 
 import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -724,7 +724,7 @@ public class TestRepositoryCache extends AbstractSpringTest implements InfraTest
 
         when("object is retrieved with R/O option");
         clearStatistics();
-        var object4 = repositoryCache.getObject(objectClass, oid, createReadOnlyCollection(), result);
+        var object4 = repositoryCache.getObject(objectClass, oid, readOnly(), result);
 
         then("object is OK");
         displayDumpable("object retrieved", object4);
@@ -902,7 +902,7 @@ public class TestRepositoryCache extends AbstractSpringTest implements InfraTest
         when("in-memory representation is corrupted again, and objects are retrieved again (R/O mode)");
         objects3.get(0).asObjectable().setDescription("total garbage");
         clearStatistics();
-        var objects4 = repositoryCache.searchObjects(type, null, createReadOnlyCollection(), result);
+        var objects4 = repositoryCache.searchObjects(type, null, readOnly(), result);
 
         then("objects are OK");
         displayCollection("objects retrieved", objects4);
@@ -1062,7 +1062,7 @@ public class TestRepositoryCache extends AbstractSpringTest implements InfraTest
                             }
                             return true;
                         },
-                        readOnly ? createReadOnlyCollection() : null,
+                        readOnly ? readOnly() : null,
                         true, result);
         objects.setMetadata(metadata);
         return objects;

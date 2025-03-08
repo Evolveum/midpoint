@@ -6,7 +6,7 @@
  */
 package com.evolveum.midpoint.model.common;
 
-import static com.evolveum.midpoint.schema.GetOperationOptions.createReadOnlyCollection;
+import static com.evolveum.midpoint.schema.GetOperationOptions.readOnly;
 import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.asObjectable;
 import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.asObjectables;
 
@@ -16,7 +16,6 @@ import java.util.stream.Collectors;
 import com.evolveum.midpoint.schema.config.GlobalPolicyRuleConfigItem;
 import com.evolveum.midpoint.schema.util.MarkTypeUtil;
 
-import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.jetbrains.annotations.NotNull;
@@ -105,7 +104,7 @@ public class MarkManager {
                 prismContext.queryFor(MarkType.class)
                         .item(MarkType.F_URI).eq(uri)
                         .build(),
-                createReadOnlyCollection(),
+                readOnly(),
                 result);
         LOGGER.trace("Mark(s) by URI '{}': {}", uri, marks);
         return asObjectable(
@@ -121,7 +120,7 @@ public class MarkManager {
         try {
             return asObjectables(
                     cacheRepositoryService.searchObjects(
-                            MarkType.class, null, createReadOnlyCollection(), result));
+                            MarkType.class, null, readOnly(), result));
         } catch (SchemaException e) {
             throw SystemException.unexpected(e, "when retrieving all marks");
         }

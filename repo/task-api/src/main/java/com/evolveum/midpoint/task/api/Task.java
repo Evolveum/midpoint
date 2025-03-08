@@ -893,15 +893,24 @@ public interface Task extends DebugDumpable, StatisticsCollector, ConnIdOperatio
     //endregion
 
     //region Tracing
+    @Experimental
+    boolean isTracingRequestedFor(@NotNull TracingRootType point);
+
     /**
      * Get points for which the tracing is requested (within this task).
      */
     @Experimental
     @NotNull Collection<TracingRootType> getTracingRequestedFor();
 
+    @Experimental
+    void setTracingRequestedFor(@NotNull Collection<TracingRootType> points);
+
     /** Requests (future) tracing for given tracing point - for this task. */
     @Experimental
     void addTracingRequest(TracingRootType point);
+
+    @Experimental
+    void removeTracingRequest(TracingRootType point);
 
     /** Removes all tracing requests for this task. */
     @Experimental

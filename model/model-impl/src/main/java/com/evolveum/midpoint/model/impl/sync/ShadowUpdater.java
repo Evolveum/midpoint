@@ -94,7 +94,8 @@ class ShadowUpdater {
     }
 
     ShadowUpdater updateFullSyncTimestamp(XMLGregorianCalendar now) throws SchemaException {
-        applyShadowDelta(
+        // Not going to apply the delta to the shadow, as it's immutable now.
+        addShadowDelta(
                 SynchronizationUtils.createFullSynchronizationTimestampDelta(shadowBefore, now));
         return this;
     }
@@ -168,8 +169,12 @@ class ShadowUpdater {
     }
 
     private void applyShadowDelta(ItemDelta<?, ?> delta) throws SchemaException {
-        deltas.add(delta);
+        addShadowDelta(delta);
         delta.applyTo(syncCtx.getShadowedResourceObject().asPrismObject());
+    }
+
+    private void addShadowDelta(ItemDelta<?, ?> delta) {
+        deltas.add(delta);
     }
 
     void commit(OperationResult result) {

@@ -24,6 +24,7 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import com.evolveum.midpoint.prism.path.ItemName;
+import com.evolveum.midpoint.schema.internals.InternalCounters;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.task.ActivityPerformanceInformation;
 import com.evolveum.midpoint.test.util.TestReportUtil;
@@ -314,6 +315,8 @@ public class TestSystemPerformance extends AbstractStoryTest implements Performa
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
+        rememberCounter(InternalCounters.PRISM_OBJECT_CLONE_COUNT);
+
         int usersBefore = repositoryService.countObjects(UserType.class, null, null, result);
 
         String label = "initial-run-of-";
@@ -347,6 +350,8 @@ public class TestSystemPerformance extends AbstractStoryTest implements Performa
             logTaskFinish(taskAfter, label, result);
             taskDumper.dumpTask(taskAfter, getTestNameShort());
         }
+
+        displayCounterIncrement(InternalCounters.PRISM_OBJECT_CLONE_COUNT);
 
         String accountName = SourceInitializer.getAccountName(0);
 
@@ -447,6 +452,8 @@ public class TestSystemPerformance extends AbstractStoryTest implements Performa
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
+        rememberCounter(InternalCounters.PRISM_OBJECT_CLONE_COUNT);
+
         int usersBefore = repositoryService.countObjects(UserType.class, null, null, result);
 
         for (int retry = 0; retry < IMPORTS_CONFIGURATION.getNoOpRuns(); retry++) {
@@ -483,8 +490,9 @@ public class TestSystemPerformance extends AbstractStoryTest implements Performa
             }
         }
 
-        dumpRepresentativeShadows();
+        displayCounterIncrement(InternalCounters.PRISM_OBJECT_CLONE_COUNT);
 
+        dumpRepresentativeShadows();
     }
 
     @Test
@@ -493,6 +501,8 @@ public class TestSystemPerformance extends AbstractStoryTest implements Performa
 
         Task task = getTestTask();
         OperationResult result = task.getResult();
+
+        rememberCounter(InternalCounters.PRISM_OBJECT_CLONE_COUNT);
 
         for (int run = 0; run < RECONCILIATION_WITH_SOURCE_CONFIGURATION.getRuns(); run++) {
             String label = String.format("run-%d-of-", run + 1);
@@ -573,8 +583,9 @@ public class TestSystemPerformance extends AbstractStoryTest implements Performa
             }
         }
 
-        dumpRepresentativeShadows();
+        displayCounterIncrement(InternalCounters.PRISM_OBJECT_CLONE_COUNT);
 
+        dumpRepresentativeShadows();
     }
 
     @Test
@@ -583,6 +594,8 @@ public class TestSystemPerformance extends AbstractStoryTest implements Performa
 
         Task task = getTestTask();
         OperationResult result = task.getResult();
+
+        rememberCounter(InternalCounters.PRISM_OBJECT_CLONE_COUNT);
 
         when();
 
@@ -602,8 +615,9 @@ public class TestSystemPerformance extends AbstractStoryTest implements Performa
         logTaskFinish(taskAfter, "", result);
         taskDumper.dumpTask(taskAfter, getTestNameShort());
 
-        dumpRepresentativeShadows();
+        displayCounterIncrement(InternalCounters.PRISM_OBJECT_CLONE_COUNT);
 
+        dumpRepresentativeShadows();
     }
 
     @Test

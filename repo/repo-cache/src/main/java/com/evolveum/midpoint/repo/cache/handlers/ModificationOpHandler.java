@@ -79,8 +79,7 @@ public class ModificationOpHandler extends BaseOpHandler {
             // is acceptable.
             if (options != null && options.isOverwrite()) {
                 invalidator.invalidateCacheEntries(object.getCompileTimeClass(), oid,
-                        new ModifyObjectResult<>(object.getUserData(RepositoryService.KEY_ORIGINAL_OBJECT), object,
-                                Collections.emptyList(), options.isOverwrite()), result);
+                        new ModifyObjectResult<>(object, Collections.emptyList(), options.isOverwrite()), result);
             } else {
                 // just for sure (the object should not be there but ...)
                 invalidator.invalidateCacheEntries(object.getCompileTimeClass(), oid, new AddObjectResult<>(object), result);
@@ -115,7 +114,7 @@ public class ModificationOpHandler extends BaseOpHandler {
                 .build();
 
         if (result.isTracingAny(RepositoryModifyTraceType.class)) {
-            RepositoryModifyTraceType trace = new RepositoryModifyTraceType(prismContext)
+            RepositoryModifyTraceType trace = new RepositoryModifyTraceType()
                     .cache(true)
                     .objectType(prismContext.getSchemaRegistry().determineTypeForClass(type))
                     .oid(oid)
@@ -158,7 +157,7 @@ public class ModificationOpHandler extends BaseOpHandler {
                 .build();
 
         if (result.isTracingAny(RepositoryDeleteTraceType.class)) {
-            RepositoryDeleteTraceType trace = new RepositoryDeleteTraceType(prismContext)
+            RepositoryDeleteTraceType trace = new RepositoryDeleteTraceType()
                     .cache(true)
                     .objectType(prismContext.getSchemaRegistry().determineTypeForClass(type))
                     .oid(oid);

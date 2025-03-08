@@ -72,7 +72,8 @@ public class ActivityTreeStateOverview {
     public void recordLocalRunStart(@NotNull LocalActivityRun<?, ?, ?> run, @NotNull OperationResult result)
             throws ActivityRunException {
 
-        modifyRootTask(taskBean -> {
+        modifyRootTask(existingTaskBean -> {
+            var taskBean = existingTaskBean.clone(); // todo check if the code below can change the data
             boolean progressVisible = run.shouldUpdateProgressInStateOverview();
             ActivityStateOverviewType overview = getOrCreateStateOverview(taskBean);
             ActivityStateOverviewType entry = findOrCreateEntry(overview, run.getActivityPath());
@@ -107,7 +108,8 @@ public class ActivityTreeStateOverview {
     public void recordDistributedActivityRealizationStart(
             @NotNull DistributingActivityRun<?, ?, ?> run, @NotNull OperationResult result) throws ActivityRunException {
 
-        modifyRootTask(taskBean -> {
+        modifyRootTask(existingTaskBean -> {
+            var taskBean = existingTaskBean.clone(); // todo check if the code below can change the data
             ActivityStateOverviewType overview = getOrCreateStateOverview(taskBean);
             findOrCreateEntry(overview, run.getActivityPath())
                     .realizationState(ActivitySimplifiedRealizationStateType.IN_PROGRESS)
@@ -129,7 +131,8 @@ public class ActivityTreeStateOverview {
             @NotNull LocalActivityRun<?, ?, ?> run, List<Activity<?, ?>> children, @NotNull OperationResult result)
             throws ActivityRunException {
 
-        modifyRootTask(taskBean -> {
+        modifyRootTask(existingTaskBean -> {
+            var taskBean = existingTaskBean.clone(); // todo check if the code below can change the data
             ActivityStateOverviewType overview = getOrCreateStateOverview(taskBean);
             ActivityStateOverviewType entry = findOrCreateEntry(overview, run.getActivityPath());
             boolean changed = false;
@@ -154,7 +157,8 @@ public class ActivityTreeStateOverview {
             @NotNull LocalActivityRun<?, ?, ?> run, @Nullable ActivityRunResult runResult, @NotNull OperationResult result)
             throws ActivityRunException {
 
-        modifyRootTask(taskBean -> {
+        modifyRootTask(existingTaskBean -> {
+            var taskBean = existingTaskBean.clone(); // todo check if the code below can change the data
             boolean progressVisible = run.shouldUpdateProgressInStateOverview();
 
             ActivityStateOverviewType overview = getOrCreateStateOverview(taskBean);
@@ -186,7 +190,8 @@ public class ActivityTreeStateOverview {
     public void recordDistributedActivityRealizationFinish(
             @NotNull DistributingActivityRun<?, ?, ?> run, @NotNull ActivityRunResult runResult, @NotNull OperationResult result)
             throws ActivityRunException {
-        modifyRootTask(taskBean -> {
+        modifyRootTask(existingTaskBean -> {
+            var taskBean = existingTaskBean.clone(); // todo check if the code below can change the data
             ActivityStateOverviewType overview = getOrCreateStateOverview(taskBean);
             findOrCreateEntry(overview, run.getActivityPath())
                     .realizationState(runResult.getSimplifiedRealizationState())
@@ -204,7 +209,8 @@ public class ActivityTreeStateOverview {
             throws SchemaException, ObjectNotFoundException {
         Holder<Boolean> changed = new Holder<>(false);
 
-        modifyRootTaskUnchecked(taskBean -> {
+        modifyRootTaskUnchecked(existingTaskBean -> {
+            var taskBean = existingTaskBean.clone(); // todo check if the code below can change the data
             changed.setValue(false);
             ActivityStateOverviewType overview = getStateOverview(taskBean);
             if (overview == null) {
@@ -256,7 +262,8 @@ public class ActivityTreeStateOverview {
             return;
         }
 
-        modifyRootTask(taskBean -> {
+        modifyRootTask(existingTaskBean -> {
+            var taskBean = existingTaskBean.clone(); // todo check if the code below can change the data
             ActivityStateOverviewType overview = getOrCreateStateOverview(taskBean);
             ActivityStateOverviewType entry = findOrCreateEntry(overview, run.getActivityPath());
             if (isBefore(bucketProgress, entry.getBucketProgress())) {
@@ -299,7 +306,8 @@ public class ActivityTreeStateOverview {
             return;
         }
 
-        modifyRootTaskUnchecked(taskBean -> {
+        modifyRootTaskUnchecked(existingTaskBean -> {
+            var taskBean = existingTaskBean.clone(); // todo check if the code below can change the data
             ActivityStateOverviewType overview = getOrCreateStateOverview(taskBean);
             ActivityStateOverviewType entry = findOrCreateEntry(overview, run.getActivityPath());
             findOrCreateTaskEntry(entry, run.getRunningTask().getSelfReference())
@@ -316,7 +324,8 @@ public class ActivityTreeStateOverview {
     /** Finds all occurrences of the task in "running" activities and marks them as stalled. */
     public void markTaskStalled(@NotNull String taskOid, long stalledSince, OperationResult result)
             throws ObjectNotFoundException, SchemaException {
-        modifyRootTaskUnchecked(taskBean -> {
+        modifyRootTaskUnchecked(existingTaskBean -> {
+            var taskBean = existingTaskBean.clone(); // todo check if the code below can change the data
             ActivityStateOverviewType overview = getStateOverview(taskBean);
             if (overview == null) {
                 return List.of();

@@ -41,6 +41,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.function.Consumer;
+import java.util.function.Function;
 
 import static com.evolveum.midpoint.prism.delta.ObjectDelta.isAdd;
 import static com.evolveum.midpoint.schema.internals.ThreadLocalOperationsMonitor.recordEndEmbedded;
@@ -704,9 +705,10 @@ class ElementState<O extends ObjectType> implements Serializable, Cloneable {
      * Should be used only by the context loader.
      */
     void setCurrentAndOptionallyOld(@NotNull PrismObject<O> object, boolean setAlsoOld) {
-        setCurrentObject(object.cloneIfImmutable());
+        var immutable = CloneUtil.toImmutable(object);
+        setCurrentObject(immutable);
         if (setAlsoOld) {
-            setOldObject(object.clone());
+            setOldObject(immutable);
         }
     }
 
@@ -761,7 +763,7 @@ class ElementState<O extends ObjectType> implements Serializable, Cloneable {
     void simulateDeltaExecution(ObjectDelta<O> delta) throws SchemaException {
         if (simulatedExecutions == 0) {
             if (currentObject != null && currentObject.asObjectable() instanceof ShadowType) {
-                currentShadowBeforeSimulatedDeltaExecution = currentObject.clone();
+                currentShadowBeforeSimulatedDeltaExecution = currentObject.isImmutable() ? currentObject : currentObject.clone();
             } else {
                 // not necessary for focus objects
             }
@@ -780,15 +782,17 @@ class ElementState<O extends ObjectType> implements Serializable, Cloneable {
                         currentObject.debugDump(1), delta.debugDump(1));
             } else if (delta.isDelete()) {
                 clearCurrentObject();
-            } else {
+            } else if (!delta.isEmpty()) {
+                currentObject = currentObject.cloneIfImmutable();
                 delta.applyTo(currentObject);
                 invalidateCurrentObjectDependencies();
             }
         }
-        if (currentObject != null) {
+        if (!ObjectDelta.isEmpty(delta) && currentObject != null) {
             if (generateMissingContainerIds(currentObject)) {
                 invalidateCurrentObjectDependencies();
             }
+            currentObject.freeze();
         }
     }
 
@@ -910,15 +914,15 @@ class ElementState<O extends ObjectType> implements Serializable, Cloneable {
         archivedSecondaryDeltas.checkEncrypted("secondary deltas");
     }
 
-    void forEachObject(Consumer<PrismObject<O>> consumer) {
+    void forEachObject(Function<PrismObject<O>, PrismObject<O>> function) {
         if (currentObject != null) {
-            consumer.accept(currentObject);
+            currentObject = function.apply(currentObject);
         }
         if (oldObject != null) {
-            consumer.accept(oldObject);
+            oldObject = function.apply(oldObject);
         }
         if (newObject != null) {
-            consumer.accept(newObject);
+            newObject = function.apply(newObject);
         }
     }
 

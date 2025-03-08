@@ -18,7 +18,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectTemplateType;
 
-import static com.evolveum.midpoint.schema.GetOperationOptions.createReadOnlyCollection;
+import static com.evolveum.midpoint.schema.GetOperationOptions.readOnly;
 
 public class ObjectTemplateIncludeProcessor {
 
@@ -54,7 +54,7 @@ public class ObjectTemplateIncludeProcessor {
                 includedObject = includeRef.asReferenceValue().getObject();
             } else {
                 ObjectTemplateType includedObjectBean =
-                        objectResolver.resolve(includeRef, ObjectTemplateType.class, createReadOnlyCollection(),
+                        objectResolver.resolve(includeRef, ObjectTemplateType.class, readOnly(),
                         "include reference in "+objectTemplate + " in " + contextDesc, task, result);
                 includedObject = includedObjectBean.asPrismObject();
                 if (!includeRef.asReferenceValue().isImmutable()) {

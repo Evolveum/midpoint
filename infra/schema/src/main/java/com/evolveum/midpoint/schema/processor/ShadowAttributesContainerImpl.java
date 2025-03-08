@@ -248,7 +248,13 @@ public final class ShadowAttributesContainerImpl
     }
 
     @Override
+    public void performFreeze() {
+        getValue(); // let's create an empty value if there's none
+        super.performFreeze();
+    }
+
+    @Override
     protected String getDebugDumpClassName() {
-        return "RAC";
+        return "SAC";
     }
 }

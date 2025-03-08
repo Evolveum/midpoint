@@ -7,7 +7,7 @@
 
 package com.evolveum.midpoint.model.impl.lens.construction;
 
-import static com.evolveum.midpoint.schema.GetOperationOptions.createReadOnlyCollection;
+import static com.evolveum.midpoint.schema.GetOperationOptions.readOnly;
 
 import java.util.Collection;
 
@@ -145,7 +145,7 @@ class ConstructionResourceResolver {
 
         Collection<PrismObject<ResourceType>> matchingResources =
                 ModelBeans.get().modelObjectResolver.searchObjects(
-                        ResourceType.class, query, createReadOnlyCollection(), task, result);
+                        ResourceType.class, query, readOnly(), task, result);
 
         // TODO consider referential integrity settings
         if (CollectionUtils.isEmpty(matchingResources)) {

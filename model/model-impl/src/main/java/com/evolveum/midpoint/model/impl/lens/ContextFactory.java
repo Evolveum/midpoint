@@ -117,9 +117,8 @@ public class ContextFactory {
             @NotNull Task task,
             @NotNull OperationResult result)
             throws ObjectNotFoundException, SchemaException {
-        if (delta instanceof ShadowCoordinatesQualifiedObjectDelta) {
-            ResourceShadowCoordinates coordinates = MiscUtil.requireNonNull(
-                    ((ShadowCoordinatesQualifiedObjectDelta<ShadowType>) delta).getCoordinates(),
+        if (delta instanceof ShadowCoordinatesQualifiedObjectDelta<ShadowType> qualifiedDelta) {
+            ResourceShadowCoordinates coordinates = MiscUtil.requireNonNull(qualifiedDelta.getCoordinates(),
                     () -> new IllegalArgumentException("ShadowCoordinatesQualifiedObjectDelta without coordinates: " + delta));
             // Let us be strict here. This feature is not documented (probably not used) anyway, so we can safely do it.
             argCheck(coordinates.isTypeSpecified(), "No object type specified in the delta coordinates: %s", coordinates);
@@ -137,12 +136,18 @@ public class ContextFactory {
                     delta.getOid(),
                     () -> new IllegalArgumentException("Non-add delta " + delta + " does not have an OID"));
             try {
-                // TODO We should call the provisioning service here instead. Otherwise, obsolete data can be put into the context.
+                // TODO We should call the provisioning service here instead. (Or do the whole thing more intelligently, like
+                //  asking for the basic items (resource, OC, kind, intent) first, and only if they are not available, checking
+                //  with the provisioning.) The reason why calling repository in the current form is bad is that the
+                //  representation of attributes in the repository and in the provisioning API levels now differs significantly.
                 shadow = repositoryService
                         .getObject(
                                 ShadowType.class,
                                 oid,
-                                SchemaService.get().getOperationOptionsBuilder().allowNotFound().build(),
+                                SchemaService.get().getOperationOptionsBuilder()
+                                        .allowNotFound()
+                                        .readOnly()
+                                        .build(),
                                 result)
                         .asObjectable();
                 return projectionContextKeyFactory.createKey(shadow, task, result);

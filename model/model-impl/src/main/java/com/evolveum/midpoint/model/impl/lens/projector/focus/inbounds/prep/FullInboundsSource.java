@@ -40,7 +40,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 
-import static com.evolveum.midpoint.schema.GetOperationOptions.createReadOnlyCollection;
+import static com.evolveum.midpoint.schema.GetOperationOptions.readOnly;
 import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.asObjectable;
 
 /**
@@ -259,7 +259,7 @@ public class FullInboundsSource extends InboundsSource {
             OperationResult subResult = result.createMinorSubresult(OP_RESOLVE_ENTITLEMENT);
             try {
                 object = beans.provisioningService.getObject(
-                        ShadowType.class, oid, createReadOnlyCollection(), context.env.task, subResult);
+                        ShadowType.class, oid, readOnly(), context.env.task, subResult);
                 entitlementMap.put(object.getOid(), object); // The OID may be different -- is that OK?
                 entitlementMap.put(oid, object);
                 subResult.close();

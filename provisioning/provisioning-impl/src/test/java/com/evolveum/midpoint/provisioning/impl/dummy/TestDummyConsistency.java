@@ -1843,7 +1843,7 @@ public class TestDummyConsistency extends AbstractDummyTest {
         assertFailure(result);
 
         // @formatter:off
-        var asserter1 = syncServiceMock
+        syncServiceMock
             .assertNotifyChange()
             .assertNotifyChangeCalls(1)
             .lastNotifyChange()
@@ -1869,7 +1869,9 @@ public class TestDummyConsistency extends AbstractDummyTest {
             .pendingOperations();
         // @formatter:on
 
-        assertPendingOperationsAfter812(asserter1);
+        // We don't assert about the pending operation being completed in the shadow obtained by sync service,
+        // because the operation is marked as completed only AFTER the control is returned from sync service
+        // to provisioning module. This became obvious only when we started to provide shadow clone to sync service.
         assertPendingOperationsAfter812(asserter2);
 
         assertSteadyResources();

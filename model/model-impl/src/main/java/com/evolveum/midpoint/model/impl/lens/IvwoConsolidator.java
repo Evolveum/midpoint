@@ -309,8 +309,8 @@ public class IvwoConsolidator<V extends PrismValue, D extends ItemDefinition<?>,
 
     private void setEstimatedOldValues() {
         if (existingItem != null) {
-            List<V> existingValues = existingItem.getValues();
-            itemDelta.setEstimatedOldValues(PrismValueCollectionsUtil.cloneCollection(existingValues));
+            itemDelta.setEstimatedOldValuesWithCloning(
+                    existingItem.getValues());
         }
     }
 

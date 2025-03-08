@@ -486,7 +486,9 @@ class DeltaExecution<O extends ObjectType, E extends ObjectType> {
                 oid = executeSimulatedAddition(objectToAdd);
             }
             delta.setOid(oid);
-            objectToAdd.setOid(oid);
+            if (!objectToAdd.isImmutable()) {
+                objectToAdd.setOid(oid);
+            }
             LensUtil.setContextOid(context, elementContext, oid);
 
             task.recordObjectActionExecuted(

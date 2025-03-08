@@ -8,6 +8,7 @@
 package com.evolveum.midpoint.model.impl.sync;
 
 import static com.evolveum.midpoint.prism.PrismObject.asObjectable;
+import static com.evolveum.midpoint.schema.GetOperationOptions.readOnly;
 import static com.evolveum.midpoint.schema.internals.InternalsConfig.consistencyChecks;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.SynchronizationExclusionReasonType.*;
 
@@ -26,11 +27,8 @@ import com.evolveum.midpoint.model.impl.ModelBeans;
 import com.evolveum.midpoint.model.impl.sync.reactions.SynchronizationActionExecutor;
 import com.evolveum.midpoint.prism.PrismConstants;
 import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.provisioning.api.ResourceObjectShadowChangeDescription;
 import com.evolveum.midpoint.repo.api.RepositoryService;
-import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
@@ -154,13 +152,17 @@ public class SynchronizationServiceImpl implements SynchronizationService {
      */
     private <F extends FocusType> @Nullable F findLinkedOwner(SynchronizationContext.Complete<F> syncCtx, OperationResult result)
             throws SchemaException {
+
         ShadowType shadow = syncCtx.getShadowedResourceObject();
-        ObjectQuery query = prismContext.queryFor(FocusType.class)
-                .item(FocusType.F_LINK_REF).ref(shadow.getOid(), null, PrismConstants.Q_ANY)
-                .build();
-        // TODO read-only later
-        SearchResultList<PrismObject<FocusType>> owners =
-                repositoryService.searchObjects(FocusType.class, query, null, result);
+
+        var owners = repositoryService.searchObjects(
+                FocusType.class,
+                prismContext.queryFor(FocusType.class)
+                        .item(FocusType.F_LINK_REF)
+                        .ref(shadow.getOid(), null, PrismConstants.Q_ANY)
+                        .build(),
+                readOnly(),
+                result);
 
         if (owners.isEmpty()) {
             return null;

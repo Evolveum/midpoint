@@ -13,6 +13,10 @@ import java.util.List;
 
 import com.evolveum.midpoint.gui.api.component.Toggle;
 
+import com.evolveum.midpoint.web.component.data.column.AjaxLinkColumn;
+import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
+import com.evolveum.midpoint.web.component.util.SelectableBeanImpl;
+
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
@@ -237,8 +241,26 @@ public class CampaignsPanel extends BasePanel<AccessCertificationCampaignType> {
 
     private List<IColumn<SelectableBean<AccessCertificationCampaignType>, String>> initColumns(
             IModel<List<AccessCertificationCampaignType>> campaignsModel) {
-        List<IColumn<SelectableBean<AccessCertificationCampaignType>, String>> columns =
-                ColumnUtils.getDefaultCertCampaignColumns(getPageBase());
+        List<IColumn<SelectableBean<AccessCertificationCampaignType>, String>> columns = new ArrayList<>();
+
+        IColumn<SelectableBean<AccessCertificationCampaignType>, String> column = new CheckBoxHeaderColumn<>();
+        columns.add(column);
+
+        column = new AjaxLinkColumn<>(createStringResource("PageCertCampaigns.table.name"),
+                SelectableBeanImpl.F_VALUE + "." + AccessCertificationCampaignType.F_NAME.getLocalPart()) {
+            @Override
+            public void onClick(AjaxRequestTarget target, IModel<SelectableBean<AccessCertificationCampaignType>> rowModel) {
+                nameColumnLinkClickPerformed(target, rowModel);
+            }
+
+            @Override
+            public boolean isEnabled(IModel<SelectableBean<AccessCertificationCampaignType>> rowModel) {
+                return isNameColumnLinkEnabled(rowModel);
+            }
+        };
+        columns.add(column);
+
+        columns.addAll(ColumnUtils.getDefaultCertCampaignColumns(getPageBase()));
 
         List<CampaignStateHelper.CampaignAction> campaignActions = CampaignStateHelper.getAllCampaignActions();
         List<InlineMenuItem> inlineMenuItems = campaignActions
@@ -292,5 +314,13 @@ public class CampaignsPanel extends BasePanel<AccessCertificationCampaignType> {
 
     protected String getCampaignTileCssStyle() {
         return " ";
+    }
+
+    protected void nameColumnLinkClickPerformed(AjaxRequestTarget target,
+            IModel<SelectableBean<AccessCertificationCampaignType>> rowModel) {
+    }
+
+    protected boolean isNameColumnLinkEnabled(IModel<SelectableBean<AccessCertificationCampaignType>> rowModel) {
+        return true;
     }
 }

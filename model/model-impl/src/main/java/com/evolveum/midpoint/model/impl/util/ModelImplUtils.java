@@ -72,7 +72,7 @@ import org.jetbrains.annotations.Nullable;
 import javax.xml.namespace.QName;
 import java.util.*;
 
-import static com.evolveum.midpoint.schema.GetOperationOptions.createReadOnlyCollection;
+import static com.evolveum.midpoint.schema.GetOperationOptions.readOnly;
 
 public class ModelImplUtils {
 
@@ -397,7 +397,7 @@ public class ModelImplUtils {
 
         try {
             ObjectQuery query = prismContext.queryFactory().createQuery(objFilter);
-            objects = (List)repository.searchObjects(type, query, createReadOnlyCollection(), result);
+            objects = (List)repository.searchObjects(type, query, readOnly(), result);
 
         } catch (SchemaException e) {
             // This is unexpected, but may happen. Record fatal error
@@ -467,7 +467,7 @@ public class ModelImplUtils {
             PrismObject<? extends ObjectType> object = null;
             try {
                 // Maybe too courageous (we are not sure what clients do with the resolved objects).
-                object = repository.getObject(type, refVal.getOid(), createReadOnlyCollection(), result);
+                object = repository.getObject(type, refVal.getOid(), readOnly(), result);
             } catch (ObjectNotFoundException e) {
                 String message = "Reference " + refName + " refers to a non-existing object " + refVal.getOid();
                 if (enforceReferentialIntegrity) {

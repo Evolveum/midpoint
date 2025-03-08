@@ -10,7 +10,7 @@ package com.evolveum.midpoint.model.impl.controller;
 import static com.evolveum.midpoint.model.api.ModelService.EXECUTE_CHANGE;
 import static com.evolveum.midpoint.model.impl.controller.ModelController.OP_REEVALUATE_SEARCH_FILTERS;
 import static com.evolveum.midpoint.prism.polystring.PolyString.toPolyString;
-import static com.evolveum.midpoint.schema.GetOperationOptions.createReadOnlyCollection;
+import static com.evolveum.midpoint.schema.GetOperationOptions.readOnly;
 import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.asPrismObject;
 
 import java.util.ArrayList;
@@ -294,7 +294,7 @@ class RawChangesExecutor {
             T existingObject;
             try {
                 existingObject = cacheRepositoryService
-                        .getObject(clazz, oid, createReadOnlyCollection(), result)
+                        .getObject(clazz, oid, readOnly(), result)
                         .asObjectable();
                 objectToDetermineDetailsForAudit = existingObject;
             } catch (Throwable t) {
@@ -358,7 +358,7 @@ class RawChangesExecutor {
         T objectToDetermineDetailsForAudit;
         try {
             T existingObject = cacheRepositoryService
-                    .getObject(clazz, oid, createReadOnlyCollection(), result)
+                    .getObject(clazz, oid, readOnly(), result)
                     .asObjectable();
             objectToDetermineDetailsForAudit = existingObject;
             if (!preAuthorized) {
@@ -396,7 +396,7 @@ class RawChangesExecutor {
         OperationResult result = parentResult.createSubresult(OP_REEVALUATE_SEARCH_FILTERS);
         try {
             PrismObject<T> storedObject =
-                    cacheRepositoryService.getObject(objectTypeClass, oid, createReadOnlyCollection(), result);
+                    cacheRepositoryService.getObject(objectTypeClass, oid, readOnly(), result);
             PrismObject<T> updatedObject = storedObject.clone();
             ModelImplUtils.resolveReferences(
                     updatedObject,

@@ -7,6 +7,7 @@
 package com.evolveum.midpoint.notifications.impl.formatters;
 
 import static com.evolveum.midpoint.prism.polystring.PolyString.getOrig;
+import static com.evolveum.midpoint.schema.GetOperationOptions.readOnly;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -248,14 +249,13 @@ public class ValueFormatter {
 
     private <O extends ObjectType> PrismObject<O> getPrismObject(String oid, Class<? extends ObjectType> type, boolean mightBeRemoved, OperationResult result) {
         try {
-            Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(GetOperationOptions.createReadOnly());
-            //noinspection unchecked
             if (type == null) {
                 // Read by object typre
                 type = ObjectType.class;
 
             }
-            return (PrismObject<O>) cacheRepositoryService.getObject(type, oid, options, result);
+            //noinspection unchecked
+            return (PrismObject<O>) cacheRepositoryService.getObject(type, oid, readOnly(), result);
         } catch (ObjectNotFoundException e) {
             if (!mightBeRemoved) {
                 LoggingUtils.logException(LOGGER, "Couldn't resolve reference when displaying object name within a notification (it might be already removed)", e);

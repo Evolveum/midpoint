@@ -7,11 +7,10 @@
 
 package com.evolveum.midpoint.model.impl.lens.projector.focus;
 
+import static com.evolveum.midpoint.schema.GetOperationOptions.readOnly;
 import static com.evolveum.midpoint.schema.result.OperationResult.HANDLE_OBJECT_FOUND;
 
 import static org.apache.commons.lang3.BooleanUtils.isTrue;
-
-import static com.evolveum.midpoint.schema.GetOperationOptions.createReadOnlyCollection;
 
 import java.util.List;
 
@@ -97,7 +96,7 @@ public class AutoAssignMappingCollector {
         cacheRepositoryService.searchObjectsIterative(
                 AbstractRoleType.class, query,
                 handler.providingOwnOperationResult(OP_HANDLE_OBJECT_FOUND),
-                createReadOnlyCollection(), true, result);
+                readOnly(), true, result);
     }
 
     private <AH extends AssignmentHolderType> boolean isApplicableFor(

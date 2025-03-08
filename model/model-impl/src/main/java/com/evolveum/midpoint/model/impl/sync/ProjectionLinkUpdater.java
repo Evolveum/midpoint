@@ -6,7 +6,7 @@
  */
 package com.evolveum.midpoint.model.impl.sync;
 
-import static com.evolveum.midpoint.schema.GetOperationOptions.createReadOnlyCollection;
+import static com.evolveum.midpoint.schema.GetOperationOptions.readOnly;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -129,7 +129,7 @@ public class ProjectionLinkUpdater implements ShadowDeathListener {
         ObjectQuery query = prismContext.queryFor(FocusType.class)
                 .item(FocusType.F_LINK_REF).ref(shadowOid, null, PrismConstants.Q_ANY)
                 .build();
-        return repositoryService.searchObjects(FocusType.class, query, createReadOnlyCollection(), result);
+        return repositoryService.searchObjects(FocusType.class, query, readOnly(), result);
     }
 
     @Override

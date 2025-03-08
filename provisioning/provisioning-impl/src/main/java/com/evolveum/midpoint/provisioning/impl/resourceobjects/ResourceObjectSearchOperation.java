@@ -11,6 +11,10 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import com.evolveum.midpoint.provisioning.ucf.api.ShadowItemsToReturn;
 
+import com.evolveum.midpoint.util.logging.LevelOverrideTurboFilter;
+import com.evolveum.midpoint.util.logging.TracingAppender;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TracingRootType;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -203,13 +207,19 @@ class ResourceObjectSearchOperation extends AbstractResourceObjectRetrievalOpera
             int objectNumber = objectCounter.getAndIncrement();
 
             try {
-                OperationResult objResult = parentResult
+                var builder = parentResult
                         .subresult(ResourceObjectConverter.OP_HANDLE_OBJECT_FOUND)
                         .setMinor()
                         .addParam("number", objectNumber)
                         .addArbitraryObjectAsParam("primaryIdentifierValue", ucfObject.getPrimaryIdentifierValue())
-                        .addArbitraryObjectAsParam("errorState", ucfObject.getErrorState())
-                        .build();
+                        .addArbitraryObjectAsParam("errorState", ucfObject.getErrorState());
+                var task = ctx.getTask();
+                var tracing = task.isTracingRequestedFor(TracingRootType.RETRIEVED_RESOURCE_OBJECT_PROCESSING);
+                var tracer = tracing ? ResourceObjectsBeans.get().tracer : null;
+                if (tracing) {
+                    builder.tracingProfile(tracer.compileProfile(task.getTracingProfile(), parentResult));
+                }
+                var objResult = builder.build();
                 try {
                     // Intentionally not initializing the object here. Let us be flexible and let the ultimate caller decide.
                     return resultHandler.handle(objectFound, objResult);
@@ -218,6 +228,11 @@ class ResourceObjectSearchOperation extends AbstractResourceObjectRetrievalOpera
                     throw t;
                 } finally {
                     objResult.close();
+                    if (tracing) {
+                        tracer.storeTrace(task, objResult, parentResult);
+                        TracingAppender.removeSink(); // todo reconsider
+                        LevelOverrideTurboFilter.cancelLoggingOverride(); // todo reconsider
+                    }
                 }
             } finally {
                 RepositoryCache.exitLocalCaches();

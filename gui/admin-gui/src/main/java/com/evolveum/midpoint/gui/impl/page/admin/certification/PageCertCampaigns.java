@@ -6,11 +6,14 @@
  */
 package com.evolveum.midpoint.gui.impl.page.admin.certification;
 
+import com.evolveum.midpoint.gui.impl.page.admin.certification.helpers.CampaignProcessingHelper;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 
+import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignType;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.LoadableDetachableModel;
@@ -108,6 +111,17 @@ public class PageCertCampaigns extends PageAdminCertification {
                         .item(AccessCertificationCampaignType.F_DEFINITION_REF)
                         .ref(certDefinitionOid)
                         .build();
+            }
+
+            @Override
+            protected void nameColumnLinkClickPerformed(AjaxRequestTarget target,
+                    IModel<SelectableBean<AccessCertificationCampaignType>> rowModel) {
+                CampaignProcessingHelper.campaignDetailsPerformed(rowModel.getObject().getValue().getOid(), getPageBase());
+            }
+
+            @Override
+            protected boolean isNameColumnLinkEnabled(IModel<SelectableBean<AccessCertificationCampaignType>> rowModel) {
+                return WebComponentUtil.isAuthorizedForPage(PageCertCampaign.class);
             }
         };
     }

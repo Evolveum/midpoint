@@ -30,7 +30,7 @@ import org.springframework.stereotype.Component;
 import jakarta.annotation.PostConstruct;
 import javax.xml.datatype.XMLGregorianCalendar;
 
-import static com.evolveum.midpoint.schema.GetOperationOptions.createReadOnlyCollection;
+import static com.evolveum.midpoint.schema.GetOperationOptions.readOnly;
 
 /**
  * @author Radovan Semancik
@@ -62,7 +62,7 @@ public class CompletedTaskCleanupTriggerHandler implements SingleTriggerHandler 
                 return;
             }
             TaskType completedTask = repositoryService
-                    .getObject(TaskType.class, object.getOid(), createReadOnlyCollection(), result)
+                    .getObject(TaskType.class, object.getOid(), readOnly(), result)
                     .asObjectable();
             LOGGER.trace("Checking completed task to be deleted {}", completedTask);
             if (completedTask.getExecutionState() != TaskExecutionStateType.CLOSED) {

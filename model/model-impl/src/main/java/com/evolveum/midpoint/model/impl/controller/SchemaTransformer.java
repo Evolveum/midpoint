@@ -6,7 +6,7 @@
  */
 package com.evolveum.midpoint.model.impl.controller;
 
-import static com.evolveum.midpoint.schema.GetOperationOptions.createReadOnlyCollection;
+import static com.evolveum.midpoint.schema.GetOperationOptions.readOnly;
 import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
 
 import java.util.ArrayList;
@@ -486,8 +486,7 @@ public class SchemaTransformer {
             return null;
         }
         PrismObject<ObjectTemplateType> template =
-                repositoryService.getObject(
-                        ObjectTemplateType.class, objectTemplateRef.getOid(), createReadOnlyCollection(), result);
+                repositoryService.getObject(ObjectTemplateType.class, objectTemplateRef.getOid(), readOnly(), result);
         return template.asObjectable();
     }
 

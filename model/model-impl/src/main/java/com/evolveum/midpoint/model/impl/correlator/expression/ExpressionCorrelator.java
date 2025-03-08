@@ -7,6 +7,7 @@
 
 package com.evolveum.midpoint.model.impl.correlator.expression;
 
+import static com.evolveum.midpoint.schema.GetOperationOptions.readOnly;
 import static com.evolveum.midpoint.util.DebugUtil.lazy;
 
 import java.util.Collection;
@@ -207,7 +208,7 @@ public class ExpressionCorrelator extends BaseCorrelator<ExpressionCorrelatorTyp
             try {
                 //noinspection unchecked
                 return beans.cacheRepositoryService
-                        .getObject((Class<F>) type, candidateOwnerRef.getOid(), null, result)
+                        .getObject((Class<F>) type, candidateOwnerRef.getOid(), readOnly(), result)
                         .asObjectable();
             } catch (Exception e) {
                 MiscUtil.throwAsSame(e, "Couldn't resolve OID returned by correlation expression: " + e.getMessage());
