@@ -92,9 +92,9 @@ public class CertMiscUtil {
         }
     }
 
-    public static LoadableModel<List<ProgressBar>> createCampaignWorkItemsProgressBarModel(AccessCertificationCampaignType campaign,
-            MidPointPrincipal principal, PageBase pageBase) {
-        return new LoadableModel<>() {
+    public static LoadableDetachableModel<List<ProgressBar>> createCampaignWorkItemsProgressBarModel(AccessCertificationCampaignType campaign,
+            String principalOid, PageBase pageBase) {
+        return new LoadableDetachableModel<>() {
             @Serial private static final long serialVersionUID = 1L;
 
             @Override
@@ -116,11 +116,11 @@ public class CertMiscUtil {
 
                 try {
                     ObjectQuery allWorkItems;
-                    if (principal != null) {
+                    if (principalOid != null) {
                         allWorkItems = queryBasePart
                                 .and()
                                 .item(ItemPath.create(AbstractWorkItemType.F_ASSIGNEE_REF))
-                                .ref(principal.getOid())
+                                .ref(principalOid)
                                 .build();
                     } else {
                         allWorkItems = queryBasePart
@@ -141,11 +141,11 @@ public class CertMiscUtil {
                             .item(AccessCertificationWorkItemType.F_OUTPUT, AbstractWorkItemOutputType.F_OUTCOME)
                             .isNull();
                     ObjectQuery processedItemsQuery;
-                    if (principal != null) {
+                    if (principalOid != null) {
                         processedItemsQuery = processedItemsQueryPart
                                 .and()
                                 .item(ItemPath.create(AccessCertificationWorkItemType.F_ASSIGNEE_REF))
-                                .ref(principal.getOid())
+                                .ref(principalOid)
                                 .build();
                     } else {
                         processedItemsQuery = processedItemsQueryPart
@@ -172,9 +172,9 @@ public class CertMiscUtil {
         };
     }
 
-    public static LoadableModel<List<ProgressBar>> createCampaignCasesProgressBarModel(AccessCertificationCampaignType campaign,
-            MidPointPrincipal principal, PageBase pageBase) {
-        return new LoadableModel<>() {
+    public static LoadableDetachableModel<List<ProgressBar>> createCampaignCasesProgressBarModel(AccessCertificationCampaignType campaign,
+            String principalOid, PageBase pageBase) {
+        return new LoadableDetachableModel<>() {
             @Serial private static final long serialVersionUID = 1L;
 
             @Override
@@ -196,11 +196,11 @@ public class CertMiscUtil {
 
                 try {
                     ObjectQuery allCases;
-                    if (principal != null) {
+                    if (principalOid != null) {
                         allCases = queryBasePart
                                 .and()
                                 .item(ItemPath.create(AccessCertificationCaseType.F_WORK_ITEM, AbstractWorkItemType.F_ASSIGNEE_REF))
-                                .ref(principal.getOid())
+                                .ref(principalOid)
                                 .build();
                     } else {
                         allCases = queryBasePart
@@ -221,11 +221,11 @@ public class CertMiscUtil {
                             .item(AccessCertificationCaseType.F_CURRENT_STAGE_OUTCOME)
                             .eq(OutcomeUtils.toUri(NO_RESPONSE));
                     ObjectQuery processedCasesQuery;
-                    if (principal != null) {
+                    if (principalOid != null) {
                         processedCasesQuery = processedCasesQueryPart
                                 .and()
                                 .item(ItemPath.create(AccessCertificationCaseType.F_WORK_ITEM, AccessCertificationWorkItemType.F_ASSIGNEE_REF))
-                                .ref(principal.getOid())
+                                .ref(principalOid)
                                 .build();
                     } else {
                         processedCasesQuery = processedCasesQueryPart

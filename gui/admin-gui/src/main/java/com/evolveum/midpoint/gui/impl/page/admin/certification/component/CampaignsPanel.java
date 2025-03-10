@@ -298,8 +298,8 @@ public class CampaignsPanel extends BasePanel<AccessCertificationCampaignType> {
             @Serial private static final long serialVersionUID = 1L;
 
             @Override
-            protected LoadableModel<List<ProgressBar>> createCampaignProgressModel() {
-                return CertMiscUtil.createCampaignCasesProgressBarModel(getCampaign(), getPrincipal(), getPageBase());
+            protected LoadableDetachableModel<List<ProgressBar>> createCampaignProgressModel() {
+                return CertMiscUtil.createCampaignCasesProgressBarModel(getCampaign(), getPrincipalOid(), getPageBase());
             }
         };
     }
