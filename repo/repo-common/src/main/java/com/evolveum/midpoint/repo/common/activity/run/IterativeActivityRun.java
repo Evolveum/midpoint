@@ -10,6 +10,7 @@ package com.evolveum.midpoint.repo.common.activity.run;
 import static com.evolveum.midpoint.schema.result.OperationResultStatus.FATAL_ERROR;
 import static com.evolveum.midpoint.schema.result.OperationResultStatus.PARTIAL_ERROR;
 import static com.evolveum.midpoint.schema.util.task.ActivityItemProcessingStatisticsUtil.*;
+import static com.evolveum.midpoint.task.api.TaskRunResult.TaskRunResultStatus.HALTING_ERROR;
 import static com.evolveum.midpoint.task.api.TaskRunResult.TaskRunResultStatus.PERMANENT_ERROR;
 
 import java.util.Objects;
@@ -506,6 +507,11 @@ public abstract class IterativeActivityRun<
         Throwable stoppingException = errorState.getStoppingException();
         if (stoppingException != null) {
             // TODO In the future we should distinguish between permanent and temporary errors here.
+
+            if (stoppingException instanceof ThresholdPolicyViolationException) {
+                return ActivityRunResult.exception(FATAL_ERROR, HALTING_ERROR, stoppingException);
+            }
+
             return ActivityRunResult.exception(FATAL_ERROR, PERMANENT_ERROR, stoppingException);
         } else if (transientRunStatistics.getErrors() > 0) {
             return ActivityRunResult
