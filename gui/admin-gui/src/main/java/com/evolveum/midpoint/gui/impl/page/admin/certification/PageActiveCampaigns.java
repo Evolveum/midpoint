@@ -102,8 +102,8 @@ public class PageActiveCampaigns extends PageAdminCertification {
             }
 
             @Override
-            protected MidPointPrincipal getPrincipal() {
-                return PageActiveCampaigns.this.getPrincipalAsReviewer();
+            protected String getPrincipalOid() {
+                return PageActiveCampaigns.this.getReviewerOid();
             }
 
             @Override
@@ -158,6 +158,11 @@ public class PageActiveCampaigns extends PageAdminCertification {
                     .build();
         }
     }
+
+    private String getReviewerOid() {
+        return getPrincipalAsReviewer() != null ? getPrincipalAsReviewer().getOid() : null;
+    }
+
 
     private MidPointPrincipal getPrincipalAsReviewer() {
         return isDisplayingAllItems() ? null : getPrincipal();

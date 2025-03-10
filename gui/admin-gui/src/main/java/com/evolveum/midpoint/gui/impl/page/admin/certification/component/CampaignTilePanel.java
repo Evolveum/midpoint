@@ -386,7 +386,7 @@ public class CampaignTilePanel extends BasePanel<TemplateTile<SelectableBean<Acc
         return true;
     }
 
-    protected MidPointPrincipal getPrincipal() {
+    protected String getPrincipalOid() {
         return null;
     }
 
@@ -406,7 +406,7 @@ public class CampaignTilePanel extends BasePanel<TemplateTile<SelectableBean<Acc
      *
      * @return
      */
-    protected LoadableModel<List<ProgressBar>> createCampaignProgressModel() {
+    protected LoadableDetachableModel<List<ProgressBar>> createCampaignProgressModel() {
         return null;
     }
 
