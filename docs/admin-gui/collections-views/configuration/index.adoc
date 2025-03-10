@@ -11,7 +11,6 @@ doc-type: config
 :page-wiki-metadata-create-date: 2019-04-24T14:36:12.315+02:00
 :page-wiki-metadata-modify-user: lskublik
 :page-wiki-metadata-modify-date: 2021-02-26T14:25:04.587+01:00
-:page-since: "4.0"
 :page-toc: top
 :page-upkeep-status: yellow
 :page-upkeep-note: Collection domain is no longer experimental. The page is probably old, we need to review this page.
@@ -179,7 +178,7 @@ There may be archetypes that are just being prepared for use, or archetypes that
 Archetypes are not added often, therefore it is not any great burden to create a view for them.
 Especially in this case when they can be used as an implicit collection.
 
-Since midPoint 4.4, views containing reference to the Archetype are also used while new object is going to be created. Instead of redirecting to default object form for new object, template preview is shown first. All views configured for specific type using Archetype as a collection are collected and shown. Only after concrete _template_ for the new object is selected, the form is shown. Selected template (based on the archetype) might influence how the form will look since it is possible to adjust object details configuration in archetype.
+Views containing reference to the Archetype are also used while new object is going to be created. Instead of redirecting to default object form for new object, template preview is shown first. All views configured for specific type using Archetype as a collection are collected and shown. Only after concrete _template_ for the new object is selected, the form is shown. Selected template (based on the archetype) might influence how the form will look since it is possible to adjust object details configuration in archetype.
 
 There is also experimental functionality allowing to hide and show the collection views for different types of operation. For example, when there is a case that _All users_ menu item should be shown, but no default user might be created, following configuration can be used:
 
@@ -196,7 +195,7 @@ There is also experimental functionality allowing to hide and show the collectio
 </adminGuiConfiguration>
 ----
 
-=== Default Collection Views (since midPoint 4.4)
+=== Default Collection Views
 
 MidPoint comes with default collections defined for most of the objects. These default collection are based on object type, e.g. there is a default collection for all users in midPoint available in menu by default. Table below shows list of default collections and their identifiers. These identifiers are then used to adjust the default collection view. E.g. there is a need to add custom column to the default users list, new action needs to be defined for default roles list, etc. To be able to correctly merge configurations from different places for the same collection view, identifiers are mandatory and every single collection view definition has to have it defined.
 
@@ -239,6 +238,9 @@ MidPoint comes with default collections defined for most of the objects. These d
 
 | allSchemas
 | All schemas
+
+| allAudits
+| Audit Log Viewer
 
 |===
 
