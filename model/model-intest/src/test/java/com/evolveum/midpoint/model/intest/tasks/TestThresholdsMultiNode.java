@@ -7,6 +7,8 @@
 
 package com.evolveum.midpoint.model.intest.tasks;
 
+import com.evolveum.midpoint.model.api.ModelPublicConstants;
+import com.evolveum.midpoint.schema.util.task.ActivityPath;
 import com.evolveum.midpoint.test.TestObject;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -135,7 +137,27 @@ public class TestThresholdsMultiNode extends TestThresholds {
 
     @Override
     void assertTest520TaskAfter(TestObject<TaskType> reconTask) throws SchemaException, ObjectNotFoundException {
-        // todo assert something
-        fail("assertions not implemented yet");
+        // @formatter:off
+        assertTaskTree(reconTask.oid, "after")
+                .display()
+                .assertSuspended()
+                .assertFatalError()
+                .rootActivityState()
+                    .assertFatalError()
+                    .activityPolicyStates()
+                        .assertOnePolicyStateTriggers("resourceObjects:5", 1)
+                    .end()
+                .end()
+                .activityState(ActivityPath.fromId(ModelPublicConstants.RECONCILIATION_OPERATION_COMPLETION_ID))
+                    .assertComplete()
+                    .assertSuccess()
+                .end()
+                .activityState(ModelPublicConstants.RECONCILIATION_RESOURCE_OBJECTS_PATH)
+                    .assertInProgressLocal()
+                    .assertFatalError()
+                    .progress()
+                        .display()
+                .end();
+        // @formatter:on
     }
 }

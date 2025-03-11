@@ -23,7 +23,6 @@ import com.evolveum.icf.dummy.resource.DummyAccount;
 import com.evolveum.icf.dummy.resource.SchemaViolationException;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
-import com.evolveum.midpoint.prism.xml.XsdTypeMapper;
 import com.evolveum.midpoint.test.DummyResourceContoller;
 
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
@@ -79,6 +78,9 @@ public abstract class TestThresholds extends AbstractEmptyModelIntegrationTest {
     private static final DummyTestResource RESOURCE_SOURCE = new DummyTestResource(TEST_DIR, "resource-dummy-source.xml",
             "40f8fb21-a473-4da7-bbd0-7019d3d450a5", "source", DummyResourceContoller::populateWithDefaultSchema);
 
+    private static final DummyTestResource RESOURCE_SOURCE_SLOW = new DummyTestResource(TEST_DIR, "resource-dummy-source-slow.xml",
+            "1645e542-d034-4118-b8af-97c4d22d81d6", "source-slow", DummyResourceContoller::populateWithDefaultSchema);
+
     static final int ACCOUNTS = 100;
     private static final String ACCOUNT_NAME_PATTERN = "a%02d";
 
@@ -114,6 +116,7 @@ public abstract class TestThresholds extends AbstractEmptyModelIntegrationTest {
         ruleDeleteId = determineSingleInducedRuleId(ROLE_DELETE_5.oid, initResult);
 
         initDummyResource(RESOURCE_SOURCE, initTask, initResult);
+        initDummyResource(RESOURCE_SOURCE_SLOW, initTask, initResult);
 
         usersBefore = getObjectCount(UserType.class);
         displayValue("users before", usersBefore);
@@ -620,13 +623,24 @@ public abstract class TestThresholds extends AbstractEmptyModelIntegrationTest {
         deleteIfPresent(reconTask, result);
         addObject(reconTask, task, result,
                 aggregateCustomizer(
-                        executionTimeCustomizer("PT3S"),
+                        reconciliationWorkCustomizer(RESOURCE_SOURCE_SLOW.oid),
+                        executionTimeCustomizer("PT2S"),
                         getReconWorkerThreadsCustomizer()));
         waitForTaskTreeCloseCheckingSuspensionWithError(reconTask.oid, result, getTimeout());
 
         then();
 
         assertTest520TaskAfter(reconTask);
+    }
+
+    protected Consumer<PrismObject<TaskType>> reconciliationWorkCustomizer(String resourceOid) {
+        return object -> {
+            object.asObjectable().getActivity().getWork().getReconciliation().getResourceObjects()
+                    .setResourceRef(new ObjectReferenceType()
+                            .oid(resourceOid)
+                            .type(ResourceType.COMPLEX_TYPE)
+                    );
+        };
     }
 
     protected Consumer<PrismObject<TaskType>> executionTimeCustomizer(String exceedsExecutionTimeThreshold) {
@@ -642,6 +656,11 @@ public abstract class TestThresholds extends AbstractEmptyModelIntegrationTest {
                                 .beginExecutionTime()
                                     .exceeds(XmlTypeConverter.createDuration(exceedsExecutionTimeThreshold))
                                 .<ActivityPolicyConstraintsType>end()
+                            .<ActivityPolicyType>end()
+                            .beginPolicyActions()
+                                .beginSuspendTask()
+                                    // no parameters
+                                .<ActivityPolicyActionsType>end()
                             .<ActivityPolicyType>end()
                         .<ActivityPoliciesType>end()
                     .<ActivityDefinitionType>end();
