@@ -24,6 +24,7 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import com.evolveum.midpoint.prism.path.ItemName;
+import com.evolveum.midpoint.repo.api.CacheDispatcher;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.task.ActivityPerformanceInformation;
 import com.evolveum.midpoint.test.util.TestReportUtil;
@@ -35,6 +36,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 
 import org.apache.commons.collections4.ListUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Test;
@@ -154,6 +156,8 @@ public class TestSystemPerformance extends AbstractStoryTest implements Performa
 
         System.setProperty(PERF_REPORT_PREFIX_PROPERTY_NAME, createReportFilePrefix());
     }
+
+    @Autowired private CacheDispatcher cacheDispatcher;
 
     private static void checkConfigurationConsistence() {
         if (OTHER_PARAMETERS.disableDefaultMultivalueProvenance && SOURCES_CONFIGURATION.defaultRange) {
@@ -326,6 +330,7 @@ public class TestSystemPerformance extends AbstractStoryTest implements Performa
             TestObject<TaskType> taskImport = TASK_IMPORT_LIST.get(taskIndex);
 
             lastProgress = 0;
+            clearRepoCacheIfRequested();
             addTask(taskImport, result);
             waitForTaskFinish(taskImport.oid, 0, OTHER_PARAMETERS.taskTimeout, false, 0,
                     builder -> builder.taskConsumer(task1 -> recordProgress(label, task1)));
@@ -461,6 +466,7 @@ public class TestSystemPerformance extends AbstractStoryTest implements Performa
                 TestObject<TaskType> taskImport = TASK_IMPORT_LIST.get(taskIndex);
 
                 lastProgress = 0;
+                clearRepoCacheIfRequested();
                 restartTask(taskImport.oid, result);
                 Thread.sleep(500);
 
@@ -505,6 +511,7 @@ public class TestSystemPerformance extends AbstractStoryTest implements Performa
                 TestObject<TaskType> reconTask = TASK_RECONCILIATION_WITH_SOURCE_LIST.get(taskIndex);
 
                 lastProgress = 0;
+                clearRepoCacheIfRequested();
                 if (run == 0) {
                     addTask(reconTask, result);
                 } else {
@@ -550,6 +557,7 @@ public class TestSystemPerformance extends AbstractStoryTest implements Performa
                 TestObject<TaskType> reconTask = TASK_RECONCILIATION_WITH_TARGET_LIST.get(taskIndex);
 
                 lastProgress = 0;
+                clearRepoCacheIfRequested();
                 if (run == 0) {
                     addTask(reconTask, result);
                 } else {
@@ -587,6 +595,7 @@ public class TestSystemPerformance extends AbstractStoryTest implements Performa
         when();
 
         lastProgress = 0;
+        clearRepoCacheIfRequested();
         addTask(TASK_RECOMPUTE, result);
         waitForTaskFinish(TASK_RECOMPUTE.oid, 0, OTHER_PARAMETERS.taskTimeout, false, 0,
                 builder -> builder.taskConsumer(task1 -> recordProgress("", task1)));
@@ -700,5 +709,11 @@ public class TestSystemPerformance extends AbstractStoryTest implements Performa
             throw new SystemException(e);
         }
         displayDumpable("performance: " + label + task.getName(), performanceInformation);
+    }
+
+    private void clearRepoCacheIfRequested() {
+        if (OTHER_PARAMETERS.isClearRepoCacheBeforeTaskRun()) {
+            cacheDispatcher.dispatchInvalidation(null, null, false, null);
+        }
     }
 }
