@@ -97,7 +97,17 @@ public abstract class AbstractOpenDjNoiseTest extends TestOpenDj {
 
         assertShadow(shadow, "Bilbo after")
                 .assertDead()
-                .assertIsNotExists()
+                .assertIsNotExists();
+
+        // We can no longer assert on the synchronization situation (being DELETED) in the returned shadow here. It was here
+        // as a side-effect of the "discovery" operation on the dead shadow. Recent code changes related to performance
+        // optimizations cause that the discovery operation is carried out on a copy of the shadow, hence none of its effects
+        // propagate to the shadow being returned.
+        //
+        // The synchronization situation is still stored in the repository, so we can assert it there. (See below.)
+        // The shadow returned here is marked as dead, anyway, and this is the key information for the client.
+
+        assertRepoShadow(shadow.getOid(), "Bilbo after (repo)")
                 .assertSynchronizationSituation(SynchronizationSituationType.DELETED);
 
         assertLdapConnectorReasonableInstances();
