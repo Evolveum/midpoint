@@ -11,10 +11,12 @@ import java.io.Serial;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.evolveum.midpoint.cases.api.util.QueryUtils;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.impl.page.self.dashboard.PageSelfDashboard;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.security.api.OtherPrivilegesLimitations;
 import com.evolveum.midpoint.task.api.Task;
 
 import com.evolveum.midpoint.util.logging.Trace;
@@ -102,12 +104,18 @@ public class PageActiveCampaigns extends PageAdminCertification {
             }
 
             @Override
-            protected MidPointPrincipal getPrincipal() {
-                return PageActiveCampaigns.this.getPrincipalAsReviewer();
+            protected String getPrincipalOid() {
+                return PageActiveCampaigns.this.getReviewerOid();
             }
 
+            @Override
             protected IModel<String> getActiveCampaignsPanelTitleModel() {
                 return PageActiveCampaigns.this.getActiveCampaignsPanelTitleModel();
+            }
+
+            @Override
+            protected Class<? extends PageCertItems> getCertItemsPage() {
+                return PageActiveCampaigns.this.getCertItemsPage();
             }
 
         };
@@ -144,7 +152,7 @@ public class PageActiveCampaigns extends PageAdminCertification {
             return getPrismContext().queryFor(AccessCertificationCampaignType.class)
                     .item(AccessCertificationCampaignType.F_CASE, AccessCertificationCaseType.F_WORK_ITEM,
                             AccessCertificationWorkItemType.F_ASSIGNEE_REF)
-                    .ref(principal.getOid())
+                    .ref(QueryUtils.getPotentialAssigneesForUser(principal, OtherPrivilegesLimitations.Type.ACCESS_CERTIFICATION))
                     .and()
                     .item(AccessCertificationCampaignType.F_CASE, AccessCertificationCaseType.F_WORK_ITEM,
                             AccessCertificationWorkItemType.F_CLOSE_TIMESTAMP)
@@ -152,6 +160,11 @@ public class PageActiveCampaigns extends PageAdminCertification {
                     .build();
         }
     }
+
+    private String getReviewerOid() {
+        return getPrincipalAsReviewer() != null ? getPrincipalAsReviewer().getOid() : null;
+    }
+
 
     private MidPointPrincipal getPrincipalAsReviewer() {
         return isDisplayingAllItems() ? null : getPrincipal();

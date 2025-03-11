@@ -11,17 +11,19 @@ import java.io.Serial;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.evolveum.midpoint.gui.api.component.Toggle;
+
+import com.evolveum.midpoint.web.component.data.column.AjaxLinkColumn;
+import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
+import com.evolveum.midpoint.web.component.util.SelectableBeanImpl;
+
 import com.evolveum.midpoint.gui.impl.page.admin.certification.helpers.CampaignStateHelper;
 
 import com.evolveum.midpoint.gui.impl.util.TableUtil;
 
-import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
-import com.evolveum.midpoint.web.component.util.SelectableBeanImpl;
-
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.DataTable;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.model.IModel;
@@ -38,19 +40,14 @@ import com.evolveum.midpoint.gui.impl.component.search.SearchBuilder;
 import com.evolveum.midpoint.gui.impl.component.search.panel.SearchPanel;
 import com.evolveum.midpoint.gui.impl.component.tile.MultiSelectObjectTileTablePanel;
 import com.evolveum.midpoint.gui.impl.component.tile.ViewToggle;
-import com.evolveum.midpoint.gui.impl.page.admin.certification.helpers.CampaignProcessingHelper;
 import com.evolveum.midpoint.gui.impl.page.admin.certification.helpers.CertMiscUtil;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.TemplateTile;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.web.component.data.column.ColumnMenuAction;
 import com.evolveum.midpoint.web.component.data.column.ColumnUtils;
 import com.evolveum.midpoint.web.component.data.column.InlineMenuButtonColumn;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
-import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
-import com.evolveum.midpoint.web.page.admin.configuration.component.HeaderMenuAction;
 import com.evolveum.midpoint.web.session.CertCampaignsStorage;
-import com.evolveum.midpoint.web.session.PageStorage;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignType;
 
@@ -62,6 +59,7 @@ public class CampaignsPanel extends BasePanel<AccessCertificationCampaignType> {
     private static final String ID_NAVIGATION_PANEL = "navigationPanel";
 
     private LoadableDetachableModel<Search<AccessCertificationCampaignType>> searchModel;
+    private LoadableDetachableModel<ViewToggle> viewToggleModel;
 
     public CampaignsPanel(String id) {
         super(id);
@@ -75,6 +73,8 @@ public class CampaignsPanel extends BasePanel<AccessCertificationCampaignType> {
     }
 
     private void initModels() {
+        viewToggleModel = createViewToggleModel();
+
         searchModel = new LoadableDetachableModel<>() {
             @Serial private static final long serialVersionUID = 1L;
 
@@ -100,7 +100,7 @@ public class CampaignsPanel extends BasePanel<AccessCertificationCampaignType> {
 
         MultiSelectObjectTileTablePanel<AccessCertificationCampaignType,
                         AccessCertificationCampaignType> tilesTable =
-                new MultiSelectObjectTileTablePanel<>(ID_CAMPAIGNS_PANEL, createViewToggleModel(), UserProfileStorage.TableId.PAGE_CAMPAIGNS) {
+                new MultiSelectObjectTileTablePanel<>(ID_CAMPAIGNS_PANEL, viewToggleModel, UserProfileStorage.TableId.PAGE_CAMPAIGNS) {
 
                     @Serial private static final long serialVersionUID = 1L;
                     @Override
@@ -113,7 +113,7 @@ public class CampaignsPanel extends BasePanel<AccessCertificationCampaignType> {
                         Component header = super.createHeader(id);
                         if (header instanceof SearchPanel) {
                             // mt-2 added because search panel now uses *-sm classes and it doesn't match rest of the layout
-                            header.add(AttributeAppender.append("class", "mt-2"));
+                            header.add(AttributeAppender.append("class", "align-content-center"));
                         }
 
                         return header;
@@ -142,7 +142,7 @@ public class CampaignsPanel extends BasePanel<AccessCertificationCampaignType> {
 
                     @Override
                     protected String getTileCssClasses() {
-                        return "col-12 col-md-4 col-lg-3 col-xxl-4i px-2";
+                        return "col-12 col-md-6 col-lg-4 col-xl-3 col-xxl-5i p-2 d-flex flex-column";
                     }
 
                     @Override
@@ -189,6 +189,17 @@ public class CampaignsPanel extends BasePanel<AccessCertificationCampaignType> {
                             ((SelectableBeanDataProvider) getProvider()).getSelected().add(model.getObject().getValue());
                         }
                     }
+
+                    @Override
+                    protected  void togglePanelItemSelectPerformed(AjaxRequestTarget target, IModel<Toggle<ViewToggle>> item) {
+                        if (item == null || item.getObject() == null) {
+                            return;
+                        }
+                        CertCampaignsStorage storage = getCampaignsStorage();
+                        if (storage != null) {
+                            storage.setViewToggle(item.getObject().getValue());
+                        }
+                    }
                 };
         add(tilesTable);
     }
@@ -213,8 +224,8 @@ public class CampaignsPanel extends BasePanel<AccessCertificationCampaignType> {
         return provider;
     }
 
-    private IModel<ViewToggle> createViewToggleModel() {
-        return new LoadableModel<>(false) {
+    private LoadableDetachableModel<ViewToggle> createViewToggleModel() {
+        return new LoadableDetachableModel<>() {
 
             @Serial private static final long serialVersionUID = 1L;
 
@@ -232,8 +243,26 @@ public class CampaignsPanel extends BasePanel<AccessCertificationCampaignType> {
 
     private List<IColumn<SelectableBean<AccessCertificationCampaignType>, String>> initColumns(
             IModel<List<AccessCertificationCampaignType>> campaignsModel) {
-        List<IColumn<SelectableBean<AccessCertificationCampaignType>, String>> columns =
-                ColumnUtils.getDefaultCertCampaignColumns(getPageBase());
+        List<IColumn<SelectableBean<AccessCertificationCampaignType>, String>> columns = new ArrayList<>();
+
+        IColumn<SelectableBean<AccessCertificationCampaignType>, String> column = new CheckBoxHeaderColumn<>();
+        columns.add(column);
+
+        column = new AjaxLinkColumn<>(createStringResource("PageCertCampaigns.table.name"),
+                SelectableBeanImpl.F_VALUE + "." + AccessCertificationCampaignType.F_NAME.getLocalPart()) {
+            @Override
+            public void onClick(AjaxRequestTarget target, IModel<SelectableBean<AccessCertificationCampaignType>> rowModel) {
+                nameColumnLinkClickPerformed(target, rowModel);
+            }
+
+            @Override
+            public boolean isEnabled(IModel<SelectableBean<AccessCertificationCampaignType>> rowModel) {
+                return isNameColumnLinkEnabled(rowModel);
+            }
+        };
+        columns.add(column);
+
+        columns.addAll(ColumnUtils.getDefaultCertCampaignColumns(getPageBase()));
 
         List<CampaignStateHelper.CampaignAction> campaignActions = CampaignStateHelper.getAllCampaignActions();
         List<InlineMenuItem> inlineMenuItems = campaignActions
@@ -271,8 +300,8 @@ public class CampaignsPanel extends BasePanel<AccessCertificationCampaignType> {
             @Serial private static final long serialVersionUID = 1L;
 
             @Override
-            protected LoadableModel<List<ProgressBar>> createCampaignProgressModel() {
-                return CertMiscUtil.createCampaignCasesProgressBarModel(getCampaign(), getPrincipal(), getPageBase());
+            protected LoadableDetachableModel<List<ProgressBar>> createCampaignProgressModel() {
+                return CertMiscUtil.createCampaignCasesProgressBarModel(getCampaign(), getPrincipalOid(), getPageBase());
             }
         };
     }
@@ -286,6 +315,14 @@ public class CampaignsPanel extends BasePanel<AccessCertificationCampaignType> {
     }
 
     protected String getCampaignTileCssStyle() {
-        return "min-height: 340px;";
+        return " ";
+    }
+
+    protected void nameColumnLinkClickPerformed(AjaxRequestTarget target,
+            IModel<SelectableBean<AccessCertificationCampaignType>> rowModel) {
+    }
+
+    protected boolean isNameColumnLinkEnabled(IModel<SelectableBean<AccessCertificationCampaignType>> rowModel) {
+        return true;
     }
 }

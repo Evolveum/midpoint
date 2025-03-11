@@ -7,28 +7,30 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.certification.component;
 
-import com.evolveum.midpoint.gui.api.component.progressbar.ProgressBar;
-import com.evolveum.midpoint.gui.api.component.wizard.NavigationPanel;
-import com.evolveum.midpoint.gui.api.model.LoadableModel;
-import com.evolveum.midpoint.gui.impl.page.admin.certification.helpers.CertMiscUtil;
-import com.evolveum.midpoint.gui.impl.page.admin.resource.component.TemplateTile;
-import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.security.api.MidPointPrincipal;
-import com.evolveum.midpoint.web.component.AjaxIconButton;
-import com.evolveum.midpoint.web.component.util.SelectableBean;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationWorkItemType;
+import java.io.Serial;
+import java.util.List;
+
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.impl.page.admin.certification.PageCertItems;
 
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.LoadableDetachableModel;
 import org.apache.wicket.model.Model;
 
-import java.io.Serial;
-import java.util.List;
+import com.evolveum.midpoint.gui.api.component.progressbar.ProgressBar;
+import com.evolveum.midpoint.gui.api.component.wizard.NavigationPanel;
+import com.evolveum.midpoint.gui.impl.page.admin.certification.helpers.CertMiscUtil;
+import com.evolveum.midpoint.gui.impl.page.admin.resource.component.TemplateTile;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.web.component.AjaxIconButton;
+import com.evolveum.midpoint.web.component.util.SelectableBean;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationWorkItemType;
 
 /**
  * Panel is used as an active campaigns preview on the Certification items page.
@@ -65,13 +67,13 @@ public class ActiveCampaignsPanel extends CampaignsPanel {
             }
 
             @Override
-            protected LoadableModel<List<ProgressBar>> createCampaignProgressModel() {
-                return CertMiscUtil.createCampaignWorkItemsProgressBarModel(getCampaign(), getPrincipal(), getPageBase());
+            protected LoadableDetachableModel<List<ProgressBar>> createCampaignProgressModel() {
+                return CertMiscUtil.createCampaignWorkItemsProgressBarModel(getCampaign(), getPrincipalOid(), getPageBase());
             }
 
             @Override
-            protected MidPointPrincipal getPrincipal() {
-                return ActiveCampaignsPanel.this.getPrincipal();
+            protected String getPrincipalOid() {
+                return ActiveCampaignsPanel.this.getPrincipalOid();
             }
 
             @Override
@@ -114,7 +116,7 @@ public class ActiveCampaignsPanel extends CampaignsPanel {
                     }
                 };
                 showAll.showTitleAsLabel(true);
-                showAll.add(AttributeAppender.append("class", "btn btn-sm btn-secondary"));
+                showAll.add(AttributeAppender.append("class", "btn btn-default"));
 
                 return showAll;
             }
@@ -125,7 +127,7 @@ public class ActiveCampaignsPanel extends CampaignsPanel {
     protected void showCertItems(String campaignOid, AjaxRequestTarget target) {
     }
 
-    protected MidPointPrincipal getPrincipal() {
+    protected String getPrincipalOid() {
         return null;
     }
 
@@ -135,7 +137,26 @@ public class ActiveCampaignsPanel extends CampaignsPanel {
 
     @Override
     protected String getCampaignTileCssStyle() {
-        return "min-height: 250px;";
+        return " ";
     }
+
+    @Override
+    protected void nameColumnLinkClickPerformed(AjaxRequestTarget target,
+            IModel<SelectableBean<AccessCertificationCampaignType>> rowModel) {
+        if (rowModel == null || rowModel.getObject() == null || rowModel.getObject().getValue() == null) {
+            return;
+        }
+        showCertItems(rowModel.getObject().getValue().getOid(), target);
+    }
+
+    @Override
+    protected boolean isNameColumnLinkEnabled(IModel<SelectableBean<AccessCertificationCampaignType>> rowModel) {
+        return WebComponentUtil.isAuthorizedForPage(getCertItemsPage());
+    }
+
+    protected Class<? extends PageCertItems> getCertItemsPage() {
+        return PageCertItems.class;
+    }
+
 }
 
