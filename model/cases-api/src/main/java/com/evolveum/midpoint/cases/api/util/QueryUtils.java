@@ -109,7 +109,7 @@ public class QueryUtils {
                 .isNull();
     }
 
-    private static List<PrismReferenceValue> getPotentialAssigneesForUser(
+    public static List<PrismReferenceValue> getPotentialAssigneesForUser(
             @NotNull MidPointPrincipal principal, @NotNull OtherPrivilegesLimitations.Type limitationType) {
         // As for relations, WorkItem.assigneeRef should contain only the default ones.
         QName defaultRelation = SchemaService.get().relationRegistry().getDefaultRelation();
