@@ -18,6 +18,7 @@ public class OtherParameters {
     private static final String PROP_TASK_TIMEOUT = "taskTimeout";
     private static final String PROP_CACHED = "cached";
     private static final String PROP_NOT_CACHED = "not-cached";
+    private static final String PROP_CLEAR_REPO_CACHE_BEFORE_TASK_RUN = "clearRepoCacheBeforeTaskRun";
 
     private static final File SYSTEM_CONFIGURATION_TEMPLATE_FILE = new File(TEST_DIR, "system-configuration.vm.xml");
 
@@ -35,14 +36,16 @@ public class OtherParameters {
 
     final String label;
     final int taskTimeout;
-    final Set<ObjectTypes> cached;
-    final Set<ObjectTypes> notCached;
+    private final Set<ObjectTypes> cached;
+    private final Set<ObjectTypes> notCached;
+    private final boolean clearRepoCacheBeforeTaskRun;
 
     private OtherParameters() {
         this.label = System.getProperty(PROP_LABEL, createDefaultLabel());
         this.taskTimeout = Integer.parseInt(System.getProperty(PROP_TASK_TIMEOUT, "1800000")); // 30 minutes
         this.cached = parseObjectTypeNames(System.getProperty(PROP_CACHED));
         this.notCached = parseObjectTypeNames(System.getProperty(PROP_NOT_CACHED));
+        this.clearRepoCacheBeforeTaskRun = Boolean.parseBoolean(System.getProperty(PROP_CLEAR_REPO_CACHE_BEFORE_TASK_RUN, "false"));
 
         createSystemConfigurationFile();
     }
@@ -115,6 +118,10 @@ public class OtherParameters {
         return number + suffix + "u";
     }
 
+    boolean isClearRepoCacheBeforeTaskRun() {
+        return clearRepoCacheBeforeTaskRun;
+    }
+
     static OtherParameters setup() {
         return new OtherParameters();
     }
@@ -142,6 +149,7 @@ public class OtherParameters {
                 ", taskTimeout=" + taskTimeout +
                 ", cached=" + cached +
                 ", notCached=" + notCached +
+                ", clearRepoCacheBeforeTaskRun=" + clearRepoCacheBeforeTaskRun +
                 '}';
     }
 }
