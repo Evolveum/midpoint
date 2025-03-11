@@ -2364,3 +2364,14 @@ div.show > a > div > i.fas {
 .mt-popup-under-header {
   margin-top: 56px;
 }
+
+// MID-10513 fix for issue with backdrop and modal in safari, where modal is displayed behind the backdrop.
+// z-index for modal and backdrop is the same, however !important is used to ensure that it is applied.
+.modal {
+  z-index: 1050 !important;
+}
+
+.modal-backdrop {
+  z-index: 1040 !important;
+}
+// End of MID-10513 fix
