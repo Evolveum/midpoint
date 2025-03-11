@@ -385,8 +385,13 @@ public class AuditEventRecord implements DebugDumpable, Serializable {
     }
 
     public void setTarget(PrismObject<?> target) {
+        setTarget(target, null);
+    }
+
+    /** A variant of {@link #setTarget(PrismObject)} that allows to provide OID outside of the object. */
+    public void setTarget(PrismObject<?> target, String defaultOid) {
         this.targetRef = target != null
-                ? createRefValueWithDescription(target)
+                ? createRefValueWithDescription(target, defaultOid)
                 : null;
     }
 
@@ -408,12 +413,20 @@ public class AuditEventRecord implements DebugDumpable, Serializable {
     }
 
     private @Nullable PrismReferenceValue createRefValueWithDescription(@Nullable PrismObject<?> object) {
+        return createRefValueWithDescription(object, null);
+    }
+
+    private @Nullable PrismReferenceValue createRefValueWithDescription(
+            @Nullable PrismObject<?> object, @Nullable String defaultOid) {
         if (object == null) {
             return null;
         }
 
         PrismReferenceValue refValue = PrismContext.get().itemFactory().createReferenceValue(object);
         refValue.setDescription(object.getBusinessDisplayName());
+        if (refValue.getOid() == null) {
+            refValue.setOid(defaultOid);
+        }
         return refValue;
     }
 
