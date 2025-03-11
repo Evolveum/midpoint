@@ -837,23 +837,6 @@ public class ColumnUtils {
 
         IColumn<SelectableBean<AccessCertificationCampaignType>, String> column;
 
-        column = new CheckBoxHeaderColumn<>();
-        columns.add(column);
-
-        column = new AjaxLinkColumn<>(createStringResource("PageCertCampaigns.table.name"),
-                SelectableBeanImpl.F_VALUE + "." + AccessCertificationCampaignType.F_NAME.getLocalPart()) {
-            @Override
-            public void onClick(AjaxRequestTarget target, IModel<SelectableBean<AccessCertificationCampaignType>> rowModel) {
-                CampaignProcessingHelper.campaignDetailsPerformed(rowModel.getObject().getValue().getOid(), pageBase);
-            }
-
-            @Override
-            public boolean isEnabled(IModel<SelectableBean<AccessCertificationCampaignType>> rowModel) {
-                return WebComponentUtil.isAuthorizedForPage(PageCertCampaign.class);
-            }
-        };
-        columns.add(column);
-
         column = new PropertyColumn<>(createStringResource("PageCertCampaigns.table.description"),
                 SelectableBeanImpl.F_VALUE + "." + AccessCertificationCampaignType.F_DESCRIPTION.getLocalPart());
         columns.add(column);
