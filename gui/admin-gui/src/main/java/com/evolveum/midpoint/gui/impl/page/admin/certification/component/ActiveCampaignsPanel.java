@@ -10,11 +10,15 @@ package com.evolveum.midpoint.gui.impl.page.admin.certification.component;
 import java.io.Serial;
 import java.util.List;
 
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.impl.page.admin.certification.PageCertItems;
+
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.LoadableDetachableModel;
 import org.apache.wicket.model.Model;
 
 import com.evolveum.midpoint.gui.api.component.progressbar.ProgressBar;
@@ -65,13 +69,13 @@ public class ActiveCampaignsPanel extends CampaignsPanel {
             }
 
             @Override
-            protected LoadableModel<List<ProgressBar>> createCampaignProgressModel() {
-                return CertMiscUtil.createCampaignWorkItemsProgressBarModel(getCampaign(), getPrincipal(), getPageBase());
+            protected LoadableDetachableModel<List<ProgressBar>> createCampaignProgressModel() {
+                return CertMiscUtil.createCampaignWorkItemsProgressBarModel(getCampaign(), getPrincipalOid(), getPageBase());
             }
 
             @Override
-            protected MidPointPrincipal getPrincipal() {
-                return ActiveCampaignsPanel.this.getPrincipal();
+            protected String getPrincipalOid() {
+                return ActiveCampaignsPanel.this.getPrincipalOid();
             }
 
             @Override
@@ -125,7 +129,7 @@ public class ActiveCampaignsPanel extends CampaignsPanel {
     protected void showCertItems(String campaignOid, AjaxRequestTarget target) {
     }
 
-    protected MidPointPrincipal getPrincipal() {
+    protected String getPrincipalOid() {
         return null;
     }
 
@@ -137,5 +141,24 @@ public class ActiveCampaignsPanel extends CampaignsPanel {
     protected String getCampaignTileCssStyle() {
         return " ";
     }
+
+    @Override
+    protected void nameColumnLinkClickPerformed(AjaxRequestTarget target,
+            IModel<SelectableBean<AccessCertificationCampaignType>> rowModel) {
+        if (rowModel == null || rowModel.getObject() == null || rowModel.getObject().getValue() == null) {
+            return;
+        }
+        showCertItems(rowModel.getObject().getValue().getOid(), target);
+    }
+
+    @Override
+    protected boolean isNameColumnLinkEnabled(IModel<SelectableBean<AccessCertificationCampaignType>> rowModel) {
+        return WebComponentUtil.isAuthorizedForPage(getCertItemsPage());
+    }
+
+    protected Class<? extends PageCertItems> getCertItemsPage() {
+        return PageCertItems.class;
+    }
+
 }
 

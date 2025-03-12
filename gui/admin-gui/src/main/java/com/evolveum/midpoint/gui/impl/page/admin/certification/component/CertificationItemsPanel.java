@@ -30,7 +30,6 @@ import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.component.IconComponent;
 import com.evolveum.midpoint.gui.api.component.wizard.NavigationPanel;
-import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.impl.page.admin.certification.helpers.CampaignProcessingHelper;
@@ -122,28 +121,6 @@ public class CertificationItemsPanel extends BasePanel<String> {
                 return VisibleEnableBehaviour.ALWAYS_INVISIBLE;
             }
 
-//            @Override
-//            protected Component createNextButton(String id, IModel<String> nextTitle) {
-//                AjaxIconButton button = new AjaxIconButton(id, Model.of("fa fa-chart-pie"),
-//                        createStringResource("PageCertDecisions.button.createReport")) {
-//                    @Serial private static final long serialVersionUID = 1L;
-//
-//                    @Override
-//                    public void onClick(AjaxRequestTarget target) {
-//                        onNextPerformed(target);
-//                    }
-//                };
-//                button.add(new VisibleBehaviour(() -> StringUtils.isNotEmpty(getCampaignOid())));
-//                button.showTitleAsLabel(true);
-//                button.add(AttributeModifier.append("class", "btn btn-secondary"));
-//                return button;
-//            }
-
-//            @Override
-//            protected void onNextPerformed(AjaxRequestTarget target) {
-//                runCertItemsReport(target);
-//            }
-
         };
         add(navigationPanel);
     }
@@ -192,7 +169,7 @@ public class CertificationItemsPanel extends BasePanel<String> {
 
 
     private IModel<String> getNavigationPanelTitleModel() {
-        return () -> getCampaignName();
+        return this::getCampaignName;
     }
 
     private String getCampaignName() {
@@ -283,7 +260,7 @@ public class CertificationItemsPanel extends BasePanel<String> {
 
                     @Override
                     public Component createValueComponent(String id) {
-                        DeadlinePanel deadlinePanel = new DeadlinePanel(id, new LoadableDetachableModel<XMLGregorianCalendar>() {
+                        DeadlinePanel deadlinePanel = new DeadlinePanel(id, new LoadableDetachableModel<>() {
                             @Override
                             protected XMLGregorianCalendar load() {
                                 return campaign != null ? CampaignProcessingHelper.computeDeadline(
@@ -365,12 +342,12 @@ public class CertificationItemsPanel extends BasePanel<String> {
                 return CertMiscUtil.getCampaignStageLoadableModel(campaign);
             }
 
-            private LoadableDetachableModel<String> getCompletedItemsPercentageModel(List<String> campaignsOids) {
-                return new LoadableDetachableModel<>() {
+            private IModel<String> getCompletedItemsPercentageModel(List<String> campaignsOids) {
+                return new IModel<>() {
                     @Serial private static final long serialVersionUID = 1L;
 
                     @Override
-                    protected String load() {
+                    public String getObject() {
                         float openNotDecidedItemCount = CertMiscUtil.countOpenCertItems(campaignsOids,
                                 getPrincipalAsReviewer(), true, getPageBase());
                         float allOpenItemCount = CertMiscUtil.countOpenCertItems(campaignsOids,
@@ -445,7 +422,9 @@ public class CertificationItemsPanel extends BasePanel<String> {
     }
 
     public IModel<String> getCampaignStartDateModel(AccessCertificationCampaignType campaign) {
-        return new LoadableDetachableModel<String>() {
+        return new LoadableDetachableModel<>() {
+            @Serial private static final long serialVersionUID = 1L;
+
             @Override
             protected String load() {
                 if (campaign == null) {
