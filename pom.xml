@@ -193,7 +193,7 @@
         <commons.io.version>2.13.0</commons.io.version>
         <commons.lang.version>2.6</commons.lang.version>
         <commons.cli>1.5.0</commons.cli>
-        <cxf.version>3.4.10</cxf.version>
+        <cxf.version>3.5.11</cxf.version>
         <cxf-xjc.version>3.3.2</cxf-xjc.version>
         <wss4j.version>2.3.4</wss4j.version>
         <opendj.version>2.6.2</opendj.version>
@@ -221,7 +221,7 @@
         
         <!-- Updated to latest Spring Framework version of 5.3.x (before incompatible API changes introduced in 6) -->
         <spring-framework.version>5.3.39</spring-framework.version>
-        
+        <tomcat.version>9.0.102</tomcat.version>        
         <!-- Spring Boot parent declares most fresh versions for JDBC drivers for all our servers -->
         <wicket.version>9.18.0</wicket.version>
         <wicket.chartjs.version>0.1</wicket.chartjs.version>
@@ -249,7 +249,7 @@
         <xerces.version>2.12.2</xerces.version>
         <commons.csv.version>1.8</commons.csv.version>
         <j2html.version>1.4.0</j2html.version>
-        <bouncycastle.version>1.69</bouncycastle.version>
+        <bouncycastle.version>1.70</bouncycastle.version>
         <protobuf.version>3.19.6</protobuf.version>
         <javax.persistence.version>2.2</javax.persistence.version>
 
@@ -1463,7 +1463,7 @@
             <dependency>
                 <groupId>io.netty</groupId>
                 <artifactId>netty-all</artifactId>
-                <version>4.1.86.Final</version>
+                <version>4.1.119.Final</version>
                 <exclusions>
                     <exclusion>
                         <groupId>ch.qos.logback</groupId>
