@@ -49,6 +49,8 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.application.DescriptorLoader;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
+import org.springframework.web.util.ServletRequestPathUtils;
+
 import javax.servlet.http.HttpServletRequest;
 
 public class MidPointGuiAuthorizationEvaluator implements SecurityEnforcer, SecurityContextManager, AccessDecisionManager {
@@ -240,14 +242,25 @@ public class MidPointGuiAuthorizationEvaluator implements SecurityEnforcer, Secu
                             applicationContext, HandlerMapping.class, true, false).values());
         }
 
-        for (HandlerMapping handlerMapping : handlerMappingBeans) {
-            try {
-                HandlerExecutionChain handler = handlerMapping.getHandler(request);
-                if (handler != null && handler.getHandler() instanceof HandlerMethod) {
-                    return (HandlerMethod) handler.getHandler();
+        boolean hasPathAttribute = ServletRequestPathUtils.hasCachedPath(request);
+
+        try {
+            if (!hasPathAttribute) {
+                ServletRequestPathUtils.parseAndCache(request);
+            }
+            for (HandlerMapping handlerMapping : handlerMappingBeans) {
+                try {
+                    HandlerExecutionChain handler = handlerMapping.getHandler(request);
+                    if (handler != null && handler.getHandler() instanceof HandlerMethod) {
+                        return (HandlerMethod) handler.getHandler();
+                    }
+                } catch (Exception e) {
+                    // ignore exception
                 }
-            } catch (Exception e) {
-                // ignore exception
+            }
+        } finally {
+            if(!hasPathAttribute) {
+                ServletRequestPathUtils.clearParsedRequestPath(request);
             }
         }
         return null;
