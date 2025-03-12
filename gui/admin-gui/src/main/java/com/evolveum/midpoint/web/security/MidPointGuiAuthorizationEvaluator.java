@@ -246,7 +246,11 @@ public class MidPointGuiAuthorizationEvaluator implements SecurityEnforcer, Secu
 
         try {
             if (!hasPathAttribute) {
-                ServletRequestPathUtils.parseAndCache(request);
+                try {
+                    ServletRequestPathUtils.parseAndCache(request);
+                } catch (Exception e) {
+                    // ignore exception
+                }
             }
             for (HandlerMapping handlerMapping : handlerMappingBeans) {
                 try {
@@ -260,7 +264,11 @@ public class MidPointGuiAuthorizationEvaluator implements SecurityEnforcer, Secu
             }
         } finally {
             if(!hasPathAttribute) {
-                ServletRequestPathUtils.clearParsedRequestPath(request);
+                try {
+                    ServletRequestPathUtils.clearParsedRequestPath(request);
+                } catch (Exception e) {
+                    // ignore exception
+                }
             }
         }
         return null;
