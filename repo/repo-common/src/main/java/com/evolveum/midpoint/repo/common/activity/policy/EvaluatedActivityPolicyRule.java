@@ -16,10 +16,7 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.util.PrismPrettyPrinter;
 import com.evolveum.midpoint.schema.util.task.ActivityPath;
 import com.evolveum.midpoint.util.DebugDumpable;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityPolicyActionsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityPolicyStateType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityPolicyType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyActionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -56,17 +53,17 @@ public class EvaluatedActivityPolicyRule implements DebugDumpable {
         return policy;
     }
 
-    public boolean containsAction(Class<? extends PolicyActionType> policyActionType) {
+    public boolean containsAction(Class<? extends ActivityPolicyActionType> policyActionType) {
         return getActions(policy.getPolicyActions()).stream()
                 .anyMatch(policyActionType::isInstance);
     }
 
-    private List<PolicyActionType> getActions(ActivityPolicyActionsType actions) {
+    private List<ActivityPolicyActionType> getActions(ActivityPolicyActionsType actions) {
         if (actions == null) {
             return List.of();
         }
 
-        List<PolicyActionType> result = new ArrayList<>();
+        List<ActivityPolicyActionType> result = new ArrayList<>();
 
         addAction(result, actions.getNotification());
         addAction(result, actions.getSuspendTask());
@@ -74,7 +71,7 @@ public class EvaluatedActivityPolicyRule implements DebugDumpable {
         return result;
     }
 
-    private void addAction(List<PolicyActionType> actions, PolicyActionType action) {
+    private void addAction(List<ActivityPolicyActionType> actions, ActivityPolicyActionType action) {
         if (action != null) {
             actions.add(action);
         }

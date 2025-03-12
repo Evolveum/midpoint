@@ -13,6 +13,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import org.jetbrains.annotations.NotNull;
+
 import com.evolveum.midpoint.repo.common.activity.run.AbstractActivityRun;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.LocalizationUtil;
@@ -23,8 +25,6 @@ import com.evolveum.midpoint.util.exception.ThresholdPolicyViolationException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
-import org.jetbrains.annotations.NotNull;
 
 /**
  * This processor is responsible for collecting, evaluating and enforcing activity policy rules.
@@ -156,7 +156,7 @@ public class ActivityPolicyRulesProcessor {
      * Actions that should be triggered once. E.g. notifications for the given rule.
      */
     private void executeOneTimeActions(EvaluatedActivityPolicyRule rule, OperationResult result) {
-        if (rule.containsAction(NotificationPolicyActionType.class)) {
+        if (rule.containsAction(NotificationActivityPolicyActionType.class)) {
             LOGGER.debug("Sending notification because of policy violation, rule: {}", rule);
 
             activityRun.sendActivityPolicyRuleTriggeredEvent(rule, result);
@@ -169,7 +169,7 @@ public class ActivityPolicyRulesProcessor {
     private void executeAlwaysActions(EvaluatedActivityPolicyRule rule, OperationResult result)
             throws ThresholdPolicyViolationException {
 
-        if (rule.containsAction(SuspendTaskPolicyActionType.class)) {
+        if (rule.containsAction(SuspendTaskActivityPolicyActionType.class)) {
             LOGGER.debug("Suspending task because of policy violation, rule: {}", rule);
 
             throw new ThresholdPolicyViolationException("Policy violation, rule: " + rule.getName());

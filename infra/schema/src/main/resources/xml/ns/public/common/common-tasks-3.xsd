@@ -2104,9 +2104,53 @@
         <xsd:sequence>
             <!-- Currently only suspendTask/notify are supported -->
             <!-- markRef will be a part of record action later on -->
-            <xsd:element name="notification" type="tns:NotificationPolicyActionType" minOccurs="0"/>
-            <xsd:element name="suspendTask" type="tns:SuspendTaskPolicyActionType" minOccurs="0"/>
+            <xsd:element name="notification" type="tns:NotificationActivityPolicyActionType" minOccurs="0"/>
+            <xsd:element name="suspendTask" type="tns:SuspendTaskActivityPolicyActionType" minOccurs="0"/>
         </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="ActivityPolicyActionType" abstract="true">
+        <xsd:annotation>
+            <xsd:documentation>
+                Action to be taken when the activity policy is triggered.
+
+                Similar to PolicyActionType, however no condition for now.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:since>4.10</a:since>
+                <a:container>true</a:container>
+            </xsd:appinfo>
+        </xsd:annotation>
+    </xsd:complexType>
+
+    <xsd:complexType name="NotificationActivityPolicyActionType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Notification action.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:since>4.10</a:since>
+                <a:container>true</a:container>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:ActivityPolicyActionType" />
+        </xsd:complexContent>
+    </xsd:complexType>
+
+    <xsd:complexType name="SuspendTaskActivityPolicyActionType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Suspend task action.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:since>4.10</a:since>
+                <a:container>true</a:container>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:ActivityPolicyActionType" />
+        </xsd:complexContent>
     </xsd:complexType>
 
     <xsd:complexType name="WorkDefinitionsType">
