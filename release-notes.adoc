@@ -39,6 +39,7 @@ Overall, midPoint 4.9 is a major step from the past into the future.
 
 * bug:MID-10225[] Fix issue where opening of certification campaign stage hangs indefinitely.
 * Fixed "preview changes" and "access request" functionality when some projections are hidden by authorizations. See bug:MID-10397[].
+* Added documentation of xref:/midpoint/reference/resources/shadow/purpose/[shadow purpose]. See bug:MID-10419[].
 
 == Changes with Respect To Version 4.9
 

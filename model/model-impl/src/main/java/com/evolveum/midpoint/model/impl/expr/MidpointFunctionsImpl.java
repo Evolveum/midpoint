@@ -1562,7 +1562,7 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
         if (shadow.getKind() != null && shadow.getKind() != ShadowKindType.ACCOUNT) {
             return null;
         }
-        ProtectedStringType focusPasswordPs = FocusTypeUtil.getPasswordValue((UserType) focus);
+        ProtectedStringType focusPasswordPs = FocusTypeUtil.getPasswordValue(focus);
         if (focusPasswordPs != null && focusPasswordPs.canGetCleartext()) {
             return null;
         }
