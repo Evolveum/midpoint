@@ -164,15 +164,14 @@ public class DataAccessProcessor {
         }
     }
 
-    public <O extends ObjectType> void applyReadConstraints(
-            LensElementContext<O> elementContext, PrismEntityOpConstraints.ForValueContent readConstraints)
-            throws AuthorizationException {
+    /** Returns `false` if the context as a whole has access denied. */
+    public <O extends ObjectType> boolean applyReadConstraints(
+            LensElementContext<O> elementContext, PrismEntityOpConstraints.ForValueContent readConstraints) {
         var decision = readConstraints.getDecision();
         if (decision == AccessDecision.ALLOW) {
-            // no-op
+            return true;
         } else if (decision == AccessDecision.DENY) {
-            SecurityUtil.logSecurityDeny(elementContext, "because the authorization denies access");
-            throw new AuthorizationException("Access denied");
+            return false;
         } else {
             assert decision == AccessDecision.DEFAULT;
             elementContext.forEachObject(object -> {
@@ -191,6 +190,7 @@ public class DataAccessProcessor {
                     applyReadConstraintsToDelta(delta, readConstraints);
                 }
             });
+            return true;
         }
     }
 
