@@ -80,7 +80,8 @@ Suspend task action will suspend the task.
 
 == Limitations
 
-#TODO#
+* Activity policies are evaluated only for iterative (plain iterative or search based) activities.
+* Activity policies are evaluated before each item processing and after activity completion.
 
 == See also
 
