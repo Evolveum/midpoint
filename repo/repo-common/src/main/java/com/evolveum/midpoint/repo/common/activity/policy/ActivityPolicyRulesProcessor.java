@@ -172,7 +172,7 @@ public class ActivityPolicyRulesProcessor {
         if (rule.containsAction(SuspendTaskPolicyActionType.class)) {
             LOGGER.debug("Suspending task because of policy violation, rule: {}", rule);
 
-            throw new ThresholdPolicyViolationException("Policy violation, rule: " + rule);
+            throw new ThresholdPolicyViolationException("Policy violation, rule: " + rule.getName());
         }
     }
 }

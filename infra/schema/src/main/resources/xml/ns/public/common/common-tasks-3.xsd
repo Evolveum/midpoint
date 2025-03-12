@@ -3765,6 +3765,30 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element name="message" type="xsd:string" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Error or warning message.
+
+                        Message related to the task execution.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:since>4.10</a:since>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="userFriendlyMessage" type="tns:LocalizableMessageType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Error or warning message.
+
+                        User-friendly variant of message related to the task execution.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:since>4.10</a:since>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
         </xsd:sequence>
     </xsd:complexType>
 
@@ -8667,7 +8691,7 @@
     <xsd:complexType name="ActivityPolicyStateType">
         <xsd:annotation>
             <xsd:documentation>
-                A single policy state. 
+                A single policy state.
             </xsd:documentation>
             <xsd:appinfo>
                 <a:container>true</a:container>
