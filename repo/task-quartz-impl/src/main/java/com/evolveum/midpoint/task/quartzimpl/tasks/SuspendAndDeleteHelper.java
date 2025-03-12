@@ -72,19 +72,19 @@ class SuspendAndDeleteHelper {
         suspendTaskNoWaitNoExceptions(task, result);
         boolean stopped = waitForTaskToStop(task, waitTime, result);
         if (suspendDependents) {
-            suspendDependentsIfPossible(task, result);
+            suspendDependentsIfPossible(task, waitTime, result);
         }
         return stopped;
     }
 
-    private void suspendDependentsIfPossible(TaskQuartzImpl task, OperationResult result) throws ObjectNotFoundException, SchemaException {
+    private void suspendDependentsIfPossible(TaskQuartzImpl task, long waitTime, OperationResult result) throws ObjectNotFoundException, SchemaException {
         LOGGER.debug("suspendDependentsIfPossible starting for {}", task);
         int suspended = 0;
 
         List<Task> dependents = task.listDependents(result);
         LOGGER.debug("dependents: {}", dependents);
         for (Task dependent : dependents) {
-            if (suspendTaskNoExceptions((TaskQuartzImpl) dependent, TaskManager.DO_NOT_STOP, true, result)) {
+            if (suspendTaskNoExceptions((TaskQuartzImpl) dependent, waitTime, true, result)) {
                 suspended++;
             }
         }
@@ -92,7 +92,7 @@ class SuspendAndDeleteHelper {
         TaskQuartzImpl parentTask = task.getParentTask(result);
         LOGGER.debug("parent: {}", parentTask);
         if (parentTask != null) {
-            if (suspendTaskNoExceptions(parentTask, TaskManager.DO_NOT_STOP, true, result)) {
+            if (suspendTaskNoExceptions(parentTask, waitTime, true, result)) {
                 suspended++;
             }
         }

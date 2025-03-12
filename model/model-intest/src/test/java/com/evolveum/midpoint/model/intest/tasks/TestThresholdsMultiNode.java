@@ -8,8 +8,6 @@
 package com.evolveum.midpoint.model.intest.tasks;
 
 import com.evolveum.midpoint.model.api.ModelPublicConstants;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.util.task.ActivityPath;
 import com.evolveum.midpoint.test.TestObject;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
@@ -146,23 +144,43 @@ public class TestThresholdsMultiNode extends TestThresholds {
 
     @Override
     void assertTest520TaskAfter(TestObject<TaskType> reconTask) throws SchemaException, ObjectNotFoundException {
+        // dump tasks
+        /*
         var options = schemaService.getOperationOptionsBuilder()
                 .item(TaskType.F_RESULT).retrieve()
                 .item(TaskType.F_SUBTASK_REF).retrieve()
                 .build();
-        PrismObject<TaskType> task = taskManager.getObject(TaskType.class, reconTask.oid, options, getTestOperationResult());
 
-        System.out.println(PrismTestUtil.serializeAnyData(task.asObjectable().getActivityState(), TaskType.F_ACTIVITY_STATE));
+        ObjectQuery query = PrismTestUtil.getPrismContext()
+                .queryFor(TaskType.class)
+                    .item(TaskType.F_NAME).containsPoly(reconTask.getNameOrig())
+                    .or()
+                    .item(TaskType.F_NAME).contains(reconTask.oid)
+                    .or()
+                    .ownerId(reconTask.oid).build();
+
+        SearchResultList<PrismObject<TaskType>> task = taskManager.searchObjects(TaskType.class, query, options, getTestOperationResult());
+        task.forEach(t -> {
+            try {
+                t.asObjectable().setOperationStats(null);
+                t.asObjectable().getOperationExecution().clear();
+                System.out.println(PrismTestUtil.serializeToXml(t.asObjectable()));
+            } catch (Exception ex) {
+                ex.printStackTrace();
+            }
+        });
+        */
 
         // @formatter:off
         assertTaskTree(reconTask.oid, "after")
                 .display()
                 .assertSuspended()
-                .assertFatalError()
+                .assertInProgress()
                 .rootActivityState()
-                    .assertFatalError()
+                    .assertInProgressLocal()
+                    .assertStatusInProgress()
                     .activityPolicyStates()
-                        .assertOnePolicyStateTriggers("resourceObjects:5", 1)
+                        .assertOnePolicyStateTriggers("resourceObjects:6", 1)
                     .end()
                 .end()
                 .activityState(ActivityPath.fromId(ModelPublicConstants.RECONCILIATION_OPERATION_COMPLETION_ID))
@@ -170,8 +188,8 @@ public class TestThresholdsMultiNode extends TestThresholds {
                     .assertSuccess()
                 .end()
                 .activityState(ModelPublicConstants.RECONCILIATION_RESOURCE_OBJECTS_PATH)
-                    .assertInProgressLocal()
-                    .assertFatalError()
+                    .assertInProgressDelegated()
+                    .assertStatusInProgress()
                     .progress()
                         .display()
                 .end();

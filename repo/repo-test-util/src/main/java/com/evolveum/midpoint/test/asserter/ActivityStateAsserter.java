@@ -42,6 +42,10 @@ public class ActivityStateAsserter<RA> extends AbstractAsserter<RA> {
         return assertRealizationState(null);
     }
 
+    public ActivityStateAsserter<RA> assertInProgressDelegated() {
+        return assertRealizationState(ActivityRealizationStateType.IN_PROGRESS_DELEGATED);
+    }
+
     public ActivityStateAsserter<RA> assertInProgressLocal() {
         return assertRealizationState(ActivityRealizationStateType.IN_PROGRESS_LOCAL);
     }

@@ -29,6 +29,8 @@ public interface TaskEvent extends Event {
 
     boolean isPermanentError();
 
+    boolean isHaltingError();
+
     boolean isFinished();
 
     boolean isInterrupted();
