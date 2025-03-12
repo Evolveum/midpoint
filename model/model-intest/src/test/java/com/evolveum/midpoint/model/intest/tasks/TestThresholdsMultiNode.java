@@ -8,6 +8,8 @@
 package com.evolveum.midpoint.model.intest.tasks;
 
 import com.evolveum.midpoint.model.api.ModelPublicConstants;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.util.task.ActivityPath;
 import com.evolveum.midpoint.test.TestObject;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
@@ -29,6 +31,8 @@ public class TestThresholdsMultiNode extends TestThresholds {
     private static final TestObject<TaskType> TASK_RECONCILIATION_SIMULATE_MULTI = TestObject.file(TEST_DIR, "task-reconciliation-simulate-multi.xml", "5f14f4d7-1fe0-4f83-87f3-9fc8ed468cb1");
     private static final TestObject<TaskType> TASK_RECONCILIATION_SIMULATE_EXECUTE_MULTI = TestObject.file(TEST_DIR, "task-reconciliation-simulate-execute-multi.xml", "5756a1c4-751c-4cd3-8edc-3d1e357dab83");
     private static final TestObject<TaskType> TASK_RECONCILIATION_EXECUTE_MULTI = TestObject.file(TEST_DIR, "task-reconciliation-execute-multi.xml", "bc114530-a111-4baf-9888-1a51dd99a558");
+
+    private static final TestObject<TaskType> TASK_RECONCILIATION_MULTI = TestObject.file(TEST_DIR, "task-reconciliation-executionTime-multi.xml", "115de34b-7c2b-4393-9b1a-09f19ca71c97");
 
     TestObject<TaskType> getSimulateTask() {
         return TASK_IMPORT_SIMULATE_MULTI;
@@ -52,6 +56,11 @@ public class TestThresholdsMultiNode extends TestThresholds {
 
     TestObject<TaskType> getReconciliationExecuteTask() {
         return TASK_RECONCILIATION_EXECUTE_MULTI;
+    }
+
+    @Override
+    TestObject<TaskType> getReconciliationWithExecutionTimeTask() {
+        return TASK_RECONCILIATION_MULTI;
     }
 
     @Override
@@ -137,6 +146,14 @@ public class TestThresholdsMultiNode extends TestThresholds {
 
     @Override
     void assertTest520TaskAfter(TestObject<TaskType> reconTask) throws SchemaException, ObjectNotFoundException {
+        var options = schemaService.getOperationOptionsBuilder()
+                .item(TaskType.F_RESULT).retrieve()
+                .item(TaskType.F_SUBTASK_REF).retrieve()
+                .build();
+        PrismObject<TaskType> task = taskManager.getObject(TaskType.class, reconTask.oid, options, getTestOperationResult());
+
+        System.out.println(PrismTestUtil.serializeAnyData(task.asObjectable().getActivityState(), TaskType.F_ACTIVITY_STATE));
+
         // @formatter:off
         assertTaskTree(reconTask.oid, "after")
                 .display()

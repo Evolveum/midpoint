@@ -611,36 +611,24 @@ public abstract class TestThresholds extends AbstractEmptyModelIntegrationTest {
     }
 
     @Test
-    public void test520ReconcileExecuteWithExecutionTime() throws Exception {
+    public void test520ReconcileWithExecutionTime() throws Exception {
         given();
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
-        TestObject<TaskType> reconTask = getReconciliationExecuteTask();
+        TestObject<TaskType> reconTask = getReconciliationWithExecutionTimeTask();
 
         when();
 
         deleteIfPresent(reconTask, result);
         addObject(reconTask, task, result,
                 aggregateCustomizer(
-                        reconciliationWorkCustomizer(RESOURCE_SOURCE_SLOW.oid),
-                        executionTimeCustomizer("PT2S"),
-                        getReconWorkerThreadsCustomizer()));
+                        executionTimeCustomizer("PT2S")));
         waitForTaskTreeCloseCheckingSuspensionWithError(reconTask.oid, result, getTimeout());
 
         then();
 
         assertTest520TaskAfter(reconTask);
-    }
-
-    protected Consumer<PrismObject<TaskType>> reconciliationWorkCustomizer(String resourceOid) {
-        return object -> {
-            object.asObjectable().getActivity().getWork().getReconciliation().getResourceObjects()
-                    .setResourceRef(new ObjectReferenceType()
-                            .oid(resourceOid)
-                            .type(ResourceType.COMPLEX_TYPE)
-                    );
-        };
     }
 
     protected Consumer<PrismObject<TaskType>> executionTimeCustomizer(String exceedsExecutionTimeThreshold) {
@@ -652,6 +640,7 @@ public abstract class TestThresholds extends AbstractEmptyModelIntegrationTest {
             object.asObjectable().getActivity()
                     .beginPolicies()
                         .beginPolicy()
+                            .name("Max. execution time is " + exceedsExecutionTimeThreshold)
                             .beginPolicyConstraints()
                                 .beginExecutionTime()
                                     .exceeds(XmlTypeConverter.createDuration(exceedsExecutionTimeThreshold))
@@ -682,6 +671,8 @@ public abstract class TestThresholds extends AbstractEmptyModelIntegrationTest {
     abstract TestObject<TaskType> getReconciliationSimulateExecuteTask();
 
     abstract TestObject<TaskType> getReconciliationExecuteTask();
+
+    abstract TestObject<TaskType> getReconciliationWithExecutionTimeTask();
 
     abstract long getTimeout();
 
