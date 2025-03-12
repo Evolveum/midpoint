@@ -249,7 +249,7 @@
         <xerces.version>2.12.2</xerces.version>
         <commons.csv.version>1.8</commons.csv.version>
         <j2html.version>1.4.0</j2html.version>
-        <bouncycastle.version>1.69</bouncycastle.version>
+        <bouncycastle.version>1.70</bouncycastle.version>
         <protobuf.version>3.19.6</protobuf.version>
         <javax.persistence.version>2.2</javax.persistence.version>
 
@@ -1463,7 +1463,7 @@
             <dependency>
                 <groupId>io.netty</groupId>
                 <artifactId>netty-all</artifactId>
-                <version>4.1.86.Final</version>
+                <version>4.1.119.Final</version>
                 <exclusions>
                     <exclusion>
                         <groupId>ch.qos.logback</groupId>
