@@ -740,7 +740,7 @@ public class CollectionProcessor {
         if (existingView.getPaging() == null) {
             existingView.setPaging(newPaging);
         } else if (replaceIfExist) {
-            MiscSchemaUtil.mergePaging(existingView.getPaging(), newPaging);
+            MiscSchemaUtil.replacePaging(existingView.getPaging(), newPaging);
         }
     }
 
@@ -753,7 +753,7 @@ public class CollectionProcessor {
         if (existingConfig.getPaging() == null) {
             existingConfig.setPaging(newConfig.getPaging());
         } else if (replaceIfExist) {
-            MiscSchemaUtil.mergePaging(existingConfig.getPaging(), newPaging);
+            MiscSchemaUtil.replacePaging(existingConfig.getPaging(), newPaging);
         }
     }
 
@@ -766,7 +766,7 @@ public class CollectionProcessor {
         if (existingView.getPagingOptions() == null) {
             existingView.setPagingOptions(newPagingOptions);
         } else if (replaceIfExist) {
-            MiscSchemaUtil.mergePagingOptions(existingView.getPagingOptions(), newPagingOptions);
+            MiscSchemaUtil.replacePagingOptions(existingView.getPagingOptions(), newPagingOptions);
         }
     }
 
@@ -779,7 +779,7 @@ public class CollectionProcessor {
         if (existingConfig.getPagingOptions() == null) {
             existingConfig.setPagingOptions(newPagingOptions);
         } else if (replaceIfExist) {
-            MiscSchemaUtil.mergePagingOptions(existingConfig.getPagingOptions(), newPagingOptions);
+            MiscSchemaUtil.replacePagingOptions(existingConfig.getPagingOptions(), newPagingOptions);
         }
     }
 

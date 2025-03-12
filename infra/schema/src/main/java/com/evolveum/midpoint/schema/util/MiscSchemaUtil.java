@@ -452,23 +452,30 @@ public class MiscSchemaUtil {
         }
     }
 
-    public static void mergePaging(PagingType existPaging, PagingType newPaging) {
-        if (existPaging.getMaxSize() == null) {
+    public static void replacePaging(PagingType existPaging, PagingType newPaging) {
+        if (newPaging.getMaxSize() != null) {
             existPaging.setMaxSize(newPaging.getMaxSize());
         }
-        if (existPaging.getOffset() == null) {
+        if (newPaging.getOffset() != null) {
             existPaging.setOffset(newPaging.getOffset());
         }
-        if (existPaging.getOrderBy() == null) {
+        if (newPaging.getOrderBy() != null) {
             existPaging.setOrderBy(newPaging.getOrderBy());
         }
-        if (existPaging.getOrderDirection() == null) {
+        if (newPaging.getOrderDirection() != null) {
             existPaging.setOrderDirection(newPaging.getOrderDirection());
         }
     }
 
-    public static void mergePagingOptions(PagingOptionsType existPagingOptions, PagingOptionsType newPagingOptions) {
-        if (existPagingOptions.getAvailablePageSize().isEmpty()) {
+    /**
+     * Paging options should be totally rewritten if they are present in the new options.
+     * @param existPagingOptions
+     * @param newPagingOptions
+     */
+    public static void replacePagingOptions(@NotNull PagingOptionsType existPagingOptions,
+            @NotNull PagingOptionsType newPagingOptions) {
+        if (!newPagingOptions.getAvailablePageSize().isEmpty()) {
+            existPagingOptions.getAvailablePageSize().clear();
             existPagingOptions.getAvailablePageSize().addAll(newPagingOptions.getAvailablePageSize());
         }
     }
