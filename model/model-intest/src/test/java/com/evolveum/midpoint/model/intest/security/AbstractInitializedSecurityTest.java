@@ -126,6 +126,7 @@ public abstract class AbstractInitializedSecurityTest extends AbstractInitialize
     protected static final TestObject<RoleType> ROLE_PROP_READ_SOME_MODIFY_SOME_USER = TestObject.file(TEST_DIR, "role-prop-read-some-modify-some-user.xml", "00000000-0000-0000-0000-00000000ae08");
     protected static final TestObject<RoleType> ROLE_PROP_GET_SEARCH_SOME_MODIFY_SOME_USER = TestObject.file(TEST_DIR, "role-prop-get-search-some-modify-some-user.xml", "e0f81542-af58-11e8-8537-87b51775fc04");
     protected static final TestObject<RoleType> ROLE_PROP_DENY_MODIFY_SOME = TestObject.file(TEST_DIR, "role-prop-deny-modify-some.xml", "d867ca80-b18a-11e6-826e-1b0f95ef9125");
+    protected static final TestObject<RoleType> ROLE_SHOW_USERS_HIDE_SHADOWS = TestObject.file(TEST_DIR, "role-show-users-hide-shadows.xml", "fc85a12a-b69a-43eb-9dec-3b40ce3c8f35");
     protected static final TestObject<RoleType> ROLE_SELF_ACCOUNTS_READ = TestObject.file(TEST_DIR, "role-self-accounts-read.xml", "00000000-0000-0000-0000-00000000aa09");
     protected static final TestObject<RoleType> ROLE_SELF_ACCOUNTS_READ_WRITE = TestObject.file(TEST_DIR, "role-self-accounts-read-write.xml", "00000000-0000-0000-0000-00000000aa0a");
     protected static final TestObject<RoleType> ROLE_SELF_ACCOUNTS_PARTIAL_CONTROL = TestObject.file(TEST_DIR, "role-self-accounts-partial-control.xml", "00000000-0000-0000-0000-00000000aa0b");
@@ -207,7 +208,7 @@ public abstract class AbstractInitializedSecurityTest extends AbstractInitialize
     protected static final XMLGregorianCalendar JACK_VALID_TO_LONG_AHEAD = XmlTypeConverter.createXMLGregorianCalendar(10000000000000L);
 
     protected static final int NUMBER_OF_ALL_USERS = 13;
-    protected static final int NUMBER_OF_IMPORTED_ROLES = 80;
+    protected static final int NUMBER_OF_IMPORTED_ROLES = 81;
     protected static final int NUMBER_OF_ALL_ORGS = 11;
 
     protected String userRumRogersOid;
@@ -258,6 +259,7 @@ public abstract class AbstractInitializedSecurityTest extends AbstractInitialize
         repoAdd(ROLE_PROP_READ_SOME_MODIFY_SOME_USER, initResult);
         repoAdd(ROLE_PROP_GET_SEARCH_SOME_MODIFY_SOME_USER, initResult);
         repoAdd(ROLE_PROP_DENY_MODIFY_SOME, initResult);
+        repoAdd(ROLE_SHOW_USERS_HIDE_SHADOWS, initResult);
         repoAdd(ROLE_READ_JACKS_CAMPAIGNS, initResult);
         repoAdd(ROLE_READ_SOME_ROLES, initResult);
         repoAdd(ROLE_READ_SOME_ROLES_SUBTYPE, initResult);

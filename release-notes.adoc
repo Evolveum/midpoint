@@ -38,6 +38,7 @@ Overall, midPoint 4.9 is a major step from the past into the future.
 == Changes with Respect To Version 4.9.1
 
 * bug:MID-10225[] Fix issue where opening of certification campaign stage hangs indefinitely.
+* Fixed "preview changes" and "access request" functionality when some projections are hidden by authorizations. See bug:MID-10397[].
 
 == Changes with Respect To Version 4.9
 
@@ -755,6 +756,16 @@ Make sure you don't use any removed items.
 You can use `ninja` tool for this.
 
 * Be sure to apply the changes to initial objects 800-804 (object marks), as well as to your custom object marks to handle the membership in the expected way.
+
+[#_behavior_changes_since_4_9]
+=== Behavior Changes Since 4.9
+
+* Projections with denied access no longer cause "preview changes" operation to fail.
++
+If a user has no authorization to see particular projection (shadow), the "preview changes" operation used to finish with "Access denied" fatal error even if there were parts of the result visible to the user.
+This is now changed (fixed): only the relevant projections are hidden now.
+All the remaining data are displayed to the user.
+See also bug:MID-10397[].
 
 [#_behavior_changes_since_4_8]
 === Behavior Changes Since 4.8

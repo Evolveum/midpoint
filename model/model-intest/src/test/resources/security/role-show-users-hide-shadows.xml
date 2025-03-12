@@ -1,0 +1,28 @@
+<!--
+  ~ Copyright (c) 2014-2019 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+<role oid="fc85a12a-b69a-43eb-9dec-3b40ce3c8f35"
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+    <name>show-users-hide-shadows</name>
+    <description>
+        User can be read and modified, shadows are hidden (modifiable only in execution phase).
+        MID-10397
+    </description>
+    <authorization>
+        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>
+        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#modify</action>
+        <object>
+            <type>UserType</type>
+        </object>
+    </authorization>
+    <authorization>
+        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#modify</action>
+        <phase>execution</phase>
+        <object>
+            <type>ShadowType</type>
+        </object>
+    </authorization>
+</role>
