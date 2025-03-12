@@ -138,7 +138,7 @@
             <class name="com.evolveum.midpoint.model.intest.tasks.TestThresholdsSingleThread"/>
             <class name="com.evolveum.midpoint.model.intest.tasks.TestMiscTasks"/>
             <class name="com.evolveum.midpoint.model.intest.tasks.TestShadowReclassification"/>
-            <class name="com.evolveum.midpoint.model.intest.tasks.TestActivityPolicyThresholds"/>
+            <class name="com.evolveum.midpoint.model.intest.tasks.TestActivityExecutionTimeThresholds"/>
         </classes>
     </test>
     <test name="Async updates" preserve-order="true" parallel="none" verbose="10">
