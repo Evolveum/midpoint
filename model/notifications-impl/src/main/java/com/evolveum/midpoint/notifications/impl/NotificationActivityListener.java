@@ -6,7 +6,6 @@
  */
 package com.evolveum.midpoint.notifications.impl;
 
-import com.evolveum.midpoint.notifications.api.events.SimpleObjectRef;
 import com.evolveum.midpoint.notifications.impl.events.ActivityPolicyRuleEventImpl;
 
 import com.evolveum.midpoint.repo.common.activity.policy.EvaluatedActivityPolicyRule;

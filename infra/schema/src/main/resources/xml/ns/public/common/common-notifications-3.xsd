@@ -1073,9 +1073,6 @@
                     </xsd:element>
                     <xsd:element name="simpleActivityPolicyRuleNotifier" type="tns:SimpleActivityPolicyRuleNotifierType" minOccurs="0" maxOccurs="unbounded">
                         <xsd:annotation>
-                            <xsd:documentation>
-                                TODO
-                            </xsd:documentation>
                             <xsd:appinfo>
                                 <a:since>4.10</a:since>
                             </xsd:appinfo>
@@ -1898,7 +1895,7 @@
     <xsd:complexType name="SimpleActivityPolicyRuleNotifierType">
         <xsd:annotation>
             <xsd:documentation>
-                TODO
+                Simple notifier for activity policy rules.
             </xsd:documentation>
             <xsd:appinfo>
                 <a:since>4.10</a:since>
