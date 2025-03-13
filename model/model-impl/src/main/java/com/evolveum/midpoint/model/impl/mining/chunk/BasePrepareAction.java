@@ -364,7 +364,8 @@ public abstract class BasePrepareAction implements MiningStructure {
         String userName = user.getName().toString();
         if (option != null && option.getUserAnalysisUserDef() != null) {
             RoleAnalysisAttributeDef userItemValuePath = option.getUserAnalysisUserDef();
-            chunkName = userItemValuePath.resolveSingleValueItem(user, userItemValuePath.getPath());
+            ItemPath path = userItemValuePath.getPath();
+            chunkName = userItemValuePath.resolveSingleValueItem(user, path);
             return Objects.requireNonNullElse(chunkName, "(N/A) " + userName);
         }
 
@@ -380,7 +381,8 @@ public abstract class BasePrepareAction implements MiningStructure {
         String roleName = role.getName().toString();
         if (option != null && option.getRoleAnalysisRoleDef() != null) {
             RoleAnalysisAttributeDef roleAnalysisRoleDef = option.getRoleAnalysisRoleDef();
-            chunkName = roleAnalysisRoleDef.resolveSingleValueItem(role, roleAnalysisRoleDef.getPath());
+            ItemPath path = roleAnalysisRoleDef.getPath();
+            chunkName = roleAnalysisRoleDef.resolveSingleValueItem(role, path);
             return Objects.requireNonNullElse(chunkName, "(N/A) " + roleName);
 
         }

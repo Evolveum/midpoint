@@ -722,25 +722,27 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
             @NotNull OperationResult result,
             @Nullable RoleAnalysisCacheOption option) {
         PrismObject<RoleType> role = roleExistCache.get(roleOid);
-        if (role == null) {
-            role = getRoleTypeObject(roleOid, task, result);
-            if (role == null) {
-                return null;
-            }
-
-            if (option != null && option.getItemDef() != null) {
-                try {
-                    PrismObject<RoleType> cacheRole = buildCachedRole(option.getItemDef(), role);
-
-                    roleExistCache.put(roleOid, cacheRole);
-                    return cacheRole;
-                } catch (SchemaException e) {
-                    throw new SystemException("Couldn't prepare role for cache", e);
-                }
-            }
-
-            roleExistCache.put(roleOid, role);
+        if (role != null) {
+            return role;
         }
+
+        role = getRoleTypeObject(roleOid, task, result);
+        if (role == null) {
+            return null;
+        }
+
+        if (option != null && option.getItemDef() != null) {
+            try {
+                PrismObject<RoleType> cacheRole = buildCachedRole(option.getItemDef(), role);
+                roleExistCache.put(roleOid, cacheRole);
+                return cacheRole;
+            } catch (SchemaException e) {
+                throw new SystemException("Couldn't prepare role for cache", e);
+            }
+        }
+
+        roleExistCache.put(roleOid, role);
+
         return role;
     }
 
@@ -754,13 +756,21 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
 
             Item<PrismValue, ItemDefinition<?>> item = role.findItem(path);
             if (item != null) {
-                cacheRole.add(item.clone());
+                if (isExtensionItem(path)) {
+                    cacheRole.addExtensionItem(item.clone());
+                } else {
+                    cacheRole.add(item.clone());
+                }
             }
         }
 
         resolveNameIfNeeded(role, cacheRole);
 
         return cacheRole;
+    }
+
+    private static boolean isExtensionItem(ItemPath path) {
+        return path.getSegments().contains(ObjectType.F_EXTENSION);
     }
 
     @Override
@@ -805,7 +815,11 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
             ItemPath path = roleAnalysisAttributeDef.getPath();
             Item<PrismValue, ItemDefinition<?>> item = user.findItem(path);
             if (item != null) {
-                cacheUser.add(item.clone());
+                if (isExtensionItem(path)) {
+                    cacheUser.addExtensionItem(item.clone());
+                } else {
+                    cacheUser.add(item.clone());
+                }
             }
         }
 
