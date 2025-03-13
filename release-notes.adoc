@@ -58,6 +58,17 @@ Also, Person of interests step was updated with additional authorization checks 
 * Fixed the issue for delegated certification items to be displayed to the deputy user. See bug:MID-10520[].
 * bug:MID-10513[] Fixed css issues with popup modal background in Safari.
 * Fixed the issue where search above the role mining detected pattern container was failing due to a missing isOwnedBy method, which has now been added.
+* Fixed memory leak caused by the creating large number of new authentication filters. See bug:MID-10369[].
+* Upgrade node.js, npm, webpack and libs used in frontend. See bug:MID-10440[].
+* Implement creation of SBOM file for monitoring vulnerabilities in frontend libs.
+* Fixed override emphasized by displayHint for item in object template. See bug:MID-10359[].
+* Fixed using custom lookup table for lifecycle item. See bug:MID-10371[].
+* Fixed responsive for columns of work items table. See bug:MID-10453[].
+* Fixed honeypot behaviour when values of form are prefilled. See bug:MID-10490[].
+* Fixed removing delegation for login user in current session. See bug:MID-10439[].
+* Vertical align for check and icons columns in table. See bug:MID-10470[].
+* Fixed the position of the approval/rejection popup for selected work items in the work item table. See bug:MID-10474[].
+* Fixed error for showing objects in table when it is impossible because of fatal error. See bug:MID-10482[].
 
 == Changes with Respect To Version 4.9
 
