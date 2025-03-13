@@ -134,7 +134,6 @@ public class ActivityPolicyRulesProcessor {
 
         List<EvaluatedActivityPolicyRule> rules = activityRun.getActivityPolicyRulesContext().getPolicyRules();
 
-        // todo check also whether action condition is enabled
         for (EvaluatedActivityPolicyRule rule : rules) {
             if (!rule.isTriggered()) {
                 LOGGER.trace("Policy rule {} was not triggered, skipping enforcement", rule);
