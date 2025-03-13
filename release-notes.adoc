@@ -39,7 +39,11 @@ Overall, midPoint 4.9 is a major step from the past into the future.
 
 * bug:MID-10225[] Fix issue where opening of certification campaign stage hangs indefinitely.
 * Fixed "preview changes" and "access request" functionality when some projections are hidden by authorizations. See bug:MID-10397[].
-* Added documentation of xref:/midpoint/reference/resources/shadow/purpose/[shadow purpose]. See bug:MID-10419[].
+* Added documentation of xrefv:/midpoint/reference/support-4.9/resources/shadow/purpose/[shadow purpose]. See bug:MID-10419[].
+* The feature that xrefv:/midpoint/reference/support-4.9/diag/performance/#_operation_execution_recording[turns off the operation execution recording for the successful executions] is now a regular one.
+(It was experimental before.)
+* Various performance improvements were implemented.
+* Internal performance reporting for background tasks was improved by adding own time spent by individual operations, i.e., the total time minus the time spent in child operations.
 * Fixed the issue with simpleReviewerNotifier to use the up-to-date campaign object data. See bug:MID-10373[].
 * Fixed error on the Errors panel of the Task details page. See bug:MID-10395[], MID-10500[].
 * Fixed the issue with missing task channel during certification remediation task running. See bug:MID-10376[].
