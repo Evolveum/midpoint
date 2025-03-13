@@ -65,7 +65,7 @@ Overall, midPoint 4.9 is a major step from the past into the future.
 * Improved the documentation on the resource configuration. See bug:MID-10176[].
 * Allow volatility configuration per mapping through the Resource Wizard. See bug:MID-10170[].
 * Change the CSS style of sub-containers in the vertical form panel to create a new object for reference. See bug:MID-10030[].
-
+* Documentation of xref:/midpoint/reference/resources/shadow/purpose/[shadow purpose] was added. See bug:MID-10419[].
 
 === Other Bug Fixes
 
