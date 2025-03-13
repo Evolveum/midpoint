@@ -11,16 +11,14 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.common.mining.objects.analysis.RoleAnalysisAttributeDef;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ClusteringAttributeRuleType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ClusteringAttributeSettingType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisProcessModeType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 /**
  * Represents an attribute match with associated extension properties.
@@ -41,43 +39,23 @@ public class RoleAnalysisAttributeDefConvert implements Serializable {
             return;
         }
 
+        ItemPath path = rule.getPath().getItemPath();
+        PrismObjectDefinition<?> objectDef = getObjectDefinition(processMode);
+        RoleAnalysisAttributeDef attributeForAnalysis = new RoleAnalysisAttributeDef(path, objectDef.findItemDefinition(path),
+                processMode.equals(RoleAnalysisProcessModeType.ROLE) ? RoleType.class : UserType.class);
+
+        this.isMultiValue = attributeForAnalysis.isMultiValue();
+        this.roleAnalysisAttributeDef = attributeForAnalysis;
+        this.attributeDisplayValue = attributeForAnalysis.getDisplayValue();
+        this.similarity = similarity * 0.01;
         this.similarity = rule.getSimilarity();
         this.weight = rule.getWeight();
+    }
 
-        if (processMode.equals(RoleAnalysisProcessModeType.ROLE)) {
-            //TODO load from system config? do we need it?
-//            for (RoleAnalysisAttributeDef attributesForRoleAnalysis : getAttributesForRoleAnalysis()) {
-//                ItemPathType attributePath = rule.getPath();
-//                if (attributePath == null) {
-//                    continue;
-//                }
-//                if (attributesForRoleAnalysis.getPath().equivalent(attributePath.getItemPath())) {
-//                    this.roleAnalysisAttributeDef = attributesForRoleAnalysis;
-//                    this.attributeDisplayValue = attributesForRoleAnalysis.getDisplayValue();
-//                }
-//            }
-        } else {
-            ItemPath path = rule.getPath().getItemPath();
-            PrismObjectDefinition<UserType> objectDef = PrismContext.get().getSchemaRegistry().findObjectDefinitionByCompileTimeClass(UserType.class);
-
-            RoleAnalysisAttributeDef attributeForUserAnalysis = new RoleAnalysisAttributeDef(path, objectDef.findItemDefinition(path), UserType.class);
-            this.isMultiValue = attributeForUserAnalysis.isMultiValue();
-            this.roleAnalysisAttributeDef = attributeForUserAnalysis;
-            this.attributeDisplayValue = attributeForUserAnalysis.getDisplayValue();
-//            for (RoleAnalysisAttributeDef attributesForRoleAnalysis : getAttributesForUserAnalysis()) {
-//                ItemPathType attributePath = rule.getPath();
-//                if (attributePath == null) {
-//                    continue;
-//                }
-//                if (attributesForRoleAnalysis.getPath().equivalent(attributePath.getItemPath())) {
-//                    this.roleAnalysisAttributeDef = attributesForRoleAnalysis;
-//                    this.attributeDisplayValue = attributesForRoleAnalysis.getDisplayValue();
-//                }
-//            }
-        }
-
-        this.similarity = similarity * 0.01;
-
+    private PrismObjectDefinition<?> getObjectDefinition(@NotNull RoleAnalysisProcessModeType processMode) {
+        return processMode.equals(RoleAnalysisProcessModeType.ROLE)
+                ? PrismContext.get().getSchemaRegistry().findObjectDefinitionByCompileTimeClass(RoleType.class)
+                : PrismContext.get().getSchemaRegistry().findObjectDefinitionByCompileTimeClass(UserType.class);
     }
 
     public static @NotNull List<RoleAnalysisAttributeDefConvert> generateMatchingRulesList(
