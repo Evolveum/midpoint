@@ -30,6 +30,7 @@ The {release-version} release brings security, stability and miscellaneous bugfi
 
 == Changes with Respect To Version 4.8.6
 
+* Upgraded Spring Boot to 3.3.9 and Tomcat 10.1.39 in order to fix possible Tomcat vulnerabilities.
 * Internal performance reporting for background tasks was improved by adding own time spent by individual operations, i.e., the total time minus the time spent in child operations.
 * Fixed memory leak caused by the creating large number of new authentication filters. See bug:MID-10369[].
 * Upgrade node.js, npm, webpack and libs used in frontend. See bug:MID-10440[].
@@ -680,7 +681,7 @@ We reserve the right not to support customized web browsers.
 | Component | Version | Description
 
 | Tomcat
-| 10.1.28
+| 10.1.39
 | Web container
 
 | ConnId
