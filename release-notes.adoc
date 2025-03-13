@@ -28,6 +28,10 @@ The {release-version} release brings security, stability and miscellaneous bugfi
 {% include release-dedication.html content=dedicationContent %}
 ++++
 
+== Changes with Respect To Version 4.8.6
+
+* #TODO#
+
 == Changes with Respect To Version 4.8.5
 
 * Fixed cleanup of finished tasks which has configured "cleanup after finish" parameter. See bug:MID-10272[].
