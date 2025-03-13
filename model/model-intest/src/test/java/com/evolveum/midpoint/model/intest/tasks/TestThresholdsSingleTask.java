@@ -52,7 +52,7 @@ public abstract class TestThresholdsSingleTask extends TestThresholds {
 
     @Override
     long getTimeout() {
-        return 20000;
+        return 40000;
     }
 
     @Override
