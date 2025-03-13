@@ -6,15 +6,18 @@
  */
 package com.evolveum.midpoint.ninja.action.mining.generator.context;
 
-import static com.evolveum.midpoint.ninja.action.mining.generator.context.ImportAction.getNameFromSet;
-import static com.evolveum.midpoint.ninja.action.mining.generator.context.ImportAction.importUserAndResolveAuxRoles;
+import static com.evolveum.midpoint.ninja.action.mining.generator.context.ImportAction.*;
 import static com.evolveum.midpoint.ninja.action.mining.generator.context.RbacGeneratorUtils.*;
+import static com.evolveum.midpoint.ninja.action.mining.generator.object.InitialAbstractRole.ROLE_MULTIPLIER_SUFFIX;
 
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 import com.evolveum.midpoint.ninja.action.mining.generator.object.InitialOrg;
 
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ExtensionType;
+
+import com.github.javafaker.Faker;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.ninja.action.mining.generator.GeneratorOptions;
@@ -36,6 +39,8 @@ import org.jetbrains.annotations.Nullable;
 public abstract class RbacUserType implements RbacBasicStructure {
 
     protected GeneratorOptions generatorOptions;
+    private final Faker faker = new Faker();
+    private static final Set<String> USED_NAMES_SET = new HashSet<>();
 
     protected RbacUserType(GeneratorOptions generatorOptions) {
         this.generatorOptions = generatorOptions;
@@ -49,6 +54,8 @@ public abstract class RbacUserType implements RbacBasicStructure {
      * dynamic initialization.
      */
     protected abstract void updateParameters();
+
+    protected abstract void additionalAssignments(@NotNull UserType user);
 
     /**
      * This method is responsible for building a UserType object with specific attributes.
@@ -70,6 +77,8 @@ public abstract class RbacUserType implements RbacBasicStructure {
 
         setupUserLocationProperties(user);
 
+        setupFakeAttributes(user);
+
         additionalChanges(user);
 
         setupUserPrimaryRoles(user);
@@ -78,7 +87,35 @@ public abstract class RbacUserType implements RbacBasicStructure {
 
         setupUserPlanktonRoles(user);
 
+        additionalAssignments(user);
+
         return user;
+    }
+
+    private void setupFakeAttributes(@NotNull UserType user) {
+        user.setName(PolyStringType.fromOrig(generateUniqueName(faker, USED_NAMES_SET)));
+        user.setFamilyName(PolyStringType.fromOrig(faker.name().lastName()));
+        user.setFullName(PolyStringType.fromOrig(user.getName().getOrig() + " " + user.getFamilyName().getOrig()));
+        user.setGivenName(PolyStringType.fromOrig(user.getName().getOrig()));
+        user.setAdditionalName(PolyStringType.fromOrig(faker.name().firstName()));
+        user.setEmailAddress(faker.internet().emailAddress());
+        user.setPersonalNumber(faker.number().digits(10));
+        user.setTelephoneNumber(faker.phoneNumber().phoneNumber());
+        user.setHonorificPrefix(PolyStringType.fromOrig(faker.name().prefix()));
+
+        setupUserExtensions(user);
+    }
+
+    private void setupUserExtensions(@NotNull UserType user) {
+        user.extension(new ExtensionType());
+        ExtensionType ext = user.getExtension();
+        try {
+            addExtensionValue(ext, "street", faker.address().streetAddress());
+            addExtensionValue(ext, "employeeStatus", faker.bool().bool());
+            addExtensionValue(ext, "manager", faker.bool().bool());
+        } catch (SchemaException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     private void setupUserPlanktonRoles(@NotNull UserType user) {
@@ -178,6 +215,32 @@ public abstract class RbacUserType implements RbacBasicStructure {
             user = build(user);
             importUserAndResolveAuxRoles(user, repository, generatorOptions, result, log);
         }
+    }
+
+    public String generateUniqueName(@NotNull Faker faker, @NotNull Set<String> usedNames) {
+        String baseName = faker.name().firstName();
+        String uniqueName = baseName;
+        int counter = 0;
+
+        while (usedNames.contains(uniqueName)) {
+            uniqueName = baseName + counter++;
+        }
+
+        usedNames.add(uniqueName);
+        return uniqueName;
+    }
+
+    public static String generateUniqueRoleName(@NotNull Faker faker, @NotNull Set<String> usedNames) {
+        String baseName = faker.app().name();
+        String uniqueName = baseName;
+        int counter = 0;
+
+        while (usedNames.contains(uniqueName)) {
+            uniqueName = baseName + ROLE_MULTIPLIER_SUFFIX + counter++;
+        }
+
+        usedNames.add(uniqueName);
+        return uniqueName;
     }
 
     protected abstract String getDisplayName();

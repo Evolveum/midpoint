@@ -6,14 +6,12 @@
  */
 package com.evolveum.midpoint.ninja.action.mining.generator.context;
 
-import static com.evolveum.midpoint.ninja.action.mining.generator.context.ImportAction.importUserAndResolveAuxRoles;
+import static com.evolveum.midpoint.ninja.action.mining.generator.context.ImportAction.*;
 import static com.evolveum.midpoint.ninja.action.mining.generator.context.RbacGeneratorUtils.*;
 import static com.evolveum.midpoint.ninja.action.mining.generator.context.RbacObjectCategoryProcessor.*;
 import static com.evolveum.midpoint.ninja.action.mining.generator.context.RbacObjectCategoryProcessor.Category.*;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Random;
+import java.util.*;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -50,6 +48,11 @@ public class RbacObjectCategoryBuilder {
         protected void updateParameters() {
             locationOrg = getRandomLocationOrg();
             initPrimaryRole();
+        }
+
+        @Override
+        protected void additionalAssignments(@NotNull UserType user) {
+            // no additional assignments
         }
 
         public void initPrimaryRole() {
@@ -129,6 +132,11 @@ public class RbacObjectCategoryBuilder {
         }
 
         @Override
+        protected void additionalAssignments(@NotNull UserType user) {
+            // no additional assignments
+        }
+
+        @Override
         public String getBirthRole() {
             return InitialObjectsDefinition.BirthrightBusinessRole.EMPLOYEE.getOidValue();
         }
@@ -190,6 +198,8 @@ public class RbacObjectCategoryBuilder {
      */
     public static class IrregularUserType extends RbacUserType {
 
+        Map<Integer, List<String>> specialRolesUsageMap = specialRolesToUsers;
+
         public IrregularUserType(GeneratorOptions generatorOptions) {
             super(generatorOptions);
         }
@@ -197,6 +207,17 @@ public class RbacObjectCategoryBuilder {
         @Override
         protected void updateParameters() {
             // no additional changes
+        }
+
+        @Override
+        protected void additionalAssignments(@NotNull UserType user) {
+            if (!specialRolesUsageMap.isEmpty()) {
+                Map.Entry<Integer, List<String>> firstEntry = specialRolesUsageMap.entrySet().iterator().next();
+                Integer firstKey = firstEntry.getKey();
+                List<String> specialRolesOidSet = firstEntry.getValue();
+                specialRolesOidSet.forEach(roleOid -> user.getAssignment().add(createRoleAssignment(roleOid)));
+                specialRolesUsageMap.remove(firstKey);
+            }
         }
 
         @Override
@@ -262,6 +283,11 @@ public class RbacObjectCategoryBuilder {
         @Override
         public void updateParameters() {
             this.locationOrg = getRandomLocationOrg();
+        }
+
+        @Override
+        protected void additionalAssignments(@NotNull UserType user) {
+            // no additional assignments
         }
 
         @Override
@@ -346,6 +372,11 @@ public class RbacObjectCategoryBuilder {
         }
 
         @Override
+        protected void additionalAssignments(@NotNull UserType user) {
+            // no additional assignments
+        }
+
+        @Override
         public String getProfessionOrganizationOid() {
             return InitialObjectsDefinition.ProfessionOrg.SALES.getOidValue();
         }
@@ -406,6 +437,11 @@ public class RbacObjectCategoryBuilder {
         @Override
         protected void updateParameters() {
             // no additional changes
+        }
+
+        @Override
+        protected void additionalAssignments(@NotNull UserType user) {
+            // no additional assignments
         }
 
         @Override
@@ -472,6 +508,11 @@ public class RbacObjectCategoryBuilder {
         }
 
         @Override
+        protected void additionalAssignments(@NotNull UserType user) {
+            // no additional assignments
+        }
+
+        @Override
         public String getBirthRole() {
             return InitialObjectsDefinition.BirthrightBusinessRole.CONTRACTOR.getOidValue();
         }
@@ -534,8 +575,10 @@ public class RbacObjectCategoryBuilder {
                 @NotNull OperationResult result) {
 
             UserType user = new UserType();
-            user.setName(PolyStringType.fromOrig("Matuzalem(" + index + "): " + category.getDisplayName()));
             generateRbacObject(user, category, generatorOptions);
+            PolyStringType name = user.getName();
+            user.setName(PolyStringType.fromOrig(name.getOrig() + " T(" + index + ")"));
+
             Category randomCategory = getRandomCategory(category);
             assignPrimaryAccessByCategory(user, category, generatorOptions);
             Category randomCategory2 = getRandomCategory(category, randomCategory);
@@ -564,8 +607,9 @@ public class RbacObjectCategoryBuilder {
                 @NotNull OperationResult result) {
 
             UserType user = new UserType();
-            user.setName(PolyStringType.fromOrig("Jumper (" + index + "): " + category.getDisplayName()));
             generateRbacObject(user, category, generatorOptions);
+            PolyStringType name = user.getName();
+            user.setName(PolyStringType.fromOrig(name.getOrig() + " J(" + index + ")"));
             Category randomCategory = getRandomCategory(category);
             assignPrimaryAccessByCategory(user, randomCategory, generatorOptions);
 
@@ -592,8 +636,10 @@ public class RbacObjectCategoryBuilder {
                 @NotNull OperationResult result) {
 
             UserType user = new UserType();
-            user.setName(PolyStringType.fromOrig("Zombie (" + index + "): " + category.getDisplayName()));
             generateRbacObject(user, category, generatorOptions);
+            PolyStringType name = user.getName();
+            user.setName(PolyStringType.fromOrig(name.getOrig() + " Z(" + index + ")"));
+
             user.getAssignment().clear();
             String orgOid = retrieveOrgUnit(generatorOptions, category);
             if (orgOid != null) {
@@ -631,8 +677,10 @@ public class RbacObjectCategoryBuilder {
                 @NotNull OperationResult result) {
 
             UserType user = new UserType();
-            user.setName(PolyStringType.fromOrig("Mask (" + index + "): " + category.getDisplayName()));
             generateRbacObject(user, category, generatorOptions);
+            PolyStringType name = user.getName();
+            user.setName(PolyStringType.fromOrig(name.getOrig() + " M(" + index + ")"));
+
             List<InitialObjectsDefinition.NoiseApplicationBusinessAbstractRole> randomNoiseRoles = getRandomNoiseRoles(3);
             for (InitialObjectsDefinition.NoiseApplicationBusinessAbstractRole noiseRole : randomNoiseRoles) {
                 user.getAssignment().add(createRoleAssignment(noiseRole.getOidValue()));

@@ -27,6 +27,21 @@ public class BaseGeneratorOptions {
     public static final String P_RANDOM_ROLE_MULTIPLIER = "-rrm";
     public static final String P_RANDOM_ROLE_MULTIPLIER_LONG = "--random-role-multiplier";
 
+    public static final String P_MIN_RANDOM_MULTIPLIER = "-mrm";
+    public static final String P_MIN_RANDOM_MULTIPLIER_LONG = "--min-random-multiplier";
+
+    public static final String P_MAX_RANDOM_MULTIPLIER = "-xrm";
+    public static final String P_MAX_RANDOM_MULTIPLIER_LONG = "--max-random-multiplier";
+
+    public static final String P_MAX_MEMBERSHIP_SPECIAL_ROLES = "-msr";
+    public static final String P_MAX_MEMBERSHIP_SPECIAL_ROLES_LONG = "--max-membership-special-roles";
+
+    public static final String P_IS_SPECIAL_LOW_MEMBERSHIP_ROLE_ENABLED = "-slmr";
+    public static final String P_IS_SPECIAL_LOW_MEMBERSHIP_ROLE_ENABLED_LONG = "--special-low-membership-role-enabled";
+
+    public static final String P_SPECIAL_LOW_MEMBERSHIP_ROLE_COUNT = "-slmrc";
+    public static final String P_SPECIAL_LOW_MEMBERSHIP_ROLE_COUNT_LONG = "--special-low-membership-role-count";
+
     public static final String P_USERS_COUNT = "-uc";
     public static final String P_USERS_COUNT_LONG = "--users-count";
 
@@ -122,6 +137,41 @@ public class BaseGeneratorOptions {
 
     @Parameter(names = { P_USERS_COUNT, P_USERS_COUNT_LONG }, descriptionKey = "baseGeneratorOptions.usersCount")
     private int usersCount = 100;
+
+    @Parameter(names = { P_MIN_RANDOM_MULTIPLIER, P_MIN_RANDOM_MULTIPLIER_LONG }, descriptionKey = "baseGeneratorOptions.minRandomMultiplier")
+    private int minRandomMultiplier = 3;
+
+    @Parameter(names = { P_MAX_RANDOM_MULTIPLIER, P_MAX_RANDOM_MULTIPLIER_LONG }, descriptionKey = "baseGeneratorOptions.maxRandomMultiplier")
+    private int maxRandomMultiplier = 7;
+
+    @Parameter(names = { P_MAX_MEMBERSHIP_SPECIAL_ROLES, P_MAX_MEMBERSHIP_SPECIAL_ROLES_LONG }, descriptionKey = "baseGeneratorOptions.maxMembershipSpecialRoles")
+    private int maxMembershipSpecialRoles = 5;
+
+    @Parameter(names = { P_IS_SPECIAL_LOW_MEMBERSHIP_ROLE_ENABLED, P_IS_SPECIAL_LOW_MEMBERSHIP_ROLE_ENABLED_LONG }, descriptionKey = "baseGeneratorOptions.specialLowMembershipRoleEnabled")
+    private boolean isSpecialLowMembershipRoleEnabled = false;
+
+    @Parameter(names = { P_SPECIAL_LOW_MEMBERSHIP_ROLE_COUNT, P_SPECIAL_LOW_MEMBERSHIP_ROLE_COUNT_LONG }, descriptionKey = "baseGeneratorOptions.specialLowMembershipRoleCount")
+    private int specialLowMembershipRoleCount = 200;
+
+    public int getSpecialLowMembershipRoleCount() {
+        return specialLowMembershipRoleCount;
+    }
+
+    public boolean isSpecialLowMembershipRoleEnabled() {
+        return isSpecialLowMembershipRoleEnabled;
+    }
+
+    public int getMaxMembershipSpecialRoles() {
+        return maxMembershipSpecialRoles;
+    }
+
+    public int getMinRandomMultiplier() {
+        return minRandomMultiplier;
+    }
+
+    public int getMaxRandomMultiplier() {
+        return maxRandomMultiplier;
+    }
 
     public boolean isRandomRoleMultiplier() {
         return randomRoleMultiplier;

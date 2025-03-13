@@ -22,10 +22,12 @@ public interface InitialArchetype {
     String getColor();
     String getIconCss();
     QName getHolderType();
+    String getDescription();
 
     default ArchetypeType generateArchetype() {
         ArchetypeType archetype = new ArchetypeType();
         archetype.setName(PolyStringType.fromOrig(getName()));
+        archetype.setDescription(getDescription());
         archetype.setOid(getOidValue());
 
         DisplayType display = new DisplayType();
@@ -48,5 +50,4 @@ public interface InitialArchetype {
         archetype.getAssignment().add(assignment);
         return archetype;
     }
-
 }

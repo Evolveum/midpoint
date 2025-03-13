@@ -13,6 +13,8 @@ import static com.evolveum.midpoint.ninja.action.mining.generator.object.Initial
 import java.io.IOException;
 import java.util.*;
 
+import com.evolveum.midpoint.ninja.action.mining.generator.object.RoleMembershipUsageLocator;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -50,6 +52,9 @@ public class ImportAction {
     Set<String> names = null;
     boolean isArchetypeUserEnable;
 
+    public static Map<String, RoleMembershipUsageLocator> specialRolesUsage = new HashMap<>();
+    public static Map<Integer, List<String>> specialRolesToUsers = new HashMap<>();
+
     public ImportAction(
             @NotNull NinjaContext context,
             @NotNull GeneratorOptions generatorOptions,
@@ -71,7 +76,7 @@ public class ImportAction {
         if (generatorOptions.isTransform()) {
             remakeUsersBusinessRoles(context, result, generatorOptions, null, null);
         }
-        
+
         log.info("NOTE: Do not forget to recompute FocusType objects");
     }
 
@@ -89,6 +94,7 @@ public class ImportAction {
         }
 
         importMultipliedBasicRoles(initialObjectsDefinition, repositoryService, result, log);
+        importLowMembershipRoles(initialObjectsDefinition, repositoryService, result, log);
         importBusinessRoles(initialObjectsDefinition, repositoryService, result, log);
         importNoiseRoles(repositoryService, result, log);
         log.info("Initial role objects imported");
@@ -107,6 +113,38 @@ public class ImportAction {
             List<RoleType> role = rolesObject.generateRoleObject();
             for (RoleType roleType : role) {
                 importRole(roleType, repositoryService, result, log);
+            }
+        }
+    }
+
+    private void importLowMembershipRoles(
+            @NotNull InitialObjectsDefinition initialObjectsDefinition,
+            @NotNull RepositoryService repositoryService,
+            OperationResult result, @NotNull Log log) {
+
+        if (!generatorOptions.isSpecialLowMembershipRoleEnabled()) {
+            return;
+        }
+        InitialObjectsDefinition.SpecialLowMembershipRole specialLowMembershipRole = initialObjectsDefinition
+                .getSpecialLowMembershipRolesObjects();
+
+        int maxMembershipSpecialRoles = generatorOptions.getMaxMembershipSpecialRoles();
+
+        int specialLowMembershipRoleCount = generatorOptions.getSpecialLowMembershipRoleCount();
+        log.info("Importing special low membership roles: 0/{}", specialLowMembershipRoleCount);
+
+        Random random = new Random();
+        for (int i = 0; i < specialLowMembershipRoleCount; i++) {
+            log.info("Importing basic roles: {}/{}", i + 1, specialLowMembershipRoleCount);
+            List<RoleType> role = specialLowMembershipRole.generateRoleObject();
+            for (RoleType roleType : role) {
+                importRole(roleType, repositoryService, result, log);
+                int randomValue = random.nextInt(maxMembershipSpecialRoles + 1);
+                if (randomValue == 0 && random.nextDouble() > 0.2) { // avoid 0 (80% probability)
+                    randomValue = random.nextInt(maxMembershipSpecialRoles + 1) + 1;
+                }
+
+                specialRolesUsage.put(roleType.getOid(), new RoleMembershipUsageLocator(randomValue));
             }
         }
     }
@@ -247,10 +285,6 @@ public class ImportAction {
         }
 
         try {
-            //TODO uncomment for extension adding (remember to add extension to UserType schema and correct name)
-//            user.extension(new ExtensionType());
-//            ExtensionType ext = user.getExtension();
-//            addExtensionValue(ext, "hatSize","XL","L","M","S");
             repositoryService.addObject(user.asPrismObject(), null, result);
         } catch (ObjectAlreadyExistsException e) {
             log.warn("User {} already exists", user.getName());
@@ -305,6 +339,8 @@ public class ImportAction {
         int securityOfficersCount = (int) (userCount * (partsInt[5] / 100.0));
         int contractorsCount = (int) (userCount * (partsInt[6] / 100.0));
 
+        updateSpecialRolesMapBasedOnIrregularCount(irregularUsersCount);
+
         RepositoryService repository = context.getRepository();
         resolveUsers(repository, regularUsersCount, RbacObjectCategoryProcessor.Category.REGULR, names);
         resolveUsers(repository, semiRegularUsersCount, RbacObjectCategoryProcessor.Category.SEMI_REGULAR, names);
@@ -315,7 +351,24 @@ public class ImportAction {
         resolveUsers(repository, contractorsCount, RbacObjectCategoryProcessor.Category.CONTRACTORS, names);
     }
 
-    private void resolveUsers(@NotNull RepositoryService repository, int usersCount, RbacObjectCategoryProcessor.Category category, Set<String> names) {
+    private static void updateSpecialRolesMapBasedOnIrregularCount(int irregularUsersCount) {
+        specialRolesUsage.forEach((key, value) -> {
+            int initCount = value.getMaxUsage();
+            Random random = new Random();
+
+            while (value.getUsage() < initCount) {
+                int randomNumber = random.nextInt(irregularUsersCount) + 1;
+                value.addAssociatedUserId(String.valueOf(randomNumber));
+                specialRolesToUsers.computeIfAbsent(randomNumber, k -> new ArrayList<>()).add(key);
+            }
+        });
+    }
+
+    private void resolveUsers(
+            @NotNull RepositoryService repository,
+            int usersCount,
+            RbacObjectCategoryProcessor.Category category,
+            Set<String> names) {
         generateRbacData(repository, category, log, generatorOptions, usersCount, names, result);
     }
 
@@ -451,30 +504,25 @@ public class ImportAction {
     }
 
     public static <V> void addExtensionValue(
-            Containerable extContainer, String itemName, V... values) {
+            Containerable extContainer, String itemName, V... values) throws SchemaException {
         PrismContainerValue<?> pcv = extContainer.asPrismContainerValue();
         ItemDefinition<?> itemDefinition =
                 pcv.getDefinition().findItemDefinition(new ItemName(itemName));
 
-        try {
-            if (itemDefinition instanceof PrismReferenceDefinition) {
-                PrismReference ref = (PrismReference) itemDefinition.instantiate();
-                for (V value : values) {
-                    ref.add(value instanceof PrismReferenceValue
-                            ? (PrismReferenceValue) value
-                            : ((Referencable) value).asReferenceValue());
-                }
-                pcv.add(ref);
-            } else {
-                //noinspection unchecked
-                PrismProperty<V> property = (PrismProperty<V>) itemDefinition.instantiate();
-                property.setRealValues(values);
-                pcv.add(property);
+        if (itemDefinition instanceof PrismReferenceDefinition) {
+            PrismReference ref = (PrismReference) itemDefinition.instantiate();
+            for (V value : values) {
+                ref.add(value instanceof PrismReferenceValue
+                        ? (PrismReferenceValue) value
+                        : ((Referencable) value).asReferenceValue());
             }
-        } catch (SchemaException e) {
-            throw new RuntimeException("Cloud not add extension value", e);
+            pcv.add(ref);
+        } else {
+            //noinspection unchecked
+            PrismProperty<V> property = (PrismProperty<V>) itemDefinition.instantiate();
+            property.setRealValues(values);
+            pcv.add(property);
         }
-
     }
 
 }
