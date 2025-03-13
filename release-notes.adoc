@@ -37,6 +37,7 @@ Overall, midPoint 4.9 is a major step from the past into the future.
 
 == Changes with Respect To Version 4.9.1
 
+* Upgraded Spring Boot to 3.3.9 and Tomcat 10.1.39 in order to fix possible Tomcat vulnerabilities.
 * bug:MID-10225[] Fix issue where opening of certification campaign stage hangs indefinitely.
 * Fixed "preview changes" and "access request" functionality when some projections are hidden by authorizations. See bug:MID-10397[].
 * Added documentation of xrefv:/midpoint/reference/support-4.9/resources/shadow/purpose/[shadow purpose]. See bug:MID-10419[].
@@ -551,7 +552,7 @@ We reserve the right not to support customized web browsers.
 | Component | Version | Description
 
 | Tomcat
-| 10.1.28
+| 10.1.39
 | Web container
 
 | ConnId
