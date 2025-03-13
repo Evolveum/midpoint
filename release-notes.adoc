@@ -40,6 +40,18 @@ Overall, midPoint 4.9 is a major step from the past into the future.
 * bug:MID-10225[] Fix issue where opening of certification campaign stage hangs indefinitely.
 * Fixed "preview changes" and "access request" functionality when some projections are hidden by authorizations. See bug:MID-10397[].
 * Added documentation of xref:/midpoint/reference/resources/shadow/purpose/[shadow purpose]. See bug:MID-10419[].
+* Fixed the issue with simpleReviewerNotifier to use the up-to-date campaign object data. See bug:MID-10373[].
+* Fixed error on the Errors panel of the Task details page. See bug:MID-10395[], MID-10500[].
+* Fixed the issue with missing task channel during certification remediation task running. See bug:MID-10376[].
+* Fixed the issue with defaultAssignmentConstraints configuration during Access Request flow. See bug:MID-10425[].
+* Fixed several issues for the table view on the Campaigns page. See bug:MID-10469[].
+* Fixed the issue with Modify Marks action on the users list page for end user. See bug:MID-10423[].
+* Fixed the issue with the session storage for Cases table on different pages. See bug:MID-10473[].
+* The number of columns was decreased on the Workitems panel of the case details page. See bug:MID-10427[].
+* Fixed the issue for the Resources dashboard info panel on the Info dashboard page. See bug:MID-10497[].
+* Fixed the issue to restrict user selection list on the Person of interests step of the Access Request flow.
+Also, Person of interests step was updated with additional authorization checks in case of adding new person(s) as target user(s) of the request. See bug:MID-10398[].
+* Fixed the issue for delegated certification items to be displayed to the deputy user. See bug:MID-10520[].
 
 == Changes with Respect To Version 4.9
 
