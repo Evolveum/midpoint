@@ -57,6 +57,7 @@ Overall, midPoint 4.9 is a major step from the past into the future.
 Also, Person of interests step was updated with additional authorization checks in case of adding new person(s) as target user(s) of the request. See bug:MID-10398[].
 * Fixed the issue for delegated certification items to be displayed to the deputy user. See bug:MID-10520[].
 * bug:MID-10513[] Fixed css issues with popup modal background in Safari.
+* Fixed the issue where search above the role mining detected pattern container was failing due to a missing isOwnedBy method, which has now been added.
 
 == Changes with Respect To Version 4.9
 
