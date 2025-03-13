@@ -1,10 +1,10 @@
 ---
 layout: release
-release-version: '4.8.6'
+release-version: '4.8.7'
 visibility: hidden
 ---
-= MidPoint 4.8 "Curie" - Update 6
-:release-version: 4.8.6
+= MidPoint 4.8 "Curie" - Update 7
+:release-version: 4.8.7
 :page-visibility: hidden
 :page-liquid:
 :page-toc: top
@@ -35,7 +35,7 @@ The {release-version} release brings security, stability and miscellaneous bugfi
 * Fixed memory leak caused by the creating large number of new authentication filters. See bug:MID-10369[].
 * Upgrade node.js, npm, webpack and libs used in frontend. See bug:MID-10440[].
 * Implement creation of SBOM file for monitoring vulnerabilities in frontend libs.
-* #TODO#
+
 
 == Changes with Respect To Version 4.8.5
 
