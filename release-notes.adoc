@@ -30,6 +30,7 @@ The {release-version} release brings security, stability and miscellaneous bugfi
 
 == Changes with Respect To Version 4.8.6
 
+* Internal performance reporting for background tasks was improved by adding own time spent by individual operations, i.e., the total time minus the time spent in child operations.
 * #TODO#
 
 == Changes with Respect To Version 4.8.5
