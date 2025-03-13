@@ -31,6 +31,9 @@ The {release-version} release brings security, stability and miscellaneous bugfi
 == Changes with Respect To Version 4.8.6
 
 * Internal performance reporting for background tasks was improved by adding own time spent by individual operations, i.e., the total time minus the time spent in child operations.
+* Fixed memory leak caused by the creating large number of new authentication filters. See bug:MID-10369[].
+* Upgrade node.js, npm, webpack and libs used in frontend. See bug:MID-10440[].
+* Implement creation of SBOM file for monitoring vulnerabilities in frontend libs.
 * #TODO#
 
 == Changes with Respect To Version 4.8.5
