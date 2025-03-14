@@ -246,8 +246,12 @@ public abstract class AbstractActivityRun<
             try {
                 // this evaluation handles activity policy rules with "below" constraints (at the end of activity run)
                 processor.evaluateAndEnforceRules(result);
-            } catch (Exception e) {
-                throw new ActivityRunException("Threshold policy violation", FATAL_ERROR, PERMANENT_ERROR, e);
+            } catch (ThresholdPolicyViolationException e) {
+                throw new ActivityRunException(
+                        "Threshold policy violation", FATAL_ERROR, PERMANENT_ERROR, e);
+            } catch (CommonException e) {
+                throw new ActivityRunException(
+                        "Couldn't evaluate and enforce activity policy rules", FATAL_ERROR, PERMANENT_ERROR, e);
             }
         }
 

@@ -2033,14 +2033,16 @@
                     <xsd:element name="below" type="xsd:duration" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>
-                                When the activity metric ends quicker than this duration, the policy action is triggered.
+                                If constraint metric value is smaller than "below" duration for activity, the policy action is triggered.
+                                E.g. If the activity execution time is below this duration, the policy action is triggered.
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
                     <xsd:element name="exceeds" type="xsd:duration" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>
-                                When the activity metrics exceeds this duration, the policy action is triggered.
+                                If constraint metric value is greater than "exceeds" duration for activity, the policy action is triggered.
+                                E.g. If the activity execution time exceeds this duration, the policy action is triggered.
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
