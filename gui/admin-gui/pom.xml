@@ -122,6 +122,10 @@
             <groupId>com.evolveum.prism</groupId>
             <artifactId>prism-impl</artifactId>
         </dependency>
+        <dependency>
+            <groupId>com.evolveum.axiom</groupId>
+            <artifactId>axiom</artifactId>
+        </dependency>
 
         <dependency>
             <groupId>com.evolveum.midpoint.infra</groupId>

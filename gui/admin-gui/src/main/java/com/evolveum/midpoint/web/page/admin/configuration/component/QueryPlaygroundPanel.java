@@ -18,9 +18,12 @@ import java.time.Duration;
 import java.util.*;
 import javax.xml.namespace.QName;
 
+import com.evolveum.axiom.lang.antlr.AxiomQueryError;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.impl.query.lang.AxiomQueryContentAssistImpl;
 import com.evolveum.midpoint.prism.query.*;
+
+import com.evolveum.midpoint.util.SingleLocalizableMessage;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.io.IOUtils;
@@ -409,6 +412,7 @@ public class QueryPlaygroundPanel extends BasePanel<RepoQueryDto> {
                     try {
                         // Content assist for AXQ lang
                         target.appendJavaScript("window.MidPointAceEditor.syncContentAssist(" +
+                            // code completions
                             mapper.writeValueAsString(suggestions.isEmpty()
                                     ? List.of(new Suggestion("", createStringResource("QueryLanguage.contentAssist.codeCompletions.noSuggestion").getString(), 0)) // If list is empty, add noSuggestion item
                                     : suggestions.stream()
@@ -417,7 +421,17 @@ public class QueryPlaygroundPanel extends BasePanel<RepoQueryDto> {
                                             : suggestion)
 //                                    .sorted(Comparator.comparingInt(Suggestion::priority).reversed()) // sorted suggestions by priority from max to min weigh
                                     .toList()
-                            ) + ", " + mapper.writeValueAsString(contentAssist.validate()) + ", '" + editorMidPoint.getMarkupId() + "');"
+                            ) + ", " +
+                            // code validations
+                            mapper.writeValueAsString(contentAssist.validate().stream().map(
+                                    error -> {
+                                        var singleLocalizableMsg = (SingleLocalizableMessage) error.localizableMessage();
+                                        return new AxiomQueryError(error.lineStart(), error.lineStop(),
+                                                error.charPositionInLineStart(), error.charPositionInLineStop(),
+                                                error.localizableMessage(),
+                                                getString(singleLocalizableMsg.getKey(), singleLocalizableMsg.getArgs()));
+                                    }).toList()
+                            ) + ", '" + editorMidPoint.getMarkupId() + "');"
                         );
                     } catch (Exception e) {
                         LOGGER.error(e.getMessage());

@@ -52,6 +52,7 @@ Overall, midPoint 4.9 is a major step from the past into the future.
 * bug:MID-10048[] Fix ClassCastException when creating duplicates of object types with new archetype
 * bug:MID-9300[] Secure schema usage in PostgresSQL (not using public schema).
 * bug:MID-10278[] Fix non-clickable part of a button in Edit Schema popup panel.
+* bug:MID-10513[] Fixed css issues with popup modal background in Safari.
 
 === Other Improvements
 
