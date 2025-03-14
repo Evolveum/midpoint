@@ -898,7 +898,7 @@ since: "4.8"
 development: true
 columns:
   - heading: JavaDoc
-    linkUrlPattern: "https://download.evolveum.com/midpoint/${download-tag}/midpoint-${maven-version}-javadoc/com/evolveum/midpoint/notifications/api/events/WorkflowProcessEvent.html"
+    linkUrlPattern: "https://download.evolveum.com/midpoint/${download-tag}/midpoint-${maven-version}-javadoc/com/evolveum/midpoint/notifications/api/events/CaseEvent.html"
     linkText: "JavaDoc"
 %}
 ++++
