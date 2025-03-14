@@ -908,6 +908,19 @@ Possible values:
 
 |===
 
+Please refer to the JavaDoc links below for a documentation of individual functions and variables.
+The methods documented in Javadoc can be used in your expressions.
+
+++++
+{% versionlinks
+since: "4.8"
+development: true
+columns:
+  - heading: JavaDoc
+    linkUrlPattern: "https://download.evolveum.com/midpoint/${download-tag}/midpoint-${maven-version}-javadoc/com/evolveum/midpoint/notifications/api/events/WorkItemEvent.html"
+    linkText: "JavaDoc"
+%}
+++++
 
 ////
 TODO document other expression variables
