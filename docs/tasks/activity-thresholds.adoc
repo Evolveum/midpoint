@@ -7,9 +7,9 @@ Tasks are not xref:/midpoint/reference/schema/focus-and-projections[focus] objec
 This means we cannot use assignments to assign roles with policies like it's described xref:/midpoint/reference/roles-policies/policy-rules/[here].
 Activity policies allows us to set constraints and actions directly on task activities.
 
-=== Constraints
+== Constraints
 
-==== Execution time
+=== Execution time
 
 The `executionTime` constraint allows us to set a time limit for the activity execution.
 There are two options `below` and `exceeds`.
@@ -17,9 +17,9 @@ The `below` option is used to set a time limit must exceed, otherwise policy act
 The `exceeds` option the exact opposite/
 It is used to set a time limit that must not be exceeded, otherwise policy actions will be triggered.
 
-=== Actions
+== Actions
 
-==== Notification
+=== Notification
 
 Notification action will send a notification.
 Notifications configuration is described xref:/midpoint/reference/misc/notifications[here].
@@ -51,7 +51,7 @@ Subject and body of the notification can be configured in the `simpleActivityPol
 Default value for `to` field is the task owner `emailAddress` if available.
 If owner doesn't have `emailAddress` set, the notification will not be sent.
 
-==== Suspend task
+=== Suspend task
 
 Suspend task action will suspend the task.
 
