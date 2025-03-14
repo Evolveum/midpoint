@@ -753,7 +753,7 @@ You can use `ninja` tool for this.
 [#_behavior_changes_since_4_9]
 === Behavior Changes Since 4.9
 
-* Starting with midPoint 4.9.1, we changed the default schema for the repository structure to match the name of the user accessing the database, i.e., midPoint.
+* Starting with midPoint 4.9.1, we changed the default PostgresSQL schema for the native repository structure to match the name of the user accessing the database, i.e., `midpoint`.
 This approach is currently recommended for PostgresSQL environments and replaces previous configurations that point to the public schema.
 The change may lead to an issue where you seemingly lose midPoint configuration if you re-initialize your environment. +
 Refer to this xref:/midpoint/operations-manual/#recover-lost-configuration-in-midpoint-4-9-1[guide in the Operations Manual] for details on how to recover from the situation.
