@@ -61,7 +61,7 @@ podTemplate(
                                 df -h
                             fi
 
-                            mvn -B -ntp -DskipTests -P sbom,dependencytrack,jar-signing clean ${params.SKIP_DEPLOY ? 'install' : 'deploy -DdeployAtEnd=true'}
+                            mvn -B -ntp -DskipTests -P dist,docs,sbom,dependencytrack,jar-signing clean ${params.SKIP_DEPLOY ? 'install' : 'deploy -DdeployAtEnd=true'}
 
                             if [ "${verbose}" -ge 1 ]; then
                                 df -h
