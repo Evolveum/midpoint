@@ -53,7 +53,7 @@ podTemplate(
                             df -h
                         fi
 
-                        mvn -B -ntp -DskipTests -P sbom,dependencytrack clean deploy -DdeployAtEnd=true
+                        mvn -B -ntp -DskipTests -P dist,docs,sbom,dependencytrack clean deploy -DdeployAtEnd=true
 
                         if [ "${verbose}" -ge 1 ]
                         then
