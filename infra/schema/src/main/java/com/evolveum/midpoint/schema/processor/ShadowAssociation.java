@@ -98,7 +98,11 @@ public class ShadowAssociation
     }
 
     @Override
-    public ShadowAssociation cloneComplex(CloneStrategy strategy) {
+    public @NotNull ShadowAssociation cloneComplex(@NotNull CloneStrategy strategy) {
+        if (isImmutable() && !strategy.mutableCopy()) {
+            return this; // FIXME here should come a flyweight
+        }
+
         ShadowAssociation clone = new ShadowAssociation(getElementName(), getDefinition());
         copyValues(strategy, clone);
         return clone;

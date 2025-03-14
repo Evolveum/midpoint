@@ -827,12 +827,11 @@ public class ObjectTypeUtil {
                 && ref1.getOid().equals(ref2.getOid());
     }
 
-    public static void mergeExtension(PrismContainerValue<?> dstExtensionContainerValue, PrismContainerValue<?> srcExtensionContainerValue) throws SchemaException {
-        for (Item<?, ?> srcExtensionItem : emptyIfNull(srcExtensionContainerValue.getItems())) {
-            Item<?, ?> magicItem = dstExtensionContainerValue.findItem(srcExtensionItem.getElementName());
-            if (magicItem == null) {
-                //noinspection unchecked
-                dstExtensionContainerValue.add(FlyweightClonedItem.copyOf(srcExtensionItem));
+    public static void mergeExtension(PrismContainerValue<?> dstExtensionPcv, PrismContainerValue<?> srcExtensionPcv)
+            throws SchemaException {
+        for (Item<?, ?> srcExtensionItem : emptyIfNull(srcExtensionPcv.getItems())) {
+            if (dstExtensionPcv.findItem(srcExtensionItem.getElementName()) == null) {
+                dstExtensionPcv.add(srcExtensionItem.copy(), false);
             }
         }
     }

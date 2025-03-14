@@ -462,8 +462,7 @@ public class LensUtil {
             vars.setImmediateAssignment(vars.getThisAssignment());
 
             // this assignment
-            ItemDeltaItem<PrismContainerValue<AssignmentType>,PrismContainerDefinition<AssignmentType>> thisAssignment = segmentAssignmentIdi.clone();
-            vars.setThisAssignment(thisAssignment);
+            vars.setThisAssignment(segmentAssignmentIdi.copy());
 
             if (iterator.hasNext() && segmentSource instanceof AbstractRoleType) {
                 //noinspection unchecked
@@ -472,7 +471,7 @@ public class LensUtil {
         }
 
         AssignmentPathSegmentImpl focusAssignmentSegment = assignmentPath.first();
-        vars.setFocusAssignment(focusAssignmentSegment.getAssignmentIdi().clone());
+        vars.setFocusAssignment(focusAssignmentSegment.getAssignmentIdi().copy());
 
         // a bit of hack -- if deleted, TestPreviewChanges and TestRbac start to fail -> TODO should be investigated
         // objects are already cloned
@@ -494,9 +493,13 @@ public class LensUtil {
         // However, to not break scripts before 3.6 release we provide imitation of old behavior here.
         // (Moreover, for magic assignment the delta is not correct anyway.)
         if (idi.getDelta().isAdd() || idi.getDelta().isReplace()) {
-            return new ItemDeltaItem<>(idi.getItemNew().clone(), null, idi.getItemNew(), idi.getDefinition());
+            var itemNew = idi.getItemNew();
+            assert itemNew != null;
+            return new ItemDeltaItem<>(itemNew.copy(), null, itemNew, idi.getDefinition());
         } else {
-            return new ItemDeltaItem<>(idi.getItemOld(), null, idi.getItemOld().clone(), idi.getDefinition());
+            var itemOld = idi.getItemOld();
+            assert itemOld != null;
+            return new ItemDeltaItem<>(itemOld, null, itemOld.copy(), idi.getDefinition());
         }
     }
 

@@ -146,6 +146,10 @@ public class ShadowReferenceAttributeValue extends PrismReferenceValueImpl {
 
     @Override
     public ShadowReferenceAttributeValue cloneComplex(@NotNull CloneStrategy strategy) {
+        if (isImmutable() && !strategy.mutableCopy()) {
+            return this; // FIXME here should come a flyweight
+        }
+
         var clone = new ShadowReferenceAttributeValue(getOid(), getOriginType(), getOriginObject());
         copyValues(strategy, clone);
         return clone;

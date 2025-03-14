@@ -392,7 +392,7 @@ class DeltaExecution<O extends ObjectType, E extends ObjectType> {
         if (!deltaForExecution.hasCompleteDefinition()) { // TODO reconsider this
             throw new SchemaException("object delta does not have complete definition");
         }
-        var objectDeltaOp = LensUtil.createObjectDeltaOperation(deltaForExecution.clone(), result, elementContext, resource);
+        var objectDeltaOp = LensUtil.createObjectDeltaOperation(deltaForExecution, result, elementContext, resource);
         LOGGER.trace("Recording executed delta:\n{}", lazy(() -> objectDeltaOp.shorterDebugDump(1)));
         elementContext.addToExecutedDeltas(objectDeltaOp);
         return objectDeltaOp;

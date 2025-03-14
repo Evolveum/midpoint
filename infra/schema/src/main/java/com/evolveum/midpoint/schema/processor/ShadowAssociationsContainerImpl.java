@@ -83,11 +83,15 @@ public final class ShadowAssociationsContainerImpl
     @SuppressWarnings("MethodDoesntCallSuperMethod")
     @Override
     public ShadowAssociationsContainerImpl clone() {
-        return cloneComplex(CloneStrategy.LITERAL);
+        return cloneComplex(CloneStrategy.LITERAL_MUTABLE);
     }
 
     @Override
-    public ShadowAssociationsContainerImpl cloneComplex(CloneStrategy strategy) {
+    public @NotNull ShadowAssociationsContainerImpl cloneComplex(@NotNull CloneStrategy strategy) {
+        if (isImmutable() && !strategy.mutableCopy()) {
+            return this; // FIXME here should come a flyweight
+        }
+
         ShadowAssociationsContainerImpl clone = new ShadowAssociationsContainerImpl(getElementName(), getDefinition());
         copyValues(strategy, clone);
         return clone;

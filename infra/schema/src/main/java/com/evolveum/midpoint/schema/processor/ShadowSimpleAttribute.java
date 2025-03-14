@@ -201,5 +201,5 @@ public interface ShadowSimpleAttribute<T>
     ShadowSimpleAttribute<T> createImmutableClone();
 
     @Override
-    ShadowSimpleAttribute<T> cloneComplex(CloneStrategy strategy);
+    @NotNull ShadowSimpleAttribute<T> cloneComplex(@NotNull CloneStrategy strategy);
 }

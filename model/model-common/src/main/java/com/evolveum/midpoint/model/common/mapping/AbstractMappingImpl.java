@@ -1045,7 +1045,7 @@ public abstract class AbstractMappingImpl<V extends PrismValue, D extends ItemDe
                         .toList();
 
         if (!matchingMetadataValues.isEmpty()) {
-            var valueToDelete = matchingOriginalValue.cloneComplex(CloneStrategy.LITERAL_NO_METADATA);
+            var valueToDelete = matchingOriginalValue.cloneComplex(CloneStrategy.LITERAL_NO_METADATA_MUTABLE);
             var mdContainer = valueToDelete.<ValueMetadataType>getValueMetadataAsContainer();
             for (var matchingMetadataValue : matchingMetadataValues) {
                 try {

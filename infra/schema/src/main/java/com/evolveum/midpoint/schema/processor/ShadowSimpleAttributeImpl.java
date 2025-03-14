@@ -48,11 +48,15 @@ public class ShadowSimpleAttributeImpl<T> extends PrismPropertyImpl<T> implement
     @SuppressWarnings("MethodDoesntCallSuperMethod")
     @Override
     public ShadowSimpleAttribute<T> clone() {
-        return cloneComplex(CloneStrategy.LITERAL);
+        return cloneComplex(CloneStrategy.LITERAL_MUTABLE);
     }
 
     @Override
-    public ShadowSimpleAttribute<T> cloneComplex(CloneStrategy strategy) {
+    public @NotNull ShadowSimpleAttribute<T> cloneComplex(@NotNull CloneStrategy strategy) {
+        if (isImmutable() && !strategy.mutableCopy()) {
+            return this; // FIXME here should come a flyweight
+        }
+
         ShadowSimpleAttributeImpl<T> clone = new ShadowSimpleAttributeImpl<>(getElementName(), getDefinition());
         copyValues(strategy, clone);
         return clone;

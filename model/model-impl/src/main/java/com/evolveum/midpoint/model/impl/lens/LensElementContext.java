@@ -616,8 +616,7 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
     }
 
     public void addToExecutedDeltas(LensObjectDeltaOperation<O> executedDelta) {
-        executedDeltas.add(
-                executedDelta.clone()); // must be cloned because e.g. for ADD deltas the object gets modified afterwards
+        executedDeltas.add(executedDelta);
     }
 
     /**
