@@ -83,6 +83,12 @@ class Util {
     static AssignmentType getAssignment(
             ItemDeltaItem<PrismContainerValue<AssignmentType>, PrismContainerDefinition<AssignmentType>> assignmentIdi,
             boolean evaluateOld) {
-        return asContainerable(assignmentIdi.getSingleValue(evaluateOld));
+        return asContainerable(getAssignmentPcv(assignmentIdi, evaluateOld));
+    }
+
+    static PrismContainerValue<AssignmentType> getAssignmentPcv(
+            ItemDeltaItem<PrismContainerValue<AssignmentType>, PrismContainerDefinition<AssignmentType>> assignmentIdi,
+            boolean evaluateOld) {
+        return assignmentIdi.getSingleValue(evaluateOld);
     }
 }
