@@ -433,11 +433,14 @@ public class LensUtil {
             return null;
         }
         AssignmentPathVariables vars = new AssignmentPathVariables();
-        vars.setAssignmentPath(assignmentPath.clone());
 
-        vars.setMagicAssignment(new MagicAssignment(assignmentPath).lazyIdi());
+        // The assignment path itself is dynamic and will get changed, so we need to take a snapshot of it.
+        var assignmentPathSnapshot = assignmentPath.clone();
+        vars.setAssignmentPath(assignmentPathSnapshot);
 
-        Iterator<AssignmentPathSegmentImpl> iterator = assignmentPath.getSegments().iterator();
+        vars.setMagicAssignment(new MagicAssignment(assignmentPathSnapshot).lazyIdi());
+
+        Iterator<AssignmentPathSegmentImpl> iterator = assignmentPathSnapshot.getSegments().iterator();
         while (iterator.hasNext()) {
 
             var segment = iterator.next();
