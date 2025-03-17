@@ -8,14 +8,18 @@
 package com.evolveum.midpoint.repo.cache.global;
 
 import org.cache2k.expiry.Expiry;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.schema.cache.CacheConfigurationManager;
 import com.evolveum.midpoint.schema.cache.CacheType;
-import com.evolveum.midpoint.util.caching.CacheConfiguration;
-import com.evolveum.midpoint.util.caching.CacheConfiguration.CacheObjectTypeConfiguration;
+import com.evolveum.midpoint.schema.cache.CacheConfiguration;
+import com.evolveum.midpoint.schema.cache.CacheConfiguration.CacheObjectTypeConfiguration;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+
+import javax.xml.namespace.QName;
 
 /**
  * Superclass for global caches handling objects, versions, and queries.
@@ -31,9 +35,9 @@ public abstract class AbstractGlobalCache {
         return configurationManager.getConfiguration(getCacheType());
     }
 
-    public CacheObjectTypeConfiguration getConfiguration(Class<?> type) {
+    public CacheObjectTypeConfiguration getConfiguration(@NotNull Class<?> type, @Nullable QName objectClassName) {
         CacheConfiguration configuration = getConfiguration();
-        return configuration != null ? configuration.getForObjectType(type) : null;
+        return configuration != null ? configuration.getFor(type, objectClassName) : null;
     }
 
     long getCapacity() {
@@ -48,7 +52,7 @@ public abstract class AbstractGlobalCache {
     }
 
     long getExpiryTime(Class<?> type) {
-        CacheObjectTypeConfiguration configuration = getConfiguration(type);
+        var configuration = getConfiguration(type, null); // currently ignoring object class (not always known)
         if (configuration == null) {
             return Expiry.NOW;
         } else if (configuration.getEffectiveTimeToLive() != null) {
@@ -60,14 +64,15 @@ public abstract class AbstractGlobalCache {
 
     protected abstract CacheType getCacheType();
 
-    public <T extends ObjectType> boolean hasClusterwideInvalidationFor(Class<T> type) {
+    public <T extends ObjectType> boolean hasClusterwideInvalidationFor(
+            Class<T> type, QName objectClassName) {
         CacheConfiguration configuration = getConfiguration();
-        return configuration != null && configuration.isClusterwideInvalidation(type);
+        return configuration != null && configuration.isClusterwideInvalidation(type, objectClassName);
     }
 
-    public <T extends ObjectType> boolean shouldDoSafeRemoteInvalidationFor(Class<T> type) {
+    public <T extends ObjectType> boolean shouldDoSafeRemoteInvalidationFor(Class<T> type, QName objectClassName) {
         CacheConfiguration configuration = getConfiguration();
-        return configuration != null && configuration.isSafeRemoteInvalidation(type);
+        return configuration != null && configuration.isSafeRemoteInvalidation(type, objectClassName);
     }
 
     public abstract void clear();

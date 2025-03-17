@@ -19,7 +19,7 @@ import com.evolveum.midpoint.schema.ResultHandler;
 import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.SearchResultMetadata;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.util.caching.CachePerformanceCollector;
+import com.evolveum.midpoint.schema.cache.CachePerformanceCollector;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 /**

@@ -27,10 +27,10 @@ import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.MiscUtil;
-import com.evolveum.midpoint.util.caching.AbstractThreadLocalCache;
-import com.evolveum.midpoint.util.caching.CacheConfiguration;
-import com.evolveum.midpoint.util.caching.CachePerformanceCollector;
-import com.evolveum.midpoint.util.caching.CacheUtil;
+import com.evolveum.midpoint.schema.cache.AbstractThreadLocalCache;
+import com.evolveum.midpoint.schema.cache.CacheConfiguration;
+import com.evolveum.midpoint.schema.cache.CachePerformanceCollector;
+import com.evolveum.midpoint.schema.cache.CacheUtil;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
@@ -398,7 +398,7 @@ public class ConstraintsChecker {
             CacheConfiguration configuration = cache != null ? cache.getConfiguration() :
                     cacheConfigurationManager.getConfiguration(CacheType.LOCAL_SHADOW_CONSTRAINT_CHECKER_CACHE);
             CacheConfiguration.CacheObjectTypeConfiguration objectTypeConfiguration = configuration != null ?
-                    configuration.getForObjectType(ShadowType.class) : null;
+                    configuration.getForTypeIgnoringObjectClass(ShadowType.class) : null;
             CacheConfiguration.StatisticsLevel statisticsLevel =
                     CacheConfiguration.getStatisticsLevel(objectTypeConfiguration, configuration);
             boolean traceMiss = CacheConfiguration.getTraceMiss(objectTypeConfiguration, configuration);

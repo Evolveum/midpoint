@@ -1487,4 +1487,12 @@ public class ShadowUtil {
     public static boolean hasAuxiliaryObjectClass(@NotNull ShadowType bean, @NotNull QName name) {
         return QNameUtil.contains(bean.getAuxiliaryObjectClass(), name);
     }
+
+    public static QName getObjectClassName(@Nullable ObjectType object) {
+        return object instanceof ShadowType shadow ? shadow.getObjectClass() : null;
+    }
+
+    public static QName getObjectClassName(@Nullable PrismObject<? extends ObjectType> object) {
+        return getObjectClassName(ObjectTypeUtil.asObjectable(object));
+    }
 }

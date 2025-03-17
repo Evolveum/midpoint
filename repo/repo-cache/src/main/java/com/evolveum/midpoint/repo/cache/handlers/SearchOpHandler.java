@@ -21,6 +21,8 @@ import java.util.Collection;
 
 import com.evolveum.midpoint.repo.cache.values.CachedQueryValue;
 
+import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.stereotype.Component;
@@ -34,6 +36,8 @@ import com.evolveum.midpoint.schema.*;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
+import javax.xml.namespace.QName;
 
 /**
  * Handler for `searchObjects` and `searchObjectsIterative` operations.
@@ -217,9 +221,13 @@ public class SearchOpHandler extends CachedOpHandler {
         return null;
     }
 
-    private <T extends ObjectType> SearchOpExecution<T> initializeExecution(Class<T> type, ObjectQuery query,
-            Collection<SelectorOptions<GetOperationOptions>> options, OperationResult parentResult,
-            String localOpName, String fullOpName)
+    private <T extends ObjectType> SearchOpExecution<T> initializeExecution(
+            Class<T> type,
+            ObjectQuery query,
+            Collection<SelectorOptions<GetOperationOptions>> options,
+            OperationResult parentResult,
+            String localOpName,
+            String fullOpName)
             throws SchemaException {
         OperationResult result = parentResult.subresult(fullOpName)
                 .addQualifier(type.getSimpleName())
@@ -227,22 +235,31 @@ public class SearchOpHandler extends CachedOpHandler {
                 .addParam("query", query)
                 .addArbitraryObjectCollectionAsParam("options", options)
                 .build();
-
-        TracingLevelType level = result.getTracingLevel(RepositorySearchObjectsTraceType.class);
-        RepositorySearchObjectsTraceType trace;
-        if (isAtLeastMinimal(level)) {
-            trace = new RepositorySearchObjectsTraceType()
-                    .cache(true)
-                    .objectType(prismContext.getSchemaRegistry().determineTypeForClass(type))
-                    .query(prismContext.getQueryConverter().createQueryType(query))
-                    .options(String.valueOf(options));
-            result.addTrace(trace);
-        } else {
-            trace = null;
+        try {
+            TracingLevelType level = result.getTracingLevel(RepositorySearchObjectsTraceType.class);
+            RepositorySearchObjectsTraceType trace;
+            if (isAtLeastMinimal(level)) {
+                trace = new RepositorySearchObjectsTraceType()
+                        .cache(true)
+                        .objectType(prismContext.getSchemaRegistry().determineTypeForClass(type))
+                        .query(prismContext.getQueryConverter().createQueryType(query))
+                        .options(String.valueOf(options));
+                result.addTrace(trace);
+            } else {
+                trace = null;
+            }
+            QName objectClassName = getObjectClassNameFromQuery(query);
+            CacheSetAccessInfo<T> caches = cacheSetAccessInfoFactory.determine(type, objectClassName);
+            CacheUseMode cacheUseMode = CacheUseMode.determine(options, type);
+            return new SearchOpExecution<>(type, options, result, query, trace, level, caches, cacheUseMode, localOpName);
+        } catch (Throwable t) {
+            result.recordException(t);
+            throw t;
         }
-        CacheSetAccessInfo<T> caches = cacheSetAccessInfoFactory.determine(type);
-        CacheUseMode cacheUseMode = CacheUseMode.determine(options, type);
-        return new SearchOpExecution<>(type, options, result, query, trace, level, caches, cacheUseMode, localOpName);
+    }
+
+    private QName getObjectClassNameFromQuery(ObjectQuery query) throws SchemaException {
+        return query != null ? ObjectQueryUtil.getObjectClassNameFromFilter(query.getFilter()) : null;
     }
 
     /** Returns directly returnable value (mutable vs immutable). */

@@ -76,8 +76,8 @@ public class CacheDispatcherImpl implements CacheDispatcher {
         RepositoryOperationResult repoResult = null;
         if (context != null) {
             CacheInvalidationDetails details = context.getDetails();
-            if (details instanceof RepositoryCacheInvalidationDetails) {
-                repoResult = ((RepositoryCacheInvalidationDetails) details).getResult();
+            if (details instanceof RepositoryCacheInvalidationDetails repositoryCacheInvalidationDetails) {
+                repoResult = repositoryCacheInvalidationDetails.getResult();
             }
         }
 

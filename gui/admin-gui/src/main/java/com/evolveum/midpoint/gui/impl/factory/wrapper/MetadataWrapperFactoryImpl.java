@@ -42,7 +42,7 @@ public class MetadataWrapperFactoryImpl<C extends Containerable> extends PrismCo
             return false;
         }
 
-        return parent instanceof ValueMetadata;
+        return false; // parent instanceof ValueMetadata; <-- produces compilation error, ValueMetadata is a PC, not PCV
     }
 
     @Override

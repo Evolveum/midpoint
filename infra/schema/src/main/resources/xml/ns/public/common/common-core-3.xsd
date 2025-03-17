@@ -14219,7 +14219,7 @@
             <xsd:element name="objectTypeSettings" type="tns:CacheObjectTypeSettingsType" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Configuration for specific object type(s).
+                        Configuration for specific object and/or shadow type(s).
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
@@ -14242,10 +14242,31 @@
             <xsd:element name="objectType" type="xsd:QName" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Object type(s) to which this settings are to be applied. If not specified, these apply either to all
-                        object types currently supported by the cache. (If this configuration is appending to a previous one,
-                        this affects all object types configured in that configuration. If this configuration is the first
-                        one, then this affects all object types supported by default by given cache.)
+                        Object type(s) to which this settings are to be applied.
+
+                        If not specified and if this configuration is appending to a previous one, it affects all object types
+                        configured in that configuration. (If this configuration is the first one, then you should specify
+                        at least one object type.)
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="shadowObjectClass" type="xsd:QName" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Shadow object class(es) to which this settings are to be applied.
+
+                        If not specified and if this configuration is appending to a previous one, it affects all object classes
+                        configured in that configuration. (If this configuration is the first one, and no object classes are
+                        specified, then all shadows are treated in equal way.)
+
+                        Note that in order for this configuration to be considered at all, ShadowType must be specified among
+                        object types.
+
+                        Supported only for object and query repository caches.
+
+                        Not suitable to tailor TTL.
+
+                        Highly experimental.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>

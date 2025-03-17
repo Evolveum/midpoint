@@ -9,7 +9,8 @@ package com.evolveum.midpoint.repo.cache.global;
 
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.cache.CacheType;
-import com.evolveum.midpoint.util.caching.CacheConfiguration;
+import com.evolveum.midpoint.schema.cache.CacheConfiguration;
+import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
@@ -20,6 +21,8 @@ import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Component;
 
 import jakarta.annotation.PreDestroy;
+
+import javax.xml.namespace.QName;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -158,9 +161,13 @@ public class GlobalObjectCache extends AbstractGlobalCache {
         }
     }
 
-    public Long getNextVersionCheckTime(@NotNull Class<? extends ObjectType> type) {
-        CacheConfiguration cacheConfiguration = getConfiguration();
-        CacheConfiguration.CacheObjectTypeConfiguration typeConfiguration = cacheConfiguration.getForObjectType(type);
+    public Long getNextVersionCheckTime(@NotNull PrismObject<? extends ObjectType> object) {
+        return getNextVersionCheckTime(object.asObjectable().getClass(), ShadowUtil.getObjectClassName(object));
+    }
+
+    public Long getNextVersionCheckTime(@NotNull Class<? extends ObjectType> type, QName objectClassName) {
+        var cacheConfiguration = getConfiguration();
+        var typeConfiguration = cacheConfiguration.getFor(type, objectClassName);
         if (typeConfiguration != null && typeConfiguration.supportsCaching()) {
             return System.currentTimeMillis() + getTimeToCheckVersion(typeConfiguration, cacheConfiguration);
         } else {

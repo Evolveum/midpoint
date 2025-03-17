@@ -631,7 +631,7 @@ public class ObjectQueryUtil {
 
     private static @NotNull ResourceShadowCoordinates getShadowCoordinates(ObjectFilter filter) throws SchemaException {
         String resourceOid = getResourceOidFromFilter(filter);
-        QName objectClass = getPropertyRealValueFromFilter(filter, ShadowType.F_OBJECT_CLASS);
+        QName objectClass = getObjectClassNameFromFilter(filter);
         ShadowKindType kind = getKindFromFilter(filter);
         String intent = getPropertyRealValueFromFilter(filter, ShadowType.F_INTENT);
         String tag = getPropertyRealValueFromFilter(filter, ShadowType.F_TAG);
@@ -646,6 +646,10 @@ public class ObjectQueryUtil {
         return new ResourceShadowCoordinates(resourceOid, kind, intent, tag, objectClass);
     }
 
+    public static @Nullable QName getObjectClassNameFromFilter(ObjectFilter filter) throws SchemaException {
+        return getPropertyRealValueFromFilter(filter, ShadowType.F_OBJECT_CLASS);
+    }
+
     public static @NotNull ResourceOperationCoordinates getOperationCoordinates(ObjectFilter filter) throws SchemaException {
         return ResourceOperationCoordinates.of(
                 MiscUtil.requireNonNull(
@@ -653,7 +657,7 @@ public class ObjectQueryUtil {
                         () -> "Resource not defined in a search query: " + filter),
                 getKindFromFilter(filter),
                 getPropertyRealValueFromFilter(filter, ShadowType.F_INTENT),
-                getPropertyRealValueFromFilter(filter, ShadowType.F_OBJECT_CLASS));
+                getObjectClassNameFromFilter(filter));
     }
 
     private static ShadowKindType getKindFromFilter(ObjectFilter filter) throws SchemaException {

@@ -10,7 +10,7 @@ import static com.evolveum.midpoint.schema.GetOperationOptions.createNoFetchRead
 import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.*;
 import static com.evolveum.midpoint.util.DebugUtil.lazy;
 import static com.evolveum.midpoint.util.MiscUtil.configCheck;
-import static com.evolveum.midpoint.util.caching.CacheConfiguration.getStatisticsLevel;
+import static com.evolveum.midpoint.schema.cache.CacheConfiguration.getStatisticsLevel;
 
 import static java.util.Objects.requireNonNullElse;
 
@@ -30,13 +30,9 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.common.LocalizationService;
-import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.ModelInteractionService;
 import com.evolveum.midpoint.model.api.ModelService;
-import com.evolveum.midpoint.model.api.context.ModelContext;
-import com.evolveum.midpoint.model.api.context.ModelElementContext;
 import com.evolveum.midpoint.model.common.ModelCommonBeans;
-import com.evolveum.midpoint.model.common.expression.ModelExpressionThreadLocalHolder;
 import com.evolveum.midpoint.model.common.expression.evaluator.caching.AbstractSearchExpressionEvaluatorCache;
 import com.evolveum.midpoint.model.common.expression.evaluator.transformation.AbstractValueTransformationExpressionEvaluator;
 import com.evolveum.midpoint.model.common.util.PopulatorUtil;
@@ -52,11 +48,10 @@ import com.evolveum.midpoint.schema.cache.CacheConfigurationManager;
 import com.evolveum.midpoint.schema.cache.CacheType;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.caching.CacheConfiguration;
-import com.evolveum.midpoint.util.caching.CachePerformanceCollector;
-import com.evolveum.midpoint.util.caching.CacheUtil;
+import com.evolveum.midpoint.schema.cache.CacheConfiguration;
+import com.evolveum.midpoint.schema.cache.CachePerformanceCollector;
+import com.evolveum.midpoint.schema.cache.CacheUtil;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -583,9 +578,9 @@ public abstract class AbstractSearchExpressionEvaluator<
             this.cacheClass = cacheClass;
             this.cacheType = cacheType;
 
-            CacheConfiguration cacheConfiguration = cacheConfigurationManager.getConfiguration(cacheType);
-            CacheConfiguration.CacheObjectTypeConfiguration cacheObjectTypeConfiguration =
-                    cacheConfiguration != null ? cacheConfiguration.getForObjectType(objectType) : null;
+            var cacheConfiguration = cacheConfigurationManager.getConfiguration(cacheType);
+            var cacheObjectTypeConfiguration = cacheConfiguration != null ?
+                    cacheConfiguration.getForTypeIgnoringObjectClass(objectType) : null;
             statisticsLevel = getStatisticsLevel(cacheObjectTypeConfiguration, cacheConfiguration);
             traceMiss = CacheConfiguration.getTraceMiss(cacheObjectTypeConfiguration, cacheConfiguration);
             tracePass = CacheConfiguration.getTracePass(cacheObjectTypeConfiguration, cacheConfiguration);

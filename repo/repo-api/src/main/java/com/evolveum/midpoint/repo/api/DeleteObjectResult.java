@@ -9,7 +9,10 @@ package com.evolveum.midpoint.repo.api;
 
 import com.evolveum.midpoint.prism.delta.ChangeType;
 
+import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.VisibleForTesting;
+
+import javax.xml.namespace.QName;
 
 /**
  * Contains information about object deletion result; primarily needed by repository caching algorithms.
@@ -39,5 +42,10 @@ public class DeleteObjectResult implements RepositoryOperationResult {
     @Override
     public ChangeType getChangeType() {
         return ChangeType.DELETE;
+    }
+
+    @Override
+    public @Nullable QName getShadowObjectClassName() {
+        return null; // We have no chance of knowing that; but fortunately, shadow deletions should be quite rare
     }
 }

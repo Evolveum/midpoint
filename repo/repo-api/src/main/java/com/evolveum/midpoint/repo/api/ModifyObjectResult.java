@@ -14,7 +14,14 @@ import com.evolveum.midpoint.repo.api.perf.OperationRecord;
 import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
+
+import org.jetbrains.annotations.Nullable;
+
+import javax.xml.namespace.QName;
 import java.util.Collection;
+
+import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.asObjectable;
 
 /**
  *  Contains information about object modification result; primarily needed by repository caching algorithms.
@@ -82,6 +89,21 @@ public class ModifyObjectResult<T extends ObjectType> implements RepositoryOpera
     @Override
     public ChangeType getChangeType() {
         return ChangeType.MODIFY;
+    }
+
+    @Override
+    public @Nullable QName getShadowObjectClassName() {
+        T stateAfter = asObjectable(objectAfter);
+        if (!(stateAfter instanceof ShadowType shadow)) {
+            return null;
+        }
+
+        if (modifications.stream().anyMatch(delta -> delta.getPath().equivalent(ShadowType.F_OBJECT_CLASS))) {
+            return null; // To be safe, let's consider this situation as "unknown"
+        }
+
+        // Finally, we assume that object class is present in objectAfter if it's not null. TODO check this
+        return shadow.getObjectClass();
     }
 
     @Override

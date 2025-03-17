@@ -8,7 +8,7 @@
 package com.evolveum.midpoint.repo.cache.local;
 
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.util.caching.AbstractThreadLocalCache;
+import com.evolveum.midpoint.schema.cache.AbstractThreadLocalCache;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 

@@ -29,6 +29,7 @@ import java.util.Random;
 import static com.evolveum.midpoint.repo.cache.RepositoryCache.CLASS_NAME_WITH_DOT;
 import static com.evolveum.midpoint.schema.util.TraceUtil.isAtLeastMinimal;
 import static com.evolveum.midpoint.schema.util.TraceUtil.isAtLeastNormal;
+import static com.evolveum.midpoint.util.MiscUtil.stateNonNull;
 
 /**
  * Handles modification operations: add, modify, delete, and a couple of others.
@@ -77,12 +78,13 @@ public class ModificationOpHandler extends BaseOpHandler {
             // DON't cache the object here. The object may not have proper "JAXB" form, e.g. some pieces may be
             // DOM element instead of JAXB elements. Not to cache it is safer and the performance loss
             // is acceptable.
+            Class<T> type = stateNonNull(object.getCompileTimeClass(), "object without type: %s", object);
             if (options != null && options.isOverwrite()) {
-                invalidator.invalidateCacheEntries(object.getCompileTimeClass(), oid,
-                        new ModifyObjectResult<>(object, Collections.emptyList(), options.isOverwrite()), result);
+                invalidator.invalidateCacheEntries(
+                        type, oid, new ModifyObjectResult<>(object, Collections.emptyList(), options.isOverwrite()), result);
             } else {
                 // just for sure (the object should not be there but ...)
-                invalidator.invalidateCacheEntries(object.getCompileTimeClass(), oid, new AddObjectResult<>(object), result);
+                invalidator.invalidateCacheEntries(type, oid, new AddObjectResult<>(object), result);
             }
             if (trace != null) {
                 trace.setOid(oid);

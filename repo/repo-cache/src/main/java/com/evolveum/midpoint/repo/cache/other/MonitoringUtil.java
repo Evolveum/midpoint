@@ -10,7 +10,7 @@ package com.evolveum.midpoint.repo.cache.other;
 import com.evolveum.midpoint.repo.api.RepositoryPerformanceMonitor;
 import com.evolveum.midpoint.repo.cache.RepositoryCache;
 import com.evolveum.midpoint.schema.util.DiagnosticContextHolder;
-import com.evolveum.midpoint.util.caching.CacheUtil;
+import com.evolveum.midpoint.schema.cache.CacheUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 

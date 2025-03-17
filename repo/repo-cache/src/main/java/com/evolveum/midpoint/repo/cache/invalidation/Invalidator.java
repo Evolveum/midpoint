@@ -18,6 +18,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -41,6 +42,8 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FunctionLibraryType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
+
+import javax.xml.namespace.QName;
 
 /**
  * Contains functionality related to cache entry invalidation.
@@ -84,7 +87,11 @@ public class Invalidator {
         }
     }
 
-    public <T extends ObjectType> void invalidateCacheEntries(Class<T> type, String oid, RepositoryOperationResult additionalInfo, OperationResult parentResult) {
+    public <T extends ObjectType> void invalidateCacheEntries(
+            @NotNull Class<T> type,
+            @NotNull String oid,
+            @Nullable RepositoryOperationResult additionalInfo,
+            @NotNull OperationResult parentResult) {
         OperationResult result = parentResult.subresult(CLASS_NAME_WITH_DOT + "invalidateCacheEntries")
                 .setMinor()
                 .addParam("type", type)
@@ -104,10 +111,11 @@ public class Invalidator {
             if (localQueryCache != null) {
                 clearQueryResultsLocally(localQueryCache, type, oid, additionalInfo, matchingRuleRegistry);
             }
-            boolean clusterwide = TYPES_ALWAYS_INVALIDATED_CLUSTERWIDE.contains(type) ||
-                    globalObjectCache.hasClusterwideInvalidationFor(type) ||
-                    globalVersionCache.hasClusterwideInvalidationFor(type) ||
-                    globalQueryCache.hasClusterwideInvalidationFor(type);
+            var objectClassName = additionalInfo != null ? additionalInfo.getShadowObjectClassName() : null;
+            boolean clusterwide = TYPES_ALWAYS_INVALIDATED_CLUSTERWIDE.contains(type)
+                    || globalObjectCache.hasClusterwideInvalidationFor(type, objectClassName)
+                    || globalVersionCache.hasClusterwideInvalidationFor(type, objectClassName)
+                    || globalQueryCache.hasClusterwideInvalidationFor(type, objectClassName);
             cacheDispatcher.dispatchInvalidation(type, oid, clusterwide,
                     new CacheInvalidationContext(false, new RepositoryCacheInvalidationDetails(additionalInfo)));
         } catch (Throwable t) {
@@ -141,18 +149,25 @@ public class Invalidator {
         LOGGER.trace("Removed (from local cache) {} (of {}) query result entries of type {} in {} ms", removed, all, type, System.currentTimeMillis() - start);
     }
 
-    private <T extends ObjectType> void clearQueryResultsGlobally(Class<T> type, String oid, CacheInvalidationContext context) {
+    private <T extends ObjectType> void clearQueryResultsGlobally(
+            @NotNull Class<T> type, String oid, CacheInvalidationContext context) {
         // TODO implement more efficiently
 
         // Safe invalidation means we evict queries without looking at details of the change.
+        // TODO object class name
         boolean safeIfUnknown =
                 context != null && !context.isFromRemoteNode()
-                        || globalQueryCache.shouldDoSafeRemoteInvalidationFor(type);
+                        || globalQueryCache.shouldDoSafeRemoteInvalidationFor(type, null);
         ChangeDescription change = ChangeDescription.getFrom(type, oid, context, safeIfUnknown);
 
         long start = System.currentTimeMillis();
         AtomicInteger all = new AtomicInteger(0);
         AtomicInteger removed = new AtomicInteger(0);
+
+        var config = globalQueryCache.getConfiguration(type, getObjectClassName(context));
+        if (config == null || !config.supportsCaching()) {
+            return; // TODO what about different settings per task?
+        }
 
         // All ancestors, descendants, and the type itself. We have to check & remove queries issued against all of them.
         var relevantTypes = getAllRelevantTypes(type);
@@ -175,6 +190,17 @@ public class Invalidator {
 
         LOGGER.trace("Removed (from global cache) {} (of {}) query result entries of type {} in {} ms",
                 removed, all, type, System.currentTimeMillis() - start);
+    }
+
+    private @Nullable QName getObjectClassName(CacheInvalidationContext context) {
+        if (context == null) {
+            return null;
+        }
+        if (!(context.getDetails() instanceof RepositoryCacheInvalidationDetails repositoryCacheInvalidationDetails)) {
+            return null;
+        }
+        var result = repositoryCacheInvalidationDetails.getResult();
+        return result != null ? result.getShadowObjectClassName() : null;
     }
 
     private static <T extends ObjectType> @NotNull List<Class<ObjectType>> getAllRelevantTypes(Class<T> type) {

@@ -7,11 +7,12 @@
 
 package com.evolveum.midpoint.repo.cache.handlers;
 
-import com.evolveum.midpoint.util.caching.CacheConfiguration;
+import com.evolveum.midpoint.schema.cache.CacheConfiguration;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 import org.jetbrains.annotations.NotNull;
 
+import javax.xml.namespace.QName;
 import java.util.Objects;
 
 /**
@@ -63,14 +64,14 @@ class CacheAccessInfo<C, T extends ObjectType> {
      */
     final C cache;
 
-    CacheAccessInfo(C cache, CacheConfiguration configuration, Class<T> type, boolean available) {
+    CacheAccessInfo(C cache, CacheConfiguration configuration, Class<T> type, QName objectClassName, boolean available) {
         this.available = available;
         this.cache = cache;
 
         if (configuration != null) {
             cacheConfig = configuration;
-            typeConfig = configuration.getForObjectType(type);
-            supports = configuration.supportsObjectType(type);
+            typeConfig = configuration.getFor(type, objectClassName);
+            supports = configuration.supportsObjectType(type, objectClassName);
             statisticsLevel = CacheConfiguration.getStatisticsLevel(typeConfig, cacheConfig);
             traceMiss = CacheConfiguration.getTraceMiss(typeConfig, cacheConfig);
             tracePass = CacheConfiguration.getTracePass(typeConfig, cacheConfig);

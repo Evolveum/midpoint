@@ -11,9 +11,10 @@ Parameters:
  - disableDefaultMultivalueProvenance
  - cachedTypeNames
 -->
-<systemConfiguration oid="00000000-0000-0000-0000-000000000001" version="0"
-    xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-    xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+<systemConfiguration oid="00000000-0000-0000-0000-000000000001"
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">
     <name>SystemConfiguration</name>
     <logging>
         <rootLoggerAppender>File Appender</rootLoggerAppender>
@@ -75,12 +76,20 @@ Parameters:
 #foreach($cachedTypeName in $cachedTypeNames)
                         <objectType>$cachedTypeName</objectType>
 #end
+                        <!-- Caching only groups. We do not want to cache accounts. No benefits, only performance waste. -->
+                        <shadowObjectClass>ri:GroupObjectClass</shadowObjectClass>
                     </objectTypeSettings>
                 </globalRepoCache>
                 <localRepoCache>
+                    <append>false</append>
                     <statistics>
                         <classification>perCacheAndObjectType</classification>
                     </statistics>
+                    <objectTypeSettings>
+                        <objectType>__ALL__</objectType>
+                        <!-- We don't want to cache accounts even locally, as it causes object cloning as well. -->
+                        <shadowObjectClass>ri:GroupObjectClass</shadowObjectClass>
+                    </objectTypeSettings>
                 </localRepoCache>
             </profile>
         </caching>

@@ -58,7 +58,7 @@ import com.evolveum.midpoint.schema.statistics.RepositoryPerformanceInformationU
 import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
 import com.evolveum.midpoint.test.util.AbstractSpringTest;
 import com.evolveum.midpoint.test.util.InfraTestMixin;
-import com.evolveum.midpoint.util.caching.CachePerformanceCollector;
+import com.evolveum.midpoint.schema.cache.CachePerformanceCollector;
 import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;

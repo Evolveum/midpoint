@@ -15,7 +15,7 @@ import com.evolveum.midpoint.schema.internals.InternalMonitor;
 import com.evolveum.midpoint.schema.processor.ResourceSchemaFactory;
 import com.evolveum.midpoint.schema.processor.ResourceSchemaRegistry;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.util.caching.CachePerformanceCollector;
+import com.evolveum.midpoint.schema.cache.CachePerformanceCollector;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -41,7 +41,7 @@ import java.util.HashSet;
 import java.util.concurrent.ConcurrentHashMap;
 
 import static com.evolveum.midpoint.util.MiscUtil.schemaCheck;
-import static com.evolveum.midpoint.util.caching.CacheConfiguration.StatisticsLevel.PER_CACHE;
+import static com.evolveum.midpoint.schema.cache.CacheConfiguration.StatisticsLevel.PER_CACHE;
 
 /**
  * Caches {@link ResourceType} instances with a parsed schemas.

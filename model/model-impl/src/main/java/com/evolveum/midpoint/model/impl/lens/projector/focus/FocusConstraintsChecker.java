@@ -28,10 +28,10 @@ import com.evolveum.midpoint.schema.cache.CacheType;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.SingleLocalizableMessage;
-import com.evolveum.midpoint.util.caching.AbstractThreadLocalCache;
-import com.evolveum.midpoint.util.caching.CacheConfiguration;
-import com.evolveum.midpoint.util.caching.CachePerformanceCollector;
-import com.evolveum.midpoint.util.caching.CacheUtil;
+import com.evolveum.midpoint.schema.cache.AbstractThreadLocalCache;
+import com.evolveum.midpoint.schema.cache.CacheConfiguration;
+import com.evolveum.midpoint.schema.cache.CachePerformanceCollector;
+import com.evolveum.midpoint.schema.cache.CacheUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -60,7 +60,7 @@ public class FocusConstraintsChecker<AH extends AssignmentHolderType> {
     private RepositoryService repositoryService;
     private CacheConfigurationManager cacheConfigurationManager;
     private boolean satisfiesConstraints;
-    private StringBuilder messageBuilder = new StringBuilder();
+    private final StringBuilder messageBuilder = new StringBuilder();
     private PrismObject<AH> conflictingObject;
 
     private SingleLocalizableMessage localizableMessage;
@@ -262,10 +262,10 @@ public class FocusConstraintsChecker<AH extends AssignmentHolderType> {
 
             CachePerformanceCollector collector = CachePerformanceCollector.INSTANCE;
             Cache cache = getCache();
-            CacheConfiguration configuration = cache != null ? cache.getConfiguration() :
+            var configuration = cache != null ? cache.getConfiguration() :
                     cacheConfigurationManager.getConfiguration(CacheType.LOCAL_FOCUS_CONSTRAINT_CHECKER_CACHE);
-            CacheConfiguration.CacheObjectTypeConfiguration objectTypeConfiguration = configuration != null ?
-                    configuration.getForObjectType(FocusType.class) : null;
+            var objectTypeConfiguration = configuration != null ?
+                    configuration.getForTypeIgnoringObjectClass(FocusType.class) : null;
             CacheConfiguration.StatisticsLevel statisticsLevel = CacheConfiguration.getStatisticsLevel(objectTypeConfiguration, configuration);
             boolean traceMiss = CacheConfiguration.getTraceMiss(objectTypeConfiguration, configuration);
 

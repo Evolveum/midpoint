@@ -12,8 +12,7 @@ import com.evolveum.midpoint.prism.util.PrismUtil;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
-import com.evolveum.midpoint.util.caching.CacheConfiguration;
-import com.evolveum.midpoint.util.caching.CacheConfiguration.CacheObjectTypeConfiguration;
+import com.evolveum.midpoint.schema.cache.CacheConfiguration.CacheObjectTypeConfiguration;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -316,20 +315,33 @@ public class CacheConfigurationManager {
                 configuration.setSafeRemoteInvalidation(invalidation.getApproximation() != CacheInvalidationApproximationType.MINIMAL);
             }
         }
-        Map<Class<?>, CacheObjectTypeConfiguration> targetMap = configuration.getObjectTypes();
-        for (CacheObjectTypeSettingsType objectTypeSetting : increment.getObjectTypeSettings()) {
-            // empty object type list means "apply to all currently supported types"
-            Collection<Class<?>> applyTo = objectTypeSetting.getObjectType().isEmpty()
-                    ? new ArrayList<>(targetMap.keySet())
-                    : resolveClassNames(objectTypeSetting.getObjectType());
-            for (Class<?> objectType : applyTo) {
-                targetMap.put(objectType, mergeObjectTypeSettings(targetMap.get(objectType), objectTypeSetting, configuration));
+        var objectTypeMap = configuration.getObjectTypes();
+        var objectClassMap = configuration.getObjectClasses();
+        for (CacheObjectTypeSettingsType typeSpecificSetting : increment.getObjectTypeSettings()) {
+            // Processing object types this configuration applies to
+            List<QName> specifiedObjectTypes = typeSpecificSetting.getObjectType();
+            Collection<Class<?>> applyToTypes = !specifiedObjectTypes.isEmpty() ?
+                    resolveClassNames(specifiedObjectTypes) :
+                    new ArrayList<>(objectTypeMap.keySet()); // empty object type list means "apply to all types in parent"
+            for (Class<?> objectType : applyToTypes) {
+                objectTypeMap.put(
+                        objectType,
+                        mergeTypeSpecificSettings(objectTypeMap.get(objectType), typeSpecificSetting, configuration));
+            }
+            // Processing object classes this configuration applies to
+            List<QName> specifiedObjectClasses = typeSpecificSetting.getShadowObjectClass();
+            Collection<QName> applyToClasses = !specifiedObjectClasses.isEmpty() ?
+                    specifiedObjectClasses : new ArrayList<>(objectClassMap.keySet()); // empty means "apply to all types in parent"
+            for (QName objectClassName : applyToClasses) {
+                objectClassMap.put(
+                        objectClassName,
+                        mergeTypeSpecificSettings(objectClassMap.get(objectClassName), typeSpecificSetting, configuration));
             }
         }
     }
 
     @SuppressWarnings("Duplicates")
-    private CacheObjectTypeConfiguration mergeObjectTypeSettings(
+    private CacheObjectTypeConfiguration mergeTypeSpecificSettings(
             CacheObjectTypeConfiguration original, CacheObjectTypeSettingsType increment,
             CacheConfiguration configuration) {
         CacheObjectTypeConfiguration rv = original != null ? original : configuration.new CacheObjectTypeConfiguration();
@@ -364,11 +376,10 @@ public class CacheConfigurationManager {
         if (statistics.getCollection() == CacheStatisticsCollectionStyleType.NONE) {
             return CacheConfiguration.StatisticsLevel.SKIP;
         } else {
-            switch (ObjectUtils.defaultIfNull(statistics.getClassification(), PER_CACHE)) {
-                case PER_CACHE: return CacheConfiguration.StatisticsLevel.PER_CACHE;
-                case PER_CACHE_AND_OBJECT_TYPE: return CacheConfiguration.StatisticsLevel.PER_OBJECT_TYPE;
-                default: throw new IllegalArgumentException("classification: " + statistics.getClassification());
-            }
+            return switch (ObjectUtils.defaultIfNull(statistics.getClassification(), PER_CACHE)) {
+                case PER_CACHE -> CacheConfiguration.StatisticsLevel.PER_CACHE;
+                case PER_CACHE_AND_OBJECT_TYPE -> CacheConfiguration.StatisticsLevel.PER_OBJECT_TYPE;
+            };
         }
     }
 

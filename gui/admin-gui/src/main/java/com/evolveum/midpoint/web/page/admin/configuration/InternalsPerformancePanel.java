@@ -13,7 +13,7 @@ import com.evolveum.midpoint.schema.statistics.OperationsPerformanceInformationU
 import com.evolveum.midpoint.schema.statistics.RepositoryPerformanceInformationUtil;
 import com.evolveum.midpoint.util.statistics.OperationsPerformanceInformation;
 import com.evolveum.midpoint.util.statistics.OperationsPerformanceMonitor;
-import com.evolveum.midpoint.util.caching.CachePerformanceCollector;
+import com.evolveum.midpoint.schema.cache.CachePerformanceCollector;
 import com.evolveum.midpoint.web.component.AceEditor;
 import com.evolveum.midpoint.web.security.MidPointApplication;
 import org.apache.wicket.model.IModel;

@@ -17,7 +17,9 @@ import java.util.Collection;
 import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.repo.cache.values.CachedObjectValue;
 
-import com.evolveum.midpoint.util.caching.CacheConfiguration;
+import com.evolveum.midpoint.schema.cache.CacheConfiguration;
+
+import com.evolveum.midpoint.schema.util.ShadowUtil;
 
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,7 +32,7 @@ import com.evolveum.midpoint.repo.cache.global.GlobalVersionCache;
 import com.evolveum.midpoint.repo.cache.local.LocalVersionCache;
 import com.evolveum.midpoint.repo.cache.local.QueryKey;
 import com.evolveum.midpoint.schema.SearchResultList;
-import com.evolveum.midpoint.util.caching.CachePerformanceCollector;
+import com.evolveum.midpoint.schema.cache.CachePerformanceCollector;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 /**
@@ -185,7 +187,7 @@ class CacheUpdater {
                 var localSupports = localObjectCache != null && localObjectCache.supportsObjectType(type);
                 Long nextVersionCheckTime =
                         toGlobalObjectCache ?
-                                globalObjectCache.getNextVersionCheckTime(immutableObject.asObjectable().getClass()) : null;
+                                globalObjectCache.getNextVersionCheckTime(immutableObject) : null;
                 var globalSupports = nextVersionCheckTime != null;
                 if (localSupports || globalSupports) {
                     var complete = CachedObjectValue.computeCompleteFlag(immutableObject); // can be pricey
@@ -226,7 +228,9 @@ class CacheUpdater {
             CachePerformanceCollector.INSTANCE.registerSkippedStaleData(object.getCompileTimeClass());
             log("Not caching stale object {} (age = {} ms)", false, object, age);
         } else {
-            var cachesAccessInfo = cacheSetAccessInfoFactory.determineExceptForQuery(object.getCompileTimeClass());
+            var cachesAccessInfo = cacheSetAccessInfoFactory.determineExceptForQuery(
+                    object.getCompileTimeClass(),
+                    ShadowUtil.getObjectClassName(object));
             storeLoadedObjectToObjectAndVersionCaches(object, cacheUseMode, cachesAccessInfo);
         }
     }
@@ -269,7 +273,9 @@ class CacheUpdater {
 
     /** Checks whether the type is supported by the cache (when obtaining the time to check version). */
     <T extends ObjectType> void storeImmutableObjectToObjectGlobal(PrismObject<T> immutable, boolean complete) {
-        Long nextVersionCheckTime = globalObjectCache.getNextVersionCheckTime(immutable.asObjectable().getClass());
+        Long nextVersionCheckTime = globalObjectCache.getNextVersionCheckTime(
+                immutable.asObjectable().getClass(),
+                ShadowUtil.getObjectClassName(immutable));
         if (nextVersionCheckTime != null) {
             globalObjectCache.put(new GlobalCacheObjectValue<>(immutable, nextVersionCheckTime, complete));
         }
@@ -293,7 +299,7 @@ class CacheUpdater {
     private <T extends ObjectType> void storeObjectToVersionGlobal(PrismObject<T> object) {
         CacheConfiguration cacheConfiguration = globalVersionCache.getConfiguration();
         Class<? extends ObjectType> type = object.asObjectable().getClass();
-        if (cacheConfiguration != null && cacheConfiguration.supportsObjectType(type)) {
+        if (cacheConfiguration != null && cacheConfiguration.supportsObjectType(type, ShadowUtil.getObjectClassName(object))) {
             globalVersionCache.put(object);
         }
     }

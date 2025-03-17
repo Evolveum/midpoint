@@ -7,7 +7,7 @@
 
 package com.evolveum.midpoint.schema.statistics;
 
-import com.evolveum.midpoint.util.caching.CachePerformanceCollector;
+import com.evolveum.midpoint.schema.cache.CachePerformanceCollector;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CachesPerformanceInformationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SingleCachePerformanceInformationType;
 import org.jetbrains.annotations.NotNull;
@@ -15,7 +15,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 
-import static com.evolveum.midpoint.util.caching.CachePerformanceCollector.isExtra;
+import static com.evolveum.midpoint.schema.cache.CachePerformanceCollector.isExtra;
 
 /**
  *

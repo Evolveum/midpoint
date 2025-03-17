@@ -13,8 +13,8 @@ import com.evolveum.midpoint.repo.cache.global.AbstractGlobalCache;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.util.caching.AbstractThreadLocalCache;
-import com.evolveum.midpoint.util.caching.CachePerformanceCollector;
+import com.evolveum.midpoint.schema.cache.AbstractThreadLocalCache;
+import com.evolveum.midpoint.schema.cache.CachePerformanceCollector;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.jetbrains.annotations.NotNull;
@@ -93,8 +93,10 @@ abstract class CachedOpExecution<
 
     /**
      * Access information for all the caches.
+     *
+     * Mutable: it can be updated after getObject learns the shadow object class.
      */
-    @NotNull final CacheSetAccessInfo<O> cachesInfo;
+    @NotNull CacheSetAccessInfo<O> cachesInfo;
 
     /**
      * Access information for related local cache (object, version, query).

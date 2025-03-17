@@ -7,11 +7,17 @@
 
 package com.evolveum.midpoint.repo.cache.handlers;
 
+import com.evolveum.midpoint.schema.util.ShadowUtil;
+
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.repo.api.RepositoryOperationResult;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import org.jetbrains.annotations.NotNull;
+
+import javax.xml.namespace.QName;
 
 /**
  * Result of the addObject operation. It is analogous to {@link com.evolveum.midpoint.repo.api.ModifyObjectResult}
@@ -40,5 +46,10 @@ public class AddObjectResult<T extends ObjectType> implements RepositoryOperatio
     @Override
     public ChangeType getChangeType() {
         return ChangeType.ADD;
+    }
+
+    @Override
+    public @Nullable QName getShadowObjectClassName() {
+        return ShadowUtil.getObjectClassName(object);
     }
 }

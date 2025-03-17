@@ -140,7 +140,7 @@ public class GetObjectOpHandler extends CachedOpHandler {
                 var cachedObject = cachedValue.getObject();
                 cacheUpdater.storeImmutableObjectToAllLocal(cachedObject, exec.cachesInfo, cachedValue.isComplete());
                 cachedValue.setCheckVersionTime(
-                        exec.globalInfo.getCache().getNextVersionCheckTime(exec.type));
+                        exec.globalInfo.getCache().getNextVersionCheckTime(cachedObject));
                 return exec.prepareReturnValueWhenImmutable(cachedObject);
             }
         }
@@ -200,6 +200,9 @@ public class GetObjectOpHandler extends CachedOpHandler {
                 cacheUpdater.storeObjectToVersionGlobal(object, exec.cachesInfo.globalVersion);
                 cacheUpdater.storeObjectToVersionLocal(object, exec.cachesInfo.localVersion);
             }
+
+            // Now we know the object class (if the object is a shadow) TODO skip if it's not
+            exec.cachesInfo = cacheSetAccessInfoFactory.determineExceptForQuery(object);
 
             if (!exec.cacheUseMode.canUpdateObjectCache() || !exec.cachesInfo.isEffectivelySupportedByAnyObjectCache()) {
                 return exec.readOnly ?
