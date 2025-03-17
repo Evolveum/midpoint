@@ -3056,7 +3056,7 @@
                             <a:displayName>AssignmentType.policyRule</a:displayName>
                             <a:help>AssignmentType.policyRule.help</a:help>
                             <a:schemaContext>
-                                <a:type>tns:AssignmentHolderType</a:type>
+                                <a:type>AssignmentHolderType</a:type>
                             </a:schemaContext>
                         </xsd:appinfo>
                     </xsd:annotation>
@@ -7783,7 +7783,7 @@
                      </xsd:documentation>
                      <xsd:appinfo>
                          <a:schemaContext>
-                            <a:type>tns:FocusType</a:type>
+                            <a:type>FocusType</a:type>
                          </a:schemaContext>
                      </xsd:appinfo>
                  </xsd:annotation>
@@ -16442,7 +16442,7 @@
                             <xsd:appinfo>
                                 <a:displayName>GlobalPolicyRuleType.focusSelector</a:displayName>
                                 <a:schemaContext>
-                                    <a:type>tns:FocusType</a:type>
+                                    <a:type>FocusType</a:type>
                                 </a:schemaContext>
                             </xsd:appinfo>
                         </xsd:annotation>
@@ -16456,7 +16456,7 @@
                             <xsd:appinfo>
                                 <a:displayName>GlobalPolicyRuleType.targetSelector</a:displayName>
                                 <a:schemaContext>
-                                    <a:type>tns:AssignmentHolderType</a:type>
+                                    <a:type>AssignmentHolderType</a:type>
                                 </a:schemaContext>
                             </xsd:appinfo>
                         </xsd:annotation>

@@ -56,8 +56,9 @@ public class ActivityWorkersInformation implements DebugDumpable, Serializable {
             if (state.getRealizationState() == ActivitySimplifiedRealizationStateType.IN_PROGRESS) {
                 workersInformation.updateWorkersCounters(state.getTask());
                 workersInformation.updateCompletelyStalledSince(state.getTask());
-                workersInformation.updateWorkersHealthStatus(state.getTask());
             }
+
+            workersInformation.updateWorkersHealthStatus(state.getTask());
         });
 
         return workersInformation;
@@ -93,7 +94,6 @@ public class ActivityWorkersInformation implements DebugDumpable, Serializable {
     }
 
     private boolean isTaskFailed(TaskType task) {
-        // todo this doesn't seem right
         return task.getExecutionState() == TaskExecutionStateType.SUSPENDED
                 && task.getResultStatus() == OperationResultStatusType.FATAL_ERROR;
     }

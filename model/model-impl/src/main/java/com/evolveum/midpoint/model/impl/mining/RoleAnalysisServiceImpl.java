@@ -21,7 +21,6 @@ import static com.evolveum.midpoint.model.impl.mining.utils.RoleAnalysisUtils.*;
 import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.createObjectRef;
 import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.toShortString;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType.F_ASSIGNMENT;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.MetadataType.F_MODIFY_TIMESTAMP;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType.F_NAME;
 
 import java.math.BigDecimal;
@@ -496,15 +495,24 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
         AnalysisClusterStatisticType analysisClusterStatisticType = getUpdatedAnalysisClusterStatistic(max, clusterStatistics);
 
         try {
+            Collection<ItemDelta<?, ?>> modifications = new ArrayList<>();
 
-            ObjectDelta<RoleAnalysisClusterType> delta = PrismContext.get().deltaFor(RoleAnalysisClusterType.class)
+            ItemDelta<?, ?> itemDelta = PrismContext.get().deltaFor(RoleAnalysisClusterType.class)
                     .item(RoleAnalysisClusterType.F_DETECTED_PATTERN).replace(collection)
-                    .item(RoleAnalysisClusterType.F_METADATA, F_MODIFY_TIMESTAMP).replace(getCurrentXMLGregorianCalendar())
-                    .item(RoleAnalysisClusterType.F_CLUSTER_STATISTICS).replace(analysisClusterStatisticType
-                            .asPrismContainerValue())
-                    .asObjectDelta(clusterOid);
+                    .asItemDelta();
 
-            modelService.executeChanges(singleton(delta), null, task, result);
+            modifications.add(itemDelta);
+
+            itemDelta = PrismContext.get().deltaFor(RoleAnalysisClusterType.class)
+                    .item(RoleAnalysisClusterType.F_CLUSTER_STATISTICS).replace(analysisClusterStatisticType.clone())
+                    .asItemDelta();
+
+            modifications.add(itemDelta);
+
+            ObjectDelta<RoleAnalysisClusterType> modifyDelta = PrismContext.get().deltaFactory().object().createModifyDelta(
+                    clusterOid, modifications, RoleAnalysisClusterType.class);
+
+            modelService.executeChanges(singleton(modifyDelta), null, task, result);
 
         } catch (SchemaException | ObjectAlreadyExistsException | ObjectNotFoundException | ExpressionEvaluationException |
                 CommunicationException | ConfigurationException | PolicyViolationException | SecurityViolationException e) {
@@ -662,24 +670,8 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
             LOGGER.error("Couldn't delete RoleAnalysisClusterType {}", clusterOid, e);
         }
 
-        if (recomputeStatistics) {
-            try {
-                if (sessionObject == null) {
-                    return;
-                }
-                // FIXME
-                ObjectDelta<RoleAnalysisSessionType> delta = PrismContext.get().deltaFor(RoleAnalysisSessionType.class)
-                        .item(RoleAnalysisSessionType.F_METADATA, F_MODIFY_TIMESTAMP).replace(getCurrentXMLGregorianCalendar())
-                        .asObjectDelta(sessionObject.getOid());
-
-                modelService.executeChanges(singleton(delta), null, task, result);
-
-                recomputeSessionStatics(sessionObject.getOid(), cluster, task, result);
-
-            } catch (SchemaException | ObjectAlreadyExistsException | ObjectNotFoundException | ExpressionEvaluationException |
-                    CommunicationException | ConfigurationException | PolicyViolationException | SecurityViolationException e) {
-                LOGGER.error("Couldn't recompute RoleAnalysisSessionStatistic {}", sessionObject, e);
-            }
+        if (recomputeStatistics && sessionObject != null) {
+            recomputeSessionStatics(sessionObject.getOid(), cluster, task, result);
         }
     }
 

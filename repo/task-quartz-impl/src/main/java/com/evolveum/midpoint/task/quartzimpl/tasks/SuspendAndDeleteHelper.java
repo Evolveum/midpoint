@@ -64,10 +64,38 @@ class SuspendAndDeleteHelper {
         return waitForTaskToStop(task, waitTime, result);
     }
 
-    public boolean suspendTaskNoExceptions(TaskQuartzImpl task, long waitTime, OperationResult result) {
+    public boolean suspendTaskNoExceptions(TaskQuartzImpl task, long waitTime, boolean suspendDependents, OperationResult result)
+            throws ObjectNotFoundException, SchemaException {
         LOGGER.info("Suspending task {}; {}.", task, waitingInfo(waitTime));
         suspendTaskNoWaitNoExceptions(task, result);
-        return waitForTaskToStop(task, waitTime, result);
+        boolean stopped = waitForTaskToStop(task, waitTime, result);
+        if (suspendDependents) {
+            suspendDependentsIfPossible(task, waitTime, result);
+        }
+        return stopped;
+    }
+
+    private void suspendDependentsIfPossible(TaskQuartzImpl task, long waitTime, OperationResult result) throws ObjectNotFoundException, SchemaException {
+        LOGGER.debug("suspendDependentsIfPossible starting for {}", task);
+        int suspended = 0;
+
+        List<Task> dependents = task.listDependents(result);
+        LOGGER.debug("dependents: {}", dependents);
+        for (Task dependent : dependents) {
+            if (suspendTaskNoExceptions((TaskQuartzImpl) dependent, waitTime, true, result)) {
+                suspended++;
+            }
+        }
+
+        TaskQuartzImpl parentTask = task.getParentTask(result);
+        LOGGER.debug("parent: {}", parentTask);
+        if (parentTask != null) {
+            if (suspendTaskNoExceptions(parentTask, waitTime, true, result)) {
+                suspended++;
+            }
+        }
+
+        LOGGER.debug("suspendDependentsIfPossible finished for {}; suspended {} task(s)", task, suspended);
     }
 
     public void suspendAndCloseTaskNoException(TaskQuartzImpl task, long waitTime, OperationResult result) {

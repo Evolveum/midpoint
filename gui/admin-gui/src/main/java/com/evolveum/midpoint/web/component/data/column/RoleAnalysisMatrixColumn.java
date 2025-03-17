@@ -11,6 +11,7 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 
+import com.evolveum.midpoint.common.mining.objects.chunk.MiningUserTypeChunk;
 import com.evolveum.midpoint.common.mining.utils.values.*;
 import com.evolveum.midpoint.web.component.data.RoleAnalysisObjectDto;
 
@@ -25,10 +26,9 @@ import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.cluster.MembersDetailsPopupPanel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisProcessModeType;
 
-public abstract class RoleAnalysisMatrixColumn<A extends MiningBaseTypeChunk> extends AbstractColumn<A, String> {
+import org.jetbrains.annotations.NotNull;
 
-    private static final String DOT_CLASS = RoleAnalysisMatrixColumn.class.getName() + ".";
-    private static final String OP_PREPARE_OBJECTS = DOT_CLASS + "prepareObjects";
+public abstract class RoleAnalysisMatrixColumn<A extends MiningBaseTypeChunk> extends AbstractColumn<A, String> {
 
     private final PageBase pageBase;
 
@@ -60,6 +60,13 @@ public abstract class RoleAnalysisMatrixColumn<A extends MiningBaseTypeChunk> ex
         }
 
         return RoleAnalysisSortMode.NONE;
+    }
+
+    public <T extends MiningBaseTypeChunk> RoleAnalysisProcessModeType getRoleAnalysisProcessMode(
+            @NotNull IModel<T> miningChunkModel) {
+        return miningChunkModel.getObject() instanceof MiningUserTypeChunk
+                ? RoleAnalysisProcessModeType.USER
+                : RoleAnalysisProcessModeType.ROLE;
     }
 
     protected RoleAnalysisChunkMode getCompressStatus() {
@@ -99,7 +106,8 @@ public abstract class RoleAnalysisMatrixColumn<A extends MiningBaseTypeChunk> ex
                 MembersDetailsPopupPanel detailsPanel = new MembersDetailsPopupPanel(
                         getPageBase().getMainPopupBodyId(),
                         createStringResource("RoleAnalysis.analyzed.members.details.panel"),
-                        getElements(miningChunkModel.getObject()), RoleAnalysisProcessModeType.USER);
+                        getElements(miningChunkModel.getObject()),
+                        getRoleAnalysisProcessMode(miningChunkModel));
                 getPageBase().showMainPopup(detailsPanel, target);
             }
         };

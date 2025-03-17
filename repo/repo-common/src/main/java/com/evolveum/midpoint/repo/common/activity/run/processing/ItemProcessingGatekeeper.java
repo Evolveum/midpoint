@@ -17,6 +17,7 @@ import org.jetbrains.annotations.Nullable;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.repo.cache.RepositoryCache;
 import com.evolveum.midpoint.repo.common.activity.definition.ActivityDefinition;
+import com.evolveum.midpoint.repo.common.activity.policy.ActivityPolicyRulesProcessor;
 import com.evolveum.midpoint.repo.common.activity.run.*;
 import com.evolveum.midpoint.repo.common.activity.run.processing.ItemProcessingConditionEvaluator.AdditionalVariableProvider;
 import com.evolveum.midpoint.repo.common.activity.run.reports.ActivityReportUtil;
@@ -147,6 +148,16 @@ class ItemProcessingGatekeeper<I> {
 
         try {
             workerTask.setExecutionSupport(activityRun);
+
+            try {
+                ActivityPolicyRulesProcessor processor = new ActivityPolicyRulesProcessor(activityRun);
+                processor.evaluateAndEnforceRules(result);
+            } catch (Exception e) {
+                result.recordFatalError(e);
+                processingResult = ProcessingResult.fromException(result, e);
+
+                throw e;
+            }
 
             logOperationStart();
             operation = updateStatisticsOnStart();

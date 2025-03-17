@@ -19,7 +19,7 @@
         elementFormDefault="qualified"
         xmlns:xjc="http://java.sun.com/xml/ns/jaxb/xjc"
         jaxb:extensionBindingPrefixes="xjc"
-        jaxb:version="3.0">
+        jaxb:version="3.0" xmlns:xsdS="http://www.w3.org/2001/XMLSchema">
 
     <xsd:annotation>
         <xsd:documentation>
@@ -1967,15 +1967,31 @@
             <xsd:appinfo>
                 <a:since>4.10</a:since>
                 <a:container>true</a:container>
+                <a:naturalKey>tns:name</a:naturalKey>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
-            <xsd:element name="activityConstraints" type="tns:TaskActivityPolicyConstraintsType" minOccurs="0"/>
-            <xsd:element name="actions" type="tns:ActivityPolicyActionsType" minOccurs="0"/>
+            <xsd:element name="name" type="xsd:string">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Unique identifier of the policy rule. It's used for diagnostic purposes
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="description" type="xsd:string" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Free-form description of the rule (comment).
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element ref="tns:documentation" minOccurs="0"/>
+            <xsd:element name="policyConstraints" type="tns:ActivityPolicyConstraintsType" minOccurs="0"/>
+            <xsd:element name="policyActions" type="tns:ActivityPolicyActionsType" minOccurs="0"/>
         </xsd:sequence>
     </xsd:complexType>
 
-    <xsd:complexType name="TaskActivityPolicyConstraintsType">
+    <xsd:complexType name="ActivityPolicyConstraintsType">
         <xsd:annotation>
             <xsd:documentation>
                 Set of governance, risk management, compliance (GRC) and similar policy constraints
@@ -1989,10 +2005,92 @@
         <xsd:complexContent>
             <xsd:extension base="tns:AbstractPolicyConstraintType">
                 <xsd:sequence>
-                    <xsd:element name="taskTimeValidity" type="tns:TimeValidityPolicyConstraintType" minOccurs="0"/>
+                    <xsd:element name="executionTime" type="tns:DurationThresholdPolicyConstraintType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Duration of the activity execution.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
                 </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>
+    </xsd:complexType>
+
+    <xsd:complexType name="DurationThresholdPolicyConstraintType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Constraint based on duration and its threshold.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:since>4.10</a:since>
+                <a:container>true</a:container>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:AbstractPolicyConstraintType">
+                <xsd:sequence>
+                    <xsd:element name="below" type="xsd:duration" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                If constraint metric value is smaller than "below" duration for activity, the policy action is triggered.
+                                E.g. If the activity execution time is below this duration, the policy action is triggered.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="exceeds" type="xsd:duration" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                If constraint metric value is greater than "exceeds" duration for activity, the policy action is triggered.
+                                E.g. If the activity execution time exceeds this duration, the policy action is triggered.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+
+    <xsd:complexType name="NumericThresholdPolicyConstraintType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Constraints related to task execution.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:since>4.10</a:since>
+                <a:container>true</a:container>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:choice>
+            <xsd:element name="below" type="xsd:int">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        <!-- todo -->
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="belowPercent" type="xsd:string">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        <!-- todo -->
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="exceeds" type="xsd:int">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        <!-- todo -->
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="exceedsPercent" type="xsd:string">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        <!-- todo -->
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:choice>
     </xsd:complexType>
 
     <xsd:complexType name="ActivityPolicyActionsType">
@@ -2008,9 +2106,53 @@
         <xsd:sequence>
             <!-- Currently only suspendTask/notify are supported -->
             <!-- markRef will be a part of record action later on -->
-            <xsd:element name="notification" type="tns:NotificationPolicyActionType" minOccurs="0"/>
-            <xsd:element name="suspendTask" type="tns:SuspendTaskPolicyActionType" minOccurs="0"/>
+            <xsd:element name="notification" type="tns:NotificationActivityPolicyActionType" minOccurs="0"/>
+            <xsd:element name="suspendTask" type="tns:SuspendTaskActivityPolicyActionType" minOccurs="0"/>
         </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="ActivityPolicyActionType" abstract="true">
+        <xsd:annotation>
+            <xsd:documentation>
+                Action to be taken when the activity policy is triggered.
+
+                Similar to PolicyActionType, however no condition for now.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:since>4.10</a:since>
+                <a:container>true</a:container>
+            </xsd:appinfo>
+        </xsd:annotation>
+    </xsd:complexType>
+
+    <xsd:complexType name="NotificationActivityPolicyActionType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Notification action.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:since>4.10</a:since>
+                <a:container>true</a:container>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:ActivityPolicyActionType" />
+        </xsd:complexContent>
+    </xsd:complexType>
+
+    <xsd:complexType name="SuspendTaskActivityPolicyActionType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Suspend task action.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:since>4.10</a:since>
+                <a:container>true</a:container>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:ActivityPolicyActionType" />
+        </xsd:complexContent>
     </xsd:complexType>
 
     <xsd:complexType name="WorkDefinitionsType">
@@ -3211,6 +3353,16 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element name="policies" type="tns:ActivityPoliciesStateType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        State of the policies related to the execution of the activity, grouped into related categories.
+                        One of the categories are policies needed to implement thresholds for policy rules.
+
+                        Note: The policies may be moved to separate repository object later to improve performance.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
             <xsd:element name="simulation" type="tns:ActivitySimulationStateType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -3657,6 +3809,30 @@
                         (I.e. as long as an activity is not complete, it may indicate this fact using IN_PROGRESS
                         status here. However, it may also indicate errors using PARTIAL/FATAL ERROR status.)
                     </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="message" type="xsd:string" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Error or warning message.
+
+                        Message related to the task execution.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:since>4.10</a:since>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="userFriendlyMessage" type="tns:LocalizableMessageType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Error or warning message.
+
+                        User-friendly variant of message related to the task execution.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:since>4.10</a:since>
+                    </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
         </xsd:sequence>
@@ -7268,7 +7444,7 @@
                             </xsd:documentation>
                             <xsd:appinfo>
                                 <a:schemaContext>
-                                    <a:type>tns:ShadowType</a:type> <!-- new resolver/algorithm will be needed-->
+                                    <a:type>ShadowType</a:type> <!-- new resolver/algorithm will be needed-->
                                 </a:schemaContext>
                             </xsd:appinfo>
                         </xsd:annotation>
@@ -7500,7 +7676,7 @@
                             </xsd:documentation>
                             <xsd:appinfo>
                                 <a:schemaContext>
-                                    <a:type>tns:ShadowType</a:type>
+                                    <a:type>ShadowType</a:type>
                                 </a:schemaContext>
                             </xsd:appinfo>
                         </xsd:annotation>
@@ -8051,7 +8227,7 @@
                         <xsd:annotation>
                             <xsd:appinfo>
                                 <a:schemaContext>
-                                    <a:type>tns:ResourceType</a:type>
+                                    <a:type>ResourceType</a:type>
                                 </a:schemaContext>
                             </xsd:appinfo>
                         </xsd:annotation>
@@ -8197,7 +8373,7 @@
                         <xsd:annotation>
                             <xsd:appinfo>
                                 <a:schemaContext>
-                                    <a:type>tns:ShadowType</a:type>
+                                    <a:type>ShadowType</a:type>
                                 </a:schemaContext>
                             </xsd:appinfo>
                         </xsd:annotation>
@@ -8537,6 +8713,80 @@
         </xsd:sequence>
     </xsd:complexType>
 
+    <xsd:complexType name="ActivityPoliciesStateType">
+        <xsd:annotation>
+            <xsd:documentation>
+                State of policies related to execution of activity, grouped into related categories.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container>true</a:container>
+                <a:since>4.10</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="activityPolicies" type="tns:ActivityPolicyStateType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Policies related to the execution of the activity, defined directly in `activity/policies` element.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="ActivityPolicyStateType">
+        <xsd:annotation>
+            <xsd:documentation>
+                A single policy state.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container>true</a:container>
+                <a:since>4.10</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="identifier" type="xsd:string" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Policy identifier (key).
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="enforced" type="xsd:boolean" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        True if triggered policy was already enforced, e.g. policy actions were executed at least once.
+
+                        For example to avoid sending multiple notifications for the same policy trigger.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="triggers" type="tns:ActivityPolicyTriggerType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Triggers associated with the policy.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="ActivityPolicyTriggerType">
+        <xsd:annotation>
+            <xsd:documentation>
+                A single policy trigger.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container>true</a:container>
+                <a:since>4.10</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="constraintIdentifier" type="xsd:string"/>
+            <xsd:element name="message" type="tns:LocalizableMessageType"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
     <xsd:complexType name="ActivityCounterGroupsType">
         <xsd:annotation>
             <xsd:documentation>
@@ -8701,7 +8951,7 @@
                             </xsd:documentation>
                             <xsd:appinfo>
                                 <a:schemaContext>
-                                    <a:type>tns:TaskType</a:type>
+                                    <a:type>TaskType</a:type>
                                 </a:schemaContext>
                             </xsd:appinfo>
                         </xsd:annotation>
@@ -9530,7 +9780,7 @@
                             </xsd:documentation>
                             <xsd:appinfo>
                                 <a:schemaContext>
-                                    <a:type>tns:AssignmentHolderType</a:type>
+                                    <a:type>AssignmentHolderType</a:type>
                                 </a:schemaContext>
                             </xsd:appinfo>
                         </xsd:annotation>

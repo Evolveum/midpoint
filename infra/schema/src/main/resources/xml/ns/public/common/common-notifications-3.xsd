@@ -1071,6 +1071,13 @@
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
+                    <xsd:element name="simpleActivityPolicyRuleNotifier" type="tns:SimpleActivityPolicyRuleNotifierType" minOccurs="0" maxOccurs="unbounded">
+                        <xsd:annotation>
+                            <xsd:appinfo>
+                                <a:since>4.10</a:since>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
                     <xsd:element name="customNotifier" type="tns:CustomNotifierType" minOccurs="0" maxOccurs="unbounded">
                         <xsd:annotation>
                             <xsd:documentation>
@@ -1876,6 +1883,22 @@
                 TODO
             </xsd:documentation>
             <xsd:appinfo>
+                <a:container/>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:GeneralNotifierType">
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+
+    <xsd:complexType name="SimpleActivityPolicyRuleNotifierType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Simple notifier for activity policy rules.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:since>4.10</a:since>
                 <a:container/>
             </xsd:appinfo>
         </xsd:annotation>

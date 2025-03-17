@@ -1132,7 +1132,7 @@
                             </xsd:documentation>
                             <xsd:appinfo>
                                 <a:schemaContext>
-                                    <a:type>tns:AssignmentType</a:type>
+                                    <a:type>AssignmentType</a:type>
                                 </a:schemaContext>
                             </xsd:appinfo>
                         </xsd:annotation>

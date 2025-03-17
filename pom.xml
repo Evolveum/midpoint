@@ -209,6 +209,10 @@
         <!-- Dependencies global versions -->
         <httpclient.version>4.5.14</httpclient.version>
 
+
+        <!-- Bumped tomcat to newer version, one bundled with Spring Boot 3.3.9 does not starts on windows / mac  -->
+        <tomcat.version>10.1.39</tomcat.version>
+
         <hibernate.version>6.5.3.Final</hibernate.version>
         <!--
             Older version (given via spring boot 3.3.7) used to avoid issue of connections being non-valid

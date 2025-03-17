@@ -52,6 +52,7 @@ Overall, midPoint 4.9 is a major step from the past into the future.
 * bug:MID-10048[] Fix ClassCastException when creating duplicates of object types with new archetype
 * bug:MID-9300[] Secure schema usage in PostgresSQL (not using public schema).
 * bug:MID-10278[] Fix non-clickable part of a button in Edit Schema popup panel.
+* bug:MID-10513[] Fixed css issues with popup modal background in Safari.
 
 === Other Improvements
 
@@ -65,7 +66,7 @@ Overall, midPoint 4.9 is a major step from the past into the future.
 * Improved the documentation on the resource configuration. See bug:MID-10176[].
 * Allow volatility configuration per mapping through the Resource Wizard. See bug:MID-10170[].
 * Change the CSS style of sub-containers in the vertical form panel to create a new object for reference. See bug:MID-10030[].
-
+* Documentation of xref:/midpoint/reference/resources/shadow/purpose/[shadow purpose] was added. See bug:MID-10419[].
 
 === Other Bug Fixes
 
@@ -104,7 +105,7 @@ See bug:MID-9737[] and bug:MID-9986[].
 * Add a save button to the wizard's table of object and association types. See bug:MID-10046[].
 * Add an error message when the 'securityQuestionsForm' authentication module is the first in the authentication sequence. See bug:MID-10149[].
 * bug:MID-10225[] Fix issue where opening of certification campaign stage hangs indefinitely.
-
+* Fixed "preview changes" and "access request" functionality when some projections are hidden by authorizations. See bug:MID-10397[].
 
 === Releases Of Other Components
 
@@ -460,6 +461,13 @@ You can use `ninja` tool for this.
 +
 The original approach was that the caller, i.e., repository, cloned the existing object before handling it to the callback (modifications supplier).
 Now, the implementor of the callback is responsible for not modifying the provided object in any way.
+
+* Projections with denied access no longer cause "preview changes" operation to fail.
++
+If a user has no authorization to see particular projection (shadow), the "preview changes" operation used to finish with "Access denied" fatal error even if there were parts of the result visible to the user.
+This is now changed (fixed): only the relevant projections are hidden now.
+All the remaining data are displayed to the user.
+See also bug:MID-10397[].
 
 [#_behavior_changes_since_4_8]
 === Behavior Changes Since 4.8

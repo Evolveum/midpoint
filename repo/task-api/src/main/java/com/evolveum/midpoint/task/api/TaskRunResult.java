@@ -57,6 +57,14 @@ public class TaskRunResult implements Serializable {
         TEMPORARY_ERROR,
 
         /**
+         * Error that prevent the task from running, continuing its work.
+         * Task and it's dependent tasks should be suspended.
+         *
+         * Currently used when handling policy actions that should suspend tasks.
+         */
+        HALTING_ERROR,
+
+        /**
          * Task run hasn't finished but nevertheless it must end (for now). An example of such a situation is
          * when the long-living task run execution is requested to stop (e.g. when suspending the task or
          * shutting down the node).

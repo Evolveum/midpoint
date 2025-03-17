@@ -339,6 +339,8 @@ public abstract class TaskTablePanel extends MainObjectListPanel<TaskType> {
                 if (StringUtils.isNotEmpty(executingAt)) {
                     return getString("PageTasks.task.execution.runningAt", executingAt);
                 }
+
+                return getString("PageTasks.task.execution.runningAtZeroNodes");
             case RUNNABLE:
             case RUNNING_OR_RUNNABLE:
                 List<Object> localizationObjects = new ArrayList<>();
@@ -352,25 +354,13 @@ public abstract class TaskTablePanel extends MainObjectListPanel<TaskType> {
                 XMLGregorianCalendar completionTimestamp = task.getCompletionTimestamp();
                 if (completionTimestamp == null) {
                     return getString("PageTasks.task.execution.closed");
-                } else {
-                    String date = WebComponentUtil.getShortDateTimeFormattedValue(XmlTypeConverter.toDate(completionTimestamp), getPageBase());
-                    return getString("PageTasks.task.execution.closedAt", new Object[] { date });
                 }
+
+                String date = WebComponentUtil.getShortDateTimeFormattedValue(XmlTypeConverter.toDate(completionTimestamp), getPageBase());
+                return getString("PageTasks.task.execution.closedAt", new Object[] { date });
         }
 
         return getString(state);
-    }
-
-    private @NotNull String getComplexProgressDescription(@NotNull TaskInformation taskInformation) {
-        String progress = taskInformation.getProgressDescriptionShort(); // no need to localize this (for now)
-        XMLGregorianCalendar stalledSince = taskInformation.getCompletelyStalledSince();
-        if (stalledSince != null) {
-            return getString("pageTasks.stalledSince", XmlTypeConverter.toDate(stalledSince).toLocaleString(), progress);
-        } else if (progress.toLowerCase().equals(ActivitySimplifiedRealizationStateType.COMPLETE.value())) {
-            return createStringResource("PageTasks.message.complete").getString();
-        } else {
-            return progress;
-        }
     }
 
     private List<InlineMenuItem> createTasksInlineMenu() {

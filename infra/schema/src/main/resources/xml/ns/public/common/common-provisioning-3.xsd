@@ -3079,7 +3079,7 @@
             <xsd:appinfo>
                 <a:container/>
                 <a:schemaContext>
-                    <a:type>tns:ShadowType</a:type> <!-- probably new resolver/algorithm will be needed-->
+                    <a:type>ShadowType</a:type> <!-- probably new resolver/algorithm will be needed-->
                 </a:schemaContext>
             </xsd:appinfo>
         </xsd:annotation>
@@ -4089,7 +4089,7 @@
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:schemaContext>
-                            <a:type>tns:FocusType</a:type>
+                            <a:type>FocusType</a:type>
                         </a:schemaContext>
                     </xsd:appinfo>
                 </xsd:annotation>
@@ -5658,7 +5658,7 @@
                 I.e. it may be only a shadow, reserving identifier at midPoint level,
                 or it may be an account (probably inactive), reserving identifier at resource level.
                 May also be used for (non-existent or disabled) accounts that are yet to be "claimed" by the user.
-                (Question: do we need separate "thombstone" state for accounts that were deleted?)
+                (Question: do we need separate "tombstone" state for accounts that were deleted?)
 
                 * suspended: Resource object is inactivated (disabled) for a longer period of time.
                 E.g. used for maternal leave or sabbatical.
