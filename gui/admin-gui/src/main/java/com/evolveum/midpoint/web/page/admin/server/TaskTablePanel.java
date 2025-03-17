@@ -292,6 +292,7 @@ public abstract class TaskTablePanel extends MainObjectListPanel<TaskType> {
 
         progress.setTaskHealthStatus(OperationResultStatus.parseStatusType(info.getTaskHealthStatus()));
         progress.setTaskHealthStatusMessage(info.getTaskHealthDescription());
+        progress.getTaskHealthUserFriendlyMessages().addAll(info.getTaskHealthUserFriendlyMessages());
 
         progress.setTaskStatus(OperationResultStatus.parseStatusType(info.getResultStatus()));
 

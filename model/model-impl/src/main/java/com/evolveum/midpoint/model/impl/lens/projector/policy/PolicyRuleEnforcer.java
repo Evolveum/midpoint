@@ -16,6 +16,8 @@ import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import com.evolveum.midpoint.util.*;
+
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.model.api.context.EvaluatedAssignment;
@@ -29,10 +31,6 @@ import com.evolveum.midpoint.model.impl.lens.LensFocusContext;
 import com.evolveum.midpoint.model.impl.lens.projector.Projector;
 import com.evolveum.midpoint.prism.delta.DeltaSetTriple;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.util.LocalizableMessage;
-import com.evolveum.midpoint.util.LocalizableMessageList;
-import com.evolveum.midpoint.util.LocalizableMessageListBuilder;
-import com.evolveum.midpoint.util.TreeNode;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.PolicyViolationException;
 import com.evolveum.midpoint.util.exception.ThresholdPolicyViolationException;
@@ -168,7 +166,9 @@ class PolicyRuleEnforcer<O extends ObjectType> {
                 // In theory we could count events also for other kinds of actions (not only SuspendTask)
                 if (policyRule.containsEnabledAction(SuspendTaskPolicyActionType.class)) {
                     if (policyRule.isOverThreshold()) {
-                        throw new ThresholdPolicyViolationException("Policy rule violation: " + policyRule.getPolicyRule());
+                        throw new ThresholdPolicyViolationException(
+                                new SingleLocalizableMessage("PolicyRuleEnforces.policyViolationMessage", new Object[] { policyRule.getPolicyRule() }),
+                                "Policy rule violation: " + policyRule.getPolicyRule());
                     }
                 }
             }
