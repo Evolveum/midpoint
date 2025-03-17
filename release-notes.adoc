@@ -37,6 +37,7 @@ Overall, midPoint 4.9 is a major step from the past into the future.
 
 == Changes with Respect To Version 4.9.1
 
+* Upgraded AD and LDAP Connector to 3.9.1, which fixes possible Mina Core vulnerability. 
 * Upgraded Spring Boot to 3.3.9 and Tomcat 10.1.39 in order to fix possible Tomcat vulnerabilities.
 * bug:MID-10225[] Fix issue where opening of certification campaign stage hangs indefinitely.
 * Fixed "preview changes" and "access request" functionality when some projections are hidden by authorizations. See bug:MID-10397[].
@@ -390,7 +391,7 @@ See, e.g., bug:MID-9853[].
 ** Fixed NPE with multivalue attributes when delimiter is not defined. (bug:MID-8609[]).
 ** Fix UTF-8 BOM character in csv file during of discovery functions. (bug:MID-9497[] and bug:MID-9498[]).
 
-* New version (3.8) of xref:/connectors/connectors/com.evolveum.polygon.connector.ldap.LdapConnector/[AD/LDAP Connector] was released and bundled with midPoint. The connector suggest all names of columns for configuration properties related with name of column.
+* New version (3.9.1) of xref:/connectors/connectors/com.evolveum.polygon.connector.ldap.LdapConnector/[AD/LDAP Connector] was released and bundled with midPoint. The connector suggest all names of columns for configuration properties related with name of column.
 ** Native association support.
 ** Possibility to choose attributes that should not be returned by default.
 ** Possibility to choose to encode string values in case of the presence of non standard ASCII characters.
@@ -560,7 +561,7 @@ We reserve the right not to support customized web browsers.
 | ConnId Connector Framework
 
 | xref:/connectors/connectors/com.evolveum.polygon.connector.ldap.LdapConnector/[LDAP connector bundle]
-| 3.8
+| 3.9
 | LDAP and Active Directory
 
 | xref:/connectors/connectors/com.evolveum.polygon.connector.csv.CsvConnector/[CSV connector]
