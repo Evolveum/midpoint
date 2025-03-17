@@ -11087,7 +11087,7 @@
                         How long the operation took, except for the children (if known).
                     </xsd:documentation>
                     <xsd:appinfo>
-                        <a:since>4.10</a:since>
+                        <a:since>4.9.2</a:since>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
