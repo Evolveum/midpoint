@@ -624,7 +624,7 @@ public abstract class TestThresholds extends AbstractEmptyModelIntegrationTest {
         addObject(reconTask, task, result,
                 aggregateCustomizer(
                         executionTimeCustomizer("PT2S")));
-        waitForTaskTreeCloseCheckingSuspensionWithError(reconTask.oid, result, getTimeout());
+        waitForTaskSuspend(reconTask.oid, result, getTimeout(), 500);
 
         then();
 
