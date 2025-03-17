@@ -63,8 +63,8 @@ public class VisualizationImpl implements Visualization, DebugDumpable {
 
     @NotNull
     @Override
-    public List<? extends VisualizationImpl> getPartialVisualizations() {
-        return partialVisualizations;
+    public List<VisualizationImpl> getPartialVisualizations() {
+        return new ArrayList<>(partialVisualizations);
     }
 
     public void addPartialVisualization(VisualizationImpl visualization) {
@@ -73,7 +73,7 @@ public class VisualizationImpl implements Visualization, DebugDumpable {
 
     @NotNull
     @Override
-    public List<? extends VisualizationItemImpl> getItems() {
+    public List<VisualizationItemImpl> getItems() {
         return items;
     }
 

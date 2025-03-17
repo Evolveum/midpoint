@@ -15,10 +15,10 @@ import java.util.List;
 
 public interface VisualizationDeltaItem extends VisualizationItem, Serializable {
 
-    @NotNull List<? extends VisualizationItemValue> getOldValues();
-    @NotNull List<? extends VisualizationItemValue> getAddedValues();
-    @NotNull List<? extends VisualizationItemValue> getDeletedValues();
-    @NotNull List<? extends VisualizationItemValue> getUnchangedValues();
+    @NotNull List<VisualizationItemValue> getOldValues();
+    @NotNull List<VisualizationItemValue> getAddedValues();
+    @NotNull List<VisualizationItemValue> getDeletedValues();
+    @NotNull List<VisualizationItemValue> getUnchangedValues();
 
     /**
      * Item delta (if applicable). It should contain the original path (not a relative one).
