@@ -37,7 +37,7 @@ Overall, midPoint 4.9 is a major step from the past into the future.
 
 == Changes with Respect To Version 4.9.1
 
-* Upgraded AD and LDAP Connector to 3.9.1, which fixes possible Mina Core vulnerability. 
+* Upgraded AD and LDAP Connector to 3.9.1, which fixes possible Mina Core vulnerability.
 * Upgraded Spring Boot to 3.3.9 and Tomcat 10.1.39 in order to fix possible Tomcat vulnerabilities.
 * bug:MID-10225[] Fix issue where opening of certification campaign stage hangs indefinitely.
 * Fixed "preview changes" and "access request" functionality when some projections are hidden by authorizations. See bug:MID-10397[].
@@ -561,7 +561,7 @@ We reserve the right not to support customized web browsers.
 | ConnId Connector Framework
 
 | xref:/connectors/connectors/com.evolveum.polygon.connector.ldap.LdapConnector/[LDAP connector bundle]
-| 3.9
+| 3.9.1
 | LDAP and Active Directory
 
 | xref:/connectors/connectors/com.evolveum.polygon.connector.csv.CsvConnector/[CSV connector]
