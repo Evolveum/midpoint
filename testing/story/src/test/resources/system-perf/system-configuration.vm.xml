@@ -85,6 +85,7 @@ Parameters:
             </profile>
         </caching>
         <repository>
+            <autoCreatePartitionsOnAdd>true</autoCreatePartitionsOnAdd>
             <statistics>
                 <collection>globallyAndLocally</collection>
                 <classification>perOperationAndObjectType</classification>
