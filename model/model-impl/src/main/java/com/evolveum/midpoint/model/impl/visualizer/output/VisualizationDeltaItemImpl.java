@@ -7,6 +7,7 @@
 
 package com.evolveum.midpoint.model.impl.visualizer.output;
 
+import com.evolveum.midpoint.model.api.visualizer.Name;
 import com.evolveum.midpoint.model.api.visualizer.VisualizationDeltaItem;
 import com.evolveum.midpoint.model.api.visualizer.VisualizationItemValue;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
@@ -19,51 +20,51 @@ import java.util.List;
 
 public class VisualizationDeltaItemImpl extends VisualizationItemImpl implements VisualizationDeltaItem, DebugDumpable {
 
-    @NotNull private List<VisualizationItemValueImpl> oldValues = Collections.emptyList();
-    @NotNull private List<VisualizationItemValueImpl> addedValues = Collections.emptyList();
-    @NotNull private List<VisualizationItemValueImpl> deletedValues = Collections.emptyList();
-    @NotNull private List<VisualizationItemValueImpl> unchangedValues = Collections.emptyList();
+    @NotNull private List<VisualizationItemValue> oldValues = Collections.emptyList();
+    @NotNull private List<VisualizationItemValue> addedValues = Collections.emptyList();
+    @NotNull private List<VisualizationItemValue> deletedValues = Collections.emptyList();
+    @NotNull private List<VisualizationItemValue> unchangedValues = Collections.emptyList();
     private ItemDelta<?,?> sourceDelta;
 
-    public VisualizationDeltaItemImpl(NameImpl name) {
+    public VisualizationDeltaItemImpl(Name name) {
         super(name);
     }
 
     @NotNull
     @Override
-    public List<? extends VisualizationItemValue> getOldValues() {
+    public List<VisualizationItemValue> getOldValues() {
         return oldValues;
     }
 
-    public void setOldValues(@NotNull List<VisualizationItemValueImpl> oldValues) {
+    public void setOldValues(@NotNull List<VisualizationItemValue> oldValues) {
         this.oldValues = oldValues;
     }
 
     @NotNull
     @Override
-    public List<VisualizationItemValueImpl> getAddedValues() {
+    public List<VisualizationItemValue> getAddedValues() {
         return addedValues;
     }
 
-    public void setAddedValues(@NotNull List<VisualizationItemValueImpl> addedValues) {
+    public void setAddedValues(@NotNull List<VisualizationItemValue> addedValues) {
         this.addedValues = addedValues;
     }
 
     @NotNull
-    public List<VisualizationItemValueImpl> getDeletedValues() {
+    public List<VisualizationItemValue> getDeletedValues() {
         return deletedValues;
     }
 
-    public void setDeletedValues(@NotNull List<VisualizationItemValueImpl> deletedValues) {
+    public void setDeletedValues(@NotNull List<VisualizationItemValue> deletedValues) {
         this.deletedValues = deletedValues;
     }
 
     @NotNull
-    public List<VisualizationItemValueImpl> getUnchangedValues() {
+    public List<VisualizationItemValue> getUnchangedValues() {
         return unchangedValues;
     }
 
-    public void setUnchangedValues(@NotNull List<VisualizationItemValueImpl> unchangedValues) {
+    public void setUnchangedValues(@NotNull List<VisualizationItemValue> unchangedValues) {
         this.unchangedValues = unchangedValues;
     }
 

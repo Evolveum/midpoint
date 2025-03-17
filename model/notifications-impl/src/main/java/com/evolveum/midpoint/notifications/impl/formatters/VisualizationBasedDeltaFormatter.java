@@ -3,14 +3,12 @@ package com.evolveum.midpoint.notifications.impl.formatters;
 import static com.evolveum.midpoint.util.MiscUtil.emptyIfNull;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 import java.util.Locale;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -20,18 +18,9 @@ import com.evolveum.midpoint.model.api.visualizer.Visualization;
 import com.evolveum.midpoint.model.api.visualizer.VisualizationDeltaItem;
 import com.evolveum.midpoint.model.api.visualizer.VisualizationItem;
 import com.evolveum.midpoint.model.impl.visualizer.Visualizer;
-import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.LocalizableMessage;
-import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 @Component
 public class VisualizationBasedDeltaFormatter implements IDeltaFormatter {
@@ -71,41 +60,7 @@ public class VisualizationBasedDeltaFormatter implements IDeltaFormatter {
     }
 
     @Override
-    public String formatObjectModificationDelta(@NotNull ObjectDelta<? extends Objectable> objectDelta,
-            Collection<ItemPath> hiddenPaths, boolean showOperationalAttributes, PrismObject<?> objectOld,
-            PrismObject<?> objectNew, Task task, OperationResult result) {
-        // FIXME Solve somehow the differences between API signatures of hiddenPaths parameter (Collection vs List)
-        return formatObjectModificationDelta(objectDelta, new ArrayList<>(hiddenPaths), showOperationalAttributes,
-                task, result);
-    }
-
-    @Override
-    public String formatObjectAdd(PrismObject<? extends ObjectType> object, List<ItemPath> hiddenPaths,
-            boolean showOperationalAttributes,
-            Task task, OperationResult result) {
-        final Visualization visualization;
-        try {
-            visualization = this.visualizer.visualize(object, task, result);
-        } catch (SchemaException | ExpressionEvaluationException e) {
-            throw new RuntimeException(e);
-        }
-
-        return formatContainer(visualization, 0);
-    }
-
-    @Override
-    public String formatObjectModificationDelta(ObjectDelta<? extends Objectable> objectDelta,
-            List<ItemPath> hiddenPaths, boolean showOperationalAttributes, Task task, OperationResult result) {
-        // FIXME Change signature in visualizer to take deltas of Objectable instaed of deltas of ObjectType
-        var delta = (ObjectDelta<ObjectType>) objectDelta;
-
-        final Visualization visualization;
-        try {
-            visualization = this.visualizer.visualizeDelta(delta, task, result);
-        } catch (SchemaException | ExpressionEvaluationException e) {
-            throw new RuntimeException(e);
-        }
-
+    public String formatVisualization(Visualization visualization) {
         return formatContainer(visualization, 0);
     }
 
@@ -130,9 +85,9 @@ public class VisualizationBasedDeltaFormatter implements IDeltaFormatter {
     private String formatProperties(Visualization visualization, int nestingLevel) {
         return switch (visualization.getChangeType()) {
             case ADD, DELETE -> {
-                // FIXME This is workaround for the fact, that `getItems` returns
-                //  `List<? extends VisualizationItem>`
-                final ArrayList<VisualizationItem> items = new ArrayList<>(visualization.getItems());
+                // FIXME `formatProperties` takes in this case `Collection<VisualizationItem>` as parameter, but
+                //  `getItems` returns `List<? extends VisualizationItem>`
+                final List<VisualizationItem> items = new ArrayList<>(visualization.getItems());
                 yield this.propertiesFormatter.formatProperties(items, nestingLevel);
             }
             case MODIFY -> {
@@ -150,44 +105,28 @@ public class VisualizationBasedDeltaFormatter implements IDeltaFormatter {
             return this.localizationService.translate(overview, this.defaultLocale);
         }
 
-        final PrismContainerDefinition<?> definition = visualization.getSourceDefinition();
-        if (definition == null) {
-            throw new IllegalStateException(
-                    "Definition of added focal object is not present. Unable to properly format object addition.");
-        }
-        final String typeKey = SchemaConstants.OBJECT_TYPE_KEY_PREFIX + definition.getTypeName().getLocalPart();
-        final String objectType = emptyIfNull(this.localizationService.translate(typeKey, new Object[0],
-                this.defaultLocale));
-
         return switch (visualization.getChangeType()) {
-            case ADD, DELETE -> createAddOrDeleteHeading(visualization, objectType);
-            case MODIFY -> createModificationHeading(visualization, objectType);
+            case ADD, DELETE -> createAddOrDeleteHeading(visualization);
+            case MODIFY -> createModificationHeading(visualization);
         };
     }
 
-    private String createModificationHeading(Visualization visualization, String objectType) {
+    private String createModificationHeading(Visualization visualization) {
+        final String objectName = encloseIfNotEmpty(getObjectName(visualization.getName()), "\"", "\"");
+        final String objectType = getObjectType(visualization);
+
         // TODO translate the "has been modified" suffix.
-        String objectName = getObjectName(visualization.getName());
-        if (!objectName.isEmpty()) {
-            objectName = " \"" + objectName + "\"";
-        }
-        return objectType + objectName + " has been modified";
+        return concatenateNonEmptyStrings(objectType, objectName, "has been modified");
     }
 
-    private String createAddOrDeleteHeading(Visualization visualization, String objectType) {
-
+    private String createAddOrDeleteHeading(Visualization visualization) {
         final String changeLocalizationKey = enumLocalizationKey(visualization.getChangeType());
         final String changeType = this.localizationService.translate(changeLocalizationKey, new Object[0],
                 this.defaultLocale);
-        String objectName = getObjectName(visualization.getName());
-        if (objectName.isEmpty()) {
-            objectName = "";
-        } else {
-            objectName = "\"" + objectName + "\"";
-        }
-        return Stream.of(changeType, objectType, objectName)
-                .filter(Predicate.not(String::isEmpty))
-                .collect(Collectors.joining(" "));
+        final String objectName = encloseIfNotEmpty(getObjectName(visualization.getName()), "\"", "\"");
+        final String objectType = getObjectType(visualization);
+
+        return concatenateNonEmptyStrings(changeType, objectType, objectName);
     }
 
     private String getObjectName(Name objectName) {
@@ -206,11 +145,40 @@ public class VisualizationBasedDeltaFormatter implements IDeltaFormatter {
         if (displayName.equalsIgnoreCase(simpleName)) {
             return displayName;
         }
-        return displayName + " (" + simpleName + ")";
+        return displayName + encloseIfNotEmpty(simpleName, " (", ")");
+    }
+
+    private String getObjectType(Visualization visualization) {
+        if (visualization.getOwner() != null) {
+            // This means visualization is not top level, thus the change is on container. For this scenario I am not
+            // sure how to retrieve translated object type right now.
+            return "";
+        }
+
+        final PrismContainerDefinition<?> definition = visualization.getSourceDefinition();
+        if (definition == null) {
+            throw new IllegalStateException(
+                    "Definition of focal object is not present. Unable to properly format object type.");
+        }
+        final String typeKey = SchemaConstants.OBJECT_TYPE_KEY_PREFIX + definition.getTypeName().getLocalPart();
+        return emptyIfNull(this.localizationService.translate(typeKey, new Object[0], this.defaultLocale));
     }
 
     private static String enumLocalizationKey(Enum<?> enumValue) {
         return enumValue == null ? "" : enumValue.getClass().getSimpleName() + "." + enumValue.name();
+    }
+
+    private static String concatenateNonEmptyStrings(String... values) {
+        return Stream.of(values)
+                .filter(Predicate.not(String::isEmpty))
+                .collect(Collectors.joining(" "));
+    }
+
+    private static String encloseIfNotEmpty(String value, String prefix, String suffix) {
+        if (value.isEmpty()) {
+            return value;
+        }
+        return prefix + value + suffix;
     }
 
 }

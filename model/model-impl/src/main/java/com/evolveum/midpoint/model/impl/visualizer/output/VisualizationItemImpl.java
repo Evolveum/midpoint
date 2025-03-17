@@ -17,22 +17,24 @@ import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.Collections;
 import java.util.List;
 
 import static org.apache.commons.lang3.Validate.notNull;
 
 public class VisualizationItemImpl implements VisualizationItem, DebugDumpable {
 
-    protected final NameImpl name;
-    protected List<VisualizationItemValueImpl> newValues;
+    protected final Name name;
+    protected List<VisualizationItemValue> newValues;
     protected boolean operational;
     protected Item<?,?> sourceItem;
     protected ItemPath sourceRelPath;
     protected boolean descriptive;                    // added only as a description of container value being changed
 
-    public VisualizationItemImpl(NameImpl name) {
+    public VisualizationItemImpl(Name name) {
         notNull(name);
         this.name = name;
+        this.newValues = Collections.emptyList();
     }
 
     @Override
@@ -41,11 +43,11 @@ public class VisualizationItemImpl implements VisualizationItem, DebugDumpable {
     }
 
     @Override
-    public List<? extends VisualizationItemValue> getNewValues() {
+    public List<VisualizationItemValue> getNewValues() {
         return newValues;
     }
 
-    public void setNewValues(List<VisualizationItemValueImpl> newValues) {
+    public void setNewValues(List<VisualizationItemValue> newValues) {
         this.newValues = newValues;
     }
 
@@ -64,11 +66,6 @@ public class VisualizationItemImpl implements VisualizationItem, DebugDumpable {
 
     public void setDescriptive(boolean descriptive) {
         this.descriptive = descriptive;
-    }
-
-    @Override
-    public Item<?, ?> getSourceItem() {
-        return sourceItem;
     }
 
     public void setSourceItem(Item<?, ?> sourceItem) {
