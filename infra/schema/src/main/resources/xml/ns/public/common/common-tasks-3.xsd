@@ -1082,7 +1082,7 @@
                 Information about the time spent in individual components.
             </xsd:documentation>
             <xsd:appinfo>
-                <a:since>4.10</a:since>
+                <a:since>4.9.2</a:since>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
@@ -1096,7 +1096,7 @@
                 Information about the time spent in a single component.
             </xsd:documentation>
             <xsd:appinfo>
-                <a:since>4.10</a:since>
+                <a:since>4.9.2</a:since>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>

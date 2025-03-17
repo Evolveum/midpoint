@@ -7355,7 +7355,6 @@
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:since>4.9.1</a:since>
-                        <a:since>4.10</a:since>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -7422,7 +7421,6 @@
             <xsd:appinfo>
                 <a:container/>
                 <a:since>4.9.1</a:since>
-                <a:since>4.10</a:since>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
