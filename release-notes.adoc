@@ -9,7 +9,7 @@ visibility: hidden
 :page-liquid:
 :page-toc: top
 
-Release {release-version} is a sixty-third midPoint release, code-named _Verne_.
+Release {release-version} is a sixty-fifth midPoint release, code-named _Verne_.
 The {release-version} release brings security, stability and miscellaneous bugfixes.
 
 ++++
@@ -511,7 +511,7 @@ specially for PostgreSQL database, taking advantage of native database features,
 This is now the *primary and recommended repository* for midPoint deployments.
 Following database engines are supported:
 
-* PostgreSQL 16, 15, 14
+* PostgreSQL 17, 16, 15, 14
 
 PostgreSQL 16 is recommended.
 
@@ -622,13 +622,13 @@ Note that:
 === Upgrade From Other MidPoint Versions
 
 Upgrade from midPoint versions other than 4.8.x to midPoint {release-version} is not supported directly.
-Please upgrade to 4.8.5 first.
+Please upgrade to 4.8.7 first.
 
-=== Deprecation, Feature Removal And Major Incompatible Changes Since 4.8
-
-NOTE: This section is relevant to the majority of midPoint deployments.
-It refers to the most significant functionality removals and changes in this version.
-
+//=== Deprecation, Feature Removal And Major Incompatible Changes Since 4.8
+//
+//NOTE: This section is relevant to the majority of midPoint deployments.
+//It refers to the most significant functionality removals and changes in this version.
+//
 // * The `mailNonce` and `securityQuestionsForm` authentication modules were re-worked.
 // Since 4.8, we won't support authentication sequences with only `mailNonce` or only `securityQuestionsForm` module defined for password reset flow.
 // These modules have to be used together with `focusIdentification` module.
@@ -646,7 +646,11 @@ It refers to the most significant functionality removals and changes in this ver
 // * Ninja command line options were consolidated, some options were renamed.
 // More info xrefv:/midpoint/reference/support-4.9/deployment/ninja[here] and in bug:MID-7483[].
 
-=== Changes In Initial Objects Since 4.9
+=== Changes In Initial Objects
+
+NOTE: This section is relevant to the majority of midPoint deployments.
+
+==== Changes In Initial Objects Since 4.9
 
 * 000-system-configuration.xml:
 Task execution constraints panel added to task advanced options GUI.
@@ -684,9 +688,7 @@ Updated configuration of `activity` `work` panel.
 * 538-archetype-task-certification-reiterate-campaign.xml:
 Updated configuration of `activity` `work` panel.
 
-=== Changes In Initial Objects Since 4.8
-
-NOTE: This section is relevant to the majority of midPoint deployments.
+==== Changes In Initial Objects Since 4.8
 
 MidPoint has a built-in set of "initial objects" that it will automatically create in the database if they are not present.
 This includes vital objects for the system to be configured (e.g., the role `Superuser` and the user `administrator`).
@@ -721,7 +723,13 @@ Please review link:https://github.com/Evolveum/midpoint/commits/master/gui/admin
 TIP: Copies of initial object files are located in `config/initial-objects` directory of midPoint distribution packages. These files can be used as a reference during upgrades.
 On-line version can be found in https://github.com/Evolveum/midpoint/tree/v{release-version}/config/initial-objects[midPoint source code].
 
-=== Schema Changes Since 4.9
+=== Schema Changes Since
+
+NOTE: This section is relevant to the majority of midPoint deployments.
+It describes what data items were marked as deprecated, or removed altogether from the schema.
+You should at least scan through it - or use the `ninja` tool to check the deprecations for you.
+
+==== Schema Changes Since 4.9
 
 .Items being deprecated
 [%autowidth]
@@ -742,11 +750,7 @@ On-line version can be found in https://github.com/Evolveum/midpoint/tree/v{rele
 
 |===
 
-=== Schema Changes Since 4.8
-
-NOTE: This section is relevant to the majority of midPoint deployments.
-It describes what data items were marked as deprecated, or removed altogether from the schema.
-You should at least scan through it - or use the `ninja` tool to check the deprecations for you.
+==== Schema Changes Since 4.8
 
 .Items being deprecated
 [%autowidth]
@@ -788,8 +792,21 @@ You can use `ninja` tool for this.
 
 * Be sure to apply the changes to initial objects 800-804 (object marks), as well as to your custom object marks to handle the membership in the expected way.
 
+=== Behavior Changes
+
+[NOTE]
+====
+This section describes changes in the behavior that existed before this release.
+New behavior is not mentioned here.
+Plain bugfixes (correcting incorrect behavior) are skipped too.
+Only things that cannot be described as simple "fixing" something are described here.
+
+The behaviour changes are of interest probably for "advanced" midPoint deployments only.
+You should at least scan through them, though.
+====
+
 [#_behavior_changes_since_4_9]
-=== Behavior Changes Since 4.9
+==== Behavior Changes Since 4.9
 
 * Projections with denied access no longer cause "preview changes" operation to fail.
 +
@@ -804,18 +821,7 @@ The change may lead to an issue where you seemingly lose midPoint configuration 
 Refer to this xref:/midpoint/operations-manual/#recover-lost-configuration-in-midpoint-4-9-1[guide in the Operations Manual] for details on how to recover from the situation.
 
 [#_behavior_changes_since_4_8]
-=== Behavior Changes Since 4.8
-
-[NOTE]
-====
-This section describes changes in the behavior that existed before this release.
-New behavior is not mentioned here.
-Plain bugfixes (correcting incorrect behavior) are skipped too.
-Only things that cannot be described as simple "fixing" something are described here.
-
-The changes since 4.8 are of interest probably for "advanced" midPoint deployments only.
-You should at least scan through them, though.
-====
+==== Behavior Changes Since 4.8
 
 * Checking for conflicts for single-valued items was fixed (strengthened).
 In 4.8.3 and before, there were situations that two strong mappings produced different values for a given single-valued item, yet no error was produced.
@@ -893,12 +899,12 @@ All this will probably have an impact on the database size as well as on the run
 All these features can be configured - or even turned off in the extreme case - so you can do your own tradeoff between functionality and performance.
 Moreover, we plan to improve the performance in the forthcoming releases.
 
-=== Java and REST API Changes Since 4.8
-
-NOTE: As for the Java API, this section describes changes in `midpoint` and `basic` function libraries.
-(MidPoint does not have explicitly defined Java API, yet.
-But these two objects are something that can be unofficially considered to be the API of midPoint, usable e.g. from scripts.)
-
+//=== Java and REST API Changes Since 4.8
+//
+//NOTE: As for the Java API, this section describes changes in `midpoint` and `basic` function libraries.
+//(MidPoint does not have explicitly defined Java API, yet.
+//But these two objects are something that can be unofficially considered to be the API of midPoint, usable e.g. from scripts.)
+//
 // * Some of `javax` namespaces were migrated to `jakarta` namespaces, due to upgrade of Spring and Groovy 4. This may affect your scripts / overlays if you were using them. Most notable is `javax.xml.bind`, which was migrated to `jakarta.xml.bind`.
 // ** Most notable rename for Groovy scripts is `javax.xml.bind.JAXBElement` to `jakarta.xml.bind.JAXBElement`.
 //
