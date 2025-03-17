@@ -35,7 +35,7 @@ The {release-version} release brings security, stability and miscellaneous bugfi
 * Fixed memory leak caused by the creating large number of new authentication filters. See bug:MID-10369[].
 * Upgrade node.js, npm, webpack and libs used in frontend. See bug:MID-10440[].
 * Implement creation of SBOM file for monitoring vulnerabilities in frontend libs.
-
+* Upgraded LDAP and AD Connector to 3.7.4 version.
 
 == Changes with Respect To Version 4.8.5
 
@@ -689,7 +689,7 @@ We reserve the right not to support customized web browsers.
 | ConnId Connector Framework
 
 | xref:/connectors/connectors/com.evolveum.polygon.connector.ldap.LdapConnector/[LDAP connector bundle]
-| 3.7.3
+| 3.7.4
 | LDAP and Active Directory
 
 | xref:/connectors/connectors/com.evolveum.polygon.connector.csv.CsvConnector/[CSV connector]
