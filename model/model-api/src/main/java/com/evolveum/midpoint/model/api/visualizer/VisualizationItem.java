@@ -7,20 +7,17 @@
 
 package com.evolveum.midpoint.model.api.visualizer;
 
-import com.evolveum.midpoint.prism.Item;
-import com.evolveum.midpoint.prism.path.ItemPath;
-
 import java.io.Serializable;
 import java.util.List;
+
+import com.evolveum.midpoint.prism.path.ItemPath;
 
 public interface VisualizationItem extends Serializable {
 
     Name getName();
-    List<? extends VisualizationItemValue> getNewValues();
+    List<VisualizationItemValue> getNewValues();
 
     boolean isOperational();
-
-    Item<?,?> getSourceItem();
 
     /**
      * Item path, relative to the visualization root path.

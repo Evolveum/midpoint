@@ -2,13 +2,14 @@ package com.evolveum.midpoint.notifications.impl.formatters;
 
 import java.io.File;
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
+import java.util.List;
 import java.util.UUID;
-
 import javax.xml.datatype.XMLGregorianCalendar;
 
 import org.apache.commons.lang3.StringUtils;
-import org.apache.wicket.util.string.Strings;
 import org.assertj.core.api.Assertions;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -22,11 +23,16 @@ import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.common.LocalizationServiceImpl;
 import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
+import com.evolveum.midpoint.model.api.visualizer.Visualization;
 import com.evolveum.midpoint.model.api.visualizer.VisualizationDeltaItem;
 import com.evolveum.midpoint.model.api.visualizer.VisualizationItem;
+import com.evolveum.midpoint.model.impl.visualizer.VisualizationContext;
 import com.evolveum.midpoint.model.impl.visualizer.Visualizer;
+import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.equivalence.ParameterizedEquivalenceStrategy;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.security.api.MidPointPrincipalManager;
 import com.evolveum.midpoint.task.api.Task;
@@ -45,6 +51,7 @@ import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 @ContextConfiguration(locations = { "classpath:ctx-notifications-test.xml" })
 public class VisualizationBasedDeltaFormatterTest extends AbstractIntegrationTest {
 
+    private final List<ObjectType> addedObjects = new ArrayList<>();
     private final IndentationGenerator indentationGenerator = new IndentationGenerator("|", "\t");
     @Autowired
     private Visualizer visualizer;
@@ -79,6 +86,10 @@ public class VisualizationBasedDeltaFormatterTest extends AbstractIntegrationTes
         final Authentication authentication = new UsernamePasswordAuthenticationToken(principal, null,
                 principal.getAuthorities());
         securityContext.setAuthentication(authentication);
+    }
+
+    @BeforeMethod
+    void setupFormatters() {
         final PropertyFormatter propertyFormatter = new PropertyFormatter(this.localizationService, " ", "\n");
         final PropertiesFormatter<VisualizationItem> propertiesFormatter = new PlainTextPropertiesFormatter(
                 this.indentationGenerator, propertyFormatter);
@@ -92,16 +103,27 @@ public class VisualizationBasedDeltaFormatterTest extends AbstractIntegrationTes
                 this.localizationService);
     }
 
+    @AfterMethod
+    void cleanupRepository() {
+        final Task task = getTestTask();
+        for (ObjectType object : this.addedObjects) {
+            try {
+                this.repositoryService.deleteObject(object.getClass(), object.getOid(), task.getResult());
+            } catch (ObjectNotFoundException e) {
+                // FIXME figure out why this occurs.
+                System.out.println("Weird thing happened " + e.getMessage());
+            }
+        }
+    }
+
     @Test
-    void userWithFewPropertiesIsAdded_formatObjectModificationDeltaIsCalled_propertiesShouldBeProperlyFormatted() {
-        final Task testTask = getTestTask();
-        final UserType user = new UserType();
-        user.setName(new PolyStringType("Rudy"));
+    void userWithFewPropertiesIsAdded_formatVisualizationIsCalled_propertiesShouldBeProperlyFormatted() {
+        final UserType user = createUserRudy();
         user.setFamilyName(new PolyStringType("Moric"));
         final ObjectDelta<UserType> userDelta = user.asPrismObject().createAddDelta();
 
-        final String formattedDelta = this.formatter.formatObjectModificationDelta(userDelta, Collections.emptyList(),
-                false, testTask, testTask.getResult());
+        final Visualization visualization = createVisualization(userDelta, false, Collections.emptyList());
+        final String formattedDelta = this.formatter.formatVisualization(visualization);
 
         final String expectedDeltaFormat = """
                 Add User "Rudy":
@@ -111,15 +133,13 @@ public class VisualizationBasedDeltaFormatterTest extends AbstractIntegrationTes
     }
 
     @Test(enabled = false, description = "Delete of focal objects is not handled via formatters right now.")
-    void userWithFewPropertiesIsDeleted_formatObjectModificationDeltaIsCalled_propertiesShouldBeProperlyFormatted() {
-        final Task testTask = getTestTask();
-        final UserType user = new UserType();
-        user.setName(new PolyStringType("Rudy"));
+    void userWithFewPropertiesIsDeleted_formatVisualizationIsCalled_propertiesShouldBeProperlyFormatted() {
+        final UserType user = createUserRudy();
         user.setFamilyName(new PolyStringType("Moric"));
         final ObjectDelta<UserType> userDelta = user.asPrismObject().createDeleteDelta();
 
-        final String formattedDelta = this.formatter.formatObjectModificationDelta(userDelta, Collections.emptyList(),
-                false, testTask, testTask.getResult());
+        final Visualization visualization = createVisualization(userDelta, false, Collections.emptyList());
+        final String formattedDelta = this.formatter.formatVisualization(visualization);
 
         final String expectedDeltaFormat = """
                 Remove User "Rudy":
@@ -129,27 +149,21 @@ public class VisualizationBasedDeltaFormatterTest extends AbstractIntegrationTes
     }
 
     @Test
-    void userPropertiesHasBeenModified_formatObjectModificationDeltaIsCalled_propertiesShouldBeProperlyFormatted()
+    void userPropertiesHasBeenModified_formatVisualizationIsCalled_propertiesShouldBeProperlyFormatted()
             throws SchemaException, EncryptionException, ObjectAlreadyExistsException {
-        final Task testTask = getTestTask();
-        final UserType modifiedUser = new UserType();
-        final String userOid = UUID.randomUUID().toString();
-        modifiedUser.oid(userOid);
-        modifiedUser.name("Rudy");
-        modifiedUser.familyName("Moric");
+        final UserType oldUser = createUserRudy();
+        oldUser.familyName("Moric");
+        oldUser.fullName("Moric");
+        this.repoAddObject(oldUser);
+
+        final UserType modifiedUser = oldUser.clone();
         modifiedUser.givenName("Ferdo");
         modifiedUser.fullName("Ferdo Moric");
 
-        final UserType oldUser = new UserType();
-        oldUser.oid(userOid);
-        oldUser.name("Rudy");
-        oldUser.familyName("Moric");
-        oldUser.fullName("Moric");
-        this.repoAddObject(oldUser.asPrismObject(), testTask.getResult());
         final ObjectDelta<UserType> userDelta = oldUser.asPrismObject().diff(modifiedUser.asPrismObject());
 
-        final String formattedDelta = this.formatter.formatObjectModificationDelta(userDelta, Collections.emptyList(),
-                false, testTask, testTask.getResult());
+        final Visualization visualization = createVisualization(userDelta, false, Collections.emptyList());
+        final String formattedDelta = this.formatter.formatVisualization(visualization);
 
         final String expectedDeltaFormat = """
                 User "Moric (Rudy)" has been modified:
@@ -161,17 +175,15 @@ public class VisualizationBasedDeltaFormatterTest extends AbstractIntegrationTes
     }
 
     @Test
-    void userWithActivationContainerIsAdded_formatObjectModificationDeltaIsCalled_containerShouldBeProperlyFormatted() {
-        final Task testTask = getTestTask();
+    void userWithActivationContainerIsAdded_formatVisualizationIsCalled_containerShouldBeProperlyFormatted() {
         final ActivationType activation = new ActivationType();
         activation.lockoutStatus(LockoutStatusType.NORMAL);
-        final UserType user = new UserType();
-        user.setName(new PolyStringType("Rudy"));
+        final UserType user = createUserRudy();
         user.setActivation(activation);
         final ObjectDelta<UserType> userDelta = user.asPrismObject().createAddDelta();
 
-        final String formattedDelta = this.formatter.formatObjectModificationDelta(userDelta, Collections.emptyList(),
-                false, testTask, testTask.getResult());
+        final Visualization visualization = createVisualization(userDelta, false, Collections.emptyList());
+        final String formattedDelta = this.formatter.formatVisualization(visualization);
 
         final String expectedDeltaFormat = """
                 Add User "Rudy":
@@ -181,33 +193,27 @@ public class VisualizationBasedDeltaFormatterTest extends AbstractIntegrationTes
         Assertions.assertThat(formattedDelta).isEqualTo(expectedDeltaFormat);
     }
 
-    @Test(enabled = false, description = """
-            There is several issues preventing this to pass:
-            * Overview translations contains html tags
-            * Additional identification properties are not implemented yet""")
-    void userWithMoreContainersIsAdded_formatObjectModificationDeltaIsCalled_containersShouldBeProperlyFormatted()
+    @Test
+    void userWithMoreContainersIsAdded_formatVisualizationIsCalled_containersShouldBeProperlyFormatted()
             throws SchemaException, EncryptionException, ObjectAlreadyExistsException {
-        final Task testTask = getTestTask();
         final ActivationType userActivation = new ActivationType();
         userActivation.lockoutStatus(LockoutStatusType.NORMAL);
         final RoleType role = new RoleType();
         role.name("Accounting");
-        repoAddObject(role.asPrismObject(), testTask.getResult());
+        repoAddObject(role);
 
         final ActivationType assignmentActivation = new ActivationType();
         final XMLGregorianCalendar activationDate = TestUtil.currentTime();
         assignmentActivation.validFrom(activationDate);
-        final UserType user = new UserType();
-        user.setName(new PolyStringType("Rudy"));
-        user.setActivation(userActivation);
+        final UserType user = createUserRudy();
         user.beginAssignment()
                 .targetRef(role.getOid(), RoleType.COMPLEX_TYPE)
                 .activation(assignmentActivation)
                 .end();
         final ObjectDelta<UserType> userDelta = user.asPrismObject().createAddDelta();
 
-        final String formattedDelta = this.formatter.formatObjectModificationDelta(userDelta, Collections.emptyList(),
-                false, testTask, testTask.getResult());
+        final Visualization visualization = createVisualization(userDelta, false, Collections.emptyList());
+        final String formattedDelta = this.formatter.formatVisualization(visualization);
 
         final String expectedDeltaFormat = """
                 Add User "Rudy":
@@ -222,31 +228,25 @@ public class VisualizationBasedDeltaFormatterTest extends AbstractIntegrationTes
     }
 
     @Test
-    void userRoleIsUnassigned_formatObjectModificationDeltaIsCalled_unassignedRoleShouldBeProperlyFormatted()
+    void userRoleIsUnassigned_formatVisualizationIsCalled_unassignedRoleShouldBeProperlyFormatted()
             throws SchemaException, EncryptionException, ObjectAlreadyExistsException {
         final Task testTask = getTestTask();
         final RoleType role = new RoleType();
         role.name("Accounting");
-        repoAddObject(role.asPrismObject(), testTask.getResult());
+        repoAddObject(role);
 
-        final String userOid = UUID.randomUUID().toString();
-        final UserType oldUser = new UserType();
-        oldUser.oid(userOid);
-        oldUser.setName(new PolyStringType("Rudy"));
+        final UserType oldUser = createUserRudy();
+        final UserType modifiedUser = oldUser.clone();
         oldUser.beginAssignment()
                 .targetRef(role.getOid(), RoleType.COMPLEX_TYPE)
                 .activation(new ActivationType())
                 .end();
-        repoAddObject(oldUser.asPrismObject(), testTask.getResult());
-
-        final UserType modifiedUser = new UserType();
-        modifiedUser.oid(userOid);
-        modifiedUser.setName(new PolyStringType("Rudy"));
+        repoAddObject(oldUser);
 
         final ObjectDelta<UserType> userDelta = oldUser.asPrismObject().diff(modifiedUser.asPrismObject());
 
-        final String formattedDelta = this.formatter.formatObjectModificationDelta(userDelta, Collections.emptyList(),
-                false, testTask, testTask.getResult());
+        final Visualization visualization = createVisualization(userDelta, false, Collections.emptyList());
+        final String formattedDelta = this.formatter.formatVisualization(visualization);
 
         final String expectedDeltaFormat = """
                 User "Rudy" has been modified:
@@ -256,32 +256,25 @@ public class VisualizationBasedDeltaFormatterTest extends AbstractIntegrationTes
     }
 
     @Test
-    void userRoleWithActivationIsUnassigned_formatObjectModificationDeltaIsCalled_unassignedRoleShouldBeProperlyFormatted()
+    void userRoleWithActivationIsUnassigned_formatVisualizationIsCalled_unassignedRoleShouldBeProperlyFormatted()
             throws SchemaException, EncryptionException, ObjectAlreadyExistsException {
-        final Task testTask = getTestTask();
         final RoleType role = new RoleType();
         role.name("Accounting");
-        repoAddObject(role.asPrismObject(), testTask.getResult());
+        repoAddObject(role);
 
-        final String userOid = UUID.randomUUID().toString();
-        final UserType oldUser = new UserType();
+        final UserType oldUser = createUserRudy();
+        final UserType modifiedUser = oldUser.clone();
         final XMLGregorianCalendar validFrom = TestUtil.currentTime();
-        oldUser.oid(userOid);
-        oldUser.setName(new PolyStringType("Rudy"));
         oldUser.beginAssignment()
                 .targetRef(role.getOid(), RoleType.COMPLEX_TYPE)
                 .activation(new ActivationType().validFrom(validFrom))
                 .end();
-        repoAddObject(oldUser.asPrismObject(), testTask.getResult());
-
-        final UserType modifiedUser = new UserType();
-        modifiedUser.oid(userOid);
-        modifiedUser.setName(new PolyStringType("Rudy"));
+        repoAddObject(oldUser);
 
         final ObjectDelta<UserType> userDelta = oldUser.asPrismObject().diff(modifiedUser.asPrismObject());
 
-        final String formattedDelta = this.formatter.formatObjectModificationDelta(userDelta, Collections.emptyList(),
-                false, testTask, testTask.getResult());
+        final Visualization visualization = createVisualization(userDelta, false, Collections.emptyList());
+        final String formattedDelta = this.formatter.formatVisualization(visualization);
 
         final String expectedDeltaFormat = """
                 User "Rudy" has been modified:
@@ -289,5 +282,135 @@ public class VisualizationBasedDeltaFormatterTest extends AbstractIntegrationTes
                 |\t|\tDelete Activation:
                 |\t|\t|\tValid from: %s""".formatted(validFrom);
         Assertions.assertThat(formattedDelta).isEqualTo(expectedDeltaFormat);
+    }
+
+    @Test
+    void hidingOperationalPropertiesIsOn_formatVisualizationIsCalled_operationalPropertiesShouldNotBeShown()
+            throws SchemaException, EncryptionException, ObjectAlreadyExistsException {
+        final UserType oldUser = createUserRudy();
+        repoAddObject(oldUser);
+
+        final UserType modifiedUser = oldUser.clone();
+        modifiedUser.activation(new ActivationType()
+                .administrativeStatus(ActivationStatusType.DISABLED)
+                .effectiveStatus(ActivationStatusType.DISABLED)); // Effective status is operational property
+
+        final ObjectDelta<UserType> userDelta = oldUser.asPrismObject().diff(modifiedUser.asPrismObject(),
+                ParameterizedEquivalenceStrategy.DEFAULT_FOR_EQUALS);
+
+        final Visualization visualization = createVisualization(userDelta, true, Collections.emptyList());
+        final String formattedDelta = this.formatter.formatVisualization(visualization);
+
+        final String expectedDeltaFormat = """
+                User "Rudy" has been modified:
+                |\tUser was disabled:
+                |\t|\tAdded properties:
+                |\t|\t|\tAdministrative status: %s"""
+                .formatted(StringUtils.capitalize(ActivationStatusType.DISABLED.value()));
+        Assertions.assertThat(formattedDelta).isEqualTo(expectedDeltaFormat);
+    }
+
+    @Test
+    void hidingOperationalPropertiesIsOff_formatVisualizationIsCalled_operationalPropertiesShouldBeShown()
+            throws SchemaException, EncryptionException, ObjectAlreadyExistsException {
+        final UserType oldUser = createUserRudy();
+        repoAddObject(oldUser);
+
+        final UserType modifiedUser = oldUser.clone();
+        modifiedUser.activation(new ActivationType()
+                .administrativeStatus(ActivationStatusType.DISABLED)
+                .effectiveStatus(ActivationStatusType.DISABLED)); // Effective status is operational property
+
+        final ObjectDelta<UserType> userDelta = oldUser.asPrismObject().diff(modifiedUser.asPrismObject(),
+                ParameterizedEquivalenceStrategy.DEFAULT_FOR_EQUALS);
+
+        final Visualization visualization = createVisualization(userDelta, false, Collections.emptyList());
+        final String formattedDelta = this.formatter.formatVisualization(visualization);
+
+        final String expectedDeltaFormat = """
+                User "Rudy" has been modified:
+                |\tUser was disabled:
+                |\t|\tAdded properties:
+                |\t|\t|\tAdministrative status: %s
+                |\t|\t|\tEffective status: %s"""
+                .formatted(StringUtils.capitalize(ActivationStatusType.DISABLED.value()),
+                        StringUtils.capitalize(ActivationStatusType.DISABLED.value()));
+        Assertions.assertThat(formattedDelta).isEqualTo(expectedDeltaFormat);
+    }
+
+    @Test
+    void effectiveStatusAddedToHiddenPaths_formatVisualizationIsCalled_effectiveStatusShouldNotBeShown()
+            throws SchemaException, EncryptionException, ObjectAlreadyExistsException {
+        final UserType oldUser = createUserRudy();
+        repoAddObject(oldUser);
+
+        final UserType modifiedUser = oldUser.clone();
+        modifiedUser.activation(new ActivationType()
+                .administrativeStatus(ActivationStatusType.DISABLED)
+                .effectiveStatus(ActivationStatusType.DISABLED)); // Effective status is operational property
+
+        final ObjectDelta<UserType> userDelta = oldUser.asPrismObject().diff(modifiedUser.asPrismObject(),
+                ParameterizedEquivalenceStrategy.DEFAULT_FOR_EQUALS);
+        final List<ItemPath> pathsToHide = List.of(UserType.F_ACTIVATION.append(ActivationType.F_EFFECTIVE_STATUS));
+
+        final Visualization visualization = createVisualization(userDelta, false, pathsToHide);
+        final String formattedDelta = this.formatter.formatVisualization(visualization);
+
+        final String expectedDeltaFormat = """
+                User "Rudy" has been modified:
+                |\tUser was disabled:
+                |\t|\tAdded properties:
+                |\t|\t|\tAdministrative status: %s"""
+                .formatted(StringUtils.capitalize(ActivationStatusType.DISABLED.value()));
+        Assertions.assertThat(formattedDelta).isEqualTo(expectedDeltaFormat);
+    }
+
+    @Test(enabled = false, description = "This is currently known limitation. Visualization will contain description "
+            + "of a change also when the only changed properties were operational, regardless of the configuration of"
+            + " visualizer to hide operational data.")
+    void onlyOperationalPropertyChangedButOperationPropertiesAreHidden_formatVisualizationIsCalled_nothingShouldBeShown()
+            throws SchemaException, EncryptionException, ObjectAlreadyExistsException {
+        final UserType oldUser = createUserRudy();
+        repoAddObject(oldUser);
+
+        final UserType modifiedUser = oldUser.clone();
+        modifiedUser.activation(new ActivationType()
+                .effectiveStatus(ActivationStatusType.DISABLED)); // Effective status is operational property
+
+        final ObjectDelta<UserType> userDelta = oldUser.asPrismObject().diff(modifiedUser.asPrismObject(),
+                ParameterizedEquivalenceStrategy.DEFAULT_FOR_EQUALS);
+
+        final Visualization visualization = createVisualization(userDelta, true, Collections.emptyList());
+        final String formattedDelta = this.formatter.formatVisualization(visualization);
+
+        Assertions.assertThat(formattedDelta).isEmpty();
+    }
+
+    private void repoAddObject(ObjectType object)
+            throws SchemaException, EncryptionException, ObjectAlreadyExistsException {
+        repoAddObject(object.asPrismObject(), getTestTask().getResult());
+        this.addedObjects.add(object);
+    }
+
+    private static UserType createUserRudy() {
+        final String userOid = UUID.randomUUID().toString();
+        final UserType user = new UserType();
+        return user.oid(userOid)
+                .name(new PolyStringType("Rudy"))
+                .activation(new ActivationType());
+    }
+
+    private Visualization createVisualization(ObjectDelta<? extends Objectable> delta,
+            boolean hideOperationalAttributes, Collection<ItemPath> pathsToHide) {
+        final Task task = getTestTask();
+        final VisualizationContext context = new VisualizationContext();
+        context.setPathsToHide(pathsToHide);
+        context.setIncludeOperationalItems(!hideOperationalAttributes);
+        try {
+            return this.visualizer.visualizeDelta((ObjectDelta<? extends ObjectType>) delta, null, context, true, task,
+                    task.getResult());
+        } catch (SchemaException | ExpressionEvaluationException e) {
+            throw new RuntimeException(e);
+        }
     }
 }
