@@ -13,7 +13,7 @@
     <parent>
         <artifactId>tools</artifactId>
         <groupId>com.evolveum.midpoint.tools</groupId>
-        <version>4.8.7-SNAPSHOT</version>
+        <version>4.8.7</version>
     </parent>
 
     <artifactId>midpoint-boot-layout</artifactId>

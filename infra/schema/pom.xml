@@ -12,7 +12,7 @@
     <parent>
         <artifactId>infra</artifactId>
         <groupId>com.evolveum.midpoint.infra</groupId>
-        <version>4.8.7-SNAPSHOT</version>
+        <version>4.8.7</version>
     </parent>
 
     <artifactId>schema</artifactId>
