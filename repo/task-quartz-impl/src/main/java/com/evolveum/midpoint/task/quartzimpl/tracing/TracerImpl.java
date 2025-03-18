@@ -191,8 +191,8 @@ public class TracerImpl implements Tracer, SystemConfigurationChangeListener {
     }
 
     private String getMilliseconds(OperationResult result) {
-        if (result.getMicroseconds() != null) {
-            return String.valueOf(result.getMicroseconds() / 1000);
+        if (result.getMicrosecondsNullable() != null) {
+            return String.valueOf(result.getMicrosecondsNullable() / 1000);
         } else if (result.getStart() != null && result.getEnd() != null) {
             return String.valueOf(result.getEnd() - result.getStart());
         } else {
