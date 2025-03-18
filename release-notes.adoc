@@ -4,7 +4,6 @@ release-version: '4.9.2'
 ---
 = MidPoint 4.9.2 "Verne" - Update 2
 :release-version: 4.9.2
-:page-visibility: hidden
 :page-liquid:
 :page-toc: top
 
@@ -46,7 +45,7 @@ Overall, midPoint 4.9 is a major step from the past into the future.
 * Various performance improvements were implemented.
 * Internal performance reporting for background tasks was improved by adding own time spent by individual operations, i.e., the total time minus the time spent in child operations.
 * Fixed the issue with simpleReviewerNotifier to use the up-to-date campaign object data. See bug:MID-10373[].
-* Fixed error on the Errors panel of the Task details page. See bug:MID-10395[], MID-10500[].
+* Fixed error on the Errors panel of the Task details page. See bug:MID-10395[], bug:MID-10500[].
 * Fixed the issue with missing task channel during certification remediation task running. See bug:MID-10376[].
 * Fixed the issue with defaultAssignmentConstraints configuration during Access Request flow. See bug:MID-10425[].
 * Fixed several issues for the table view on the Campaigns page. See bug:MID-10469[].
