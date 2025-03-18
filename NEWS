@@ -1,13 +1,12 @@
-midPoint 4.4.10 "Tesla" Update 10
--------------------------------
+midPoint 4.4.11 "Tesla" Update 11
+-------------------------------..
 
-Release 4.4.10 is a sixty-second midPoint release.
-It is the ninth maintenance update for 4.4.x version family code-named _Tesla_.
-The 4.4.10 release brings miscellaneous bugfixes.
+Release 4.4.11 is a eleventh  maintenance update for 4.4.x version family code-named _Tesla_.
+The 4.4.11 release brings miscellaneous bugfixes.
 
-Release date: 21th Nov 2024
+Release date: 18th March 2025
 Release type: Long-term support maintenance release
 End of support: 26th November 2024
 
 Please see the release notes for detailed list of changes:
-https://docs.evolveum.com/midpoint/release/4.4.10/
+https://docs.evolveum.com/midpoint/release/4.4.11/

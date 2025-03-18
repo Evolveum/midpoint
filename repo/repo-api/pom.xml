@@ -13,7 +13,7 @@
     <parent>
         <artifactId>repo</artifactId>
         <groupId>com.evolveum.midpoint.repo</groupId>
-        <version>4.4.11-SNAPSHOT</version>
+        <version>4.4.11</version>
     </parent>
 
     <artifactId>repo-api</artifactId>
@@ -39,7 +39,7 @@
         <dependency>
             <groupId>com.evolveum.midpoint.infra</groupId>
             <artifactId>schema</artifactId>
-            <version>4.4.11-SNAPSHOT</version>
+            <version>4.4.11</version>
         </dependency>
 
         <dependency>
