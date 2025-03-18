@@ -272,12 +272,14 @@ public class OperationResult
     private boolean building;        // experimental (NOT SERIALIZED)
     private OperationResult futureParent;   // experimental (NOT SERIALIZED)
 
-    private Long start;
-    private Long end;
-    private Long microseconds;
-    private Long ownMicroseconds;
-    private Long cpuMicroseconds;
-    private Long invocationId;
+    private static final long NONE = -1;
+
+    private long start = NONE;
+    private long end = NONE;
+    private long microseconds = NONE;
+    private long ownMicroseconds = NONE;
+    private long cpuMicroseconds = NONE;
+    private long invocationId = NONE;
 
     private final List<LogSegmentType> logSegments = new ArrayList<>();
 
@@ -535,8 +537,8 @@ public class OperationResult
             invocationRecord.afterCall(
                     computeNotOwnTimeMicros());
             microseconds = invocationRecord.getElapsedTimeMicros();
-            ownMicroseconds = invocationRecord.getOwnTimeMicros();
-            cpuMicroseconds = invocationRecord.getCpuTimeMicros();
+            ownMicroseconds = fromNullable(invocationRecord.getOwnTimeMicros());
+            cpuMicroseconds = fromNullable(invocationRecord.getCpuTimeMicros());
             if (collectingLogEntries) {
                 logRecorder.close();
                 collectingLogEntries = false;
@@ -556,7 +558,7 @@ public class OperationResult
     private long computeNotOwnTimeMicros() {
         long total = 0;
         for (OperationResult subresult : getSubresults()) {
-            total += or0(subresult.getMicroseconds());
+            total += subresult.getMicrosecondsOr0();
         }
         return total;
     }
@@ -1293,7 +1295,7 @@ public class OperationResult
     public boolean isClosed() {
         return status != OperationResultStatus.UNKNOWN
                 && status != null
-                && end != null
+                && end != NONE
                 && invocationRecord == null;
     }
 
@@ -2278,16 +2280,28 @@ public class OperationResult
 
         bean.setAsynchronousOperationReference(opResult.getAsynchronousOperationReference());
 
-        bean.setStart(XmlTypeConverter.createXMLGregorianCalendar(opResult.start));
-        bean.setEnd(XmlTypeConverter.createXMLGregorianCalendar(opResult.end));
-        bean.setMicroseconds(opResult.microseconds);
-        bean.setOwnMicroseconds(opResult.ownMicroseconds);
-        bean.setCpuMicroseconds(opResult.cpuMicroseconds);
-        bean.setInvocationId(opResult.invocationId);
+        bean.setStart(XmlTypeConverter.createXMLGregorianCalendar(toNullable(opResult.start)));
+        bean.setEnd(XmlTypeConverter.createXMLGregorianCalendar(toNullable(opResult.end)));
+        bean.setMicroseconds(toNullable(opResult.microseconds));
+        bean.setOwnMicroseconds(toNullable(opResult.ownMicroseconds));
+        bean.setCpuMicroseconds(toNullable(opResult.cpuMicroseconds));
+        bean.setInvocationId(toNullable(opResult.invocationId));
         bean.getLog().addAll(opResult.logSegments); // consider cloning here
         bean.getTrace().addAll(opResult.traces); // consider cloning here
         bean.setMonitoredOperations(cloneCloneable(opResult.getMonitoredOperations()));
         return bean;
+    }
+
+    private static Long toNullable(long value) {
+        return value != NONE ? value : null;
+    }
+
+    private static long fromNullable(Long value) {
+        return value != null ? value : NONE;
+    }
+
+    private static long zeroIfNone(long value) {
+        return value != NONE ? value : 0L;
     }
 
     public void summarize() {
@@ -2348,7 +2362,7 @@ public class OperationResult
                 OperationStatusCounter counter = recordsCounters.get(key);
                 if (sr.representsHiddenRecords()) {
                     counter.hiddenCount += sr.hiddenRecordsCount;
-                    counter.addHiddenMicroseconds(sr.getMicroseconds(), sr.getOwnMicroseconds(), sr.getCpuMicroseconds());
+                    counter.addHiddenMicroseconds(sr.getMicrosecondsNullable(), sr.getOwnMicrosecondsNullable(), sr.getCpuMicrosecondsNullable());
                     iterator.remove(); // will be re-added at the end (potentially with records counters)
                 } else {
                     if (counter.shownRecords < subresultStripThreshold) {
@@ -2356,7 +2370,7 @@ public class OperationResult
                         counter.shownCount += sr.count;
                     } else {
                         counter.hiddenCount += sr.count;
-                        counter.addHiddenMicroseconds(sr.getMicroseconds(), sr.getOwnMicroseconds(), sr.getCpuMicroseconds());
+                        counter.addHiddenMicroseconds(sr.getMicrosecondsNullable(), sr.getOwnMicrosecondsNullable(), sr.getCpuMicrosecondsNullable());
                         iterator.remove();
                     }
                 }
@@ -2364,7 +2378,7 @@ public class OperationResult
                 OperationStatusCounter counter = new OperationStatusCounter();
                 if (sr.representsHiddenRecords()) {
                     counter.hiddenCount = sr.hiddenRecordsCount;
-                    counter.addHiddenMicroseconds(sr.getMicroseconds(), sr.getOwnMicroseconds(), sr.getCpuMicroseconds());
+                    counter.addHiddenMicroseconds(sr.getMicrosecondsNullable(), sr.getOwnMicrosecondsNullable(), sr.getCpuMicrosecondsNullable());
                     iterator.remove(); // will be re-added at the end (potentially with records counters)
                 } else {
                     counter.shownRecords = 1;
@@ -2406,11 +2420,11 @@ public class OperationResult
         mergeMap(target.getReturns(), source.getReturns());
         target.incrementCount();
         target.setMicroseconds(
-                computeMicroseconds(target.getMicroseconds(), source.getMicroseconds()));
+                computeMicroseconds(target.getMicrosecondsNullable(), source.getMicrosecondsNullable()));
         target.setOwnMicroseconds(
-                computeMicroseconds(target.getOwnMicroseconds(), source.getOwnMicroseconds()));
+                computeMicroseconds(target.getOwnMicrosecondsNullable(), source.getOwnMicrosecondsNullable()));
         target.setCpuMicroseconds(
-                computeMicroseconds(target.getCpuMicroseconds(), source.getCpuMicroseconds()));
+                computeMicroseconds(target.getCpuMicrosecondsNullable(), source.getCpuMicrosecondsNullable()));
     }
 
     private static Long computeMicroseconds(Long fromTarget, Long fromSource) {
@@ -2609,7 +2623,8 @@ public class OperationResult
             sb.append("\n");
             DebugUtil.debugDumpWithLabel(
                     sb, "duration",
-                    "%,.3f ms (%,.3f own)".formatted(formatMilliseconds(microseconds), formatMilliseconds(ownMicroseconds)),
+                    "%,.3f ms (%,.3f own)".formatted(
+                            formatMilliseconds(microseconds), formatMilliseconds(ownMicroseconds)),
                     indent + 2);
         }
 
@@ -2658,8 +2673,8 @@ public class OperationResult
         }
     }
 
-    private Float formatMilliseconds(Long value) {
-        return value != null ? value / 1000.0f : null;
+    private Float formatMilliseconds(long value) {
+        return value != NONE ? value / 1000.0f : null;
     }
 
     @Experimental
@@ -2967,11 +2982,11 @@ public class OperationResult
                 summarizeSuccesses == result.summarizeSuccesses &&
                 importance == result.importance &&
                 building == result.building &&
-                Objects.equals(start, result.start) &&
-                Objects.equals(end, result.end) &&
-                Objects.equals(microseconds, result.microseconds) &&
-                Objects.equals(cpuMicroseconds, result.cpuMicroseconds) &&
-                Objects.equals(invocationId, result.invocationId) &&
+                start == result.start &&
+                end == result.end &&
+                microseconds == result.microseconds &&
+                cpuMicroseconds == result.cpuMicroseconds &&
+                invocationId == result.invocationId &&
                 Objects.equals(tracingProfile, result.tracingProfile) &&
                 Objects.equals(operation, result.operation) &&
                 Objects.equals(qualifiers, result.qualifiers) &&
@@ -2999,51 +3014,55 @@ public class OperationResult
     }
 
     public Long getStart() {
-        return start;
+        return toNullable(start);
     }
 
     public void setStart(Long start) {
-        this.start = start;
+        this.start = fromNullable(start);
     }
 
     public Long getEnd() {
-        return end;
+        return toNullable(end);
     }
 
     public void setEnd(Long end) {
-        this.end = end;
+        this.end = fromNullable(end);
     }
 
-    public Long getMicroseconds() {
-        return microseconds;
+    public Long getMicrosecondsNullable() {
+        return toNullable(microseconds);
+    }
+
+    private long getMicrosecondsOr0() {
+        return zeroIfNone(microseconds);
     }
 
     public void setMicroseconds(Long microseconds) {
-        this.microseconds = microseconds;
+        this.microseconds = fromNullable(microseconds);
     }
 
-    public Long getOwnMicroseconds() {
+    public Long getOwnMicrosecondsNullable() {
         return ownMicroseconds;
     }
 
     public void setOwnMicroseconds(Long ownMicroseconds) {
-        this.ownMicroseconds = ownMicroseconds;
+        this.ownMicroseconds = fromNullable(ownMicroseconds);
     }
 
-    public Long getCpuMicroseconds() {
+    public Long getCpuMicrosecondsNullable() {
         return cpuMicroseconds;
     }
 
     public void setCpuMicroseconds(Long cpuMicroseconds) {
-        this.cpuMicroseconds = cpuMicroseconds;
+        this.cpuMicroseconds = fromNullable(cpuMicroseconds);
     }
 
-    public Long getInvocationId() {
-        return invocationId;
+    public Long getInvocationIdNullable() {
+        return toNullable(invocationId);
     }
 
     public void setInvocationId(Long invocationId) {
-        this.invocationId = invocationId;
+        this.invocationId = fromNullable(invocationId);
     }
 
     public boolean isTraced() {
