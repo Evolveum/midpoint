@@ -13,7 +13,7 @@
     <parent>
         <artifactId>repo</artifactId>
         <groupId>com.evolveum.midpoint.repo</groupId>
-        <version>4.8.7</version>
+        <version>4.8.8-SNAPSHOT</version>
     </parent>
 
     <artifactId>security-enforcer-api</artifactId>

@@ -13,7 +13,7 @@
     <parent>
         <artifactId>testing</artifactId>
         <groupId>com.evolveum.midpoint.testing</groupId>
-        <version>4.8.7</version>
+        <version>4.8.8-SNAPSHOT</version>
     </parent>
 
     <artifactId>story</artifactId>

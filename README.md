@@ -1,5 +1,5 @@
-MidPoint 4.8 Update 7
----------------------
+MidPoint 4.8 Support Branch
+---------------------------
 
 General information:
 
