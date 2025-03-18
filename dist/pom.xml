@@ -13,7 +13,7 @@
     <parent>
         <artifactId>midpoint</artifactId>
         <groupId>com.evolveum.midpoint</groupId>
-        <version>4.4.11</version>
+        <version>4.4.12-SNAPSHOT</version>
     </parent>
 
     <artifactId>dist</artifactId>
@@ -25,14 +25,14 @@
         <dependency>
             <groupId>com.evolveum.midpoint.gui</groupId>
             <artifactId>admin-gui</artifactId>
-            <version>4.4.11</version>
+            <version>4.4.12-SNAPSHOT</version>
             <type>war</type>
             <classifier>executable</classifier>
         </dependency>
         <dependency>
             <groupId>com.evolveum.midpoint.tools</groupId>
             <artifactId>ninja</artifactId>
-            <version>4.4.11</version>
+            <version>4.4.12-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>com.evolveum.midpoint</groupId>

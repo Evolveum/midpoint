@@ -13,7 +13,7 @@
     <parent>
         <artifactId>model</artifactId>
         <groupId>com.evolveum.midpoint.model</groupId>
-        <version>4.4.11</version>
+        <version>4.4.12-SNAPSHOT</version>
     </parent>
 
     <artifactId>model-test</artifactId>
@@ -67,90 +67,90 @@
         <dependency>
             <groupId>com.evolveum.midpoint.infra</groupId>
             <artifactId>schema</artifactId>
-            <version>4.4.11</version>
+            <version>4.4.12-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>com.evolveum.midpoint.infra</groupId>
             <artifactId>common</artifactId>
-            <version>4.4.11</version>
+            <version>4.4.12-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>com.evolveum.midpoint.model</groupId>
             <artifactId>model-api</artifactId>
-            <version>4.4.11</version>
+            <version>4.4.12-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>com.evolveum.midpoint.model</groupId>
             <artifactId>model-common</artifactId>
-            <version>4.4.11</version>
+            <version>4.4.12-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>com.evolveum.midpoint.model</groupId>
             <artifactId>notifications-api</artifactId>
-            <version>4.4.11</version>
+            <version>4.4.12-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>com.evolveum.midpoint.repo</groupId>
             <artifactId>repo-api</artifactId>
-            <version>4.4.11</version>
+            <version>4.4.12-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>com.evolveum.midpoint.repo</groupId>
             <artifactId>audit-api</artifactId>
-            <version>4.4.11</version>
+            <version>4.4.12-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>com.evolveum.midpoint.repo</groupId>
             <artifactId>security-api</artifactId>
-            <version>4.4.11</version>
+            <version>4.4.12-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>com.evolveum.midpoint.repo</groupId>
             <artifactId>security-enforcer-api</artifactId>
-            <version>4.4.11</version>
+            <version>4.4.12-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>com.evolveum.midpoint.repo</groupId>
             <artifactId>task-api</artifactId>
-            <version>4.4.11</version>
+            <version>4.4.12-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>com.evolveum.midpoint.repo</groupId>
             <artifactId>repo-common</artifactId>
-            <version>4.4.11</version>
+            <version>4.4.12-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>com.evolveum.midpoint.repo</groupId>
             <artifactId>repo-cache</artifactId>
-            <version>4.4.11</version>
+            <version>4.4.12-SNAPSHOT</version>
             <scope>runtime</scope>
         </dependency>
         <dependency>
             <groupId>com.evolveum.midpoint.provisioning</groupId>
             <artifactId>provisioning-api</artifactId>
-            <version>4.4.11</version>
+            <version>4.4.12-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>com.evolveum.icf</groupId>
             <artifactId>dummy-connector</artifactId>
-            <version>4.4.11</version>
+            <version>4.4.12-SNAPSHOT</version>
             <scope>runtime</scope>
         </dependency>
         <dependency>
             <groupId>com.evolveum.icf</groupId>
             <artifactId>dummy-connector-fake</artifactId>
-            <version>4.4.11</version>
+            <version>4.4.12-SNAPSHOT</version>
             <scope>runtime</scope>
         </dependency>
         <dependency>
             <groupId>com.evolveum.icf</groupId>
             <artifactId>dummy-resource</artifactId>
-            <version>4.4.11</version>
+            <version>4.4.12-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>com.evolveum.midpoint.repo</groupId>
             <artifactId>repo-test-util</artifactId>
-            <version>4.4.11</version>
+            <version>4.4.12-SNAPSHOT</version>
         </dependency>
 
         <dependency>
@@ -201,25 +201,25 @@
         <dependency>
             <groupId>com.evolveum.midpoint.provisioning</groupId>
             <artifactId>provisioning-impl</artifactId>
-            <version>4.4.11</version>
+            <version>4.4.12-SNAPSHOT</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>com.evolveum.midpoint.repo</groupId>
             <artifactId>task-quartz-impl</artifactId>
-            <version>4.4.11</version>
+            <version>4.4.12-SNAPSHOT</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>com.evolveum.midpoint.repo</groupId>
             <artifactId>audit-log-impl</artifactId>
-            <version>4.4.11</version>
+            <version>4.4.12-SNAPSHOT</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>com.evolveum.midpoint.repo</groupId>
             <artifactId>repo-sql-impl</artifactId>
-            <version>4.4.11</version>
+            <version>4.4.12-SNAPSHOT</version>
             <scope>test</scope>
         </dependency>
         <dependency>
@@ -246,7 +246,7 @@
         <dependency>
             <groupId>com.evolveum.midpoint.repo</groupId>
             <artifactId>system-init</artifactId>
-            <version>4.4.11</version>
+            <version>4.4.12-SNAPSHOT</version>
             <scope>test</scope>
         </dependency>
     </dependencies>

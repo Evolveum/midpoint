@@ -13,7 +13,7 @@
     <parent>
         <artifactId>model</artifactId>
         <groupId>com.evolveum.midpoint.model</groupId>
-        <version>4.4.11</version>
+        <version>4.4.12-SNAPSHOT</version>
     </parent>
 
     <artifactId>report-api</artifactId>
@@ -39,17 +39,17 @@
         <dependency>
             <groupId>com.evolveum.midpoint.infra</groupId>
             <artifactId>schema</artifactId>
-            <version>4.4.11</version>
+            <version>4.4.12-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>com.evolveum.midpoint.repo</groupId>
             <artifactId>task-api</artifactId>
-            <version>4.4.11</version>
+            <version>4.4.12-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>com.evolveum.midpoint.model</groupId>
             <artifactId>model-api</artifactId>
-            <version>4.4.11</version>
+            <version>4.4.12-SNAPSHOT</version>
         </dependency>
     </dependencies>
 </project>
