@@ -130,20 +130,20 @@ public interface ShadowAssociationDefinition
     default ShadowAssociationValue createValueFromDefaultObject(@NotNull AbstractShadow object)
             throws SchemaException {
         assert !isComplex();
-        var newValue = instantiate().createNewValue();
+        var newValue = ShadowAssociationValue.empty(this);
         newValue.getOrCreateObjectsContainer()
                 .addReferenceAttribute(getSingleObjectParticipantName(), object);
-        return newValue.clone(); // to make it parent-less
+        return newValue;
     }
 
     /** Call only on simple associations! */
     default ShadowAssociationValue createValueFromDefaultObjectRef(@NotNull ShadowReferenceAttributeValue refAttrValue)
             throws SchemaException {
         assert !isComplex();
-        var newValue = instantiate().createNewValue();
+        var newValue = ShadowAssociationValue.empty(this);
         newValue.getOrCreateObjectsContainer()
                 .addReferenceAttribute(getSingleObjectParticipantName(), refAttrValue);
-        return newValue.clone(); // to make it parent-less
+        return newValue;
     }
 
     ContainerDelta<ShadowAssociationValueType> createEmptyDelta();
