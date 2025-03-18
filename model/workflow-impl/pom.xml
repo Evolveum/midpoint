@@ -13,7 +13,7 @@
     <parent>
         <artifactId>model</artifactId>
         <groupId>com.evolveum.midpoint.model</groupId>
-        <version>4.9.2</version>
+        <version>4.9.3-SNAPSHOT</version>
     </parent>
 
     <artifactId>workflow-impl</artifactId>
