@@ -1,5 +1,7 @@
 package com.evolveum.midpoint.testing.story.sysperf;
 
+import com.evolveum.midpoint.schema.internals.InternalsConfig;
+
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -32,7 +34,8 @@ class SummaryOutputFile {
         writer.printf("Reconciliation (with source): %s\n", RECONCILIATION_WITH_SOURCE_CONFIGURATION);
         writer.printf("Reconciliation (with target): %s\n", RECONCILIATION_WITH_TARGET_CONFIGURATION);
         writer.printf("Recomputation: %s\n", RECOMPUTATION_CONFIGURATION);
-        writer.printf("Other: %s\n\n", OTHER_PARAMETERS);
+        writer.printf("Other: %s\n", OTHER_PARAMETERS);
+        writer.printf("Shadow caching: %s\n\n", InternalsConfig.getShadowCachingDefault());
         writer.flush();
     }
 
