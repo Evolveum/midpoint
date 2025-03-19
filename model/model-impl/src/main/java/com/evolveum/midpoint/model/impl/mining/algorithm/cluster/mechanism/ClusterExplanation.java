@@ -109,7 +109,7 @@ public class ClusterExplanation implements Serializable {
 
             for (AttributeAnalysisStructure analysis : roleAttributeAnalysisStructures) {
                 ItemPath itemPath = analysis.getItemPath();
-                if (itemPath == null) {
+                if (itemPath == null || analysis.getDensity() != 100) {
                     continue;
                 }
 
@@ -124,7 +124,17 @@ public class ClusterExplanation implements Serializable {
             }
         }
 
-        return candidateNames.size() == 1 ? candidateNames.iterator().next() : null;
+        return resolveFinalCandidateName(candidateNames);
+    }
+
+    private static @Nullable String resolveFinalCandidateName(@NotNull Set<String> candidateNames) {
+        if (candidateNames.isEmpty()) {
+            return null;
+        } else {
+            StringJoiner finalCandidateName = new StringJoiner(" & ");
+            candidateNames.forEach(finalCandidateName::add);
+            return finalCandidateName.toString();
+        }
     }
 
     private static @Nullable AbstractAnalysisSessionOptionType getSessionOption(
@@ -192,7 +202,11 @@ public class ClusterExplanation implements Serializable {
             Map<ItemPath, ItemDefinition<?>> itemDefinitionMap,
             Set<String> candidateNames) {
 
-        if (!ruleIdentifiers.contains(itemPath) || analysis.getDensity() != 100) {
+        if (!containRuleItemPath(ruleIdentifiers, itemPath)) {
+            return;
+        }
+
+        if (analysis.getDensity() != 100) {
             return;
         }
 
@@ -232,7 +246,6 @@ public class ClusterExplanation implements Serializable {
 
         return itemPath.last() + "-" + value;
     }
-
 
     private static List<AttributeAnalysisStructure> analyseRolesClusteringAttributes(@NotNull RoleAnalysisService roleAnalysisService, @NotNull Task task, @NotNull OperationResult result, List<ClusteringAttributeRuleType> clusteringAttributeRule, PrismObjectDefinition<RoleType> roleDefinition, Map<ItemPath, ItemDefinition<?>> itemDefinitionMap, Set<PrismObject<RoleType>> prismRoles) {
         List<RoleAnalysisAttributeDef> attributeRoleDefSet = new ArrayList<>();
