@@ -53,6 +53,8 @@ Overall, midPoint 4.9 is a major step from the past into the future.
 * bug:MID-9300[] Secure schema usage in PostgresSQL (not using public schema).
 * bug:MID-10278[] Fix non-clickable part of a button in Edit Schema popup panel.
 * bug:MID-10513[] Fixed css issues with popup modal background in Safari.
+* bug:MID-10410[] Better indication for failed tasks and their subtasks.
+* bug:MID-10412[] Implemented configurable thresholds for task activities.
 
 === Other Improvements
 
