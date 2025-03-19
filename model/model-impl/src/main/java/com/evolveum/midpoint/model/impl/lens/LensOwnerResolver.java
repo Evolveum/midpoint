@@ -28,7 +28,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
-import static com.evolveum.midpoint.schema.GetOperationOptions.createReadOnlyCollection;
+import static com.evolveum.midpoint.schema.GetOperationOptions.readOnly;
 
 /**
  * @author semancik
@@ -101,7 +101,7 @@ public class LensOwnerResolver<F extends ObjectType> implements OwnerResolver {
             List<PrismObject<FO>> owners = new ArrayList<>();
             try {
                 //noinspection unchecked
-                objectResolver.searchIterative(UserType.class, query, createReadOnlyCollection(),
+                objectResolver.searchIterative(UserType.class, query, readOnly(),
                         (o,result) -> owners.add((PrismObject<FO>) o), task, result);
             } catch (ObjectNotFoundException | CommunicationException | ConfigurationException
                     | SecurityViolationException | SchemaException | ExpressionEvaluationException e) {
@@ -128,7 +128,7 @@ public class LensOwnerResolver<F extends ObjectType> implements OwnerResolver {
             List<PrismObject<FO>> owners = new ArrayList<>();
             try {
                 //noinspection unchecked
-                objectResolver.searchIterative(FocusType.class, query, createReadOnlyCollection(),
+                objectResolver.searchIterative(FocusType.class, query, readOnly(),
                         (o,result) -> owners.add((PrismObject<FO>) o), task, result);
             } catch (ObjectNotFoundException | CommunicationException | ConfigurationException
                     | SecurityViolationException | SchemaException | ExpressionEvaluationException e) {

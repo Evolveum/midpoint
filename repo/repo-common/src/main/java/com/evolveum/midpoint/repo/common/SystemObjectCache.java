@@ -40,7 +40,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
-import static com.evolveum.midpoint.schema.GetOperationOptions.createReadOnlyCollection;
+import static com.evolveum.midpoint.schema.GetOperationOptions.readOnly;
 import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.asObjectable;
 
 /**
@@ -224,7 +224,7 @@ public class SystemObjectCache implements Cache {
     }
 
     private void loadSecurityPolicy(OperationResult result, String oid) throws ObjectNotFoundException, SchemaException {
-        securityPolicy = cacheRepositoryService.getObject(SecurityPolicyType.class, oid, createReadOnlyCollection(), result);
+        securityPolicy = cacheRepositoryService.getObject(SecurityPolicyType.class, oid, readOnly(), result);
         expressionProfiles = null;
         securityPolicyCheckTimestamp = System.currentTimeMillis();
         if (securityPolicy != null && securityPolicy.getVersion() == null) {
@@ -241,11 +241,11 @@ public class SystemObjectCache implements Cache {
 
     @SuppressWarnings("WeakerAccess")
     public PrismObject<ArchetypeType> getArchetype(String oid, OperationResult result) throws ObjectNotFoundException, SchemaException {
-        return cacheRepositoryService.getObject(ArchetypeType.class, oid, createReadOnlyCollection(), result);
+        return cacheRepositoryService.getObject(ArchetypeType.class, oid, readOnly(), result);
     }
 
     public SearchResultList<PrismObject<ArchetypeType>> getAllArchetypes(OperationResult result) throws SchemaException {
-        return cacheRepositoryService.searchObjects(ArchetypeType.class, null, createReadOnlyCollection(), result);
+        return cacheRepositoryService.searchObjects(ArchetypeType.class, null, readOnly(), result);
     }
 
     public synchronized @NotNull ExpressionProfile getExpressionProfile(@NotNull String identifier, OperationResult result)

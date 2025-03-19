@@ -367,6 +367,7 @@ public interface RepositoryService extends OrgTreeEvaluator, CaseSupportMixin, A
 
     @FunctionalInterface
     interface ModificationsSupplier<T extends ObjectType> {
+        /** The implementation MUST NOT modify the object in any way! */
         @NotNull Collection<? extends ItemDelta<?, ?>> get(T object) throws SchemaException;
     }
 

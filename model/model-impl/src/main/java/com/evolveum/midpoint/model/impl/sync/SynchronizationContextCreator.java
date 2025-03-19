@@ -8,6 +8,7 @@
 package com.evolveum.midpoint.model.impl.sync;
 
 import static com.evolveum.midpoint.model.impl.ResourceObjectProcessingContextImpl.ResourceObjectProcessingContextBuilder.aResourceObjectProcessingContext;
+import static com.evolveum.midpoint.schema.GetOperationOptions.readOnly;
 
 import com.evolveum.midpoint.provisioning.api.ResourceObjectClassification;
 import com.evolveum.midpoint.schema.processor.*;
@@ -127,7 +128,7 @@ class SynchronizationContextCreator {
             ConfigurationException, ObjectNotFoundException {
         if (!SynchronizationContext.isSkipMaintenanceCheck()) {
             resource = beans.provisioningService
-                    .getObject(ResourceType.class, resource.getOid(), null, task, result)
+                    .getObject(ResourceType.class, resource.getOid(), readOnly(), task, result)
                     .asObjectable();
             ResourceTypeUtil.checkNotInMaintenance(resource);
         }

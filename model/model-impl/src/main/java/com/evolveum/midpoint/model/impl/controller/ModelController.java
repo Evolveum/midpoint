@@ -6,13 +6,13 @@
  */
 package com.evolveum.midpoint.model.impl.controller;
 
+import static com.evolveum.midpoint.schema.GetOperationOptions.readOnly;
 import static com.evolveum.midpoint.schema.result.OperationResult.HANDLE_OBJECT_FOUND;
 import static com.evolveum.midpoint.util.MiscUtil.argCheck;
 
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 
-import static com.evolveum.midpoint.schema.GetOperationOptions.createReadOnlyCollection;
 import static com.evolveum.midpoint.util.DebugUtil.lazy;
 
 import java.io.*;
@@ -1498,7 +1498,7 @@ public class ModelController implements ModelService, TaskService, CaseService, 
             throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
             ConfigurationException, ObjectNotFoundException {
         // Retrieved in full in order to evaluate the authorization
-        var fullResource = provisioning.getObject(ResourceType.class, resourceOid, createReadOnlyCollection(), task, result);
+        var fullResource = provisioning.getObject(ResourceType.class, resourceOid, readOnly(), task, result);
         securityEnforcer.authorize(
                 action.getUrl(),
                 null,
@@ -1658,7 +1658,7 @@ public class ModelController implements ModelService, TaskService, CaseService, 
 
         try {
             // fetching the shadow just to get the resource OID (for the authorization)
-            var shadow = cacheRepositoryService.getObject(ShadowType.class, shadowOid, null, result);
+            var shadow = cacheRepositoryService.getObject(ShadowType.class, shadowOid, readOnly(), result);
             var resourceOid = ShadowUtil.getResourceOidRequired(shadow.asObjectable());
             authorizeResourceOperation(ModelAuthorizationAction.IMPORT_FROM_RESOURCE, resourceOid, task, result);
 
@@ -2330,7 +2330,7 @@ public class ModelController implements ModelService, TaskService, CaseService, 
         for (String identifier : identifiers) {
             PrismObject<NodeType> existingObject;
             ObjectQuery q = ObjectQueryUtil.createNameQuery(NodeType.class, identifier);
-            List<PrismObject<NodeType>> nodes = cacheRepositoryService.searchObjects(NodeType.class, q, createReadOnlyCollection(), parentResult);
+            List<PrismObject<NodeType>> nodes = cacheRepositoryService.searchObjects(NodeType.class, q, readOnly(), parentResult);
             if (nodes.isEmpty()) {
                 throw new ObjectNotFoundException(
                         "Node with identifier '" + identifier + "' couldn't be found.",

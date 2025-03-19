@@ -6,7 +6,7 @@
  */
 package com.evolveum.midpoint.model.impl.controller;
 
-import static com.evolveum.midpoint.schema.GetOperationOptions.createReadOnlyCollection;
+import static com.evolveum.midpoint.schema.GetOperationOptions.readOnly;
 import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
 
 import java.util.ArrayList;
@@ -411,8 +411,13 @@ public class SchemaTransformer {
             ExpressionEvaluationException, CommunicationException {
         LensFocusContext<O> focusContextClone = focusContext.clone(focusContext.getLensContext());
 
-        applySecurityToElementContext(focusContextClone, readConstraints, getOptions, task, result);
-        return focusContextClone;
+        if (applySecurityToElementContext(focusContextClone, readConstraints, getOptions, task, result)) {
+            return focusContextClone;
+        } else {
+            // We could consider checking for absolute DENY before cloning the context.
+            // But beware that there's other processing (checking for raw operation) there.
+            return null;
+        }
     }
 
     private Collection<LensProjectionContext> applySecurityToProjectionsContexts(
@@ -426,14 +431,16 @@ public class SchemaTransformer {
                 LensProjectionContext projection = projCtx.clone(projCtx.getLensContext());
                 var readConstraints = getLensReadConstraints(projection.getObjectAny(), task, result);
 
-                applySecurityToElementContext(projection, readConstraints, getOptions, task, result);
-                securedProjections.add(projection);
+                if (applySecurityToElementContext(projection, readConstraints, getOptions, task, result)) {
+                    securedProjections.add(projection);
+                }
             }
         }
         return securedProjections;
     }
 
-    private <O extends ObjectType> void applySecurityToElementContext(
+    /** Returns `false` if the context as a whole has access denied. */
+    private <O extends ObjectType> boolean applySecurityToElementContext(
             LensElementContext<O> elementContext, PrismEntityOpConstraints.ForValueContent readConstraints,
             ParsedGetOperationOptions getOptions, Task task, OperationResult result)
             throws SecurityViolationException, SchemaException, ConfigurationException, ObjectNotFoundException,
@@ -442,7 +449,7 @@ public class SchemaTransformer {
         PrismObject<O> object = elementContext.getObjectAny();
         authorizeRawOption(object, getOptions, task, result);
 
-        dataAccessProcessor.applyReadConstraints(elementContext, readConstraints);
+        return dataAccessProcessor.applyReadConstraints(elementContext, readConstraints);
     }
 
     /**
@@ -486,8 +493,7 @@ public class SchemaTransformer {
             return null;
         }
         PrismObject<ObjectTemplateType> template =
-                repositoryService.getObject(
-                        ObjectTemplateType.class, objectTemplateRef.getOid(), createReadOnlyCollection(), result);
+                repositoryService.getObject(ObjectTemplateType.class, objectTemplateRef.getOid(), readOnly(), result);
         return template.asObjectable();
     }
 

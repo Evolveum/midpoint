@@ -219,6 +219,9 @@ class TaskCycleExecutor {
         } else if (runResult.getRunResultStatus() == TaskRunResult.TaskRunResultStatus.PERMANENT_ERROR) {
             LOGGER.trace("Task encountered permanent error. Suspending it. Task = {}", task);
             beans.taskStateManager.suspendTaskNoException(task, TaskManager.DO_NOT_STOP, result);
+        } else if (runResult.getRunResultStatus() == TaskRunResult.TaskRunResultStatus.HALTING_ERROR) {
+            LOGGER.trace("Task encountered halting error. Suspending it. Task = {}", task);
+            beans.taskStateManager.suspendTaskNoException(task, TaskManager.DO_NOT_STOP, true, result);
         } else if (runResult.getRunResultStatus() == TaskRunResult.TaskRunResultStatus.FINISHED) {
             LOGGER.trace("Task finished normally. Closing it. Task = {}", task);
             beans.taskStateManager.closeTask(task, result);
@@ -230,7 +233,7 @@ class TaskCycleExecutor {
     }
 
     private void treatRunResultStatusForRecurringTasks(TaskRunResult runResult, OperationResult result)
-            throws StopTaskException {
+            throws StopTaskException, SchemaException, ObjectNotFoundException {
         if (!task.canRun() || runResult.getRunResultStatus() == TaskRunResult.TaskRunResultStatus.INTERRUPTED) {
             LOGGER.trace("Task was interrupted. No need to change the task state. Stopping. Task = {}", task);
             throw new StopTaskException();
@@ -240,6 +243,10 @@ class TaskCycleExecutor {
         } else if (runResult.getRunResultStatus() == TaskRunResult.TaskRunResultStatus.PERMANENT_ERROR) {
             LOGGER.info("Task encountered permanent error. Suspending it. Task = {}", task);
             beans.taskStateManager.suspendTaskNoException(task, TaskManager.DO_NOT_STOP, result);
+            throw new StopTaskException();
+        } else if (runResult.getRunResultStatus() == TaskRunResult.TaskRunResultStatus.HALTING_ERROR) {
+            LOGGER.trace("Task encountered halting error. Suspending it. Task = {}", task);
+            beans.taskStateManager.suspendTaskNoException(task, TaskManager.DO_NOT_STOP, true, result);
             throw new StopTaskException();
         } else if (runResult.getRunResultStatus() == TaskRunResult.TaskRunResultStatus.FINISHED) {
             LOGGER.trace("Task handler finished normally. Continuing as scheduled. Task = {}", task);

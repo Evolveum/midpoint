@@ -7,6 +7,8 @@
 
 package com.evolveum.midpoint.model.intest.tasks;
 
+import com.evolveum.midpoint.model.api.ModelPublicConstants;
+import com.evolveum.midpoint.schema.util.task.ActivityPath;
 import com.evolveum.midpoint.test.TestObject;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -27,6 +29,8 @@ public class TestThresholdsMultiNode extends TestThresholds {
     private static final TestObject<TaskType> TASK_RECONCILIATION_SIMULATE_MULTI = TestObject.file(TEST_DIR, "task-reconciliation-simulate-multi.xml", "5f14f4d7-1fe0-4f83-87f3-9fc8ed468cb1");
     private static final TestObject<TaskType> TASK_RECONCILIATION_SIMULATE_EXECUTE_MULTI = TestObject.file(TEST_DIR, "task-reconciliation-simulate-execute-multi.xml", "5756a1c4-751c-4cd3-8edc-3d1e357dab83");
     private static final TestObject<TaskType> TASK_RECONCILIATION_EXECUTE_MULTI = TestObject.file(TEST_DIR, "task-reconciliation-execute-multi.xml", "bc114530-a111-4baf-9888-1a51dd99a558");
+
+    private static final TestObject<TaskType> TASK_RECONCILIATION_MULTI = TestObject.file(TEST_DIR, "task-reconciliation-executionTime-multi.xml", "115de34b-7c2b-4393-9b1a-09f19ca71c97");
 
     TestObject<TaskType> getSimulateTask() {
         return TASK_IMPORT_SIMULATE_MULTI;
@@ -50,6 +54,11 @@ public class TestThresholdsMultiNode extends TestThresholds {
 
     TestObject<TaskType> getReconciliationExecuteTask() {
         return TASK_RECONCILIATION_EXECUTE_MULTI;
+    }
+
+    @Override
+    TestObject<TaskType> getReconciliationWithExecutionTimeTask() {
+        return TASK_RECONCILIATION_MULTI;
     }
 
     @Override
@@ -131,5 +140,59 @@ public class TestThresholdsMultiNode extends TestThresholds {
 
     @Override
     void assertTest420TaskAfter(TestObject<TaskType> importTask) {
+    }
+
+    @Override
+    void assertTest520TaskAfter(TestObject<TaskType> reconTask) throws SchemaException, ObjectNotFoundException {
+        // dump tasks
+        /*
+        var options = schemaService.getOperationOptionsBuilder()
+                .item(TaskType.F_RESULT).retrieve()
+                .item(TaskType.F_SUBTASK_REF).retrieve()
+                .build();
+
+        ObjectQuery query = PrismTestUtil.getPrismContext()
+                .queryFor(TaskType.class)
+                    .item(TaskType.F_NAME).containsPoly(reconTask.getNameOrig())
+                    .or()
+                    .item(TaskType.F_NAME).contains(reconTask.oid)
+                    .or()
+                    .ownerId(reconTask.oid).build();
+
+        SearchResultList<PrismObject<TaskType>> task = taskManager.searchObjects(TaskType.class, query, options, getTestOperationResult());
+        task.forEach(t -> {
+            try {
+                t.asObjectable().setOperationStats(null);
+                t.asObjectable().getOperationExecution().clear();
+                System.out.println(PrismTestUtil.serializeToXml(t.asObjectable()));
+            } catch (Exception ex) {
+                ex.printStackTrace();
+            }
+        });
+        */
+
+        // @formatter:off
+        assertTaskTree(reconTask.oid, "after")
+                .display()
+                .assertSuspended()
+                .assertInProgress()
+                .rootActivityState()
+                    .assertInProgressLocal()
+                    .assertStatusInProgress()
+                    .activityPolicyStates()
+                        .assertOnePolicyStateTriggers("resourceObjects:6", 1)
+                    .end()
+                .end()
+                .activityState(ActivityPath.fromId(ModelPublicConstants.RECONCILIATION_OPERATION_COMPLETION_ID))
+                    .assertComplete()
+                    .assertSuccess()
+                .end()
+                .activityState(ModelPublicConstants.RECONCILIATION_RESOURCE_OBJECTS_PATH)
+                    .assertInProgressDelegated()
+                    .assertStatusInProgress()
+                    .progress()
+                        .display()
+                .end();
+        // @formatter:on
     }
 }

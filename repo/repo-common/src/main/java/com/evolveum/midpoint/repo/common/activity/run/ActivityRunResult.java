@@ -192,11 +192,15 @@ public class ActivityRunResult implements ShortDumpable {
     }
 
     public boolean isError() {
-        return runResultStatus == PERMANENT_ERROR || runResultStatus == TEMPORARY_ERROR;
+        return runResultStatus == PERMANENT_ERROR || runResultStatus == TEMPORARY_ERROR || runResultStatus == HALTING_ERROR;
     }
 
     boolean isPermanentError() {
         return runResultStatus == PERMANENT_ERROR;
+    }
+
+    boolean isHaltingError() {
+        return runResultStatus == HALTING_ERROR;
     }
 
     boolean isTemporaryError() {

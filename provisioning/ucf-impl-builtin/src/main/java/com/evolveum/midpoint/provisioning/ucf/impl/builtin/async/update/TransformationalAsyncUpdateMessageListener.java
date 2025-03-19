@@ -118,7 +118,7 @@ class TransformationalAsyncUpdateMessageListener implements AsyncUpdateMessageLi
                     }
                 }
 
-                if (task.getTracingRequestedFor().contains(TracingRootType.ASYNCHRONOUS_MESSAGE_PROCESSING)) {
+                if (task.isTracingRequestedFor(TracingRootType.ASYNCHRONOUS_MESSAGE_PROCESSING)) {
                     resultBuilder.tracingProfile(
                             tracer.compileProfile(
                                     task.getTracingProfile(), task.getResult()));

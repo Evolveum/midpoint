@@ -200,3 +200,5 @@ The current implementation displays the roles (items) which are allowed to be re
 This implementation suppose that sometimes even the items that are not allowed to be requested for some person of interest can get to the shopping cart.
 Anyhow, the submitting of the request in this case will fail with the authorization error.
 Therefore, the current implementation doesn't have any security impact.
+* Role catalog table and search panel is currently not customizable via configuration.
+

@@ -207,7 +207,12 @@ public class GetObjectOpHandler extends CachedOpHandler {
                         object.cloneIfImmutable();
             }
 
-            PrismObject<T> immutable = CloneUtil.toImmutable(object);
+            // If readonly: we will freeze the object, and return frozen version.
+            // If not readonly and object is mutable (usual case): we will clone the object here, and return original object later
+            // If not readonly and object is immutable: we won't clone the object here, but return a mutable clone later
+            PrismObject<T> immutable = exec.readOnly ?
+                    Freezable.doFreeze(object) :
+                    CloneUtil.toImmutable(object);
             var complete = CachedObjectValue.computeCompleteFlag(immutable);
             cacheUpdater.storeImmutableObjectToObjectLocal(immutable, exec.cachesInfo, complete);
             cacheUpdater.storeImmutableObjectToObjectGlobal(immutable, complete);

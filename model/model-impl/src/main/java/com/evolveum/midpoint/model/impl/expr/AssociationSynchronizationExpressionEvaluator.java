@@ -6,8 +6,7 @@
  */
 package com.evolveum.midpoint.model.impl.expr;
 
-import static com.evolveum.midpoint.schema.GetOperationOptions.createNoFetchCollection;
-import static com.evolveum.midpoint.schema.GetOperationOptions.createReadOnlyCollection;
+import static com.evolveum.midpoint.schema.GetOperationOptions.*;
 import static com.evolveum.midpoint.schema.util.CorrelatorsDefinitionUtil.mergeCorrelationDefinition;
 import static com.evolveum.midpoint.schema.util.ObjectOperationPolicyTypeUtil.isMembershipSyncInboundDisabled;
 import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.asObjectable;
@@ -206,7 +205,7 @@ class AssociationSynchronizationExpressionEvaluator
                 var target = ModelBeans.get().cacheRepositoryService.getObject(
                         clazz,
                         assignmentTargetRef.getOid(),
-                        createReadOnlyCollection(),
+                        readOnly(),
                         result);
                 List<ObjectReferenceType> linkRefs =
                         target.asObjectable() instanceof FocusType focus ? focus.getLinkRef() : List.of();

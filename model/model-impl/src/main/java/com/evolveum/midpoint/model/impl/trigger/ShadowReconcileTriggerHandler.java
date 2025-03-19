@@ -43,7 +43,7 @@ import java.util.List;
 
 import static com.evolveum.midpoint.prism.polystring.PolyString.getOrig;
 
-import static com.evolveum.midpoint.schema.GetOperationOptions.createReadOnlyCollection;
+import static com.evolveum.midpoint.schema.GetOperationOptions.readOnly;
 
 import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
 
@@ -135,7 +135,7 @@ public class ShadowReconcileTriggerHandler implements SingleTriggerHandler {
         if (resourceOid == null) {
             throw new IllegalStateException("No resource OID in " + fullShadow);
         }
-        return provisioningService.getObject(ResourceType.class, resourceOid, createReadOnlyCollection(), task, result);
+        return provisioningService.getObject(ResourceType.class, resourceOid, readOnly(), task, result);
     }
 
     private void rescheduleSynchronizationIfPossible(ShadowType shadow, TriggerType trigger, OperationResult parentResult) {

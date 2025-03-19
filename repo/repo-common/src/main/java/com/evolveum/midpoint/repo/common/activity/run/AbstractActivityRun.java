@@ -23,6 +23,11 @@ import java.util.Map;
 
 import com.evolveum.midpoint.repo.common.activity.definition.ActivityExecutionModeDefinition;
 
+import com.evolveum.midpoint.repo.common.activity.policy.ActivityPolicyRulesContext;
+import com.evolveum.midpoint.repo.common.activity.policy.ActivityPolicyRulesProcessor;
+
+import com.evolveum.midpoint.repo.common.activity.policy.EvaluatedActivityPolicyRule;
+import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.jetbrains.annotations.NotNull;
@@ -49,10 +54,6 @@ import com.evolveum.midpoint.task.api.ExecutionSupport;
 import com.evolveum.midpoint.task.api.RunningTask;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
-import com.evolveum.midpoint.util.exception.CommonException;
-import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -114,16 +115,16 @@ public abstract class AbstractActivityRun<
     @NotNull protected final CurrentActivityState<WS> activityState;
 
     /**
-     * Activity state object where [threshold] counters for the current activity reside.
-     * By default it is the activity state for the current standalone activity (e.g. reconciliation).
+     * Activity state object where [threshold] counters and policy states for the current activity reside.
+     * By default, it is the activity state for the current standalone activity (e.g. reconciliation).
      *
      * Lazily evaluated.
      *
-     * Guarded by {@link #activityStateForCountersLock}.
+     * Guarded by {@link #activityStateForThresholdsLock}.
      */
-    private ActivityState activityStateForCounters;
+    private ActivityState activityStateForThresholds;
 
-    private final Object activityStateForCountersLock = new Object();
+    private final Object activityStateForThresholdsLock = new Object();
 
     /** When did this run start? */
     protected Long startTimestamp;
@@ -147,6 +148,8 @@ public abstract class AbstractActivityRun<
             Lazy.from(this::createReportingCharacteristics);
 
     @NotNull final SimulationSupport simulationSupport;
+
+    @NotNull final ActivityPolicyRulesContext activityPolicyRulesContext = new ActivityPolicyRulesContext();
 
     protected AbstractActivityRun(@NotNull ActivityRunInstantiationContext<WD, AH> context) {
         this.taskRun = context.getTaskRun();
@@ -222,6 +225,9 @@ public abstract class AbstractActivityRun<
             return ActivityRunResult.finished(activityState.getResultStatus());
         }
 
+        ActivityPolicyRulesProcessor processor = new ActivityPolicyRulesProcessor(this);
+        processor.collectRules();
+
         noteStartTimestamp();
         logStart();
 
@@ -236,6 +242,17 @@ public abstract class AbstractActivityRun<
             // TODO Is this really called only once on activity completion? Not sure about distributed/delegated ones.
             onActivityRealizationComplete(result);
             sendActivityRealizationCompleteEvent(result);
+
+            try {
+                // this evaluation handles activity policy rules with "below" constraints (at the end of activity run)
+                processor.evaluateAndEnforceRules(result);
+            } catch (ThresholdPolicyViolationException e) {
+                throw new ActivityRunException(
+                        "Threshold policy violation", FATAL_ERROR, PERMANENT_ERROR, e);
+            } catch (CommonException e) {
+                throw new ActivityRunException(
+                        "Couldn't evaluate and enforce activity policy rules", FATAL_ERROR, PERMANENT_ERROR, e);
+            }
         }
 
         return runResult;
@@ -471,15 +488,26 @@ public abstract class AbstractActivityRun<
     public Map<String, Integer> incrementCounters(@NotNull CountersGroup counterGroup,
             @NotNull Collection<String> countersIdentifiers, @NotNull OperationResult result)
             throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException {
-        synchronized (activityStateForCountersLock) {
-            if (activityStateForCounters == null) {
-                activityStateForCounters = determineActivityStateForCounters(result);
+        synchronized (activityStateForThresholdsLock) {
+            if (activityStateForThresholds == null) {
+                activityStateForThresholds = determineActivityStateForThresholds(result);
             }
         }
-        return activityStateForCounters.incrementCounters(counterGroup, countersIdentifiers, result);
+        return activityStateForThresholds.incrementCounters(counterGroup, countersIdentifiers, result);
     }
 
-    protected @NotNull ActivityState determineActivityStateForCounters(@NotNull OperationResult result)
+    public Map<String, ActivityPolicyStateType> updateActivityPolicyState(
+            @NotNull Collection<ActivityPolicyStateType> states, @NotNull OperationResult result)
+            throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException {
+        synchronized (activityStateForThresholdsLock) {
+            if (activityStateForThresholds == null) {
+                activityStateForThresholds = determineActivityStateForThresholds(result);
+            }
+        }
+        return activityStateForThresholds.updatePolicies(states, result);
+    }
+
+    protected @NotNull ActivityState determineActivityStateForThresholds(@NotNull OperationResult result)
             throws SchemaException, ObjectNotFoundException {
         return activityState;
     }
@@ -579,6 +607,18 @@ public abstract class AbstractActivityRun<
         }
     }
 
+    public void sendActivityPolicyRuleTriggeredEvent(EvaluatedActivityPolicyRule policyRule, OperationResult result) {
+        for (ActivityListener activityListener : emptyIfNull(getBeans().activityListeners)) {
+            try {
+                activityListener.onActivityPolicyRuleTriggered(this, policyRule, getRunningTask(), result);
+            } catch (Exception e) {
+                LoggingUtils.logUnexpectedException(LOGGER,
+                        "Activity listener {} failed when processing 'activity policy rule triggered' event for {}", e,
+                        activityListener, this);
+            }
+        }
+    }
+
     /** Returns the name for diagnostic purposes, e.g. when logging an error. */
     @NotNull String getDiagName() {
         RunningTask task = getRunningTask();
@@ -642,5 +682,9 @@ public abstract class AbstractActivityRun<
         if (mode != ExecutionModeType.FULL) {
             throw new IllegalStateException("This activity can be run in full execution mode only. Requested mode: " + mode);
         }
+    }
+
+    public @NotNull ActivityPolicyRulesContext getActivityPolicyRulesContext() {
+        return activityPolicyRulesContext;
     }
 }

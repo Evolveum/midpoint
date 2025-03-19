@@ -25,9 +25,7 @@ import com.evolveum.midpoint.provisioning.api.ProvisioningOperationOptions;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.provisioning.api.ShadowLivenessState;
 import com.evolveum.midpoint.repo.api.RepositoryService;
-import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SchemaService;
-import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
@@ -43,7 +41,6 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
-import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -142,7 +139,7 @@ class LinkUpdater<F extends FocusType> {
         if (focusContext.isDelete()) {
 
             LOGGER.trace("Nothing to link from, because focus is being deleted. But we need to update the situation in shadow.");
-            updateSituationInShadow(null, result);
+            updateSituationInShadow(null, false, result);
 
         } else if (!projCtx.isShadowExistsInRepo()) {
 
@@ -310,17 +307,19 @@ class LinkUpdater<F extends FocusType> {
 
     private void deleteLinkCompletely(OperationResult result) throws ObjectNotFoundException, SchemaException {
         deleteLinkRefFromFocus(result);
-        updateSituationInShadow(null, result);
+        updateSituationInShadow(null, false, result);
     }
 
     private void setLinkedAsRelated(OperationResult result) throws SchemaException, ObjectNotFoundException {
         setLinkRefInFocus(SchemaConstants.ORG_RELATED, result);
-        updateSituationInShadow(SynchronizationSituationType.LINKED, result);
+        updateSituationInShadow(SynchronizationSituationType.LINKED, false, result);
     }
 
     private void setLinkedNormally(OperationResult result) throws SchemaException, ObjectNotFoundException {
         setLinkRefInFocus(SchemaConstants.ORG_DEFAULT, result);
-        updateSituationInShadow(SynchronizationSituationType.LINKED, result);
+        // This is the most frequent case. Most probably, the shadow is correctly loaded in the projection context.
+        // Hence, we can save one repository access by not loading it.
+        updateSituationInShadow(SynchronizationSituationType.LINKED, true, result);
     }
 
     private void setLinkRefInFocus(QName relation, OperationResult result)
@@ -378,7 +377,8 @@ class LinkUpdater<F extends FocusType> {
         throw new IllegalStateException("Projection " + projCtx.toHumanReadableString() + " has null OID, this should not happen");
     }
 
-    private void updateSituationInShadow(SynchronizationSituationType newSituation, OperationResult parentResult) {
+    private void updateSituationInShadow(
+            SynchronizationSituationType newSituation, boolean skipLoadingShadow, OperationResult parentResult) {
         OperationResult result = parentResult.subresult(OP_UPDATE_SITUATION_IN_SHADOW)
                 .setMinor()
                 .addArbitraryObjectAsParam("situation", newSituation)
@@ -386,25 +386,8 @@ class LinkUpdater<F extends FocusType> {
                 .build();
         try {
             LOGGER.trace("updateSituationInShadow: called with newSituation={}", newSituation);
-            PrismObject<ShadowType> currentShadow;
-            Collection<SelectorOptions<GetOperationOptions>> getOptions = schemaService.getOperationOptionsBuilder()
-                    .readOnly()
-                    .noFetch()
-                    .allowNotFound(true)
-                    .build();
-            try {
-                // TODO consider skipping this operation - at least in some cases
-                currentShadow = provisioningService.getObject(ShadowType.class, projectionOid, getOptions, task, result);
-            } catch (ObjectNotFoundException ex) {
-                LOGGER.trace("Shadow is gone, skipping modifying situation in shadow.");
-                result.muteLastSubresultError();
-                result.recordSuccess();
-                task.onSynchronizationSituationChange(context.getItemProcessingIdentifier(), projectionOid, null); // TODO or what?
-                return;
-            } catch (Exception ex) {
-                LOGGER.trace("Problem with getting shadow, skipping modifying situation in shadow.");
-                result.recordPartialError(ex);
-                task.onSynchronizationSituationChange(context.getItemProcessingIdentifier(), projectionOid, null); // TODO or what?
+            PrismObject<ShadowType> currentShadow = getCurrentShadow(skipLoadingShadow, result);
+            if (currentShadow == null) {
                 return;
             }
 
@@ -448,6 +431,37 @@ class LinkUpdater<F extends FocusType> {
             throw new SystemException(ex.getMessage(), ex);
         } finally {
             result.computeStatusIfUnknown();
+        }
+    }
+
+    private @Nullable PrismObject<ShadowType> getCurrentShadow(boolean skipLoadingShadow, OperationResult result) {
+
+        if (skipLoadingShadow && projCtx.getObjectCurrent() != null) {
+            LOGGER.trace("Skipping loading shadow, using the one from the context.");
+            return projCtx.getObjectCurrent();
+        }
+
+        try {
+            return provisioningService.getObject(
+                    ShadowType.class,
+                    projectionOid,
+                    schemaService.getOperationOptionsBuilder()
+                            .readOnly()
+                            .noFetch()
+                            .allowNotFound(true)
+                            .build(),
+                    task, result);
+        } catch (ObjectNotFoundException ex) {
+            LOGGER.trace("Shadow is gone, skipping modifying situation in shadow.");
+            result.muteLastSubresultError();
+            result.recordSuccess();
+            task.onSynchronizationSituationChange(context.getItemProcessingIdentifier(), projectionOid, null); // TODO or what?
+            return null;
+        } catch (Exception ex) {
+            LOGGER.trace("Problem with getting shadow, skipping modifying situation in shadow.");
+            result.recordPartialError(ex);
+            task.onSynchronizationSituationChange(context.getItemProcessingIdentifier(), projectionOid, null); // TODO or what?
+            return null;
         }
     }
 

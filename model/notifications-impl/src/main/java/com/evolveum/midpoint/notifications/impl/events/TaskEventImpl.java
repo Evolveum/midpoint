@@ -63,6 +63,11 @@ public class TaskEventImpl extends BaseEventImpl implements TaskEvent {
     }
 
     @Override
+    public boolean isHaltingError() {
+        return taskRunResult != null && taskRunResult.getRunResultStatus() == TaskRunResult.TaskRunResultStatus.HALTING_ERROR;
+    }
+
+    @Override
     public boolean isFinished() {
         return taskRunResult != null &&
                 taskRunResult.getRunResultStatus() == TaskRunResult.TaskRunResultStatus.FINISHED;

@@ -53,7 +53,7 @@ public class DataAccessProcessor {
                 .asPrismObject();
     }
 
-    private <V extends PrismValue> V applyReadConstraints(
+    private <V extends PrismValue> @NotNull V applyReadConstraints(
             @NotNull V value, @NotNull PrismEntityOpConstraints.ForValueContent constraints)
             throws SecurityViolationException {
 
@@ -65,7 +65,7 @@ public class DataAccessProcessor {
             throw new AuthorizationException("Access denied");
         } else {
             assert decision == AccessDecision.DEFAULT;
-            var mutable =(PrismContainerValue<?>) applyReadConstraintsToMetadata(value.cloneIfImmutable(), constraints);
+            var mutable = (PrismContainerValue<?>) applyReadConstraintsToMetadata(value.cloneIfImmutable(), constraints);
             applyReadConstraintsToMutablePcv(mutable, constraints);
             if (mutable.isEmpty()) {
                 // let's make it explicit (note that the log message may show empty object if it was originally mutable)
@@ -117,8 +117,8 @@ public class DataAccessProcessor {
             } else {
                 assert valueDecision == AccessDecision.DEFAULT;
                 applyReadConstraintsToMetadata(value, valueConstraints);
-                if (value instanceof PrismContainerValue<?>) {
-                    applyReadConstraintsToMutablePcv((PrismContainerValue<?>) value, valueConstraints);
+                if (value instanceof PrismContainerValue<?> pcv) {
+                    applyReadConstraintsToMutablePcv(pcv, valueConstraints);
                 } else {
                     valuesToRemove.add(value);
                 }
@@ -141,42 +141,56 @@ public class DataAccessProcessor {
         }
 
         var itemConstraints = readConstraints.getMetadataConstraints();
-        var explictConstraints = itemConstraints.getDecision();
+        var explicitConstraints = itemConstraints.getDecision();
 
-        switch (explictConstraints) {
+        switch (explicitConstraints) {
             case ALLOW -> {
                 return value;
             }
             case DEFAULT -> {
+                //noinspection unchecked
                 value = (V) value.cloneIfImmutable();
                 applyReadConstraintsToMutableValues(value.getValueMetadataAsContainer(), itemConstraints);
                 return value;
             }
             case DENY -> {
+                //noinspection unchecked
                 V ret = (V) value.cloneIfImmutable();
                 ret.getValueMetadata().clear();
                 return ret;
             }
-            default -> {
-                throw new UnsupportedOperationException("Unsupported decision {}" + explictConstraints);
-            }
+            default ->
+                    throw new UnsupportedOperationException("Unsupported decision {}" + explicitConstraints);
         }
     }
 
-    public <O extends ObjectType> void applyReadConstraints(LensElementContext<O> elementContext,
-            PrismEntityOpConstraints.ForValueContent readConstraints) throws AuthorizationException {
+    /** Returns `false` if the context as a whole has access denied. */
+    public <O extends ObjectType> boolean applyReadConstraints(
+            LensElementContext<O> elementContext, PrismEntityOpConstraints.ForValueContent readConstraints) {
         var decision = readConstraints.getDecision();
         if (decision == AccessDecision.ALLOW) {
-            // no-op
+            return true;
         } else if (decision == AccessDecision.DENY) {
-            SecurityUtil.logSecurityDeny(elementContext, "because the authorization denies access");
-            throw new AuthorizationException("Access denied");
+            return false;
         } else {
             assert decision == AccessDecision.DEFAULT;
-            elementContext.forEachObject(object ->
-                    applyReadConstraintsToMutableValue(object.getValue(), readConstraints));
-            elementContext.forEachDelta(delta ->
-                    applyReadConstraintsToDelta(delta, readConstraints));
+            elementContext.forEachObject(object -> {
+                try {
+                    return applyReadConstraints(object, readConstraints);
+                } catch (SecurityViolationException e) {
+                    return null; // "Access denied" error was already logged on DEBUG level
+                }
+            });
+            elementContext.forEachDelta(delta -> {
+                if (delta != null) {
+                    assert !delta.isImmutable();
+                    if (delta.isAdd() && delta.getObjectToAdd().isImmutable()) {
+                        delta.setObjectToAdd(delta.getObjectToAdd().clone());
+                    }
+                    applyReadConstraintsToDelta(delta, readConstraints);
+                }
+            });
+            return true;
         }
     }
 

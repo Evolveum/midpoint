@@ -36,7 +36,7 @@ import javax.xml.namespace.QName;
 
 import java.util.Collection;
 
-import static com.evolveum.midpoint.schema.GetOperationOptions.createReadOnlyCollection;
+import static com.evolveum.midpoint.schema.GetOperationOptions.readOnly;
 import static com.evolveum.midpoint.schema.constants.SchemaConstants.INTENT_DEFAULT;
 import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType.ACCOUNT;
@@ -123,7 +123,7 @@ public class ProjectionContextKeyFactoryImpl implements ProjectionContextKeyFact
         try {
             ResourceType resourceBean =
                     provisioningService
-                            .getObject(ResourceType.class, resourceOid, createReadOnlyCollection(), task, result)
+                            .getObject(ResourceType.class, resourceOid, readOnly(), task, result)
                             .asObjectable();
             ResourceSchema schema = Resource.of(resourceBean).getCompleteSchema();
             if (schema == null) {

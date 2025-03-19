@@ -183,7 +183,11 @@ class MappedSourceItem<V extends PrismValue, D extends ItemDefinition<?>, T exte
                     + " such property cannot be used in inbound expressions");
         }
 
-        inboundsSource.setValueMetadata(itemOld, effectiveItemDelta, result);
+        // We cannot set the value metadata at this place, as all the structures are frozen now.
+        // By disabling this code the majority of the processing introduced in midPrivacy Phase 1 will be disabled.
+        // (As there won't be any metadata flowing from the resources.)
+        // Hence, the TestValueMetadata will be disabled as well. See MID-10514.
+        //inboundsSource.setValueMetadata(itemOld, effectiveItemDelta, result);
 
         ResourceType resource = inboundsSource.getResource();
 

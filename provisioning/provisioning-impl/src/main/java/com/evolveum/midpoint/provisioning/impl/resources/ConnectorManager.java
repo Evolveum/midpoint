@@ -66,6 +66,7 @@ import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 
+import static com.evolveum.midpoint.schema.GetOperationOptions.readOnly;
 import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
 import static com.evolveum.midpoint.util.MiscUtil.stateNonNull;
 
@@ -509,7 +510,7 @@ public class ConnectorManager implements Cache, ConnectorDiscoveryListener {
 
         SearchResultList<PrismObject<ConnectorType>> allConnectors;
         try {
-            allConnectors = repositoryService.searchObjects(ConnectorType.class, null, null, result);
+            allConnectors = repositoryService.searchObjects(ConnectorType.class, null, readOnly(), result);
 
         } catch (SchemaException e) {
             // FIXME: Fail properly
@@ -624,7 +625,7 @@ public class ConnectorManager implements Cache, ConnectorDiscoveryListener {
 
         List<PrismObject<ConnectorType>> foundConnectors;
         try {
-            foundConnectors = repositoryService.searchObjects(ConnectorType.class, query, null, result);
+            foundConnectors = repositoryService.searchObjects(ConnectorType.class, query, readOnly(), result);
         } catch (SchemaException e) {
             // If there is a schema error it must be a bug. Convert to runtime exception
             LOGGER.error("Got SchemaException while not expecting it: " + e.getMessage(), e);

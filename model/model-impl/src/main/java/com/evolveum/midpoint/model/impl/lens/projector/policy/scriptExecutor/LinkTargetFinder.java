@@ -7,6 +7,8 @@
 
 package com.evolveum.midpoint.model.impl.lens.projector.policy.scriptExecutor;
 
+import static com.evolveum.midpoint.schema.GetOperationOptions.readOnly;
+
 import static java.util.Collections.emptyList;
 import static java.util.Collections.emptySet;
 import static org.apache.commons.lang3.BooleanUtils.isTrue;
@@ -185,8 +187,7 @@ class LinkTargetFinder implements AutoCloseable {
             if (!objects.containsKey(oid)) {
                 try {
                     Class<? extends ObjectType> clazz = getClassForType(link.getTargetType());
-                    // TODO consider reading in read-only mode
-                    objects.put(oid, beans.repositoryService.getObject(clazz, oid, null, result));
+                    objects.put(oid, beans.repositoryService.getObject(clazz, oid, readOnly(), result));
                 } catch (SchemaException | ObjectNotFoundException e) {
                     LoggingUtils.logUnexpectedException(LOGGER, "Couldn't resolve reference {} in {} when applying script on link targets",
                             e, link, actx.focusContext.getObjectAny());

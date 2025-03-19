@@ -9,6 +9,8 @@ package com.evolveum.midpoint.testing.story.sysperf;
 
 import static com.evolveum.midpoint.util.MiscUtil.emptyIfNull;
 
+import static com.evolveum.midpoint.util.MiscUtil.or0;
+
 import static org.assertj.core.api.Assertions.assertThat;
 
 import static com.evolveum.midpoint.test.util.MidPointTestConstants.TARGET_DIR_PATH;
@@ -22,6 +24,8 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import com.evolveum.midpoint.prism.path.ItemName;
+import com.evolveum.midpoint.repo.api.CacheDispatcher;
+import com.evolveum.midpoint.schema.internals.InternalCounters;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.task.ActivityPerformanceInformation;
 import com.evolveum.midpoint.test.util.TestReportUtil;
@@ -33,6 +37,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 
 import org.apache.commons.collections4.ListUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Test;
@@ -41,7 +46,6 @@ import com.evolveum.icf.dummy.resource.DummyAccount;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
-import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.internals.InternalsConfig;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.task.TaskOperationStatsUtil;
@@ -153,6 +157,8 @@ public class TestSystemPerformance extends AbstractStoryTest implements Performa
 
         System.setProperty(PERF_REPORT_PREFIX_PROPERTY_NAME, createReportFilePrefix());
     }
+
+    @Autowired private CacheDispatcher cacheDispatcher;
 
     private static void checkConfigurationConsistence() {
         if (OTHER_PARAMETERS.disableDefaultMultivalueProvenance && SOURCES_CONFIGURATION.defaultRange) {
@@ -313,6 +319,8 @@ public class TestSystemPerformance extends AbstractStoryTest implements Performa
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
+        rememberCounter(InternalCounters.PRISM_OBJECT_CLONE_COUNT);
+
         int usersBefore = repositoryService.countObjects(UserType.class, null, null, result);
 
         String label = "initial-run-of-";
@@ -325,6 +333,7 @@ public class TestSystemPerformance extends AbstractStoryTest implements Performa
             TestObject<TaskType> taskImport = TASK_IMPORT_LIST.get(taskIndex);
 
             lastProgress = 0;
+            clearRepoCacheIfRequested();
             addTask(taskImport, result);
             waitForTaskFinish(taskImport.oid, 0, OTHER_PARAMETERS.taskTimeout, false, 0,
                     builder -> builder.taskConsumer(task1 -> recordProgress(label, task1)));
@@ -346,6 +355,8 @@ public class TestSystemPerformance extends AbstractStoryTest implements Performa
             logTaskFinish(taskAfter, label, result);
             taskDumper.dumpTask(taskAfter, getTestNameShort());
         }
+
+        displayCounterIncrement(InternalCounters.PRISM_OBJECT_CLONE_COUNT);
 
         String accountName = SourceInitializer.getAccountName(0);
 
@@ -446,6 +457,8 @@ public class TestSystemPerformance extends AbstractStoryTest implements Performa
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
+        rememberCounter(InternalCounters.PRISM_OBJECT_CLONE_COUNT);
+
         int usersBefore = repositoryService.countObjects(UserType.class, null, null, result);
 
         for (int retry = 0; retry < IMPORTS_CONFIGURATION.getNoOpRuns(); retry++) {
@@ -460,6 +473,7 @@ public class TestSystemPerformance extends AbstractStoryTest implements Performa
                 TestObject<TaskType> taskImport = TASK_IMPORT_LIST.get(taskIndex);
 
                 lastProgress = 0;
+                clearRepoCacheIfRequested();
                 restartTask(taskImport.oid, result);
                 Thread.sleep(500);
 
@@ -482,8 +496,9 @@ public class TestSystemPerformance extends AbstractStoryTest implements Performa
             }
         }
 
-        dumpRepresentativeShadows();
+        displayCounterIncrement(InternalCounters.PRISM_OBJECT_CLONE_COUNT);
 
+        dumpRepresentativeShadows();
     }
 
     @Test
@@ -492,6 +507,8 @@ public class TestSystemPerformance extends AbstractStoryTest implements Performa
 
         Task task = getTestTask();
         OperationResult result = task.getResult();
+
+        rememberCounter(InternalCounters.PRISM_OBJECT_CLONE_COUNT);
 
         for (int run = 0; run < RECONCILIATION_WITH_SOURCE_CONFIGURATION.getRuns(); run++) {
             String label = String.format("run-%d-of-", run + 1);
@@ -504,6 +521,7 @@ public class TestSystemPerformance extends AbstractStoryTest implements Performa
                 TestObject<TaskType> reconTask = TASK_RECONCILIATION_WITH_SOURCE_LIST.get(taskIndex);
 
                 lastProgress = 0;
+                clearRepoCacheIfRequested();
                 if (run == 0) {
                     addTask(reconTask, result);
                 } else {
@@ -549,6 +567,7 @@ public class TestSystemPerformance extends AbstractStoryTest implements Performa
                 TestObject<TaskType> reconTask = TASK_RECONCILIATION_WITH_TARGET_LIST.get(taskIndex);
 
                 lastProgress = 0;
+                clearRepoCacheIfRequested();
                 if (run == 0) {
                     addTask(reconTask, result);
                 } else {
@@ -572,8 +591,9 @@ public class TestSystemPerformance extends AbstractStoryTest implements Performa
             }
         }
 
-        dumpRepresentativeShadows();
+        displayCounterIncrement(InternalCounters.PRISM_OBJECT_CLONE_COUNT);
 
+        dumpRepresentativeShadows();
     }
 
     @Test
@@ -583,9 +603,12 @@ public class TestSystemPerformance extends AbstractStoryTest implements Performa
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
+        rememberCounter(InternalCounters.PRISM_OBJECT_CLONE_COUNT);
+
         when();
 
         lastProgress = 0;
+        clearRepoCacheIfRequested();
         addTask(TASK_RECOMPUTE, result);
         waitForTaskFinish(TASK_RECOMPUTE.oid, 0, OTHER_PARAMETERS.taskTimeout, false, 0,
                 builder -> builder.taskConsumer(task1 -> recordProgress("", task1)));
@@ -601,19 +624,14 @@ public class TestSystemPerformance extends AbstractStoryTest implements Performa
         logTaskFinish(taskAfter, "", result);
         taskDumper.dumpTask(taskAfter, getTestNameShort());
 
-        dumpRepresentativeShadows();
+        displayCounterIncrement(InternalCounters.PRISM_OBJECT_CLONE_COUNT);
 
+        dumpRepresentativeShadows();
     }
 
     @Test
     public void test999Finish() {
         logFinish();
-    }
-
-    private long getExecutionTime(PrismObject<TaskType> taskAfter) {
-        long start = XmlTypeConverter.toMillis(taskAfter.asObjectable().getLastRunStartTimestamp());
-        long end = XmlTypeConverter.toMillis(taskAfter.asObjectable().getLastRunFinishTimestamp());
-        return end - start;
     }
 
     @SuppressWarnings("SameParameterValue")
@@ -635,25 +653,30 @@ public class TestSystemPerformance extends AbstractStoryTest implements Performa
         return String.format("p-multi-%04d", i);
     }
 
-    private void logTaskFinish(PrismObject<TaskType> taskAfter, String label, OperationResult result)
-            throws SchemaException, ObjectNotFoundException {
+    private void logTaskFinish(PrismObject<TaskType> taskAfter, String label, OperationResult result) throws CommonException {
         String desc = label + taskAfter.getName().getOrig();
 
-        TreeNode<ActivityPerformanceInformation> performanceInformation =
+        TreeNode<ActivityPerformanceInformation> performanceInformationTree =
                 activityManager.getPerformanceInformation(taskAfter.getOid(), result);
-        long executionTime = getExecutionTime(taskAfter);
+        long executionTime =
+                performanceInformationTree.getAllDataDepthFirst().stream()
+                        .mapToLong(data -> or0(data.getWallClockTime()))
+                        .sum();
         int executionTimeSeconds = (int) (executionTime / 1000);
         int numberOfAccounts = SOURCES_CONFIGURATION.getNumberOfAccounts();
         double timePerAccount = (double) executionTime / (double) numberOfAccounts;
 
+        PrismObject<TaskType> taskTree = getTaskTree(taskAfter.getOid());
+        OperationStatsType operationStats = TaskOperationStatsUtil.getOperationStatsFromTree(taskTree.asObjectable());
+
         logger.info("********** FINISHED: {} **********\n", desc);
         logger.info(String.format("Task execution time: %,d ms", executionTime));
         logger.info(String.format("Time per account: %,.1f ms", timePerAccount));
-        logger.info(TaskOperationStatsUtil.format(taskAfter.asObjectable().getOperationStats()));
-        logger.info(performanceInformation.debugDump());
+        logger.info(TaskOperationStatsUtil.format(operationStats));
+        logger.info(performanceInformationTree.debugDump());
 
         summaryOutputFile.logTaskFinish(desc, executionTime, timePerAccount);
-        detailsOutputFile.logTaskFinish(desc, taskAfter.asObjectable(), performanceInformation);
+        detailsOutputFile.logTaskFinish(desc, performanceInformationTree, operationStats);
 
         List<Object> dataRow = Arrays.asList(desc, executionTime, timePerAccount);
         taskExecutionReportSection
@@ -662,15 +685,15 @@ public class TestSystemPerformance extends AbstractStoryTest implements Performa
                 .addRow(ListUtils.union(summaryReportDataRow, dataRow).toArray());
 
         TestReportUtil.reportTaskOperationPerformance(
-                testMonitor(), desc, taskAfter.asObjectable(), numberOfAccounts, executionTimeSeconds);
+                testMonitor(), desc, operationStats, numberOfAccounts, executionTimeSeconds);
         TestReportUtil.reportTaskComponentPerformanceAsSeparateSection(
-                testMonitor(), desc, taskAfter.asObjectable(), numberOfAccounts);
+                testMonitor(), desc, operationStats, numberOfAccounts);
         TestReportUtil.reportTaskComponentPerformanceToSingleSection(
-                testMonitor(), desc, taskAfter.asObjectable(), numberOfAccounts);
+                testMonitor(), desc, operationStats, numberOfAccounts);
         TestReportUtil.reportTaskRepositoryPerformance(
-                testMonitor(), desc, taskAfter.asObjectable(), numberOfAccounts, executionTimeSeconds);
-        TestReportUtil.reportTaskCachesPerformance(testMonitor(), desc, taskAfter.asObjectable());
-        TestReportUtil.reportTaskProvisioningStatistics(testMonitor(), desc, taskAfter.asObjectable());
+                testMonitor(), desc, operationStats, numberOfAccounts, executionTimeSeconds);
+        TestReportUtil.reportTaskCachesPerformance(testMonitor(), desc, taskAfter.asObjectable()); // FIXME aggregate!
+        TestReportUtil.reportTaskProvisioningStatistics(testMonitor(), desc, operationStats);
     }
 
     private void logFinish() {
@@ -700,5 +723,11 @@ public class TestSystemPerformance extends AbstractStoryTest implements Performa
             throw new SystemException(e);
         }
         displayDumpable("performance: " + label + task.getName(), performanceInformation);
+    }
+
+    private void clearRepoCacheIfRequested() {
+        if (OTHER_PARAMETERS.isClearRepoCacheBeforeTaskRun()) {
+            cacheDispatcher.dispatchInvalidation(null, null, false, null);
+        }
     }
 }

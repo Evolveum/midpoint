@@ -200,3 +200,5 @@ The connector will announce the identification mechanism in the xref:/midpoint/r
 * xref:/midpoint/reference/resources/resource-configuration/schema-handling/[Resource Schema Handling]
 
 * xref:/midpoint/reference/resources/resource-schema/explanation/[Resource and Connector Schema Explanation]
+
+* xref:/midpoint/reference/resources/shadow/purpose/[]

@@ -531,6 +531,10 @@ public abstract class SynchronizationContext<F extends FocusType>
         return shadowedResourceObject;
     }
 
+    public void freezeShadowedResourceObject() {
+        shadowedResourceObject.freeze();
+    }
+
     /**
      * Synchronization context ready for the synchronization, i.e. it has type identification and synchronization policy present.
      */

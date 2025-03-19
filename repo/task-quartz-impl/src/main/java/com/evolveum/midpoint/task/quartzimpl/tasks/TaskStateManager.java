@@ -10,6 +10,8 @@ package com.evolveum.midpoint.task.quartzimpl.tasks;
 import java.util.Collection;
 import java.util.Set;
 
+import com.evolveum.midpoint.util.exception.SystemException;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -55,7 +57,18 @@ public class TaskStateManager {
     }
 
     public boolean suspendTaskNoException(TaskQuartzImpl task, long waitTime, OperationResult result) {
-        return suspendAndDeleteHelper.suspendTaskNoExceptions(task, waitTime, result);
+        try {
+            return suspendTaskNoException(task, waitTime, false, result);
+        } catch (SchemaException | ObjectNotFoundException e) {
+            // This should not happen as suspendTaskNoException with notifyDependents=false
+            // is not supposed to throw these exceptions
+            throw new SystemException(e);
+        }
+    }
+
+    public boolean suspendTaskNoException(TaskQuartzImpl task, long waitTime, boolean suspendDependents, OperationResult result)
+            throws SchemaException, ObjectNotFoundException {
+        return suspendAndDeleteHelper.suspendTaskNoExceptions(task, waitTime, suspendDependents, result);
     }
 
     public void suspendAndCloseTaskNoException(TaskQuartzImpl task, long waitTime, OperationResult result) {

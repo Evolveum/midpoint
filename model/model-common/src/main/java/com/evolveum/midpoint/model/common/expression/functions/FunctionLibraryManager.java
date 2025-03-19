@@ -40,7 +40,7 @@ import org.springframework.stereotype.Component;
 
 import java.util.*;
 
-import static com.evolveum.midpoint.schema.GetOperationOptions.createReadOnlyCollection;
+import static com.evolveum.midpoint.schema.GetOperationOptions.readOnly;
 import static com.evolveum.midpoint.util.MiscUtil.emptyIfNull;
 
 /**
@@ -112,7 +112,7 @@ public class FunctionLibraryManager implements Cache {
         try {
             LOGGER.trace("Searching for function libraries");
             List<PrismObject<FunctionLibraryType>> libraryObjects =
-                    repositoryService.searchObjects(FunctionLibraryType.class, null, createReadOnlyCollection(), result);
+                    repositoryService.searchObjects(FunctionLibraryType.class, null, readOnly(), result);
             Map<String, FunctionLibrary> byOid = new HashMap<>();
             for (PrismObject<FunctionLibraryType> libraryObject : libraryObjects) {
                 LOGGER.trace("Found {}", libraryObject);

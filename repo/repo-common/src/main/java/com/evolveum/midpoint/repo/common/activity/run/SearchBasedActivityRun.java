@@ -187,17 +187,16 @@ public abstract class SearchBasedActivityRun<
     private @NotNull SearchSpecification<C> createSearchSpecificationFromObjectSetSpec(
             @NotNull ObjectSetSpecification objectSetSpecification, OperationResult result)
             throws SchemaException, ActivityRunException, ConfigurationException {
-        if (objectSetSpecification instanceof ResourceObjectSetSpecificationImpl) {
+        if (objectSetSpecification instanceof ResourceObjectSetSpecificationImpl resourceObjectSetSpecification) {
             //noinspection unchecked
             return (SearchSpecification<C>)
                     beans.getAdvancedActivityRunSupport().createSearchSpecificationFromResourceObjectSetSpec(
-                            (ResourceObjectSetSpecificationImpl) objectSetSpecification, getRunningTask(), result);
-        } else if (objectSetSpecification instanceof RepositoryObjectSetSpecificationImpl) {
-            return SearchSpecification.fromRepositoryObjectSetSpecification(
-                    (RepositoryObjectSetSpecificationImpl) objectSetSpecification);
+                            resourceObjectSetSpecification, getRunningTask(), result);
+        } else if (objectSetSpecification instanceof RepositoryObjectSetSpecificationImpl repositoryObjectSetSpecification) {
+            return SearchSpecification.fromRepositoryObjectSetSpecification(repositoryObjectSetSpecification);
         } else {
-            throw new UnsupportedOperationException("Non-repository object set specification is not supported: " +
-                    objectSetSpecification);
+            throw new UnsupportedOperationException(
+                    "Non-repository object set specification is not supported: " + objectSetSpecification);
         }
     }
 
@@ -492,7 +491,34 @@ public abstract class SearchBasedActivityRun<
                     ContainerableProcessingRequest.create(sequentialNumberCounter.getAndIncrement(), object, this);
             return coordinator.submit(request, parentResult);
         };
-        searchableItemSource.searchIterative(searchSpecification, handler, getRunningTask(), result);
+
+        var task = getRunningTask();
+        boolean tracingRequested = false;
+        try {
+            tracingRequested = requestSearchTracingIfNeeded(task);
+            searchableItemSource.searchIterative(searchSpecification, handler, task, result);
+        } finally {
+            removeSearchTracingRequest(tracingRequested, task);
+        }
+    }
+
+    private boolean requestSearchTracingIfNeeded(RunningTask task) {
+        for (var definition : getReportingDefinition().getTracingConfigurationsSorted()) {
+            if (definition.getTracingPoint().contains(TracingRootType.RETRIEVED_RESOURCE_OBJECT_PROCESSING)) {
+                var configuredProfile = definition.getTracingProfile();
+                var profile = configuredProfile != null ? configuredProfile : getBeans().tracer.getDefaultProfile();
+                task.setTracingProfile(profile);
+                task.addTracingRequest(TracingRootType.RETRIEVED_RESOURCE_OBJECT_PROCESSING);
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private void removeSearchTracingRequest(boolean tracingRequested, RunningTask task) {
+        if (tracingRequested) {
+            task.removeTracingRequest(TracingRootType.RETRIEVED_RESOURCE_OBJECT_PROCESSING);
+        }
     }
 
     private boolean advancedSupportAvailable() {
@@ -513,7 +539,7 @@ public abstract class SearchBasedActivityRun<
     }
 
     /** Precondition: search specification must already exist. */
-    protected final Class<C> getItemType() {
+    private Class<C> getItemType() {
         return getSearchSpecificationRequired().getType();
     }
 

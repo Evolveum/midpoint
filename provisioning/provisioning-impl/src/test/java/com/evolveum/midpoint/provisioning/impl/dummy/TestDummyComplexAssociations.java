@@ -6,9 +6,10 @@
  */
 package com.evolveum.midpoint.provisioning.impl.dummy;
 
+import static com.evolveum.midpoint.schema.GetOperationOptions.readOnly;
+
 import static org.assertj.core.api.Assertions.assertThat;
 
-import static com.evolveum.midpoint.schema.GetOperationOptions.createReadOnlyCollection;
 import static com.evolveum.midpoint.schema.constants.SchemaConstants.*;
 
 import java.io.File;
@@ -133,10 +134,10 @@ public class TestDummyComplexAssociations extends AbstractDummyTest {
     @Test
     public void test110GetObjectWithAssociations() throws Exception {
         executeSearchForJohnWithAssociations(null);
-        var oid = executeSearchForJohnWithAssociations(createReadOnlyCollection());
+        var oid = executeSearchForJohnWithAssociations(readOnly());
 
         executeGetJohnWithAssociations(oid, null);
-        executeGetJohnWithAssociations(oid, createReadOnlyCollection());
+        executeGetJohnWithAssociations(oid, readOnly());
     }
 
     @Test

@@ -8,6 +8,8 @@
 package com.evolveum.midpoint.web.page.admin.server;
 
 import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.List;
 
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.util.LocalizableMessage;
@@ -36,6 +38,11 @@ public class TaskProgress implements Serializable {
      * Message describing task health status.
      */
     private LocalizableMessage taskHealthStatusMessage;
+
+    /**
+     * More information about task health status. E.g. errors/warnings in workers.
+     */
+    private List<LocalizableMessage> taskHealthUserFriendlyMessages = new ArrayList<>();
 
     /**
      * Overall task status.
@@ -112,5 +119,9 @@ public class TaskProgress implements Serializable {
 
     public void setTaskHealthStatus(OperationResultStatus taskHealthStatus) {
         this.taskHealthStatus = taskHealthStatus;
+    }
+
+    public List<LocalizableMessage> getTaskHealthUserFriendlyMessages() {
+        return taskHealthUserFriendlyMessages;
     }
 }

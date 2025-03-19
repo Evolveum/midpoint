@@ -36,6 +36,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import static com.evolveum.midpoint.schema.GetOperationOptions.readOnly;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractWorkItemOutputType.F_OUTCOME;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractWorkItemType.F_CLOSE_TIMESTAMP;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractWorkItemType.F_OUTPUT;
@@ -109,7 +110,7 @@ public class QueryUtils {
                 .isNull();
     }
 
-    private static List<PrismReferenceValue> getPotentialAssigneesForUser(
+    public static List<PrismReferenceValue> getPotentialAssigneesForUser(
             @NotNull MidPointPrincipal principal, @NotNull OtherPrivilegesLimitations.Type limitationType) {
         // As for relations, WorkItem.assigneeRef should contain only the default ones.
         QName defaultRelation = SchemaService.get().relationRegistry().getDefaultRelation();
@@ -135,7 +136,7 @@ public class QueryUtils {
         List<PrismReferenceValue> rv = new ArrayList<>();
         UserType user;
         try {
-            user = repositoryService.getObject(UserType.class, userOid, null, result).asObjectable();
+            user = repositoryService.getObject(UserType.class, userOid, readOnly(), result).asObjectable();
         } catch (ObjectNotFoundException e) {
             return rv;
         }

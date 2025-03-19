@@ -146,6 +146,8 @@ public abstract class AbstractCompositeActivityRun<
             runResult.setRunResultStatus(PERMANENT_ERROR, childRunResult.getThrowable());
         } else if (childRunResult.isTemporaryError()) {
             runResult.setRunResultStatus(TEMPORARY_ERROR, childRunResult.getThrowable());
+        } else if (childRunResult.isHaltingError()) {
+            runResult.setRunResultStatus(HALTING_ERROR, childRunResult.getThrowable());
         } else if (childRunResult.isWaiting()) {
             runResult.setRunResultStatus(IS_WAITING);
         }

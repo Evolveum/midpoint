@@ -7,6 +7,7 @@
 
 package com.evolveum.midpoint.repo.common.activity.definition;
 
+import com.evolveum.midpoint.repo.common.activity.policy.ActivityPoliciesDefinition;
 import com.evolveum.midpoint.repo.common.activity.run.CommonTaskBeans;
 import com.evolveum.midpoint.schema.config.ConfigurationItemOrigin;
 
@@ -50,19 +51,24 @@ public class ActivityDefinition<WD extends WorkDefinition> implements DebugDumpa
     /** Definition for execution mode. Currently only partially tailorable (setting the mode) but that may change. */
     @NotNull private final ActivityExecutionModeDefinition executionModeDefinition;
 
+    /** Definition for activity policies. Currently, not tailorable. */
+    @NotNull private final ActivityPoliciesDefinition policiesDefinition;
+
     private ActivityDefinition(
             @Nullable String explicitlyDefinedIdentifier,
             @NotNull WD workDefinition,
             @NotNull ActivityControlFlowDefinition controlFlowDefinition,
             @NotNull ActivityDistributionDefinition distributionDefinition,
             @NotNull ActivityReportingDefinition reportingDefinition,
-            @NotNull ActivityExecutionModeDefinition executionModeDefinition) {
+            @NotNull ActivityExecutionModeDefinition executionModeDefinition,
+            @NotNull ActivityPoliciesDefinition policiesDefinition) {
         this.explicitlyDefinedIdentifier = explicitlyDefinedIdentifier;
         this.workDefinition = workDefinition;
         this.controlFlowDefinition = controlFlowDefinition;
         this.distributionDefinition = distributionDefinition;
         this.reportingDefinition = reportingDefinition;
         this.executionModeDefinition = executionModeDefinition;
+        this.policiesDefinition = policiesDefinition;
     }
 
     /**
@@ -109,7 +115,8 @@ public class ActivityDefinition<WD extends WorkDefinition> implements DebugDumpa
                 ActivityControlFlowDefinition.create(definitionBean),
                 ActivityDistributionDefinition.create(definitionBean),
                 ActivityReportingDefinition.create(definitionBean),
-                ActivityExecutionModeDefinition.create(definitionBean));
+                ActivityExecutionModeDefinition.create(definitionBean),
+                ActivityPoliciesDefinition.create(definitionBean));
     }
 
     /**
@@ -161,6 +168,10 @@ public class ActivityDefinition<WD extends WorkDefinition> implements DebugDumpa
         return executionModeDefinition;
     }
 
+    public @NotNull ActivityPoliciesDefinition getPoliciesDefinition() {
+        return policiesDefinition;
+    }
+
     @Override
     public String toString() {
         return "ActivityDefinition{" +
@@ -169,6 +180,7 @@ public class ActivityDefinition<WD extends WorkDefinition> implements DebugDumpa
                 ", distributionDefinition: " + distributionDefinition +
                 ", reportingDefinition: " + reportingDefinition +
                 ", executionModeDefinition: " + executionModeDefinition +
+                ", policiesDefinition: " + policiesDefinition +
                 '}';
     }
 
@@ -225,7 +237,8 @@ public class ActivityDefinition<WD extends WorkDefinition> implements DebugDumpa
                 controlFlowDefinition.clone(),
                 distributionDefinition.clone(),
                 reportingDefinition.clone(),
-                executionModeDefinition.clone());
+                executionModeDefinition.clone(),
+                policiesDefinition.clone());
     }
 
     public @NotNull ActivityReportingDefinition getReportingDefinition() {

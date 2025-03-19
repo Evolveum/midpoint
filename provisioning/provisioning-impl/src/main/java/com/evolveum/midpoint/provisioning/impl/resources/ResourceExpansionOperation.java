@@ -7,15 +7,13 @@
 
 package com.evolveum.midpoint.provisioning.impl.resources;
 
-import static com.evolveum.midpoint.schema.GetOperationOptions.createReadOnlyCollection;
+import static com.evolveum.midpoint.schema.GetOperationOptions.readOnly;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType.*;
 
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-
-import com.evolveum.midpoint.prism.PrismContainer;
 
 import com.google.common.collect.Sets;
 import org.jetbrains.annotations.NotNull;
@@ -258,7 +256,7 @@ class ResourceExpansionOperation {
                 throws ObjectNotFoundException, SchemaException, ConfigurationException {
             if (firstPass) {
                 ResourceType resource = beans.repositoryService
-                        .getObject(ResourceType.class, oid, createReadOnlyCollection(), result)
+                        .getObject(ResourceType.class, oid, readOnly(), result)
                         .asObjectable();
                 if (resourceCache.put(oid, resource) != null) {
                     // If multiple inheritance is allowed, we'd need to relax this check.

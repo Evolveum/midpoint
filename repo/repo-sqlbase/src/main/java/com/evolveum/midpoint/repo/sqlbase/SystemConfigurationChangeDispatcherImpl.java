@@ -85,7 +85,7 @@ public class SystemConfigurationChangeDispatcherImpl implements SystemConfigurat
             configurationObject = repositoryService.getObject(
                     SystemConfigurationType.class,
                     SystemObjectsType.SYSTEM_CONFIGURATION.value(),
-                    GetOperationOptions.createReadOnlyCollection(),
+                    GetOperationOptions.readOnly(),
                     result);
         } catch (ObjectNotFoundException e) {
             if (allowNotFound) {

@@ -209,6 +209,10 @@
         <!-- Dependencies global versions -->
         <httpclient.version>4.5.14</httpclient.version>
 
+
+        <!-- Bumped tomcat to newer version, one bundled with Spring Boot 3.3.9 does not starts on windows / mac  -->
+        <tomcat.version>10.1.39</tomcat.version>
+
         <hibernate.version>6.5.3.Final</hibernate.version>
         <!--
             Older version (given via spring boot 3.3.7) used to avoid issue of connections being non-valid
@@ -1023,7 +1027,7 @@
                 <groupId>com.evolveum.polygon</groupId>
                 <artifactId>connector-ldap</artifactId>
                 <!-- Do not forget to update provisioning/ucf-impl-connid/src/test/resources/connector-ldap.xml when changing connector version. -->
-                <version>3.9</version>
+                <version>3.9.1</version>
                 <exclusions>
                     <!-- Needed otherwise the JDK14 SLF4J binding can override the midpoint's logback binding -->
                     <exclusion>

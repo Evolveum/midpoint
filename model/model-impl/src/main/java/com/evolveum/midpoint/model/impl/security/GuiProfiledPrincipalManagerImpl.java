@@ -6,7 +6,7 @@
  */
 package com.evolveum.midpoint.model.impl.security;
 
-import static com.evolveum.midpoint.schema.GetOperationOptions.createReadOnlyCollection;
+import static com.evolveum.midpoint.schema.GetOperationOptions.readOnly;
 
 import static java.util.Collections.emptyList;
 
@@ -279,7 +279,7 @@ public class GuiProfiledPrincipalManagerImpl
         try {
             // TODO: use SystemObjectCache instead?
             systemConfiguration = repositoryService.getObject(SystemConfigurationType.class,
-                    SystemObjectsType.SYSTEM_CONFIGURATION.value(), createReadOnlyCollection(), result);
+                    SystemObjectsType.SYSTEM_CONFIGURATION.value(), readOnly(), result);
         } catch (ObjectNotFoundException | SchemaException e) {
             LOGGER.warn("No system configuration: {}", e.getMessage(), e);
         }
@@ -395,7 +395,7 @@ public class GuiProfiledPrincipalManagerImpl
             ObjectQuery query = PrismContext.get().queryFor(FocusType.class)
                     .item(FocusType.F_ROLE_MEMBERSHIP_REF).ref(prismRefs).build();
             try {
-                return repositoryService.searchObjects((Class<F>)(Class) FocusType.class, query, createReadOnlyCollection(), result);
+                return repositoryService.searchObjects((Class<F>)(Class) FocusType.class, query, readOnly(), result);
             } catch (SchemaException e) {
                 LOGGER.warn("Cannot resolve owner of {}: {}", object, e.getMessage(), e);
                 return null;
@@ -518,6 +518,7 @@ public class GuiProfiledPrincipalManagerImpl
             focusComputer.recompute(focus, lifecycleModel);
             principal.clearAuthorizations();
             principal.clearOtherPrivilegesLimitations();
+            //focus.freeze(); // to avoid cloning when running clockwork against focus
             // For refreshing current logged-in principal, we need to support GUI config
             initializePrincipalFromAssignments(
                     principal,

@@ -17,6 +17,7 @@ import org.jetbrains.annotations.Nullable;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.repo.cache.RepositoryCache;
 import com.evolveum.midpoint.repo.common.activity.definition.ActivityDefinition;
+import com.evolveum.midpoint.repo.common.activity.policy.ActivityPolicyRulesProcessor;
 import com.evolveum.midpoint.repo.common.activity.run.*;
 import com.evolveum.midpoint.repo.common.activity.run.processing.ItemProcessingConditionEvaluator.AdditionalVariableProvider;
 import com.evolveum.midpoint.repo.common.activity.run.reports.ActivityReportUtil;
@@ -127,7 +128,8 @@ class ItemProcessingGatekeeper<I> {
      */
     @Nullable private ConnIdOperationsListener connIdOperationsListener;
 
-    ItemProcessingGatekeeper(@NotNull ItemProcessingRequest<I> request,
+    ItemProcessingGatekeeper(
+            @NotNull ItemProcessingRequest<I> request,
             @NotNull IterativeActivityRun<I, ?, ?, ?> activityRun,
             @NotNull RunningTask workerTask) {
         this.request = request;
@@ -146,6 +148,16 @@ class ItemProcessingGatekeeper<I> {
 
         try {
             workerTask.setExecutionSupport(activityRun);
+
+            try {
+                ActivityPolicyRulesProcessor processor = new ActivityPolicyRulesProcessor(activityRun);
+                processor.evaluateAndEnforceRules(result);
+            } catch (Exception e) {
+                result.recordFatalError(e);
+                processingResult = ProcessingResult.fromException(result, e);
+
+                throw e;
+            }
 
             logOperationStart();
             operation = updateStatisticsOnStart();
@@ -412,7 +424,7 @@ class ItemProcessingGatekeeper<I> {
     private OperationResult initializeOperationResultIncludingTracingOrReporting(OperationResult parentResult) throws SchemaException {
         OperationResultBuilder builder = parentResult.subresult(OP_HANDLE)
                 .addParam("object", iterationItemInformation.toString());
-        if (workerTask.getTracingRequestedFor().contains(TracingRootType.ACTIVITY_ITEM_PROCESSING)) {
+        if (workerTask.isTracingRequestedFor(TracingRootType.ACTIVITY_ITEM_PROCESSING)) {
             tracingRequested = true;
             builder.tracingProfile(getTracer().compileProfile(workerTask.getTracingProfile(), parentResult));
         } else if (activityRun.shouldReportInternalOperations() &&
