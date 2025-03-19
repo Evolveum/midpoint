@@ -437,8 +437,6 @@ public class RoleAnalysisReconfigureSessionPopupPanel
                     .getSessionTypeObject(sessionOid, task, result);
 
             if (sessionTypeObject != null) {
-                roleAnalysisService.deleteSessionTask(sessionTypeObject.getOid(), task, result);
-
                 TaskType performTask = new TaskType(); //TODO rerun existing or create new?
                 ModelInteractionService modelInteractionService = getPageBase().getModelInteractionService();
                 roleAnalysisService.executeClusteringTask(

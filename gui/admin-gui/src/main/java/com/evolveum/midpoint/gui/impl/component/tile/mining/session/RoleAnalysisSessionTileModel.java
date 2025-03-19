@@ -64,7 +64,7 @@ public class RoleAnalysisSessionTileModel<T extends Serializable> extends Tile<T
         RoleAnalysisSessionStatisticType sessionStatistic = session.getSessionStatistic();
         if (sessionStatistic != null) {
             Double meanDensity = sessionStatistic.getMeanDensity();
-            if (meanDensity != null) {
+            if (meanDensity != null && !meanDensity.isNaN()) {
                 BigDecimal bd = new BigDecimal(Double.toString(meanDensity));
                 bd = bd.setScale(2, RoundingMode.HALF_UP);
                 this.progressBarValue = bd.doubleValue();

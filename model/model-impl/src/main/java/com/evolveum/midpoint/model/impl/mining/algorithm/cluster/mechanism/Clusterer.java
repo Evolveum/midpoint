@@ -261,7 +261,7 @@ public abstract class Clusterer<T extends Clusterable> {
             int minPts,
             DensityBasedClustering.PointStatusWrapper pStatusWrapper) {
         boolean propertiesCountMeet = checkPropertiesRequirement(point, minPropertiesOverlap, pStatusWrapper);
-        if (!propertiesCountMeet && numberOfRulesNeighbors < minPts) {
+        if (!propertiesCountMeet && numberOfRulesNeighbors <= minPts) {
             pStatusWrapper.pStatus = OutlierNoiseCategoryType.OVERAL_NOISE;
             return false;
         } else if (!propertiesCountMeet) {

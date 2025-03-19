@@ -50,7 +50,7 @@ public class BirthrightCoverageModeConfiguration extends AbstractRoleAnalysisCon
                 70.0,
                 5, minOverlap, false);
 
-        updateDetectionOptions(5,
+        updateDetectionOptions(2,
                 2,
                 null,
                 new RangeType()

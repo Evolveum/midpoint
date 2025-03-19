@@ -17,11 +17,20 @@ import java.util.Set;
  * An interface representing data points that can be used in clustering algorithms.
  */
 public interface Clusterable {
+
     Set<String> getPoint();
+
+    Set<String> getMembers();
+
     Set<String> getCloseNeighbors();
+
     void addCloseNeighbor(String neighbor);
+
     ExtensionProperties getExtensionProperties();
+
     int getMembersCount();
+
     OutlierNoiseCategoryType getPointStatus();
+
     void setPointStatus(OutlierNoiseCategoryType pointStatus);
 }

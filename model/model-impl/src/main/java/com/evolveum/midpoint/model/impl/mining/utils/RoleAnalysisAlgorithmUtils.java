@@ -136,12 +136,12 @@ public class RoleAnalysisAlgorithmUtils {
             Set<String> propertiesInNoiseClusters,
             Set<String> membersInNoiseClusters) {
 
+        handler.enterNewStep("Prepare Outliers");
+        handler.setOperationCountToProcess(dataPoints.size());
+
         if (dataPoints.isEmpty()) {
             return;
         }
-
-        handler.enterNewStep("Prepare Outliers");
-        handler.setOperationCountToProcess(dataPoints.size());
 
         RoleAnalysisOptionType analysisOption = session.getAnalysisOption();
         RoleAnalysisProcessModeType processMode = analysisOption.getProcessMode();

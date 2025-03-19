@@ -14,11 +14,14 @@ import org.jetbrains.annotations.NotNull;
  * It can be either stable or processing.
  * It should be used to determine if operations can be performed on the object.
  */
+//TODO we should use different method for this (remove RoleAnalysisObjectState, RoleAnalysisOperationStatusType
+// and all related component and compute all thinks direct above existing task?)
 public enum RoleAnalysisObjectState {
     STABLE("Stable"),
     PROCESSING("Processing"),
     CLOSED("Closed"),
-    SUSPENDED("Suspended");
+    SUSPENDED("Suspended"),
+    RUNNING("Running");
 
     private final String displayString;
 
@@ -31,10 +34,12 @@ public enum RoleAnalysisObjectState {
     }
 
     public static boolean isStable(@NotNull String value) {
-        return value.equals(STABLE.displayString)
-                || value.contains(CLOSED.displayString.toLowerCase())
-                || value.contains(SUSPENDED.displayString.toLowerCase())
-                || value.contains("(7/7) runnable");
+        return !value.toLowerCase().contains(RUNNING.getDisplayString().toLowerCase());
+//        String lowerCaseValue = value.toLowerCase();
+//        return lowerCaseValue.equals(STABLE.displayString.toLowerCase())
+//                || lowerCaseValue.contains(CLOSED.displayString.toLowerCase())
+//                || lowerCaseValue.contains(SUSPENDED.displayString.toLowerCase())
+//                || lowerCaseValue.contains("(7/7) runnable");
     }
 
     public static boolean isProcessing(@NotNull String value) {
