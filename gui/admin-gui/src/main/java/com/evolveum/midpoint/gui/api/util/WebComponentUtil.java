@@ -26,6 +26,7 @@ import com.evolveum.midpoint.gui.impl.component.action.AbstractGuiAction;
 import com.evolveum.midpoint.gui.impl.page.admin.focus.FocusDetailsModels;
 import com.evolveum.midpoint.model.api.trigger.TriggerHandler;
 import com.evolveum.midpoint.schema.processor.ResourceObjectTypeDefinition;
+import com.evolveum.midpoint.web.component.input.QNameObjectTypeChoiceRenderer;
 import com.evolveum.midpoint.web.component.util.*;
 import com.evolveum.midpoint.web.page.admin.server.dto.ApprovalOutcomeIcon;
 
@@ -268,6 +269,15 @@ public final class WebComponentUtil {
 
             return com.evolveum.midpoint.gui.api.util.LocalizationUtil.translate(key);
         };
+    }
+
+    public static void sortObjectTypeList(List<QName> availableValues) {
+        QNameObjectTypeChoiceRenderer qNameObjectTypeChoiceRenderer = new QNameObjectTypeChoiceRenderer();
+        availableValues.sort((q1, q2) -> {
+            String displayValue1 = qNameObjectTypeChoiceRenderer.getDisplayValue(q1).toString();
+            String displayValue2 = qNameObjectTypeChoiceRenderer.getDisplayValue(q2).toString();
+            return displayValue1.compareToIgnoreCase(displayValue2);
+        });
     }
 
     public enum AssignmentOrder {

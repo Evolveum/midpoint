@@ -75,7 +75,7 @@ public abstract class AbstractQNameWithChoicesPanelFactory extends QNameTextPane
                                 partOfInput = input;
                             }
                             choices = choices.stream()
-                                    .filter(v -> v.getLabel().contains(partOfInput))
+                                    .filter(v -> StringUtils.containsIgnoreCase(v.getLabel(), partOfInput))
                                     .collect(Collectors.toList());
                         }
                         return choices.stream()
