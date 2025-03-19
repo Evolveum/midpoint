@@ -28,6 +28,7 @@ import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import com.google.common.collect.ListMultimap;
@@ -49,6 +50,8 @@ import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.createObjectRef;
 import static java.util.Collections.singleton;
 
 public class RoleAnalysisServiceUtils {
+
+    private static final Trace LOGGER = TraceManager.getTrace(RoleAnalysisServiceUtils.class);
 
     private RoleAnalysisServiceUtils() {
     }
@@ -190,7 +193,7 @@ public class RoleAnalysisServiceUtils {
             objectStatus.setRoleAnalysisOperationMode(RoleAnalysisOperationMode.INCLUDE);
             objectStatus.addContainerId(candidateRolesIds.get(i));
             detectedPatternsMembers.removeAll(chunkMembers);
-        } else if (basicChunk.getMinFrequency() > frequency && frequency < basicChunk.getMaxFrequency()
+        }else if (basicChunk.getMinFrequency() > frequency && frequency < basicChunk.getMaxFrequency()
                 && !chunk.getStatus().isInclude()) {
             chunk.setStatus(RoleAnalysisOperationMode.DISABLE);
         } else if (!chunk.getStatus().isInclude()) {
@@ -674,18 +677,25 @@ public class RoleAnalysisServiceUtils {
         Long patternId = (Long) containerIdPath.get(1);
 
         if (!mappedClusters.containsKey(patternClusterOid)) {
-            RoleAnalysisClusterType cluster;
+            RoleAnalysisClusterType cluster = null;
             try {
                 cluster = repositoryService.getObject(RoleAnalysisClusterType.class, patternClusterOid, options, result)
                         .asObjectable();
-            } catch (ObjectNotFoundException | SchemaException e) {
+            } catch (ObjectNotFoundException e) {
+                LOGGER.warn("Couldn't get cluster object with oid: " + patternClusterOid, e);
+            } catch (SchemaException e) {
                 throw new SystemException("Couldn't get cluster object with oid: " + patternClusterOid, e);
             }
+
+            if (cluster == null) {
+                return;
+            }
+
             mappedClusters.put(patternClusterOid, cluster);
         }
 
         RoleAnalysisClusterType cluster = mappedClusters.get(patternClusterOid);
-        ObjectReferenceType clusterRef =  createObjectRef(cluster);
+        ObjectReferenceType clusterRef = createObjectRef(cluster);
         ObjectReferenceType roleAnalysisSessionRef = cluster.getRoleAnalysisSessionRef();
 
         DetectedPattern detectedPattern = transformDefaultPattern(pattern, clusterRef, roleAnalysisSessionRef.clone(), patternId);
