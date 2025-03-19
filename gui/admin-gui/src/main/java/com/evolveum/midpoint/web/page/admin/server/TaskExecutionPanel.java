@@ -48,22 +48,19 @@ public class TaskExecutionPanel extends BasePanel<TaskExecutionProgress> {
 
             @Override
             protected String load() {
-                List<LocalizableMessage> msgs = getModelObject().getTaskHealthUserFriendlyMessages();
-                List<String> translated = msgs.stream()
-                        .map(msg -> LocalizationUtil.translateMessage(msg))
-                        .distinct()
-                        .sorted()
-                        .toList();
-                if (!translated.isEmpty()) {
+                List<String> translated = getTranslatedUserFriendlyMessages();
+                if (translated.size() > 1) {
+                    return getString("TaskExecutionPanel.moreMessages", translated.get(0));
+                } else if (translated.size() == 1) {
                     return translated.get(0);
                 }
 
                 LocalizableMessage msg = getModelObject().getTaskHealthStatusMessage();
-                if (msg == null) {
-                    return null;
+                if (msg != null) {
+                    return LocalizationUtil.translateMessage(msg);
                 }
 
-                return LocalizationUtil.translateMessage(msg);
+                return null;
             }
         };
 
@@ -72,17 +69,21 @@ public class TaskExecutionPanel extends BasePanel<TaskExecutionProgress> {
         taskProblemLabel.add(
                 AttributeAppender.append("title",
                         () -> {
-                            List<LocalizableMessage> msgs = getModelObject().getTaskHealthUserFriendlyMessages();
-                            List<String> translated = msgs.stream()
-                                    .map(msg -> LocalizationUtil.translateMessage(msg))
-                                    .distinct()
-                                    .sorted()
-                                    .toList();
+                            List<String> translated = getTranslatedUserFriendlyMessages();
 
                             return String.join("\n", translated);
                         }));
         taskProblemLabel.add(new TooltipBehavior());
         add(taskProblemLabel);
+    }
+
+    private List<String> getTranslatedUserFriendlyMessages() {
+        List<LocalizableMessage> msgs = getModelObject().getTaskHealthUserFriendlyMessages();
+        return msgs.stream()
+                .map(msg -> LocalizationUtil.translateMessage(msg))
+                .distinct()
+                .sorted()
+                .toList();
     }
 
     private boolean showTaskHealth() {

@@ -15,6 +15,7 @@ import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.LoadableDetachableModel;
 
+import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.component.progressbar.ProgressBar;
 import com.evolveum.midpoint.gui.api.component.progressbar.ProgressBarPanel;
@@ -26,7 +27,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskExecutionStateTy
 public class TaskProgressPanel extends BasePanel<TaskExecutionProgress> {
 
     private static final String ID_PROGRESS = "progress";
-    private static final String ID_DONE_ICON = "doneIcon";
+    private static final String ID_RESULT_ICON = "resultIcon";
     private static final String ID_PROGRESS_LABEL = "progressLabel";
     private static final String ID_PROGRESS_PROBLEM_ICON = "progressProblemIcon";
     private static final String ID_PROGRESS_PROBLEM_LABEL = "progressProblemLabel";
@@ -65,9 +66,8 @@ public class TaskProgressPanel extends BasePanel<TaskExecutionProgress> {
         progress.add(new VisibleBehaviour(() -> showProgressBar()));
         add(progress);
 
-        WebMarkupContainer doneIcon = new WebMarkupContainer(ID_DONE_ICON);
-        doneIcon.add(AttributeAppender.append("class", () -> OperationResultStatusPresentationProperties
-                .parseOperationalResultStatus(getModelObject().getTaskStatus()).getIcon()));
+        WebMarkupContainer doneIcon = new WebMarkupContainer(ID_RESULT_ICON);
+        doneIcon.add(AttributeAppender.append("class", () -> createResultIcon()));
         doneIcon.add(AttributeAppender.append("title", () -> getString(getModelObject().getTaskStatus())));
         doneIcon.add(new VisibleBehaviour(() -> !showProgressBar()));
         add(doneIcon);
@@ -86,6 +86,19 @@ public class TaskProgressPanel extends BasePanel<TaskExecutionProgress> {
         progressProblemLabel.add(new VisibleBehaviour(() -> getModelObject().getProcessedObjectsErrorCount() > 0));
         add(progressProblemLabel);
 
+    }
+
+    private String createResultIcon() {
+        TaskExecutionProgress data = getModelObject();
+        OperationResultStatus status = data.getTaskStatus();
+
+        if (data.getExecutionState() == TaskExecutionStateType.SUSPENDED
+                && status == OperationResultStatus.IN_PROGRESS) {
+            return "fa fa-circle-pause";
+        }
+
+        return OperationResultStatusPresentationProperties
+                .parseOperationalResultStatus(getModelObject().getTaskStatus()).getIcon();
     }
 
     private String getIconColor(OperationResultStatus status) {
