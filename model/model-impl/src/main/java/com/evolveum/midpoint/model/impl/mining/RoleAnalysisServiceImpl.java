@@ -1234,6 +1234,8 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
                                     SystemObjectsType.ARCHETYPE_UTILITY_TASK.value()),
                     task, result);
 
+            deleteSessionTask(session.getOid(), task, result);
+
             MidPointPrincipal user = AuthUtil.getPrincipalUser();
             FocusType focus = user.getFocus();
             submitSessionOperationStatus(modelService,

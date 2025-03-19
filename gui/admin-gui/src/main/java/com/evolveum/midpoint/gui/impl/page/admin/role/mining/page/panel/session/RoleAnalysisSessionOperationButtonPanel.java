@@ -146,8 +146,6 @@ public class RoleAnalysisSessionOperationButtonPanel extends InlineOperationalBu
 
         RoleAnalysisService roleAnalysisService = getPageBase().getRoleAnalysisService();
 
-        roleAnalysisService.deleteSessionTask(session.getOid(), task, result);
-
         try {
             ModelService modelService = getPageBase().getModelService();
 
