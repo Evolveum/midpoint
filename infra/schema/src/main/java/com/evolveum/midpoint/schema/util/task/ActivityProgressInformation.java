@@ -225,7 +225,7 @@ public class ActivityProgressInformation implements DebugDumpable, Serializable 
         }
 
         if (isComplete()) {
-            return "Complete";
+            return "100.0%";
         }
 
         List<String> partials = new ArrayList<>();
