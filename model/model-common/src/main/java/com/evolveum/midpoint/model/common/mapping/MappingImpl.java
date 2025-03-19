@@ -77,13 +77,16 @@ public class MappingImpl<V extends PrismValue, D extends ItemDefinition<?>> exte
             ObjectNotFoundException, SchemaException, SecurityViolationException, ConfigurationException,
             ExpressionEvaluationException {
         var processingSpec = ItemValueMetadataProcessingSpec.forScope(TRANSFORMATION, canUseDefaultsForMetadataProcessing());
+        if (ignoreValueMetadata) {
+            return processingSpec; // empty
+        }
         processingSpec.addPathsToIgnore(mappingBean.getIgnoreMetadataProcessing());
         // TODO What about persona mappings? outbound mappings? We should not use object template for that.
         ItemPath outputPath = parser.getOutputPath();
         D outputDefinition = parser.getOutputDefinition();
         if (outputPath != null) { // can it ever be null?
             processingSpec.populateFromCurrentFocusTemplate(
-                    outputPath, outputDefinition,  ModelCommonBeans.get().objectResolver,
+                    outputPath, outputDefinition, ModelCommonBeans.get().objectResolver,
                     getMappingContextDescription(), task, result);
         }
         processingSpec.addMetadataMappings(

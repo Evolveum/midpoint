@@ -109,6 +109,9 @@ public abstract class AbstractMappingBuilder<
     private boolean profiling;
     private String contextDescription;
     QName targetItemName;
+
+    /** @see AbstractMappingImpl#ignoreValueMetadata */
+    boolean ignoreValueMetadata;
     private ModelCommonBeans beans;
 
     public abstract AbstractMappingImpl<V, D, MBT> build();
@@ -253,6 +256,11 @@ public abstract class AbstractMappingBuilder<
 
     public RT targetItemName(QName val) {
         targetItemName = val;
+        return typedThis();
+    }
+
+    public RT ignoreValueMetadata() {
+        ignoreValueMetadata = true;
         return typedThis();
     }
 

@@ -63,7 +63,7 @@ public class ItemValueMetadataProcessingSpec implements ShortDumpable, DebugDump
      * This processing spec will contain mappings targeted at this scope.
      */
     @NotNull private final MetadataMappingScopeType scope;
-    final boolean useDefaults;
+    private final boolean useDefaults;
 
     /**
      * Item processing for given metadata items. Lazily evaluated.
@@ -97,10 +97,6 @@ public class ItemValueMetadataProcessingSpec implements ShortDumpable, DebugDump
             SecurityViolationException, ConfigurationException, ExpressionEvaluationException {
         if (lensContext != null) {
             ObjectTemplateType focusTemplate = lensContext.getFocusTemplate();
-
-
-
-
             if (focusTemplate != null) {
                 addFromObjectTemplate(focusTemplate, dataPath, objectResolver, contextDesc, task, result);
             } else {
