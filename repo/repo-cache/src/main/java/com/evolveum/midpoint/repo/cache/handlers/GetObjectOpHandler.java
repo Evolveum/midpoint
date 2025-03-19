@@ -206,7 +206,7 @@ public class GetObjectOpHandler extends CachedOpHandler {
 
             if (!exec.cacheUseMode.canUpdateObjectCache() || !exec.cachesInfo.isEffectivelySupportedByAnyObjectCache()) {
                 return exec.readOnly ?
-                        Freezable.doFreeze(object) :
+                        object : // We don't care if the returned object is mutable or not
                         object.cloneIfImmutable();
             }
 

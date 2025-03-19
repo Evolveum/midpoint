@@ -8,6 +8,7 @@
 package com.evolveum.midpoint.model.common.expression.evaluator.caching;
 
 import com.evolveum.midpoint.model.common.expression.evaluator.AbstractSearchExpressionEvaluator.ObjectFound;
+import com.evolveum.midpoint.prism.Freezable;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.repo.common.expression.ExpressionEvaluationContext;
@@ -61,7 +62,8 @@ public class AssociationSearchExpressionEvaluatorCache
     @Override
     protected AssociationSearchQueryResult createQueryResult(
             Collection<? extends ObjectFound<ShadowType, ShadowAssociationValue>> objectsFound) {
-        return new AssociationSearchQueryResult(objectsFound);
+        return new AssociationSearchQueryResult(
+                List.copyOf(Freezable.freezeAll(objectsFound)));
     }
 
     // shadow may be null

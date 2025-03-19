@@ -30,7 +30,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.common.LocalizationService;
-import com.evolveum.midpoint.model.api.ModelInteractionService;
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.model.common.ModelCommonBeans;
 import com.evolveum.midpoint.model.common.expression.evaluator.caching.AbstractSearchExpressionEvaluatorCache;
@@ -82,8 +81,6 @@ public abstract class AbstractSearchExpressionEvaluator<
     /**
      * todo preview changes method calls in this class should be removed and everything should go through ModelService.executeChanges()
      */
-    @Deprecated
-    private final ModelInteractionService modelInteractionService = ModelCommonBeans.get().modelInteractionService;
     protected final CacheConfigurationManager cacheConfigurationManager = ModelCommonBeans.get().cacheConfigurationManager;
 
     AbstractSearchExpressionEvaluator(
@@ -551,12 +548,27 @@ public abstract class AbstractSearchExpressionEvaluator<
      *
      * TODO reconsider whether the cache invalidation should not be done in a different way
      */
-    public record ObjectFound<OT extends ObjectType, C> (@NotNull PrismObject<OT> sourceObject, C convertedValue) {
+    public record ObjectFound<OT extends ObjectType, C> (@NotNull PrismObject<OT> sourceObject, C convertedValue)
+            implements Freezable {
 
         public static <C> List<C> unwrap(Collection<? extends ObjectFound<?, C>> objectFounds) {
             return objectFounds.stream()
                     .map(i -> i.convertedValue())
                     .toList();
+        }
+
+        @Override
+        public boolean isImmutable() {
+            return sourceObject.isImmutable()
+                    && (!(convertedValue instanceof Freezable freezable) || freezable.isImmutable());
+        }
+
+        @Override
+        public void freeze() {
+            sourceObject.freeze();
+            if (convertedValue instanceof Freezable freezable) {
+                freezable.freeze();
+            }
         }
     }
 

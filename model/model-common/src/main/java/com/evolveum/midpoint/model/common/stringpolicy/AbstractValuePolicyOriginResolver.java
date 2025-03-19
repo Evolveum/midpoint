@@ -28,6 +28,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import java.util.List;
 
+import static com.evolveum.midpoint.schema.GetOperationOptions.createNoFetchReadOnlyCollection;
 import static com.evolveum.midpoint.schema.GetOperationOptions.readOnly;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.ValuePolicyOriginType.OBJECT;
 
@@ -148,10 +149,8 @@ public abstract class AbstractValuePolicyOriginResolver<O extends ObjectType> im
         }
         ShadowDiscriminatorType discriminator = prohibitedValueItem.getProjectionDiscriminator();
         for (ObjectReferenceType linkRef: focus.getLinkRef()) {
-            GetOperationOptions options = GetOperationOptions.createReadOnly();
-            options.setNoFetch(true);
             ShadowType resolvedShadow = objectResolver.resolve(linkRef, ShadowType.class,
-                    SelectorOptions.createCollection(options),
+                    createNoFetchReadOnlyCollection(),
                     "resolving projection shadow in " + contextDescription, task, result);
             if (discriminator != null && !ShadowUtil.matches(resolvedShadow, discriminator)) {
                 LOGGER.trace("Skipping evaluation of projection {} in {} because it does not match discriminator",

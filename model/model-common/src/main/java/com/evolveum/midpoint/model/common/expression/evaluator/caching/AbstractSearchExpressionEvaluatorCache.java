@@ -97,6 +97,7 @@ public abstract class AbstractSearchExpressionEvaluatorCache<
             ObjectSearchStrategyType searchStrategy,
             ExpressionEvaluationContext eeCtx);
 
+    /** Returned object should be immutable, including the immutable collection of immutable objects. */
     protected abstract QR createQueryResult(Collection<? extends ObjectFound<O, V>> objectsFound);
 
     @Override
