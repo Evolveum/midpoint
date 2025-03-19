@@ -351,4 +351,8 @@ public class SessionStorage implements Serializable, DebugDumpable {
     public GenericPageStorage getSimulation() {
         return getPageStorage(KEY_SIMULATION, new GenericPageStorage());
     }
+
+    public void clearPageStorage() {
+        this.pageStorageMap.clear();
+    }
 }

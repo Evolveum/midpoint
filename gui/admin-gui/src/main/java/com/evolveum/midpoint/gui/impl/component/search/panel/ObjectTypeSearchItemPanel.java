@@ -9,6 +9,8 @@ package com.evolveum.midpoint.gui.impl.component.search.panel;
 import java.util.List;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.OnChangeAjaxBehavior;
@@ -59,13 +61,8 @@ public class ObjectTypeSearchItemPanel<T> extends SingleSearchItemPanel<ObjectTy
 
             @Override
             protected List<QName> load() {
-                QNameObjectTypeChoiceRenderer qNameObjectTypeChoiceRenderer = new QNameObjectTypeChoiceRenderer();
                 List<QName> values = getModelObject().getAvailableValues();
-                values.sort((q1, q2) -> {
-                    String displayValue1 = qNameObjectTypeChoiceRenderer.getDisplayValue(q1).toString();
-                    String displayValue2 = qNameObjectTypeChoiceRenderer.getDisplayValue(q2).toString();
-                    return displayValue1.compareToIgnoreCase(displayValue2);
-                });
+                WebComponentUtil.sortObjectTypeList(values);
                 return values;
             }
         };

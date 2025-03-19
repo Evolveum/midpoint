@@ -72,6 +72,9 @@ public class PrismSchemaTypeUtil {
 
         prismSchemaBean.getEnumerationType().forEach(enumTypeBean -> {
             List<ValueDefinitionImpl> values = collectValues(enumTypeBean);
+            if (enumTypeBean.getBaseType() == null) {
+                enumTypeBean.setBaseType(DOMUtil.XSD_STRING);
+            }
             EnumerationTypeDefinitionImpl enumTypeDefinition = new EnumerationTypeDefinitionImpl(
                     new QName(
                             prismSchemaBean.getNamespace(),

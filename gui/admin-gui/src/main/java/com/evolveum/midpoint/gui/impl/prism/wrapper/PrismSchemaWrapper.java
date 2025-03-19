@@ -88,6 +88,7 @@ public class PrismSchemaWrapper extends PrismContainerWrapperImpl<PrismSchemaTyp
                                             objectWrapper,
                                             WebPrismUtil.cleanupEmptyContainerValue(pVal.getNewValue().clone())));
                             deltas.add((D) delta);
+                            break;
                         }
                         LOGGER.trace("Computed deltas:\n {}", subDeltas);
                     }

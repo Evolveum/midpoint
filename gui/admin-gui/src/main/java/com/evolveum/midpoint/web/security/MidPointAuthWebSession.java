@@ -11,6 +11,8 @@ import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.authentication.api.util.AuthUtil;
 import com.evolveum.midpoint.common.AvailableLocale;
+import com.evolveum.midpoint.model.api.authentication.CompiledGuiProfile;
+import com.evolveum.midpoint.model.api.authentication.GuiProfiledPrincipal;
 import com.evolveum.midpoint.security.api.Authorization;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.util.DebugDumpable;
@@ -87,6 +89,13 @@ public class MidPointAuthWebSession extends AuthenticatedWebSession implements D
         MidPointPrincipal principal = AuthUtil.getPrincipalUser();
         if (principal == null) {
             return;
+        }
+
+        if (principal instanceof GuiProfiledPrincipal guiProfiledPrincipal) {
+            CompiledGuiProfile profile = guiProfiledPrincipal.getCompiledGuiProfile();
+            if (profile.isInvalid()) {
+                sessionStorage.clearPageStorage();
+            }
         }
 
         //setting locale
