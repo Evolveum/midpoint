@@ -485,10 +485,8 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
 
         List<RoleAnalysisAttributeDef> userAnalysisAttributeDef = this.resolveAnalysisAttributes(session, UserType.COMPLEX_TYPE);
         List<RoleAnalysisAttributeDef> roleAnalysisAttributeDef = this.resolveAnalysisAttributes(session, RoleType.COMPLEX_TYPE);
-        if (userAnalysisAttributeDef != null && roleAnalysisAttributeDef != null) {
-            resolveDetectedPatternsAttributes(roleAnalysisClusterDetectionTypes, userExistCache, roleExistCache, task, result,
-                    roleAnalysisAttributeDef, userAnalysisAttributeDef);
-        }
+        resolveDetectedPatternsAttributes(roleAnalysisClusterDetectionTypes, userExistCache, roleExistCache, task, result,
+                roleAnalysisAttributeDef, userAnalysisAttributeDef);
 
         AnalysisClusterStatisticType clusterStatistics = clusterTypeObject.asObjectable().getClusterStatistics();
 
