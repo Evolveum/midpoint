@@ -11,6 +11,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 
+import com.evolveum.midpoint.prism.Freezable;
 import com.evolveum.midpoint.prism.PrismObject;
 
 import com.google.common.collect.ArrayListMultimap;
@@ -41,7 +42,7 @@ public class FunctionLibrary {
 
     @NotNull private final String oid;
 
-    /** The "raw" definition of the library. */
+    /** The "raw" definition of the library. Immutable. */
     @NotNull private final FunctionLibraryType libraryBean;
 
     /** An optimization: functions indexed by name. */
@@ -71,7 +72,7 @@ public class FunctionLibrary {
     public static FunctionLibrary of(@NotNull FunctionLibraryType bean) throws ConfigurationException {
         return new FunctionLibrary(
                 argNonNull(bean.getOid(), "Function Library has no OID %s", bean),
-                bean);
+                Freezable.doFreeze(bean));
     }
 
     public @NotNull String getName() {

@@ -123,7 +123,7 @@ class CacheUpdater {
             }
         }
         // Assuming that loadedList is mutable as it was returned from repo (if readOnly == false)
-        // and that it was frozen above (if readOnly == true)
+        // and that it was or was not frozen above (if readOnly == true)
         return loadedResultList;
     }
 

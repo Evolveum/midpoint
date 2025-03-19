@@ -258,10 +258,7 @@ abstract class CachedOpExecution<
     /** Prepares mutable or immutable object (presumably from the repo service) for returning to the caller. */
     @NotNull <X extends Freezable & Cloneable> X toReturnValueFromAny(X any) {
         if (readOnly) {
-            // This is a bit questionable: the R/O option does not mean the returned object MUST be immutable.
-            // (As per the current contract.) But it is a reasonable assumption.
-            any.freeze();
-            return any;
+            return any; // The returned object may or may not be immutable
         } else if (any.isImmutable()) {
             return CloneUtil.cloneCloneable(any); // caller expects a mutable copy
         } else {

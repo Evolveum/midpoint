@@ -13,15 +13,15 @@ import java.util.List;
 import com.evolveum.midpoint.model.common.expression.evaluator.AbstractSearchExpressionEvaluator.ObjectFound;
 import com.evolveum.midpoint.prism.PrismValue;
 
-public class QueryResult<V extends PrismValue> {
+class QueryResult<V extends PrismValue> {
 
     private final Collection<? extends ObjectFound<?, V>> resultingList;
 
-    public QueryResult(Collection<? extends ObjectFound<?, V>> resultingList) {
+    QueryResult(Collection<? extends ObjectFound<?, V>> resultingList) {
         this.resultingList = resultingList;
     }
 
-    public List<V> getResultingList() {
+    List<V> getResultingList() {
         return ObjectFound.unwrap(resultingList);
     }
 }

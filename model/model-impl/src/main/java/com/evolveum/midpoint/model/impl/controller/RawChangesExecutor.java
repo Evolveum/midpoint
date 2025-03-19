@@ -397,7 +397,7 @@ class RawChangesExecutor {
         try {
             PrismObject<T> storedObject =
                     cacheRepositoryService.getObject(objectTypeClass, oid, readOnly(), result);
-            PrismObject<T> updatedObject = storedObject.clone();
+            PrismObject<T> updatedObject = storedObject.mutableCopy();
             ModelImplUtils.resolveReferences(
                     updatedObject,
                     cacheRepositoryService,

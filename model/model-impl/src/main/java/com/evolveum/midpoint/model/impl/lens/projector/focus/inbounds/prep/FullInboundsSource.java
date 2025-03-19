@@ -260,6 +260,7 @@ public class FullInboundsSource extends InboundsSource {
             try {
                 object = beans.provisioningService.getObject(
                         ShadowType.class, oid, readOnly(), context.env.task, subResult);
+                object.freeze();
                 entitlementMap.put(object.getOid(), object); // The OID may be different -- is that OK?
                 entitlementMap.put(oid, object);
                 subResult.close();
