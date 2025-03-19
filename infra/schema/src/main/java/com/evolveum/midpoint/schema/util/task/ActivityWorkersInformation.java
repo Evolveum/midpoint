@@ -8,11 +8,15 @@
 package com.evolveum.midpoint.schema.util.task;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 import javax.xml.datatype.XMLGregorianCalendar;
+
+import com.evolveum.midpoint.schema.util.LocalizationUtil;
+import com.evolveum.midpoint.util.LocalizableMessage;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -46,7 +50,11 @@ public class ActivityWorkersInformation implements DebugDumpable, Serializable {
     /** If stalled, then since when. To be set, all executing workers must be stalled; and the latest time is taken here. */
     @Nullable private XMLGregorianCalendar completelyStalledSince;
 
-    @Nullable private OperationResultStatusType healthStatus;
+    /** Error/warning messages from task execution in localizable format */
+    @NotNull private List<LocalizableMessage> userFriendlyHealthMessages = new ArrayList<>();
+
+    /** Error/warning messages from task execution, technical */
+    @NotNull private List<String> healthMessages = new ArrayList<>();
 
     static @NotNull ActivityWorkersInformation fromActivityStateOverview(
             @NotNull ActivityStateOverviewType stateOverview) {
@@ -56,8 +64,9 @@ public class ActivityWorkersInformation implements DebugDumpable, Serializable {
             if (state.getRealizationState() == ActivitySimplifiedRealizationStateType.IN_PROGRESS) {
                 workersInformation.updateWorkersCounters(state.getTask());
                 workersInformation.updateCompletelyStalledSince(state.getTask());
-                workersInformation.updateWorkersHealthStatus(state.getTask());
             }
+
+            workersInformation.updateWorkersHealthMessages(state.getTask());
         });
 
         return workersInformation;
@@ -86,14 +95,18 @@ public class ActivityWorkersInformation implements DebugDumpable, Serializable {
         }
     }
 
-    private void updateWorkersHealthStatus(@NotNull List<ActivityTaskStateOverviewType> tasks) {
-        boolean hasFailedTasks = tasks.stream().anyMatch(this::isTaskFailed);
-
-        healthStatus = hasFailedTasks ? OperationResultStatusType.FATAL_ERROR : OperationResultStatusType.SUCCESS;
+    private void updateWorkersHealthMessages(@NotNull List<ActivityTaskStateOverviewType> states) {
+        for (ActivityTaskStateOverviewType state: states) {
+            if (state.getUserFriendlyMessage() != null) {
+                userFriendlyHealthMessages.add(LocalizationUtil.toLocalizableMessage(state.getUserFriendlyMessage()));
+            }
+            if (state.getMessage() != null) {
+                healthMessages.add(state.getMessage());
+            }
+        }
     }
 
     private boolean isTaskFailed(TaskType task) {
-        // todo this doesn't seem right
         return task.getExecutionState() == TaskExecutionStateType.SUSPENDED
                 && task.getResultStatus() == OperationResultStatusType.FATAL_ERROR;
     }
@@ -170,7 +183,17 @@ public class ActivityWorkersInformation implements DebugDumpable, Serializable {
     }
 
     public @Nullable OperationResultStatusType getHealthStatus() {
-        return healthStatus;
+        return getWorkersFailed() > 0 || !userFriendlyHealthMessages.isEmpty() ?
+                OperationResultStatusType.FATAL_ERROR :
+                OperationResultStatusType.SUCCESS;
+    }
+
+    public @NotNull List<String> getHealthMessages() {
+        return healthMessages;
+    }
+
+    public @NotNull List<LocalizableMessage> getUserFriendlyHealthMessages() {
+        return userFriendlyHealthMessages;
     }
 
     @Override

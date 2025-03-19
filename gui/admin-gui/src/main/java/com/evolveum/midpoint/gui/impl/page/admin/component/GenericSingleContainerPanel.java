@@ -6,6 +6,8 @@
  */
 package com.evolveum.midpoint.gui.impl.page.admin.component;
 
+import com.evolveum.midpoint.gui.impl.page.admin.task.component.TaskActivityPanel;
+
 import org.apache.wicket.markup.html.panel.Fragment;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.PropertyModel;
@@ -218,6 +220,19 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
         ),
         containerPath = "behavior",
         type = "ShadowBehaviorType",
+        expanded = true
+)
+@PanelInstance(
+        identifier = "activityPoliciesPanel",
+        applicableForType = TaskType.class,
+        childOf = TaskActivityPanel.class,
+        display = @PanelDisplay(
+                label = "ActivityDefinitionType.policies",
+                icon = GuiStyleConstants.CLASS_CIRCLE_FULL,
+                order = 35
+        ),
+        containerPath = "activity/policies",
+        type = "ActivityPoliciesType",
         expanded = true
 )
 public class GenericSingleContainerPanel<C extends Containerable, O extends ObjectType> extends AbstractObjectMainPanel<O, ObjectDetailsModels<O>> {

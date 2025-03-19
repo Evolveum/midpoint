@@ -89,6 +89,7 @@ public class GuiProfiledPrincipalManagerImpl
             .add(CacheInvalidationEventSpecification.of(ArchetypeType.class, ImmutableSet.of(ArchetypeType.F_ARCHETYPE_POLICY, FocusType.F_ASSIGNMENT, RoleType.F_ADMIN_GUI_CONFIGURATION, FocusType.F_ACTIVATION) ,MODIFY_DELETE_CHANGES))
             .add(CacheInvalidationEventSpecification.of(AbstractRoleType.class,ASSIGNMENTS_AND_ADMIN_GUI_PATHS,MODIFY_DELETE_CHANGES))
             .add(CacheInvalidationEventSpecification.of(SystemConfigurationType.class, ImmutableSet.of(SystemConfigurationType.F_ADMIN_GUI_CONFIGURATION), MODIFY_DELETE_CHANGES))
+            .add(CacheInvalidationEventSpecification.of(SchemaType.class, ImmutableSet.of(SchemaType.F_DEFINITION), CacheInvalidationEventSpecification.ALL_CHANGES))
             .build();
 
 
@@ -462,7 +463,7 @@ public class GuiProfiledPrincipalManagerImpl
             LOGGER.debug("Checking {} if it is derived from {}", midPointPrincipal, oid);
             LOGGER.trace("      is actually derived from {}", compiledProfile.getDependencies());
 
-            if (oid == null || compiledProfile.derivedFrom(oid)) {
+            if (oid == null || compiledProfile.derivedFrom(oid) || SchemaType.class.isAssignableFrom(type)) {
                 LOGGER.debug("Markin profile invalid for {} because of change in {}:{}", midPointPrincipal, type, oid);
                 compiledProfile.markInvalid();
             }
@@ -525,6 +526,7 @@ public class GuiProfiledPrincipalManagerImpl
                     null,
                     options);
             principal.clearEffectivePrivilegesModification(); // we just recomputed them strictly from user's assignments
+
             return principal.getCompiledGuiProfile();
         } finally {
             securityContextManager.clearTemporaryPrincipalOid();

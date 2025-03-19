@@ -22,6 +22,7 @@ import java.util.Objects;
 
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.repo.common.activity.run.*;
+import com.evolveum.midpoint.schema.util.LocalizationUtil;
 import com.evolveum.midpoint.schema.util.task.ActivityStateOverviewUtil;
 
 import org.jetbrains.annotations.NotNull;
@@ -174,13 +175,49 @@ public class ActivityTreeStateOverview {
                 entry.setResultStatus(runResult.getOperationResultStatusBean());
             }
             // bucket progress is updated on bucketing operations
-            findOrCreateTaskEntry(entry, run.getRunningTask().getSelfReference())
+            ActivityTaskStateOverviewType stateOverview = findOrCreateTaskEntry(entry, run.getRunningTask().getSelfReference())
                     .progress(progressVisible && run.isProgressSupported() ?
                             run.getActivityState().getLiveProgress().getOverview() : null)
                     .executionState(ActivityTaskExecutionStateType.NOT_RUNNING)
                     .resultStatus(run.getCurrentResultStatusBean());
+
+            recordStateOverviewMessageFromRunResult(stateOverview, runResult);
+
             return createOverviewReplaceDeltas(overview);
         }, result);
+    }
+
+    private void recordStateOverviewMessageFromOperationResult(ActivityTaskStateOverviewType stateOverview, OperationResult result) {
+        if (result == null || !(result.isWarning() || result.isPartialError() || result.isError())) {
+            return;
+        }
+
+        stateOverview
+                .message(result.getMessage())
+                .userFriendlyMessage(LocalizationUtil.createLocalizableMessageType(result.getUserFriendlyMessage()));
+    }
+
+    private void recordStateOverviewMessageFromRunResult(ActivityTaskStateOverviewType stateOverview, ActivityRunResult runResult) {
+        if (runResult == null || runResult.getThrowable() == null) {
+            return;
+        }
+
+        if (!runResult.isError() && runResult.getOperationResultStatusBean() != OperationResultStatusType.WARNING) {
+            // clear message if there's no warning/error
+            stateOverview
+                    .message(null)
+                    .userFriendlyMessage(null);
+            return;
+        }
+
+        if (runResult.getThrowable() instanceof CommonException ce) {
+            stateOverview
+                    .message(ce.getLocalizedMessage())
+                    .userFriendlyMessage(LocalizationUtil.createLocalizableMessageType(ce.getUserFriendlyMessage()));
+        } else {
+            stateOverview
+                    .message(runResult.getThrowable().getMessage());
+        }
     }
 
     /**
@@ -272,11 +309,14 @@ public class ActivityTreeStateOverview {
             } else {
                 entry.setBucketProgress(bucketProgress.clone());
             }
-            findOrCreateTaskEntry(entry, run.getRunningTask().getSelfReference())
+            ActivityTaskStateOverviewType stateOverview = findOrCreateTaskEntry(entry, run.getRunningTask().getSelfReference())
                     .progress(run.isProgressSupported() ?
                             run.getActivityState().getLiveProgress().getOverview() : null)
                     .stalledSince((XMLGregorianCalendar) null)
                     .resultStatus(run.getCurrentResultStatusBean());
+
+            recordStateOverviewMessageFromOperationResult(stateOverview, run.getRunningTask().getResult());
+
             return createOverviewReplaceDeltas(overview);
         }, result);
 
@@ -310,10 +350,13 @@ public class ActivityTreeStateOverview {
             var taskBean = existingTaskBean.clone(); // todo check if the code below can change the data
             ActivityStateOverviewType overview = getOrCreateStateOverview(taskBean);
             ActivityStateOverviewType entry = findOrCreateEntry(overview, run.getActivityPath());
-            findOrCreateTaskEntry(entry, run.getRunningTask().getSelfReference())
+            ActivityTaskStateOverviewType stateOverview = findOrCreateTaskEntry(entry, run.getRunningTask().getSelfReference())
                     .stalledSince((XMLGregorianCalendar) null)
                     .progress(run.getActivityState().getLiveProgress().getOverview())
                     .resultStatus(run.getCurrentResultStatusBean());
+
+            recordStateOverviewMessageFromOperationResult(stateOverview, run.getRunningTask().getResult());
+
             return createOverviewReplaceDeltas(overview);
         }, result);
 

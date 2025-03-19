@@ -24,6 +24,7 @@ import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.util.LocalizableMessage;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.page.admin.server.dto.OperationResultStatusPresentationProperties;
+import com.evolveum.midpoint.web.util.TooltipBehavior;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskExecutionStateType;
 
 public class TaskProgressPanel extends BasePanel<TaskProgress> {
@@ -60,8 +61,7 @@ public class TaskProgressPanel extends BasePanel<TaskProgress> {
     private boolean showTaskHealth() {
         TaskProgress progress = getModelObject();
 
-        if (progress.getExecutionState() == TaskExecutionStateType.SUSPENDED
-                || progress.getExecutionState() == TaskExecutionStateType.CLOSED) {
+        if (progress.getExecutionState() == TaskExecutionStateType.CLOSED) {
             return false;
         }
 
@@ -129,6 +129,19 @@ public class TaskProgressPanel extends BasePanel<TaskProgress> {
 
         Label taskProblemLabel = new Label(ID_TASK_PROBLEM_LABEL, taskProblemModel);
         taskProblemLabel.add(new VisibleBehaviour(() -> showTaskHealth() && StringUtils.isNotEmpty(taskProblemModel.getObject())));
+        taskProblemLabel.add(
+                AttributeAppender.append("title",
+                        () -> {
+                            List<LocalizableMessage> msgs = getModelObject().getTaskHealthUserFriendlyMessages();
+                            List<String> translated = msgs.stream()
+                                    .map(msg -> LocalizationUtil.translateMessage(msg))
+                                    .distinct()
+                                    .sorted()
+                                    .toList();
+
+                            return String.join("\n", translated);
+                        }));
+        taskProblemLabel.add(new TooltipBehavior());
         add(taskProblemLabel);
     }
 

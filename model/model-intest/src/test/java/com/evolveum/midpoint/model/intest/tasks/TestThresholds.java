@@ -22,12 +22,13 @@ import com.evolveum.icf.dummy.resource.ConflictException;
 import com.evolveum.icf.dummy.resource.DummyAccount;
 import com.evolveum.icf.dummy.resource.SchemaViolationException;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.test.DummyResourceContoller;
 
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SimulationResultType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.jetbrains.annotations.NotNull;
 import org.springframework.test.annotation.DirtiesContext;
@@ -43,9 +44,6 @@ import com.evolveum.midpoint.test.DummyObjectsCreator;
 import com.evolveum.midpoint.test.DummyTestResource;
 import com.evolveum.midpoint.test.TestObject;
 import com.evolveum.midpoint.util.exception.CommonException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 /**
  * Tests the thresholds functionality.
@@ -79,6 +77,9 @@ public abstract class TestThresholds extends AbstractEmptyModelIntegrationTest {
 
     private static final DummyTestResource RESOURCE_SOURCE = new DummyTestResource(TEST_DIR, "resource-dummy-source.xml",
             "40f8fb21-a473-4da7-bbd0-7019d3d450a5", "source", DummyResourceContoller::populateWithDefaultSchema);
+
+    private static final DummyTestResource RESOURCE_SOURCE_SLOW = new DummyTestResource(TEST_DIR, "resource-dummy-source-slow.xml",
+            "1645e542-d034-4118-b8af-97c4d22d81d6", "source-slow", DummyResourceContoller::populateWithDefaultSchema);
 
     static final int ACCOUNTS = 100;
     private static final String ACCOUNT_NAME_PATTERN = "a%02d";
@@ -115,6 +116,7 @@ public abstract class TestThresholds extends AbstractEmptyModelIntegrationTest {
         ruleDeleteId = determineSingleInducedRuleId(ROLE_DELETE_5.oid, initResult);
 
         initDummyResource(RESOURCE_SOURCE, initTask, initResult);
+        initDummyResource(RESOURCE_SOURCE_SLOW, initTask, initResult);
 
         usersBefore = getObjectCount(UserType.class);
         displayValue("users before", usersBefore);
@@ -608,6 +610,54 @@ public abstract class TestThresholds extends AbstractEmptyModelIntegrationTest {
                 .assertSuccess();
     }
 
+    @Test
+    public void test520ReconcileWithExecutionTime() throws Exception {
+        given();
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        TestObject<TaskType> reconTask = getReconciliationWithExecutionTimeTask();
+
+        when();
+
+        deleteIfPresent(reconTask, result);
+        addObject(reconTask, task, result,
+                aggregateCustomizer(
+                        executionTimeCustomizer("PT2S")));
+        waitForTaskSuspend(reconTask.oid, result, getTimeout(), 500);
+
+        then();
+
+        assertTest520TaskAfter(reconTask);
+    }
+
+    protected Consumer<PrismObject<TaskType>> executionTimeCustomizer(String exceedsExecutionTimeThreshold) {
+        return object -> {
+            if (exceedsExecutionTimeThreshold == null) {
+                return;
+            }
+
+            object.asObjectable().getActivity()
+                    .beginPolicies()
+                        .beginPolicy()
+                            .name("Max. execution time is " + exceedsExecutionTimeThreshold)
+                            .beginPolicyConstraints()
+                                .beginExecutionTime()
+                                    .exceeds(XmlTypeConverter.createDuration(exceedsExecutionTimeThreshold))
+                                .<ActivityPolicyConstraintsType>end()
+                            .<ActivityPolicyType>end()
+                            .beginPolicyActions()
+                                .beginSuspendTask()
+                                    // no parameters
+                                .<ActivityPolicyActionsType>end()
+                            .<ActivityPolicyType>end()
+                        .<ActivityPoliciesType>end()
+                    .<ActivityDefinitionType>end();
+        };
+    }
+
+    abstract void assertTest520TaskAfter(TestObject<TaskType> reconTask) throws SchemaException, ObjectNotFoundException;
+
     abstract void assertTest420TaskAfter(TestObject<TaskType> importTask) throws SchemaException, ObjectNotFoundException;
 
     abstract TestObject<TaskType> getSimulateTask();
@@ -621,6 +671,8 @@ public abstract class TestThresholds extends AbstractEmptyModelIntegrationTest {
     abstract TestObject<TaskType> getReconciliationSimulateExecuteTask();
 
     abstract TestObject<TaskType> getReconciliationExecuteTask();
+
+    abstract TestObject<TaskType> getReconciliationWithExecutionTimeTask();
 
     abstract long getTimeout();
 

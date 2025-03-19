@@ -96,6 +96,7 @@ public class AggregatedEventHandler extends BaseHandler<Event, BaseEventHandlerT
             shouldContinue = shouldContinue && processNotifiers(configBean.getSimpleReportNotifier(), o, ctx, result);
             shouldContinue = shouldContinue && processNotifiers(configBean.getSimplePolicyRuleNotifier(), o, ctx, result);
             shouldContinue = shouldContinue && processNotifiers(configBean.getTimeValidityNotifier(), o, ctx, result);
+            shouldContinue = shouldContinue && processNotifiers(configBean.getSimpleActivityPolicyRuleNotifier(), o, ctx, result);
         }
 
         logEnd(LOGGER, ctx.event(), shouldContinue);

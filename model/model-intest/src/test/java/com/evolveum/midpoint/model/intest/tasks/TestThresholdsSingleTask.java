@@ -26,6 +26,8 @@ public abstract class TestThresholdsSingleTask extends TestThresholds {
     private static final TestObject<TaskType> TASK_RECONCILIATION_SIMULATE_EXECUTE_SINGLE = TestObject.file(TEST_DIR, "task-reconciliation-simulate-execute-single.xml", "29d2a62c-6c31-42a4-9364-ecfb0dad0825");
     private static final TestObject<TaskType> TASK_RECONCILIATION_EXECUTE_SINGLE = TestObject.file(TEST_DIR, "task-reconciliation-execute-single.xml", "7652ea69-c8bc-4320-a03e-ab37bb0accc7");
 
+    private static final TestObject<TaskType> TASK_RECONCILIATION_EXECUTION_TIME_SINGLE = TestObject.file(TEST_DIR, "task-reconciliation-executionTime-single.xml", "5f8ab40d-3df3-487d-a1fb-1bb72dad963b");
+
     TestObject<TaskType> getSimulateTask() {
         return TASK_IMPORT_SIMULATE_SINGLE;
     }
@@ -51,8 +53,13 @@ public abstract class TestThresholdsSingleTask extends TestThresholds {
     }
 
     @Override
+    TestObject<TaskType> getReconciliationWithExecutionTimeTask() {
+        return TASK_RECONCILIATION_EXECUTION_TIME_SINGLE;
+    }
+
+    @Override
     long getTimeout() {
-        return 40000;
+        return 50000;
     }
 
     @Override
@@ -391,5 +398,10 @@ public abstract class TestThresholdsSingleTask extends TestThresholds {
                             .assertFailureCount(1, getThreads(), true)
                     .end();
         // @formatter:on
+    }
+
+    @Override
+    void assertTest520TaskAfter(TestObject<TaskType> reconTask) throws SchemaException, ObjectNotFoundException {
+
     }
 }

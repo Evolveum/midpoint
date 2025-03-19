@@ -12,6 +12,7 @@ import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.repo.common.activity.run.ActivityRunException;
+import com.evolveum.midpoint.repo.common.activity.run.UpdateActivityPoliciesOperation;
 import com.evolveum.midpoint.repo.common.activity.run.state.counters.CountersIncrementOperation;
 import com.evolveum.midpoint.repo.common.activity.run.CommonTaskBeans;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
@@ -555,6 +556,17 @@ public abstract class ActivityState implements DebugDumpable {
         ItemPath counterGroupItemPath = stateItemPath.append(ActivityStateType.F_COUNTERS, counterGroup.getItemName());
         return new CountersIncrementOperation(getTask(), counterGroupItemPath, countersIdentifiers, beans)
                 .execute(result);
+    }
+    //endregion
+
+    //region Policies (thresholds)
+    public Map<String, ActivityPolicyStateType> updatePolicies(
+            @NotNull Collection<ActivityPolicyStateType> policies, @NotNull OperationResult result)
+            throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException {
+
+        ItemPath policiesItemPath = stateItemPath.append(ActivityStateType.F_POLICIES, ActivityPoliciesStateType.F_ACTIVITY_POLICIES);
+
+        return new UpdateActivityPoliciesOperation(getTask(), policiesItemPath, policies, beans).execute(result);
     }
     //endregion
 }
