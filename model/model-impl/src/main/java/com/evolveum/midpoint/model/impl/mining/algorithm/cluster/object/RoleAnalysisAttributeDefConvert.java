@@ -47,8 +47,7 @@ public class RoleAnalysisAttributeDefConvert implements Serializable {
         this.isMultiValue = attributeForAnalysis.isMultiValue();
         this.roleAnalysisAttributeDef = attributeForAnalysis;
         this.attributeDisplayValue = attributeForAnalysis.getDisplayValue();
-        this.similarity = similarity * 0.01;
-        this.similarity = rule.getSimilarity();
+        this.similarity = rule.getSimilarity() * 0.01;
         this.weight = rule.getWeight();
     }
 
