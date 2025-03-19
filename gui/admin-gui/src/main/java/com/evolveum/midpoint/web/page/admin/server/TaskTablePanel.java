@@ -9,7 +9,10 @@ package com.evolveum.midpoint.web.page.admin.server;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import javax.xml.datatype.XMLGregorianCalendar;
+
+import com.evolveum.midpoint.schema.util.task.TaskTypeUtil;
+
+import com.evolveum.midpoint.web.page.admin.server.dto.TaskDtoExecutionState;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -43,7 +46,6 @@ import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.task.ActivityDefinitionBuilder;
 import com.evolveum.midpoint.schema.util.task.ActivityStateUtil;
 import com.evolveum.midpoint.schema.util.task.TaskInformation;
-import com.evolveum.midpoint.schema.util.task.TaskTypeUtil;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
@@ -58,10 +60,11 @@ import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.component.util.SerializableBiConsumer;
 import com.evolveum.midpoint.web.component.util.SerializableFunction;
-import com.evolveum.midpoint.web.page.admin.server.dto.TaskDtoExecutionState;
 import com.evolveum.midpoint.web.page.admin.server.dto.TaskInformationUtil;
 import com.evolveum.midpoint.web.util.TaskOperationUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
+import javax.xml.datatype.XMLGregorianCalendar;
 
 @PageDescriptor(
         urls = {
@@ -253,6 +256,16 @@ public abstract class TaskTablePanel extends MainObjectListPanel<TaskType> {
         return columns;
     }
 
+    private LoadableDetachableModel<TaskExecutionProgress> createTaskExecutionProgressModel(SelectableBean<TaskType> bean) {
+        return new LoadableDetachableModel<>() {
+
+            @Override
+            protected TaskExecutionProgress load() {
+                return createTaskExecutionProgress(bean);
+            }
+        };
+    }
+
     private AbstractExportableColumn<SelectableBean<TaskType>, String> createStatusColumn() {
         return new AbstractExportableColumn<>(
                 createStringResource("pageTasks.task.status"),
@@ -260,26 +273,23 @@ public abstract class TaskTablePanel extends MainObjectListPanel<TaskType> {
 
             @Override
             public IModel<?> getDataModel(IModel<SelectableBean<TaskType>> rowModel) {
-                return new LoadableDetachableModel<TaskProgress>() {
-
-                    @Override
-                    protected TaskProgress load() {
-                        return createTaskProgress(rowModel.getObject());
-                    }
-                };
+                return createTaskExecutionProgressModel(rowModel.getObject());
             }
 
             @Override
             protected Component createDisplayComponent(String componentId, IModel<?> dataModel) {
-                return new TaskProgressPanel(componentId, (IModel<TaskProgress>) dataModel);
+                return new TaskProgressPanel(componentId, (IModel<TaskExecutionProgress>) dataModel);
             }
         };
     }
 
-    private TaskProgress createTaskProgress(SelectableBean<TaskType> bean) {
-        TaskProgress progress = new TaskProgress();
+    private TaskExecutionProgress createTaskExecutionProgress(SelectableBean<TaskType> bean) {
+        TaskExecutionProgress progress = new TaskExecutionProgress();
 
         TaskInformation info = getAttachedTaskInformation(bean);
+
+        String executionStateMessage = createExecutionStateMessage(bean, info);
+        progress.setExecutionStateMessage(executionStateMessage);
 
         progress.setExecutionState(info.getTask().getExecutionState());
         progress.setComplete(info.isComplete());
@@ -304,39 +314,30 @@ public abstract class TaskTablePanel extends MainObjectListPanel<TaskType> {
                 createStringResource("pageTasks.task.execution")) {
 
             @Override
-            public IModel<String> getDataModel(IModel<SelectableBean<TaskType>> rowModel) {
-                return new LoadableDetachableModel<>() {
+            public IModel<TaskExecutionProgress> getDataModel(IModel<SelectableBean<TaskType>> rowModel) {
+                return createTaskExecutionProgressModel(rowModel.getObject());
+            }
 
-                    @Override
-                    protected String load() {
-                        if (rowModel == null || rowModel.getObject() == null || rowModel.getObject().getValue() == null) {
-                            return "";
-                        }
-
-                        SelectableBean<TaskType> bean = rowModel.getObject();
-                        TaskType task = bean.getValue();
-                        TaskDtoExecutionState state =
-                                TaskDtoExecutionState.fromTaskExecutionState(
-                                        task.getExecutionState(), task.getNodeAsObserved() != null);
-
-                        if (state == null) {
-                            return "";
-                        }
-
-                        return createExecutionStateMessage(bean, state);
-                    }
-                };
+            @Override
+            protected Component createDisplayComponent(String componentId, IModel<?> dataModel) {
+                return new TaskExecutionPanel(componentId, (IModel<TaskExecutionProgress>) dataModel);
             }
         };
     }
 
-    private String createExecutionStateMessage(SelectableBean<TaskType> bean, TaskDtoExecutionState state) {
+    private String createExecutionStateMessage(SelectableBean<TaskType> bean, TaskInformation info) {
         TaskType task = bean.getValue();
+
+        TaskDtoExecutionState state =
+                TaskDtoExecutionState.fromTaskExecutionState(
+                        task.getExecutionState(), task.getNodeAsObserved() != null);
+        if (state == null) {
+            return null;
+        }
 
         switch (state) {
             case RUNNING:
-                TaskInformation taskInformation = getAttachedTaskInformation(bean);
-                String executingAt = taskInformation.getNodesDescription();
+                String executingAt = info.getNodesDescription();
                 if (StringUtils.isNotEmpty(executingAt)) {
                     return getString("PageTasks.task.execution.runningAt", executingAt);
                 }

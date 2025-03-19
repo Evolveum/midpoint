@@ -15,7 +15,9 @@ import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.util.LocalizableMessage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskExecutionStateType;
 
-public class TaskProgress implements Serializable {
+public class TaskExecutionProgress implements Serializable {
+
+    private String executionStateMessage;
 
     private TaskExecutionStateType executionState;
 
@@ -111,6 +113,14 @@ public class TaskProgress implements Serializable {
 
     public void setExecutionState(TaskExecutionStateType executionState) {
         this.executionState = executionState;
+    }
+
+    public String getExecutionStateMessage() {
+        return executionStateMessage;
+    }
+
+    public void setExecutionStateMessage(String executionStateMessage) {
+        this.executionStateMessage = executionStateMessage;
     }
 
     public OperationResultStatus getTaskHealthStatus() {
