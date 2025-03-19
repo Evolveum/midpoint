@@ -9,7 +9,7 @@ visibility: hidden
 :page-liquid:
 :page-toc: top
 
-Release {release-version} is a sixty-third midPoint release, code-named _Verne_.
+Release {release-version} is a sixty-fifth midPoint release, code-named _Verne_.
 The {release-version} release brings security, stability and miscellaneous bugfixes.
 
 ++++
@@ -37,6 +37,8 @@ Overall, midPoint 4.9 is a major step from the past into the future.
 
 == Changes with Respect To Version 4.9.1
 
+* Upgraded AD and LDAP Connector to 3.9.1, which fixes possible Mina Core vulnerability.
+* Upgraded Spring Boot to 3.3.9 and Tomcat 10.1.39 in order to fix possible Tomcat vulnerabilities.
 * bug:MID-10225[] Fix issue where opening of certification campaign stage hangs indefinitely.
 * Fixed "preview changes" and "access request" functionality when some projections are hidden by authorizations. See bug:MID-10397[].
 * Added documentation of xrefv:/midpoint/reference/support-4.9/resources/shadow/purpose/[shadow purpose]. See bug:MID-10419[].
@@ -389,13 +391,11 @@ See, e.g., bug:MID-9853[].
 ** Fixed NPE with multivalue attributes when delimiter is not defined. (bug:MID-8609[]).
 ** Fix UTF-8 BOM character in csv file during of discovery functions. (bug:MID-9497[] and bug:MID-9498[]).
 
-* New version (3.8) of xref:/connectors/connectors/com.evolveum.polygon.connector.ldap.LdapConnector/[AD/LDAP Connector] was released and bundled with midPoint. The connector suggest all names of columns for configuration properties related with name of column.
-** Native association support.
-** Possibility to choose attributes that should not be returned by default.
-** Possibility to choose to encode string values in case of the presence of non standard ASCII characters.
-** Workaround for open-ldap mandatory member attribute.
-** Possibility to specify used auxiliary object classes in connector configuration.
-** Allow to send the LDAP_DIRSYNC_OBJECT_SECURITY flag in Active Directory sync request control.
+* New version (3.9.1) of xref:/connectors/connectors/com.evolveum.polygon.connector.ldap.LdapConnector/[AD/LDAP Connector] was released and bundled with midPoint. The connector suggest all names of columns for configuration properties related with name of column.
+** Added support for _LAST_LOGIN_DATE_ attribute (capability).
+** Added new configuration option logSchemaErrors to log errors during schema operation.
+** Fix in the listing of ('out of the scope') attributes in object queries while using native references.
+** Bumped mina-core to 2.2.4.
 
 ++++
 {% include release-quality.html %}
@@ -510,7 +510,7 @@ specially for PostgreSQL database, taking advantage of native database features,
 This is now the *primary and recommended repository* for midPoint deployments.
 Following database engines are supported:
 
-* PostgreSQL 16, 15, 14
+* PostgreSQL 17, 16, 15, 14
 
 PostgreSQL 16 is recommended.
 
@@ -551,7 +551,7 @@ We reserve the right not to support customized web browsers.
 | Component | Version | Description
 
 | Tomcat
-| 10.1.28
+| 10.1.39
 | Web container
 
 | ConnId
@@ -559,7 +559,7 @@ We reserve the right not to support customized web browsers.
 | ConnId Connector Framework
 
 | xref:/connectors/connectors/com.evolveum.polygon.connector.ldap.LdapConnector/[LDAP connector bundle]
-| 3.8
+| 3.9.1
 | LDAP and Active Directory
 
 | xref:/connectors/connectors/com.evolveum.polygon.connector.csv.CsvConnector/[CSV connector]
@@ -621,7 +621,7 @@ Note that:
 === Upgrade From Other MidPoint Versions
 
 Upgrade from midPoint versions other than 4.8.x to midPoint {release-version} is not supported directly.
-Please upgrade to 4.8.5 first.
+Please upgrade to 4.8.7 first.
 
 === Deprecation, Feature Removal And Major Incompatible Changes Since 4.8
 
@@ -646,6 +646,8 @@ It refers to the most significant functionality removals and changes in this ver
 // More info xrefv:/midpoint/reference/support-4.9/deployment/ninja[here] and in bug:MID-7483[].
 
 === Changes In Initial Objects Since 4.9
+
+NOTE: This section is relevant to the majority of midPoint deployments.
 
 * 000-system-configuration.xml:
 Task execution constraints panel added to task advanced options GUI.
@@ -722,6 +724,10 @@ On-line version can be found in https://github.com/Evolveum/midpoint/tree/v{rele
 
 === Schema Changes Since 4.9
 
+NOTE: This section is relevant to the majority of midPoint deployments.
+It describes what data items were marked as deprecated, or removed altogether from the schema.
+You should at least scan through it - or use the `ninja` tool to check the deprecations for you.
+
 .Items being deprecated
 [%autowidth]
 |===
@@ -790,12 +796,28 @@ You can use `ninja` tool for this.
 [#_behavior_changes_since_4_9]
 === Behavior Changes Since 4.9
 
+[NOTE]
+====
+This section describes changes in the behavior that existed before this release.
+New behavior is not mentioned here.
+Plain bugfixes (correcting incorrect behavior) are skipped too.
+Only things that cannot be described as simple "fixing" something are described here.
+
+The changes since 4.9 are of interest probably for "advanced" midPoint deployments only.
+You should at least scan through them, though.
+====
+
 * Projections with denied access no longer cause "preview changes" operation to fail.
 +
 If a user has no authorization to see particular projection (shadow), the "preview changes" operation used to finish with "Access denied" fatal error even if there were parts of the result visible to the user.
 This is now changed (fixed): only the relevant projections are hidden now.
 All the remaining data are displayed to the user.
 See also bug:MID-10397[].
+
+* Starting with midPoint 4.9.1, we changed the default PostgresSQL schema for the native repository structure to match the name of the user accessing the database, i.e., `midpoint`.
+This approach is currently recommended for PostgresSQL environments and replaces previous configurations that point to the public schema.
+The change may lead to an issue where you seemingly lose midPoint configuration if you re-initialize your environment. +
+Refer to this xref:/midpoint/operations-manual/#recover-lost-configuration-in-midpoint-4-9-1[guide in the Operations Manual] for details on how to recover from the situation.
 
 [#_behavior_changes_since_4_8]
 === Behavior Changes Since 4.8

@@ -3079,7 +3079,7 @@
             <xsd:appinfo>
                 <a:container/>
                 <a:schemaContext>
-                    <a:type>tns:ShadowType</a:type> <!-- probably new resolver/algorithm will be needed-->
+                    <a:type>ShadowType</a:type> <!-- probably new resolver/algorithm will be needed-->
                 </a:schemaContext>
             </xsd:appinfo>
         </xsd:annotation>
@@ -4089,7 +4089,7 @@
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:schemaContext>
-                            <a:type>tns:FocusType</a:type>
+                            <a:type>FocusType</a:type>
                         </a:schemaContext>
                     </xsd:appinfo>
                 </xsd:annotation>
@@ -7355,7 +7355,6 @@
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:since>4.9.1</a:since>
-                        <a:since>4.10</a:since>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -7422,7 +7421,6 @@
             <xsd:appinfo>
                 <a:container/>
                 <a:since>4.9.1</a:since>
-                <a:since>4.10</a:since>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>

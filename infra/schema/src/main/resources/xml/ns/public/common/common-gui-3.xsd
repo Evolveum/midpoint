@@ -378,7 +378,7 @@
             <xsd:appinfo>
                 <a:container>true</a:container>
                 <a:schemaContext>
-                    <a:type>tns:UserType</a:type>
+                    <a:type>UserType</a:type>
                 </a:schemaContext>
             </xsd:appinfo>
         </xsd:annotation>
@@ -389,7 +389,7 @@
                 <xsd:annotation>
                      <xsd:appinfo>
                         <a:schemaContext>
-                            <a:type>tns:UserType</a:type>
+                            <a:type>UserType</a:type>
                         </a:schemaContext>
                     </xsd:appinfo>
                 </xsd:annotation>
@@ -401,7 +401,7 @@
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:schemaContext>
-                            <a:type>tns:UserType</a:type>
+                            <a:type>UserType</a:type>
                         </a:schemaContext>
                     </xsd:appinfo>
                 </xsd:annotation>
@@ -420,7 +420,7 @@
                         <a:deprecated>true</a:deprecated>
                         <a:deprecatedSince>4.8</a:deprecatedSince>
                         <a:schemaContext>
-                            <a:type>tns:UserType</a:type>
+                            <a:type>UserType</a:type>
                         </a:schemaContext>
                     </xsd:appinfo>
                 </xsd:annotation>
@@ -651,7 +651,7 @@
                     <xsd:appinfo>
                         <a:container/>
                         <a:schemaContext>
-                            <a:type>tns:UserType</a:type>
+                            <a:type>UserType</a:type>
                         </a:schemaContext>
                     </xsd:appinfo>
                 </xsd:annotation>
@@ -790,7 +790,7 @@
                 <xsd:annotation>
                     <xsd:appinfo>
                         <a:schemaContext>
-                            <a:type>tns:UserType</a:type>
+                            <a:type>UserType</a:type>
                         </a:schemaContext>
                     </xsd:appinfo>
                 </xsd:annotation>

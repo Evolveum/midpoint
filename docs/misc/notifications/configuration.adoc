@@ -650,8 +650,7 @@ Not available in expressionFilters.
 
 [TIP]
 ====
-Please refer to https://download.evolveum.com/midpoint/latest/midpoint-4.9-SNAPSHOT-javadoc/com/evolveum/midpoint/notifications/api/events/Event.html[Javadoc for com.evolveum.midpoint.notifications.api.events.Event] to learn about *all* possible variables.
-The methods documented in Javadoc can be used in your expressions.
+Please see below for Javadoc.
 
 Other variables are defined for specific event types which are defined as subinterfaces of `Event` package.
 ====
@@ -759,14 +758,24 @@ Please refer to the following documentation for the shorter notation rules:
 
 |===
 
+Please refer to the JavaDoc links below for a documentation of individual functions and variables.
+The methods documented in Javadoc can be used in your expressions.
+
+++++
+{% versionlinks
+since: "4.8"
+development: true
+columns:
+  - heading: JavaDoc
+    linkUrlPattern: "https://download.evolveum.com/midpoint/${download-tag}/midpoint-${maven-version}-javadoc/com/evolveum/midpoint/notifications/api/events/Event.html"
+    linkText: "JavaDoc"
+%}
+++++
 
 === Expression Variables Specific For Model Event
 
 [TIP]
 ====
-Please refer to https://download.evolveum.com/midpoint/latest/midpoint-4.9-SNAPSHOT-javadoc/com/evolveum/midpoint/notifications/api/events/ModelEvent.html[Javadoc for com.evolveum.midpoint.notifications.api.events.ModelEvent] to learn about *all* possible variables.
-The methods documented in Javadoc can be used in your expressions.
-
 All variables for `Event` can be used as well.
 ====
 
@@ -794,13 +803,25 @@ All variables for `Event` can be used as well.
 
 |===
 
+Please refer to the JavaDoc links below for a documentation of individual functions and variables.
+The methods documented in Javadoc can be used in your expressions.
+
+++++
+{% versionlinks
+since: "4.8"
+development: true
+columns:
+  - heading: JavaDoc
+    linkUrlPattern: "https://download.evolveum.com/midpoint/${download-tag}/midpoint-${maven-version}-javadoc/com/evolveum/midpoint/notifications/api/events/ModelEvent.html"
+    linkText: "JavaDoc"
+%}
+++++
+
+
 === Expression Variables Specific For ResourceObject Event
 
 [TIP]
 ====
-Please refer to https://download.evolveum.com/midpoint/latest/midpoint-4.9-SNAPSHOT-javadoc/com/evolveum/midpoint/notifications/api/events/ResourceObjectEvent.html[Javadoc for com.evolveum.midpoint.notifications.api.events.ResourceObjectEvent] to learn about *all* possible variables.
-The methods documented in Javadoc can be used in your expressions.
-
 All variables for `Event` can be used as well.
 ====
 
@@ -828,13 +849,25 @@ All variables for `Event` can be used as well.
 
 |===
 
+Please refer to the JavaDoc links below for a documentation of individual functions and variables.
+The methods documented in Javadoc can be used in your expressions.
+
+++++
+{% versionlinks
+since: "4.8"
+development: true
+columns:
+  - heading: JavaDoc
+    linkUrlPattern: "https://download.evolveum.com/midpoint/${download-tag}/midpoint-${maven-version}-javadoc/com/evolveum/midpoint/notifications/api/events/ResourceObjectEvent.html"
+    linkText: "JavaDoc"
+%}
+++++
+
+
 === Expression Variables Specific For WorkflowProcess Event
 
 [TIP]
 ====
-Please refer to https://download.evolveum.com/midpoint/latest/midpoint-4.9-SNAPSHOT-javadoc/com/evolveum/midpoint/notifications/api/events/WorkflowProcessEvent.html[Javadoc for com.evolveum.midpoint.notifications.api.events.WorkflowProcessEvent] to learn about *all* possible variables.
-The methods documented in Javadoc can be used in your expressions.
-
 All variables for `Event` can be used as well.
 ====
 
@@ -856,13 +889,24 @@ All variables for `Event` can be used as well.
 
 |===
 
+Please refer to the JavaDoc links below for a documentation of individual functions and variables.
+The methods documented in Javadoc can be used in your expressions.
+
+++++
+{% versionlinks
+since: "4.8"
+development: true
+columns:
+  - heading: JavaDoc
+    linkUrlPattern: "https://download.evolveum.com/midpoint/${download-tag}/midpoint-${maven-version}-javadoc/com/evolveum/midpoint/notifications/api/events/CaseEvent.html"
+    linkText: "JavaDoc"
+%}
+++++
+
 === Expression Variables Specific For WorkItemAllocation Event
 
 [TIP]
 ====
-Please refer to https://download.evolveum.com/midpoint/latest/midpoint-4.9-SNAPSHOT-javadoc/com/evolveum/midpoint/notifications/api/events/WorkItemEvent.html[Javadoc for com.evolveum.midpoint.notifications.api.events.WorkItemEvent] to learn about *all* possible variables.
-The methods documented in Javadoc can be used in your expressions.
-
 All variables for `Event` can be used as well.
 ====
 
@@ -908,6 +952,19 @@ Possible values:
 
 |===
 
+Please refer to the JavaDoc links below for a documentation of individual functions and variables.
+The methods documented in Javadoc can be used in your expressions.
+
+++++
+{% versionlinks
+since: "4.8"
+development: true
+columns:
+  - heading: JavaDoc
+    linkUrlPattern: "https://download.evolveum.com/midpoint/${download-tag}/midpoint-${maven-version}-javadoc/com/evolveum/midpoint/notifications/api/events/WorkItemEvent.html"
+    linkText: "JavaDoc"
+%}
+++++
 
 ////
 TODO document other expression variables

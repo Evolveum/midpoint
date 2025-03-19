@@ -111,7 +111,7 @@
 
     <groupId>com.evolveum.midpoint</groupId>
     <artifactId>midpoint</artifactId>
-    <version>4.9.2-SNAPSHOT</version>
+    <version>4.9.3-SNAPSHOT</version>
     <packaging>pom</packaging>
 
     <name>midPoint Project</name>
@@ -1009,7 +1009,7 @@
                 <groupId>com.evolveum.polygon</groupId>
                 <artifactId>connector-ldap</artifactId>
                 <!-- Do not forget to update provisioning/ucf-impl-connid/src/test/resources/connector-ldap.xml when changing connector version. -->
-                <version>3.8</version>
+                <version>3.9.1</version>
                 <exclusions>
                     <!-- Needed otherwise the JDK14 SLF4J binding can override the midpoint's logback binding -->
                     <exclusion>

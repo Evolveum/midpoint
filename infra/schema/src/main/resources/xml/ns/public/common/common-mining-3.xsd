@@ -1199,7 +1199,7 @@
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:schemaContext>
-                            <a:type>tns:UserType</a:type>
+                            <a:type>UserType</a:type>
                         </a:schemaContext>
                     </xsd:appinfo>
                 </xsd:annotation>
@@ -1214,7 +1214,7 @@
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:schemaContext>
-                            <a:type>tns:RoleType</a:type>
+                            <a:type>RoleType</a:type>
                         </a:schemaContext>
                     </xsd:appinfo>
                 </xsd:annotation>
@@ -1229,7 +1229,7 @@
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:schemaContext>
-                            <a:type>tns:AssignmentHolderType</a:type>
+                            <a:type>AssignmentHolderType</a:type>
                             <a:path>assignment</a:path>
                         </a:schemaContext>
                     </xsd:appinfo>

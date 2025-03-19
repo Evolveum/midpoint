@@ -1,12 +1,12 @@
-MidPoint 4.9.1 "Verne" Update 1
+MidPoint 4.9.2 "Verne" Update 2
 -------------------------------
 
-Release 4.9.1 is a sixty-third midPoint release code-named Verne.
-The 4.9.1 release brings security, stability and miscellaneous bugfixes.
+Release 4.9.2 is a sixty-fifth midPoint release code-named Verne.
+The 4.9.2 release brings security, stability and miscellaneous bugfixes.
 
-Release date: 30th January 2025
-Release type: Feature release
+Release date: 18th March 2025
+Release type: Maintenance release
 End of support: 18th October 2026
 
 Please see the release notes for detailed list of changes:
-https://docs.evolveum.com/midpoint/release/4.9.1/
+https://docs.evolveum.com/midpoint/release/4.9.2/

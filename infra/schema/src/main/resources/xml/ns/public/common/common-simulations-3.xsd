@@ -598,7 +598,7 @@
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:schemaContext>
-                            <a:type>tns:SimulationResultProcessedObjectType</a:type>
+                            <a:type>SimulationResultProcessedObjectType</a:type>
                         </a:schemaContext>
                     </xsd:appinfo>
                 </xsd:annotation>
@@ -745,7 +745,7 @@
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:schemaContext>
-                            <a:type>tns:MarkType</a:type>
+                            <a:type>MarkType</a:type>
                         </a:schemaContext>
                     </xsd:appinfo>
                 </xsd:annotation>
@@ -757,7 +757,7 @@
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:schemaContext>
-                            <a:type>tns:MarkType</a:type>
+                            <a:type>MarkType</a:type>
                         </a:schemaContext>
                     </xsd:appinfo>
                 </xsd:annotation>
