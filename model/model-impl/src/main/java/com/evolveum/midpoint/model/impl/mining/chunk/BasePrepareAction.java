@@ -9,6 +9,8 @@ package com.evolveum.midpoint.model.impl.mining.chunk;
 
 import java.util.*;
 
+import com.evolveum.midpoint.prism.path.ItemPath;
+
 import com.google.common.collect.ListMultimap;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -30,6 +32,8 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 
+import static com.evolveum.midpoint.common.mining.objects.analysis.RoleAnalysisAttributeDef.getRoleAnalysisArchetypeDef;
+
 public abstract class BasePrepareAction implements MiningStructure {
 
     RoleAnalysisProgressIncrement handler;
@@ -37,61 +41,8 @@ public abstract class BasePrepareAction implements MiningStructure {
     OperationResult result;
 
     DisplayValueOption option;
-
-    public RoleAnalysisCacheOption getUserCacheOption() {
-        return userCacheOption;
-    }
-
-    public RoleAnalysisCacheOption getRoleCacheOption() {
-        return roleCacheOption;
-    }
-
-    //TODO - add the correct path for the attributes
     RoleAnalysisCacheOption userCacheOption = generateUserCacheOption();
     RoleAnalysisCacheOption roleCacheOption = generateRoleCacheOption();
-
-    public RoleAnalysisCacheOption generateUserCacheOption() {
-        List<RoleAnalysisAttributeDef> itemDef = null;
-
-        if (option != null) {
-            itemDef = new ArrayList<>();
-            RoleAnalysisAttributeDef userItemValuePath = option.getUserAnalysisUserDef();
-            if (userItemValuePath != null) {
-                itemDef.add(userItemValuePath);
-            }
-            if (!itemDef.isEmpty()) {
-                return new RoleAnalysisCacheOption(itemDef);
-            }
-        }
-
-        return null;
-    }
-
-    /**
-     * Generates a {@link RoleAnalysisCacheOption} instance containing cache-specific properties
-     * used for managing the expanded user-permission table. This method processes the current
-     * {@code option} object to retrieve relevant attribute definitions that influence the
-     * display value for specific roles.
-     * This method is designed to handle an expanded structure, with the specific chunkName attribute selected.
-     */
-    public RoleAnalysisCacheOption generateRoleCacheOption() {
-        List<RoleAnalysisAttributeDef> itemDef = null;
-
-        //TODO only for expanded structure
-        if (option != null) {
-            itemDef = new ArrayList<>();
-            RoleAnalysisAttributeDef roleAnalysisRoleDef = option.getRoleAnalysisRoleDef();
-            if (roleAnalysisRoleDef != null) {
-                itemDef.add(roleAnalysisRoleDef);
-            }
-
-            if (!itemDef.isEmpty()) {
-                return new RoleAnalysisCacheOption(itemDef);
-            }
-        }
-
-        return null;
-    }
 
     /**
      * Executes the action for preparing the mining structure based on the specified cluster and mode.
@@ -456,5 +407,65 @@ public abstract class BasePrepareAction implements MiningStructure {
                     migratedRoles, false, task, result, cluster);
             expandUsersMap.putAll(userRolesMapMigrated);
         }
+    }
+
+    /**
+     * Generates a {@link RoleAnalysisCacheOption} instance containing cache-specific properties
+     * used for managing the expanded user-permission table. This method processes the current
+     * {@code option} object to retrieve relevant attribute definitions that influence the
+     * display value for specific user.
+     * This method is designed to handle an expanded structure, with the specific chunkName attribute selected.
+     */
+    private @Nullable RoleAnalysisCacheOption generateUserCacheOption() {
+        List<RoleAnalysisAttributeDef> itemDef;
+
+        if (option != null) {
+            itemDef = new ArrayList<>();
+            RoleAnalysisAttributeDef userItemValuePath = option.getUserAnalysisUserDef();
+            if (userItemValuePath != null) {
+                itemDef.add(userItemValuePath);
+            }
+            if (!itemDef.isEmpty()) {
+                itemDef.add(getRoleAnalysisArchetypeDef(UserType.class));
+                return new RoleAnalysisCacheOption(itemDef);
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * Generates a {@link RoleAnalysisCacheOption} instance containing cache-specific properties
+     * used for managing the expanded user-permission table. This method processes the current
+     * {@code option} object to retrieve relevant attribute definitions that influence the
+     * display value for specific role.
+     * This method is designed to handle an expanded structure, with the specific chunkName attribute selected.
+     */
+    private @Nullable RoleAnalysisCacheOption generateRoleCacheOption() {
+        List<RoleAnalysisAttributeDef> itemDef;
+
+        //TODO only for expanded structure
+        if (option != null) {
+            itemDef = new ArrayList<>();
+            RoleAnalysisAttributeDef roleAnalysisRoleDef = option.getRoleAnalysisRoleDef();
+            if (roleAnalysisRoleDef != null) {
+                itemDef.add(roleAnalysisRoleDef);
+            }
+
+            if (!itemDef.isEmpty()) {
+                itemDef.add(getRoleAnalysisArchetypeDef(RoleType.class));
+                return new RoleAnalysisCacheOption(itemDef);
+            }
+        }
+
+        return null;
+    }
+
+    protected RoleAnalysisCacheOption getUserCacheOption() {
+        return userCacheOption;
+    }
+
+    protected RoleAnalysisCacheOption getRoleCacheOption() {
+        return roleCacheOption;
     }
 }

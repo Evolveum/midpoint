@@ -2121,27 +2121,30 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
         return Collections.emptyList();
     }
 
-    //TODO temporary
-    public String resolveFocusObjectIconColor(@NotNull FocusType focusObject, @NotNull Task task, @NotNull OperationResult result) {
-        String color = null;
-        List<ObjectReferenceType> archetypeRef = focusObject.getArchetypeRef();
-        if (archetypeRef != null && !archetypeRef.isEmpty()) {
-            PrismObject<ArchetypeType> object = this.getObject(ArchetypeType.class, archetypeRef.get(0).getOid(), task, result);
-            if (object != null) {
-                ArchetypePolicyType archetypePolicy = object.asObjectable().getArchetypePolicy();
-                if (archetypePolicy != null) {
-                    DisplayType display = archetypePolicy.getDisplay();
-                    if (display != null) {
-                        IconType icon = display.getIcon();
-                        if (icon != null && icon.getColor() != null) {
-                            color = icon.getColor();
-                        }
-                    }
-
-                }
-            }
+    //Replace with different method that resolve also LifecycleStateType (TBD)
+    public String resolveFocusObjectIconColor(
+            @NotNull FocusType focusObject,
+            @NotNull Task task,
+            @NotNull OperationResult result) {
+        if (focusObject.getArchetypeRef() == null || focusObject.getArchetypeRef().isEmpty()) {
+            return null;
         }
-        return color;
+
+        String archetypeOid = focusObject.getArchetypeRef().get(0).getOid();
+        PrismObject<ArchetypeType> archetypeObject = this.getObject(ArchetypeType.class, archetypeOid, task, result);
+
+        if (archetypeObject == null) {
+            return null;
+        }
+
+        ArchetypeType archetypeType = archetypeObject.asObjectable();
+
+        return Optional.ofNullable(archetypeType.getArchetypePolicy())
+                .map(ArchetypePolicyType::getDisplay)
+                .map(DisplayType::getIcon)
+                .map(IconType::getColor)
+                .orElse(null);
+
     }
 
     @Override
