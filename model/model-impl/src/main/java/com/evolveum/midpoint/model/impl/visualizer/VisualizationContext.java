@@ -25,6 +25,7 @@ public class VisualizationContext {
     private boolean separateMultivaluedContainersInDeltas = true;
     private boolean removeExtraDescriptiveItems = true;
     private boolean includeOperationalItems = false;
+    private boolean includeMetadata = false;
     private Map<String,PrismObject<? extends ObjectType>> oldObjects;
     private Map<String,PrismObject<? extends ObjectType>> currentObjects;
     private Collection<ItemPath> pathsToHide = new ArrayList<>();
@@ -75,6 +76,14 @@ public class VisualizationContext {
 
     public void setIncludeOperationalItems(boolean includeOperationalItems) {
         this.includeOperationalItems = includeOperationalItems;
+    }
+
+    public boolean isIncludeMetadata() {
+        return this.includeMetadata;
+    }
+
+    public void setIncludeMetadata(boolean includeMetadata) {
+        this.includeMetadata = includeMetadata;
     }
 
     public Map<String, PrismObject<? extends ObjectType>> getOldObjects() {

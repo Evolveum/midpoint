@@ -401,6 +401,9 @@ public class Visualizer {
         }
         List<ItemDelta<?, ?>> deltasToShow = new ArrayList<>(deltas);
         for (ItemDelta<?, ?> delta : deltasToShow) {
+            if (delta.isMetadataRelated() && !context.isIncludeMetadata()) {
+                continue;
+            }
             if (delta instanceof ContainerDelta) {
                 visualizeContainerDelta((ContainerDelta) delta, visualization, context, task, result);
             } else {

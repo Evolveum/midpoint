@@ -32,6 +32,8 @@ import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.equivalence.ParameterizedEquivalenceStrategy;
+import com.evolveum.midpoint.prism.path.IdItemPathSegment;
+import com.evolveum.midpoint.prism.path.InfraItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.security.api.MidPointPrincipalManager;
@@ -75,7 +77,6 @@ public class VisualizationBasedDeltaFormatterTest extends AbstractIntegrationTes
         repoAddObjectFromFile(new File("src/test/resources/objects/user-administrator.xml"), UserType.class,
                 initTask.getResult());
     }
-
 
     @BeforeMethod
     void login() throws SchemaException, ExpressionEvaluationException, CommunicationException,
@@ -386,6 +387,55 @@ public class VisualizationBasedDeltaFormatterTest extends AbstractIntegrationTes
         Assertions.assertThat(formattedDelta).isEmpty();
     }
 
+    @Test
+    void metadataSetToBeShown_formatVisualizationIsCalled_metadataShouldBeShown()
+            throws SchemaException, EncryptionException, ObjectAlreadyExistsException {
+        final XMLGregorianCalendar now = TestUtil.currentTime();
+        final UserType userRudy = createUserRudy();
+        repoAddObject(userRudy);
+
+        final ObjectDelta<Objectable> userDelta = this.prismContext.deltaFor(UserType.class)
+        .item(UserType.F_GIVEN_NAME).add("Ferdo")
+        .item(InfraItemName.METADATA, new IdItemPathSegment(0L), ValueMetadataType.F_STORAGE,
+                StorageMetadataType.F_MODIFY_TIMESTAMP).add(now)
+        .asObjectDelta(userRudy.getOid());
+
+        final Visualization visualization = createVisualization(userDelta, false, Collections.emptyList());
+
+        final String formattedDelta = this.formatter.formatVisualization(visualization);
+        final String expectedDeltaFormat = """
+                User "Rudy" has been modified:
+                |\tAdded properties:
+                |\t|\tGiven name: Ferdo
+                |\tStorage has been modified:
+                |\t|\tModified at: %s"""
+                .formatted(now.toXMLFormat());
+        Assertions.assertThat(formattedDelta).isEqualTo(expectedDeltaFormat);
+    }
+
+    @Test
+    void metadataSetToBeHidden_formatVisualizationIsCalled_metadataShouldNotBeShown()
+            throws SchemaException, EncryptionException, ObjectAlreadyExistsException {
+        final XMLGregorianCalendar now = TestUtil.currentTime();
+        final UserType userRudy = createUserRudy();
+        repoAddObject(userRudy);
+
+        final ObjectDelta<Objectable> userDelta = this.prismContext.deltaFor(UserType.class)
+                .item(UserType.F_GIVEN_NAME).add("Ferdo")
+                .item(InfraItemName.METADATA, new IdItemPathSegment(0L), ValueMetadataType.F_STORAGE,
+                        StorageMetadataType.F_MODIFY_TIMESTAMP).add(now)
+                .asObjectDelta(userRudy.getOid());
+
+        final Visualization visualization = createVisualization(userDelta, true, Collections.emptyList());
+
+        final String formattedDelta = this.formatter.formatVisualization(visualization);
+        final String expectedDeltaFormat = """
+                User "Rudy" has been modified:
+                |\tAdded properties:
+                |\t|\tGiven name: Ferdo""";
+        Assertions.assertThat(formattedDelta).isEqualTo(expectedDeltaFormat);
+    }
+
     private void repoAddObject(ObjectType object)
             throws SchemaException, EncryptionException, ObjectAlreadyExistsException {
         repoAddObject(object.asPrismObject(), getTestTask().getResult());
@@ -406,6 +456,7 @@ public class VisualizationBasedDeltaFormatterTest extends AbstractIntegrationTes
         final VisualizationContext context = new VisualizationContext();
         context.setPathsToHide(pathsToHide);
         context.setIncludeOperationalItems(!hideOperationalAttributes);
+        context.setIncludeMetadata(!hideOperationalAttributes);
         try {
             return this.visualizer.visualizeDelta((ObjectDelta<? extends ObjectType>) delta, null, context, true, task,
                     task.getResult());
