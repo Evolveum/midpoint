@@ -598,7 +598,7 @@ Following sections provide details regarding release {release-version}.
 * When using Evolveum link:https://github.com/Evolveum/midpoint-docker/blob/master/docker-compose.yml[docker compose], or custom PostgreSQL database detection / initialization scripts
 please see xref:#_behavior_changes_since_4_9[behavior changes since 4.9] regarding default PostgreSQL schema used.
 
-* Version number of some bundled LDAP connector have changed.
+* Version number of the bundled LDAP connector have changed.
  Connector references from the resource definitions that are using the bundled LDAP connector need to be updated.
 
 === Upgrade From MidPoint 4.8.x
