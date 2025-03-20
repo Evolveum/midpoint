@@ -35,6 +35,8 @@ import com.evolveum.midpoint.task.api.Task;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -451,23 +453,9 @@ public class RoleAnalysisPatternTilePanel<T extends Serializable> extends BasePa
         Set<String> users = pattern.getUsers();
         Long patternId = pattern.getId();
 
-        Set<ObjectReferenceType> candidateInducements = new HashSet<>();
-        roles.forEach(roleOid -> {
-            PrismObject<RoleType> roleObject = roleAnalysisService
-                    .getRoleTypeObject(roleOid, task, result);
-            if (roleObject != null) {
-                candidateInducements.add(createObjectRef(roleObject));
-            }
-        });
-
+        Set<ObjectReferenceType> candidateInducements = transformToObjectRefSet(RoleType.class, roles);
+        Set<ObjectReferenceType> userMembersRefs = transformToObjectRefSet(UserType.class, users);
         PrismObject<RoleType> businessRole = new RoleType().asPrismObject();
-
-        Set<ObjectReferenceType> userMembersRefs = new HashSet<>();
-        users.forEach(userOid -> {
-            ObjectReferenceType userRef = new ObjectReferenceType();
-            userRef.setOid(userOid);
-            userMembersRefs.add(userRef);
-        });
 
         PrismObject<RoleAnalysisClusterType> prismObjectCluster = roleAnalysisService
                 .getClusterTypeObject(clusterRef.getOid(), task, result);

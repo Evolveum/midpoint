@@ -143,16 +143,8 @@ public class RoleAnalysisWebUtils {
 
                 Set<ObjectReferenceType> businessRoleDtos = businessRoleApplicationDto.getUserMembers();
 
-                Set<ObjectReferenceType> candidateMembers = new HashSet<>();
-
-                for (ObjectReferenceType businessRoleDto : businessRoleDtos) {
-                    if (businessRoleDto != null) {
-                        candidateMembers.add(businessRoleDto.clone());
-                    }
-                }
-
                 RoleAnalysisCandidateRoleType candidateRole = new RoleAnalysisCandidateRoleType();
-                candidateRole.getCandidateMembers().addAll(candidateMembers);
+                candidateRole.getCandidateMembers().addAll(businessRoleDtos);
                 candidateRole.setAnalysisMetric(0.0);
                 candidateRole.setCandidateRoleRef(new ObjectReferenceType()
                         .oid(roleOid)
