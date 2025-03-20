@@ -42,7 +42,10 @@ public class MetadataWrapperFactoryImpl<C extends Containerable> extends PrismCo
             return false;
         }
 
-        return parent instanceof ValueMetadata;
+        // Recently, this line started to fail to compile. It is somewhat logical, as ValueMetadata is a PrismContainer,
+        // not a PrismContainerValue (parent), hence that "instanceof" cannot return true.
+//        return parent instanceof ValueMetadata;
+        return false;
     }
 
     @Override
