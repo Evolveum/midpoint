@@ -153,7 +153,7 @@ public class CompressedMiningStructure extends BasePrepareAction {
         Set<String> allRolesInMiningStructure = new HashSet<>();
 
         List<RoleAnalysisCandidateRoleType> candidateRoles = cluster.getCandidateRoles();
-        Set<String> candidateRolesOids = collectCandidateRolesOidToExclude(candidateRoles);
+        Set<String> candidateRolesOids = collectCandidateRolesOidToExclude(roleAnalysisService, candidateRoles, task, result);
 
         //roles key, users value
         ListMultimap<List<String>, String> compressedUsers = ArrayListMultimap.create();

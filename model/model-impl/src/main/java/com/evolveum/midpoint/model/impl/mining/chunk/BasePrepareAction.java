@@ -9,6 +9,8 @@ package com.evolveum.midpoint.model.impl.mining.chunk;
 
 import java.util.*;
 
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
+
 import com.google.common.collect.ListMultimap;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -325,11 +327,11 @@ public abstract class BasePrepareAction implements MiningStructure {
         }
     }
 
-    protected static @NotNull Set<String> collectCandidateRolesOidToExclude(List<RoleAnalysisCandidateRoleType> candidateRoles) {
+    protected static @NotNull Set<String> collectCandidateRolesOidToExclude(@NotNull RoleAnalysisService roleAnalysisService, List<RoleAnalysisCandidateRoleType> candidateRoles, @NotNull Task task, @NotNull OperationResult result) {
         Set<String> candidateRolesOids = new HashSet<>();
         if (candidateRoles != null) {
             candidateRoles.forEach(candidateRole -> {
-                if (isMigratedRole(candidateRole)) {
+                if (isMigratedOrActiveRole(roleAnalysisService, candidateRole, task, result)) {
                     return;
                 }
 
@@ -341,13 +343,34 @@ public abstract class BasePrepareAction implements MiningStructure {
         return candidateRolesOids;
     }
 
-    private static boolean isMigratedRole(@NotNull RoleAnalysisCandidateRoleType candidateRole) {
-        if (candidateRole.getOperationStatus() != null) {
-            RoleAnalysisOperationType operationChannel = candidateRole.getOperationStatus().getOperationChannel();
-            return operationChannel != null && operationChannel.equals(RoleAnalysisOperationType.MIGRATION);
+    private static boolean isMigratedOrActiveRole(
+            @NotNull RoleAnalysisService roleAnalysisService,
+            @NotNull RoleAnalysisCandidateRoleType candidateRole,
+            @NotNull Task task,
+            @NotNull OperationResult result) {
+
+        RoleAnalysisOperationType operationChannel = Optional.ofNullable(candidateRole.getOperationStatus())
+                .map(RoleAnalysisOperationStatusType::getOperationChannel)
+                .orElse(null);
+
+        if (Objects.equals(operationChannel, RoleAnalysisOperationType.MIGRATION)) {
+            return true;
         }
-        return false;
+
+        ObjectReferenceType candidateRoleRef = candidateRole.getCandidateRoleRef();
+        if (candidateRoleRef == null || candidateRoleRef.getOid() == null) {
+            return false;
+        }
+
+        PrismObject<RoleType> roleTypeObject = roleAnalysisService.getRoleTypeObject(candidateRoleRef.getOid(), task, result);
+        if (roleTypeObject == null) {
+            return false;
+        }
+
+        String lifecycleState = roleTypeObject.asObjectable().getLifecycleState();
+        return Objects.equals(lifecycleState, SchemaConstants.LIFECYCLE_ACTIVE);
     }
+
 
     protected static void pullMigratedRoles(
             @NotNull RoleAnalysisService roleAnalysisService,

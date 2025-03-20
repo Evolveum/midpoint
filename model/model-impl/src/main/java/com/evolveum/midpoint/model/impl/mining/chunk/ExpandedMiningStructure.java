@@ -145,7 +145,7 @@ public class ExpandedMiningStructure extends BasePrepareAction {
                 userMember, true, task, result, cluster);
 
         List<RoleAnalysisCandidateRoleType> candidateRoles = cluster.getCandidateRoles();
-        Set<String> candidateRolesOids = collectCandidateRolesOidToExclude(candidateRoles);
+        Set<String> candidateRolesOids = collectCandidateRolesOidToExclude(roleAnalysisService, candidateRoles, task, result);
 
         //role key, users value
         ListMultimap<String, String> expandRolesMap = ArrayListMultimap.create();
