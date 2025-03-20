@@ -6,6 +6,8 @@
  */
 package com.evolveum.midpoint.common.mining.utils.values;
 
+import org.jetbrains.annotations.Nullable;
+
 import java.io.Serializable;
 import java.util.HashSet;
 import java.util.Set;
@@ -16,6 +18,17 @@ public class RoleAnalysisObjectStatus implements Serializable {
 
     public RoleAnalysisObjectStatus(RoleAnalysisOperationMode roleAnalysisOperationMode) {
         this.roleAnalysisOperationMode = roleAnalysisOperationMode;
+    }
+
+    public RoleAnalysisObjectStatus(@Nullable RoleAnalysisObjectStatus objectStatus) {
+        if (objectStatus == null) {
+            return;
+        }
+
+        this.roleAnalysisOperationMode = objectStatus.getRoleAnalysisOperationMode();
+        this.containerId = (objectStatus.getContainerId() != null)
+                ? new HashSet<>(objectStatus.getContainerId())
+                : null;
     }
 
     public RoleAnalysisOperationMode getRoleAnalysisOperationMode() {

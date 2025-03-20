@@ -10,6 +10,10 @@ package com.evolveum.midpoint.model.impl.mining;
 import static com.evolveum.midpoint.model.impl.mining.algorithm.cluster.action.util.outlier.explanation.AnomalyExplanationUtil.prepareOutlierExplanationAnomalyInput;
 import static com.evolveum.midpoint.model.impl.mining.algorithm.cluster.action.util.outlier.explanation.OutlierExplanationUtil.prepareOutlierExplanationInput;
 
+import static com.evolveum.midpoint.model.impl.mining.chunk.MiningChunkUtils.includeMissingObjectIntoChunks;
+
+import static com.evolveum.midpoint.model.impl.mining.chunk.MiningChunkUtils.resolveTablePatternChunk;
+
 import static java.util.Collections.singleton;
 
 import static com.evolveum.midpoint.common.mining.utils.RoleAnalysisUtils.*;
@@ -971,7 +975,7 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
             @NotNull Task task) {
         return new CompressedMiningStructure().executeOperation(this, cluster,
                 userSearchFilter, roleSearchFilter, assignmentSearchFilter,
-                fullProcess, processMode, result, task);
+                fullProcess, processMode, result, task, null);
     }
 
     @Override
@@ -1000,28 +1004,28 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
                 miningUserTypeChunks = new CompressedMiningStructure()
                         .executeOperation(this, cluster,
                                 userSearchFilter, roleSearchFilter, assignmentSearchFilter,
-                                true, processMode, result, task)
+                                true, processMode, result, task, option)
                         .getMiningUserTypeChunks(RoleAnalysisSortMode.NONE);
-                chunk = new MiningOperationChunk(miningUserTypeChunks, miningRoleTypeChunks);
+                chunk = new MiningOperationChunk(miningUserTypeChunks, miningRoleTypeChunks, option);
             }
             case EXPAND_USER -> {
                 miningRoleTypeChunks = new CompressedMiningStructure()
                         .executeOperation(this, cluster,
                                 userSearchFilter, roleSearchFilter, assignmentSearchFilter,
-                                true, processMode, result, task)
+                                true, processMode, result, task, option)
                         .getMiningRoleTypeChunks(RoleAnalysisSortMode.NONE);
                 miningUserTypeChunks = new ExpandedMiningStructure()
                         .executeOperation(this, cluster,
                                 userSearchFilter, roleSearchFilter, assignmentSearchFilter,
                                 true, processMode, result, task, option)
                         .getMiningUserTypeChunks(RoleAnalysisSortMode.NONE);
-                chunk = new MiningOperationChunk(miningUserTypeChunks, miningRoleTypeChunks);
+                chunk = new MiningOperationChunk(miningUserTypeChunks, miningRoleTypeChunks, option);
             }
             case COMPRESS -> {
                 chunk = new CompressedMiningStructure()
                         .executeOperation(this, cluster,
                                 userSearchFilter, roleSearchFilter, assignmentSearchFilter,
-                                true, processMode, result, task);
+                                true, processMode, result, task, option);
             }
             default -> {
                 chunk = new ExpandedMiningStructure()
@@ -1079,7 +1083,7 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
             @NotNull List<DetectedPattern> detectedPatterns,
             @NotNull Task task,
             @NotNull OperationResult result) {
-        List<MiningRoleTypeChunk> miningRoleTypeChunks = basicChunk.getMiningRoleTypeChunks();//basicChunk.getMiningRoleTypeChunks(option.getSortMode());
+        List<MiningRoleTypeChunk> miningRoleTypeChunks = basicChunk.getMiningRoleTypeChunks();
         List<MiningUserTypeChunk> miningUserTypeChunks = basicChunk.getMiningUserTypeChunks();
 
         List<List<String>> detectedPatternsRoles = new ArrayList<>();
@@ -1097,7 +1101,13 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
             candidateRolesIds.add(detectedPattern.getIdentifier());
         }
 
-        resolveTablePatternChunk(processMode, basicChunk, miningRoleTypeChunks, detectedPatternsRoles, candidateRolesIds, miningUserTypeChunks, detectedPatternsUsers);
+        resolveTablePatternChunk(this,
+                processMode,
+                basicChunk,
+                detectedPatternsRoles,
+                candidateRolesIds,
+                detectedPatternsUsers,
+                task, result);
 
         int size = detectedPatternsUsers.size();
 
@@ -1105,7 +1115,7 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
             List<String> detectedPatternRoles = detectedPatternsRoles.get(i);
             List<String> detectedPatternUsers = detectedPatternsUsers.get(i);
             String candidateRoleId = candidateRolesIds.get(i);
-            addAdditionalObject(this, candidateRoleId, detectedPatternUsers, detectedPatternRoles,
+            includeMissingObjectIntoChunks(this, candidateRoleId, detectedPatternUsers, detectedPatternRoles,
                     miningUserTypeChunks,
                     miningRoleTypeChunks,
                     task, result);

@@ -265,7 +265,7 @@ public class RoleAnalysisWebUtils {
             @NotNull RoleAnalysisOutlierType outlier,
             @NotNull RoleAnalysisClusterType cluster) {
 
-        LoadableModel<RoleAnalysisObjectDto> miningOperationChunk = new LoadableModel<>(false) {
+        LoadableDetachableModel<RoleAnalysisObjectDto> miningOperationChunk = new LoadableDetachableModel<>() {
 
             @Contract(" -> new")
             @Override

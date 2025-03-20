@@ -9,8 +9,6 @@ package com.evolveum.midpoint.model.impl.mining.chunk;
 
 import java.util.*;
 
-import com.evolveum.midpoint.prism.path.ItemPath;
-
 import com.google.common.collect.ListMultimap;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -26,13 +24,13 @@ import com.evolveum.midpoint.common.mining.utils.values.FrequencyItem;
 import com.evolveum.midpoint.common.mining.utils.values.RoleAnalysisOperationMode;
 import com.evolveum.midpoint.model.api.mining.RoleAnalysisService;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 
 import static com.evolveum.midpoint.common.mining.objects.analysis.RoleAnalysisAttributeDef.getRoleAnalysisArchetypeDef;
+import static com.evolveum.midpoint.model.impl.mining.chunk.MiningChunkUtils.*;
 
 public abstract class BasePrepareAction implements MiningStructure {
 
@@ -111,7 +109,7 @@ public abstract class BasePrepareAction implements MiningStructure {
                     handler, task, result);
         }
 
-        return new MiningOperationChunk(new ArrayList<>(), new ArrayList<>());
+        return new MiningOperationChunk(new ArrayList<>(), new ArrayList<>(), null);
     }
 
     @NotNull
@@ -132,7 +130,7 @@ public abstract class BasePrepareAction implements MiningStructure {
                     userSearchFilter, roleSearchFilter, assignmentSearchFilter,
                     handler, task, result, option);
         }
-        return new MiningOperationChunk(new ArrayList<>(), new ArrayList<>());
+        return new MiningOperationChunk(new ArrayList<>(), new ArrayList<>(), null);
     }
 
     protected void resolveRoleTypeChunkCompress(
@@ -171,12 +169,12 @@ public abstract class BasePrepareAction implements MiningStructure {
         double frequency = Math.min(usersCount / allUsersInMiningStructureSize, 1);
         FrequencyItem frequencyType = new FrequencyItem(frequency);
 
-        String chunkName = "'" + rolesCount + "' Roles";
+        String chunkName = getRoleChunkName(rolesCount);
         String iconColor = null;
         if (rolesCount == 1) {
             PrismObject<RoleType> role = roleAnalysisService.cacheRoleTypeObject(
                     roleExistCache, rolesOids.get(0), task, result, getRoleCacheOption());
-            chunkName = resolveRoleChunkName(role, option);
+            chunkName = resolveSingleMemberChunkName(role, option);
             if (role != null) {
                 iconColor = roleAnalysisService.resolveFocusObjectIconColor(role.asObjectable(), task, result);
             }
@@ -215,7 +213,7 @@ public abstract class BasePrepareAction implements MiningStructure {
             String iconColor = null;
             PrismObject<RoleType> role = roleAnalysisService.cacheRoleTypeObject(
                     roleExistCache, roleOid, task, result, getRoleCacheOption());
-            String chunkName = resolveRoleChunkName(role, option);
+            String chunkName = resolveSingleMemberChunkName(role, option);
             if (role != null) {
                 iconColor = roleAnalysisService.resolveFocusObjectIconColor(role.asObjectable(), task, result);
             }
@@ -264,12 +262,12 @@ public abstract class BasePrepareAction implements MiningStructure {
 
         double frequency = Math.min(rolesCount / allRolesInMiningStructureSize, 1);
 
-        String chunkName = "'" + usersCount + "' Users";
+        String chunkName = getUserChunkName(usersCount);
         String iconColor = null;
         if (usersCount == 1) {
             PrismObject<UserType> user = roleAnalysisService.cacheUserTypeObject(
                     userExistCache, usersOids.get(0), task, result, getUserCacheOption());
-            chunkName = resolveUserChunkName(user, option);
+            chunkName = resolveSingleMemberChunkName(user, option);
             if (user != null) {
                 iconColor = roleAnalysisService.resolveFocusObjectIconColor(user.asObjectable(), task, result);
             }
@@ -309,7 +307,7 @@ public abstract class BasePrepareAction implements MiningStructure {
             String iconColor = null;
             PrismObject<UserType> user = roleAnalysisService.cacheUserTypeObject(
                     userExistCache, userOid, task, result, getUserCacheOption());
-            String chunkName = resolveUserChunkName(user, option);
+            String chunkName = resolveSingleMemberChunkName(user, option);
             if (user != null) {
                 iconColor = roleAnalysisService.resolveFocusObjectIconColor(user.asObjectable(), task, result);
             }
@@ -325,41 +323,6 @@ public abstract class BasePrepareAction implements MiningStructure {
                     .add(miningUserTypeChunk);
 
         }
-    }
-
-    private String resolveUserChunkName(@Nullable PrismObject<UserType> user, @Nullable DisplayValueOption option) {
-        String chunkName = "NOT FOUND";
-        if (user == null) {
-            return chunkName;
-        }
-
-        String userName = user.getName().toString();
-        if (option != null && option.getUserAnalysisUserDef() != null) {
-            RoleAnalysisAttributeDef userItemValuePath = option.getUserAnalysisUserDef();
-            ItemPath path = userItemValuePath.getPath();
-            chunkName = userItemValuePath.resolveSingleValueItem(user, path);
-            return Objects.requireNonNullElse(chunkName, "(N/A) " + userName);
-        }
-
-        return userName;
-    }
-
-    private String resolveRoleChunkName(@Nullable PrismObject<RoleType> role, @Nullable DisplayValueOption option) {
-        String chunkName = "NOT FOUND";
-        if (role == null) {
-            return chunkName;
-        }
-
-        String roleName = role.getName().toString();
-        if (option != null && option.getRoleAnalysisRoleDef() != null) {
-            RoleAnalysisAttributeDef roleAnalysisRoleDef = option.getRoleAnalysisRoleDef();
-            ItemPath path = roleAnalysisRoleDef.getPath();
-            chunkName = roleAnalysisRoleDef.resolveSingleValueItem(role, path);
-            return Objects.requireNonNullElse(chunkName, "(N/A) " + roleName);
-
-        }
-
-        return roleName;
     }
 
     protected static @NotNull Set<String> collectCandidateRolesOidToExclude(List<RoleAnalysisCandidateRoleType> candidateRoles) {

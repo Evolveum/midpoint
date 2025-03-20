@@ -117,7 +117,7 @@ public class ExpandedMiningStructure extends BasePrepareAction {
                 miningRoleTypeChunks,
                 option);
 
-        return new MiningOperationChunk(miningUserTypeChunks, miningRoleTypeChunks);
+        return new MiningOperationChunk(miningUserTypeChunks, miningRoleTypeChunks, option);
     }
 
     @Override
@@ -145,7 +145,7 @@ public class ExpandedMiningStructure extends BasePrepareAction {
                 userMember, true, task, result, cluster);
 
         List<RoleAnalysisCandidateRoleType> candidateRoles = cluster.getCandidateRoles();
-        Set<String> candidateRolesOids =  collectCandidateRolesOidToExclude(candidateRoles);
+        Set<String> candidateRolesOids = collectCandidateRolesOidToExclude(candidateRoles);
 
         //role key, users value
         ListMultimap<String, String> expandRolesMap = ArrayListMultimap.create();
@@ -173,7 +173,7 @@ public class ExpandedMiningStructure extends BasePrepareAction {
         resolveRoleTypeChunkExpanded(roleAnalysisService, expandRolesMap, allUsersInMiningStructureSize, roleExistCache,
                 miningRoleTypeChunks, option);
 
-        return new MiningOperationChunk(miningUserTypeChunks, miningRoleTypeChunks);
+        return new MiningOperationChunk(miningUserTypeChunks, miningRoleTypeChunks, option);
     }
 
     @Override
@@ -214,7 +214,7 @@ public class ExpandedMiningStructure extends BasePrepareAction {
                 miningUserTypeChunks,
                 option);
 
-        return new MiningOperationChunk(miningUserTypeChunks, miningRoleTypeChunks);
+        return new MiningOperationChunk(miningUserTypeChunks, miningRoleTypeChunks, option);
     }
 
     @Override
@@ -250,7 +250,7 @@ public class ExpandedMiningStructure extends BasePrepareAction {
         resolveRoleTypeChunkExpanded(roleAnalysisService, expandeRolesMap, allUsersInMiningStructureSize, roleExistCache,
                 miningRoleTypeChunks, option);
 
-        return new MiningOperationChunk(miningUserTypeChunks, miningRoleTypeChunks);
+        return new MiningOperationChunk(miningUserTypeChunks, miningRoleTypeChunks, option);
     }
 
 }

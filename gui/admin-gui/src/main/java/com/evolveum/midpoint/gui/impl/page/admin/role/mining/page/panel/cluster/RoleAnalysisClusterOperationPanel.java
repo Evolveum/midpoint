@@ -72,7 +72,9 @@ public class RoleAnalysisClusterOperationPanel extends AbstractObjectMainPanel<R
     private static final String ID_OPERATION_PANEL = "panel";
 
     private final LoadableDetachableModel<OperationPanelModel> operationPanelModel;
-    private final LoadableModel<RoleAnalysisObjectDto> miningOperationChunk;
+    //TODO If LoadableModel then we need store other information inside RoleAnalysisObjectDto such as selected patterns etc.
+    // (because if we go outside the page we lost the information and chunk will be incorrectly reflected into user-permission table)
+    private final LoadableDetachableModel<RoleAnalysisObjectDto> miningOperationChunk;
 
     public RoleAnalysisClusterOperationPanel(String id, ObjectDetailsModels<RoleAnalysisClusterType> model,
             ContainerPanelConfigurationType config) {
@@ -90,12 +92,15 @@ public class RoleAnalysisClusterOperationPanel extends AbstractObjectMainPanel<R
             }
         };
 
-        this.miningOperationChunk = new LoadableModel<>(false) {
+        this.miningOperationChunk = new LoadableDetachableModel<>() {
 
             @Override
             protected RoleAnalysisObjectDto load() {
                 //TODO optimize this (preparation of the object)
-                return new RoleAnalysisObjectDto(getObjectWrapperObject().asObjectable(), operationPanelModel.getObject().getSelectedPatterns(), getParameterTableSetting(), getPageBase());
+                return new RoleAnalysisObjectDto(getObjectWrapperObject().asObjectable(),
+                        operationPanelModel.getObject().getSelectedPatterns(),
+                        getParameterTableSetting(),
+                        getPageBase());
 
             }
         };
@@ -108,6 +113,7 @@ public class RoleAnalysisClusterOperationPanel extends AbstractObjectMainPanel<R
     }
 
     private List<DetectedPattern> getClusterPatterns() {
+        //TODO getObjectWrapperObject() return non actual state of the object (fix this)
         RoleAnalysisClusterType clusterType = getObjectWrapperObject().asObjectable();
         return transformDefaultPattern(clusterType, null, getDetectedPatternContainerId());
     }

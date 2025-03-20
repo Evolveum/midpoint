@@ -42,6 +42,7 @@ import org.apache.wicket.markup.head.OnDomReadyHeaderItem;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.LoadableDetachableModel;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.model.util.ListModel;
 import org.apache.wicket.request.cycle.RequestCycle;
@@ -91,7 +92,7 @@ public class RoleAnalysisTable<B extends MiningBaseTypeChunk, A extends MiningBa
     boolean isRelationSelected = false;
     int mainChunkSize = 0;
 
-    public RoleAnalysisTable(String id, LoadableModel<RoleAnalysisObjectDto> miningOperationChunk) {
+    public RoleAnalysisTable(String id, LoadableDetachableModel<RoleAnalysisObjectDto> miningOperationChunk) {
         super(id, miningOperationChunk);
     }
 

@@ -26,7 +26,7 @@ public abstract class MiningBaseTypeChunk implements Serializable {
 
     protected final List<String> users;
     protected final List<String> roles;
-    protected final String chunkName;
+    protected String chunkName;
     protected FrequencyItem frequency;
     protected RoleAnalysisObjectStatus objectStatus;
     private String iconColor;
@@ -41,7 +41,7 @@ public abstract class MiningBaseTypeChunk implements Serializable {
         this.users = new ArrayList<>(users);
         this.chunkName = chunkName;
         this.frequency = frequency;
-        this.objectStatus = objectStatus;
+        this.objectStatus = new RoleAnalysisObjectStatus(objectStatus);
     }
 
     public List<String> getRoles() {
@@ -54,6 +54,10 @@ public abstract class MiningBaseTypeChunk implements Serializable {
 
     public List<String> getMembers() {
         return new ArrayList<>();
+    }
+
+    public void setMembers(@NotNull List<String> members) {
+
     }
 
     public boolean isMemberPresent(@NotNull String member) {
@@ -114,5 +118,9 @@ public abstract class MiningBaseTypeChunk implements Serializable {
 
     public void setIconColor(String iconColor) {
         this.iconColor = iconColor;
+    }
+
+    public void setChunkName(String chunkName) {
+        this.chunkName = chunkName;
     }
 }
