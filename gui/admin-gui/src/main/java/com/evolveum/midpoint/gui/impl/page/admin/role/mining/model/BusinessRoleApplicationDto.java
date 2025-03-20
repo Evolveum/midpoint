@@ -8,13 +8,12 @@
 package com.evolveum.midpoint.gui.impl.page.admin.role.mining.model;
 
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Set;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 
 import org.jetbrains.annotations.NotNull;
 
-import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisClusterType;
@@ -25,25 +24,27 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
  * information about a specific role, its associated cluster, and a list of BusinessRoleDtos that holds information
  * about a user's delta to a specific role.
  */
+//TODO optimize migration and candidate role generation
 public class BusinessRoleApplicationDto implements Serializable {
 
     PrismObject<RoleAnalysisClusterType> cluster;
     PrismObject<RoleType> businessRole;
-    List<BusinessRoleDto> businessRoleDtos;
     boolean isCandidate = false;
     Long patternId;
-    transient Set<PrismObject<RoleType>> candidateRoles;
+
+    transient Set<ObjectReferenceType> userMembers;
+    transient Set<ObjectReferenceType> roleInducements;
 
     public BusinessRoleApplicationDto(
             @NotNull PrismObject<RoleAnalysisClusterType> cluster,
             @NotNull PrismObject<RoleType> businessRole,
-            @NotNull List<BusinessRoleDto> businessRoleDtos,
-            @NotNull Set<PrismObject<RoleType>> candidateRoles) {
+            @NotNull Set<ObjectReferenceType> userMembers,
+            @NotNull Set<ObjectReferenceType> roleInducements) {
         setDraft(businessRole);
         this.cluster = cluster;
         this.businessRole = businessRole;
-        this.businessRoleDtos = businessRoleDtos;
-        this.candidateRoles = candidateRoles;
+        this.userMembers = userMembers;
+        this.roleInducements = roleInducements;
     }
 
     private static void setDraft(@NotNull PrismObject<RoleType> businessRole) {
@@ -63,20 +64,8 @@ public class BusinessRoleApplicationDto implements Serializable {
         return businessRole;
     }
 
-    public void setBusinessRole(PrismObject<RoleType> businessRole) {
-        this.businessRole = businessRole;
-    }
-
-    public List<BusinessRoleDto> getBusinessRoleDtos() {
-        return businessRoleDtos;
-    }
-
-    public void setBusinessRoleDtos(List<BusinessRoleDto> businessRoleDtos) {
-        this.businessRoleDtos = businessRoleDtos;
-    }
-
-    public Long getPatternId() {
-        return patternId;
+    public Set<ObjectReferenceType> getUserMembers() {
+        return userMembers;
     }
 
     public void setPatternId(Long patternId) {
@@ -91,17 +80,9 @@ public class BusinessRoleApplicationDto implements Serializable {
         isCandidate = candidate;
     }
 
-    public Set<PrismObject<RoleType>> getCandidateRoles() {
-        return candidateRoles;
+    public Set<ObjectReferenceType> getRoleInducements() {
+        return roleInducements;
     }
 
-    public void setCandidateRoles(Set<PrismObject<RoleType>> candidateRoles, PageBase pageBase) {
-        this.candidateRoles = candidateRoles;
-
-        for (BusinessRoleDto businessRoleDto : businessRoleDtos) {
-            businessRoleDto.updateValue(new ArrayList<>(candidateRoles), pageBase);
-        }
-
-    }
 
 }

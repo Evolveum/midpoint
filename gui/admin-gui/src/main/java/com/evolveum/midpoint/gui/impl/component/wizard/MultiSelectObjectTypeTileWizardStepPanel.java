@@ -14,12 +14,10 @@ import com.evolveum.midpoint.gui.impl.component.tile.MultiSelectObjectTileTableP
 import com.evolveum.midpoint.gui.impl.component.tile.SingleSelectTileTablePanel;
 import com.evolveum.midpoint.gui.impl.page.admin.ObjectDetailsModels;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.TemplateTile;
-import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
-import com.evolveum.midpoint.web.component.util.SelectableRow;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ContainerPanelConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
@@ -29,10 +27,12 @@ import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.ISortableDataProvider;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.model.IModel;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.Serializable;
 import java.util.Collection;
 import java.util.List;
+import java.util.Set;
 
 public abstract class MultiSelectObjectTypeTileWizardStepPanel<SI extends Serializable, O extends ObjectType, ODM extends ObjectDetailsModels>
         extends SelectTileWizardStepPanel<SelectableBean<O>, ODM> {
@@ -102,6 +102,11 @@ public abstract class MultiSelectObjectTypeTileWizardStepPanel<SI extends Serial
             @Override
             public SelectableBeanObjectDataProvider<O> createProvider() {
                 return MultiSelectObjectTypeTileWizardStepPanel.this.createProvider(super.createProvider());
+            }
+
+            @Override
+            public @Nullable Set<O> initialSelectedObjects() {
+                return MultiSelectObjectTypeTileWizardStepPanel.this.initialSelectedObjects();
             }
 
             @Override
@@ -185,6 +190,10 @@ public abstract class MultiSelectObjectTypeTileWizardStepPanel<SI extends Serial
     protected void customizeTile(SelectableBean<O> object, TemplateTile<SelectableBean<O>> tile) {
     }
 
+    protected @Nullable Set<O> initialSelectedObjects() {
+        return null;
+    }
+
     protected SelectableBeanObjectDataProvider<O> createProvider(SelectableBeanObjectDataProvider<O> defaultProvider) {
         return defaultProvider;
     }
@@ -196,7 +205,7 @@ public abstract class MultiSelectObjectTypeTileWizardStepPanel<SI extends Serial
     @Override
     protected String userFriendlyNameOfSelectedObject(String key) {
         String typeLabel = WebComponentUtil.getLabelForType(getType(), false);
-        String text = LocalizationUtil.translate(key + ".text", new Object[] {typeLabel});
+        String text = LocalizationUtil.translate(key + ".text", new Object[] { typeLabel });
         return "";
     }
 }

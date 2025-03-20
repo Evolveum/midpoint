@@ -1730,7 +1730,7 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
 
     public void executeChangesOnCandidateRole(@NotNull PrismObject<RoleAnalysisClusterType> cluster,
             @NotNull RoleAnalysisCandidateRoleType roleAnalysisCandidateRoleType,
-            @NotNull Set<PrismObject<UserType>> members,
+            Set<ObjectReferenceType> members,
             @NotNull Set<AssignmentType> inducements,
             @NotNull Task task,
             @NotNull OperationResult result) {
@@ -1749,11 +1749,8 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
                 .collect(Collectors.toSet());
 
         Collection<PrismReferenceValue> memberscCollection = new ArrayList<>();
-        for (PrismObject<UserType> member : members) {
-            ObjectReferenceType objectReferenceType = new ObjectReferenceType()
-                    .oid(member.getOid())
-                    .type(UserType.COMPLEX_TYPE);
-            memberscCollection.add(objectReferenceType.asReferenceValue());
+        for (ObjectReferenceType member : members) {
+            memberscCollection.add(member.clone().asReferenceValue());
         }
 
         RoleType role = roleTypeObject.asObjectable();
@@ -1810,43 +1807,6 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
         } catch (SchemaException | ObjectAlreadyExistsException | ObjectNotFoundException | ExpressionEvaluationException |
                 CommunicationException | ConfigurationException | PolicyViolationException | SecurityViolationException e) {
             LOGGER.error("Couldn't modify candidate role container {}", cluster.getOid(), e);
-        }
-    }
-
-    public <T extends ObjectType> void loadSearchObjectIterative(
-            @NotNull ModelService modelService,
-            @NotNull Class<T> type,
-            @Nullable ObjectQuery query,
-            @Nullable Collection<SelectorOptions<GetOperationOptions>> options,
-            @NotNull List<T> modifyList,
-            @NotNull Task task,
-            @NotNull OperationResult parentResult) {
-        try {
-            Set<String> existingOidSet = modifyList.stream()
-                    .map(ObjectType::getOid)
-                    .collect(Collectors.toSet());
-
-            ResultHandler<RoleType> resultHandler = (role, lResult) -> {
-                try {
-                    if (!existingOidSet.contains(role.getOid())) {
-                        //noinspection unchecked
-                        modifyList.add((T) role.asObjectable());
-                    }
-                } catch (Exception e) {
-                    String errorMessage = "Cannot resolve role: " + toShortString(role.asObjectable())
-                            + ": " + e.getMessage();
-                    throw new SystemException(errorMessage, e);
-                }
-
-                return true;
-            };
-
-            modelService.searchObjectsIterative(RoleType.class, query, resultHandler, null,
-                    task, parentResult);
-
-        } catch (SchemaException | ObjectNotFoundException | ExpressionEvaluationException |
-                CommunicationException | ConfigurationException | SecurityViolationException e) {
-            LOGGER.error("Couldn't search  search and load object iterative {}", type, e);
         }
     }
 

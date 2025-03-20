@@ -6,20 +6,20 @@
  */
 package com.evolveum.midpoint.gui.impl.page.admin.role.mining;
 
+import com.evolveum.midpoint.common.mining.objects.chunk.MiningBaseTypeChunk;
 import com.evolveum.midpoint.common.mining.objects.chunk.MiningRoleTypeChunk;
 import com.evolveum.midpoint.common.mining.objects.chunk.MiningUserTypeChunk;
 import com.evolveum.midpoint.common.mining.utils.values.RoleAnalysisChunkMode;
+import com.evolveum.midpoint.common.mining.utils.values.RoleAnalysisOperationMode;
 import com.evolveum.midpoint.common.outlier.OutlierExplanationResolver;
 import com.evolveum.midpoint.gui.api.factory.wrapper.PrismObjectWrapperFactory;
 import com.evolveum.midpoint.gui.api.factory.wrapper.WrapperContext;
-import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.prism.ItemStatus;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.components.bar.RoleAnalysisBasicProgressBar;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.components.bar.RoleAnalysisInlineProgressBar;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.model.BusinessRoleApplicationDto;
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.model.BusinessRoleDto;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.model.RoleAnalysisProgressBarDto;
 import com.evolveum.midpoint.gui.impl.util.DetailsPageUtil;
 import com.evolveum.midpoint.model.api.ModelInteractionService;
@@ -57,6 +57,7 @@ import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import javax.xml.namespace.QName;
 import java.io.Serial;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -99,7 +100,7 @@ public class RoleAnalysisWebUtils {
         return String.valueOf(role.getInducement().size());
     }
 
-    public static ActivityDefinitionType createRoleMigrationActivity(@NotNull List<BusinessRoleDto> patternDeltas, String roleOid) {
+    public static ActivityDefinitionType createRoleMigrationActivity(Set<ObjectReferenceType> patternDeltas, String roleOid) {
 
         ObjectReferenceType objectReferenceType = new ObjectReferenceType();
         objectReferenceType.setType(RoleType.COMPLEX_TYPE);
@@ -109,16 +110,11 @@ public class RoleAnalysisWebUtils {
         roleMembershipManagementWorkDefinitionType.setRoleRef(objectReferenceType);
 
         ObjectSetType members = new ObjectSetType();
-        for (BusinessRoleDto patternDelta : patternDeltas) {
-            if (!patternDelta.isInclude()) {
-                continue;
+        for (ObjectReferenceType patternDelta : patternDeltas) {
+            if (patternDelta != null) {
+                members.getObjectRef().add(patternDelta.clone());
             }
 
-            PrismObject<UserType> prismObjectUser = patternDelta.getPrismObjectUser();
-            ObjectReferenceType userRef = new ObjectReferenceType();
-            userRef.setOid(prismObjectUser.getOid());
-            userRef.setType(UserType.COMPLEX_TYPE);
-            members.getObjectRef().add(userRef);
         }
         roleMembershipManagementWorkDefinitionType.setMembers(members);
 
@@ -145,16 +141,13 @@ public class RoleAnalysisWebUtils {
             PrismObject<RoleAnalysisClusterType> cluster = businessRoleApplicationDto.getCluster();
             if (!businessRoleApplicationDto.isCandidate()) {
 
-                List<BusinessRoleDto> businessRoleDtos = businessRoleApplicationDto.getBusinessRoleDtos();
+                Set<ObjectReferenceType> businessRoleDtos = businessRoleApplicationDto.getUserMembers();
 
                 Set<ObjectReferenceType> candidateMembers = new HashSet<>();
 
-                for (BusinessRoleDto businessRoleDto : businessRoleDtos) {
-                    PrismObject<UserType> prismObjectUser = businessRoleDto.getPrismObjectUser();
-                    if (prismObjectUser != null) {
-                        candidateMembers.add(new ObjectReferenceType()
-                                .oid(prismObjectUser.getOid())
-                                .type(UserType.COMPLEX_TYPE).clone());
+                for (ObjectReferenceType businessRoleDto : businessRoleDtos) {
+                    if (businessRoleDto != null) {
+                        candidateMembers.add(businessRoleDto.clone());
                     }
                 }
 
@@ -176,7 +169,7 @@ public class RoleAnalysisWebUtils {
             String taskOid = UUID.randomUUID().toString();
 
             ActivityDefinitionType activity;
-            activity = createRoleMigrationActivity(businessRoleApplicationDto.getBusinessRoleDtos(), roleOid);
+            activity = createRoleMigrationActivity(businessRoleApplicationDto.getUserMembers(), roleOid);
             if (activity != null) {
                 ModelInteractionService modelInteractionService = pageBase.getModelInteractionService();
                 roleAnalysisService.executeRoleAnalysisRoleMigrationTask(modelInteractionService,
@@ -579,4 +572,38 @@ public class RoleAnalysisWebUtils {
         progressBar.add(AttributeModifier.append(STYLE_CSS, "width: 170px"));
         cellItem.add(progressBar);
     }
+
+    public static <F extends FocusType, CH extends MiningBaseTypeChunk> void fillCandidateList(
+            @NotNull Class<F> type,
+            @NotNull Set<ObjectReferenceType> candidateList,
+            @NotNull List<CH> miningSimpleChunk) {
+        Set<String> allMembers = new HashSet<>();
+        for (CH chunk : miningSimpleChunk) {
+            if (!chunk.getStatus().equals(RoleAnalysisOperationMode.INCLUDE)) {
+                continue;
+            }
+            List<String> members = RoleType.class.equals(type) ? chunk.getRoles() : chunk.getUsers();
+            allMembers.addAll(members);
+
+        }
+
+        QName complexType = type.equals(UserType.class) ? UserType.COMPLEX_TYPE : RoleType.COMPLEX_TYPE;
+        allMembers.forEach(memberOid -> candidateList.add(createSimpleObjectRef(memberOid, complexType)));
+      }
+
+    private static ObjectReferenceType createSimpleObjectRef(String memberOid, QName complexType) {
+        return new ObjectReferenceType()
+                .oid(memberOid)
+                .type(complexType);
+    }
+
+    public static <F extends FocusType> @NotNull Set<ObjectReferenceType> transformToObjectRefSet(
+            @NotNull Class<F> type,
+            @NotNull Set<String> allMembers) {
+        Set<ObjectReferenceType> candidateList = new HashSet<>();
+        QName complexType = type.equals(UserType.class) ? UserType.COMPLEX_TYPE : RoleType.COMPLEX_TYPE;
+        allMembers.forEach(memberOid -> candidateList.add(createSimpleObjectRef(memberOid, complexType)));
+        return candidateList;
+    }
+
 }

@@ -17,7 +17,6 @@ import static com.evolveum.midpoint.model.common.expression.functions.BasicExpre
 
 import java.io.Serial;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -60,7 +59,6 @@ import com.evolveum.midpoint.gui.api.component.LabelWithHelpPanel;
 import com.evolveum.midpoint.gui.api.component.Toggle;
 import com.evolveum.midpoint.gui.api.component.TogglePanel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
-import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
 import com.evolveum.midpoint.gui.impl.component.tile.TileTablePanel;
 import com.evolveum.midpoint.gui.impl.component.tile.ViewToggle;
@@ -69,7 +67,6 @@ import com.evolveum.midpoint.gui.impl.component.tile.mining.pattern.RoleAnalysis
 import com.evolveum.midpoint.gui.impl.component.tile.mining.session.RoleAnalysisSessionTileModel;
 import com.evolveum.midpoint.gui.impl.page.admin.role.PageRole;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.model.BusinessRoleApplicationDto;
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.model.BusinessRoleDto;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.tmp.panel.IconWithLabel;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.tmp.panel.RoleAnalysisDetectedPatternDetailsPopup;
 import com.evolveum.midpoint.gui.impl.util.DetailsPageUtil;
@@ -676,33 +673,14 @@ public class RoleAnalysisDetectedPatternTileTable extends BasePanel<RoleAnalysis
                 Set<String> users = pattern.getUsers();
                 Long patternId = pattern.getId();
 
-                Set<PrismObject<RoleType>> candidateInducements = new HashSet<>();
 
-                for (String roleOid : roles) {
-                    PrismObject<RoleType> roleObject = roleAnalysisService
-                            .getRoleTypeObject(roleOid, task, result);
-                    if (roleObject != null) {
-                        candidateInducements.add(roleObject);
-                    }
-                }
-
+                Set<ObjectReferenceType> rolesObjectRefs = transformToObjectRefSet(RoleType.class, roles);
+                Set<ObjectReferenceType> usersObjectsRefs = transformToObjectRefSet(UserType.class, users);
                 PrismObject<RoleType> businessRole = new RoleType().asPrismObject();
 
-                List<BusinessRoleDto> roleApplicationDtos = new ArrayList<>();
-
-                for (String userOid : users) {
-                    PrismObject<UserType> userObject = WebModelServiceUtils.loadObject(UserType.class, userOid,
-                            getPageBase(), task, result);
-//                            roleAnalysisService
-//                            .getUserTypeObject(userOid, task, result);
-                    if (userObject != null) {
-                        roleApplicationDtos.add(new BusinessRoleDto(userObject,
-                                businessRole, candidateInducements, getPageBase()));
-                    }
-                }
 
                 BusinessRoleApplicationDto operationData = new BusinessRoleApplicationDto(
-                        prismObjectCluster, businessRole, roleApplicationDtos, candidateInducements);
+                        prismObjectCluster, businessRole, usersObjectsRefs, rolesObjectRefs);
                 operationData.setPatternId(patternId);
 
                 PageRole pageRole = new PageRole(operationData.getBusinessRole(), operationData);

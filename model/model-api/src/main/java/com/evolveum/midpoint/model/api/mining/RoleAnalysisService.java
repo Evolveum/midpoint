@@ -672,32 +672,10 @@ public interface RoleAnalysisService {
     void executeChangesOnCandidateRole(
             @NotNull PrismObject<RoleAnalysisClusterType> cluster,
             @NotNull RoleAnalysisCandidateRoleType roleAnalysisCandidateRoleType,
-            @NotNull Set<PrismObject<UserType>> members,
+            Set<ObjectReferenceType> members,
             @NotNull Set<AssignmentType> inducements,
             @NotNull Task task,
             @NotNull OperationResult result);
-
-    /**
-     * Loads objects iteratively from the repository based on the provided query and adds them to the modifyList
-     * if they are not already present.
-     *
-     * @param modelService ModelService used for loading the objects from the repository.
-     * @param type Class representing the type of objects to be loaded.
-     * @param query ObjectQuery specifying the conditions for searching the objects. Can be null.
-     * @param options Collection of SelectorOptions specifying additional options for the search operation. Can be null.
-     * @param modifyList List of loaded objects will be added. Objects already present in this list will be skipped.
-     * @param task Task used for executing the search operation.
-     * @param parentResult OperationResult containing the result of the operation.
-     * @param <T> Generic type extending ObjectType representing the type of objects to be loaded.
-     */
-    <T extends ObjectType> void loadSearchObjectIterative(
-            @NotNull ModelService modelService,
-            @NotNull Class<T> type,
-            @Nullable ObjectQuery query,
-            @Nullable Collection<SelectorOptions<GetOperationOptions>> options,
-            @NotNull List<T> modifyList,
-            @NotNull Task task,
-            @NotNull OperationResult parentResult);
 
     /**
      * Performs attribute analysis for user objects.

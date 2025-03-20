@@ -12,13 +12,10 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 import com.evolveum.midpoint.common.mining.objects.chunk.MiningOperationChunk;
-import com.evolveum.midpoint.common.mining.utils.values.RoleAnalysisOperationMode;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 
-import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.impl.page.admin.role.PageRole;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.model.BusinessRoleApplicationDto;
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.model.BusinessRoleDto;
 import com.evolveum.midpoint.gui.impl.util.DetailsPageUtil;
 import com.evolveum.midpoint.model.api.mining.RoleAnalysisService;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -66,6 +63,7 @@ import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.security.MidPointAuthWebSession;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 
+import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.RoleAnalysisWebUtils.fillCandidateList;
 import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.object.RoleAnalysisObjectUtils.executeChangesOnCandidateRole;
 
 public class RoleAnalysisTable<B extends MiningBaseTypeChunk, A extends MiningBaseTypeChunk> extends BasePanel<RoleAnalysisObjectDto> implements Table {
@@ -441,13 +439,11 @@ public class RoleAnalysisTable<B extends MiningBaseTypeChunk, A extends MiningBa
         Task task = getPageBase().createSimpleTask(OP_PROCESS_CANDIDATE_ROLE);
         OperationResult result = task.getResult();
 
-//        MiningOperationChunk chunk = miningOperationChunk.getObject();
+        Set<ObjectReferenceType> candidateInducements = new HashSet<>();
+        fillCandidateList(RoleType.class, candidateInducements, chunk.getMiningRoleTypeChunks());
 
-        Set<PrismObject<RoleType>> candidateInducements = new HashSet<>();
-        fillCandidateList(RoleType.class, candidateInducements, chunk.getMiningRoleTypeChunks(), task, result);
-
-        Set<PrismObject<UserType>> candidateMembers = new HashSet<>();
-        fillCandidateList(UserType.class, candidateMembers, chunk.getMiningUserTypeChunks(), task, result);
+        Set<ObjectReferenceType> candidateMembers = new HashSet<>();
+        fillCandidateList(UserType.class, candidateMembers, chunk.getMiningUserTypeChunks());
 
         RoleAnalysisClusterType cluster = modelObject.getCluster();
         Set<RoleAnalysisCandidateRoleType> candidateRoleToPerform = getCandidateRoleToPerform(cluster);
@@ -479,23 +475,15 @@ public class RoleAnalysisTable<B extends MiningBaseTypeChunk, A extends MiningBa
 
         PrismObject<RoleType> businessRole = new RoleType().asPrismObject();
 
-        List<BusinessRoleDto> roleApplicationDtos = new ArrayList<>();
-
-        for (PrismObject<UserType> member : candidateMembers) {
-            BusinessRoleDto businessRoleDto = new BusinessRoleDto(member,
-                    businessRole, candidateInducements, getPageBase());
-            roleApplicationDtos.add(businessRoleDto);
-        }
-
         BusinessRoleApplicationDto operationData = new BusinessRoleApplicationDto(
-                cluster.asPrismObject(), businessRole, roleApplicationDtos, candidateInducements);
+                cluster.asPrismObject(), businessRole, candidateMembers, candidateInducements);
 
         if (!getSelectedPatterns().isEmpty() && getSelectedPatterns().get(0).getId() != null) {
             operationData.setPatternId(getSelectedPatterns().get(0).getId());
         }
 
-        List<BusinessRoleDto> businessRoleDtos = operationData.getBusinessRoleDtos();
-        Set<PrismObject<RoleType>> inducement = operationData.getCandidateRoles();
+        Set<ObjectReferenceType> businessRoleDtos = operationData.getUserMembers();
+        Set<ObjectReferenceType> inducement = operationData.getRoleInducements();
         if (!inducement.isEmpty() && !businessRoleDtos.isEmpty()) {
             PrismObject<RoleType> roleToCreate = operationData.getBusinessRole();
             PageRole pageRole = new PageRole(roleToCreate, operationData);
@@ -521,25 +509,6 @@ public class RoleAnalysisTable<B extends MiningBaseTypeChunk, A extends MiningBa
         }
 
         return getCandidateRole();
-    }
-
-    private <F extends FocusType, CH extends MiningBaseTypeChunk> void fillCandidateList(Class<F> type,
-            Set<PrismObject<F>> candidateList,
-            List<CH> miningSimpleChunk,
-            Task task,
-            OperationResult result) {
-        for (CH chunk : miningSimpleChunk) {
-            if (!chunk.getStatus().equals(RoleAnalysisOperationMode.INCLUDE)) {
-                continue;
-            }
-            List<String> members = RoleType.class.equals(type) ? chunk.getRoles() : chunk.getUsers();
-            for (String memberOid : members) {
-                PrismObject<F> roleObject = WebModelServiceUtils.loadObject(type, memberOid, getPageBase(), task, result);
-                if (roleObject != null) {
-                    candidateList.add(roleObject);
-                }
-            }
-        }
     }
 
     private void navigateToClusterCandidateRolePanel(@NotNull RoleAnalysisClusterType cluster) {
