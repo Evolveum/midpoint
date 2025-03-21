@@ -210,6 +210,8 @@
         <httpclient.version>4.5.14</httpclient.version>
 
 
+        <!-- Remove property once newer versions are present in spring boot -->
+        <spring-security.version>6.4.4</spring-security.version>
         <!-- Bumped tomcat to newer version, one bundled with Spring Boot 3.3.9 does not starts on windows / mac  -->
         <tomcat.version>10.1.39</tomcat.version>
 
