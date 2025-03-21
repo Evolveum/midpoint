@@ -28,16 +28,14 @@ public class TaskOperationStatsUtil {
      *
      * Assumes that the task has all subtasks filled-in.
      *
-     * Currently does NOT support some low-level performance statistics, namely:
-     *
-     * . cachesPerformanceInformation,
-     * . cachingConfiguration.
+     * Currently does NOT support cachingConfiguration "aggregation".
      */
     public static OperationStatsType getOperationStatsFromTree(TaskType root) {
         OperationStatsType aggregate = new OperationStatsType()
                 .environmentalPerformanceInformation(new EnvironmentalPerformanceInformationType())
                 .repositoryPerformanceInformation(new RepositoryPerformanceInformationType())
-                .operationsPerformanceInformation(new OperationsPerformanceInformationType());
+                .operationsPerformanceInformation(new OperationsPerformanceInformationType())
+                .cachesPerformanceInformation(new CachesPerformanceInformationType());
 
         Stream<TaskType> tasks = TaskTreeUtil.getAllTasksStream(root);
         tasks.forEach(task -> {
@@ -46,6 +44,7 @@ public class TaskOperationStatsUtil {
                 EnvironmentalPerformanceInformation.addTo(aggregate.getEnvironmentalPerformanceInformation(), operationStatsBean.getEnvironmentalPerformanceInformation());
                 RepositoryPerformanceInformationUtil.addTo(aggregate.getRepositoryPerformanceInformation(), operationStatsBean.getRepositoryPerformanceInformation());
                 OperationsPerformanceInformationUtil.addTo(aggregate.getOperationsPerformanceInformation(), operationStatsBean.getOperationsPerformanceInformation());
+                CachePerformanceInformationUtil.addTo(aggregate.getCachesPerformanceInformation(), operationStatsBean.getCachesPerformanceInformation());
             }
         });
         return aggregate;

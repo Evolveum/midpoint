@@ -8,6 +8,8 @@ package com.evolveum.midpoint.schema.result;
 
 import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
 
+import static com.evolveum.midpoint.util.NoValueUtil.*;
+
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 import static org.apache.commons.collections4.CollectionUtils.emptyIfNull;
@@ -272,12 +274,14 @@ public class OperationResult
     private boolean building;        // experimental (NOT SERIALIZED)
     private OperationResult futureParent;   // experimental (NOT SERIALIZED)
 
-    private Long start;
-    private Long end;
-    private Long microseconds;
-    private Long ownMicroseconds;
-    private Long cpuMicroseconds;
-    private Long invocationId;
+    // The following fields use "long" instead of "Long" because of performance reasons.
+
+    @CanBeNone private long start = NONE_LONG;
+    @CanBeNone private long end = NONE_LONG;
+    @CanBeNone private long microseconds = NONE_LONG;
+    @CanBeNone private long ownMicroseconds = NONE_LONG;
+    @CanBeNone private long cpuMicroseconds = NONE_LONG;
+    @CanBeNone private long invocationId = NONE_LONG;
 
     private final List<LogSegmentType> logSegments = new ArrayList<>();
 
@@ -289,6 +293,14 @@ public class OperationResult
 
     /** Whether we should preserve the content of the result e.g. for the sake of reporting. */
     private boolean preserve;
+
+    /**
+     * If `false`, all the parameters, return values, and context information is omitted.
+     * Useful for improving task performance, as it should spare a lot of `toString()` calls.
+     *
+     * If {@link #preserve} is `true` or {@link #tracingProfile} is set up, this one should be `true`.
+     */
+    private boolean recordingValues = true;
 
     /**
      * True if we collect log entries.
@@ -405,12 +417,19 @@ public class OperationResult
         return new OperationResult(getOperation(), null, getStatus(), 0, getMessageCode(), getMessage(), null, null, null);
     }
 
+    public static OperationResultBuilder newResult(String operation) {
+        OperationResult result = new OperationResult(operation);
+        result.building = true;
+        return result;
+    }
+
     public OperationResultBuilder subresult(String operation) {
         OperationResult subresult = new OperationResult(operation);
         subresult.building = true;
         subresult.futureParent = this;
         subresult.tracingProfile = tracingProfile;
         subresult.preserve = preserve;
+        subresult.recordingValues = recordingValues;
         subresult.parentLogRecorder = logRecorder;
         subresult.propagateHandledErrorAsSuccess = propagateHandledErrorAsSuccess;
         return subresult;
@@ -488,7 +507,7 @@ public class OperationResult
 
     private Object[] createArguments() {
         List<String> arguments = new ArrayList<>();
-        getParams().forEach((key, value) -> arguments.add(key + " => " + value));       // todo what with large values?
+        getParams().forEach((key, value) -> arguments.add(key + " => " + value)); // todo what with large values?
         getContext().forEach((key, value) -> arguments.add("c:" + key + " => " + value));
         return arguments.toArray();
     }
@@ -541,7 +560,7 @@ public class OperationResult
     private long computeNotOwnTimeMicros() {
         long total = 0;
         for (OperationResult subresult : getSubresults()) {
-            total += or0(subresult.getMicroseconds());
+            total += zeroIfNone(subresult.microseconds);
         }
         return total;
     }
@@ -728,6 +747,9 @@ public class OperationResult
         getSubresults().add(subresult);
         if (subresult.tracingProfile == null) {
             subresult.tracingProfile = tracingProfile;
+            subresult.recordingValues = recordingValues;
+        } else {
+            subresult.recordingValues = true;
         }
         subresult.preserve = preserve;
         subresult.propagateHandledErrorAsSuccess = propagateHandledErrorAsSuccess;
@@ -1132,9 +1154,18 @@ public class OperationResult
         traces.add(trace);
     }
 
+    /** TEMPORARY. We need to find a way how to override this when we need the recording for specific task. */
+    public OperationResultBuilder notRecordingValues() {
+        this.recordingValues = false;
+        return this;
+    }
+
     @Override
     public OperationResultBuilder tracingProfile(CompiledTracingProfile profile) {
         this.tracingProfile = profile;
+        if (profile != null) {
+            this.recordingValues = true;
+        }
         return this;
     }
 
@@ -1181,10 +1212,6 @@ public class OperationResult
         } else {
             return TracingLevelType.OFF;
         }
-    }
-
-    public void clearTracingProfile() {
-        tracingProfile = null;
     }
 
     @Override
@@ -1270,7 +1297,7 @@ public class OperationResult
     public boolean isClosed() {
         return status != OperationResultStatus.UNKNOWN
                 && status != null
-                && end != null
+                && end != NONE_LONG
                 && invocationRecord == null;
     }
 
@@ -1389,90 +1416,120 @@ public class OperationResult
 
     @Override
     public OperationResult addParam(String name, String value) {
-        getParams().put(name, collectionize(value));
+        if (recordingValues) {
+            getParams().put(name, collectionize(value));
+        }
         return this;
     }
 
     @Override
     public OperationResult addParam(String name, PrismObject<? extends ObjectType> value) {
-        getParams().put(name, collectionize(stringify(value)));
-        return this;
-    }
-
-    @Override
-    public OperationResult addParam(String name, ObjectType value) {
-        getParams().put(name, collectionize(stringify(value)));
-        return this;
-    }
-
-    @Override
-    public OperationResult addParam(String name, boolean value) {
-        getParams().put(name, collectionize(stringify(value)));
-        return this;
-    }
-
-    @Override
-    public OperationResult addParam(String name, long value) {
-        getParams().put(name, collectionize(stringify(value)));
-        return this;
-    }
-
-    @Override
-    public OperationResult addParam(String name, int value) {
-        getParams().put(name, collectionize(stringify(value)));
-        return this;
-    }
-
-    @Override
-    @SuppressWarnings("unchecked")
-    public OperationResult addParam(String name, Class<?> value) {
-        if (value != null && ObjectType.class.isAssignableFrom(value)) {
-            getParams().put(name, collectionize(ObjectTypes.getObjectType((Class<? extends ObjectType>) value).getObjectTypeUri()));
-        } else {
+        if (recordingValues) {
             getParams().put(name, collectionize(stringify(value)));
         }
         return this;
     }
 
     @Override
+    public OperationResult addParam(String name, ObjectType value) {
+        if (recordingValues) {
+            getParams().put(name, collectionize(stringify(value)));
+        }
+        return this;
+    }
+
+    @Override
+    public OperationResult addParam(String name, boolean value) {
+        if (recordingValues) {
+            getParams().put(name, collectionize(stringify(value)));
+        }
+        return this;
+    }
+
+    @Override
+    public OperationResult addParam(String name, long value) {
+        if (recordingValues) {
+            getParams().put(name, collectionize(stringify(value)));
+        }
+        return this;
+    }
+
+    @Override
+    public OperationResult addParam(String name, int value) {
+        if (recordingValues) {
+            getParams().put(name, collectionize(stringify(value)));
+        }
+        return this;
+    }
+
+    @Override
+    @SuppressWarnings("unchecked")
+    public OperationResult addParam(String name, Class<?> value) {
+        if (recordingValues) {
+            if (value != null && ObjectType.class.isAssignableFrom(value)) {
+                getParams().put(
+                        name,
+                        collectionize(ObjectTypes.getObjectType((Class<? extends ObjectType>) value).getObjectTypeUri()));
+            } else {
+                getParams().put(name, collectionize(stringify(value)));
+            }
+        }
+        return this;
+    }
+
+    @Override
     public OperationResult addParam(String name, QName value) {
-        getParams().put(name, collectionize(value == null ? null : QNameUtil.qNameToUri(value)));
+        if (recordingValues) {
+            getParams().put(name, collectionize(value == null ? null : QNameUtil.qNameToUri(value)));
+        }
         return this;
     }
 
     @Override
     public OperationResult addParam(String name, PolyString value) {
-        getParams().put(name, collectionize(value == null ? null : value.getOrig()));
+        if (recordingValues) {
+            getParams().put(name, collectionize(value == null ? null : value.getOrig()));
+        }
         return this;
     }
 
     @Override
     public OperationResult addParam(String name, ObjectQuery value) {
-        getParams().put(name, collectionize(stringify(value)));
+        if (recordingValues) {
+            getParams().put(name, collectionize(stringify(value)));
+        }
         return this;
     }
 
     @Override
     public OperationResult addParam(String name, ObjectDelta<?> value) {
-        getParams().put(name, collectionize(stringify(value)));
+        if (recordingValues) {
+            getParams().put(name, collectionize(stringify(value)));
+        }
         return this;
     }
 
     @Override
     public OperationResult addParam(String name, String... values) {
-        getParams().put(name, collectionize(values));
+        if (recordingValues) {
+            getParams().put(name, collectionize(values));
+        }
         return this;
     }
 
     @Override
     public OperationResult addArbitraryObjectAsParam(String paramName, Object paramValue) {
-        getParams().put(paramName, collectionize(stringify(paramValue)));
+        if (recordingValues) {
+            getParams().put(paramName, collectionize(stringify(paramValue)));
+        }
         return this;
     }
 
     @Override
     public OperationResult addArbitraryObjectCollectionAsParam(String name, Collection<?> value) {
-        getParams().put(name, stringifyCol(value));
+        if (recordingValues) {
+            getParams().put(name, stringifyCol(value));
+        }
         return this;
     }
 
@@ -1489,90 +1546,120 @@ public class OperationResult
 
     @Override
     public OperationResult addContext(String name, String value) {
-        getContext().put(name, collectionize(value));
+        if (recordingValues) {
+            getContext().put(name, collectionize(value));
+        }
         return this;
     }
 
     @Override
     public OperationResult addContext(String name, PrismObject<? extends ObjectType> value) {
-        getContext().put(name, collectionize(stringify(value)));
-        return this;
-    }
-
-    @Override
-    public OperationResult addContext(String name, ObjectType value) {
-        getContext().put(name, collectionize(stringify(value)));
-        return this;
-    }
-
-    @Override
-    public OperationResult addContext(String name, boolean value) {
-        getContext().put(name, collectionize(stringify(value)));
-        return this;
-    }
-
-    @Override
-    public OperationResult addContext(String name, long value) {
-        getContext().put(name, collectionize(stringify(value)));
-        return this;
-    }
-
-    @Override
-    public OperationResult addContext(String name, int value) {
-        getContext().put(name, collectionize(stringify(value)));
-        return this;
-    }
-
-    @Override
-    @SuppressWarnings("unchecked")
-    public OperationResult addContext(String name, Class<?> value) {
-        if (value != null && ObjectType.class.isAssignableFrom(value)) {
-            getContext().put(name, collectionize(ObjectTypes.getObjectType((Class<? extends ObjectType>) value).getObjectTypeUri()));
-        } else {
+        if (recordingValues) {
             getContext().put(name, collectionize(stringify(value)));
         }
         return this;
     }
 
     @Override
+    public OperationResult addContext(String name, ObjectType value) {
+        if (recordingValues) {
+            getContext().put(name, collectionize(stringify(value)));
+        }
+        return this;
+    }
+
+    @Override
+    public OperationResult addContext(String name, boolean value) {
+        if (recordingValues) {
+            getContext().put(name, collectionize(stringify(value)));
+        }
+        return this;
+    }
+
+    @Override
+    public OperationResult addContext(String name, long value) {
+        if (recordingValues) {
+            getContext().put(name, collectionize(stringify(value)));
+        }
+        return this;
+    }
+
+    @Override
+    public OperationResult addContext(String name, int value) {
+        if (recordingValues) {
+            getContext().put(name, collectionize(stringify(value)));
+        }
+        return this;
+    }
+
+    @Override
+    @SuppressWarnings("unchecked")
+    public OperationResult addContext(String name, Class<?> value) {
+        if (recordingValues) {
+            if (value != null && ObjectType.class.isAssignableFrom(value)) {
+                getContext().put(
+                        name,
+                        collectionize(ObjectTypes.getObjectType((Class<? extends ObjectType>) value).getObjectTypeUri()));
+            } else {
+                getContext().put(name, collectionize(stringify(value)));
+            }
+        }
+        return this;
+    }
+
+    @Override
     public OperationResult addContext(String name, QName value) {
-        getContext().put(name, collectionize(value == null ? null : QNameUtil.qNameToUri(value)));
+        if (recordingValues) {
+            getContext().put(name, collectionize(value == null ? null : QNameUtil.qNameToUri(value)));
+        }
         return this;
     }
 
     @Override
     public OperationResult addContext(String name, PolyString value) {
-        getContext().put(name, collectionize(value == null ? null : value.getOrig()));
+        if (recordingValues) {
+            getContext().put(name, collectionize(value == null ? null : value.getOrig()));
+        }
         return this;
     }
 
     @Override
     public OperationResult addContext(String name, ObjectQuery value) {
-        getContext().put(name, collectionize(stringify(value)));
+        if (recordingValues) {
+            getContext().put(name, collectionize(stringify(value)));
+        }
         return this;
     }
 
     @Override
     public OperationResult addContext(String name, ObjectDelta<?> value) {
-        getContext().put(name, collectionize(stringify(value)));
+        if (recordingValues) {
+            getContext().put(name, collectionize(stringify(value)));
+        }
         return this;
     }
 
     @Override
     public OperationResult addContext(String name, String... values) {
-        getContext().put(name, collectionize(values));
+        if (recordingValues) {
+            getContext().put(name, collectionize(values));
+        }
         return this;
     }
 
     @Override
     public OperationResult addArbitraryObjectAsContext(String name, Object value) {
-        getContext().put(name, collectionize(stringify(value)));
+        if (recordingValues) {
+            getContext().put(name, collectionize(stringify(value)));
+        }
         return this;
     }
 
     @Override
     public OperationResult addArbitraryObjectCollectionAsContext(String paramName, Collection<?> paramValue) {
-        getContext().put(paramName, stringifyCol(paramValue));
+        if (recordingValues) {
+            getContext().put(paramName, stringifyCol(paramValue));
+        }
         return this;
     }
 
@@ -1607,64 +1694,92 @@ public class OperationResult
     }
 
     public void addReturn(String name, String value) {
-        getReturns().put(name, collectionize(value));
+        if (recordingValues) {
+            getReturns().put(name, collectionize(value));
+        }
     }
 
     public void addReturn(String name, PrismObject<? extends ObjectType> value) {
-        getReturns().put(name, collectionize(stringify(value)));
-    }
-
-    public void addReturn(String name, ObjectType value) {
-        getReturns().put(name, collectionize(stringify(value)));
-    }
-
-    public void addReturn(String name, Boolean value) {
-        getReturns().put(name, collectionize(stringify(value)));
-    }
-
-    public void addReturn(String name, Long value) {
-        getReturns().put(name, collectionize(stringify(value)));
-    }
-
-    public void addReturn(String name, Integer value) {
-        getReturns().put(name, collectionize(stringify(value)));
-    }
-
-    @SuppressWarnings("unchecked")
-    public void addReturn(String name, Class<?> value) {
-        if (value != null && ObjectType.class.isAssignableFrom(value)) {
-            getReturns().put(name, collectionize(ObjectTypes.getObjectType((Class<? extends ObjectType>) value).getObjectTypeUri()));
-        } else {
+        if (recordingValues) {
             getReturns().put(name, collectionize(stringify(value)));
         }
     }
 
+    public void addReturn(String name, ObjectType value) {
+        if (recordingValues) {
+            getReturns().put(name, collectionize(stringify(value)));
+        }
+    }
+
+    public void addReturn(String name, Boolean value) {
+        if (recordingValues) {
+            getReturns().put(name, collectionize(stringify(value)));
+        }
+    }
+
+    public void addReturn(String name, Long value) {
+        if (recordingValues) {
+            getReturns().put(name, collectionize(stringify(value)));
+        }
+    }
+
+    public void addReturn(String name, Integer value) {
+        if (recordingValues) {
+            getReturns().put(name, collectionize(stringify(value)));
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    public void addReturn(String name, Class<?> value) {
+        if (recordingValues) {
+            if (value != null && ObjectType.class.isAssignableFrom(value)) {
+                getReturns().put(name, collectionize(ObjectTypes.getObjectType((Class<? extends ObjectType>) value).getObjectTypeUri()));
+            } else {
+                getReturns().put(name, collectionize(stringify(value)));
+            }
+        }
+    }
+
     public void addReturn(String name, QName value) {
-        getReturns().put(name, collectionize(value == null ? null : QNameUtil.qNameToUri(value)));
+        if (recordingValues) {
+            getReturns().put(name, collectionize(value == null ? null : QNameUtil.qNameToUri(value)));
+        }
     }
 
     public void addReturn(String name, PolyString value) {
-        getReturns().put(name, collectionize(value == null ? null : value.getOrig()));
+        if (recordingValues) {
+            getReturns().put(name, collectionize(value == null ? null : value.getOrig()));
+        }
     }
 
     public void addReturn(String name, ObjectQuery value) {
-        getReturns().put(name, collectionize(stringify(value)));
+        if (recordingValues) {
+            getReturns().put(name, collectionize(stringify(value)));
+        }
     }
 
     public void addReturn(String name, ObjectDelta<?> value) {
-        getReturns().put(name, collectionize(stringify(value)));
+        if (recordingValues) {
+            getReturns().put(name, collectionize(stringify(value)));
+        }
     }
 
     public void addReturn(String name, String... values) {
-        getReturns().put(name, collectionize(values));
+        if (recordingValues) {
+            getReturns().put(name, collectionize(values));
+        }
     }
 
     public void addArbitraryObjectAsReturn(String name, Object value) {
-        getReturns().put(name, collectionize(stringify(value)));
+        if (recordingValues) {
+            getReturns().put(name, collectionize(stringify(value)));
+        }
     }
 
     public void addArbitraryObjectCollectionAsReturn(String paramName, Collection<?> paramValue) {
-        getReturns().put(paramName, stringifyCol(paramValue));
+        if (recordingValues) {
+            getReturns().put(paramName, stringifyCol(paramValue));
+        }
     }
 
     private String stringify(Object value) {
@@ -2059,15 +2174,15 @@ public class OperationResult
             result.setHiddenRecordsCount(bean.getHiddenRecordsCount());
         }
         if (bean.getStart() != null) {
-            result.setStart(XmlTypeConverter.toMillis(bean.getStart()));
+            result.setStartFromNullable(XmlTypeConverter.toMillis(bean.getStart()));
         }
         if (bean.getEnd() != null) {
-            result.setEnd(XmlTypeConverter.toMillis(bean.getEnd()));
+            result.setEndFromNullable(XmlTypeConverter.toMillis(bean.getEnd()));
         }
-        result.setMicroseconds(bean.getMicroseconds());
-        result.setOwnMicroseconds(bean.getOwnMicroseconds());
-        result.setCpuMicroseconds(bean.getCpuMicroseconds());
-        result.setInvocationId(bean.getInvocationId());
+        result.setMicrosecondsFromNullable(bean.getMicroseconds());
+        result.setOwnMicrosecondsFromNullable(bean.getOwnMicroseconds());
+        result.setCpuMicrosecondsFromNullable(bean.getCpuMicroseconds());
+        result.setInvocationIdFromNullable(bean.getInvocationId());
         result.logSegments.addAll(bean.getLog());
         result.setMonitoredOperations(bean.getMonitoredOperations());
         return result;
@@ -2167,12 +2282,12 @@ public class OperationResult
 
         bean.setAsynchronousOperationReference(opResult.getAsynchronousOperationReference());
 
-        bean.setStart(XmlTypeConverter.createXMLGregorianCalendar(opResult.start));
-        bean.setEnd(XmlTypeConverter.createXMLGregorianCalendar(opResult.end));
-        bean.setMicroseconds(opResult.microseconds);
-        bean.setOwnMicroseconds(opResult.ownMicroseconds);
-        bean.setCpuMicroseconds(opResult.cpuMicroseconds);
-        bean.setInvocationId(opResult.invocationId);
+        bean.setStart(XmlTypeConverter.createXMLGregorianCalendar(toNullable(opResult.start)));
+        bean.setEnd(XmlTypeConverter.createXMLGregorianCalendar(toNullable(opResult.end)));
+        bean.setMicroseconds(opResult.getMicroseconds());
+        bean.setOwnMicroseconds(opResult.getOwnMicroseconds());
+        bean.setCpuMicroseconds(opResult.getCpuMicroseconds());
+        bean.setInvocationId(opResult.getInvocationId());
         bean.getLog().addAll(opResult.logSegments); // consider cloning here
         bean.getTrace().addAll(opResult.traces); // consider cloning here
         bean.setMonitoredOperations(cloneCloneable(opResult.getMonitoredOperations()));
@@ -2237,7 +2352,7 @@ public class OperationResult
                 OperationStatusCounter counter = recordsCounters.get(key);
                 if (sr.representsHiddenRecords()) {
                     counter.hiddenCount += sr.hiddenRecordsCount;
-                    counter.addHiddenMicroseconds(sr.getMicroseconds(), sr.getOwnMicroseconds(), sr.getCpuMicroseconds());
+                    counter.addHiddenMicroseconds(sr.microseconds, sr.ownMicroseconds, sr.cpuMicroseconds);
                     iterator.remove(); // will be re-added at the end (potentially with records counters)
                 } else {
                     if (counter.shownRecords < subresultStripThreshold) {
@@ -2245,7 +2360,7 @@ public class OperationResult
                         counter.shownCount += sr.count;
                     } else {
                         counter.hiddenCount += sr.count;
-                        counter.addHiddenMicroseconds(sr.getMicroseconds(), sr.getOwnMicroseconds(), sr.getCpuMicroseconds());
+                        counter.addHiddenMicroseconds(sr.microseconds, sr.ownMicroseconds, sr.cpuMicroseconds);
                         iterator.remove();
                     }
                 }
@@ -2253,7 +2368,7 @@ public class OperationResult
                 OperationStatusCounter counter = new OperationStatusCounter();
                 if (sr.representsHiddenRecords()) {
                     counter.hiddenCount = sr.hiddenRecordsCount;
-                    counter.addHiddenMicroseconds(sr.getMicroseconds(), sr.getOwnMicroseconds(), sr.getCpuMicroseconds());
+                    counter.addHiddenMicroseconds(sr.microseconds, sr.ownMicroseconds, sr.cpuMicroseconds);
                     iterator.remove(); // will be re-added at the end (potentially with records counters)
                 } else {
                     counter.shownRecords = 1;
@@ -2272,9 +2387,9 @@ public class OperationResult
                         key.operation, key.status,
                         "%d record(s) were hidden to save space. Total number of records: %d".formatted(
                                 hiddenCount, shownCount + hiddenCount));
-                hiddenRecordsEntry.setMicroseconds(value.hiddenMicroseconds);
-                hiddenRecordsEntry.setOwnMicroseconds(value.hiddenOwnMicroseconds);
-                hiddenRecordsEntry.setCpuMicroseconds(value.hiddenCpuMicroseconds);
+                hiddenRecordsEntry.microseconds = value.hiddenMicroseconds;
+                hiddenRecordsEntry.ownMicroseconds = value.hiddenOwnMicroseconds;
+                hiddenRecordsEntry.cpuMicroseconds = value.hiddenCpuMicroseconds;
                 hiddenRecordsEntry.setHiddenRecordsCount(hiddenCount);
                 addSubresult(hiddenRecordsEntry);
             }
@@ -2294,16 +2409,13 @@ public class OperationResult
         mergeMap(target.getContext(), source.getContext());
         mergeMap(target.getReturns(), source.getReturns());
         target.incrementCount();
-        target.setMicroseconds(
-                computeMicroseconds(target.getMicroseconds(), source.getMicroseconds()));
-        target.setOwnMicroseconds(
-                computeMicroseconds(target.getOwnMicroseconds(), source.getOwnMicroseconds()));
-        target.setCpuMicroseconds(
-                computeMicroseconds(target.getCpuMicroseconds(), source.getCpuMicroseconds()));
+        target.microseconds = addMicroseconds(target.microseconds, source.microseconds);
+        target.ownMicroseconds = addMicroseconds(target.ownMicroseconds, source.ownMicroseconds);
+        target.cpuMicroseconds = addMicroseconds(target.cpuMicroseconds, source.cpuMicroseconds);
     }
 
-    private static Long computeMicroseconds(Long fromTarget, Long fromSource) {
-        return fromTarget != null || fromSource != null ? or0(fromTarget) + or0(fromSource) : null;
+    private static @CanBeNone long addMicroseconds(@CanBeNone long a, @CanBeNone long b) {
+        return a != NONE_LONG || b != NONE_LONG ? zeroIfNone(a) + zeroIfNone(b) : NONE_LONG;
     }
 
     private void mergeMap(Map<String, Collection<String>> targetMap, Map<String, Collection<String>> sourceMap) {
@@ -2431,7 +2543,7 @@ public class OperationResult
     }
 
     // TODO better name
-    public boolean canBeCleanedUp() {
+    private boolean canBeCleanedUp() {
         return !isTraced() && !preserve;
     }
 
@@ -2498,7 +2610,8 @@ public class OperationResult
             sb.append("\n");
             DebugUtil.debugDumpWithLabel(
                     sb, "duration",
-                    "%,.3f ms (%,.3f own)".formatted(formatMilliseconds(microseconds), formatMilliseconds(ownMicroseconds)),
+                    "%,.3f ms (%,.3f own)".formatted(
+                            formatMilliseconds(microseconds), formatMilliseconds(ownMicroseconds)),
                     indent + 2);
         }
 
@@ -2547,8 +2660,8 @@ public class OperationResult
         }
     }
 
-    private Float formatMilliseconds(Long value) {
-        return value != null ? value / 1000.0f : null;
+    private Float formatMilliseconds(long value) {
+        return value != NONE_LONG ? value / 1000.0f : null;
     }
 
     @Experimental
@@ -2600,7 +2713,7 @@ public class OperationResult
         if (values == null) {
             return null;
         }
-        if (values.size() == 0) {
+        if (values.isEmpty()) {
             return "(empty)";
         }
         if (values.size() == 1) {
@@ -2643,6 +2756,7 @@ public class OperationResult
     @Override
     public OperationResultBuilder preserve() {
         this.preserve = true;
+        this.recordingValues = true;
         return this;
     }
 
@@ -2695,18 +2809,19 @@ public class OperationResult
         private int hiddenCount;
 
         /** How many microseconds are in the hidden entries? */
-        private Long hiddenMicroseconds;
+        @CanBeNone private long hiddenMicroseconds = NONE_LONG;
 
         /** How many own microseconds are in the hidden entries? */
-        private Long hiddenOwnMicroseconds;
+        @CanBeNone private long hiddenOwnMicroseconds = NONE_LONG;
 
         /** How many CPU microseconds are in the hidden entries? */
-        private Long hiddenCpuMicroseconds;
+        @CanBeNone private long hiddenCpuMicroseconds = NONE_LONG;
 
-        void addHiddenMicroseconds(Long deltaMicroseconds, Long deltaOwnMicroseconds, Long deltaCpuMicroseconds) {
-            hiddenMicroseconds = computeMicroseconds(hiddenMicroseconds, deltaMicroseconds);
-            hiddenOwnMicroseconds = computeMicroseconds(hiddenOwnMicroseconds, deltaOwnMicroseconds);
-            hiddenCpuMicroseconds = computeMicroseconds(hiddenCpuMicroseconds, deltaCpuMicroseconds);
+        void addHiddenMicroseconds(
+                @CanBeNone long deltaMicroseconds, @CanBeNone long deltaOwnMicroseconds, @CanBeNone long deltaCpuMicroseconds) {
+            hiddenMicroseconds = addMicroseconds(hiddenMicroseconds, deltaMicroseconds);
+            hiddenOwnMicroseconds = addMicroseconds(hiddenOwnMicroseconds, deltaOwnMicroseconds);
+            hiddenCpuMicroseconds = addMicroseconds(hiddenCpuMicroseconds, deltaCpuMicroseconds);
         }
     }
 
@@ -2855,11 +2970,11 @@ public class OperationResult
                 summarizeSuccesses == result.summarizeSuccesses &&
                 importance == result.importance &&
                 building == result.building &&
-                Objects.equals(start, result.start) &&
-                Objects.equals(end, result.end) &&
-                Objects.equals(microseconds, result.microseconds) &&
-                Objects.equals(cpuMicroseconds, result.cpuMicroseconds) &&
-                Objects.equals(invocationId, result.invocationId) &&
+                start == result.start &&
+                end == result.end &&
+                microseconds == result.microseconds &&
+                cpuMicroseconds == result.cpuMicroseconds &&
+                invocationId == result.invocationId &&
                 Objects.equals(tracingProfile, result.tracingProfile) &&
                 Objects.equals(operation, result.operation) &&
                 Objects.equals(qualifiers, result.qualifiers) &&
@@ -2886,52 +3001,58 @@ public class OperationResult
                 microseconds, cpuMicroseconds, invocationId, traces, asynchronousOperationReference);
     }
 
+    /** This is public API; we should not use {@link NoValueUtil#NONE_LONG} here. */
     public Long getStart() {
-        return start;
+        return toNullable(start);
     }
 
-    public void setStart(Long start) {
-        this.start = start;
+    private void setStartFromNullable(Long start) {
+        this.start = fromNullable(start);
     }
 
+    /** This is public API; we should not use {@link NoValueUtil#NONE_LONG} here. */
     public Long getEnd() {
-        return end;
+        return toNullable(end);
     }
 
-    public void setEnd(Long end) {
-        this.end = end;
+    private void setEndFromNullable(Long end) {
+        this.end = fromNullable(end);
     }
 
+    /** This is public API; we should not use {@link NoValueUtil#NONE_LONG} here. */
     public Long getMicroseconds() {
-        return microseconds;
+        return toNullable(microseconds);
     }
 
-    public void setMicroseconds(Long microseconds) {
-        this.microseconds = microseconds;
+    private void setMicrosecondsFromNullable(Long microseconds) {
+        this.microseconds = fromNullable(microseconds);
     }
 
+    /** This is public API; we should not use {@link NoValueUtil#NONE_LONG} here. */
     public Long getOwnMicroseconds() {
-        return ownMicroseconds;
+        return toNullable(ownMicroseconds);
     }
 
-    public void setOwnMicroseconds(Long ownMicroseconds) {
-        this.ownMicroseconds = ownMicroseconds;
+    private void setOwnMicrosecondsFromNullable(Long ownMicroseconds) {
+        this.ownMicroseconds = fromNullable(ownMicroseconds);
     }
 
+    /** This is public API; we should not use {@link NoValueUtil#NONE_LONG} here. */
     public Long getCpuMicroseconds() {
-        return cpuMicroseconds;
+        return toNullable(cpuMicroseconds);
     }
 
-    public void setCpuMicroseconds(Long cpuMicroseconds) {
-        this.cpuMicroseconds = cpuMicroseconds;
+    private void setCpuMicrosecondsFromNullable(Long cpuMicroseconds) {
+        this.cpuMicroseconds = fromNullable(cpuMicroseconds);
     }
 
+    /** This is public API; we should not use {@link NoValueUtil#NONE_LONG} here. */
     public Long getInvocationId() {
-        return invocationId;
+        return toNullable(invocationId);
     }
 
-    public void setInvocationId(Long invocationId) {
-        this.invocationId = invocationId;
+    private void setInvocationIdFromNullable(Long invocationId) {
+        this.invocationId = fromNullable(invocationId);
     }
 
     public boolean isTraced() {

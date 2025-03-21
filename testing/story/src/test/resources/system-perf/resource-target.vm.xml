@@ -125,7 +125,18 @@ Configuration parameters:
 #end
             </association>
 #end
-
+            <activation>
+                <!-- Workaround for BUG-10386 - In dummy connector administrative status is volatile, so it
+                     is not cached properly on first write -->
+                <administrativeStatus>
+                    <outbound>
+                        <strength>weak</strength>
+                        <expression>
+                            <value>enabled</value>
+                        </expression>
+                    </outbound>
+                </administrativeStatus>
+            </activation>
         </objectType>
 
         <objectType>

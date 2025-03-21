@@ -126,7 +126,9 @@ public class OtherParameters {
     }
 
     static OtherParameters setup() {
-        return new OtherParameters();
+        var configuration = new OtherParameters();
+        System.out.println("Other: " + configuration);
+        return configuration;
     }
 
     private void createSystemConfigurationFile() {

@@ -21,6 +21,8 @@ import javax.management.Query;
 import javax.management.QueryExp;
 import javax.xml.datatype.XMLGregorianCalendar;
 
+import com.evolveum.midpoint.prism.Freezable;
+
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
 import org.apache.commons.lang3.RandomStringUtils;
@@ -712,10 +714,7 @@ public class NodeRegistrar implements Cache {
     }
 
     private void setCachedLocalNodeObject(@NotNull PrismObject<NodeType> cachedLocalNodeObject) {
-        if (!cachedLocalNodeObject.isImmutable()) {
-            cachedLocalNodeObject.freeze();
-        }
-        this.cachedLocalNodeObject = cachedLocalNodeObject;
+        this.cachedLocalNodeObject = Freezable.doFreeze(cachedLocalNodeObject);
     }
 
     boolean isCurrentNode(PrismObject<NodeType> node) {

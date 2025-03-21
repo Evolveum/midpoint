@@ -12,6 +12,7 @@ import com.evolveum.midpoint.model.common.mapping.MappingBuilder;
 import com.evolveum.midpoint.model.common.mapping.MappingFactory;
 import com.evolveum.midpoint.model.common.mapping.MappingImpl;
 import com.evolveum.midpoint.model.impl.lens.LensElementContext;
+import com.evolveum.midpoint.model.impl.lens.LensProjectionContext;
 import com.evolveum.midpoint.model.impl.lens.projector.ActivationProcessor;
 import com.evolveum.midpoint.model.impl.lens.projector.credentials.ProjectionCredentialsProcessor;
 import com.evolveum.midpoint.model.impl.lens.projector.focus.inbounds.FullInboundsProcessing;
@@ -111,6 +112,10 @@ public class ProjectionMappingSetEvaluator {
             if (!task.canSee(mappingBean)) {
                 LOGGER.trace("Mapping {} not applicable to the execution mode, skipping", mappingName);
                 continue;
+            }
+
+            if (targetContext instanceof LensProjectionContext) {
+                mappingBuilder.ignoreValueMetadata(); // no value metadata for outbound mappings
             }
 
             mappingBuilder.now(params.getNow());

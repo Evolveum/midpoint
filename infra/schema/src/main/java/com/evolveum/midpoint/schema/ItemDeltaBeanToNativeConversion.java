@@ -187,7 +187,7 @@ class ItemDeltaBeanToNativeConversion<IV extends PrismValue, ID extends ItemDefi
                     converted = parsed;
                 }
                 //noinspection unchecked
-                parsedValues.add((IV) converted.cloneComplex(CloneStrategy.LITERAL));
+                parsedValues.add((IV) converted.cloneComplex(CloneStrategy.LITERAL_MUTABLE));
             }
         }
         return parsedValues;

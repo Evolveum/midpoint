@@ -286,7 +286,8 @@ public abstract class ResourceObjectConstruction<
                 .addVariableDefinition(ExpressionConstants.VAR_SOURCE, source, ObjectType.class)
                 .addVariableDefinition(ExpressionConstants.VAR_CONTAINING_OBJECT, source, ObjectType.class)
                 .addVariableDefinition(ExpressionConstants.VAR_THIS_OBJECT,
-                        assignmentPath != null ? assignmentPath.getConstructionThisObject() : null, ObjectType.class);
+                        assignmentPath != null ? assignmentPath.getConstructionThisObject() : null, ObjectType.class)
+                .ignoreValueMetadata();
 
         if (associationDefinition != null) {
             builder = builder.addVariableDefinition(

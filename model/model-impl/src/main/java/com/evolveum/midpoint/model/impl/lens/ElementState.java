@@ -465,11 +465,13 @@ class ElementState<O extends ObjectType> implements Serializable, Cloneable {
     }
 
     private PrismObject<O> applyDeltaToObject(ObjectDelta<O> delta, PrismObject<O> object) throws SchemaException {
+        PrismObject<O> newObject;
         if (ObjectDelta.isEmpty(delta)) {
-            return object;
+            newObject = object;
         } else {
-            return delta.computeChangedObject(object);
+            newObject = delta.computeChangedObject(object);
         }
+        return Freezable.doFreeze(newObject);
     }
 
     /**

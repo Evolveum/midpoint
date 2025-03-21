@@ -578,4 +578,18 @@ public class NormalizationAwareResourceAttributeDefinition<T>
             @Nullable QName nativeMatchingRuleName,
             @Nullable QName overriddenMatchingRuleName) implements Serializable {
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (!(o instanceof NormalizationAwareResourceAttributeDefinition<?> that)) {
+            return false;
+        }
+        return Objects.equals(originalDefinition, that.originalDefinition)
+                && Objects.equals(definitionOverrides, that.definitionOverrides);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(originalDefinition, definitionOverrides);
+    }
 }

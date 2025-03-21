@@ -109,14 +109,14 @@ public class ResourceCache implements Cache {
         PrismObject<ResourceType> cachedResource = cache.get(oid);
         if (cachedResource == null) {
             LOGGER.debug("Caching(new): {}", resource);
-            cache.put(oid, resource.asPrismObject().createImmutableClone());
+            cache.put(oid, resource.asPrismObject().immutableCopy());
         } else if (compareVersion(resource.getVersion(), cachedResource.getVersion())) {
             LOGGER.debug("Caching fizzle, resource already cached: {}", resource);
             // We already have equivalent resource, nothing to do
             //  TODO is this correct? What if the resource being put here is newer than the existing one (although having the same version)?
         } else {
             LOGGER.debug("Caching(replace): {}", resource);
-            cache.put(oid, resource.asPrismObject().createImmutableClone());
+            cache.put(oid, resource.asPrismObject().immutableCopy());
             resourceSchemaRegistry.putSchema(oid, ResourceSchemaFactory.getCompleteSchema(resource));
         }
     }

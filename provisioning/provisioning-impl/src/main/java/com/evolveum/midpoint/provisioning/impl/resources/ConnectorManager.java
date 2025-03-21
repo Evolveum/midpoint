@@ -416,7 +416,7 @@ public class ConnectorManager implements Cache, ConnectorDiscoveryListener {
                         () -> "No connector schema in " + connectorBean);
 
         ConnectorWithSchema connectorWithSchema = new ConnectorWithSchema(
-                connectorBean.asPrismObject().createImmutableClone().asObjectable(),
+                connectorBean.asPrismObject().immutableCopy().asObjectable(),
                 connectorSchema);
 
         connectorBeanCache.put(connOid, connectorWithSchema);

@@ -285,6 +285,10 @@ public class AssignmentPathSegmentImpl implements AssignmentPathSegment, Freezab
         return Util.getAssignment(assignmentIdi, evaluateOld);
     }
 
+    public @Nullable PrismContainerValue<AssignmentType> getAssignmentPcv(boolean evaluateOld) {
+        return Util.getAssignmentPcv(assignmentIdi, evaluateOld);
+    }
+
     private static QName getRelation(AssignmentType assignment, RelationRegistry relationRegistry) {
         return assignment != null && assignment.getTargetRef() != null ?
                 relationRegistry.normalizeRelation(assignment.getTargetRef().getRelation()) : null;

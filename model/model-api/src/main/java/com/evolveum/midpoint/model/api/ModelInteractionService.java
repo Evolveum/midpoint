@@ -628,14 +628,6 @@ public interface ModelInteractionService {
             throws SchemaException, PolicyViolationException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException;
 
     /**
-     * TODO document
-     */
-    @Experimental
-    void processObjectsFromCollection(CollectionRefSpecificationType collection, QName typeForFilter, Predicate<PrismContainer> handler,
-            Collection<SelectorOptions<GetOperationOptions>> options, VariablesMap variables, Task task, OperationResult result, boolean recordProgress) throws SchemaException,
-            ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException;
-
-    /**
      * TODO document and clean up the interface
      */
     @Experimental

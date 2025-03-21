@@ -61,8 +61,8 @@ class SingleShotEvaluation<V extends PrismValue, D extends ItemDefinition<?>, E 
             outputTriple = evaluateAbsoluteExpressionWithoutDeltas();
         }
 
-        addValueMetadata(outputTriple.getPlusSet(),parentResult);
-        addValueMetadata(outputTriple.getZeroSet(), parentResult);
+        addValueMetadata(outputTriple.getPlusSet());
+        addValueMetadata(outputTriple.getZeroSet());
         //addValueMetadata(outputTriple.getMinusSet(), parentResult);
         recordEvaluationEnd(outputTriple);
         return outputTriple;
@@ -176,28 +176,23 @@ class SingleShotEvaluation<V extends PrismValue, D extends ItemDefinition<?>, E 
         return outputSet;
     }
 
-    private void addValueMetadata(@NotNull Collection<V> output, OperationResult result) throws CommunicationException, ObjectNotFoundException,
+    private void addValueMetadata(@NotNull Collection<V> output) throws CommunicationException, ObjectNotFoundException,
             SchemaException, SecurityViolationException, ConfigurationException, ExpressionEvaluationException {
         TransformationValueMetadataComputer valueMetadataComputer = context.getValueMetadataComputer();
 
         if (valueMetadataComputer == null) {
             // TODO clear existing metadata?
             LOGGER.trace("No value metadata computer present, skipping metadata computation.");
-        } else if (output != null || !output.isEmpty()) {
+        } else {
             // FIXME: Here we should have some source values list probably
             var sourceValues = Collections.<PrismValue>emptyList();
-            ValueMetadataType outputValueMetadata = valueMetadataComputer.compute(sourceValues, result);
-            if (outputValueMetadata != null) {
-                ValueMetadata metadata = PrismContext.get().getValueMetadataFactory().createEmpty();
-                metadata.addMetadataValue(outputValueMetadata.asPrismContainerValue());
-                var iter = output.iterator();
-                for (var oVal: output)  {
-                    if (oVal != null) {
-                        oVal.setValueMetadata(metadata.clone());
-                    }
+            ValueMetadataType outputValueMetadata = valueMetadataComputer.compute(sourceValues, parentResult);
+            ValueMetadata metadata = PrismContext.get().getValueMetadataFactory().createEmpty();
+            metadata.addMetadataValue(outputValueMetadata.asPrismContainerValue());
+            for (var oVal: output)  {
+                if (oVal != null) {
+                    oVal.setValueMetadata(metadata.clone());
                 }
-            } else {
-                // TODO clear existing metadata?
             }
         }
     }

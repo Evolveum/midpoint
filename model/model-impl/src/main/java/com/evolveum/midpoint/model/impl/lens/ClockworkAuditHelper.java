@@ -9,6 +9,8 @@ package com.evolveum.midpoint.model.impl.lens;
 import java.util.Collection;
 import javax.xml.datatype.XMLGregorianCalendar;
 
+import com.evolveum.midpoint.util.MiscUtil;
+
 import com.google.common.base.Preconditions;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -91,29 +93,31 @@ public class ClockworkAuditHelper {
             return;
         }
 
+        var focusContext = context.getFocusContext();
+
         PrismObject<? extends ObjectType> primaryObject;
+        String primaryObjectDefaultOid; // OID may be missing in objects, as they may be immutable (but it's in the context)
         ObjectDelta<? extends ObjectType> primaryDelta;
-        if (context.getFocusContext() != null) {
-            if (context.getFocusContext().getObjectOld() != null) {
-                primaryObject = context.getFocusContext().getObjectOld();
+        if (focusContext != null) {
+            primaryObjectDefaultOid = focusContext.getOid();
+            if (focusContext.getObjectOld() != null) {
+                primaryObject = focusContext.getObjectOld();
             } else {
-                primaryObject = context.getFocusContext().getObjectNew();
+                primaryObject = focusContext.getObjectNew();
             }
-            primaryDelta = context.getFocusContext().getSummaryDelta();
+            primaryDelta = focusContext.getSummaryDelta();
         } else {
-            Collection<LensProjectionContext> projectionContexts = context.getProjectionContexts();
-            if (projectionContexts.isEmpty()) {
-                throw new IllegalStateException("No focus and no projections in " + context);
-            }
-            if (projectionContexts.size() > 1) {
-                throw new IllegalStateException("No focus and more than one projection in " + context);
-            }
-            LensProjectionContext projection = projectionContexts.iterator().next();
+            LensProjectionContext projection =
+                    MiscUtil.extractSingletonRequired(
+                            context.getProjectionContexts(),
+                            () -> new IllegalStateException("No focus and more than one projection in " + context),
+                            () -> new IllegalStateException("No focus and no projections in " + context));
             if (projection.getObjectOld() != null) {
                 primaryObject = projection.getObjectOld();
             } else {
                 primaryObject = projection.getObjectNew();
             }
+            primaryObjectDefaultOid = projection.getOid();
             // TODO couldn't we determine primary object from object ADD delta? See e.g. TestModelServiceContract.test120.
             primaryDelta = projection.getCurrentDelta();
         }
@@ -127,7 +131,7 @@ public class ClockworkAuditHelper {
         AuditConfiguration auditConfiguration = auditHelper.getAuditConfiguration(config);
 
         if (primaryObject != null) {
-            auditRecord.setTarget(primaryObject);
+            auditRecord.setTarget(primaryObject, primaryObjectDefaultOid);
             if (auditConfiguration.isRecordResourceOids()) {
                 recordResourceOids(auditRecord, primaryObject.getRealValue(), context);
             }

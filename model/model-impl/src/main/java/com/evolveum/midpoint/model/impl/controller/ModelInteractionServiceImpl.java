@@ -2182,46 +2182,6 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
                 result);
     }
 
-    // TODO deduplicate with getSearchSpecificationFromCollection
-    @Override
-    public void processObjectsFromCollection(CollectionRefSpecificationType collectionConfig, QName typeForFilter, Predicate<PrismContainer> handler,
-            Collection<SelectorOptions<GetOperationOptions>> defaultOptions, VariablesMap variables, Task task, OperationResult result, boolean recordProgress)
-            throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
-        Class<? extends Containerable> type = null;
-
-        if (collectionConfig.getCollectionRef() != null && collectionConfig.getCollectionRef().getOid() != null && collectionConfig.getFilter() != null) {
-            LOGGER.error("CollectionRefSpecificationType contains CollectionRef and Filter, please define only one");
-            throw new IllegalArgumentException("CollectionRefSpecificationType contains CollectionRef and Filter, please define only one");
-        }
-        if (typeForFilter != null) {
-            type = prismContext.getSchemaRegistry().determineClassForType(typeForFilter);
-        }
-        CompiledObjectCollectionView compiledCollection = compileObjectCollectionView(collectionConfig, type, task, task.getResult());
-        ObjectQuery query = parseFilterFromCollection(compiledCollection, variables, null, task, result);
-        type = determineTypeForSearch(compiledCollection, typeForFilter);
-        Collection<SelectorOptions<GetOperationOptions>> options = determineOptionsForSearch(compiledCollection, defaultOptions);
-
-        if (recordProgress) {
-            long count = countObjectsFromCollectionByType(type, query, options, task, result);
-            task.setExpectedTotal(count);
-        }
-        if (AuditEventRecordType.class.equals(type)) {
-            checkOrdering(query, ItemPath.create(new QName(AuditEventRecordType.COMPLEX_TYPE.getNamespaceURI(),
-                    AuditEventRecordType.F_TIMESTAMP.getLocalPart())));
-            @NotNull SearchResultList<AuditEventRecordType> auditRecords = modelAuditService.searchObjects(
-                    query, options, task, result);
-            processContainerByHandler(auditRecords, handler);
-        } else if (ObjectType.class.isAssignableFrom(type)) {
-            ResultHandler<ObjectType> resultHandler = (value, operationResult) -> handler.test(value);
-            checkOrdering(query, ObjectType.F_NAME);
-            modelService.searchObjectsIterative((Class<ObjectType>) type, query, resultHandler, options, task, result);
-        } else {
-            SearchResultList<? extends Containerable> containers = modelService.searchContainers(
-                    type, query, options, task, result);
-            processContainerByHandler(containers, handler);
-        }
-    }
-
     @Override
     public <T> SearchSpec<T> getSearchSpecificationFromCollection(CompiledObjectCollectionView compiledCollection,
             QName typeForFilter, Collection<SelectorOptions<GetOperationOptions>> defaultOptions, VariablesMap variables,

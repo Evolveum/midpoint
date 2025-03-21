@@ -149,7 +149,7 @@ public class SystemObjectCache implements Cache {
     }
 
     private void loadSystemConfiguration(OperationResult result) throws ObjectNotFoundException, SchemaException {
-        systemConfiguration = cacheRepositoryService.getObject(
+        var systemConfiguration = cacheRepositoryService.getObject(
                 SystemConfigurationType.class,
                 SystemObjectsType.SYSTEM_CONFIGURATION.value(),
                 GetOperationOptionsBuilder.create()
@@ -157,11 +157,13 @@ public class SystemObjectCache implements Cache {
                         .allowNotFound()
                         .build(),
                 result);
-        expressionProfiles = null;
-        systemConfigurationCheckTimestamp = System.currentTimeMillis();
-        if (systemConfiguration != null && systemConfiguration.getVersion() == null) {
+        if (systemConfiguration.getVersion() == null) {
             LOGGER.warn("Retrieved system configuration with null version");
         }
+        systemConfiguration.freeze();
+        expressionProfiles = null;
+        this.systemConfiguration = systemConfiguration;
+        systemConfigurationCheckTimestamp = System.currentTimeMillis();
     }
 
     public synchronized PrismObject<SecurityPolicyType> getSecurityPolicy() throws SchemaException {
@@ -224,7 +226,10 @@ public class SystemObjectCache implements Cache {
     }
 
     private void loadSecurityPolicy(OperationResult result, String oid) throws ObjectNotFoundException, SchemaException {
-        securityPolicy = cacheRepositoryService.getObject(SecurityPolicyType.class, oid, readOnly(), result);
+        securityPolicy =
+                cacheRepositoryService
+                        .getObject(SecurityPolicyType.class, oid, readOnly(), result)
+                        .doFreeze();
         expressionProfiles = null;
         securityPolicyCheckTimestamp = System.currentTimeMillis();
         if (securityPolicy != null && securityPolicy.getVersion() == null) {

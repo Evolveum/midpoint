@@ -433,38 +433,26 @@ public class LensUtil {
             return null;
         }
         AssignmentPathVariables vars = new AssignmentPathVariables();
-        vars.setAssignmentPath(assignmentPath.clone());
 
-        Iterator<AssignmentPathSegmentImpl> iterator = assignmentPath.getSegments().iterator();
+        // The assignment path itself is dynamic and will get changed, so we need to take a snapshot of it.
+        var assignmentPathSnapshot = assignmentPath.clone();
+        vars.setAssignmentPath(assignmentPathSnapshot);
+
+        vars.setMagicAssignment(new MagicAssignment(assignmentPathSnapshot).lazyIdi());
+
+        Iterator<AssignmentPathSegmentImpl> iterator = assignmentPathSnapshot.getSegments().iterator();
         while (iterator.hasNext()) {
-            AssignmentPathSegmentImpl segment = iterator.next();
-            ItemDeltaItem<PrismContainerValue<AssignmentType>,PrismContainerDefinition<AssignmentType>> segmentAssignmentIdi =
-                    segment.getAssignmentIdi();
 
-            ItemDeltaItem<PrismContainerValue<AssignmentType>,PrismContainerDefinition<AssignmentType>> magicAssignmentIdi;
-            // Magic assignment
-            if (vars.getMagicAssignment() == null) {
-                magicAssignmentIdi = segmentAssignmentIdi.clone();
-                vars.setMagicAssignment(magicAssignmentIdi);
-            } else {
-                // Collect extension values from the assignment extension
-                magicAssignmentIdi = vars.getMagicAssignment();
-                mergeExtension(magicAssignmentIdi, segmentAssignmentIdi);
-            }
-
-            // Collect extension values from the source object extension
-            ObjectType segmentSource = segment.getSource();
-            if (segmentSource != null) {
-                mergeExtension(magicAssignmentIdi, segmentSource.asPrismObject());
-            }
+            var segment = iterator.next();
+            var segmentAssignmentIdi = segment.getAssignmentIdi();
 
             // immediate assignment (use assignment from previous iteration)
             vars.setImmediateAssignment(vars.getThisAssignment());
 
             // this assignment
-            ItemDeltaItem<PrismContainerValue<AssignmentType>,PrismContainerDefinition<AssignmentType>> thisAssignment = segmentAssignmentIdi.clone();
-            vars.setThisAssignment(thisAssignment);
+            vars.setThisAssignment(segmentAssignmentIdi.copy());
 
+            ObjectType segmentSource = segment.getSource();
             if (iterator.hasNext() && segmentSource instanceof AbstractRoleType) {
                 //noinspection unchecked
                 vars.setImmediateRole((PrismObject<? extends AbstractRoleType>) segmentSource.asPrismObject());
@@ -472,7 +460,7 @@ public class LensUtil {
         }
 
         AssignmentPathSegmentImpl focusAssignmentSegment = assignmentPath.first();
-        vars.setFocusAssignment(focusAssignmentSegment.getAssignmentIdi().clone());
+        vars.setFocusAssignment(focusAssignmentSegment.getAssignmentIdi().copy());
 
         // a bit of hack -- if deleted, TestPreviewChanges and TestRbac start to fail -> TODO should be investigated
         // objects are already cloned
@@ -494,57 +482,9 @@ public class LensUtil {
         // However, to not break scripts before 3.6 release we provide imitation of old behavior here.
         // (Moreover, for magic assignment the delta is not correct anyway.)
         if (idi.getDelta().isAdd() || idi.getDelta().isReplace()) {
-            return new ItemDeltaItem<>(idi.getItemNew().clone(), null, idi.getItemNew(), idi.getDefinition());
+            return new ItemDeltaItem<>(idi.getItemNew(), null, idi.getItemNew(), idi.getDefinition());
         } else {
-            return new ItemDeltaItem<>(idi.getItemOld(), null, idi.getItemOld().clone(), idi.getDefinition());
-        }
-    }
-
-    private static void mergeExtension(
-            ItemDeltaItem<PrismContainerValue<AssignmentType>,PrismContainerDefinition<AssignmentType>> destIdi,
-            ItemDeltaItem<PrismContainerValue<AssignmentType>,PrismContainerDefinition<AssignmentType>> srcIdi)
-            throws SchemaException {
-        mergeExtension(destIdi.getItemOld(), srcIdi.getItemOld());
-        mergeExtension(destIdi.getItemNew(), srcIdi.getItemNew());
-        if (srcIdi.getDelta() != null || srcIdi.getSubItemDeltas() != null) {
-            throw new UnsupportedOperationException("Merge of IDI with deltas not supported");
-        }
-    }
-
-    private static void mergeExtension(Item<PrismContainerValue<AssignmentType>,PrismContainerDefinition<AssignmentType>> dstItem,
-            Item<PrismContainerValue<AssignmentType>,PrismContainerDefinition<AssignmentType>> srcItem) throws SchemaException {
-        if (srcItem == null || dstItem == null) {
-            return;
-        }
-        PrismContainer<Containerable> srcExtension = ((PrismContainer<AssignmentType>)srcItem).findContainer(AssignmentType.F_EXTENSION);
-        mergeExtensionContainers(dstItem, srcExtension);
-    }
-
-    private static <O extends ObjectType> void mergeExtension(
-            ItemDeltaItem<PrismContainerValue<AssignmentType>,PrismContainerDefinition<AssignmentType>> destIdi,
-            PrismObject<O> srcObject) throws SchemaException {
-        if (srcObject == null) {
-            return;
-        }
-
-        PrismContainer<Containerable> srcExtension = srcObject.findContainer(ObjectType.F_EXTENSION);
-
-        mergeExtensionContainers(destIdi.getItemNew(), srcExtension);
-        mergeExtensionContainers(destIdi.getItemOld(), srcExtension);
-    }
-
-    private static void mergeExtensionContainers(
-            Item<PrismContainerValue<AssignmentType>,PrismContainerDefinition<AssignmentType>> dstItem,
-            PrismContainer<Containerable> srcExtension) throws SchemaException {
-        if (dstItem == null) {
-            return;
-        }
-        PrismContainer<AssignmentType> dstContainer = (PrismContainer<AssignmentType>) dstItem;
-        if (srcExtension != null && !srcExtension.isEmpty()) {
-            PrismContainer<?> dstExtensionContainer = dstContainer.findOrCreateContainer(AssignmentType.F_EXTENSION);
-            PrismContainerValue<?> dstExtensionContainerValue = dstExtensionContainer.getValues().isEmpty()
-                    ? dstExtensionContainer.createNewValue() : dstExtensionContainer.getValue();
-            ObjectTypeUtil.mergeExtension(dstExtensionContainerValue, srcExtension.getValue());
+            return new ItemDeltaItem<>(idi.getItemOld(), null, idi.getItemOld(), idi.getDefinition());
         }
     }
 

@@ -63,7 +63,7 @@ public class PathSegmentEvaluation<AH extends AssignmentHolderType> extends Abst
         this.segment = segment;
         this.result = parentResult.subresult(OP_EVALUATE)
                 .setMinor()
-                .addParam("segment", segment.shortDump())
+                .addArbitraryObjectAsParam("segment", segment)
                 .addContext("segmentSourceName", PolyString.getOrig(segment.source.getName()))
                 .build();
         this.trace = recordStart();

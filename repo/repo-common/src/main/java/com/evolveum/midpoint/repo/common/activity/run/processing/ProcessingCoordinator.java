@@ -175,8 +175,10 @@ public class ProcessingCoordinator<I> {
         for (int i = 0; i < threadsCount; i++) {
             // we intentionally do not put worker specific result under main operation result until the handler is done
             // (because of concurrency issues - adding subresults vs e.g. putting main result into the task)
-            OperationResult workerSpecificResult = new OperationResult(OP_HANDLE_ASYNCHRONOUSLY);
-            workerSpecificResult.addContext("subtaskIndex", i+1);
+            var workerSpecificResult = OperationResult.newResult(OP_HANDLE_ASYNCHRONOUSLY)
+                    .notRecordingValues() // TEMPORARY
+                    .addContext("subtaskIndex", i+1)
+                    .build();
             workerSpecificResults.add(workerSpecificResult);
 
             RunningLightweightTask subtask = coordinatorTask.createSubtask(new WorkerHandler(workerSpecificResult));

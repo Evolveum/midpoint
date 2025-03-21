@@ -318,7 +318,8 @@ public class AssociationValuesTripleComputation {
                                 ExpressionConstants.VAR_ASSOCIATION_DEFINITION,
                                 associationDefinition, ShadowReferenceAttributeDefinition.class)
                         .addVariableDefinition(ExpressionConstants.VAR_RESOURCE, projectionContext.getResource(), ResourceType.class)
-                        .addVariableDefinition(ExpressionConstants.VAR_THIS_OBJECT, assignmentTarget, ObjectType.class);
+                        .addVariableDefinition(ExpressionConstants.VAR_THIS_OBJECT, assignmentTarget, ObjectType.class)
+                        .ignoreValueMetadata();
 
                 builder = LensUtil.addAssignmentPathVariables(builder, assignmentPathVariables);
                 builder = builder.addVariableDefinition(ExpressionConstants.VAR_CONFIGURATION, lensContext.getSystemConfiguration(), SystemConfigurationType.class);

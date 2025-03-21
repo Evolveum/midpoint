@@ -9,6 +9,9 @@ package com.evolveum.midpoint.model.api.context;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.PrismContainerDefinition;
+import com.evolveum.midpoint.prism.PrismContainerValue;
+import com.evolveum.midpoint.prism.util.ItemDeltaItem;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.ShortDumpable;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentPathSegmentType;
@@ -81,4 +84,6 @@ public interface AssignmentPathSegment extends DebugDumpable, ShortDumpable, Ser
 
     // Preliminary limited implementation. Use with care.
     boolean equivalent(AssignmentPathSegment otherSegment);
+
+    @NotNull ItemDeltaItem<PrismContainerValue<AssignmentType>, PrismContainerDefinition<AssignmentType>> getAssignmentIdi();
 }

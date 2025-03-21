@@ -20,6 +20,7 @@ import java.util.stream.Stream;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.lazy.FlyweightClonedItem;
 import com.evolveum.midpoint.prism.lazy.LazyXNodeBasedPrismValue;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.SystemException;
@@ -826,12 +827,11 @@ public class ObjectTypeUtil {
                 && ref1.getOid().equals(ref2.getOid());
     }
 
-    public static void mergeExtension(PrismContainerValue<?> dstExtensionContainerValue, PrismContainerValue<?> srcExtensionContainerValue) throws SchemaException {
-        for (Item<?, ?> srcExtensionItem : emptyIfNull(srcExtensionContainerValue.getItems())) {
-            Item<?, ?> magicItem = dstExtensionContainerValue.findItem(srcExtensionItem.getElementName());
-            if (magicItem == null) {
-                //noinspection unchecked
-                dstExtensionContainerValue.add(srcExtensionItem.clone());
+    public static void mergeExtension(PrismContainerValue<?> dstExtensionPcv, PrismContainerValue<?> srcExtensionPcv)
+            throws SchemaException {
+        for (Item<?, ?> srcExtensionItem : emptyIfNull(srcExtensionPcv.getItems())) {
+            if (dstExtensionPcv.findItem(srcExtensionItem.getElementName()) == null) {
+                dstExtensionPcv.add(srcExtensionItem.copy(), false);
             }
         }
     }

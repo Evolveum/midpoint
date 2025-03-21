@@ -729,9 +729,6 @@ public class TestRepositoryCache extends AbstractSpringTest implements InfraTest
         then("object is OK");
         displayDumpable("object retrieved", object4);
         assertEquals("Wrong object4", object, object4);
-        // Actually, the contract don't require the returned object to be immutable, but it's a service to clients, so that
-        // they don't need to freeze the object themselves. To be reconsidered.
-        object4.checkImmutable();
         dumpStatistics();
         assertGetOperations(isCached ? 0 : 1);
         assertCloneOperations(0); // cached -> returned right from the cache; not cached -> 0 as before

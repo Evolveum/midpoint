@@ -27,7 +27,6 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.repo.cache.global.GlobalCacheObjectValue;
 import com.evolveum.midpoint.repo.cache.global.GlobalObjectCache;
 import com.evolveum.midpoint.repo.cache.global.GlobalVersionCache;
-import com.evolveum.midpoint.repo.cache.local.LocalObjectCache;
 import com.evolveum.midpoint.repo.cache.local.LocalVersionCache;
 import com.evolveum.midpoint.repo.cache.local.QueryKey;
 import com.evolveum.midpoint.schema.SearchResultList;
@@ -109,8 +108,7 @@ class CacheUpdater {
                 objectsToCache = loadedResultList;
             }
             var immutableOidList = toImmutableOidList(loadedResultList);
-            storeImmutableSearchResultToAllLocal(exec, objectsToCache, immutableOidList);
-            storeImmutableSearchResultToAllGlobal(exec, objectsToCache, immutableOidList);
+            storeImmutableSearchResult(exec, objectsToCache, immutableOidList, true);
         } else {
             // Either oversize, or not storing into query caches -> let's take only the objects
             if (exec.readOnly) {
@@ -125,7 +123,7 @@ class CacheUpdater {
             }
         }
         // Assuming that loadedList is mutable as it was returned from repo (if readOnly == false)
-        // and that it was frozen above (if readOnly == true)
+        // and that it was or was not frozen above (if readOnly == true)
         return loadedResultList;
     }
 
@@ -142,28 +140,20 @@ class CacheUpdater {
     /**
      * Stores the data into all local caches (object and query).
      */
-    <T extends ObjectType> void storeImmutableSearchResultToAllLocal(
+    <T extends ObjectType> void storeImmutableSearchResult(
             SearchOpExecution<T> exec,
             Collection<PrismObject<T>> objects,
-            SearchResultList<String> immutableOidList) {
+            SearchResultList<String> immutableOidList,
+            boolean alsoGlobal) {
         assert objects.size() == immutableOidList.size();
         assert objects.size() <= QUERY_RESULT_SIZE_LIMIT;
         if (exec.cacheUseMode.canUpdateQueryCache()) {
             storeImmutableSearchResultToQueryLocal(exec.queryKey, immutableOidList, exec.cachesInfo);
+            if (alsoGlobal) {
+                storeImmutableSearchResultToQueryGlobal(exec.queryKey, immutableOidList, exec.cachesInfo);
+            }
         }
-        storeImmutableObjectsToObjectAndVersionLocal(exec, objects);
-    }
-
-    private <T extends ObjectType> void storeImmutableSearchResultToAllGlobal(
-            SearchOpExecution<T> exec,
-            Collection<PrismObject<T>> objects,
-            SearchResultList<String> immutableOidList) {
-        assert objects.size() == immutableOidList.size();
-        assert objects.size() <= QUERY_RESULT_SIZE_LIMIT;
-        if (exec.cacheUseMode.canUpdateQueryCache()) {
-            storeImmutableSearchResultToQueryGlobal(exec.queryKey, immutableOidList, exec.cachesInfo);
-        }
-        storeImmutableObjectsToObjectAndVersionGlobal(exec, objects);
+        storeImmutableObjectsToObjectAndVersionLocal(exec, objects, alsoGlobal);
     }
 
     <T extends ObjectType> void storeImmutableSearchResultToQueryLocal(QueryKey<T> key,
@@ -182,42 +172,46 @@ class CacheUpdater {
 
     private <T extends ObjectType> void storeImmutableObjectsToObjectAndVersionLocal(
             SearchOpExecution<T> exec,
-            Collection<PrismObject<T>> immutableObjects) {
-        LocalObjectCache localObjectCache = getLocalObjectCache();
-        if (localObjectCache != null && exec.cacheUseMode.canUpdateObjectCache()) {
+            Collection<PrismObject<T>> immutableObjects,
+            boolean alsoGlobal) {
+
+        var localObjectCache = getLocalObjectCache();
+        var toLocalObjectCache = localObjectCache != null && exec.cacheUseMode.canUpdateObjectCache();
+        var toGlobalObjectCache = alsoGlobal && globalObjectCache.isAvailable() && exec.cacheUseMode.canUpdateObjectCache();
+
+        if (toLocalObjectCache || toGlobalObjectCache) {
             for (var immutableObject : immutableObjects) {
                 var type = immutableObject.asObjectable().getClass();
-                if (localObjectCache.supportsObjectType(type)) {
-                    // 1. No need to clone immutable object
-                    // 2. We may (later) try to optimize computation of the complete flag - it is done for both local and global
-                    // object cache
-                    localObjectCache.put(immutableObject, CachedObjectValue.computeCompleteFlag(immutableObject));
+                var localSupports = localObjectCache != null && localObjectCache.supportsObjectType(type);
+                Long nextVersionCheckTime =
+                        toGlobalObjectCache ?
+                                globalObjectCache.getNextVersionCheckTime(immutableObject.asObjectable().getClass()) : null;
+                var globalSupports = nextVersionCheckTime != null;
+                if (localSupports || globalSupports) {
+                    var complete = CachedObjectValue.computeCompleteFlag(immutableObject); // can be pricey
+                    if (localSupports) {
+                        localObjectCache.put(immutableObject, complete);
+                    }
+                    if (globalSupports) {
+                        globalObjectCache.put(new GlobalCacheObjectValue<>(immutableObject, nextVersionCheckTime, complete));
+                    }
                 }
             }
         }
 
-        LocalVersionCache localVersionCache = getLocalVersionCache();
-        if (localVersionCache != null && exec.cacheUseMode.canUpdateVersionCache()) {
+        var localVersionCache = getLocalVersionCache();
+        var toLocalVersionCache = localVersionCache != null && exec.cacheUseMode.canUpdateVersionCache();
+        var toGlobalVersionCache = alsoGlobal && globalVersionCache.isAvailable() && exec.cacheUseMode.canUpdateVersionCache();
+
+        if (toLocalVersionCache || toGlobalVersionCache) {
             for (var immutableObject : immutableObjects) {
                 var type = immutableObject.asObjectable().getClass();
-                if (localVersionCache.supportsObjectType(type)) {
+                if (toLocalVersionCache && localVersionCache.supportsObjectType(type)) {
                     localVersionCache.put(immutableObject);
                 }
-            }
-        }
-    }
-
-    private <T extends ObjectType> void storeImmutableObjectsToObjectAndVersionGlobal(
-            SearchOpExecution<T> exec,
-            Collection<PrismObject<T>> immutableObjects) {
-        if (globalObjectCache.isAvailable() && exec.cacheUseMode.canUpdateObjectCache()) {
-            for (PrismObject<T> immutableObject : immutableObjects) {
-                storeImmutableObjectToObjectGlobal(immutableObject, CachedObjectValue.computeCompleteFlag(immutableObject));
-            }
-        }
-        if (globalVersionCache.isAvailable() && exec.cacheUseMode.canUpdateVersionCache()) {
-            for (PrismObject<T> immutableObject : immutableObjects) {
-                storeObjectToVersionGlobal(immutableObject);
+                if (toGlobalVersionCache) {
+                    storeObjectToVersionGlobal(immutableObject);
+                }
             }
         }
     }

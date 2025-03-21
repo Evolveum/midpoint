@@ -86,7 +86,11 @@ public class ShadowReferenceAttribute
     }
 
     @Override
-    public ShadowReferenceAttribute cloneComplex(CloneStrategy strategy) {
+    public @NotNull ShadowReferenceAttribute cloneComplex(@NotNull CloneStrategy strategy) {
+        if (isImmutable() && !strategy.mutableCopy()) {
+            return this; // FIXME here should come a flyweight
+        }
+
         ShadowReferenceAttribute clone = new ShadowReferenceAttribute(getElementName(), getDefinition());
         copyValues(strategy, clone);
         return clone;

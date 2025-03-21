@@ -417,17 +417,20 @@ public class TestSystemPerformance extends AbstractStoryTest implements Performa
 
     private void dumpRepresentativeShadows() throws CommonException {
         String accountName = SourceInitializer.getAccountName(0);
-        var asserter = assertUserAfterByUsername(accountName)
+        var sourceShadowAsserter = assertUserAfterByUsername(accountName)
                 .links()
                 .by().resourceOid(RESOURCE_SOURCE_LIST.get(0).oid).find()
                 .resolveTarget()
-                .display()
-                .end()
-                .end();
+                .display();
+        LOGGER.info("representative source shadow:\n{}",
+                prismContext.xmlSerializer().serialize(sourceShadowAsserter.getObject()));
+        var linksAsserter = sourceShadowAsserter.end().end();
         if (!RESOURCE_TARGET_LIST.isEmpty()) {
-            asserter.by().resourceOid(RESOURCE_TARGET_LIST.get(0).oid).find()
+            var targetShadowAsserter = linksAsserter.by().resourceOid(RESOURCE_TARGET_LIST.get(0).oid).find()
                     .resolveTarget()
                     .display();
+            LOGGER.info("representative target shadow:\n{}",
+                    prismContext.xmlSerializer().serialize(targetShadowAsserter.getObject()));
         }
     }
 

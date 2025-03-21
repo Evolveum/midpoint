@@ -257,6 +257,7 @@ class ResourceExpansionOperation {
             if (firstPass) {
                 ResourceType resource = beans.repositoryService
                         .getObject(ResourceType.class, oid, readOnly(), result)
+                        .doFreeze()
                         .asObjectable();
                 if (resourceCache.put(oid, resource) != null) {
                     // If multiple inheritance is allowed, we'd need to relax this check.

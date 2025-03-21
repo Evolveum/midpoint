@@ -232,7 +232,7 @@
         <quartz.version>2.3.2.e3</quartz.version>
         <opensaml.version>4.1.1</opensaml.version>
 
-        <cache2k.version>2.0.0.Final</cache2k.version>
+        <cache2k.version>2.6.1.Final</cache2k.version>
 
         <testng.version>7.10.2</testng.version>
         <xml.resolver.version>1.2</xml.resolver.version>
@@ -2187,8 +2187,8 @@
             <id>sqale</id>
             <properties>
                 <!-- Switches test config.xml to the one declaring "sqale" repository. -->
-                <surefire.args>-Xmx4g --add-exports java.management/sun.management=ALL-UNNAMED -Dtest.config.file=test-config-new-repo.xml</surefire.args>
-                <failsafe.args>-Xmx4g --add-exports java.management/sun.management=ALL-UNNAMED -Duser.language=en -Dtest.config.file=test-config-new-repo.xml</failsafe.args>
+                <surefire.args> --add-exports java.management/sun.management=ALL-UNNAMED -Dtest.config.file=test-config-new-repo.xml</surefire.args>
+                <failsafe.args> --add-exports java.management/sun.management=ALL-UNNAMED -Duser.language=en -Dtest.config.file=test-config-new-repo.xml</failsafe.args>
             </properties>
         </profile>
         <profile>

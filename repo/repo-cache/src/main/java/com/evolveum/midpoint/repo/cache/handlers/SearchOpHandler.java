@@ -169,7 +169,7 @@ public class SearchOpHandler extends CachedOpHandler {
         }
 
         exec.reportGlobalHit();
-        cacheUpdater.storeImmutableSearchResultToAllLocal(exec, cachedResult, toImmutableOidList(cachedResult));
+        cacheUpdater.storeImmutableSearchResult(exec, cachedResult, toImmutableOidList(cachedResult), false);
         return cachedResult;
     }
 

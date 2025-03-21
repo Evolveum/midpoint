@@ -118,8 +118,8 @@ public class AssociationFromLinkExpressionEvaluator
                     "; the expression may be used in a wrong place. It is only supposed to work in a role.");
         }
         Object orderOneObject = orderOneObjectTypedValue.getValue();
-        if (orderOneObject instanceof AbstractRoleType) {
-            return (AbstractRoleType) orderOneObject;
+        if (orderOneObject instanceof AbstractRoleType abstractRole) {
+            return abstractRole;
         } else {
             throw new ExpressionEvaluationException("Order one object variable in " + context.getContextDescription() +
                     " is not a role, it is "+orderOneObject.getClass().getName() +
@@ -174,12 +174,12 @@ public class AssociationFromLinkExpressionEvaluator
             if (intent != null) {
                 filter = filter.and().item(ShadowType.F_INTENT).eq(intent);
             }
-        } else {
-            // We need the object class for the provisioning to be able to search for shadows
-            filter = filter.and()
-                    .item(ShadowType.F_OBJECT_CLASS)
-                    .eq(outputDefinition.getReferenceAttributeDefinition().getTargetObjectClassName());
         }
+        // If there's no kind/intent, we need the object class for the provisioning to be able to search for shadows.
+        // Even if there is one, this is useful because of shadow partitioning and repo caching
+        filter = filter.and()
+                .item(ShadowType.F_OBJECT_CLASS)
+                .eq(outputDefinition.getReferenceAttributeDefinition().getTargetObjectClassName());
         ObjectQuery query = filter.build();
 
         try {

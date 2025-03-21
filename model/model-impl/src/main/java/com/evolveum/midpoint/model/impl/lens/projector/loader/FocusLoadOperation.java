@@ -139,6 +139,7 @@ class FocusLoadOperation<F extends ObjectType> {
                             .readOnly()
                             .build(),
                     result);
+            object.freeze();
             result.addReturnComment("Loaded from repository");
         }
         setLoadedFocusInTrace(object);

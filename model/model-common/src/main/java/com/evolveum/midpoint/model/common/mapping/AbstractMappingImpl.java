@@ -298,6 +298,14 @@ public abstract class AbstractMappingImpl<V extends PrismValue, D extends ItemDe
      * Definition of ValueMetadataType.
      */
     @NotNull final PrismContainerDefinition<ValueMetadataType> valueMetadataDefinition;
+
+    /**
+     * If `true`, value metadata are not computed. Used temporarily e.g. for outbound mappings,
+     * various conditions, and so on.
+     *
+     * @see AbstractMappingBuilder#ignoreValueMetadata()
+     */
+    final boolean ignoreValueMetadata;
     //endregion
 
     //region Working and output properties
@@ -450,6 +458,7 @@ public abstract class AbstractMappingImpl<V extends PrismValue, D extends ItemDe
         sources.addAll(builder.getAdditionalSources());
         parser = new MappingParser<>(this);
         valueMetadataDefinition = SchemaRegistry.get().findContainerDefinitionByCompileTimeClass(ValueMetadataType.class);
+        ignoreValueMetadata = builder.ignoreValueMetadata;
     }
 
     private MappingSpecificationType createDefaultSpecification() {
@@ -506,6 +515,7 @@ public abstract class AbstractMappingImpl<V extends PrismValue, D extends ItemDe
         }
         this.parser = prototype.parser;
         this.valueMetadataDefinition = prototype.valueMetadataDefinition;
+        this.ignoreValueMetadata = prototype.ignoreValueMetadata;
     }
 
     public ObjectResolver getObjectResolver() {
@@ -1045,7 +1055,7 @@ public abstract class AbstractMappingImpl<V extends PrismValue, D extends ItemDe
                         .toList();
 
         if (!matchingMetadataValues.isEmpty()) {
-            var valueToDelete = matchingOriginalValue.cloneComplex(CloneStrategy.LITERAL_NO_METADATA);
+            var valueToDelete = matchingOriginalValue.cloneComplex(CloneStrategy.LITERAL_NO_METADATA_MUTABLE);
             var mdContainer = valueToDelete.<ValueMetadataType>getValueMetadataAsContainer();
             for (var matchingMetadataValue : matchingMetadataValues) {
                 try {

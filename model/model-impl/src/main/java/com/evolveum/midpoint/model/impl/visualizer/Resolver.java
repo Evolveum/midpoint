@@ -163,8 +163,12 @@ public class Resolver {
                     if (originalObject != null) {
                         Item<?, ?> originalItem = originalObject.findItem(itemDelta.getPath());
                         if (originalItem != null) {
+                            // We do cloning here, because the values will be modified during visualization process
+                            // (e.g., references will get resolved). So the values cannot be immutable.
                             //noinspection unchecked
-                            itemDelta.setEstimatedOldValuesWithCloning(originalItem.getValues());
+                            itemDelta.setEstimatedOldValues(
+                                    PrismValueCollectionsUtil.cloneCollection(
+                                            originalItem.getValues()));
                         }
                     }
                 }

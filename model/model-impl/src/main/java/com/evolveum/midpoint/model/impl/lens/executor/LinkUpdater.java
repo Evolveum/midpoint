@@ -220,19 +220,20 @@ class LinkUpdater<F extends FocusType> {
         PrismObject<F> focus = requireNonNull(focusContext.getObjectAny());
         Class<F> focusType = focusContext.getObjectTypeClass();
         String channel = focusContext.getLensContext().getChannel();
+        var focusOid = focusContext.getOid();
         OperationResult result = parentResult.createSubresult(opName);
         try {
             boolean real = task.isExecutionFullyPersistent();
             if (real) {
-                repositoryService.modifyObject(focusType, focus.getOid(), delta.getModifications(), result);
+                repositoryService.modifyObject(focusType, focusOid, delta.getModifications(), result);
             }
-            task.recordObjectActionExecuted(focus, focusType, focus.getOid(), ChangeType.MODIFY, channel, null);
+            task.recordObjectActionExecuted(focus, focusType, focusOid, ChangeType.MODIFY, channel, null);
         } catch (ObjectAlreadyExistsException ex) {
-            task.recordObjectActionExecuted(focus, focusType, focus.getOid(), ChangeType.MODIFY, channel, ex);
+            task.recordObjectActionExecuted(focus, focusType, focusOid, ChangeType.MODIFY, channel, ex);
             result.recordException(ex);
             throw new SystemException(ex);
         } catch (Throwable t) {
-            task.recordObjectActionExecuted(focus, focusType, focus.getOid(), ChangeType.MODIFY, channel, t);
+            task.recordObjectActionExecuted(focus, focusType, focusOid, ChangeType.MODIFY, channel, t);
             result.recordException(t);
             throw t;
         } finally {

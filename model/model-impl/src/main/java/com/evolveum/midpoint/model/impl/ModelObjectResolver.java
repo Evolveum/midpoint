@@ -7,7 +7,6 @@
 package com.evolveum.midpoint.model.impl;
 
 import static com.evolveum.midpoint.model.impl.controller.ModelController.getObjectManager;
-import static com.evolveum.midpoint.schema.GetOperationOptions.readOnly;
 import static com.evolveum.midpoint.schema.result.OperationResult.HANDLE_OBJECT_FOUND;
 
 import java.util.ArrayList;
@@ -205,14 +204,6 @@ public class ModelObjectResolver implements ObjectResolver {
             default:
                 return cacheRepositoryService.countObjects(type, query, options, result);
         }
-    }
-
-    public @NotNull PrismObject<SystemConfigurationType> getSystemConfiguration(OperationResult result)
-            throws ObjectNotFoundException, SchemaException {
-        PrismObject<SystemConfigurationType> config = cacheRepositoryService.getObject(SystemConfigurationType.class,
-                SystemObjectsType.SYSTEM_CONFIGURATION.value(), readOnly(), result);
-        LOGGER.trace("System configuration version read from repo: {}", config.getVersion());
-        return config;
     }
 
     public <O extends ObjectType, R extends ObjectType> PrismObject<R> searchOrgTreeWidthFirstReference(PrismObject<O> object,

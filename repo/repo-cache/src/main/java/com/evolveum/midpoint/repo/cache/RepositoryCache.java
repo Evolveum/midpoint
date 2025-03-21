@@ -203,7 +203,7 @@ public class RepositoryCache implements RepositoryService, Cache {
     @Override
     @NotNull
     public <T extends ObjectType> ModifyObjectResult<T> modifyObject(
-            @NotNull Class<T> type, @NotNull String oid, @NotNull Collection<? extends ItemDelta<?, ?>> modifications,
+            @NotNull Class<T> type, String oid, @NotNull Collection<? extends ItemDelta<?, ?>> modifications,
             @NotNull OperationResult parentResult)
             throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
         return modifyObject(type, oid, modifications, null, parentResult);
