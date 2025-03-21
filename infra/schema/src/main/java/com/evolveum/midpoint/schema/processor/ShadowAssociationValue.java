@@ -201,7 +201,7 @@ public class ShadowAssociationValue extends PrismContainerValueImpl<ShadowAssoci
     }
 
     @Override
-    public ShadowAssociationValue cloneComplex(@NotNull CloneStrategy strategy) {
+    public @NotNull ShadowAssociationValue cloneComplex(@NotNull CloneStrategy strategy) {
         if (isImmutable() && !strategy.mutableCopy()) {
             return this; // FIXME here should come a flyweight
         }
