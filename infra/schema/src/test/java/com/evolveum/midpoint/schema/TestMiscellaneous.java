@@ -12,8 +12,10 @@ import static org.testng.AssertJUnit.*;
 import static com.evolveum.midpoint.prism.util.PrismTestUtil.getPrismContext;
 
 import java.io.File;
+import java.util.UUID;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.util.task.WallClockTimeComputer;
 
 import org.testng.annotations.Test;
@@ -22,6 +24,8 @@ import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
+import javax.xml.namespace.QName;
 
 public class TestMiscellaneous extends AbstractSchemaTest {
 
@@ -140,5 +144,58 @@ public class TestMiscellaneous extends AbstractSchemaTest {
                 { 110, 120 },
                 { 120, 130 }
         }).getSummaryTime()).isEqualTo(30);
+    }
+
+    /**
+     * Changing the targetRef in an assignment via {@link AssignmentType#targetRef(String, QName, QName)}.
+     *
+     * MID-10578
+     */
+    @Test
+    public void testRelationSetViaTargetRefMethod() {
+        var oid = UUID.randomUUID().toString();
+        var assignment = new AssignmentType();
+        assignment.targetRef(oid, RoleType.COMPLEX_TYPE, SchemaConstants.ORG_DEFAULT);
+        assignment.targetRef(oid, RoleType.COMPLEX_TYPE, SchemaConstants.ORG_APPROVER);
+        assertThat(assignment.getTargetRef().getRelation())
+                .as("relation in assignment")
+                .isEqualTo(SchemaConstants.ORG_APPROVER);
+    }
+
+    /**
+     * Changing the targetRef in an assignment via {@link AssignmentType#setTargetRef(ObjectReferenceType)}.
+     *
+     * MID-10578
+     */
+    @Test
+    public void testRelationSetViaSetTargetRefMethod() {
+        var oid = UUID.randomUUID().toString();
+        var assignment = new AssignmentType();
+        assignment.targetRef(oid, RoleType.COMPLEX_TYPE, SchemaConstants.ORG_DEFAULT);
+        assignment.setTargetRef(
+                new ObjectReferenceType()
+                        .oid(oid)
+                        .type(RoleType.COMPLEX_TYPE)
+                        .relation(SchemaConstants.ORG_APPROVER));
+        assertThat(assignment.getTargetRef().getRelation())
+                .as("relation in assignment")
+                .isEqualTo(SchemaConstants.ORG_APPROVER);
+    }
+
+    /**
+     * Clearing the targetRef before setting the new value.
+     *
+     * MID-10578
+     */
+    @Test
+    public void testClearingTargetRefBeforeSettingTheRelation() {
+        var oid = UUID.randomUUID().toString();
+        var assignment = new AssignmentType();
+        assignment.targetRef(oid, RoleType.COMPLEX_TYPE, SchemaConstants.ORG_DEFAULT);
+        assignment.setTargetRef(null);
+        assignment.targetRef(oid, RoleType.COMPLEX_TYPE, SchemaConstants.ORG_APPROVER);
+        assertThat(assignment.getTargetRef().getRelation())
+                .as("relation in assignment")
+                .isEqualTo(SchemaConstants.ORG_APPROVER);
     }
 }
