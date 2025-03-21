@@ -7,6 +7,7 @@
 package com.evolveum.midpoint.gui.impl.component.tile;
 
 import java.io.Serializable;
+import java.util.Set;
 
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -20,6 +21,8 @@ import com.evolveum.midpoint.gui.impl.page.admin.resource.component.TemplateTile
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+
+import org.jetbrains.annotations.Nullable;
 
 public abstract class MultiSelectObjectTileTablePanel<E extends Serializable, O extends ObjectType>
         extends MultiSelectTileTablePanel<E, SelectableBean<O>, TemplateTile<SelectableBean<O>>>
@@ -46,6 +49,11 @@ public abstract class MultiSelectObjectTileTablePanel<E extends Serializable, O 
     @Override
     public Class<O> getType() {
         return (Class<O>) ObjectType.class;
+    }
+
+    @Override
+    public @Nullable Set<O> initialSelectedObjects() {
+        return SelectTileTablePanel.super.initialSelectedObjects();
     }
 
     @Override

@@ -50,6 +50,12 @@ public class MiningRoleTypeChunk extends MiningBaseTypeChunk implements Serializ
     }
 
     @Override
+    public void setMembers(@NotNull List<String> members) {
+        roles.clear();
+        roles.addAll(members);
+    }
+
+    @Override
     public List<String> getProperties() {
         return users;
     }

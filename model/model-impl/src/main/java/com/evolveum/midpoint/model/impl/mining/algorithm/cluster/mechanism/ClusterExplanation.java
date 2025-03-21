@@ -10,11 +10,9 @@ package com.evolveum.midpoint.model.impl.mining.algorithm.cluster.mechanism;
 import static com.evolveum.midpoint.common.mining.utils.RoleAnalysisAttributeDefUtils.getAttributeByItemPath;
 
 import java.io.Serializable;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
 
+import com.evolveum.midpoint.common.mining.objects.analysis.AttributeAnalysisStructure;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
@@ -26,6 +24,10 @@ import com.evolveum.midpoint.model.api.mining.RoleAnalysisService;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
+import org.jetbrains.annotations.Nullable;
+
+import javax.xml.namespace.QName;
 
 public class ClusterExplanation implements Serializable {
     private Set<AttributeMatchExplanation> attributeExplanation;
@@ -58,29 +60,14 @@ public class ClusterExplanation implements Serializable {
 
         RoleAnalysisOptionType analysisOption = session.getAnalysisOption();
         RoleAnalysisProcessModeType processMode = analysisOption.getProcessMode();
-        Set<ItemPath> ruleIdentifiers;
 
-        AbstractAnalysisSessionOptionType sessionOptionType;
-
-        if (processMode.equals(RoleAnalysisProcessModeType.USER)) {
-            UserAnalysisSessionOptionType userModeOptions = session.getUserModeOptions();
-            sessionOptionType = userModeOptions;
-            if (userModeOptions == null
-                    || userModeOptions.getClusteringAttributeSetting() == null
-                    || userModeOptions.getClusteringAttributeSetting().getClusteringAttributeRule() == null) {
-                return null;
-            }
-            ruleIdentifiers = extractRuleIdentifiers(userModeOptions.getClusteringAttributeSetting().getClusteringAttributeRule());
-        } else {
-            RoleAnalysisSessionOptionType roleModeOptions = session.getRoleModeOptions();
-            sessionOptionType = roleModeOptions;
-            if (roleModeOptions == null
-                    || roleModeOptions.getClusteringAttributeSetting() == null
-                    || roleModeOptions.getClusteringAttributeSetting().getClusteringAttributeRule() == null) {
-                return null;
-            }
-            ruleIdentifiers = extractRuleIdentifiers(roleModeOptions.getClusteringAttributeSetting().getClusteringAttributeRule());
+        AbstractAnalysisSessionOptionType sessionOptionType = getSessionOption(session, processMode);
+        if (sessionOptionType == null) {
+            return null;
         }
+
+        Set<ItemPath> ruleIdentifiers = extractRuleIdentifiers(
+                sessionOptionType.getClusteringAttributeSetting().getClusteringAttributeRule());
 
         AnalysisClusterStatisticType clusterStatistics = cluster.getClusterStatistics();
 
@@ -89,75 +76,209 @@ public class ClusterExplanation implements Serializable {
             RoleAnalysisAttributeAnalysisResultType userAttributeResult = clusterStatistics.getUserAttributeAnalysisResult();
             List<RoleAnalysisAttributeAnalysisType> attributeAnalysisList = userAttributeResult.getAttributeAnalysis();
 
-            for (RoleAnalysisAttributeAnalysisType analysis : attributeAnalysisList) {
-                ItemPathType itemPathType = analysis.getItemPath();
-                if (itemPathType == null) {
-                    continue;
-                }
-                ItemPath itemPath = itemPathType.getItemPath();
-                boolean isRuleItemPath = containRuleItemPath(ruleIdentifiers, itemPath);
-                if (isRuleItemPath && analysis.getDensity() == 100) {
-                    List<RoleAnalysisAttributeStatisticsType> attributeStatisticsList = analysis.getAttributeStatistics();
-                    if (attributeStatisticsList.size() == 1) {
-                        RoleAnalysisAttributeStatisticsType attributeStatistic = attributeStatisticsList.get(0);
-                        String value = attributeStatistic.getAttributeValue();
-                        RoleAnalysisAttributeDef attribute = getAttributeByItemPath(itemPath, sessionOptionType.getUserAnalysisAttributeSetting());
-
-                        if (attribute == null) {
-                            continue;
-                        }
-
-                        String candidateName;
-                        if (attribute.isReference()) {
-                            PrismObject<? extends ObjectType> object;
-                            object = roleAnalysisService.getObject(FocusType.class, value, task, result);
-                            candidateName = object != null ? itemPath + "-" + object.getName() : itemPath + "-" + value;
-                        } else {
-                            if (value.isEmpty()) {
-                                candidateName = "unknown";
-                            } else {
-                                candidateName = itemPath + "-" + value;
-                            }
-                        }
-                        candidateNames.add(candidateName);
-
-                    }
-                }
-            }
+            collectUserCandidateNames(roleAnalysisService,
+                    task,
+                    result,
+                    attributeAnalysisList,
+                    ruleIdentifiers,
+                    sessionOptionType,
+                    candidateNames);
         } else {
-            RoleAnalysisAttributeAnalysisResultType roleAttributeResult = clusterStatistics.getRoleAttributeAnalysisResult();
-            List<RoleAnalysisAttributeAnalysisType> attributeAnalysisList = roleAttributeResult.getAttributeAnalysis();
+            List<ObjectReferenceType> member = cluster.getMember();
+            Set<PrismObject<RoleType>> prismRoles = new HashSet<>();
 
-            for (RoleAnalysisAttributeAnalysisType analysis : attributeAnalysisList) {
-                ItemPathType itemPathType = analysis.getItemPath();
-                if (itemPathType == null) {
+            cacheRoles(roleAnalysisService, task, result, member, prismRoles);
+
+            List<ClusteringAttributeRuleType> clusteringAttributeRule = getClusteringAttributeRules(session);
+            PrismObjectDefinition<RoleType> roleDefinition = PrismContext.get().getSchemaRegistry()
+                    .findObjectDefinitionByCompileTimeClass(RoleType.class);
+
+            Map<ItemPath, ItemDefinition<?>> itemDefinitionMap = new HashMap<>();
+            List<AttributeAnalysisStructure> roleAttributeAnalysisStructures = analyseRolesClusteringAttributes(
+                    roleAnalysisService,
+                    task,
+                    result,
+                    clusteringAttributeRule,
+                    roleDefinition,
+                    itemDefinitionMap,
+                    prismRoles);
+
+            if (roleAttributeAnalysisStructures == null || roleAttributeAnalysisStructures.isEmpty()) {
+                return null;
+            }
+
+            for (AttributeAnalysisStructure analysis : roleAttributeAnalysisStructures) {
+                ItemPath itemPath = analysis.getItemPath();
+                if (itemPath == null || analysis.getDensity() != 100) {
                     continue;
                 }
-                ItemPath itemPath = itemPathType.getItemPath();
-                if (ruleIdentifiers.contains(itemPath) && analysis.getDensity() == 100) {
-                    List<RoleAnalysisAttributeStatisticsType> attributeStatisticsList = analysis.getAttributeStatistics();
-                    if (attributeStatisticsList.size() == 1) {
-                        RoleAnalysisAttributeStatisticsType attributeStatistic = attributeStatisticsList.get(0);
-                        String value = attributeStatistic.getAttributeValue();
-                        RoleAnalysisAttributeDef attribute = getAttributeByItemPath(itemPath, sessionOptionType.getUserAnalysisAttributeSetting());
-                        if (attribute == null) {
-                            continue;
-                        }
-                        String candidateName;
-                        if (attribute.isReference()) {
-                            PrismObject<? extends ObjectType> object;
-                            object = roleAnalysisService.getObject(FocusType.class, value, task, result);
-                            candidateName = object != null ? itemPath + "-" + object.getName() : itemPath + "-" + value;
-                        } else {
-                            candidateName = itemPath + "-" + value;
-                        }
-                        candidateNames.add(candidateName);
-                    }
-                }
+
+                collectRoleCandidateNames(roleAnalysisService,
+                        task,
+                        result,
+                        analysis,
+                        ruleIdentifiers,
+                        itemPath,
+                        itemDefinitionMap,
+                        candidateNames);
             }
         }
 
-        return candidateNames.size() == 1 ? candidateNames.iterator().next() : null;
+        return resolveFinalCandidateName(candidateNames);
+    }
+
+    private static @Nullable String resolveFinalCandidateName(@NotNull Set<String> candidateNames) {
+        if (candidateNames.isEmpty()) {
+            return null;
+        } else {
+            StringJoiner finalCandidateName = new StringJoiner(" & ");
+            candidateNames.forEach(finalCandidateName::add);
+            return finalCandidateName.toString();
+        }
+    }
+
+    private static @Nullable AbstractAnalysisSessionOptionType getSessionOption(
+            @NotNull RoleAnalysisSessionType session,
+            @NotNull RoleAnalysisProcessModeType processMode) {
+        if (processMode.equals(RoleAnalysisProcessModeType.USER)) {
+            UserAnalysisSessionOptionType userModeOptions = session.getUserModeOptions();
+            return (userModeOptions != null && userModeOptions.getClusteringAttributeSetting() != null
+                    && userModeOptions.getClusteringAttributeSetting().getClusteringAttributeRule() != null)
+                    ? userModeOptions
+                    : null;
+        } else {
+            RoleAnalysisSessionOptionType roleModeOptions = session.getRoleModeOptions();
+            return (roleModeOptions != null && roleModeOptions.getClusteringAttributeSetting() != null
+                    && roleModeOptions.getClusteringAttributeSetting().getClusteringAttributeRule() != null)
+                    ? roleModeOptions
+                    : null;
+        }
+    }
+
+    private static void collectUserCandidateNames(
+            @NotNull RoleAnalysisService roleAnalysisService,
+            @NotNull Task task,
+            @NotNull OperationResult result,
+            @NotNull List<RoleAnalysisAttributeAnalysisType> attributeAnalysisList,
+            Set<ItemPath> ruleIdentifiers,
+            AbstractAnalysisSessionOptionType sessionOptionType,
+            Set<String> candidateNames) {
+
+        for (RoleAnalysisAttributeAnalysisType analysis : attributeAnalysisList) {
+            ItemPathType itemPathType = analysis.getItemPath();
+            if (itemPathType == null || analysis.getDensity() != 100) {
+                continue;
+            }
+
+            ItemPath itemPath = itemPathType.getItemPath();
+            if (!containRuleItemPath(ruleIdentifiers, itemPath)) {
+                continue;
+            }
+
+            List<RoleAnalysisAttributeStatisticsType> attributeStatisticsList = analysis.getAttributeStatistics();
+            if (attributeStatisticsList.size() != 1) {
+                continue;
+            }
+
+            RoleAnalysisAttributeStatisticsType attributeStatistic = attributeStatisticsList.get(0);
+            String value = attributeStatistic.getAttributeValue();
+            RoleAnalysisAttributeDef attribute = getAttributeByItemPath(itemPath, sessionOptionType.getUserAnalysisAttributeSetting());
+
+            if (attribute == null) {
+                continue;
+            }
+
+            candidateNames.add(generateCandidateName(roleAnalysisService, task, result, itemPath, value, attribute.isReference()));
+        }
+    }
+
+    private static void collectRoleCandidateNames(
+            @NotNull RoleAnalysisService roleAnalysisService,
+            @NotNull Task task,
+            @NotNull OperationResult result,
+            AttributeAnalysisStructure analysis,
+            @NotNull Set<ItemPath> ruleIdentifiers,
+            ItemPath itemPath,
+            Map<ItemPath, ItemDefinition<?>> itemDefinitionMap,
+            Set<String> candidateNames) {
+
+        if (!containRuleItemPath(ruleIdentifiers, itemPath)) {
+            return;
+        }
+
+        if (analysis.getDensity() != 100) {
+            return;
+        }
+
+        List<RoleAnalysisAttributeStatisticsType> attributeStatisticsList = analysis.getAttributeStatistics();
+        if (attributeStatisticsList.size() != 1) {
+            return;
+        }
+
+        RoleAnalysisAttributeStatisticsType attributeStatistic = attributeStatisticsList.get(0);
+        String value = attributeStatistic.getAttributeValue();
+        if (value == null) {
+            return;
+        }
+
+        QName itemTargetType = itemDefinitionMap.get(itemPath).getTypeName();
+        boolean isReference = itemTargetType.equals(ObjectReferenceType.COMPLEX_TYPE);
+
+        candidateNames.add(generateCandidateName(roleAnalysisService, task, result, itemPath, value, isReference));
+    }
+
+    private static @NotNull String generateCandidateName(
+            RoleAnalysisService roleAnalysisService,
+            Task task,
+            OperationResult result,
+            ItemPath itemPath,
+            @NotNull String value,
+            boolean isReference) {
+
+        if (value.isEmpty()) {
+            return "unknown";
+        }
+
+        if (isReference) {
+            PrismObject<? extends ObjectType> object = roleAnalysisService.getObject(FocusType.class, value, task, result);
+            return itemPath + "-" + (object != null ? object.getName() : value);
+        }
+
+        return itemPath.last() + "-" + value;
+    }
+
+    private static List<AttributeAnalysisStructure> analyseRolesClusteringAttributes(@NotNull RoleAnalysisService roleAnalysisService, @NotNull Task task, @NotNull OperationResult result, List<ClusteringAttributeRuleType> clusteringAttributeRule, PrismObjectDefinition<RoleType> roleDefinition, Map<ItemPath, ItemDefinition<?>> itemDefinitionMap, Set<PrismObject<RoleType>> prismRoles) {
+        List<RoleAnalysisAttributeDef> attributeRoleDefSet = new ArrayList<>();
+        for (ClusteringAttributeRuleType rule : clusteringAttributeRule) {
+            ItemPathType path = rule.getPath();
+            if (path == null) {
+                continue;
+            }
+            ItemPath itemPath = path.getItemPath();
+            ItemDefinition<?> itemDefinition = roleDefinition.findItemDefinition(itemPath);
+            itemDefinitionMap.put(itemPath, itemDefinition);
+            attributeRoleDefSet.add(new RoleAnalysisAttributeDef(itemPath, itemDefinition, RoleType.class));
+        }
+
+        List<AttributeAnalysisStructure> roleAttributeAnalysisStructures = roleAnalysisService
+                .roleTypeAttributeAnalysis(prismRoles, 100.0, task, result, attributeRoleDefSet);
+        return roleAttributeAnalysisStructures;
+    }
+
+    private static List<ClusteringAttributeRuleType> getClusteringAttributeRules(RoleAnalysisSessionType session) {
+        RoleAnalysisSessionOptionType roleModeOptions = session.getRoleModeOptions();
+        ClusteringAttributeSettingType clusteringAttributeSetting = roleModeOptions.getClusteringAttributeSetting();
+        List<ClusteringAttributeRuleType> clusteringAttributeRule = clusteringAttributeSetting.getClusteringAttributeRule();
+        return clusteringAttributeRule;
+    }
+
+    private static void cacheRoles(@NotNull RoleAnalysisService roleAnalysisService, @NotNull Task task, @NotNull OperationResult result, List<ObjectReferenceType> member, Set<PrismObject<RoleType>> prismRoles) {
+        for (ObjectReferenceType objectReferenceType : member) {
+            PrismObject<RoleType> role = roleAnalysisService.getObject(RoleType.class, objectReferenceType.getOid(), task, result);
+            if (role != null) {
+                prismRoles.add(role);
+            }
+        }
     }
 
     private static boolean containRuleItemPath(@NotNull Set<ItemPath> ruleIdentifiers, ItemPath itemPath) {

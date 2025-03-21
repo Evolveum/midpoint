@@ -12,6 +12,8 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType;
+
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.*;
@@ -32,7 +34,7 @@ public class RoleAnalysisAttributeDef implements Serializable {
 
     public RoleAnalysisAttributeDef(ItemPath path,
             ItemDefinition<?> definition,
-            Class<? extends  FocusType> parentType) {
+            Class<? extends FocusType> parentType) {
         this.path = path;
         this.definition = definition;
         this.parentType = parentType;
@@ -99,9 +101,9 @@ public class RoleAnalysisAttributeDef implements Serializable {
         if (object != null) {
             if (object instanceof PolyString) {
                 return ((PolyString) object).getOrig();
-            } else if(object instanceof ObjectReferenceType) {
+            } else if (object instanceof ObjectReferenceType) {
                 return ((ObjectReferenceType) object).getOid();
-            }else if (object instanceof PrismPropertyValueImpl) {
+            } else if (object instanceof PrismPropertyValueImpl) {
                 Object realValue = ((PrismPropertyValueImpl<?>) object).getRealValue();
                 if (realValue != null) {
                     return realValue.toString();
@@ -124,6 +126,14 @@ public class RoleAnalysisAttributeDef implements Serializable {
                 .build();
     }
 
+    public static @NotNull RoleAnalysisAttributeDef getRoleAnalysisArchetypeDef(Class<? extends FocusType> parentType) {
+        PrismObjectDefinition<?> userDefinition = PrismContext.get().getSchemaRegistry()
+                .findObjectDefinitionByCompileTimeClass(parentType);
+
+        ItemPath itemPath = ItemPath.create(AssignmentHolderType.F_ARCHETYPE_REF);
+        ItemDefinition<?> def = userDefinition.findItemDefinition(itemPath);
+        return new RoleAnalysisAttributeDef(itemPath, def, parentType);
+    }
 
     public boolean isMultiValue() {
         return definition.isMultiValue();

@@ -33,9 +33,11 @@ import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.ISortableDataProvider;
 import org.apache.wicket.model.IModel;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Set;
 
 public interface SelectTileTablePanel<T extends Tile, O extends ObjectType> {
 
@@ -73,9 +75,13 @@ public interface SelectTileTablePanel<T extends Tile, O extends ObjectType> {
         return (Class<O>) ObjectType.class;
     }
 
+    default @Nullable Set<O> initialSelectedObjects(){
+        return null;
+    }
+
     default SelectableBeanObjectDataProvider<O> createProvider() {
         SelectableBeanObjectDataProvider<O> provider = new SelectableBeanObjectDataProvider<>(
-                getPageBase(), () -> (Search) getSearchModel().getObject(), null) {
+                getPageBase(), () -> (Search) getSearchModel().getObject(), initialSelectedObjects()) {
             private static final long serialVersionUID = 1L;
 
             @Override

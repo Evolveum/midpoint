@@ -71,12 +71,22 @@ public class RoleAnalysisSimpleModel implements Serializable {
             @Nullable RoleAnalysisAttributeAnalysisResultType userAttributeAnalysisResult) {
         List<RoleAnalysisSimpleModel> roleAnalysisSimpleModel = new ArrayList<>();
 
-        if (roleAttributeAnalysisResult == null || userAttributeAnalysisResult == null) {
-            return roleAnalysisSimpleModel;
+        if (roleAttributeAnalysisResult != null) {
+            loadAttributeModel(roleAttributeAnalysisResult, roleAnalysisSimpleModel, "(Role) ");
         }
-        List<RoleAnalysisAttributeAnalysisType> roleAttributeAnalysis = roleAttributeAnalysisResult.getAttributeAnalysis();
-        List<RoleAnalysisAttributeAnalysisType> userAttributeAnalysis = userAttributeAnalysisResult.getAttributeAnalysis();
 
+        if (userAttributeAnalysisResult != null) {
+            loadAttributeModel(userAttributeAnalysisResult, roleAnalysisSimpleModel, "(User) ");
+        }
+
+        roleAnalysisSimpleModel.sort(Comparator.comparingDouble(RoleAnalysisSimpleModel::getDensity));
+        return roleAnalysisSimpleModel;
+    }
+
+    private static void loadAttributeModel(@NotNull RoleAnalysisAttributeAnalysisResultType roleAttributeAnalysisResult,
+            @NotNull List<RoleAnalysisSimpleModel> roleAnalysisSimpleModel,
+            @NotNull String prefix) {
+        List<RoleAnalysisAttributeAnalysisType> roleAttributeAnalysis = roleAttributeAnalysisResult.getAttributeAnalysis();
         for (RoleAnalysisAttributeAnalysisType attributeAnalysis : roleAttributeAnalysis) {
             ItemPathType itemDescriptionType = attributeAnalysis.getItemPath();
             if (itemDescriptionType == null) {
@@ -85,25 +95,8 @@ public class RoleAnalysisSimpleModel implements Serializable {
             ItemPath itemDescription = itemDescriptionType.getItemPath();
             roleAnalysisSimpleModel.add(
                     new RoleAnalysisSimpleModel(attributeAnalysis.getDensity(),
-                            "(Role) " + itemDescription));
+                            prefix + itemDescription));
         }
-
-        for (RoleAnalysisAttributeAnalysisType attributeAnalysis : userAttributeAnalysis) {
-            ItemPathType itemDescriptionType = attributeAnalysis.getItemPath();
-            if (itemDescriptionType == null) {
-                continue;
-            }
-            ItemPath itemDescription = itemDescriptionType.getItemPath();
-//            if (itemDescription != null && !itemDescription.isEmpty()) {
-//                itemDescription = Character.toUpperCase(itemDescription.charAt(0)) + itemDescription.substring(1);
-//            }
-            roleAnalysisSimpleModel.add(
-                    new RoleAnalysisSimpleModel(attributeAnalysis.getDensity(),
-                            "(User) " + itemDescription));
-        }
-
-        roleAnalysisSimpleModel.sort(Comparator.comparingDouble(RoleAnalysisSimpleModel::getDensity));
-        return roleAnalysisSimpleModel;
     }
 
     public static @NotNull List<RoleAnalysisSimpleModel> getRoleAnalysisSimpleComparedModel(
@@ -117,68 +110,50 @@ public class RoleAnalysisSimpleModel implements Serializable {
             return roleAnalysisSimpleModel;
         }
 
-        Map<ItemPath, RoleAnalysisAttributeAnalysisType> roleAttributeAnalysisComparedMap = new HashMap<>();
-        Map<ItemPath, RoleAnalysisAttributeAnalysisType> userAttributeAnalysisComparedMap = new HashMap<>();
-
-        if (roleAttributeAnalysisResultCompared != null) {
-            for (RoleAnalysisAttributeAnalysisType attributeAnalysis : roleAttributeAnalysisResultCompared.getAttributeAnalysis()) {
-                roleAttributeAnalysisComparedMap.put(attributeAnalysis.getItemPath().getItemPath(), attributeAnalysis);
-            }
-        }
-
-        if (userAttributeAnalysisResultCompared != null) {
-            for (RoleAnalysisAttributeAnalysisType attributeAnalysis : userAttributeAnalysisResultCompared.getAttributeAnalysis()) {
-                userAttributeAnalysisComparedMap.put(attributeAnalysis.getItemPath().getItemPath(), attributeAnalysis);
-            }
-        }
-
         if (roleAttributeAnalysisResult != null) {
-            List<RoleAnalysisAttributeAnalysisType> roleAttributeAnalysis = roleAttributeAnalysisResult.getAttributeAnalysis();
-            for (RoleAnalysisAttributeAnalysisType attributeAnalysis : roleAttributeAnalysis) {
-                ItemPathType itemDescriptionType = attributeAnalysis.getItemPath();
-                if (itemDescriptionType == null) {
-                    continue;
-                }
-
-                ItemPath itemPath = itemDescriptionType.getItemPath();
-//                if (itemDescription != null && !itemDescription.isEmpty()) {
-//                    itemDescription = Character.toUpperCase(itemDescription.charAt(0)) + itemDescription.substring(1);
-//                }
-                RoleAnalysisSimpleModel roleAnalysisSimpleModelPreparation = new RoleAnalysisSimpleModel(attributeAnalysis.getDensity(),
-                        "(Role) " + itemPath);
-                roleAnalysisSimpleModelPreparation.setCompared(true);
-//                String itemPath = attributeAnalysis.getItemPath();
-
-                roleAnalysisSimpleModelPreparation.setComparedDensity(roleAttributeAnalysisComparedMap.get(itemPath) != null ?
-                        roleAttributeAnalysisComparedMap.get(itemPath).getDensity() : 0.0);
-                roleAnalysisSimpleModel.add(roleAnalysisSimpleModelPreparation);
-            }
+            loadComparedAttributeModel(
+                    roleAttributeAnalysisResult, "(Role) ", roleAttributeAnalysisResultCompared, roleAnalysisSimpleModel);
         }
 
         if (userAttributeAnalysisResult != null) {
-            List<RoleAnalysisAttributeAnalysisType> userAttributeAnalysis = userAttributeAnalysisResult.getAttributeAnalysis();
-            for (RoleAnalysisAttributeAnalysisType attributeAnalysis : userAttributeAnalysis) {
-                ItemPathType itemDescriptionType = attributeAnalysis.getItemPath();
-                if (itemDescriptionType == null) {
-                    continue;
-                }
-                ItemPath itemDescription = itemDescriptionType.getItemPath();
-//                if (itemDescription != null && !itemDescription.isEmpty()) {
-//                    itemDescription = Character.toUpperCase(itemDescription.charAt(0)) + itemDescription.substring(1);
-//                }
-
-                RoleAnalysisSimpleModel roleAnalysisSimpleModelPreparation = new RoleAnalysisSimpleModel(attributeAnalysis.getDensity(),
-                        "(User) " + itemDescription);
-                roleAnalysisSimpleModelPreparation.setCompared(true);
-//                String itemPath = attributeAnalysis.getItemPath();
-                roleAnalysisSimpleModelPreparation.setComparedDensity(userAttributeAnalysisComparedMap.get(itemDescription) != null ?
-                        userAttributeAnalysisComparedMap.get(itemDescription).getDensity() : 0.0);
-                roleAnalysisSimpleModel.add(roleAnalysisSimpleModelPreparation);
-            }
+            loadComparedAttributeModel(
+                    userAttributeAnalysisResult, "(User) ", userAttributeAnalysisResultCompared, roleAnalysisSimpleModel);
         }
 
         roleAnalysisSimpleModel.sort(Comparator.comparingDouble(RoleAnalysisSimpleModel::getDensity));
         return roleAnalysisSimpleModel;
+    }
+
+    private static void loadComparedAttributeModel(
+            @NotNull RoleAnalysisAttributeAnalysisResultType roleAttributeAnalysisResult,
+            @NotNull String prefix,
+            @Nullable RoleAnalysisAttributeAnalysisResultType attributeAnalysisResultCompared,
+            @NotNull List<RoleAnalysisSimpleModel> roleAnalysisSimpleModel) {
+        Map<ItemPath, RoleAnalysisAttributeAnalysisType> map = new HashMap<>();
+
+        if (attributeAnalysisResultCompared != null) {
+            for (RoleAnalysisAttributeAnalysisType attributeAnalysis : attributeAnalysisResultCompared.getAttributeAnalysis()) {
+                map.put(attributeAnalysis.getItemPath().getItemPath(), attributeAnalysis);
+            }
+        }
+
+        List<RoleAnalysisAttributeAnalysisType> roleAttributeAnalysis = roleAttributeAnalysisResult.getAttributeAnalysis();
+        for (RoleAnalysisAttributeAnalysisType attributeAnalysis : roleAttributeAnalysis) {
+            ItemPathType itemDescriptionType = attributeAnalysis.getItemPath();
+            if (itemDescriptionType == null) {
+                continue;
+            }
+
+            ItemPath itemPath = itemDescriptionType.getItemPath();
+
+            RoleAnalysisSimpleModel roleAnalysisSimpleModelPreparation = new RoleAnalysisSimpleModel(attributeAnalysis.getDensity(),
+                    prefix + itemPath);
+            roleAnalysisSimpleModelPreparation.setCompared(true);
+
+            roleAnalysisSimpleModelPreparation.setComparedDensity(map.get(itemPath) != null ?
+                    map.get(itemPath).getDensity() : 0.0);
+            roleAnalysisSimpleModel.add(roleAnalysisSimpleModelPreparation);
+        }
     }
 
 }

@@ -13,6 +13,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import com.evolveum.midpoint.util.SingleLocalizableMessage;
+
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.repo.common.activity.run.AbstractActivityRun;
@@ -171,7 +173,9 @@ public class ActivityPolicyRulesProcessor {
         if (rule.containsAction(SuspendTaskActivityPolicyActionType.class)) {
             LOGGER.debug("Suspending task because of policy violation, rule: {}", rule);
 
-            throw new ThresholdPolicyViolationException("Policy violation, rule: " + rule.getName());
+            throw new ThresholdPolicyViolationException(
+                    new SingleLocalizableMessage("ActivityPolicyRulesProcessor.policyViolationMessage", new Object[] { rule.getName() }),
+                    "Policy violation, rule: " + rule.getName());
         }
     }
 }

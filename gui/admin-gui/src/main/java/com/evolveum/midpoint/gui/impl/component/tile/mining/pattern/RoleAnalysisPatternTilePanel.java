@@ -12,6 +12,7 @@ import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.c
 import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.cluster.RoleAnalysisClusterOperationPanel.PARAM_TABLE_SETTING;
 import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.table.RoleAnalysisTableTools.confidenceBasedTwoColor;
 import static com.evolveum.midpoint.model.common.expression.functions.BasicExpressionFunctions.LOGGER;
+import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.createObjectRef;
 
 import java.io.Serial;
 import java.io.Serializable;
@@ -22,8 +23,19 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import com.evolveum.midpoint.gui.impl.page.admin.role.PageRole;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.components.bar.RoleAnalysisBasicProgressBar;
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.model.BusinessRoleApplicationDto;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.model.RoleAnalysisProgressBarDto;
+
+import com.evolveum.midpoint.model.api.mining.RoleAnalysisService;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.Task;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
@@ -42,20 +54,13 @@ import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.component.button.DropdownButtonDto;
 import com.evolveum.midpoint.gui.api.component.button.DropdownButtonPanel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
-import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
-import com.evolveum.midpoint.gui.impl.page.admin.role.PageRole;
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.model.BusinessRoleApplicationDto;
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.model.BusinessRoleDto;
+
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.page.PageRoleAnalysisCluster;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.page.PageRoleAnalysisSession;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.outlier.MetricValuePanel;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.tmp.panel.IconWithLabel;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.tmp.panel.RoleAnalysisDetectedPatternDetailsPopup;
 import com.evolveum.midpoint.gui.impl.util.DetailsPageUtil;
-import com.evolveum.midpoint.model.api.mining.RoleAnalysisService;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.web.component.data.column.AjaxLinkPanel;
 import com.evolveum.midpoint.web.component.data.column.ColumnMenuAction;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
@@ -64,8 +69,7 @@ import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.web.util.TooltipBehavior;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisClusterType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+
 
 public class RoleAnalysisPatternTilePanel<T extends Serializable> extends BasePanel<RoleAnalysisPatternTileModel<T>> {
 
@@ -449,29 +453,9 @@ public class RoleAnalysisPatternTilePanel<T extends Serializable> extends BasePa
         Set<String> users = pattern.getUsers();
         Long patternId = pattern.getId();
 
-        Set<PrismObject<RoleType>> candidateInducements = new HashSet<>();
-
-        for (String roleOid : roles) {
-            PrismObject<RoleType> roleObject = roleAnalysisService
-                    .getRoleTypeObject(roleOid, task, result);
-            if (roleObject != null) {
-                candidateInducements.add(roleObject);
-            }
-        }
-
+        Set<ObjectReferenceType> candidateInducements = transformToObjectRefSet(RoleType.class, roles);
+        Set<ObjectReferenceType> userMembersRefs = transformToObjectRefSet(UserType.class, users);
         PrismObject<RoleType> businessRole = new RoleType().asPrismObject();
-
-        List<BusinessRoleDto> roleApplicationDtos = new ArrayList<>();
-
-        for (String userOid : users) {
-            PrismObject<UserType> userObject = WebModelServiceUtils.loadObject(UserType.class, userOid, getPageBase(), task, result);
-//                    roleAnalysisService
-//                    .getUserTypeObject(userOid, task, result);
-            if (userObject != null) {
-                roleApplicationDtos.add(new BusinessRoleDto(userObject,
-                        businessRole, candidateInducements, getPageBase()));
-            }
-        }
 
         PrismObject<RoleAnalysisClusterType> prismObjectCluster = roleAnalysisService
                 .getClusterTypeObject(clusterRef.getOid(), task, result);
@@ -481,7 +465,7 @@ public class RoleAnalysisPatternTilePanel<T extends Serializable> extends BasePa
         }
 
         BusinessRoleApplicationDto operationData = new BusinessRoleApplicationDto(
-                prismObjectCluster, businessRole, roleApplicationDtos, candidateInducements);
+                prismObjectCluster, businessRole, userMembersRefs, candidateInducements);
         operationData.setPatternId(patternId);
 
         PageRole pageRole = new PageRole(operationData.getBusinessRole(), operationData);

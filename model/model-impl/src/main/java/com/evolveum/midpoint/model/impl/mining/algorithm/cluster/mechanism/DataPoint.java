@@ -71,6 +71,7 @@ public class DataPoint implements Clusterable, Serializable {
         return membersCount;
     }
 
+    @Override
     public Set<String> getMembers() {
         return members;
     }

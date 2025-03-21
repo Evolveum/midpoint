@@ -10,6 +10,10 @@ package com.evolveum.midpoint.model.impl.mining;
 import static com.evolveum.midpoint.model.impl.mining.algorithm.cluster.action.util.outlier.explanation.AnomalyExplanationUtil.prepareOutlierExplanationAnomalyInput;
 import static com.evolveum.midpoint.model.impl.mining.algorithm.cluster.action.util.outlier.explanation.OutlierExplanationUtil.prepareOutlierExplanationInput;
 
+import static com.evolveum.midpoint.model.impl.mining.chunk.MiningChunkUtils.includeMissingObjectIntoChunks;
+
+import static com.evolveum.midpoint.model.impl.mining.chunk.MiningChunkUtils.resolveTablePatternChunk;
+
 import static java.util.Collections.singleton;
 
 import static com.evolveum.midpoint.common.mining.utils.RoleAnalysisUtils.*;
@@ -485,10 +489,8 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
 
         List<RoleAnalysisAttributeDef> userAnalysisAttributeDef = this.resolveAnalysisAttributes(session, UserType.COMPLEX_TYPE);
         List<RoleAnalysisAttributeDef> roleAnalysisAttributeDef = this.resolveAnalysisAttributes(session, RoleType.COMPLEX_TYPE);
-        if (userAnalysisAttributeDef != null && roleAnalysisAttributeDef != null) {
-            resolveDetectedPatternsAttributes(roleAnalysisClusterDetectionTypes, userExistCache, roleExistCache, task, result,
-                    roleAnalysisAttributeDef, userAnalysisAttributeDef);
-        }
+        resolveDetectedPatternsAttributes(roleAnalysisClusterDetectionTypes, userExistCache, roleExistCache, task, result,
+                roleAnalysisAttributeDef, userAnalysisAttributeDef);
 
         AnalysisClusterStatisticType clusterStatistics = clusterTypeObject.asObjectable().getClusterStatistics();
 
@@ -722,25 +724,27 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
             @NotNull OperationResult result,
             @Nullable RoleAnalysisCacheOption option) {
         PrismObject<RoleType> role = roleExistCache.get(roleOid);
-        if (role == null) {
-            role = getRoleTypeObject(roleOid, task, result);
-            if (role == null) {
-                return null;
-            }
-
-            if (option != null && option.getItemDef() != null) {
-                try {
-                    PrismObject<RoleType> cacheRole = buildCachedRole(option.getItemDef(), role);
-
-                    roleExistCache.put(roleOid, cacheRole);
-                    return cacheRole;
-                } catch (SchemaException e) {
-                    throw new SystemException("Couldn't prepare role for cache", e);
-                }
-            }
-
-            roleExistCache.put(roleOid, role);
+        if (role != null) {
+            return role;
         }
+
+        role = getRoleTypeObject(roleOid, task, result);
+        if (role == null) {
+            return null;
+        }
+
+        if (option != null && option.getItemDef() != null) {
+            try {
+                PrismObject<RoleType> cacheRole = buildCachedRole(option.getItemDef(), role);
+                roleExistCache.put(roleOid, cacheRole);
+                return cacheRole;
+            } catch (SchemaException e) {
+                throw new SystemException("Couldn't prepare role for cache", e);
+            }
+        }
+
+        roleExistCache.put(roleOid, role);
+
         return role;
     }
 
@@ -754,13 +758,21 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
 
             Item<PrismValue, ItemDefinition<?>> item = role.findItem(path);
             if (item != null) {
-                cacheRole.add(item.clone());
+                if (isExtensionItem(path)) {
+                    cacheRole.addExtensionItem(item.clone());
+                } else {
+                    cacheRole.add(item.clone());
+                }
             }
         }
 
         resolveNameIfNeeded(role, cacheRole);
 
         return cacheRole;
+    }
+
+    private static boolean isExtensionItem(ItemPath path) {
+        return path.getSegments().contains(ObjectType.F_EXTENSION);
     }
 
     @Override
@@ -805,7 +817,11 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
             ItemPath path = roleAnalysisAttributeDef.getPath();
             Item<PrismValue, ItemDefinition<?>> item = user.findItem(path);
             if (item != null) {
-                cacheUser.add(item.clone());
+                if (isExtensionItem(path)) {
+                    cacheUser.addExtensionItem(item.clone());
+                } else {
+                    cacheUser.add(item.clone());
+                }
             }
         }
 
@@ -959,7 +975,7 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
             @NotNull Task task) {
         return new CompressedMiningStructure().executeOperation(this, cluster,
                 userSearchFilter, roleSearchFilter, assignmentSearchFilter,
-                fullProcess, processMode, result, task);
+                fullProcess, processMode, result, task, null);
     }
 
     @Override
@@ -988,28 +1004,28 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
                 miningUserTypeChunks = new CompressedMiningStructure()
                         .executeOperation(this, cluster,
                                 userSearchFilter, roleSearchFilter, assignmentSearchFilter,
-                                true, processMode, result, task)
+                                true, processMode, result, task, option)
                         .getMiningUserTypeChunks(RoleAnalysisSortMode.NONE);
-                chunk = new MiningOperationChunk(miningUserTypeChunks, miningRoleTypeChunks);
+                chunk = new MiningOperationChunk(miningUserTypeChunks, miningRoleTypeChunks, option);
             }
             case EXPAND_USER -> {
                 miningRoleTypeChunks = new CompressedMiningStructure()
                         .executeOperation(this, cluster,
                                 userSearchFilter, roleSearchFilter, assignmentSearchFilter,
-                                true, processMode, result, task)
+                                true, processMode, result, task, option)
                         .getMiningRoleTypeChunks(RoleAnalysisSortMode.NONE);
                 miningUserTypeChunks = new ExpandedMiningStructure()
                         .executeOperation(this, cluster,
                                 userSearchFilter, roleSearchFilter, assignmentSearchFilter,
                                 true, processMode, result, task, option)
                         .getMiningUserTypeChunks(RoleAnalysisSortMode.NONE);
-                chunk = new MiningOperationChunk(miningUserTypeChunks, miningRoleTypeChunks);
+                chunk = new MiningOperationChunk(miningUserTypeChunks, miningRoleTypeChunks, option);
             }
             case COMPRESS -> {
                 chunk = new CompressedMiningStructure()
                         .executeOperation(this, cluster,
                                 userSearchFilter, roleSearchFilter, assignmentSearchFilter,
-                                true, processMode, result, task);
+                                true, processMode, result, task, option);
             }
             default -> {
                 chunk = new ExpandedMiningStructure()
@@ -1067,7 +1083,7 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
             @NotNull List<DetectedPattern> detectedPatterns,
             @NotNull Task task,
             @NotNull OperationResult result) {
-        List<MiningRoleTypeChunk> miningRoleTypeChunks = basicChunk.getMiningRoleTypeChunks();//basicChunk.getMiningRoleTypeChunks(option.getSortMode());
+        List<MiningRoleTypeChunk> miningRoleTypeChunks = basicChunk.getMiningRoleTypeChunks();
         List<MiningUserTypeChunk> miningUserTypeChunks = basicChunk.getMiningUserTypeChunks();
 
         List<List<String>> detectedPatternsRoles = new ArrayList<>();
@@ -1085,7 +1101,13 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
             candidateRolesIds.add(detectedPattern.getIdentifier());
         }
 
-        resolveTablePatternChunk(processMode, basicChunk, miningRoleTypeChunks, detectedPatternsRoles, candidateRolesIds, miningUserTypeChunks, detectedPatternsUsers);
+        resolveTablePatternChunk(this,
+                processMode,
+                basicChunk,
+                detectedPatternsRoles,
+                candidateRolesIds,
+                detectedPatternsUsers,
+                task, result);
 
         int size = detectedPatternsUsers.size();
 
@@ -1093,7 +1115,7 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
             List<String> detectedPatternRoles = detectedPatternsRoles.get(i);
             List<String> detectedPatternUsers = detectedPatternsUsers.get(i);
             String candidateRoleId = candidateRolesIds.get(i);
-            addAdditionalObject(this, candidateRoleId, detectedPatternUsers, detectedPatternRoles,
+            includeMissingObjectIntoChunks(this, candidateRoleId, detectedPatternUsers, detectedPatternRoles,
                     miningUserTypeChunks,
                     miningRoleTypeChunks,
                     task, result);
@@ -1219,6 +1241,8 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
                             .withArchetypes(
                                     SystemObjectsType.ARCHETYPE_UTILITY_TASK.value()),
                     task, result);
+
+            deleteSessionTask(session.getOid(), task, result);
 
             MidPointPrincipal user = AuthUtil.getPrincipalUser();
             FocusType focus = user.getFocus();
@@ -1706,7 +1730,7 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
 
     public void executeChangesOnCandidateRole(@NotNull PrismObject<RoleAnalysisClusterType> cluster,
             @NotNull RoleAnalysisCandidateRoleType roleAnalysisCandidateRoleType,
-            @NotNull Set<PrismObject<UserType>> members,
+            Set<ObjectReferenceType> members,
             @NotNull Set<AssignmentType> inducements,
             @NotNull Task task,
             @NotNull OperationResult result) {
@@ -1725,11 +1749,8 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
                 .collect(Collectors.toSet());
 
         Collection<PrismReferenceValue> memberscCollection = new ArrayList<>();
-        for (PrismObject<UserType> member : members) {
-            ObjectReferenceType objectReferenceType = new ObjectReferenceType()
-                    .oid(member.getOid())
-                    .type(UserType.COMPLEX_TYPE);
-            memberscCollection.add(objectReferenceType.asReferenceValue());
+        for (ObjectReferenceType member : members) {
+            memberscCollection.add(member.clone().asReferenceValue());
         }
 
         RoleType role = roleTypeObject.asObjectable();
@@ -1786,43 +1807,6 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
         } catch (SchemaException | ObjectAlreadyExistsException | ObjectNotFoundException | ExpressionEvaluationException |
                 CommunicationException | ConfigurationException | PolicyViolationException | SecurityViolationException e) {
             LOGGER.error("Couldn't modify candidate role container {}", cluster.getOid(), e);
-        }
-    }
-
-    public <T extends ObjectType> void loadSearchObjectIterative(
-            @NotNull ModelService modelService,
-            @NotNull Class<T> type,
-            @Nullable ObjectQuery query,
-            @Nullable Collection<SelectorOptions<GetOperationOptions>> options,
-            @NotNull List<T> modifyList,
-            @NotNull Task task,
-            @NotNull OperationResult parentResult) {
-        try {
-            Set<String> existingOidSet = modifyList.stream()
-                    .map(ObjectType::getOid)
-                    .collect(Collectors.toSet());
-
-            ResultHandler<RoleType> resultHandler = (role, lResult) -> {
-                try {
-                    if (!existingOidSet.contains(role.getOid())) {
-                        //noinspection unchecked
-                        modifyList.add((T) role.asObjectable());
-                    }
-                } catch (Exception e) {
-                    String errorMessage = "Cannot resolve role: " + toShortString(role.asObjectable())
-                            + ": " + e.getMessage();
-                    throw new SystemException(errorMessage, e);
-                }
-
-                return true;
-            };
-
-            modelService.searchObjectsIterative(RoleType.class, query, resultHandler, null,
-                    task, parentResult);
-
-        } catch (SchemaException | ObjectNotFoundException | ExpressionEvaluationException |
-                CommunicationException | ConfigurationException | SecurityViolationException e) {
-            LOGGER.error("Couldn't search  search and load object iterative {}", type, e);
         }
     }
 
@@ -2107,27 +2091,30 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
         return Collections.emptyList();
     }
 
-    //TODO temporary
-    public String resolveFocusObjectIconColor(@NotNull FocusType focusObject, @NotNull Task task, @NotNull OperationResult result) {
-        String color = null;
-        List<ObjectReferenceType> archetypeRef = focusObject.getArchetypeRef();
-        if (archetypeRef != null && !archetypeRef.isEmpty()) {
-            PrismObject<ArchetypeType> object = this.getObject(ArchetypeType.class, archetypeRef.get(0).getOid(), task, result);
-            if (object != null) {
-                ArchetypePolicyType archetypePolicy = object.asObjectable().getArchetypePolicy();
-                if (archetypePolicy != null) {
-                    DisplayType display = archetypePolicy.getDisplay();
-                    if (display != null) {
-                        IconType icon = display.getIcon();
-                        if (icon != null && icon.getColor() != null) {
-                            color = icon.getColor();
-                        }
-                    }
-
-                }
-            }
+    //Replace with different method that resolve also LifecycleStateType (TBD)
+    public String resolveFocusObjectIconColor(
+            @NotNull FocusType focusObject,
+            @NotNull Task task,
+            @NotNull OperationResult result) {
+        if (focusObject.getArchetypeRef() == null || focusObject.getArchetypeRef().isEmpty()) {
+            return null;
         }
-        return color;
+
+        String archetypeOid = focusObject.getArchetypeRef().get(0).getOid();
+        PrismObject<ArchetypeType> archetypeObject = this.getObject(ArchetypeType.class, archetypeOid, task, result);
+
+        if (archetypeObject == null) {
+            return null;
+        }
+
+        ArchetypeType archetypeType = archetypeObject.asObjectable();
+
+        return Optional.ofNullable(archetypeType.getArchetypePolicy())
+                .map(ArchetypePolicyType::getDisplay)
+                .map(DisplayType::getIcon)
+                .map(IconType::getColor)
+                .orElse(null);
+
     }
 
     @Override

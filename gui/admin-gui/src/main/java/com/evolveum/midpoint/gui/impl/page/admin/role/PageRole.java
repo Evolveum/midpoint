@@ -14,7 +14,6 @@ import java.util.*;
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
 import com.evolveum.midpoint.gui.impl.component.icon.IconCssStyle;
-import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.web.component.AjaxCompositedIconSubmitButton;
 
 import com.evolveum.midpoint.web.component.dialog.ConfirmationPanel;
@@ -43,7 +42,6 @@ import com.evolveum.midpoint.gui.impl.page.admin.abstractrole.component.MemberOp
 import com.evolveum.midpoint.gui.impl.page.admin.role.component.wizard.ApplicationRoleWizardPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.role.component.wizard.BusinessRoleWizardPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.model.BusinessRoleApplicationDto;
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.model.BusinessRoleDto;
 import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
 import com.evolveum.midpoint.model.api.mining.RoleAnalysisService;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -108,7 +106,7 @@ public class PageRole extends PageAbstractRole<RoleType, AbstractRoleDetailsMode
 
     @Override
     protected void postProcessModel(AbstractRoleDetailsModel<RoleType> objectDetailsModels) {
-        if (patternDeltas != null && !patternDeltas.getBusinessRoleDtos().isEmpty()) {
+        if (patternDeltas != null && !patternDeltas.getUserMembers().isEmpty()) {
             objectDetailsModels.setPatternDeltas(patternDeltas);
         }
 
@@ -248,16 +246,15 @@ public class PageRole extends PageAbstractRole<RoleType, AbstractRoleDetailsMode
         }
 
         if (existPatternDeltas()) {
-            List<ObjectType> userMembersOid = new ArrayList<>();
+            List<String> userMembersOid = new ArrayList<>();
 
-            List<BusinessRoleDto> businessRoleDtos = getPatternDeltas().getBusinessRoleDtos();
-
-            for (BusinessRoleDto businessRoleDto : businessRoleDtos) {
-                PrismObject<UserType> prismObjectUser = businessRoleDto.getPrismObjectUser();
-                if (prismObjectUser != null) {
-                    userMembersOid.add(prismObjectUser.asObjectable());
+            Set<ObjectReferenceType> userMembers = getPatternDeltas().getUserMembers();
+            userMembers.forEach(member -> {
+                if (member != null && member.getOid() != null) {
+                    userMembersOid.add(member.getOid());
                 }
-            }
+            });
+
             String roleOid = ObjectDeltaOperation.findFocusDeltaOidInCollection(executedDeltas);
             Task task = createSimpleTask("load role after save");
             PrismObject<RoleType> object = WebModelServiceUtils.loadObject(
@@ -305,17 +302,13 @@ public class PageRole extends PageAbstractRole<RoleType, AbstractRoleDetailsMode
         getObjectDetailsModels().setPatternDeltas(patterns);
     }
 
-    protected ObjectQuery createInOidQuery(@NotNull List<ObjectType> selectedObjectsList) {
-        List<String> oids = new ArrayList<>();
-        for (ObjectType selectable : selectedObjectsList) {
-            oids.add(selectable.getOid());
-        }
-
-        return getPrismContext().queryFactory().createQuery(getPrismContext().queryFactory().createInOid(oids));
+    protected ObjectQuery createInOidQuery(List<String> selectedObjectsList) {
+        return getPrismContext().queryFactory().createQuery(getPrismContext().queryFactory()
+                .createInOid(selectedObjectsList != null ? selectedObjectsList : List.of()));
     }
 
     private boolean existPatternDeltas() {
-        return getPatternDeltas() != null && !getPatternDeltas().getBusinessRoleDtos().isEmpty();
+        return getPatternDeltas() != null && !getPatternDeltas().getUserMembers().isEmpty();
     }
 
     private BusinessRoleApplicationDto getPatternDeltas() {
@@ -344,7 +337,7 @@ public class PageRole extends PageAbstractRole<RoleType, AbstractRoleDetailsMode
             protected void onSubmit(AjaxRequestTarget target) {
                 PageBase pageBase = (PageBase) getPage();
                 ConfirmationPanel dialog = new DeleteConfirmationPanel(pageBase.getMainPopupBodyId(), createStringResource(
-                        "RoleMining.button.title.execute.migration.confirmation.message")){
+                        "RoleMining.button.title.execute.migration.confirmation.message")) {
                     @Override
                     public void yesPerformed(AjaxRequestTarget target) {
                         performMigration(target, pageBase);

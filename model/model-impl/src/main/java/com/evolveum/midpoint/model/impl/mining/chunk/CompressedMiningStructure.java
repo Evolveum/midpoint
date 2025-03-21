@@ -46,10 +46,11 @@ public class CompressedMiningStructure extends BasePrepareAction {
             boolean fullProcess,
             @NotNull RoleAnalysisProcessModeType mode,
             @NotNull OperationResult result,
-            @NotNull Task task) {
+            @NotNull Task task,
+            @Nullable DisplayValueOption option) {
         return this.executeAction(roleAnalysisService, cluster,
                 userSearchFilter, roleSearchFilter, assignmentSearchFilter,
-                fullProcess, mode, handler, task, result, null);
+                fullProcess, mode, handler, task, result, option);
     }
 
     @Override
@@ -75,6 +76,15 @@ public class CompressedMiningStructure extends BasePrepareAction {
         ListMultimap<String, String> userRolesMap = roleAnalysisService.assignmentRoleMemberSearch(
                 userSearchFilter, roleSearchFilter, assignmentSearchFilter,
                 rolesMembers, false, task, result, cluster);
+
+        pullMigratedRoles(roleAnalysisService,
+                cluster,
+                userSearchFilter,
+                assignmentSearchFilter,
+                task,
+                result,
+                userRolesMap);
+
         //Roles as a key, users as a value
         ListMultimap<String, String> roleUserMap = ArrayListMultimap.create();
         Set<String> allRolesInMiningStructure = new HashSet<>();
@@ -111,7 +121,7 @@ public class CompressedMiningStructure extends BasePrepareAction {
         resolveRoleTypeChunkCompress(roleAnalysisService, compressedRoles, allUsersInMiningStructureSize, roleExistCache,
                 miningRoleTypeChunks);
 
-        return new MiningOperationChunk(miningUserTypeChunks, miningRoleTypeChunks);
+        return new MiningOperationChunk(miningUserTypeChunks, miningRoleTypeChunks, option);
     }
 
     @Override
@@ -142,16 +152,31 @@ public class CompressedMiningStructure extends BasePrepareAction {
 
         Set<String> allRolesInMiningStructure = new HashSet<>();
 
+        List<RoleAnalysisCandidateRoleType> candidateRoles = cluster.getCandidateRoles();
+        Set<String> candidateRolesOids = collectCandidateRolesOidToExclude(roleAnalysisService, candidateRoles, task, result);
+
         //roles key, users value
         ListMultimap<List<String>, String> compressedUsers = ArrayListMultimap.create();
         for (String userOid : userRolesMap.keySet()) {
             List<String> rolesOids = userRolesMap.get(userOid);
-            allRolesInMiningStructure.addAll(rolesOids);
-            Collections.sort(rolesOids);
+
+            //exclude candidate roles
+            List<String> filteredRoles = new ArrayList<>(rolesOids.size());
             for (String roleOid : rolesOids) {
-                roleUserMap.put(roleOid, userOid);
+                if (!candidateRolesOids.contains(roleOid)) {
+                    filteredRoles.add(roleOid);
+                    roleUserMap.put(roleOid, userOid);
+                }
             }
-            compressedUsers.put(rolesOids, userOid);
+
+            if (filteredRoles.isEmpty()) {
+                continue;
+            }
+
+            Collections.sort(filteredRoles);
+
+            allRolesInMiningStructure.addAll(filteredRoles);
+            compressedUsers.put(filteredRoles, userOid);
         }
 
         //users key, roles value
@@ -174,7 +199,7 @@ public class CompressedMiningStructure extends BasePrepareAction {
         resolveRoleTypeChunkCompress(roleAnalysisService, compressedRoles, allUsersInMiningStructureSize, roleExistCache,
                 miningRoleTypeChunks);
 
-        return new MiningOperationChunk(miningUserTypeChunks, miningRoleTypeChunks);
+        return new MiningOperationChunk(miningUserTypeChunks, miningRoleTypeChunks, option);
     }
 
     @Override
@@ -188,7 +213,7 @@ public class CompressedMiningStructure extends BasePrepareAction {
             @NotNull Task task,
             @NotNull OperationResult result) {
         Map<String, PrismObject<UserType>> userExistCache = new HashMap<>();
-        Map<String, PrismObject<RoleType>> roleExistCache = new HashMap<>();
+
         List<MiningUserTypeChunk> miningUserTypeChunks = new ArrayList<>();
         List<MiningRoleTypeChunk> miningRoleTypeChunks = new ArrayList<>();
         Set<String> rolesMembers = new HashSet<>();
@@ -219,7 +244,7 @@ public class CompressedMiningStructure extends BasePrepareAction {
                 userExistCache,
                 miningUserTypeChunks);
 
-        return new MiningOperationChunk(miningUserTypeChunks, miningRoleTypeChunks);
+        return new MiningOperationChunk(miningUserTypeChunks, miningRoleTypeChunks, option);
     }
 
     @Override
@@ -232,8 +257,8 @@ public class CompressedMiningStructure extends BasePrepareAction {
             @NotNull RoleAnalysisProgressIncrement handler,
             @NotNull Task task,
             @NotNull OperationResult result) {
-        Map<String, PrismObject<UserType>> userExistCache = new HashMap<>();
         Map<String, PrismObject<RoleType>> roleExistCache = new HashMap<>();
+
         List<MiningUserTypeChunk> miningUserTypeChunks = new ArrayList<>();
         List<MiningRoleTypeChunk> miningRoleTypeChunks = new ArrayList<>();
         Set<String> userMember = new HashSet<>();
@@ -260,7 +285,7 @@ public class CompressedMiningStructure extends BasePrepareAction {
         resolveRoleTypeChunkCompress(roleAnalysisService, compressedRoles, allUsersInMiningStructureSize, roleExistCache,
                 miningRoleTypeChunks);
 
-        return new MiningOperationChunk(miningUserTypeChunks, miningRoleTypeChunks);
+        return new MiningOperationChunk(miningUserTypeChunks, miningRoleTypeChunks, option);
     }
 
 }

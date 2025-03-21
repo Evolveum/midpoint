@@ -41,11 +41,16 @@ public class MiningOperationChunk implements Serializable {
     private double minFrequency;
     private double maxFrequency;
 
+    DisplayValueOption displayValueOption;
 
-    public MiningOperationChunk(List<MiningUserTypeChunk> miningUserTypeChunks, List<MiningRoleTypeChunk> miningRoleTypeChunks) {
+    public MiningOperationChunk(
+            List<MiningUserTypeChunk> miningUserTypeChunks,
+            List<MiningRoleTypeChunk> miningRoleTypeChunks,
+            DisplayValueOption displayValueOption) {
         resetList();
         this.miningUserTypeChunks = miningUserTypeChunks;
         this.miningRoleTypeChunks = miningRoleTypeChunks;
+        this.displayValueOption = displayValueOption;
     }
 
     public List<MiningUserTypeChunk> getMiningUserTypeChunks(@NotNull RoleAnalysisSortMode roleAnalysisSortMode) {
@@ -213,6 +218,10 @@ public class MiningOperationChunk implements Serializable {
 
     public RoleAnalysisProcessModeType getProcessMode() {
         return processMode;
+    }
+
+    public DisplayValueOption getDisplayValueOption() {
+        return displayValueOption;
     }
 
 }

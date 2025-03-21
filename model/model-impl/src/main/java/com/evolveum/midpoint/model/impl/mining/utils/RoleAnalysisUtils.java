@@ -27,6 +27,7 @@ import org.jetbrains.annotations.Nullable;
 import javax.xml.datatype.XMLGregorianCalendar;
 import java.util.*;
 
+import static com.evolveum.midpoint.common.mining.utils.values.RoleAnalysisObjectState.SUSPENDED;
 import static com.evolveum.midpoint.common.mining.utils.values.RoleAnalysisObjectState.isStable;
 
 /**
@@ -64,7 +65,9 @@ public class RoleAnalysisUtils {
             object = repositoryService.getObject(TaskType.class, taskRef.getOid(), null, result);
         } catch (ObjectNotFoundException | SchemaException e) {
             logger.warn("Error retrieving TaskType object for oid: {}", taskRef.getOid(), e);
-            return null;
+            status.setStatus(OperationResultStatusType.FATAL_ERROR);
+            status.setMessage(SUSPENDED.getDisplayString());
+            return status;
         }
 
         TaskType taskType = object.asObjectable();

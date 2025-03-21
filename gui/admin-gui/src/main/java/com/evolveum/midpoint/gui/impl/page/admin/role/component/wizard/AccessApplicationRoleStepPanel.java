@@ -33,6 +33,7 @@ import org.apache.wicket.markup.html.panel.Fragment;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 
@@ -164,6 +165,11 @@ public class AccessApplicationRoleStepPanel
     @Override
     protected SelectableBeanObjectDataProvider<RoleType> createProvider(SelectableBeanObjectDataProvider<RoleType> defaultProvider) {
         return super.createProvider(defaultProvider);
+    }
+
+    @Override
+    protected @Nullable Set<RoleType> initialSelectedObjects() {
+        return super.initialSelectedObjects();
     }
 
     @Override

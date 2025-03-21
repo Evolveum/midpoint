@@ -32,4 +32,13 @@ public class Cluster<T extends Clusterable> implements Serializable {
         this.explanations = explanations;
     }
 
+    public int getMembersCount() {
+        int memberCount = 0;
+        for (T point : points) {
+            memberCount += point.getMembersCount();
+        }
+
+        return memberCount;
+    }
+
 }

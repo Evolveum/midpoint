@@ -177,6 +177,16 @@ public class ActivityBasedTaskInformation extends TaskInformation {
     }
 
     @Override
+    public List<String> getTaskHealthMessages() {
+        return workersInformation.getHealthMessages();
+    }
+
+    @Override
+    public List<LocalizableMessage> getTaskHealthUserFriendlyMessages() {
+        return workersInformation.getUserFriendlyHealthMessages();
+    }
+
+    @Override
     public Integer getAllErrors() {
         return progressInformation.getErrorsRecursive();
     }

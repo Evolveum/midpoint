@@ -71,7 +71,7 @@ public class ImportAction {
         if (generatorOptions.isTransform()) {
             remakeUsersBusinessRoles(context, result, generatorOptions, null, null);
         }
-        
+
         log.info("NOTE: Do not forget to recompute FocusType objects");
     }
 

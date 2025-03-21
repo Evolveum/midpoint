@@ -3,7 +3,6 @@ package com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.object;
 import static com.evolveum.midpoint.common.mining.utils.RoleAnalysisUtils.LOGGER;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -16,7 +15,6 @@ import com.evolveum.midpoint.gui.impl.page.admin.abstractrole.component.MemberOp
 import com.evolveum.midpoint.model.api.mining.RoleAnalysisService;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.impl.binding.AbstractMutableObjectable;
 import com.evolveum.midpoint.prism.query.InOidFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.constants.RelationTypes;
@@ -29,7 +27,7 @@ public class RoleAnalysisObjectUtils {
     public static void memberOperationsTaskAssignCreator(@NotNull AjaxRequestTarget target,
             @NotNull PrismObject<RoleType> rolePrismObject,
             @NotNull PageBase pageBase,
-            @NotNull List<ObjectType> selectedObjectsList,
+            List<String> selectedObjectsList,
             @NotNull Component feedBackPanel) {
         var taskCreator = new MemberOperationsTaskCreator.Assign(
                 rolePrismObject.asObjectable(),
@@ -48,7 +46,7 @@ public class RoleAnalysisObjectUtils {
     public static void memberOperationsTaskUnassignedCreator(@NotNull AjaxRequestTarget target,
             @NotNull PrismObject<RoleType> rolePrismObject,
             @NotNull PageBase pageBase,
-            @NotNull List<ObjectType> selectedObjectsList,
+            List<String> selectedObjectsList,
             @NotNull Component feedBackPanel) {
 
         var taskCreator = new MemberOperationsTaskCreator.Unassign(
@@ -66,28 +64,30 @@ public class RoleAnalysisObjectUtils {
                 .runVoid(taskCreator::createAndSubmitTask);
     }
 
-    public static ObjectQuery createInOidQuery(@NotNull List<ObjectType> selectedObjectsList, @NotNull PageBase pageBase) {
-        List<String> oids = selectedObjectsList.stream().map(AbstractMutableObjectable::getOid).collect(Collectors.toList());
+    public static ObjectQuery createInOidQuery(List<String> selectedObjectsList, @NotNull PageBase pageBase) {
         PrismContext prismContext = pageBase.getPrismContext();
-        InOidFilter inOid = prismContext.queryFactory().createInOid(oids);
+        InOidFilter inOid = prismContext.queryFactory().createInOid(
+                selectedObjectsList != null ? selectedObjectsList : Collections.emptyList());
         return prismContext.queryFactory().createQuery(inOid);
     }
 
-    public static void resolveMembersOperation(@NotNull Set<PrismObject<UserType>> candidateMembers,
+    public static void resolveMembersOperation(Set<ObjectReferenceType> candidateMembers,
             @NotNull Map<String, PrismObject<UserType>> userExistCache,
-            @NotNull List<ObjectType> userToAssign,
-            @NotNull List<ObjectType> userToUnassigned) {
+            @NotNull List<String> userToAssign,
+            @NotNull List<String> userToUnassigned) {
 
         candidateMembers.forEach(member -> {
             PrismObject<UserType> userPrismObject = userExistCache.get(member.getOid());
-            if (userPrismObject == null) {
-                userToAssign.add(member.asObjectable());
+            if (userPrismObject == null && member.getOid() != null) {
+                userToAssign.add(member.getOid());
             } else {
                 userExistCache.remove(member.getOid());
             }
         });
 
-        userExistCache.values().stream().map(userObject -> userObject.asObjectable()).forEach(userToUnassigned::add);
+        userExistCache.values().stream().map(userObject -> userObject.asObjectable()).forEach(user -> {
+            userToUnassigned.add(user.getOid());
+        });
     }
 
     public static void executeChangesOnCandidateRole(
@@ -96,7 +96,7 @@ public class RoleAnalysisObjectUtils {
             @NotNull AjaxRequestTarget target,
             @NotNull PrismObject<RoleAnalysisClusterType> cluster,
             @NotNull List<RoleAnalysisCandidateRoleType> candidateRole,
-            @NotNull Set<PrismObject<UserType>> candidateMembers,
+            Set<ObjectReferenceType> candidateMembers,
             @NotNull Set<AssignmentType> candidateInducements,
             @NotNull Task task,
             @NotNull OperationResult result) {
@@ -121,8 +121,8 @@ public class RoleAnalysisObjectUtils {
                 task,
                 result);
 
-        List<ObjectType> userToAssign = new ArrayList<>();
-        List<ObjectType> userToUnassigned = new ArrayList<>();
+        List<String> userToAssign = new ArrayList<>();
+        List<String> userToUnassigned = new ArrayList<>();
         resolveMembersOperation(candidateMembers, userExistCache, userToAssign, userToUnassigned);
 
         if (!userToAssign.isEmpty()) {

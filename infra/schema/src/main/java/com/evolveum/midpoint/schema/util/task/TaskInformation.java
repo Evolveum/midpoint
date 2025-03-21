@@ -11,9 +11,8 @@ import static com.evolveum.midpoint.schema.util.task.TaskTypeUtil.isActivityBase
 import static com.evolveum.midpoint.schema.util.task.TaskTypeUtil.isActivityBasedRoot;
 
 import java.io.Serializable;
+import java.util.List;
 import javax.xml.datatype.XMLGregorianCalendar;
-
-import com.evolveum.midpoint.util.LocalizableMessage;
 
 import com.google.common.base.MoreObjects;
 import org.jetbrains.annotations.NotNull;
@@ -21,6 +20,7 @@ import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
+import com.evolveum.midpoint.util.LocalizableMessage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivitySimplifiedRealizationStateType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityStateOverviewType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultStatusType;
@@ -184,8 +184,8 @@ public abstract class TaskInformation implements DebugDumpable, Serializable {
     public abstract Object getLiveSyncToken();
 
     /**
-     *
-     * @return
+     * Overall health status of the task and it's subtasks. Not related to items/objects processing,
+     * rather just task execution (e.g. failed/stalled workers).
      */
     public abstract OperationResultStatusType getTaskHealthStatus();
 
@@ -198,4 +198,22 @@ public abstract class TaskInformation implements DebugDumpable, Serializable {
      * This should be a short message that is suitable for displaying to the user/table.
      */
     public abstract LocalizableMessage getTaskHealthDescription();
+
+    /**
+     * Return list of localizable messages that contains concrete errors/warnings that
+     * are related to the task health (plus it's subtasks). Collected messages might repeat,
+     * therefore might not be unique. It's up to client to decide whether to filter them.
+     *
+     * E.g. Policy violation error localizable messages.
+     */
+    public abstract List<LocalizableMessage> getTaskHealthUserFriendlyMessages();
+
+    /**
+     * Return list of technical messages that contains concrete errors/warnings that
+     * are related to the task health (plus it's subtasks). Collected messages might repeat,
+     * therefore might not be unique. It's up to client to decide whether to filter them.
+     *
+     * E.g. Policy violation error messages.
+     */
+    public abstract List<String> getTaskHealthMessages();
 }

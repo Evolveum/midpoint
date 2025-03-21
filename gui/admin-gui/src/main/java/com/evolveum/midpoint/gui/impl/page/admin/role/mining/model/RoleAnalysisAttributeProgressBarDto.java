@@ -141,7 +141,7 @@ public class RoleAnalysisAttributeProgressBarDto extends RoleAnalysisProgressBar
 
         if (inGroup != null && inRepo != null) {
             this.helpTooltip = " (in-group=" + inGroup
-                    + ", in-repo=" + inGroup + ", "
+                    + ", in-repo=" + inRepo + ", "
                     + "unusual=" + isUnusual() + ")";
         }
     }

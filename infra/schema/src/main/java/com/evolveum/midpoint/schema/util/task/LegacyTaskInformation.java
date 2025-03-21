@@ -19,6 +19,8 @@ import com.evolveum.midpoint.util.LocalizableMessage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 
+import java.util.List;
+
 /**
  * The {@link TaskInformation} based on a legacy task structure. Very limited.
  */
@@ -84,6 +86,16 @@ public class LegacyTaskInformation extends TaskInformation {
     @Override
     public LocalizableMessage getTaskHealthDescription() {
         return null; // It couldn't be determined from the legacy task.
+    }
+
+    @Override
+    public List<String> getTaskHealthMessages() {
+        return List.of();   // It couldn't be determined from the legacy task.
+    }
+
+    @Override
+    public List<LocalizableMessage> getTaskHealthUserFriendlyMessages() {
+        return List.of();   // It couldn't be determined from the legacy task.
     }
 
     @Override

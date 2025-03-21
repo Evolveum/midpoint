@@ -8,12 +8,16 @@
 package com.evolveum.midpoint.web.page.admin.server;
 
 import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.List;
 
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.util.LocalizableMessage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskExecutionStateType;
 
-public class TaskProgress implements Serializable {
+public class TaskExecutionProgress implements Serializable {
+
+    private String executionStateMessage;
 
     private TaskExecutionStateType executionState;
 
@@ -36,6 +40,11 @@ public class TaskProgress implements Serializable {
      * Message describing task health status.
      */
     private LocalizableMessage taskHealthStatusMessage;
+
+    /**
+     * More information about task health status. E.g. errors/warnings in workers.
+     */
+    private List<LocalizableMessage> taskHealthUserFriendlyMessages = new ArrayList<>();
 
     /**
      * Overall task status.
@@ -106,11 +115,23 @@ public class TaskProgress implements Serializable {
         this.executionState = executionState;
     }
 
+    public String getExecutionStateMessage() {
+        return executionStateMessage;
+    }
+
+    public void setExecutionStateMessage(String executionStateMessage) {
+        this.executionStateMessage = executionStateMessage;
+    }
+
     public OperationResultStatus getTaskHealthStatus() {
         return taskHealthStatus;
     }
 
     public void setTaskHealthStatus(OperationResultStatus taskHealthStatus) {
         this.taskHealthStatus = taskHealthStatus;
+    }
+
+    public List<LocalizableMessage> getTaskHealthUserFriendlyMessages() {
+        return taskHealthUserFriendlyMessages;
     }
 }

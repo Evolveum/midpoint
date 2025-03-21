@@ -166,7 +166,7 @@ public class GuiStyleConstants {
     public static final String CLASS_OP_RESULT_STATUS_ICON_UNKNOWN_COLORED = "fa fa-question-circle text-warning";
     public static final String CLASS_OP_RESULT_STATUS_ICON_SUCCESS_COLORED = "fa fa-check-circle text-success";
     public static final String CLASS_OP_RESULT_STATUS_ICON_WARNING_COLORED = "fa fa-exclamation-circle text-warning";
-    public static final String CLASS_OP_RESULT_STATUS_ICON_PARTIAL_ERROR_COLORED = "fa fa-minus-circle text-danger";
+    public static final String CLASS_OP_RESULT_STATUS_ICON_PARTIAL_ERROR_COLORED = "fa fa-times-circle text-warning";
     public static final String CLASS_OP_RESULT_STATUS_ICON_FATAL_ERROR_COLORED = "fa fa-times-circle text-danger";
     public static final String CLASS_OP_RESULT_STATUS_ICON_HANDLED_ERROR_COLORED = "fa fa-minus-circle text-warning";
     public static final String CLASS_OP_RESULT_STATUS_ICON_NOT_APPLICABLE_COLORED = "fa fa-check-circle text-muted";
