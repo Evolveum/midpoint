@@ -8,6 +8,8 @@ package com.evolveum.midpoint.schema.result;
 
 import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
 
+import static com.evolveum.midpoint.util.NoValueUtil.*;
+
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 import static org.apache.commons.collections4.CollectionUtils.emptyIfNull;
@@ -272,14 +274,14 @@ public class OperationResult
     private boolean building;        // experimental (NOT SERIALIZED)
     private OperationResult futureParent;   // experimental (NOT SERIALIZED)
 
-    private static final long NONE = -1;
+    // The following fields use "long" instead of "Long" because of performance reasons.
 
-    private long start = NONE;
-    private long end = NONE;
-    private long microseconds = NONE;
-    private long ownMicroseconds = NONE;
-    private long cpuMicroseconds = NONE;
-    private long invocationId = NONE;
+    @CanBeNone private long start = NONE_LONG;
+    @CanBeNone private long end = NONE_LONG;
+    @CanBeNone private long microseconds = NONE_LONG;
+    @CanBeNone private long ownMicroseconds = NONE_LONG;
+    @CanBeNone private long cpuMicroseconds = NONE_LONG;
+    @CanBeNone private long invocationId = NONE_LONG;
 
     private final List<LogSegmentType> logSegments = new ArrayList<>();
 
@@ -537,8 +539,8 @@ public class OperationResult
             invocationRecord.afterCall(
                     computeNotOwnTimeMicros());
             microseconds = invocationRecord.getElapsedTimeMicros();
-            ownMicroseconds = fromNullable(invocationRecord.getOwnTimeMicros());
-            cpuMicroseconds = fromNullable(invocationRecord.getCpuTimeMicros());
+            ownMicroseconds = invocationRecord.getOwnTimeMicros();
+            cpuMicroseconds = invocationRecord.getCpuTimeMicros();
             if (collectingLogEntries) {
                 logRecorder.close();
                 collectingLogEntries = false;
@@ -558,7 +560,7 @@ public class OperationResult
     private long computeNotOwnTimeMicros() {
         long total = 0;
         for (OperationResult subresult : getSubresults()) {
-            total += subresult.getMicrosecondsOr0();
+            total += zeroIfNone(subresult.microseconds);
         }
         return total;
     }
@@ -1295,7 +1297,7 @@ public class OperationResult
     public boolean isClosed() {
         return status != OperationResultStatus.UNKNOWN
                 && status != null
-                && end != NONE
+                && end != NONE_LONG
                 && invocationRecord == null;
     }
 
@@ -2172,15 +2174,15 @@ public class OperationResult
             result.setHiddenRecordsCount(bean.getHiddenRecordsCount());
         }
         if (bean.getStart() != null) {
-            result.setStart(XmlTypeConverter.toMillis(bean.getStart()));
+            result.setStartFromNullable(XmlTypeConverter.toMillis(bean.getStart()));
         }
         if (bean.getEnd() != null) {
-            result.setEnd(XmlTypeConverter.toMillis(bean.getEnd()));
+            result.setEndFromNullable(XmlTypeConverter.toMillis(bean.getEnd()));
         }
-        result.setMicroseconds(bean.getMicroseconds());
-        result.setOwnMicroseconds(bean.getOwnMicroseconds());
-        result.setCpuMicroseconds(bean.getCpuMicroseconds());
-        result.setInvocationId(bean.getInvocationId());
+        result.setMicrosecondsFromNullable(bean.getMicroseconds());
+        result.setOwnMicrosecondsFromNullable(bean.getOwnMicroseconds());
+        result.setCpuMicrosecondsFromNullable(bean.getCpuMicroseconds());
+        result.setInvocationIdFromNullable(bean.getInvocationId());
         result.logSegments.addAll(bean.getLog());
         result.setMonitoredOperations(bean.getMonitoredOperations());
         return result;
@@ -2282,26 +2284,14 @@ public class OperationResult
 
         bean.setStart(XmlTypeConverter.createXMLGregorianCalendar(toNullable(opResult.start)));
         bean.setEnd(XmlTypeConverter.createXMLGregorianCalendar(toNullable(opResult.end)));
-        bean.setMicroseconds(toNullable(opResult.microseconds));
-        bean.setOwnMicroseconds(toNullable(opResult.ownMicroseconds));
-        bean.setCpuMicroseconds(toNullable(opResult.cpuMicroseconds));
-        bean.setInvocationId(toNullable(opResult.invocationId));
+        bean.setMicroseconds(opResult.getMicroseconds());
+        bean.setOwnMicroseconds(opResult.getOwnMicroseconds());
+        bean.setCpuMicroseconds(opResult.getCpuMicroseconds());
+        bean.setInvocationId(opResult.getInvocationId());
         bean.getLog().addAll(opResult.logSegments); // consider cloning here
         bean.getTrace().addAll(opResult.traces); // consider cloning here
         bean.setMonitoredOperations(cloneCloneable(opResult.getMonitoredOperations()));
         return bean;
-    }
-
-    private static Long toNullable(long value) {
-        return value != NONE ? value : null;
-    }
-
-    private static long fromNullable(Long value) {
-        return value != null ? value : NONE;
-    }
-
-    private static long zeroIfNone(long value) {
-        return value != NONE ? value : 0L;
     }
 
     public void summarize() {
@@ -2362,7 +2352,7 @@ public class OperationResult
                 OperationStatusCounter counter = recordsCounters.get(key);
                 if (sr.representsHiddenRecords()) {
                     counter.hiddenCount += sr.hiddenRecordsCount;
-                    counter.addHiddenMicroseconds(sr.getMicrosecondsNullable(), sr.getOwnMicrosecondsNullable(), sr.getCpuMicrosecondsNullable());
+                    counter.addHiddenMicroseconds(sr.microseconds, sr.ownMicroseconds, sr.cpuMicroseconds);
                     iterator.remove(); // will be re-added at the end (potentially with records counters)
                 } else {
                     if (counter.shownRecords < subresultStripThreshold) {
@@ -2370,7 +2360,7 @@ public class OperationResult
                         counter.shownCount += sr.count;
                     } else {
                         counter.hiddenCount += sr.count;
-                        counter.addHiddenMicroseconds(sr.getMicrosecondsNullable(), sr.getOwnMicrosecondsNullable(), sr.getCpuMicrosecondsNullable());
+                        counter.addHiddenMicroseconds(sr.microseconds, sr.ownMicroseconds, sr.cpuMicroseconds);
                         iterator.remove();
                     }
                 }
@@ -2378,7 +2368,7 @@ public class OperationResult
                 OperationStatusCounter counter = new OperationStatusCounter();
                 if (sr.representsHiddenRecords()) {
                     counter.hiddenCount = sr.hiddenRecordsCount;
-                    counter.addHiddenMicroseconds(sr.getMicrosecondsNullable(), sr.getOwnMicrosecondsNullable(), sr.getCpuMicrosecondsNullable());
+                    counter.addHiddenMicroseconds(sr.microseconds, sr.ownMicroseconds, sr.cpuMicroseconds);
                     iterator.remove(); // will be re-added at the end (potentially with records counters)
                 } else {
                     counter.shownRecords = 1;
@@ -2397,9 +2387,9 @@ public class OperationResult
                         key.operation, key.status,
                         "%d record(s) were hidden to save space. Total number of records: %d".formatted(
                                 hiddenCount, shownCount + hiddenCount));
-                hiddenRecordsEntry.setMicroseconds(value.hiddenMicroseconds);
-                hiddenRecordsEntry.setOwnMicroseconds(value.hiddenOwnMicroseconds);
-                hiddenRecordsEntry.setCpuMicroseconds(value.hiddenCpuMicroseconds);
+                hiddenRecordsEntry.microseconds = value.hiddenMicroseconds;
+                hiddenRecordsEntry.ownMicroseconds = value.hiddenOwnMicroseconds;
+                hiddenRecordsEntry.cpuMicroseconds = value.hiddenCpuMicroseconds;
                 hiddenRecordsEntry.setHiddenRecordsCount(hiddenCount);
                 addSubresult(hiddenRecordsEntry);
             }
@@ -2419,16 +2409,13 @@ public class OperationResult
         mergeMap(target.getContext(), source.getContext());
         mergeMap(target.getReturns(), source.getReturns());
         target.incrementCount();
-        target.setMicroseconds(
-                computeMicroseconds(target.getMicrosecondsNullable(), source.getMicrosecondsNullable()));
-        target.setOwnMicroseconds(
-                computeMicroseconds(target.getOwnMicrosecondsNullable(), source.getOwnMicrosecondsNullable()));
-        target.setCpuMicroseconds(
-                computeMicroseconds(target.getCpuMicrosecondsNullable(), source.getCpuMicrosecondsNullable()));
+        target.microseconds = addMicroseconds(target.microseconds, source.microseconds);
+        target.ownMicroseconds = addMicroseconds(target.ownMicroseconds, source.ownMicroseconds);
+        target.cpuMicroseconds = addMicroseconds(target.cpuMicroseconds, source.cpuMicroseconds);
     }
 
-    private static Long computeMicroseconds(Long fromTarget, Long fromSource) {
-        return fromTarget != null || fromSource != null ? or0(fromTarget) + or0(fromSource) : null;
+    private static @CanBeNone long addMicroseconds(@CanBeNone long a, @CanBeNone long b) {
+        return a != NONE_LONG || b != NONE_LONG ? zeroIfNone(a) + zeroIfNone(b) : NONE_LONG;
     }
 
     private void mergeMap(Map<String, Collection<String>> targetMap, Map<String, Collection<String>> sourceMap) {
@@ -2674,7 +2661,7 @@ public class OperationResult
     }
 
     private Float formatMilliseconds(long value) {
-        return value != NONE ? value / 1000.0f : null;
+        return value != NONE_LONG ? value / 1000.0f : null;
     }
 
     @Experimental
@@ -2822,18 +2809,19 @@ public class OperationResult
         private int hiddenCount;
 
         /** How many microseconds are in the hidden entries? */
-        private Long hiddenMicroseconds;
+        @CanBeNone private long hiddenMicroseconds = NONE_LONG;
 
         /** How many own microseconds are in the hidden entries? */
-        private Long hiddenOwnMicroseconds;
+        @CanBeNone private long hiddenOwnMicroseconds = NONE_LONG;
 
         /** How many CPU microseconds are in the hidden entries? */
-        private Long hiddenCpuMicroseconds;
+        @CanBeNone private long hiddenCpuMicroseconds = NONE_LONG;
 
-        void addHiddenMicroseconds(Long deltaMicroseconds, Long deltaOwnMicroseconds, Long deltaCpuMicroseconds) {
-            hiddenMicroseconds = computeMicroseconds(hiddenMicroseconds, deltaMicroseconds);
-            hiddenOwnMicroseconds = computeMicroseconds(hiddenOwnMicroseconds, deltaOwnMicroseconds);
-            hiddenCpuMicroseconds = computeMicroseconds(hiddenCpuMicroseconds, deltaCpuMicroseconds);
+        void addHiddenMicroseconds(
+                @CanBeNone long deltaMicroseconds, @CanBeNone long deltaOwnMicroseconds, @CanBeNone long deltaCpuMicroseconds) {
+            hiddenMicroseconds = addMicroseconds(hiddenMicroseconds, deltaMicroseconds);
+            hiddenOwnMicroseconds = addMicroseconds(hiddenOwnMicroseconds, deltaOwnMicroseconds);
+            hiddenCpuMicroseconds = addMicroseconds(hiddenCpuMicroseconds, deltaCpuMicroseconds);
         }
     }
 
@@ -3013,55 +3001,57 @@ public class OperationResult
                 microseconds, cpuMicroseconds, invocationId, traces, asynchronousOperationReference);
     }
 
+    /** This is public API; we should not use {@link NoValueUtil#NONE_LONG} here. */
     public Long getStart() {
         return toNullable(start);
     }
 
-    public void setStart(Long start) {
+    private void setStartFromNullable(Long start) {
         this.start = fromNullable(start);
     }
 
+    /** This is public API; we should not use {@link NoValueUtil#NONE_LONG} here. */
     public Long getEnd() {
         return toNullable(end);
     }
 
-    public void setEnd(Long end) {
+    private void setEndFromNullable(Long end) {
         this.end = fromNullable(end);
     }
 
-    public Long getMicrosecondsNullable() {
+    /** This is public API; we should not use {@link NoValueUtil#NONE_LONG} here. */
+    public Long getMicroseconds() {
         return toNullable(microseconds);
     }
 
-    private long getMicrosecondsOr0() {
-        return zeroIfNone(microseconds);
-    }
-
-    public void setMicroseconds(Long microseconds) {
+    private void setMicrosecondsFromNullable(Long microseconds) {
         this.microseconds = fromNullable(microseconds);
     }
 
-    public Long getOwnMicrosecondsNullable() {
-        return ownMicroseconds;
+    /** This is public API; we should not use {@link NoValueUtil#NONE_LONG} here. */
+    public Long getOwnMicroseconds() {
+        return toNullable(ownMicroseconds);
     }
 
-    public void setOwnMicroseconds(Long ownMicroseconds) {
+    private void setOwnMicrosecondsFromNullable(Long ownMicroseconds) {
         this.ownMicroseconds = fromNullable(ownMicroseconds);
     }
 
-    public Long getCpuMicrosecondsNullable() {
-        return cpuMicroseconds;
+    /** This is public API; we should not use {@link NoValueUtil#NONE_LONG} here. */
+    public Long getCpuMicroseconds() {
+        return toNullable(cpuMicroseconds);
     }
 
-    public void setCpuMicroseconds(Long cpuMicroseconds) {
+    private void setCpuMicrosecondsFromNullable(Long cpuMicroseconds) {
         this.cpuMicroseconds = fromNullable(cpuMicroseconds);
     }
 
-    public Long getInvocationIdNullable() {
+    /** This is public API; we should not use {@link NoValueUtil#NONE_LONG} here. */
+    public Long getInvocationId() {
         return toNullable(invocationId);
     }
 
-    public void setInvocationId(Long invocationId) {
+    private void setInvocationIdFromNullable(Long invocationId) {
         this.invocationId = fromNullable(invocationId);
     }
 

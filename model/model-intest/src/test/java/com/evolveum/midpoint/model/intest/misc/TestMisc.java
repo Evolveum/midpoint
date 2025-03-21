@@ -699,10 +699,10 @@ public class TestMisc extends AbstractMiscTest {
                     .getAllSubResultsMatching(sr -> sr.getOperation().equals(repoHandleObjectFoundOpName));
             // The following two numbers should include summarized (hidden) subresults
             var totalHandlingTime1 = handlingResults1.stream()
-                    .mapToLong(sr -> sr.getMicrosecondsNullable())
+                    .mapToLong(sr -> sr.getMicroseconds())
                     .sum();
             var ownHandlingTime1 = handlingResults1.stream()
-                    .mapToLong(sr -> sr.getOwnMicrosecondsNullable())
+                    .mapToLong(sr -> sr.getOwnMicroseconds())
                     .sum();
 
             and("performance info is OK");
@@ -760,10 +760,10 @@ public class TestMisc extends AbstractMiscTest {
                     .getAllSubResultsMatching(sr -> sr.getOperation().equals(repoCacheHandleObjectFoundOpName));
             // The following two numbers should include summarized (hidden) subresults
             var totalHandlingTime2 = handlingResults2.stream()
-                    .mapToLong(sr -> sr.getMicrosecondsNullable())
+                    .mapToLong(sr -> sr.getMicroseconds())
                     .sum();
             var ownHandlingTime2 = handlingResults2.stream()
-                    .mapToLong(sr -> sr.getOwnMicrosecondsNullable())
+                    .mapToLong(sr -> sr.getOwnMicroseconds())
                     .sum();
 
             and("performance info is OK");
@@ -911,10 +911,10 @@ public class TestMisc extends AbstractMiscTest {
                 .getAllSubResultsMatching(sr -> sr.getOperation().equals(connIdHandleObjectFoundOpName));
         // The following two numbers should include summarized (hidden) subresults
         var totalHandlingTime1 = handlingResults1.stream()
-                .mapToLong(sr -> sr.getMicrosecondsNullable())
+                .mapToLong(sr -> sr.getMicroseconds())
                 .sum();
         var ownHandlingTime1 = handlingResults1.stream()
-                .mapToLong(sr -> sr.getOwnMicrosecondsNullable())
+                .mapToLong(sr -> sr.getOwnMicroseconds())
                 .sum();
 
         and("performance info is OK");
@@ -982,10 +982,10 @@ public class TestMisc extends AbstractMiscTest {
                 .getAllSubResultsMatching(sr -> sr.getOperation().equals(repoHandleObjectFoundOpName));
         // The following two numbers should include summarized (hidden) subresults
         var totalHandlingTime2 = handlingResults2.stream()
-                .mapToLong(sr -> sr.getMicrosecondsNullable())
+                .mapToLong(sr -> sr.getMicroseconds())
                 .sum();
         var ownHandlingTime2 = handlingResults2.stream()
-                .mapToLong(sr -> sr.getOwnMicrosecondsNullable())
+                .mapToLong(sr -> sr.getOwnMicroseconds())
                 .sum();
 
         and("performance info is OK");
