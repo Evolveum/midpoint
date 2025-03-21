@@ -30,6 +30,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 public abstract class InlineOperationalButtonsPanel<O extends ObjectType> extends OperationalButtonsPanel<O> {
     @Serial private static final long serialVersionUID = 1L;
 
+    private static final String ID_BUTTONS_CONTAINER = "buttonsContainer";
     private static final String ID_LEFT_BUTTONS = "leftButtons";
     private static final String ID_TITLE = "title";
     private static final String ID_RIGHT_BUTTONS = "rightButtons";
@@ -41,18 +42,22 @@ public abstract class InlineOperationalButtonsPanel<O extends ObjectType> extend
     }
 
     protected void initButtons() {
+        WebMarkupContainer buttonsContainer = new WebMarkupContainer(ID_BUTTONS_CONTAINER);
+        buttonsContainer.setOutputMarkupId(true);
+        add(buttonsContainer);
+
         RepeatingView leftButtonsView = new RepeatingView(ID_LEFT_BUTTONS);
-        add(leftButtonsView);
+        buttonsContainer.add(leftButtonsView);
         createBackButton(leftButtonsView);
         addLefButtons(leftButtonsView);
         applyWcagRules(leftButtonsView);
 
         Label title = new Label(ID_TITLE, getTitle());
-        add(title);
+        buttonsContainer.add(title);
 
         WebMarkupContainer deleteButtonContainer = new WebMarkupContainer(ID_DELETE_BUTTON_CONTAINER);
         deleteButtonContainer.setOutputMarkupId(true);
-        add(deleteButtonContainer);
+        buttonsContainer.add(deleteButtonContainer);
 
         RepeatingView deleteButtonView = new RepeatingView(ID_DELETE_BUTTON);
         deleteButtonContainer.add(deleteButtonView);
@@ -61,7 +66,7 @@ public abstract class InlineOperationalButtonsPanel<O extends ObjectType> extend
 
 
         RepeatingView rightButtonsView = new RepeatingView(ID_RIGHT_BUTTONS);
-        add(rightButtonsView);
+        buttonsContainer.add(rightButtonsView);
         buildInitialRepeatingView(rightButtonsView);
         applyWcagRules(rightButtonsView);
 
