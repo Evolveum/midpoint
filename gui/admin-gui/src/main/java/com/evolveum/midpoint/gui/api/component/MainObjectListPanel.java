@@ -165,7 +165,7 @@ public abstract class MainObjectListPanel<O extends ObjectType> extends ObjectLi
     @Override
     protected IColumn<SelectableBean<O>, String> createNameColumn(IModel<String> displayModel, GuiObjectColumnType customColumn, ExpressionType expression) {
         return new ObjectNameColumn<>(displayModel == null ? createStringResource("ObjectType.name") : displayModel,
-                customColumn, expression, getPageBase()) {
+                getSortProperty(customColumn, expression), customColumn, expression, getPageBase()) {
             @Serial private static final long serialVersionUID = 1L;
 
             @Override

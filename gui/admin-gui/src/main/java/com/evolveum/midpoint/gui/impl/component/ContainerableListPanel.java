@@ -26,6 +26,7 @@ import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.DataTable;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.export.AbstractExportableColumn;
 import org.apache.wicket.extensions.markup.html.repeater.util.SortParam;
 import org.apache.wicket.extensions.markup.html.repeater.util.SortableDataProvider;
 import org.apache.wicket.markup.html.WebMarkupContainer;
@@ -365,7 +366,7 @@ public abstract class ContainerableListPanel<C extends Serializable, PO extends 
 
         List<IColumn<PO, String>> columns = createColumns();
         ISelectableDataProvider<PO> provider = createProvider();
-        setDefaultSorting(provider);
+        setDefaultSorting(provider, columns);
         setUseCounting(provider);
         BoxedTablePanel<PO> itemTable = new BoxedTablePanel<>(ID_ITEMS_TABLE,
                 provider, columns, getTableId()) {
@@ -1069,6 +1070,9 @@ public abstract class ContainerableListPanel<C extends Serializable, PO extends 
     }
 
     protected String getSortProperty(GuiObjectColumnType customColumn, ExpressionType expressionType) {
+        if (customColumn == null) {
+            return null;
+        }
         String sortProperty = customColumn.getSortProperty();
         if (sortProperty != null) {
             return sortProperty;
@@ -1634,14 +1638,34 @@ public abstract class ContainerableListPanel<C extends Serializable, PO extends 
     }
 
     protected void setDefaultSorting(ISelectableDataProvider<PO> provider) {
-        if (provider instanceof SortableDataProvider
-                && isCollectionViewPanel() && getObjectCollectionView().getPaging() != null
-                && getObjectCollectionView().getPaging().getOrderBy() != null) {
-            PagingType paging = getObjectCollectionView().getPaging();
-            boolean ascending = !OrderDirectionType.DESCENDING.equals(paging.getOrderDirection());
-            String orderPathString = getPrismContext().itemPathSerializer()
-                    .serializeStandalone(paging.getOrderBy().getItemPath());
-            if (orderPathString == null || orderPathString.length() == 0) {
+        setDefaultSorting(provider, null);
+    }
+
+    protected void setDefaultSorting(ISelectableDataProvider<PO> provider, List<IColumn<PO, String>> columns) {
+        if (provider instanceof SortableDataProvider && isCollectionViewPanel()) {
+            boolean ascending = true;
+            String orderPathString = null;
+            if (getObjectCollectionView().getPaging() != null) {
+                PagingType paging = getObjectCollectionView().getPaging();
+                ascending = !OrderDirectionType.DESCENDING.equals(paging.getOrderDirection());
+                if (getObjectCollectionView().getPaging().getOrderBy() != null) {
+                    orderPathString = getPrismContext().itemPathSerializer()
+                            .serializeStandalone(paging.getOrderBy().getItemPath());
+                }
+            }
+            if (StringUtils.isEmpty(orderPathString) && columns != null) {
+                for (IColumn<PO, String> column : columns) {
+                    if (column instanceof AbstractExportableColumn) {
+                        AbstractExportableColumn<PO, String> exportableColumn = (AbstractExportableColumn<PO, String>) column;
+                        if (exportableColumn.isSortable()) {
+                            orderPathString = exportableColumn.getSortProperty();
+                            break;
+                        }
+                    }
+                }
+
+            }
+            if (orderPathString == null || orderPathString.isEmpty()) {
                 return;
             }
             //noinspection unchecked
