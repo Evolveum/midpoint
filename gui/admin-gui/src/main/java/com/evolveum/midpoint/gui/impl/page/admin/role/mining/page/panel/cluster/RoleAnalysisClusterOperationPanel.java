@@ -83,6 +83,7 @@ public class RoleAnalysisClusterOperationPanel extends AbstractObjectMainPanel<R
         this.operationPanelModel = new LoadableDetachableModel<>() {
             @Override
             protected OperationPanelModel load() {
+                resetModel();
                 OperationPanelModel model = new OperationPanelModel();
                 model.createDetectedPatternModel(getClusterPatterns());
                 model.createCandidatesRolesRoleModel(getClusterCandidateRoles());
@@ -113,7 +114,6 @@ public class RoleAnalysisClusterOperationPanel extends AbstractObjectMainPanel<R
     }
 
     private List<DetectedPattern> getClusterPatterns() {
-        //TODO getObjectWrapperObject() return non actual state of the object (fix this)
         RoleAnalysisClusterType clusterType = getObjectWrapperObject().asObjectable();
         return transformDefaultPattern(clusterType, null, getDetectedPatternContainerId());
     }
@@ -421,6 +421,10 @@ public class RoleAnalysisClusterOperationPanel extends AbstractObjectMainPanel<R
     private void resetOperationPanel(@NotNull AjaxRequestTarget target) {
         operationPanelModel.getObject().clearSelectedPatterns();
         target.add(get(ID_OPERATION_PANEL));
+    }
+
+    private void resetModel() {
+        getObjectDetailsModels().reset();
     }
 
 }
