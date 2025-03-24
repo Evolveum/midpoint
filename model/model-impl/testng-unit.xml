@@ -63,6 +63,7 @@
             <class name="com.evolveum.midpoint.model.impl.misc.TestMiscellaneous"/>
             <class name="com.evolveum.midpoint.model.impl.TestBugreports" />
             <class name="com.evolveum.midpoint.model.impl.visualizer.TestVisualizer"/>
+            <class name="com.evolveum.midpoint.model.impl.visualizer.localization.TestWrapableLocalizationImpl"/>
             <class name="com.evolveum.midpoint.model.impl.mining.OutlierAttributeResolverTest"/>
             <class name="com.evolveum.midpoint.model.impl.mining.OutlierExplanationResolverTest"/>
         </classes>
