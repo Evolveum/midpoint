@@ -12,7 +12,13 @@ import static com.evolveum.midpoint.schema.constants.SchemaConstants.INTENT_DEFA
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType.ACCOUNT;
 
 import java.io.File;
+import java.util.Collection;
 import java.util.stream.Collectors;
+
+import com.evolveum.midpoint.schema.GetOperationOptionsBuilder;
+
+import com.evolveum.midpoint.schema.processor.ShadowAttributeDefinition;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
@@ -84,5 +90,41 @@ public class TestDummyMisc extends AbstractDummyTest {
         assertThat(attrNames)
                 .as("names of attributes to return")
                 .containsExactlyInAnyOrder("uid", "name");
+    }
+
+    /** Fetching specific attribute (not returned by default) while there are no ones marked as "minimal" (MID-10585). */
+    @Test(enabled = false) // currently failing
+    public void test110RequestingAttributeToFetch() throws Exception {
+        var task = getTestTask();
+        var result = task.getResult();
+
+        var coords = new ResourceShadowCoordinates(RESOURCE_DUMMY_ATTRIBUTES_TO_GET.oid, ACCOUNT, "mid-10585");
+        var ctx = provisioningContextFactory.createForShadowCoordinates(coords, task, result);
+        ctx.setGetOperationOptions(
+                GetOperationOptionsBuilder.create()
+                        .item(ShadowType.F_ATTRIBUTES.append(HIDDEN_ATTR_1))
+                        .retrieve()
+                        .build());
+
+        when("attributes to return are computed");
+        var itemsToReturn = ctx.createItemsToReturn();
+
+        then("attributes to return are OK, especially hiddenAttr1 is requested");
+
+        displayValue("attributesToReturn", itemsToReturn);
+
+        assertThat(itemsToReturn.isReturnDefaultAttributes())
+                .as("'return default attributes' flag")
+                .isTrue();
+
+        Collection<? extends ShadowAttributeDefinition<?, ?, ?, ?>> itemsDefinitions = itemsToReturn.getItemsToReturn();
+        assertThat(itemsDefinitions).as("items definitions").isNotNull();
+        var attrNames = itemsDefinitions.stream()
+                .map(def -> def.getItemName().getLocalPart())
+                .collect(Collectors.toSet());
+
+        assertThat(attrNames)
+                .as("names of attributes to return")
+                .containsExactlyInAnyOrder("uid", "name", HIDDEN_ATTR_1);
     }
 }
