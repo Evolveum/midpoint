@@ -67,6 +67,9 @@ Those variables are usually set to the same value.
 But there may be situations when the value is different (e.g. administrator evaluating authorization of a different user).
 The `subject` variable is usually the right one.
 
+
+WARNING: Derefencing in filters, `referencedBy` and `matches` with `@` subfilter are not supported in authorization filters, since these are also evaluated in-memory.
+
 [NOTE]
 ====
 Authorizations are evaluated frequently.
