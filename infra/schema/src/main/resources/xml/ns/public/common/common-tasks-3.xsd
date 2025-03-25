@@ -7444,7 +7444,7 @@
                             </xsd:documentation>
                             <xsd:appinfo>
                                 <a:schemaContext>
-                                    <a:type>ShadowType</a:type> <!-- new resolver/algorithm will be needed-->
+                                    <a:type>tns:ShadowType</a:type> <!-- new resolver/algorithm will be needed-->
                                 </a:schemaContext>
                             </xsd:appinfo>
                         </xsd:annotation>
@@ -7676,7 +7676,7 @@
                             </xsd:documentation>
                             <xsd:appinfo>
                                 <a:schemaContext>
-                                    <a:type>ShadowType</a:type>
+                                    <a:type>tns:ShadowType</a:type>
                                 </a:schemaContext>
                             </xsd:appinfo>
                         </xsd:annotation>
@@ -8227,7 +8227,7 @@
                         <xsd:annotation>
                             <xsd:appinfo>
                                 <a:schemaContext>
-                                    <a:type>ResourceType</a:type>
+                                    <a:type>tns:ResourceType</a:type>
                                 </a:schemaContext>
                             </xsd:appinfo>
                         </xsd:annotation>
@@ -8373,7 +8373,7 @@
                         <xsd:annotation>
                             <xsd:appinfo>
                                 <a:schemaContext>
-                                    <a:type>ShadowType</a:type>
+                                    <a:type>tns:ShadowType</a:type>
                                 </a:schemaContext>
                             </xsd:appinfo>
                         </xsd:annotation>
@@ -8951,7 +8951,7 @@
                             </xsd:documentation>
                             <xsd:appinfo>
                                 <a:schemaContext>
-                                    <a:type>TaskType</a:type>
+                                    <a:type>tns:TaskType</a:type>
                                 </a:schemaContext>
                             </xsd:appinfo>
                         </xsd:annotation>
@@ -9780,7 +9780,7 @@
                             </xsd:documentation>
                             <xsd:appinfo>
                                 <a:schemaContext>
-                                    <a:type>AssignmentHolderType</a:type>
+                                    <a:type>tns:AssignmentHolderType</a:type>
                                 </a:schemaContext>
                             </xsd:appinfo>
                         </xsd:annotation>
