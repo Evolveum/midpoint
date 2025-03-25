@@ -114,6 +114,11 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
         return false;
     }
 
+    /** No deltas, no add/remove values. */
+    protected boolean isUltraLegacyUpdate() {
+        return false;
+    }
+
     protected int getExpectedRefinedSchemaDefinitions() {
         return dummyResource.getNumberOfObjectClasses();
     }
@@ -903,6 +908,9 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
         assertThat(capCred).isNotNull();
         assertNotNull("password capability not found", capCred.getPassword());
 
+        assertEffectiveUpdateCapability(
+                ResourceTypeUtil.getEnabledCapability(resourceType, UpdateCapabilityType.class));
+
         if (supportsActivation()) {
             capAct = ResourceTypeUtil.getEnabledCapability(resourceType, ActivationCapabilityType.class);
             assertNotNull("activation capability not found", capAct);
@@ -922,6 +930,10 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
         assertTrue("native update capability is NOT delta", capUpdate.isDelta());
         assertNotNull("addRemoveAttributeValues in native update capability is null", capUpdate.isAddRemoveAttributeValues());
         assertTrue("native update capability is NOT addRemoveAttributeValues", capUpdate.isAddRemoveAttributeValues());
+    }
+
+    protected void assertEffectiveUpdateCapability(UpdateCapabilityType capUpdate) {
+        assertUpdateCapability(capUpdate); // default is no overriding
     }
 
     protected void assertRunAsCapability(RunAsCapabilityType capRunAs) {
