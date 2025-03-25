@@ -32,5 +32,11 @@
                 <!-- Intentionally not minimal (MID-9774) -->
             </attribute>
         </objectType>
+        <objectType>
+            <kind>account</kind>
+            <intent>mid-10585</intent>
+            <objectClass>ri:AccountObjectClass</objectClass>
+            <!-- no playing with fetchStrategy here -->
+        </objectType>
     </schemaHandling>
 </resource>
