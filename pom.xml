@@ -100,7 +100,7 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-dependencies</artifactId>
-        <version>3.4.3</version>
+        <version>3.4.4</version>
         <!-- This parent also declares dependencies listed here:
         https://docs.spring.io/spring-boot/3.4/appendix/dependency-versions/coordinates.html
         Or for current version of Spring Boot:
@@ -210,10 +210,6 @@
         <httpclient.version>4.5.14</httpclient.version>
 
 
-        <!-- Remove property once newer versions are present in spring boot -->
-        <spring-security.version>6.4.4</spring-security.version>
-        <!-- Bumped tomcat to newer version, one bundled with Spring Boot 3.3.9 does not starts on windows / mac  -->
-        <tomcat.version>10.1.39</tomcat.version>
 
         <hibernate.version>6.5.3.Final</hibernate.version>
         <!--
@@ -225,7 +221,7 @@
 
         <commons.io.version>2.18.0</commons.io.version>
         <commons.cli>1.9.0</commons.cli>
-        <cxf.version>4.0.6</cxf.version>
+        <cxf.version>4.0.7</cxf.version>
         <cxf-xjc.version>3.3.1</cxf-xjc.version>
         <wss4j.version>2.3.3</wss4j.version>
         <opendj.version>2.6.2</opendj.version>
