@@ -1132,7 +1132,8 @@
                             </xsd:documentation>
                             <xsd:appinfo>
                                 <a:schemaContext>
-                                    <a:type>tns:AssignmentType</a:type>
+                                    <a:type>tns:AssignmentHolderType</a:type>
+                                    <a:path>assignment</a:path>
                                 </a:schemaContext>
                             </xsd:appinfo>
                         </xsd:annotation>

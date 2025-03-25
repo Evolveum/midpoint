@@ -74,7 +74,8 @@
                                 <a:displayName>PolicyConstraintsType.assignmentState</a:displayName>
                                 <a:help>PolicyConstraintsType.assignmentState.help</a:help>
                                 <a:schemaContext>
-                                    <a:type>tns:AssignmentType</a:type>
+                                    <a:type>tns:AssignmentHolderType</a:type>
+                                    <a:path>assignment</a:path>
                                 </a:schemaContext>
                             </xsd:appinfo>
                         </xsd:annotation>
