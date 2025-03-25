@@ -91,14 +91,16 @@ public class TaskProgressPanel extends BasePanel<TaskExecutionProgress> {
     private String createResultIcon() {
         TaskExecutionProgress data = getModelObject();
         OperationResultStatus status = data.getTaskStatus();
-
-        if (data.getExecutionState() == TaskExecutionStateType.SUSPENDED
-                && status == OperationResultStatus.IN_PROGRESS) {
-            return "fa fa-circle-pause";
+        if (status == null || status == OperationResultStatus.UNKNOWN) {
+            return OperationResultStatusPresentationProperties.UNKNOWN.getIcon();
         }
 
-        return OperationResultStatusPresentationProperties
-                .parseOperationalResultStatus(getModelObject().getTaskStatus()).getIcon();
+        if (data.getExecutionState() == TaskExecutionStateType.SUSPENDED
+                && !data.isComplete()) {
+            return "fa fa-circle-pause text-secondary";
+        }
+
+        return OperationResultStatusPresentationProperties.parseOperationalResultStatus(status).getIcon();
     }
 
     private String getIconColor(OperationResultStatus status) {
