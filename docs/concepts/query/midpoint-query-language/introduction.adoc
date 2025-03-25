@@ -333,6 +333,8 @@ This allows you to continue path with properties of referenced objects such as
 For example, this enables us to search for users with assigned role by role name instead of oid. (but it is executed a bit slower, since we need to dereference objects).
 `assignment/targetRef/@/name = "Superuser"` - matches any user who is directly assigned role of superuser.
 
+WARNING: Dereferencing is not supported in authorizations, in-memory and on resource searches.
+
 NOTE: To match also users, who are indirectly assigned role, you should use `roleMembershipRef` instead of `assignment/targetRef`.
 
 IMPORTANT: If you need to match referenced object on multiple properties you should use `matches` filter.
@@ -341,7 +343,7 @@ NOTE: Dereferencing is not supported for object references defined via schema ex
 
 ==== Dereferencing inside reference matches filter
 
-NOTE: This feature is currently supported in midPoint native repository only
+NOTE: This feature is currently supported in midPoint native repository only. It is not supported in authorizations, in-memory and on resource searches.
 
 If user wants to match on properties of reference itself and also on properties of it's target
 it is possible now, using dereferencing inside `reference matches` filter.
@@ -393,7 +395,7 @@ NOTE: `referencedBy` filter is not supported for object references defined via s
 
 ==== ownedBy Filter
 
-NOTE: Filter is currently supported in midPoint native repository only
+NOTE: Filter is currently supported in midPoint native repository only. It is not supported in authorizations, in-memory and on resource searches.
 
 ownedBy filter allows for matching indexed containers based on properties of their parent (owning object or container).
 

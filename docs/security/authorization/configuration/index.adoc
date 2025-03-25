@@ -485,7 +485,7 @@ They are summarized in the following table.
 
 | xref:selectors/filter.adoc[`filter`]
 | Authorization applies only to objects that match specified filter.
-(Optionally, with expressions.)
+(Optionally, with expressions.). Derefencing (`@`), `referencedBy` and `matches` with `@` subfilter are not supported in authorization filters.
 
 | xref:selectors/archetypeRef.adoc[`archetypeRef`]
 | Authorization applies only to objects that have specified archetype.
