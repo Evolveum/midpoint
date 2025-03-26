@@ -447,19 +447,29 @@ public class MiningChunkUtils {
         }
 
         String roleName = focusObject.getName().toString();
-        if (option != null && option.getRoleAnalysisRoleDef() != null) {
-            RoleAnalysisAttributeDef analysisDef;
-            if (focusObject.asObjectable() instanceof UserType) {
-                analysisDef = option.getUserAnalysisUserDef();
-            } else {
-                analysisDef = option.getRoleAnalysisRoleDef();
+        if (option != null) {
+            RoleAnalysisAttributeDef analysisDef = extractAttributeAnalysisDef(focusObject, option);
+            if (analysisDef != null) {
+                ItemPath path = analysisDef.getPath();
+                chunkName = analysisDef.resolveSingleValueItem(focusObject, path);
+                return Objects.requireNonNullElse(chunkName, "(N/A) " + roleName);
             }
-            ItemPath path = analysisDef.getPath();
-            chunkName = analysisDef.resolveSingleValueItem(focusObject, path);
-            return Objects.requireNonNullElse(chunkName, "(N/A) " + roleName);
-
         }
 
         return roleName;
     }
+
+    @Nullable
+    private static RoleAnalysisAttributeDef extractAttributeAnalysisDef(
+            @NotNull PrismObject<? extends FocusType> focusObject,
+            @NotNull DisplayValueOption option) {
+        RoleAnalysisAttributeDef analysisDef;
+        if (focusObject.asObjectable() instanceof UserType) {
+            analysisDef = option.getUserAnalysisUserDef();
+        } else {
+            analysisDef = option.getRoleAnalysisRoleDef();
+        }
+        return analysisDef;
+    }
+
 }
