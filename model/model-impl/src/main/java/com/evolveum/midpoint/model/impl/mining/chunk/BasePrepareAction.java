@@ -371,7 +371,6 @@ public abstract class BasePrepareAction implements MiningStructure {
         return Objects.equals(lifecycleState, SchemaConstants.LIFECYCLE_ACTIVE);
     }
 
-
     protected static void pullMigratedRoles(
             @NotNull RoleAnalysisService roleAnalysisService,
             @NotNull RoleAnalysisClusterType cluster,
