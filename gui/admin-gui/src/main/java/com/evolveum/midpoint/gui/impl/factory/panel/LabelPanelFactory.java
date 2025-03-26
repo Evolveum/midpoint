@@ -6,8 +6,12 @@
  */
 package com.evolveum.midpoint.gui.impl.factory.panel;
 
+import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
+
 import jakarta.annotation.PostConstruct;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.model.Model;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -50,6 +54,13 @@ public class LabelPanelFactory<T> implements GuiComponentFactory<PrismPropertyPa
             return new Label(panelCtx.getComponentId(), LocalizationUtil.translatePolyString((PolyString) object));
         } else if (object instanceof Boolean) {
             return new Label(panelCtx.getComponentId(), WebComponentUtil.createLocalizedModelForBoolean((Boolean) object));
+        } else if (object instanceof ProtectedStringType) {
+            if (StringUtils.isNotEmpty(((ProtectedStringType) object).getClearValue())
+                    || ((ProtectedStringType) object).getEncryptedDataType() != null) {
+                return new Label(panelCtx.getComponentId(), panelCtx.getPageBase().createStringResource("passwordPanel.passwordSet"));
+            } else {
+                return new Label(panelCtx.getComponentId(), Model.of());
+            }
         }
 
         return new Label(panelCtx.getComponentId(), panelCtx.getRealValueStringModel());
