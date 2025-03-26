@@ -19,6 +19,9 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.xml.namespace.QName;
+import java.util.List;
+
+import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
 
 /** Used for easy creation of shadow objects (with the correct definition). */
 public class ShadowBuilder {
@@ -59,6 +62,19 @@ public class ShadowBuilder {
         ShadowUtil
                 .getOrCreateAttributesContainer(shadow)
                 .addReferenceAttribute(attrName, referencedShadow);
+        return this;
+    }
+
+    public ShadowBuilder withSimpleAssociation(QName assocName, AbstractShadow... referencedShadows)
+            throws SchemaException {
+        var association = ShadowUtil
+                .getOrCreateAssociationsContainer(shadow)
+                .findOrCreateAssociation(assocName);
+        stateCheck(!association.getDefinition().isComplex(), "Complex associations are not supported here");
+        var associationValues = association.getDefinition().createValuesFromDefaultObjects(List.of(referencedShadows));
+        for (var associationValue : associationValues) {
+            association.add(associationValue); // .addAll would be better but the method signature is too restrictive now
+        }
         return this;
     }
 

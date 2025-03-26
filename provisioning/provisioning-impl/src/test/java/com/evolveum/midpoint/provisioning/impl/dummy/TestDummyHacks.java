@@ -6,13 +6,14 @@
  */
 package com.evolveum.midpoint.provisioning.impl.dummy;
 
-import static org.testng.AssertJUnit.assertEquals;
-
 import java.io.File;
 
 import com.evolveum.midpoint.prism.delta.PlusMinusZero;
 
 import com.evolveum.midpoint.util.exception.CommonException;
+
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.AttributeContentRequirementType;
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.UpdateCapabilityType;
 
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
@@ -21,6 +22,8 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 
 import org.testng.SkipException;
+
+import static org.testng.AssertJUnit.*;
 
 /**
  * The test of Provisioning service on the API level. The test is using dummy resource for speed and flexibility.
@@ -47,6 +50,14 @@ public class TestDummyHacks extends TestDummy {
     @Override
     protected boolean isPreFetchResource() {
         return true;
+    }
+
+    @Override
+    protected void assertEffectiveUpdateCapability(UpdateCapabilityType capUpdate) {
+        assertNotNull("update capability not present", capUpdate);
+        assertTrue("'delta' update capability is not there", capUpdate.isDelta());
+        assertEquals("'attributeContentRequirement' update capability is wrong",
+                AttributeContentRequirementType.ALL, capUpdate.getAttributeContentRequirement());
     }
 
     @Override
