@@ -319,6 +319,9 @@ public class PageCreatedReports extends PageAdmin {
                 SelectableBeanImpl.F_VALUE + "." + ReportDataType.F_REPORT_REF.getLocalPart()) {
             @Override
             public IModel<List<ObjectReferenceType>> extractDataModel(IModel<SelectableBean<ReportDataType>> rowModel) {
+                if (isNullValue(rowModel)) {
+                    return Model.ofList(Collections.emptyList());
+                }
                 SelectableBean<ReportDataType> bean = rowModel.getObject();
                 ObjectReferenceType reportRef = bean.getValue().getReportRef();
                 resolveReportTypeName(reportRef);
@@ -328,6 +331,10 @@ public class PageCreatedReports extends PageAdmin {
         columns.add(column);
 
         return columns;
+    }
+
+    private boolean isNullValue(IModel<SelectableBean<ReportDataType>> rowModel) {
+        return rowModel == null || rowModel.getObject() == null || rowModel.getObject().getValue() == null;
     }
 
     private void resolveReportTypeName(ObjectReferenceType reportRef) {
@@ -466,6 +473,9 @@ public class PageCreatedReports extends PageAdmin {
 
     private boolean isTrace(IModel<?> rowModel) {
         //noinspection unchecked
+        if (isNullValue((IModel<SelectableBean<ReportDataType>>) rowModel)) {
+            return false;
+        }
         SelectableBean<ReportDataType> row = (SelectableBean<ReportDataType>) rowModel.getObject();
         return ObjectTypeUtil.hasArchetypeRef(row.getValue(), SystemObjectsType.ARCHETYPE_TRACE.value());
     }
