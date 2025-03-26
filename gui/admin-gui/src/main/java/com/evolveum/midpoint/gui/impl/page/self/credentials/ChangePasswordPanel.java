@@ -12,6 +12,8 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
+import com.evolveum.midpoint.util.LocalizableMessage;
+
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.AttributeModifier;
@@ -418,11 +420,18 @@ public class ChangePasswordPanel<F extends FocusType> extends BasePanel<F> {
         if (!WebComponentUtil.isSuccessOrHandledError(result)) {
             setNullEncryptedPasswordData();
             if (showFeedback) {
+                LocalizableMessage userFriendlyMessage = result.getUserFriendlyMessage();
+                String bodyMessage;
+                if (userFriendlyMessage != null) {
+                    bodyMessage = WebComponentUtil.resolveLocalizableMessage(userFriendlyMessage, getPageBase());
+                } else {
+                    bodyMessage = getString(result.getMessage(), null, result.getMessage());
+                }
                 new Toast()
                         .warning()
                         .autohide(false)
                         .title(getString("ChangePasswordPanel.savePassword"))
-                        .body(getString(result.getMessage(), null, result.getMessage()))
+                        .body(bodyMessage)
                         .show(target);
             }
         } else {
