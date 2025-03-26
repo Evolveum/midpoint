@@ -19,6 +19,7 @@ import com.evolveum.midpoint.gui.impl.component.data.provider.MultivalueContaine
 import com.evolveum.midpoint.gui.impl.component.search.Search;
 import com.evolveum.midpoint.gui.impl.component.search.SearchBuilder;
 import com.evolveum.midpoint.gui.impl.factory.panel.ItemRealValueModel;
+import com.evolveum.midpoint.web.component.prism.ValueStatus;
 import com.evolveum.midpoint.web.component.util.EnableBehaviour;
 import com.evolveum.midpoint.web.model.PrismPropertyWrapperModel;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
@@ -58,7 +59,7 @@ public class RoleAnalysisClusteringAttributeTable extends BasePanel<PrismContain
 
     public RoleAnalysisClusteringAttributeTable(
             @NotNull String id,
-            IModel<PrismContainerWrapper<ClusteringAttributeRuleType>> rulesModel,
+            @NotNull IModel<PrismContainerWrapper<ClusteringAttributeRuleType>> rulesModel,
             boolean isSimplePanel) {
         super(id, rulesModel);
 
@@ -75,11 +76,14 @@ public class RoleAnalysisClusteringAttributeTable extends BasePanel<PrismContain
 
     private void initLayout() {
         IModel<Search<ClusteringAttributeRuleType>> searchModel = createSearchModel();
-        MultivalueContainerListDataProvider<ClusteringAttributeRuleType> provider = new MultivalueContainerListDataProvider<>(
-                this, searchModel, new PropertyModel<>(getModel(), "values"));
 
-//        RoleMiningProvider<ClusteringAttributeRuleType> provider = new RoleMiningProvider<>(
-//                this, selectedObject, false);
+        MultivalueContainerListDataProvider<ClusteringAttributeRuleType> provider = new MultivalueContainerListDataProvider<>(
+                this, searchModel, () -> getModel().getObject()
+                .getValues()
+                .stream()
+                .filter(v -> v.getStatus() != ValueStatus.DELETED)
+                .toList());
+
 
         BoxedTablePanel<PrismContainerValueWrapper<ClusteringAttributeRuleType>> table = new BoxedTablePanel<>(
                 ID_DATATABLE, provider, initColumns()) {
