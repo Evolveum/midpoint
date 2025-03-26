@@ -80,7 +80,13 @@ Suspend task action will suspend the task.
 
 == Limitations
 
-* Activity policies are evaluated only for iterative (plain iterative or search based) activities.
+* Activity policies are evaluated only for iterative (plain iterative or search based) activities. Activities not supported:
+** Non-iterative scripting
+** Role analysis clustering
+** Role analysis patter detection
+** Repartition
+** Cleanup
+** Composite
 * Activity policies are evaluated before each item processing and after activity completion.
 
 == See also
