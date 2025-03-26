@@ -24,6 +24,7 @@ import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
+import com.evolveum.midpoint.web.component.prism.ValueStatus;
 import com.evolveum.midpoint.web.component.util.EnableBehaviour;
 import com.evolveum.midpoint.web.model.PrismPropertyWrapperModel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -62,7 +63,8 @@ public class RoleAnalysisClusteringAttributeTable extends BasePanel<PrismContain
 
     public RoleAnalysisClusteringAttributeTable(
             @NotNull String id,
-            IModel<PrismContainerWrapper<ClusteringAttributeRuleType>> rulesModel, boolean isRoleMode) {
+            @NotNull IModel<PrismContainerWrapper<ClusteringAttributeRuleType>> rulesModel,
+            boolean isRoleMode) {
         super(id, rulesModel);
         this.isRoleMode = isRoleMode;
         //TODO use multivalue container panel instead
@@ -76,8 +78,13 @@ public class RoleAnalysisClusteringAttributeTable extends BasePanel<PrismContain
 
     private void initLayout() {
         IModel<Search<ClusteringAttributeRuleType>> searchModel = createSearchModel();
+
         MultivalueContainerListDataProvider<ClusteringAttributeRuleType> provider = new MultivalueContainerListDataProvider<>(
-                this, searchModel, new PropertyModel<>(getModel(), "values"));
+                this, searchModel, () -> getModel().getObject()
+                .getValues()
+                .stream()
+                .filter(v -> v.getStatus() != ValueStatus.DELETED)
+                .toList());
 
         BoxedTablePanel<PrismContainerValueWrapper<ClusteringAttributeRuleType>> table = new BoxedTablePanel<>(
                 ID_DATATABLE, provider, initColumns()) {
@@ -314,7 +321,7 @@ public class RoleAnalysisClusteringAttributeTable extends BasePanel<PrismContain
         return ((PageBase) getPage());
     }
 
-    protected DataTable<?,?> getDataTable() {
+    protected DataTable<?, ?> getDataTable() {
         return ((BoxedTablePanel<?>) get(((PageBase) getPage()).createComponentPath(ID_DATATABLE))).getDataTable();
     }
 
