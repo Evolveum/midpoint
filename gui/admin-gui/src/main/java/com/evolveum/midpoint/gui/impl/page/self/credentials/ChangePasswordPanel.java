@@ -34,6 +34,7 @@ import com.evolveum.midpoint.web.security.MidPointApplication;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
+import com.evolveum.midpoint.util.LocalizableMessage;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -424,11 +425,18 @@ public class ChangePasswordPanel<F extends FocusType> extends BasePanel<F> {
         if (!WebComponentUtil.isSuccessOrHandledError(result)) {
             setNullEncryptedPasswordData();
             if (showFeedback) {
+                LocalizableMessage userFriendlyMessage = result.getUserFriendlyMessage();
+                String bodyMessage;
+                if (userFriendlyMessage != null) {
+                    bodyMessage = WebComponentUtil.resolveLocalizableMessage(userFriendlyMessage, getPageBase());
+                } else {
+                    bodyMessage = getString(result.getMessage(), null, result.getMessage());
+                }
                 new Toast()
                         .warning()
                         .autohide(false)
                         .title(getString("ChangePasswordPanel.savePassword"))
-                        .body(getString(result.getMessage(), null, result.getMessage()))
+                        .body(bodyMessage)
                         .show(target);
             }
         } else {
