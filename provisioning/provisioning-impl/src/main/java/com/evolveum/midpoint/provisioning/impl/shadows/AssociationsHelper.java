@@ -40,6 +40,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
 import static com.evolveum.midpoint.provisioning.impl.shadows.RepoShadowWithState.ShadowState.EXISTING;
+import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
 
 /**
  * Contains associations-related methods at the *shadows* level.
@@ -172,27 +173,33 @@ class AssociationsHelper {
     void convertAssociationDeltasToReferenceAttributeDeltas(Collection<? extends ItemDelta<?, ?>> modifications)
             throws SchemaException {
         for (var modification : List.copyOf(modifications)) {
+            ReferenceDelta refAttrDelta = null;
             var iterator = ShadowAssociationsCollection.ofDelta(modification).iterator();
             while (iterator.hasNext()) {
+                var iterableAssocValue = iterator.next();
+                var assocValue = iterableAssocValue.associationValue();
+                var refAttrDef = assocValue.getDefinitionRequired().getReferenceAttributeDefinition();
+                if (refAttrDelta == null) {
+                    refAttrDelta = refAttrDef.createEmptyDelta();
+                } else {
+                    var currentPath = refAttrDelta.getPath();
+                    var expectedPath = refAttrDef.getStandardPath();
+                    stateCheck(currentPath.equivalent(expectedPath),
+                            "Shadow association delta points to multiple reference attributes: %s and %s",
+                            currentPath, expectedPath);
+                }
+                var refAttrValue = assocValue.toReferenceAttributeValue();
+                if (iterableAssocValue.isAddNotDelete()) {
+                    refAttrDelta.addValueToAdd(refAttrValue);
+                } else {
+                    refAttrDelta.addValueToDelete(refAttrValue);
+                }
+            }
+            if (refAttrDelta != null) {
                 //noinspection unchecked
-                ((Collection<ItemDelta<?, ?>>) modifications).add(
-                        createRefAttrDelta(iterator.next()));
+                ((Collection<ItemDelta<?, ?>>) modifications).add(refAttrDelta);
             }
         }
-    }
-
-    private static ReferenceDelta createRefAttrDelta(IterableAssociationValue iterableAssocValue)
-            throws SchemaException {
-        var assocValue = iterableAssocValue.associationValue();
-        var assocDef = assocValue.getDefinitionRequired();
-        var refAttrDelta = assocDef.getReferenceAttributeDefinition().createEmptyDelta();
-        var refAttrValue = assocValue.toReferenceAttributeValue();
-        if (iterableAssocValue.isAddNotDelete()) {
-            refAttrDelta.addValueToAdd(refAttrValue);
-        } else {
-            refAttrDelta.addValueToDelete(refAttrValue);
-        }
-        return refAttrDelta;
     }
 
     /**

@@ -137,6 +137,17 @@ public interface ShadowAssociationDefinition
     }
 
     /** Call only on simple associations! */
+    default Collection<ShadowAssociationValue> createValuesFromDefaultObjects(Collection<? extends AbstractShadow> objects)
+            throws SchemaException {
+        assert !isComplex();
+        Collection<ShadowAssociationValue> values = new ArrayList<>(objects.size());
+        for (AbstractShadow object : objects) {
+            values.add(createValueFromDefaultObject(object));
+        }
+        return values;
+    }
+
+    /** Call only on simple associations! */
     default ShadowAssociationValue createValueFromDefaultObjectRef(@NotNull ShadowReferenceAttributeValue refAttrValue)
             throws SchemaException {
         assert !isComplex();

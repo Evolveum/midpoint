@@ -10,12 +10,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import com.evolveum.midpoint.schema.util.task.TaskTypeUtil;
-
-import com.evolveum.midpoint.web.page.admin.server.dto.TaskDtoExecutionState;
-
 import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
@@ -63,8 +58,6 @@ import com.evolveum.midpoint.web.component.util.SerializableFunction;
 import com.evolveum.midpoint.web.page.admin.server.dto.TaskInformationUtil;
 import com.evolveum.midpoint.web.util.TaskOperationUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
-import javax.xml.datatype.XMLGregorianCalendar;
 
 @PageDescriptor(
         urls = {
@@ -284,29 +277,9 @@ public abstract class TaskTablePanel extends MainObjectListPanel<TaskType> {
     }
 
     private TaskExecutionProgress createTaskExecutionProgress(SelectableBean<TaskType> bean) {
-        TaskExecutionProgress progress = new TaskExecutionProgress();
-
         TaskInformation info = getAttachedTaskInformation(bean);
 
-        String executionStateMessage = createExecutionStateMessage(bean, info);
-        progress.setExecutionStateMessage(executionStateMessage);
-
-        progress.setExecutionState(info.getTask().getExecutionState());
-        progress.setComplete(info.isComplete());
-
-        progress.setProgress((int) (info.getProgress() * 100));
-        progress.setProgressLabel(info.getProgressDescriptionShort());
-
-        progress.setProcessedObjectsStatus(OperationResultStatus.WARNING);
-        progress.setProcessedObjectsErrorCount(info.getAllErrors() == null ? 0 : info.getAllErrors());
-
-        progress.setTaskHealthStatus(OperationResultStatus.parseStatusType(info.getTaskHealthStatus()));
-        progress.setTaskHealthStatusMessage(info.getTaskHealthDescription());
-        progress.getTaskHealthUserFriendlyMessages().addAll(info.getTaskHealthUserFriendlyMessages());
-
-        progress.setTaskStatus(OperationResultStatus.parseStatusType(info.getResultStatus()));
-
-        return progress;
+        return TaskExecutionProgress.fromTaskInformation(info, getPageBase());
     }
 
     private AbstractExportableColumn<SelectableBean<TaskType>, String> createTaskExecutionStateColumn() {
@@ -323,46 +296,6 @@ public abstract class TaskTablePanel extends MainObjectListPanel<TaskType> {
                 return new TaskExecutionPanel(componentId, (IModel<TaskExecutionProgress>) dataModel);
             }
         };
-    }
-
-    private String createExecutionStateMessage(SelectableBean<TaskType> bean, TaskInformation info) {
-        TaskType task = bean.getValue();
-
-        TaskDtoExecutionState state =
-                TaskDtoExecutionState.fromTaskExecutionState(
-                        task.getExecutionState(), task.getNodeAsObserved() != null);
-        if (state == null) {
-            return null;
-        }
-
-        switch (state) {
-            case RUNNING:
-                String executingAt = info.getNodesDescription();
-                if (StringUtils.isNotEmpty(executingAt)) {
-                    return getString("PageTasks.task.execution.runningAt", executingAt);
-                }
-
-                return getString("PageTasks.task.execution.runningAtZeroNodes");
-            case RUNNABLE:
-            case RUNNING_OR_RUNNABLE:
-                List<Object> localizationObjects = new ArrayList<>();
-                String key = TaskTypeUtil.createScheduledToRunAgain(task, localizationObjects);
-                return getString(key, localizationObjects.toArray());
-            case WAITING:
-            case SUSPENDED:
-            case SUSPENDING:
-                return getString(state);
-            case CLOSED:
-                XMLGregorianCalendar completionTimestamp = task.getCompletionTimestamp();
-                if (completionTimestamp == null) {
-                    return getString("PageTasks.task.execution.closed");
-                }
-
-                String date = WebComponentUtil.getShortDateTimeFormattedValue(XmlTypeConverter.toDate(completionTimestamp), getPageBase());
-                return getString("PageTasks.task.execution.closedAt", new Object[] { date });
-        }
-
-        return getString(state);
     }
 
     private List<InlineMenuItem> createTasksInlineMenu() {

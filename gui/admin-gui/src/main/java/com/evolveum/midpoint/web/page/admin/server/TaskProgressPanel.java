@@ -15,7 +15,6 @@ import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.LoadableDetachableModel;
 
-import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.component.progressbar.ProgressBar;
 import com.evolveum.midpoint.gui.api.component.progressbar.ProgressBarPanel;
@@ -91,12 +90,17 @@ public class TaskProgressPanel extends BasePanel<TaskExecutionProgress> {
     private String createResultIcon() {
         TaskExecutionProgress data = getModelObject();
         OperationResultStatus status = data.getTaskStatus();
+
+        return createResultIcon(data.getExecutionState(), data.isComplete(), status);
+    }
+
+    public static String createResultIcon(TaskExecutionStateType executionState, boolean complete, OperationResultStatus status) {
         if (status == null || status == OperationResultStatus.UNKNOWN) {
             return OperationResultStatusPresentationProperties.UNKNOWN.getIcon();
         }
 
-        if (data.getExecutionState() == TaskExecutionStateType.SUSPENDED
-                && !data.isComplete()) {
+        if (executionState == TaskExecutionStateType.SUSPENDED
+                && !complete) {
             return "fa fa-circle-pause text-secondary";
         }
 

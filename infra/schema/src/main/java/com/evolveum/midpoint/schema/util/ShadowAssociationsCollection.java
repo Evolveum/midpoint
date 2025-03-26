@@ -39,7 +39,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
  * @see ShadowReferenceAttributesCollection
  */
 public abstract class ShadowAssociationsCollection implements DebugDumpable {
-        //implements Iterator<ShadowAssociationDeltas.IterableAssociationValue> {
 
     public static @NotNull ShadowAssociationsCollection empty() {
         return Empty.INSTANCE;
@@ -68,6 +67,7 @@ public abstract class ShadowAssociationsCollection implements DebugDumpable {
         }
     }
 
+    @SuppressWarnings("unused") // maybe in the future
     public static ShadowAssociationsCollection ofAssociations(@NotNull ShadowAssociationsType associations) {
         //noinspection unchecked
         return AssociationsContainerValueBased.fromValues(
@@ -89,6 +89,7 @@ public abstract class ShadowAssociationsCollection implements DebugDumpable {
         return allValues;
     }
 
+    @SuppressWarnings("unused") // maybe in the future
     public List<ShadowAssociationValue> getAllAssociationValues() {
         List<ShadowAssociationValue> allValues = new ArrayList<>();
         var iterator = iterator();
@@ -123,10 +124,20 @@ public abstract class ShadowAssociationsCollection implements DebugDumpable {
     // TODO
     public abstract void cleanup();
 
+    /**
+     * Represents a {@link ShadowAssociationValue} present either in an {@link ItemDelta} or in a {@link ShadowType},
+     * accessed via {@link #iterator()} method.
+     *
+     * @param name Name of the containing association
+     * @param value The value bean (refined, i.e. not a raw bean)
+     * @param modificationType type of the modification, if the value is present in {@link ItemDelta} (although sometimes only
+     * add/delete mods are expected, see {@link #isAddNotDelete()}. For static data the {@link ModificationType#ADD} is used.
+     */
     public record IterableAssociationValue(
             @NotNull ItemName name, @NotNull ShadowAssociationValueType value, @NotNull ModificationType modificationType)
             implements Serializable {
 
+        @SuppressWarnings("unused") // maybe in the future
         public @NotNull PrismContainerValue<ShadowAssociationValueType> associationPcv() {
             //noinspection unchecked
             return value.asPrismContainerValue();
@@ -135,27 +146,6 @@ public abstract class ShadowAssociationsCollection implements DebugDumpable {
         public @NotNull ShadowAssociationValue associationValue() {
             return (ShadowAssociationValue) value.asPrismContainerValue();
         }
-
-//        public @NotNull PrismPropertyValue<?> getSingleIdentifierValueRequired(@NotNull QName attrName, Object errorCtx)
-//                throws SchemaException {
-//            ShadowAttributesContainer attributesContainer =
-//                    MiscUtil.requireNonNull(
-//                            associationValue().getAttributesContainerIfPresent(),
-//                            "No attributes container in %s in %s", this, errorCtx);
-//
-//            PrismProperty<?> valueAttr = attributesContainer.findProperty(ItemName.fromQName(attrName));
-//            if (valueAttr == null || valueAttr.isEmpty()) {
-//                throw new SchemaException(
-//                        "No value of attribute %s present in %s in %s".formatted(
-//                                attrName, this, errorCtx));
-//            } else if (valueAttr.size() > 1) {
-//                throw new SchemaException(
-//                        "Multiple values of attribute %s present in %s in %s: %s".formatted(
-//                                attrName, this, errorCtx, valueAttr.getValues()));
-//            } else {
-//                return valueAttr.getValue();
-//            }
-//        }
 
         public boolean isAdd() {
             return modificationType == ADD;

@@ -58,6 +58,10 @@ public class LocalizationUtil {
         return translate(key, new Object[0]);
     }
 
+    public static String translate(String key, Object param) {
+        return translate(key, new Object[]{param});
+    }
+
     public static String translate(String key, Object[] params) {
         return translate(key, params, key);
     }

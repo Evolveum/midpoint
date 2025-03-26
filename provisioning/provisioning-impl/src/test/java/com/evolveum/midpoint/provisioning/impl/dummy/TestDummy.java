@@ -2508,7 +2508,7 @@ public class TestDummy extends AbstractBasicDummyTest {
         assertSuccess(result);
 
         delta.checkConsistence();
-        if (isPreFetchResource()) {
+        if (isPreFetchResource() || isUltraLegacyUpdate()) {
             assertDummyResourceGroupMembersReadCountIncrement(null, 1);
         } else {
             assertDummyResourceGroupMembersReadCountIncrement(null, 0);
@@ -3018,7 +3018,7 @@ public class TestDummy extends AbstractBasicDummyTest {
     }
 
     private void assertAccountPiratesDetitled() throws Exception {
-        if (isPreFetchResource()) {
+        if (isPreFetchResource() || isUltraLegacyUpdate()) {
             assertDummyResourceGroupMembersReadCountIncrement(null, 1);
         } else {
             assertDummyResourceGroupMembersReadCountIncrement(null, 0);
@@ -3051,7 +3051,7 @@ public class TestDummy extends AbstractBasicDummyTest {
     }
 
     private void assertAccountPiratesEntitled() throws Exception {
-        if (isPreFetchResource()) {
+        if (isPreFetchResource() || isUltraLegacyUpdate()) {
             assertDummyResourceGroupMembersReadCountIncrement(null, 1);
         } else {
             assertDummyResourceGroupMembersReadCountIncrement(null, 0);
@@ -3235,6 +3235,54 @@ public class TestDummy extends AbstractBasicDummyTest {
             dummyResource.deleteGroupByName(groupName);
             repositoryService.deleteObject(ShadowType.class, accountOid, result);
             repositoryService.deleteObject(ShadowType.class, groupOidBefore, result);
+        }
+    }
+
+    /**
+     * Resources not supporting delta modify operations had issues when multiple association values were added.
+     * This method checks that.
+     *
+     * MID-10588
+     */
+    @Test
+    public void test240EntitleDetitleAccountWillPillageAndBargain() throws Exception {
+        var task = getTestTask();
+        var result = task.getResult();
+
+        var delta = createEntitleDelta(ACCOUNT_WILL_OID, ASSOCIATION_PRIV_NAME, PRIVILEGE_PILLAGE_OID, PRIVILEGE_BARGAIN_OID);
+
+        try {
+            when();
+            provisioningService.modifyObject(
+                    ShadowType.class, delta.getOid(), delta.getModifications(),
+                    new OperationProvisioningScriptsType(), null, task, result);
+
+            then();
+            assertSuccess(result);
+
+            var dummyAccount = getDummyAccountAssert(getWillNameOnResource(), willIcfUid);
+            assertPrivileges(dummyAccount, PRIVILEGE_PILLAGE_NAME, PRIVILEGE_BARGAIN_NAME, PRIVILEGE_NONSENSE_NAME);
+
+            var shadow = provisioningService.getShadow(ACCOUNT_WILL_OID, null, task, result);
+            display("Shadow after", shadow);
+            assertPrivAssociation(shadow, PRIVILEGE_PILLAGE_OID);
+            assertPrivAssociation(shadow, PRIVILEGE_BARGAIN_OID);
+
+            assertSteadyResource();
+
+            and("cached shadow is OK");
+            assertRepoShadowNew(ACCOUNT_WILL_OID)
+                    .display()
+                    .assertCachedRefValues(ASSOCIATION_PRIV_NAME, PRIVILEGE_PILLAGE_OID, PRIVILEGE_BARGAIN_OID);
+        } finally {
+            var delta1 = createDetitleDelta(ACCOUNT_WILL_OID, ASSOCIATION_PRIV_NAME, PRIVILEGE_PILLAGE_OID);
+            provisioningService.modifyObject(
+                    ShadowType.class, delta1.getOid(), delta1.getModifications(),
+                    new OperationProvisioningScriptsType(), null, task, result);
+            var delta2 = createDetitleDelta(ACCOUNT_WILL_OID, ASSOCIATION_PRIV_NAME, PRIVILEGE_BARGAIN_OID);
+            provisioningService.modifyObject(
+                    ShadowType.class, delta2.getOid(), delta2.getModifications(),
+                    new OperationProvisioningScriptsType(), null, task, result);
         }
     }
 
@@ -3609,7 +3657,11 @@ public class TestDummy extends AbstractBasicDummyTest {
         assertSuccess(result);
 
         assertAccountWillGossip(WILL_GOSSIP_BLOOD_OF_A_PIRATE, WILL_GOSSIP_AVAST, WILL_GOSSIP_EUNUCH);
-        assertWillDummyGossipRecord(PlusMinusZero.PLUS, WILL_GOSSIP_EUNUCH);
+        if (isUltraLegacyUpdate()) {
+            assertWillDummyGossipRecord(PlusMinusZero.ZERO, WILL_GOSSIP_EUNUCH, WILL_GOSSIP_AVAST, WILL_GOSSIP_BLOOD_OF_A_PIRATE);
+        } else {
+            assertWillDummyGossipRecord(PlusMinusZero.PLUS, WILL_GOSSIP_EUNUCH);
+        }
 
         syncServiceMock.assertSingleNotifySuccessOnly();
         assertSteadyResource();
@@ -3637,7 +3689,11 @@ public class TestDummy extends AbstractBasicDummyTest {
         assertSuccess(result);
 
         assertAccountWillGossip(WILL_GOSSIP_BLOOD_OF_A_PIRATE, WILL_GOSSIP_EUNUCH);
-        assertWillDummyGossipRecord(PlusMinusZero.MINUS, WILL_GOSSIP_AVAST);
+        if (isUltraLegacyUpdate()) {
+            assertWillDummyGossipRecord(PlusMinusZero.ZERO, WILL_GOSSIP_EUNUCH, WILL_GOSSIP_BLOOD_OF_A_PIRATE);
+        } else {
+            assertWillDummyGossipRecord(PlusMinusZero.MINUS, WILL_GOSSIP_AVAST);
+        }
 
         syncServiceMock.assertSingleNotifySuccessOnly();
         assertSteadyResource();
@@ -4910,13 +4966,15 @@ public class TestDummy extends AbstractBasicDummyTest {
     }
 
     /** Creates the association value (not the low-level reference attribute value). */
-    ObjectDelta<ShadowType> createEntitleDelta(String subjectOid, QName assocName, String objectOid)
+    ObjectDelta<ShadowType> createEntitleDelta(String subjectOid, QName assocName, String... objectOids)
             throws SchemaException, ConfigurationException, ExpressionEvaluationException, CommunicationException,
             SecurityViolationException, ObjectNotFoundException {
-        var object = AbstractShadow.of(
-                provisioningService.getObject(
-                        ShadowType.class, objectOid, createNoFetchCollection(), getTestTask(), getTestOperationResult()));
-        return createEntitleDelta(subjectOid, assocName, object);
+        List<AbstractShadow> objects = new ArrayList<>(objectOids.length);
+        for (String objectOid : objectOids) {
+            objects.add(
+                    provisioningService.getShadow(objectOid, createNoFetchCollection(), getTestTask(), getTestOperationResult()));
+        }
+        return createEntitleDelta(subjectOid, assocName, objects.toArray(new AbstractShadow[0]));
     }
 
     private ObjectDelta<ShadowType> createEntitleDeltaFromIdentifier(
@@ -4928,7 +4986,7 @@ public class TestDummy extends AbstractBasicDummyTest {
         return createEntitleDelta(subjectOid, assocName, object);
     }
 
-    private ObjectDelta<ShadowType> createEntitleDelta(String subjectOid, QName assocName, AbstractShadow object)
+    private ObjectDelta<ShadowType> createEntitleDelta(String subjectOid, QName assocName, AbstractShadow... objects)
             throws SchemaException, ConfigurationException {
         var assocDef = Resource.of(resource)
                 .getCompleteSchemaRequired()
@@ -4936,7 +4994,7 @@ public class TestDummy extends AbstractBasicDummyTest {
                 .findAssociationDefinitionRequired(assocName);
         return Resource.of(resource).deltaFor(RI_ACCOUNT_OBJECT_CLASS)
                 .item(ShadowType.F_ASSOCIATIONS, assocName)
-                .add(assocDef.createValueFromDefaultObject(object))
+                .add(assocDef.createValuesFromDefaultObjects(List.of(objects)))
                 .asObjectDelta(subjectOid);
     }
 
