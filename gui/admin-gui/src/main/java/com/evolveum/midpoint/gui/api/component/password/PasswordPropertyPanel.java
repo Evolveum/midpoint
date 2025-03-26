@@ -109,7 +109,7 @@ public class PasswordPropertyPanel extends PasswordPanel {
     }
 
     private boolean isRemovePasswordVisible() {
-        return getPasswordModel().getObject() != null && notLoggedInUserPassword();
+        return getPasswordModel().getObject() != null && notLoggedInUserPassword() && !isReadOnly;
     }
 
     private boolean notLoggedInUserPassword() {
