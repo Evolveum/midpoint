@@ -1221,8 +1221,6 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
             return;
         }
 
-        this.updateSessionMarkRef(session, result, task);
-
         try {
             ObjectReferenceType sessionObjectRef = createObjectRef(session);
             RoleAnalysisClusteringWorkDefinitionType rdw = new RoleAnalysisClusteringWorkDefinitionType();
@@ -2836,39 +2834,6 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
             repositoryService.deleteObject(TaskType.class, taskToDelete.getOid(), result);
         } catch (ObjectNotFoundException e) {
             LOGGER.error("Couldn't delete RoleAnalysisSessionType Task {}", taskToDelete.getOid(), e);
-        }
-    }
-
-    @Override
-    public void updateSessionMarkRef(
-            @NotNull PrismObject<RoleAnalysisSessionType> session,
-            @NotNull OperationResult result,
-            @NotNull Task task) {
-
-        try {
-            List<ObjectReferenceType> effectiveMarkRef = session.asObjectable().getEffectiveMarkRef();
-
-            if (effectiveMarkRef != null && !effectiveMarkRef.isEmpty()) {
-                ObjectDelta<RoleAnalysisSessionType> clearDelta = PrismContext.get().deltaFor(RoleAnalysisSessionType.class)
-                        .item(ObjectType.F_EFFECTIVE_MARK_REF).delete(effectiveMarkRef.get(0).asReferenceValue().clone())
-                        .asObjectDelta(session.getOid());
-                Collection<ObjectDelta<? extends ObjectType>> collectionClear = MiscSchemaUtil.createCollection(clearDelta);
-                modelService.executeChanges(collectionClear, null, task, result);
-
-                ObjectReferenceType mark = new ObjectReferenceType().oid("00000000-0000-0000-0000-000000000801")
-                        .type(MarkType.COMPLEX_TYPE)
-                        .description("First run");
-
-                ObjectDelta<RoleAnalysisSessionType> addDelta = PrismContext.get().deltaFor(RoleAnalysisSessionType.class)
-                        .item(ObjectType.F_EFFECTIVE_MARK_REF).add(mark.asReferenceValue().clone())
-                        .asObjectDelta(session.getOid());
-                Collection<ObjectDelta<? extends ObjectType>> collectionAdd = MiscSchemaUtil.createCollection(addDelta);
-                modelService.executeChanges(collectionAdd, null, task, result);
-            }
-
-        } catch (SchemaException | ObjectAlreadyExistsException | ObjectNotFoundException | ExpressionEvaluationException |
-                CommunicationException | ConfigurationException | PolicyViolationException | SecurityViolationException e) {
-            LOGGER.error("Couldn't modify RoleAnalysisClusterType {}", session.getOid(), e);
         }
     }
 
