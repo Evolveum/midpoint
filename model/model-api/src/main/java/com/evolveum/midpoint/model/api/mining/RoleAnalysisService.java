@@ -953,11 +953,6 @@ public interface RoleAnalysisService {
             @NotNull Task task,
             @NotNull OperationResult result);
 
-    void updateSessionMarkRef(
-            @NotNull PrismObject<RoleAnalysisSessionType> session,
-            @NotNull OperationResult result,
-            @NotNull Task task);
-
     void deleteSessionTask(
             @NotNull String sessionOid,
             @NotNull Task task,

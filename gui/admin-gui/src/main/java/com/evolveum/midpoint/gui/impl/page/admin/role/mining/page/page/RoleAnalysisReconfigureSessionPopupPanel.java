@@ -429,7 +429,15 @@ public class RoleAnalysisReconfigureSessionPopupPanel
         try {
             deltas = getModelObject().collectDeltas(result);
 
-            new ObjectChangesExecutorImpl().executeChanges(deltas, false, task, result, target);
+            if (!deltas.isEmpty()) {
+                new ObjectChangesExecutorImpl().executeChanges(deltas, false, task, result, target);
+            } else {
+                result.recordWarning("RoleAnalysisSessionWizardPanel.message.nothing.to.save");
+                ((PageBase) getPage()).showResult(result);
+                target.add(getFeedbackPanel());
+                onClose(target);
+                return;
+            }
 
             String sessionOid = getModelObject().getObjectType().getOid();
 
