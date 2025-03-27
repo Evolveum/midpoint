@@ -7,18 +7,15 @@
 package com.evolveum.midpoint.provisioning.impl.dummy;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.testng.AssertJUnit.assertFalse;
 
 import static com.evolveum.midpoint.schema.constants.SchemaConstants.INTENT_DEFAULT;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType.ACCOUNT;
 
 import java.io.File;
-import java.util.Collection;
 import java.util.stream.Collectors;
 
 import com.evolveum.midpoint.schema.GetOperationOptionsBuilder;
 
-import com.evolveum.midpoint.schema.processor.ShadowAttributeDefinition;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
 import org.springframework.test.annotation.DirtiesContext;
@@ -94,7 +91,7 @@ public class TestDummyMisc extends AbstractDummyTest {
     }
 
     /** Fetching specific attribute (not returned by default) while there are no ones marked as "minimal" (MID-10585). */
-    @Test(enabled = false) // currently failing
+    @Test
     public void test110RequestingAttributeToFetch() throws Exception {
         var task = getTestTask();
         var result = task.getResult();
@@ -103,12 +100,12 @@ public class TestDummyMisc extends AbstractDummyTest {
         var ctx = provisioningContextFactory.createForShadowCoordinates(coords, task, result);
         ctx.setGetOperationOptions(
                 GetOperationOptionsBuilder.create()
-                        .item(ShadowType.F_ATTRIBUTES.append(HIDDEN_ATTR_1))
-                        .retrieve()
+                        .item(ShadowType.F_ATTRIBUTES.append(HIDDEN_ATTR_1)).retrieve() // not returned by default
+                        .item(ShadowType.F_ATTRIBUTES.append("name")).retrieve() // returned by default
                         .build());
 
         when("attributes to return are computed");
-        var itemsToReturn = ctx.createItemsToReturn();
+        var itemsToReturn = ctx.createAttributesToReturn();
 
         then("attributes to return are OK, especially hiddenAttr1 is requested");
 
@@ -118,14 +115,15 @@ public class TestDummyMisc extends AbstractDummyTest {
                 .as("'return default attributes' flag")
                 .isTrue();
 
-        Collection<? extends ShadowAttributeDefinition<?, ?, ?, ?>> itemsDefinitions = itemsToReturn.getItemsToReturn();
-        assertThat(itemsDefinitions).as("items definitions").isNotNull();
-        var attrNames = itemsDefinitions.stream()
+        var attributeDefinitions = itemsToReturn.getAttributesToReturn();
+        assertThat(attributeDefinitions).as("items definitions").isNotNull();
+        var attrNames = attributeDefinitions.stream()
                 .map(def -> def.getItemName().getLocalPart())
                 .collect(Collectors.toSet());
 
+        // "name" is not here, because it is returned by default, so it does not need to be mentioned in the options
         assertThat(attrNames)
                 .as("names of attributes to return")
-                .containsExactlyInAnyOrder("uid", "name", HIDDEN_ATTR_1);
+                .containsExactlyInAnyOrder(HIDDEN_ATTR_1);
     }
 }

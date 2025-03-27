@@ -238,7 +238,7 @@ public class ProvisioningUtil {
         if (fetchStrategy == AttributeFetchStrategyType.EXPLICIT) {
             return true;
         }
-        if (returnsDefaultAttributes) {
+        if (returnsDefaultAttributes && attributeDefinition.isReturnedByDefault()) {
             // Normal attributes are returned by default. So there's no need to explicitly request this attribute.
             return false;
         }
