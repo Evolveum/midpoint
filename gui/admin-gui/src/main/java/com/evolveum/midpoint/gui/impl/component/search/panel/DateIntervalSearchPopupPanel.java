@@ -10,6 +10,7 @@ import java.util.List;
 import javax.xml.datatype.Duration;
 import javax.xml.datatype.XMLGregorianCalendar;
 
+import org.apache.wicket.ajax.AjaxEventBehavior;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.behavior.Behavior;
@@ -59,6 +60,11 @@ public class DateIntervalSearchPopupPanel extends PopoverSearchPopupPanel {
 
     @Override
     protected void customizationPopoverForm(MidpointForm popoverForm) {
+        WebMarkupContainer intervalPresetsContainer = new WebMarkupContainer(ID_INTERVAL_PRESETS_CONTAINER);
+        intervalPresetsContainer.setOutputMarkupId(true);
+        intervalPresetsContainer.add(new VisibleBehaviour(() -> !intervalPresetsModel.getObject().isEmpty()));
+        popoverForm.add(intervalPresetsContainer);
+
         WebMarkupContainer fromDateContainer = new WebMarkupContainer(ID_FROM_DATE_CONTAINER);
         fromDateContainer.add(createDateContainerClassBehavior());
         popoverForm.add(fromDateContainer);
@@ -71,6 +77,13 @@ public class DateIntervalSearchPopupPanel extends PopoverSearchPopupPanel {
         DateTimePickerPanel fromDatePanel = DateTimePickerPanel.createByXMLGregorianCalendarModel(ID_DATE_FROM_VALUE, fromDateModel);
         fromDatePanel.add(createDateClassBehavior());
         fromDatePanel.getBaseFormComponent().add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
+        fromDatePanel.getBaseFormComponent().add(new AjaxEventBehavior("change") {
+
+            @Override
+            protected void onEvent(AjaxRequestTarget target) {
+                target.add(intervalPresetsContainer);
+            }
+        });
         fromDatePanel.getBaseFormComponent().add(AttributeAppender.append("aria-label", LocalizationUtil.translate("UserReportConfigPanel.dateFrom")));
         fromDateContainer.add(fromDatePanel);
 
@@ -85,13 +98,22 @@ public class DateIntervalSearchPopupPanel extends PopoverSearchPopupPanel {
 
         DateTimePickerPanel toDatePanel = DateTimePickerPanel.createByXMLGregorianCalendarModel(ID_DATE_TO_VALUE, toDateModel);
         toDatePanel.add(createDateClassBehavior());
-        toDatePanel.getBaseFormComponent().add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
+        toDatePanel.getBaseFormComponent().add(new EmptyOnBlurAjaxFormUpdatingBehaviour() {
+
+            @Override
+            protected void onUpdate(AjaxRequestTarget target) {
+                target.add(intervalPresetsContainer);
+            }
+        });
+        toDatePanel.getBaseFormComponent().add(new AjaxEventBehavior("change") {
+
+            @Override
+            protected void onEvent(AjaxRequestTarget target) {
+                target.add(intervalPresetsContainer);
+            }
+        });
         toDatePanel.getBaseFormComponent().add(AttributeAppender.append("aria-label", LocalizationUtil.translate("UserReportConfigPanel.dateTo")));
         toContainer.add(toDatePanel);
-
-        WebMarkupContainer intervalPresetsContainer = new WebMarkupContainer(ID_INTERVAL_PRESETS_CONTAINER);
-        intervalPresetsContainer.add(new VisibleBehaviour(() -> !intervalPresetsModel.getObject().isEmpty()));
-        popoverForm.add(intervalPresetsContainer);
 
         ListView<NamedIntervalPreset> intervalPresets = new ListView<>(ID_INTERVAL_PRESETS, intervalPresetsModel) {
 

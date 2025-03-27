@@ -12,7 +12,6 @@ import java.util.Collections;
 import java.util.List;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.gui.impl.util.DetailsPageUtil;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
@@ -24,14 +23,20 @@ import org.apache.wicket.extensions.markup.html.repeater.util.SortParam;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.Model;
+import org.apache.wicket.model.LoadableDetachableModel;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.impl.component.data.provider.SelectableBeanContainerDataProvider;
+import com.evolveum.midpoint.gui.impl.component.data.provider.SelectableBeanObjectDataProvider;
+import com.evolveum.midpoint.gui.impl.component.search.Search;
+import com.evolveum.midpoint.gui.impl.component.search.SearchBuilder;
+import com.evolveum.midpoint.gui.impl.component.search.panel.SearchPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.AbstractObjectMainPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.task.TaskDetailsModel;
+import com.evolveum.midpoint.gui.impl.util.DetailsPageUtil;
 import com.evolveum.midpoint.prism.PrismConstants;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -43,14 +48,15 @@ import com.evolveum.midpoint.web.application.PanelDisplay;
 import com.evolveum.midpoint.web.application.PanelInstance;
 import com.evolveum.midpoint.web.application.PanelType;
 import com.evolveum.midpoint.web.component.data.BoxedTablePanel;
-import com.evolveum.midpoint.gui.impl.component.data.provider.SelectableBeanContainerDataProvider;
-import com.evolveum.midpoint.gui.impl.component.data.provider.SelectableBeanObjectDataProvider;
 import com.evolveum.midpoint.web.component.data.column.AjaxLinkColumn;
 import com.evolveum.midpoint.web.component.data.column.EnumPropertyColumn;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.page.admin.server.RefreshableTabPanel;
 import com.evolveum.midpoint.web.page.admin.server.dto.TaskErrorSelectableBeanImpl;
 import com.evolveum.midpoint.web.page.admin.server.dto.TaskErrorSelectableBeanImplOld;
+import com.evolveum.midpoint.web.session.PageStorage;
+import com.evolveum.midpoint.web.session.SessionStorage;
+import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
@@ -61,15 +67,20 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 @PanelInstance(identifier = "taskErrors", applicableForType = TaskType.class, applicableForOperation = OperationTypeType.MODIFY,
         display = @PanelDisplay(label = "pageTask.errors.title", icon = GuiStyleConstants.CLASS_TASK_ERRORS_ICON, order = 85))
 public class TaskErrorsPanel extends AbstractObjectMainPanel<TaskType, TaskDetailsModel> implements RefreshableTabPanel {
+
     private static final long serialVersionUID = 1L;
 
     private static final String ID_TASK_ERRORS = "taskErrors";
+
+    private IModel<Search<OperationExecutionType>> searchModel;
 
     public TaskErrorsPanel(String id, TaskDetailsModel taskWrapperModel, ContainerPanelConfigurationType config) {
         super(id, taskWrapperModel, config);
     }
 
     protected void initLayout() {
+        searchModel = createSearchModel();
+
         if (getPageBase().isNativeRepo()) {
             initLayoutNew(); // New repo, searchContainers, see MID-7235
         } else {
@@ -78,7 +89,7 @@ public class TaskErrorsPanel extends AbstractObjectMainPanel<TaskType, TaskDetai
     }
 
     private void initLayoutNew() {
-        var provider = new SelectableBeanContainerDataProvider<OperationExecutionType>(this, Model.of(), null, true) {
+        var provider = new SelectableBeanContainerDataProvider<>(this, searchModel, null, true) {
 
             @Override
             protected String getDefaultSortParam() {
@@ -133,9 +144,60 @@ public class TaskErrorsPanel extends AbstractObjectMainPanel<TaskType, TaskDetai
             }
         };
 
-        BoxedTablePanel<?> table = new BoxedTablePanel<>(ID_TASK_ERRORS, provider, initColumnsNew());
+        BoxedTablePanel<?> table = new BoxedTablePanel<>(
+                ID_TASK_ERRORS, provider, initColumnsNew(), UserProfileStorage.TableId.PANEL_TASK_ERRORS) {
+
+            @Override
+            protected Component createHeader(String headerId) {
+                return createSearch(headerId);
+            }
+        };
         table.setOutputMarkupId(true);
         add(table);
+    }
+
+    private Component createSearch(String headerId) {
+        return new SearchPanel<>(headerId, searchModel) {
+
+            @Override
+            protected void searchPerformed(AjaxRequestTarget target) {
+                refreshTable(target);
+            }
+        };
+    }
+
+    private IModel<Search<OperationExecutionType>> createSearchModel() {
+        return new LoadableDetachableModel<>() {
+
+            @Override
+            protected Search<OperationExecutionType> load() {
+                PageStorage storage = getSessionStorage().getOrCreatePageStorage(SessionStorage.KEY_TASK_ERRORS_PANEL);
+                Search<OperationExecutionType> search = storage != null ? storage.getSearch() : null;
+                if (search == null) {
+                    SearchBuilder<OperationExecutionType> searchBuilder =
+                            new SearchBuilder<>(OperationExecutionType.class)
+                                    .modelServiceLocator(getPageBase());
+
+                    search = searchBuilder.build();
+                }
+
+                // todo paging?
+
+                if (storage != null) {
+                    storage.setSearch(search);
+                    // todo paging?
+                }
+
+                return search;
+            }
+        };
+    }
+
+    private void refreshTable(AjaxRequestTarget target) {
+        // todo implement
+
+        target.add(get(ID_TASK_ERRORS));
+        target.add(getPageBase().getFeedbackPanel());
     }
 
     private List<IColumn<TaskErrorSelectableBeanImpl, String>> initColumnsNew() {

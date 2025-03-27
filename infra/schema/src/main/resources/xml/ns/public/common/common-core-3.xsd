@@ -21047,6 +21047,9 @@
                         When was this information recorded. It is expected that it was when
                         the operation finished (successfully or not).
                     </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>OperationExecutionType.timestamp</a:displayName>
+                    </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="operation" type="tns:ObjectDeltaOperationType" minOccurs="0" maxOccurs="unbounded">
