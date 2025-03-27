@@ -12,6 +12,8 @@ import java.util.*;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
+import org.jetbrains.annotations.NotNull;
+
 import com.evolveum.midpoint.gui.api.util.ModelServiceLocator;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemName;
@@ -20,8 +22,8 @@ import com.evolveum.midpoint.prism.path.ObjectReferencePathSegment;
 import com.evolveum.midpoint.prism.path.PathKeyedMap;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.schema.ResourceShadowCoordinates;
-import com.evolveum.midpoint.schema.processor.ShadowSimpleAttributeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
+import com.evolveum.midpoint.schema.processor.ShadowSimpleAttributeDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.QNameUtil;
@@ -30,16 +32,12 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
 import com.evolveum.midpoint.xml.ns._public.prism_schema_3.PrismItemDefinitionType;
-
-import org.jetbrains.annotations.NotNull;
 
 public class SearchableItemsDefinitions {
     private static final Trace LOGGER = TraceManager.getTrace(SearchableItemsDefinitions.class);
     private static final String DOT_CLASS = SearchableItemsDefinitions.class.getName() + ".";
     private static final String LOAD_OBJECT_DEFINITION = DOT_CLASS + "loadObjectDefinition";
-
 
     private static final Map<Class<?>, List<ItemPath>> SEARCHABLE_OBJECTS = new HashMap<>();
     private static final Map<CollectionPanelType, List<ItemPath>> SHADOW_SEARCHABLE_ITEMS = new HashMap<>();
@@ -71,7 +69,6 @@ public class SearchableItemsDefinitions {
         this.history = ctx.isHistory();
         return this;
     }
-
 
     static {
         SEARCHABLE_OBJECTS.put(ObjectType.class, Arrays.asList(
@@ -253,6 +250,10 @@ public class SearchableItemsDefinitions {
                 ItemPath.create(GuiObjectListViewType.F_IDENTIFIER),
                 ItemPath.create(GuiObjectListViewType.F_DISPLAY, DisplayType.F_LABEL)
         ));
+
+        SEARCHABLE_OBJECTS.put(OperationExecutionType.class, List.of(
+                ItemPath.create(OperationExecutionType.F_TIMESTAMP)
+        ));
     }
 
     static {
@@ -304,9 +305,8 @@ public class SearchableItemsDefinitions {
                 ItemPath.create(AssignmentType.F_POLICY_RULE, PolicyRuleType.F_NAME),
                 ItemPath.create(AssignmentType.F_POLICY_RULE, PolicyRuleType.F_POLICY_CONSTRAINTS,
                         PolicyConstraintsType.F_EXCLUSION, ExclusionPolicyConstraintType.F_TARGET_REF)
-                ));
+        ));
     }
-
 
     private static List<ItemPath> getSearchableItemsFor(Class<?> typeClass, CollectionPanelType shadowSearchType, QName assignmentTargetType) {
         if (ShadowType.class.equals(typeClass)) {
@@ -319,7 +319,8 @@ public class SearchableItemsDefinitions {
         return SearchableItemsDefinitions.SEARCHABLE_OBJECTS.get(typeClass);
     }
 
-    @NotNull public PathKeyedMap<ItemDefinition<?>> createAvailableSearchItems() {
+    @NotNull
+    public PathKeyedMap<ItemDefinition<?>> createAvailableSearchItems() {
 
         Collection<ItemPath> extensionPaths = createExtensionPaths();
 
@@ -383,9 +384,9 @@ public class SearchableItemsDefinitions {
         try {
             if (Modifier.isAbstract(type.getModifiers())) {
                 SchemaRegistry registry = modelServiceLocator.getPrismContext().getSchemaRegistry();
-                return registry.findObjectDefinitionByCompileTimeClass((Class<? extends ObjectType>)type);
+                return registry.findObjectDefinitionByCompileTimeClass((Class<? extends ObjectType>) type);
             }
-            PrismObject empty = modelServiceLocator.getPrismContext().createObject((Class<? extends ObjectType>)type);
+            PrismObject empty = modelServiceLocator.getPrismContext().createObject((Class<? extends ObjectType>) type);
 
             if (ShadowType.class.equals(type)) {
                 return modelServiceLocator.getModelInteractionService().getEditShadowDefinition(
@@ -394,11 +395,13 @@ public class SearchableItemsDefinitions {
                 return modelServiceLocator.getModelInteractionService().getEditObjectDefinition(
                         empty, AuthorizationPhaseType.REQUEST, task, result);
             }
-        } catch (SchemaException | ConfigurationException | ObjectNotFoundException | ExpressionEvaluationException | CommunicationException | SecurityViolationException ex) {
+        } catch (SchemaException | ConfigurationException | ObjectNotFoundException | ExpressionEvaluationException |
+                CommunicationException | SecurityViolationException ex) {
             result.recordFatalError(ex.getMessage());
             throw new SystemException(ex);
         }
     }
+
     private void collectExtensionDefinitions(ItemDefinition<?> containerDef, Collection<ItemPath> extensionPaths, Map<ItemPath, ItemDefinition<?>> searchableItems) {
         if (containerDef == null) {
             return;
@@ -425,7 +428,7 @@ public class SearchableItemsDefinitions {
     private void collectAssignmentTargetRefDefinitions(ItemDefinition<?> containerDef, PathKeyedMap<ItemDefinition<?>> searchableDefinitions) {
         // Prism now supports search by reference target name (in form of @/name) so
         // it is okay to have this, even if repository assignment view is not enabled
-        var namePath =  ItemPath.create(AssignmentType.F_TARGET_REF, new ObjectReferencePathSegment(), ObjectType.F_NAME);
+        var namePath = ItemPath.create(AssignmentType.F_TARGET_REF, new ObjectReferencePathSegment(), ObjectType.F_NAME);
         if (AssignmentType.class.equals(type)) {
             if (assignmentTargetType == null || isAssignmentTargetTypeObjectable()) {
                 var nameDef = containerDef.findItemDefinition(namePath, ItemDefinition.class);
