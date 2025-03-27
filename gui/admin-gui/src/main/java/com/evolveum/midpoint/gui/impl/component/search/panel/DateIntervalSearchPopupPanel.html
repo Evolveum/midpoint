@@ -10,20 +10,29 @@
 <head/>
 <body>
 <wicket:extend>
-        <div class="row">
-            <label class="col-form-label-sm col-2" wicket:id="fromLabel">
-                <wicket:message key="UserReportConfigPanel.dateFrom"/>
-            </label>
-            <div wicket:id="fromValueContainer">
+    <div class="d-flex gap-3">
+        <div class="flex-grow-1">
+            <div wicket:id="fromDateContainer">
+                <label class="col-form-label-sm" wicket:id="fromLabel">
+                    <wicket:message key="UserReportConfigPanel.dateFrom"/>
+                </label>
                 <div wicket:id="dateFromValue" />
             </div>
+            <div wicket:id="toDateContainer">
+                <label class="col-form-label-sm" wicket:id="toLabel">
+                    <wicket:message key="UserReportConfigPanel.dateTo"/>
+                </label>
+                <div wicket:id="dateToValue"/>
+            </div>
         </div>
-        <div class="row" wicket:id="toDateContainer">
-            <label class="col-form-label-sm col-2">
-                <wicket:message key="UserReportConfigPanel.dateTo"/>
-            </label>
-            <div class="col-10" wicket:id="dateToValue"/>
+        <div class="border-left pl-3" wicket:id="intervalPresetsContainer">
+            <ul class="list-unstyled w-100 mb-0 overflow-auto">
+                <li wicket:id="intervalPresets">
+                    <a wicket:id="intervalPreset" class="text-nowrap text-md px-2 py-1 w-100 d-block"/>
+                </li>
+            </ul>
         </div>
+    </div>
 </wicket:extend>
 </body>
 </html>
