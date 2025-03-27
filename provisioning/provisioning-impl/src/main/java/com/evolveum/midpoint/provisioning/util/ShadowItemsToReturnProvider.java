@@ -201,7 +201,7 @@ public class ShadowItemsToReturnProvider {
         } else if (!itemDef.canRead()) {
             LOGGER.trace("WILL NOT fetch explicitly because the attribute is not readable: {}", itemDef);
             return false;
-        } else if (shadowItemsToReturn.isReturnDefaultAttributes()) {
+        } else if (shadowItemsToReturn.isReturnDefaultAttributes() && itemDef.isReturnedByDefault()) {
             // We know that the strategy for this attribute is IMPLICIT, because
             //  - if it was MINIMAL, we wouldn't have set "return default ones";
             //  - EXPLICIT value was treated above
