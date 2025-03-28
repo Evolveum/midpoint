@@ -115,7 +115,7 @@ import org.jetbrains.annotations.Nullable;
  * Abstract class for List panels with table.
  */
 public abstract class ContainerableListPanel<C extends Serializable, PO extends SelectableRow> extends BasePanel<C> {
-    private static final long serialVersionUID = 1L;
+    @Serial private static final long serialVersionUID = 1L;
 
     private static final Trace LOGGER = TraceManager.getTrace(ContainerableListPanel.class);
 
@@ -723,17 +723,20 @@ public abstract class ContainerableListPanel<C extends Serializable, PO extends 
 
     private <DC extends DefaultGuiObjectListPanelConfigurationType> List<Integer> collectPageSizesFromPagingConfiguration(
             PagingOptionsType viewPagingOptions, PagingType viewPaging, DC defaultSettings) {
-        //first, try to get available page sizes from view configuration
         List<Integer> availablePageSizes = new ArrayList<>();
-        if (viewPagingOptions != null && viewPagingOptions.getAvailablePageSize() != null) {
-            availablePageSizes.addAll(viewPagingOptions.getAvailablePageSize());
-        }
-        //if there are no available page sizes in view configuration, try to get them from default settings
-        if (availablePageSizes.isEmpty() && availablePageSizesListExist(defaultSettings)) {
+        //get available page sizes from default settings and view configuration
+        if (availablePageSizesListExist(defaultSettings)) {
             availablePageSizes.addAll(defaultSettings.getPagingOptions().getAvailablePageSize());
         }
+        if (viewPagingOptions != null && viewPagingOptions.getAvailablePageSize() != null) {
+            viewPagingOptions.getAvailablePageSize().forEach(pageSize -> {
+                if (!availablePageSizes.contains(pageSize)) {
+                    availablePageSizes.add(pageSize);
+                }
+            });
+        }
 
-        //now we get the max size from query paging configuration
+        //we get the max size from query paging configuration
         Integer pagingMaxSize = viewPaging != null ? viewPaging.getMaxSize() : null;
         if (pagingMaxSize == null) {
             pagingMaxSize = pagingMaxSizeExists(defaultSettings) ? defaultSettings.getPaging().getMaxSize() : null;
