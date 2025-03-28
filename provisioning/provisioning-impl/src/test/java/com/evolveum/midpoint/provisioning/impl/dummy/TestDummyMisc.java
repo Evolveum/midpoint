@@ -8,26 +8,36 @@ package com.evolveum.midpoint.provisioning.impl.dummy;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import static com.evolveum.midpoint.schema.constants.SchemaConstants.INTENT_DEFAULT;
+import static com.evolveum.midpoint.schema.constants.SchemaConstants.*;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType.ACCOUNT;
 
 import java.io.File;
 import java.util.Collection;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.stream.Collectors;
 
-import com.evolveum.midpoint.schema.GetOperationOptionsBuilder;
+import com.evolveum.midpoint.test.TestObject;
 
 import com.evolveum.midpoint.schema.processor.ShadowAttributeDefinition;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Test;
 
+import com.evolveum.icf.dummy.resource.DummyGroup;
+import com.evolveum.midpoint.repo.cache.RepositoryCache;
+import com.evolveum.midpoint.schema.GetOperationOptionsBuilder;
 import com.evolveum.midpoint.schema.ResourceShadowCoordinates;
+import com.evolveum.midpoint.schema.cache.CacheConfigurationManager;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.Resource;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.DummyTestResource;
+import com.evolveum.midpoint.util.MiscUtil;
+import com.evolveum.midpoint.util.caching.CachePerformanceCollector;
 
 /**
  * Any other dummy-based tests that require specific resource configuration, and are not easily integrable into
@@ -39,8 +49,19 @@ public class TestDummyMisc extends AbstractDummyTest {
 
     protected static final File TEST_DIR = new File(TEST_DIR_DUMMY, "misc");
 
+    private static final TestObject<?> SYSTEM_CONFIGURATION = TestObject.file(
+            TEST_DIR, "system-configuration.xml", "00000000-0000-0000-0000-000000000001");
+
     private static final String HIDDEN_ATTR_1 = "hiddenAttr1";
     private static final String HIDDEN_ATTR_2 = "hiddenAttr2";
+
+    private static final String ATTR_TYPE = "type";
+
+    private static final String TYPE_1 = "type-1";
+
+    private final Collection<DummyGroup> groups = new ArrayList<>();
+
+    @Autowired private CacheConfigurationManager cacheConfigurationManager;
 
     private static final DummyTestResource RESOURCE_DUMMY_ATTRIBUTES_TO_GET = new DummyTestResource(
             TEST_DIR, "resource-dummy-attributes-to-get.xml", "82291fe7-d509-491a-9491-0086361d7c77", "attributes-to-get",
@@ -53,12 +74,35 @@ public class TestDummyMisc extends AbstractDummyTest {
             }
     );
 
+    private static final DummyTestResource RESOURCE_DUMMY_MANY_ASSOCIATED_INTENTS = new DummyTestResource(
+            TEST_DIR, "resource-dummy-many-associated-intents.xml", "1f40e5e2-eb25-4587-8d34-47220e4a0663",
+            "many-associated-intents",
+            c -> {
+                c.populateWithDefaultSchema();
+                var groupObjectClass = c.getDummyResource().getGroupObjectClass();
+                c.addAttrDef(groupObjectClass, ATTR_TYPE, String.class, false, false);
+            }
+    );
+
     @Override
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
         super.initSystem(initTask, initResult);
 
+        repoAdd(SYSTEM_CONFIGURATION, initResult);
+
         initDummyResource(RESOURCE_DUMMY_ATTRIBUTES_TO_GET, initResult);
         testResourceAssertSuccess(RESOURCE_DUMMY_ATTRIBUTES_TO_GET, initTask, initResult);
+
+        initDummyResource(RESOURCE_DUMMY_MANY_ASSOCIATED_INTENTS, initResult);
+        testResourceAssertSuccess(RESOURCE_DUMMY_MANY_ASSOCIATED_INTENTS, initTask, initResult);
+        createGroup(TYPE_1, "A");
+    }
+
+    private void createGroup(String type, String name) throws Exception {
+        var group = RESOURCE_DUMMY_MANY_ASSOCIATED_INTENTS.controller
+                .addGroup(("group-%s-%s".formatted(name, type)));
+        group.addAttributeValue(ATTR_TYPE, type);
+        groups.add(group);
     }
 
     /** Testing "attributes to get" with attributes not returned by default (MID-9774). */
@@ -127,5 +171,62 @@ public class TestDummyMisc extends AbstractDummyTest {
         assertThat(attrNames)
                 .as("names of attributes to return")
                 .containsExactlyInAnyOrder(HIDDEN_ATTR_1);
+    }
+
+    /**
+     * Fetching an object having an association covering multiple intents.
+     *
+     * There should not be an excessive number of shadow searches.
+     *
+     * MID-10600
+     */
+    @Test
+    public void test200GettingObjectsAssociatedToManyIntents() throws Exception {
+        skipIfNotNativeRepository(); // just for simplicity
+
+        var task = getTestTask();
+        var result = task.getResult();
+        var accountName = "account-1";
+
+        given("an account in 8 groups");
+        RESOURCE_DUMMY_MANY_ASSOCIATED_INTENTS.controller.addAccount(accountName);
+        for (DummyGroup group : groups) {
+            group.addMember(accountName);
+        }
+
+        var shadows = provisioningService.searchObjects(
+                ShadowType.class,
+                Resource.of(RESOURCE_DUMMY_MANY_ASSOCIATED_INTENTS.get())
+                        .queryFor(RI_ACCOUNT_OBJECT_CLASS)
+                        .and()
+                        .item(ShadowType.F_ATTRIBUTES, ICFS_NAME).eq(accountName)
+                        .build(),
+                null, task, result);
+        var oid = MiscUtil.extractSingletonRequired(shadows).getOid();
+
+        when("the account is fetched");
+
+        var cachePerformanceCollector = CachePerformanceCollector.INSTANCE;
+        var repoPerformanceMonitor = repositoryService.getPerformanceMonitor();
+
+        cachePerformanceCollector.clear();
+        repoPerformanceMonitor.clearGlobalPerformanceInformation();
+
+        RepositoryCache.enterLocalCaches(cacheConfigurationManager);
+        try {
+            provisioningService.getObject(ShadowType.class, oid, null, task, result);
+        } finally {
+            RepositoryCache.exitLocalCaches();
+        }
+
+        then("there is only one repository query");
+
+        var repoPerformanceInfo = repoPerformanceMonitor.getGlobalPerformanceInformation();
+        displayDumpable("repo performance", repoPerformanceInfo);
+        displayDumpable("cache performance", cachePerformanceCollector);
+
+        assertThat(repoPerformanceInfo.getInvocationCount("SqaleRepositoryService.searchObjects.ShadowType"))
+                .as("repo searches for ShadowType")
+                .isEqualTo(1);
     }
 }

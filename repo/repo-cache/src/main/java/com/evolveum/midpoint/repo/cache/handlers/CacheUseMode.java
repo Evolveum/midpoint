@@ -259,6 +259,18 @@ class CacheUseMode {
                 .comment(reason + (comment != null ? ": " + comment : ""));
     }
 
+    @Override
+    public String toString() {
+        return "CacheUseMode{" +
+                "reason=" + reason +
+                ", comment='" + comment + '\'' +
+                ", cachedDataUse=" + cachedDataUse +
+                ", canUpdateObjectCache=" + canUpdateObjectCache +
+                ", canUpdateVersionCache=" + canUpdateVersionCache +
+                ", canUpdateQueryCache=" + canUpdateQueryCache +
+                '}';
+    }
+
     /**
      * @param rootOptions The root options (if any) - without include/exclude option.
      * @param nonRootOptionsPresent Non-root options - other than ones that contain only include or exclude paths - are present.

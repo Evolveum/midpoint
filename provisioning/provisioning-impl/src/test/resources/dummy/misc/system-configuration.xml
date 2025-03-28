@@ -1,0 +1,32 @@
+<!--
+  ~ Copyright (C) 2010-2025 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<systemConfiguration oid="00000000-0000-0000-0000-000000000001"
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+    <name>SystemConfiguration</name>
+    <internals>
+        <repository>
+            <statistics>
+                <collection>globally</collection>
+                <classification>perOperationAndObjectType</classification>
+            </statistics>
+        </repository>
+        <caching>
+            <profile>
+                <global>true</global>
+                <localRepoCache>
+                    <tracePass>true</tracePass>
+                    <traceMiss>true</traceMiss>
+                    <statistics>
+                        <collection>globallyAndLocally</collection>
+                        <classification>perCacheAndObjectType</classification>
+                    </statistics>
+                </localRepoCache>
+            </profile>
+        </caching>
+    </internals>
+</systemConfiguration>
