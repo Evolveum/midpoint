@@ -9,9 +9,15 @@ package com.evolveum.midpoint.gui.impl.component.search;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import javax.xml.namespace.QName;
 
+import org.jetbrains.annotations.NotNull;
+
+import com.evolveum.midpoint.gui.impl.component.search.panel.NamedIntervalPreset;
 import com.evolveum.midpoint.prism.ItemDefinition;
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.path.PathKeyedMap;
 import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
 import com.evolveum.midpoint.util.DisplayableValue;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectCollectionReportEngineConfigurationType;
@@ -38,10 +44,13 @@ public class SearchContext {
 
     private boolean history;
 
+    private Map<ItemPath, List<NamedIntervalPreset>> intervalPresets = new PathKeyedMap<>();
+
+    private Map<ItemPath, NamedIntervalPreset> selectedIntervalPresets = new PathKeyedMap<>();
+
     public ResourceObjectDefinition getResourceObjectDefinition() {
         return resourceObjectDefinition;
     }
-
 
     public void setResourceObjectDefinition(ResourceObjectDefinition resourceObjectDefinition) {
         this.resourceObjectDefinition = resourceObjectDefinition;
@@ -124,5 +133,26 @@ public class SearchContext {
 
     public boolean isReportCollectionSearch() {
         return reportCollection != null;
+    }
+
+    public void setIntervalPresets(@NotNull ItemPath path, @NotNull List<NamedIntervalPreset> presets) {
+        intervalPresets.put(path, presets);
+    }
+
+    public void setSelectedIntervalPreset(@NotNull ItemPath path, NamedIntervalPreset preset) {
+        if (preset == null) {
+            selectedIntervalPresets.remove(path);
+            return;
+        }
+
+        selectedIntervalPresets.put(path, preset);
+    }
+
+    public List<NamedIntervalPreset> getIntervalPresets(ItemPath path) {
+        return intervalPresets.get(path);
+    }
+
+    public NamedIntervalPreset getSelectedIntervalPresets(ItemPath path) {
+        return selectedIntervalPresets.get(path);
     }
 }

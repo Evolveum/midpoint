@@ -10,7 +10,10 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
+
+import com.evolveum.midpoint.gui.api.model.LoadableModel;
 
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -33,6 +36,8 @@ import com.evolveum.midpoint.gui.impl.component.data.provider.SelectableBeanCont
 import com.evolveum.midpoint.gui.impl.component.data.provider.SelectableBeanObjectDataProvider;
 import com.evolveum.midpoint.gui.impl.component.search.Search;
 import com.evolveum.midpoint.gui.impl.component.search.SearchBuilder;
+import com.evolveum.midpoint.gui.impl.component.search.SearchContext;
+import com.evolveum.midpoint.gui.impl.component.search.panel.NamedIntervalPreset;
 import com.evolveum.midpoint.gui.impl.component.search.panel.SearchPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.AbstractObjectMainPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.task.TaskDetailsModel;
@@ -44,6 +49,8 @@ import com.evolveum.midpoint.prism.query.ObjectOrdering;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.OrderDirection;
 import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
+import com.evolveum.midpoint.schema.util.task.TaskInformation;
+import com.evolveum.midpoint.util.SingleLocalizableMessage;
 import com.evolveum.midpoint.web.application.PanelDisplay;
 import com.evolveum.midpoint.web.application.PanelInstance;
 import com.evolveum.midpoint.web.application.PanelType;
@@ -112,7 +119,7 @@ public class TaskErrorsPanel extends AbstractObjectMainPanel<TaskType, TaskDetai
             }
 
             @Override
-            public ObjectQuery getQuery() {
+            protected ObjectQuery getCustomizeContentQuery() {
                 return createContentQuery(getObjectWrapper().getOid(), getPageBase());
             }
 
@@ -167,15 +174,16 @@ public class TaskErrorsPanel extends AbstractObjectMainPanel<TaskType, TaskDetai
     }
 
     private IModel<Search<OperationExecutionType>> createSearchModel() {
-        return new LoadableDetachableModel<>() {
+        return new LoadableModel<>(false) {
 
             @Override
             protected Search<OperationExecutionType> load() {
-                PageStorage storage = getSessionStorage().getOrCreatePageStorage(SessionStorage.KEY_TASK_ERRORS_PANEL);
+                PageStorage storage = null; // todo uncomment and switch to loadable detabchable model -> getSessionStorage().getOrCreatePageStorage(SessionStorage.KEY_TASK_ERRORS_PANEL);
                 Search<OperationExecutionType> search = storage != null ? storage.getSearch() : null;
                 if (search == null) {
                     SearchBuilder<OperationExecutionType> searchBuilder =
                             new SearchBuilder<>(OperationExecutionType.class)
+                                    .additionalSearchContext(createAdditionalSearchContext())
                                     .modelServiceLocator(getPageBase());
 
                     search = searchBuilder.build();
@@ -191,6 +199,34 @@ public class TaskErrorsPanel extends AbstractObjectMainPanel<TaskType, TaskDetai
                 return search;
             }
         };
+    }
+
+    private SearchContext createAdditionalSearchContext() {
+        SearchContext ctx = new SearchContext();
+
+        NamedIntervalPreset preset = new NamedIntervalPreset(
+                null,
+                NamedIntervalPreset.DurationAnchor.FROM,
+                () -> {
+                    TaskType task = getObjectWrapperObject().asObjectable();
+                    TaskInformation info = TaskInformation.createForTask(task, task);
+                    XMLGregorianCalendar startTimestamp = info.getStartTimestamp();
+                    if (startTimestamp == null) {
+                        return null;
+                    }
+
+                    return startTimestamp.toGregorianCalendar().getTimeInMillis();
+                },
+                new SingleLocalizableMessage("TaskErrorsPanel.showCurrentErrors"));
+
+        List<NamedIntervalPreset> presets = new ArrayList<>();
+        presets.add(preset);
+        presets.addAll(NamedIntervalPreset.DEFAULT_PRESETS);
+
+        ctx.setIntervalPresets(OperationExecutionType.F_TIMESTAMP, presets);
+        ctx.setSelectedIntervalPreset(OperationExecutionType.F_TIMESTAMP, preset);
+
+        return ctx;
     }
 
     private void refreshTable(AjaxRequestTarget target) {

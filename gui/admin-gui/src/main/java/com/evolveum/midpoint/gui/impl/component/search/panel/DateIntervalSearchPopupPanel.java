@@ -19,7 +19,6 @@ import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.LoadableDetachableModel;
-import org.apache.wicket.model.Model;
 
 import com.evolveum.midpoint.gui.api.util.LocalizationUtil;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
@@ -50,12 +49,23 @@ public class DateIntervalSearchPopupPanel extends PopoverSearchPopupPanel {
 
     private IModel<XMLGregorianCalendar> toDateModel;
 
-    private IModel<List<NamedIntervalPreset>> intervalPresetsModel = Model.ofList(NamedIntervalPreset.DEFAULT_PRESETS);
+    private IModel<List<NamedIntervalPreset>> intervalPresetsModel;
 
-    public DateIntervalSearchPopupPanel(String id, Popover popover, IModel<XMLGregorianCalendar> fromDateModel, IModel<XMLGregorianCalendar> toDateModel) {
+    private IModel<NamedIntervalPreset> selectedIntervalPreset;
+
+    public DateIntervalSearchPopupPanel(
+            String id,
+            Popover popover,
+            IModel<XMLGregorianCalendar> fromDateModel,
+            IModel<XMLGregorianCalendar> toDateModel,
+            IModel<List<NamedIntervalPreset>> intervalPresetsModel,
+            IModel<NamedIntervalPreset> selectedIntervalPreset) {
+
         super(id, popover);
         this.fromDateModel = fromDateModel;
         this.toDateModel = toDateModel;
+        this.intervalPresetsModel = intervalPresetsModel;
+        this.selectedIntervalPreset = selectedIntervalPreset;
     }
 
     @Override
@@ -144,6 +154,10 @@ public class DateIntervalSearchPopupPanel extends PopoverSearchPopupPanel {
         DateValidator validator = WebComponentUtil.getRangeValidator(popoverForm, SchemaConstants.PATH_ACTIVATION);
         validator.setDateFrom(toDatePanel.getBaseFormComponent());
         validator.setDateFrom(fromDatePanel.getBaseFormComponent());
+
+        if (selectedIntervalPreset != null && selectedIntervalPreset.getObject() != null) {
+            selectIntervalPreset(selectedIntervalPreset.getObject());
+        }
     }
 
     private Behavior createSelectedBehavior(IModel<NamedIntervalPreset> model) {
@@ -155,7 +169,7 @@ public class DateIntervalSearchPopupPanel extends PopoverSearchPopupPanel {
                 return null;
             }
 
-            Duration duration = model.getObject().duration();
+            Duration duration = model.getObject().getDurationOrDefault();
             XMLGregorianCalendar fromCloned = XmlTypeConverter.createXMLGregorianCalendar(from);
             fromCloned.add(duration);
 
@@ -167,16 +181,34 @@ public class DateIntervalSearchPopupPanel extends PopoverSearchPopupPanel {
         });
     }
 
-    private void intervalPressedClicked(AjaxRequestTarget target, NamedIntervalPreset preset) {
-        long currentTime = System.currentTimeMillis();
+    private void selectIntervalPreset(NamedIntervalPreset preset) {
+        Long time = preset.getTimeOrDefault();
+        NamedIntervalPreset.DurationAnchor anchor = preset.getAnchorOrDefault();
+        Duration duration = preset.getDurationOrDefault();
 
-        XMLGregorianCalendar from = XmlTypeConverter.createXMLGregorianCalendar(currentTime);
-        from.add(preset.duration().negate());
+        XMLGregorianCalendar from = null;
+        XMLGregorianCalendar to = null;
+        switch (anchor) {
+            case FROM:
+                from = XmlTypeConverter.createXMLGregorianCalendar(time);
 
-        XMLGregorianCalendar to = XmlTypeConverter.createXMLGregorianCalendar(currentTime);
+                to = XmlTypeConverter.createXMLGregorianCalendar(time);
+                to.add(duration);
+                break;
+            case TO:
+                from = XmlTypeConverter.createXMLGregorianCalendar(time);
+                from.add(duration.negate());
+
+                to = XmlTypeConverter.createXMLGregorianCalendar(time);
+                break;
+        }
 
         fromDateModel.setObject(from);
         toDateModel.setObject(to);
+    }
+
+    private void intervalPressedClicked(AjaxRequestTarget target, NamedIntervalPreset preset) {
+        selectIntervalPreset(preset);
 
         target.add(getPopoverForm());
     }
@@ -205,13 +237,5 @@ public class DateIntervalSearchPopupPanel extends PopoverSearchPopupPanel {
 
     protected boolean isInterval() {
         return true;
-    }
-
-    public IModel<List<NamedIntervalPreset>> getIntervalPresetsModel() {
-        return intervalPresetsModel;
-    }
-
-    public void setIntervalPresetsModel(IModel<List<NamedIntervalPreset>> intervalPresetsModel) {
-        this.intervalPresetsModel = intervalPresetsModel;
     }
 }

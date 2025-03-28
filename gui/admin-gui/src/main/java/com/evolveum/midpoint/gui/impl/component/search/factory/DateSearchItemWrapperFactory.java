@@ -21,6 +21,12 @@ public class DateSearchItemWrapperFactory extends AbstractSearchItemWrapperFacto
         if (ctx.isReportCollectionSearch()) {
             wrapper.setInterval(false);
         }
+
+        if (ctx.getIntervalPresets() != null) {
+            wrapper.setIntervalPresets(ctx.getIntervalPresets());
+            wrapper.setSelectedIntervalPreset(ctx.getSelectedIntervalPreset());
+        }
+
         return wrapper;
     }
 
