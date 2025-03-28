@@ -19,18 +19,20 @@ import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.equivalence.ParameterizedEquivalenceStrategy;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
+import com.evolveum.midpoint.repo.api.RepositoryService;
+import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.ConnectionEnvironment;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.security.api.ProfileCompilerOptions;
 import com.evolveum.midpoint.security.api.SecurityUtil;
 import com.evolveum.midpoint.util.exception.*;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 
 import javax.xml.datatype.Duration;
@@ -40,15 +42,18 @@ import java.util.Collection;
 @Component
 public class FocusAuthenticationResultRecorder {
 
+    private static final String DOT_CLASS = FocusAuthenticationResultRecorder.class.getName() + ".";
+    private static final String OPERATION_UPDATE_PRINCIPAL_DYNAMICALLY = DOT_CLASS + "updatePrincipalDynamically";
+    private static final Trace LOGGER = TraceManager.getTrace(FocusAuthenticationResultRecorder.class);
+
     @Autowired private ModelAuditRecorder auditProvider;
     @Autowired private GuiProfiledPrincipalManager focusProfileService;
     @Autowired private Clock clock;
 
     @Autowired private ModelAuditRecorder securityHelper;
+    @Autowired private RepositoryService repositoryService;
 
     public void recordModuleAuthenticationAttemptSuccess(MidPointPrincipal principal, ConnectionEnvironment connEnv) {
-        FocusType focusBefore = principal.getFocus().clone();
-
         AuthenticationAttemptDataType authAttemptData = AuthUtil.findOrCreateAuthenticationAttemptDataFoModule(connEnv, principal);
 
         Integer failedLogins = authAttemptData.getFailedAttempts();
@@ -79,13 +84,12 @@ public class FocusAuthenticationResultRecorder {
         }
 
         if (AuthSequenceUtil.isAllowUpdatingAuthBehavior(successLoginAfterFail)) {
-            focusProfileService.updateFocus(principal, computeModifications(focusBefore, principal.getFocus()));
+            updatePrincipalDynamically(principal);
         }
     }
 
     public void recordModuleAuthenticationAttemptFailure(MidPointPrincipal principal, CredentialPolicyType credentialsPolicy, ConnectionEnvironment connEnv) {
         FocusType focusAfter = principal.getFocus();
-        FocusType focusBefore = focusAfter.clone();
 
         AuthenticationAttemptDataType authAttemptData = AuthUtil.findOrCreateAuthenticationAttemptDataFoModule(connEnv, principal);
 
@@ -143,7 +147,7 @@ public class FocusAuthenticationResultRecorder {
         }
 
         if (AuthSequenceUtil.isAllowUpdatingAuthBehavior(true)) {
-            focusProfileService.updateFocus(principal, computeModifications(focusBefore, focusAfter));
+            updatePrincipalDynamically(principal);
         }
     }
 
@@ -152,8 +156,6 @@ public class FocusAuthenticationResultRecorder {
             //TODO logging?
             return;
         }
-        FocusType focusBefore = principal.getFocus().clone();
-
         AuthenticationBehavioralDataType behavior = AuthUtil.getOrCreateBehavioralDataForSequence(principal, connEnv.getSequenceIdentifier());
 
         Integer failedLogins = behavior.getFailedLogins();
@@ -171,7 +173,7 @@ public class FocusAuthenticationResultRecorder {
         behavior.setLastSuccessfulLogin(event);
 
         if (AuthSequenceUtil.isAllowUpdatingAuthBehavior(successLoginAfterFail)) {
-            focusProfileService.updateFocus(principal, computeModifications(focusBefore, principal.getFocus()));
+            updatePrincipalDynamically(principal);
         }
         securityHelper.auditLoginSuccess(principal.getFocus(), connEnv);
     }
@@ -198,7 +200,6 @@ public class FocusAuthenticationResultRecorder {
 
     private void processFocusChange(MidPointPrincipal principal, CredentialPolicyType credentialsPolicy, ConnectionEnvironment connEnv) {
         FocusType focusAfter = principal.getFocus();
-        FocusType focusBefore = focusAfter.clone();
 
         AuthenticationBehavioralDataType behavior = AuthUtil.getOrCreateBehavioralDataForSequence(principal, connEnv.getSequenceIdentifier());
 
@@ -253,7 +254,7 @@ public class FocusAuthenticationResultRecorder {
                             .timestamp(lockoutExpirationTs));
         }
 
-        focusProfileService.updateFocus(principal, computeModifications(focusBefore, focusAfter));
+        updatePrincipalDynamically(principal);
     }
 
     private Collection<? extends ItemDelta<?, ?>> computeModifications(@NotNull FocusType before, @NotNull FocusType after) {
@@ -261,6 +262,22 @@ public class FocusAuthenticationResultRecorder {
                 .diff((PrismObject<FocusType>) after.asPrismObject(), ParameterizedEquivalenceStrategy.DATA);
         assert delta.isModify();
         return delta.getModifications();
+    }
+
+    private void updatePrincipalDynamically(@NotNull MidPointPrincipal principal) {
+        OperationResult result = new OperationResult(OPERATION_UPDATE_PRINCIPAL_DYNAMICALLY);
+        try {
+            repositoryService.modifyObjectDynamically(FocusType.class,
+                    principal.getOid(),
+                    null,
+                    oldPrincipalValue ->
+                            computeModifications(oldPrincipalValue, principal.getFocus()),
+                    null,
+                    result);
+        } catch (CommonException e) {
+            LOGGER.debug("Couldn't modify principal with the authentication result information: {}", e.getMessage(), e);
+        }
+
     }
 
 }
