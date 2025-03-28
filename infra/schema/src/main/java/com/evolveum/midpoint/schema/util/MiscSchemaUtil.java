@@ -468,16 +468,21 @@ public class MiscSchemaUtil {
     }
 
     /**
-     * Paging options should be totally rewritten if they are present in the new options.
+     * Paging options from newPaginOptions are added to existingPagingOptions.
      * @param existPagingOptions
      * @param newPagingOptions
      */
-    public static void replacePagingOptions(@NotNull PagingOptionsType existPagingOptions,
+    public static void mergePagingOptions(@NotNull PagingOptionsType existPagingOptions,
             @NotNull PagingOptionsType newPagingOptions) {
-        if (!newPagingOptions.getAvailablePageSize().isEmpty()) {
-            existPagingOptions.getAvailablePageSize().clear();
-            existPagingOptions.getAvailablePageSize().addAll(newPagingOptions.getAvailablePageSize());
-        }
+        newPagingOptions.getAvailablePageSize().forEach(pageSize -> {
+            if (!pagingOptionAlreadyExists(existPagingOptions, pageSize)) {
+                existPagingOptions.getAvailablePageSize().add(pageSize);
+            }
+        });
+    }
+
+    private static boolean pagingOptionAlreadyExists(@NotNull PagingOptionsType existPagingOptions, @NotNull Integer pageSize) {
+        return existPagingOptions.getAvailablePageSize().stream().anyMatch(pageSize::equals);
     }
 
     public static void mergeColumns(List<GuiObjectColumnType> existingColumns, List<GuiObjectColumnType> newColumns) {
