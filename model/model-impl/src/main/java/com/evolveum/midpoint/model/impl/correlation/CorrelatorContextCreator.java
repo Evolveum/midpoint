@@ -193,7 +193,13 @@ public class CorrelatorContextCreator {
         }
 
         if (configurations.size() == 1) {
-            return configurations.iterator().next();
+            var single = configurations.iterator().next();
+            if (!single.hasCompositionItem()) {
+                return single;
+            } else {
+                // There's a "composition" item in the correlator, so the correlator has to be treated as part of the composite
+                // correlator configuration, even if it's the solo child there.
+            }
         }
 
         // This is the default composite correlator.
