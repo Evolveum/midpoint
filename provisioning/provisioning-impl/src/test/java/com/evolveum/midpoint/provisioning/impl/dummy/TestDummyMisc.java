@@ -93,7 +93,7 @@ public class TestDummyMisc extends AbstractDummyTest {
     }
 
     /** Fetching specific attribute (not returned by default) while there are no ones marked as "minimal" (MID-10585). */
-    @Test(enabled = false) // currently failing
+    @Test
     public void test110RequestingAttributeToFetch() throws Exception {
         var task = getTestTask();
         var result = task.getResult();
@@ -102,8 +102,8 @@ public class TestDummyMisc extends AbstractDummyTest {
         var ctx = provisioningContextFactory.createForShadowCoordinates(coords, task, result);
         ctx.setGetOperationOptions(
                 GetOperationOptionsBuilder.create()
-                        .item(ShadowType.F_ATTRIBUTES.append(HIDDEN_ATTR_1))
-                        .retrieve()
+                        .item(ShadowType.F_ATTRIBUTES.append(HIDDEN_ATTR_1)).retrieve() // not returned by default
+                        .item(ShadowType.F_ATTRIBUTES.append("name")).retrieve() // returned by default
                         .build());
 
         when("attributes to return are computed");
@@ -123,8 +123,9 @@ public class TestDummyMisc extends AbstractDummyTest {
                 .map(def -> def.getItemName().getLocalPart())
                 .collect(Collectors.toSet());
 
+        // "name" is not here, because it is returned by default, so it does not need to be mentioned in the options
         assertThat(attrNames)
                 .as("names of attributes to return")
-                .containsExactlyInAnyOrder("uid", "name", HIDDEN_ATTR_1);
+                .containsExactlyInAnyOrder(HIDDEN_ATTR_1);
     }
 }

@@ -96,6 +96,9 @@ public class SearchBoxConfigurationBuilder {
                 ItemPath.create(GuiObjectListViewType.F_IDENTIFIER),
                 ItemPath.create(GuiObjectListViewType.F_TYPE)
         ));
+        FIXED_SEARCH_ITEMS.put(OperationExecutionType.class, List.of(
+                OperationExecutionType.F_TIMESTAMP
+        ));
     }
 
     private Class<?> type;

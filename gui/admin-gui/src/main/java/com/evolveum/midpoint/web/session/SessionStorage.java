@@ -61,6 +61,7 @@ public class SessionStorage implements Serializable, DebugDumpable {
     public static final String KEY_SERVICE_MEMBER_PANEL = UserProfileStorage.TableId.SERVICE_MEMBER_PANEL.name();
     public static final String KEY_POLICY_MEMBER_PANEL = UserProfileStorage.TableId.POLICY_MEMBER_PANEL.name();
     public static final String KEY_ARCHETYPE_MEMBER_PANEL = UserProfileStorage.TableId.ARCHETYPE_MEMBER_PANEL.name();
+    public static final String KEY_TASK_ERRORS_PANEL = UserProfileStorage.TableId.PANEL_TASK_ERRORS.name();
 
     public static final String KEY_GOVERNANCE_CARDS_PANEL = UserProfileStorage.TableId.PANEL_GOVERNANCE_CARDS.name();
     public static final String KEY_WORK_ITEMS = "workItems";
@@ -153,6 +154,15 @@ public class SessionStorage implements Serializable, DebugDumpable {
             ps = defaultValue;
             setPageStorage(key, ps);
         }
+        return ps;
+    }
+
+    public PageStorage getOrCreatePageStorage(@NotNull String key) {
+        PageStorage ps =  pageStorageMap.get(key);
+        if (ps == null) {
+            ps = initPageStorage(key);
+        }
+
         return ps;
     }
 
@@ -281,7 +291,10 @@ public class SessionStorage implements Serializable, DebugDumpable {
         } else if (KEY_AUDIT_LOG.equals(key)
                 || key.startsWith(KEY_OBJECT_HISTORY_AUDIT_LOG)) {
             pageStorage = new AuditLogStorage();
+        } else if (KEY_TASK_ERRORS_PANEL.equals(key)) {
+            pageStorage = new GenericPageStorage();
         }
+
         if (pageStorage != null) {
             pageStorageMap.put(key, pageStorage);
         }
