@@ -760,6 +760,9 @@ This part of the configuration is already included in the initial system configu
     <adminGuiConfiguration>
         <objectDetails>
             <defaultSettings>
+                <paging>
+                    <maxSize>20</maxSize>
+                </paging>
                 <pagingOptions>
                     <availablePageSize>10</availablePageSize>
                     <availablePageSize>20</availablePageSize>
@@ -773,10 +776,12 @@ This part of the configuration is already included in the initial system configu
 ----
 ====
 
-== Overriding default paging settings for 'All Assignments' panel on the User details page
+== Paging configuration for 'All Assignments' panel on the User details page
 
-This example shows how the default paging settings can be overridden for the 'All Assignments' panel on the User details page.
-The page size component will contain the values 10, 30, 60, 80, 100 with the default page size set to 30.
+This example shows how the paging settings can be reconfigured for the 'All Assignments' panel on the User details page.
+_maxSize_ value will be overridden in the _allAssignments_ panel configuration.
+The set of the available page sizes will be extended by new values.
+The page size component will contain the values 10, 20, 30, 50, 60, 80, 100 with the default page size set to 30.
 
 .Example
 [%collapsible]
@@ -785,6 +790,17 @@ The page size component will contain the values 10, 30, 60, 80, 100 with the def
 ----
     <adminGuiConfiguration>
         <objectDetails>
+            <defaultSettings>
+                <paging>
+                    <maxSize>20</maxSize>
+                </paging>
+                <pagingOptions>
+                    <availablePageSize>10</availablePageSize>
+                    <availablePageSize>20</availablePageSize>
+                    <availablePageSize>50</availablePageSize>
+                    <availablePageSize>100</availablePageSize>
+                </pagingOptions>
+            </defaultSettings>
             <objectDetailsPage>
                 <type>c:UserType</type>
                 <panel>
@@ -822,6 +838,9 @@ This part of the configuration is already included in the initial system configu
     <adminGuiConfiguration>
         <objectCollectionViews>
             <defaultSettings>
+                <paging>
+                    <maxSize>20</maxSize>
+                </paging>
                 <pagingOptions>
                     <availablePageSize>10</availablePageSize>
                     <availablePageSize>20</availablePageSize>
@@ -835,10 +854,12 @@ This part of the configuration is already included in the initial system configu
 ----
 ====
 
-== Overriding default paging settings for 'Persons' collection view
+== Paging configuration for 'Persons' collection view
 
-This example shows how the default paging settings can be overridden for the 'Persons' collection view.
-The page size component will contain the values 50, 100, 150, 200 with the default page size set to 200.
+This example shows how the paging can be configured for the 'Persons' collection view.
+_maxSize_ value will be overridden in the _person-view_ collection view configuration.
+The set of the available page sizes will be extended by new values.
+The page size component will contain the values 10, 20, 50, 100, 150, 200 with the default page size set to 200.
 
 .Example
 [%collapsible]
@@ -847,6 +868,17 @@ The page size component will contain the values 50, 100, 150, 200 with the defau
 ----
     <adminGuiConfiguration>
         <objectCollectionViews>
+            <defaultSettings>
+                <paging>
+                    <maxSize>20</maxSize>
+                </paging>
+                <pagingOptions>
+                    <availablePageSize>10</availablePageSize>
+                    <availablePageSize>20</availablePageSize>
+                    <availablePageSize>50</availablePageSize>
+                    <availablePageSize>100</availablePageSize>
+                </pagingOptions>
+            </defaultSettings>
             <objectCollectionView>
                 <description>Persons</description>
                 <documentation>This view displays all users with archetype "Person"</documentation>
