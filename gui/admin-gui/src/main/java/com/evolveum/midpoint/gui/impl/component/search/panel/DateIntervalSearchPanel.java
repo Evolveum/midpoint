@@ -11,11 +11,13 @@ import java.util.List;
 import javax.xml.datatype.XMLGregorianCalendar;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.model.IModel;
 
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.web.component.DateLabelComponent;
+import com.evolveum.midpoint.web.component.input.TextPanel;
 
 /**
  * @author honchar
@@ -81,7 +83,7 @@ public class DateIntervalSearchPanel extends PopoverSearchPanel {
                     sb.append(WebComponentUtil.getLocalizedDate(fromDateModel.getObject(), DateLabelComponent.SHORT_SHORT_STYLE));
                 }
                 if (sb.length() > 0 && toDateModel != null && toDateModel.getObject() != null) {
-                    sb.append("-");
+                    sb.append(" - ");
                 }
                 if (toDateModel != null && toDateModel.getObject() != null) {
                     sb.append(WebComponentUtil.getLocalizedDate(toDateModel.getObject(), DateLabelComponent.SHORT_SHORT_STYLE));
@@ -95,4 +97,11 @@ public class DateIntervalSearchPanel extends PopoverSearchPanel {
         return true;
     }
 
+    @Override
+    protected TextPanel createTextPanel(String id, IModel model) {
+        TextPanel panel = super.createTextPanel(id, model);
+        panel.add(AttributeAppender.append("style", () -> isInterval() ? "width: 250px;" : null));
+
+        return panel;
+    }
 }

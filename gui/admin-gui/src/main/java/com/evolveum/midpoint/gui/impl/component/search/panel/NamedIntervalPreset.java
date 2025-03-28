@@ -20,8 +20,8 @@ import com.evolveum.midpoint.util.SingleLocalizableMessage;
 import com.evolveum.midpoint.web.component.util.SerializableSupplier;
 
 /**
- * @param duration if duration is null, it means that it is not fixed duration, but it is calculated from as difference
- * between current time and time provided {@link #timeSupplier}
+ * @param duration if duration is null, it means that it is not fixed duration, but it will be calculated from difference
+ * between current time and time provided by {@link #timeSupplier}
  * @param anchor if not provided, defaults to {@link DurationAnchor#TO}
  * @param timeSupplier if not provided, default supplier return current time in millis.
  * @param text
@@ -88,17 +88,5 @@ public record NamedIntervalPreset(
         }
 
         return System.currentTimeMillis();
-    }
-
-    public Duration getDurationOrDefault() {
-        Duration duration = duration();
-        if (duration != null) {
-            return duration;
-        }
-
-        long time = getTimeOrDefault();
-
-        long durationMillis = Math.abs(System.currentTimeMillis() - time);
-        return XmlTypeConverter.createDuration(durationMillis);
     }
 }
