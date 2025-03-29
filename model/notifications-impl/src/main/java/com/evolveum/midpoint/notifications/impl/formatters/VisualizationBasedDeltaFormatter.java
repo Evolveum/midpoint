@@ -17,10 +17,11 @@ import com.evolveum.midpoint.model.api.visualizer.Name;
 import com.evolveum.midpoint.model.api.visualizer.Visualization;
 import com.evolveum.midpoint.model.api.visualizer.VisualizationDeltaItem;
 import com.evolveum.midpoint.model.api.visualizer.VisualizationItem;
+import com.evolveum.midpoint.model.api.visualizer.localization.LocalizationPartsCombiner;
+import com.evolveum.midpoint.model.api.visualizer.localization.LocalizationPartsWrapper;
 import com.evolveum.midpoint.model.impl.visualizer.Visualizer;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.util.LocalizableMessage;
 
 @Component
 public class VisualizationBasedDeltaFormatter implements IDeltaFormatter {
@@ -91,18 +92,29 @@ public class VisualizationBasedDeltaFormatter implements IDeltaFormatter {
                 yield this.propertiesFormatter.formatProperties(items, nestingLevel);
             }
             case MODIFY -> {
-                // FIXME This is workaround for the fact, that `getItems` returns
-                //  `List<? extends VisualizationItem>`
-                final List<VisualizationDeltaItem> items = (List<VisualizationDeltaItem>) visualization.getItems();
+                // FIXME Fix the casting somehow. In this case all items, which are not descriptive, should be delta
+                //  items.
+                final List<VisualizationDeltaItem> items = visualization.getItems().stream()
+                        .filter(Predicate.not(VisualizationItem::isDescriptive))
+                        .map(item -> (VisualizationDeltaItem) item)
+                        .toList();
                 yield this.containerPropertiesModificationFormatter.formatProperties(items, nestingLevel);
             }
         };
     }
 
     private String createHeading(Visualization visualization) {
-        final LocalizableMessage overview = visualization.getName().getOverview();
-        if (overview != null) {
-            return this.localizationService.translate(overview, this.defaultLocale);
+        final var customizableOverview = visualization.getName().getCustomizableOverview();
+        if (customizableOverview != null) {
+            return customizableOverview.wrap(
+                    LocalizationPartsWrapper.from(
+                            (object, context) -> object,
+                            (objectName, context) -> "\"" + objectName + "\"",
+                            (action, context) -> action,
+                            (additionalInfo, context) -> additionalInfo,
+                            helpingWords -> helpingWords))
+                    .combineParts(LocalizationPartsCombiner.joiningWithSpaceIfNotEmpty())
+                    .translate(this.localizationService, this.defaultLocale);
         }
 
         return switch (visualization.getChangeType()) {
@@ -169,6 +181,9 @@ public class VisualizationBasedDeltaFormatter implements IDeltaFormatter {
     }
 
     private static String concatenateNonEmptyStrings(String... values) {
+        if (values.length == 2) {
+            return values[0].isEmpty() ? values[1] : values[0] + " " + values[1];
+        }
         return Stream.of(values)
                 .filter(Predicate.not(String::isEmpty))
                 .collect(Collectors.joining(" "));

@@ -13,18 +13,23 @@ import java.util.Optional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import com.evolveum.midpoint.model.api.visualizer.LocalizationCustomizationContext;
 import com.evolveum.midpoint.model.api.visualizer.Visualization;
+import com.evolveum.midpoint.model.api.visualizer.localization.LocalizationPart;
+import com.evolveum.midpoint.model.api.visualizer.localization.WrapableLocalization;
 import com.evolveum.midpoint.model.impl.visualizer.output.VisualizationImpl;
 import com.evolveum.midpoint.model.impl.visualizer.output.VisualizationItemImpl;
 import com.evolveum.midpoint.model.impl.visualizer.output.VisualizationItemValueImpl;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ChangeType;
+import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.processor.ShadowAssociationDefinition;
 import com.evolveum.midpoint.schema.processor.ShadowAssociationValue;
 import com.evolveum.midpoint.schema.processor.ShadowReferenceAttributeDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.LocalizableMessage;
 import com.evolveum.midpoint.util.SingleLocalizableMessage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAssociationValueType;
@@ -35,6 +40,14 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
  */
 @Component
 public class AssociationDescriptionHandler extends ShadowDescriptionHandler {
+     private static final LocalizableMessage ASSOCIATION = new SingleLocalizableMessage(
+             "hadowDescriptionHandler.association.association", null, "Association");
+     private static final LocalizableMessage BETWEEN = new SingleLocalizableMessage(
+             "hadowDescriptionHandler.association.between", null, "between");
+     private static final LocalizableMessage AND = new SingleLocalizableMessage(
+             "hadowDescriptionHandler.association.and", null, "and");
+     private static final LocalizableMessage HAS_BEEN = new SingleLocalizableMessage(
+             "hadowDescriptionHandler.association.hasBeen", null, "has been");
 
     @Autowired
     private Resolver resolver;
@@ -102,12 +115,32 @@ public class AssociationDescriptionHandler extends ShadowDescriptionHandler {
 
         ChangeType change = visualization.getChangeType();
 
+        final SingleLocalizableMessage localizableAssociation = new SingleLocalizableMessage(association);
+        final SingleLocalizableMessage localizableSubjectName = new SingleLocalizableMessage(subjectName);
+        final SingleLocalizableMessage localizableObjectName = new SingleLocalizableMessage(objectName);
+        final SingleLocalizableMessage localizableAction = new SingleLocalizableMessage(
+                "ShadowDescriptionHandler.changeType." + change.name());
+
+        final LocalizationCustomizationContext shadowTypeCustomizationContext = LocalizationCustomizationContext.builder()
+                .objectType(ObjectTypes.SHADOW)
+                .build();
+        final WrapableLocalization<String, LocalizationCustomizationContext> customizableOverview = WrapableLocalization.of(
+                LocalizationPart.forHelpingWords(ASSOCIATION),
+                LocalizationPart.forObjectName(localizableAssociation, LocalizationCustomizationContext.empty()),
+                LocalizationPart.forHelpingWords(BETWEEN),
+                LocalizationPart.forObjectName(localizableSubjectName, shadowTypeCustomizationContext),
+                LocalizationPart.forHelpingWords(AND),
+                LocalizationPart.forObjectName(localizableObjectName, shadowTypeCustomizationContext),
+                LocalizationPart.forHelpingWords(HAS_BEEN),
+                LocalizationPart.forAction(localizableAction, LocalizationCustomizationContext.empty()));
+
+        visualization.getName().setCustomizableOverview(customizableOverview);
         visualization.getName().setOverview(
                 new SingleLocalizableMessage("ShadowDescriptionHandler.association", new Object[] {
-                        new SingleLocalizableMessage(association),
-                        new SingleLocalizableMessage(subjectName),
-                        new SingleLocalizableMessage(objectName),
-                        new SingleLocalizableMessage("ShadowDescriptionHandler.changeType." + change.name())
+                        localizableAssociation,
+                        localizableSubjectName,
+                        localizableObjectName,
+                        localizableAction
                 })
         );
     }

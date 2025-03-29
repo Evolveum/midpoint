@@ -9,6 +9,9 @@ package com.evolveum.midpoint.model.impl.visualizer;
 
 import org.springframework.stereotype.Component;
 
+import com.evolveum.midpoint.model.api.visualizer.LocalizationCustomizationContext;
+import com.evolveum.midpoint.model.api.visualizer.localization.LocalizationPart;
+import com.evolveum.midpoint.model.api.visualizer.localization.WrapableLocalization;
 import com.evolveum.midpoint.model.impl.visualizer.output.VisualizationDeltaItemImpl;
 import com.evolveum.midpoint.model.impl.visualizer.output.VisualizationImpl;
 import com.evolveum.midpoint.model.impl.visualizer.output.VisualizationItemImpl;
@@ -17,10 +20,9 @@ import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.LocalizableMessage;
 import com.evolveum.midpoint.util.SingleLocalizableMessage;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PasswordType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
  * Created by Viliam Repan (lazyman).
@@ -28,6 +30,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.PasswordType;
 @Component
 public class PasswordDescriptionHandler implements VisualizationDescriptionHandler {
 
+    private static final LocalizableMessage PASSWORD = new SingleLocalizableMessage(
+            "PasswordDescriptionHandler.password.password", null, "Password");
     private static final ItemPath PATH_PASSWORD = ItemPath.create(FocusType.F_CREDENTIALS, CredentialsType.F_PASSWORD);
 
     @Override
@@ -65,10 +69,16 @@ public class PasswordDescriptionHandler implements VisualizationDescriptionHandl
             }
         }
 
+        final SingleLocalizableMessage localizableChange = new SingleLocalizableMessage(
+                "PasswordDescriptionHandler.changeType." + change.name());
+        final WrapableLocalization<String, LocalizationCustomizationContext> customizableOverview =
+                WrapableLocalization.of(
+                        LocalizationPart.forHelpingWords(PASSWORD),
+                        LocalizationPart.forAction(localizableChange, LocalizationCustomizationContext.empty()));
+
+        visualization.getName().setCustomizableOverview(customizableOverview);
         visualization.getName().setOverview(
-                new SingleLocalizableMessage("PasswordDescriptionHandler.password", new Object[] {
-                        new SingleLocalizableMessage("PasswordDescriptionHandler.changeType." + change.name())
-                })
+                new SingleLocalizableMessage("PasswordDescriptionHandler.password", new Object[] {localizableChange})
         );
     }
 }

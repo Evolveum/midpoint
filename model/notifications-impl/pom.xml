@@ -214,6 +214,11 @@
             <scope>test</scope>
         </dependency>
         <dependency>
+            <groupId>com.evolveum.icf</groupId>
+            <artifactId>dummy-connector</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
             <groupId>jakarta.servlet</groupId>
             <artifactId>jakarta.servlet-api</artifactId>
             <scope>test</scope>

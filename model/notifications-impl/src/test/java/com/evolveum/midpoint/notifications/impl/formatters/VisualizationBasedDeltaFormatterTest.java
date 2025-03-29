@@ -1,11 +1,15 @@
 package com.evolveum.midpoint.notifications.impl.formatters;
 
+import static com.evolveum.midpoint.test.DummyDefaultScenario.Account.AttributeNames.DESCRIPTION;
+import static com.evolveum.midpoint.test.DummyDefaultScenario.Account.AttributeNames.FULLNAME;
+import static com.evolveum.midpoint.test.DummyDefaultScenario.Account.AttributeNames.INTERNAL_ID;
+
 import java.io.File;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.Locale;
 import java.util.UUID;
 import javax.xml.datatype.XMLGregorianCalendar;
 
@@ -22,60 +26,78 @@ import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.common.LocalizationServiceImpl;
-import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
 import com.evolveum.midpoint.model.api.visualizer.Visualization;
 import com.evolveum.midpoint.model.api.visualizer.VisualizationDeltaItem;
 import com.evolveum.midpoint.model.api.visualizer.VisualizationItem;
 import com.evolveum.midpoint.model.impl.visualizer.VisualizationContext;
 import com.evolveum.midpoint.model.impl.visualizer.Visualizer;
 import com.evolveum.midpoint.prism.Objectable;
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.equivalence.ParameterizedEquivalenceStrategy;
 import com.evolveum.midpoint.prism.path.IdItemPathSegment;
 import com.evolveum.midpoint.prism.path.InfraItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.provisioning.api.ProvisioningService;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.processor.ResourceObjectTypeIdentification;
+import com.evolveum.midpoint.schema.util.Resource;
+import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.security.api.MidPointPrincipalManager;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.AbstractIntegrationTest;
+import com.evolveum.midpoint.test.DummyResourceContoller;
+import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
+import com.evolveum.midpoint.util.exception.PolicyViolationException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
+import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
 @ContextConfiguration(locations = { "classpath:ctx-notifications-test.xml" })
 public class VisualizationBasedDeltaFormatterTest extends AbstractIntegrationTest {
 
+    private static final String RESOURCE_FILE_PATH = "src/test/resources/objects/resource-dummy.xml";
     private final List<ObjectType> addedObjects = new ArrayList<>();
     private final IndentationGenerator indentationGenerator = new IndentationGenerator("|", "\t");
+
     @Autowired
     private Visualizer visualizer;
     @Autowired
     private MidPointPrincipalManager principalManager;
+    @Autowired
+    private ProvisioningService provisioningService;
+
+    private ResourceType resource;
 
     private VisualizationBasedDeltaFormatter formatter;
 
     @Override
     public void initSystem() throws Exception {
         super.initSystem();
-        final URL midPointHomeDir = this.getClass().getResource("/midpoint-home");
-        if (midPointHomeDir == null) {
-            throw new IllegalStateException("Unable to find test midpoint home directory.");
-        }
-        System.setProperty(MidpointConfiguration.MIDPOINT_HOME_PROPERTY, midPointHomeDir.getPath());
-        ((LocalizationServiceImpl)this.localizationService).init();
         final Task initTask = createTask();
+        this.provisioningService.postInit(initTask.getResult());
+        ((LocalizationServiceImpl)this.localizationService).init();
+        ((LocalizationServiceImpl)this.localizationService).setOverrideLocale(Locale.US);
         repoAddObjectFromFile(new File("src/test/resources/objects/role-superuser.xml"), RoleType.class,
                 initTask.getResult());
         repoAddObjectFromFile(new File("src/test/resources/objects/user-administrator.xml"), UserType.class,
                 initTask.getResult());
+        final PrismObject<ResourceType> loadedResource = addResourceFromFile(new File(RESOURCE_FILE_PATH),
+                IntegrationTestTools.DUMMY_CONNECTOR_TYPE, true, initTask.getResult());
+        final DummyResourceContoller dummyResourceContoller = DummyResourceContoller.create(null, loadedResource);
+        dummyResourceContoller.populateWithDefaultSchema();
+        this.resource = this.provisioningService.getObject(ResourceType.class, loadedResource.getOid(), null, initTask,
+                initTask.getResult()).asObjectable();
     }
 
     @BeforeMethod
@@ -197,8 +219,6 @@ public class VisualizationBasedDeltaFormatterTest extends AbstractIntegrationTes
     @Test
     void userWithMoreContainersIsAdded_formatVisualizationIsCalled_containersShouldBeProperlyFormatted()
             throws SchemaException, EncryptionException, ObjectAlreadyExistsException {
-        final ActivationType userActivation = new ActivationType();
-        userActivation.lockoutStatus(LockoutStatusType.NORMAL);
         final RoleType role = new RoleType();
         role.name("Accounting");
         repoAddObject(role);
@@ -206,11 +226,14 @@ public class VisualizationBasedDeltaFormatterTest extends AbstractIntegrationTes
         final ActivationType assignmentActivation = new ActivationType();
         final XMLGregorianCalendar activationDate = TestUtil.currentTime();
         assignmentActivation.validFrom(activationDate);
+        final ActivationType userActivation = new ActivationType();
+        userActivation.lockoutStatus(LockoutStatusType.NORMAL);
         final UserType user = createUserRudy();
-        user.beginAssignment()
-                .targetRef(role.getOid(), RoleType.COMPLEX_TYPE)
-                .activation(assignmentActivation)
-                .end();
+        user.activation(userActivation)
+                .beginAssignment()
+                        .targetRef(role.getOid(), RoleType.COMPLEX_TYPE)
+                        .activation(assignmentActivation)
+                        .end();
         final ObjectDelta<UserType> userDelta = user.asPrismObject().createAddDelta();
 
         final Visualization visualization = createVisualization(userDelta, false, Collections.emptyList());
@@ -277,6 +300,7 @@ public class VisualizationBasedDeltaFormatterTest extends AbstractIntegrationTes
         final Visualization visualization = createVisualization(userDelta, false, Collections.emptyList());
         final String formattedDelta = this.formatter.formatVisualization(visualization);
 
+
         final String expectedDeltaFormat = """
                 User "Rudy" has been modified:
                 |\tRole "Accounting" unassigned:
@@ -284,6 +308,115 @@ public class VisualizationBasedDeltaFormatterTest extends AbstractIntegrationTes
                 |\t|\t|\tValid from: %s""".formatted(validFrom);
         Assertions.assertThat(formattedDelta).isEqualTo(expectedDeltaFormat);
     }
+
+    @Test
+    void levelOfClassLoggerIsChanged_formatVisualizationIsCalled_changedLogLevelShouldBeProperlyFormatted()
+            throws SchemaException, EncryptionException, ObjectAlreadyExistsException {
+        final SystemConfigurationType systemConfig = new SystemConfigurationType();
+        final String loggingPackage = "com.evolveum.*";
+        systemConfig.name("config")
+                .logging(new LoggingConfigurationType());
+        repoAddObject(systemConfig);
+        final SystemConfigurationType configWithChangedLogger = systemConfig.clone();
+        configWithChangedLogger.getLogging().getClassLogger().add(new ClassLoggerConfigurationType()
+                ._package(loggingPackage)
+                .level(LoggingLevelType.DEBUG));
+
+        final ObjectDelta<SystemConfigurationType> configDelta = systemConfig.asPrismObject().diff(
+                configWithChangedLogger.asPrismObject());
+
+        final Visualization visualization = createVisualization(configDelta, false, Collections.emptyList());
+        final String formattedDelta = this.formatter.formatVisualization(visualization);
+
+        final String expectedDeltaFormat = """
+                System configuration "config" has been modified:
+                |\tAdd level "%s" for logger "%s":
+                |\t|\tpackage: %s
+                |\t|\tlevel: %s""".formatted(LoggingLevelType.DEBUG, loggingPackage, loggingPackage,
+                StringUtils.capitalize(LoggingLevelType.DEBUG.value().toLowerCase()));
+        Assertions.assertThat(formattedDelta).isEqualTo(expectedDeltaFormat);
+    }
+
+    @Test
+    void passwordIsChanged_formatVisualizationIsCalled_passwordShouldBeProperlyFormatted()
+            throws SchemaException, EncryptionException, ObjectAlreadyExistsException {
+        final UserType oldUser = createUserRudy();
+        repoAddObject(oldUser);
+        final UserType userWithPassword = oldUser.clone();
+        userWithPassword.credentials(new CredentialsType()
+                .password(new PasswordType()
+                        .value(new ProtectedStringType().clearValue("1111"))));
+
+        final ObjectDelta<UserType> userDelta = oldUser.asPrismObject().diff(
+                userWithPassword.asPrismObject());
+
+        final Visualization visualization = createVisualization(userDelta, false, Collections.emptyList());
+        final String formattedDelta = this.formatter.formatVisualization(visualization);
+
+        // There is a known bug somewhere in the `PasswordDescriptionHandler`, which causes this weird nested "Password
+        // created" overviews. The first should be about added credentials.
+        final String expectedDeltaFormat = """
+                User "Rudy" has been modified:
+                |\tPassword created:
+                |\t|\tPassword created:
+                |\t|\t|\tValue: (protected string)""";
+        Assertions.assertThat(formattedDelta).isEqualTo(expectedDeltaFormat);
+    }
+
+    @Test
+    void shadowIsAdded_formatVisualizationIsCalled_shadowShouldBeProperlyFormatted() {
+        final ShadowType accountRudy = new ShadowType()
+                .kind(ShadowKindType.ACCOUNT)
+                .name("Rudy")
+                .intent("HR Account")
+                .resourceRef(new ObjectReferenceType()
+                        .oid(UUID.randomUUID().toString())
+                        .targetName("HR System")
+                );
+
+        final ObjectDelta<ShadowType> accountDelta = accountRudy.asPrismObject().createAddDelta();
+        final Visualization visualization = createVisualization(accountDelta, false, Collections.emptyList());
+        final String formattedDelta = this.formatter.formatVisualization(visualization);
+
+        final String expectedDeltaFormat = """
+                Account "Rudy" (HR Account) created on "HR System":
+                |\tName: Rudy
+                |\tKind: Account
+                |\tIntent: HR Account
+                |\tResource: HR System""";
+        Assertions.assertThat(formattedDelta).isEqualTo(expectedDeltaFormat);
+    }
+
+    @Test
+    void shadowIsModified_formatVisualizationIsCalled_shadowShouldBeProperlyFormatted()
+            throws SchemaException, ObjectAlreadyExistsException, ConfigurationException, ObjectNotFoundException,
+            ExpressionEvaluationException, CommunicationException, SecurityViolationException,
+            PolicyViolationException {
+        final PrismObject<ShadowType> accountRudy = Resource.of(this.resource)
+                .shadow(ResourceObjectTypeIdentification.of(ShadowKindType.ACCOUNT, "HR Account"))
+                .withSimpleAttribute(SchemaConstants.ICFS_NAME, "Rudy")
+                .withSimpleAttribute(FULLNAME.q(), "Rudy M.")
+                .withSimpleAttribute(INTERNAL_ID.q(), 1)
+                .asPrismObject();
+        this.provisioningService.addObject(accountRudy, null, null, getTestTask(), getTestTask().getResult());
+
+        final PrismObject<ShadowType> modifiedAccount = accountRudy.mutableCopy();
+        ShadowUtil.getAttributesContainer(modifiedAccount)
+                .addSimpleAttribute(DESCRIPTION.q(), "HR");
+
+        final ObjectDelta<ShadowType> accountDelta = accountRudy.diff(modifiedAccount);
+        final Visualization visualization = createVisualization(accountDelta, false, Collections.emptyList());
+        final String formattedDelta = this.formatter.formatVisualization(visualization);
+
+        final String expectedDeltaFormat = """
+                Account "Rudy" (HR Account) modified on "HR System":
+                |\tattributes has been modified:
+                |\t|\tAdded properties:
+                |\t|\t|\tdescription: HR""";
+        Assertions.assertThat(formattedDelta).isEqualTo(expectedDeltaFormat);
+    }
+
+    // Tests for hiding/showing of operational data and metadata
 
     @Test
     void hidingOperationalPropertiesIsOn_formatVisualizationIsCalled_operationalPropertiesShouldNotBeShown()
@@ -407,7 +540,7 @@ public class VisualizationBasedDeltaFormatterTest extends AbstractIntegrationTes
                 User "Rudy" has been modified:
                 |\tAdded properties:
                 |\t|\tGiven name: Ferdo
-                |\tStorage has been modified:
+                |\t"@metadata/[0]/storage" has been modified:
                 |\t|\tModified at: %s"""
                 .formatted(now.toXMLFormat());
         Assertions.assertThat(formattedDelta).isEqualTo(expectedDeltaFormat);

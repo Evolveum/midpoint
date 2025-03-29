@@ -12,9 +12,11 @@ import java.util.List;
 
 import org.jetbrains.annotations.NotNull;
 
+import com.evolveum.midpoint.model.api.visualizer.LocalizationCustomizationContext;
 import com.evolveum.midpoint.model.api.visualizer.Name;
 import com.evolveum.midpoint.model.api.visualizer.Visualization;
 import com.evolveum.midpoint.model.api.visualizer.VisualizationItem;
+import com.evolveum.midpoint.model.api.visualizer.localization.WrapableLocalization;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.delta.ChangeType;
@@ -64,6 +66,11 @@ public class WrapperVisualization implements Visualization {
 
             @Override
             public LocalizableMessage getOverview() {
+                return null;
+            }
+
+            @Override
+            public WrapableLocalization<String, LocalizationCustomizationContext> getCustomizableOverview() {
                 return null;
             }
         };

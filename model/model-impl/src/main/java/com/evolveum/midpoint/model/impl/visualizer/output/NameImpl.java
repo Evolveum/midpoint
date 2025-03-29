@@ -9,13 +9,17 @@ package com.evolveum.midpoint.model.impl.visualizer.output;
 
 import java.util.Objects;
 
+import com.evolveum.midpoint.model.api.visualizer.LocalizationCustomizationContext;
 import com.evolveum.midpoint.model.api.visualizer.Name;
+import com.evolveum.midpoint.model.api.visualizer.localization.WrapableLocalization;
 import com.evolveum.midpoint.util.LocalizableMessage;
 import com.evolveum.midpoint.util.SingleLocalizableMessage;
 
 public class NameImpl implements Name {
 
     private LocalizableMessage overview;
+
+    private WrapableLocalization<String, LocalizationCustomizationContext> customizableOverview;
 
     private LocalizableMessage displayName;
 
@@ -77,9 +81,18 @@ public class NameImpl implements Name {
         setDescription(msg);
     }
 
+    public void setCustomizableOverview(WrapableLocalization<String, LocalizationCustomizationContext> customizableOverview) {
+        this.customizableOverview = customizableOverview;
+    }
+
     @Override
     public LocalizableMessage getOverview() {
         return overview;
+    }
+
+    @Override
+    public WrapableLocalization<String, LocalizationCustomizationContext> getCustomizableOverview() {
+        return this.customizableOverview;
     }
 
     public void setOverview(LocalizableMessage overview) {
