@@ -1,0 +1,61 @@
+<!--
+  ~ Copyright (c) 2010-2018 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+<role oid="91c6756a-1056-4052-9752-e16887912a45"
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:s="http://midpoint.evolveum.com/xml/ns/public/model/scripting-3">
+    <name>Detecting modifications (metarole)</name>
+    <inducement>
+        <policyRule>
+            <name>detecting modifications</name>
+            <policyConstraints>
+                <modification>
+                    <operation>modify</operation>
+                </modification>
+            </policyConstraints>
+            <policyActions>
+                <scriptExecution>
+                    <executeScript>
+                        <s:pipeline>
+                            <s:action>
+                                <s:type>log</s:type>
+                                <s:parameter>
+                                    <s:name>message</s:name>
+                                    <c:value>They modified me! </c:value>
+                                </s:parameter>
+                            </s:action>
+                            <s:action>
+                                <s:type>execute-script</s:type>
+                                <s:parameter>
+                                    <s:name>script</s:name>
+                                    <c:value>
+                                        <c:code>
+                                            import com.evolveum.midpoint.prism.delta.builder.*
+                                            import com.evolveum.midpoint.xml.ns._public.common.common_3.*
+                                            import com.evolveum.midpoint.model.api.*
+
+                                            log.info('=== Variables ===')
+                                            this.binding.variables.each {k,v -> log.info('{} = {}', k, v)}
+
+                                            def description =
+                                                "Modified by ${actor.name}; segments: ${assignmentPath.size()}; immediateRole: ${immediateRole.name}".toString()
+
+                                            delta = midpoint.deltaFor(RoleType.class)
+                                                .item(RoleType.F_DESCRIPTION).replace(description)
+                                                .asObjectDelta(input.oid)
+                                            midpoint.modifyObject(delta, ModelExecuteOptions.createRaw())
+                                        </c:code>
+                                    </c:value>
+                                </s:parameter>
+                            </s:action>
+                        </s:pipeline>
+                    </executeScript>
+                </scriptExecution>
+            </policyActions>
+        </policyRule>
+    </inducement>
+</role>

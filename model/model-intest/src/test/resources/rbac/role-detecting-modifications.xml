@@ -5,56 +5,9 @@
   ~ and European Union Public License. See LICENSE file for details.
   -->
 <role oid="42ef2848-3793-4120-8d03-d8e5f8c23237"
-        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-          xmlns:s="http://midpoint.evolveum.com/xml/ns/public/model/scripting-3"
-        xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
-        xmlns:piracy="http://midpoint.evolveum.com/xml/ns/samples/piracy">
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
     <name>Detecting modifications</name>
     <assignment>
-        <policyRule>
-            <name>detecting modifications</name>
-            <policyConstraints>
-                <modification>
-                    <operation>modify</operation>
-                </modification>
-            </policyConstraints>
-            <policyActions>
-                <scriptExecution>
-                    <executeScript>
-                        <s:pipeline>
-                            <s:action>
-                                <s:type>log</s:type>
-                                <s:parameter>
-                                    <s:name>message</s:name>
-                                    <c:value>They modified me! </c:value>
-                                </s:parameter>
-                            </s:action>
-                            <s:action>
-                                <s:type>execute-script</s:type>
-                                <s:parameter>
-                                    <s:name>script</s:name>
-                                    <c:value>
-                                        <c:code>
-                                            import com.evolveum.midpoint.prism.delta.builder.*
-                                            import com.evolveum.midpoint.xml.ns._public.common.common_3.*
-                                            import com.evolveum.midpoint.model.api.*
-
-                                            log.info('=== Variables ===')
-                                            this.binding.variables.each {k,v -> log.info('{} = {}', k, v)}
-
-                                            delta = midpoint.deltaFor(RoleType.class)
-                                                .item(RoleType.F_DESCRIPTION).replace('Modified by ' + actor.name + ' on ' + new Date())
-                                                .asObjectDelta(input.oid)
-                                            midpoint.modifyObject(delta, ModelExecuteOptions.createRaw())
-                                        </c:code>
-                                    </c:value>
-                                </s:parameter>
-                            </s:action>
-                        </s:pipeline>
-                    </executeScript>
-                </scriptExecution>
-            </policyActions>
-        </policyRule>
+        <targetRef oid="91c6756a-1056-4052-9752-e16887912a45" type="RoleType"/>
     </assignment>
 </role>

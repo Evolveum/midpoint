@@ -101,7 +101,7 @@ abstract class ScriptingTaskCreator {
             ExpressionEnvironmentThreadLocalHolder.pushExpressionEnvironment(
                     new ModelExpressionEnvironment<>(actx.context, null, actx.task, result1));
             try {
-                VariablesMap variables = createVariables();
+                VariablesMap variables = actx.createVariables();
                 ExpressionProfile expressionProfile = MiscSchemaUtil.getExpressionProfile();
                 return ExpressionUtil.evaluateFilterExpressions(
                         rawFilter, variables, expressionProfile,
@@ -111,12 +111,6 @@ abstract class ScriptingTaskCreator {
                 ExpressionEnvironmentThreadLocalHolder.popExpressionEnvironment();
             }
         };
-    }
-
-    private VariablesMap createVariables() throws SchemaException, ConfigurationException {
-        VariablesMap variables = ModelImplUtils.getDefaultVariablesMap(actx.context, null, true);
-        actx.putIntoVariables(variables);
-        return variables;
     }
 
     TaskType customizeTask(TaskType preparedTask, OperationResult result) throws SchemaException,
@@ -131,7 +125,7 @@ abstract class ScriptingTaskCreator {
             try {
                 PrismObjectDefinition<TaskType> taskDefinition = preparedTask.asPrismObject().getDefinition();
 
-                VariablesMap variables = createVariables();
+                VariablesMap variables = actx.createVariables();
                 variables.addVariableDefinition(VAR_PREPARED_TASK, preparedTask, taskDefinition);
                 ExpressionProfile expressionProfile = MiscSchemaUtil.getExpressionProfile();
                 PrismValue customizedTaskValue = ExpressionUtil.evaluateExpression(variables, taskDefinition,

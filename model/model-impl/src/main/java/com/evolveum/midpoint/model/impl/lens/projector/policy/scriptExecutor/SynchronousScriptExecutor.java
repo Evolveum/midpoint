@@ -13,12 +13,8 @@ import com.evolveum.midpoint.model.api.BulkActionExecutionOptions;
 import com.evolveum.midpoint.schema.config.ExecuteScriptConfigItem;
 import com.evolveum.midpoint.util.exception.*;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-
 import org.jetbrains.annotations.NotNull;
 
-import com.evolveum.midpoint.model.api.context.ModelContext;
-import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
@@ -50,7 +46,7 @@ class SynchronousScriptExecutor {
         OperationResult result = parentResult.createSubresult(OP_EXECUTE_SCRIPT);
         try {
             var updatedScriptCI = addInputIfNeeded(configuredScriptCI, result);
-            VariablesMap initialVariables = createInitialVariables();
+            VariablesMap initialVariables = actx.createVariables();
             actx.beans.bulkActionsExecutor.execute(
                     updatedScriptCI, initialVariables, BulkActionExecutionOptions.create(), actx.task, result);
         } catch (Throwable t) {
@@ -74,13 +70,5 @@ class SynchronousScriptExecutor {
         } else {
             return specifiedExecuteScriptCI;
         }
-    }
-
-    private VariablesMap createInitialVariables() {
-        VariablesMap rv = new VariablesMap();
-        actx.putIntoVariables(rv);
-        rv.put(ExpressionConstants.VAR_MODEL_CONTEXT, actx.context, ModelContext.class);
-        rv.put(ExpressionConstants.VAR_FOCUS, actx.focusContext.getObjectAny(), ObjectType.class);
-        return rv;
     }
 }

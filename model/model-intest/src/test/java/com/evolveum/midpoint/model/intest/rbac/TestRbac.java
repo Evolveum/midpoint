@@ -61,6 +61,12 @@ public class TestRbac extends AbstractRbacTest {
 
     private static final String LOCALITY_TORTUGA = "Tortuga";
 
+    private static final TestObject<?> METAROLE_DETECTING_MODIFICATIONS = TestObject.file(
+            TEST_DIR, "metarole-detecting-modifications.xml", "91c6756a-1056-4052-9752-e16887912a45");
+
+    private static final TestObject<?> ROLE_DETECTING_MODIFICATIONS = TestObject.file(
+            TEST_DIR, "role-detecting-modifications.xml", "42ef2848-3793-4120-8d03-d8e5f8c23237");
+
     private static final TestObject<RoleType> ROLE_NON_UNASSIGNABLE = TestObject.file(TEST_DIR, "role-non-unassignable.xml", "26081889-83e2-461f-a8cc-4c9ef415a4ff");
     private static final File GLOBAL_POLICY_RULES_ASSIGNMENT_DELETION = new File(TEST_DIR, "global-policy-rules-assignment-deletion.xml");
 
@@ -76,6 +82,9 @@ public class TestRbac extends AbstractRbacTest {
     public void initSystem(Task initTask, OperationResult initResult)
             throws Exception {
         super.initSystem(initTask, initResult);
+
+        repoAdd(METAROLE_DETECTING_MODIFICATIONS, initResult);
+        repoAdd(ROLE_DETECTING_MODIFICATIONS, initResult);
 
         repoAdd(ROLE_NON_UNASSIGNABLE, initResult);
     }
@@ -4491,31 +4500,21 @@ public class TestRbac extends AbstractRbacTest {
     public void test900ModifyDetectingRole() throws Exception {
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
 
-        Task task = getTestTask();
-        task.setOwner(getUser(USER_ADMINISTRATOR_OID));
-        OperationResult result = task.getResult();
+        login(userAdministrator);
+        var task = getTestTask();
+        var result = task.getResult();
 
-        PrismObject<RoleType> roleBefore = getRole(ROLE_DETECTING_MODIFICATIONS_OID);
-        display("Role before", roleBefore);
-
-        // WHEN
-        when();
+        when("role is modified");
         ObjectDelta<UserType> delta = prismContext.deltaFor(RoleType.class)
                 .item(RoleType.F_NAME).replace(PolyString.fromOrig("modified"))
-                .asObjectDelta(ROLE_DETECTING_MODIFICATIONS_OID);
+                .asObjectDelta(ROLE_DETECTING_MODIFICATIONS.oid);
         executeChanges(delta, null, task, result);
 
-        // THEN
-        then();
-        result.computeStatus();
-        TestUtil.assertSuccess(result);
-
-        RoleType roleAfter = getRole(ROLE_DETECTING_MODIFICATIONS_OID).asObjectable();
-        display("Role after", roleAfter);
-
-        assertEquals("Wrong name", "modified", roleAfter.getName().getOrig());
-        assertTrue("Wrong description " + roleAfter.getDescription(),
-                roleAfter.getDescription() != null && roleAfter.getDescription().startsWith("Modified by administrator on "));
+        then("script was run, resulting in description being set");
+        assertSuccess(result);
+        assertRoleAfter(ROLE_DETECTING_MODIFICATIONS.oid)
+                .assertName("modified") // the original change
+                .assertDescription("Modified by administrator; segments: 2; immediateRole: modified"); // inserted by the script
     }
 
     /**

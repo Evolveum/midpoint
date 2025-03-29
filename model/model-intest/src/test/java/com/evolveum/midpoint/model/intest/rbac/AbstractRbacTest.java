@@ -86,9 +86,6 @@ public abstract class AbstractRbacTest extends AbstractInitializedModelIntegrati
     protected static final TestObject<RoleType> ROLE_IMMUTABLE_SEA_GLOBAL = TestObject.file(
             TEST_DIR, "role-immutable-sea-global.xml", "e6bb0eae-4583-427a-9079-f93f925353c9");
 
-    protected static final File ROLE_DETECTING_MODIFICATIONS_FILE = new File(TEST_DIR, "role-detecting-modifications.xml");
-    protected static final String ROLE_DETECTING_MODIFICATIONS_OID = "42ef2848-3793-4120-8d03-d8e5f8c23237";
-
     protected static final TestObject<RoleType> ROLE_ADDING_RECOMPUTE_TRIGGER = TestObject.file(TEST_DIR, "role-adding-recompute-trigger.xml", "81b287cd-37a1-41e1-b057-6aa6a11104d7");
     protected static final TestObject<UserType> USER_FAILING_SCRIPT = TestObject.file(TEST_DIR, "user-failing-script.xml", "46da40b7-5ecb-442b-92ce-a5f123af74e7");
 
@@ -207,7 +204,6 @@ public abstract class AbstractRbacTest extends AbstractInitializedModelIntegrati
         repoAddObjectFromFile(ROLE_WEAK_GOSSIPER_FILE, RoleType.class, initResult);
         repoAddObjectFromFile(ROLE_WEAK_SINGER_FILE, RoleType.class, initResult);
         repoAddObjectFromFile(ROLE_IMMUTABLE_FILE, RoleType.class, initResult);
-        repoAddObjectFromFile(ROLE_DETECTING_MODIFICATIONS_FILE, RoleType.class, initResult);
         repoAdd(ROLE_ADDING_RECOMPUTE_TRIGGER, initResult);
         repoAddObjectFromFile(ROLE_UNDELETABLE_FILE, RoleType.class, initResult);
         repoAddObjectFromFile(ROLE_UNDELETABLE_GLOBAL_FILE, RoleType.class, initResult);

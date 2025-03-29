@@ -680,21 +680,21 @@ public class ModelImplUtils {
         }
     }
 
-    public static void addAssignmentPathVariables(AssignmentPathVariables assignmentPathVariables, VariablesMap VariablesMap) {
+    public static void addAssignmentPathVariables(AssignmentPathVariables assignmentPathVariables, VariablesMap variablesMap) {
         if (assignmentPathVariables != null) {
             PrismContainerDefinition<AssignmentType> assignmentDef = assignmentPathVariables.getAssignmentDefinition();
-            VariablesMap.put(ExpressionConstants.VAR_ASSIGNMENT, assignmentPathVariables.getMagicAssignment(), assignmentDef);
-            VariablesMap.put(ExpressionConstants.VAR_ASSIGNMENT_PATH, assignmentPathVariables.getAssignmentPath(), AssignmentPath.class);
-            VariablesMap.put(ExpressionConstants.VAR_IMMEDIATE_ASSIGNMENT, assignmentPathVariables.getImmediateAssignment(), assignmentDef);
-            VariablesMap.put(ExpressionConstants.VAR_THIS_ASSIGNMENT, assignmentPathVariables.getThisAssignment(), assignmentDef);
-            VariablesMap.put(ExpressionConstants.VAR_FOCUS_ASSIGNMENT, assignmentPathVariables.getFocusAssignment(), assignmentDef);
+            variablesMap.put(ExpressionConstants.VAR_ASSIGNMENT, assignmentPathVariables.getMagicAssignment(), assignmentDef);
+            variablesMap.put(ExpressionConstants.VAR_ASSIGNMENT_PATH, assignmentPathVariables.getAssignmentPath(), AssignmentPath.class);
+            variablesMap.put(ExpressionConstants.VAR_IMMEDIATE_ASSIGNMENT, assignmentPathVariables.getImmediateAssignment(), assignmentDef);
+            variablesMap.put(ExpressionConstants.VAR_THIS_ASSIGNMENT, assignmentPathVariables.getThisAssignment(), assignmentDef);
+            variablesMap.put(ExpressionConstants.VAR_FOCUS_ASSIGNMENT, assignmentPathVariables.getFocusAssignment(), assignmentDef);
             PrismObjectDefinition<AbstractRoleType> abstractRoleDefinition =
                     PrismContext.get().getSchemaRegistry().findObjectDefinitionByCompileTimeClass(AbstractRoleType.class);
-            VariablesMap.put(ExpressionConstants.VAR_IMMEDIATE_ROLE, assignmentPathVariables.getImmediateRole(), abstractRoleDefinition);
+            variablesMap.put(ExpressionConstants.VAR_IMMEDIATE_ROLE, assignmentPathVariables.getImmediateRole(), abstractRoleDefinition);
         } else {
             // to avoid "no such variable" exceptions in boundary cases
             // for null/empty paths we might consider creating empty AssignmentPathVariables objects to keep null/empty path distinction
-            VariablesMap.put(ExpressionConstants.VAR_ASSIGNMENT_PATH, null, AssignmentPath.class);
+            variablesMap.put(ExpressionConstants.VAR_ASSIGNMENT_PATH, null, AssignmentPath.class);
         }
     }
 
