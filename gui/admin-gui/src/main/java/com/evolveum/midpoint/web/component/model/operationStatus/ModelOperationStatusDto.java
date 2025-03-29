@@ -60,7 +60,7 @@ public class ModelOperationStatusDto implements Serializable {
 
             // primaryDelta
             final List<ObjectDelta<? extends ObjectType>> primaryDeltas = new ArrayList<>();
-            final List<? extends Visualization> primary;
+            final List<Visualization> primary;
             try {
                 addIgnoreNull(primaryDeltas, modelContext.getFocusContext().getPrimaryDelta());
                 for (ModelProjectionContext projCtx : modelContext.getProjectionContexts()) {

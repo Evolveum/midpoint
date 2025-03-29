@@ -1289,11 +1289,7 @@ public final class WebComponentUtil {
             return "";
         }
         if (translate) {
-            if (localizationService == null) {
-                return com.evolveum.midpoint.gui.api.util.LocalizationUtil.translatePolyString(ObjectTypeUtil.getDisplayName(object));
-            } else {
-                return com.evolveum.midpoint.gui.api.util.LocalizationUtil.translatePolyString(PolyString.toPolyString(ObjectTypeUtil.getDisplayName(object)));
-            }
+            return com.evolveum.midpoint.gui.api.util.LocalizationUtil.translatePolyString(ObjectTypeUtil.getDisplayName(object));
         } else {
             return PolyString.getOrig(ObjectTypeUtil.getDisplayName(object));
         }

@@ -149,7 +149,7 @@ public class VisualizationItemValuePanel extends BasePanel<VisualizationItemValu
 
                     return WebComponentUtil.getReferencedObjectDisplayNameAndName(ref.asReferencable(), true, getPageBase());
                 } else if (prismvalue instanceof Objectable) {
-                    WebComponentUtil.getDisplayNameOrName(((Objectable) prismvalue).asPrismObject());
+                    return WebComponentUtil.getDisplayNameOrName(((Objectable) prismvalue).asPrismObject());
                 }
             }
             LocalizableMessage textValue = getModelObject().getText();

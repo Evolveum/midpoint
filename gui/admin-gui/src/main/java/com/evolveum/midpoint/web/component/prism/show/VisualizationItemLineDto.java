@@ -62,8 +62,8 @@ public class VisualizationItemLineDto implements Serializable {
         return visualizationItemDto.isDeltaVisualization();
     }
 
-    public boolean isNullEstimatedOldValues() {
-        return visualizationItemDto.isNullEstimatedOldValues();
+    public boolean oldValueIsUnknown() {
+        return visualizationItemDto.oldValueIsUnknown();
     }
 
     public boolean isAdd() {
