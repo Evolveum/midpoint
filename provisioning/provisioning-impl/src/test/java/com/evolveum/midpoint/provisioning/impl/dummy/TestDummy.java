@@ -6,6 +6,7 @@
  */
 package com.evolveum.midpoint.provisioning.impl.dummy;
 
+import static com.evolveum.midpoint.schema.GetOperationOptions.noFetch;
 import static com.evolveum.midpoint.test.util.MidPointTestConstants.RI_GROUP;
 import static com.evolveum.midpoint.util.MiscUtil.extractSingletonRequired;
 
@@ -25,6 +26,7 @@ import java.util.*;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.axiom.concepts.CheckedSupplier;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 
 import com.evolveum.midpoint.schema.internals.InternalsConfig;
@@ -2880,6 +2882,84 @@ public class TestDummy extends AbstractBasicDummyTest {
                 .assertCachedRefValues(ASSOCIATION_PRIV_NAME, PRIVILEGE_PILLAGE_OID, PRIVILEGE_BARGAIN_OID);
     }
 
+    /**
+     * Tests the "no association" fetch mode of `get` and `search` operations.
+     * MidPoint must not resolve associated shadows, in order to make the operation faster.
+     */
+    @Test(description = "MID-10444")
+    public void test228RetrievingAccountsWithoutAssociations() throws Exception {
+        var task = getTestTask();
+        var result = task.getResult();
+
+        when("retrieving a shadow via 'get' (no fetch)");
+        checkRetrievingEntitledAccounts(
+                () -> provisioningService.getShadow(ACCOUNT_WILL_OID, noFetchNoAssociations(), task, result));
+
+        when("retrieving a shadow via 'search' (no fetch)");
+        checkRetrievingEntitledAccounts(
+                () -> MiscUtil.extractSingletonRequired(
+                        provisioningService.searchShadows(
+                                Resource.of(resource)
+                                        .queryFor(ResourceObjectTypeIdentification.ACCOUNT_DEFAULT)
+                                        .and().item(ICFS_NAME_PATH).eq(ACCOUNT_WILL_USERNAME)
+                                        .build(),
+                                noFetchNoAssociations(),
+                                task, result)));
+
+        when("retrieving a shadow via 'get' (fetch)");
+        checkRetrievingEntitledAccounts(
+                () -> provisioningService.getShadow(ACCOUNT_WILL_OID, noAssociations(), task, result));
+
+        when("retrieving a shadow via 'search' (fetch)");
+        checkRetrievingEntitledAccounts(
+                () -> MiscUtil.extractSingletonRequired(
+                        provisioningService.searchShadows(
+                                Resource.of(resource)
+                                        .queryFor(ResourceObjectTypeIdentification.ACCOUNT_DEFAULT)
+                                        .and().item(ICFS_NAME_PATH).eq(ACCOUNT_WILL_USERNAME)
+                                        .build(),
+                                noAssociations(),
+                                task, result)));
+
+        if (InternalsConfig.isShadowCachingOnByDefault() && !(this instanceof TestDummyCachingPartial)) { // TODO improve this
+            // Those "no associations" fetch should not destroy stored reference values in the repository
+            then("cached shadow will still contain references");
+            var shadowAfter = provisioningService.getShadow(ACCOUNT_WILL_OID, noFetch(), task, result);
+            assertGroupAssociation(shadowAfter, GROUP_PIRATES_OID);
+            assertPrivAssociation(shadowAfter, PRIVILEGE_PILLAGE_OID);
+            assertPrivAssociation(shadowAfter, PRIVILEGE_BARGAIN_OID);
+            // We don't have fools shadow OID at hand; and the NoNsEnSe presence depends on the circumstances
+        }
+    }
+
+    private Collection<SelectorOptions<GetOperationOptions>> noFetchNoAssociations() {
+        return GetOperationOptionsBuilder.create()
+                .noFetch()
+                .item(ShadowType.F_ASSOCIATIONS).dontRetrieve()
+                .build();
+    }
+
+    private Collection<SelectorOptions<GetOperationOptions>> noAssociations() {
+        return GetOperationOptionsBuilder.create()
+                .item(ShadowType.F_ASSOCIATIONS).dontRetrieve()
+                .build();
+    }
+
+    private void checkRetrievingEntitledAccounts(CheckedSupplier<AbstractShadow, CommonException> shadowSupplier)
+            throws CommonException {
+
+        initRepoPerformanceMonitor();
+
+        var shadow = shadowSupplier.get();
+        displayDumpable("Shadow", shadow);
+
+        then("there's only one shadow get/search operation");
+        displayDumpable("perf", getRepoPerformanceInformation());
+        assertThat(getShadowGetOperationsCount() + getShadowSearchOperationsCount())
+                .as("'get shadow' + 'search shadows' repo operations count")
+                .isEqualTo(1);
+    }
+
     @Test
     public void test230DetitleAccountWillPirates() throws Exception {
         Task task = getTestTask();
@@ -3628,7 +3708,6 @@ public class TestDummy extends AbstractBasicDummyTest {
 
     private void assertAccountWillGossip(String... values) throws ConnectException, FileNotFoundException, SchemaViolationException, ConflictException, InterruptedException {
         displayDumpable("Account will", getDummyAccount(getWillNameOnResource(), willIcfUid));
-        //noinspection unchecked
         assertDummyAccount(getWillNameOnResource(), willIcfUid)
                 .assertAttribute(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_GOSSIP_NAME, values);
     }

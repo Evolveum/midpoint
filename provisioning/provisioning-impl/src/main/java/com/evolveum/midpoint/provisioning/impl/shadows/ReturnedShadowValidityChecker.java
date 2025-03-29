@@ -9,6 +9,7 @@ package com.evolveum.midpoint.provisioning.impl.shadows;
 
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.provisioning.impl.Shadow;
+import com.evolveum.midpoint.provisioning.util.ProvisioningUtil;
 import com.evolveum.midpoint.schema.*;
 
 import com.evolveum.midpoint.schema.processor.ShadowReferenceAttribute;
@@ -31,14 +32,22 @@ import static com.evolveum.midpoint.util.MiscUtil.stateNonNull;
  */
 public class ReturnedShadowValidityChecker {
 
-    /** When asking about the future shadow state, pending operations may induce unresolved references. TODO decide on this. */
+    /**
+     * 1. When asking about the future shadow state, pending operations may induce unresolved references. TODO decide on this.
+     * 2. But also when ignoring associations (retrieve = EXCLUDE), we may leave unresolved references.
+     */
     private final boolean allowUnresolvedReferenceAttributeValues;
+
+    /** We ignore all checks on reference attribute and association values. */
+    private final boolean ignoreReferenceAttributeValues;
 
     private ReturnedShadowValidityChecker(@Nullable Collection<SelectorOptions<GetOperationOptions>> options) {
         var rootOptions = SelectorOptions.findRootOptions(options);
         assert !GetOperationOptions.isRaw(rootOptions);
+        this.ignoreReferenceAttributeValues = !ProvisioningUtil.isFetchAssociations(options);
         this.allowUnresolvedReferenceAttributeValues =
-                GetOperationOptions.getPointInTimeType(rootOptions) == PointInTimeType.FUTURE;
+                ignoreReferenceAttributeValues
+                        || GetOperationOptions.getPointInTimeType(rootOptions) == PointInTimeType.FUTURE;
     }
 
     public static void check(Shadow shadow, @Nullable Collection<SelectorOptions<GetOperationOptions>> options) {
@@ -83,6 +92,10 @@ public class ReturnedShadowValidityChecker {
 
         // Here are the checks
         stateNonNull(shadow.getBean().getEffectiveOperationPolicy(), "No effective operation policy in %s", shadow);
+
+        if (ignoreReferenceAttributeValues) {
+            return;
+        }
 
         // And this is the recursion
         for (var refAttr : shadow.getReferenceAttributes()) {

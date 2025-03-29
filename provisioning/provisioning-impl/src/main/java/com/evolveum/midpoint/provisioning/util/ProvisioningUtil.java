@@ -294,4 +294,8 @@ public class ProvisioningUtil {
             return clone;
         }
     }
+
+    public static boolean isFetchAssociations(@Nullable Collection<SelectorOptions<GetOperationOptions>> options) {
+        return SelectorOptions.hasToIncludePath(ShadowType.F_ASSOCIATIONS, options, true);
+    }
 }

@@ -14,6 +14,7 @@ import java.util.Collection;
 import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
 import com.evolveum.midpoint.provisioning.impl.resources.ConnectorManager;
 import com.evolveum.midpoint.provisioning.impl.resources.ResourceManager;
+import com.evolveum.midpoint.repo.api.perf.PerformanceInformation;
 import com.evolveum.midpoint.schema.processor.BareResourceSchema;
 import com.evolveum.midpoint.schema.processor.CompleteResourceSchema;
 import com.evolveum.midpoint.schema.processor.ResourceSchemaFactory;
@@ -427,5 +428,36 @@ public abstract class AbstractProvisioningIntegrationTest
         return new PolicyStatementType()
                 .markRef(markOid, MarkType.COMPLEX_TYPE)
                 .type(PolicyStatementTypeType.APPLY);
+    }
+
+    /** Quick hack to obtain type-qualified performance information. */
+    protected void initRepoPerformanceMonitor() {
+        var perfMon = repositoryService.getPerformanceMonitor();
+        perfMon.setConfiguration(
+                new RepositoryStatisticsReportingConfigurationType()
+                        .classification(RepositoryStatisticsClassificationType.PER_OPERATION_AND_OBJECT_TYPE));
+        perfMon.clearGlobalPerformanceInformation();
+    }
+
+    protected PerformanceInformation getRepoPerformanceInformation() {
+        return repositoryService.getPerformanceMonitor().getGlobalPerformanceInformation();
+    }
+
+    protected int getShadowGetOperationsCount() {
+        return repositoryService.getPerformanceMonitor()
+                .getGlobalPerformanceInformation()
+                .getInvocationCount(
+                        isNativeRepository() ?
+                                "SqaleRepositoryService.getObject.ShadowType" :
+                                "getObject.ShadowType");
+    }
+
+    protected int getShadowSearchOperationsCount() {
+        return repositoryService.getPerformanceMonitor()
+                .getGlobalPerformanceInformation()
+                .getInvocationCount(
+                        isNativeRepository() ?
+                                "SqaleRepositoryService.searchObjects.ShadowType" :
+                                "searchObjects.ShadowType");
     }
 }
