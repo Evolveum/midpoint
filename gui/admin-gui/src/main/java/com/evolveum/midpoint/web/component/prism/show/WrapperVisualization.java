@@ -31,9 +31,9 @@ public class WrapperVisualization implements Visualization {
 
     private LocalizableMessage displayName;
 
-    private List<? extends Visualization> partialVisualizations;
+    private List<Visualization> partialVisualizations;
 
-    public WrapperVisualization(LocalizableMessage displayName, List<? extends Visualization> partialVisualizations) {
+    public WrapperVisualization(LocalizableMessage displayName, List<Visualization> partialVisualizations) {
         this.displayName = displayName;
         this.partialVisualizations = partialVisualizations;
     }
@@ -76,13 +76,13 @@ public class WrapperVisualization implements Visualization {
 
     @NotNull
     @Override
-    public List<? extends Visualization> getPartialVisualizations() {
+    public List<Visualization> getPartialVisualizations() {
         return partialVisualizations;
     }
 
     @NotNull
     @Override
-    public List<? extends VisualizationItem> getItems() {
+    public List<VisualizationItem> getItems() {
         return Collections.emptyList();
     }
 
