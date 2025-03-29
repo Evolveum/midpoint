@@ -167,10 +167,11 @@ class ShadowDeltaComputerAbsolute {
             updateCachedActivation(definition.isActivationCached());
             updateCachedCredentials(definition.areCredentialsCached(), definition.areCredentialsCachedLegacy(), result);
             if (definition.isCachingEnabled()) {
-                if (definition.shouldUpdateCachingMetadata()) {
+                if (definition.shouldUpdateCachingMetadata() && ctx.isFetchAssociations()) {
                     updateCachingMetadata(incompleteCacheableItems);
                 } else {
                     // doing nothing, as the caching metadata should not be updated
+                    // we don't update the metadata also when the object is not complete (because of missing associations)
                 }
             } else {
                 clearCachingMetadata();
@@ -396,17 +397,23 @@ class ShadowDeltaComputerAbsolute {
                     LOGGER.trace("Skipping simple attribute because it's not going to be stored in repo: {}", attrName);
                 }
             } else if (resourceObjectAttribute instanceof ShadowReferenceAttribute referenceAttribute) {
-                var attrDef = referenceAttribute.getDefinitionRequired();
-                var attrName = attrDef.getItemName();
-                if (shouldStoreReferenceAttributeInShadow(ocDef, attrDef)) {
-                    expectedRepoReferenceAttributes.add(attrName);
-                    if (!resourceObjectAttribute.isIncomplete()) {
-                        updateReferenceAttributeIfNeeded(referenceAttribute);
+                if (ctx.isFetchAssociations()) {
+                    var attrDef = referenceAttribute.getDefinitionRequired();
+                    var attrName = attrDef.getItemName();
+                    if (shouldStoreReferenceAttributeInShadow(ocDef, attrDef)) {
+                        expectedRepoReferenceAttributes.add(attrName);
+                        if (!resourceObjectAttribute.isIncomplete()) {
+                            updateReferenceAttributeIfNeeded(referenceAttribute);
+                        } else {
+                            incompleteCacheableAttributes.add(attrName);
+                        }
                     } else {
-                        incompleteCacheableAttributes.add(attrName);
+                        LOGGER.trace("Skipping reference attribute because it's not going to be stored in repo: {}", attrName);
                     }
                 } else {
-                    LOGGER.trace("Skipping reference attribute because it's not going to be stored in repo: {}", attrName);
+                    // we have no information on reference attributes, so we cannot update them
+                    // (we could also use incompleteCacheableAttributes for this, but that use would be a bit different
+                    // from the current one)
                 }
             } else {
                 throw new AssertionError(resourceObjectAttribute);
@@ -425,13 +432,15 @@ class ShadowDeltaComputerAbsolute {
             }
         }
 
-        for (Item<?, ?> oldRepoItem : rawRepoShadow.getReferenceAttributes()) {
-            ItemName oldRepoItemName = oldRepoItem.getElementName();
-            if (!expectedRepoReferenceAttributes.contains(oldRepoItemName)) {
-                removeRepoAttribute(
-                        oldRepoItem,
-                        resourceObjectAttributesContainer.findReferenceAttribute(oldRepoItemName),
-                        ocDef.findReferenceAttributeDefinition(oldRepoItemName));
+        if (ctx.isFetchAssociations()) {
+            for (Item<?, ?> oldRepoItem : rawRepoShadow.getReferenceAttributes()) {
+                ItemName oldRepoItemName = oldRepoItem.getElementName();
+                if (!expectedRepoReferenceAttributes.contains(oldRepoItemName)) {
+                    removeRepoAttribute(
+                            oldRepoItem,
+                            resourceObjectAttributesContainer.findReferenceAttribute(oldRepoItemName),
+                            ocDef.findReferenceAttributeDefinition(oldRepoItemName));
+                }
             }
         }
 

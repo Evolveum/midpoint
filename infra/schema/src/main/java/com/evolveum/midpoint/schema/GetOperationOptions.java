@@ -475,7 +475,12 @@ public class GetOperationOptions extends AbstractOptions implements Serializable
      * do not fetch resource schema, etc.
      * Such operation returns only the data stored in midPoint repository.
      */
+    @Deprecated // use noFetch()
     public static Collection<SelectorOptions<GetOperationOptions>> createNoFetchCollection() {
+        return noFetch();
+    }
+
+    public static Collection<SelectorOptions<GetOperationOptions>> noFetch() {
         return SelectorOptions.createCollection(createNoFetch());
     }
 

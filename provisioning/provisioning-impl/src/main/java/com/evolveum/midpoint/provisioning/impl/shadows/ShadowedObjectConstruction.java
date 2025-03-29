@@ -141,8 +141,10 @@ class ShadowedObjectConstruction {
 
         mergeBehavior();
 
-        b.associationsHelper.convertReferenceAttributesToAssociations(
-                ctx, resultingShadowedBean, authoritativeDefinition, result);
+        if (ctx.isFetchAssociations()) {
+            b.associationsHelper.convertReferenceAttributesToAssociations(
+                    ctx, resultingShadowedBean, authoritativeDefinition, result);
+        }
 
         copyCachingMetadata(); // these should not be present in the resource object, so that this should effectively clear them
         checkConsistence();

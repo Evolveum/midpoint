@@ -22,6 +22,7 @@ import com.evolveum.midpoint.provisioning.impl.resourceobjects.ExistingResourceO
 import com.evolveum.midpoint.provisioning.impl.shadows.RepoShadowWithState;
 import com.evolveum.midpoint.provisioning.impl.shadows.RepoShadowWithState.ShadowState;
 import com.evolveum.midpoint.provisioning.ucf.api.SchemaAwareUcfExecutionContext;
+import com.evolveum.midpoint.provisioning.util.ProvisioningUtil;
 import com.evolveum.midpoint.repo.common.ObjectMarkHelper.ObjectMarksComputer;
 import com.evolveum.midpoint.repo.common.ObjectOperationPolicyHelper;
 
@@ -964,6 +965,10 @@ public class ProvisioningContext implements DebugDumpable, ExecutionModeProvider
 
     public boolean isCaseIgnoreAttributeNames() {
         return ResourceTypeUtil.isCaseIgnoreAttributeNames(resource);
+    }
+
+    public boolean isFetchAssociations() {
+        return ProvisioningUtil.isFetchAssociations(getOperationOptions);
     }
 
     @Override
