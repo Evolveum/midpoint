@@ -34,6 +34,9 @@
                 <intent>type-2</intent>
                 <intent>type-3</intent>
                 <intent>type-4</intent>
+                <intent>type-5</intent>
+                <intent>type-6</intent>
+                <intent>type-7</intent>
                 <direction>objectToSubject</direction>
                 <associationAttribute>ri:members</associationAttribute>
                 <valueAttribute>icfs:name</valueAttribute>
@@ -50,6 +53,16 @@
                     <q:text>attributes/type = "type-1"</q:text>
                 </filter>
             </delineation>
+            <attribute>
+                <ref>icfs:name</ref>
+                <outbound>
+                    <expression>
+                        <script>
+                            <code>'hi-1'</code>
+                        </script>
+                    </expression>
+                </outbound>
+            </attribute>
         </objectType>
         <objectType>
             <kind>entitlement</kind>
@@ -60,6 +73,16 @@
                     <q:text>attributes/type = "type-2"</q:text>
                 </filter>
             </delineation>
+            <attribute>
+                <ref>icfs:name</ref>
+                <outbound>
+                    <expression>
+                        <script>
+                            <code>'hi-2'</code>
+                        </script>
+                    </expression>
+                </outbound>
+            </attribute>
         </objectType>
         <objectType>
             <kind>entitlement</kind>
@@ -70,6 +93,16 @@
                     <q:text>attributes/type = "type-3"</q:text>
                 </filter>
             </delineation>
+            <attribute>
+                <ref>icfs:name</ref>
+                <outbound>
+                    <expression>
+                        <script>
+                            <code>'hi-3'</code>
+                        </script>
+                    </expression>
+                </outbound>
+            </attribute>
         </objectType>
         <objectType>
             <kind>entitlement</kind>
@@ -80,6 +113,77 @@
                     <q:text>attributes/type = "type-4"</q:text>
                 </filter>
             </delineation>
+            <attribute>
+                <ref>icfs:name</ref>
+                <outbound>
+                    <expression>
+                        <script>
+                            <code>'hi-4'</code>
+                        </script>
+                    </expression>
+                </outbound>
+            </attribute>
         </objectType>
+        <objectType>
+            <kind>entitlement</kind>
+            <intent>type-5</intent>
+            <delineation>
+                <objectClass>ri:GroupObjectClass</objectClass>
+                <filter>
+                    <q:text>attributes/type = "type-5"</q:text>
+                </filter>
+            </delineation>
+            <attribute>
+                <ref>icfs:name</ref>
+                <outbound>
+                    <expression>
+                        <script>
+                            <code>'hi-5'</code>
+                        </script>
+                    </expression>
+                </outbound>
+            </attribute>
+        </objectType>
+        <objectType>
+            <kind>entitlement</kind>
+            <intent>type-6</intent>
+            <delineation>
+                <objectClass>ri:GroupObjectClass</objectClass>
+                <filter>
+                    <q:text>attributes/type = "type-6"</q:text>
+                </filter>
+            </delineation>
+            <attribute>
+                <ref>icfs:name</ref>
+                <outbound>
+                    <expression>
+                        <script>
+                            <code>'hi-6'</code>
+                        </script>
+                    </expression>
+                </outbound>
+            </attribute>
+        </objectType>
+        <objectType>
+            <kind>entitlement</kind>
+            <intent>type-7</intent>
+            <delineation>
+                <objectClass>ri:GroupObjectClass</objectClass>
+                <filter>
+                    <q:text>attributes/type = "type-7"</q:text>
+                </filter>
+            </delineation>
+            <attribute>
+                <ref>icfs:name</ref>
+                <outbound>
+                    <expression>
+                        <script>
+                            <code>'hi-7'</code>
+                        </script>
+                    </expression>
+                </outbound>
+            </attribute>
+        </objectType>
+
     </schemaHandling>
 </resource>

@@ -8,6 +8,8 @@ package com.evolveum.midpoint.provisioning.impl.opendj;
 
 import static com.evolveum.midpoint.test.util.MidPointTestConstants.QNAME_DN;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import java.io.File;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,8 +32,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 /**
  * Any other OpenDJ-based tests that require specific resource configuration, and are not easily integrable into
  * the {@link AbstractOpenDjTest}.
- *
- * Not part of the standard test suite yet. To be run separately.
  */
 @ContextConfiguration(locations = "classpath:ctx-provisioning-test-main.xml")
 @DirtiesContext
@@ -79,9 +79,17 @@ public class TestOpenDjMisc extends AbstractOpenDjTest {
                 """);
     }
 
-    /** Fetching an object with multiple entitlements covering multiple intents (MID-10600). */
+    /**
+     * Fetching an object having an association covering multiple intents.
+     *
+     * There should not be an excessive number of shadow searches.
+     *
+     * MID-10600
+     */
     @Test
     public void test200GettingObjectsAssociatedToManyIntents() throws Exception {
+        skipIfNotNativeRepository(); // just for simplicity
+
         var task = getTestTask();
         var result = task.getResult();
         var accountDn = "uid=john,ou=people,dc=example,dc=com";
@@ -107,15 +115,29 @@ public class TestOpenDjMisc extends AbstractOpenDjTest {
         var oid = MiscUtil.extractSingletonRequired(shadows).getOid();
 
         when("the account is fetched");
-        CachePerformanceCollector.INSTANCE.clear();
+
+        var cachePerformanceCollector = CachePerformanceCollector.INSTANCE;
+        var repoPerformanceMonitor = repositoryService.getPerformanceMonitor();
+
+        cachePerformanceCollector.clear();
+        repoPerformanceMonitor.clearGlobalPerformanceInformation();
+
         RepositoryCache.enterLocalCaches(cacheConfigurationManager);
         try {
             provisioningService.getObject(ShadowType.class, oid, null, task, result);
         } finally {
             RepositoryCache.exitLocalCaches();
         }
-        displayDumpable("cache performance", CachePerformanceCollector.INSTANCE);
 
-        // TODO some asserts here
+        then("there are only 1 or 2 real repository queries"); // ideally, there should be 1 but we're not there yet
+
+        var repoPerformanceInfo = repoPerformanceMonitor.getGlobalPerformanceInformation();
+        displayDumpable("repo performance", repoPerformanceInfo);
+        displayDumpable("cache performance", cachePerformanceCollector);
+
+        assertThat(repoPerformanceInfo.getInvocationCount("SqaleRepositoryService.searchObjects.ShadowType"))
+                .as("repo searches for ShadowType")
+                .isGreaterThanOrEqualTo(1)
+                .isLessThanOrEqualTo(2);
     }
 }

@@ -171,9 +171,17 @@ public class TestDummyMisc extends AbstractDummyTest {
                 .containsExactlyInAnyOrder(HIDDEN_ATTR_1);
     }
 
-    /** Fetching an object with multiple entitlements covering multiple intents (MID-10600). */
+    /**
+     * Fetching an object having an association covering multiple intents.
+     *
+     * There should not be an excessive number of shadow searches.
+     *
+     * MID-10600
+     */
     @Test
     public void test200GettingObjectsAssociatedToManyIntents() throws Exception {
+        skipIfNotNativeRepository(); // just for simplicity
+
         var task = getTestTask();
         var result = task.getResult();
         var accountName = "account-1";
@@ -195,15 +203,29 @@ public class TestDummyMisc extends AbstractDummyTest {
         var oid = MiscUtil.extractSingletonRequired(shadows).getOid();
 
         when("the account is fetched");
-        CachePerformanceCollector.INSTANCE.clear();
+
+        var cachePerformanceCollector = CachePerformanceCollector.INSTANCE;
+        var repoPerformanceMonitor = repositoryService.getPerformanceMonitor();
+
+        cachePerformanceCollector.clear();
+        repoPerformanceMonitor.clearGlobalPerformanceInformation();
+
         RepositoryCache.enterLocalCaches(cacheConfigurationManager);
         try {
             provisioningService.getObject(ShadowType.class, oid, null, task, result);
         } finally {
             RepositoryCache.exitLocalCaches();
         }
-        displayDumpable("cache performance", CachePerformanceCollector.INSTANCE);
 
-        // TODO some asserts here
+        then("there are only 1 or 2 real repository queries"); // ideally, there should be 1 but we're not there yet
+
+        var repoPerformanceInfo = repoPerformanceMonitor.getGlobalPerformanceInformation();
+        displayDumpable("repo performance", repoPerformanceInfo);
+        displayDumpable("cache performance", cachePerformanceCollector);
+
+        assertThat(repoPerformanceInfo.getInvocationCount("SqaleRepositoryService.searchObjects.ShadowType"))
+                .as("repo searches for ShadowType")
+                .isGreaterThanOrEqualTo(1)
+                .isLessThanOrEqualTo(2);
     }
 }

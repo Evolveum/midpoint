@@ -170,6 +170,16 @@
             <attribute>
                 <ref>ri:dn</ref>
                 <matchingRule>mr:distinguishedName</matchingRule>
+                <outbound>
+                    <source>
+                        <path>name</path>
+                    </source>
+                    <expression>
+                        <script>
+                            <code>'hi-1'</code>
+                        </script>
+                    </expression>
+                </outbound>
             </attribute>
             <attribute>
                 <ref>ri:uniqueMember</ref>
@@ -197,6 +207,16 @@
             <attribute>
                 <ref>ri:dn</ref>
                 <matchingRule>mr:distinguishedName</matchingRule>
+                <outbound>
+                    <source>
+                        <path>name</path>
+                    </source>
+                    <expression>
+                        <script>
+                            <code>'hi-2'</code>
+                        </script>
+                    </expression>
+                </outbound>
             </attribute>
             <attribute>
                 <ref>ri:uniqueMember</ref>
@@ -224,6 +244,16 @@
             <attribute>
                 <ref>ri:dn</ref>
                 <matchingRule>mr:distinguishedName</matchingRule>
+                <outbound>
+                    <source>
+                        <path>name</path>
+                    </source>
+                    <expression>
+                        <script>
+                            <code>'hi-3'</code>
+                        </script>
+                    </expression>
+                </outbound>
             </attribute>
             <attribute>
                 <ref>ri:uniqueMember</ref>
@@ -251,6 +281,16 @@
             <attribute>
                 <ref>ri:dn</ref>
                 <matchingRule>mr:distinguishedName</matchingRule>
+                <outbound>
+                    <source>
+                        <path>name</path>
+                    </source>
+                    <expression>
+                        <script>
+                            <code>'hi-4'</code>
+                        </script>
+                    </expression>
+                </outbound>
             </attribute>
             <attribute>
                 <ref>ri:uniqueMember</ref>
@@ -278,6 +318,16 @@
             <attribute>
                 <ref>ri:dn</ref>
                 <matchingRule>mr:distinguishedName</matchingRule>
+                <outbound>
+                    <source>
+                        <path>name</path>
+                    </source>
+                    <expression>
+                        <script>
+                            <code>'hi-5'</code>
+                        </script>
+                    </expression>
+                </outbound>
             </attribute>
             <attribute>
                 <ref>ri:uniqueMember</ref>
@@ -305,6 +355,16 @@
             <attribute>
                 <ref>ri:dn</ref>
                 <matchingRule>mr:distinguishedName</matchingRule>
+                <outbound>
+                    <source>
+                        <path>name</path>
+                    </source>
+                    <expression>
+                        <script>
+                            <code>'hi-6'</code>
+                        </script>
+                    </expression>
+                </outbound>
             </attribute>
             <attribute>
                 <ref>ri:uniqueMember</ref>
@@ -332,6 +392,16 @@
             <attribute>
                 <ref>ri:dn</ref>
                 <matchingRule>mr:distinguishedName</matchingRule>
+                <outbound>
+                    <source>
+                        <path>name</path>
+                    </source>
+                    <expression>
+                        <script>
+                            <code>'hi-7'</code>
+                        </script>
+                    </expression>
+                </outbound>
             </attribute>
             <attribute>
                 <ref>ri:uniqueMember</ref>

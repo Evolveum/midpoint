@@ -9,6 +9,12 @@
         xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
     <name>SystemConfiguration</name>
     <internals>
+        <repository>
+            <statistics>
+                <collection>globally</collection>
+                <classification>perOperationAndObjectType</classification>
+            </statistics>
+        </repository>
         <caching>
             <profile>
                 <global>true</global>
