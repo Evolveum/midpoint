@@ -9,9 +9,6 @@ import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-
 import com.evolveum.midpoint.common.LocalizationService;
 import com.evolveum.midpoint.model.api.visualizer.Name;
 import com.evolveum.midpoint.model.api.visualizer.Visualization;
@@ -19,11 +16,9 @@ import com.evolveum.midpoint.model.api.visualizer.VisualizationDeltaItem;
 import com.evolveum.midpoint.model.api.visualizer.VisualizationItem;
 import com.evolveum.midpoint.model.api.visualizer.localization.LocalizationPartsCombiner;
 import com.evolveum.midpoint.model.api.visualizer.localization.LocalizationPartsWrapper;
-import com.evolveum.midpoint.model.impl.visualizer.Visualizer;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 
-@Component
 public class VisualizationBasedDeltaFormatter implements IDeltaFormatter {
     private final PropertiesFormatter<VisualizationItem> propertiesFormatter;
     private final PropertiesFormatter<VisualizationItem> additionalIdentificationFormatter;
@@ -43,21 +38,6 @@ public class VisualizationBasedDeltaFormatter implements IDeltaFormatter {
         this.indentationGenerator = indentationGenerator;
         this.localizationService = localizationService;
         this.defaultLocale = Locale.getDefault();
-    }
-
-    @Autowired
-    // FIXME This is temporary constructor used during development. Remove it before production.
-    public VisualizationBasedDeltaFormatter(Visualizer visualizer, LocalizationService localizationService) {
-        this.localizationService = localizationService;
-        this.indentationGenerator = new IndentationGenerator("|", "\t");
-        this.defaultLocale = Locale.getDefault();
-        final PropertyFormatter propertyFormatter = new PropertyFormatter(this.localizationService, " ", "\n");
-        this.propertiesFormatter = new PlainTextPropertiesFormatter(this.indentationGenerator, propertyFormatter);
-        this.additionalIdentificationFormatter = new AdditionalIdentificationFormatter(this.propertiesFormatter,
-                this.indentationGenerator);
-        this.containerPropertiesModificationFormatter = new ContainerPropertiesModificationFormatter(
-                this.propertiesFormatter, this.indentationGenerator,
-                new ModifiedPropertiesFormatter(propertyFormatter, this.indentationGenerator));
     }
 
     @Override
