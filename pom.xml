@@ -110,7 +110,7 @@
 
     <groupId>com.evolveum.midpoint</groupId>
     <artifactId>midpoint</artifactId>
-    <version>4.10-SNAPSHOT</version>
+    <version>4.10-M3</version>
     <packaging>pom</packaging>
 
     <name>midPoint Project</name>
