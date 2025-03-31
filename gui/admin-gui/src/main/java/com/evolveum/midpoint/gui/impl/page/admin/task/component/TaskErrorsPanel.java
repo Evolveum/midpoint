@@ -217,7 +217,7 @@ public class TaskErrorsPanel extends AbstractObjectMainPanel<TaskType, TaskDetai
 
                     return startTimestamp.toGregorianCalendar().getTimeInMillis();
                 },
-                new SingleLocalizableMessage("TaskErrorsPanel.showCurrentErrors"));
+                new SingleLocalizableMessage("TaskErrorsPanel.showCurrentRun"));
 
         List<NamedIntervalPreset> presets = new ArrayList<>();
         presets.add(preset);

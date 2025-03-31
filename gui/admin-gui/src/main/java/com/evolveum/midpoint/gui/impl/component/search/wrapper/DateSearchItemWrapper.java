@@ -26,6 +26,8 @@ public class DateSearchItemWrapper extends PropertySearchItemWrapper<XMLGregoria
 
     public static final String F_FROM_DATE = "singleDate";
     public static final String F_TO_DATE = "intervalSecondDate";
+    public static final String F_INTERVAL_PRESETS = "intervalPresets";
+    public static final String F_SELECTED_INTERVAL_PRESET = "selectedIntervalPreset";
 
     private XMLGregorianCalendar singleDate;
     private XMLGregorianCalendar intervalSecondDate;

@@ -10,6 +10,8 @@ import java.io.Serial;
 import java.util.List;
 import javax.xml.datatype.XMLGregorianCalendar;
 
+import com.evolveum.midpoint.gui.api.util.LocalizationUtil;
+
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.model.IModel;
@@ -75,9 +77,17 @@ public class DateIntervalSearchPanel extends PopoverSearchPanel {
 
     @Override
     public LoadableModel<String> getTextValue() {
-        return new LoadableModel<String>() {
+        return new LoadableModel<>() {
+
             @Override
             protected String load() {
+                if (selectedIntervalPreset != null) {
+                    NamedIntervalPreset preset = selectedIntervalPreset.getObject();
+                    if (preset != null) {
+                        return LocalizationUtil.translateMessage(preset.text());
+                    }
+                }
+
                 StringBuilder sb = new StringBuilder();
                 if (fromDateModel != null && fromDateModel.getObject() != null) {
                     sb.append(WebComponentUtil.getLocalizedDate(fromDateModel.getObject(), DateLabelComponent.SHORT_SHORT_STYLE));

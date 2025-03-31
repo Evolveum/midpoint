@@ -34,8 +34,8 @@ public class DateSearchItemPanel extends PropertySearchItemPanel<DateSearchItemW
         return new DateIntervalSearchPanel(id,
                 new PropertyModel(getModel(), DateSearchItemWrapper.F_FROM_DATE),
                 new PropertyModel(getModel(), DateSearchItemWrapper.F_TO_DATE),
-                () -> getModelObject().getIntervalPresets(),
-                () -> getModelObject().getSelectedIntervalPreset()) {
+                new PropertyModel<>(getModel(), DateSearchItemWrapper.F_INTERVAL_PRESETS),
+                new PropertyModel<>(getModel(), DateSearchItemWrapper.F_SELECTED_INTERVAL_PRESET)) {
 
             @Override
             protected boolean isInterval() {
