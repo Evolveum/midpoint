@@ -40,8 +40,8 @@ public class ContainerPropertiesModificationFormatterTest {
                 propertyFormatter);
         final ModifiedPropertiesFormatter modifiedPropertiesFormatter =
                 new ModifiedPropertiesFormatter(propertyFormatter, indentationGenerator);
-        this.formatter = new ContainerPropertiesModificationFormatter(localizationService, propertiesFormatter,
-                indentationGenerator, modifiedPropertiesFormatter);
+        this.formatter = new ContainerPropertiesModificationFormatter(propertiesFormatter, indentationGenerator,
+                modifiedPropertiesFormatter);
     }
 
     @Test

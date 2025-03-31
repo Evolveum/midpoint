@@ -25,20 +25,20 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 
 @Component
 public class VisualizationBasedDeltaFormatter implements IDeltaFormatter {
-    private final Visualizer visualizer;
     private final PropertiesFormatter<VisualizationItem> propertiesFormatter;
+    private final PropertiesFormatter<VisualizationItem> additionalIdentificationFormatter;
     private final PropertiesFormatter<VisualizationDeltaItem> containerPropertiesModificationFormatter;
     private final IndentationGenerator indentationGenerator;
     private final LocalizationService localizationService;
     private final Locale defaultLocale;
 
-    public VisualizationBasedDeltaFormatter(Visualizer visualizer,
-            PropertiesFormatter<VisualizationItem> propertiesFormatter,
+    public VisualizationBasedDeltaFormatter(PropertiesFormatter<VisualizationItem> propertiesFormatter,
+            PropertiesFormatter<VisualizationItem> additionalIdentificationFormatter,
             PropertiesFormatter<VisualizationDeltaItem> containerPropertiesModificationFormatter,
             IndentationGenerator indentationGenerator,
             LocalizationService localizationService) {
-        this.visualizer = visualizer;
         this.propertiesFormatter = propertiesFormatter;
+        this.additionalIdentificationFormatter = additionalIdentificationFormatter;
         this.containerPropertiesModificationFormatter = containerPropertiesModificationFormatter;
         this.indentationGenerator = indentationGenerator;
         this.localizationService = localizationService;
@@ -48,16 +48,16 @@ public class VisualizationBasedDeltaFormatter implements IDeltaFormatter {
     @Autowired
     // FIXME This is temporary constructor used during development. Remove it before production.
     public VisualizationBasedDeltaFormatter(Visualizer visualizer, LocalizationService localizationService) {
-        this.visualizer = visualizer;
         this.localizationService = localizationService;
         this.indentationGenerator = new IndentationGenerator("|", "\t");
         this.defaultLocale = Locale.getDefault();
         final PropertyFormatter propertyFormatter = new PropertyFormatter(this.localizationService, " ", "\n");
         this.propertiesFormatter = new PlainTextPropertiesFormatter(this.indentationGenerator, propertyFormatter);
-        this.containerPropertiesModificationFormatter =
-                new ContainerPropertiesModificationFormatter(this.localizationService, this.propertiesFormatter,
-                        this.indentationGenerator, new ModifiedPropertiesFormatter(propertyFormatter,
-                        this.indentationGenerator));
+        this.additionalIdentificationFormatter = new AdditionalIdentificationFormatter(this.propertiesFormatter,
+                this.indentationGenerator);
+        this.containerPropertiesModificationFormatter = new ContainerPropertiesModificationFormatter(
+                this.propertiesFormatter, this.indentationGenerator,
+                new ModifiedPropertiesFormatter(propertyFormatter, this.indentationGenerator));
     }
 
     @Override
@@ -84,21 +84,32 @@ public class VisualizationBasedDeltaFormatter implements IDeltaFormatter {
     }
 
     private String formatProperties(Visualization visualization, int nestingLevel) {
+
         return switch (visualization.getChangeType()) {
             case ADD, DELETE -> {
-                // FIXME `formatProperties` takes in this case `Collection<VisualizationItem>` as parameter, but
-                //  `getItems` returns `List<? extends VisualizationItem>`
-                final List<VisualizationItem> items = new ArrayList<>(visualization.getItems());
-                yield this.propertiesFormatter.formatProperties(items, nestingLevel);
+                final List<VisualizationItem> properties = new ArrayList<>(visualization.getItems());
+                yield this.propertiesFormatter.formatProperties(properties, nestingLevel);
             }
             case MODIFY -> {
-                // FIXME Fix the casting somehow. In this case all items, which are not descriptive, should be delta
-                //  items.
-                final List<VisualizationDeltaItem> items = visualization.getItems().stream()
-                        .filter(Predicate.not(VisualizationItem::isDescriptive))
-                        .map(item -> (VisualizationDeltaItem) item)
-                        .toList();
-                yield this.containerPropertiesModificationFormatter.formatProperties(items, nestingLevel);
+                final List<VisualizationItem> items = new ArrayList<>();
+                final List<VisualizationDeltaItem> deltaItems = new ArrayList<>();
+                for (final VisualizationItem item : visualization.getItems()) {
+                    // FIXME This is a workaround to handle additional identification properties. Simply speaking, we
+                    //  can not currently rely on the isDescriptive method in the item, because there is a bug
+                    //  MID-10620. This workaround does not cover all cases of "additional identification" properties.
+                    if (item instanceof VisualizationDeltaItem deltaItem) {
+                        deltaItems.add(deltaItem);
+                    } else {
+                        items.add(item);
+                    }
+                }
+                // Items, which in the "MODIFY" case are not "delta" items, are most likely additional identification
+                // (akka descriptive) properties.
+                final String additionalIdentification = this.additionalIdentificationFormatter.formatProperties(items,
+                        nestingLevel);
+                final String containerProperties = this.containerPropertiesModificationFormatter.formatProperties(
+                        deltaItems, nestingLevel);
+                yield concatenateNonEmptyStrings("\n", additionalIdentification, containerProperties);
             }
         };
     }
@@ -128,7 +139,7 @@ public class VisualizationBasedDeltaFormatter implements IDeltaFormatter {
         final String objectType = getObjectType(visualization);
 
         // TODO translate the "has been modified" suffix.
-        return concatenateNonEmptyStrings(objectType, objectName, "has been modified");
+        return concatenateNonEmptyStrings(" ", objectType, objectName, "has been modified");
     }
 
     private String createAddOrDeleteHeading(Visualization visualization) {
@@ -138,7 +149,7 @@ public class VisualizationBasedDeltaFormatter implements IDeltaFormatter {
         final String objectName = encloseIfNotEmpty(getObjectName(visualization.getName()), "\"", "\"");
         final String objectType = getObjectType(visualization);
 
-        return concatenateNonEmptyStrings(changeType, objectType, objectName);
+        return concatenateNonEmptyStrings(" ", changeType, objectType, objectName);
     }
 
     private String getObjectName(Name objectName) {
@@ -180,13 +191,13 @@ public class VisualizationBasedDeltaFormatter implements IDeltaFormatter {
         return enumValue == null ? "" : enumValue.getClass().getSimpleName() + "." + enumValue.name();
     }
 
-    private static String concatenateNonEmptyStrings(String... values) {
+    private static String concatenateNonEmptyStrings(String joiner, String... values) {
         if (values.length == 2) {
-            return values[0].isEmpty() ? values[1] : values[0] + " " + values[1];
+            return values[0].isEmpty() ? values[1] : values[0] + joiner + values[1];
         }
         return Stream.of(values)
                 .filter(Predicate.not(String::isEmpty))
-                .collect(Collectors.joining(" "));
+                .collect(Collectors.joining(joiner));
     }
 
     private static String encloseIfNotEmpty(String value, String prefix, String suffix) {

@@ -119,11 +119,12 @@ public class VisualizationBasedDeltaFormatterTest extends AbstractIntegrationTes
         final PropertiesFormatter<VisualizationDeltaItem> modifiedPropertiesFormatter = new ModifiedPropertiesFormatter(
                 propertyFormatter, indentationGenerator);
         final PropertiesFormatter<VisualizationDeltaItem> containerPropertiesModificationFormatter =
-                new ContainerPropertiesModificationFormatter(this.localizationService, propertiesFormatter,
-                        indentationGenerator, modifiedPropertiesFormatter);
-        this.formatter = new VisualizationBasedDeltaFormatter(this.visualizer, propertiesFormatter,
-                containerPropertiesModificationFormatter, indentationGenerator,
-                this.localizationService);
+                new ContainerPropertiesModificationFormatter(propertiesFormatter, this.indentationGenerator,
+                        modifiedPropertiesFormatter);
+        final PropertiesFormatter<VisualizationItem> additionalIdentificationFormatter =
+                new AdditionalIdentificationFormatter(propertiesFormatter, this.indentationGenerator);
+        this.formatter = new VisualizationBasedDeltaFormatter(propertiesFormatter, additionalIdentificationFormatter,
+                containerPropertiesModificationFormatter, indentationGenerator, this.localizationService);
     }
 
     @AfterMethod
@@ -410,6 +411,10 @@ public class VisualizationBasedDeltaFormatterTest extends AbstractIntegrationTes
 
         final String expectedDeltaFormat = """
                 Account "Rudy" (HR Account) modified on "HR System":
+                |\tAdditional identification (not modified data):
+                |\t|\tResource: HR System
+                |\t|\tKind: Account
+                |\t|\tIntent: HR Account
                 |\tattributes has been modified:
                 |\t|\tAdded properties:
                 |\t|\t|\tdescription: HR""";

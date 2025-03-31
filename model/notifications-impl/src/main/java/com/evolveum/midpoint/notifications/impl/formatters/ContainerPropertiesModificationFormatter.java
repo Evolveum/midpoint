@@ -15,15 +15,13 @@ import com.evolveum.midpoint.model.api.visualizer.VisualizationItemValue;
 
 final class ContainerPropertiesModificationFormatter implements PropertiesFormatter<VisualizationDeltaItem> {
 
-    private final LocalizationService localizationService;
     private final PropertiesFormatter<VisualizationItem> propertiesFormatter;
     private final IndentationGenerator indentationGenerator;
     private final PropertiesFormatter<VisualizationDeltaItem> modifiedPropertiesFormatter;
 
-    public ContainerPropertiesModificationFormatter(LocalizationService localizationService,
-            PropertiesFormatter<VisualizationItem> propertiesFormatter, IndentationGenerator indentationGenerator,
+    public ContainerPropertiesModificationFormatter(PropertiesFormatter<VisualizationItem> propertiesFormatter,
+            IndentationGenerator indentationGenerator,
             PropertiesFormatter<VisualizationDeltaItem> modifiedPropertiesFormatter) {
-        this.localizationService = localizationService;
         this.propertiesFormatter = propertiesFormatter;
         this.indentationGenerator = indentationGenerator;
         this.modifiedPropertiesFormatter = modifiedPropertiesFormatter;
@@ -61,14 +59,6 @@ final class ContainerPropertiesModificationFormatter implements PropertiesFormat
                 .collect(Collectors.joining("\n"));
     }
 
-    private static boolean propertyWillBeRemoved(VisualizationDeltaItem delta) {
-        return delta.getUnchangedValues().isEmpty() && delta.getAddedValues().isEmpty();
-    }
-
-    private static boolean propertyWillBeAdded(VisualizationDeltaItem delta) {
-        return delta.getUnchangedValues().isEmpty() && delta.getDeletedValues().isEmpty();
-    }
-
     @Override
     public <U extends VisualizationDeltaItem> String formatProperties(Collection<U> items,
             Function<U, Collection<? extends VisualizationItemValue>> valuesExtractor, int nestingLevel) {
@@ -104,6 +94,14 @@ final class ContainerPropertiesModificationFormatter implements PropertiesFormat
             return "";
         }
         return indentation + prefix + value;
+    }
+
+    private static boolean propertyWillBeRemoved(VisualizationDeltaItem delta) {
+        return delta.getUnchangedValues().isEmpty() && delta.getAddedValues().isEmpty();
+    }
+
+    private static boolean propertyWillBeAdded(VisualizationDeltaItem delta) {
+        return delta.getUnchangedValues().isEmpty() && delta.getDeletedValues().isEmpty();
     }
 
 }
