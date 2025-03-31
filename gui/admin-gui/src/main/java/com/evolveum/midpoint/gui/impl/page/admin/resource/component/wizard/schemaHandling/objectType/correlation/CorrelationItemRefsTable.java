@@ -209,8 +209,18 @@ public class CorrelationItemRefsTable extends AbstractWizardTable<CorrelationIte
                     protected IModel<String> getCustomHeaderModel() {
                         return getDisplayModel();
                     }
+
+                    @Override
+                    protected void onBeforeRender() {
+                        super.onBeforeRender();
+
+                        if (getModelObject() != null) {
+                            getValuesPanel().addOrReplace(createValuePanel(ID_VALUE, getModel()));
+                        }
+                    }
                 };
                 panel.add(new VisibleBehaviour(() -> model.getObject() != null));
+                panel.setOutputMarkupId(true);
                 cellItem.add(panel);
             }
 
