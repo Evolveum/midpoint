@@ -37,7 +37,7 @@ public abstract class AbstractItemWrapperColumnPanel<IW extends ItemWrapper, VW 
     private final ColumnType columnType;
 
     private static final String ID_VALUES = "values";
-    private static final String ID_VALUE = "value";
+    protected static final String ID_VALUE = "value";
 
     AbstractItemWrapperColumnPanel(String id, IModel<IW> model, ColumnType columnType) {
         super(id, model);
@@ -137,5 +137,9 @@ public abstract class AbstractItemWrapperColumnPanel<IW extends ItemWrapper, VW 
 
     protected ColumnType getColumnType() {
         return columnType;
+    }
+
+    protected final WebMarkupContainer getValuesPanel() {
+        return (WebMarkupContainer) get(ID_VALUES);
     }
 }
