@@ -8,11 +8,16 @@ package com.evolveum.midpoint.gui.impl.page.self.credentials;
 
 import com.evolveum.midpoint.authentication.api.authorization.AuthorizationAction;
 import com.evolveum.midpoint.gui.api.component.tabs.PanelTab;
+import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.model.api.authentication.GuiProfiledPrincipal;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.authentication.api.authorization.PageDescriptor;
 import com.evolveum.midpoint.authentication.api.authorization.Url;
 
+import com.evolveum.midpoint.security.api.MidPointPrincipal;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.web.component.TabbedPanel;
 import com.evolveum.midpoint.web.component.form.MidpointForm;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
@@ -30,6 +35,7 @@ import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.model.LoadableDetachableModel;
 import org.apache.wicket.model.Model;
 
+import java.io.Serial;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -47,7 +53,10 @@ import java.util.List;
                         description = "PageSelfCredentials.auth.credentials.description")})
 public class PageSelfCredentials extends PageSelf {
 
-    private static final long serialVersionUID = 1L;
+    @Serial private static final long serialVersionUID = 1L;
+
+    private static final String DOT_CLASS = PageSelfCredentials.class.getName() + ".";
+    private static final String OPERATION_LOAD_PRINCIPAL = DOT_CLASS + "loadPrincipalObject";
 
     protected static final String ID_MAIN_FORM = "mainForm";
     private static final String ID_TAB_PANEL = "tabPanel";
@@ -79,16 +88,29 @@ public class PageSelfCredentials extends PageSelf {
     private Collection<? extends ITab> createTabs(){
         List<ITab> tabs = new ArrayList<>();
         tabs.add(new AbstractTab(createStringResource("PageSelfCredentials.tabs.password")) {
-            private static final long serialVersionUID = 1L;
+            @Serial private static final long serialVersionUID = 1L;
 
             @Override
             public WebMarkupContainer getPanel(String panelId) {
                 return new PropagatePasswordPanel<>(panelId, new LoadableDetachableModel<>() {
-                    private static final long serialVersionUID = 1L;
+                    @Serial private static final long serialVersionUID = 1L;
 
                     @Override
                     protected FocusType load() {
-                        return getPrincipalFocus();
+                        MidPointPrincipal principal = getPrincipal();
+
+                        if (principal == null) {
+                            return null;
+                        }
+
+                        Task task = createSimpleTask(OPERATION_LOAD_PRINCIPAL);
+                        OperationResult result = task.getResult();
+                        PrismObject<FocusType> principalReloaded = WebModelServiceUtils
+                                .loadObject(FocusType.class, principal.getOid(), PageSelfCredentials.this, task, result);
+                        if (principalReloaded == null) {
+                            return null;
+                        }
+                        return principalReloaded.asObjectable();
                     }
                 });
             }
@@ -96,7 +118,7 @@ public class PageSelfCredentials extends PageSelf {
 
         tabs.add(new PanelTab(createStringResource("PageSelfCredentials.tabs.securityQuestion"),
                 new VisibleBehaviour(this::showQuestions)) {
-            private static final long serialVersionUID = 1L;
+            @Serial private static final long serialVersionUID = 1L;
 
             @Override
             public WebMarkupContainer createPanel(String panelId) {
