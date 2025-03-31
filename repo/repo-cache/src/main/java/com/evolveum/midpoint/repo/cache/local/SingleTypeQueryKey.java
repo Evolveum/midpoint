@@ -33,10 +33,12 @@ public class SingleTypeQueryKey {
     public boolean equals(Object o) {
         if (this == o) {
             return true;
-        } else if (!(o instanceof SingleTypeQueryKey queryKey)) {
+        } else if (!(o instanceof SingleTypeQueryKey that)) {
             return false;
         } else {
-            return Objects.equals(query, queryKey.query);
+            var thisQuery = this.query;
+            var thatQuery = that.query;
+            return thisQuery != null ? thisQuery.equals(thatQuery, false) : thatQuery == null;
         }
     }
 

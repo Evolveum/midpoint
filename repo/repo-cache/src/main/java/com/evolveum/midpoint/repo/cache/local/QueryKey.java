@@ -33,12 +33,16 @@ public class QueryKey<T extends ObjectType> {
     public boolean equals(Object o) {
         if (this == o) {
             return true;
-        } else if (!(o instanceof QueryKey<?> queryKey)) {
-            return false;
-        } else {
-            return Objects.equals(type, queryKey.type) &&
-                    Objects.equals(query, queryKey.query);
         }
+        if (!(o instanceof QueryKey<?> that)) {
+            return false;
+        }
+        if (!Objects.equals(this.type, that.type)) {
+            return false;
+        }
+        var thisQuery = this.query;
+        var thatQuery = that.query;
+        return thisQuery != null ? thisQuery.equals(thatQuery, false) : thatQuery == null;
     }
 
     @Override

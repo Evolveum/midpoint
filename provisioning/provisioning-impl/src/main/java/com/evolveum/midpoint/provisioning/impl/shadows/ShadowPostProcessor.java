@@ -80,7 +80,9 @@ class ShadowPostProcessor {
         classifyIfNeededAndApplyTheDefinition(result);
 
         // Acquires/updates/combines shadow(s) embedded in the reference values, in both object and object delta.
-        postProcessShadowsInReferenceValues(result);
+        if (ctx.isFetchAssociations()) {
+            postProcessShadowsInReferenceValues(result);
+        }
 
         // Computes current marks and policies, taking into account both repo shadow (current marks, statements)
         // and the current object (data). We must NOT apply policies to the shadow, in order to correctly determine the delta.

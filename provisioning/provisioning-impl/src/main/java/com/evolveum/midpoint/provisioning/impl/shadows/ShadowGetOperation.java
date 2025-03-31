@@ -441,8 +441,10 @@ class ShadowGetOperation {
             SecurityViolationException, ObjectNotFoundException {
         LOGGER.trace("Returning cached (repository) version of shadow {} because of: {}", repoShadow, reason);
         ctx.applyCurrentDefinition(repoShadow.getBean());
-        b.associationsHelper.convertReferenceAttributesToAssociations(
-                ctx, repoShadow.getBean(), ctx.getObjectDefinitionRequired(), result);
+        if (ctx.isFetchAssociations()) {
+            b.associationsHelper.convertReferenceAttributesToAssociations(
+                    ctx, repoShadow.getBean(), ctx.getObjectDefinitionRequired(), result);
+        }
         var futurized =
                 ProvisioningUtil.isFuturePointInTime(options) ?
                         futurizeRepoShadow(ctx, repoShadow, now) :

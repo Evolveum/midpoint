@@ -286,8 +286,6 @@ public abstract class CorrelatorConfiguration implements Serializable {
         return all;
     }
 
-
-
     public PathSet getCorrelationItemPaths() {
         PathSet paths = new PathSet();
         for (CorrelatorConfiguration currentConfiguration : getAllConfigurationsDeeply()) {
@@ -302,6 +300,10 @@ public abstract class CorrelatorConfiguration implements Serializable {
             }
         }
         return paths;
+    }
+
+    public boolean hasCompositionItem() {
+        return getComposition(configurationBean) != null;
     }
 
     public static class TypedCorrelationConfiguration extends CorrelatorConfiguration {

@@ -1,0 +1,189 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (C) 2010-2025 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<resource oid="1f40e5e2-eb25-4587-8d34-47220e4a0663"
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+        xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
+        xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">
+    <name>many-associated-intents</name>
+    <documentation>Associations with many target intents (MID-10600)</documentation>
+    <connectorRef oid="will-be-supplied-by-the-test-code"/>
+    <connectorConfiguration xmlns:icfi="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.icf.dummy/com.evolveum.icf.dummy.connector.DummyConnector"
+                   xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3">
+        <icfc:configurationProperties>
+            <icfi:instanceId>many-associated-intents</icfi:instanceId>
+            <icfi:memberOfAttribute>true</icfi:memberOfAttribute>
+        </icfc:configurationProperties>
+    </connectorConfiguration>
+    <schemaHandling>
+        <objectType>
+            <kind>account</kind>
+            <intent>default</intent>
+            <default>true</default>
+            <objectClass>ri:AccountObjectClass</objectClass>
+            <association>
+                <ref>ri:group</ref>
+                <kind>entitlement</kind>
+                <intent>type-1</intent>
+                <intent>type-2</intent>
+                <intent>type-3</intent>
+                <intent>type-4</intent>
+                <intent>type-5</intent>
+                <intent>type-6</intent>
+                <intent>type-7</intent>
+                <direction>objectToSubject</direction>
+                <associationAttribute>ri:members</associationAttribute>
+                <valueAttribute>icfs:name</valueAttribute>
+                <shortcutAssociationAttribute>ri:memberOf</shortcutAssociationAttribute>
+                <shortcutValueAttribute>icfs:name</shortcutValueAttribute>
+            </association>
+        </objectType>
+        <objectType>
+            <kind>entitlement</kind>
+            <intent>type-1</intent>
+            <delineation>
+                <objectClass>ri:GroupObjectClass</objectClass>
+                <filter>
+                    <q:text>attributes/type = "type-1"</q:text>
+                </filter>
+            </delineation>
+            <attribute>
+                <ref>icfs:name</ref>
+                <outbound>
+                    <expression>
+                        <script>
+                            <code>'hi-1'</code>
+                        </script>
+                    </expression>
+                </outbound>
+            </attribute>
+        </objectType>
+        <objectType>
+            <kind>entitlement</kind>
+            <intent>type-2</intent>
+            <delineation>
+                <objectClass>ri:GroupObjectClass</objectClass>
+                <filter>
+                    <q:text>attributes/type = "type-2"</q:text>
+                </filter>
+            </delineation>
+            <attribute>
+                <ref>icfs:name</ref>
+                <outbound>
+                    <expression>
+                        <script>
+                            <code>'hi-2'</code>
+                        </script>
+                    </expression>
+                </outbound>
+            </attribute>
+        </objectType>
+        <objectType>
+            <kind>entitlement</kind>
+            <intent>type-3</intent>
+            <delineation>
+                <objectClass>ri:GroupObjectClass</objectClass>
+                <filter>
+                    <q:text>attributes/type = "type-3"</q:text>
+                </filter>
+            </delineation>
+            <attribute>
+                <ref>icfs:name</ref>
+                <outbound>
+                    <expression>
+                        <script>
+                            <code>'hi-3'</code>
+                        </script>
+                    </expression>
+                </outbound>
+            </attribute>
+        </objectType>
+        <objectType>
+            <kind>entitlement</kind>
+            <intent>type-4</intent>
+            <delineation>
+                <objectClass>ri:GroupObjectClass</objectClass>
+                <filter>
+                    <q:text>attributes/type = "type-4"</q:text>
+                </filter>
+            </delineation>
+            <attribute>
+                <ref>icfs:name</ref>
+                <outbound>
+                    <expression>
+                        <script>
+                            <code>'hi-4'</code>
+                        </script>
+                    </expression>
+                </outbound>
+            </attribute>
+        </objectType>
+        <objectType>
+            <kind>entitlement</kind>
+            <intent>type-5</intent>
+            <delineation>
+                <objectClass>ri:GroupObjectClass</objectClass>
+                <filter>
+                    <q:text>attributes/type = "type-5"</q:text>
+                </filter>
+            </delineation>
+            <attribute>
+                <ref>icfs:name</ref>
+                <outbound>
+                    <expression>
+                        <script>
+                            <code>'hi-5'</code>
+                        </script>
+                    </expression>
+                </outbound>
+            </attribute>
+        </objectType>
+        <objectType>
+            <kind>entitlement</kind>
+            <intent>type-6</intent>
+            <delineation>
+                <objectClass>ri:GroupObjectClass</objectClass>
+                <filter>
+                    <q:text>attributes/type = "type-6"</q:text>
+                </filter>
+            </delineation>
+            <attribute>
+                <ref>icfs:name</ref>
+                <outbound>
+                    <expression>
+                        <script>
+                            <code>'hi-6'</code>
+                        </script>
+                    </expression>
+                </outbound>
+            </attribute>
+        </objectType>
+        <objectType>
+            <kind>entitlement</kind>
+            <intent>type-7</intent>
+            <delineation>
+                <objectClass>ri:GroupObjectClass</objectClass>
+                <filter>
+                    <q:text>attributes/type = "type-7"</q:text>
+                </filter>
+            </delineation>
+            <attribute>
+                <ref>icfs:name</ref>
+                <outbound>
+                    <expression>
+                        <script>
+                            <code>'hi-7'</code>
+                        </script>
+                    </expression>
+                </outbound>
+            </attribute>
+        </objectType>
+
+    </schemaHandling>
+</resource>

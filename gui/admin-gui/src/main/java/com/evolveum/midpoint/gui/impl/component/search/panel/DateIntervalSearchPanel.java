@@ -7,15 +7,17 @@
 package com.evolveum.midpoint.gui.impl.component.search.panel;
 
 import java.io.Serial;
+import java.util.List;
 import javax.xml.datatype.XMLGregorianCalendar;
 
-import com.evolveum.midpoint.gui.api.model.LoadableModel;
-
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.model.IModel;
 
+import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.web.component.DateLabelComponent;
+import com.evolveum.midpoint.web.component.input.TextPanel;
 
 /**
  * @author honchar
@@ -27,15 +29,28 @@ public class DateIntervalSearchPanel extends PopoverSearchPanel {
     private final IModel<XMLGregorianCalendar> fromDateModel;
     private final IModel<XMLGregorianCalendar> toDateModel;
 
-    public DateIntervalSearchPanel(String id, IModel<XMLGregorianCalendar> fromDateModel, IModel<XMLGregorianCalendar> toDateModel) {
+    private final IModel<List<NamedIntervalPreset>> intervalPresets;
+
+    private final IModel<NamedIntervalPreset> selectedIntervalPreset;
+
+    public DateIntervalSearchPanel(
+            String id,
+            IModel<XMLGregorianCalendar> fromDateModel,
+            IModel<XMLGregorianCalendar> toDateModel,
+            IModel<List<NamedIntervalPreset>> intervalPresets,
+            IModel<NamedIntervalPreset> selectedIntervalPreset) {
+
         super(id);
         this.fromDateModel = fromDateModel;
         this.toDateModel = toDateModel;
+        this.intervalPresets = intervalPresets;
+        this.selectedIntervalPreset = selectedIntervalPreset;
     }
 
     @Override
     protected PopoverSearchPopupPanel createPopupPopoverPanel(Popover popover) {
-        return new DateIntervalSearchPopupPanel(PopoverSearchPanel.ID_POPOVER_PANEL, popover, fromDateModel, toDateModel) {
+        return new DateIntervalSearchPopupPanel(
+                PopoverSearchPanel.ID_POPOVER_PANEL, popover, fromDateModel, toDateModel, intervalPresets, selectedIntervalPreset) {
 
             @Serial private static final long serialVersionUID = 1L;
 
@@ -68,7 +83,7 @@ public class DateIntervalSearchPanel extends PopoverSearchPanel {
                     sb.append(WebComponentUtil.getLocalizedDate(fromDateModel.getObject(), DateLabelComponent.SHORT_SHORT_STYLE));
                 }
                 if (sb.length() > 0 && toDateModel != null && toDateModel.getObject() != null) {
-                    sb.append("-");
+                    sb.append(" - ");
                 }
                 if (toDateModel != null && toDateModel.getObject() != null) {
                     sb.append(WebComponentUtil.getLocalizedDate(toDateModel.getObject(), DateLabelComponent.SHORT_SHORT_STYLE));
@@ -82,4 +97,11 @@ public class DateIntervalSearchPanel extends PopoverSearchPanel {
         return true;
     }
 
+    @Override
+    protected TextPanel createTextPanel(String id, IModel model) {
+        TextPanel panel = super.createTextPanel(id, model);
+        panel.add(AttributeAppender.append("style", () -> isInterval() ? "width: 250px;" : null));
+
+        return panel;
+    }
 }

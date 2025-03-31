@@ -6,11 +6,11 @@
  */
 package com.evolveum.midpoint.gui.impl.component.search.panel;
 
-import com.evolveum.midpoint.gui.impl.component.search.wrapper.DateSearchItemWrapper;
-
 import org.apache.wicket.Component;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.PropertyModel;
+
+import com.evolveum.midpoint.gui.impl.component.search.wrapper.DateSearchItemWrapper;
 
 public class DateSearchItemPanel extends PropertySearchItemPanel<DateSearchItemWrapper> {
 
@@ -33,7 +33,9 @@ public class DateSearchItemPanel extends PropertySearchItemPanel<DateSearchItemW
     protected Component initSearchItemField(String id) {
         return new DateIntervalSearchPanel(id,
                 new PropertyModel(getModel(), DateSearchItemWrapper.F_FROM_DATE),
-                new PropertyModel(getModel(), DateSearchItemWrapper.F_TO_DATE)) {
+                new PropertyModel(getModel(), DateSearchItemWrapper.F_TO_DATE),
+                () -> getModelObject().getIntervalPresets(),
+                () -> getModelObject().getSelectedIntervalPreset()) {
 
             @Override
             protected boolean isInterval() {
@@ -41,5 +43,4 @@ public class DateSearchItemPanel extends PropertySearchItemPanel<DateSearchItemW
             }
         };
     }
-
 }

@@ -8,8 +8,6 @@ package com.evolveum.midpoint.gui.impl.component.search.panel;
 
 import java.io.Serial;
 
-import com.evolveum.midpoint.gui.api.model.LoadableModel;
-
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
@@ -17,6 +15,7 @@ import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.model.IModel;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
+import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.input.TextPanel;
 
@@ -47,15 +46,20 @@ public abstract class PopoverSearchPanel<T> extends BasePanel<T> {
         initLayout();
     }
 
+    protected TextPanel createTextPanel(String id, IModel<String> model) {
+        TextPanel<String> textField = new TextPanel<>(ID_TEXT_FIELD, getTextValue());
+        textField.setOutputMarkupId(true);
+        textField.add(AttributeAppender.append("title", getTextValue().getObject()));
+        textField.getBaseFormComponent().add(AttributeAppender.append("readonly", "readonly"));
+
+        return textField;
+    }
+
     private void initLayout() {
         setOutputMarkupId(true);
         add(AttributeAppender.append("class", "d-flex align-items-center gap-1"));
 
-        TextPanel<String> textField = new TextPanel<>(ID_TEXT_FIELD, getTextValue());
-        textField.setOutputMarkupId(true);
-        textField.add(AttributeAppender.append("title", getTextValue().getObject()));
-//        textField.setEnabled(false);
-        textField.getBaseFormComponent().add(AttributeAppender.append("readonly", "readonly"));
+        TextPanel<String> textField = createTextPanel(ID_POPOVER_PANEL, getTextValue());
         add(textField);
 
         Popover popover = new Popover(ID_POPOVER) {
@@ -78,7 +82,6 @@ public abstract class PopoverSearchPanel<T> extends BasePanel<T> {
         };
         edit.setOutputMarkupId(true);
         add(edit);
-
 
         WebMarkupContainer searchPopupPanel = createPopupPopoverPanel(popover);
         popover.add(searchPopupPanel);

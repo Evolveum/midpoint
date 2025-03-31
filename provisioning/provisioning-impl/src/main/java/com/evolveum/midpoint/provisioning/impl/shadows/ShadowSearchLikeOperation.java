@@ -146,7 +146,7 @@ class ShadowSearchLikeOperation {
     }
 
     private SearchResultMetadata executeIterativeSearchOnResource(
-            @NotNull ResultHandler<ShadowType> handler, OperationResult parentResult)
+            @NotNull ResultHandler<ShadowType> handler, OperationResult result)
             throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
             ExpressionEvaluationException, SecurityViolationException {
 
@@ -181,10 +181,9 @@ class ShadowSearchLikeOperation {
             }
         };
 
-        boolean fetchAssociations = SelectorOptions.hasToIncludePath(ShadowType.F_ASSOCIATIONS, options, true);
         try {
             return b.resourceObjectConverter.searchResourceObjects(
-                    ctx, shadowHandler, createOnResourceQuery(), fetchAssociations, ucfErrorReportingMethod, parentResult);
+                    ctx, shadowHandler, createOnResourceQuery(), ctx.isFetchAssociations(), ucfErrorReportingMethod, result);
         } catch (TunnelException e) {
             unwrapAndThrowSearchingTunnelException(e);
             throw new AssertionError();
@@ -347,8 +346,10 @@ class ShadowSearchLikeOperation {
                     }
                 }
 
-                b.associationsHelper.convertReferenceAttributesToAssociations(
-                        shadowCtx, repoShadow.getBean(), shadowCtx.getObjectDefinitionRequired(), result);
+                if (ctx.isFetchAssociations()) {
+                    b.associationsHelper.convertReferenceAttributesToAssociations(
+                            shadowCtx, repoShadow.getBean(), shadowCtx.getObjectDefinitionRequired(), result);
+                }
 
                 resultingShadow = repoShadow.getPrismObject();
                 resultingShadow.asObjectable().setContentDescription(ShadowContentDescriptionType.FROM_REPOSITORY);

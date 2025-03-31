@@ -14,6 +14,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.impl.component.search.panel.NamedIntervalPreset;
 import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
 import com.evolveum.midpoint.prism.*;
 
@@ -58,6 +59,10 @@ public class SearchItemContext implements Serializable {
 
     private boolean isReportCollectionSearch = false;
 
+    private List<NamedIntervalPreset> intervalPresets;
+
+    private NamedIntervalPreset selectedIntervalPreset;
+
     public SearchItemContext(
             Class<?> containerType,
             PathKeyedMap<ItemDefinition<?>> availableSearchItems,
@@ -88,6 +93,9 @@ public class SearchItemContext implements Serializable {
             availableEventMarks = additionalSearchContext.getAvailableEventMarks();
             selectedEventMark = additionalSearchContext.getSelectedEventMark();
             isReportCollectionSearch = additionalSearchContext.isReportCollectionSearch();
+
+            intervalPresets = additionalSearchContext.getIntervalPresets(path);
+            selectedIntervalPreset = additionalSearchContext.getSelectedIntervalPresets(path);
         }
     }
 
@@ -279,5 +287,15 @@ public class SearchItemContext implements Serializable {
 
     public boolean isReportCollectionSearch() {
         return isReportCollectionSearch;
+    }
+
+    @Nullable
+    public List<NamedIntervalPreset> getIntervalPresets() {
+        return intervalPresets;
+    }
+
+    @Nullable
+    public NamedIntervalPreset getSelectedIntervalPreset() {
+        return selectedIntervalPreset;
     }
 }

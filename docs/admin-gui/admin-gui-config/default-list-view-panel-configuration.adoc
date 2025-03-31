@@ -55,7 +55,10 @@ Contains a multivalue element _availablePageSize_ (defines a set of available pa
 
 |===
 
-Default settings can be overridden in the concrete list view configuration.
+Default settings can be overridden or extended in the concrete list view configuration.
+Those setting which are single-valued by the definition, can be overridden in the deeper configuration (e.g. in the role).
+The multivalue settings can be extended e.g. in the role by adding new values to the set of the available page sizes.
+
 The settings which are available for the configuration in the _defaultSettings_ element, also present in the collection view type.
 This means that _paging_ and _pagingOptions_ can be configured within concrete _objectCollectionView_ in object collection views configuration.
 Also, these options can be also configured within _listView_ element while configuring a concrete panel for some object details page.

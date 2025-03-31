@@ -11,11 +11,14 @@ import javax.xml.datatype.XMLGregorianCalendar;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.impl.component.search.SearchValue;
 import com.evolveum.midpoint.gui.impl.component.search.panel.DateSearchItemPanel;
+import com.evolveum.midpoint.gui.impl.component.search.panel.NamedIntervalPreset;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.util.DisplayableValue;
+
+import java.util.List;
 
 public class DateSearchItemWrapper extends PropertySearchItemWrapper<XMLGregorianCalendar> {
 
@@ -27,6 +30,9 @@ public class DateSearchItemWrapper extends PropertySearchItemWrapper<XMLGregoria
     private XMLGregorianCalendar singleDate;
     private XMLGregorianCalendar intervalSecondDate;
     boolean isInterval = true;
+
+    private List<NamedIntervalPreset> intervalPresets = NamedIntervalPreset.DEFAULT_PRESETS;
+    private NamedIntervalPreset selectedIntervalPreset;
 
     public DateSearchItemWrapper(ItemPath path) {
         super(path);
@@ -114,5 +120,21 @@ public class DateSearchItemWrapper extends PropertySearchItemWrapper<XMLGregoria
                     .buildFilter();
         }
         return null;
+    }
+
+    public List<NamedIntervalPreset> getIntervalPresets() {
+        return intervalPresets;
+    }
+
+    public void setIntervalPresets(List<NamedIntervalPreset> intervalPresets) {
+        this.intervalPresets = intervalPresets;
+    }
+
+    public NamedIntervalPreset getSelectedIntervalPreset() {
+        return selectedIntervalPreset;
+    }
+
+    public void setSelectedIntervalPreset(NamedIntervalPreset selectedIntervalPreset) {
+        this.selectedIntervalPreset = selectedIntervalPreset;
     }
 }

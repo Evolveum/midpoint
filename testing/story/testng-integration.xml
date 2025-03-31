@@ -83,6 +83,7 @@
             <class name="com.evolveum.midpoint.testing.story.correlation.TestInternalCorrelationSimpleSimplified"/>
             <class name="com.evolveum.midpoint.testing.story.correlation.TestInternalCorrelationMedium"/>
             <class name="com.evolveum.midpoint.testing.story.correlation.TestInternalCorrelationMultiAccounts"/>
+            <class name="com.evolveum.midpoint.testing.story.correlation.TestCorrelationMisc"/>
             <class name="com.evolveum.midpoint.testing.story.TestVeryAuthoritativeSource"/>
             <class name="com.evolveum.midpoint.testing.story.TestInducement"/>
             <class name="com.evolveum.midpoint.testing.story.TestTrustedBulkActions"/>

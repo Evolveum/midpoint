@@ -1,0 +1,469 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (c) 2010-2019 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<resource oid="ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff"
+          xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+          xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+          xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
+          xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+          xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
+          xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3"
+          xmlns:mr="http://prism.evolveum.com/xml/ns/public/matching-rule-3"
+          xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-3">
+
+    <name>resource-opendj-many-associated-intents</name>
+    <!-- NOTE: The connector OID will get dynamically replaced in the integration tests -->
+    <connectorRef oid="ef2bc95b-76e0-59e2-86d6-3d4f02d3eedd" type="c:ConnectorType"/>
+    <connectorConfiguration xmlns:icfcldap="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.polygon.connector-ldap/com.evolveum.polygon.connector.ldap.LdapConnector">
+
+        <icfc:configurationProperties>
+            <icfcldap:port>10389</icfcldap:port>
+            <icfcldap:host>localhost</icfcldap:host>
+            <icfcldap:baseContext>dc=example,dc=com</icfcldap:baseContext>
+            <icfcldap:bindDn>cn=directory manager</icfcldap:bindDn>
+            <icfcldap:bindPassword><t:clearValue>secret</t:clearValue></icfcldap:bindPassword>
+            <icfcldap:pagingStrategy>auto</icfcldap:pagingStrategy>
+            <icfcldap:vlvSortAttribute>entryUUID</icfcldap:vlvSortAttribute>
+            <icfcldap:operationalAttributes>ds-pwp-account-disabled</icfcldap:operationalAttributes>
+            <icfcldap:operationalAttributes>isMemberOf</icfcldap:operationalAttributes>
+            <icfcldap:operationalAttributes>createTimestamp</icfcldap:operationalAttributes>
+            <icfcldap:languageTagAttributes>description</icfcldap:languageTagAttributes> <!-- MID-5210 -->
+            <icfcldap:useTreeDelete>auto</icfcldap:useTreeDelete>
+            <icfcldap:enableExtraTests>true</icfcldap:enableExtraTests> <!-- MID-3477 -->
+        </icfc:configurationProperties>
+
+        <icfc:connectorPoolConfiguration>
+            <icfc:minEvictableIdleTimeMillis>120000</icfc:minEvictableIdleTimeMillis>
+            <icfc:minIdle>1</icfc:minIdle>
+            <icfc:maxIdle>10</icfc:maxIdle>
+            <icfc:maxObjects>10</icfc:maxObjects>
+            <icfc:maxWait>150000</icfc:maxWait>
+        </icfc:connectorPoolConfiguration>
+
+        <icfc:producerBufferSize>100</icfc:producerBufferSize>
+
+        <icfc:timeouts>
+            <icfc:create>-1</icfc:create>
+            <icfc:get>-1</icfc:get>
+            <icfc:update>-1</icfc:update>
+            <icfc:delete>-1</icfc:delete>
+            <icfc:test>-1</icfc:test>
+            <icfc:scriptOnConnector>-1</icfc:scriptOnConnector>
+            <icfc:scriptOnResource>-1</icfc:scriptOnResource>
+            <icfc:authentication>-1</icfc:authentication>
+            <icfc:search>-1</icfc:search>
+            <icfc:validate>-1</icfc:validate>
+            <icfc:sync>-1</icfc:sync>
+            <icfc:schema>-1</icfc:schema>
+        </icfc:timeouts>
+    </connectorConfiguration>
+
+    <schema>
+        <generationConstraints>
+            <generateObjectClass>ri:inetOrgPerson</generateObjectClass>
+            <generateObjectClass>ri:groupOfUniqueNames</generateObjectClass>
+            <generateObjectClass>ri:groupOfNames</generateObjectClass>
+            <generateObjectClass>ri:organizationalUnit</generateObjectClass>
+            <generateObjectClass>ri:posixAccount</generateObjectClass>
+            <generateObjectClass>ri:normalTestingObjectClass</generateObjectClass>
+            <generateObjectClass>ri:hybridTestingObjectClass</generateObjectClass>
+            <generateObjectClass>ri:uuidIdentifiedObjectClass</generateObjectClass>
+        </generationConstraints>
+    </schema>
+
+    <schemaHandling>
+
+        <objectType>
+            <kind>account</kind>
+            <intent>default</intent>
+            <displayName>Default Account</displayName>
+            <default>true</default>
+            <objectClass>ri:inetOrgPerson</objectClass>
+            <attribute>
+                <ref>ri:isMemberOf</ref>
+                <fetchStrategy>explicit</fetchStrategy>
+            </attribute>
+            <attribute>
+                <ref>ri:secretary</ref>
+                <matchingRule>mr:xml</matchingRule> <!-- matching rule override. Secretary is normally distinguishedName  -->
+                <fetchStrategy>explicit</fetchStrategy>
+            </attribute>
+            <attribute>
+                <ref>ri:description</ref>
+                <limitations>
+                    <!-- Poly-attributes only work with single-value attributes -->
+                    <maxOccurs>1</maxOccurs>
+                </limitations>
+            </attribute>
+            <association>
+                <ref>ri:group</ref>
+                <displayName>LDAP Group Membership</displayName>
+                <kind>entitlement</kind>
+                <intent>ldapGroup-1</intent>
+                <intent>ldapGroup-2</intent>
+                <intent>ldapGroup-3</intent>
+                <intent>ldapGroup-4</intent>
+                <intent>ldapGroup-5</intent>
+                <intent>ldapGroup-6</intent>
+                <intent>ldapGroup-7</intent>
+                <direction>objectToSubject</direction>
+                <associationAttribute>ri:uniqueMember</associationAttribute>
+                <valueAttribute>ri:dn</valueAttribute>
+                <shortcutAssociationAttribute>ri:isMemberOf</shortcutAssociationAttribute>
+                <shortcutValueAttribute>ri:dn</shortcutValueAttribute>
+                <explicitReferentialIntegrity>true</explicitReferentialIntegrity>
+            </association>
+            <protected>
+                <filter>
+                    <q:equal>
+                        <q:matching>http://prism.evolveum.com/xml/ns/public/matching-rule-3#distinguishedName</q:matching>
+                        <q:path>attributes/ri:dn</q:path>
+                        <!-- WilDCapiTaLIzaTioN and spacing makes sure that this is matched properly -->
+                        <q:value>uid=cAlyPSo, ou=PeoPle,    DC=example,dc=COM</q:value>
+                    </q:equal>
+                </filter>
+            </protected>
+            <configuredCapabilities>
+                <!-- MID-9765 -->
+                <cap:activation>
+                    <cap:status>
+                        <cap:attribute>ri:ds-pwp-account-disabled</cap:attribute>
+                        <cap:enableValue/>
+                        <cap:disableValue>true</cap:disableValue>
+                    </cap:status>
+                    <cap:lockoutStatus>
+                        <!-- This is fake. But OpenDJ lockout attribute is not modifiable using normal LDAP operations. -->
+                        <cap:attribute>ri:pager</cap:attribute>
+                        <cap:normalValue/>
+                        <cap:lockedValue>1</cap:lockedValue>
+                    </cap:lockoutStatus>
+                </cap:activation>
+                <cap:pagedSearch>
+                    <cap:defaultSortField>ri:uid</cap:defaultSortField>
+                </cap:pagedSearch>
+            </configuredCapabilities>
+        </objectType>
+
+        <objectType>
+            <kind>entitlement</kind>
+            <intent>ldapGroup-1</intent>
+            <default>true</default> <!-- one must be default -->
+            <displayName>LDAP Group</displayName>
+            <delineation>
+                <objectClass>ri:groupOfUniqueNames</objectClass>
+                <baseContext>
+                    <objectClass>ri:organizationalUnit</objectClass>
+                    <filter>
+                        <q:text>attributes/dn = "ou=groups,dc=example,dc=com"</q:text>
+                    </filter>
+                </baseContext>
+            </delineation>
+            <attribute>
+                <ref>ri:entryUUID</ref>
+                <matchingRule>mr:stringIgnoreCase</matchingRule>
+            </attribute>
+            <attribute>
+                <ref>ri:dn</ref>
+                <matchingRule>mr:distinguishedName</matchingRule>
+                <outbound>
+                    <source>
+                        <path>name</path>
+                    </source>
+                    <expression>
+                        <script>
+                            <code>'hi-1'</code>
+                        </script>
+                    </expression>
+                </outbound>
+            </attribute>
+            <attribute>
+                <ref>ri:uniqueMember</ref>
+                <matchingRule>mr:distinguishedName</matchingRule>
+                <fetchStrategy>minimal</fetchStrategy>
+            </attribute>
+        </objectType>
+
+        <objectType>
+            <kind>entitlement</kind>
+            <intent>ldapGroup-2</intent>
+            <delineation>
+                <objectClass>ri:groupOfUniqueNames</objectClass>
+                <baseContext>
+                    <objectClass>ri:organizationalUnit</objectClass>
+                    <filter>
+                        <q:text>attributes/dn = "ou=groups-2,dc=example,dc=com"</q:text>
+                    </filter>
+                </baseContext>
+            </delineation>
+            <attribute>
+                <ref>ri:entryUUID</ref>
+                <matchingRule>mr:stringIgnoreCase</matchingRule>
+            </attribute>
+            <attribute>
+                <ref>ri:dn</ref>
+                <matchingRule>mr:distinguishedName</matchingRule>
+                <outbound>
+                    <source>
+                        <path>name</path>
+                    </source>
+                    <expression>
+                        <script>
+                            <code>'hi-2'</code>
+                        </script>
+                    </expression>
+                </outbound>
+            </attribute>
+            <attribute>
+                <ref>ri:uniqueMember</ref>
+                <matchingRule>mr:distinguishedName</matchingRule>
+                <fetchStrategy>minimal</fetchStrategy>
+            </attribute>
+        </objectType>
+
+        <objectType>
+            <kind>entitlement</kind>
+            <intent>ldapGroup-3</intent>
+            <delineation>
+                <objectClass>ri:groupOfUniqueNames</objectClass>
+                <baseContext>
+                    <objectClass>ri:organizationalUnit</objectClass>
+                    <filter>
+                        <q:text>attributes/dn = "ou=groups-3,dc=example,dc=com"</q:text>
+                    </filter>
+                </baseContext>
+            </delineation>
+            <attribute>
+                <ref>ri:entryUUID</ref>
+                <matchingRule>mr:stringIgnoreCase</matchingRule>
+            </attribute>
+            <attribute>
+                <ref>ri:dn</ref>
+                <matchingRule>mr:distinguishedName</matchingRule>
+                <outbound>
+                    <source>
+                        <path>name</path>
+                    </source>
+                    <expression>
+                        <script>
+                            <code>'hi-3'</code>
+                        </script>
+                    </expression>
+                </outbound>
+            </attribute>
+            <attribute>
+                <ref>ri:uniqueMember</ref>
+                <matchingRule>mr:distinguishedName</matchingRule>
+                <fetchStrategy>minimal</fetchStrategy>
+            </attribute>
+        </objectType>
+
+        <objectType>
+            <kind>entitlement</kind>
+            <intent>ldapGroup-4</intent>
+            <delineation>
+                <objectClass>ri:groupOfUniqueNames</objectClass>
+                <baseContext>
+                    <objectClass>ri:organizationalUnit</objectClass>
+                    <filter>
+                        <q:text>attributes/dn = "ou=groups-4,dc=example,dc=com"</q:text>
+                    </filter>
+                </baseContext>
+            </delineation>
+            <attribute>
+                <ref>ri:entryUUID</ref>
+                <matchingRule>mr:stringIgnoreCase</matchingRule>
+            </attribute>
+            <attribute>
+                <ref>ri:dn</ref>
+                <matchingRule>mr:distinguishedName</matchingRule>
+                <outbound>
+                    <source>
+                        <path>name</path>
+                    </source>
+                    <expression>
+                        <script>
+                            <code>'hi-4'</code>
+                        </script>
+                    </expression>
+                </outbound>
+            </attribute>
+            <attribute>
+                <ref>ri:uniqueMember</ref>
+                <matchingRule>mr:distinguishedName</matchingRule>
+                <fetchStrategy>minimal</fetchStrategy>
+            </attribute>
+        </objectType>
+
+        <objectType>
+            <kind>entitlement</kind>
+            <intent>ldapGroup-5</intent>
+            <delineation>
+                <objectClass>ri:groupOfUniqueNames</objectClass>
+                <baseContext>
+                    <objectClass>ri:organizationalUnit</objectClass>
+                    <filter>
+                        <q:text>attributes/dn = "ou=groups-5,dc=example,dc=com"</q:text>
+                    </filter>
+                </baseContext>
+            </delineation>
+            <attribute>
+                <ref>ri:entryUUID</ref>
+                <matchingRule>mr:stringIgnoreCase</matchingRule>
+            </attribute>
+            <attribute>
+                <ref>ri:dn</ref>
+                <matchingRule>mr:distinguishedName</matchingRule>
+                <outbound>
+                    <source>
+                        <path>name</path>
+                    </source>
+                    <expression>
+                        <script>
+                            <code>'hi-5'</code>
+                        </script>
+                    </expression>
+                </outbound>
+            </attribute>
+            <attribute>
+                <ref>ri:uniqueMember</ref>
+                <matchingRule>mr:distinguishedName</matchingRule>
+                <fetchStrategy>minimal</fetchStrategy>
+            </attribute>
+        </objectType>
+
+        <objectType>
+            <kind>entitlement</kind>
+            <intent>ldapGroup-6</intent>
+            <delineation>
+                <objectClass>ri:groupOfUniqueNames</objectClass>
+                <baseContext>
+                    <objectClass>ri:organizationalUnit</objectClass>
+                    <filter>
+                        <q:text>attributes/dn = "ou=groups-6,dc=example,dc=com"</q:text>
+                    </filter>
+                </baseContext>
+            </delineation>
+            <attribute>
+                <ref>ri:entryUUID</ref>
+                <matchingRule>mr:stringIgnoreCase</matchingRule>
+            </attribute>
+            <attribute>
+                <ref>ri:dn</ref>
+                <matchingRule>mr:distinguishedName</matchingRule>
+                <outbound>
+                    <source>
+                        <path>name</path>
+                    </source>
+                    <expression>
+                        <script>
+                            <code>'hi-6'</code>
+                        </script>
+                    </expression>
+                </outbound>
+            </attribute>
+            <attribute>
+                <ref>ri:uniqueMember</ref>
+                <matchingRule>mr:distinguishedName</matchingRule>
+                <fetchStrategy>minimal</fetchStrategy>
+            </attribute>
+        </objectType>
+
+        <objectType>
+            <kind>entitlement</kind>
+            <intent>ldapGroup-7</intent>
+            <delineation>
+                <objectClass>ri:groupOfUniqueNames</objectClass>
+                <baseContext>
+                    <objectClass>ri:organizationalUnit</objectClass>
+                    <filter>
+                        <q:text>attributes/dn = "ou=groups-7,dc=example,dc=com"</q:text>
+                    </filter>
+                </baseContext>
+            </delineation>
+            <attribute>
+                <ref>ri:entryUUID</ref>
+                <matchingRule>mr:stringIgnoreCase</matchingRule>
+            </attribute>
+            <attribute>
+                <ref>ri:dn</ref>
+                <matchingRule>mr:distinguishedName</matchingRule>
+                <outbound>
+                    <source>
+                        <path>name</path>
+                    </source>
+                    <expression>
+                        <script>
+                            <code>'hi-7'</code>
+                        </script>
+                    </expression>
+                </outbound>
+            </attribute>
+            <attribute>
+                <ref>ri:uniqueMember</ref>
+                <matchingRule>mr:distinguishedName</matchingRule>
+                <fetchStrategy>minimal</fetchStrategy>
+            </attribute>
+        </objectType>
+
+        <objectType>
+            <!-- OrganizationUnit with base context pointing to organizationUnit.
+                 Make sure this won't end up in an endless loop. -->
+            <kind>generic</kind>
+            <intent>ou-people</intent>
+            <displayName>Organizational Unit</displayName>
+            <delineation>
+                <objectClass>ri:organizationalUnit</objectClass>
+                <baseContext>
+                    <objectClass>ri:organizationalUnit</objectClass>
+                    <filter>
+                        <q:text>attributes/dn = "ou=People,dc=example,dc=com"</q:text>
+                    </filter>
+                </baseContext>
+            </delineation>
+            <attribute>
+                <ref>ri:entryUUID</ref>
+                <matchingRule>mr:stringIgnoreCase</matchingRule>
+            </attribute>
+            <attribute>
+                <ref>ri:dn</ref>
+                <matchingRule>mr:distinguishedName</matchingRule>
+            </attribute>
+        </objectType>
+
+        <objectType>
+            <kind>generic</kind>
+            <intent>ou</intent>
+            <displayName>Organizational Unit</displayName>
+            <objectClass>ri:organizationalUnit</objectClass>
+            <attribute>
+                <ref>ri:entryUUID</ref>
+                <matchingRule>mr:stringIgnoreCase</matchingRule>
+            </attribute>
+            <attribute>
+                <ref>ri:dn</ref>
+                <matchingRule>mr:distinguishedName</matchingRule>
+            </attribute>
+        </objectType>
+
+    </schemaHandling>
+
+    <capabilities>
+        <configured>
+            <cap:create/>
+            <cap:read/>
+            <cap:update>
+                <cap:delta>true</cap:delta>
+            </cap:update>
+            <cap:delete/>
+            <cap:countObjects>
+                <cap:simulate>pagedSearchEstimate</cap:simulate>
+            </cap:countObjects>
+        </configured>
+    </capabilities>
+
+</resource>
