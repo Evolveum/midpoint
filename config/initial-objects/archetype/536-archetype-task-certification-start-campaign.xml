@@ -27,8 +27,8 @@
                     <panel id="2">
                         <identifier>work</identifier>
                         <container id="3">
-                            <identifier>certificationOpenNextStage</identifier>
-                            <path>activity/work/certificationOpenNextStage</path>
+                            <identifier>certificationStartCampaign</identifier>
+                            <path>activity/work/certificationStartCampaign</path>
                         </container>
                     </panel>
                 </panel>
