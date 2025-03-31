@@ -12,7 +12,12 @@ import java.util.List;
 import java.util.Set;
 import java.util.function.Consumer;
 
+import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.query.ObjectPaging;
+
+import com.evolveum.midpoint.util.exception.*;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthorizationPhaseType;
 
 import org.apache.wicket.Component;
 import org.apache.wicket.model.IModel;
@@ -28,7 +33,6 @@ import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
@@ -44,8 +48,6 @@ public class SelectableBeanObjectDataProvider<O extends ObjectType> extends Sele
 
     private static final Trace LOGGER = TraceManager.getTrace(SelectableBeanObjectDataProvider.class);
 
-    private boolean isMemberPanel = false;
-
     private Consumer<Task> taskConsumer;
 
     public SelectableBeanObjectDataProvider(Component component, IModel<Search<O>> search, Set<O> selected) {
@@ -57,6 +59,18 @@ public class SelectableBeanObjectDataProvider<O extends ObjectType> extends Sele
     }
 
     public SelectableBean<O> createDataObjectWrapper(O obj) {
+
+        try {
+            PageBase pageBase = getPageBase();
+            Task task = pageBase.createSimpleTask("edit object definition");
+            AuthorizationPhaseType phase = AuthorizationPhaseType.REQUEST;
+            PrismObjectDefinition<O> objectDef = (PrismObjectDefinition<O>) getModelInteractionService().getEditObjectDefinition(obj.asPrismObject(), phase, task, task.getResult());
+            ((PrismObject<O>)obj.asPrismObject()).applyDefinition(objectDef);
+        } catch (SchemaException | ConfigurationException | ObjectNotFoundException | ExpressionEvaluationException
+                | CommunicationException | SecurityViolationException e) {
+            LOGGER.error("Exception for edit object definition: {}", e.getMessage(), e);
+        }
+
         SelectableObjectModel<O> model = new SelectableObjectModel<O>(obj, getSearchOptions()) {
             @Override
             protected O load() {
@@ -92,14 +106,6 @@ public class SelectableBeanObjectDataProvider<O extends ObjectType> extends Sele
             Task task, OperationResult result) throws CommonException {
         return getModelService().countObjects(
                 type, getQuery(), currentOptions, task, result);
-    }
-
-    protected boolean isMemberPanel() {
-        return isMemberPanel;
-    }
-
-    public void setIsMemberPanel(boolean isMemberPanel) {
-        this.isMemberPanel = isMemberPanel;
     }
 
     @Override

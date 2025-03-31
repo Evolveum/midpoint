@@ -30,12 +30,9 @@ import org.apache.wicket.model.IModel;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
-import com.evolveum.midpoint.schema.GetOperationOptions;
-import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -57,7 +54,6 @@ public class ConfigurableExpressionColumn<S extends SelectableRow<T>, T extends 
 
     private static final String DOT_CLASS = ConfigurableExpressionColumn.class.getName() + ".";
     protected static final String OPERATION_EVALUATE_EXPRESSION = DOT_CLASS + "evaluateColumnExpression";
-    private static final String OPERATION_LOAD_LOOKUP_TABLE = DOT_CLASS + "loadLookupTable";
 
     private final GuiObjectColumnType customColumn;
     private final ExpressionType expression;
@@ -295,30 +291,10 @@ public class ConfigurableExpressionColumn<S extends SelectableRow<T>, T extends 
     }
 
     private PrismObject<LookupTableType> loadLookupTable(com.evolveum.midpoint.prism.Item<?, ?> item) {
-        String lookupTableOid = getValueEnumerationRefOid(item);
-        if (lookupTableOid == null) {
-            return null;
-        }
-        Task task = getPageBase().createSimpleTask(OPERATION_LOAD_LOOKUP_TABLE);
-        OperationResult result = task.getResult();
-
-        Collection<SelectorOptions<GetOperationOptions>> options = WebModelServiceUtils
-                .createLookupTableRetrieveOptions(getPageBase().getSchemaService());
-        return WebModelServiceUtils.loadObject(LookupTableType.class,
-                lookupTableOid, options, getPageBase(), task, result);
-    }
-
-    private String getValueEnumerationRefOid(com.evolveum.midpoint.prism.Item<?, ?> item) {
         ItemDefinition<?> def = item.getDefinition();
         if (def == null) {
             return null;
         }
-
-        PrismReferenceValue valueEnumerationRef = def.getValueEnumerationRef();
-        if (valueEnumerationRef == null) {
-            return null;
-        }
-
-        return valueEnumerationRef.getOid();
+        return WebComponentUtil.findLookupTable(def, getPageBase());
     }
 }
