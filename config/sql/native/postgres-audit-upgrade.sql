@@ -158,6 +158,11 @@ call apply_audit_change(9, $aa$
 ALTER TYPE ObjectType ADD VALUE IF NOT EXISTS 'POLICY' AFTER 'ORG';
 $aa$);
 
+--- Schema Type
+call apply_audit_change(10, $aa$
+ALTER TYPE ObjectType ADD VALUE IF NOT EXISTS 'SCHEMA' AFTER 'ROLE_ANALYSIS_OUTLIER';
+$aa$);
+
 -- WRITE CHANGES ABOVE ^^
 
 -- IMPORTANT: update apply_audit_change number at the end of postgres-audit.sql
