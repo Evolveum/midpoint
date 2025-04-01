@@ -172,7 +172,13 @@ public final class VisualizationBasedDeltaFormatter implements DeltaFormatter {
 
     private static String concatenateNonEmptyStrings(String joiner, String... values) {
         if (values.length == 2) {
-            return values[0].isEmpty() ? values[1] : values[0] + joiner + values[1];
+            if (!values[0].isEmpty() && !values[1].isEmpty()) {
+                return values[0] + joiner + values[1];
+            } else if (values[0].isEmpty())  {
+                return values[1];
+            } else {
+                return values[0];
+            }
         }
         return Stream.of(values)
                 .filter(Predicate.not(String::isEmpty))

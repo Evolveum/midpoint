@@ -152,7 +152,8 @@ public class VisualizationBasedDeltaFormatterTest extends AbstractIntegrationTes
         final String expectedDeltaFormat = """
                 Add User "Rudy":
                 |\tName: Rudy
-                |\tFamily name: Moric""";
+                |\tFamily name: Moric
+                |\tAdd "Activation\"""";
         Assertions.assertThat(formattedDelta).isEqualTo(expectedDeltaFormat);
     }
 
@@ -212,7 +213,7 @@ public class VisualizationBasedDeltaFormatterTest extends AbstractIntegrationTes
         final String expectedDeltaFormat = """
                 Add User "Rudy":
                 |\tName: Rudy
-                |\tAdd Activation:
+                |\tAdd "Activation":
                 |\t|\tLock-out Status: %s""".formatted(StringUtils.capitalize(LockoutStatusType.NORMAL.value()));
         Assertions.assertThat(formattedDelta).isEqualTo(expectedDeltaFormat);
     }
@@ -226,7 +227,7 @@ public class VisualizationBasedDeltaFormatterTest extends AbstractIntegrationTes
 
         final ActivationType assignmentActivation = new ActivationType();
         final XMLGregorianCalendar activationDate = TestUtil.currentTime();
-        assignmentActivation.validFrom(activationDate);
+        assignmentActivation.administrativeStatus(ActivationStatusType.ENABLED);
         final ActivationType userActivation = new ActivationType();
         userActivation.lockoutStatus(LockoutStatusType.NORMAL);
         final UserType user = createUserRudy();
@@ -243,12 +244,13 @@ public class VisualizationBasedDeltaFormatterTest extends AbstractIntegrationTes
         final String expectedDeltaFormat = """
                 Add User "Rudy":
                 |\tName: Rudy
-                |\tAdd Activation:
+                |\tAdd "Activation":
                 |\t|\tLock-out Status: %s
                 |\tRole "Accounting" assigned:
-                |\t|\tAdd Activation:
-                |\t|\t|\tValid from: %s"""
-                .formatted(StringUtils.capitalize(LockoutStatusType.NORMAL.value()), activationDate);
+                |\t|\tTarget: Accounting
+                |\t|\tAdd "Activation":
+                |\t|\t|\tAdministrative status: Enabled"""
+                .formatted(StringUtils.capitalize(LockoutStatusType.NORMAL.value()));
         Assertions.assertThat(formattedDelta).isEqualTo(expectedDeltaFormat);
     }
 
@@ -276,6 +278,7 @@ public class VisualizationBasedDeltaFormatterTest extends AbstractIntegrationTes
         final String expectedDeltaFormat = """
                 User "Rudy" has been modified:
                 |\tRole "Accounting" unassigned:
+                |\t|\tTarget: Accounting
                 |\t|\tDelete "Activation\"""";
         Assertions.assertThat(formattedDelta).isEqualTo(expectedDeltaFormat);
     }
@@ -292,7 +295,7 @@ public class VisualizationBasedDeltaFormatterTest extends AbstractIntegrationTes
         final XMLGregorianCalendar validFrom = TestUtil.currentTime();
         oldUser.beginAssignment()
                 .targetRef(role.getOid(), RoleType.COMPLEX_TYPE)
-                .activation(new ActivationType().validFrom(validFrom))
+                .activation(new ActivationType().administrativeStatus(ActivationStatusType.ENABLED))
                 .end();
         repoAddObject(oldUser);
 
@@ -305,8 +308,9 @@ public class VisualizationBasedDeltaFormatterTest extends AbstractIntegrationTes
         final String expectedDeltaFormat = """
                 User "Rudy" has been modified:
                 |\tRole "Accounting" unassigned:
-                |\t|\tDelete Activation:
-                |\t|\t|\tValid from: %s""".formatted(validFrom);
+                |\t|\tTarget: Accounting
+                |\t|\tDelete "Activation":
+                |\t|\t|\tAdministrative status: Enabled""";
         Assertions.assertThat(formattedDelta).isEqualTo(expectedDeltaFormat);
     }
 
@@ -415,7 +419,7 @@ public class VisualizationBasedDeltaFormatterTest extends AbstractIntegrationTes
                 |\t|\tResource: HR System
                 |\t|\tKind: Account
                 |\t|\tIntent: HR Account
-                |\tattributes has been modified:
+                |\t"attributes" has been modified:
                 |\t|\tAdded properties:
                 |\t|\t|\tdescription: HR""";
         Assertions.assertThat(formattedDelta).isEqualTo(expectedDeltaFormat);
@@ -535,7 +539,7 @@ public class VisualizationBasedDeltaFormatterTest extends AbstractIntegrationTes
         final ObjectDelta<Objectable> userDelta = this.prismContext.deltaFor(UserType.class)
         .item(UserType.F_GIVEN_NAME).add("Ferdo")
         .item(InfraItemName.METADATA, new IdItemPathSegment(0L), ValueMetadataType.F_STORAGE,
-                StorageMetadataType.F_MODIFY_TIMESTAMP).add(now)
+                StorageMetadataType.F_CREATE_CHANNEL).add("http://example.com")
         .asObjectDelta(userRudy.getOid());
 
         final Visualization visualization = createVisualization(userDelta, false, Collections.emptyList());
@@ -546,8 +550,8 @@ public class VisualizationBasedDeltaFormatterTest extends AbstractIntegrationTes
                 |\tAdded properties:
                 |\t|\tGiven name: Ferdo
                 |\t"@metadata/[0]/storage" has been modified:
-                |\t|\tModified at: %s"""
-                .formatted(now.toXMLFormat());
+                |\t|\tAdded properties:
+                |\t|\t|\tCreation channel: http://example.com""";
         Assertions.assertThat(formattedDelta).isEqualTo(expectedDeltaFormat);
     }
 
