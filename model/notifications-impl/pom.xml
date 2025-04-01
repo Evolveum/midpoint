@@ -217,6 +217,7 @@
             <groupId>com.evolveum.icf</groupId>
             <artifactId>dummy-connector</artifactId>
             <version>${project.version}</version>
+            <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>jakarta.servlet</groupId>

@@ -107,18 +107,20 @@ public class VisualizationPanel extends BasePanel<VisualizationDto> {
                 return null;
             }
 
-            LocalizableMessage msg = visualization.getName().getOverview();
-            String translated = msg != null ? LocalizationUtil.translateMessage(msg) : null;
-            if (translated == null) {
-                return null;
+            if (visualization.getName().getOverview() != null) {
+                LocalizableMessage msg = visualization.getName().getOverview();
+                String translated = msg != null ? LocalizationUtil.translateMessage(msg) : null;
+                if (translated == null) {
+                    return null;
+                }
+                // only allow <b>XXX</b> to be unescaped to allow some form of highlighting
+                translated = Strings.escapeMarkup(translated).toString();
+                translated = translated.replaceAll("&lt;b&gt;", "<b>");
+                translated = translated.replaceAll("&lt;/b&gt;", "</b>");
+
+                return translated;
             }
-
-            // only allow <b>XXX</b> to be unescaped to allow some form of highlighting
-            translated = Strings.escapeMarkup(translated).toString();
-            translated = translated.replaceAll("&lt;b&gt;", "<b>");
-            translated = translated.replaceAll("&lt;/b&gt;", "</b>");
-
-            return translated;
+            return null;
         };
     }
 

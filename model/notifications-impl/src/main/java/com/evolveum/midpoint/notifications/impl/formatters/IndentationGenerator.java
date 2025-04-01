@@ -2,7 +2,7 @@ package com.evolveum.midpoint.notifications.impl.formatters;
 
 import org.apache.commons.lang3.Validate;
 
-public class IndentationGenerator {
+public final class IndentationGenerator {
     private final String indentation;
 
     public IndentationGenerator(String indentationPrefix, String indentationCharacter) {

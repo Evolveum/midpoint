@@ -7,7 +7,7 @@ import com.evolveum.midpoint.common.LocalizationService;
 import com.evolveum.midpoint.model.api.visualizer.Name;
 import com.evolveum.midpoint.model.api.visualizer.VisualizationItemValue;
 
-public class PropertyFormatter {
+public final class PropertyFormatter {
 
     private final LocalizationService localizationService;
     private final String singleValuePrefix;
@@ -26,7 +26,6 @@ public class PropertyFormatter {
         } else if (itemName.getSimpleName() != null) {
             return this.localizationService.translate(itemName.getSimpleName());
         }
-        // TODO translate
         return "Unknown";
     }
 

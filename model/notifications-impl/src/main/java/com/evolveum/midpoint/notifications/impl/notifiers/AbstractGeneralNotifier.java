@@ -13,10 +13,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
 
-import com.evolveum.midpoint.notifications.api.EventProcessingContext;
-import com.evolveum.midpoint.schema.config.ConfigurationItem;
-import com.evolveum.midpoint.schema.config.ConfigurationItemOrigin;
-
 import com.google.common.base.Strings;
 import org.apache.commons.collections4.CollectionUtils;
 import org.jetbrains.annotations.NotNull;
@@ -25,6 +21,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.common.LocalizationService;
+import com.evolveum.midpoint.notifications.api.EventProcessingContext;
 import com.evolveum.midpoint.notifications.api.NotificationManager;
 import com.evolveum.midpoint.notifications.api.events.Event;
 import com.evolveum.midpoint.notifications.api.events.SimpleObjectRef;
@@ -32,7 +29,6 @@ import com.evolveum.midpoint.notifications.api.transports.Message;
 import com.evolveum.midpoint.notifications.api.transports.Transport;
 import com.evolveum.midpoint.notifications.api.transports.TransportService;
 import com.evolveum.midpoint.notifications.impl.NotificationFunctions;
-import com.evolveum.midpoint.notifications.impl.formatters.TextFormatter;
 import com.evolveum.midpoint.notifications.impl.formatters.ValueFormatter;
 import com.evolveum.midpoint.notifications.impl.handlers.AggregatedEventHandler;
 import com.evolveum.midpoint.notifications.impl.handlers.BaseHandler;
@@ -40,6 +36,8 @@ import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.repo.common.SystemObjectCache;
 import com.evolveum.midpoint.repo.common.subscription.SubscriptionUtil;
+import com.evolveum.midpoint.schema.config.ConfigurationItem;
+import com.evolveum.midpoint.schema.config.ConfigurationItemOrigin;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -67,7 +65,6 @@ public abstract class AbstractGeneralNotifier<E extends Event, N extends General
 
     @Autowired protected NotificationManager notificationManager;
     @Autowired protected NotificationFunctions functions;
-    @Autowired protected TextFormatter textFormatter;
     @Autowired protected ValueFormatter valueFormatter;
     @Autowired protected AggregatedEventHandler aggregatedEventHandler;
     @Autowired protected TransportService transportService;

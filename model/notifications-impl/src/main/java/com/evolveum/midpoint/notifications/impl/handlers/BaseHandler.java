@@ -23,9 +23,7 @@ import com.evolveum.midpoint.notifications.api.EventProcessingContext;
 import com.evolveum.midpoint.notifications.api.events.Event;
 import com.evolveum.midpoint.notifications.api.events.ModelEvent;
 import com.evolveum.midpoint.notifications.impl.EventHandlerRegistry;
-import com.evolveum.midpoint.notifications.impl.NotificationFunctions;
 import com.evolveum.midpoint.notifications.impl.NotificationManagerImpl;
-import com.evolveum.midpoint.notifications.impl.formatters.TextFormatter;
 import com.evolveum.midpoint.notifications.impl.helpers.NotificationExpressionHelper;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
@@ -35,8 +33,7 @@ import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.BaseEventHandlerType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /** Common superclass for all event handlers. */
 @Component
@@ -45,10 +42,8 @@ public abstract class BaseHandler<E extends Event, C extends BaseEventHandlerTyp
     private static final Trace LOGGER = TraceManager.getTrace(BaseHandler.class);
 
     @Autowired protected NotificationManagerImpl notificationManager;
-    @Autowired protected NotificationFunctions notificationsUtil;
     @Autowired protected PrismContext prismContext;
     @Autowired protected ExpressionFactory expressionFactory;
-    @Autowired protected TextFormatter textFormatter;
     @Autowired protected NotificationExpressionHelper expressionHelper;
     @Autowired protected EventHandlerRegistry eventHandlerRegistry;
 

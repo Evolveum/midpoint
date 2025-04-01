@@ -19,7 +19,7 @@ import com.evolveum.midpoint.model.api.visualizer.localization.LocalizationParts
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 
-public class VisualizationBasedDeltaFormatter implements IDeltaFormatter {
+public final class VisualizationBasedDeltaFormatter implements DeltaFormatter {
     private final PropertiesFormatter<VisualizationItem> propertiesFormatter;
     private final PropertiesFormatter<VisualizationItem> additionalIdentificationFormatter;
     private final PropertiesFormatter<VisualizationDeltaItem> containerPropertiesModificationFormatter;
@@ -118,7 +118,6 @@ public class VisualizationBasedDeltaFormatter implements IDeltaFormatter {
         final String objectName = encloseIfNotEmpty(getObjectName(visualization.getName()), "\"", "\"");
         final String objectType = getObjectType(visualization);
 
-        // TODO translate the "has been modified" suffix.
         return concatenateNonEmptyStrings(" ", objectType, objectName, "has been modified");
     }
 

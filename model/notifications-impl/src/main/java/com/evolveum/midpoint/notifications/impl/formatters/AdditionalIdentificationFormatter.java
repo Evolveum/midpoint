@@ -6,7 +6,7 @@ import java.util.function.Function;
 import com.evolveum.midpoint.model.api.visualizer.VisualizationItem;
 import com.evolveum.midpoint.model.api.visualizer.VisualizationItemValue;
 
-public class AdditionalIdentificationFormatter implements PropertiesFormatter<VisualizationItem> {
+public final class AdditionalIdentificationFormatter implements PropertiesFormatter<VisualizationItem> {
     private final PropertiesFormatter<VisualizationItem> propertiesFormatter;
     private final IndentationGenerator indentationGenerator;
 
