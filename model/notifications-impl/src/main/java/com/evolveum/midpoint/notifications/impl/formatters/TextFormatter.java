@@ -10,21 +10,31 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
-import com.evolveum.midpoint.prism.path.InfraItemName;
-import com.evolveum.midpoint.prism.path.ItemPathCollectionsUtil;
+import javax.xml.namespace.QName;
 
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import com.evolveum.midpoint.model.api.expr.MidpointFunctions;
+import com.evolveum.midpoint.model.api.visualizer.Visualization;
+import com.evolveum.midpoint.model.impl.visualizer.VisualizationContext;
+import com.evolveum.midpoint.model.impl.visualizer.Visualizer;
 import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.path.InfraItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
+import com.evolveum.midpoint.prism.path.ItemPathCollectionsUtil;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.DebugUtil;
+import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
  * Prepares text output for notification purposes.
@@ -35,6 +45,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 @Component
 public class TextFormatter {
 
+    private static final Trace LOGGER = TraceManager.getTrace(TextFormatter.class);
     private static final List<ItemPath> SYNCHRONIZATION_PATHS = List.of(
             ShadowType.F_SYNCHRONIZATION_SITUATION,
             ShadowType.F_SYNCHRONIZATION_SITUATION_DESCRIPTION,
@@ -55,56 +66,104 @@ public class TextFormatter {
             FocusType.F_LINK_REF,
             ShadowType.F_TRIGGER);
 
-    @Autowired ValueFormatter valueFormatter;
-    @Autowired DeltaFormatter deltaFormatter;
-
-    static boolean isAmongHiddenPaths(ItemPath path, Collection<ItemPath> hiddenPaths) {
-        return hiddenPaths != null
-                && ItemPathCollectionsUtil.containsSubpathOrEquivalent(hiddenPaths, path);
-    }
+    @Autowired
+    ValueFormatter valueFormatter;
+    @Autowired
+    DeltaFormatter deltaFormatter;
+    @Autowired
+    private Visualizer visualizer;
+    @Autowired
+    private MidpointFunctions midpointFunctions;
 
     public String formatShadowAttributes(ShadowType shadowType, boolean showSynchronizationItems, boolean showAuxiliaryItems) {
-        Collection<ItemPath> hiddenAttributes = getHiddenPaths(showSynchronizationItems, showAuxiliaryItems);
+        final Collection<ItemPath> hiddenAttributes = getHiddenPaths(showSynchronizationItems, showAuxiliaryItems);
+        // FIXME change this to delta formatter, however firstly check how is the `formatAccountAttributes` special
+        //  that it is separate from `formatObject`
         return valueFormatter.formatAccountAttributes(shadowType, hiddenAttributes, showAuxiliaryItems);
     }
 
-    private Collection<ItemPath> getHiddenPaths(boolean showSynchronizationItems, boolean showAuxiliaryAttributes) {
-        List<ItemPath> hiddenPaths = new ArrayList<>();
-        if (!showSynchronizationItems) {
-            hiddenPaths.addAll(TextFormatter.SYNCHRONIZATION_PATHS);
-        }
-        if (!showAuxiliaryAttributes) {
-            hiddenPaths.addAll(TextFormatter.AUXILIARY_PATHS);
-        }
-        return hiddenPaths;
-    }
-
-    public String formatObject(PrismObject<?> object, boolean showSynchronizationAttributes, boolean showAuxiliaryAttributes) {
-        Collection<ItemPath> hiddenPaths = getHiddenPaths(showSynchronizationAttributes, showAuxiliaryAttributes);
-        return formatObject(object, hiddenPaths, showAuxiliaryAttributes);
-    }
-
-    public String formatObject(PrismObject<?> object, Collection<ItemPath> hiddenPaths, boolean showOperationalAttributes) {
-        return valueFormatter.formatObject(object, hiddenPaths, showOperationalAttributes);
-    }
-
-    @SuppressWarnings("unused")
-    public String formatObjectModificationDelta(ObjectDelta<? extends Objectable> objectDelta, List<ItemPath> hiddenPaths,
+    /**
+     * Intended for use by scripts
+     */
+    public String formatObject(PrismObject<?> object, boolean showSynchronizationAttributes,
             boolean showOperationalAttributes) {
-        return deltaFormatter.formatObjectModificationDelta(objectDelta, hiddenPaths, showOperationalAttributes, null, null);
+        final Task currentTask = this.midpointFunctions.getCurrentTask();
+        return formatObject(object, showSynchronizationAttributes, showOperationalAttributes, currentTask,
+                currentTask.getResult());
+    }
+
+    public String formatObject(PrismObject<?> object, boolean showSynchronizationAttributes,
+            boolean showOperationalAttributes, Task task, OperationResult result) {
+        final Collection<ItemPath> hiddenPaths = getHiddenPaths(showSynchronizationAttributes,
+                showOperationalAttributes);
+        return formatObject(object, hiddenPaths, showOperationalAttributes, task, result);
+    }
+
+    /**
+     * Intended for use by scripts
+     */
+    public String formatObject(PrismObject<?> object, Collection<ItemPath> hiddenPaths,
+            boolean showOperationalAttributes) {
+        final Task task = this.midpointFunctions.getCurrentTask();
+        return formatObject(object, hiddenPaths, showOperationalAttributes, task, task.getResult());
+    }
+
+    public String formatObject(PrismObject<?> object, Collection<ItemPath> hiddenPaths,
+            boolean showOperationalAttributes, Task task, OperationResult result) {
+        final Visualization visualization = createVisualization(object, showOperationalAttributes, hiddenPaths, task,
+                result);
+        return deltaFormatter.formatVisualization(visualization);
+    }
+
+    /**
+     * Intended for use by scripts
+     */
+    @SuppressWarnings("unused")
+    public String formatObjectModificationDelta(ObjectDelta<? extends Objectable> objectDelta,
+            List<ItemPath> hiddenPaths, boolean showOperationalAttributes) {
+        final Task task = this.midpointFunctions.getCurrentTask();
+        return formatObjectModificationDelta(objectDelta, true, showOperationalAttributes, task, task.getResult());
+    }
+
+    /**
+     * Intended for use by scripts
+     */
+    public String formatObjectModificationDelta(
+            @NotNull ObjectDelta<? extends Objectable> objectDelta, boolean showSynchronizationAttributes,
+            boolean showOperationalAttributes, PrismObject<?> objectOld, PrismObject<?> objectNew) {
+        final Task task = this.midpointFunctions.getCurrentTask();
+        return formatObjectModificationDelta(objectDelta, showSynchronizationAttributes, showOperationalAttributes,
+                task, task.getResult());
     }
 
     public String formatObjectModificationDelta(
             @NotNull ObjectDelta<? extends Objectable> objectDelta, boolean showSynchronizationAttributes,
-            boolean showAuxiliaryAttributes, PrismObject<?> objectOld, PrismObject<?> objectNew) {
-        Collection<ItemPath> hiddenPaths = getHiddenPaths(showSynchronizationAttributes, showAuxiliaryAttributes);
-        return formatObjectModificationDelta(objectDelta, hiddenPaths, showAuxiliaryAttributes, objectOld, objectNew);
+            boolean showOperationalAttributes, Task task,
+            OperationResult result) {
+        final Collection<ItemPath> hiddenPaths = getHiddenPaths(showSynchronizationAttributes,
+                showOperationalAttributes);
+        return formatObjectModificationDelta(objectDelta, hiddenPaths, showOperationalAttributes, task, result);
+    }
+
+    /**
+     * Intended for use by scripts
+     */
+    public String formatObjectModificationDelta(
+            @NotNull ObjectDelta<? extends Objectable> objectDelta, Collection<ItemPath> hiddenPaths,
+            boolean showOperationalAttributes, PrismObject<?> objectOld, PrismObject<?> objectNew) {
+        final Task task = this.midpointFunctions.getCurrentTask();
+        return formatObjectModificationDelta(objectDelta, hiddenPaths, showOperationalAttributes, task,
+                task.getResult());
     }
 
     public String formatObjectModificationDelta(
             @NotNull ObjectDelta<? extends Objectable> objectDelta, Collection<ItemPath> hiddenPaths,
-            boolean showOperationalAttributes, PrismObject<?> objectOld, PrismObject<?> objectNew) {
-        return deltaFormatter.formatObjectModificationDelta(objectDelta, hiddenPaths, showOperationalAttributes, objectOld, objectNew);
+            boolean showOperationalAttributes, Task task,
+            OperationResult result) {
+
+        final Visualization visualization = createVisualization(objectDelta, showOperationalAttributes, hiddenPaths,
+                task, result);
+        return deltaFormatter.formatVisualization(visualization);
     }
 
     @SuppressWarnings("BooleanMethodIsAlwaysInverted")
@@ -112,6 +171,93 @@ public class TextFormatter {
             Collection<? extends ItemDelta<?, ?>> modifications,
             boolean showSynchronizationAttributes, boolean showAuxiliaryAttributes) {
         Collection<ItemPath> hiddenPaths = getHiddenPaths(showSynchronizationAttributes, showAuxiliaryAttributes);
-        return deltaFormatter.containsVisibleModifiedItems(modifications, hiddenPaths, showAuxiliaryAttributes);
+        return containsVisibleModifiedItems(modifications, hiddenPaths, showAuxiliaryAttributes);
+    }
+
+    static boolean isAmongHiddenPaths(ItemPath path, Collection<ItemPath> hiddenPaths) {
+        return hiddenPaths != null
+                && ItemPathCollectionsUtil.containsSubpathOrEquivalent(hiddenPaths, path);
+    }
+
+    private Visualization createVisualization(PrismObject<?> object, boolean showOperationalAttributes,
+            Collection<ItemPath> pathsToHide, Task task, OperationResult parentResult) {
+        final VisualizationContext context = createVisualizationContext(showOperationalAttributes, pathsToHide);
+        final PrismObject<? extends ObjectType> objectToVisualize = (PrismObject<? extends ObjectType>) object;
+        try {
+            return  this.visualizer.visualize(objectToVisualize, context, task, parentResult);
+        } catch (SchemaException | ExpressionEvaluationException e) {
+            // TODO log/throw something useful.
+            throw new RuntimeException(e);
+        }
+    }
+
+    private Visualization createVisualization(ObjectDelta<? extends Objectable> delta,
+            boolean showOperationalAttributes, Collection<ItemPath> pathsToHide, Task task,
+            OperationResult parentResult) {
+        ObjectDelta<ObjectType> objectDelta = (ObjectDelta<ObjectType>) delta;
+        final VisualizationContext context = createVisualizationContext(showOperationalAttributes, pathsToHide);
+        try {
+            return  this.visualizer.visualizeDelta(objectDelta, null, context, true, task, parentResult);
+        } catch (SchemaException | ExpressionEvaluationException e) {
+            // TODO log/throw something useful.
+            throw new RuntimeException(e);
+        }
+    }
+
+    private Collection<ItemPath> getHiddenPaths(boolean showSynchronizationItems, boolean showAuxiliaryAttributes) {
+        List<ItemPath> hiddenPaths = new ArrayList<>();
+        if (!showSynchronizationItems) {
+            hiddenPaths.addAll(SYNCHRONIZATION_PATHS);
+        }
+        if (!showAuxiliaryAttributes) {
+            hiddenPaths.addAll(AUXILIARY_PATHS);
+        }
+        return hiddenPaths;
+    }
+
+    private static @NotNull VisualizationContext createVisualizationContext(boolean showOperationalAttributes,
+            Collection<ItemPath> pathsToHide) {
+        final VisualizationContext context = new VisualizationContext();
+        context.setPathsToHide(pathsToHide);
+        context.setIncludeOperationalItems(showOperationalAttributes);
+        context.setIncludeMetadata(showOperationalAttributes);
+        return context;
+    }
+
+    private static @NotNull List<ItemDelta<?, ?>> getVisibleModifications(
+            Collection<? extends ItemDelta<?, ?>> modifications,
+            Collection<ItemPath> hiddenPaths, boolean showOperational, Object context) {
+        List<ItemDelta<?, ?>> toBeDisplayed = new ArrayList<>(modifications.size());
+        List<QName> noDefinition = new ArrayList<>();
+        for (ItemDelta<?, ?> itemDelta : modifications) {
+            if (itemDelta.getDefinition() == null) {
+                noDefinition.add(itemDelta.getElementName());
+                continue;
+            }
+            if (!showOperational && itemDelta.getDefinition().isOperational()) {
+                continue;
+            }
+            if (!showOperational && itemDelta.isMetadataRelated()) {
+                continue;
+            }
+            if (isAmongHiddenPaths(itemDelta.getPath(), hiddenPaths)) {
+                continue;
+            }
+            toBeDisplayed.add(itemDelta);
+        }
+        if (!noDefinition.isEmpty()) {
+            LOGGER.error("Item deltas for {} without definition - WILL NOT BE INCLUDED IN NOTIFICATION. Context:\n{}",
+                    noDefinition, context);
+        }
+        return toBeDisplayed;
+    }
+
+    private static boolean containsVisibleModifiedItems(
+            Collection<? extends ItemDelta<?, ?>> modifications,
+            Collection<ItemPath> hiddenPaths,
+            boolean showOperational) {
+        List<ItemDelta<?, ?>> visibleModifications = getVisibleModifications(
+                modifications, hiddenPaths, showOperational, DebugUtil.debugDumpLazily(modifications));
+        return !visibleModifications.isEmpty();
     }
 }

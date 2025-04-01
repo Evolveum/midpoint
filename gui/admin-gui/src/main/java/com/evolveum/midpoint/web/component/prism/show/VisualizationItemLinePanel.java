@@ -62,10 +62,10 @@ public class VisualizationItemLinePanel extends BasePanel<VisualizationItemLineD
         add(nameCell);
 
         WebMarkupContainer oldValueCell = new WebMarkupContainer(ID_OLD_VALUE_CONTAINER);
-        oldValueCell.add(new VisibleBehaviour(() -> getModelObject().isNullEstimatedOldValues() || getModelObject().isDelta()));
+        oldValueCell.add(new VisibleBehaviour(() -> getModelObject().oldValueIsUnknown() || getModelObject().isDelta()));
 
         Component sivp;
-        if (getModelObject().isNullEstimatedOldValues()) {
+        if (getModelObject().oldValueIsUnknown()) {
             sivp = new Label(ID_OLD_VALUE, createStringResource("SceneItemLinePanel.unknownLabel"));
         } else {
             sivp = new VisualizationItemValuePanel(ID_OLD_VALUE, () -> getModel().getObject().getOldValue());
@@ -78,7 +78,7 @@ public class VisualizationItemLinePanel extends BasePanel<VisualizationItemLineD
         oldValueImagePanel.add(new VisibleBehaviour(
                 () -> {
                     VisualizationItemValue val = getModelObject().getOldValue();
-                    return val != null && val.getSourceValue() != null && !getModelObject().isNullEstimatedOldValues();
+                    return val != null && val.getSourceValue() != null && !getModelObject().oldValueIsUnknown();
                 }));
         oldValueCell.add(oldValueImagePanel);
 
@@ -86,7 +86,7 @@ public class VisualizationItemLinePanel extends BasePanel<VisualizationItemLineD
 
         IModel<String> newValueIconModel;
         IModel<String> newValueTitleModel;
-        if (getModelObject().isNullEstimatedOldValues()) {
+        if (getModelObject().oldValueIsUnknown()) {
             if (getModelObject().isAdd()) {
                 newValueIconModel = Model.of(GuiStyleConstants.CLASS_PLUS_CIRCLE_SUCCESS);
                 newValueTitleModel = createStringResource("SceneItemLinePanel.addedValue");
@@ -116,14 +116,14 @@ public class VisualizationItemLinePanel extends BasePanel<VisualizationItemLineD
 
         WebMarkupContainer newValueCell = new WebMarkupContainer(ID_NEW_VALUE_CONTAINER);
         newValueCell.add(AttributeModifier.replace("colspan",
-                () -> !getModelObject().isDelta() && !getModelObject().isNullEstimatedOldValues() && getModelObject().isDeltaVisualization() ? 2 : 1));
+                () -> !getModelObject().isDelta() && !getModelObject().oldValueIsUnknown() && getModelObject().isDeltaVisualization() ? 2 : 1));
         newValueCell.add(AttributeModifier.replace("align",
-                () -> !getModelObject().isDelta() && !getModelObject().isNullEstimatedOldValues() && getModelObject().isDeltaVisualization() ? "center" : null));
+                () -> !getModelObject().isDelta() && !getModelObject().oldValueIsUnknown() && getModelObject().isDeltaVisualization() ? "center" : null));
 
         WebMarkupContainer newValueSubContainer = new WebMarkupContainer(ID_NEW_VALUE_SUB_CONTAINER);
         newValueSubContainer.add(AttributeModifier.append("class",
                 () -> !getModelObject().isDelta()
-                        && !getModelObject().isNullEstimatedOldValues()
+                        && !getModelObject().oldValueIsUnknown()
                         && getModelObject().isDeltaVisualization()
                         ? "justify-content-center" : null));
         newValueCell.add(newValueSubContainer);

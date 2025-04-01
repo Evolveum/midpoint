@@ -18,7 +18,9 @@ import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDeltaCollectionsUtil;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.ObjectDeltaOperation;
+import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.LightweightIdentifierGenerator;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
@@ -259,17 +261,14 @@ public class ModelEventImpl extends BaseEventImpl implements ModelEvent {
     }
 
     @Override
-    public String getContentAsFormattedList(boolean showAuxiliaryAttributes) {
+    public String getContentAsFormattedList(boolean showAuxiliaryAttributes, Task task, OperationResult result) {
         try {
             ObjectDelta<? extends ObjectType> summarizedDelta = getSummarizedFocusDeltas();
             if (summarizedDelta == null) {
                 return ""; // should not happen
-            } else if (summarizedDelta.isAdd()) {
-                return getTextFormatter().formatObject(summarizedDelta.getObjectToAdd(), false, showAuxiliaryAttributes);
-            } else if (summarizedDelta.isModify()) {
-                ModelElementContext<?> focusContext = modelContext.getFocusContext();
-                return getTextFormatter().formatObjectModificationDelta(summarizedDelta, false, showAuxiliaryAttributes, focusContext.getObjectOld(),
-                        focusContext.getObjectNew());
+            } else if (summarizedDelta.isAdd() || summarizedDelta.isModify()) {
+                return getTextFormatter().formatObjectModificationDelta(summarizedDelta, false, showAuxiliaryAttributes,
+                        task, result);
             } else {
                 return "";
             }

@@ -25,6 +25,7 @@ import com.evolveum.midpoint.prism.delta.ObjectDeltaCollectionsUtil;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.schema.config.ConfigurationItem;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -137,12 +138,13 @@ public class SimpleFocalObjectNotifier extends AbstractGeneralNotifier<ModelEven
         body.append("Notification created on: ").append(new Date()).append("\n\n");
 
         boolean watchAuxiliaryAttributes = isWatchAuxiliaryAttributes(configuration.value());
+        final Task task = ctx.task();
         if (delta.isAdd()) {
             body.append("The ").append(typeNameLower).append(" record was ").append(attemptedTo).append("created with the following data:\n");
-            body.append(event.getContentAsFormattedList( watchAuxiliaryAttributes));
+            body.append(event.getContentAsFormattedList(watchAuxiliaryAttributes, task, result));
         } else if (delta.isModify()) {
             body.append("The ").append(typeNameLower).append(" record was ").append(attemptedTo).append("modified. Modified attributes are:\n");
-            body.append(event.getContentAsFormattedList(watchAuxiliaryAttributes));
+            body.append(event.getContentAsFormattedList(watchAuxiliaryAttributes, task, result));
         } else if (delta.isDelete()) {
             body.append("The ").append(typeNameLower).append(" record was ").append(attemptedTo).append("removed.\n");
         }

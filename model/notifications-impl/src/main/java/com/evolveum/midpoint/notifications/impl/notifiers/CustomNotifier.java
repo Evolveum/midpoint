@@ -20,8 +20,6 @@ import com.evolveum.midpoint.notifications.api.events.Event;
 import com.evolveum.midpoint.notifications.api.transports.Message;
 import com.evolveum.midpoint.notifications.api.transports.Transport;
 import com.evolveum.midpoint.notifications.api.transports.TransportService;
-import com.evolveum.midpoint.notifications.impl.NotificationFunctions;
-import com.evolveum.midpoint.notifications.impl.formatters.TextFormatter;
 import com.evolveum.midpoint.notifications.impl.handlers.AggregatedEventHandler;
 import com.evolveum.midpoint.notifications.impl.handlers.BaseHandler;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
@@ -36,11 +34,16 @@ import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.util.exception.*;
+import com.evolveum.midpoint.util.exception.CommunicationException;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
+import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
+import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SecurityViolationException;
+import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.CustomNotifierType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.NotificationMessageType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 @Component
 public class CustomNotifier extends BaseHandler<Event, CustomNotifierType> {
@@ -48,8 +51,6 @@ public class CustomNotifier extends BaseHandler<Event, CustomNotifierType> {
     private static final Trace DEFAULT_LOGGER = TraceManager.getTrace(CustomNotifier.class);
 
     @Autowired protected NotificationManager notificationManager;
-    @Autowired protected NotificationFunctions notificationsUtil;
-    @Autowired protected TextFormatter textFormatter;
     @Autowired protected AggregatedEventHandler aggregatedEventHandler;
     @Autowired private TransportService transportService;
 

@@ -116,7 +116,7 @@ public class VisualizationItemDto implements Serializable {
         return visualizationItem instanceof VisualizationDeltaItem;
     }
 
-    public boolean isNullEstimatedOldValues() {
+    public boolean oldValueIsUnknown() {
         return isDelta() && ((VisualizationDeltaItem) visualizationItem).getSourceDelta() != null && ((VisualizationDeltaItem) visualizationItem).getSourceDelta().getEstimatedOldValues() == null;
     }
 

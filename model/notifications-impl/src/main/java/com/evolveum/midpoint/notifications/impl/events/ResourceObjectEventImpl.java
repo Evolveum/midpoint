@@ -20,8 +20,10 @@ import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.provisioning.api.ResourceOperationDescription;
 import com.evolveum.midpoint.schema.processor.ShadowSimpleAttribute;
+import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.task.api.LightweightIdentifierGenerator;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -187,12 +189,13 @@ public class ResourceObjectEventImpl extends BaseEventImpl implements ResourceOb
     }
 
     @Override
-    public String getContentAsFormattedList() {
-        return getContentAsFormattedList(false, false);
+    public String getContentAsFormattedList(Task task, OperationResult result) {
+        return getContentAsFormattedList(false, false, task, result);
     }
 
     @Override
-    public String getContentAsFormattedList(boolean showSynchronizationItems, boolean showAuxiliaryAttributes) {
+    public String getContentAsFormattedList(boolean showSynchronizationItems, boolean showAuxiliaryAttributes,
+            Task task, OperationResult result) {
         final ObjectDelta<ShadowType> shadowDelta = getShadowDelta();
         if (shadowDelta == null) {
             return "";
@@ -201,29 +204,18 @@ public class ResourceObjectEventImpl extends BaseEventImpl implements ResourceOb
             return getTextFormatter()
                     .formatShadowAttributes(shadowDelta.getObjectToAdd().asObjectable(), showSynchronizationItems, false);
         } else if (shadowDelta.isModify()) {
-            return getModifiedAttributesAsFormattedList(shadowDelta, showSynchronizationItems, showAuxiliaryAttributes);
+            return getModifiedAttributesAsFormattedList(shadowDelta, showSynchronizationItems, showAuxiliaryAttributes,
+                    task, result);
         } else {
             return "";
         }
     }
 
     private String getModifiedAttributesAsFormattedList(ObjectDelta<ShadowType> shadowDelta,
-            boolean showSynchronizationItems, boolean showAuxiliaryAttributes) {
+            boolean showSynchronizationItems, boolean showAuxiliaryAttributes, Task task, OperationResult result) {
 
-        if (operationStatus != OperationStatus.IN_PROGRESS) {
-            // todo we do not have objectOld + objectNew, only the current status
-            //  it is used to explain modified containers with identifiers -- however, currently I don't know of use
-            //  of such containers in shadows, which would be visible in notifications
-            return getTextFormatter()
-                    .formatObjectModificationDelta(shadowDelta, showSynchronizationItems, showAuxiliaryAttributes,
-                            operationDescription.getCurrentShadow(), null);
-        } else {
-            // TODO implement extraction from pending operations
-            // TODO why did we originally always show auxiliary items?
-            return getTextFormatter()
-                    .formatObjectModificationDelta(shadowDelta, showSynchronizationItems, showAuxiliaryAttributes,
-                            operationDescription.getCurrentShadow(), null);
-        }
+        return getTextFormatter().formatObjectModificationDelta(shadowDelta, showSynchronizationItems,
+                showAuxiliaryAttributes, task, result);
     }
 
     @Override

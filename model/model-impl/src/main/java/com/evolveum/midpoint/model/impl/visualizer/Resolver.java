@@ -62,9 +62,6 @@ public class Resolver {
     @Autowired
     private ProvisioningService provisioningService;
 
-    @Autowired
-    private Visualizer visualizer;
-
     public <O extends ObjectType> void resolve(PrismObject<O> object, Task task, OperationResult result) throws SchemaException, ExpressionEvaluationException {
         if (object == null) {
             return;

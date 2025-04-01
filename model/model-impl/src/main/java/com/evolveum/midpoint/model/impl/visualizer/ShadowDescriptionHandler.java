@@ -7,6 +7,9 @@
 
 package com.evolveum.midpoint.model.impl.visualizer;
 
+import com.evolveum.midpoint.model.api.visualizer.LocalizationCustomizationContext;
+import com.evolveum.midpoint.model.api.visualizer.localization.LocalizationPart;
+import com.evolveum.midpoint.model.api.visualizer.localization.WrapableLocalization;
 import com.evolveum.midpoint.model.impl.visualizer.output.VisualizationImpl;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.delta.ChangeType;
@@ -14,6 +17,7 @@ import com.evolveum.midpoint.schema.processor.ShadowSimpleAttribute;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.LocalizableMessage;
 import com.evolveum.midpoint.util.SingleLocalizableMessage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
@@ -30,6 +34,8 @@ import org.springframework.stereotype.Component;
  */
 @Component
 public class ShadowDescriptionHandler implements VisualizationDescriptionHandler {
+    private static final LocalizableMessage ON = new SingleLocalizableMessage(
+            "ShadowDescriptionHandler.shadow.on", null, "on");
 
     @Autowired
     private Resolver resolver;
@@ -55,19 +61,40 @@ public class ShadowDescriptionHandler implements VisualizationDescriptionHandler
 
         ObjectReferenceType resourceRef = shadow.getResourceRef();
 
-        Object resourceName = resolver.resolveReferenceName(resourceRef, false, task, result);
+        final LocalizableMessage localizableResourceName;
+        final String resourceName = resolver.resolveReferenceName(resourceRef, false, task, result);
         if (resourceName == null) {
-            resourceName = new SingleLocalizableMessage("ShadowDescriptionHandler.unknownResource",
+            localizableResourceName = new SingleLocalizableMessage("ShadowDescriptionHandler.unknownResource",
                     new Object[] { resourceRef != null ? resourceRef.getOid() : null });
+        } else {
+            localizableResourceName =  new SingleLocalizableMessage("", null, resourceName);
         }
 
+        final LocalizableMessage localizableKind = new SingleLocalizableMessage(
+                "ShadowKindType." + kind.name());
+        final LocalizableMessage localizableShadowName = new SingleLocalizableMessage(name);
+        final LocalizableMessage localizableChange = new SingleLocalizableMessage(
+                "ShadowDescriptionHandler.changeType." + change.name());
+        final LocalizableMessage localizableIntent = new SingleLocalizableMessage("", null, intent);
+
+        final WrapableLocalization<String, LocalizationCustomizationContext> customizableOverview =
+                WrapableLocalization.of(
+                        LocalizationPart.forObject(localizableKind, LocalizationCustomizationContext.empty()),
+                        LocalizationPart.forObjectName(localizableShadowName, LocalizationCustomizationContext.empty()),
+                        LocalizationPart.forAdditionalInfo(localizableIntent, LocalizationCustomizationContext.empty()),
+                        LocalizationPart.forAction(localizableChange, LocalizationCustomizationContext.empty()),
+                        LocalizationPart.forHelpingWords(ON),
+                        LocalizationPart.forObjectName(localizableResourceName, LocalizationCustomizationContext.empty())
+                );
+
+        visualization.getName().setCustomizableOverview(customizableOverview);
         visualization.getName().setOverview(
                 new SingleLocalizableMessage("ShadowDescriptionHandler.shadow", new Object[] {
-                        new SingleLocalizableMessage("ShadowKindType." + kind.name()),
-                        new SingleLocalizableMessage(name),
+                        localizableKind,
+                        localizableShadowName,
                         intent,
-                        new SingleLocalizableMessage("ShadowDescriptionHandler.changeType." + change.name()),
-                        resourceName
+                        localizableChange,
+                        localizableResourceName
                 })
         );
     }
