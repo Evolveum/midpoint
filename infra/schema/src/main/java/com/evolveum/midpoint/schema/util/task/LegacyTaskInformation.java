@@ -10,6 +10,8 @@ package com.evolveum.midpoint.schema.util.task;
 import javax.xml.datatype.DatatypeConstants;
 import javax.xml.datatype.XMLGregorianCalendar;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityStatePersistenceType;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -96,6 +98,11 @@ public class LegacyTaskInformation extends TaskInformation {
     @Override
     public List<LocalizableMessage> getTaskHealthUserFriendlyMessages() {
         return List.of();   // It couldn't be determined from the legacy task.
+    }
+
+    @Override
+    public @Nullable ActivityStatePersistenceType getRootActivityStatePersistence() {
+        return null;    // It couldn't be determined from the legacy task.
     }
 
     @Override

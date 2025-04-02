@@ -174,11 +174,11 @@ public class TaskErrorsPanel extends AbstractObjectMainPanel<TaskType, TaskDetai
     }
 
     private IModel<Search<OperationExecutionType>> createSearchModel() {
-        return new LoadableModel<>(false) {
+        return new LoadableDetachableModel<>() {
 
             @Override
             protected Search<OperationExecutionType> load() {
-                PageStorage storage = null; // todo uncomment and switch to loadable detabchable model -> getSessionStorage().getOrCreatePageStorage(SessionStorage.KEY_TASK_ERRORS_PANEL);
+                PageStorage storage = getSessionStorage().getOrCreatePageStorage(SessionStorage.KEY_TASK_ERRORS_PANEL);
                 Search<OperationExecutionType> search = storage != null ? storage.getSearch() : null;
                 if (search == null) {
                     SearchBuilder<OperationExecutionType> searchBuilder =
@@ -204,7 +204,7 @@ public class TaskErrorsPanel extends AbstractObjectMainPanel<TaskType, TaskDetai
     private SearchContext createAdditionalSearchContext() {
         SearchContext ctx = new SearchContext();
 
-        NamedIntervalPreset preset = new NamedIntervalPreset(
+        NamedIntervalPreset current = new NamedIntervalPreset(
                 null,
                 NamedIntervalPreset.DurationAnchor.FROM,
                 () -> {
@@ -220,18 +220,30 @@ public class TaskErrorsPanel extends AbstractObjectMainPanel<TaskType, TaskDetai
                 new SingleLocalizableMessage("TaskErrorsPanel.showCurrentRun"));
 
         List<NamedIntervalPreset> presets = new ArrayList<>();
-        presets.add(preset);
+
+        presets.add(current);
+        // this doesn't make sense to have current/all for single activity state persistence and current/all/24h for perpetual
+        // when we can have current/all and multiple time intervals for all of them
+//        if (hasSingleActivityStatePersistence()) {
+//            presets.add(NamedIntervalPreset.ALL);
+//        } else {
+//            presets.addAll(NamedIntervalPreset.DEFAULT_PRESETS);
+//        }
         presets.addAll(NamedIntervalPreset.DEFAULT_PRESETS);
 
         ctx.setIntervalPresets(OperationExecutionType.F_TIMESTAMP, presets);
-        ctx.setSelectedIntervalPreset(OperationExecutionType.F_TIMESTAMP, preset);
+        ctx.setSelectedIntervalPreset(OperationExecutionType.F_TIMESTAMP, current);
 
         return ctx;
     }
 
-    private void refreshTable(AjaxRequestTarget target) {
-        // todo implement
+    private boolean hasSingleActivityStatePersistence() {
+        TaskType task = getObjectWrapperObject().asObjectable();
+        TaskInformation info = TaskInformation.createForTask(task, task);
+        return info.getRootActivityStatePersistence() == ActivityStatePersistenceType.SINGLE_REALIZATION;
+    }
 
+    private void refreshTable(AjaxRequestTarget target) {
         target.add(get(ID_TASK_ERRORS));
         target.add(getPageBase().getFeedbackPanel());
     }
