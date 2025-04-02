@@ -76,7 +76,12 @@ podTemplate(
                                 df -h
                             fi
 
-                            mvn -B -ntp -DskipTests -P dist,docs,sbom,dependencytrack,jar-signing clean ${params.SKIP_DEPLOY ? 'install' : 'deploy -DdeployAtEnd=true'}
+                            PROFILES="dist,docs,jar-signing"
+                            if [[ "${params.BRANCH}" != milestone/* ]]; then
+                                PROFILES="\$PROFILES,sbom,dependencytrack"
+                            fi
+
+                            mvn -B -ntp -DskipTests -P \$PROFILES clean ${params.SKIP_DEPLOY ? 'install' : 'deploy -DdeployAtEnd=true'}
 
                             if [ "${verbose}" -ge 1 ]; then
                                 df -h

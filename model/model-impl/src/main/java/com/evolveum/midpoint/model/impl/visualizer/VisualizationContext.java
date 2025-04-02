@@ -8,8 +8,12 @@
 package com.evolveum.midpoint.model.impl.visualizer;
 
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.path.ItemPathCollectionsUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -21,8 +25,10 @@ public class VisualizationContext {
     private boolean separateMultivaluedContainersInDeltas = true;
     private boolean removeExtraDescriptiveItems = true;
     private boolean includeOperationalItems = false;
+    private boolean includeMetadata = false;
     private Map<String,PrismObject<? extends ObjectType>> oldObjects;
     private Map<String,PrismObject<? extends ObjectType>> currentObjects;
+    private Collection<ItemPath> pathsToHide = new ArrayList<>();
 
     public boolean isSeparateSinglevaluedContainers() {
         return separateSinglevaluedContainers;
@@ -72,6 +78,14 @@ public class VisualizationContext {
         this.includeOperationalItems = includeOperationalItems;
     }
 
+    public boolean isIncludeMetadata() {
+        return this.includeMetadata;
+    }
+
+    public void setIncludeMetadata(boolean includeMetadata) {
+        this.includeMetadata = includeMetadata;
+    }
+
     public Map<String, PrismObject<? extends ObjectType>> getOldObjects() {
         if (oldObjects == null) {
             oldObjects = new HashMap<>();
@@ -105,5 +119,13 @@ public class VisualizationContext {
 
     public void putObject(PrismObject<? extends ObjectType> object) {
         getCurrentObjects().put(object.getOid(), object);
+    }
+
+    public void setPathsToHide(Collection<ItemPath> pathsToHide) {
+        this.pathsToHide = pathsToHide;
+    }
+
+    public boolean isHidden(ItemPath path) {
+        return ItemPathCollectionsUtil.containsSubpathOrEquivalent(this.pathsToHide, path);
     }
 }

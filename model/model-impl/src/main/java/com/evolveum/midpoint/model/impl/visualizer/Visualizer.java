@@ -25,6 +25,7 @@ import com.evolveum.midpoint.model.api.context.ModelProjectionContext;
 import com.evolveum.midpoint.model.api.context.ProjectionContextKey;
 import com.evolveum.midpoint.model.api.context.SynchronizationPolicyDecision;
 import com.evolveum.midpoint.model.api.visualizer.Visualization;
+import com.evolveum.midpoint.model.api.visualizer.VisualizationItemValue;
 import com.evolveum.midpoint.model.impl.visualizer.output.*;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.*;
@@ -85,7 +86,7 @@ public class Visualizer {
         try {
             resolver.resolve(object, task, result);
             return visualize(object, null, context, task, result);
-        } catch (RuntimeException | Error | SchemaException | ExpressionEvaluationException e) {
+        } catch (RuntimeException | SchemaException | ExpressionEvaluationException e) {
             result.recordFatalError("Couldn't visualize data structure: " + e.getMessage(), e);
             throw e;
         } finally {
@@ -114,7 +115,7 @@ public class Visualizer {
         try {
             resolver.resolve(deltas, task, result);
             return visualizeDeltas(deltas, new VisualizationContext(), task, result);
-        } catch (RuntimeException | Error | SchemaException | ExpressionEvaluationException e) {
+        } catch (RuntimeException | SchemaException | ExpressionEvaluationException e) {
             result.recordFatalError("Couldn't visualize the data structure: " + e.getMessage(), e);
             throw e;
         } finally {
@@ -135,7 +136,7 @@ public class Visualizer {
                     visualizations.add(visualization);
                 }
             }
-        } catch (RuntimeException | Error | SchemaException | ExpressionEvaluationException e) {
+        } catch (RuntimeException | SchemaException | ExpressionEvaluationException e) {
             result.recordFatalError("Couldn't visualize the data structure: " + e.getMessage(), e);
             throw e;
         } finally {
@@ -213,15 +214,22 @@ public class Visualizer {
     @NotNull
     public VisualizationImpl visualizeDelta(@NotNull ObjectDelta<? extends ObjectType> objectDelta, ObjectReferenceType objectRef,
             boolean includeOperationalItems, boolean includeOriginalObject, Task task, OperationResult parentResult) throws SchemaException, ExpressionEvaluationException {
+        VisualizationContext visualizationContext = new VisualizationContext();
+        if (includeOperationalItems) {
+            visualizationContext.setIncludeOperationalItems(includeOperationalItems);
+        }
+        return visualizeDelta(objectDelta, objectRef, visualizationContext, includeOriginalObject, task, parentResult);
+    }
+
+    @NotNull
+    public VisualizationImpl visualizeDelta(@NotNull ObjectDelta<? extends ObjectType> objectDelta,
+            ObjectReferenceType objectRef, VisualizationContext context, boolean includeOriginalObject, Task task,
+            OperationResult parentResult) throws SchemaException, ExpressionEvaluationException {
         OperationResult result = parentResult.createSubresult(CLASS_DOT + "visualizeDelta");
         try {
             resolver.resolve(objectDelta, includeOriginalObject, task, result);
-            VisualizationContext visualizationContext = new VisualizationContext();
-            if (includeOperationalItems) {
-                visualizationContext.setIncludeOperationalItems(includeOperationalItems);
-            }
-            return visualizeDelta(objectDelta, null, objectRef, visualizationContext, task, result);
-        } catch (RuntimeException | Error | SchemaException | ExpressionEvaluationException e) {
+            return visualizeDelta(objectDelta, null, objectRef, context, task, result);
+        } catch (RuntimeException | SchemaException | ExpressionEvaluationException e) {
             result.recordFatalError("Couldn't visualize the data structure: " + e.getMessage(), e);
             throw e;
         } finally {
@@ -325,6 +333,9 @@ public class Visualizer {
         itemsToShow.sort(getItemDisplayOrderComparator());
 
         for (Item<?, ?> item : itemsToShow) {
+            if (context.isHidden(item.getPath())) {
+                continue;
+            }
             if (item instanceof PrismProperty) {
                 final VisualizationItemImpl visualizationItem = createVisualizationItem((PrismProperty) item, descriptive);
                 if (!visualizationItem.isOperational() || context.isIncludeOperationalItems()) {
@@ -390,6 +401,9 @@ public class Visualizer {
         }
         List<ItemDelta<?, ?>> deltasToShow = new ArrayList<>(deltas);
         for (ItemDelta<?, ?> delta : deltasToShow) {
+            if (delta.isMetadataRelated() && !context.isIncludeMetadata()) {
+                continue;
+            }
             if (delta instanceof ContainerDelta) {
                 visualizeContainerDelta((ContainerDelta) delta, visualization, context, task, result);
             } else {
@@ -442,6 +456,9 @@ public class Visualizer {
 
     private <C extends Containerable> void visualizeContainerDelta(ContainerDelta<C> delta, VisualizationImpl visualization, VisualizationContext context, Task task, OperationResult result) {
         if (delta.isEmpty()) {
+            return;
+        }
+        if (context.isHidden(delta.getPath())) {
             return;
         }
         PrismContainerDefinition def = delta.getDefinition();
@@ -570,6 +587,9 @@ public class Visualizer {
 
     private void visualizeAtomicDelta(ItemDelta<?, ?> delta, VisualizationImpl visualization, VisualizationContext context, Task task, OperationResult result)
             throws SchemaException {
+        if (context.isHidden(delta.getPath())) {
+            return;
+        }
         ItemPath deltaParentPath = delta.getParentPath();
         ItemPath visualizationRelativeItemPath = getDeltaParentItemPath(deltaParentPath).remainder(visualization.getSourceRelPath());
         VisualizationImpl visualizationForItem;
@@ -865,8 +885,8 @@ public class Visualizer {
         return di;
     }
 
-    private List<VisualizationItemValueImpl> toVisualizationItemValues(Collection<? extends PrismPropertyValue<?>> values) {
-        List<VisualizationItemValueImpl> rv = new ArrayList<>();
+    private List<VisualizationItemValue> toVisualizationItemValues(Collection<? extends PrismPropertyValue<?>> values) {
+        List<VisualizationItemValue> rv = new ArrayList<>();
         if (values != null) {
             for (PrismPropertyValue<?> value : values) {
                 if (value != null) {
@@ -879,12 +899,12 @@ public class Visualizer {
         return rv;
     }
 
-    private List<VisualizationItemValueImpl> toVisualizationItemValuesRef(Collection<PrismReferenceValue> refValues, VisualizationContext context, Task task, OperationResult result) {
+    private List<VisualizationItemValue> toVisualizationItemValuesRef(Collection<PrismReferenceValue> refValues, VisualizationContext context, Task task, OperationResult result) {
         if (refValues == null) {
             return new ArrayList<>();
         }
 
-        List<VisualizationItemValueImpl> rv = new ArrayList<>();
+        List<VisualizationItemValue> rv = new ArrayList<>();
         for (PrismReferenceValue refValue : refValues) {
             if (refValue == null) {
                 continue;

@@ -170,8 +170,13 @@ public class DateIntervalSearchPopupPanel extends PopoverSearchPopupPanel {
     }
 
     private Pair<XMLGregorianCalendar, XMLGregorianCalendar> computeInterval(NamedIntervalPreset preset) {
-        Long time = preset.getTimeOrDefault();
-        NamedIntervalPreset.DurationAnchor anchor = preset.getAnchorOrDefault();
+        NamedIntervalPreset.DurationAnchor anchor = preset.anchor();
+        if (anchor == null) {
+            // no anchor means that the preset represents undefined interval
+            return Pair.of(null, null);
+        }
+
+        Long time = preset.timeSupplier().get();
         Duration duration = preset.duration();
 
         XMLGregorianCalendar from = null;
@@ -180,13 +185,13 @@ public class DateIntervalSearchPopupPanel extends PopoverSearchPopupPanel {
             case FROM:
                 from = XmlTypeConverter.createXMLGregorianCalendar(time);
 
-                if (duration != null) {
+                if (time != null && duration != null) {
                     to = XmlTypeConverter.createXMLGregorianCalendar(time);
                     to.add(duration);
                 }
                 break;
             case TO:
-                if (duration != null) {
+                if (time != null && duration != null) {
                     from = XmlTypeConverter.createXMLGregorianCalendar(time);
                     from.add(duration.negate());
                 }

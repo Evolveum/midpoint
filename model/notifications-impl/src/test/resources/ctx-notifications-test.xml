@@ -25,4 +25,5 @@
     <import resource="ctx-task.xml"/>
     <import resource="ctx-audit.xml"/>
     <import resource="ctx-security.xml"/>
+    <import resource="classpath*:ctx-security-test.xml"/>
 </beans>

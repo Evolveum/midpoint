@@ -36,7 +36,7 @@ https://github.com/Evolveum/midpoint/blob/master/repo/system-init/src/main/resou
         <repository>
             <type>native</type>
             <jdbcUrl>jdbc:postgresql://localhost:5432/midpoint</jdbcUrl>
-            <jdbcUsername>midpoint</jdbcUsername>
+            <jdbcUsername>midpoint</jdbcUsername
             <jdbcPassword>password</jdbcPassword>
         </repository>
         <audit>

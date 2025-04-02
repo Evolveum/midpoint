@@ -13,6 +13,8 @@ import com.evolveum.midpoint.model.api.context.ModelProjectionContext;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.ObjectDeltaOperation;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType;
 
@@ -64,8 +66,8 @@ public interface ModelEvent extends Event {
 
     boolean hasContentToShow(boolean showAuxiliaryAttributes);
 
-    default String getContentAsFormattedList() {
-        return getContentAsFormattedList(false);
+    default String getContentAsFormattedList(Task task, OperationResult result) {
+        return getContentAsFormattedList(false, task, result);
     }
-    String getContentAsFormattedList(boolean showAuxiliaryAttributes);
+    String getContentAsFormattedList(boolean showAuxiliaryAttributes, Task task, OperationResult result);
 }

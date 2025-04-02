@@ -11,6 +11,8 @@ import com.evolveum.midpoint.notifications.api.OperationStatus;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.provisioning.api.ResourceOperationDescription;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
@@ -50,9 +52,10 @@ public interface ResourceObjectEvent extends Event {
 
     String getPlaintextPassword();
 
-    String getContentAsFormattedList();
+    String getContentAsFormattedList(Task task, OperationResult result);
 
-    String getContentAsFormattedList(boolean showSynchronizationItems, boolean showAuxiliaryAttributes);
+    String getContentAsFormattedList(boolean showSynchronizationItems, boolean showAuxiliaryAttributes, Task task,
+            OperationResult result);
 
     boolean hasContentToShow();
 

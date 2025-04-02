@@ -7,12 +7,17 @@
 
 package com.evolveum.midpoint.model.impl.visualizer;
 
+import com.evolveum.midpoint.model.api.visualizer.ActionType;
+import com.evolveum.midpoint.model.api.visualizer.LocalizationCustomizationContext;
+import com.evolveum.midpoint.model.api.visualizer.localization.LocalizationPart;
+import com.evolveum.midpoint.model.api.visualizer.localization.WrapableLocalization;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 
+import com.evolveum.midpoint.util.LocalizableMessage;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 
@@ -34,6 +39,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 public class ActivationDescriptionHandler implements VisualizationDescriptionHandler {
 
     private static final Trace LOGGER = TraceManager.getTrace(ActivationDescriptionHandler.class);
+    private static final LocalizableMessage WAS = new SingleLocalizableMessage(
+            "ActivationDescriptionHandler.was", null, "was");
 
     @Override
     public boolean match(VisualizationImpl visualization, VisualizationImpl parentVisualization) {
@@ -111,20 +118,33 @@ public class ActivationDescriptionHandler implements VisualizationDescriptionHan
         }
 
         String typeKey;
+        final LocalizationCustomizationContext.Builder objectContextBuilder = LocalizationCustomizationContext.builder();
         if (clazz != null && ObjectType.class.isAssignableFrom(clazz)) {
-            typeKey = "ObjectTypes." + ObjectTypes.getObjectType(clazz).name();
+            final ObjectTypes objectType = ObjectTypes.getObjectType(clazz);
+            typeKey = "ObjectTypes." + objectType.name();
+            objectContextBuilder.objectType(objectType).build();
         } else {
             typeKey = rootDef != null ? rootDef.getDisplayName() : null;
         }
 
         if (typeKey == null) {
             typeKey = "ObjectTypes.OBJECT";
+            objectContextBuilder.objectType(ObjectTypes.OBJECT);
         }
+        final LocalizableMessage localizableActivationStatus = new SingleLocalizableMessage(
+                "ActivationDescriptionHandler.ActivationStatusType." + status.name());
+        final LocalizableMessage localizableType = new SingleLocalizableMessage(typeKey);
+        final LocalizationCustomizationContext activationContext = LocalizationCustomizationContext.builder()
+                .actionType(ActionType.ACTIVATION_STATUS_CHANGE).build();
+        final WrapableLocalization<String, LocalizationCustomizationContext> customizableOverview = WrapableLocalization.of(
+                LocalizationPart.forObject(localizableType, objectContextBuilder.build()),
+                LocalizationPart.forHelpingWords(WAS),
+                LocalizationPart.forAction(localizableActivationStatus, activationContext));
 
+        visualization.getName().setCustomizableOverview(customizableOverview);
         visualization.getName().setOverview(
                 new SingleLocalizableMessage("ActivationDescriptionHandler.effectiveStatus", new Object[] {
-                        new SingleLocalizableMessage(typeKey),
-                        new SingleLocalizableMessage("ActivationDescriptionHandler.ActivationStatusType." + status.name())
+                        localizableType, localizableActivationStatus
                 })
         );
     }

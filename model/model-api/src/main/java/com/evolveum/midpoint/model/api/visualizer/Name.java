@@ -9,6 +9,7 @@ package com.evolveum.midpoint.model.api.visualizer;
 
 import java.io.Serializable;
 
+import com.evolveum.midpoint.model.api.visualizer.localization.WrapableLocalization;
 import com.evolveum.midpoint.util.LocalizableMessage;
 
 /**
@@ -17,6 +18,8 @@ import com.evolveum.midpoint.util.LocalizableMessage;
 public interface Name extends Serializable {
 
     LocalizableMessage getOverview();
+
+    WrapableLocalization<String, LocalizationCustomizationContext> getCustomizableOverview();
 
     LocalizableMessage getDisplayName();
 

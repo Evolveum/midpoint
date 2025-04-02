@@ -18,4 +18,53 @@
     <context:component-scan base-package="com.evolveum.midpoint.notifications.impl"/>
     <context:component-scan base-package="com.evolveum.midpoint.transport.impl"/>
     <context:spring-configured/>
+    <bean id="propertyFormatter" class="com.evolveum.midpoint.notifications.impl.formatters.PropertyFormatter">
+        <constructor-arg type="com.evolveum.midpoint.common.LocalizationService" ref="localizationService"/>
+        <constructor-arg name="singleValuePrefix" value=" "/>
+        <!-- value is set to line feed (/n) -->
+        <constructor-arg name="multiValuePrefix" value="&#10;"/>
+    </bean>
+    <bean id="indentationGenerator" class="com.evolveum.midpoint.notifications.impl.formatters.IndentationGenerator">
+        <constructor-arg name="indentationPrefix" value="|"/>
+        <!-- value is set to tabulator (/t) -->
+        <constructor-arg name="indentationCharacter" value="&#09;"/>
+    </bean>
+    <bean id="propertiesFormatter"
+          class="com.evolveum.midpoint.notifications.impl.formatters.PlainTextPropertiesFormatter">
+        <constructor-arg type="com.evolveum.midpoint.notifications.impl.formatters.IndentationGenerator"
+                         ref="indentationGenerator"/>
+        <constructor-arg type="com.evolveum.midpoint.notifications.impl.formatters.PropertyFormatter"
+                         ref="propertyFormatter"/>
+    </bean>
+    <bean id="additionalIdentificationFormatter"
+          class="com.evolveum.midpoint.notifications.impl.formatters.AdditionalIdentificationFormatter">
+        <constructor-arg name="propertiesFormatter"
+                         ref="propertiesFormatter"/>
+        <constructor-arg type="com.evolveum.midpoint.notifications.impl.formatters.IndentationGenerator"
+                         ref="indentationGenerator"/>
+    </bean>
+    <bean id="modifiedPropertiesFormatter"
+          class="com.evolveum.midpoint.notifications.impl.formatters.ModifiedPropertiesFormatter">
+        <constructor-arg type="com.evolveum.midpoint.notifications.impl.formatters.IndentationGenerator"
+                         ref="indentationGenerator"/>
+        <constructor-arg type="com.evolveum.midpoint.notifications.impl.formatters.PropertyFormatter"
+                         ref="propertyFormatter"/>
+    </bean>
+    <bean id="containerPropertiesModificationFormatter"
+          class="com.evolveum.midpoint.notifications.impl.formatters.ContainerPropertiesModificationFormatter">
+        <constructor-arg name="propertiesFormatter" ref="propertiesFormatter"/>
+        <constructor-arg type="com.evolveum.midpoint.notifications.impl.formatters.IndentationGenerator"
+                         ref="indentationGenerator"/>
+        <constructor-arg name="modifiedPropertiesFormatter" ref="modifiedPropertiesFormatter"/>
+    </bean>
+    <bean id="visualizationBasedDeltaFormatter"
+          class="com.evolveum.midpoint.notifications.impl.formatters.VisualizationBasedDeltaFormatter">
+        <constructor-arg name="propertiesFormatter" ref="propertiesFormatter"/>
+        <constructor-arg name="additionalIdentificationFormatter" ref="additionalIdentificationFormatter"/>
+        <constructor-arg name="containerPropertiesModificationFormatter"
+                         ref="containerPropertiesModificationFormatter"/>
+        <constructor-arg type="com.evolveum.midpoint.notifications.impl.formatters.IndentationGenerator"
+                         ref="indentationGenerator"/>
+        <constructor-arg type="com.evolveum.midpoint.common.LocalizationService" ref="localizationService"/>
+    </bean>
 </beans>

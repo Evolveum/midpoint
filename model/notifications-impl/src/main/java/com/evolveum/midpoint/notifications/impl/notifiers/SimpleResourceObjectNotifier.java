@@ -19,6 +19,7 @@ import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.provisioning.api.ResourceOperationDescription;
 import com.evolveum.midpoint.schema.config.ConfigurationItem;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -134,14 +135,17 @@ public class SimpleResourceObjectNotifier extends AbstractGeneralNotifier<Resour
 
         boolean watchSynchronizationAttributes = isWatchSynchronizationAttributes(configuration.value());
         boolean watchAuxiliaryAttributes = isWatchAuxiliaryAttributes(configuration.value());
+        final Task task = ctx.task();
 
         if (delta.isAdd()) {
             body.append("created on the resource with attributes:\n");
-            body.append(event.getContentAsFormattedList(watchSynchronizationAttributes, watchAuxiliaryAttributes));
+            body.append(event.getContentAsFormattedList(watchSynchronizationAttributes, watchAuxiliaryAttributes, task,
+                    result));
             body.append("\n");
         } else if (delta.isModify()) {
             body.append("modified on the resource. Modified attributes are:\n");
-            body.append(event.getContentAsFormattedList(watchSynchronizationAttributes, watchAuxiliaryAttributes));
+            body.append(event.getContentAsFormattedList(watchSynchronizationAttributes, watchAuxiliaryAttributes, task,
+                    result));
             body.append("\n");
         } else if (delta.isDelete()) {
             body.append("removed from the resource.\n\n");

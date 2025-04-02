@@ -291,7 +291,7 @@ public class ValueFormatter {
             return new ArrayList<>();
         }
         List<Item<?, ?>> visibleItems = getVisibleItems(items, hiddenPaths, showOperationalAttributes);
-        visibleItems.sort((item1, item2) -> DeltaFormatter.compareDisplayOrders(item1.getDefinition(), item2.getDefinition()));
+        visibleItems.sort((item1, item2) -> compareDisplayOrders(item1.getDefinition(), item2.getDefinition()));
         return visibleItems;
     }
 
@@ -342,4 +342,19 @@ public class ValueFormatter {
         //DateFormatUtils.format(timestamp.toGregorianCalendar(), DateFormatUtils.SMTP_DATETIME_FORMAT.getPattern());
         return String.valueOf(XmlTypeConverter.toDate(timestamp));
     }
+
+    private static int compareDisplayOrders(ItemDefinition<?> definition1, ItemDefinition<?> definition2) {
+        Integer order1 = definition1.getDisplayOrder();
+        Integer order2 = definition2.getDisplayOrder();
+        if (order1 != null && order2 != null) {
+            return order1 - order2;
+        } else if (order1 == null && order2 == null) {
+            return 0;
+        } else if (order1 == null) {
+            return 1;
+        } else {
+            return -1;
+        }
+    }
+
 }

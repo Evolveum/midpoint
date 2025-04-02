@@ -177,6 +177,9 @@
         <repository>
             <autoCreatePartitionsOnAdd>true</autoCreatePartitionsOnAdd>
         </repository>
+        <operationExecutionRecording>
+            <skipWhenSuccess>true</skipWhenSuccess>
+        </operationExecutionRecording>
     </internals>
     <adminGuiConfiguration>
         <homePage id="21">
@@ -472,6 +475,17 @@
             </widget>
         </homePage>
         <objectCollectionViews>
+            <defaultSettings>
+                <paging>
+                    <maxSize>20</maxSize>
+                </paging>
+                <pagingOptions>
+                    <availablePageSize>10</availablePageSize>
+                    <availablePageSize>20</availablePageSize>
+                    <availablePageSize>50</availablePageSize>
+                    <availablePageSize>100</availablePageSize>
+                </pagingOptions>
+            </defaultSettings>
             <objectCollectionView id="40">
                 <identifier>my-cases</identifier>
                 <display>
@@ -1121,6 +1135,17 @@
             </objectCollectionView>
         </objectCollectionViews>
         <objectDetails>
+            <defaultSettings>
+                <paging>
+                    <maxSize>20</maxSize>
+                </paging>
+                <pagingOptions>
+                    <availablePageSize>10</availablePageSize>
+                    <availablePageSize>20</availablePageSize>
+                    <availablePageSize>50</availablePageSize>
+                    <availablePageSize>100</availablePageSize>
+                </pagingOptions>
+            </defaultSettings>
             <objectDetailsPage id="83">
                 <type>c:TaskType</type>
                 <panel id="85">

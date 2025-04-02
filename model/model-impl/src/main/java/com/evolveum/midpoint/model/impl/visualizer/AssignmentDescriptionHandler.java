@@ -12,6 +12,9 @@ import javax.xml.namespace.QName;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import com.evolveum.midpoint.model.api.visualizer.LocalizationCustomizationContext;
+import com.evolveum.midpoint.model.api.visualizer.localization.LocalizationPart;
+import com.evolveum.midpoint.model.api.visualizer.localization.WrapableLocalization;
 import com.evolveum.midpoint.model.impl.visualizer.output.VisualizationImpl;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.delta.ChangeType;
@@ -27,6 +30,11 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
  */
 @Component
 public class AssignmentDescriptionHandler implements VisualizationDescriptionHandler {
+
+    private static final SingleLocalizableMessage ON = new SingleLocalizableMessage(
+            "AssignmentDescriptionHandler.assignment.construction.on", null, "on");
+    private static final SingleLocalizableMessage CONSTRUCTION_OF = new SingleLocalizableMessage(
+            "AssignmentDescriptionHandler.assignment.construction.of", null, "Construction of");
 
     @Autowired
     private Resolver resolver;
@@ -70,12 +78,28 @@ public class AssignmentDescriptionHandler implements VisualizationDescriptionHan
                     new Object[] { resourceRef != null ? resourceRef.getOid() : null });
         }
 
+        final LocalizableMessage shadowKind = new SingleLocalizableMessage("ShadowKindType." + kind);
+        final LocalizableMessage localizableResourceName = resourceName instanceof LocalizableMessage
+                ? (LocalizableMessage) resourceName
+                : new SingleLocalizableMessage("", null, (String)resourceName);
+        final LocalizableMessage action = createAssignedMessage(change);
+        final SingleLocalizableMessage localizableIntent = new SingleLocalizableMessage("", null, intent);
+        final WrapableLocalization<String, LocalizationCustomizationContext> wrapableOverview = WrapableLocalization.of(
+                LocalizationPart.forHelpingWords(CONSTRUCTION_OF),
+                LocalizationPart.forObject(shadowKind,
+                        LocalizationCustomizationContext.builder().objectType(ObjectTypes.SHADOW).build()),
+                LocalizationPart.forAdditionalInfo(localizableIntent, null),
+                LocalizationPart.forHelpingWords(ON),
+                LocalizationPart.forObjectName(localizableResourceName,
+                        LocalizationCustomizationContext.builder().objectType(ObjectTypes.RESOURCE).build()),
+                LocalizationPart.forAction(action, null));
+
+        visualization.getName().setCustomizableOverview(wrapableOverview);
         visualization.getName().setOverview(
                 new SingleLocalizableMessage("AssignmentDescriptionHandler.assignment.construction", new Object[] {
-                        new SingleLocalizableMessage("ShadowKindType." + kind),
+                        shadowKind,
                         intent,
-                        resourceName,
-                        createAssignedMessage(change)
+                        resourceName, action
                 })
         );
     }
@@ -102,11 +126,20 @@ public class AssignmentDescriptionHandler implements VisualizationDescriptionHan
 
         ChangeType change = visualization.getChangeType();
 
+        final LocalizableMessage objectType = new SingleLocalizableMessage("ObjectTypes." + ot.name());
+        final LocalizableMessage objectName = new SingleLocalizableMessage("", null, targetName);
+        final LocalizableMessage action = createAssignedMessage(change);
+        final LocalizationCustomizationContext
+                customizationContext = LocalizationCustomizationContext.builder().objectType(ot).build();
+        final WrapableLocalization<String, LocalizationCustomizationContext> wrapableOverview = WrapableLocalization.of(
+                LocalizationPart.forObject(objectType, customizationContext),
+                LocalizationPart.forObjectName(objectName, customizationContext),
+                LocalizationPart.forAction(action, null));
+
+        visualization.getName().setCustomizableOverview(wrapableOverview);
         visualization.getName().setOverview(
                 new SingleLocalizableMessage("AssignmentDescriptionHandler.assignment", new Object[] {
-                        new SingleLocalizableMessage("ObjectTypes." + ot.name()),
-                        targetName,
-                        createAssignedMessage(change)
+                        objectType, targetName, action
                 }, (String) null));
     }
 }
