@@ -13,6 +13,7 @@ import com.evolveum.midpoint.gui.impl.component.search.panel.ObjectCollectionLis
 import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
+import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.DisplayableValue;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -92,7 +93,11 @@ public class ObjectCollectionListSearchItemWrapper extends FilterableSearchItemW
         if (value == null) {
             return null;
         }
-        return collectionViewLightMap.get(value).getFilter();
+        if (variables == null) {
+            variables = new VariablesMap();
+        }
+        return WebComponentUtil.evaluateExpressionsInFilter(collectionViewLightMap.get(value).getFilter(), variables,
+                new OperationResult("evaluate filter"), pageBase);
     }
 
     @Override
