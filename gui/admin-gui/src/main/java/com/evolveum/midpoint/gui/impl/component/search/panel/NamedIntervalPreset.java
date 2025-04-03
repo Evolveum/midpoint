@@ -20,15 +20,14 @@ import com.evolveum.midpoint.util.SingleLocalizableMessage;
 import com.evolveum.midpoint.web.component.util.SerializableSupplier;
 
 /**
- * @param duration if duration is null, it means that it is not fixed duration, but it will be calculated from difference
- * between current time and time provided by {@link #timeSupplier}
- * @param anchor if not provided, defaults to {@link DurationAnchor#TO}
- * @param timeSupplier if not provided, default supplier return current time in millis.
+ * @param duration
+ * @param anchor if null, then the meaning is interval is not defined
+ * @param timeSupplier if supplier returns null value, then the meaning is interval is not defined
  * @param text
  */
 public record NamedIntervalPreset(
         @Nullable Duration duration,
-        @NotNull DurationAnchor anchor,
+        @Nullable DurationAnchor anchor,
         @NotNull SerializableSupplier<Long> timeSupplier,
         @NotNull LocalizableMessage text)
         implements Serializable {
@@ -44,49 +43,63 @@ public record NamedIntervalPreset(
         TO
     }
 
+    public static final NamedIntervalPreset ALL = new NamedIntervalPreset(
+            null,
+            null,
+            () -> null,
+            new SingleLocalizableMessage("NamedIntervalPreset.all"));
+
+    public static final NamedIntervalPreset LAST_15_MINUTES = new NamedIntervalPreset(
+            XmlTypeConverter.createDuration("PT15M"),
+            new SingleLocalizableMessage("NamedIntervalPreset.last15Minutes"));
+
+    public static final NamedIntervalPreset LAST_30_MINUTES = new NamedIntervalPreset(
+            XmlTypeConverter.createDuration("PT30M"),
+            new SingleLocalizableMessage("NamedIntervalPreset.last30Minutes"));
+
+    public static final NamedIntervalPreset LAST_1_HOUR = new NamedIntervalPreset(
+            XmlTypeConverter.createDuration("PT1H"),
+            new SingleLocalizableMessage("NamedIntervalPreset.last1Hour"));
+
+    public static final NamedIntervalPreset LAST_6_HOURS = new NamedIntervalPreset(
+            XmlTypeConverter.createDuration("PT6H"),
+            new SingleLocalizableMessage("NamedIntervalPreset.last6Hours"));
+
+    public static final NamedIntervalPreset LAST_12_HOURS = new NamedIntervalPreset(
+            XmlTypeConverter.createDuration("PT12H"),
+            new SingleLocalizableMessage("NamedIntervalPreset.last12Hours"));
+
+    public static final NamedIntervalPreset LAST_1_DAY = new NamedIntervalPreset(
+            XmlTypeConverter.createDuration("P1D"),
+            new SingleLocalizableMessage("NamedIntervalPreset.last1Day"));
+
+    public static final NamedIntervalPreset LAST_7_DAYS = new NamedIntervalPreset(
+            XmlTypeConverter.createDuration("P7D"),
+            new SingleLocalizableMessage("NamedIntervalPreset.last7Days"));
+
+    public static final NamedIntervalPreset LAST_1_MONTH = new NamedIntervalPreset(
+            XmlTypeConverter.createDuration("P1M"),
+            new SingleLocalizableMessage("NamedIntervalPreset.last1Month"));
+
+    public static final NamedIntervalPreset LAST_3_MONTHS = new NamedIntervalPreset(
+            XmlTypeConverter.createDuration("P3M"),
+            new SingleLocalizableMessage("NamedIntervalPreset.last3Months"));
+
+    public static final NamedIntervalPreset LAST_1_YEAR = new NamedIntervalPreset(
+            XmlTypeConverter.createDuration("P1Y"),
+            new SingleLocalizableMessage("NamedIntervalPreset.last1Year"));
+
     public static final List<NamedIntervalPreset> DEFAULT_PRESETS = List.of(
-            new NamedIntervalPreset(
-                    XmlTypeConverter.createDuration("PT15M"),
-                    new SingleLocalizableMessage("NamedIntervalPreset.last15Minutes")),
-            new NamedIntervalPreset(
-                    XmlTypeConverter.createDuration("PT30M"),
-                    new SingleLocalizableMessage("NamedIntervalPreset.last30Minutes")),
-            new NamedIntervalPreset(
-                    XmlTypeConverter.createDuration("PT1H"),
-                    new SingleLocalizableMessage("NamedIntervalPreset.last1Hour")),
-            new NamedIntervalPreset(
-                    XmlTypeConverter.createDuration("PT6H"),
-                    new SingleLocalizableMessage("NamedIntervalPreset.last6Hours")),
-            new NamedIntervalPreset(
-                    XmlTypeConverter.createDuration("PT12H"),
-                    new SingleLocalizableMessage("NamedIntervalPreset.last12Hours")),
-            new NamedIntervalPreset(
-                    XmlTypeConverter.createDuration("P1D"),
-                    new SingleLocalizableMessage("NamedIntervalPreset.last1Day")),
-            new NamedIntervalPreset(
-                    XmlTypeConverter.createDuration("P7D"),
-                    new SingleLocalizableMessage("NamedIntervalPreset.last7Days")),
-            new NamedIntervalPreset(
-                    XmlTypeConverter.createDuration("P1M"),
-                    new SingleLocalizableMessage("NamedIntervalPreset.last1Month")),
-            new NamedIntervalPreset(
-                    XmlTypeConverter.createDuration("P3M"),
-                    new SingleLocalizableMessage("NamedIntervalPreset.last3Months")),
-            new NamedIntervalPreset(
-                    XmlTypeConverter.createDuration("P1Y"),
-                    new SingleLocalizableMessage("NamedIntervalPreset.last1Year"))
+            ALL,
+            LAST_15_MINUTES,
+            LAST_30_MINUTES,
+            LAST_1_HOUR,
+            LAST_6_HOURS,
+            LAST_12_HOURS,
+            LAST_1_DAY,
+            LAST_7_DAYS,
+            LAST_1_MONTH,
+            LAST_3_MONTHS,
+            LAST_1_YEAR
     );
-
-    public DurationAnchor getAnchorOrDefault() {
-        return anchor() != null ? anchor() : DurationAnchor.TO;
-    }
-
-    public long getTimeOrDefault() {
-        Long time = timeSupplier != null ? timeSupplier().get() : System.currentTimeMillis();
-        if (time != null) {
-            return time;
-        }
-
-        return System.currentTimeMillis();
-    }
 }

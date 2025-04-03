@@ -18,6 +18,7 @@ import java.util.Objects;
 import javax.xml.datatype.XMLGregorianCalendar;
 
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.LocalizableMessage;
@@ -246,5 +247,14 @@ public class ActivityBasedTaskInformation extends TaskInformation {
 
     public @NotNull ActivityProgressInformation getProgressInformation() {
         return progressInformation;
+    }
+
+    @Override
+    public @Nullable ActivityStatePersistenceType getRootActivityStatePersistence() {
+        if (localRootActivityState == null) {
+            return null;
+        }
+
+        return localRootActivityState.getPersistence();
     }
 }
