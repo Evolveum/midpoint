@@ -159,6 +159,7 @@ $event.contentAsFormattedList
 $event.contentAsFormattedList
 #elseif ($event.delete)The ${event.focusTypeName.toLowerCase()} record was deleted.
 #end
+
 Channel: $!event.channel</code>
                     </script>
                 </bodyExpression>

@@ -378,11 +378,12 @@ public class TestNotifications extends AbstractInitializedModelIntegrationTest {
                         + "User: Jack Sparrow (jack, oid c0c010c0-d34d-b33f-f00d-111111111111)\n"
                         + "\n"
                         + "The user record was modified. Modified attributes are:\n"
-                        + " - Assignment:\n"
-                        + "   - ADD: \n"
-                        + "      - Construction:\n"
-                        + "         - Kind: ACCOUNT\n"
-                        + "         - resourceRef: Dummy Resource (resource)\n"
+                        + "User \"Jack Sparrow (jack)\" has been modified:\n"
+                        + "|	Construction of Account on \"Dummy Resource\" assigned:\n"
+                        + "|	|	Add \"Construction\":\n"
+                        + "|	|	|	Kind: Account\n"
+                        + "|	|	|	resourceRef: Dummy Resource\n"
+                        + "|	|	Assignment was enabled\n"
                         + "\n"
                         + "Channel: ");
     }
@@ -429,9 +430,10 @@ public class TestNotifications extends AbstractInitializedModelIntegrationTest {
                         + "User: Jack Sparrow (jack, oid c0c010c0-d34d-b33f-f00d-111111111111)\n"
                         + "\n"
                         + "The user record was modified. Modified attributes are:\n"
-                        + " - Assignment:\n"
-                        + "   - ADD: \n"
-                        + "      - Target: Superuser (role)\n"
+                        + "User \"Jack Sparrow (jack)\" has been modified:\n"
+                        + "|	Role \"Superuser\" assigned:\n"
+                        + "|	|	Target: Superuser\n"
+                        + "|	|	Assignment was enabled\n"
                         + "\n"
                         + "Channel: ");
     }
@@ -483,13 +485,12 @@ public class TestNotifications extends AbstractInitializedModelIntegrationTest {
                         + "User: Jack Sparrow (jack, oid c0c010c0-d34d-b33f-f00d-111111111111)\n"
                         + "\n"
                         + "The user record was modified. Modified attributes are:\n"
-                        + " - Assignment[" + id + "]/Description:\n"
-                        + "   - REPLACE: hi\n"
-                        + "\n"
-                        + "Notes:\n"
-                        + " - Assignment[" + id + "]:\n"
-                        + "    - Description: hi\n"
-                        + "    - Target: Superuser (role) [default]\n"
+                        + "User \"Jack Sparrow (jack)\" has been modified:\n"
+                        + "|	Role \"Superuser\" modified:\n"
+                        + "|	|	Additional identification (not modified data):\n"
+                        + "|	|	|	Target: Superuser\n"
+                        + "|	|	Added properties:\n"
+                        + "|	|	|	Description: hi\n"
                         + "\n"
                         + "Channel: ");
     }
@@ -541,10 +542,11 @@ public class TestNotifications extends AbstractInitializedModelIntegrationTest {
                         + "User: Jack Sparrow (jack, oid c0c010c0-d34d-b33f-f00d-111111111111)\n"
                         + "\n"
                         + "The user record was modified. Modified attributes are:\n"
-                        + " - Assignment:\n"
-                        + "   - DELETE: \n"
-                        + "      - Description: hi\n"
-                        + "      - Target: Superuser (role) [default]\n"
+                        + "User \"Jack Sparrow (jack)\" has been modified:\n"
+                        + "|	Role \"Superuser\" unassigned:\n"
+                        + "|	|	Description: hi\n"
+                        + "|	|	Target: Superuser\n"
+                        + "|	|	Delete \"Activation\"\n"
                         + "\n"
                         + "Channel: ");
     }
@@ -939,8 +941,14 @@ public class TestNotifications extends AbstractInitializedModelIntegrationTest {
         checkDummyTransportMessages("simpleAccountNotifier-IN-PROGRESS", 1);
 
         String expected = "The account has been ATTEMPTED to be modified on the resource. Modified attributes are:\n"
-                + " - attributes/Full Name:\n"
-                + "   - REPLACE: TEST510\n"
+                + "Account \"test510\" (default) modified on \"Dummy Resource\":\n"
+                + "|	Additional identification (not modified data):\n"
+                + "|	|	Resource: Dummy Resource\n"
+                + "|	|	Kind: Account\n"
+                + "|	|	Intent: default\n"
+                + "|	\"attributes\" has been modified:\n"
+                + "|	|	Added properties:\n"
+                + "|	|	|	Full Name: TEST510\n"
                 + "\n"
                 + "The operation will be retried.\n";
         String actual = dummyTransport.getMessages("dummy:simpleAccountNotifier-IN-PROGRESS").get(0).getBody();

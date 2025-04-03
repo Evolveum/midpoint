@@ -188,6 +188,10 @@ public class ResourceObjectEventImpl extends BaseEventImpl implements ResourceOb
         }
     }
 
+    public String getContentAsFormattedList() {
+        return getContentAsFormattedList(false, false, null, null);
+    }
+
     @Override
     public String getContentAsFormattedList(Task task, OperationResult result) {
         return getContentAsFormattedList(false, false, task, result);
@@ -204,18 +208,15 @@ public class ResourceObjectEventImpl extends BaseEventImpl implements ResourceOb
             return getTextFormatter()
                     .formatShadowAttributes(shadowDelta.getObjectToAdd().asObjectable(), showSynchronizationItems, false);
         } else if (shadowDelta.isModify()) {
-            return getModifiedAttributesAsFormattedList(shadowDelta, showSynchronizationItems, showAuxiliaryAttributes,
-                    task, result);
+            if (task == null) {
+                return getTextFormatter().formatObjectModificationDelta(shadowDelta, showSynchronizationItems,
+                        showAuxiliaryAttributes);
+            }
+            return getTextFormatter().formatObjectModificationDelta(shadowDelta, showSynchronizationItems,
+                    showAuxiliaryAttributes, task, result);
         } else {
             return "";
         }
-    }
-
-    private String getModifiedAttributesAsFormattedList(ObjectDelta<ShadowType> shadowDelta,
-            boolean showSynchronizationItems, boolean showAuxiliaryAttributes, Task task, OperationResult result) {
-
-        return getTextFormatter().formatObjectModificationDelta(shadowDelta, showSynchronizationItems,
-                showAuxiliaryAttributes, task, result);
     }
 
     @Override

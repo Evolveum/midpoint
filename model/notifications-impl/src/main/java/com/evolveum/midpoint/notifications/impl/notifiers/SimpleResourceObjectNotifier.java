@@ -152,9 +152,11 @@ public class SimpleResourceObjectNotifier extends AbstractGeneralNotifier<Resour
         }
 
         if (event.getOperationStatus() == OperationStatus.IN_PROGRESS) {
-            body.append("The operation will be retried.\n\n");
+            body.append("\n");
+            body.append("The operation will be retried.");
         } else if (event.getOperationStatus() == OperationStatus.FAILURE) {
-            body.append("Error: ").append(event.getOperationDescription().getMessage()).append("\n\n");
+            body.append("\n");
+            body.append("Error: ").append(event.getOperationDescription().getMessage());
         }
 
         body.append("\n\n");

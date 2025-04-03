@@ -267,6 +267,10 @@ public class ModelEventImpl extends BaseEventImpl implements ModelEvent {
             if (summarizedDelta == null) {
                 return ""; // should not happen
             } else if (summarizedDelta.isAdd() || summarizedDelta.isModify()) {
+                if (task == null) {
+                    return getTextFormatter().formatObjectModificationDelta(summarizedDelta, false,
+                            showAuxiliaryAttributes);
+                }
                 return getTextFormatter().formatObjectModificationDelta(summarizedDelta, false, showAuxiliaryAttributes,
                         task, result);
             } else {

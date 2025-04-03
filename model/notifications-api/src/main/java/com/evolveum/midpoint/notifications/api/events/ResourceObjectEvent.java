@@ -52,6 +52,11 @@ public interface ResourceObjectEvent extends Event {
 
     String getPlaintextPassword();
 
+    /**
+     * It may be used from scripts
+     */
+    String getContentAsFormattedList();
+
     String getContentAsFormattedList(Task task, OperationResult result);
 
     String getContentAsFormattedList(boolean showSynchronizationItems, boolean showAuxiliaryAttributes, Task task,

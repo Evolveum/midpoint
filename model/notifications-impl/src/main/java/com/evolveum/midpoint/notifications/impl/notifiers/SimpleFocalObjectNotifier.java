@@ -141,10 +141,10 @@ public class SimpleFocalObjectNotifier extends AbstractGeneralNotifier<ModelEven
         final Task task = ctx.task();
         if (delta.isAdd()) {
             body.append("The ").append(typeNameLower).append(" record was ").append(attemptedTo).append("created with the following data:\n");
-            body.append(event.getContentAsFormattedList(watchAuxiliaryAttributes, task, result));
+            body.append(event.getContentAsFormattedList(watchAuxiliaryAttributes, task, result)).append("\n");
         } else if (delta.isModify()) {
             body.append("The ").append(typeNameLower).append(" record was ").append(attemptedTo).append("modified. Modified attributes are:\n");
-            body.append(event.getContentAsFormattedList(watchAuxiliaryAttributes, task, result));
+            body.append(event.getContentAsFormattedList(watchAuxiliaryAttributes, task, result)).append("\n");
         } else if (delta.isDelete()) {
             body.append("The ").append(typeNameLower).append(" record was ").append(attemptedTo).append("removed.\n");
         }
