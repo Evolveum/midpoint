@@ -65,8 +65,15 @@ public class ConfigurableExpressionColumn<S extends SelectableRow<T>, T extends 
     private final PageBase modelServiceLocator;
 
 
-    public ConfigurableExpressionColumn(IModel<String> displayModel, String sortProperty, GuiObjectColumnType customColumns, ExpressionType expressionType, PageBase modelServiceLocator) {
+    public ConfigurableExpressionColumn(
+            IModel<String> displayModel,
+            String sortProperty,
+            GuiObjectColumnType customColumns,
+            ExpressionType expressionType,
+            PageBase modelServiceLocator) {
+
         super(displayModel, sortProperty);
+
         this.customColumn = customColumns;
         this.expression = expressionType;
         this.modelServiceLocator = modelServiceLocator;

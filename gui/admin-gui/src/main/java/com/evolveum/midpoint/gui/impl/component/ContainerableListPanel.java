@@ -1452,6 +1452,13 @@ public abstract class ContainerableListPanel<C extends Serializable, PO extends 
         target.add(getFeedbackPanel());
     }
 
+    public void resetTableColumns() {
+        BoxedTablePanel<PO> table = getTable();
+        table.getDataTable().getColumns().clear();
+        //noinspection unchecked
+        table.getDataTable().getColumns().addAll(createColumns());
+    }
+
     public void resetTable(AjaxRequestTarget target) {
         BoxedTablePanel<PO> table = getTable();
         table.getDataTable().getColumns().clear();

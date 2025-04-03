@@ -112,7 +112,7 @@ public class ContainerTreeDeltaValue<C extends Containerable> extends ItemTreeDe
         }
 
         ItemTreeDelta<?, ?, ?, ?> delta = getDeltas().stream()
-                .filter(d -> name.matches(d.getItemName()))
+                .filter(d -> ItemPath.equivalent(name, ItemPath.create(d.getItemName())))
                 .findFirst()
                 .orElse(null);
 
