@@ -97,11 +97,13 @@ At the GUI level, there are the following action URIs available.
 
 | My cases to decide
 | <prefix>#myCertificationDecisions
-|
+| Authorization is required for access to Certification items page which can be reached from "_My active campaigns_" page (e.g. by clicking Show items link for a particular campaign).
+In case _accessCertification_ -> _allowCertificationItemsMenus_ option is enabled (set to true) in the system configuration object, this authorization is required to display "_My certification items_" menu item.
 
 | All cases to decide
 | <prefix>#certificationDecisions
-|
+| Authorization is required for access to Certification items page which can be reached from "_Active campaigns_" page (e.g. by clicking Show items link for a particular campaign).
+In case _accessCertification_ -> _allowCertificationItemsMenus_ option is enabled (set to true) in the system configuration object, this authorization is required to display "_Certification items_" menu item.
 
 | My active campaigns
 | <prefix>#myActiveCertificationCampaigns
