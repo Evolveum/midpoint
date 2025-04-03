@@ -66,6 +66,13 @@ public interface ModelEvent extends Event {
 
     boolean hasContentToShow(boolean showAuxiliaryAttributes);
 
+    /**
+     * May be used from scripts
+     */
+    default String getContentAsFormattedList() {
+        return getContentAsFormattedList(false, null, null);
+    }
+
     default String getContentAsFormattedList(Task task, OperationResult result) {
         return getContentAsFormattedList(false, task, result);
     }

@@ -136,6 +136,17 @@ public class TextFormatter {
                 task, task.getResult());
     }
 
+    /**
+     * Intended for use by scripts
+     */
+    public String formatObjectModificationDelta(
+            @NotNull ObjectDelta<? extends Objectable> objectDelta, boolean showSynchronizationAttributes,
+            boolean showOperationalAttributes) {
+        final Task task = this.midpointFunctions.getCurrentTask();
+        return formatObjectModificationDelta(objectDelta, showSynchronizationAttributes, showOperationalAttributes,
+                task, task.getResult());
+    }
+
     public String formatObjectModificationDelta(
             @NotNull ObjectDelta<? extends Objectable> objectDelta, boolean showSynchronizationAttributes,
             boolean showOperationalAttributes, Task task,

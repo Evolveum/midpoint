@@ -32,9 +32,9 @@ public class TestWrapableLocalizationImpl {
                 WrapableLocalization.of(
                         LocalizationPart.forObject(new SingleLocalizableMessage("object "), null),
                         LocalizationPart.forObjectName(new SingleLocalizableMessage("object name "), null),
-                        LocalizationPart.forAction(new SingleLocalizableMessage("action"), null),
-                        LocalizationPart.forAdditionalInfo(new SingleLocalizableMessage("additional info"), null),
-                        LocalizationPart.forHelpingWords(new SingleLocalizableMessage("helping words ")));
+                        LocalizationPart.forAction(new SingleLocalizableMessage("action "), null),
+                        LocalizationPart.forAdditionalInfo(new SingleLocalizableMessage("additional info "), null),
+                        LocalizationPart.forHelpingWords(new SingleLocalizableMessage("helping words")));
 
         final LocalizationPartsWrapper<String, Void, String> caseWrapper = LocalizationPartsWrapper.from(
                 this::toUpperCase, this::toUpperCase, this::toUpperCase, this::toUpperCase, String::toUpperCase);
@@ -44,7 +44,7 @@ public class TestWrapableLocalizationImpl {
                 .translate(this.localizationService, Locale.US)
                 .toString();
 
-        Assertions.assertThat(combinedParts).isEqualTo("OBJECT OBJECT NAME HELPING WORDS ACTION");
+        Assertions.assertThat(combinedParts).isEqualTo("OBJECT OBJECT NAME ACTION ADDITIONAL INFO HELPING WORDS");
     }
 
     @Test
@@ -70,7 +70,7 @@ public class TestWrapableLocalizationImpl {
                 .translate(this.localizationService, Locale.US)
                 .toString();
 
-        Assertions.assertThat(combinedParts).isEqualTo("611136");
+        Assertions.assertThat(combinedParts).isEqualTo("61161513");
     }
 
     @Test
@@ -93,7 +93,7 @@ public class TestWrapableLocalizationImpl {
                 .translate(this.localizationService, Locale.US)
                 .toString();
 
-        Assertions.assertThat(combinedParts).isEqualTo("contextcontexthelping wordscontext");
+        Assertions.assertThat(combinedParts).isEqualTo("contextcontextcontextcontexthelping words");
     }
 
     @Test
