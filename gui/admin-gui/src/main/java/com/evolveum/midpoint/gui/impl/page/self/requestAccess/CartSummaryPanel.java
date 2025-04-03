@@ -213,6 +213,9 @@ public class CartSummaryPanel extends BasePanel<RequestAccess> implements Access
                 if (!isValidityRequired()) {
                     return;
                 }
+                if (!RequestAccess.VALIDITY_CUSTOM_LENGTH.equals(getModelObject().getSelectedValidity())) {
+                    return;
+                }
 
                 Date from = customValidity.getFrom().getConvertedInput();
                 Date to = customValidity.getTo().getConvertedInput();
@@ -249,6 +252,7 @@ public class CartSummaryPanel extends BasePanel<RequestAccess> implements Access
         validity.add(new AjaxFormComponentUpdatingBehavior("change") {
             @Override
             protected void onUpdate(AjaxRequestTarget target) {
+                target.add(validity);
                 target.add(customValidity);
             }
         });
@@ -327,10 +331,7 @@ public class CartSummaryPanel extends BasePanel<RequestAccess> implements Access
                 List items = new ArrayList();
 
                 items.addAll(getValidityPeriods());
-
-                if (!isAllowOnlyGlobalValiditySettings()) {
-                    items.add(RequestAccess.VALIDITY_CUSTOM_LENGTH);
-                }
+                items.add(RequestAccess.VALIDITY_CUSTOM_LENGTH);
 
                 return items;
             }
