@@ -152,7 +152,7 @@ Following is the example of custom form which can be used as a registration form
 </form>
 ----
 
-After referencing this form definition and applying it for registration, the screen will look like following:
+After xref:/midpoint/reference/misc/self-registration/#self-registration-and-custom-form[referencing this form definition] and applying it for registration, the screen will look like following:
 
 
 image::Screenshot-2017-01-27-10.16.55.png[]
