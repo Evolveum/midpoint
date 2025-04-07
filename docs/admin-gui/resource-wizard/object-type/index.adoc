@@ -32,7 +32,7 @@ Define the basic information about the object type.
 * *Default*: Specifies if the provided intent should be used as a default in case you define multiple intents for the same object kind.
 	Select `True` if you use only a single intent.
 * *Lifecycle state*: Set to _Proposed_ before you finish the setup and test it.
-	Refer to the xref:how-to-use-lifecycle-state[brief guide on using lifecycle states] for more details.
+	Refer to the xref:#how-to-use-lifecycle-state[brief guide on using lifecycle states] for more details.
 
 Click btn:[Next: Resource data] to continue to the next object type configuration screen.
 
@@ -102,53 +102,18 @@ Define the midPoint-specific configuration of focus objects for this object type
 	** If unsure, select *No archetype*.
 		You can edit the object type later.
 
-	** Otherwise, select an existing or create a new archetype.
+	** Otherwise, xref:/midpoint/reference/schema/archetypes/configuration-gui/#work-with-archetypes-in-the-object-type-resource-wizard[select an existing or create a new archetype].
 
 Click btn:[Save settings] to save the object type configuration.
 
 [NOTE]
 ====
-You can modify the selected or create a new archetype outside the resource wizard later.
+You can xref:/midpoint/reference/schema/archetypes/configuration-gui/[modify the selected archetype outside the resource wizard] later.
 ====
 
-.See also the following pages for more information:
-* xref:/midpoint/reference/schema/archetypes/[Archetypes overview]
-* Details on the built-in xref:/midpoint/reference/schema/archetypes/person/[Person archetype]
+.See also details on the built-in xref:/midpoint/reference/schema/archetypes/person/[].
 
 image::step-1-object-type-midpoint-data.webp[link=step-1-object-type-midpoint-data.webp, 100%, title=Midpoint data]
-
-=== Select or Create an Archetype
-
-Select *Use existing archetype* and click btn:[Select archetype] to pick an existing archetype.
-
-Select *Create new archetype* to create a new archetype with basic configuration options.
-The created archetype will be saved after you save the object type and will be added to its configuration as a reference.
-
-In case of a new archetype, you have the following options:
-
-* *Inherit settings from archetype*: Select archetype which becomes superarchetype for the one you are creating. +
-	For example, you can create your own archetype for roles which inherits the `Application role` archetype.
-
-* *Name*: The new archetype name.
-	The resource wizard generates it using the resource name and intent, but you can change it.
-
-* *Description*: Short description of the new archetype.
-
-* *Create inducement*: Set to `True` to create an inducement in the new archetype to construct the resource object defined in currently edited object type for all focus object with this archetype.
-
-* *Create inducement for membership* allows to create an inducement in the new archetype to construct the resource account _and_ association (membership) for focal objects with assigned role of this archetype.
-For example, if you create a new archetype `LDAP group` for roles, by assigning role with `LDAP group` archetype to a user, new LDAP account will be created and made member of the group constructed by `LDAP group` archetype for the role.
-
-* When you expand the *Display* item, you can set a few human-friendly attributes:
-
-	** *Label*: A label of the new archetype displayed in summary panel of objects with this archetype assigned.
-
-	** *Plural label*: A label of the new archetype displayed in main menu if object collection view is defined for this archetype.
-
-	** *Icon*: The new archetype icon using Font Awesome icon names.
-For example `fa fa-briefcase` corresponds to `briefcase` icon in Font Awesome in the default (solid) icon set
-
-	** *Color* allows defining the new archetype color for the icon using CSS color names
 
 == Further Object Type Configuration
 
@@ -160,16 +125,16 @@ First of all, we suggest you click btn:[Preview data] to display resource data a
 
 image::data-preview.png[link=data-preview.png,100%,title=Data preview of object type]
 
-After you confirm whether your settings produce expected results, you can choose your next steps to configure other parts of your object type configuration:
+After you confirm whether your settings produce expected results, you can choose your next steps to configure other parts of your object type:
 
-* <<Basic attributes>> allows getting back to the basic configuration of your object type
-* xref:./mapping/[Mappings] allow to configure resource attribute mappings
-* xref:./synchronization/[Synchronization] allows to configure synchronization situations and reactions
-* xref:./correlation/[Correlation] allows to configure correlation rules for resource objects
-* xref:./capability/[Capabilities] allows you to disable/override some functionality of the resource and/or connector without changing the connector implementation
-* xref:./activation/[Activation] allows to configure rules (mappings) for activation
-* xref:./credentials/[Credentials] allows to configure mappings for credentials (e.g., passwords)
-* xref:./policies/[Policies] allow to configure the resource operation policies
+* <<Basic attributes>>: Get back to the basic configuration of your object type.
+* xref:./mapping/[Mappings]: Configure resource attribute mappings.
+* xref:./synchronization/[Synchronization]: Configure synchronization situations and reactions.
+* xref:./correlation/[Correlation]: Configure correlation rules for resource objects.
+* xref:./capability/[Capabilities]: Disable/override some functionality of the resource and/or connector without changing the connector implementation.
+* xref:./activation/[Activation]: Configure rules (mappings) for activation.
+* xref:./credentials/[Credentials]: Configure mappings for credentials (e.g., passwords).
+* xref:./policies/[Policies]: Configure the resource operation policies.
 
 include::../configuration-resource-panels.adoc[]
 
