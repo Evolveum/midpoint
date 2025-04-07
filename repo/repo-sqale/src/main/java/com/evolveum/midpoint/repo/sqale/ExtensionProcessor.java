@@ -172,9 +172,11 @@ public class ExtensionProcessor {
                 throw new IllegalArgumentException(
                         "Reference without target type can't be stored: " + ref);
             }
-            return Map.of(JsonbUtils.JSONB_REF_TARGET_OID_KEY, ref.getOid(),
-                    JsonbUtils.JSONB_REF_TARGET_TYPE_KEY, MObjectType.fromTypeQName(targetType),
-                    JsonbUtils.JSONB_REF_RELATION_KEY, repositoryContext.processCacheableRelation(ref.getRelation()));
+            HashMap<String, Object> refMap = new HashMap<>();
+            refMap.put(JsonbUtils.JSONB_REF_TARGET_OID_KEY, ref.getOid());
+            refMap.put(JsonbUtils.JSONB_REF_TARGET_TYPE_KEY, MObjectType.fromTypeQName(targetType));
+            refMap.put(JsonbUtils.JSONB_REF_RELATION_KEY, repositoryContext.processCacheableRelation(ref.getRelation()));
+            return refMap;
         }
 
         if (realValue instanceof Enum) {
