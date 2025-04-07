@@ -35,7 +35,7 @@ image::archetype-gui-basic-01.webp[link=archetype-gui-basic-01.webp,100%]
 
 == Work With Archetypes in the Object Type Resource Wizard
 
-When setting up an object type, you can work with archetypes directly from the wizard.
+When xref:/midpoint/reference/admin-gui/resource-wizard/object-type/[setting up an object type], you can work with archetypes directly from the wizard.
 On the screen Specify the midPoint data of object type setup wizard, you can select an existing archetype for the object type or create a new one, such as _Person_.
 
 image::../object-type-midpoint-data-archetype-selection.webp[link=../object-type-midpoint-data-archetype-selection.webp, 100%]
@@ -64,7 +64,7 @@ When you finish, you may need to tweak its settings using the xref:#create-an-ar
 	** *Description*: A short description of the new archetype.
 	** *Label*: A label of the new archetype displayed in summary panel of objects with this archetype assigned.
 	** *Plural label*: A label of the new archetype displayed in main menu if object collection view is defined for this archetype.
-. Set *Inducement* to _True_ if you wish the archetype to provision the currently edited resource object type for all the focal objects that get this new archetype.
+. Set *Inducement* to _True_ if you wish the archetype to provide the currently edited resource object type to all the focal objects that get this new archetype.
 . Click *Display* to expand the section where you can set the archetyp icon or color.
 	** You can choose *icons* from the link:https://fontawesome.com/search?ic=free[free set of Font Awesome icons].
 		Use the names without the `fa-` prefix.
