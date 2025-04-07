@@ -68,6 +68,10 @@ public abstract class ItemTreeDelta
         this.parent = parent;
     }
 
+    public int getSize() {
+        return values == null ? 0 : values.size();
+    }
+
     @NotNull
     public List<V> getValues() {
         if (values == null) {

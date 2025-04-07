@@ -74,32 +74,32 @@ public class ObjectTreeDelta<O extends ObjectType> extends ContainerTreeDelta<O>
         SchemaRegistry registry = PrismContext.get().getSchemaRegistry();
         PrismObjectDefinition<O> def = registry.findObjectDefinitionByCompileTimeClass(delta.getObjectTypeClass());
 
-        ObjectTreeDelta<O> result = new ObjectTreeDelta<>(def);
-        result.setOid(delta.getOid());
-        result.setObjectToAdd(delta.getObjectToAdd());  // todo this feels funky, probably should end up in value?
+        ObjectTreeDelta<O> treeDelta = new ObjectTreeDelta<>(def);
+        treeDelta.setOid(delta.getOid());
+        treeDelta.setObjectToAdd(delta.getObjectToAdd());  // todo this feels funky, probably should end up in value?
 
         // todo fix value to add, modification type somehow
         ObjectTreeDeltaValue<O> value = new ObjectTreeDeltaValue<>();
         value.setOid(delta.getOid());
-        result.addValue(value);
+        treeDelta.addValue(value);
 
         delta.getModifications().forEach(modification -> {
             if (modification instanceof ContainerDelta containerDelta) {
-                ContainerTreeDelta<?> ctd = result.findOrCreateItemDelta(containerDelta.getPath(), ContainerTreeDelta.class);
+                ContainerTreeDelta<?> ctd = treeDelta.findOrCreateItemDelta(containerDelta.getPath(), ContainerTreeDelta.class);
 
                 addItemDeltaValues(containerDelta, ctd);
             } else if (modification instanceof PropertyDelta propertyDelta) {
-                PropertyTreeDelta<?> ptd = result.findOrCreateItemDelta(propertyDelta.getPath(), PropertyTreeDelta.class);
+                PropertyTreeDelta<?> ptd = treeDelta.findOrCreateItemDelta(propertyDelta.getPath(), PropertyTreeDelta.class);
 
                 addItemDeltaValues(propertyDelta, ptd);
             } else if (modification instanceof ReferenceDelta referenceDelta) {
-                ReferenceTreeDelta rtd = result.findOrCreateItemDelta(referenceDelta.getPath(), ReferenceTreeDelta.class);
+                ReferenceTreeDelta rtd = treeDelta.findOrCreateItemDelta(referenceDelta.getPath(), ReferenceTreeDelta.class);
 
                 addItemDeltaValues(referenceDelta, rtd);
             }
         });
 
-        return result;
+        return treeDelta;
     }
 
     private static <PV extends PrismValue, V extends ItemTreeDeltaValue<PV, ?>, ID extends ItemDelta<PV, ?>, ITD extends ItemTreeDelta<PV, ?, ?, V>> void addItemDeltaValues(

@@ -14,42 +14,39 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.gui.api.util.LocalizationUtil;
-import com.evolveum.midpoint.gui.impl.util.ProvisioningObjectsUtil;
-import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
-import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
-
-import com.evolveum.midpoint.web.component.data.column.ColumnUtils;
-
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.export.AbstractExportableColumn;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.repeater.RepeatingView;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.LoadableDetachableModel;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.util.LocalizationUtil;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
+import com.evolveum.midpoint.gui.impl.util.ProvisioningObjectsUtil;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
+import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.component.data.column.ColumnUtils;
 import com.evolveum.midpoint.web.component.util.SelectableRow;
 import com.evolveum.midpoint.web.page.admin.server.dto.OperationResultStatusPresentationProperties;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
-
-import org.apache.wicket.model.LoadableDetachableModel;
 
 public class ConfigurableExpressionColumn<S extends SelectableRow<T>, T extends Serializable> extends AbstractExportableColumn<S, String> {
 
@@ -63,7 +60,6 @@ public class ConfigurableExpressionColumn<S extends SelectableRow<T>, T extends 
     private final ExpressionType expression;
 
     private final PageBase modelServiceLocator;
-
 
     public ConfigurableExpressionColumn(
             IModel<String> displayModel,
@@ -82,6 +78,7 @@ public class ConfigurableExpressionColumn<S extends SelectableRow<T>, T extends 
     protected PageBase getPageBase() {
         return modelServiceLocator;
     }
+
     @Override
     public void populateItem(org.apache.wicket.markup.repeater.Item<ICellPopulator<S>> item,
             String componentId, IModel<S> rowModel) {
@@ -102,6 +99,7 @@ public class ConfigurableExpressionColumn<S extends SelectableRow<T>, T extends 
         ItemPath columnPath = WebComponentUtil.getPath(customColumn);
 
         return new LoadableDetachableModel<>() {
+
             @Override
             protected String load() {
                 return loadExportableColumnDataModel(rowModel, customColumn, columnPath, expression);
@@ -161,6 +159,7 @@ public class ConfigurableExpressionColumn<S extends SelectableRow<T>, T extends 
     private boolean isItemPathDefined(ItemPath columnPath) {
         return columnPath != null && !columnPath.isEmpty();
     }
+
     public T getRowRealValue(S rowValue) {
         return ColumnUtils.unwrapRowRealValue(rowValue);
     }
@@ -200,7 +199,6 @@ public class ConfigurableExpressionColumn<S extends SelectableRow<T>, T extends 
                 .map(object -> getStringValue(object, null))
                 .collect(Collectors.joining(", "));
     }
-
 
     protected <V> Collection<V> evaluateExpression(T rowValue, com.evolveum.midpoint.prism.Item<?, ?> columnItem, ExpressionType expression, GuiObjectColumnType customColumn) {
         Task task = getPageBase().createSimpleTask(OPERATION_EVALUATE_EXPRESSION);

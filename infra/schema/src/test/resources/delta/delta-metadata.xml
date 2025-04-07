@@ -1,0 +1,51 @@
+<!--
+  ~ Copyright (C) 2010-2025 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<objectDelta xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3" xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3" xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-3" xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3" xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3" xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="t:ObjectDeltaType" xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+    <t:changeType>modify</t:changeType>
+    <t:objectType>c:UserType</t:objectType>
+    <t:oid>167adb5a-3841-4ea3-a3e3-e74e4e03e6db</t:oid>
+    <t:itemDelta>
+        <t:modificationType>replace</t:modificationType>
+        <t:path>c:givenName</t:path>
+        <t:value xsi:type="t:PolyStringType">asdf</t:value>
+    </t:itemDelta>
+    <t:itemDelta>
+        <t:modificationType>replace</t:modificationType>
+        <t:path>fullName</t:path>
+        <t:value xsi:type="t:PolyStringType">asdf</t:value>
+    </t:itemDelta>
+    <t:itemDelta>
+        <t:modificationType>replace</t:modificationType>
+        <t:path>@metadata[2]/c:storage/c:modifyChannel</t:path>
+        <t:value xmlns:xsd="http://www.w3.org/2001/XMLSchema" xsi:type="xsd:anyURI">http://midpoint.evolveum.com/xml/ns/public/common/channels-3#user</t:value>
+    </t:itemDelta>
+    <t:itemDelta>
+        <t:modificationType>replace</t:modificationType>
+        <t:path>@metadata[2]/c:storage/c:modifyTimestamp</t:path>
+        <t:value xmlns:xsd="http://www.w3.org/2001/XMLSchema" xsi:type="xsd:dateTime">2025-04-02T22:16:34.505+02:00</t:value>
+    </t:itemDelta>
+    <t:itemDelta>
+        <t:modificationType>replace</t:modificationType>
+        <t:path>@metadata[2]/c:storage/c:modifierRef</t:path>
+        <t:value oid="00000000-0000-0000-0000-000000000002" type="c:UserType" xsi:type="c:ObjectReferenceType">
+            <!-- administrator -->
+        </t:value>
+    </t:itemDelta>
+    <t:itemDelta>
+        <t:modificationType>replace</t:modificationType>
+        <t:path>@metadata[2]/c:storage/c:modifyTaskRef</t:path>
+    </t:itemDelta>
+    <t:itemDelta>
+        <t:modificationType>replace</t:modificationType>
+        <t:path>@metadata[2]/c:process/c:modifyApproverRef</t:path>
+    </t:itemDelta>
+    <t:itemDelta>
+        <t:modificationType>replace</t:modificationType>
+        <t:path>@metadata[2]/c:process/c:modifyApprovalComment</t:path>
+    </t:itemDelta>
+</objectDelta>
