@@ -41,13 +41,13 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 @Component
 public class AssociationDescriptionHandler extends ShadowDescriptionHandler {
      private static final LocalizableMessage ASSOCIATION = new SingleLocalizableMessage(
-             "hadowDescriptionHandler.association.association", null, "Association");
+             "shadowDescriptionHandler.association.association", null, "Association");
      private static final LocalizableMessage BETWEEN = new SingleLocalizableMessage(
-             "hadowDescriptionHandler.association.between", null, "between");
+             "shadowDescriptionHandler.association.between", null, "between");
      private static final LocalizableMessage AND = new SingleLocalizableMessage(
-             "hadowDescriptionHandler.association.and", null, "and");
+             "shadowDescriptionHandler.association.and", null, "and");
      private static final LocalizableMessage HAS_BEEN = new SingleLocalizableMessage(
-             "hadowDescriptionHandler.association.hasBeen", null, "has been");
+             "shadowDescriptionHandler.association.hasBeen", null, "has been");
 
     @Autowired
     private Resolver resolver;
