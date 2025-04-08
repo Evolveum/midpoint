@@ -297,7 +297,7 @@ public class PrismContainerWrapperImpl<C extends Containerable>
                     Collection<ItemDelta> itemDeltas = new ArrayList<>();
                     for (ItemWrapper<?, ?> itemWrapper : pVal.getItems()) {
                         Collection<? extends ItemDelta> itemDelta = itemWrapper.getDelta();
-                        if (itemDelta == null || delta.isEmpty()) {
+                        if (itemDelta == null || itemDelta.isEmpty()) {
                             continue;
                         }
                         itemDeltas.addAll(itemDelta);
