@@ -11,14 +11,17 @@ doc-type: config
 :page-wiki-metadata-modify-user: katkav
 :page-wiki-metadata-modify-date: 2020-09-10T20:30:23.449+02:00
 :page-upkeep-status: green
+:page-display-order: 10
 :page-toc: top
 
 == Introduction
 
-Simply speaking _archetype_ is a well-defined object subtype.
-Employee, Contractor, Project, Workgroup, Application, ... each of them is an archetype.
+Archetype is a well-defined object subtype.
+_Employee_, _Contractor_, _Project_, _Workgroup_, or _Application_ can be archetypes for various classes of objects based on their character.
 
-Please see xref:/midpoint/reference/schema/archetypes/[Archetypes] page for a more in-depth introduction to archetype concepts.
+See xref:/midpoint/reference/schema/archetypes/[] for a more in-depth introduction to the archetype concept.
+
+Refer to xref:./configuration-gui[] for guides on working with archetypes in the midPoint administrative user interface.
 
 
 == Archetype Definition
