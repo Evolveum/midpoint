@@ -13,6 +13,7 @@ import java.util.List;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
+import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.schemaContext.SchemaContextDefinition;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
@@ -291,6 +292,20 @@ public class PrismContainerWrapperImpl<C extends Containerable>
                         break;
                     }
 
+                    //fix for #10624
+                    //just to ensure that all deltas are applied to valueToAdd
+                    Collection<ItemDelta> itemDeltas = new ArrayList<>();
+                    for (ItemWrapper<?, ?> itemWrapper : pVal.getItems()) {
+                        Collection<? extends ItemDelta> itemDelta = itemWrapper.getDelta();
+                        if (itemDelta == null || itemDelta.isEmpty()) {
+                            continue;
+                        }
+                        itemDeltas.addAll(itemDelta);
+                    }
+                    for (ItemDelta d : itemDeltas) {
+                        d.applyTo(valueToAdd);
+                    }
+                    //end fix for #10624
                     delta.addValueToAdd(valueToAdd);
                     deltas.add((D) delta);
                     LOGGER.trace("Computed delta: \n {}", delta);
