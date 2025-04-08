@@ -2,109 +2,139 @@
 :page-nav-title: Object type configuration
 :page-toc: top
 :page-since: "4.9"
+:experimental:
 
-In this part of resource configuration, you can configure the object types for xref:/midpoint/reference/resources/resource-configuration/schema-handling/[Schema handling], essentially defining the behavior of midPoint with respect to the resource.
-One or multiple object types can be defined, based on the source/target system characteristics.
-For example, CSV resource contains typically a single object type (e.g. accounts) while LDAP resource can contain more than one object type (e.g. accounts and groups).
+In midPoint, configuring object types is the key to defining the structure of different identity objects, such as users, roles, and resources.
+This guide is here to guide you through the basic steps involved in setting up object types.
+It also provides links to follow-up materials for more advanced configurations.
 
-image::object-type-table.png[link=object-type-table.png,100%,title=Table of object types]
+You can configure the object types for xref:/midpoint/reference/resources/resource-configuration/schema-handling/[schema handling], essentially defining the behavior of midPoint with respect to the resource.
+You can define one or more object types based on the resource characteristics (i.e., the characteristics of the system the
+resource represents).
+For example, a CSV resource typically contains a single object type (e.g., accounts) while an LDAP resource can contain multiple object types (e.g., accounts and groups).
 
-Click btn:[Add object type] to create a new object type definition using Object type configuration wizard.
+To create a new object type definition using the configuration wizard:
+
+. In icon:database[] *Resources* > icon:database[] *All resources*, select your resource.
+. Go to icon:gears[] *Schema handling* > icon:exchange[] *Object types* in the selected resource.
+. Click icon:circle-plus[] btn:[Add object type].
+
+image::object-type-table.webp[link=object-type-table.webp,100%,title=List of object types]
 
 == Basic attributes
 
-Define the basic information about the object type:
+Define the basic information about the object type.
 
-* *Display name* will be displayed in midPoint as a reference to this object type configuration
-* *Kind* is either `Account`, `Entitlement` or `Generic`. For accounts, please select `Account`.
-+
-TIP: You first object type definition will be almost always for accounts (`kind=account`). Typical source of user data is HR system. Later you might want to use also Entitlements and Generic.
-* *Intent* is used when you would like to use more than one different object _types_, e.g. standard and administrative accounts. Keep the default (empty) value if you want to work with just one type of accounts.
-* *Default* specifies if the intent provided in the previous value should be used as the default value in case you define multiple intents. Select `True` if you are using only a single intent / one type of accounts.
+* *Display name*: User-friendly name displayed in the midPoint user interface.
+* *Kind*: Select `Account` for user accounts and `Entitlement` for role-like objects usually associated with user accounts.
+* *Intent*: Used when you use multiple object types, e.g., _standard_ and _administrative_ accounts.
+	Keep the default (empty) value if you work with just one type of accounts.
+* *Default*: Specifies if the provided intent should be used as a default in case you define multiple intents for the same object kind.
+	Select `True` if you use only a single intent.
+* *Lifecycle state*: Set to _Proposed_ before you finish the setup and test it.
+	Refer to the xref:#how-to-use-lifecycle-state[brief guide on using lifecycle states] for more details.
 
+Click btn:[Next: Resource data] to continue to the next object type configuration screen.
 
-image::step-1-object-type-basic-config.png[link=step-1-object-type-basic-config.png, 100%, title=Basic configuration of object type]
+[TIP]
+====
+You first object type will almost always be of the account kind, with an empty intent, and the `default` attribute set to `True`.
+That's usual for the first user data source, i.e., an HR system.
+Later, when you set up roles and more account types, you'll also use the entitlement kind and specific intents.
 
-.See also the following pages for more information:
-* xref:/midpoint/reference/resources/shadow/kind-intent-objectclass/[]
+Learn more about kinds, intents, and object classes: xref:/midpoint/reference/resources/shadow/kind-intent-objectclass/[]
+====
 
-Click btn:[Next: Resource data] to continue the object type configuration.
+image::step-1-object-type-basic-config.webp[link=step-1-object-type-basic-config.webp, 100%, title=Basic configuration of object type]
 
-Define the resource-specific configuration for this object type:
+== Specify the Resource Data
 
-* *Object class* is one of the object classes (types) supported by the connector for the source/target system represented as this resource. For resources supporting only a single object class (e.g. CSV) this will be displayed as `AccountObjectClass` and set as default by the wizard.
-* *Filter* allows to define a classification via midPoint xref:/midpoint/reference/concepts/query/midpoint-query-language/[query language]
-* *Classification condition* allows to define a classification condition (midPoint expression, not query)
+Define the resource-specific configuration for this object type.
 
-TIP: Classification allows to limit which resource data (e.g. accounts) are considered part of this object type definition.
-An example of *Filter* usage: CSV file entries matching query `attributes/contractType != "Incognito"` should be considered as accounts, all other should be ignored.
+* *Object class*: One of the object classes supported by the connector for the resource.
+	Resources like CSV support only one object class which is displayed as `AccountObjectClass`.
+* *Filter*: Define a classification rules using xref:/midpoint/reference/concepts/query/midpoint-query-language/[midPoint query language]
+* *Classification condition*: Define a classification condition (midPoint expression, not query)
 
-NOTE: You do not need to use the classification at all. If unsure, do not use it.
+Click btn:[Next: MidPoint data] to continue to the next object type configuration screen.
 
-.See also the following pages for more information:
-* xref:/midpoint/reference/resources/resource-configuration/schema-handling/#_delineation[Resource Object Type Delineation]
+// TODO: Some link to classification condition would be useful but I can't find anything that seems suitable.
+// I don't think this is the right page: https://docs.evolveum.com/midpoint/reference/support-4.9/resources/resource-configuration/schema-handling/classification/
+
+.Filtering use case
+[TIP]
+====
+Filtering is useful for limiting which resource data (e.g., accounts) are considered a part of this object type definition.
+
+To do that, use the *Filter* field and type a classification query.
+
+For example, to ignore all accounts with part-time employees, use `attributes/emptype != "PTE"` as the classification condition query.
+`emptype` is the employment type attribute here.
+====
+
+You don't need to use filtering and classification at all.
+If you're not sure, don't use it.
+
+.Learn more about schema handling, classification, and delineation:
+* xref:/midpoint/reference/resources/resource-configuration/schema-handling/[]
+* xref:/midpoint/reference/resources/resource-configuration/schema-handling/classification/[]
+* xref:/midpoint/reference/resources/resource-configuration/schema-handling/delineation/[]
 
 // TODO TODO we do not have better Delination example! I have created https://support.evolveum.com/wp/9404 to track this
 
-image::step-1-object-type-resource-data.png[link=step-1-object-type-resource-data.png, 100%,title=Resource data]
+image::step-1-object-type-resource-data.webp[link=step-1-object-type-resource-data.webp, 100%,title=Resource data]
 
-Click btn:[Next: MidPoint Data] to continue the object type configuration.
+== Specify the midPoint Data
 
-Define the midPoint-specific configuration for this object type:
+Define the midPoint-specific configuration of focus objects for this object type.
 
-* *Type* defines type of midPoint object that will correspond to the resource object (e.g. `User` or `Role`). midPoint will respect this setting when creating a new midPoint object from this object type data on the resource.
-* *Archetype* allows selection of archetype that will be automatically assigned for all midPoint objects created from this object type data on the resource. The same archetype will be also used as a part of correlation, i.e. enforced.
-+
-If unsure, keep Archetype empty.
-+
-Panel for Archetype allows three possibilities:
+* *Type*: Specify type of midPoint objects that correspond to the resource objects (e.g., _User_ or _Role_).
+	Objects of the _Account_ kind are usually of the _User_ type.
+	The _Entitlement_ kind usually means the _Role_ type.
 
-** _No archetype_,
-** _Use existing archetype_ - Use existing archetype means that you can choose from already created archetypes.
-** _Create new archetype_ - Create new archetype, with basic configuration. Created archetype will be added to configuration as reference.
-In this case, you have the following options:
+* *Archetype*: Select or create a new xref:/midpoint/reference/schema/archetypes[archetype] that best matches what the xref:/midpoint/reference/schema/focus-and-projections[focal objects] in midPoint represent.
+	For instance, the _Person_ archetype is often suitable for objects representing user accounts.
+	The focus archetype defines the type of resource objects and must be applied to all linked focus objects.
+	If a focus object lacks the required archetype, it is added.
+	If a different archetype is present, an error occurs.
+	This enforcement applies to all projections, but the order in which projections are added can affect how archetype xref:/midpoint/reference/roles-policies/assignment/assignment-vs-inducement[inducements] are processed.
 
-*** *Inherit settings from archetype* allows to select archetype which becomes superarchetype for the one you are creating.
-For example, you can create your own archetype for roles, which will inherit `Application role` archetype.
-*** *Name* defines the new archetype name (generated by resource wizard using resource name and intent, but you can change it)
-*** *Description* allows you to write short description of the new archetype
-*** *Create inducement* allows to create an inducement in the new archetype to construct the resource object defined in currently edited object type (`True`) for all focus object with this archetype.
-*** *Create inducement for membership* allows to create an inducement in the new archetype to construct the resource account _and_ association (membership) for focal objects with assigned role of this archetype.
-For example, if you create a new archetype `LDAP group` for roles, by assigning role with `LDAP group` archetype to a user, new LDAP account will be created and made member of the group constructed by `LDAP group` archetype for the role.
-*** *Label* allows defining label of the new archetype displayed in summary panel of objects with this archetype assigned
-*** *Plural label* allows defining label of the new archetype displayed in main menu if object collection view will be defined for this archetype
-*** *Icon* allows defining the new archetype icon using Font Awesome icon names. For example `fa fa-briefcase` corresponds to `briefcase` icon in Font Awesome in the default (solid) icon set
-*** *Color* allows defining the new archetype color for the icon using CSS color names
+	** If unsure, select *No archetype*.
+		You can edit the object type later.
 
-NOTE: The archetype can be *created* using resource wizard.
-After its creation, you can modify it outside resource wizard in archetype editor, if needed.
+	** Otherwise, xref:/midpoint/reference/schema/archetypes/configuration-gui/#work-with-archetypes-in-the-object-type-resource-wizard[select an existing or create a new archetype].
 
-.See also the following pages for more information:
-* overview of xref:/midpoint/reference/schema/archetypes/[Archetypes]
-* built-in xref:/midpoint/reference/schema/archetypes/person/[Person archetype] ready to be used
+Click btn:[Save settings] to save the object type configuration.
 
-image::step-1-object-type-midpoint-data.png[link=step-1-object-type-midpoint-data.png, 100%, title=Midpoint data]
+[NOTE]
+====
+You can xref:/midpoint/reference/schema/archetypes/configuration-gui/[modify the selected archetype outside the resource wizard] later.
+====
 
-Click btn:[Save settings] to save the object type configuration (if you have selected option to create a new archetype, the archetype will be created at this time).
+.See also details on the built-in xref:/midpoint/reference/schema/archetypes/person/[].
+
+image::step-1-object-type-midpoint-data.webp[link=step-1-object-type-midpoint-data.webp, 100%, title=Midpoint data]
+
+== Further Object Type Configuration
 
 Further configuration is required.
-You can choose your next step to configure other parts of your object type configuration:
-
-* <<Basic attributes>> allows getting back to the basic configuration of your object type
-* xref:./mapping/[Mappings] allow to configure resource attribute mappings
-* xref:./synchronization/[Synchronization] allows to configure synchronization situations and reactions
-* xref:./correlation/[Correlation] allows to configure correlation rules for resource objects
-* xref:./capability/[Capabilities] allows you to disable/override some functionality of the resource and/or connector without changing the connector implementation
-* xref:./activation/[Activation] allows to configure rules (mappings) for activation
-* xref:./credentials/[Credentials] allows to configure mappings for credentials (e.g. passwords)
-* xref:./policies/[Policies] allow to configure the resource operation policies
 
 image::choice-part.png[link=choice-part.png,100%,title=Parts of object type configuration]
 
-Or you can click btn:[Preview data] to display resource data according to the configuration of this particular object type you are configuring (considering `Kind`, `Intent`, `Object class` etc.):
+First of all, we suggest you click btn:[Preview data] to display resource data according to the configuration of this particular object type.
 
-.Data preview of object type
 image::data-preview.png[link=data-preview.png,100%,title=Data preview of object type]
+
+After you confirm whether your settings produce expected results, you can choose your next steps to configure other parts of your object type:
+
+* <<Basic attributes>>: Get back to the basic configuration of your object type.
+* xref:./mapping/[Mappings]: Configure resource attribute mappings.
+* xref:./synchronization/[Synchronization]: Configure synchronization situations and reactions.
+* xref:./correlation/[Correlation]: Configure correlation rules for resource objects.
+* xref:./capability/[Capabilities]: Disable/override some functionality of the resource and/or connector without changing the connector implementation.
+* xref:./activation/[Activation]: Configure rules (mappings) for activation.
+* xref:./credentials/[Credentials]: Configure mappings for credentials (e.g., passwords).
+* xref:./policies/[Policies]: Configure the resource operation policies.
 
 include::../configuration-resource-panels.adoc[]
 
