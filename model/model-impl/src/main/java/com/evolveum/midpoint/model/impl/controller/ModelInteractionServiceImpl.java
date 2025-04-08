@@ -603,7 +603,6 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
             ConfigurationException, SecurityViolationException {
         return securityEnforcer.preProcessObjectFilter(
                 securityEnforcer.getMidPointPrincipal(), ModelAuthorizationAction.AUTZ_ACTIONS_URLS_ASSIGN,
-                ModelAuthorizationAction.AUTZ_ACTIONS_URLS_SEARCH_BY,
                 AuthorizationPhaseType.REQUEST, searchResultType, origFilter, null,
                 List.of(), SecurityEnforcer.Options.create(), task, parentResult);
     }

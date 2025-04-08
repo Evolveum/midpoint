@@ -797,6 +797,11 @@ public class PersonOfInterestPanel extends BasicWizardStepPanel<RequestAccess> i
             }
 
             @Override
+            protected String getYesButtonCssClass() {
+                return "btn btn-primary";
+            }
+
+            @Override
             protected String getNoButtonCssClass() {
                 return "btn btn-primary";
             }

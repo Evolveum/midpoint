@@ -70,6 +70,7 @@ public class ConfirmationPanel extends BasePanel<String> implements Popupable {
                 yesPerformed(target);
             }
         };
+        yesButton.add(AttributeAppender.append("class", getYesButtonCssClass()));
         footer.add(yesButton);
 
         AjaxButton noButton = new AjaxButton(ID_NO, createNoLabel()) {
@@ -148,7 +149,7 @@ public class ConfirmationPanel extends BasePanel<String> implements Popupable {
     }
 
     protected String getYesButtonCssClass() {
-        return "btn btn-primary";
+        return "";
     }
 
     protected String getNoButtonCssClass() {
