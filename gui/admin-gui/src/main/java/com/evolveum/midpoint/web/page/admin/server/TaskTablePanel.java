@@ -10,6 +10,8 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import com.evolveum.midpoint.model.api.ModelAuthorizationAction;
+
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -594,6 +596,7 @@ public abstract class TaskTablePanel extends MainObjectListPanel<TaskType> {
 
         Task opTask = createSimpleTask(OPERATION_DELETE_TASKS);
         OperationResult result = opTask.getResult();
+
         try {
             getTaskService().suspendAndDeleteTasks(ObjectTypeUtil.getOids(selectedTasks), WAIT_FOR_TASK_STOP, true, opTask, result);
             result.computeStatus();
