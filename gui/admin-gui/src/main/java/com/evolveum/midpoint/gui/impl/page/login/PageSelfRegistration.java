@@ -14,11 +14,9 @@ import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.panel.FeedbackPanel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.PropertyModel;
-import org.springframework.security.core.context.SecurityContextHolder;
 
 import com.evolveum.midpoint.authentication.api.authorization.PageDescriptor;
 import com.evolveum.midpoint.authentication.api.authorization.Url;
-import com.evolveum.midpoint.authentication.api.config.MidpointAuthentication;
 import com.evolveum.midpoint.authentication.api.util.AuthenticationModuleNameConstants;
 import com.evolveum.midpoint.gui.api.component.password.PasswordPanel;
 import com.evolveum.midpoint.gui.api.component.password.PasswordPropertyPanel;
@@ -54,16 +52,11 @@ public class PageSelfRegistration extends PageAbstractFlow {
 
     private static final Trace LOGGER = TraceManager.getTrace(PageSelfRegistration.class);
 
-    private static final String DOT_CLASS = PageSelfRegistration.class.getName() + ".";
-
-    private static final String OPERATION_LOAD_USER = DOT_CLASS + "loadUser";
-
     private static final String ID_MAIN_FORM = "mainForm";
     private static final String ID_FIRST_NAME = "firstName";
     private static final String ID_LAST_NAME = "lastName";
     private static final String ID_EMAIL = "email";
     private static final String ID_PASSWORD = "password";
-    private static final String ID_TOOLTIP = "tooltip";
     private static final String ID_COMPONENT_FEEDBACK = "componentFeedback";
     private static final String ID_STATIC_FORM = "staticForm";
 
@@ -168,7 +161,8 @@ public class PageSelfRegistration extends PageAbstractFlow {
         staticRegistrationForm.add(email);
         email.getBaseFormComponent().add(
                 AttributeAppender.append("aria-label", createStringResource("UserType.emailAddress")));
-
+        email.getBaseFormComponent().add(
+                AttributeAppender.replace("type", "email"));
         createPasswordPanel(staticRegistrationForm);
         return staticRegistrationForm;
     }

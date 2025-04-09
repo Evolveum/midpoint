@@ -42,6 +42,8 @@ import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.devutils.debugbar.DebugBar;
 import org.apache.wicket.injection.Injector;
+import org.apache.wicket.markup.head.IHeaderResponse;
+import org.apache.wicket.markup.head.JavaScriptHeaderItem;
 import org.apache.wicket.markup.html.TransparentWebMarkupContainer;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.WebPage;
@@ -134,8 +136,6 @@ import com.evolveum.midpoint.web.util.validation.MidpointFormValidatorRegistry;
 import com.evolveum.midpoint.wf.api.ApprovalsManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
-
-import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * Created by Viliam Repan (lazyman).
@@ -302,6 +302,13 @@ public abstract class PageAdminLTE extends WebPage implements ModelServiceLocato
     protected void onInitialize() {
         super.onInitialize();
         initLayout();
+    }
+
+    @Override
+    public void renderHead(IHeaderResponse response) {
+        super.renderHead(response);
+        response.render(JavaScriptHeaderItem.forScript(
+                "document.documentElement.lang = '" + getSession().getLocale().getLanguage() + "';", "set-lang"));
     }
 
     private void initLayout() {
