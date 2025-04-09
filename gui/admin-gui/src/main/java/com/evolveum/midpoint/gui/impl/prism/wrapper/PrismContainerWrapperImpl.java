@@ -13,6 +13,7 @@ import java.util.List;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
+import com.evolveum.midpoint.prism.impl.delta.ContainerDeltaImpl;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 
 import org.apache.commons.collections4.CollectionUtils;
@@ -278,6 +279,9 @@ public class PrismContainerWrapperImpl<C extends Containerable>
                         itemDeltas.addAll(itemDelta);
                     }
                     for (ItemDelta d : itemDeltas) {
+                        if (d instanceof ContainerDeltaImpl<?>) {
+                            continue;
+                        }
                         d.applyTo(valueToAdd);
                     }
                     //end fix for #10624
