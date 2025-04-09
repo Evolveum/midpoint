@@ -17,7 +17,7 @@ image::../object-type-midpoint-data-archetype-selection.webp[link=../object-type
 
 [NOTE]
 ====
-The list of archetypes you see here is considerably shorter than the list of all available archetypes you see in xref:../#list-all-available-archetypes[List All Available Archetypes].
+The list of archetypes you see here is considerably shorter than the list of all available archetypes you see in the xref:../#list-all-available-archetypes[the list of all available archetypes].
 That's because the list here is filtered so that you see only archetypes that can be used for the currently edited object type.
 ====
 
