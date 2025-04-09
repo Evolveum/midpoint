@@ -1,0 +1,50 @@
+= Work With Archetypes in the Object Type Resource Wizard
+:page-nav-title: Archetypes in Object Type Wizard
+:page-display-order: 10
+:page-toc: top
+:experimental:
+
+When xref:/midpoint/reference/admin-gui/resource-wizard/object-type/[setting up an object type], you can work with archetypes directly from the wizard.
+On the screen Specify the midPoint data of the object type setup wizard, you can select an existing archetype for the object type or create a new one, such as _Person_.
+
+image::../object-type-midpoint-data-archetype-selection.webp[link=../object-type-midpoint-data-archetype-selection.webp, 100%]
+
+== Select an Existing Archetype
+
+. Select *Use existing archetype* and click icon:arrow-pointer[] btn:[Select archetype] to pick an existing archetype.
+. In the list that appears, click the name of your chosen archetype.
+. Click the icon:check[] btn:[Save settings] to save your changes and close the wizard.
+
+[NOTE]
+====
+The list of archetypes you see here is considerably shorter than the list of all available archetypes you see in xref:../#list-all-available-archetypes[List All Available Archetypes].
+That's because the list here is filtered so that you see only archetypes that can be used for the currently edited object type.
+====
+
+== Create a New Archetype
+
+Creating a new archetype in the object type wizard creates only a skeleton of an archetype.
+When you finish, you may need to tweak its settings using the xref:../#create-an-archetype[full archetype editor].
+
+. Select *Create new archetype* to create a new archetype with basic configuration options.
+. You can use *Inherit settings from archetype* if you wish the new archetype to inherit some settings of an existing archetype, such as _Person_.
+. Set names and labels:
+	** *Name*: A unique, descriptive, yet short name.
+	** *Description*: A short description of the new archetype.
+	** *Label*: A label of the new archetype displayed in summary panel of objects with this archetype assigned.
+	** *Plural label*: A label of the new archetype displayed in main menu if object collection view is defined for this archetype.
+. Set *Inducement* to _True_ if you wish the archetype to provide the currently edited resource object type to all the focal objects that get this new archetype.
+. Click *Display* to expand the section where you can set the archetyp icon or color.
+	** You can choose *icons* from the link:https://fontawesome.com/search?ic=free[free set of Font Awesome icons].
+		Use the names without the `fa-` prefix.
+	** *Color* lets you define the archetype color for the icon using CSS color names.
+. Click the icon:check[] btn:[Save settings] to save your new archetype, changes in the object type, and close the wizard.
+
+// TODO: I'm missing a place to link for further explanation of (archetype) provisioning
+
+[NOTE]
+====
+The object type is automatically assigned to the new archetype you just created.
+====
+
+
