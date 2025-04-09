@@ -82,6 +82,10 @@ public class Authorization implements GrantedAuthority, DebugDumpable {
         return getDecision() == AuthorizationDecisionType.ALLOW;
     }
 
+    public boolean isDeny() {
+        return getDecision() == AuthorizationDecisionType.DENY;
+    }
+
     public @NotNull List<String> getAction() {
         return authorizationBean.getAction();
     }

@@ -2271,7 +2271,7 @@ public class ModelController implements ModelService, TaskService, CaseService, 
             Collection<PrismObject<TaskType>> existingTasks, Task task, OperationResult parentResult)
             throws SchemaException, ObjectNotFoundException, SecurityViolationException,
             ExpressionEvaluationException, CommunicationException, ConfigurationException {
-        if (securityEnforcer.isAuthorizedAll(task, parentResult)) {
+        if (securityEnforcer.isAuthorizedAll(task, parentResult) && !securityEnforcer.isAuthorizationDenied(action.getUrl())) {
             return;
         }
         for (PrismObject<TaskType> existingObject : existingTasks) {

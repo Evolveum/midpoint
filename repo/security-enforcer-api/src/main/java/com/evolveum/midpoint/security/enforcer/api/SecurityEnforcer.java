@@ -111,6 +111,23 @@ public interface SecurityEnforcer {
     }
 
     /**
+     * Checks if the currently logged-in user has a denied authorization for the specified action.
+     *
+     * BEWARE: Only for preliminary/coarse-grained decisions! Use only when followed by more precise authorization checks.
+     *
+     * For example, it ignores any object or target qualification, phase and so on.
+     */
+    default boolean isAuthorizationDenied(@NotNull String action) {
+        for (Authorization authorization : SecurityEnforcerUtil.getAuthorizations(getMidPointPrincipal())) {
+            if (authorization.isDeny()
+                    && authorization.matchesAnyAction(List.of(action))) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
      * Simple access control decision similar to that used by spring security.
      * It is usable for parametric cases; for example, REST login using proxy user ("switch-to-principal").
      *
