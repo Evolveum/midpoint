@@ -14,8 +14,6 @@ import java.io.Serializable;
 import java.util.List;
 import javax.xml.datatype.XMLGregorianCalendar;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
 import com.google.common.base.MoreObjects;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -23,6 +21,7 @@ import org.jetbrains.annotations.Nullable;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.LocalizableMessage;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
  * Contains all non-trivial task information (progress, workers, overall status, and so on) needed for the use
@@ -215,5 +214,7 @@ public abstract class TaskInformation implements DebugDumpable, Serializable {
      */
     public abstract List<String> getTaskHealthMessages();
 
-     public abstract @Nullable ActivityStatePersistenceType getRootActivityStatePersistence();
+    public abstract @Nullable ActivityStatePersistenceType getRootActivityStatePersistence();
+
+    public abstract TaskResultStatus getTaskUserFriendlyStatus();
 }

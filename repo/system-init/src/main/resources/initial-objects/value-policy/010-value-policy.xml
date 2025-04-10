@@ -6,7 +6,7 @@
   ~ and European Union Public License. See LICENSE file for details.
   -->
 <valuePolicy oid="00000000-0000-0000-0000-000000000003"
-        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3" xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3">
     <name>Default Password Policy</name>
     <description>Default password policy</description>
     <stringPolicy>
@@ -37,6 +37,12 @@
             </checkExpression>
             <limit>
                 <description>Lowercase characters</description>
+                <name>
+                    <t:orig>Lowercase characters</t:orig>
+                    <t:translation>
+                        <t:key>ValuePolicy.lowercaseCharacters</t:key>
+                    </t:translation>
+                </name>
                 <minOccurs>1</minOccurs>
                 <mustBeFirst>false</mustBeFirst>
                 <characterClass>
@@ -45,6 +51,12 @@
             </limit>
             <limit>
                 <description>Uppercase characters</description>
+                <name>
+                    <t:orig>Uppercase characters</t:orig>
+                    <t:translation>
+                        <t:key>ValuePolicy.uppercaseCharacters</t:key>
+                    </t:translation>
+                </name>
                 <minOccurs>1</minOccurs>
                 <mustBeFirst>false</mustBeFirst>
                 <characterClass>
@@ -53,6 +65,12 @@
             </limit>
             <limit>
                 <description>Numeric characters</description>
+                <name>
+                    <t:orig>Numeric characters</t:orig>
+                    <t:translation>
+                        <t:key>ValuePolicy.numericCharacters</t:key>
+                    </t:translation>
+                </name>
                 <minOccurs>1</minOccurs>
                 <mustBeFirst>false</mustBeFirst>
                 <characterClass>

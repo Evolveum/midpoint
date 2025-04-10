@@ -7,10 +7,9 @@
 
 package com.evolveum.midpoint.schema.util.task;
 
+import java.util.List;
 import javax.xml.datatype.DatatypeConstants;
 import javax.xml.datatype.XMLGregorianCalendar;
-
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityStatePersistenceType;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -18,10 +17,10 @@ import org.jetbrains.annotations.Nullable;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.util.LocalizableMessage;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityStatePersistenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultStatusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskExecutionStateType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
-
-import java.util.List;
 
 /**
  * The {@link TaskInformation} based on a legacy task structure. Very limited.
@@ -129,5 +128,36 @@ public class LegacyTaskInformation extends TaskInformation {
     @Override
     public Object getLiveSyncToken() {
         return ObjectTypeUtil.getExtensionItemRealValue(task.asPrismContainerValue(), SchemaConstants.SYNC_TOKEN);
+    }
+
+    @Override
+    public TaskResultStatus getTaskUserFriendlyStatus() {
+        OperationResultStatusType status = task.getResultStatus();
+        TaskExecutionStateType executionState = task.getExecutionState();
+
+        if (status == null) {
+            return TaskResultStatus.UNKNOWN;
+        }
+
+        switch (status) {
+            case IN_PROGRESS:
+                if (executionState == TaskExecutionStateType.RUNNABLE
+                        || executionState == TaskExecutionStateType.RUNNING) {
+                    return TaskResultStatus.IN_PROGRESS;
+                }
+                return TaskResultStatus.NOT_FINISHED;
+            case SUCCESS:
+                return TaskResultStatus.SUCCESS;
+            case FATAL_ERROR:
+            case PARTIAL_ERROR:
+            case HANDLED_ERROR:
+            case WARNING:
+                return TaskResultStatus.ERROR;
+            case UNKNOWN:
+            case NOT_APPLICABLE:
+                return TaskResultStatus.UNKNOWN;
+            default:
+                throw new IllegalArgumentException("Unknown task status " + status);
+        }
     }
 }

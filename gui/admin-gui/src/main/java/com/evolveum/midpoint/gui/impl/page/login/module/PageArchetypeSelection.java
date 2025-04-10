@@ -13,14 +13,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
-
 import com.evolveum.midpoint.web.security.util.SecurityUtils;
 
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.form.HiddenField;
 import org.apache.wicket.markup.html.list.ListItem;
@@ -43,7 +39,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringTranslationType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
-import javax.xml.namespace.QName;
 
 @PageDescriptor(urls = {
         @Url(mountUrl = "/archetypeSelection", matchUrlForSecurity = "/archetypeSelection")
@@ -52,7 +47,6 @@ public class PageArchetypeSelection extends PageAbstractAuthenticationModule<Arc
 
     @Serial private static final long serialVersionUID = 1L;
     private static final String DOT_CLASS = PageArchetypeSelection.class.getName() + ".";
-    private static final Trace LOGGER = TraceManager.getTrace(PageArchetypeSelection.class);
     protected static final String OPERATION_LOAD_ARCHETYPE_OBJECTS = DOT_CLASS + "loadArchetypeObjects";
     private static final String ID_ARCHETYPE_SELECTION_PANEL = "archetypeSelectionPanel";
     private static final String ID_ARCHETYPES_PANEL = "archetypes";
@@ -172,8 +166,6 @@ public class PageArchetypeSelection extends PageAbstractAuthenticationModule<Arc
     private Tile<ArchetypeType> createUndefinedArchetypeTile() {
         var archetype = new ArchetypeType();
 
-        var archetypePolicy = new ArchetypePolicyType();
-
         var undefinedArchetypeLabel = new PolyStringType("Undefined");
         undefinedArchetypeLabel.setTranslation(new PolyStringTranslationType().key("PageArchetypeSelection.undefinedArchetype"));
 
@@ -217,8 +209,6 @@ public class PageArchetypeSelection extends PageAbstractAuthenticationModule<Arc
                 target.add(getArchetypesContainer());
             }
         };
-        tilePanel.add(AttributeAppender.append(
-                "aria-checked", () -> tileModel.getObject().isSelected() ? "true" : "false"));
         tilePanel.setHorizontal(false);
         return tilePanel;
     }
