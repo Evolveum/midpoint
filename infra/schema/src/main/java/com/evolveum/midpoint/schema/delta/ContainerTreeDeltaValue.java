@@ -119,6 +119,7 @@ public class ContainerTreeDeltaValue<C extends Containerable>
         }
 
         ItemTreeDelta<?, ?, ?, ?> delta = getDeltas().stream()
+                .filter(deltaClass::isInstance)
                 .filter(d -> {
                     ItemName itemName = name;
                     if (name instanceof InfraItemName infraName && InfraItemName.METADATA.equals(infraName)) {

@@ -64,6 +64,10 @@ public class ContainerTreeDelta<C extends Containerable>
         return new ContainerTreeDeltaValue<>();
     }
 
+    public ItemTreeDelta findItemDelta(ItemPath path) {
+        return findItemDelta(path, ItemTreeDelta.class);
+    }
+
     public <D extends ItemTreeDelta> D findItemDelta(ItemPath path, Class<D> deltaClass) {
         return findItemDelta(path, deltaClass, false);
     }

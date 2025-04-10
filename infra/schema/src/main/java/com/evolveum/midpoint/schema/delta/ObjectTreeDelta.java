@@ -84,18 +84,25 @@ public class ObjectTreeDelta<O extends ObjectType> extends ContainerTreeDelta<O>
         treeDelta.addValue(value);
 
         delta.getModifications().forEach(modification -> {
+            ItemTreeDelta td;
             if (modification instanceof ContainerDelta containerDelta) {
                 ContainerTreeDelta<?> ctd = treeDelta.findOrCreateItemDelta(containerDelta.getPath(), ContainerTreeDelta.class);
-
-                addItemDeltaValues(containerDelta, ctd);
+                TreeDeltaUtils.populateItemTreeDelta(containerDelta, ctd);
+                td = ctd;
             } else if (modification instanceof PropertyDelta propertyDelta) {
                 PropertyTreeDelta<?> ptd = treeDelta.findOrCreateItemDelta(propertyDelta.getPath(), PropertyTreeDelta.class);
-
-                addItemDeltaValues(propertyDelta, ptd);
+                TreeDeltaUtils.populateItemTreeDelta(propertyDelta, ptd);
+                td = ptd;
             } else if (modification instanceof ReferenceDelta referenceDelta) {
                 ReferenceTreeDelta rtd = treeDelta.findOrCreateItemDelta(referenceDelta.getPath(), ReferenceTreeDelta.class);
+                TreeDeltaUtils.populateItemTreeDelta(referenceDelta, rtd);
+                td = rtd;
+            } else {
+                throw new IllegalArgumentException("Unknown modification type: " + modification);
+            }
 
-                addItemDeltaValues(referenceDelta, rtd);
+            if (modification.getEstimatedOldValues() != null) {
+                modification.getEstimatedOldValues().forEach(i -> td.getEstimatedOldValues().add(i.clone()));
             }
         });
 
