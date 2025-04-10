@@ -257,4 +257,29 @@ public class ActivityBasedTaskInformation extends TaskInformation {
 
         return localRootActivityState.getPersistence();
     }
+
+    @Override
+    public TaskResultStatus getTaskUserFriendlyStatus() {
+        if (overallStatus == null || overallStatus == OperationResultStatusType.UNKNOWN) {
+            return TaskResultStatus.UNKNOWN;
+        }
+
+        TaskExecutionStateType executionState = task.getExecutionState();
+
+        if (!isComplete()) {
+            if (executionState == TaskExecutionStateType.SUSPENDED) {
+                return TaskResultStatus.NOT_FINISHED;
+            } else {
+                return TaskResultStatus.IN_PROGRESS;
+            }
+        }
+
+        if (overallStatus == OperationResultStatusType.FATAL_ERROR
+                || overallStatus == OperationResultStatusType.PARTIAL_ERROR
+                || overallStatus == OperationResultStatusType.HANDLED_ERROR) {
+            return TaskResultStatus.ERROR;
+        }
+
+        return TaskResultStatus.SUCCESS;
+    }
 }

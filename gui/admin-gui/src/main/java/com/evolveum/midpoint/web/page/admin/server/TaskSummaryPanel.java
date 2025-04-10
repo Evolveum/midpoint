@@ -297,8 +297,14 @@ public class TaskSummaryPanel extends ObjectSummaryPanel<TaskType> {
     }
 
     private String getTaskResultLabel() {
-        OperationResultStatusType resultStatus = taskInformationModel.getObject().getResultStatus();
-        return PageBase.createStringResourceStatic(TaskSummaryPanel.this, resultStatus).getString();
+        TaskInformation info = taskInformationModel.getObject();
+        GuiTaskResultStatus status = GuiTaskResultStatus.fromTaskResultStatus(info.getTaskUserFriendlyStatus());
+
+        if (status == null) {
+            return GuiTaskResultStatus.UNKNOWN.icon;
+        }
+
+        return LocalizationUtil.translateEnum(status);
     }
 
     private String getTaskResultIcon() {
