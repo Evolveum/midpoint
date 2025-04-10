@@ -385,10 +385,10 @@
             <groupId>org.apache.wicket</groupId>
             <artifactId>wicket-ioc</artifactId>
             <exclusions>
-              <exclusion>
-                <groupId>jakarta.inject</groupId>
-                <artifactId>jakarta.inject-api</artifactId>
-              </exclusion>
+                <exclusion>
+                    <groupId>jakarta.inject</groupId>
+                    <artifactId>jakarta.inject-api</artifactId>
+                </exclusion>
             </exclusions>
         </dependency>
         <dependency>
@@ -772,6 +772,25 @@
                 </configuration>
             </plugin>
             <plugin>
+                <!--
+                 This plugin is used to parse current project version for later use with npm version which requires semantic versioning
+                 -->
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>build-helper-maven-plugin</artifactId>
+                <version>3.4.0</version>
+                <executions>
+                    <execution>
+                        <id>parse-version</id>
+                        <goals>
+                            <goal>parse-version</goal>
+                        </goals>
+                        <configuration>
+                            <propertyPrefix>parsedVersion</propertyPrefix>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
                 <groupId>com.github.eirslett</groupId>
                 <artifactId>frontend-maven-plugin</artifactId>
                 <version>1.15.1</version>
@@ -798,6 +817,19 @@
                         <goals>
                             <goal>npm</goal>
                         </goals>
+                    </execution>
+                    <execution>
+                        <!--
+                        uses build-helper-maven-plugin parsed version to create semantic version for
+                        package.json that matches current project version
+                        -->
+                        <id>npm update package.json version if necessary</id>
+                        <goals>
+                            <goal>npm</goal>
+                        </goals>
+                        <configuration>
+                            <arguments>version ${parsedVersion.majorVersion}.${parsedVersion.minorVersion}.${parsedVersion.incrementalVersion} --allow-same-version</arguments>
+                        </configuration>
                     </execution>
                     <execution>
                         <id>npm build with webpack</id>
