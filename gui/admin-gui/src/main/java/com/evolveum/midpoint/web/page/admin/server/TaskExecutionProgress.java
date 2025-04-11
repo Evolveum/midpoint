@@ -20,6 +20,7 @@ import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.task.TaskInformation;
+import com.evolveum.midpoint.schema.util.task.TaskResultStatus;
 import com.evolveum.midpoint.schema.util.task.TaskTypeUtil;
 import com.evolveum.midpoint.util.LocalizableMessage;
 import com.evolveum.midpoint.web.page.admin.server.dto.TaskDtoExecutionState;
@@ -62,6 +63,8 @@ public class TaskExecutionProgress implements Serializable {
      */
     private OperationResultStatus taskStatus;
 
+    private TaskResultStatus taskUserFriendlyStatus;
+
     public boolean isComplete() {
         return complete;
     }
@@ -74,16 +77,8 @@ public class TaskExecutionProgress implements Serializable {
         return processedObjectsErrorCount;
     }
 
-    public void setProcessedObjectsErrorCount(int processedObjectsErrorCount) {
-        this.processedObjectsErrorCount = processedObjectsErrorCount;
-    }
-
     public OperationResultStatus getProcessedObjectsStatus() {
         return processedObjectsStatus;
-    }
-
-    public void setProcessedObjectsStatus(OperationResultStatus processedObjectsStatus) {
-        this.processedObjectsStatus = processedObjectsStatus;
     }
 
     public int getProgress() {
@@ -98,48 +93,24 @@ public class TaskExecutionProgress implements Serializable {
         return progressLabel;
     }
 
-    public void setProgressLabel(String progressLabel) {
-        this.progressLabel = progressLabel;
-    }
-
     public OperationResultStatus getTaskStatus() {
         return taskStatus;
-    }
-
-    public void setTaskStatus(OperationResultStatus taskStatus) {
-        this.taskStatus = taskStatus;
     }
 
     public LocalizableMessage getTaskHealthStatusMessage() {
         return taskHealthStatusMessage;
     }
 
-    public void setTaskHealthStatusMessage(LocalizableMessage taskHealthStatusMessage) {
-        this.taskHealthStatusMessage = taskHealthStatusMessage;
-    }
-
     public TaskExecutionStateType getExecutionState() {
         return executionState;
-    }
-
-    public void setExecutionState(TaskExecutionStateType executionState) {
-        this.executionState = executionState;
     }
 
     public String getExecutionStateMessage() {
         return executionStateMessage;
     }
 
-    public void setExecutionStateMessage(String executionStateMessage) {
-        this.executionStateMessage = executionStateMessage;
-    }
-
     public OperationResultStatus getTaskHealthStatus() {
         return taskHealthStatus;
-    }
-
-    public void setTaskHealthStatus(OperationResultStatus taskHealthStatus) {
-        this.taskHealthStatus = taskHealthStatus;
     }
 
     public List<LocalizableMessage> getTaskHealthUserFriendlyMessages() {
@@ -171,26 +142,34 @@ public class TaskExecutionProgress implements Serializable {
         return null;
     }
 
+    public TaskResultStatus getTaskUserFriendlyStatus() {
+        return taskUserFriendlyStatus;
+    }
+
     public static TaskExecutionProgress fromTaskInformation(TaskInformation info, PageBase page) {
         TaskExecutionProgress progress = new TaskExecutionProgress();
 
-        String executionStateMessage = createExecutionStateMessage(info, page);
-        progress.setExecutionStateMessage(executionStateMessage);
+        progress.executionStateMessage = createExecutionStateMessage(info, page);
 
-        progress.setExecutionState(info.getTask().getExecutionState());
-        progress.setComplete(info.isComplete());
+        progress.executionState = info.getTask().getExecutionState();
+        progress.complete = info.isComplete();
 
-        progress.setProgress((int) (info.getProgress() * 100));
-        progress.setProgressLabel(info.getProgressDescriptionShort());
+        progress.progress = (int) (info.getProgress() * 100);
+        progress.progressLabel = info.getProgressDescriptionShort();
 
-        progress.setProcessedObjectsStatus(OperationResultStatus.WARNING);
-        progress.setProcessedObjectsErrorCount(info.getAllErrors() == null ? 0 : info.getAllErrors());
+        progress.processedObjectsStatus = OperationResultStatus.WARNING;
+        progress.processedObjectsErrorCount = info.getAllErrors() == null ? 0 : info.getAllErrors();
 
-        progress.setTaskHealthStatus(OperationResultStatus.parseStatusType(info.getTaskHealthStatus()));
-        progress.setTaskHealthStatusMessage(info.getTaskHealthDescription());
-        progress.getTaskHealthUserFriendlyMessages().addAll(info.getTaskHealthUserFriendlyMessages());
+        progress.taskHealthStatus = OperationResultStatus.parseStatusType(info.getTaskHealthStatus());
+        progress.taskHealthStatusMessage = info.getTaskHealthDescription();
+        List<LocalizableMessage> taskHealthUserFriendlyMessages = info.getTaskHealthUserFriendlyMessages();
+        if (taskHealthUserFriendlyMessages != null) {
+            progress.taskHealthUserFriendlyMessages = List.copyOf(taskHealthUserFriendlyMessages);
+        }
 
-        progress.setTaskStatus(OperationResultStatus.parseStatusType(info.getResultStatus()));
+        progress.taskStatus = OperationResultStatus.parseStatusType(info.getResultStatus());
+
+        progress.taskUserFriendlyStatus = info.getTaskUserFriendlyStatus();
 
         return progress;
     }
