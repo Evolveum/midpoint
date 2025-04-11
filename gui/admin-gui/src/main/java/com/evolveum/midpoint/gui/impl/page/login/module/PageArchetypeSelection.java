@@ -17,6 +17,7 @@ import com.evolveum.midpoint.web.security.util.SecurityUtils;
 
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.form.HiddenField;
 import org.apache.wicket.markup.html.list.ListItem;
@@ -210,6 +211,7 @@ public class PageArchetypeSelection extends PageAbstractAuthenticationModule<Arc
             }
         };
         tilePanel.setHorizontal(false);
+        tilePanel.add(AttributeAppender.replace("tabindex", () -> tileModel.getObject().isSelected() ? 0 : -1));
         return tilePanel;
     }
 
