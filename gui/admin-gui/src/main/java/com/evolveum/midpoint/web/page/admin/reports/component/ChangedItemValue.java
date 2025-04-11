@@ -8,15 +8,16 @@
 package com.evolveum.midpoint.web.page.admin.reports.component;
 
 import java.io.Serializable;
-import java.util.List;
 
-import org.jetbrains.annotations.NotNull;
-
+import com.evolveum.midpoint.prism.ModificationType;
 import com.evolveum.midpoint.prism.PrismValue;
-import com.evolveum.midpoint.prism.path.ItemPath;
 
-public record ChangedItem(@NotNull ItemPath path,
-                          @NotNull List<PrismValue> oldValues,
-                          @NotNull List<ChangedItemValue> newValues) implements Serializable {
+public record ChangedItemValue(
+        ModificationType modificationType,
+        PrismValue value) implements Serializable {
 
+    @Override
+    public String toString() {
+        return modificationType + ": " + value;
+    }
 }

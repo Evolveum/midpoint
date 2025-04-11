@@ -9,11 +9,20 @@
 <html xmlns:wicket="http://wicket.apache.org">
 <wicket:panel>
     <div class="d-flex gap-2 align-items-center">
-        <wicket:enclosure child="oldValue">
-            <span wicket:id="oldValue"/>
+        <wicket:enclosure child="oldValues">
+            <div class="d-flex flex-column gap-2">
+                <div class="changed-item-panel-value" wicket:id="oldValues">
+                    <span wicket:id="oldValue"/>
+                </div>
+            </div>
             <i class="fa fa-arrow-right text-secondary"/>
         </wicket:enclosure>
-        <span wicket:id="newValue"/>
+        <div class="d-flex flex-column gap-2">
+            <div class="d-flex gap-1 align-items-center changed-item-panel-value" wicket:id="newValues">
+                <i wicket:id="modificationType"/>
+                <span wicket:id="newValue"/>
+            </div>
+        </div>
     </div>
 </wicket:panel>
 </html>
