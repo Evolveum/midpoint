@@ -7,11 +7,10 @@
 
 package com.evolveum.midpoint.web.page.admin.reports.component;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
-
-import com.evolveum.midpoint.common.UserFriendlyPrettyPrinter;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
@@ -21,6 +20,7 @@ import org.apache.wicket.markup.repeater.RepeatingView;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.LoadableDetachableModel;
 
+import com.evolveum.midpoint.common.UserFriendlyPrettyPrinter;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.ModelServiceLocator;
 import com.evolveum.midpoint.gui.impl.component.search.Search;
@@ -38,6 +38,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.DisplayValueType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.GuiObjectColumnType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
@@ -73,7 +74,7 @@ public class ChangedItemColumn extends AbstractExportableColumn<SelectableBean<A
     @Override
     public IModel<String> getDisplayModel() {
         DisplayableValue<ItemPathType> value = getSearchChangedItemValue();
-        if (value == null) {
+        if (value == null || value.getValue() == null) {
             return super.getDisplayModel();
         }
 
@@ -133,11 +134,12 @@ public class ChangedItemColumn extends AbstractExportableColumn<SelectableBean<A
         item.add(listItems);
     }
 
+    private DisplayValueType getDisplayValueType() {
+        return guiObjectColumn.getDisplayValue() != null ? guiObjectColumn.getDisplayValue() : DisplayValueType.NEW_VALUE;
+    }
+
     private List<ChangedItem> createChangedItems(IModel<SelectableBean<AuditEventRecordType>> rowModel) {
         ItemPath path = getPath();
-        if (path == null) {
-            return List.of();
-        }
 
         List<ItemTreeDelta> deltas = rowModel.getObject().getValue().getDelta().stream()
                 .map(d -> d.getObjectDelta())
@@ -145,6 +147,9 @@ public class ChangedItemColumn extends AbstractExportableColumn<SelectableBean<A
                 .map(d -> {
                     try {
                         ObjectTreeDelta<? extends ObjectType> delta = ObjectTreeDelta.fromItemDelta(DeltaConvertor.createObjectDelta(d));
+                        if (path == null) {
+                            return delta;
+                        }
                         return delta.findItemDelta(path, ItemTreeDelta.class);
                     } catch (SchemaException ex) {
                         LOGGER.debug("Cannot convert delta to object delta: {}", ex.getMessage(), ex);
@@ -156,21 +161,25 @@ public class ChangedItemColumn extends AbstractExportableColumn<SelectableBean<A
 
         return deltas.stream()
                 .map(delta -> {
+                    List<PrismValue> estimatedOldValues = new ArrayList<>();
+
+                    DisplayValueType display = getDisplayValueType();
+                    if (display == DisplayValueType.OLD_VALUE || display == DisplayValueType.OLD_NEW_VALUE) {
+                        if (delta.getEstimatedOldValues() != null) {
+                            estimatedOldValues.addAll(delta.getEstimatedOldValues());
+                        }
+                    }
+
                     List<? extends ItemTreeDeltaValue> values = delta.getValues();
-                    List<PrismValue> estimatedOldValues = delta.getEstimatedOldValues();
-
-                    List<ChangedItemValue> newValues = values.stream()
-                            .map(itdv -> new ChangedItemValue(itdv.getModificationType(), itdv.getValue()))
-                            .toList();
-
-                    if (estimatedOldValues == null) {
-                        estimatedOldValues = List.of();
-                    }
-                    if (newValues == null) {
-                        newValues = List.of();
+                    List<ChangedItemValue> newValues = List.of();
+                    if (display == DisplayValueType.NEW_VALUE || display == DisplayValueType.OLD_NEW_VALUE) {
+                        newValues = values.stream()
+                                .map(
+                                        itdv -> new ChangedItemValue(itdv.getModificationType(), itdv.getValue()))
+                                .toList();
                     }
 
-                    return new ChangedItem(path, estimatedOldValues, newValues);
+                    return new ChangedItem(path != null ? path : ItemPath.EMPTY_PATH, estimatedOldValues, newValues);
                 })
                 .toList();
     }

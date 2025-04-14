@@ -3197,6 +3197,36 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>
+            <xsd:enumeration value="oldValue">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Can be used to display deltas - only estimated old value if available.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="OLD_VALUE"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="newValue">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Can be used to display deltas - only estimated new value if available.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="NEW_VALUE"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="oldAndNewValue">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Can be used to display deltas - both estimated old and new value should be displayed.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="OLD_NEW_VALUE"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
         </xsd:restriction>
     </xsd:simpleType>
 

@@ -19,6 +19,7 @@
             <class name="com.evolveum.midpoint.common.TestActivationComputerLifecycle" />
             <class name="com.evolveum.midpoint.common.TestStaticValues" />
             <class name="com.evolveum.midpoint.common.TestCryptoUtil" />
+            <class name="com.evolveum.midpoint.common.UserFriendlyPrettyPrinterTest" />
         </classes>
     </test>
     <test name="Schema" preserve-order="false">
