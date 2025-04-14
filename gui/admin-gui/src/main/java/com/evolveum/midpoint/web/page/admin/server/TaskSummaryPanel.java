@@ -11,8 +11,6 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 
-import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
-
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.time.DurationFormatUtils;
 import org.apache.wicket.model.IModel;
@@ -26,6 +24,7 @@ import com.evolveum.midpoint.gui.api.model.NonEmptyLoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.LocalizationUtil;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.task.ActivityItemProcessingStatisticsUtil;
@@ -34,7 +33,7 @@ import com.evolveum.midpoint.schema.util.task.TaskInformation;
 import com.evolveum.midpoint.web.component.ObjectSummaryPanel;
 import com.evolveum.midpoint.web.component.util.SummaryTag;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
-import com.evolveum.midpoint.web.page.admin.server.dto.OperationResultStatusPresentationProperties;
+import com.evolveum.midpoint.web.page.admin.server.dto.GuiTaskResultStatus;
 import com.evolveum.midpoint.web.page.admin.server.dto.TaskDtoExecutionState;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
@@ -61,7 +60,7 @@ public class TaskSummaryPanel extends ObjectSummaryPanel<TaskType> {
                     TaskType task = taskModel.getObject().clone();
                     WebPrismUtil.cleanupEmptyContainers(task.asPrismContainer());
                     return TaskInformation.createForTask(task, rootTaskModel.getObject());
-                    }, false);
+                }, false);
     }
 
     private NonEmptyLoadableModel<TaskInformation> createFallbackTaskInformationModel(@NotNull IModel<TaskType> model) {
@@ -127,18 +126,19 @@ public class TaskSummaryPanel extends ObjectSummaryPanel<TaskType> {
                 setLabel(getTaskResultLabel());
                 // TODO setColor
             }
-
-            @Override
-            public String getIconCssClass() {
-                return getTaskResultIcon();
-            }
-
-            @Override
-            public String getLabel() {
-                return getTaskResultLabel();
-            }
         };
         summaryTagList.add(tagResult);
+
+        SummaryTag<TaskType> tagHealth = new SummaryTag<>(ID_SUMMARY_TAG, getModel()) {
+
+            @Override
+            protected void initialize(TaskType objectWrapper) {
+                setIconCssClass("fa fa-exclamation-triangle text-warning");
+                setLabel(createTaskHealthMessage());
+            }
+        };
+
+        summaryTagList.add(tagHealth);
 
         SummaryTag<TaskType> tagLiveSyncToken = new SummaryTag<>(ID_SUMMARY_TAG, getModel()) {
             private static final long serialVersionUID = 1L;
@@ -147,9 +147,7 @@ public class TaskSummaryPanel extends ObjectSummaryPanel<TaskType> {
             protected void initialize(TaskType taskType) {
                 setIconCssClass(getLiveSyncTokenIcon());
                 setLabel(getLiveSyncToken(taskType));
-                // TODO setColor
             }
-
         };
         tagLiveSyncToken.add(new VisibleBehaviour(() -> {
             TaskType task = getModelObject();
@@ -244,6 +242,12 @@ public class TaskSummaryPanel extends ObjectSummaryPanel<TaskType> {
             if (stalledSince != null) {
                 rv += " " + getString("TaskSummaryPanel.progressIfStalled", WebComponentUtil.formatDate(new Date(stalledSince)));
             }
+
+            String taskHealth = createTaskHealthMessage();
+            if (StringUtils.isNotEmpty(taskHealth)) {
+                rv += " " + taskHealth;
+            }
+
             return rv;
         };
     }
@@ -296,14 +300,33 @@ public class TaskSummaryPanel extends ObjectSummaryPanel<TaskType> {
         return getIconForExecutionState(status);
     }
 
+    private String createTaskHealthMessage() {
+        TaskInformation info = taskInformationModel.getObject();
+        TaskExecutionProgress progress = TaskExecutionProgress.fromTaskInformation(info, getPageBase());
+
+        return progress.createSingleTaskHealthMessage();
+    }
+
     private String getTaskResultLabel() {
-        OperationResultStatusType resultStatus = taskInformationModel.getObject().getResultStatus();
-        return PageBase.createStringResourceStatic(TaskSummaryPanel.this, resultStatus).getString();
+        TaskInformation info = taskInformationModel.getObject();
+        GuiTaskResultStatus status = GuiTaskResultStatus.fromTaskResultStatus(info.getTaskUserFriendlyStatus());
+
+        if (status == null) {
+            return GuiTaskResultStatus.UNKNOWN.icon;
+        }
+
+        return LocalizationUtil.translateEnum(status);
     }
 
     private String getTaskResultIcon() {
-        OperationResultStatusType resultStatus = taskInformationModel.getObject().getResultStatus();
-        return OperationResultStatusPresentationProperties.parseOperationalResultStatus(resultStatus).getIcon();
+        TaskInformation info = taskInformationModel.getObject();
+        GuiTaskResultStatus status = GuiTaskResultStatus.fromTaskResultStatus(info.getTaskUserFriendlyStatus());
+
+        if (status == null) {
+            return GuiTaskResultStatus.UNKNOWN.icon;
+        }
+
+        return status.icon;
     }
 
     private String getLiveSyncTokenIcon() {

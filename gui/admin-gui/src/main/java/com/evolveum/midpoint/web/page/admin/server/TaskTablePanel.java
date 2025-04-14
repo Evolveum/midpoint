@@ -597,46 +597,22 @@ public abstract class TaskTablePanel extends MainObjectListPanel<TaskType> {
         Task opTask = createSimpleTask(OPERATION_DELETE_TASKS);
         OperationResult result = opTask.getResult();
 
-        if (isAuthorizedForTaskDeletion(selectedTasks)) {
-            try {
-                getTaskService().suspendAndDeleteTasks(ObjectTypeUtil.getOids(selectedTasks), WAIT_FOR_TASK_STOP, true, opTask, result);
-                result.computeStatus();
-                if (result.isSuccess()) {
-                    result.recordStatus(OperationResultStatus.SUCCESS,
-                            createStringResource("pageTasks.message.deleteTaskConfirmedPerformed.success").getString());
-                }
-            } catch (Throwable e) {
-                result.recordFatalError(createStringResource("pageTasks.message.deleteTaskConfirmedPerformed.fatalError").getString(),
-                        e);
+        try {
+            getTaskService().suspendAndDeleteTasks(ObjectTypeUtil.getOids(selectedTasks), WAIT_FOR_TASK_STOP, true, opTask, result);
+            result.computeStatus();
+            if (result.isSuccess()) {
+                result.recordStatus(OperationResultStatus.SUCCESS,
+                        createStringResource("pageTasks.message.deleteTaskConfirmedPerformed.success").getString());
             }
-            showResult(result);
+        } catch (Throwable e) {
+            result.recordFatalError(createStringResource("pageTasks.message.deleteTaskConfirmedPerformed.fatalError").getString(),
+                    e);
         }
+        showResult(result);
 
         // refresh feedback and table
         refreshTable(target);
         clearCache();
-    }
-
-    private boolean isAuthorizedForTaskDeletion(List<TaskType> selectedTasks) {
-        for (TaskType task : selectedTasks) {
-            try {
-                //even if GUI should check only for request phase, we need to check for execution phase as well
-                //because the task goes further through task service deletion where no authorization is checked
-                boolean isAuthorized = getPageBase().isAuthorized(ModelAuthorizationAction.DELETE.getUrl(),
-                        null, task.asPrismObject(), null, null);
-                if (!isAuthorized) {
-                    String username = "\"" + WebComponentUtil.getDisplayNameOrName(getPageBase().getPrincipalFocus().asPrismObject()) + "\"";
-                    String operation = ModelAuthorizationAction.DELETE.getUrl();
-                    String objectName = WebComponentUtil.getDisplayNameOrName(task.asPrismObject());
-                    error(createStringResource("security.enforcer.message.notAuthorized.onObject",
-                            username, operation, objectName).getString());
-                    return false;
-                }
-            } catch (Exception e) {
-                //just skip
-            }
-        }
-        return true;
     }
 
     private void reconcileWorkersConfirmedPerformed(AjaxRequestTarget target, @NotNull IModel<SelectableBean<TaskType>> task) {

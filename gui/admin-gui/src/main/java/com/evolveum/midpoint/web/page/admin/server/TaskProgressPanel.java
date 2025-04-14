@@ -9,6 +9,9 @@ package com.evolveum.midpoint.web.page.admin.server;
 
 import java.util.List;
 
+import com.evolveum.midpoint.schema.util.task.TaskResultStatus;
+import com.evolveum.midpoint.web.page.admin.server.dto.GuiTaskResultStatus;
+
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
@@ -65,9 +68,24 @@ public class TaskProgressPanel extends BasePanel<TaskExecutionProgress> {
         progress.add(new VisibleBehaviour(() -> showProgressBar()));
         add(progress);
 
+        IModel<GuiTaskResultStatus> resultStatusModel = new LoadableDetachableModel<>() {
+
+            @Override
+            protected GuiTaskResultStatus load() {
+                TaskResultStatus status = getModelObject().getTaskUserFriendlyStatus();
+                return GuiTaskResultStatus.fromTaskResultStatus(status);
+            }
+        };
+
         WebMarkupContainer doneIcon = new WebMarkupContainer(ID_RESULT_ICON);
-        doneIcon.add(AttributeAppender.append("class", () -> createResultIcon()));
-        doneIcon.add(AttributeAppender.append("title", () -> getString(getModelObject().getTaskStatus())));
+        doneIcon.add(
+                AttributeAppender.append(
+                        "class",
+                        () -> resultStatusModel.getObject() != null ? resultStatusModel.getObject().icon : null));
+        doneIcon.add(
+                AttributeAppender.append(
+                        "title",
+                        () -> resultStatusModel.getObject() != null ? getString(resultStatusModel.getObject()) : null));
         doneIcon.add(new VisibleBehaviour(() -> !showProgressBar()));
         add(doneIcon);
 
@@ -95,6 +113,7 @@ public class TaskProgressPanel extends BasePanel<TaskExecutionProgress> {
     }
 
     public static String createResultIcon(TaskExecutionStateType executionState, boolean complete, OperationResultStatus status) {
+
         if (status == null || status == OperationResultStatus.UNKNOWN) {
             return OperationResultStatusPresentationProperties.UNKNOWN.getIcon();
         }
