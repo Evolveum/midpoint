@@ -1861,6 +1861,9 @@ span.yui-skin-sam {
 
 .login-footer {
   font-size: 13px;
+  a {
+    text-decoration: underline;
+  }
 }
 
 .login-panel-control {
@@ -2365,6 +2368,16 @@ div.show > a > div > i.fas {
 
 .mt-popup-under-header {
   margin-top: 56px;
+}
+
+footer.main-footer a {
+  text-decoration: underline;
+}
+
+// based on current navigation bar 56px
+.navbar-nav .dropdown-menu {
+  max-height:calc(100vh - 64px);
+  overflow-y: auto;
 }
 
 // MID-10513 fix for issue with backdrop and modal in safari, where modal is displayed behind the backdrop.

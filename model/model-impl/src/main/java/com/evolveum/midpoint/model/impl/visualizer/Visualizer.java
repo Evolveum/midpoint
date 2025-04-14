@@ -625,7 +625,13 @@ public class Visualizer {
                         }
                     }
                 }
-                visualization.addPartialVisualization(visualizationForItem);
+                ItemPath deltaPathWithoutLast = deltaParentPath.allExceptLast();
+                VisualizationImpl parentPartialVisualization = getParentPartialVisualization(visualization, deltaPathWithoutLast);
+                if (parentPartialVisualization != null) {
+                    parentPartialVisualization.addPartialVisualization(visualizationForItem);
+                } else {
+                    visualization.addPartialVisualization(visualizationForItem);
+                }
             }
         }
         ItemPath itemRelativeItemPath = getDeltaParentItemPath(delta.getPath()).remainder(visualizationForItem.getSourceRelPath());
@@ -642,6 +648,18 @@ public class Visualizer {
         visualizeAtomicItemDelta(visualizationForItem, delta, context, task, result);
 
         evaluateDescriptionHandlers(visualizationForItem, visualization, task, result);
+    }
+
+    private VisualizationImpl getParentPartialVisualization(VisualizationImpl parentVisualization, ItemPath path) {
+        return parentVisualization.getPartialVisualizations()
+                .stream()
+                .filter(pv -> {
+                    ItemPath pvPath = pv.getSourceAbsPath();
+                    return pvPath != null && pvPath.equivalent(path);
+                })
+                .findFirst()
+                .orElse(null);
+
     }
 
     private void addDescriptiveItems(VisualizationImpl visualization, PrismContainerValue<?> sourceValue, VisualizationContext context, Task task, OperationResult result) {
