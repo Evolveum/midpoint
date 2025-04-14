@@ -7,6 +7,8 @@
 
 package com.evolveum.midpoint.web.page.admin.reports.component;
 
+import com.evolveum.midpoint.common.UserFriendlyPrettyPrinter;
+
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.MultiLineLabel;

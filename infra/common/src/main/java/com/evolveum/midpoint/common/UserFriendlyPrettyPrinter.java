@@ -5,28 +5,54 @@
  * and European Union Public License. See LICENSE file for details.
  */
 
-package com.evolveum.midpoint.web.page.admin.reports.component;
+package com.evolveum.midpoint.common;
 
+import java.util.Locale;
 import java.util.Objects;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import javax.xml.datatype.XMLGregorianCalendar;
+import javax.xml.namespace.QName;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.builder.ToStringBuilder;
+import org.apache.commons.lang3.builder.ToStringStyle;
 
 import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.impl.binding.AbstractPlainStructured;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.schema.SchemaDescription;
 import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
+import com.evolveum.midpoint.schema.constants.ObjectTypes;
+import com.evolveum.midpoint.schema.util.LocalizationUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
+/**
+ * @author Viliam Repan
+ */
 public class UserFriendlyPrettyPrinter {
 
-    private static final String DEFAULT_INDENT = "  ";
+    public static final String DEFAULT_INDENT = "  ";
+
+    private static final ToStringStyle TO_STRING_STYLE = new UserFriendlyToStringStyle();
 
     private String indent = DEFAULT_INDENT;
+
+    private LocalizationService localizationService;
+
+    private Locale locale = Locale.getDefault();
+
+    public UserFriendlyPrettyPrinter localizationService(LocalizationService localizationService) {
+        this.localizationService = localizationService;
+        return this;
+    }
+
+    public UserFriendlyPrettyPrinter locale(Locale locale) {
+        this.locale = locale != null ? locale : Locale.getDefault();
+        return this;
+    }
 
     public UserFriendlyPrettyPrinter indent(String indent) {
         this.indent = indent;
@@ -60,30 +86,6 @@ public class UserFriendlyPrettyPrinter {
 
     public String prettyPrintReference(PrismReference r, int indent) {
         return prettyPrintItem(r, indent, true);
-    }
-
-    private String prettyPrintObject(PrismObject<?> object, int indent) {
-        StringBuilder sb = new StringBuilder();
-        sb.append(indent(indent));
-        sb.append(getItemName(object));
-
-        String details = Stream.of(object.getOid(), object.getVersion())
-                .filter(Objects::nonNull)
-                .collect(Collectors.joining(", "));
-
-        if (StringUtils.isNotEmpty(details)) {
-            sb.append(" (");
-            sb.append(object);
-            sb.append(")");
-        }
-
-        PrismObjectValue<?> value = object.getValue();
-        if (value != null) {
-            sb.append("\n");
-            sb.append(prettyPrintContainerValue(value, indent + 1));
-        }
-
-        return sb.toString();
     }
 
     private String prettyPrintItem(Item<?, ?> item, int indent, boolean canUseSingleLine) {
@@ -141,17 +143,13 @@ public class UserFriendlyPrettyPrinter {
             return false;
         }
 
-        if (isJavaSimpleType(type)
+        return isJavaSimpleType(type)
                 || Enum.class.isAssignableFrom(type)
                 || XMLGregorianCalendar.class.isAssignableFrom(type)
                 || PolyString.class.isAssignableFrom(type)
                 || PolyStringType.class.isAssignableFrom(type)
                 || ObjectReferenceType.class.isAssignableFrom(type)
-                || com.evolveum.prism.xml.ns._public.types_3.ObjectReferenceType.class.isAssignableFrom(type)) {
-            return true;
-        }
-
-        return false;
+                || com.evolveum.prism.xml.ns._public.types_3.ObjectReferenceType.class.isAssignableFrom(type);
     }
 
     public static boolean isJavaSimpleType(Class<?> type) {
@@ -195,7 +193,6 @@ public class UserFriendlyPrettyPrinter {
     public String prettyPrintValue(PrismValue value, int indent) {
         StringBuilder sb = new StringBuilder();
 
-        // todo object probably...
         if (value instanceof PrismPropertyValue<?> ppv) {
             sb.append(prettyPrintPropertyValue(ppv, indent));
         } else if (value instanceof PrismContainerValue<?> pcv) {
@@ -238,11 +235,16 @@ public class UserFriendlyPrettyPrinter {
     }
 
     public String prettyPrintPropertyValue(PrismPropertyValue<?> ppv, int indent) {
-        StringBuilder sb = new StringBuilder();
-        sb.append(indent(indent));
-        sb.append(PrettyPrinter.prettyPrint(ppv.getValue()));
+        Object value = ppv.getValue();
 
-        return sb.toString();
+        String result;
+        if (value instanceof AbstractPlainStructured) {
+            result = ToStringBuilder.reflectionToString(value, TO_STRING_STYLE);
+        } else {
+            result = PrettyPrinter.prettyPrint(value);
+        }
+
+        return indent(indent) + result;
     }
 
     public String prettyPrintReferenceValue(PrismReferenceValue value) {
@@ -254,16 +256,56 @@ public class UserFriendlyPrettyPrinter {
             sb.append(value.getTargetName());
         } else if (value.getOid() != null) {
             sb.append(value.getOid());
+        } else if (value.getFilter() != null) {
+            sb.append(translate("UserFriendlyPrettyPrinter.filter", "filter"));
         } else {
-            sb.append("undefined");
+            sb.append(translate("UserFriendlyPrettyPrinter.undefined", "undefined"));
         }
 
         if (value.getTargetType() != null) {
             sb.append(" (");
-            sb.append(value.getTargetType().getLocalPart());
+            sb.append(translateObjectType(value.getTargetType()));
             sb.append(")");
         }
 
         return sb.toString();
+    }
+
+    private String translateObjectType(QName type) {
+        ObjectTypes ot = ObjectTypes.getObjectTypeFromTypeQName(type);
+
+        String key = LocalizationUtil.createKeyForEnum(ot);
+
+        return translate(key, type.getLocalPart());
+    }
+
+    private String translate(String key, String defaultValue) {
+        if (localizationService == null || locale == null) {
+            return defaultValue;
+        }
+
+        return localizationService.translate(key, new Object[0], locale, defaultValue);
+    }
+
+    private static class UserFriendlyToStringStyle extends ToStringStyle {
+
+        public UserFriendlyToStringStyle() {
+            setUseIdentityHashCode(false);
+            setUseShortClassName(true);
+        }
+
+        @Override
+        public void append(StringBuffer buffer, String fieldName, Object value, Boolean fullDetail) {
+            if (value != null) {
+                super.append(buffer, fieldName, value, fullDetail);
+            }
+        }
+
+        @Override
+        public void append(StringBuffer buffer, String fieldName, Object[] array, Boolean fullDetail) {
+            if (array != null) {
+                super.append(buffer, fieldName, array, fullDetail);
+            }
+        }
     }
 }
