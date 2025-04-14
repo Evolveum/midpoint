@@ -8,6 +8,7 @@
 package com.evolveum.midpoint.web.component.data;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.extensions.ajax.markup.html.repeater.data.sort.AjaxFallbackOrderByBorder;
 import org.apache.wicket.extensions.ajax.markup.html.repeater.data.table.AjaxFallbackHeadersToolbar;
 import org.apache.wicket.extensions.markup.html.repeater.data.sort.ISortState;
@@ -16,18 +17,48 @@ import org.apache.wicket.extensions.markup.html.repeater.data.sort.SortOrder;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.DataTable;
 import org.apache.wicket.markup.ComponentTag;
 import org.apache.wicket.markup.html.WebMarkupContainer;
+import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.markup.repeater.RefreshingView;
 import org.apache.wicket.markup.repeater.data.IDataProvider;
 import org.apache.wicket.util.string.Strings;
 
 import com.evolveum.midpoint.gui.impl.component.data.provider.BaseSortableDataProvider;
+
+import org.apache.wicket.util.visit.IVisit;
+import org.apache.wicket.util.visit.IVisitor;
 
 /**
  * @author lazyman
  */
 public class TableHeadersToolbar<T> extends AjaxFallbackHeadersToolbar<String> {
 
+    public static final String HIDDEN_HEADER_ID = "hiddenHeaderId";
+
     public TableHeadersToolbar(DataTable<T, String> table, ISortStateLocator stateLocator) {
         super(table, stateLocator);
+
+    }
+
+    @Override
+    protected void onBeforeRender() {
+        super.onBeforeRender();
+
+        /* added for WCAG issue 5.2.4 The header is not visible but is read by the screen reader */
+        RefreshingView headers = (RefreshingView) get("headers");
+        headers.visitChildren(WebMarkupContainer.class, new IVisitor<WebMarkupContainer, Void>() {
+            @Override
+            public void component(WebMarkupContainer headerObject, IVisit<Void> visit) {
+                headerObject.visitChildren(Label.class, new IVisitor<Label, Void>() {
+                    @Override
+                    public void component(Label labelObject, IVisit<Void> labelVisit) {
+                        if (HIDDEN_HEADER_ID.equals(labelObject.getMarkupId())) {
+                            headerObject.get("header").add(AttributeAppender.append("aria-hidden", "true"));
+                            visit.stop();
+                        }
+                    }
+                });
+            }
+        });
     }
 
     @Override
