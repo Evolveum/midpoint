@@ -15,15 +15,15 @@ This guide shows you how to create a new resource in midPoint via the web GUI an
 See xref:/midpoint/reference/resources/resource-configuration/[] for advanced configuration options and in-depth explanations.
 ====
 
+// TODO:  Create a guide for templates in GUI and link it here.
+Before you continue, you may want to have  a look at xref:/midpoint/reference/resources/resource-configuration/inheritance/[] to learn about template configuration.
+
 == Create New Resource
 
-. In *Resources*, select *New Resource*.
-. Click *From Scratch*.
+. In icon:database[] *Resources*, select icon:plus-circle[] *New Resource*.
+. Select icon:pencil[] *From Scratch*.
 . Select a connector. +
     For example, to read a CSV file, use the *CsvConnector*.
-
-// TODO:  Create a guide for templates in GUI and link it here.
-Before you continue, you can have  a look at xref:/midpoint/reference/resources/resource-configuration/inheritance/[] to learn about template configuration.
 
 Now, you'll configure the resource on several screens.
 
@@ -33,6 +33,7 @@ Now, you'll configure the resource on several screens.
     * Name: _HRIS_
     * Description: _CSV exports from the HR system_
 . Keep the *Lifecycle state* as _Proposed_ until you finish and test the configuration of the resource.
+. Click btn:[Next: Configuration].
 
 === 2. Establish a Connection
 
@@ -41,11 +42,12 @@ Now, you need to provide information on how to connect to the resource.
 In the case of the CSV connector, the only configuration required is the path to the source CSV file.
 The exact path depends on your midPoint instance configuration.
 
-If you use Docker, open the `docker-compose.yml` and look for the `volumes:` configuration to figure out the right path to use here.
-It may be, for example, `/opt/midpoint/var/resources/export.csv`.
+If you use Docker, have a look at link:/midpoint/quickstart/#file-paths-in-docker-containers[working with file paths in Docker containers].
 
 For remote resources such as LDAP servers, the configuration is more complex.
 Refer to the documentation of the particular connector you're using.
+
+When you're done, click btn:[Next: Discovery].
 
 [TIP]
 --
@@ -58,14 +60,16 @@ If midPoint can't connect to the resource, it'll tell you so and won't let you c
 Use this screen to tell midPoint about your data structure.
 Refer to the information tooltip icons to learn about the purpose of each field.
 
-Importantly and regardless of the resource type, you need to *select a name of the unique attribute*, i.e., an attribute that uniquely identifies each entry in your database.
+Importantly and regardless of the resource type, you need to *select a unique attribute*, i.e., an attribute that uniquely identifies each entry in your database.
+
+When you're done, click btn:[Next: Schema].
 
 .Conveniently, midPoint suggests the field names so that you don't need to type them manually. Here, they're columns found in a CSV file.
 image::create-resource-select-unique-attribute.webp[Discovered fields selector]
 
 === 4. Schema of Object Types
 
-In the final screen, you select the schema of the object types that are in the resource.
+In the final screen, select the schema of the object types that are in the resource.
 
 If you're connecting a resource with only one type of objects, such as users, *use the pre-selected _AccountObjectClass_ schema*.
 
@@ -74,8 +78,8 @@ In more advanced configurations, you may want to refer to xref:/midpoint/referen
 Click btn:[Create Resource] to finish the configuration.
 
 The final screen provides options for your next steps.
-The best first action after creating a resource is to preview its data to confirm that midPoint is correctly retrieving data from the resource.
-Click btn:[Preview Data] to inspect the objects that midPoint sees on the resource.
+The best first action after creating a resource is to preview its data to confirm that midPoint is retrieving data from the resource correctly.
+Click btn:[Preview Resource Data] to inspect the objects that midPoint sees on the resource.
 You can then return to the resource wizard and adjust the resource configuration as needed.
 
 [TIP]
