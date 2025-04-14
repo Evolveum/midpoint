@@ -1,4 +1,4 @@
-= Create a New Resource in MidPoint web GUI
+= Create a New Resource in MidPoint GUI
 :page-nav-title: 'Create New Resource in GUI'
 :page-display-order: 10
 :page-toc: top
