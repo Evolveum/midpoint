@@ -3,6 +3,7 @@
 :page-toc: top
 :page-since: "4.9"
 :experimental:
+:page-display-order: 20
 
 In midPoint, configuring object types is the key to defining the structure of different identity objects, such as users, roles, and resources.
 This guide is here to guide you through the basic steps involved in setting up object types.
