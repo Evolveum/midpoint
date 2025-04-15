@@ -120,6 +120,11 @@ public class ReferenceValueSearchPopupPanel extends PopoverSearchPopupPanel<Obje
                 }
                 return Collections.singletonList(ObjectType.COMPLEX_TYPE);
             }
+
+            @Override
+            protected boolean isEditButtonVisible() {
+                return !hasParentPopupableDialog();
+            }
         };
 
         feedback.setFilter(new ComponentFeedbackMessageFilter(nameField));
