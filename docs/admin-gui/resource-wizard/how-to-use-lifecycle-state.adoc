@@ -2,18 +2,19 @@
 :page-since: "4.9"
 :page-visibility: hidden
 
-== How to use Lifecycle state
+== How to Use Lifecycle States
 
-Resource, object type, attribute, mapping, synchronization situation and other aspects of resource configuration can be configured in different lifecycle states.
-As it was mentioned earlier, the Lifecycle state property can be used  with xref:/midpoint/reference/admin-gui/simulations/[Simulations].
-The resource is created in `Proposed` lifecycle state by default, it won't work for normal deployment without switching to `Active` state.
+You can use different lifecycle states for resources, object types, attributes, mappings, synchronization situations, and other aspects of resource configuration.
+You can use the lifecycle state property for xref:/midpoint/reference/admin-gui/simulations/[simulations].
+Resources are created in the _Proposed_ lifecycle state by default, and don't work in normal deployment before switching the state to _Active_.
 
-By using the lifecycle state `Proposed`, you can test (simulate) the configuration without causing any damage to your target system data.
-When the simulation results are satisfactory, you can switch the lifecycle state to `Active`.
+You can use the _Proposed_ lifecycle state to test (_simulate_) the configuration without causing any damage to your target system data.
+When the simulation results are satisfactory, you can switch the lifecycle state to _Active_.
 
-As the lifecycle state can be set on various configuration items, midPoint gives you a way of turning on specific parts of configuration incrementally.
-For example, after you switch your resource to `Active` lifecycle state, we recommend to add any new mappings first in `Proposed` lifecycle state.
-The new mapping can be simulated without causing any harm and switched to `Active` lifecycle state when ready.
+You can set different lifecycle states for various configuration items, which lets you put specific parts of configuration to production incrementally.
+
+For example, after you switch your resource to the _Active_ lifecycle state, you can add new mappings in _Proposed_ lifecycle state first.
+You can simulate the new mapping safely and switch it to _Active_ when it's ready.
 
 See also:
 

@@ -4,9 +4,9 @@
 :page-since: "4.6"
 :page-since-improved: [ "4.8", "4.9" ]
 
-Resource Wizard lets you easily create and update resource configuration.
-You don't need to know midPoint XML language, the configuration is entirely UI-based.
-The resource wizard takes the form of screens with choices for specific parts of resource configuration.
+Resource wizards let you create and update resource configurations.
+You don't need to know midPoint XML language, the wizards are entirely GUI-based.
+Resource wizards take a form of screens with choices for specific parts of resource configuration.
 
 There are multiple resource wizards ready to help you with various configurations related to your resources:
 
@@ -25,8 +25,6 @@ You can also see the resource wizards used in the xref:/midpoint/methodology/fir
 
 video::suo775ym_PE[youtube,title="First Steps Methodology Webinar Video"]
 
-include::configuration-resource-panels.adoc[]
-
-include::how-to-use-lifecycle-state.adoc[]
-
 include::limitation-all.adoc[]
+
+include::configuration-resource-panels.adoc[]
