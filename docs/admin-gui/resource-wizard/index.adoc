@@ -10,9 +10,9 @@ The resource wizard takes the form of screens with choices for specific parts of
 
 There are multiple resource wizards ready to help you with various configurations related to your resources:
 
-* xref:create-resource-using-wizard[Create a new resource]
-* xref:resource-wizard/object-type[Configure resource object types]
-* xref:resource-wizard/association-type[Define object type relations for group membership]
+* xref:./create-resource-using-wizard[Create a new resource]
+* xref:../resource-wizard/object-type[Configure resource object types]
+* xref:../resource-wizard/association-type[Define object type relations for group membership]
 
 //Resource wizard was completely rewritten and redesigned in midPoint version 4.6.
 //It was further enhanced in midPoint 4.8.
