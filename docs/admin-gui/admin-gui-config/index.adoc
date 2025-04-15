@@ -1244,6 +1244,60 @@ The configuration is done by setting `xsi:type` of `panel -> listView -> dataPro
 ----
 ====
 
+== Customization for audit events list and history panel
+
+Table displaying audit events can be customized in the same way as other tables.
+By default, it contains columns:
+
+* Timestamp
+* Initiator
+* Event stage
+* Event type
+* Target
+* Target owner
+* Channel
+* Outcome
+* Changed item
+
+Changed item column is visible only when searching for specific item paths in search panel.
+By default, column displays _new values_ of changed items.
+
+You can customize the table by adding or removing columns, changing their order, and changing their visibility.
+
+.Example of additional changed item column displaying estimated old values and new values that's always visible in audit events list
+[source, xml]
+----
+<adminGuiConfiguration>
+    <objectCollectionViews>
+        <objectCollectionView>
+            <!--
+                Identifier for audit event list collection.
+                Another identifier `history` can be used for object details history panel.
+            -->
+            <identifier>allAudits</identifier>
+            <includeDefaultColumns>true</includeDefaultColumns>
+
+            <column>
+                <name>changedItemColumnOldNew</name>
+                <path>changedItem</path>
+                <!--
+                    If visibility is not set to `visible` column will be visible only when search
+                    query contains changedItem predicate (search item).
+                -->
+                <visibility>visible</visibility>
+                <!--
+                    Possible values for changedItem column are: `oldValue`, `newValue` and `oldAndNewValue`.
+                    Default value: `newValue`.
+                -->
+                <displayValue>oldAndNewValue</displayValue>
+            </column>
+            <type>AuditEventRecordType</type>
+        </objectCollectionView>
+    </objectCollectionViews>
+</adminGuiConfiguration>
+----
+
+NOTE: If predefined column have to be replaced, it's necessary to use `includeDefaultColumns=false` and enumerate + configure all columns that should be visible in the view.
 
 == Custom actions for object lists
 

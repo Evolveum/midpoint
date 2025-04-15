@@ -74,32 +74,39 @@ public class ObjectTreeDelta<O extends ObjectType> extends ContainerTreeDelta<O>
         SchemaRegistry registry = PrismContext.get().getSchemaRegistry();
         PrismObjectDefinition<O> def = registry.findObjectDefinitionByCompileTimeClass(delta.getObjectTypeClass());
 
-        ObjectTreeDelta<O> result = new ObjectTreeDelta<>(def);
-        result.setOid(delta.getOid());
-        result.setObjectToAdd(delta.getObjectToAdd());  // todo this feels funky, probably should end up in value?
+        ObjectTreeDelta<O> treeDelta = new ObjectTreeDelta<>(def);
+        treeDelta.setOid(delta.getOid());
+        treeDelta.setObjectToAdd(delta.getObjectToAdd());  // todo this feels funky, probably should end up in value?
 
         // todo fix value to add, modification type somehow
         ObjectTreeDeltaValue<O> value = new ObjectTreeDeltaValue<>();
         value.setOid(delta.getOid());
-        result.addValue(value);
+        treeDelta.addValue(value);
 
         delta.getModifications().forEach(modification -> {
+            ItemTreeDelta td;
             if (modification instanceof ContainerDelta containerDelta) {
-                ContainerTreeDelta<?> ctd = result.findOrCreateItemDelta(containerDelta.getPath(), ContainerTreeDelta.class);
-
-                addItemDeltaValues(containerDelta, ctd);
+                ContainerTreeDelta<?> ctd = treeDelta.findOrCreateItemDelta(containerDelta.getPath(), ContainerTreeDelta.class);
+                TreeDeltaUtils.populateItemTreeDelta(containerDelta, ctd);
+                td = ctd;
             } else if (modification instanceof PropertyDelta propertyDelta) {
-                PropertyTreeDelta<?> ptd = result.findOrCreateItemDelta(propertyDelta.getPath(), PropertyTreeDelta.class);
-
-                addItemDeltaValues(propertyDelta, ptd);
+                PropertyTreeDelta<?> ptd = treeDelta.findOrCreateItemDelta(propertyDelta.getPath(), PropertyTreeDelta.class);
+                TreeDeltaUtils.populateItemTreeDelta(propertyDelta, ptd);
+                td = ptd;
             } else if (modification instanceof ReferenceDelta referenceDelta) {
-                ReferenceTreeDelta rtd = result.findOrCreateItemDelta(referenceDelta.getPath(), ReferenceTreeDelta.class);
+                ReferenceTreeDelta rtd = treeDelta.findOrCreateItemDelta(referenceDelta.getPath(), ReferenceTreeDelta.class);
+                TreeDeltaUtils.populateItemTreeDelta(referenceDelta, rtd);
+                td = rtd;
+            } else {
+                throw new IllegalArgumentException("Unknown modification type: " + modification);
+            }
 
-                addItemDeltaValues(referenceDelta, rtd);
+            if (modification.getEstimatedOldValues() != null) {
+                modification.getEstimatedOldValues().forEach(i -> td.getEstimatedOldValues().add(i.clone()));
             }
         });
 
-        return result;
+        return treeDelta;
     }
 
     private static <PV extends PrismValue, V extends ItemTreeDeltaValue<PV, ?>, ID extends ItemDelta<PV, ?>, ITD extends ItemTreeDelta<PV, ?, ?, V>> void addItemDeltaValues(

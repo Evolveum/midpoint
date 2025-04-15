@@ -2390,3 +2390,7 @@ footer.main-footer a {
   z-index: 1040 !important;
 }
 // End of MID-10513 fix
+
+.changed-item-panel-value > p {
+  margin: 0;
+}

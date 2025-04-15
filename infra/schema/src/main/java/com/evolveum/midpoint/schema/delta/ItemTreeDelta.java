@@ -37,6 +37,8 @@ public abstract class ItemTreeDelta
 
     private List<V> values;
 
+    private List<PV> estimatedOldValues;
+
     public ItemTreeDelta(@NotNull ID definition) {
         this.definition = definition;
     }
@@ -66,6 +68,17 @@ public abstract class ItemTreeDelta
 
     public void setParent(ContainerTreeDeltaValue<?> parent) {
         this.parent = parent;
+    }
+
+    public int getSize() {
+        return values == null ? 0 : values.size();
+    }
+
+    public List<PV> getEstimatedOldValues() {
+        if (estimatedOldValues == null) {
+            estimatedOldValues = new ArrayList<>();
+        }
+        return estimatedOldValues;
     }
 
     @NotNull

@@ -9,7 +9,7 @@ package com.evolveum.midpoint.gui.impl.page.admin.certification.column;
 
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.util.LocalizationUtil;
-import com.evolveum.midpoint.gui.impl.page.admin.certification.helpers.ColumnTypeConfigContext;
+import com.evolveum.midpoint.gui.impl.page.admin.certification.helpers.CertificationColumnTypeConfigContext;
 import com.evolveum.midpoint.schema.util.cases.WorkItemTypeUtil;
 import com.evolveum.midpoint.web.application.ColumnType;
 import com.evolveum.midpoint.web.application.PanelDisplay;
@@ -32,7 +32,7 @@ import java.io.Serial;
         display = @PanelDisplay(label = "", order = 90))
 public class CertItemCommentIconColumn extends AbstractCertificationItemColumn {
 
-    public CertItemCommentIconColumn(GuiObjectColumnType columnConfig, ColumnTypeConfigContext context) {
+    public CertItemCommentIconColumn(GuiObjectColumnType columnConfig, CertificationColumnTypeConfigContext context) {
         super(columnConfig, context);
     }
 

@@ -19,6 +19,8 @@ import com.evolveum.midpoint.util.exception.*;
 
 import org.jetbrains.annotations.Nullable;
 
+import java.lang.reflect.Method;
+
 /**
  * Evaluation of the "path" expression.
  */
@@ -90,9 +92,40 @@ class PathExpressionEvaluation<V extends PrismValue, D extends ItemDefinition<?>
         } else if (variableValueAndDefinition.getTypeClass().isAssignableFrom(variableValue.getClass())) {
             // FIXME this fails for ObjectType variable values, as getTypeClass() is null for them
             return ValueResolutionContext.fromRealValue(variableValue, context.getContextDescription());
+        } else if (Enum.class.isAssignableFrom(variableValueAndDefinition.getTypeClass()) && variableValue instanceof String) {
+            Class<?> enumClass = variableValueAndDefinition.getTypeClass();
+            try {
+                Object enumValue = findEnumByValue(enumClass, (String) variableValue);
+                if (enumValue == null) {
+                    throw new ExpressionEvaluationException("Cannot convert "+variableValue+" to enum "+enumClass.getName());
+                }
+                return ValueResolutionContext.fromRealValue(enumValue, context.getContextDescription());
+            } catch (Exception e) {
+                throw new ExpressionEvaluationException("Cannot convert "+variableValue+" to enum "+enumClass.getName(), e);
+            }
         } else {
             throw new ExpressionEvaluationException("Unexpected variable value "+variableValue+" ("+variableValue.getClass()+")");
         }
+    }
+
+    public static Object findEnumByValue(Class<?> enumClass, String value) throws Exception {
+        if (!enumClass.isEnum()) {
+            throw new IllegalArgumentException("Provided class is not an enum.");
+        }
+        Object[] enumValues = enumClass.getEnumConstants();
+        for (Object enumValue : enumValues) {
+            try {
+                //works only for TypeSafeEnum enums
+                Method getValueMethod = enumClass.getMethod("value");
+                Object fieldValue = getValueMethod.invoke(enumValue);
+                if (fieldValue instanceof String && value.equalsIgnoreCase(fieldValue.toString())) {
+                    return enumValue;
+                }
+            } catch (NoSuchMethodException e) {
+                throw new RuntimeException("Enum " + enumClass.getName() + " does not have a value() method.");
+            }
+        }
+        return null;
     }
 
     @Nullable
