@@ -1286,7 +1286,12 @@ span.tree-content > table tr td:first-child {
 // This will make the tooltip respect new lines.
 // Lines will still wrap if they are longer than the default max-width of the container.
 .tooltip-inner {
-	white-space:pre-wrap;
+  white-space: pre-wrap;
+  overflow-y: auto;
+  overflow-x: hidden;
+  max-height: 250px;
+  max-width: 200px;
+  word-break: break-word;
 }
 
 .table-striped {
