@@ -40,7 +40,7 @@ public class ObjectNameColumn<O extends ObjectType> extends AbstractNameColumn<S
     }
 
     public ObjectNameColumn(IModel<String> displayModel, String sortProperty, GuiObjectColumnType customColumn, ExpressionType expression, PageBase pageBase) {
-        super(displayModel, sortProperty, customColumn, expression, pageBase);
+        super(displayModel, sortProperty != null ? sortProperty : ObjectType.F_NAME.getLocalPart(), customColumn, expression, pageBase);
     }
 
     @Override

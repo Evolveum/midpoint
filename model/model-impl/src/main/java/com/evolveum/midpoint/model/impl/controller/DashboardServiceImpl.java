@@ -459,6 +459,7 @@ public class DashboardServiceImpl implements DashboardService {
     private void evaluateVariation(DashboardWidgetType widget, VariablesMap variables, DashboardWidget data) {
         if (widget.getPresentation() != null) {
             if (widget.getPresentation().getVariation() != null) {
+                boolean variationUsed = false;
                 for (DashboardWidgetVariationType variation : widget.getPresentation().getVariation()) {
                     Task task = taskManager.createTaskInstance("Evaluate variation");
                     try {
@@ -466,12 +467,14 @@ public class DashboardServiceImpl implements DashboardService {
                                 MiscSchemaUtil.getExpressionProfile(), expressionFactory, "Variation", task, task.getResult());
                         if (usingVariation) {
                             data.setDisplay(combineDisplay(widget.getDisplay(), variation.getDisplay()));
-                        } else {
-                            data.setDisplay(widget.getDisplay());
+                            variationUsed = true;
                         }
                     } catch (Exception e) {
                         LOGGER.error("Couldn't evaluate condition " + variation.toString(), e);
                     }
+                }
+                if (!variationUsed) {
+                    data.setDisplay(widget.getDisplay());
                 }
             } else {
                 LOGGER.error("Variation of presentation is not found in widget " + widget.getIdentifier());
