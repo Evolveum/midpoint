@@ -28,6 +28,10 @@ The {release-version} release brings security, stability and miscellaneous bugfi
 {% include release-dedication.html content=dedicationContent %}
 ++++
 
+== Changes with Respect To Version 4.8.7
+
+* bug:MID-10645 Fatal error when sorting by time column in created reports
+
 == Changes with Respect To Version 4.8.6
 
 * Upgraded Spring Boot to 3.3.9 and Tomcat 10.1.39 in order to fix possible Tomcat vulnerabilities.
