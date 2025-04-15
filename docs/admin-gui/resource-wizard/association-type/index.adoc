@@ -1,6 +1,7 @@
 = Resource wizard: Association type configuration
 :page-nav-title: Association type configuration
 :page-toc: top
+:page-display-order: 30
 :page-since: "4.9"
 
 Associations allow you to configure resource for object type relations.

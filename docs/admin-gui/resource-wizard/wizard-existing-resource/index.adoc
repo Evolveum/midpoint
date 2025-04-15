@@ -2,6 +2,7 @@
 :page-nav-title: Wizard for existing resource
 :page-toc: top
 :page-since: "4.9"
+:page-display-order: 40
 
 The resource object type wizard can be used also for editing existing resource settings.
 
