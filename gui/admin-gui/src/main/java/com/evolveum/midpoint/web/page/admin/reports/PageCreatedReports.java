@@ -251,7 +251,7 @@ public class PageCreatedReports extends PageAdmin {
 
         if (sortParam != null && sortParam.getProperty() != null) {
             OrderDirection order = sortParam.isAscending() ? OrderDirection.ASCENDING : OrderDirection.DESCENDING;
-            if (sortParam.getProperty().equals("createTimestamp")) {
+            if (sortParam.getProperty().equals("metadata/createTimestamp")) {
                 return Collections.singletonList(
                         getPrismContext().queryFactory().createOrdering(
                                 ItemPath.create(ReportDataType.F_METADATA, MetadataType.F_CREATE_TIMESTAMP), order));
@@ -276,7 +276,7 @@ public class PageCreatedReports extends PageAdmin {
 
         IColumn<SelectableBean<ReportDataType>, String> column = new AbstractColumn<SelectableBean<ReportDataType>, String>(
                 createStringResource("pageCreatedReports.table.time"),
-                "createTimestamp") {
+                "metadata/createTimestamp") {
 
             private static final long serialVersionUID = 1L;
 
