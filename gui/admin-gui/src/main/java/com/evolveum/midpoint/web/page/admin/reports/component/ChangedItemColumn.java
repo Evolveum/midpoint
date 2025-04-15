@@ -12,6 +12,8 @@ import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.export.AbstractExportableColumn;
@@ -22,7 +24,6 @@ import org.apache.wicket.model.LoadableDetachableModel;
 
 import com.evolveum.midpoint.common.UserFriendlyPrettyPrinter;
 import com.evolveum.midpoint.gui.api.page.PageBase;
-import com.evolveum.midpoint.gui.api.util.ModelServiceLocator;
 import com.evolveum.midpoint.gui.impl.component.search.Search;
 import com.evolveum.midpoint.gui.impl.component.search.wrapper.PropertySearchItemWrapper;
 import com.evolveum.midpoint.prism.ModificationType;
@@ -39,36 +40,40 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.DisplayValueType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.GuiObjectColumnType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
+
+import org.apache.wicket.model.Model;
 
 public class ChangedItemColumn extends AbstractExportableColumn<SelectableBean<AuditEventRecordType>, String> {
 
     private static final Trace LOGGER = TraceManager.getTrace(ChangedItemColumn.class);
 
+    private static final List<DisplayValueType> ALLOWED_DISPLAY_VALUES = List.of(
+            DisplayValueType.OLD_VALUE,
+            DisplayValueType.NEW_VALUE,
+            DisplayValueType.OLD_NEW_VALUE
+    );
+
     private final GuiObjectColumnType guiObjectColumn;
-
-    private final ExpressionType expression;
-
-    private final ModelServiceLocator modelServiceLocator;
 
     private final IModel<Search<AuditEventRecordType>> searchModel;
 
     public ChangedItemColumn(
             IModel<String> displayModel,
             GuiObjectColumnType guiObjectColumn,
-            ExpressionType expressionType,
-            IModel<Search<AuditEventRecordType>> searchModel,
-            ModelServiceLocator modelServiceLocator) {
+            IModel<Search<AuditEventRecordType>> searchModel) {
 
-        super(displayModel);
+        super(displayModel != null ? displayModel : Model.of());
 
         this.guiObjectColumn = guiObjectColumn;
-        this.expression = expressionType;
-        this.modelServiceLocator = modelServiceLocator;
         this.searchModel = searchModel;
+    }
+
+    @Override
+    public String getSortProperty() {
+        return null;
     }
 
     @Override
@@ -135,7 +140,12 @@ public class ChangedItemColumn extends AbstractExportableColumn<SelectableBean<A
     }
 
     private DisplayValueType getDisplayValueType() {
-        return guiObjectColumn.getDisplayValue() != null ? guiObjectColumn.getDisplayValue() : DisplayValueType.NEW_VALUE;
+        DisplayValueType display = guiObjectColumn.getDisplayValue() != null ? guiObjectColumn.getDisplayValue() : DisplayValueType.NEW_VALUE;
+        if (!ALLOWED_DISPLAY_VALUES.contains(display)) {
+            display = DisplayValueType.NEW_VALUE;
+        }
+
+        return display;
     }
 
     private List<ChangedItem> createChangedItems(IModel<SelectableBean<AuditEventRecordType>> rowModel) {

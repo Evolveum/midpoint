@@ -16,10 +16,6 @@ import java.util.List;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.gui.impl.component.search.wrapper.PropertySearchItemWrapper;
-
-import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
-
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
@@ -488,30 +484,29 @@ public class AuditLogViewerPanel extends ContainerableListPanel<AuditEventRecord
         }
 
         if (AuditEventRecordType.F_CHANGED_ITEM.equivalent(path)) {
-            return createChangedItemColumn(displayModel, guiObjectColumn, expression);
+            return createChangedItemColumn(displayModel, guiObjectColumn);
         }
 
-         return super.createCustomExportableColumn(displayModel, guiObjectColumn, expression);
+        return super.createCustomExportableColumn(displayModel, guiObjectColumn, expression);
+    }
+
+    @Override
+    protected AuditLogViewerContext getColumnTypeConfigContext() {
+        return new AuditLogViewerContext(() -> getSearchModel().getObject());
     }
 
     private IColumn<SelectableBean<AuditEventRecordType>, String> createChangedItemColumn(
-            IModel<String> displayModel, GuiObjectColumnType guiObjectColumn, ExpressionType expression) {
-        if (!isChangedItemSearchItemVisible()
+            IModel<String> displayModel, GuiObjectColumnType guiObjectColumn) {
+        if (!getColumnTypeConfigContext().isChangedItemSearchItemVisible()
                 && (guiObjectColumn != null && guiObjectColumn.getVisibility() != UserInterfaceElementVisibilityType.VISIBLE)) {
             return null;
         }
-        return new ChangedItemColumn(displayModel, guiObjectColumn, expression, getSearchModel(), getPageBase());
-    }
-
-    private boolean isChangedItemSearchItemVisible() {
-        // noinspection unchecked
-        PropertySearchItemWrapper<ItemPathType> wrapper = getSearchModel().getObject().findPropertySearchItem(AuditEventRecordType.F_CHANGED_ITEM);
-        return wrapper != null && wrapper.isVisible();
+        return new ChangedItemColumn(displayModel, guiObjectColumn, getSearchModel());
     }
 
     @Override
     public void refreshTable(AjaxRequestTarget target) {
-        boolean searchItemVisible = isChangedItemSearchItemVisible();
+        boolean searchItemVisible = getColumnTypeConfigContext().isChangedItemSearchItemVisible();
 
         // noinspection unchecked
         boolean isChangedItemColumnVisible = getTable().getDataTable().getColumns().stream()
