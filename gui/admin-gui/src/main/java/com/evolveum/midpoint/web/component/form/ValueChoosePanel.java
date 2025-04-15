@@ -95,15 +95,7 @@ public class ValueChoosePanel<R extends Referencable> extends BasePanel<R> {
             }
         };
 
-        edit.add(new VisibleEnableBehaviour() {
-
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            public boolean isEnabled() {
-                return isEditButtonEnabled();
-            }
-        });
+        edit.add(new VisibleEnableBehaviour(this::isEditButtonVisible, this::isEditButtonEnabled));
         textWrapper.add(edit);
         add(textWrapper);
 
@@ -128,6 +120,10 @@ public class ValueChoosePanel<R extends Referencable> extends BasePanel<R> {
         text.setRequired(isRequired());
         text.setEnabled(true);
         return text;
+    }
+
+    protected boolean isEditButtonVisible() {
+        return true;
     }
 
     protected boolean isEditButtonEnabled() {
@@ -325,5 +321,9 @@ public class ValueChoosePanel<R extends Referencable> extends BasePanel<R> {
         } else {
             pageBase.hideMainPopup(target);
         }
+    }
+
+    protected boolean hasParentPopupableDialog() {
+        return parentPopupableDialog != null;
     }
 }
