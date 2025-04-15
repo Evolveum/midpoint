@@ -3153,6 +3153,11 @@ public final class WebComponentUtil {
             }
         }
         result.computeStatusIfUnknown();
+        // fix for 10629. The changes which are should be applied to the object after the work item is completed (e.g. approved)
+        // are executed in the background task. This is how it should work. This piece of code just improves the feedback message
+        if (OperationResultStatus.IN_PROGRESS.equals(result.getStatus())) {
+            result.setUserFriendlyMessage(new SingleLocalizableMessage("WorkItem.approveAction.inProgressResult"));
+        }
         pageBase.showResult(result);
     }
 
