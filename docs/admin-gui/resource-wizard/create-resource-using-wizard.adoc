@@ -150,3 +150,6 @@ With the resource created and configured, continue with the configuration furthe
 * xref:./association-type[]
 * xref:/midpoint/reference/tasks/synchronization-tasks/import-and-reconciliation/[]
 
+:sectnums!:
+
+include::how-to-use-lifecycle-state.adoc[]
