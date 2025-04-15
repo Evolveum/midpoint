@@ -17,10 +17,7 @@ import java.util.stream.Collectors;
 import com.evolveum.midpoint.gui.impl.component.action.CertItemResolveAction;
 
 import com.evolveum.midpoint.gui.impl.page.admin.certification.column.AbstractGuiColumn;
-import com.evolveum.midpoint.gui.impl.page.admin.certification.helpers.ColumnTypeConfigContext;
-
-import com.evolveum.midpoint.prism.PrismConstants;
-import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.gui.impl.page.admin.certification.helpers.CertificationColumnTypeConfigContext;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -33,7 +30,6 @@ import com.evolveum.midpoint.gui.api.component.data.provider.ISelectableDataProv
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismValueWrapper;
 import com.evolveum.midpoint.gui.api.util.GuiDisplayTypeUtil;
-import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.impl.component.ContainerableListPanel;
 import com.evolveum.midpoint.gui.impl.component.action.AbstractGuiAction;
 import com.evolveum.midpoint.gui.impl.component.data.provider.ContainerListDataProvider;
@@ -43,13 +39,11 @@ import com.evolveum.midpoint.gui.impl.page.admin.certification.helpers.CertMiscU
 import com.evolveum.midpoint.gui.impl.util.IconAndStylesUtil;
 import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
 import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
-import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.data.column.*;
@@ -294,8 +288,8 @@ public class CertificationWorkItemTable extends ContainerableListPanel<AccessCer
     }
 
     @Override
-    protected ColumnTypeConfigContext getColumnTypeConfigContext() {
-        ColumnTypeConfigContext context = new ColumnTypeConfigContext();
+    protected CertificationColumnTypeConfigContext getColumnTypeConfigContext() {
+        CertificationColumnTypeConfigContext context = new CertificationColumnTypeConfigContext();
         context.setViewAllItems(!isMyCertItems());
         context.setNotDecidedOnly(showOnlyNotDecidedItems());
         context.setPageBase(getPageBase());
