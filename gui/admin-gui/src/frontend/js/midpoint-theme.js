@@ -91,7 +91,7 @@ export default class MidPointTheme {
                     var parent = $(this).parent();
 
                     var showPopover = function () {
-                        if (parent.find(inputId + ":hover").length != 0) {
+                        if (parent.find(inputId + ":hover").length !== 0) {
                             parent.find(inputId).each(function () {
                                 var itemH = $(this).innerHeight() + 9;
                                 parent.find(popover).fadeIn(300).css({top: itemH, left: 0}).css("display", "block");
@@ -108,12 +108,12 @@ export default class MidPointTheme {
                     };
 
                     $(this).on("mouseleave", function () {
-                        if (parent.find(popover + ":hover").length == 0) {
+                        if (parent.find(popover + ":hover").length === 0) {
                             deletePopover();
                         }
                     });
                     parent.find(popover).on("mouseleave", function () {
-                        if (parent.find(inputId + ":hover").length == 0) {
+                        if (parent.find(inputId + ":hover").length === 0) {
                             deletePopover();
                         }
                     });
@@ -151,32 +151,87 @@ export default class MidPointTheme {
                     wl['xsd:documentation'] = [];
                     var parent = $(this).closest('.modal-dialog-content');
                     var container = "body";
-                    if (parent.length != 0) {
+                    if (parent.length !== 0) {
                         container = '#' + parent.attr('id');
                     }
-                    $(this).tooltip({html: true, whiteList: wl, 'container': container});
+                    $(this).tooltip({html: true, whiteList: wl, container: container, trigger: 'manual'});
                     $(this).tooltip("show");
-                };
-            }
-        })(jQuery);
-
-        jQuery(function ($) {
-            $(document).on("mouseenter", "*[data-toggle='tooltip']", function (e) {
-                $(this).showTooltip();
-            });
-            $(document).on("focus", "*[data-toggle='tooltip']", function (e) {
-                $(this).showTooltip();
-            });
-        });
-
-        jQuery(function ($) {
-            $(document).on("click", ".compositedButton[data-toggle='tooltip']", function (e, t) {
-                var parent = $(this).closest('.modal-dialog-content');
-                if (parent.length != 0) {
-                    $(this).tooltip("hide");
                 }
+            };
+            $(function () {
+                var isHovered = false;
+                var isTooltipHovered = false;
+
+                function showTooltip($el) {
+                    $el.tooltip('show');
+                    setTimeout(function() {
+                        var $tooltip = $('.tooltip');
+
+                        $tooltip.off('mouseenter mouseleave')
+                        .on('mouseenter', function () {
+                            isTooltipHovered = true;
+                        }).on('mouseleave', function () {
+                            isTooltipHovered = false;
+                            checkHide($el);
+                        });
+                    }, 100);
+                }
+
+                function checkHide($el) {
+                    setTimeout(function() {
+                        if (!isHovered && !isTooltipHovered && !$el.is(':focus')) {
+                            $el.tooltip('hide');
+                        }
+                    }, 150);
+                }
+
+                $(document).on("mouseenter", "*[data-toggle='tooltip']", function () {
+                    var $el = $(this);
+                    if (!$el.data('bs.tooltip')) {
+                        $el.showTooltip();
+                    }
+
+                    isHovered = true;
+                    showTooltip($el);
+                });
+
+                $(document).on("mouseleave blur", "*[data-toggle='tooltip']", function () {
+                    var $el = $(this);
+                    isHovered = false;
+                    checkHide($el);
+                });
+
+                $(document).on("keydown", function (e) {
+                    if ((e.key === "Enter" || e.key === " ") && document.activeElement) {
+                        var $el = $(document.activeElement);
+                        if ($el.is("[data-toggle='tooltip']")) {
+                            e.preventDefault();
+                            if (!$el.data('bs.tooltip')) {
+                                $el.showTooltip();
+                            }
+                            showTooltip($el);
+                        }
+                    }
+
+                    if (e.key === "Escape") {
+                        $("[data-toggle='tooltip']").tooltip('hide');
+                    }
+                });
+
+                $(document).on("focusin", function (e) {
+                    if (!$(e.target).closest('.tooltip').length) {
+                        $("[data-toggle='tooltip']").tooltip('hide');
+                    }
+                });
+
+                $(document).on("click", ".compositedButton[data-toggle='tooltip']", function () {
+                    var parent = $(this).closest('.modal-dialog-content');
+                    if (parent.length !== 0) {
+                        $(this).tooltip("hide");
+                    }
+                });
             });
-        });
+        })(jQuery);
 
         jQuery(function ($) {
             $(document).on("click", ".showPasswordButton", function (e, t) {
