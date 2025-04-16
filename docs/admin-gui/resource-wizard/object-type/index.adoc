@@ -14,11 +14,19 @@ You can define one or more object types based on the resource characteristics (i
 resource represents).
 For example, a CSV resource typically contains a single object type (e.g., accounts) while an LDAP resource can contain multiple object types (e.g., accounts and groups).
 
-To create a new object type definition using the configuration wizard:
+To *create a new object type definition* using the configuration wizard:
 
 . In icon:database[] *Resources* > icon:database[] *All resources*, select your resource.
 . Go to icon:gears[] *Schema handling* > icon:exchange[] *Object types* in the selected resource.
 . Click icon:circle-plus[] btn:[Add object type].
+
+If you need to *edit an existing object type*:
+
+. In icon:database[] *Resources* > icon:database[] *All resources*, select your resource.
+. Go to icon:gears[] *Schema handling* > icon:exchange[] *Object types* in the selected resource.
+. Click the name of the object type you want to edit.
+. Select the icon:circle[] *Basic attributes* tile to get into the same wizard as when you set up a new object type. +
+    The other options are covered by different resource wizard tutorials.
 
 image::object-type-table.webp[link=object-type-table.webp,100%,title=List of object types]
 
@@ -54,34 +62,34 @@ Define the resource-specific configuration for this object type.
 
 * *Object class*: One of the object classes supported by the connector for the resource.
 	Resources like CSV support only one object class which is displayed as `AccountObjectClass`.
-* *Filter*: Define a classification rules using xref:/midpoint/reference/concepts/query/midpoint-query-language/[midPoint query language]
+* *Filter*: Define a filtering rules using xref:/midpoint/reference/concepts/query/midpoint-query-language/[midPoint query language]
 * *Classification condition*: Define a classification condition (midPoint expression, not query)
+
+You don't need to use filtering and classification at all.
+If unsure, don't use it.
 
 Click btn:[Next: MidPoint data] to continue to the next object type configuration screen.
 
-// TODO: Some link to classification condition would be useful but I can't find anything that seems suitable.
-// I don't think this is the right page: https://docs.evolveum.com/midpoint/reference/support-4.9/resources/resource-configuration/schema-handling/classification/
+// TODO: Some link to classification condition would be useful but I can't find anything that seems suitable. @dakle
+// I don't think this is the right page: https://docs.evolveum.com/midpoint/reference/support-4.9/resources/resource-configuration/schema-handling/classification/  @dakle
 
-.Filtering use case
-[TIP]
-====
+=== Filter resource objects
+
 Filtering is useful for limiting which resource data (e.g., accounts) are considered a part of this object type definition.
 
-To do that, use the *Filter* field and type a classification query.
+To do that, use the *Filter* field and type a filter query.
+Filtering uses xref:/midpoint/reference/concepts/query/midpoint-query-language/[midPoint query language].
 
-For example, to ignore all accounts with part-time employees, use `attributes/emptype != "PTE"` as the classification condition query.
-`emptype` is the employment type attribute here.
-====
-
-You don't need to use filtering and classification at all.
-If you're not sure, don't use it.
+For example, to ignore all accounts of part-time employees (_PTE_), use `attributes/emptype != "PTE"` as the filter query.
+`emptype` is the employment type attribute here as defined on the resource (e.g., a column in the source CSV file).
 
 .Learn more about schema handling, classification, and delineation:
 * xref:/midpoint/reference/resources/resource-configuration/schema-handling/[]
 * xref:/midpoint/reference/resources/resource-configuration/schema-handling/classification/[]
 * xref:/midpoint/reference/resources/resource-configuration/schema-handling/delineation/[]
 
-// TODO TODO we do not have better Delination example! I have created https://support.evolveum.com/wp/9404 to track this
+// TODO we do not have better Delination example! I have created https://support.evolveum.com/wp/9404 to track this @vix
+// TODO: we need to add a (link to?) shadow reclassification guide @dakle 2025-04-16
 
 image::step-1-object-type-resource-data.webp[link=step-1-object-type-resource-data.webp, 100%,title=Resource data]
 
