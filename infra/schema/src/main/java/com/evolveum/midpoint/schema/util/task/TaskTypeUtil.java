@@ -44,11 +44,11 @@ public class TaskTypeUtil {
                 return "";
             }
         } else if (scheduledAfter == NOW) { // TODO what about retryTime?
-            return runnable ? "pageTasks.now" : "pageTasks.nowForNotRunningTasks";
+            return runnable ? "TaskTypeUtil.now" : "TaskTypeUtil.nowForNotRunningTasks";
         } else if (scheduledAfter == RUNS_CONTINUALLY) {    // retryTime is probably null here
-            return "pageTasks.runsContinually";
+            return "TaskTypeUtil.runsContinually";
         } else if (scheduledAfter == ALREADY_PASSED && retryAfter == null) {
-            return runnable ? "pageTasks.alreadyPassed" : "pageTasks.alreadyPassedForNotRunningTasks";
+            return runnable ? "TaskTypeUtil.alreadyPassed" : "TaskTypeUtil.alreadyPassedForNotRunningTasks";
         }
 
         long displayTime;
@@ -64,9 +64,9 @@ public class TaskTypeUtil {
 
         String key;
         if (runnable) {
-            key = displayAsRetry ? "pageTasks.retryIn" : "pageTasks.in";
+            key = displayAsRetry ? "TaskTypeUtil.retryIn" : "TaskTypeUtil.in";
         } else {
-            key = "pageTasks.inForNotRunningTasks";
+            key = "TaskTypeUtil.inForNotRunningTasks";
         }
         localizationObject.add(
                 DurationFormatUtils.formatDurationWords(displayTime, true, true));
