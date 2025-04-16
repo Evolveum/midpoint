@@ -13,7 +13,6 @@ import java.util.stream.Collectors;
 import com.evolveum.midpoint.cases.api.util.QueryUtils;
 import com.evolveum.midpoint.certification.api.OutcomeUtils;
 import com.evolveum.midpoint.gui.api.component.progressbar.ProgressBar;
-import com.evolveum.midpoint.gui.api.model.LoadableModel;
 
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.util.LocalizationUtil;
@@ -684,7 +683,7 @@ public class CertMiscUtil {
     }
 
     public static List<IColumn<PrismContainerValueWrapper<AccessCertificationWorkItemType>, String>> createCertItemsColumns(
-            CompiledObjectCollectionView view, ColumnTypeConfigContext context) {
+            CompiledObjectCollectionView view, CertificationColumnTypeConfigContext context) {
         PageBase pageBase = context.getPageBase();
         List<IColumn<PrismContainerValueWrapper<AccessCertificationWorkItemType>, String>> columns = new ArrayList<>();
 
@@ -756,7 +755,7 @@ public class CertMiscUtil {
     }
 
     private static List<AbstractGuiColumn<?, ?>> addDefaultColumns(List<AbstractGuiColumn<?, ?>> guiColumns,
-            ColumnTypeConfigContext context) {
+            CertificationColumnTypeConfigContext context) {
         PageBase pageBase = context.getPageBase();
         pageBase
                 .findAllApplicableGuiColumns(AccessCertificationWorkItemType.class)
@@ -780,7 +779,7 @@ public class CertMiscUtil {
     }
 
     private static AbstractGuiColumn<?, ?> instantiateColumn(Class<? extends AbstractGuiColumn> columnClass, GuiObjectColumnType columnConfig,
-            ColumnTypeConfigContext context) {
+            CertificationColumnTypeConfigContext context) {
         if (columnClass == null) {
             return null;
         }

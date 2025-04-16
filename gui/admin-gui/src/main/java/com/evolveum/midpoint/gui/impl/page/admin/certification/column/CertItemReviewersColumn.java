@@ -8,7 +8,7 @@
 package com.evolveum.midpoint.gui.impl.page.admin.certification.column;
 
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
-import com.evolveum.midpoint.gui.impl.page.admin.certification.helpers.ColumnTypeConfigContext;
+import com.evolveum.midpoint.gui.impl.page.admin.certification.helpers.CertificationColumnTypeConfigContext;
 import com.evolveum.midpoint.schema.util.CertCampaignTypeUtil;
 import com.evolveum.midpoint.web.application.ColumnType;
 import com.evolveum.midpoint.web.application.PanelDisplay;
@@ -31,7 +31,7 @@ import static com.evolveum.midpoint.util.MiscUtil.or0;
         display = @PanelDisplay(label = "PageCertCampaign.table.reviewers", order = 60))
 public class CertItemReviewersColumn extends AbstractCertificationItemColumn {
 
-    public CertItemReviewersColumn(GuiObjectColumnType columnConfig, ColumnTypeConfigContext context) {
+    public CertItemReviewersColumn(GuiObjectColumnType columnConfig, CertificationColumnTypeConfigContext context) {
         super(columnConfig, context);
     }
 

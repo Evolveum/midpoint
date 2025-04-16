@@ -14,8 +14,6 @@ import java.util.concurrent.atomic.AtomicReference;
 import com.evolveum.midpoint.gui.impl.page.admin.AbstractPageObjectDetails;
 import com.evolveum.midpoint.gui.impl.page.admin.certification.column.AbstractGuiColumn;
 
-import com.evolveum.midpoint.gui.impl.page.admin.certification.helpers.ColumnTypeConfigContext;
-
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -1450,6 +1448,13 @@ public abstract class ContainerableListPanel<C extends Serializable, PO extends 
 
         target.add(getTableComponent());
         target.add(getFeedbackPanel());
+    }
+
+    public void resetTableColumns() {
+        BoxedTablePanel<PO> table = getTable();
+        table.getDataTable().getColumns().clear();
+        //noinspection unchecked
+        table.getDataTable().getColumns().addAll(createColumns());
     }
 
     public void resetTable(AjaxRequestTarget target) {

@@ -64,7 +64,19 @@ public class ContainerTreeDelta<C extends Containerable>
         return new ContainerTreeDeltaValue<>();
     }
 
+    public ItemTreeDelta findItemDelta(ItemPath path) {
+        return findItemDelta(path, ItemTreeDelta.class);
+    }
+
+    public <D extends ItemTreeDelta> D findItemDelta(ItemPath path, Class<D> deltaClass) {
+        return findItemDelta(path, deltaClass, false);
+    }
+
     public <D extends ItemTreeDelta> D findOrCreateItemDelta(ItemPath path, Class<D> deltaClass) {
+        return findItemDelta(path, deltaClass, true);
+    }
+
+    public <D extends ItemTreeDelta> D findItemDelta(ItemPath path, Class<D> deltaClass, boolean createIfNotExists) {
         if (ItemPath.isEmpty(path)) {
             throw new IllegalArgumentException("Empty path specified");
         }
@@ -72,6 +84,10 @@ public class ContainerTreeDelta<C extends Containerable>
         Long id = path.firstToIdOrNull();
         ContainerTreeDeltaValue<C> val = findValue(id);
         if (val == null) {
+            if (!createIfNotExists) {
+                return null;
+            }
+
             val = createNewValue();
             val.setId(id);
 
@@ -79,7 +95,7 @@ public class ContainerTreeDelta<C extends Containerable>
         }
 
         ItemPath rest = path.startsWithId() ? path.rest() : path;
-        return val.findOrCreateItemDelta(rest, deltaClass);
+        return val.findItemDelta(rest, deltaClass, createIfNotExists);
     }
 
     public ContainerTreeDeltaValue<C> findValue(Long id) {

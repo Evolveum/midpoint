@@ -25,7 +25,8 @@ import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.SystemException;
 
-public abstract class ItemTreeDeltaValue<PV extends PrismValue, ITD extends ItemTreeDelta> implements DebugDumpable, Visitable {
+public abstract class ItemTreeDeltaValue<PV extends PrismValue, ITD extends ItemTreeDelta>
+        implements DebugDumpable, Visitable {
 
     private ITD parent;
 

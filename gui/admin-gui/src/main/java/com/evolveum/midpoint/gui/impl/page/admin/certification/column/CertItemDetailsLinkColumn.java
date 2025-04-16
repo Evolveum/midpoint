@@ -13,7 +13,7 @@ import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.impl.component.action.AbstractGuiAction;
 import com.evolveum.midpoint.gui.impl.page.admin.certification.component.CertResponseDetailsPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.certification.helpers.CertMiscUtil;
-import com.evolveum.midpoint.gui.impl.page.admin.certification.helpers.ColumnTypeConfigContext;
+import com.evolveum.midpoint.gui.impl.page.admin.certification.helpers.CertificationColumnTypeConfigContext;
 import com.evolveum.midpoint.gui.impl.prism.wrapper.PrismContainerValueWrapperImpl;
 import com.evolveum.midpoint.schema.util.CertCampaignTypeUtil;
 import com.evolveum.midpoint.web.application.ColumnType;
@@ -39,7 +39,7 @@ import static com.evolveum.midpoint.web.component.data.column.ColumnUtils.create
         display = @PanelDisplay(label = "", order = 120))
 public class CertItemDetailsLinkColumn extends AbstractCertificationItemColumn {
 
-    public CertItemDetailsLinkColumn(GuiObjectColumnType columnConfig, ColumnTypeConfigContext context) {
+    public CertItemDetailsLinkColumn(GuiObjectColumnType columnConfig, CertificationColumnTypeConfigContext context) {
         super(columnConfig, context);
     }
 

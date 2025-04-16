@@ -14,7 +14,7 @@ import com.evolveum.midpoint.gui.impl.component.data.column.CompositedIconWithLa
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIcon;
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
 import com.evolveum.midpoint.gui.impl.component.icon.IconCssStyle;
-import com.evolveum.midpoint.gui.impl.page.admin.certification.helpers.ColumnTypeConfigContext;
+import com.evolveum.midpoint.gui.impl.page.admin.certification.helpers.CertificationColumnTypeConfigContext;
 import com.evolveum.midpoint.gui.impl.page.admin.certification.helpers.CertificationItemResponseHelper;
 import com.evolveum.midpoint.schema.util.cases.WorkItemTypeUtil;
 import com.evolveum.midpoint.web.application.ColumnType;
@@ -32,7 +32,7 @@ import java.io.Serial;
         display = @PanelDisplay(label = "PageCertCampaign.statistics.response", order = 70))
 public class CertItemResponseColumn extends AbstractCertificationItemColumn {
 
-    public CertItemResponseColumn(GuiObjectColumnType columnConfig, ColumnTypeConfigContext context) {
+    public CertItemResponseColumn(GuiObjectColumnType columnConfig, CertificationColumnTypeConfigContext context) {
         super(columnConfig, context);
     }
 

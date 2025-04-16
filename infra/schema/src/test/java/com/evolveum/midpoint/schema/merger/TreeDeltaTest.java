@@ -13,6 +13,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.UUID;
 
+import org.assertj.core.api.Assertions;
 import org.testng.AssertJUnit;
 import org.testng.annotations.Test;
 
@@ -24,11 +25,14 @@ import com.evolveum.midpoint.prism.equivalence.EquivalenceStrategy;
 import com.evolveum.midpoint.prism.equivalence.ParameterizedEquivalenceStrategy;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.AbstractSchemaTest;
+import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.delta.Conflict;
 import com.evolveum.midpoint.schema.delta.Direction;
+import com.evolveum.midpoint.schema.delta.ObjectTreeDelta;
 import com.evolveum.midpoint.schema.delta.ThreeWayMergeOperation;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 public class TreeDeltaTest extends AbstractSchemaTest {
@@ -301,5 +305,18 @@ public class TreeDeltaTest extends AbstractSchemaTest {
 
     private record TestData<O extends ObjectType>(
             File baseFile, File leftFile, File rightFile, PrismObject<O> base, PrismObject<O> left, PrismObject<O> right) {
+    }
+
+    @Test
+    public void testTreeDeltaWithMetadata() throws Exception {
+        ObjectDeltaType deltaType = PrismContext.get()
+                .parserFor(new File(TEST_DIRECTORY, "delta-metadata.xml"))
+                .type(ObjectDeltaType.COMPLEX_TYPE)
+                .parseRealValue();
+        ObjectDelta<? extends ObjectType> delta = DeltaConvertor.createObjectDelta(deltaType);
+        ObjectTreeDelta<? extends ObjectType> treeDelta = ObjectTreeDelta.fromItemDelta(delta);
+
+        Assertions.assertThat(treeDelta).isNotNull();
+        Assertions.assertThat(treeDelta.getSingleValue().getSize()).isEqualTo(3);
     }
 }

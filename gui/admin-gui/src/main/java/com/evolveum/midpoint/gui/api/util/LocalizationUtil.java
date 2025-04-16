@@ -159,11 +159,7 @@ public class LocalizationUtil {
     }
 
     public static <T extends Enum> String createKeyForEnum(T value) {
-        if (value == null) {
-            return null;
-        }
-
-        return value.getClass().getSimpleName() + "." + value.name();
+        return com.evolveum.midpoint.schema.util.LocalizationUtil.createKeyForEnum(value);
     }
 
     public static String translateLifecycleState(String value, PageAdminLTE parentPage) {

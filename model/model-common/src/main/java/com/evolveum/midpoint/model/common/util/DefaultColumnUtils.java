@@ -62,6 +62,7 @@ public class DefaultColumnUtils {
                         new ColumnWrapper(AuditEventRecordType.F_TARGET_OWNER_REF),
                         new ColumnWrapper(AuditEventRecordType.F_CHANNEL, true),
                         new ColumnWrapper(AuditEventRecordType.F_OUTCOME, true)))
+//                        new ColumnWrapper(AuditEventRecordType.F_CHANGED_ITEM, false)))
                 .put(ResourceType.class, Arrays.asList(
                         new ColumnWrapper(ResourceType.F_NAME),
                         new ColumnWrapper(ItemPath.create(ResourceType.F_CONNECTOR_REF, ConnectorType.F_CONNECTOR_TYPE), "ConnectorType.connectorType"),

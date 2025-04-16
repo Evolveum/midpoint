@@ -1,0 +1,28 @@
+<!--
+  ~ Copyright (c) 2010-2020 Evolveum
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<!DOCTYPE html>
+<html xmlns:wicket="http://wicket.apache.org">
+<wicket:panel>
+    <div class="d-flex gap-2 align-items-center">
+        <wicket:enclosure child="oldValues">
+            <div class="d-flex flex-column gap-2">
+                <div class="changed-item-panel-value" wicket:id="oldValues">
+                    <span wicket:id="oldValue"/>
+                </div>
+            </div>
+            <i class="fa fa-arrow-right text-secondary"/>
+        </wicket:enclosure>
+        <div class="d-flex flex-column gap-2">
+            <div class="d-flex gap-1 align-items-center changed-item-panel-value" wicket:id="newValues">
+                <i wicket:id="modificationType"/>
+                <span wicket:id="newValue"/>
+            </div>
+        </div>
+    </div>
+</wicket:panel>
+</html>
