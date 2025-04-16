@@ -112,14 +112,14 @@
                         </icon>
                     </display>
                     <displayOrder>92</displayOrder>
-                    <panelType>allAssignments</panelType>
+                    <panelType>policyAssignments</panelType>
                     <listView>
                         <identifier>classifications-view</identifier>
                         <type>c:AssignmentType</type>
                         <dataProvider xsi:type="c:RepositoryAssignmentDataProviderType"/>
                         <collection>
                             <filter>
-                                <q:text>targetRef/@/archetypeRef matches ( oid = "00000000-0000-0000-0000-000000000330" )</q:text>
+                                <q:text>targetRef/@ matches (. type PolicyType and archetypeRef matches ( oid = "00000000-0000-0000-0000-000000000330" ))</q:text>
                             </filter>
                             <!--                            <collectionRef oid="00000000-0000-0000-0000-000000000330" type="c:ArchetypeType">
                                                         </collectionRef> -->
