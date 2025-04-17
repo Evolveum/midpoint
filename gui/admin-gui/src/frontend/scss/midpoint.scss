@@ -1265,7 +1265,7 @@ span.tree-content > table tr td:first-child {
 
 .show-empty-button, .show-empty-button:hover .show-empty-button:focus{ //class for show-empty fields button under properties
 	color: $text-label-color;
-	font-size: 12px;
+	font-size: 14px;
 	padding-bottom: 5px;
 }
 /*.show-empty-button {
@@ -1393,6 +1393,13 @@ td .prism-property-value {
 .card.card-outline-tabs {
   & > .card-header > .card-tools > a.btn.btn-tool {
     border-top: 0 !important;
+  }
+}
+
+.btn.btn-tool {
+  color: #8e96a0;
+  &:hover {
+    color: inherit;
   }
 }
 
