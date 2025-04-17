@@ -149,7 +149,7 @@ public class ConfirmationPanel extends BasePanel<String> implements Popupable {
     }
 
     protected String getYesButtonCssClass() {
-        return "";
+        return "btn btn-primary";
     }
 
     protected String getNoButtonCssClass() {
