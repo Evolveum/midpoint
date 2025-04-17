@@ -112,7 +112,7 @@
                         </icon>
                     </display>
                     <displayOrder>92</displayOrder>
-                    <panelType>allAssignments</panelType>
+                    <panelType>policyAssignments</panelType>
                     <listView>
                         <identifier>classifications-view</identifier>
                         <type>c:AssignmentType</type>
