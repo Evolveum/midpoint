@@ -12,6 +12,7 @@ import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import com.evolveum.midpoint.model.common.archetypes.ArchetypeManager;
 import com.evolveum.midpoint.model.impl.ModelObjectResolver;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -61,6 +62,7 @@ public class ExclusionRequirementConstraintEvaluator
     @Autowired private RelationRegistry relationRegistry;
     @Autowired private ExpressionFactory expressionFactory;
     @Autowired private ModelObjectResolver objectResolver;
+    @Autowired private ArchetypeManager archetypeManager;
 
     @Override
     public @NotNull <O extends ObjectType> Collection<EvaluatedExclusionRequirementTrigger> evaluate(
@@ -104,7 +106,7 @@ public class ExclusionRequirementConstraintEvaluator
             List<OrderConstraintsType> targetOrderConstraints = defaultIfEmpty(constraint.getValue().getTargetOrderConstraint());
             List<EvaluatedAssignmentTargetImpl> nonNegativeTargetsA = ctx.evaluatedAssignment.getNonNegativeTargets();
             ConstraintReferenceMatcher<?> refMatcher = new ConstraintReferenceMatcher<>(
-                    ctx, constraint.getValue().getTargetRef(), expressionFactory, result, LOGGER);
+                    ctx, constraint.getValue().getTargetRef(), constraint.getValue().getTargetArchetypeRef(), expressionFactory, archetypeManager, result, LOGGER);
 
             boolean requirementMet = false;
             List<EvaluatedExclusionRequirementTrigger> triggers = new ArrayList<>();
@@ -120,7 +122,7 @@ public class ExclusionRequirementConstraintEvaluator
                                 + " Path={}, constraints={}", targetB, targetB.getAssignmentPath(), targetOrderConstraints);
                         continue;
                     }
-                    if (!refMatcher.refMatchesTarget(targetB.getTarget(), "exclusion constraint")) {
+                    if (!refMatcher.refMatchesTarget(targetB.getTarget(), "exclusion/requirement constraint")) {
                         LOGGER.trace("Target {} OID does not match exclusion/requirement filter", targetB);
                         continue;
                     }
@@ -291,12 +293,34 @@ public class ExclusionRequirementConstraintEvaluator
         LocalizableMessage infoA = createObjectInfo(pathA, assignmentA.getTarget(), false);
         ObjectType objectA = getConflictingObject(pathA, assignmentA.getTarget());
         ObjectReferenceType requiredObjectRef = constraintElement.getValue().getTargetRef();
+        ObjectReferenceType requiredArchetypeRef = constraintElement.getValue().getTargetArchetypeRef();
         Object infoB;
-        try {
-            @NotNull ObjectType requiredObject = objectResolver.resolve(requiredObjectRef, ObjectType.class, null, "requirement policy rule", ctx.getTask(), result);
-            infoB = createObjectInfo(null, requiredObject.asPrismObject(), false);
-        } catch (ObjectNotFoundException e) {
-            infoB = requiredObjectRef.getOid();
+        if (requiredObjectRef == null) {
+            if (requiredArchetypeRef == null) {
+                infoB = "unspecified";
+            } else {
+                try {
+                    @NotNull ArchetypeType requiredArchetype = objectResolver.resolve(requiredArchetypeRef, ArchetypeType.class, null, "requirement policy rule", ctx.getTask(), result);
+                    infoB = createObjectInfo(null, requiredArchetype.asPrismObject(), false);
+                } catch (ObjectNotFoundException e) {
+                    infoB = requiredArchetypeRef.getOid();
+                }
+            }
+        } else {
+            if (requiredObjectRef.getOid() == null) {
+                if (requiredObjectRef.getFilter() == null) {
+                    infoB = "unspecified";
+                } else {
+                    infoB = "specified by filter";
+                }
+            } else {
+                try {
+                    @NotNull ObjectType requiredObject = objectResolver.resolve(requiredObjectRef, ObjectType.class, null, "requirement policy rule", ctx.getTask(), result);
+                    infoB = createObjectInfo(null, requiredObject.asPrismObject(), false);
+                } catch (ObjectNotFoundException e) {
+                    infoB = requiredObjectRef.getOid();
+                }
+            }
         }
 
         stateCheck(pathA != null,
@@ -309,7 +333,7 @@ public class ExclusionRequirementConstraintEvaluator
         return new EvaluatedRequirementTrigger(
                 constraintElement.getValue(), message, shortMessage,
                 assignmentA,
-                objectA, requiredObjectRef, pathA, false);
+                objectA, requiredObjectRef, requiredArchetypeRef, pathA, false);
     }
 
     @NotNull

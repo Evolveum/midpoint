@@ -154,6 +154,22 @@ public class AssignmentsAsserter<AH extends AssignmentHolderType, AHA extends As
         return this;
     }
 
+    public AssignmentsAsserter<AH, AHA, RA> assertPolicy(String policyOid) throws ObjectNotFoundException, SchemaException {
+        by()
+                .targetOid(policyOid)
+                .targetType(PolicyType.COMPLEX_TYPE)
+                .find();
+        return this;
+    }
+
+
+    public AssignmentsAsserter<AH, AHA, RA> assertNoPolicy() throws ObjectNotFoundException, SchemaException {
+        by()
+                .targetType(PolicyType.COMPLEX_TYPE)
+                .assertNone();
+        return this;
+    }
+
     public AssignmentsAsserter<AH, AHA, RA> assertArchetype(String archetypeOid) throws ObjectNotFoundException, SchemaException {
         by()
                 .targetOid(archetypeOid)

@@ -304,12 +304,18 @@ public class ObjectTypeUtil {
     }
 
     public static ObjectReferenceType createObjectRef(PrismReferenceValue prv) {
+        if (prv == null) {
+            return null;
+        }
         ObjectReferenceType ort = new ObjectReferenceType();
         ort.setupReferenceValue(prv);
         return ort;
     }
 
     public static ObjectReferenceType createObjectRef(Referencable value) {
+        if (value == null) {
+            return null;
+        }
         ObjectReferenceType ort = new ObjectReferenceType();
         ort.setupReferenceValue(value.asReferenceValue());
         return ort;

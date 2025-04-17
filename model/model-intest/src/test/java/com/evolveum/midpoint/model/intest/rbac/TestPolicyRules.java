@@ -34,6 +34,13 @@ public class TestPolicyRules extends AbstractInitializedModelIntegrationTest {
 
     protected static final File TEST_DIR = new File("src/test/resources/rbac/policy-rules");
 
+    // Archetype with policy rule (requirement)
+    static final TestObject<PolicyType> ARCHETYPE_APPLICATION = TestObject.file(
+            TEST_DIR, "029-archetype-application.xml", "00000000-0000-0000-0000-000000000329");
+
+    static final TestObject<PolicyType> MARK_UNCLASSIFIED = TestObject.file(
+            TEST_DIR, "250-unclassified.xml", "2bb936a6-91b4-4439-82ac-1b3e89c2a26a");
+
     static final TestObject<PolicyType> POLICY_SKIPPER_LICENSE = TestObject.file(
             TEST_DIR, "policy-skipper-license.xml", "25f26c46-427f-11ef-9666-f352a031a80e");
 
@@ -59,6 +66,15 @@ public class TestPolicyRules extends AbstractInitializedModelIntegrationTest {
     static final TestObject<PolicyType> POLICY_INFORMATION_SECURITY_RESPONSIBILITY = TestObject.file(
             TEST_DIR, "333-classification-information-security-responsibility.xml", "00000000-0000-0000-0000-000000000333");
 
+    static final TestObject<PolicyType> APPLICATION_PROJECT_MANAGEMENT = TestObject.file(
+            TEST_DIR, "app-project-management.xml", "166e7f96-9432-45e3-8038-1022ba19da21");
+
+    static final TestObject<PolicyType> APPLICATION_PORTFOLIO_MANAGEMENT = TestObject.file(
+            TEST_DIR, "app-portfolio-management.xml", "c71554c8-1750-4743-b10c-bf8cd4ce64c8");
+
+    static final TestObject<PolicyType> CLASSIFICATION_RED = TestObject.file(
+            TEST_DIR, "360-classification-tlp-red.xml", "d5ab4f6e-e911-4f1b-9cfd-fe14e6137a4e");
+
 
     @Override
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
@@ -69,7 +85,10 @@ public class TestPolicyRules extends AbstractInitializedModelIntegrationTest {
         if (isNativeRepository()) {
             initTestObjects(
                     initTask, initResult,
+                    MARK_UNCLASSIFIED,
                     CommonInitialObjects.ARCHETYPE_CLASSIFICATION,
+                    CLASSIFICATION_RED,
+                    ARCHETYPE_APPLICATION, // This archetype has requirement policy rule
                     CommonInitialObjects.ARCHETYPE_BUSINESS_ROLE,
 //                    CommonInitialObjects.POLICY_INFORMATION_SECURITY_RESPONSIBILITY,
                     POLICY_INFORMATION_SECURITY_RESPONSIBILITY,
@@ -482,6 +501,157 @@ public class TestPolicyRules extends AbstractInitializedModelIntegrationTest {
                 SystemObjectsType.MARK_UNDERASSIGNED.value()
         );
         assertUserAfter(USER_JACK_OID).assignments().assertNoRole(ROLE_BRIG_GUARD.oid);
+    }
+
+    /**
+     * Add application Project Management.
+     * It is unclassified (has no classification assigned).
+     * Therefore, it should be marked as unclassified.
+     * #10647
+     */
+    @Test
+    public void test240ApplicationProjectManagementUnclassified() throws Exception {
+        skipIfNotNativeRepository();
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        when();
+        addObject(APPLICATION_PROJECT_MANAGEMENT.get());
+
+        then();
+        assertSuccess(result);
+
+        assertService(APPLICATION_PROJECT_MANAGEMENT.oid, "Application after")
+                .assertArchetypeRef(ARCHETYPE_APPLICATION.oid)
+                .assignments()
+                    .assertNoPolicy()
+                    .end()
+                .assertEffectiveMarks(MARK_UNCLASSIFIED.oid);
+    }
+
+    /**
+     * Make sure recompute does not ruin anything.
+     * #10647
+     */
+    @Test
+    public void test241ApplicationProjectManagementUnclassifiedRecompute() throws Exception {
+        skipIfNotNativeRepository();
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        when();
+        recomputeFocus(ServiceType.class, APPLICATION_PROJECT_MANAGEMENT.oid, task, result);
+
+        then();
+        assertSuccess(result);
+
+        assertService(APPLICATION_PROJECT_MANAGEMENT.oid, "Application after")
+                .assertArchetypeRef(ARCHETYPE_APPLICATION.oid)
+                .assignments()
+                    .assertNoPolicy()
+                    .end()
+                .assertEffectiveMarks(MARK_UNCLASSIFIED.oid);
+    }
+
+    /**
+     * Classify the application, mark should be gone.
+     * #10647
+     */
+    @Test
+    public void test243ApplicationProjectManagementClassify() throws Exception {
+        skipIfNotNativeRepository();
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        when();
+        assignPolicy(ServiceType.class, APPLICATION_PROJECT_MANAGEMENT.oid, CLASSIFICATION_RED.oid, task, result);
+        recomputeFocus(ServiceType.class, APPLICATION_PROJECT_MANAGEMENT.oid, task, result);
+
+        then();
+        assertSuccess(result);
+
+        assertService(APPLICATION_PROJECT_MANAGEMENT.oid, "Application after")
+                .assertArchetypeRef(ARCHETYPE_APPLICATION.oid)
+                .assignments()
+                    .assertPolicy(CLASSIFICATION_RED.oid)
+                    .end()
+                .assertNoEffectiveMark(MARK_UNCLASSIFIED.oid);
+    }
+
+    /**
+     * Add application Portfolio Management.
+     * It is properly classified (has classification assigned).
+     * Therefore, it should NOT be marked as unclassified.
+     * #10647
+     */
+    @Test
+    public void test250ApplicationPortfolioManagementClassified() throws Exception {
+        skipIfNotNativeRepository();
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        when();
+        addObject(APPLICATION_PORTFOLIO_MANAGEMENT.get());
+
+        then();
+        assertSuccess(result);
+
+        assertService(APPLICATION_PORTFOLIO_MANAGEMENT.oid, "Application after")
+                .display()
+                .assertArchetypeRef(ARCHETYPE_APPLICATION.oid)
+                .assignments()
+                    .assertPolicy(CLASSIFICATION_RED.oid)
+                    .end()
+                .assertNoEffectiveMark(MARK_UNCLASSIFIED.oid);
+    }
+
+    /**
+     * Make sure recompute does not ruin anything.
+     * #10647
+     */
+    @Test
+    public void test252ApplicationPortfolioManagementClassifiedRecompute() throws Exception {
+        skipIfNotNativeRepository();
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        when();
+        recomputeFocus(ServiceType.class, APPLICATION_PORTFOLIO_MANAGEMENT.oid, task, result);
+
+        then();
+        assertSuccess(result);
+
+        assertService(APPLICATION_PORTFOLIO_MANAGEMENT.oid, "Application after")
+                .assertArchetypeRef(ARCHETYPE_APPLICATION.oid)
+                .assignments()
+                    .assertPolicy(CLASSIFICATION_RED.oid)
+                    .end()
+                .assertNoEffectiveMark(MARK_UNCLASSIFIED.oid);
+    }
+
+    /**
+     * Remove classification from Portfolio Management app, check that mark is set.
+     * #10647
+     */
+    @Test
+    public void test254ApplicationPortfolioManagementUnclassify() throws Exception {
+        skipIfNotNativeRepository();
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        when();
+        unassignPolicy(ServiceType.class, APPLICATION_PORTFOLIO_MANAGEMENT.oid, CLASSIFICATION_RED.oid, task, result);
+
+        then();
+        assertSuccess(result);
+
+        assertService(APPLICATION_PORTFOLIO_MANAGEMENT.oid, "Application after")
+                .display()
+                .assertArchetypeRef(ARCHETYPE_APPLICATION.oid)
+                .assignments()
+                    .assertNoPolicy()
+                    .end()
+                .assertEffectiveMarks(MARK_UNCLASSIFIED.oid);
     }
 
 }

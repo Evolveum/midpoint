@@ -109,7 +109,7 @@
                             <xsd:documentation>
                                 Requirement constraint.
                                 Constraint that mandates that this object to be assigned together with other object.
-                                It can be used to require presence of clearances, job roles, require assignment is specific organization units, etc.
+                                It can be used to require presence of clearances, job roles, require assignment of specific organization units, etc.
                             </xsd:documentation>
                             <xsd:appinfo>
                                 <a:since>4.9</a:since>
@@ -642,8 +642,10 @@
                     <xsd:element name="targetRef" type="tns:ObjectReferenceType" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>
-                                Target of exclusion. The object defining this "exclusion" and
+                                Target of exclusion/requirement. The object defining this "exclusion" and
                                 the object defined as target cannot be assigned at the same time.
+                                the object defined as target cannot be assigned at the same time.
+                                In case of "requirement", the required object must be assigned.
                                 Filter in the reference may be used to dynamically exclude broader
                                 range of roles - assuming that runtime resolution is used.
 
@@ -690,6 +692,24 @@
                             <xsd:appinfo>
                                 <a:since>3.7.1</a:since>
                                 <a:displayName>ExclusionPolicyConstraintType.targetOrderConstraint</a:displayName>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="targetArchetypeRef" type="tns:ObjectReferenceType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Excluding/requiring target objects that have this archetype.
+                                The object defining this "exclusion" and
+                                the object defined as target cannot be assigned at the same time.
+                                In case of "requirement", the required object must be assigned.
+
+                                Filter in the reference is NOT supported.
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:since>4.10</a:since>
+                                <a:objectReferenceTargetType>tns:ArchetypeType</a:objectReferenceTargetType>
+                                <a:displayName>ExclusionPolicyConstraintType.targetArchetypeRef</a:displayName>
+                                <a:help>ExclusionPolicyConstraintType.targetArchetypeRef.help</a:help>
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
@@ -959,7 +979,7 @@
         <xsd:complexContent>
             <xsd:extension base="tns:AbstractPolicyConstraintType">
                 <xsd:sequence>
-                    <xsd:element name="targetRef" type="c:ObjectReferenceType">
+                    <xsd:element name="targetRef" type="c:ObjectReferenceType" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>
                                 Assignment target to be matched. Might be dynamic (with a resolution time of "run"), just
@@ -1009,6 +1029,20 @@
                             </xsd:documentation>
                             <xsd:appinfo>
                                 <a:displayName>HasAssignmentPolicyConstraintType.relation</a:displayName>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="targetArchetypeRef" type="tns:ObjectReferenceType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Requiring target objects that have this archetype.
+                                Filter in the reference is NOT supported.
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:since>4.10</a:since>
+                                <a:objectReferenceTargetType>tns:ArchetypeType</a:objectReferenceTargetType>
+                                <a:displayName>HasAssignmentPolicyConstraintType.targetArchetypeRef</a:displayName>
+                                <a:help>HasAssignmentPolicyConstraintType.targetArchetypeRef.help</a:help>
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
