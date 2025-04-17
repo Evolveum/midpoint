@@ -135,8 +135,13 @@ Views are defined in xref:/midpoint/reference/admin-gui/admin-gui-config/[admin 
 ----
 
 Once the view is defined it will be used by the user interface in all the appropriate places.
-For midPoint 4.0 this pretty much means that the view will appear in the menu.
-But more functionality will be added in future midPoint releases.
+One of the view representation in GUI is a left-side menu item which midPoint creates for each configured collection view.
+This menu item will lead then a user to the page with objects collection defined by view.
+Admin GUI configuration merging mechanism allows to hide the defined object collection view for different users.
+E.g. in order to hide a view in GUI, the corresponding _visibility_ setting should be set to _hidden_ value.
+Be aware that the view visibility also influences the _Object collection_ search item options on the default objects list page (e.g. on All users, All roles page etc.).
+E.g. if Person view is hidden, then _Object collection_ search item will not contain _Person_ option for filtering.
+
 
 Views drive user experience with details such as labels, icons, colors, columns and so on.
 Views specify presentation details, while collections define the "policies".

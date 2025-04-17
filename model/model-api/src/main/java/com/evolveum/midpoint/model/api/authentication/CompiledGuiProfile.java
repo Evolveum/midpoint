@@ -188,6 +188,29 @@ public class CompiledGuiProfile implements DebugDumpable, Serializable {
     }
 
     /**
+     * Find all views that are applicable for a particular object type and are configured to be visible for a user.
+     */
+    @NotNull
+    public List<CompiledObjectCollectionView> findAllApplicableVisibleObjectCollectionViews(@NotNull QName objectType) {
+        List<CompiledObjectCollectionView> applicableViews = findAllApplicableObjectCollectionViews(objectType);
+        return applicableViews
+                .stream()
+                .filter(view -> {
+                    boolean isVisible = UserInterfaceElementVisibilityType.HIDDEN != view.getVisibility()
+                            && UserInterfaceElementVisibilityType.VACANT != view.getVisibility();
+
+                    //visibility of the collection view in GUI (e.g. in the LeftMenuPanel) is defined
+                    //by visibility configuration itself + taking into account applicableForOperation setting (in case
+                    //applicableForOperation is defined, we want to show only applicable for MODIFY operation)
+                    OperationTypeType operationTypeType = view.getApplicableForOperation();
+                    boolean applicableForModifyOperationOrNull = operationTypeType == null || operationTypeType == OperationTypeType.MODIFY;
+
+                    return isVisible && applicableForModifyOperationOrNull;
+                })
+                .toList();
+    }
+
+    /**
      * Find all archetype views that are applicable for a particular object type. Returns views for
      * archetypes that are applicable for that type.
      */

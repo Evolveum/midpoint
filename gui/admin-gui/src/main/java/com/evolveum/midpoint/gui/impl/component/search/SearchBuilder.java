@@ -306,7 +306,7 @@ public class SearchBuilder<C extends Serializable> {
         }
 
         List<CompiledObjectCollectionView> views = modelServiceLocator.getCompiledGuiProfile()
-                .findAllApplicableObjectCollectionViews(WebComponentUtil.anyClassToQName(PrismContext.get(), type))
+                .findAllApplicableVisibleObjectCollectionViews(WebComponentUtil.anyClassToQName(PrismContext.get(), type))
                 .stream()
                 .filter(v -> v.getFilter() != null)     //todo should we check also collectionRef?
                 .collect(Collectors.toList());
