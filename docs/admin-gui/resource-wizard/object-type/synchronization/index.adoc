@@ -2,50 +2,63 @@
 :page-nav-title: Synchronization
 :page-toc: top
 :page-since: "4.9"
+:experimental:
 
-This part of object type wizard allows you to define xref:/midpoint/reference/synchronization/situations/[synchronization situations and reactions].
-These situations represent state of the resource object (e.g. account) in relation to midPoint and appropriate action that should be executed by midPoint.
+You can use the synchronization rules wizard to define xref:/midpoint/reference/synchronization/situations/[reactions to synchronization situations].
+These situation–action pairs represent the state of resource objects (e.g., accounts) in relation to midPoint and appropriate actions to be executed by midPoint in the particular situation.
 
-For the situations you need to configure:
+image::./sync-rules-setup-accounts-configure-menu.webp[Configuration menu in resource accounts list as an entry point to the synchronization rules wizard]
 
-* *Name* of the situation/reaction configuration. This is technically not mandatory, but helps a lot during troubleshooting and when using resource template inheritance.
-* *Situation* allows you to select an appropriate situation:
-** *Linked* refers to situation when the resource object is linked to its midPoint owner
-** *Unlinked* refers to situation when a new resource object has been found and its owner can be determined, but there is no link between the midPoint owner and resource object
-** *Deleted* refers to situation when the resource object was references by midPoint owner but the resource object has been deleted
-** *Unmatched* refers to situation when a new resource object has been found but midPoint cannot determine any owner for the account
-** *Disputed* refers to situation when the midPoint has determined more potential midPoint owners for a single resource account or if the correlation of the resource object is not definitive (not fully trusted)
-* *Action* allows you to select midPoint behavior if the resource object is in the defined Situation
-** *Add focus* allows to create a new object in midPoint based on the resource data
-** *Synchronize* allows to synchronize data between midPoint object and resource data based on the <<Mappings,mappings>>. This action is typical for `linked` situation.
-** *Link* allows to link previously not linked resource object to midPoint object
-** *Delete resource object* allows to delete resource object
-** *Inactivate resource object* allows to inactivate (disable) resource object
-** *Inactivate focus* allows to inactivate (disable) midPoint object
-** *Delete focus* allows to delete midPoint object
-** *Create correlation case* allows to resolve the situation interactively (useful for `Disputed` situation)
-* *Lifecycle state* allows you to define the lifecycle state of the situation/reaction configuration. This can be used during xref:/midpoint/reference/admin-gui/simulations/[Simulations], e.g. specifying lifecycle state as `Proposed` will be used only to simulate the synchronization/reaction configuration, `Draft` disables the synchronization/reaction configuration etc.
+== Set up synchronization rules
 
-TIP: The logic of situation and action is up to you. E.g. it is perfectly OK to have reaction `Add focus` for `Unmatched` situation for an authoritative source system such as HR. For target system, however, probably more appropriate reaction for `Unmatched` situation would be `Inactivate resource object`.
+. In icon:database[] Resources > icon:database[] All Resources, select your resource.
+. In icon:male[] Accounts, click icon:cog[] Configure > icon:arrows-rotate[] Synchronization.
+. Click icon:circle-plus[] btn:[Add reaction] and set up the name, situation, action, and lifecycle state for each situation–action pair.
+. Click icon:check[] btn:[Save synchronization settings] when done.
 
-TIP: Please refer to xref:/midpoint/reference/schema/focus-and-projections/[Focus and Projections] for explanation of the term _Focus_. In the most basic scenarios when synchronizing users and their accounts, _focus_ corresponds to User object in midPoint.
+You can delete a reaction using the icon:trash-alt[] btn:[Delete] button.
 
-image::step-3-synch.png[link=step-3-synch.png,100%,title=Table of synchronization actions]
+image::./sync-rules-setup-rules-list.webp[Configured synchronization rules]
 
-More complex configuration is possible by clicking btn:[Edit] button:
+You can access a more complex configurations for each reaction using the icon:edit[] btn:[Edit] button:
 
-[%autowidth, cols="a,a", frame=none, grid=none, role=center]
+[%autowidth, cols="a,a,a", frame=none, grid=none, role=center]
 |===
 | image::step-3-synch-detail-basic.png[link=step-3-synch-detail-basic.png, 100%, title=Basic configuration of synchronizatio rule]
 | image::step-3-synch-detail-action.png[link=step-3-synch-detail-action.png, 100%, title=Action for synchronization rule]
-
 | image::step-3-synch-detail-optional.png[link=step-3-synch-detail-optional.png, 100%, title=Optional attributes for synchronization rule]
-|
 |===
 
-Situation/reaction configuration can be deleted by clicking btn:[Delete] button.
+== Possible situations and actions
 
-Click btn:[Save synchronization settings] when done to return to the previous page from which you started the synchronization editor.
+For each reaction rule, you need to configure its name, situation, action, and the lifecycle state of the rule:
+
+* *Name* of the reaction rule configuration. This is technically not mandatory but helps a lot during troubleshooting and when using resource template inheritance.
+* *Situation* can be the following:
+** *Linked*: The resource object is linked to its midPoint owner (focus object).
+** *Unlinked*: A new resource object has been found and its owner (focus) can be determined but there is no link between them.
+** *Deleted*: There is a focus in midPoint for the resource object but the resource object no longer exists.
+** *Unmatched*: A new resource object has been found but midPoint cannot determine any owner (focus) for the account.
+** *Disputed*: The midPoint has determined multiple potential midPoint owners (foci) for a single resource account. Alternatively, this may be a result of a xref:/midpoint/reference/correlation/[correlation] with an outcome that isn't fully trusted.
+* *Action* defines what to do in a particular situation:
+** *Add focus*: Create a new object in midPoint based on the resource data.
+** *Synchronize*: Synchronize data between midPoint object (focus) and resource data based on xref:../mapping[object type mappings]. Typically used for the _linked_ situation.
+** *Link*: Link previously not linked resource object to focus.
+** *Delete resource object*: Delete resource object.
+** *Inactivate resource object*: Inactivate (disable) resource object.
+** *Inactivate focus*: Inactivate (disable) midPoint object.
+** *Delete focus*: Delete midPoint object.
+** *Create correlation case*: Create a case to let midPoint administrator resolve the situation interactively (useful for the _Disputed_ situation).
+* *Lifecycle state* defines the lifecycle state of the reaction rule. Useful for xref:/midpoint/reference/admin-gui/simulations/[simulations].
+
+[TIP]
+====
+The setup of reactions to situations is up to you.
+For example, it's perfectly fine to have the action _Add focus_ for the _Unmatched_ situation when the resource is authoritative.
+For non-authoritative target systems, though, you would probably want to use the _Inactivate resource object_ action in such a situation.
+====
+
+Refer to xref:/midpoint/reference/schema/focus-and-projections/[] for an explanation of the term _focus_. In the most basic scenarios when synchronizing users and their accounts, _focus_ corresponds to the user object in midPoint.
 
 include::../../configuration-resource-panels.adoc[]
 
