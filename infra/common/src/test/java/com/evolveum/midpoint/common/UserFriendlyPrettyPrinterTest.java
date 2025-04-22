@@ -129,7 +129,7 @@ public class UserFriendlyPrettyPrinterTest extends AbstractUnitTest {
 
     private String indent(String value, int i) {
         return Arrays.stream(StringUtils.split(value, '\n'))
-                .map(line -> StringUtils.repeat(UserFriendlyPrettyPrinter.DEFAULT_INDENT, i) + line)
+                .map(line -> StringUtils.repeat(UserFriendlyPrettyPrinterOptions.DEFAULT_INDENT, i) + line)
                 .collect(Collectors.joining("\n"));
     }
 

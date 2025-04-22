@@ -136,6 +136,11 @@ public class ObjectTreeDelta<O extends ObjectType> extends ContainerTreeDelta<O>
         }
     }
 
+    @Override
+    public ItemDelta<PrismContainerValue<O>, PrismContainerDefinition<O>> toDelta() {
+        throw new UnsupportedOperationException("Object tree delta cannot be converted to item delta");
+    }
+
     public ObjectDelta<O> toObjectDelta() throws SchemaException {
         ObjectDelta<O> delta = PrismContext.get().deltaFor(getDefinition().getCompileTimeClass())
                 .asObjectDelta(getOid());
