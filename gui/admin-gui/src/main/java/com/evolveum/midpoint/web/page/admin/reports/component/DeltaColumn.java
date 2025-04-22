@@ -123,16 +123,8 @@ public class DeltaColumn extends AbstractExportableColumn<SelectableBean<AuditEv
             String componentId,
             IModel<SelectableBean<AuditEventRecordType>> rowModel) {
 
-        IModel<List<ItemDelta<?, ?>>> model = new LoadableDetachableModel<>() {
-
-            @Override
-            protected List<ItemDelta<?, ?>> load() {
-                return createChangedItems(rowModel);
-            }
-        };
-
         RepeatingView listItems = new RepeatingView(componentId);
-        for (ItemDelta<?, ?> delta : model.getObject()) {
+        for (ItemDelta<?, ?> delta : createChangedItems(rowModel)) {
             DeltaColumnPanel panel = new DeltaColumnPanel(listItems.newChildId(), () -> delta);
             panel.setShowOldValues(getDisplayValueType() == DisplayValueType.OLD_VALUE || getDisplayValueType() == DisplayValueType.OLD_NEW_VALUE);
             panel.setShowNewValues(getDisplayValueType() == DisplayValueType.NEW_VALUE || getDisplayValueType() == DisplayValueType.OLD_NEW_VALUE);
@@ -161,10 +153,11 @@ public class DeltaColumn extends AbstractExportableColumn<SelectableBean<AuditEv
                 .map(d -> {
                     try {
                         ObjectTreeDelta<? extends ObjectType> delta = ObjectTreeDelta.fromItemDelta(DeltaConvertor.createObjectDelta(d));
-                        if (path == null) {
-                            return delta;
+                        ItemTreeDelta partial = delta.findItemDelta(path, ItemTreeDelta.class);
+                        if (partial == null || partial instanceof ObjectTreeDelta<?>) {
+                            return null;
                         }
-                        return delta.findItemDelta(path, ItemTreeDelta.class);
+                        return partial;
                     } catch (SchemaException ex) {
                         LOGGER.debug("Cannot convert delta to object delta: {}", ex.getMessage(), ex);
                         return null;
@@ -188,6 +181,7 @@ public class DeltaColumn extends AbstractExportableColumn<SelectableBean<AuditEv
                                 try {
                                     return PrettyPrinter.prettyPrint(od.toObjectDelta());
                                 } catch (SchemaException ex) {
+                                    LOGGER.trace("Cannot convert delta to object delta: {}", ex.getMessage(), ex);
                                     return "";
                                 }
                             }
@@ -214,7 +208,7 @@ public class DeltaColumn extends AbstractExportableColumn<SelectableBean<AuditEv
 
                             String newValues = StringUtils.joinWith(", ", changes);
 
-                            if (StringUtils.isNotEmpty(oldValues)) {
+                            if (StringUtils.isEmpty(oldValues)) {
                                 return newValues;
                             }
 
