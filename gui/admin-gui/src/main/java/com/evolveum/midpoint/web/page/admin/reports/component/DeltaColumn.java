@@ -22,6 +22,7 @@ import org.apache.wicket.model.LoadableDetachableModel;
 import org.apache.wicket.model.Model;
 
 import com.evolveum.midpoint.common.UserFriendlyPrettyPrinter;
+import com.evolveum.midpoint.common.UserFriendlyPrettyPrinterOptions;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.impl.component.search.Search;
 import com.evolveum.midpoint.gui.impl.component.search.wrapper.PropertySearchItemWrapper;
@@ -33,6 +34,7 @@ import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.delta.ItemTreeDelta;
 import com.evolveum.midpoint.schema.delta.ObjectTreeDelta;
 import com.evolveum.midpoint.util.DisplayableValue;
+import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -131,7 +133,11 @@ public class DeltaColumn extends AbstractExportableColumn<SelectableBean<AuditEv
 
         RepeatingView listItems = new RepeatingView(componentId);
         for (ItemDelta<?, ?> delta : model.getObject()) {
-            listItems.add(new DeltaColumnPanel(listItems.newChildId(), () -> delta));
+            DeltaColumnPanel panel = new DeltaColumnPanel(listItems.newChildId(), () -> delta);
+            panel.setShowOldValues(getDisplayValueType() == DisplayValueType.OLD_VALUE || getDisplayValueType() == DisplayValueType.OLD_NEW_VALUE);
+            panel.setShowNewValues(getDisplayValueType() == DisplayValueType.NEW_VALUE || getDisplayValueType() == DisplayValueType.OLD_NEW_VALUE);
+
+            listItems.add(panel);
         }
         item.add(listItems);
     }
@@ -178,13 +184,23 @@ public class DeltaColumn extends AbstractExportableColumn<SelectableBean<AuditEv
                 List<ItemDelta<?, ?>> deltas = createChangedItems(rowModel);
                 return deltas.stream()
                         .map(item -> {
+                            if (item instanceof ObjectTreeDelta<?> od) {
+                                try {
+                                    return PrettyPrinter.prettyPrint(od.toObjectDelta());
+                                } catch (SchemaException ex) {
+                                    return "";
+                                }
+                            }
+
                             String oldValues = "";
                             if (item.getEstimatedOldValues() != null) {
                                 oldValues = item.getEstimatedOldValues().stream()
                                         .map(v ->
-                                                new UserFriendlyPrettyPrinter()
-                                                        .indent("\t")
-                                                        .prettyPrintValue(v, 0))
+                                                new UserFriendlyPrettyPrinter(
+                                                        new UserFriendlyPrettyPrinterOptions()
+                                                                .indentation("\t"))
+                                                        .prettyPrintValue(v, 0)
+                                        )
                                         .collect(Collectors.joining(", "));
                             }
 
@@ -211,7 +227,7 @@ public class DeltaColumn extends AbstractExportableColumn<SelectableBean<AuditEv
     }
 
     private void addChanges(ModificationType modificationType, List<PrismValue> values, List<String> changes) {
-        if (modificationType == null) {
+        if (modificationType == null || values == null || values.isEmpty()) {
             return;
         }
 
@@ -221,22 +237,9 @@ public class DeltaColumn extends AbstractExportableColumn<SelectableBean<AuditEv
             case REPLACE -> "(=)";
         };
 
-        changes.add(operation);
-    }
-
-    private String createChange(ModificationType modificationType, PrismValue value) {
-        if (modificationType == null) {
-            return "";
-        }
-
-        String operation = switch (modificationType) {
-            case ADD -> "(+)";
-            case DELETE -> "(-)";
-            case REPLACE -> "(=)";
-        };
-
-        return operation + new UserFriendlyPrettyPrinter()
-                .indent("\t")
-                .prettyPrintValue(value, 0);
+        changes.add(operation +
+                values.stream()
+                        .map(v -> new UserFriendlyPrettyPrinter().prettyPrintValue(v, 0))
+                        .collect(Collectors.joining(", ")));
     }
 }

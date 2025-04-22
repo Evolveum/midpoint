@@ -24,6 +24,7 @@ import org.apache.wicket.model.LoadableDetachableModel;
 import org.apache.wicket.util.string.Strings;
 
 import com.evolveum.midpoint.common.UserFriendlyPrettyPrinter;
+import com.evolveum.midpoint.common.UserFriendlyPrettyPrinterOptions;
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.util.LocalizationUtil;
@@ -136,13 +137,27 @@ public class DeltaColumnPanel extends BasePanel<ItemDelta<? extends PrismValue, 
             sb.append("/");
         }
 
-        sb.append(new UserFriendlyPrettyPrinter()
-                .indent("&emsp;")
-                .prettyPrintValue(value, 0));
+        sb.append(
+                new UserFriendlyPrettyPrinter(
+                        new UserFriendlyPrettyPrinterOptions()
+                                .indentation("&emsp;"))
+                        .locale(getLocale())
+                        .localizationService(getPageBase().getLocalizationService())
+                        .prettyPrintValue(value, 0));
 
         String escaped = Strings.escapeMarkup(sb.toString()).toString();
 
         Matcher matcher = ESCAPE_PATTERN.matcher(escaped);
         return matcher.replaceAll(match -> "&emsp;".repeat(match.group(0).length() / "&amp;emsp;".length()));
+    }
+
+    public DeltaColumnPanel setShowNewValues(boolean showNewValues) {
+        this.showNewValues = showNewValues;
+        return this;
+    }
+
+    public DeltaColumnPanel setShowOldValues(boolean showOldValues) {
+        this.showOldValues = showOldValues;
+        return this;
     }
 }

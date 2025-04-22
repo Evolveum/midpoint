@@ -34,15 +34,21 @@ import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
  */
 public class UserFriendlyPrettyPrinter {
 
-    public static final String DEFAULT_INDENT = "  ";
-
     private static final ToStringStyle TO_STRING_STYLE = new UserFriendlyToStringStyle();
 
-    private String indent = DEFAULT_INDENT;
+    private UserFriendlyPrettyPrinterOptions options;
 
     private LocalizationService localizationService;
 
     private Locale locale = Locale.getDefault();
+
+    public UserFriendlyPrettyPrinter() {
+        this(new UserFriendlyPrettyPrinterOptions());
+    }
+
+    public UserFriendlyPrettyPrinter(UserFriendlyPrettyPrinterOptions options) {
+        this.options = options;
+    }
 
     public UserFriendlyPrettyPrinter localizationService(LocalizationService localizationService) {
         this.localizationService = localizationService;
@@ -54,14 +60,11 @@ public class UserFriendlyPrettyPrinter {
         return this;
     }
 
-    public UserFriendlyPrettyPrinter indent(String indent) {
-        this.indent = indent;
-
-        return this;
-    }
-
     private String indent(int indent) {
-        return StringUtils.repeat(this.indent, indent);
+        if (this.options.indentation() == null) {
+            return "";
+        }
+        return StringUtils.repeat(this.options.indentation(), indent);
     }
 
     public String prettyPrintItem(Item<?, ?> item, int indent) {
