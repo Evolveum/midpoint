@@ -626,7 +626,7 @@ public class Visualizer {
                     }
                 }
                 ItemPath deltaPathWithoutLast = deltaParentPath.allExceptLast();
-                VisualizationImpl parentPartialVisualization = getParentPartialVisualization(visualization, deltaPathWithoutLast);
+                VisualizationImpl parentPartialVisualization = getOrCreateParentPartialVisualization(visualization, deltaPathWithoutLast, true);
                 if (parentPartialVisualization != null) {
                     parentPartialVisualization.addPartialVisualization(visualizationForItem);
                 } else {
@@ -650,16 +650,33 @@ public class Visualizer {
         evaluateDescriptionHandlers(visualizationForItem, visualization, task, result);
     }
 
-    private VisualizationImpl getParentPartialVisualization(VisualizationImpl parentVisualization, ItemPath path) {
-        return parentVisualization.getPartialVisualizations()
-                .stream()
-                .filter(pv -> {
-                    ItemPath pvPath = pv.getSourceAbsPath();
-                    return pvPath != null && pvPath.equivalent(path);
-                })
-                .findFirst()
-                .orElse(null);
+    private VisualizationImpl getOrCreateParentPartialVisualization(VisualizationImpl parentVisualization, ItemPath path,
+            boolean stopOnSingleSegmentPath) {
+        VisualizationImpl parentVis = findParentPartialVisualization(parentVisualization, path);
+        if (stopOnSingleSegmentPath && path.size() <= 1) {
+            return parentVis;
+        }
+        if (parentVis == null) {
+            ItemPath allExceptLast = path.allExceptLast();
+            if (allExceptLast.isEmpty() || ItemPath.equivalent(path.removeIds(), allExceptLast)) {
+                parentVis = createContainerVisualization(MODIFY, path, parentVisualization);
+                parentVisualization.addPartialVisualization(parentVis);
+            } else {
+                return getOrCreateParentPartialVisualization(parentVisualization, allExceptLast, false);
+            }
+        }
+        return parentVis;
+    }
 
+    private VisualizationImpl findParentPartialVisualization(VisualizationImpl visualization, ItemPath path) {
+        for (VisualizationImpl pv : visualization.getPartialVisualizations()) {
+            ItemPath pvPath = pv.getSourceAbsPath();
+            if (pvPath != null && pvPath.equivalent(path)) {
+                return pv;
+            }
+            return findParentPartialVisualization(pv, path);
+        }
+        return null;
     }
 
     private void addDescriptiveItems(VisualizationImpl visualization, PrismContainerValue<?> sourceValue, VisualizationContext context, Task task, OperationResult result) {
@@ -694,6 +711,7 @@ public class Visualizer {
             if (partial.getSourceAbsPath().equivalent(deltaParentPath) && partial.getChangeType() == MODIFY) {
                 return partial;
             }
+            return findPartialVisualizationByPath(partial, deltaParentPath);
         }
         return null;
     }
