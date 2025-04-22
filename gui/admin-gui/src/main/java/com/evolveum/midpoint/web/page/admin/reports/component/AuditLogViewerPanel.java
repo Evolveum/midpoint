@@ -483,8 +483,8 @@ public class AuditLogViewerPanel extends ContainerableListPanel<AuditEventRecord
             return createOutcomeColumn();
         }
 
-        if (AuditEventRecordType.F_CHANGED_ITEM.equivalent(path)) {
-            return createChangedItemColumn(displayModel, guiObjectColumn);
+        if (AuditEventRecordType.F_DELTA.equivalent(path)) {
+            return createDeltaColumn(displayModel, guiObjectColumn);
         }
 
         return super.createCustomExportableColumn(displayModel, guiObjectColumn, expression);
@@ -495,13 +495,13 @@ public class AuditLogViewerPanel extends ContainerableListPanel<AuditEventRecord
         return new AuditLogViewerContext(() -> getSearchModel().getObject());
     }
 
-    private IColumn<SelectableBean<AuditEventRecordType>, String> createChangedItemColumn(
+    private IColumn<SelectableBean<AuditEventRecordType>, String> createDeltaColumn(
             IModel<String> displayModel, GuiObjectColumnType guiObjectColumn) {
         if (!getColumnTypeConfigContext().isChangedItemSearchItemVisible()
                 && (guiObjectColumn != null && guiObjectColumn.getVisibility() != UserInterfaceElementVisibilityType.VISIBLE)) {
             return null;
         }
-        return new ChangedItemColumn(displayModel, guiObjectColumn, getSearchModel());
+        return new DeltaColumn(displayModel, guiObjectColumn, getSearchModel());
     }
 
     @Override
@@ -510,7 +510,7 @@ public class AuditLogViewerPanel extends ContainerableListPanel<AuditEventRecord
 
         // noinspection unchecked
         boolean isChangedItemColumnVisible = getTable().getDataTable().getColumns().stream()
-                .anyMatch(column -> column instanceof ChangedItemColumn);
+                .anyMatch(column -> column instanceof DeltaColumn);
 
         if (searchItemVisible != isChangedItemColumnVisible) {
             resetTableColumns();

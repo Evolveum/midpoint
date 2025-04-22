@@ -17,18 +17,18 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.GuiObjectColumnType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserInterfaceElementVisibilityType;
 
 /**
- * TODO improve later, this doesn't work well with previous implementnation using {@link DefaultColumnUtils}
+ * TODO improve later, this doesn't work well with previous implementation using {@link DefaultColumnUtils}
  */
-//@ColumnType(identifier = "changedItemColumn",
+//@ColumnType(identifier = "deltaColumn",
 //        applicableForType = AuditEventRecordType.class,
 //        display = @PanelDisplay(label = "", order = 90))
 @SuppressWarnings("unused")
-public class ChangedItemColumnFactory extends AbstractGuiColumn<AuditEventRecordType, SelectableBean<AuditEventRecordType>> {
+public class DeltaColumnFactory extends AbstractGuiColumn<AuditEventRecordType, SelectableBean<AuditEventRecordType>> {
 
     private AuditLogViewerContext context;
 
     @SuppressWarnings("unused")
-    public ChangedItemColumnFactory(GuiObjectColumnType columnConfig, AuditLogViewerContext context) {
+    public DeltaColumnFactory(GuiObjectColumnType columnConfig, AuditLogViewerContext context) {
         super(columnConfig);
 
         this.context = context;
@@ -42,7 +42,7 @@ public class ChangedItemColumnFactory extends AbstractGuiColumn<AuditEventRecord
                 && (guiObjectColumn != null && guiObjectColumn.getVisibility() != UserInterfaceElementVisibilityType.VISIBLE)) {
             return null;
         }
-        return new ChangedItemColumn(null, guiObjectColumn, context.getSearchModel());
+        return new DeltaColumn(null, guiObjectColumn, context.getSearchModel());
     }
 
     @Override

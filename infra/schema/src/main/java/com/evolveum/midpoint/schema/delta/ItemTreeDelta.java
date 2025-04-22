@@ -288,4 +288,23 @@ public abstract class ItemTreeDelta
 
         return modifications;
     }
+
+    public ItemDelta<PV, ID> toDelta() {
+        ItemDelta delta = getDefinition().createEmptyDelta(getPath());
+
+        if (!getEstimatedOldValues().isEmpty()) {
+            delta.setEstimatedOldValues(getEstimatedOldValues());
+        }
+
+        getValues().forEach(v -> {
+            if (v.getModificationType() == null) {
+                return;
+            }
+
+            PrismValue cloned = v.getValue().clone();
+            delta.addValue(v.getModificationType(), cloned);
+        });
+
+        return delta;
+    }
 }
