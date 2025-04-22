@@ -626,7 +626,7 @@ public class Visualizer {
                     }
                 }
                 ItemPath deltaPathWithoutLast = deltaParentPath.allExceptLast();
-                VisualizationImpl parentPartialVisualization = getOrCreateParentPartialVisualization(visualization, deltaPathWithoutLast);
+                VisualizationImpl parentPartialVisualization = getOrCreateParentPartialVisualization(visualization, deltaPathWithoutLast, true);
                 if (parentPartialVisualization != null) {
                     parentPartialVisualization.addPartialVisualization(visualizationForItem);
                 } else {
@@ -650,15 +650,19 @@ public class Visualizer {
         evaluateDescriptionHandlers(visualizationForItem, visualization, task, result);
     }
 
-    private VisualizationImpl getOrCreateParentPartialVisualization(VisualizationImpl parentVisualization, ItemPath path) {
+    private VisualizationImpl getOrCreateParentPartialVisualization(VisualizationImpl parentVisualization, ItemPath path,
+            boolean stopOnSingleSegmentPath) {
         VisualizationImpl parentVis = findParentPartialVisualization(parentVisualization, path);
+        if (stopOnSingleSegmentPath && path.size() <= 1) {
+            return parentVis;
+        }
         if (parentVis == null) {
             ItemPath allExceptLast = path.allExceptLast();
             if (allExceptLast.isEmpty() || ItemPath.equivalent(path.removeIds(), allExceptLast)) {
                 parentVis = createContainerVisualization(MODIFY, path, parentVisualization);
                 parentVisualization.addPartialVisualization(parentVis);
             } else {
-                return getOrCreateParentPartialVisualization(parentVisualization, allExceptLast);
+                return getOrCreateParentPartialVisualization(parentVisualization, allExceptLast, false);
             }
         }
         return parentVis;
