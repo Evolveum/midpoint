@@ -1,0 +1,61 @@
+<!--
+  ~ Copyright (c) 2017-2025 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+<archetype oid="9958affe-2052-11f0-8bb7-236f06a8526e"
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+    <name>Piracy Org</name>
+    <description>Archetype for all piracy orgs (org-caribbean-archetype.xml)</description>
+    <inducement>
+        <description>Yellow account for ordinary org members</description>
+        <construction>
+            <description>yellow</description>
+            <resourceRef oid="10000000-0000-0000-0000-000000000704" type="ResourceType"/> <!-- YELLOW -->
+            <kind>account</kind>
+            <attribute>
+                <ref>title</ref>
+                <outbound>
+                    <expression>
+                        <value>Pirate</value>
+                    </expression>
+                </outbound>
+            </attribute>
+        </construction>
+        <orderConstraint>
+            <order>2</order>
+            <relation>default</relation>
+        </orderConstraint>
+        <orderConstraint>
+            <order>0</order>
+            <relation>manager</relation>
+        </orderConstraint>
+        <focusType>UserType</focusType>
+    </inducement>
+    <inducement>
+        <description>Red account for org managers</description>
+        <construction>
+            <description>red</description>
+            <resourceRef oid="10000000-0000-0000-0000-000000000104" type="ResourceType"/> <!-- RED -->
+            <kind>account</kind>
+            <attribute>
+                <ref>title</ref>
+                <outbound>
+                    <expression>
+                        <value>Captain</value>
+                    </expression>
+                </outbound>
+            </attribute>
+        </construction>
+        <orderConstraint>
+            <order>1</order>
+            <relation>default</relation>
+        </orderConstraint>
+        <orderConstraint>
+            <order>1</order>
+            <relation>manager</relation>
+        </orderConstraint>
+        <focusType>UserType</focusType>
+    </inducement>
+</archetype>

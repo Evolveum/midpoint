@@ -1,18 +1,10 @@
 /*
- * Copyright (c) 2016 Evolveum and contributors
+ * Copyright (c) 2016-2025 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.model.intest.orgstruct;
-
-import java.io.File;
-
-import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.annotation.DirtiesContext.ClassMode;
-import org.springframework.test.context.ContextConfiguration;
-import org.testng.annotations.Listeners;
-import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.model.intest.AbstractInitializedModelIntegrationTest;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -20,46 +12,57 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.DummyResourceContoller;
+import com.evolveum.midpoint.test.TestObject;
 import com.evolveum.midpoint.test.util.TestUtil;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ArchetypeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
+import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.annotation.DirtiesContext.ClassMode;
+import org.springframework.test.context.ContextConfiguration;
+import org.testng.annotations.Listeners;
+import org.testng.annotations.Test;
+
+import java.io.File;
+
 /**
+ * Caribbean orgstruct tests, assigning accounts to ordinary org members and managers.
+ * This configuration is using archetypes.
  * @author semancik
  */
 @ContextConfiguration(locations = { "classpath:ctx-model-intest-test-main.xml" })
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 @Listeners({ com.evolveum.midpoint.tools.testng.AlphabeticalMethodInterceptor.class })
-public class TestOrgStructCaribbean extends AbstractInitializedModelIntegrationTest {
+public abstract class AbstractOrgStructCaribbeanTest extends AbstractInitializedModelIntegrationTest {
 
     public static final File TEST_DIR = new File("src/test/resources/orgstruct");
 
-    protected static final File ORG_CARIBBEAN_FILE = new File(TEST_DIR, "org-caribbean.xml");
+    static final TestObject<UserType> USER_GIBBS = TestObject.file(
+            TEST_DIR, "user-gibbs.xml", "aca242ae-a29e-11e6-8bb4-1f8a1be2bd79");
+    public static final String USER_GIBBS_USERNAME = "gibbs";
+
+    static final TestObject<UserType> USER_PINTEL = TestObject.file(
+            TEST_DIR, "user-pintel.xml", "16522760-a2a3-11e6-bf77-8baa83388f4b");
+    public static final String USER_PINTEL_USERNAME = "pintel";
+
     protected static final String ORG_CARIBBEAN_THE_CROWN_OID = "00000000-8888-6666-0000-c00000000002";
     protected static final String ORG_CARIBBEAN_JAMAICA_OID = "00000000-8888-6666-0000-c00000000003";
     protected static final String ORG_CARIBBEAN_DEPARTMENT_OF_THINGS_OID = "00000000-8888-6666-0000-c00000000004";
     protected static final String ORG_CARIBBEAN_DEPARTMENT_OF_PEOPLE_OID = "00000000-8888-6666-0000-c00000000005";
     protected static final String ORG_CARIBBEAN_ENTERTAINMENT_SECTION_OID = "00000000-8888-6666-0000-c00000000006";
 
-    public static final File USER_GIBBS_FILE = new File(TEST_DIR, "user-gibbs.xml");
-    public static final String USER_GIBBS_OID = "aca242ae-a29e-11e6-8bb4-1f8a1be2bd79";
-    public static final String USER_GIBBS_USERNAME = "gibbs";
-
-    public static final File USER_PINTEL_FILE = new File(TEST_DIR, "user-pintel.xml");
-    public static final String USER_PINTEL_OID = "16522760-a2a3-11e6-bf77-8baa83388f4b";
-    public static final String USER_PINTEL_USERNAME = "pintel";
-
-    public static final File ROLE_META_PIRACY_ORG_FILE = new File(TEST_DIR, "role-meta-piracy-org.xml");
-
     @Override
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
         super.initSystem(initTask, initResult);
 
-        addObject(USER_GIBBS_FILE);
-        addObject(USER_PINTEL_FILE);
-
-        addObject(ROLE_META_PIRACY_ORG_FILE);
+        initTestObjects(
+                initTask, initResult,
+                USER_GIBBS,
+                USER_PINTEL);
     }
+
+    protected abstract File getOrgCaribbeanFile();
 
     /**
      * MID-3448
@@ -71,7 +74,7 @@ public class TestOrgStructCaribbean extends AbstractInitializedModelIntegrationT
 
         // WHEN
         when();
-        repoAddObjectsFromFile(ORG_CARIBBEAN_FILE, OrgType.class, result);
+        repoAddObjectsFromFile(getOrgCaribbeanFile(), OrgType.class, result);
 
         // THEN
         then();
@@ -278,8 +281,8 @@ public class TestOrgStructCaribbean extends AbstractInitializedModelIntegrationT
 
     /**
      * Department of People (DoP) has in inducement to Monkey Island Scumm Bar.
-     * But that inducement is limited to UserType. Therefore sub-orgs of
-     * DoP should not not appear under Scumm Bar.
+     * But that inducement is limited to UserType.
+     * Therefore sub-orgs of DoP should not appear under Scumm Bar.
      * <p>
      * Related to MID-3448
      */
@@ -309,9 +312,9 @@ public class TestOrgStructCaribbean extends AbstractInitializedModelIntegrationT
 
     /**
      * Department of People (DoP) has in inducement to Monkey Island Scumm Bar.
-     * That inducement is limited to UserType. Therefore sub-orgs of
-     * DoP should not not appear under Scumm Bar. But when Jack is assigned
-     * to the DoP he should also appear under Scumm Bar.
+     * That inducement is limited to UserType.
+     * Therefore sub-orgs of DoP should not appear under Scumm Bar.
+     * But when Jack is assigned to the DoP he should also appear under Scumm Bar.
      * <p>
      * Related to MID-3448
      */
@@ -349,6 +352,7 @@ public class TestOrgStructCaribbean extends AbstractInitializedModelIntegrationT
         assertRoleMembershipRef(userJackAfter, ORG_CARIBBEAN_DEPARTMENT_OF_PEOPLE_OID, ORG_SCUMM_BAR_OID);
         assertAccount(userJackAfter, RESOURCE_DUMMY_OID); // From Scumm Bar
         assertAccount(userJackAfter, RESOURCE_DUMMY_YELLOW_OID);
+        assertNoDummyAccount(RESOURCE_DUMMY_RED_NAME, USER_JACK_USERNAME);
         assertLiveLinks(userJackAfter, 2);
 
         assertDummyAccount(RESOURCE_DUMMY_YELLOW_NAME, USER_JACK_USERNAME);
@@ -408,14 +412,14 @@ public class TestOrgStructCaribbean extends AbstractInitializedModelIntegrationT
 
         // WHEN
         when();
-        assignDeputy(USER_GIBBS_OID, USER_JACK_OID, task, result);
+        assignDeputy(USER_GIBBS.oid, USER_JACK_OID, task, result);
 
         // THEN
         then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
-        PrismObject<UserType> userGibbsAfter = getUser(USER_GIBBS_OID);
+        PrismObject<UserType> userGibbsAfter = getUser(USER_GIBBS.oid);
         dumpFocus("User Gibbs after", userGibbsAfter);
         assertHasOrgs(userGibbsAfter, ORG_CARIBBEAN_DEPARTMENT_OF_PEOPLE_OID, ORG_SCUMM_BAR_OID);
         assertRoleMembershipRef(userGibbsAfter);
@@ -444,14 +448,14 @@ public class TestOrgStructCaribbean extends AbstractInitializedModelIntegrationT
 
         // WHEN
         when();
-        assignDeputy(USER_PINTEL_OID, USER_BARBOSSA_OID, task, result);
+        assignDeputy(USER_PINTEL.oid, USER_BARBOSSA_OID, task, result);
 
         // THEN
         then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
-        PrismObject<UserType> userPintelAfter = getUser(USER_PINTEL_OID);
+        PrismObject<UserType> userPintelAfter = getUser(USER_PINTEL.oid);
         dumpFocus("User pintel after", userPintelAfter);
         assertHasOrgs(userPintelAfter, ORG_CARIBBEAN_DEPARTMENT_OF_THINGS_OID);
         assertRoleMembershipRef(userPintelAfter);

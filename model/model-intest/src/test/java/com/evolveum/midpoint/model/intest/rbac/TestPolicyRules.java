@@ -35,7 +35,7 @@ public class TestPolicyRules extends AbstractInitializedModelIntegrationTest {
     protected static final File TEST_DIR = new File("src/test/resources/rbac/policy-rules");
 
     // Archetype with policy rule (requirement)
-    static final TestObject<PolicyType> ARCHETYPE_APPLICATION = TestObject.file(
+    static final TestObject<ArchetypeType> ARCHETYPE_APPLICATION = TestObject.file(
             TEST_DIR, "029-archetype-application.xml", "00000000-0000-0000-0000-000000000329");
 
     static final TestObject<PolicyType> MARK_UNCLASSIFIED = TestObject.file(

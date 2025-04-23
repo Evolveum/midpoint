@@ -145,6 +145,7 @@
     <logger name="com.evolveum.icf.dummy.resource" level="DEBUG" />
 
     <!--<logger name="com.evolveum.midpoint.model.impl.lens.projector.policy" level="TRACE" />-->
+    <!--<logger name="com.evolveum.midpoint.model.impl.lens.assignments.EvaluationOrderImpl" level="TRACE" />-->
 
     <root level="INFO">
         <appender-ref ref="X" />

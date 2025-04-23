@@ -3090,6 +3090,13 @@
                 <xsd:annotation>
                     <xsd:documentation>
                         Constraint that defines the range of "orders" and relations when this assignment/inducement should be applied.
+                        Set of orderConstraint definitions are evaluated together.
+                        Each orderConstraint item specifies number (or number range) of assignment path elements with a given relation.
+
+                        Therefore assignment path containing one manager relation and two default relations should be specified by two orderConstraint items.
+                        First one specifying relation manager and order 1, the other specifying default relation and order 2 - even though the total "order" of the assignment path is three.
+
+                        This is rather counter-intuitive, but it is current implementation.
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:since>3.5</a:since>
@@ -3266,7 +3273,14 @@
     <xsd:complexType name="OrderConstraintsType">
         <xsd:annotation>
             <xsd:documentation>
-                TODO
+                Constraint that defines the range of "orders" and relations when this assignment/inducement should be applied.
+                Set of orderConstraint definitions are evaluated together.
+                Each orderConstraint item specifies number (or number range) of assignment path elements with a given relation.
+
+                Therefore assignment path containing one manager relation and two default relations should be specified by two orderConstraint items.
+                First one specifying relation manager and order 1, the other specifying default relation and order 2 - even though the total "order" of the assignment path is three.
+
+                This is rather counter-intuitive, but it is current implementation.
             </xsd:documentation>
             <xsd:appinfo>
                 <a:container/>
@@ -3279,6 +3293,11 @@
                     <xsd:documentation>
                         Exact order to match. This is a short-hand for setting both
                         orderMin and orderMax to the same value.
+
+                        Value of 0 (zero) means that no element with specified relation must appear in assignemnt path.
+
+                        NOTE: This is not matching actual "order", rather than number of elements of this relation in the assignment path.
+                        This is rather counter-intuitive, but it is current implementation.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
@@ -3287,6 +3306,9 @@
                     <xsd:documentation>
                         Minimum matching order. Applicable only if "order" element is not set.
                         Numeric value or string "unbounded".
+
+                        NOTE: This is not matching actual "order", rather than number of elements of this relation in the assignment path.
+                        This is rather counter-intuitive, but it is current implementation.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
@@ -3295,6 +3317,9 @@
                     <xsd:documentation>
                         Maximum matching order. Applicable only if "order" element is not set.
                         Numeric value or string "unbounded".
+
+                        NOTE: This is not matching actual "order", rather than number of elements of this relation in the assignment path.
+                        This is rather counter-intuitive, but it is current implementation.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>

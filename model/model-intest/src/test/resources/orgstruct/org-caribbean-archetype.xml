@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (c) 2017-2025 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<objects xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
+         xmlns:org='http://midpoint.evolveum.com/xml/ns/public/common/org-3'>
+
+    <!-- Caribbean orgstruct tests, assigning accounts to ordinary org members and managers.
+         This configuration is using archetypes.
+         See TestOrgStructCaribbeanArchetype -->
+
+    <org oid="00000000-8888-6666-0000-c00000000001">
+        <name>C0001</name>
+        <assignment>
+            <targetRef oid="4fd052fa-2053-11f0-9b78-7b5bede897d3" type="ArchetypeType"/> <!-- Piracy ROOT org archetype -->
+        </assignment>
+        <displayName>The Golden Age of Piracy</displayName>
+        <identifier>C001</identifier>
+    </org>
+
+    <org oid="00000000-8888-6666-0000-c00000000002">
+        <name>C0002</name>
+        <parentOrgRef oid="00000000-8888-6666-0000-c00000000001"/>
+        <assignment>
+            <targetRef oid="9958affe-2052-11f0-8bb7-236f06a8526e" type="ArchetypeType"/> <!-- Piracy org archetype -->
+        </assignment>
+        <assignment>
+            <targetRef oid="00000000-8888-6666-0000-c00000000001" type="OrgType"/>
+        </assignment>
+        <displayName>The Crown</displayName>
+        <identifier>C002</identifier>
+    </org>
+
+    <org oid="00000000-8888-6666-0000-c00000000003">
+        <name>C0003</name>
+        <parentOrgRef oid="00000000-8888-6666-0000-c00000000002"/>
+        <assignment>
+            <targetRef oid="9958affe-2052-11f0-8bb7-236f06a8526e" type="ArchetypeType"/> <!-- Piracy org archetype -->
+        </assignment>
+        <assignment>
+            <targetRef oid="00000000-8888-6666-0000-c00000000002" type="OrgType"/>
+        </assignment>
+        <displayName>Government of Jamaica</displayName>
+        <identifier>C003</identifier>
+        <inducement>
+            <!-- Monkey Island Governor Office -->
+            <targetRef oid="00000000-8888-6666-0000-100000000001" type="OrgType"/>
+        </inducement>
+    </org>
+
+    <org oid="00000000-8888-6666-0000-c00000000004">
+        <name>C0004</name>
+        <parentOrgRef oid="00000000-8888-6666-0000-c00000000003"/>
+        <assignment>
+            <targetRef oid="9958affe-2052-11f0-8bb7-236f06a8526e" type="ArchetypeType"/> <!-- Piracy org archetype -->
+        </assignment>
+        <assignment>
+            <targetRef oid="00000000-8888-6666-0000-c00000000003" type="OrgType"/>
+        </assignment>
+        <delegable>true</delegable>
+        <displayName>Department of Things</displayName>
+        <identifier>C004</identifier>
+    </org>
+
+    <org oid="00000000-8888-6666-0000-c00000000005">
+        <name>C0005</name>
+        <parentOrgRef oid="00000000-8888-6666-0000-c00000000003"/>
+        <assignment>
+            <targetRef oid="9958affe-2052-11f0-8bb7-236f06a8526e" type="ArchetypeType"/> <!-- Piracy org archetype -->
+        </assignment>
+        <assignment>
+            <targetRef oid="00000000-8888-6666-0000-c00000000003" type="OrgType"/>
+        </assignment>
+        <delegable>true</delegable>
+        <displayName>Department of People</displayName>
+        <identifier>C005</identifier>
+        <inducement>
+            <!-- Monkey Island Scumm Bar -->
+            <targetRef oid="00000000-8888-6666-0000-100000000006" type="OrgType"/>
+            <focusType>UserType</focusType>
+        </inducement>
+    </org>
+
+    <org oid="00000000-8888-6666-0000-c00000000006">
+        <name>C0006</name>
+        <parentOrgRef oid="00000000-8888-6666-0000-c00000000005"/>
+        <assignment>
+            <targetRef oid="9958affe-2052-11f0-8bb7-236f06a8526e" type="ArchetypeType"/> <!-- Piracy org archetype -->
+        </assignment>
+        <assignment>
+            <targetRef oid="00000000-8888-6666-0000-c00000000005" type="OrgType"/>
+        </assignment>
+        <delegable>true</delegable>
+        <displayName>Entertainment Section</displayName>
+        <identifier>C006</identifier>
+    </org>
+
+</objects>
