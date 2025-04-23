@@ -1,0 +1,55 @@
+= Shadow Reclassification Task in GUI
+// :page-toc: top
+:experimental:
+:page-nav-title: Shadow Reclassification Task in GUI
+
+This guide helps you work with shadow reclassification tasks in the web administrative user interface of midPoint.
+
+MidPoint classifies shadow objects found on a resource by assigning them a kind and intent. This classification is necessary for midPoint to work with the objects. The classification may need to be adjusted, especially after changes to the xref:/midpoint/reference/admin-gui/resource-wizard/object-type/#specify-the-resource-data[resource object type configuration], such as filtering. That's what shadow reclassification tasks are for. This guide describes how to work with these tasks in the midPoint GUI.
+
+See xref:/midpoint/reference/tasks/shadow-reclassification-task/[] for a more in-depth introduction to the shadow reclassification.
+
+.Resource objects vs. accounts
+[NOTE]
+====
+There are two items in the resource navigation menu that may display confusingly similar contents: Resource objects and Accounts.
+However, they're not the same and they're very useful when adjusting object types classification.
+
+* The *Resource objects* section lists all objects found on the resource that are of the object class selected at the top of the list, regardless of any object type filtering.
+* The *Accounts* section lists account shadows created based on the overal resource object type setup, including the filtering rules.
+    This is the section where you see results of the filtering rules you set in the resource object type configuration.
+    Once you run shadow reclassification task, contents of this section reflect your updates to resource data filtering. The Resource objects section contents stay the same.
+====
+
+== Reclassify Shadows after Object Type Changes
+
+Firstly, select your resource under icon:database[] *Resources* > icon:database[] *All resources* and xref:/midpoint/reference/admin-gui/resource-wizard/object-type/#specify-the-resource-data[make your changes to the object type].
+
+Once you're done with the changes to the object type:
+
+. In the left-side resource menu, select icon:eye[] *Resource objects*.
+. Click icon:tasks[] *Tasks* > icon:plus-circle[] *Create task*.
+. In the modal dialog that appears, there's only one task type to choose from. +
+    Optionally, activate xref:/midpoint/reference/simulation/[simulation] using the *Simulate task* toggle to see which objects would be reclassified and how before you run the actual reclassification.
+. Click icon:plus-circle[] btn:[Create task].
+. *Configuration* screen:
+    .. Fill in the *Name* of the task, e.g., _HR Person Shadow Reclassification_.
+    .. Click btn:[Next: Resource objects].
+. *Resource objects* screen:
+    .. As long as the correct *Object class* is pre-selected, keep the defaults. +
+        Otherwise, select the right resource and specify the target object type either by the object class, or by the kind―intent combination.
+        See xref:/midpoint/reference/tasks/activities/resource-object-set-specification/[] for more details.
+    .. Click btn:[Next: Schedule].
+. *Schedule* screen:
+    * Keep the defaults and click btn:[Save & Run].
+
+If you opt in for simulation, you'll see also the *Execution* screen in the wizard. Leave it to defaults, run the task, and inspect the simulation results as you do with other simulation tasks.
+// TODO: add link to simulations & reading their results (guide TBD) @dakle 2025-04-23
+
+[%autowidth, cols="a,a,a", frame=none, grid=none, role=center]
+|====
+| image::../gui-shadow-reclassify-task-resource-objects-overview.webp[link=../gui-shadow-reclassify-task-resource-objects-overview.webp, title=Resource objects overview with tasks menu]
+| image::../gui-shadow-reclassify-task-wizard-start.webp[link=../gui-shadow-reclassify-task-wizard-start.webp, title=Initial screen of the task wizard]
+| image::../gui-shadow-reclassify-task-wizard-resource-objects.webp[link=../gui-shadow-reclassify-task-wizard-resource-objects.webp, title=Specify resource objects to be processed]
+|====
+
