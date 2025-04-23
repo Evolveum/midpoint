@@ -712,6 +712,7 @@
             <xsd:extension base="tns:EvaluatedPolicyRuleTriggerType">
                 <xsd:sequence>
                     <xsd:element name="requirementObjectRef" type="c:ObjectReferenceType" minOccurs="0"/>
+                    <xsd:element name="requirementObjectArchetypeRef" type="c:ObjectReferenceType" minOccurs="0"/>
                 </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>

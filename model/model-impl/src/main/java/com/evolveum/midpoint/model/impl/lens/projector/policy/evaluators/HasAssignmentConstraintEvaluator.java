@@ -12,6 +12,9 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+
+import com.evolveum.midpoint.model.common.archetypes.ArchetypeManager;
+
 import jakarta.xml.bind.JAXBElement;
 import javax.xml.namespace.QName;
 
@@ -50,10 +53,12 @@ public class HasAssignmentConstraintEvaluator
 
     private static final String CONSTRAINT_KEY_POSITIVE = "hasAssignment";
     private static final String CONSTRAINT_KEY_NEGATIVE = "hasNoAssignment";
+    private static final String ARCHETYPE_KEY_SUFFIX = ".archetype";
 
     @Autowired private ConstraintEvaluatorHelper evaluatorHelper;
     @Autowired private PrismContext prismContext;
     @Autowired private ExpressionFactory expressionFactory;
+    @Autowired private ArchetypeManager archetypeManager;
 
     @Override
     public @NotNull <O extends ObjectType> Collection<EvaluatedHasAssignmentTrigger> evaluate(
@@ -70,7 +75,9 @@ public class HasAssignmentConstraintEvaluator
             HasAssignmentPolicyConstraintType constraint = constraintElement.getValue();
             ObjectReferenceType constraintTargetRef = constraint.getTargetRef();
             if (constraintTargetRef == null) {
-                throw new SchemaException("No targetRef in hasAssignment constraint");
+                if (constraint.getTargetArchetypeRef() == null) {
+                    throw new SchemaException("No targetRef nor targetArchetypeRef in hasAssignment constraint");
+                }
             }
 
             DeltaSetTriple<EvaluatedAssignmentImpl<?>> evaluatedAssignmentTriple = ctx.lensContext.getEvaluatedAssignmentTriple();
@@ -86,7 +93,7 @@ public class HasAssignmentConstraintEvaluator
             boolean allowDisabled = !Boolean.TRUE.equals(constraint.isEnabled());
 
             ConstraintReferenceMatcher<O> refMatcher = new ConstraintReferenceMatcher<>(
-                    ctx, constraintTargetRef, expressionFactory, result, LOGGER);
+                    ctx, constraintTargetRef, constraint.getTargetArchetypeRef(), expressionFactory, archetypeManager, result, LOGGER);
 
             List<PrismObject<?>> matchingTargets = new ArrayList<>();
             for (EvaluatedAssignmentImpl<?> evaluatedAssignment : evaluatedAssignmentTriple.getNonNegativeValues()) { // MID-6403
@@ -105,7 +112,7 @@ public class HasAssignmentConstraintEvaluator
                     if (!(allowEnabled && target.isValid() || allowDisabled && !target.isValid())) {
                         continue;
                     }
-                    if (!relationMatches(constraintTargetRef.getRelation(), constraint.getRelation(),
+                    if (constraintTargetRef != null && !relationMatches(constraintTargetRef.getRelation(), constraint.getRelation(),
                             target.getAssignment())) {
                         continue;
                     }
@@ -203,6 +210,33 @@ public class HasAssignmentConstraintEvaluator
         return evaluatorHelper.createLocalizableShortMessage(constraintElement, ctx, builtInMessage, result);
     }
 
+    private LocalizableMessage createNegativeArchetypeMessage(
+            JAXBElement<HasAssignmentPolicyConstraintType> constraintElement,
+            PolicyRuleEvaluationContext<?> ctx, String targetArchetypeOid, OperationResult result)
+            throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException,
+            ConfigurationException, SecurityViolationException {
+        LocalizableMessage builtInMessage = new LocalizableMessageBuilder()
+                .key(SchemaConstants.DEFAULT_POLICY_CONSTRAINT_KEY_PREFIX + CONSTRAINT_KEY_NEGATIVE + ARCHETYPE_KEY_SUFFIX)
+                .arg(targetArchetypeOid)
+                .arg(evaluatorHelper.createBeforeAfterMessage(ctx))
+                .build();
+        return evaluatorHelper.createLocalizableMessage(constraintElement, ctx, builtInMessage, result);
+    }
+
+    private LocalizableMessage createNegativeShortArchetypeMessage(
+            JAXBElement<HasAssignmentPolicyConstraintType> constraintElement,
+            PolicyRuleEvaluationContext<?> ctx, String targetArchetypeOid, OperationResult result)
+            throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException,
+            ConfigurationException, SecurityViolationException {
+        LocalizableMessage builtInMessage = new LocalizableMessageBuilder()
+                .key(SchemaConstants.DEFAULT_POLICY_CONSTRAINT_SHORT_MESSAGE_KEY_PREFIX + CONSTRAINT_KEY_NEGATIVE + ARCHETYPE_KEY_SUFFIX)
+                .arg(targetArchetypeOid)
+                .arg(evaluatorHelper.createBeforeAfterMessage(ctx))
+                .build();
+        return evaluatorHelper.createLocalizableShortMessage(constraintElement, ctx, builtInMessage, result);
+    }
+
+
     private Collection<EvaluatedHasAssignmentTrigger> createTriggerIfShouldNotExist(
             boolean shouldExist,
             JAXBElement<HasAssignmentPolicyConstraintType> constraintElement,
@@ -215,14 +249,25 @@ public class HasAssignmentConstraintEvaluator
             return List.of();
         } else {
             ObjectReferenceType targetRef = constraint.getTargetRef();
-            QName targetType = targetRef.getType();
-            String targetOid = targetRef.getOid();
-            return List.of(
-                    new EvaluatedHasAssignmentTrigger(
-                            PolicyConstraintKindType.HAS_NO_ASSIGNMENT, constraint, emptySet(),
-                            createNegativeMessage(constraintElement, ctx, targetType, targetOid, result),
-                            createNegativeShortMessage(constraintElement, ctx, targetType, targetOid, result)));
-            // targetName seems to be always null, even if specified in the policy rule
+            if (targetRef == null) {
+                ObjectReferenceType targetArchetypeRef = constraint.getTargetArchetypeRef();
+                String targetArchetypeOid = targetArchetypeRef.getOid();
+                return List.of(
+                        new EvaluatedHasAssignmentTrigger(
+                                PolicyConstraintKindType.HAS_NO_ASSIGNMENT, constraint, emptySet(),
+                                createNegativeArchetypeMessage(constraintElement, ctx, targetArchetypeOid, result),
+                                createNegativeShortArchetypeMessage(constraintElement, ctx, targetArchetypeOid, result)));
+                // targetName seems to be always null, even if specified in the policy rule
+            } else {
+                QName targetType = targetRef.getType();
+                String targetOid = targetRef.getOid();
+                return List.of(
+                        new EvaluatedHasAssignmentTrigger(
+                                PolicyConstraintKindType.HAS_NO_ASSIGNMENT, constraint, emptySet(),
+                                createNegativeMessage(constraintElement, ctx, targetType, targetOid, result),
+                                createNegativeShortMessage(constraintElement, ctx, targetType, targetOid, result)));
+                        // targetName seems to be always null, even if specified in the policy rule
+            }
         }
     }
 
