@@ -1,0 +1,38 @@
+<!--
+  ~ Copyright (C) 2010-2025 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<task xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        oid="6ea1fcdf-f388-43ff-8c31-43ee2f3909fb">
+
+    <name>mid-10496</name>
+    <assignment>
+        <targetRef oid="00000000-0000-0000-0000-000000000528" type="ArchetypeType"/>
+    </assignment>
+    <ownerRef oid="00000000-0000-0000-0000-000000000002"/>
+    <executionState>runnable</executionState>
+    <binding>loose</binding>
+    <schedule>
+        <cronLikePattern>*/10 * * ? * *</cronLikePattern>
+        <misfireAction>reschedule</misfireAction>
+    </schedule>
+    <activity>
+        <work>
+            <noOp>
+                <steps>8</steps>
+                <delay>1000</delay>
+            </noOp>
+        </work>
+        <distribution>
+            <buckets/>
+            <workers>
+                <workersPerNode>
+                    <count>1</count>
+                </workersPerNode>
+            </workers>
+        </distribution>
+    </activity>
+</task>

@@ -141,6 +141,7 @@
             <class name="com.evolveum.midpoint.model.intest.tasks.TestMiscTasks"/>
             <class name="com.evolveum.midpoint.model.intest.tasks.TestShadowReclassification"/>
             <class name="com.evolveum.midpoint.model.intest.tasks.TestActivityExecutionTimeThresholds"/>
+            <class name="com.evolveum.midpoint.model.intest.tasks.TestTasks"/>
         </classes>
     </test>
     <test name="Async updates" preserve-order="true" parallel="none" verbose="10">
