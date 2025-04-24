@@ -1990,3 +1990,8 @@ th.debug-list-buttons {
 {
   @include smooth-transition(0.08s);
 }
+
+// MID-10315 add minimum width for object name
+.name-min-width {
+  min-width: 300px;
+}

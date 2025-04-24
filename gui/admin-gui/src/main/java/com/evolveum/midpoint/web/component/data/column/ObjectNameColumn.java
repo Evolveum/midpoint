@@ -9,6 +9,9 @@ package com.evolveum.midpoint.web.component.data.column;
 import java.io.Serial;
 
 import org.apache.wicket.Component;
+import org.apache.wicket.behavior.AttributeAppender;
+import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
+import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.jetbrains.annotations.NotNull;
@@ -60,6 +63,12 @@ public class ObjectNameColumn<O extends ObjectType> extends AbstractNameColumn<S
                 return ObjectNameColumn.this.isClickable(rowModel);
             }
         };
+    }
+
+    @Override
+    public void populateItem(Item<ICellPopulator<SelectableBean<O>>> cellItem, String componentId, IModel<SelectableBean<O>> rowModel) {
+        super.populateItem(cellItem, componentId, rowModel);
+        cellItem.add(AttributeAppender.append("class", "name-min-width"));
     }
 
     protected void onClick(IModel<SelectableBean<O>> rowModel) {

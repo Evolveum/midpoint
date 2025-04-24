@@ -21,6 +21,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.DataTable;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.export.AbstractExportableColumn;
@@ -28,6 +29,7 @@ import org.apache.wicket.extensions.markup.html.repeater.util.SortParam;
 import org.apache.wicket.extensions.markup.html.repeater.util.SortableDataProvider;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.form.FormComponent;
+import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.LoadableDetachableModel;
 import org.apache.wicket.model.PropertyModel;
@@ -113,8 +115,6 @@ public abstract class ContainerableListPanel<C extends Serializable, PO extends 
 
     private LoadableDetachableModel<Search<C>> searchModel;
 
-//    private Collection<SelectorOptions<GetOperationOptions>> options;
-
     private String additionalBoxCssClasses;
 
     private Boolean manualRefreshEnabled;
@@ -131,16 +131,9 @@ public abstract class ContainerableListPanel<C extends Serializable, PO extends 
         this(id, defaultType, null);
     }
 
-//    public ContainerableListPanel(String id, Class<C> defaultType, @Deprecated Collection<SelectorOptions<GetOperationOptions>> options) {
-//        super(id);
-//        this.defaultType = defaultType;
-////        this.options = options;
-//    }
-
     public ContainerableListPanel(String id, Class<C> defaultType, ContainerPanelConfigurationType configurationType) {
         super(id);
         this.defaultType = defaultType;
-//        this.options = options;
         this.config = configurationType;
     }
 
@@ -619,9 +612,19 @@ public abstract class ContainerableListPanel<C extends Serializable, PO extends 
 
             if (WebComponentUtil.getElementVisibility(customColumn.getVisibility())) {
                 IModel<String> columnDisplayModel = createColumnDisplayModel(customColumn);
-                if (customColumns.indexOf(customColumn) == 0 && shouldCheckForNameColumn) {
+                if (ObjectType.F_NAME.equivalent(columnPath) || (customColumns.indexOf(customColumn) == 0 && shouldCheckForNameColumn)) {
                     column = createNameColumn(columnDisplayModel, customColumn, expression);
-                } else {
+                }
+                else if (AbstractRoleType.F_DISPLAY_NAME.equivalent(columnPath)) {
+                    column = new ConfigurableExpressionColumn<>(columnDisplayModel, getSortProperty(customColumn, expression), customColumn, expression, getPageBase()) {
+                        @Override
+                        public void populateItem(Item item, String componentId, IModel rowModel) {
+                            super.populateItem(item, componentId, rowModel);
+                            item.add(AttributeAppender.append("class", "name-min-width"));
+                        }
+                    };
+                }
+                else {
                     column = createCustomExportableColumn(columnDisplayModel, customColumn, expression);
                 }
 

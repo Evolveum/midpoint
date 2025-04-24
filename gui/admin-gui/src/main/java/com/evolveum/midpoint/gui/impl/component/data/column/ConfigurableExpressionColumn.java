@@ -22,6 +22,7 @@ import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.web.component.data.column.ColumnUtils;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.export.AbstractExportableColumn;
 import org.apache.wicket.markup.html.basic.Label;
@@ -87,6 +88,9 @@ public class ConfigurableExpressionColumn<S extends SelectableRow<T>, T extends 
             item.add(listItems);
         } else {
             item.add(new Label(componentId, model));
+        }
+        if (customColumn.getDisplay() != null && customColumn.getDisplay().getCssStyle() != null) {
+            item.add(AttributeAppender.append("style", customColumn.getDisplay().getCssStyle()));
         }
     }
 
