@@ -131,13 +131,16 @@ There is a handful of relations that are hardcoded in midPoint:
 
 [%autowidth]
 |===
-| Relation | Meaning | Is a default for | Is also of kind
+| Relation | Meaning | Is a default for | Is also of kind | Processed on login | Processed on recompute | Stored into parentOrgRef
 
 | org:default
 | Default relation, usually meaning "has" or "is member of".
 Specifies that the subject is a member of organization, or that the subject has been assigned a role in a way that he gets authorizations and other content provided by that role.
 | member
 | -
+| yes
+| yes
+| yes
 
 
 | org:manager
@@ -145,7 +148,9 @@ Specifies that the subject is a member of organization, or that the subject has 
 Specifies that the subject is a manager of organizational unit.
 | manager
 | member
-
+| yes
+| yes
+| yes
 
 | org:meta
 | Relation used for metarole assignments.
@@ -153,14 +158,18 @@ Sometimes it is important to distinguish metarole and member assignments.
 This relation is used for that purpose.
 | meta
 | -
-
+| yes
+| yes
+| no
 
 | org:deputy
 | Relation "is deputy of".
 Specifies that the subject is a deputy of another user.
 | delegation
 | -
-
+| yes
+| yes
+| no
 
 | org:approver
 | Relation "is approver of".
@@ -171,7 +180,9 @@ It is NOT meant to approve role changes.
 Role owner is meant for that purpose.
 | approver
 | -
-
+| no
+| no
+| no
 
 | org:owner
 | Relation "is owner of".
@@ -181,14 +192,18 @@ It is NOT necessarily concerned with role use (e.g. assignment).
 The approver relation is meant for that purpose.
 | owner
 | -
-
+| no
+| no
+| no
 
 | org:consent
 | Relation "is consent for".
 Specifies that the subject gave a consent for using personnel information related to this role.
 | consent
 | -
-
+| no
+| no
+| no
 
 |===
 
