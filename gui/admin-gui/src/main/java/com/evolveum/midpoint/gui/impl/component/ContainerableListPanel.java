@@ -21,6 +21,7 @@ import org.apache.commons.lang3.reflect.ConstructorUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.DataTable;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
@@ -125,8 +126,6 @@ public abstract class ContainerableListPanel<C extends Serializable, PO extends 
 
     private LoadableDetachableModel<Search<C>> searchModel;
 
-//    private Collection<SelectorOptions<GetOperationOptions>> options;
-
     private String additionalBoxCssClasses;
 
     private Boolean manualRefreshEnabled;
@@ -151,12 +150,6 @@ public abstract class ContainerableListPanel<C extends Serializable, PO extends 
     public ContainerableListPanel(String id, Class<C> defaultType) {
         this(id, defaultType, null);
     }
-
-//    public ContainerableListPanel(String id, Class<C> defaultType, @Deprecated Collection<SelectorOptions<GetOperationOptions>> options) {
-//        super(id);
-//        this.defaultType = defaultType;
-////        this.options = options;
-//    }
 
     public ContainerableListPanel(String id, Class<C> defaultType, ContainerPanelConfigurationType configurationType) {
         super(id);
@@ -987,9 +980,19 @@ public abstract class ContainerableListPanel<C extends Serializable, PO extends 
 
             if (WebComponentUtil.getElementVisibility(customColumn.getVisibility())) {
                 IModel<String> columnDisplayModel = createColumnDisplayModel(customColumn);
-                if (customColumns.indexOf(customColumn) == 0 && shouldCheckForNameColumn) {
+                if (ObjectType.F_NAME.equivalent(columnPath) || (customColumns.indexOf(customColumn) == 0 && shouldCheckForNameColumn)) {
                     column = createNameColumn(columnDisplayModel, customColumn, expression);
-                } else {
+                }
+                else if (AbstractRoleType.F_DISPLAY_NAME.equivalent(columnPath)) {
+                    column = new ConfigurableExpressionColumn<>(columnDisplayModel, getSortProperty(customColumn, expression), customColumn, expression, getPageBase()) {
+                        @Override
+                        public void populateItem(Item item, String componentId, IModel rowModel) {
+                            super.populateItem(item, componentId, rowModel);
+                            item.add(AttributeAppender.append("class", "name-min-width"));
+                        }
+                    };
+                }
+                else {
                     column = createCustomExportableColumn(columnDisplayModel, customColumn, expression);
                 }
 
