@@ -62,7 +62,7 @@ Role in production use.
 | no
 | YES
 | Suspended definition, temporarily disabled.
-It is expected that the object will return to _active_ state eventually.
+It is expected that the object will return to _Active_ state eventually.
 
 Available since midPoint 4.8.
 | Employee on temporary leave (maternal leave, sabbatical). +
@@ -105,8 +105,8 @@ Resource with unexpected critical errors, requiring attention od administrators.
 |===
 
 The "Active" column specifies whether the object is active (enabled) in that particular lifecycle state.
-The effective activation status will always be `disabled` in the states that are marked as not active in the above table.
-In these states the object will not be active even if the activation administrative status is explicitly set to `enabled`.
+The effective activation status will always be _disabled_ in the states that are marked as not active in the above table.
+In these states the object will not be active even if the activation administrative status is explicitly set to _enabled_.
 See xref:/midpoint/reference/concepts/activation/[Activation] page for more details.
 
 
@@ -165,7 +165,7 @@ Manual action is needed.
 |===
 
 As described above, the assignment state is also determined by the focus (user) lifecycle state.
-When the focus (user) is in state marked as "Assignments active: no" (like `draft`, `proposed`, `archived`) then the assignments are considered inactive regardless of their lifecycle state.
+When the focus (user) is in state marked as "Assignments active: no" (like _Draft_, _Proposed_, _Archived_) then the assignments are considered inactive regardless of their lifecycle state.
 
 == Relation of Task Configurations and Lifecycle States
 
