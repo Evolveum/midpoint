@@ -1143,14 +1143,37 @@ public interface MidpointFunctions {
 
     boolean isProjectionExists();
 
+    /**
+     * Returns list of memebers of an organization, specified by OID.
+     * Only works for organizations.
+     */
+    // Should be perhaps renamed to getOrgMembers?
     List<UserType> getMembers(String orgOid)
             throws SchemaException, SecurityViolationException, CommunicationException, ConfigurationException,
             ObjectNotFoundException, ExpressionEvaluationException;
 
+    /**
+     * Returns list of references to memebers of an organization, specified by OID.
+     * Only works for organizations.
+     */
+    // Should be perhaps renamed to getOrgMembersAsReferences?
     List<ObjectReferenceType> getMembersAsReferences(String orgOid)
             throws SchemaException, SecurityViolationException, CommunicationException, ConfigurationException,
             ObjectNotFoundException, ExpressionEvaluationException;
 
+    /**
+     * Lists all user members of a role (specified by OID), with respect to specified relation.
+     * This method is suitable for listing role owners, approvers and similar "governance" users.
+     */
+    List<UserType> getRoleMemberUsers(String roleOid, QName relation) throws SchemaException, ObjectNotFoundException, SecurityViolationException,
+            CommunicationException, ConfigurationException, ExpressionEvaluationException;
+
+    /**
+     * Lists all user members of a service (specified by OID), with respect to specified relation.
+     * This method is suitable for listing owners, approvers and similar "governance" users of a service (e.g.an application).
+     */
+    List<UserType> getServiceMemberUsers(String serviceOid, QName relation) throws SchemaException, ObjectNotFoundException, SecurityViolationException,
+            CommunicationException, ConfigurationException, ExpressionEvaluationException;
     /**
      * Default function used to compute projection purpose. It is provided here so it can be explicitly
      * invoked from a custom expression and then the result can be changed for special cases.
@@ -1325,7 +1348,7 @@ public interface MidpointFunctions {
      * If this method returns true value then the script code is evaluating "new" value.
      * That means a value that is going to be set to target, e.g.
      * value from "add" or "replace" parts of the delta.
-     * If the script evaluates existing value that is not being modified (e.g. during 
+     * If the script evaluates existing value that is not being modified (e.g. during
      * a recomputation), that is also considered as "new" (going to be set to target) value.
      * If this method returns false value then the script code is evaluating "old" value.
      * That means a value that is used for the purposes of removing values from target,
