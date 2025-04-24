@@ -123,13 +123,11 @@ public class TaskSynchronizer {
         OperationResult result = parentResult.createSubresult(OP_SYNCHRONIZE_TASK);
         result.addArbitraryObjectAsParam("task", task);
         try {
-
             taskMigrator.migrateIfNeeded(task, result);
 
             LOGGER.trace("Synchronizing task {}; isRecreateQuartzTrigger = {}", task, task.isRecreateQuartzTrigger());
 
             Scheduler scheduler = localScheduler.getQuartzScheduler();
-            String oid = task.getOid();
 
             JobKey jobKey = QuartzUtil.createJobKeyForTask(task);
             TriggerKey standardTriggerKey = QuartzUtil.createTriggerKeyForTask(task);
