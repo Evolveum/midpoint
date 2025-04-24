@@ -1,0 +1,119 @@
+= Shadow Reclassification Task
+:page-toc: top
+:experimental:
+:page-nav-title: Shadow Reclassification Task
+:page-moved-from: /midpoint/reference/tasks/shadow-reclassification-task/gui/
+// the redirection is here to ensure simpler interlinking because the newer version have the GUI-focused sub-article.
+
+After a xref:/midpoint/reference/resources/shadow/[shadow object] is discovered on a resource, midPoint tries to assign a kind and an intent to it, or _classify_ it.
+Kind and intent define the type of the object from midPoint's point of view.
+(For more information, see xref:/midpoint/reference/resources/shadow/kind-intent-objectclass/[].)
+Only after being classified, midPoint can reasonably work with the shadow: create or find a focus object for it, execute inbound and outbound mappings, and so on.
+
+MidPoint uses xrefv:/midpoint/reference/support-4.9/resources/resource-configuration/schema-handling/delineation/[object type delineation] in order to classify the shadows.
+
+However, you're likely to encounter situations - often during solution development or testing - when you need to change the delineation of object types because you've found out it's not quite correct, or you need to split existing object types into finer-grained ones.
+All new (unclassified) objects will get classified using the new delineation automatically.
+But, primarily to ensure solution stability, midPoint doesn't reclassify shadows that are already classified.
+
+== Reclassify Shadows after Object Type Changes
+
+When you need to reclassify already classified shadows, you need to explicitly instruct midPoint to do it.
+You can do so either using an XML task definition or via GUI.
+
+=== Define Reclassification Task in XML
+
+You can reclassify resource object shadows using a task like this:
+
+.Shadow reclassification task
+[source,xml]
+----
+<task
+    xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+    xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+    xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-3"
+    xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
+    >
+    <name>Reclassify HRIS shadows</name>
+    <assignment id="1">
+        <targetRef oid="00000000-0000-0000-0000-000000000503" relation="org:default" type="c:ArchetypeType">
+            <!-- Import task -->
+        </targetRef>
+        <activation>
+            <effectiveStatus>enabled</effectiveStatus>
+        </activation>
+    </assignment>
+    <archetypeRef oid="00000000-0000-0000-0000-000000000503" relation="org:default" type="c:ArchetypeType">
+        <!-- Import task -->
+    </archetypeRef>
+    <roleMembershipRef oid="00000000-0000-0000-0000-000000000503" relation="org:default" type="c:ArchetypeType">
+        <!-- Import task -->
+        <_metadata>
+            <provenance>
+                <assignmentPath>
+                    <sourceRef oid="145b4c3b-04b4-4fe7-9fe8-f2b7959c235d" relation="org:default" type="c:TaskType"/>
+                    <segment>
+                        <segmentOrder>1</segmentOrder>
+                        <assignmentId>1</assignmentId>
+                        <targetRef oid="00000000-0000-0000-0000-000000000503" relation="org:default" type="c:ArchetypeType"/>
+                        <matchingOrder>true</matchingOrder>
+                    </segment>
+                </assignmentPath>
+            </provenance>
+        </_metadata>
+    </roleMembershipRef>
+    <taskIdentifier>1745418012904-60410-3</taskIdentifier>
+    <ownerRef oid="00000000-0000-0000-0000-000000000002" relation="org:default" type="c:UserType">
+        <!-- administrator -->
+    </ownerRef>
+  <objectRef oid="08a10b74-7df6-4d56-b36f-3074a1b6557f" relation="org:default" type="c:ResourceType">
+        <!-- HRIS resource -->
+    </objectRef>
+    <binding>loose</binding>
+    <activity>
+        <work>
+            <import>
+                <resourceObjects>
+                    <resourceRef oid="08a10b74-7df6-4d56-b36f-3074a1b6557f" relation="org:default" type="c:ResourceType">
+                        <!-- HRIS resource -->
+                    </resourceRef>
+                    <objectclass>ri:AccountObjectClass</objectclass>
+                </resourceObjects>
+            </import>
+        </work>
+        <execution>
+            <mode>preview</mode>
+            <configurationToUse>
+                <predefined>development</predefined>
+            </configurationToUse>
+        </execution>
+    </activity>
+</task>
+----
+
+=== Reclassify Shadows Using GUI
+
+Firstly, select your resource under icon:database[] *Resources* > icon:database[] *All resources* and xref:/midpoint/reference/admin-gui/resource-wizard#basic-attributes[make your changes to the object type].
+
+Once you're done with the changes to the object type:
+
+. In the left-side resource menu, select icon:eye[] *Resource objects*.
+. At the bottom of the object list, click icon:rotate-right[] btn:[Reclassify].
+. Click btn:[Yes] in the modal dialog that appears to confirm the reclassification.
+
+image::../shadow-reclassification-task-launch-button-on-resource-objects-list.webp[link=../shadow-reclassification-task-launch-button-on-resource-objects-list.webp, 100%, title=Shadow reclassification button in the resource object list view]
+
+The resource object list contents won't change after this action.
+Navigate to icon:male[] *Accounts* to check the result of the reclassification.
+
+.Resource objects vs. accounts
+[NOTE]
+====
+There are two items in the resource navigation menu that may display confusingly similar contents: Resource objects and Accounts.
+However, they're not the same and they're very useful when adjusting object types classification.
+
+* The *Resource objects* section lists all objects found on the resource that are of the object class selected at the top of the list, regardless of any object type filtering.
+* The *Accounts* section lists account shadows created based on the overal resource object type setup, including the filtering rules.
+    This is the section where you see results of the filtering rules you set in the resource object type configuration.
+    Once you run shadow reclassification task, contents of this section reflect your updates to resource data filtering. The Resource objects section contents stay the same.
+====
