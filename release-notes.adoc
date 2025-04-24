@@ -30,7 +30,8 @@ The {release-version} release brings security, stability and miscellaneous bugfi
 
 == Changes with Respect To Version 4.8.7
 
-* bug:MID-10645 Fatal error when sorting by time column in created reports
+* bug:MID-10645[] Fatal error when sorting by time column in created reports
+* bug:MID-10496[] Task doesn't start at the next scheduled time.
 
 == Changes with Respect To Version 4.8.6
 
