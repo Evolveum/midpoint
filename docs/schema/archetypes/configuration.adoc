@@ -21,8 +21,10 @@ _Employee_, _Contractor_, _Project_, _Workgroup_, or _Application_ can be archet
 
 See xref:/midpoint/reference/schema/archetypes/[] for a more in-depth introduction to the archetype concept.
 
-Refer to xref:./configuration-gui[] for guides on working with archetypes in the midPoint administrative user interface.
-
+[TIP]
+====
+Refer to xref:./configuration-gui[] for the midPoint graphical user interface guide on the topic.
+====
 
 == Archetype Definition
 
