@@ -15,6 +15,11 @@ However, you're likely to encounter situations - often during solution developme
 All new (unclassified) objects will get classified using the new delineation automatically.
 But, primarily to ensure solution stability, midPoint doesn't reclassify shadows that are already classified.
 
+[TIP]
+====
+Refer to xref:./gui/[] for the midPoint graphical user interface guide on the topic.
+====
+
 == Shadow Reclassification Activity
 
 When you need to reclassify already classified resource objects, use the `shadowReclassification` activity.
