@@ -9,6 +9,12 @@ package com.evolveum.midpoint.report;
 import java.io.File;
 import java.util.Objects;
 
+import com.evolveum.midpoint.audit.api.AuditEventRecord;
+import com.evolveum.midpoint.schema.constants.ExpressionConstants;
+import com.evolveum.midpoint.schema.expression.VariablesMap;
+
+import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType;
+
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Test;
@@ -113,5 +119,23 @@ public class TestMiscellaneous extends EmptyReportIntegrationTest {
     @Override
     protected FileFormatConfigurationType getFileFormatConfiguration() {
         return null; // unused
+    }
+
+    /**
+     * MID-10659
+     *
+     * Chained subreports variables, different code path via {@link ReportManager#evaluateSubreportParameters} used in GUI
+     */
+    @Test
+    public void testSubreportsVariables() {
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        VariablesMap variables = new VariablesMap();
+        variables.put(ExpressionConstants.VAR_OBJECT, new AuditEventRecordType(), AuditEventRecordType.class);
+
+        reportManager.evaluateSubreportParameters(REPORT_SUBREPORT_AUDIT.get(),variables, task, result);
+
+        assertSuccess(result);
     }
 }
