@@ -15,6 +15,8 @@ import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.evolveum.midpoint.test.TestObject;
+
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
@@ -54,6 +56,16 @@ public class TestPolicyRules2 extends AbstractLensTest {
     private static final File ROLE_PERSON_FILE = new File(TEST_DIR, "role-person.xml");
     private static final File ROLE_TEMPORARY_FILE = new File(TEST_DIR, "role-temporary.xml");
     private static final File ROLE_STUDENT_FILE = new File(TEST_DIR, "role-student.xml");
+
+    static final TestObject<RoleType> ROLE_RUM_DRINKER = TestObject.file(
+            TEST_DIR, "role-rum-drinker.xml", "d9904984-2119-11f0-8913-bb00c5bbe9a2");
+
+    static final TestObject<RoleType> ROLE_RUM_SPIRIT = TestObject.file(
+            TEST_DIR, "role-rum-spirit.xml", "a6a9a550-211a-11f0-9706-b3947043966d");
+
+    static final TestObject<RoleType> ROLE_RUM_MANAGER = TestObject.file(
+            TEST_DIR, "role-rum-manager.xml", "9d18d638-2119-11f0-b735-43f4b26a370d");
+
     private static final File USER_JOE_FILE = new File(TEST_DIR, "user-joe.xml");
     private static final File USER_FRANK_FILE = new File(TEST_DIR, "user-frank.xml");
     private static final File USER_PETER_FILE = new File(TEST_DIR, "user-peter.xml");
@@ -117,6 +129,13 @@ public class TestPolicyRules2 extends AbstractLensTest {
                 prismContext.deltaFor(SystemConfigurationType.class)
                         .item(SystemConfigurationType.F_GLOBAL_POLICY_RULE).add(hasStudentDisabled)
                         .asItemDeltas(), initResult);
+
+        initTestObjects(
+                initTask, initResult,
+                ROLE_RUM_DRINKER,
+                ROLE_RUM_SPIRIT,
+                ROLE_RUM_MANAGER
+                );
 
         InternalMonitor.reset();
         DebugUtil.setPrettyPrintBeansAs(PrismContext.LANG_YAML);
@@ -253,6 +272,139 @@ public class TestPolicyRules2 extends AbstractLensTest {
         assertFocusTriggers(context, PolicyConstraintKindType.HAS_ASSIGNMENT, 4);
         assertFocusTriggers(context, PolicyConstraintKindType.HAS_NO_ASSIGNMENT, 1);
         assertFocusTriggers(context, PolicyConstraintKindType.TRANSITION, 3);
+
+        assertSerializable(context);
+    }
+
+    /**
+     * Assign Rum drinker role to Jack.
+     * This role has assignment rule that should always trigger, even now.
+     * #10663
+     */
+    @Test
+    public void test121JackAttemptAssignRoleRumDrinker() throws Exception {
+        // GIVEN
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        LensContext<UserType> context = createUserLensContext();
+        fillContextWithUser(context, USER_JACK_OID, result);
+        addModificationToContextAssignRole(context, USER_JACK_OID, ROLE_RUM_DRINKER.oid);
+
+        displayDumpable("Input context", context);
+
+        assertFocusModificationSanity(context);
+
+        // WHEN
+        when();
+        projector.project(context, ACTIVITY_DESCRIPTION, task, result);
+
+        // THEN
+        then();
+        assertSuccess(result);
+
+        dumpPolicyRules(context);
+        //dumpPolicySituations(context);
+
+        assertEvaluatedTargetPolicyRules(context, 1);
+        assertTargetTriggers(context, null, 1);
+        assertTargetTriggers(context, PolicyConstraintKindType.ASSIGNMENT_MODIFICATION, 1);
+        assertTargetTriggers(context, PolicyConstraintKindType.OBJECT_STATE, 0);
+
+        assertEvaluatedFocusPolicyRules(context, 0);
+        assertFocusTriggers(context, null, 0);
+        assertFocusTriggers(context, PolicyConstraintKindType.HAS_ASSIGNMENT, 0);
+        assertFocusTriggers(context, PolicyConstraintKindType.HAS_NO_ASSIGNMENT, 0);
+        assertFocusTriggers(context, PolicyConstraintKindType.TRANSITION, 0);
+
+        assertSerializable(context);
+    }
+
+    /**
+     * Assign Rum manager role to Jack.
+     * Both induced roles has assignment rules that should trigger.
+     * #10663
+     */
+    @Test
+    public void test122JackAttemptAssignRoleRumManager() throws Exception {
+        // GIVEN
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        LensContext<UserType> context = createUserLensContext();
+        fillContextWithUser(context, USER_JACK_OID, result);
+        addModificationToContextAssignRole(context, USER_JACK_OID, ROLE_RUM_MANAGER.oid);
+
+        displayDumpable("Input context", context);
+
+        assertFocusModificationSanity(context);
+
+        // WHEN
+        when();
+        projector.project(context, ACTIVITY_DESCRIPTION, task, result);
+
+        // THEN
+        then();
+        assertSuccess(result);
+
+        dumpPolicyRules(context);
+        //dumpPolicySituations(context);
+
+        assertEvaluatedTargetPolicyRules(context, 2);
+        assertTargetTriggers(context, null, 2);
+        assertTargetTriggers(context, PolicyConstraintKindType.ASSIGNMENT_MODIFICATION, 2);
+        assertTargetTriggers(context, PolicyConstraintKindType.OBJECT_STATE, 0);
+
+        assertEvaluatedFocusPolicyRules(context, 0);
+        assertFocusTriggers(context, null, 0);
+        assertFocusTriggers(context, PolicyConstraintKindType.HAS_ASSIGNMENT, 0);
+        assertFocusTriggers(context, PolicyConstraintKindType.HAS_NO_ASSIGNMENT, 0);
+        assertFocusTriggers(context, PolicyConstraintKindType.TRANSITION, 0);
+
+        assertSerializable(context);
+    }
+
+    /**
+     * Assign Rum spirit role to Jack.
+     * This roles has assignment rule that should trigger only when assigned indirectly.
+     * It should not trigger in this case.
+     * #10663
+     */
+    @Test
+    public void test123JackAttemptAssignRoleRumSpirit() throws Exception {
+        // GIVEN
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        LensContext<UserType> context = createUserLensContext();
+        fillContextWithUser(context, USER_JACK_OID, result);
+        addModificationToContextAssignRole(context, USER_JACK_OID, ROLE_RUM_SPIRIT.oid);
+
+        displayDumpable("Input context", context);
+
+        assertFocusModificationSanity(context);
+
+        // WHEN
+        when();
+        projector.project(context, ACTIVITY_DESCRIPTION, task, result);
+
+        // THEN
+        then();
+        assertSuccess(result);
+
+        dumpPolicyRules(context);
+        //dumpPolicySituations(context);
+
+        assertEvaluatedTargetPolicyRules(context, 1);
+        assertTargetTriggers(context, null, 0);
+        assertTargetTriggers(context, PolicyConstraintKindType.ASSIGNMENT_MODIFICATION, 0);
+        assertTargetTriggers(context, PolicyConstraintKindType.OBJECT_STATE, 0);
+
+        assertEvaluatedFocusPolicyRules(context, 0);
+        assertFocusTriggers(context, null, 0);
+        assertFocusTriggers(context, PolicyConstraintKindType.HAS_ASSIGNMENT, 0);
+        assertFocusTriggers(context, PolicyConstraintKindType.HAS_NO_ASSIGNMENT, 0);
+        assertFocusTriggers(context, PolicyConstraintKindType.TRANSITION, 0);
 
         assertSerializable(context);
     }

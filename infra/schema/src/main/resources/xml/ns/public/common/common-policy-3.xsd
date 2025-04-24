@@ -949,6 +949,18 @@
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
+                    <xsd:element name="scope" type="tns:AssignmentModificationPolicyConstraintScopeType"  minOccurs="0" maxOccurs="1" default="direct">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Scope of assignment policy constraint application.
+                                It specifies whether the constraint should be triggered when assigned directly, indirectly or in both cases.
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:since>4.10</a:since>
+                                <a:displayName>AssignmentModificationPolicyConstraintType.scope</a:displayName>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
                     <!--<xsd:element name="targetType" type="xsd:QName"  minOccurs="0" maxOccurs="unbounded">-->
                         <!--<xsd:annotation>-->
                             <!--<xsd:documentation>-->
@@ -964,6 +976,51 @@
         </xsd:complexContent>
     </xsd:complexType>
     <xsd:element name="assignmentModificationPolicyConstraint" type="tns:AssignmentModificationPolicyConstraintType" substitutionGroup="tns:abstractPolicyConstraint" />
+
+    <xsd:simpleType name="AssignmentModificationPolicyConstraintScopeType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Scope of assignment policy constraint application.
+                It specifies whether the constraint should be triggered when assigned directly, indirectly or in both cases.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <jaxb:typesafeEnumClass/>
+                <a:since>4.10</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="direct">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Trigger the constraint for direct assignments only.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="DIRECT"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="indirect">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Trigger the constraint for indirect assignments only.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="INDIRECT"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="any">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Trigger the constraint for both direct and indirect assignments.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="ANY"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+        </xsd:restriction>
+    </xsd:simpleType>
 
     <xsd:complexType name="HasAssignmentPolicyConstraintType">
         <xsd:annotation>

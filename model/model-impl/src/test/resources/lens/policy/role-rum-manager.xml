@@ -1,0 +1,24 @@
+<!--
+  ~ Copyright (C) 2010-2025 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+<role oid="9d18d638-2119-11f0-b735-43f4b26a370d"
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+        xmlns:s="http://midpoint.evolveum.com/xml/ns/public/model/scripting-3">
+
+    <name>Rum manager</name>
+    <description>
+        Role that does not contain any policy rules directly.
+        It induces rum drinker role, which has assignment policy rule, set to be triggered even indirectly.
+        #10663
+    </description>
+    <inducement>
+        <targetRef oid="d9904984-2119-11f0-8913-bb00c5bbe9a2" type="RoleType"/> <!-- Rum drinker -->
+    </inducement>
+    <inducement>
+        <targetRef oid="a6a9a550-211a-11f0-9706-b3947043966d" type="RoleType"/> <!-- Rum spirit -->
+    </inducement>
+</role>

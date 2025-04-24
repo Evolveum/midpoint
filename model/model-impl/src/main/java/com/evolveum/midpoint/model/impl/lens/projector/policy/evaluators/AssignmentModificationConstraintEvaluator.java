@@ -65,11 +65,12 @@ public class AssignmentModificationConstraintEvaluator
                 return List.of();
             }
             AssignmentPolicyRuleEvaluationContext<?> ctx = (AssignmentPolicyRuleEvaluationContext<?>) rctx;
-            if (!ctx.isDirect()) {
-                LOGGER.trace("Assignment is indirect => not triggering");
+            AssignmentModificationPolicyConstraintType constraint = constraintElement.getValue();
+            if(!isConstraintApplicable(ctx, constraint)) {
+                LOGGER.trace("Assignment directness does not match constraint scope ({}) => not triggering", constraint.getScope());
                 return List.of();
             }
-            AssignmentModificationPolicyConstraintType constraint = constraintElement.getValue();
+
             if (!operationMatches(constraint, ctx.isAdded, ctx.isKept, ctx.isDeleted) ||
                     !relationMatches(constraint, ctx) ||
                     !pathsMatch(constraint, ctx) ||
@@ -92,6 +93,18 @@ public class AssignmentModificationConstraintEvaluator
         } finally {
             result.computeStatusIfUnknown();
         }
+    }
+
+    private boolean isConstraintApplicable(AssignmentPolicyRuleEvaluationContext<?> ctx, AssignmentModificationPolicyConstraintType constraint) {
+        AssignmentModificationPolicyConstraintScopeType scope = constraint.getScope();
+        if (scope == null) {
+            return ctx.isDirect();
+        }
+        return switch (scope) {
+            case DIRECT -> ctx.isDirect();
+            case INDIRECT -> !ctx.isDirect();
+            case ANY -> true;
+        };
     }
 
     private <AH extends AssignmentHolderType> LocalizableMessage createMessage(
