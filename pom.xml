@@ -241,6 +241,7 @@
 
 
         <!-- START of Spring Boot dependencies overrides (temporary/security fixes, revise regularly!) -->
+        <spring-security.version>6.4.5</spring-security.version>
         <!-- END of Spring Boot dependencies overrides -->
 
         <wicket.version>10.4.0</wicket.version>
