@@ -2404,3 +2404,8 @@ footer.main-footer a {
 .changed-item-panel-value > p {
   margin: 0;
 }
+
+// MID-10315 add minimum width for object name
+.name-min-width {
+  min-width: 300px;
+}
