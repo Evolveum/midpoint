@@ -10,7 +10,7 @@ doc-type: intro
 :page-wiki-metadata-modify-user: semancik
 :page-wiki-metadata-modify-date: 2017-01-30T20:39:14.801+01:00
 :page-upkeep-status: yellow
-
+:page-toc: top
 MidPoint contains a special property to control object lifecycle: `lifecycleState`. This property specifies current lifecycle state of the object.
 It specified whether the object represents a draft, proposed definition, whether it is active, deprecated, and so on.
 There are few pre-defined lifecycle states.
@@ -20,10 +20,9 @@ The pre-defined lifecycle states are designed to work in a state machine describ
 image::schemas-lifecycle-statechart.png[]
 
 
-If no explicit lifecycle state is defined then the `active` state is assumed.
-In addition to the pre-defined states custom lifecycle states can be used.
-However, currently all the custom lifecycle states are considered to be non-active.
-
+If no explicit lifecycle state is defined then the _Active_ state is assumed.
+In addition to the pre-defined states, you can define custom lifecycle states.
+However, all the custom lifecycle states are currently considered to be non-active, meaning that if you need to an object to be treated as active, use either _Active_ or _Deprecated_ lifecycle state.
 
 == Pre-defined Lifecycle States
 
@@ -63,7 +62,7 @@ Role in production use.
 | no
 | YES
 | Suspended definition, temporarily disabled.
-It is expected that the object will return to _active_ state eventually.
+It is expected that the object will return to _Active_ state eventually.
 
 Available since midPoint 4.8.
 | Employee on temporary leave (maternal leave, sabbatical). +
@@ -106,8 +105,8 @@ Resource with unexpected critical errors, requiring attention od administrators.
 |===
 
 The "Active" column specifies whether the object is active (enabled) in that particular lifecycle state.
-The effective activation status will always be `disabled` in the states that are marked as not active in the above table.
-In these states the object will not be active even if the activation administrative status is explicitly set to `enabled`.
+The effective activation status will always be _disabled_ in the states that are marked as not active in the above table.
+In these states the object will not be active even if the activation administrative status is explicitly set to _enabled_.
 See xref:/midpoint/reference/concepts/activation/[Activation] page for more details.
 
 
@@ -166,7 +165,17 @@ Manual action is needed.
 |===
 
 As described above, the assignment state is also determined by the focus (user) lifecycle state.
-When the focus (user) is in state marked as "Assignments active: no" (like `draft`, `proposed`, `archived`) then the assignments are considered inactive regardless of their lifecycle state.
+When the focus (user) is in state marked as "Assignments active: no" (like _Draft_, _Proposed_, _Archived_) then the assignments are considered inactive regardless of their lifecycle state.
+
+== Relation of Task Configurations and Lifecycle States
+
+When configuring xref:/midpoint/reference/tasks/activities/[tasks], you can select a xref:/midpoint/reference/tasks/activities/execution-mode/[task execution configuration] to reflect whether you want to simulate what _would_ happen or execute the changes for real.
+The task configuration is tightly related to the lifecycle states of objects with which your tasks work.
+
+* In the _Development_ configuration, tasks work with objects in the _Active_ and _Proposed_ lifecycle states.
+* In the _Production_ configuration, tasks work with objects in the _Active_ and _Deprecated_ lifecycle states.
+
+image::./task-configurations-and-lifecycle-states-relation.drawio.svg[title="Diagram of which lifecycle states are processed by which task configurations"]
 
 == See Also
 
