@@ -32,6 +32,7 @@ The {release-version} release brings security, stability and miscellaneous bugfi
 
 * bug:MID-10645[] Fatal error when sorting by time column in created reports
 * bug:MID-10496[] Task doesn't start at the next scheduled time.
+* bug:MID-10664[] High memory usage and instability when completing work items in bulk fixed via bug:MID-9671[] backport.
 
 == Changes with Respect To Version 4.8.6
 
