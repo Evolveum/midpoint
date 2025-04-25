@@ -100,12 +100,16 @@ public class DynamicFieldGroupPanel<O extends ObjectType> extends BasePanel<Pris
             IModel<ItemWrapper<?, ?>> model = () -> findAndTailorItemWrapper(formItem, getObjectWrapper());
             Panel panel = WebPrismUtil.createVerticalPropertyPanel(itemView.newChildId(), model, null);
             if (panel instanceof VerticalFormPrismPropertyPanel<?>) {
-                ((VerticalFormPrismPropertyPanel)panel).setRequiredTagVisibleInHeaderPanel(true);
+                ((VerticalFormPrismPropertyPanel)panel).setRequiredTagVisibleInHeaderPanel(isMandatory(model));
             } else if (panel instanceof VerticalFormPrismReferencePanel<?>) {
-                ((VerticalFormPrismReferencePanel)panel).setRequiredTagVisibleInHeaderPanel(true);
+                ((VerticalFormPrismReferencePanel)panel).setRequiredTagVisibleInHeaderPanel(isMandatory(model));
             }
             itemView.add(panel);
         }
+    }
+
+    private boolean isMandatory(IModel<ItemWrapper<?, ?>> model) {
+        return model != null && model.getObject() != null && model.getObject().getMinOccurs() > 0;
     }
 
     private RepeatingView getRepeatingPropertyView() {
