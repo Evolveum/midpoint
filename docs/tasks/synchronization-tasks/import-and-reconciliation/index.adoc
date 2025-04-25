@@ -1,5 +1,7 @@
-= Import and Reconciliation
-:toc:
+= Import and Reconciliation Tasks
+:page-nav-title: 'Import and Reconciliation'
+:page-display-order: 10
+:page-toc: top
 
 The _import_ task takes a set of resource objects and "pushes" them into midPoint.
 

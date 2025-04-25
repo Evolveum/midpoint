@@ -1,0 +1,33 @@
+= Import Tasks in GUI
+:page-nav-title: 'Import Tasks in GUI'
+:page-display-order: 20
+:page-toc: top
+:experimental:
+
+== Import From a Resource
+
+== Simulate Import of a Single Object
+
+Before importing objects, such as accounts, from a resource to midPoint, it's useful to simulate import of a single object to see whether all the mappings behave as expected.
+
+To simulate import of a single account:
+
+. In icon:database[] Resource > icon:database[] All resources, select your resource.
+. In the resource-specific left-side menu, select icon:male[] Accounts.
+. Pick an account you want to test with
+. Click the dropdown menu button btn:[▼] at the far right of the row and select btn:[Import preview].
+. In the modal dialog that appears, select the task execution mode:
+    ** *Simulated production* if your resource or mappings lifecycle state are in the _Active_ lifecycle state.
+    ** *Simulated development* if your resource or mappings lifecycle state are in the _Proposed_ lifecycle state.
+. Click btn:[Select]
+
+image::../gui-import-preview-single-account-from-account-list.webp[]
+
+Once the task finishes, you're taken to the *Processed objects* screen.
+There, you see the shadow object with no changes and a new user object that _would_ be added were it not for the simulation.
+
+image::../gui-import-preview-single-account-processed-objects.webp[]
+
+Click the name of the user object to see its details, mapping results in particular.
+
+image::../gui-import-preview-single-account-simulation-result-details.webp[]
