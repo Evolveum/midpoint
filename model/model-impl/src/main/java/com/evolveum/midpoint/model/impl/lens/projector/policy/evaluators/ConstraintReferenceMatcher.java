@@ -8,8 +8,11 @@ package com.evolveum.midpoint.model.impl.lens.projector.policy.evaluators;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.model.common.archetypes.ArchetypeManager;
 import com.evolveum.midpoint.model.common.expression.ModelExpressionEnvironment;
 import com.evolveum.midpoint.repo.common.expression.ExpressionEnvironmentThreadLocalHolder;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType;
+
 import com.google.common.base.MoreObjects;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -46,22 +49,28 @@ class ConstraintReferenceMatcher<O extends ObjectType> {
 
     private final PolicyRuleEvaluationContext<O> evalContext;
     private final ExpressionFactory expressionFactory;
+    private final ArchetypeManager archetypeManager;
     private final OperationResult operationResult;
 
     /** Reference defined in the exclusion or other constraint. We match it against the object. */
     @Nullable private final ObjectReferenceType targetReference;
+    @Nullable private final ObjectReferenceType targetArchetypeReference;
 
     private ObjectFilter filter; // lazily initialized
 
     ConstraintReferenceMatcher(
             @NotNull PolicyRuleEvaluationContext<O> evalContext,
             @Nullable ObjectReferenceType targetReference,
+            @Nullable ObjectReferenceType targetArchetypeReference,
             @NotNull ExpressionFactory expressionFactory,
+            @NotNull ArchetypeManager archetypeManager,
             @NotNull OperationResult operationResult,
             @NotNull Trace logger) {
         this.evalContext = evalContext;
         this.targetReference = targetReference;
+        this.targetArchetypeReference = targetArchetypeReference;
         this.expressionFactory = expressionFactory;
+        this.archetypeManager = archetypeManager;
         this.operationResult = operationResult;
         this.logger = logger;
     }
@@ -70,10 +79,14 @@ class ConstraintReferenceMatcher<O extends ObjectType> {
      * @param object Object we want to match against the reference.
      */
     boolean refMatchesTarget(PrismObject<?> object, String context)
-            throws SchemaException {
+            throws SchemaException, ConfigurationException {
         if (targetReference == null) {
-            // this means we rely on comparing relations (represented by order constraints in exclusion case)
-            return true;
+            if (targetArchetypeReference == null) {
+                // this means we rely on comparing relations (represented by order constraints in exclusion case)
+                return true;
+            } else {
+                return archetypeMatches(object, context);
+            }
         }
         if (object.getOid() == null) {
             logger.warn("OID-less object to be matched against reference in a constraint: {}", object);
@@ -120,4 +133,18 @@ class ConstraintReferenceMatcher<O extends ObjectType> {
         }
         return filter.match(object.getValue(), SchemaService.get().matchingRuleRegistry());
     }
+
+    private boolean archetypeMatches(PrismObject<?> object, String contextDescription)
+            throws SchemaException, ConfigurationException {
+        logger.trace("matching archetype of {} in {}", object, contextDescription);
+        if (!object.isOfType(AssignmentHolderType.class)) {
+            logger.trace("Archetype mismatch for {} in {}", object, contextDescription);
+            return false;
+        }
+        if (targetArchetypeReference == null || targetArchetypeReference.getOid() == null) {
+            return false;
+        }
+        return archetypeManager.isOfArchetype((AssignmentHolderType) object.asObjectable(), targetArchetypeReference.getOid(), operationResult);
+    }
+
 }

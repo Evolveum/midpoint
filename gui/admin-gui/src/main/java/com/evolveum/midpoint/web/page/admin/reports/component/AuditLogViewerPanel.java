@@ -483,7 +483,11 @@ public class AuditLogViewerPanel extends ContainerableListPanel<AuditEventRecord
             return createOutcomeColumn();
         }
 
-        if (AuditEventRecordType.F_DELTA.equivalent(path)) {
+        boolean hasCustomExpression = guiObjectColumn != null
+                && guiObjectColumn.getExport() != null
+                && guiObjectColumn.getExport().getExpression() != null;
+
+        if (AuditEventRecordType.F_DELTA.equivalent(path) && !hasCustomExpression) {
             return createDeltaColumn(displayModel, guiObjectColumn);
         }
 

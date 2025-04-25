@@ -1079,7 +1079,7 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> implements 
         columns.add(new AbstractColumn<>(createStringResource("ObjectType.name")) {
             @Override
             public void populateItem(Item<ICellPopulator<SelectableBean<ObjectType>>> item, String id, IModel<SelectableBean<ObjectType>> row) {
-                item.add(AttributeAppender.append("class", "align-middle"));
+                item.add(AttributeAppender.append("class", "align-middle name-min-width"));
                 item.add(new LabelWithCheck(id,
                         () -> WebComponentUtil.getDisplayNameOrName(row.getObject().getValue().asPrismObject()),
                         () -> computeCheckState(row.getObject().getValue().getOid()),

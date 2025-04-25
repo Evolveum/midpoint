@@ -1,0 +1,32 @@
+<!--
+  ~ Copyright (C) 2010-2025 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+<role oid="d9904984-2119-11f0-8913-bb00c5bbe9a2"
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+        xmlns:s="http://midpoint.evolveum.com/xml/ns/public/model/scripting-3">
+
+    <name>Rum drinker</name>
+    <description>
+        This role has assignment policy rule, set to be triggered even indirectly.
+        #10663
+    </description>
+    <assignment>
+        <!-- this is just to test when the assignment constraint is triggered and when not -->
+        <policyRule>
+            <name>assignment-of-rum-drinker</name>
+            <policyConstraints>
+                <assignment>
+                    <name>assignment-of-drinker</name>
+                    <scope>any</scope>
+                </assignment>
+            </policyConstraints>
+            <policyActions>
+                <!-- none -->
+            </policyActions>
+        </policyRule>
+    </assignment>
+</role>

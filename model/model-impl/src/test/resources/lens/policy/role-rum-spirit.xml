@@ -1,0 +1,32 @@
+<!--
+  ~ Copyright (C) 2010-2025 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+<role oid="a6a9a550-211a-11f0-9706-b3947043966d"
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+        xmlns:s="http://midpoint.evolveum.com/xml/ns/public/model/scripting-3">
+
+    <name>Rum spirit</name>
+    <description>
+        This role has assignment policy rule, set to be triggered only when assigned indirectly.
+        #10663
+    </description>
+    <assignment>
+        <!-- this is just to test when the assignment constraint is triggered and when not -->
+        <policyRule>
+            <name>assignment-of-rum-spirit</name>
+            <policyConstraints>
+                <assignment>
+                    <name>assignment-of-spirit</name>
+                    <scope>indirect</scope>
+                </assignment>
+            </policyConstraints>
+            <policyActions>
+                <!-- none -->
+            </policyActions>
+        </policyRule>
+    </assignment>
+</role>

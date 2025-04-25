@@ -361,9 +361,13 @@ public class ReportServiceImpl implements ReportService {
         List<SubreportParameterType> sortedSubreports = new ArrayList<>(subreports);
         sortedSubreports.sort(Comparator.comparingInt(s -> ObjectUtils.defaultIfNull(s.getOrder(), Integer.MAX_VALUE)));
 
+        VariablesMap inputVariables = new VariablesMap();
+        inputVariables.putAll(variables);
         for (SubreportParameterType subreport : sortedSubreports) {
-            subreportVariable.putAll(
-                    evaluateSubreport(reportObject, variables, subreport, task, result));
+            VariablesMap resultVariables = evaluateSubreport(reportObject, inputVariables, subreport, task, result);
+
+            inputVariables.putAll(resultVariables);
+            subreportVariable.putAll(resultVariables);
         }
 
         return subreportVariable;
@@ -389,6 +393,7 @@ public class ReportServiceImpl implements ReportService {
             resultMap.put(name, TypedValue.of(values, subReportDef.getType()));
         } catch (Exception e) {
             LoggingUtils.logException(LOGGER, "Couldn't execute expression {} in {}", e, expression, reportObject);
+            resultMap.put(name, null, Object.class);
         }
 
         return resultMap;

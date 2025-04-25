@@ -1111,10 +1111,22 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         modifyUserAssignment(userOid, policyOid, PolicyType.COMPLEX_TYPE, null, task, (Consumer<AssignmentType>) null, true, result);
     }
 
+    protected <F extends FocusType> void assignPolicy(Class<F> focusType, String focusOid, String policyOid, Task task, OperationResult result) throws ObjectNotFoundException,
+            SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, ObjectAlreadyExistsException,
+            PolicyViolationException, SecurityViolationException {
+        modifyFocusAssignment(focusType, focusOid, policyOid, PolicyType.COMPLEX_TYPE, null, task, (Consumer<AssignmentType>) null, true, result);
+    }
+
     protected void unassignPolicy(String userOid, String policyOid, Task task, OperationResult result) throws ObjectNotFoundException,
             SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, ObjectAlreadyExistsException,
             PolicyViolationException, SecurityViolationException {
         modifyUserAssignment(userOid, policyOid, PolicyType.COMPLEX_TYPE, null, task, (Consumer<AssignmentType>) null, false, result);
+    }
+
+    protected <F extends FocusType> void unassignPolicy(Class<F> focusType, String focusOid, String policyOid, Task task, OperationResult result) throws ObjectNotFoundException,
+            SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, ObjectAlreadyExistsException,
+            PolicyViolationException, SecurityViolationException {
+        modifyFocusAssignment(focusType, focusOid, policyOid, PolicyType.COMPLEX_TYPE, null, task, (Consumer<AssignmentType>) null, false, result);
     }
 
     protected void induceRole(String focusRoleOid, String targetRoleOid, Task task, OperationResult result) throws ObjectNotFoundException,

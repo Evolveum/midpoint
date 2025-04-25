@@ -8,7 +8,11 @@
 package com.evolveum.midpoint.common;
 
 import org.apache.commons.lang3.builder.ToStringStyle;
+import org.jetbrains.annotations.NotNull;
 
+/**
+ * TODO implement use of multiline, lineSeparator, itemSeparators
+ */
 public class UserFriendlyPrettyPrinterOptions {
 
     public static final String DEFAULT_LINE_SEPARATOR = "\n";
@@ -78,7 +82,7 @@ public class UserFriendlyPrettyPrinterOptions {
         return toStringStyle;
     }
 
-    public UserFriendlyPrettyPrinterOptions toStringStyle(ToStringStyle toStringStyle) {
+    public UserFriendlyPrettyPrinterOptions toStringStyle(@NotNull ToStringStyle toStringStyle) {
         this.toStringStyle = toStringStyle;
         return this;
     }

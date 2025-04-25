@@ -104,8 +104,11 @@ class ResumeHelper {
     }
 
     private void doResumeTask(TaskQuartzImpl task, OperationResult result) throws SchemaException, ObjectNotFoundException {
+        LOGGER.info("Resuming task {}.", task);
         try {
             clearTaskOperationResult(task, result); // see a note on scheduleTaskNow
+
+            LOGGER.trace("Task scheduling state before suspend: {}", task.getSchedulingStateBeforeSuspend());
             if (task.getSchedulingStateBeforeSuspend() == TaskSchedulingStateType.WAITING) {
                 List<ItemDelta<?, ?>> itemDeltas = prismContext.deltaFor(TaskType.class)
                         .item(TaskType.F_EXECUTION_STATE).replace(MoreObjects.firstNonNull(task.getStateBeforeSuspend(), TaskExecutionStateType.WAITING))

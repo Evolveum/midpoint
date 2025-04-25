@@ -55,7 +55,7 @@ class UnpauseHelper {
         switch (action) {
             case EXECUTE_IMMEDIATELY:
                 LOGGER.debug("Unpausing task using 'executeImmediately' action (scheduling it now): {}", task);
-                scheduleNowHelper.scheduleWaitingTaskNow(task, result);
+                scheduleNowHelper.scheduleWaitingTaskNow(task, true, result);
                 break;
             case RESCHEDULE:
                 if (task.isRecurring()) {

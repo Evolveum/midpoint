@@ -1,0 +1,29 @@
+<service oid="166e7f96-9432-45e3-8038-1022ba19da21"
+         xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+         xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-3">
+    <name>Project Management</name>
+    <description>Project management application. Tracks and coordinates projects and tasks.</description>
+    <assignment>
+        <targetRef oid="00000000-0000-0000-0000-000000000329" type="ArchetypeType" />
+    </assignment>
+    <!-- There is no classification -->
+<!--    <assignment>
+        <identifier>application-classified-A</identifier>
+        <documentation>(ISO27001/5.12,ISO27001/5.13,ISO27001/5.36)</documentation>
+        <policyRule>
+            <name>require-application-classification-A</name>
+            <policyConstraints>
+                <requirement>
+                    <name>application-classification-A</name>
+                    <targetArchetypeRef oid="00000000-0000-0000-0000-000000000330"/>
+                </requirement>
+            </policyConstraints>
+            <markRef oid="2bb936a6-91b4-4439-82ac-1b3e89c2a26a"/>
+            <policyActions>
+                <record>
+                    <description>Record the mark for use in dashboards and reports.</description>
+                </record>
+            </policyActions>
+        </policyRule>
+    </assignment> -->
+</service>

@@ -78,7 +78,11 @@ public class ContainerTreeDelta<C extends Containerable>
 
     public <D extends ItemTreeDelta> D findItemDelta(ItemPath path, Class<D> deltaClass, boolean createIfNotExists) {
         if (ItemPath.isEmpty(path)) {
-            throw new IllegalArgumentException("Empty path specified");
+            if (deltaClass.isAssignableFrom(getClass())) {
+                return (D) this;
+            }
+
+            throw new IllegalArgumentException("Empty path specified, can't create delta of type " + deltaClass.getSimpleName());
         }
 
         Long id = path.firstToIdOrNull();

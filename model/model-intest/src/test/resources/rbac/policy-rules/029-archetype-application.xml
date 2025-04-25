@@ -1,0 +1,206 @@
+<!--
+  ~ Copyright (c) 2019-2024 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+<archetype oid="00000000-0000-0000-0000-000000000329"
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+    <name>Application</name>
+    <description>
+        Applications are basic building blocks for defining access.
+        These objects contain business information.
+        Application is an administrative object describing application
+        as a business target that the access relates to.
+    </description>
+    <archetypePolicy>
+        <display>
+            <label>
+                <orig>Application</orig>
+                <translation>
+                    <key>Application.label</key>
+                </translation>
+            </label>
+            <pluralLabel>
+                <orig>Applications</orig>
+                <translation>
+                    <key>Applications.title</key>
+                </translation>
+            </pluralLabel>
+            <icon>
+                <cssClass>fa fa-cloud</cssClass>
+                <color>blue</color>
+            </icon>
+        </display>
+        <adminGuiConfiguration>
+            <objectDetails>
+                <panel id="3">
+                    <identifier>projections</identifier>
+                    <panelType>projections</panelType>
+                    <display>
+                        <label>
+                            <orig>Inventory records</orig>
+                            <translation>
+                                <key>Application.panel.projections</key>
+                            </translation>
+                        </label>
+                    </display>
+                </panel>
+                <panel id="4">
+                    <identifier>assignments</identifier>
+                    <visibility>hidden</visibility>
+                </panel>
+                <panel id="5">
+                    <identifier>password</identifier>
+                    <visibility>hidden</visibility>
+                </panel>
+                <panel id="6">
+                    <identifier>applicablePolicies</identifier>
+                    <visibility>hidden</visibility>
+                </panel>
+                <panel id="7">
+                    <identifier>serviceMembers</identifier>
+                    <listView>
+                        <searchBoxConfiguration>
+                            <indirectConfiguration>
+                                <indirect>true</indirect>
+                            </indirectConfiguration>
+                            <objectTypeConfiguration>
+                                <visibility>hidden</visibility>
+                                <defaultValue>UserType</defaultValue>
+                                <supportedTypes>UserType</supportedTypes>
+                            </objectTypeConfiguration>
+                        </searchBoxConfiguration>
+                    </listView>
+                </panel>
+                <panel id="8">
+                    <identifier>serviceGovernance</identifier>
+                    <visibility>hidden</visibility>
+                </panel>
+                <panel id="9">
+                    <identifier>governance</identifier>
+                    <display>
+                        <label>
+                            <orig>Governance</orig>
+                            <translation>
+                                <key>GovernanceCardsPanel.label</key>
+                            </translation>
+                        </label>
+                        <icon>
+                            <cssClass>fa fa-users</cssClass>
+                        </icon>
+                    </display>
+                    <displayOrder>91</displayOrder>
+                    <applicableForOperation>modify</applicableForOperation>
+                    <panelType>governanceCards</panelType>
+                </panel>
+                <panel id="15">
+                    <identifier>classifications</identifier>
+                    <display>
+                        <label>
+                            <orig>Classifications</orig>
+                            <translation>
+                                <key>classifications.panel.label</key>
+                            </translation>
+                        </label>
+                        <tooltip>Information classifications (labels)</tooltip>
+                        <icon>
+                            <cssClass>fa fa-tags</cssClass>
+                        </icon>
+                    </display>
+                    <displayOrder>92</displayOrder>
+                    <panelType>roleAssignments</panelType>
+                    <listView>
+                        <identifier>classifications-view</identifier>
+                        <type>c:AssignmentType</type>
+                        <dataProvider xsi:type="c:RepositoryAssignmentDataProviderType"/>
+                        <collection>
+                            <filter>
+                                <q:text>targetRef/@/archetypeRef matches ( oid = "00000000-0000-0000-0000-000000000330" )</q:text>
+                            </filter>
+                            <!--                            <collectionRef oid="00000000-0000-0000-0000-000000000330" type="c:ArchetypeType">
+                                                        </collectionRef> -->
+                        </collection>
+                    </listView>
+                </panel>
+                <panel id="10">
+                    <identifier>inducements</identifier>
+                    <visibility>hidden</visibility>
+                </panel>
+                <panel id="11">
+                    <identifier>resourceEntitlementsTopLevel</identifier>
+                    <panelType>constructionInducements</panelType>
+                    <display>
+                        <label>
+                            <orig>Construction inducements</orig>
+                            <translation>
+                                <key>Application.panel.constructionInducements</key>
+                            </translation>
+                        </label>
+                    </display>
+                    <displayOrder>115</displayOrder>
+                </panel>
+                <panel id="13">
+                    <identifier>applicationRoles</identifier>
+                    <panelType>inducedBy</panelType>
+                    <display>
+                        <label>
+                            <orig>Application roles</orig>
+                            <translation>
+                                <key>Application.panel.inducedBy</key>
+                            </translation>
+                        </label>
+                    </display>
+                    <listView>
+                        <identifier>applicationRoles</identifier>
+                        <type>c:RoleType</type>
+                        <collection>
+                            <collectionRef oid="00000000-0000-0000-0001-000000000016" type="c:ObjectCollectionType"/>
+                        </collection>
+                        <searchBoxConfiguration>
+                            <objectTypeConfiguration>
+                                <visibility>hidden</visibility>
+                                <defaultValue>RoleType</defaultValue>
+                                <supportedTypes>RoleType</supportedTypes>
+                            </objectTypeConfiguration>
+                        </searchBoxConfiguration>
+                    </listView>
+                    <displayOrder>117</displayOrder>
+                </panel>
+                <panel id="14">
+                    <identifier>inducedBy</identifier>
+                    <panelType>inducedBy</panelType>
+                    <displayOrder>118</displayOrder>
+                </panel>
+            </objectDetails>
+        </adminGuiConfiguration>
+    </archetypePolicy>
+    <assignment id="1">
+        <identifier>holderType</identifier>
+        <assignmentRelation id="2">
+            <holderType>ServiceType</holderType>
+        </assignmentRelation>
+    </assignment>
+    <inducement>
+        <identifier>application-classified</identifier>
+        <documentation>(ISO27001/5.12,ISO27001/5.13,ISO27001/5.36)</documentation>
+        <policyRule>
+            <name>require-application-classification</name>
+            <policyConstraints>
+                <hasNoAssignment>
+                    <name>application-classification</name>
+                    <targetArchetypeRef oid="00000000-0000-0000-0000-000000000330"/>
+                </hasNoAssignment>
+            </policyConstraints>
+            <markRef oid="2bb936a6-91b4-4439-82ac-1b3e89c2a26a"/>
+            <policyActions>
+                <record>
+                    <description>Record the mark for use in dashboards and reports.</description>
+                </record>
+            </policyActions>
+        </policyRule>
+    </inducement>
+</archetype>

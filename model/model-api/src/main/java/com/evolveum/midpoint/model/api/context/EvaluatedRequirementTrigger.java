@@ -25,7 +25,8 @@ import java.util.Objects;
  */
 public class EvaluatedRequirementTrigger extends EvaluatedExclusionRequirementTrigger {
 
-    @NotNull private final ObjectReferenceType requiredTargetRef;
+    private final ObjectReferenceType requiredTargetRef;
+    private final ObjectReferenceType requiredTargetArchetypeRef;
 
     // we keep thisTarget and thisPath here because in the future they might be useful
     public EvaluatedRequirementTrigger(
@@ -34,11 +35,13 @@ public class EvaluatedRequirementTrigger extends EvaluatedExclusionRequirementTr
             LocalizableMessage shortMessage,
             @NotNull EvaluatedAssignment thisAssignment,
             @NotNull ObjectType thisTarget,
-            @NotNull ObjectReferenceType requiredTargetRef,
+            ObjectReferenceType requiredTargetRef,
+            ObjectReferenceType requiredTargetArchetypeRef,
             @NotNull AssignmentPath thisPath,
             boolean enforcementOverride) {
         super(PolicyConstraintKindType.REQUIREMENT, constraint, message, shortMessage, thisAssignment, thisTarget, thisPath, enforcementOverride);
         this.requiredTargetRef = requiredTargetRef;
+        this.requiredTargetArchetypeRef = requiredTargetArchetypeRef;
     }
 
     public @NotNull ObjectReferenceType getRequiredTargetRef() {
@@ -46,28 +49,9 @@ public class EvaluatedRequirementTrigger extends EvaluatedExclusionRequirementTr
     }
 
     @Override
-    public boolean equals(Object o) {
-        if (this == o) {
-            return true;
-        }
-        if (!(o instanceof EvaluatedRequirementTrigger)) {
-            return false;
-        }
-        if (!super.equals(o)) {
-            return false;
-        }
-        EvaluatedRequirementTrigger that = (EvaluatedRequirementTrigger) o;
-        return Objects.equals(requiredTargetRef, that.requiredTargetRef);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(super.hashCode(), requiredTargetRef);
-    }
-
-    @Override
     protected void debugDumpSpecific(StringBuilder sb, int indent) {
         DebugUtil.debugDumpWithLabelToStringLn(sb, "requiredTargetRef", requiredTargetRef, indent);
+        DebugUtil.debugDumpWithLabelToStringLn(sb, "requiredTargetArchetypeRef", requiredTargetArchetypeRef, indent);
     }
 
     @Override
@@ -77,8 +61,23 @@ public class EvaluatedRequirementTrigger extends EvaluatedExclusionRequirementTr
         fillCommonContent(rv);
         if (options.isFullStorageStrategy()) {
             rv.setRequirementObjectRef(ObjectTypeUtil.createObjectRef(requiredTargetRef));
+            rv.setRequirementObjectArchetypeRef(ObjectTypeUtil.createObjectRef(requiredTargetArchetypeRef));
         }
         return rv;
     }
 
+    @Override
+    public boolean equals(Object o) {
+        if (o == null || getClass() != o.getClass())
+            return false;
+        if (!super.equals(o))
+            return false;
+        EvaluatedRequirementTrigger that = (EvaluatedRequirementTrigger) o;
+        return Objects.equals(requiredTargetRef, that.requiredTargetRef) && Objects.equals(requiredTargetArchetypeRef, that.requiredTargetArchetypeRef);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(super.hashCode(), requiredTargetRef, requiredTargetArchetypeRef);
+    }
 }

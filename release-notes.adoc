@@ -55,6 +55,7 @@ Overall, midPoint 4.9 is a major step from the past into the future.
 * bug:MID-10513[] Fixed css issues with popup modal background in Safari.
 * bug:MID-10410[] Better indication for failed tasks and their subtasks.
 * bug:MID-10412[] Implemented configurable thresholds for task activities.
+* bug:MID-10496[] Task doesn't start at next scheduled time.
 
 === Other Improvements
 
@@ -69,6 +70,10 @@ Overall, midPoint 4.9 is a major step from the past into the future.
 * Allow volatility configuration per mapping through the Resource Wizard. See bug:MID-10170[].
 * Change the CSS style of sub-containers in the vertical form panel to create a new object for reference. See bug:MID-10030[].
 * Documentation of xref:/midpoint/reference/resources/shadow/purpose/[shadow purpose] was added. See bug:MID-10419[].
+* Some policy rule constraints allow to the `targetArchetypeRef` to specify objects by archetype. See bug:MID-10647[].
+* Assignment modification constraint of policy rules allows specification of scope.
+This can be used for approval of indirect role assignments and similar cases. See bug:MID-10663[].
+* There are two new functions in midPoint function library for access to "governance" users (approvers/owners): `getRoleMemberUsers`, `getServiceMemberUsers`.
 
 === Other Bug Fixes
 

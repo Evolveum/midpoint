@@ -43,7 +43,9 @@
             <class name="com.evolveum.midpoint.model.intest.TestUserTemplateWithRanges"/>
             <class name="com.evolveum.midpoint.model.intest.orgstruct.TestOrgStruct"/>
             <class name="com.evolveum.midpoint.model.intest.orgstruct.TestOrgStructMeta"/>
-            <class name="com.evolveum.midpoint.model.intest.orgstruct.TestOrgStructCaribbean"/>
+            <class name="com.evolveum.midpoint.model.intest.orgstruct.TestOrgStructCaribbeanMeta"/>
+            <class name="com.evolveum.midpoint.model.intest.orgstruct.TestOrgStructCaribbeanArchetype"/>
+            <class name="com.evolveum.midpoint.model.intest.orgstruct.TestOrgStructCaribbeanDirect"/>
             <class name="com.evolveum.midpoint.model.intest.TestSchemalessResource"/>
             <class name="com.evolveum.midpoint.model.intest.TestActivation"/>
             <class name="com.evolveum.midpoint.model.intest.TestConnectorDummyFake"/>
@@ -139,6 +141,7 @@
             <class name="com.evolveum.midpoint.model.intest.tasks.TestMiscTasks"/>
             <class name="com.evolveum.midpoint.model.intest.tasks.TestShadowReclassification"/>
             <class name="com.evolveum.midpoint.model.intest.tasks.TestActivityExecutionTimeThresholds"/>
+            <class name="com.evolveum.midpoint.model.intest.tasks.TestTasks"/>
         </classes>
     </test>
     <test name="Async updates" preserve-order="true" parallel="none" verbose="10">

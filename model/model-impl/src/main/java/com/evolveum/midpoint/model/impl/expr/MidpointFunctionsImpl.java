@@ -1552,6 +1552,24 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
     }
 
     @Override
+    public List<UserType> getRoleMemberUsers(String roleOid, QName relation) throws SchemaException, ObjectNotFoundException, SecurityViolationException,
+            CommunicationException, ConfigurationException, ExpressionEvaluationException {
+        ObjectQuery query = prismContext.queryFor(UserType.class)
+                .item(UserType.F_ROLE_MEMBERSHIP_REF).ref(roleOid, RoleType.COMPLEX_TYPE, relation)
+                .build();
+        return searchObjects(UserType.class, query, null);
+    }
+
+    @Override
+    public List<UserType> getServiceMemberUsers(String serviceOid, QName relation) throws SchemaException, ObjectNotFoundException, SecurityViolationException,
+            CommunicationException, ConfigurationException, ExpressionEvaluationException {
+        ObjectQuery query = prismContext.queryFor(UserType.class)
+                .item(UserType.F_ROLE_MEMBERSHIP_REF).ref(serviceOid, ServiceType.COMPLEX_TYPE, relation)
+                .build();
+        return searchObjects(UserType.class, query, null);
+    }
+
+    @Override
     public <F extends FocusType> ShadowPurposeType computeDefaultProjectionPurpose(F focus, ShadowType shadow, ResourceType resource) {
         if (focus == null || shadow == null) {
             return null;

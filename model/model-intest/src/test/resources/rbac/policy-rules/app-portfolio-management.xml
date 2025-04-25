@@ -1,0 +1,13 @@
+<service oid="c71554c8-1750-4743-b10c-bf8cd4ce64c8"
+         xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+         xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-3">
+    <name>Portfolio Management</name>
+    <description>Portfolio management application. Manages client portfolios, tracks performance, and ensure compliance with investment strategies and regulations.</description>
+    <assignment>
+        <targetRef oid="00000000-0000-0000-0000-000000000329" type="ArchetypeType" />
+    </assignment>
+    <assignment>
+        <targetRef oid="d5ab4f6e-e911-4f1b-9cfd-fe14e6137a4e" type="PolicyType"/>
+    </assignment>
+    <!-- There is no owner -->
+</service>

@@ -111,11 +111,12 @@ public class DeltaColumnPanel extends BasePanel<ItemDelta<? extends PrismValue, 
                 item.add(modificationType);
 
                 MultiLineLabel newValue = new MultiLineLabel(ID_NEW_VALUE, () -> prettyPrint(item.getModelObject().getRight()));
-                newValue.setEscapeModelStrings(false);    // value escaped in {@link #prettyPrint(PrismValue)}
+                newValue.setEscapeModelStrings(false);    // value escaped in {@link DeltaColumnPanel#prettyPrint(PrismValue)}
                 newValue.setRenderBodyOnly(true);
                 item.add(newValue);
             }
         };
+        newValues.add(new VisibleBehaviour(() -> showNewValues));
         add(newValues);
     }
 
@@ -125,6 +126,11 @@ public class DeltaColumnPanel extends BasePanel<ItemDelta<? extends PrismValue, 
         }
     }
 
+    /**
+     * This method also has to escape HTML entities in the string so that the multi-line label component can render it as is.
+     *
+     * Escaping is done via wicket {@link Strings#escapeMarkup(CharSequence)}.
+     */
     private String prettyPrint(PrismValue value) {
         if (value == null) {
             return LocalizationUtil.translate("ChangedItemColumn.nullValue");

@@ -35,15 +35,17 @@ import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.report.impl.controller.*;
 import com.evolveum.midpoint.schema.ObjectDeltaOperation;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.delta.ItemTreeDelta;
+import com.evolveum.midpoint.schema.delta.ObjectTreeDelta;
 import com.evolveum.midpoint.schema.expression.TypedValue;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.*;
 
 /**
@@ -655,6 +657,27 @@ public class ReportUtils {
         return sb.toString();
     }
 
+    /**
+     * Used in object collections (audit), midPoint initial objects.
+     */
+    @SuppressWarnings("unused")
+    public static <O extends ObjectType> String printDelta(ObjectDeltaOperation<O> deltaOp, ItemPath path) {
+        if (path == null || ItemPath.EMPTY_PATH.equals(path)) {
+            return printDelta(deltaOp);
+        }
+
+        ObjectDelta<O> delta = deltaOp.getObjectDelta();
+
+        ObjectTreeDelta<? extends ObjectType> treeDelta = ObjectTreeDelta.fromItemDelta(delta);
+        ItemTreeDelta<?, ?, ?, ?> itemTreeDelta = treeDelta.findItemDelta(path);
+        if (itemTreeDelta == null) {
+            return "";
+        }
+
+        ItemDelta<?, ?> itemDelta = itemTreeDelta.toDelta();
+        return prettyPrintForReport(itemDelta);
+    }
+
     public static <O extends ObjectType> String printDelta(ObjectDeltaOperation<O> deltaOp) {
         ObjectDelta<O> delta = deltaOp.getObjectDelta();
         String objectName = deltaOp.getObjectName() == null ? null : deltaOp.getObjectName().toString();
@@ -928,7 +951,7 @@ public class ReportUtils {
 
     public static ReportDataWriter<? extends ExportedReportDataRow, ? extends ExportedReportHeaderRow> createDashboardDataWriter(
             @NotNull ReportType report, ReportServiceImpl reportService, Map<String,
-            CompiledObjectCollectionView> mapOfCompiledView) {
+                    CompiledObjectCollectionView> mapOfCompiledView) {
         FileFormatTypeType formatType;
         if (report.getFileFormat() != null && report.getFileFormat().getType() != null) {
             formatType = report.getFileFormat().getType();

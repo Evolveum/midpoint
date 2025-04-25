@@ -7,9 +7,9 @@
 <html xmlns:wicket="http://wicket.apache.org">
 <body>
 <wicket:panel>
-    <div class="feedback-message card" role="alert" wicket:id="detailsBox">
+    <div class="feedback-message card" role="alertdialog" tabindex="-1" wicket:id="detailsBox">
         <div class="card-header">
-            <h3 class="card-title mw-100" style="word-break: break-all" wicket:id="message">
+            <div class="card-title mw-100" style="word-break: break-all" wicket:id="message">
                 <i class="mr-2 fa" wicket:id="iconType"></i>
                 <span wicket:id="messageLabel"/>
                 <a class="text-sm" wicket:id="backgroundTaskLink">
@@ -22,7 +22,7 @@
                 <a class="text-sm" wicket:id="processedObject">
                     <wicket:message key="OperationResultPanel.showObject"/>
                 </a>
-            </h3>
+            </div>
 
             <div class="card-tools">
                 <a wicket:id="showAll" class="btn btn-tool" wicket:message="title:OperationResultPanel.button.showAll">

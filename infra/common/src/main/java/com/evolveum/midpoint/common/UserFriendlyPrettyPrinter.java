@@ -34,8 +34,6 @@ import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
  */
 public class UserFriendlyPrettyPrinter {
 
-    private static final ToStringStyle TO_STRING_STYLE = new UserFriendlyToStringStyle();
-
     private UserFriendlyPrettyPrinterOptions options;
 
     private LocalizationService localizationService;
@@ -242,7 +240,7 @@ public class UserFriendlyPrettyPrinter {
 
         String result;
         if (value instanceof AbstractPlainStructured) {
-            result = ToStringBuilder.reflectionToString(value, TO_STRING_STYLE);
+            result = ToStringBuilder.reflectionToString(value, options.toStringStyle());
         } else {
             result = PrettyPrinter.prettyPrint(value);
         }

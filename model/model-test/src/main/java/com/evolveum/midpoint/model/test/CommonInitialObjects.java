@@ -78,6 +78,10 @@ public interface CommonInitialObjects {
             ARCHETYPES, "022-archetype-business-role.xml",
             SystemObjectsType.ARCHETYPE_BUSINESS_ROLE.value());
 
+    TestObject<ArchetypeType> ARCHETYPE_APPLICATION = TestObject.classPath(
+            ARCHETYPES, "029-archetype-application.xml",
+            SystemObjectsType.ARCHETYPE_APPLICATION.value());
+
     //Certification tasks
     TestObject<ArchetypeType> ARCHETYPE_CERTIFICATION_TASK_PARENT = TestObject.classPath(
             ARCHETYPES, "520-archetype-task-certification.xml",
