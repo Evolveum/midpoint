@@ -101,7 +101,7 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-dependencies</artifactId>
-        <version>3.3.10</version>
+        <version>3.3.11</version>
         <!-- This parent also declares dependencies listed here:
         https://docs.spring.io/spring-boot/docs/3.3.7/reference/html/dependency-versions.html#dependency-versions
         Or for current version of Spring Boot:
@@ -224,7 +224,6 @@
         <!-- Spring Boot parent declares most fresh versions for JDBC drivers for all our servers. -->
 
         <!-- START of Spring Boot dependencies overrides (temporary/security fixes, revise regularly!) -->
-        <spring-security.version>6.3.9</spring-security.version>
         <!-- END of Spring Boot dependencies overrides -->
 
         <wicket.version>10.4.0</wicket.version>
