@@ -71,7 +71,7 @@ public class VisualizationItemDto implements Serializable {
 
             if (deltaItem.getSourceDelta() != null
                     && deltaItem.getSourceDelta().isReplace()
-                    && oldValueIsUnknown()
+                    && isNullEstimatedOldValues()
                     && CollectionUtils.isEmpty(deltaItem.getNewValues())
                     && CollectionUtils.isEmpty(deltaItem.getUnchangedValues())) {
                 // MID-10666 this is a special case when we have a REPLACE delta that has no old estimated value
