@@ -15,7 +15,7 @@ Make sure you have configured xref:/midpoint/reference/admin-gui/resource-wizard
 == Import Objects From a Resource
 
 The steps below illustrate creating an import task to import user accounts.
-Adjust your resource object-related settings if you're importing different kind of objects.
+Adjust your resource object-related settings if you're importing a different kind of objects.
 
 [TIP]
 ====
@@ -59,7 +59,7 @@ The mode and configuration give a fair number options.
 Let's cover the basics here:
 
 * If you want to simulate import and ensure the task doesn't modify data, select *Mode*: _Preview_ and *Predefined* (configuration): _Development_.
-* If you want to actually import the accounts, select *Mode*: _Undefined_ and *Predefined* (configuration): _Production_.
+* If you want to actually import the accounts (i.e., create focal objects for the resource objects), select *Mode*: _Undefined_ and *Predefined* (configuration): _Production_.
 
 Refer to these resources for more information on the topic:
 
@@ -84,9 +84,9 @@ You can find all tasks you've created for a resource in the resource-specific le
 
 Once you find the task you want to adjust, run, or inspect, click the name of the task.
 
-The top of the screen in the task detail tell you all about the status of the task.
+The top of the task detail screen tell you all about the status of the task.
 
-image::../../task-status-top-bar.webp[Status bars in the task detail screen]
+image::../../task-status-top-bar.webp[title="Status and action bars in the task detail screen"]
 
 * The status of the task above is icon:question-circle[] *Unknown* and the task is icon:bed[] *Suspended*, meaning that it has never run.
 * The type of the task is icon:upload[] *Import task*.
@@ -102,34 +102,33 @@ After you run a task once, the button changes to icon:play[] btn:[Run now].
 // TODO: This should be under a section about task simulations rather than here. @dakle 2025-04-26
 // And maybe the whole simulation section should be under tasks/activities?
 
-After you run a simulation task and it finishes the processing, the top bar in the task details shows a new button: btn:[Show simulation result].
+After you run a simulation task and it finishes the processing, the top bar in the task detail screen shows a new button: btn:[Show simulation result].
 
 image::../gui-view-task-simulation-results-button.webp[title="View simulation results button at the top bar of the task screen details screen"]
 
-After you click the btn:[Show simulation result] button, you get an overview of the simulated changes, i.e., what _would_ have happened if it weren't only a simulation.
+Click the btn:[Show simulation result] button to get an overview of the simulated changes, i.e., what _would_ have happened if it weren't only a simulation.
 Nothing of what you see in the overview has really happened, but it gives you a great option to inspect whether all your resource and object type settings behave as you wish.
 
 image::../gui-task-simulation-results-overview.webp[title="Task simulation results overview"]
 
 * The numbers in the left sidebar are links you can use to inspect each category of affected objects.
 * The cards on the right are an easy-to-scan overview of important events.
+* The above screen tells that 33 users from the HRIS would have their foci activated while shadows of 15 resource objects would stay unmodified because of errors.
 
 == Simulate Import of a Single Object
 
-Before importing objects, such as accounts, from a resource to midPoint, it's useful to simulate import of a single object to see whether all the mappings behave as expected.
+Before importing objects from a resource to midPoint, it's useful to simulate import of a single object to see whether all the mappings behave as expected.
 
 Simulating import of a single object is particularly useful if you're working with a resource that contains thousands of objects because it could take a long time to simulate import of them all.
-You'll likely have to simulate the import of all of them eventually anyway, but it's useful to debug your configuration on single cherry-picked objects beforehand.
-
-To simulate import of a single account:
+You'll likely have to simulate the import of all of them eventually anyway, but it's faster to debug your configuration on a handful of cherry-picked objects beforehand.
 
 . In icon:database[] *Resources* > icon:database[] *All resources*, select your resource.
 . In the resource-specific left-side menu, select icon:male[] *Accounts*.
 . Pick an account you want to test with.
-. Click the dropdown menu button btn:[▼] at the far right of the row and select btn:[Import preview].
+. Click the dropdown menu button btn:[▼] at the far right of the row and select *Import preview*.
 . In the modal dialog that appears, select the task *execution mode*:
-    ** _Simulated production_ if your resource or other parts of the configuration are in the _Active_ lifecycle state.
-    ** _Simulated development_ if your resource or other parts of the configuration are in the _Proposed_ lifecycle state.
+    ** _Simulated production_ if your resource or parts of its configuration you want to test are in the _Active_ lifecycle state.
+    ** _Simulated development_ if your resource or parts of its configuration you want to test are in the _Proposed_ lifecycle state.
 . Click btn:[Select]
 
 image::../gui-import-preview-single-account-from-account-list.webp[title="Account list with the dropdown menu to create an import task for a single account"]
