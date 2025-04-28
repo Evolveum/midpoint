@@ -1,7 +1,10 @@
-= Import and Reconciliation
-:toc:
+= Import and Reconciliation Tasks
+:page-nav-title: 'Import and Reconciliation'
+:page-display-order: 10
+:page-toc: top
 
 The _import_ task takes a set of resource objects and "pushes" them into midPoint.
+For example, it can import accounts from a resource to midPoint following the configuration of synchronization situations, mapping rules, etc.
 
 The _reconciliation_ task does that as well, but additionally it executes pending (postponed)
 operations on the resource objects, and treats objects that no longer appear to be on the resource.
