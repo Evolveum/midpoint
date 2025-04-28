@@ -20,9 +20,6 @@ import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.attributes.AjaxRequestAttributes;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.behavior.AttributeAppender;
-import org.apache.wicket.behavior.Behavior;
-import org.apache.wicket.markup.head.IHeaderResponse;
-import org.apache.wicket.markup.head.OnDomReadyHeaderItem;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.link.DownloadLink;
@@ -90,13 +87,6 @@ public class OperationResultPanel extends BasePanel<OpResult> implements Popupab
         WebMarkupContainer detailsBox = new WebMarkupContainer(ID_DETAILS_BOX);
         detailsBox.setOutputMarkupId(true);
         detailsBox.add(AttributeModifier.append("class", createHeaderCss()));
-        detailsBox.add(new Behavior() {
-            @Override
-            public void renderHead(Component component, IHeaderResponse response) {
-                super.renderHead(component, response);
-                response.render(OnDomReadyHeaderItem.forScript("document.getElementById('" + component.getMarkupId() + "').focus();"));
-            }
-        });
         add(detailsBox);
 
         initHeader(detailsBox);
