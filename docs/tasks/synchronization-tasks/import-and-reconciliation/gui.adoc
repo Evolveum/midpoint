@@ -9,7 +9,7 @@ You can use the wizard to the set up a simulated import and check the simulation
 
 [NOTE]
 ====
-Make sure you have configured xref:/midpoint/reference/admin-gui/resource-wizard/object-type/synchronization/[synchronization] and xref:/midpoint/reference/admin-gui/resource-wizard/object-type/mapping/[mapping] rules before your run an import task.
+Make sure you have configured xref:/midpoint/reference/admin-gui/resource-wizard/#synchronization[synchronization] and xref:/midpoint/reference/admin-gui/resource-wizard/#mappings[mapping] rules before your run an import task.
 ====
 
 == Import Objects From a Resource

@@ -16,20 +16,23 @@ or cleanup and administration tasks such as ad-hoc user recompute.
 [TIP]
 ====
 All the synchronization tasks are using the same xref:/midpoint/reference/synchronization/introduction/[synchronization mechanism].
-See the xref:/midpoint/reference/synchronization/introduction/[Synchronization] page for an introduction.
 
-For all the synchronization tasks to work correctly the xref:/midpoint/reference/resources/resource-configuration/synchronization/[synchronization section]
-of xref:/midpoint/reference/resources/resource-configuration/[resource configuration] must be set up properly.
-See xref:/midpoint/reference/resources/resource-configuration/synchronization/[Synchronization Configuration] page for more details.
+For all the synchronization tasks to work correctly, the resource must be configured properly.
+See the following pages:
+
+* xref:/midpoint/reference/resources/resource-configuration/[]
+* xref:/midpoint/reference/resources/resource-configuration/synchronization/[]
+* xref:/midpoint/reference/correlation/[]
+
 ====
 
 == Synchronization Tasks
 
 Main synchronization tasks are:
 
-* xref:import-and-reconciliation.adoc[import and reconciliation],
-* xref:live-synchronization.adoc[live synchronization],
-* xref:asynchronous-update.adoc[asynchronous update] (experimental).
+* xref:import-and-reconciliation/[]
+* xref:live-synchronization/[]
+* xref:asynchronous-update/[] (experimental)
 
 == Target Specification
 
@@ -38,8 +41,8 @@ The synchronization task needs to know _what_ it has to process:
 * What _resource_ to synchronize.
 * What _objects_ on the resource to synchronize.
 These objects are specified using their
-xref:/midpoint/reference/resources/shadow/kind-intent-objectclass/['object class, kind, and intent']
-using xref:/midpoint/reference/tasks/activities/resource-object-set-specification/[these settings].
+xref:/midpoint/reference/resources/shadow/kind-intent-objectclass/[object class, kind, and intent]
+using xref:/midpoint/reference/tasks/activities/resource-object-set-specification/[resource object set specification].
 
 === MidPoint 4.4 and After
 
@@ -63,7 +66,7 @@ Sometimes, `objectQuery` extension property can be provided as well.
 == Import
 
 Import is usually one-time activity that imports accounts (or other kind of resource objects) into midPoint.
-Please see xref:import-and-reconciliation.adoc[].
+See xref:import-and-reconciliation/[].
 
 === An Example
 
@@ -112,7 +115,7 @@ We show both new syntax - available since midPoint 4.4 - and legacy one - availa
 == Reconciliation
 
 Reconciliation is one-time or recurring activity that reconciles the state on a resource (either source or target one)
-with midPoint. It is basically an import plus a couple of other activities. Please see xref:import-and-reconciliation.adoc[].
+with midPoint. It is basically an import plus a couple of other activities. See xref:import-and-reconciliation/[].
 
 === An Example
 
@@ -166,7 +169,7 @@ The reconciliation will be running every hour (3600 seconds).
 == Live Synchronization
 
 Live synchronization processes changes from a resource in a real-time or near real-time.
-Please see xref:live-synchronization.adoc[].
+See xref:live-synchronization/[].
 
 === An Example
 
