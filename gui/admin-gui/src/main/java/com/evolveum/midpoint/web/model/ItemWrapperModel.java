@@ -84,6 +84,9 @@ public abstract class ItemWrapperModel<C extends Containerable, IW extends ItemW
         try {
             PrismContainerDefinition container = (PrismContainerDefinition) this.parent.getObject();
             ItemDefinition<?> def = container.findItemDefinition(path, type);
+            if (def == null) {
+                return null;
+            }
             if (!type.isAssignableFrom(def.getClass())) {
                 return null;
             }
