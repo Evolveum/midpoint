@@ -9,7 +9,7 @@ visibility: hidden
 :page-liquid:
 :page-toc: top
 
-Release {release-version} is a sixty-fifth midPoint release, code-named _Verne_.
+Release {release-version} is a sixty-seventh midPoint release, code-named _Verne_.
 The {release-version} release brings security, stability and miscellaneous bugfixes.
 
 ++++
@@ -96,12 +96,12 @@ Also, Person of interests step was updated with additional authorization checks 
 * Update GUI views after changing of the archetype, that is used in the view. See bug:MID-9776[].
 * Adding support for PKCE (Proof Key for Code Exchange) as additional security for OIDC authentication module. See bug:MID-10155[].
 * bug:MID-10147[] Added support for new capability `lastLoginTimestamp`.
-* Adding new configuration attribute for OIDC authentication module, that is used for ID Token signing algorithm. See xref:/midpoint/reference/security/authentication/flexible-authentication/modules/oidc/[Oidc Module].
+* Adding new configuration attribute for OIDC authentication module, that is used for ID Token signing algorithm. See xref:/midpoint/reference/support-4.9/security/authentication/flexible-authentication/modules/oidc/[Oidc Module].
 * Fixing of unused matching request parameter in saved request for redirecting after fail/success authentication. See bug:MID-10184[].
 * Fixed cleanup of finished tasks which has configured "cleanup after finish" parameter. See bug:MID-10272[].
 * bug:MID-10213[] Fix synchronization of large number of tasks (>10 000).
 * bug:MID-10270[] Summary panel for roles now uses display name and identifier (same as for organizations and services).
-* Password caching has been implemented. See xref:/midpoint/reference/resources/attribute-caching/[].
+* Password caching has been implemented. See xref:/midpoint/reference/support-4.9/resources/attribute-caching/[].
 * Apply the Web Content Accessibility Guidelines (WCAG) to all login pages and self-service pages. See bug:MID-9847[].
 ** Used 'honeypot' instead of captcha on self-registration and post-authentication pages to protect against spam bots.
 * Fix error during preview of changes. See bug:MID-10204[].
@@ -129,7 +129,7 @@ Also, Person of interests step was updated with additional authorization checks 
 * Stopped generating passwords with "problematic" characters, like comma, apostrophe, ampersand, and so on.
 Now it's possible to define characters that are accepted in the password, but not used when generating a new password value.
 The default password policy was updated in this regard.
-See bug:MID-9541[] and the xref:/midpoint/reference/security/credentials/password-policy/#_ignoreWhenGenerating[docs].
+See bug:MID-9541[] and the xref:/midpoint/reference/support-4.9/security/credentials/password-policy/#_ignoreWhenGenerating[docs].
 * Stopped displaying some shadow operational properties (like the synchronization timestamp, iteration, and so on) among changes in simulation results. See bug:MID-9737[] and bug:MID-9986[].
 * Midpoint Query Language Fixed inconsistent whitespace behavior when using `not` filter, modified grammar of query language. See bug:MID-9351[].
 * Fixed code completions & validation for @metadata language concept in Midpoint Query language. See bug:MID-10324[].
