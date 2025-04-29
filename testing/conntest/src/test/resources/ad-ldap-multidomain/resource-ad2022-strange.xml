@@ -48,6 +48,7 @@
             <icfcldap:forcePasswordChangeAtNextLogon>false</icfcldap:forcePasswordChangeAtNextLogon>
             <icfcldap:useTreeDelete>always</icfcldap:useTreeDelete>
             <icfcldap:baseContextToSynchronize>DC=ad2022,DC=lab,DC=evolveum,DC=com</icfcldap:baseContextToSynchronize>
+            <icfcldap:sslProtocol>TLSv1.2</icfcldap:sslProtocol>
         </icfc:configurationProperties>
         <icfc:resultsHandlerConfiguration>
             <icfc:enableNormalizingResultsHandler>false</icfc:enableNormalizingResultsHandler>
