@@ -13,6 +13,7 @@ import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
 
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.Validate;
 import org.jetbrains.annotations.NotNull;
 
@@ -67,6 +68,17 @@ public class VisualizationItemDto implements Serializable {
             }
         } else {
             VisualizationDeltaItem deltaItem = (VisualizationDeltaItem) visualizationItem;
+
+            if (deltaItem.getSourceDelta() != null
+                    && deltaItem.getSourceDelta().isReplace()
+                    && isNullEstimatedOldValues()
+                    && CollectionUtils.isEmpty(deltaItem.getNewValues())
+                    && CollectionUtils.isEmpty(deltaItem.getUnchangedValues())) {
+                // MID-10666 this is a special case when we have a REPLACE delta that has no old estimated value
+                // and no new values -> clearing item in this case we need to show empty line in visualization
+                rv.add(new VisualizationItemLineDto(this, null, null, false));
+            }
+
             for (VisualizationItemValue itemValue : deltaItem.getUnchangedValues()) {
                 rv.add(new VisualizationItemLineDto(this, null, itemValue, false));
             }
