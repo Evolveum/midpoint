@@ -37,7 +37,23 @@ Overall, midPoint 4.9 is a major step from the past into the future.
 
 == Changes with Respect To Version 4.9.2
 
-
+* Improved the mechanism for association deltas processing. See bug:MID-10588[].
+* Fixed the visibility of the "Remove" password button on the Credentials panel in case of the missing authorization for this action.  See bug:MID-10507[].
+* Fixed a computation of the shadow items while their retrieving.  See bug:MID-10585[].
+* Improved the time of the resource accounts loading by excluding reference attributes and associations processing. See bug:MID-10444[].
+* Fixed the presentation of the newly assigned account on the Self Service Credentials page. See bug:MID-10544[].
+* Improved the documentation for access certification authorizations. See bug:MID-10627[].
+* Fixed the report import process in case the data contains a referencable object with null value. See bug:MID-10503[].
+* Fixed refreshing of the correlation rules table. See bug:MID-10478[].
+* Fixed NPE while opening accounts table on the resource page. See bug:MID-10535[].
+* Clustering attributes configuration was improved within Role Analysis feature.
+* In case you are facing SQL exception connected with inserting rows into '_ma_audit_event_' table, please, follow the instructions in the https://support.evolveum.com/projects/midpoint/work_packages/10437/activity[MID-10437] ticket.
+There was missing '_SCHEMA_' value in the ObjectType enum in the audit schema.
+* The version of the _package.json_ within _admin-gui_ module aligned with project version.
+* Upgraded Spring Boot to version 3.3.11.
+* Upgraded CXF library to version 4.0.7.
+* Upgraded @babel/traverse to version 7.27.0.
+* Upgraded Spring Security to version 6.4.9.
 
 == Changes with Respect To Version 4.9.1
 
