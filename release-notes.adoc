@@ -9,7 +9,7 @@ visibility: hidden
 :page-liquid:
 :page-toc: top
 
-Release {release-version} is a sixty-fifth midPoint release, code-named _Verne_.
+Release {release-version} is a sixty-seventh midPoint release, code-named _Verne_.
 The {release-version} release brings security, stability and miscellaneous bugfixes.
 
 ++++
