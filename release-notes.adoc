@@ -57,12 +57,7 @@ Fixed a typo in the reconciliation report initial object. See bug:MID-10436[].
 * Fixed the visibility of the _Object Collection_ search item options by applying a corresponding view visibility. See bug:MID-10648[].
 * Fixed the width of the description column in the tables. See bug:MID-10315[].
 * Fixed the visibility of the required (*) mark on the custom form. See bug:MID-10656[].
-* The version of the _package.json_ within _admin-gui_ module aligned with project version.
-* Upgraded Spring Boot to version 3.3.10.
-* Upgraded CXF library to version 4.0.7.
-* Upgraded @babel/traverse to version 7.27.0.
-* Upgraded nimbus-jose-jwt to version 9.37.3
-* Upgraded @cyclonedx/cyclonedx-npm to version 2.1.0
+* Upgraded Spring Boot to version 3.3.11.
 * Upgraded Spring Security to version 6.4.9.
 
 == Changes with Respect To Version 4.8.6
