@@ -49,10 +49,7 @@ Overall, midPoint 4.9 is a major step from the past into the future.
 * Clustering attributes configuration was improved within Role Analysis feature.
 * In case you are facing SQL exception connected with inserting rows into '_ma_audit_event_' table, please, follow the instructions in the https://support.evolveum.com/projects/midpoint/work_packages/10437/activity[MID-10437] ticket.
 There was missing '_SCHEMA_' value in the ObjectType enum in the audit schema.
-* The version of the _package.json_ within _admin-gui_ module aligned with project version.
 * Upgraded Spring Boot to version 3.3.11.
-* Upgraded CXF library to version 4.0.7.
-* Upgraded @babel/traverse to version 7.27.0.
 * Upgraded Spring Security to version 6.4.9.
 
 == Changes with Respect To Version 4.9.1
