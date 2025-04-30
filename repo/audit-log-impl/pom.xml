@@ -12,7 +12,7 @@
     <parent>
         <artifactId>repo</artifactId>
         <groupId>com.evolveum.midpoint.repo</groupId>
-        <version>4.9.3-SNAPSHOT</version>
+        <version>4.9.3</version>
     </parent>
 
     <artifactId>audit-log-impl</artifactId>

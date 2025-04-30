@@ -12,7 +12,7 @@
     <parent>
         <artifactId>model</artifactId>
         <groupId>com.evolveum.midpoint.model</groupId>
-        <version>4.9.3-SNAPSHOT</version>
+        <version>4.9.3</version>
     </parent>
 
     <artifactId>model-common</artifactId>

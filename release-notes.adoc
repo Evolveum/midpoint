@@ -1,7 +1,6 @@
 ---
 layout: release
 release-version: '4.9.3'
-visibility: hidden
 ---
 = MidPoint 4.9 "Verne" - Update 3
 :release-version: 4.9.3
