@@ -372,3 +372,4 @@ Such properties were tagged as _deprecated_ in schema of saml2 authentication mo
 
 == See also
 * xref:/midpoint/reference/security/authentication/flexible-authentication/configuration/[Flexible Authentication]
+* xref:/midpoint/reference/security/session-cookie/[HTTP Session Cookie]
