@@ -93,7 +93,7 @@ In the case of a SAML2 SSO authentication setup, we recommend configuring specif
 
 MidPoint uses link:https://spring.io/projects/spring-security[Spring Security] defaults for session handling.
 However, these defaults may not clear invalid sessions or expired cookies properly, especially after SAML2 interactions.
-To improve stability and reliability, you can customize the session behavior using Spring Boot properties.
+To improve stability and reliability, you can customize the session behavior using link:https://docs.spring.io/spring-boot/appendix/application-properties/index.html#appendix.application-properties.server[Spring Boot properties].
 
 === Recommended Configuration
 
