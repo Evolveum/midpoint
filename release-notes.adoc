@@ -1,9 +1,11 @@
 ---
 layout: release
-release-version: '4.8.8'
+release-version: '4.8.9'
+visibility: hidden
 ---
-= MidPoint 4.8 "Curie" - Update 8
-:release-version: 4.8.8
+= MidPoint 4.8 "Curie" - Update 9
+:release-version: 4.8.9
+:page-visibility: hidden
 :page-liquid:
 :page-toc: top
 
