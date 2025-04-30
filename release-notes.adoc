@@ -50,7 +50,7 @@ Overall, midPoint 4.9 is a major step from the past into the future.
 
 * In case you are using a separate database for audit, please, ensure, that _ObjectType_ enum contains '_SCHEMA_' value.
 Within the audit schema, you can simply run the following SQL command to add the missing value.
-For more information, please, refer to the bug:[MID-10437].
+For more information, please, refer to the bug:MID-10437[].
 
     ALTER TYPE ObjectType ADD VALUE IF NOT EXISTS 'SCHEMA' AFTER 'ROLE_ANALYSIS_OUTLIER';
 
