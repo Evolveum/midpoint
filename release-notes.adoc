@@ -4,7 +4,6 @@ release-version: '4.9.3'
 ---
 = MidPoint 4.9 "Verne" - Update 3
 :release-version: 4.9.3
-:page-visibility: hidden
 :page-liquid:
 :page-toc: top
 
