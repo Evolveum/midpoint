@@ -256,11 +256,13 @@ export default class MidPointTheme {
                 if (input.attr('type') === "password") {
                     input.attr('type', 'text');
                     $(this).attr('aria-pressed', 'true');
+                    $(this).attr('aria-label', $(this).attr('data-pwd-hide'));
                     $(this).addClass("fa-eye-slash");
                     $(this).removeClass("fa-eye");
                 } else {
                     input.attr('type', 'password');
                     $(this).attr('aria-pressed', 'false');
+                    $(this).attr('aria-label', $(this).attr('data-pwd-show'));
                     $(this).removeClass("fa-eye-slash");
                     $(this).addClass("fa-eye");
                 }
