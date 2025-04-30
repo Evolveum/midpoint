@@ -31,6 +31,7 @@
             <icfcldap:baseContext><expression><const>ad2022BaseDn</const></expression></icfcldap:baseContext>
             <icfcldap:bindDn>CN=midpoint,CN=Users,DC=ad2022,DC=lab,DC=evolveum,DC=com</icfcldap:bindDn>
             <icfcldap:connectionSecurity>ssl</icfcldap:connectionSecurity>
+            <icfcldap:sslProtocol>TLSv1.2</icfcldap:sslProtocol>
             <icfcldap:bindPassword>
                 <t:clearValue>qwe.123</t:clearValue>
             </icfcldap:bindPassword>
