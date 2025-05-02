@@ -8,9 +8,7 @@ package com.evolveum.midpoint.gui.api.component.password;
 
 import java.io.Serial;
 import java.time.Duration;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 
@@ -75,6 +73,8 @@ public class PasswordPanel extends InputPanel {
     private static final String ID_PASSWORD_TWO = "password2";
     private static final String ID_PASSWORD_TWO_VALIDATION_MESSAGE = "password2ValidationMessage";
     private static final String ID_VALIDATION_PANEL = "validationPanel";
+
+    public final static String INVALID_FIELD_CLASS = "is-invalid";
 
     protected boolean passwordInputVisible;
     private final PrismObject<? extends FocusType> prismObject;
@@ -212,10 +212,10 @@ public class PasswordPanel extends InputPanel {
 
             @Override
             protected void onUpdate(AjaxRequestTarget target) {
-//                limitationsModel.reset();
                 validationPanel.refreshItems(target);
                 updatePasswordValidation(target);
                 target.add(password2ValidationMessage);
+                target.add(password2);
             }
 
             @Override
@@ -236,6 +236,7 @@ public class PasswordPanel extends InputPanel {
             @Override
             protected void onUpdate(AjaxRequestTarget target) {
                 target.add(password2ValidationMessage);
+                target.add(password2);
             }
 
             @Override
@@ -244,6 +245,23 @@ public class PasswordPanel extends InputPanel {
                 attributes.setThrottlingSettings(new ThrottlingSettings(Duration.ofMillis(500), true));
                 attributes.setChannel(new AjaxChannel("Drop", AjaxChannel.Type.DROP));
             }
+
+            @Override
+            public void onComponentTag(ComponentTag tag) {
+                super.onComponentTag(tag);
+
+                String currentClass = tag.getAttribute("class");
+                Set<String> classList = new HashSet<>(Arrays.asList(currentClass.split("\\s+")));
+
+                if (StringUtils.isNotBlank(password2ValidationModel.getObject())) {
+                    classList.add(INVALID_FIELD_CLASS);
+                } else {
+                    classList.remove(INVALID_FIELD_CLASS);
+                }
+
+                tag.put("class", String.join(" ", classList));
+            }
+
         });
 
         WebComponentUtil.addAjaxOnUpdateBehavior(inputContainer);
