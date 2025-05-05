@@ -74,6 +74,7 @@ Overall, midPoint 4.9 is a major step from the past into the future.
 * Assignment modification constraint of policy rules allows specification of scope.
 This can be used for approval of indirect role assignments and similar cases. See bug:MID-10663[].
 * There are two new functions in midPoint function library for access to "governance" users (approvers/owners): `getRoleMemberUsers`, `getServiceMemberUsers`.
+* Use delta's "visualizer" used by GUI also in notifications. See bug:MID-6112[].
 
 === Other Bug Fixes
 

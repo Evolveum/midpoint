@@ -90,6 +90,7 @@
                             var color = settings.hierarchy[value][0];
 
                             progressBar.text(text)
+                                .attr('aria-valuetext', text)
                                 .removeClass()
                                 .addClass('progress-bar')
                                 .addClass(color)
