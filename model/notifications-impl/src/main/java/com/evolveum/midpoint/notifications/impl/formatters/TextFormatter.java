@@ -110,8 +110,8 @@ public class TextFormatter {
 
     public String formatObject(PrismObject<?> object, Collection<ItemPath> hiddenPaths,
             boolean showOperationalAttributes, Task task, OperationResult result) {
-        final Visualization visualization = createVisualization(object, showOperationalAttributes, hiddenPaths, task,
-                result);
+        final Visualization visualization = createVisualization(object, showOperationalAttributes, new ArrayList<>(),
+                hiddenPaths, task, result);
         return deltaFormatter.formatVisualization(visualization);
     }
 
@@ -148,12 +148,29 @@ public class TextFormatter {
     }
 
     public String formatObjectModificationDelta(
+            @NotNull ObjectDelta<? extends Objectable> objectDelta, Collection<ItemPath> pathsToShow,
+            boolean showSynchronizationAttributes, boolean showOperationalAttributes) {
+        final Task task = this.midpointFunctions.getCurrentTask();
+        return formatObjectModificationDelta(objectDelta, pathsToShow, showSynchronizationAttributes, showOperationalAttributes,
+                task, task.getResult());
+    }
+
+    public String formatObjectModificationDelta(
             @NotNull ObjectDelta<? extends Objectable> objectDelta, boolean showSynchronizationAttributes,
             boolean showOperationalAttributes, Task task,
             OperationResult result) {
         final Collection<ItemPath> hiddenPaths = getHiddenPaths(showSynchronizationAttributes,
                 showOperationalAttributes);
-        return formatObjectModificationDelta(objectDelta, hiddenPaths, showOperationalAttributes, task, result);
+        return formatObjectModificationDelta(objectDelta, new ArrayList<>(), hiddenPaths, showOperationalAttributes, task, result);
+    }
+
+    public String formatObjectModificationDelta(
+            @NotNull ObjectDelta<? extends Objectable> objectDelta, Collection<ItemPath> pathsToShow,
+            boolean showSynchronizationAttributes, boolean showOperationalAttributes, Task task,
+            OperationResult result) {
+        final Collection<ItemPath> hiddenPaths = getHiddenPaths(showSynchronizationAttributes,
+                showOperationalAttributes);
+        return formatObjectModificationDelta(objectDelta, pathsToShow, hiddenPaths, showOperationalAttributes, task, result);
     }
 
     /**
@@ -163,16 +180,16 @@ public class TextFormatter {
             @NotNull ObjectDelta<? extends Objectable> objectDelta, Collection<ItemPath> hiddenPaths,
             boolean showOperationalAttributes, PrismObject<?> objectOld, PrismObject<?> objectNew) {
         final Task task = this.midpointFunctions.getCurrentTask();
-        return formatObjectModificationDelta(objectDelta, hiddenPaths, showOperationalAttributes, task,
+        return formatObjectModificationDelta(objectDelta, new ArrayList<>(), hiddenPaths, showOperationalAttributes, task,
                 task.getResult());
     }
 
     public String formatObjectModificationDelta(
-            @NotNull ObjectDelta<? extends Objectable> objectDelta, Collection<ItemPath> hiddenPaths,
-            boolean showOperationalAttributes, Task task,
+            @NotNull ObjectDelta<? extends Objectable> objectDelta, Collection<ItemPath> pathsToShow,
+            Collection<ItemPath> hiddenPaths, boolean showOperationalAttributes, Task task,
             OperationResult result) {
 
-        final Visualization visualization = createVisualization(objectDelta, showOperationalAttributes, hiddenPaths,
+        final Visualization visualization = createVisualization(objectDelta, showOperationalAttributes, pathsToShow, hiddenPaths,
                 task, result);
         return deltaFormatter.formatVisualization(visualization);
     }
@@ -191,8 +208,8 @@ public class TextFormatter {
     }
 
     private Visualization createVisualization(PrismObject<?> object, boolean showOperationalAttributes,
-            Collection<ItemPath> pathsToHide, Task task, OperationResult parentResult) {
-        final VisualizationContext context = createVisualizationContext(showOperationalAttributes, pathsToHide);
+            Collection<ItemPath> pathsToShow, Collection<ItemPath> pathsToHide, Task task, OperationResult parentResult) {
+        final VisualizationContext context = createVisualizationContext(showOperationalAttributes, pathsToShow, pathsToHide);
         final PrismObject<? extends ObjectType> objectToVisualize = (PrismObject<? extends ObjectType>) object;
         try {
             return  this.visualizer.visualize(objectToVisualize, context, task, parentResult);
@@ -203,10 +220,10 @@ public class TextFormatter {
     }
 
     private Visualization createVisualization(ObjectDelta<? extends Objectable> delta,
-            boolean showOperationalAttributes, Collection<ItemPath> pathsToHide, Task task,
+            boolean showOperationalAttributes, Collection<ItemPath> pathsToShow, Collection<ItemPath> pathsToHide, Task task,
             OperationResult parentResult) {
         ObjectDelta<ObjectType> objectDelta = (ObjectDelta<ObjectType>) delta;
-        final VisualizationContext context = createVisualizationContext(showOperationalAttributes, pathsToHide);
+        final VisualizationContext context = createVisualizationContext(showOperationalAttributes, pathsToShow, pathsToHide);
         try {
             return  this.visualizer.visualizeDelta(objectDelta, null, context, true, task, parentResult);
         } catch (SchemaException | ExpressionEvaluationException e) {
@@ -227,8 +244,9 @@ public class TextFormatter {
     }
 
     private static @NotNull VisualizationContext createVisualizationContext(boolean showOperationalAttributes,
-            Collection<ItemPath> pathsToHide) {
+            Collection<ItemPath> pathsToShow, Collection<ItemPath> pathsToHide) {
         final VisualizationContext context = new VisualizationContext();
+        context.setPathsToShow(pathsToShow);
         context.setPathsToHide(pathsToHide);
         context.setIncludeOperationalItems(showOperationalAttributes);
         context.setIncludeMetadata(showOperationalAttributes);

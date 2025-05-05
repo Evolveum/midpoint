@@ -12,6 +12,8 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.ItemPathCollectionsUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
+import org.apache.commons.collections4.CollectionUtils;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -29,6 +31,7 @@ public class VisualizationContext {
     private Map<String,PrismObject<? extends ObjectType>> oldObjects;
     private Map<String,PrismObject<? extends ObjectType>> currentObjects;
     private Collection<ItemPath> pathsToHide = new ArrayList<>();
+    private Collection<ItemPath> pathsToShow = new ArrayList<>();
 
     public boolean isSeparateSinglevaluedContainers() {
         return separateSinglevaluedContainers;
@@ -123,6 +126,14 @@ public class VisualizationContext {
 
     public void setPathsToHide(Collection<ItemPath> pathsToHide) {
         this.pathsToHide = pathsToHide;
+    }
+
+    public void setPathsToShow(Collection<ItemPath> pathsToShow) {
+        this.pathsToShow = pathsToShow;
+    }
+
+    public boolean isPathToBeShown(ItemPath path) {
+        return CollectionUtils.isEmpty(pathsToShow) || ItemPathCollectionsUtil.containsSubpathOrEquivalent(this.pathsToShow, path);
     }
 
     public boolean isHidden(ItemPath path) {
