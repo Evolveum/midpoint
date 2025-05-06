@@ -19,7 +19,6 @@ import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
-import com.evolveum.midpoint.gui.api.model.ReadOnlyModel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.DisplayType;
@@ -34,6 +33,7 @@ public class ImagePanel extends BasePanel<DisplayType> {
     //image can be defined either with css class or with image file source; therefore we need to use 2 different tags for each case
     private static final String ID_IMAGE = "image";
     private static final String ID_IMAGE_SRC = "imageSrc";
+    private IconColumn.IconRole iconRole = IconColumn.IconRole.IMAGE;
 
     public ImagePanel(String id, IModel<String> iconClassModel, IModel<String> titleModel) {
         super(id, new Model<>());
@@ -63,11 +63,17 @@ public class ImagePanel extends BasePanel<DisplayType> {
         image.add(AttributeModifier.replace("class", new PropertyModel<>(getModel(), "icon.cssClass")));
         DisplayType displayBean = getModelObject();
         if (displayBean != null) {
-            image.add(AttributeModifier.replace("title", LocalizationUtil.translatePolyString(displayBean.getTooltip())));
+            String toolTip = LocalizationUtil.translatePolyString(displayBean.getTooltip());
+            image.add(AttributeModifier.replace("title", toolTip));
+            image.add(AttributeModifier.replace("aria-label", toolTip));
         }
         image.add(AttributeAppender.append("style", () -> StringUtils.isNotBlank(getColor()) ? "color: " + getColor() + ";" : ""));
         image.setOutputMarkupId(true);
         image.add(new VisibleBehaviour(() -> getModelObject() != null && getModelObject().getIcon() != null && StringUtils.isNotEmpty(getModelObject().getIcon().getCssClass())));
+
+        image.add(AttributeAppender.append("role", iconRole.getValue()));
+        image.add(AttributeAppender.append("tabindex", 0));
+
         add(image);
 
         ExternalImage customLogoImgSrc = new ExternalImage(ID_IMAGE_SRC,
@@ -75,6 +81,10 @@ public class ImagePanel extends BasePanel<DisplayType> {
         customLogoImgSrc.setOutputMarkupId(true);
         customLogoImgSrc.add(new VisibleBehaviour(() -> getModelObject() != null && getModelObject().getIcon() != null && StringUtils.isNotEmpty(getModelObject().getIcon().getImageUrl())));
         add(customLogoImgSrc);
+    }
+
+    public void setIconRole(IconColumn.IconRole role) {
+        this.iconRole = role;
     }
 
     private String getColor() {

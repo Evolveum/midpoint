@@ -9,6 +9,7 @@ package com.evolveum.midpoint.web.component.data.column;
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
+import com.evolveum.midpoint.gui.api.util.LocalizationUtil;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.component.data.column.CompositedIconPanel;
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIcon;
@@ -37,6 +38,8 @@ public class ColumnResultPanel extends BasePanel<OperationResult> {
 
     private static final String ID_RESULT_ICON = "resultIcon";
     private static final String ID_DETAILS_BUTTON = "detailsButton";
+
+    private boolean isAriaSupported = false;
 
     public ColumnResultPanel(String id, IModel<OperationResult> model) {
         super(id, model);
@@ -72,7 +75,7 @@ public class ColumnResultPanel extends BasePanel<OperationResult> {
                         return null;
                     }
                     basicIconCssClass = displayType.getIcon().getCssClass();
-                    title = WebComponentUtil.getTranslatedPolyString(displayType.getTooltip());
+                    title = LocalizationUtil.translatePolyString(displayType.getTooltip());
                 } else {
                     OperationResultStatusPresentationProperties statusProperties = OperationResultStatusPresentationProperties.parseOperationalResultStatus(
                             result.getStatus());
@@ -102,6 +105,11 @@ public class ColumnResultPanel extends BasePanel<OperationResult> {
 
         CompositedIconPanel iconPanel = new CompositedIconPanel(ID_RESULT_ICON, compositedIcon);
         iconPanel.setOutputMarkupId(true);
+
+        if (isAriaSupported) {
+          iconPanel.enableAriaSupport();
+        }
+
         add(iconPanel);
 
         AjaxButton showErrorDetailsButton = new AjaxButton(ID_DETAILS_BUTTON) {
@@ -112,13 +120,19 @@ public class ColumnResultPanel extends BasePanel<OperationResult> {
             }
         };
         showErrorDetailsButton.setOutputMarkupId(true);
-        showErrorDetailsButton.add(AttributeAppender.append("title", getPageBase().createStringResource("ColumnResultPanel.showDetails")));
+        String title = getString("ColumnResultPanel.showDetails");
+        showErrorDetailsButton.add(AttributeAppender.append("title", title));
         showErrorDetailsButton.add(new VisibleEnableBehaviour(){
             @Override
             public boolean isVisible() {
                 return getModelObject() != null && RepoCommonUtils.getResultExceptionIfExists(getModelObject()) != null;
             }
         });
+        if (isAriaSupported) {
+            showErrorDetailsButton.add(AttributeAppender.append("aria-label", title));
+            showErrorDetailsButton.add(AttributeAppender.append("tabindex", 0));
+            showErrorDetailsButton.add(AttributeAppender.append("role", "button"));
+        }
         add(showErrorDetailsButton);
     }
 
@@ -128,5 +142,9 @@ public class ColumnResultPanel extends BasePanel<OperationResult> {
 
     protected DisplayType getDisplayForEmptyResult(){
         return null;
+    }
+
+    public void enableAriaSupport() {
+        isAriaSupported = true;
     }
 }

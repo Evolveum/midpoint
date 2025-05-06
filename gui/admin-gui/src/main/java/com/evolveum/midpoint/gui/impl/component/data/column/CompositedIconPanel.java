@@ -20,7 +20,6 @@ import org.apache.wicket.model.PropertyModel;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIcon;
 import com.evolveum.midpoint.gui.impl.component.icon.LayerIcon;
-import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.IconType;
 
 /**
@@ -35,6 +34,8 @@ public class CompositedIconPanel extends BasePanel<CompositedIcon> {
     private static final String ID_LAYER_ICONS = "layerIcons";
     private static final String ID_LAYER_ICON = "layerIcon";
 
+    private boolean isAriaSupportEnabled = false;
+
     public CompositedIconPanel(String id, IModel<CompositedIcon> compositedIcon) {
         super(id, compositedIcon);
     }
@@ -47,12 +48,8 @@ public class CompositedIconPanel extends BasePanel<CompositedIcon> {
 
     private void initLayout() {
         WebMarkupContainer layeredIcon = new WebMarkupContainer(ID_LAYERED_ICON);
-        layeredIcon.add(AttributeAppender.append("title", () -> {
-            if (getModelObject() != null && StringUtils.isNotBlank(getModelObject().getTitle())) {
-                return getModelObject().getTitle();
-            }
-            return null;
-        }));
+        String title = getTitle();
+        layeredIcon.add(AttributeAppender.append("title", title));
         add(layeredIcon);
 
         WebComponent basicIcon = new WebComponent(ID_BASIC_ICON);
@@ -68,6 +65,10 @@ public class CompositedIconPanel extends BasePanel<CompositedIcon> {
             }
             return null;
         }));
+        if (isAriaSupportEnabled && title != null) {
+            basicIcon.add(AttributeAppender.append("aria-label", title));
+            basicIcon.add(AttributeAppender.append("tabindex", 0));
+        }
         layeredIcon.add(basicIcon);
 
         ListView<LayerIcon> validationItems = new ListView<LayerIcon>(ID_LAYER_ICONS, new PropertyModel(getModel(), CompositedIcon.F_LAYER_ICONS)) {
@@ -97,5 +98,16 @@ public class CompositedIconPanel extends BasePanel<CompositedIcon> {
             }
         };
         layeredIcon.add(validationItems);
+    }
+
+    public void enableAriaSupport() {
+        isAriaSupportEnabled = true;
+    }
+
+    private String getTitle() {
+        if (getModelObject() != null && StringUtils.isNotBlank(getModelObject().getTitle())) {
+            return getModelObject().getTitle();
+        }
+        return null;
     }
 }

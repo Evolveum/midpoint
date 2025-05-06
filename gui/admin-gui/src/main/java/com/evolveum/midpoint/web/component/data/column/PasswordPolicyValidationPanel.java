@@ -9,13 +9,11 @@ package com.evolveum.midpoint.web.component.data.column;
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.component.password.PasswordLimitationsPanel;
-import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.util.GuiDisplayTypeUtil;
 import com.evolveum.midpoint.model.api.validator.StringLimitationResult;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.DisplayType;
 
-import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.head.IHeaderResponse;
 import org.apache.wicket.markup.head.OnDomReadyHeaderItem;
 import org.apache.wicket.model.IModel;
@@ -76,20 +74,14 @@ public class PasswordPolicyValidationPanel extends BasePanel<List<StringLimitati
         add(resultIcon);
 
 
-        ImagePanel infoPanel = new ImagePanel(
-                ID_INFO_ICON, Model.of(GuiDisplayTypeUtil.createDisplayType("fa fa-info-circle")));
+        ImagePanel infoPanel = new ImagePanel(ID_INFO_ICON, Model.of("fa fa-info-circle"), Model.of(getString("ChangePasswordPanel.passwordValidation")));
         infoPanel.setOutputMarkupId(true);
+        infoPanel.setIconRole(IconColumn.IconRole.BUTTON);
         add(infoPanel);
 
         PasswordLimitationsPanel validationPanel = new PasswordLimitationsPanel(ID_POLICY_VALIDATION_POPOVER,
                 (LoadableDetachableModel<List<StringLimitationResult>>) getModel());
         validationPanel.setOutputMarkupId(true);
         add(validationPanel);
-    }
-
-    public void refreshValidationPopup(AjaxRequestTarget target){
-        isAfterInitialization.setObject(true);
-        target.add(get(ID_RESULT_ICON));
-        ((PasswordLimitationsPanel)get(ID_POLICY_VALIDATION_POPOVER)).refreshItems(target);
     }
 }

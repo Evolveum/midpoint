@@ -29,7 +29,6 @@ import org.apache.wicket.markup.html.form.FormComponent;
 import org.apache.wicket.markup.html.form.PasswordTextField;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.LoadableDetachableModel;
-import org.apache.wicket.model.Model;
 import org.apache.wicket.request.Url;
 import org.apache.wicket.request.resource.UrlResourceReference;
 import org.apache.wicket.validation.IValidatable;
@@ -82,6 +81,8 @@ public class PasswordPanel extends InputPanel {
     protected boolean isReadOnly;
     private boolean shouldTrimInput = false;
     private final boolean showOneLinePasswordPanel;
+    private ProtectedStringType confirmPasswordValue;
+    private final IModel<ProtectedStringType> confirmPasswordModel;
 
     public <F extends FocusType> PasswordPanel(
             String id,
@@ -105,6 +106,20 @@ public class PasswordPanel extends InputPanel {
         this.isReadOnly = isReadOnly;
         this.showOneLinePasswordPanel = showOneLinePasswordPanel;
         this.prismObject = prismObject;
+        this.confirmPasswordValue = new ProtectedStringType();
+        confirmPasswordModel = new IModel<>() {
+            @Serial private static final long serialVersionUID = 1L;
+
+            @Override
+            public ProtectedStringType getObject() {
+                return confirmPasswordValue;
+            }
+
+            @Override
+            public void setObject(ProtectedStringType object) {
+                confirmPasswordValue = object;
+            }
+        };
         initLayout();
     }
 
@@ -173,7 +188,7 @@ public class PasswordPanel extends InputPanel {
         inputContainer.add(validationProgressBar);
 
         final PasswordTextField password2 = new SecureModelPasswordTextField(ID_PASSWORD_TWO,
-                new ProtectedStringClearPasswordModel(Model.of(new ProtectedStringType()))) {
+                new ProtectedStringClearPasswordModel(confirmPasswordModel)) {
 
             @Serial private static final long serialVersionUID = 1L;
 
