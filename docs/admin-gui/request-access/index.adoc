@@ -178,6 +178,17 @@ image::step-3-roles-of-teammate.png[Roles of teammate,100%]
 
 == Shopping cart (checkout)
 
+[NOTE]
+.Submitting request
+====
+If the shopping cart request contains only one person of interest (user), then the request is processed synchronously.
+If there are more persons (users) in the shopping cart, then the request is processed asynchronously by creating a task.
+
+The reasoning behind is that in the first case, the request for one user should be processed fast enough, and we're able to display results immediately.
+In the second case, the request may take a longer time to process.
+We don't want to block the user interface for too long or loose result of the request if the page request times out.
+====
+
 .Shopping cart (checkout)
 image::step-4-checkout.png[Shopping cart (checkout),100%]
 
