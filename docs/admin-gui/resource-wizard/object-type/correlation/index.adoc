@@ -2,11 +2,29 @@
 :page-nav-title: Correlation
 :page-toc: top
 :page-since: "4.9"
+:experimental:
 
-Correlation allows you to define how midPoint should recognize relations between resource objects and midPoint objects.
-In short, this is about searching the resource object owners in midPoint.
+Smart correlation in midPoint is a mechanism that links resource object shadows to existing focal objects, enabling efficient synchronization through a configurable matching system.
+In short, it's a means to searching resource object owners in midPoint.
 
-You can create one or several correlation rules.
+Correlation rules dictate how to find the object owners.
+You can define one or more correlation rules.
+
+image::./corerlation-rules-setup-accounts-configure-menu.webp[title="Configuration menu in resource accounts list as an entry point to the correlation rules wizard"
+
+== Create Correlation Rules
+
+. In icon:database[] *Resources* > icon:database[] *All Resources*, select your resource.
+. In icon:male[] *Accounts*, click icon:cog[] btn:[Configure] > icon:code-branch[] *Correlation*.
+. Click icon:plus-circle[] btn:[Add rule] and configure the new rule:
+    ** *Rule name*:
+    ** *Description*:
+    ** *Weight*:
+    ** *Tier*:
+    ** *Ignore if matched by*:
+    ** *Enabled*:
+
+
 
 Click btn:[Add rule] to add a new correlation rule.
 
