@@ -20,7 +20,6 @@ import org.apache.wicket.model.PropertyModel;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIcon;
 import com.evolveum.midpoint.gui.impl.component.icon.LayerIcon;
-import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.IconType;
 
 /**
@@ -34,6 +33,8 @@ public class CompositedIconPanel extends BasePanel<CompositedIcon> {
     private static final String ID_BASIC_ICON = "basicIcon";
     private static final String ID_LAYER_ICONS = "layerIcons";
     private static final String ID_LAYER_ICON = "layerIcon";
+
+    private boolean isAriaSupportEnabled = false;
 
     public CompositedIconPanel(String id, IModel<CompositedIcon> compositedIcon) {
         super(id, compositedIcon);
@@ -68,6 +69,15 @@ public class CompositedIconPanel extends BasePanel<CompositedIcon> {
             }
             return null;
         }));
+
+        IModel<Boolean> hasAriaInfo = () -> isAriaSupportEnabled && getModelObject() != null && StringUtils.isNotBlank(getModelObject().getTitle());
+        basicIcon.add(AttributeAppender.append("aria-label", () ->
+            hasAriaInfo.getObject() ? getModelObject().getTitle() : null
+        ));
+        basicIcon.add(AttributeAppender.append("tabindex",  () ->
+            hasAriaInfo.getObject() ? "0" : "-1"
+        ));
+
         layeredIcon.add(basicIcon);
 
         ListView<LayerIcon> validationItems = new ListView<LayerIcon>(ID_LAYER_ICONS, new PropertyModel(getModel(), CompositedIcon.F_LAYER_ICONS)) {
@@ -97,5 +107,9 @@ public class CompositedIconPanel extends BasePanel<CompositedIcon> {
             }
         };
         layeredIcon.add(validationItems);
+    }
+
+    public void enableAriaSupport() {
+        isAriaSupportEnabled = true;
     }
 }

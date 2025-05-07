@@ -1123,4 +1123,19 @@ export default class MidPointTheme {
             element.dispatchEvent(new Event('keyup', { bubbles: true }));
         }
     }
+
+    updatePasswordErrorState(errorId, fieldId) {
+        const error = document.getElementById(errorId);
+        const field = document.getElementById(fieldId);
+
+        if (error && field) {
+            const hasError = error.textContent.trim() !== '';
+            if (hasError && !field.classList.contains('is-invalid')) {
+                field.classList.add('is-invalid');
+            }
+            else if (!hasError && field.classList.contains('is-invalid')) {
+                field.classList.remove('is-invalid');
+            }
+        }
+    }
 }
