@@ -33,7 +33,22 @@ public class ImagePanel extends BasePanel<DisplayType> {
     //image can be defined either with css class or with image file source; therefore we need to use 2 different tags for each case
     private static final String ID_IMAGE = "image";
     private static final String ID_IMAGE_SRC = "imageSrc";
-    private IconColumn.IconRole iconRole = IconColumn.IconRole.IMAGE;
+    private IconRole iconRole = IconRole.IMAGE;
+
+    public enum IconRole {
+        IMAGE("img"),
+        BUTTON("button");
+
+        private final String value;
+
+        IconRole(String value) {
+            this.value = value;
+        }
+
+        String getValue() {
+            return value;
+        }
+    }
 
     public ImagePanel(String id, IModel<String> iconClassModel, IModel<String> titleModel) {
         super(id, new Model<>());
@@ -83,7 +98,7 @@ public class ImagePanel extends BasePanel<DisplayType> {
         add(customLogoImgSrc);
     }
 
-    public void setIconRole(IconColumn.IconRole role) {
+    public void setIconRole(IconRole role) {
         this.iconRole = role;
     }
 

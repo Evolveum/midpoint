@@ -21,21 +21,6 @@ import org.apache.wicket.model.IModel;
 public abstract class IconColumn<T> extends AbstractIconColumn<T, String> {
     private static final long serialVersionUID = 1L;
 
-    public enum IconRole {
-        IMAGE("img"),
-        BUTTON("button");
-
-        private final String value;
-
-        IconRole(String value) {
-            this.value = value;
-        }
-
-        String getValue() {
-            return value;
-        }
-    }
-
     public IconColumn(IModel<String> displayModel) {
         super(displayModel);
     }
@@ -43,8 +28,6 @@ public abstract class IconColumn<T> extends AbstractIconColumn<T, String> {
     public IconColumn(IModel<String> displayModel, String sortProperty) {
         super(displayModel, sortProperty);
     }
-
-
 
     @Override
     public String getCssClass() {
@@ -59,7 +42,7 @@ public abstract class IconColumn<T> extends AbstractIconColumn<T, String> {
     @Override
     public void populateItem(Item<ICellPopulator<T>> cellItem, String componentId, IModel<T> rowModel) {
         ImagePanel panel = new ImagePanel(componentId, new ReadOnlyModel<>(() -> getIconDisplayType(rowModel)));
-        panel.setIconRole(IconRole.IMAGE);
+        panel.setIconRole(ImagePanel.IconRole.IMAGE);
         cellItem.add(panel);
     }
 

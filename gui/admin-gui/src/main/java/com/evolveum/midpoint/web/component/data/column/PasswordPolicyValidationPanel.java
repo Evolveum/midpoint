@@ -74,9 +74,9 @@ public class PasswordPolicyValidationPanel extends BasePanel<List<StringLimitati
         add(resultIcon);
 
 
-        ImagePanel infoPanel = new ImagePanel(ID_INFO_ICON, Model.of("fa fa-info-circle"), Model.of(getString("ChangePasswordPanel.passwordValidation")));
+        ImagePanel infoPanel = new ImagePanel(ID_INFO_ICON, Model.of("fa fa-info-circle"), createStringResource("ChangePasswordPanel.passwordValidation"));
         infoPanel.setOutputMarkupId(true);
-        infoPanel.setIconRole(IconColumn.IconRole.BUTTON);
+        infoPanel.setIconRole(ImagePanel.IconRole.BUTTON);
         add(infoPanel);
 
         PasswordLimitationsPanel validationPanel = new PasswordLimitationsPanel(ID_POLICY_VALIDATION_POPOVER,

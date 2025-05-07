@@ -48,8 +48,12 @@ public class CompositedIconPanel extends BasePanel<CompositedIcon> {
 
     private void initLayout() {
         WebMarkupContainer layeredIcon = new WebMarkupContainer(ID_LAYERED_ICON);
-        String title = getTitle();
-        layeredIcon.add(AttributeAppender.append("title", title));
+        layeredIcon.add(AttributeAppender.append("title", () -> {
+            if (getModelObject() != null && StringUtils.isNotBlank(getModelObject().getTitle())) {
+                return getModelObject().getTitle();
+            }
+            return null;
+        }));
         add(layeredIcon);
 
         WebComponent basicIcon = new WebComponent(ID_BASIC_ICON);
@@ -65,10 +69,15 @@ public class CompositedIconPanel extends BasePanel<CompositedIcon> {
             }
             return null;
         }));
-        if (isAriaSupportEnabled && title != null) {
-            basicIcon.add(AttributeAppender.append("aria-label", title));
-            basicIcon.add(AttributeAppender.append("tabindex", 0));
-        }
+
+        IModel<Boolean> hasAriaInfo = () -> isAriaSupportEnabled && getModelObject() != null && StringUtils.isNotBlank(getModelObject().getTitle());
+        basicIcon.add(AttributeAppender.append("aria-label", () ->
+            hasAriaInfo.getObject() ? getModelObject().getTitle() : null
+        ));
+        basicIcon.add(AttributeAppender.append("tabindex",  () ->
+            hasAriaInfo.getObject() ? "0" : "-1"
+        ));
+
         layeredIcon.add(basicIcon);
 
         ListView<LayerIcon> validationItems = new ListView<LayerIcon>(ID_LAYER_ICONS, new PropertyModel(getModel(), CompositedIcon.F_LAYER_ICONS)) {
@@ -102,12 +111,5 @@ public class CompositedIconPanel extends BasePanel<CompositedIcon> {
 
     public void enableAriaSupport() {
         isAriaSupportEnabled = true;
-    }
-
-    private String getTitle() {
-        if (getModelObject() != null && StringUtils.isNotBlank(getModelObject().getTitle())) {
-            return getModelObject().getTitle();
-        }
-        return null;
     }
 }

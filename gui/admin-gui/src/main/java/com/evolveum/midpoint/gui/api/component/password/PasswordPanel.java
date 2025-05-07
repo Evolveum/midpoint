@@ -29,6 +29,7 @@ import org.apache.wicket.markup.html.form.FormComponent;
 import org.apache.wicket.markup.html.form.PasswordTextField;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.LoadableDetachableModel;
+import org.apache.wicket.model.Model;
 import org.apache.wicket.request.Url;
 import org.apache.wicket.request.resource.UrlResourceReference;
 import org.apache.wicket.validation.IValidatable;
@@ -73,16 +74,12 @@ public class PasswordPanel extends InputPanel {
     private static final String ID_PASSWORD_TWO_VALIDATION_MESSAGE = "password2ValidationMessage";
     private static final String ID_VALIDATION_PANEL = "validationPanel";
 
-    public final static String INVALID_FIELD_CLASS = "is-invalid";
-
     protected boolean passwordInputVisible;
     private final PrismObject<? extends FocusType> prismObject;
     private final IModel<ProtectedStringType> passwordModel;
     protected boolean isReadOnly;
     private boolean shouldTrimInput = false;
     private final boolean showOneLinePasswordPanel;
-    private ProtectedStringType confirmPasswordValue;
-    private final IModel<ProtectedStringType> confirmPasswordModel;
 
     public <F extends FocusType> PasswordPanel(
             String id,
@@ -106,20 +103,6 @@ public class PasswordPanel extends InputPanel {
         this.isReadOnly = isReadOnly;
         this.showOneLinePasswordPanel = showOneLinePasswordPanel;
         this.prismObject = prismObject;
-        this.confirmPasswordValue = new ProtectedStringType();
-        confirmPasswordModel = new IModel<>() {
-            @Serial private static final long serialVersionUID = 1L;
-
-            @Override
-            public ProtectedStringType getObject() {
-                return confirmPasswordValue;
-            }
-
-            @Override
-            public void setObject(ProtectedStringType object) {
-                confirmPasswordValue = object;
-            }
-        };
         initLayout();
     }
 
@@ -188,7 +171,7 @@ public class PasswordPanel extends InputPanel {
         inputContainer.add(validationProgressBar);
 
         final PasswordTextField password2 = new SecureModelPasswordTextField(ID_PASSWORD_TWO,
-                new ProtectedStringClearPasswordModel(confirmPasswordModel)) {
+                new ProtectedStringClearPasswordModel(Model.of(new ProtectedStringType()))) {
 
             @Serial private static final long serialVersionUID = 1L;
 
@@ -230,7 +213,9 @@ public class PasswordPanel extends InputPanel {
                 validationPanel.refreshItems(target);
                 updatePasswordValidation(target);
                 target.add(password2ValidationMessage);
-                target.add(password2);
+                target.appendJavaScript(String.format("""
+                        window.MidPointTheme.updatePasswordErrorState('%s', '%s');
+                 """, password2ValidationMessage.getMarkupId(), password2.getMarkupId()));
             }
 
             @Override
@@ -251,7 +236,9 @@ public class PasswordPanel extends InputPanel {
             @Override
             protected void onUpdate(AjaxRequestTarget target) {
                 target.add(password2ValidationMessage);
-                target.add(password2);
+                target.appendJavaScript(String.format("""
+                        window.MidPointTheme.updatePasswordErrorState('%s', '%s');
+                 """, password2ValidationMessage.getMarkupId(), password2.getMarkupId()));
             }
 
             @Override
@@ -260,23 +247,6 @@ public class PasswordPanel extends InputPanel {
                 attributes.setThrottlingSettings(new ThrottlingSettings(Duration.ofMillis(500), true));
                 attributes.setChannel(new AjaxChannel("Drop", AjaxChannel.Type.DROP));
             }
-
-            @Override
-            public void onComponentTag(ComponentTag tag) {
-                super.onComponentTag(tag);
-
-                String currentClass = tag.getAttribute("class");
-                Set<String> classList = new HashSet<>(Arrays.asList(currentClass.split("\\s+")));
-
-                if (StringUtils.isNotBlank(password2ValidationModel.getObject())) {
-                    classList.add(INVALID_FIELD_CLASS);
-                } else {
-                    classList.remove(INVALID_FIELD_CLASS);
-                }
-
-                tag.put("class", String.join(" ", classList));
-            }
-
         });
 
         WebComponentUtil.addAjaxOnUpdateBehavior(inputContainer);
