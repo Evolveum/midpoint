@@ -10,23 +10,21 @@ In short, it's a means to searching resource object owners in midPoint.
 Correlation rules dictate how to find the object owners.
 You can define one or more correlation rules.
 
-image::./corerlation-rules-setup-accounts-configure-menu.webp[title="Configuration menu in resource accounts list as an entry point to the correlation rules wizard"
+image::corerlation-rules-setup-accounts-configure-menu.webp[title="Configuration menu in resource accounts list as an entry point to the correlation rules wizard"]
 
 == Create Correlation Rules
 
 . In icon:database[] *Resources* > icon:database[] *All Resources*, select your resource.
 . In icon:male[] *Accounts*, click icon:cog[] btn:[Configure] > icon:code-branch[] *Correlation*.
 . Click icon:plus-circle[] btn:[Add rule] and configure the new rule:
-    ** *Rule name*:
-    ** *Description*:
-    ** *Weight*:
-    ** *Tier*:
+    ** *Rule name*: A descriptive name of the rule. Needs to be unique in the context of the resource.
+    ** *Description*: An optional detailed description of the rule.
+    ** *Weight*: The weight is multiplied by correlator confidence to get the rule confidence value.
+    ** *Tier*: Tiers dictate the order of rule processing. If and only if the rule doesn't provide confident-enough match, next tier is processed
     ** *Ignore if matched by*:
-    ** *Enabled*:
-
-
-
-Click btn:[Add rule] to add a new correlation rule.
+    ** *Enabled*: An option to temporarily disable a rule.
+. Click btn:[Add rule] and repeat until you add all the rules.
+. Click icon:check[] btn:[Save correlation settings] to save the rules and exit the wizard.
 
 For the correlation, you can configure the following:
 
