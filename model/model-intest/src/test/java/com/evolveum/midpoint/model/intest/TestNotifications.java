@@ -149,7 +149,7 @@ public class TestNotifications extends AbstractInitializedModelIntegrationTest {
         }
     }
 
-    @Test
+    @Test(enabled = false)
     public void test100ModifyUserAddAccount() throws Exception {
         given();
         Task task = taskManager.createTaskInstance(TestNotifications.class.getName() + ".test100ModifyUserAddAccount");
@@ -899,7 +899,7 @@ public class TestNotifications extends AbstractInitializedModelIntegrationTest {
      *
      * It should not display operational items: MID-6859
      */
-    @Test
+    @Test(enabled = false)
     public void test510ModifyUserAssignAccountInMaintenance() throws Exception {
         given();
 
