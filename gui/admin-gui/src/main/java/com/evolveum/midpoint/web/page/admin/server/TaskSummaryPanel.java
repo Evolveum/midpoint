@@ -137,7 +137,7 @@ public class TaskSummaryPanel extends ObjectSummaryPanel<TaskType> {
                 setLabel(createTaskHealthMessage());
             }
         };
-
+        tagHealth.add(new VisibleBehaviour(() -> StringUtils.isNotEmpty(createTaskHealthMessage())));
         summaryTagList.add(tagHealth);
 
         SummaryTag<TaskType> tagLiveSyncToken = new SummaryTag<>(ID_SUMMARY_TAG, getModel()) {
