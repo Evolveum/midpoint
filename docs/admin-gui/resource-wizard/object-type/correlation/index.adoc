@@ -5,7 +5,7 @@
 :experimental:
 
 Smart correlation in midPoint is a mechanism that links resource object shadows to existing focal objects, enabling efficient synchronization through a configurable matching system.
-In short, it's a means to searching resource object owners in midPoint.
+In short, it's a means of searching for resource object owners in midPoint.
 
 Correlation rules dictate how to find the object owners.
 You can define one or more correlation rules.
@@ -22,18 +22,34 @@ image::corerlation-rules-setup-accounts-configure-menu.webp[title="Configuration
     ** *Weight*: The weight is multiplied by correlator confidence to get the rule confidence value.
     ** *Tier*: Tiers dictate the order of rule processing. If and only if the rule doesn't provide confident-enough match, next tier is processed
     ** *Ignore if matched by*:
-    ** *Enabled*: An option to temporarily disable a rule.
-. Click btn:[Add rule] and repeat until you add all the rules.
+    ** *Enabled*: An option to temporarily disable a rule. _Undefined_ is the same as _Enabled_.
+. Click icon:plus-circle[] btn:[Add rule] and repeat until you add all the rules.
 . Click icon:check[] btn:[Save correlation settings] to save the rules and exit the wizard.
 
-For the correlation, you can configure the following:
+image::corerlation-rules-list.webp[title="List of configured correlation rules"]
 
-* *Rule name* for documentation and troubleshooting purposes
-* *Description*
-* *Weight*, *Tier*, *Ignore if matched by* for more complex scenarios
-* *Enabled* to enable or disable the correlation rule
+=== Set up Correlators
 
-image::step-4-correlator-rule.png[link=step-4-correlator-rule.png,100%,title=Table of correlation rules]
+For each correlation rule, you need to also add a *correlator*.
+Correlators specify which attributes to compare when matching resource and focal objects.
+These attributes need to be unique and common to both the midPoint focal objects and the resource objects.
+
+To add correlators for correlation rules:
+
+. Open the list of correlation rules from your resource accounts list via icon:cog[] btn:[Configure] > icon:code-branch[] *Correlation*.
+. In the list, click icon:edit[] btn:[Edit] at the far right of a correlation rule row you're going to configure the correlator for.
+. Click icon:plus-circle[] btn:[Add correlator].
+. Under *Item*, select the attribute to correlate (i.e., _compare_ or _match_).
+. Select the *Search method*:
+	** _Exact match_: The attribute values need to match exactly for the objects to correlate or get linked, in other words.
+	** _Levenshtein distance_: Method of approximate matching with a threshold of the minimum number of single-character edits. Refer to link:https://en.wikipedia.org/wiki/Levenshtein_distance[Levenshtein distance on Wikipedia] for more details about the method.
+	** _Trigram similarity_: Method of approximate matching using the ratio of common trigrams to all trigrams in compared strings.
+. For the fuzzy-search methods, define *Match threshold* and whether the value is *Inclusive* (in the mathematical sense).
+. Click icon:check[] btn:[Confirm settings] to save the correlators and return to the correlation rule list.
+
+image::corerlation-rules-correlator.webp[title="List of correlators for one correlation rule"]
+
+// TODO: the rest of the article is yet to be taken care of
 
 Click btn:[Edit] button to edit details of the correlation rule.
 
