@@ -209,6 +209,9 @@ public class ResourceObjectEventImpl extends BaseEventImpl implements ResourceOb
         if (shadowDelta.isAdd() || shadowDelta.isModify()) {
             showAuxiliaryAttributes = !shadowDelta.isAdd() && showAuxiliaryAttributes;
             List<ItemPath> pathsToShowList = new ArrayList<>();
+            pathsToShowList.add(ShadowType.F_RESOURCE_REF);
+            pathsToShowList.add(ShadowType.F_KIND);
+            pathsToShowList.add(ShadowType.F_INTENT);
             pathsToShowList.add(ShadowType.F_ATTRIBUTES);
             pathsToShowList.add(ShadowType.F_CREDENTIALS);
             pathsToShowList.add(ShadowType.F_ACTIVATION);
