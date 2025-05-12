@@ -12,6 +12,8 @@ import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
+import com.evolveum.midpoint.gui.api.util.LocalizationUtil;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.export.AbstractExportableColumn;
@@ -55,6 +57,8 @@ public class DeltaColumn extends AbstractExportableColumn<SelectableBean<AuditEv
             DisplayValueType.OLD_NEW_VALUE
     );
 
+    private static final DisplayValueType DEFAULT_DISPLAY_VALUE = DisplayValueType.NEW_VALUE;
+
     private final GuiObjectColumnType guiObjectColumn;
 
     private final IModel<Search<AuditEventRecordType>> searchModel;
@@ -77,12 +81,23 @@ public class DeltaColumn extends AbstractExportableColumn<SelectableBean<AuditEv
 
     @Override
     public IModel<String> getDisplayModel() {
-        DisplayableValue<ItemPathType> value = getSearchChangedItemValue();
-        if (value == null || value.getValue() == null) {
-            return super.getDisplayModel();
-        }
+        return new LoadableDetachableModel<>() {
 
-        return PageBase.createStringResourceStatic("ChangedItemColumn.header", value.getLabel(), value.getLabel());
+            @Override
+            protected String load() {
+                String label = DeltaColumn.super.getDisplayModel().getObject();
+                if (StringUtils.isNotEmpty(label)) {
+                    return label;
+                }
+
+                DisplayableValue<ItemPathType> value = getSearchChangedItemValue();
+                if (value != null && value.getValue() != null) {
+                    return LocalizationUtil.translate("ChangedItemColumn.header", value.getLabel());
+                }
+
+                return "";
+            }
+        };
     }
 
     private DisplayableValue<ItemPathType> getSearchChangedItemValue() {
@@ -135,9 +150,9 @@ public class DeltaColumn extends AbstractExportableColumn<SelectableBean<AuditEv
     }
 
     private DisplayValueType getDisplayValueType() {
-        DisplayValueType display = guiObjectColumn.getDisplayValue() != null ? guiObjectColumn.getDisplayValue() : DisplayValueType.NEW_VALUE;
+        DisplayValueType display = guiObjectColumn.getDisplayValue() != null ? guiObjectColumn.getDisplayValue() : DEFAULT_DISPLAY_VALUE;
         if (!ALLOWED_DISPLAY_VALUES.contains(display)) {
-            display = DisplayValueType.NEW_VALUE;
+            return DEFAULT_DISPLAY_VALUE;
         }
 
         return display;
