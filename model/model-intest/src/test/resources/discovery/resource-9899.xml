@@ -1,0 +1,146 @@
+<resource xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+        xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
+        xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
+        xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-3"
+        oid="5e127000-6f41-4bc3-b5b4-065a6183a97e">
+
+    <name>Resource MID-9899</name>
+    <connectorRef type="ConnectorType">
+        <filter>
+            <q:text>connectorType = "com.evolveum.icf.dummy.connector.DummyConnector" and connectorVersion = "2.0"</q:text>
+        </filter>
+    </connectorRef>
+    <connectorConfiguration xmlns:icfi="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.icf.dummy/com.evolveum.icf.dummy.connector.DummyConnector"
+            xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3">
+
+        <icfc:configurationProperties>
+            <icfi:instanceId>resource9899</icfi:instanceId>
+            <icfi:requireExplicitEnable>true</icfi:requireExplicitEnable>
+        </icfc:configurationProperties>
+    </connectorConfiguration>
+
+    <schemaHandling>
+        <objectType>
+            <kind>account</kind>
+            <intent>default</intent>
+            <objectClass>ri:AccountObjectClass</objectClass>
+
+            <attribute>
+                <ref>icfs:name</ref>
+                <outbound>
+                    <source>
+                        <path>$user/name</path>
+                    </source>
+                </outbound>
+            </attribute>
+            <attribute>
+                <ref>icfs:uid</ref>
+                <correlator/>
+                <outbound>
+                    <strength>weak</strength>
+                    <source>
+                        <path>$user/name</path>
+                    </source>
+                </outbound>
+                <inbound>
+                    <target>
+                        <path>name</path>
+                    </target>
+                </inbound>
+            </attribute>
+            <attribute>
+                <ref>ri:description</ref>
+                <outbound>
+                    <strength>weak</strength>
+                    <expression>
+                        <value>Created by midPoint</value>
+                    </expression>
+                </outbound>
+            </attribute>
+            <attribute>
+                <ref>ri:l</ref>
+                <outbound>
+                    <source>
+                        <path>$user/locality</path>
+                    </source>
+                </outbound>
+            </attribute>
+
+            <association>
+                <ref>ri:group</ref>
+                <kind>entitlement</kind>
+                <intent>default</intent>
+                <direction>objectToSubject</direction>
+                <associationAttribute>ri:members</associationAttribute>
+                <valueAttribute>icfs:name</valueAttribute>
+            </association>
+
+            <synchronization>
+                <reaction>
+                    <situation>linked</situation>
+                    <actions>
+                        <synchronize/>
+                    </actions>
+                </reaction>
+                <reaction>
+                    <situation>unlinked</situation>
+                    <actions>
+                        <link/>
+                    </actions>
+                </reaction>
+                <reaction>
+                    <situation>unmatched</situation>
+                    <actions>
+                        <addFocus/>
+                    </actions>
+                </reaction>
+            </synchronization>
+        </objectType>
+
+        <objectType>
+            <kind>entitlement</kind>
+            <intent>default</intent>
+            <objectClass>ri:GroupObjectClass</objectClass>
+            <focus>
+                <type>RoleType</type>
+            </focus>
+            <attribute>
+                <ref>icfs:name</ref>
+                <outbound>
+                    <source>
+                        <path>$focus/name</path>
+                    </source>
+                </outbound>
+            </attribute>
+            <attribute>
+                <ref>ri:description</ref>
+                <outbound>
+                    <source>
+                        <path>description</path>
+                    </source>
+                </outbound>
+            </attribute>
+            <association>
+                <ref>ri:group</ref>
+                <kind>entitlement</kind>
+                <intent>default</intent>
+                <direction>objectToSubject</direction>
+                <associationAttribute>ri:members</associationAttribute>
+                <valueAttribute>icfs:name</valueAttribute>
+            </association>
+            <synchronization>
+                <reaction>
+                    <situation>deleted</situation>
+                    <actions>
+                        <deleteFocus/>
+                    </actions>
+                </reaction>
+            </synchronization>
+        </objectType>
+    </schemaHandling>
+
+    <consistency>
+        <avoidDuplicateValues>true</avoidDuplicateValues>
+    </consistency>
+</resource>
