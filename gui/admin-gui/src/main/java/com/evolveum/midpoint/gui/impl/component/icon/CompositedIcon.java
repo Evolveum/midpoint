@@ -11,8 +11,6 @@ import java.util.List;
 
 import org.apache.commons.lang3.StringUtils;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.IconType;
-
 /**
  * @author skublik
  */
