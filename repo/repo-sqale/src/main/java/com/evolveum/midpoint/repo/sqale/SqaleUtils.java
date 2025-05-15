@@ -40,7 +40,7 @@ public class SqaleUtils {
 
     public static final int CURRENT_SCHEMA_CHANGE_NUMBER = 51;
 
-    public static final int CURRENT_SCHEMA_AUDIT_CHANGE_NUMBER = 9;
+    public static final int CURRENT_SCHEMA_AUDIT_CHANGE_NUMBER = 10;
 
     /** User Data Key used to attach owner Oid to prism container values in order to propagate OID even if parent
      * full object is not present.
