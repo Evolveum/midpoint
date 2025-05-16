@@ -489,14 +489,29 @@ public class Visualizer {
         }
         if (valuesToDelete != null) {
             for (PrismContainerValue<C> value : valuesToDelete) {
+                if (containsOnlyOperationalItems(value) && !context.isIncludeOperationalItems()) {
+                    continue;
+                }
                 visualizeContainerDeltaValue(value, DELETE, delta, visualization, context, task, result);
             }
         }
         if (valuesToAdd != null) {
             for (PrismContainerValue<C> value : valuesToAdd) {
+                if (containsOnlyOperationalItems(value) && !context.isIncludeOperationalItems()) {
+                    continue;
+                }
                 visualizeContainerDeltaValue(value, ADD, delta, visualization, context, task, result);
             }
         }
+    }
+
+    private <C extends Containerable> boolean containsOnlyOperationalItems(PrismContainerValue<C> value) {
+        for (Item<?, ?> item : value.getItems()) {
+            if (item.getDefinition() != null && !item.getDefinition().isOperational()) {
+                return false;
+            }
+        }
+        return true;
     }
 
     private <C extends Containerable> void visualizeContainerDeltaValue(PrismContainerValue<C> value, ChangeType changeType,
