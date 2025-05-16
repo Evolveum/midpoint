@@ -17,11 +17,10 @@ import com.evolveum.midpoint.gui.impl.component.input.Select2MultiChoicePanel;
 
 import com.evolveum.midpoint.web.component.dialog.ConfirmationPanel;
 
-import com.evolveum.midpoint.web.session.UserProfileStorage;
-
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
@@ -394,9 +393,11 @@ public class PersonOfInterestPanel extends BasicWizardStepPanel<RequestAccess> i
 
             @Override
             public void onClick(AjaxRequestTarget target) {
+                target.appendJavaScript(String.format("window.MidPointTheme.saveFocus('%s');", ID_SELECT_MANUALLY));
                 selectManuallyPerformed(target);
             }
         };
+        selectManually.add(new AttributeModifier("data-component-id", ID_SELECT_MANUALLY));
         fragment.add(selectManually);
 
         Label userSelectionLabel = new Label(ID_USER_SELECTION_LABEL, () -> {

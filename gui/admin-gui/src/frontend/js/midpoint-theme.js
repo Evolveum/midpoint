@@ -1125,17 +1125,33 @@ export default class MidPointTheme {
     }
 
     updatePasswordErrorState(errorId, fieldId) {
+        const INVALID_CLASS = 'is-invalid';
         const error = document.getElementById(errorId);
         const field = document.getElementById(fieldId);
 
         if (error && field) {
             const hasError = error.textContent.trim() !== '';
-            if (hasError && !field.classList.contains('is-invalid')) {
-                field.classList.add('is-invalid');
+            if (hasError && !field.classList.contains(INVALID_CLASS)) {
+                field.classList.add(INVALID_CLASS);
             }
-            else if (!hasError && field.classList.contains('is-invalid')) {
-                field.classList.remove('is-invalid');
+            else if (!hasError && field.classList.contains(INVALID_CLASS)) {
+                field.classList.remove(INVALID_CLASS);
             }
         }
+    }
+
+    saveFocus(componentId) {
+        this.lastFocusedButtonId = componentId;
+    }
+
+    restoreFocus() {
+        setTimeout(() => {
+            if (this.lastFocusedButtonId) {
+                const el = document.querySelector(`[data-component-id='${this.lastFocusedButtonId}']`);
+                if (el) {
+                    el.focus();
+                }
+            }
+        }, 100);
     }
 }

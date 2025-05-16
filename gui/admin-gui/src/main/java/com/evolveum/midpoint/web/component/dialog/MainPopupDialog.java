@@ -77,7 +77,19 @@ public class MainPopupDialog extends ModalDialog {
     @Override
     public ModalDialog open(AjaxRequestTarget target) {
         ModalDialog dialog = super.open(target);
-        appendJS(target, "show");
+
+        String overlayId = get("overlay").getMarkupId();
+        target.appendJavaScript(String.format(
+                """
+                const modalEl = document.getElementById('%s');
+                if (modalEl) {
+                    $(modalEl).off('hidden.bs.modal').on('hidden.bs.modal', function () {
+                        window.MidPointTheme.restoreFocus();
+                    });
+                    $(modalEl).modal('show');
+                }
+                """, overlayId
+        ));
 
         return dialog;
     }
