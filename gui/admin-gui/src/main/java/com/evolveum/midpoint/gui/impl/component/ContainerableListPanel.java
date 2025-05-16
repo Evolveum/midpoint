@@ -14,6 +14,8 @@ import java.util.concurrent.atomic.AtomicReference;
 import com.evolveum.midpoint.gui.impl.page.admin.AbstractPageObjectDetails;
 import com.evolveum.midpoint.gui.impl.page.admin.certification.column.AbstractGuiColumn;
 
+import com.evolveum.midpoint.schema.expression.VariablesMap;
+
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -897,7 +899,7 @@ public abstract class ContainerableListPanel<C extends Serializable, PO extends 
         return true;
     }
 
-    private List<IColumn<PO, String>> collectColumns() {
+    protected List<IColumn<PO, String>> collectColumns() {
         List<IColumn<PO, String>> columns = new ArrayList<>();
 
         if (!isCustomColumnsListConfigured()) {
@@ -1069,8 +1071,15 @@ public abstract class ContainerableListPanel<C extends Serializable, PO extends 
         return createStringResource(getItemDisplayName(customColumn));
     }
 
-    protected IColumn<PO, String> createCustomExportableColumn(IModel<String> columnDisplayModel, GuiObjectColumnType customColumn, ExpressionType expression) {
-        return new ConfigurableExpressionColumn<>(columnDisplayModel, getSortProperty(customColumn, expression), customColumn, expression, getPageBase());
+    protected IColumn<PO, String> createCustomExportableColumn(
+            IModel<String> columnDisplayModel, GuiObjectColumnType customColumn, ExpressionType expression) {
+        return createCustomExportableColumn(columnDisplayModel, customColumn, () -> null, expression);
+    }
+
+    protected IColumn<PO, String> createCustomExportableColumn(
+            IModel<String> columnDisplayModel, GuiObjectColumnType customColumn, SerializableSupplier<VariablesMap> variablesSupplier, ExpressionType expression) {
+        return new ConfigurableExpressionColumn<>(
+                columnDisplayModel, getSortProperty(customColumn, expression), customColumn, variablesSupplier, expression, getPageBase());
     }
 
     protected String getSortProperty(GuiObjectColumnType customColumn, ExpressionType expressionType) {

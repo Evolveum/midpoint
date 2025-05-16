@@ -14,6 +14,8 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.web.component.util.SerializableSupplier;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
@@ -58,6 +60,8 @@ public class ConfigurableExpressionColumn<S extends SelectableRow<T>, T extends 
     private static final String OPERATION_LOAD_LOOKUP_TABLE = DOT_CLASS + "loadLookupTable";
 
     private final GuiObjectColumnType customColumn;
+
+    private final SerializableSupplier<VariablesMap> variablesSupplier;
     private final ExpressionType expression;
 
     private final PageBase modelServiceLocator;
@@ -68,11 +72,24 @@ public class ConfigurableExpressionColumn<S extends SelectableRow<T>, T extends 
             GuiObjectColumnType customColumns,
             ExpressionType expressionType,
             PageBase modelServiceLocator) {
+        this(displayModel, sortProperty, customColumns, () -> null, expressionType, modelServiceLocator);
+    }
+
+    public ConfigurableExpressionColumn(
+            IModel<String> displayModel,
+            String sortProperty,
+            GuiObjectColumnType customColumns,
+            SerializableSupplier<VariablesMap> variablesSupplier,
+            ExpressionType expressionType,
+            PageBase modelServiceLocator) {
 
         super(displayModel, sortProperty);
 
         this.customColumn = customColumns;
+
+        this.variablesSupplier = variablesSupplier;
         this.expression = expressionType;
+
         this.modelServiceLocator = modelServiceLocator;
     }
 
@@ -209,6 +226,12 @@ public class ConfigurableExpressionColumn<S extends SelectableRow<T>, T extends 
         OperationResult result = task.getResult();
         try {
             VariablesMap variablesMap = new VariablesMap();
+            if (variablesSupplier != null) {
+                VariablesMap map = variablesSupplier.get();
+                if (map != null) {
+                    variablesMap.putAll(map);
+                }
+            }
 
             if (columnItem != null) {
                 variablesMap.put(ExpressionConstants.VAR_INPUT, columnItem, columnItem.getDefinition());
