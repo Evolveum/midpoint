@@ -487,7 +487,6 @@ public class PropagatePasswordPanel<F extends FocusType> extends ChangePasswordP
                     }
                 };
                 resultPanel.setOutputMarkupId(true);
-                resultPanel.enableAriaSupport();
                 cellItem.add(resultPanel);
             }
 

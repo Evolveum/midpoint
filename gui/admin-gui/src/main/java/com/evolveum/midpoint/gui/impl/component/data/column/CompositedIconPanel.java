@@ -34,8 +34,6 @@ public class CompositedIconPanel extends BasePanel<CompositedIcon> {
     private static final String ID_LAYER_ICONS = "layerIcons";
     private static final String ID_LAYER_ICON = "layerIcon";
 
-    private boolean isAriaSupportEnabled = false;
-
     public CompositedIconPanel(String id, IModel<CompositedIcon> compositedIcon) {
         super(id, compositedIcon);
     }
@@ -70,13 +68,18 @@ public class CompositedIconPanel extends BasePanel<CompositedIcon> {
             return null;
         }));
 
-        IModel<Boolean> hasAriaInfo = () -> isAriaSupportEnabled && getModelObject() != null && StringUtils.isNotBlank(getModelObject().getTitle());
-        basicIcon.add(AttributeAppender.append("aria-label", () ->
-            hasAriaInfo.getObject() ? getModelObject().getTitle() : null
-        ));
-        basicIcon.add(AttributeAppender.append("tabindex",  () ->
-            hasAriaInfo.getObject() ? "0" : "-1"
-        ));
+        basicIcon.add(AttributeAppender.append("aria-label", () -> {
+            if (getModelObject() != null && StringUtils.isNotBlank(getModelObject().getTitle())) {
+                return getModelObject().getTitle();
+            }
+            return null;
+        }));
+        basicIcon.add(AttributeAppender.append("tabindex",  () -> {
+            if (getModelObject() != null && StringUtils.isNotBlank(getModelObject().getTitle())) {
+                return "0";
+            }
+            return "-1";
+        }));
 
         layeredIcon.add(basicIcon);
 
@@ -107,9 +110,5 @@ public class CompositedIconPanel extends BasePanel<CompositedIcon> {
             }
         };
         layeredIcon.add(validationItems);
-    }
-
-    public void enableAriaSupport() {
-        isAriaSupportEnabled = true;
     }
 }

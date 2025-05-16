@@ -16,6 +16,14 @@ import java.util.List;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.impl.component.search.Search;
+import com.evolveum.midpoint.gui.impl.component.search.wrapper.PropertySearchItemWrapper;
+import com.evolveum.midpoint.schema.expression.VariablesMap;
+
+import com.evolveum.midpoint.util.DisplayableValue;
+import com.evolveum.midpoint.web.component.util.SerializableSupplier;
+import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
@@ -78,9 +86,12 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
  * Created by honchar
  */
 public class AuditLogViewerPanel extends ContainerableListPanel<AuditEventRecordType, SelectableBean<AuditEventRecordType>> {
+
     @Serial private static final long serialVersionUID = 1L;
 
     static final Trace LOGGER = TraceManager.getTrace(AuditLogViewerPanel.class);
+
+    private static final String CHANGE_ITEM_VARIABLE = "changedItem";
 
     public AuditLogViewerPanel(String id) {
         super(id, AuditEventRecordType.class);
@@ -452,7 +463,9 @@ public class AuditLogViewerPanel extends ContainerableListPanel<AuditEventRecord
     }
 
     @Override
-    protected IColumn<SelectableBean<AuditEventRecordType>, String> createCustomExportableColumn(IModel<String> displayModel, GuiObjectColumnType guiObjectColumn, ExpressionType expression) {
+    protected IColumn<SelectableBean<AuditEventRecordType>, String> createCustomExportableColumn(
+            IModel<String> displayModel, GuiObjectColumnType guiObjectColumn, SerializableSupplier<VariablesMap> variablesSupplier, ExpressionType expression) {
+
         ItemPath path = WebComponentUtil.getPath(guiObjectColumn);
 
         if (AuditEventRecordType.F_INITIATOR_REF.equivalent(path)) {
@@ -491,7 +504,37 @@ public class AuditLogViewerPanel extends ContainerableListPanel<AuditEventRecord
             return createDeltaColumn(displayModel, guiObjectColumn);
         }
 
-        return super.createCustomExportableColumn(displayModel, guiObjectColumn, expression);
+        SerializableSupplier<VariablesMap> customVariables = () -> {
+            VariablesMap variablesMap = new VariablesMap();
+
+            if (variablesSupplier != null) {
+                VariablesMap map = variablesSupplier.get();
+                if (map != null) {
+                    variablesMap.putAll(map);
+                }
+            }
+
+            variablesMap.put(CHANGE_ITEM_VARIABLE, getChangedItemPath(), ItemPathType.class);
+
+            return variablesMap;
+        };
+
+        return super.createCustomExportableColumn(displayModel, guiObjectColumn, customVariables, expression);
+    }
+
+    private ItemPathType getChangedItemPath() {
+        Search search = getSearchModel().getObject();
+        if (search == null) {
+            return null;
+        }
+
+        // noinspection unchecked
+        PropertySearchItemWrapper<ItemPathType> wrapper = search.findPropertySearchItem(AuditEventRecordType.F_CHANGED_ITEM);
+        if (wrapper == null || wrapper.getValue() == null) {
+            return null;
+        }
+
+        return wrapper.getValue().getValue();
     }
 
     @Override

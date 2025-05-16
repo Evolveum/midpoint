@@ -1,0 +1,56 @@
+<role xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
+        xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
+        xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+        oid="e9f41864-5240-4d0f-b7ce-1f94fc9b4ad8">
+
+    <name>Role Metarole</name>
+
+    <identifier>test</identifier>
+
+    <inducement>
+        <construction>
+            <resourceRef oid="5e127000-6f41-4bc3-b5b4-065a6183a97e" type="ResourceType"/>
+            <kind>entitlement</kind>
+            <intent>default</intent>
+            <association>
+                <ref>ri:group</ref>
+                <outbound>
+                    <strength>strong</strength>
+                    <expression>
+                        <associationTargetSearch>
+                            <filter>
+                                <q:equal>
+                                    <q:path>attributes/icfs:name</q:path>
+                                    <expression>
+                                        <script>
+                                            <code>assignmentPath?.protoRole?.locality?.orig</code>
+                                        </script>
+                                    </expression>
+                                </q:equal>
+                            </filter>
+                            <searchStrategy>onResourceIfNeeded</searchStrategy>
+                        </associationTargetSearch>
+                    </expression>
+                    <condition>
+                        <script>
+                            <code>
+                                assignmentPath?.protoRole?.locality != null
+                            </code>
+                        </script>
+                    </condition>
+                </outbound>
+            </association>
+        </construction>
+        <order>2</order>
+        <focusType>RoleType</focusType>
+    </inducement>
+    <inducement>
+        <construction>
+            <resourceRef oid="5e127000-6f41-4bc3-b5b4-065a6183a97e" type="ResourceType"/>
+            <kind>entitlement</kind>
+            <intent>default</intent>
+        </construction>
+        <focusType>RoleType</focusType>
+    </inducement>
+</role>
