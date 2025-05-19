@@ -2409,3 +2409,8 @@ footer.main-footer a {
 .name-min-width {
   min-width: 300px;
 }
+
+.select2-selection__choice:focus {
+    outline: 2px solid #2684FF;
+    outline-offset: 2px;
+}
