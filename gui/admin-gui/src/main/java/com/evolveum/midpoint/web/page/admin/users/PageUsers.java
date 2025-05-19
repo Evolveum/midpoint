@@ -12,13 +12,22 @@ import java.util.Collection;
 import java.util.List;
 
 import com.evolveum.midpoint.gui.api.component.ObjectBrowserPanel;
+import com.evolveum.midpoint.gui.api.factory.wrapper.PrismObjectWrapperFactory;
+import com.evolveum.midpoint.gui.api.factory.wrapper.WrapperContext;
+import com.evolveum.midpoint.gui.api.prism.ItemStatus;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
 import com.evolveum.midpoint.gui.impl.page.admin.focus.PageMergeObjects;
 import com.evolveum.midpoint.gui.impl.util.TableUtil;
+import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.authentication.api.authorization.AuthorizationAction;
 import com.evolveum.midpoint.authentication.api.authorization.PageDescriptor;
 import com.evolveum.midpoint.authentication.api.authorization.Url;
+import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -56,6 +65,9 @@ import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.page.admin.users.component.ExecuteChangeOptionsDto;
 import com.evolveum.midpoint.web.session.UserProfileStorage.TableId;
 
+import org.jetbrains.annotations.NotNull;
+
+import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
 /**
@@ -288,30 +300,55 @@ public class PageUsers extends PageAdmin {
             return;
         }
 
+        Collection<ObjectDelta<? extends ObjectType>> commonUsersDeltas = new ArrayList<>();
+        Task task = createSimpleTask(OPERATION_UNLOCK_USERS);
         OperationResult result = new OperationResult(OPERATION_UNLOCK_USERS);
-        for (SelectableBean<UserType> user : users) {
-            OperationResult opResult = result.createSubresult(getString(OPERATION_UNLOCK_USER, user));
-            try {
-                Task task = createSimpleTask(OPERATION_UNLOCK_USER + user);
-                // TODO skip the operation if the user has no password
-                // credentials specified (otherwise this would create
-                // almost-empty password container)
-                ObjectDelta delta = getPrismContext().deltaFactory().object().createModificationReplaceProperty(
-                        UserType.class, user.getValue().getOid(), ItemPath.create(UserType.F_ACTIVATION,
-                                ActivationType.F_LOCKOUT_STATUS),
-                        LockoutStatusType.NORMAL);
-                Collection<ObjectDelta<? extends ObjectType>> deltas = MiscUtil.createCollection(delta);
-                getModelService().executeChanges(deltas, null, task, opResult);
-                opResult.computeStatusIfUnknown();
-            } catch (Exception ex) {
-                opResult.recomputeStatus();
-                opResult.recordFatalError(getString("PageUsers.message.unlock.fatalError", WebComponentUtil.getName(user.getValue())), ex);
-                LoggingUtils.logUnexpectedException(LOGGER, "Couldn't unlock user " + user.getValue() + ".", ex);
+
+        try {
+            for (SelectableBean<UserType> userBean : users) {
+                UserType user = userBean.getValue();
+                Collection<ItemDelta<?, ?>> userDeltas = new ArrayList<>();
+                ObjectDelta<UserType> userDelta = user.asPrismObject().createModifyDelta();
+
+                if (user.getBehavior() != null) {
+                    for (AuthenticationBehavioralDataType auth : user.getBehavior().getAuthentication()) {
+                        @NotNull ItemPath path = auth.asPrismContainerValue().getPath()
+                                .append(AuthenticationBehavioralDataType.F_AUTHENTICATION_ATTEMPT);
+
+                        //change activation status to normal
+                        userDeltas.add(PrismContext.get().deltaFor(UserType.class)
+                                .item(ItemPath.create(UserType.F_ACTIVATION, ActivationType.F_LOCKOUT_STATUS))
+                                .replace(LockoutStatusType.NORMAL)
+                                .asItemDelta());
+
+                        //also change all failed attempts to 0
+                        for (AuthenticationAttemptDataType attempt : auth.getAuthenticationAttempt()) {
+                            AuthenticationAttemptDataType newValue = attempt.clone();
+                            newValue.setFailedAttempts(0);
+                            try {
+
+                                userDeltas.addAll(PrismContext.get().deltaFor(UserType.class)
+                                        .item(path).delete(attempt)
+                                        .item(path).add(newValue)
+                                        .asItemDeltas());
+                            } catch (Exception ex) {
+                                result.recomputeStatus();
+                                result.recordFatalError(getString("PageUsers.message.unlock.fatalError",
+                                        WebComponentUtil.getName(user)), ex);
+                                LoggingUtils.logUnexpectedException(LOGGER, "Couldn't unlock user " + user + ".", ex);
+                            }
+                        }
+                    }
+                    userDelta.addModifications(userDeltas);
+                }
+                commonUsersDeltas.add(userDelta);
             }
+            getModelService().executeChanges(commonUsersDeltas, null, task, result);
+        } catch (Exception ex) {
+            result.recomputeStatus();
+            LOGGER.error("Unable to unlock users, ", ex);
         }
-
-        result.recomputeStatus();
-
+        result.computeStatusIfUnknown();
         showResult(result);
         target.add(getFeedbackPanel());
         getTable().refreshTable(target);
