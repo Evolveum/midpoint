@@ -342,24 +342,16 @@ public class TaskAsserter<RA> extends AssignmentHolderAsserter<TaskType, RA> {
         return this;
     }
 
-    public TaskAsserter<RA> assertStatus(OperationResultStatusType status) {
+    public TaskAsserter<RA> assertFatalError() {
         OperationResultType result = getTaskBean().getResult();
         if (result != null) {
-            TestUtil.assertStatus(result, status);
+            TestUtil.assertFatalError(result);
         } else {
             assertThat(getTaskBean().getResultStatus())
                     .as("result status")
-                    .isEqualTo(status);
+                    .isEqualTo(OperationResultStatusType.FATAL_ERROR);
         }
         return this;
-    }
-
-    public TaskAsserter<RA> assertInProgress() {
-        return assertStatus(OperationResultStatusType.IN_PROGRESS);
-    }
-
-    public TaskAsserter<RA> assertFatalError() {
-        return assertStatus(OperationResultStatusType.FATAL_ERROR);
     }
 
     public TaskAsserter<RA> assertResultMessageContains(String fragment) {
