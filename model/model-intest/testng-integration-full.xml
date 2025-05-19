@@ -132,7 +132,6 @@
             <class name="com.evolveum.midpoint.model.intest.tasks.TestThresholdsSingleTaskMultipleThreads"/>
             <class name="com.evolveum.midpoint.model.intest.tasks.TestThresholdsSingleThread"/>
             <class name="com.evolveum.midpoint.model.intest.tasks.TestMiscTasks"/>
-            <class name="com.evolveum.midpoint.model.intest.tasks.TestTasks"/>
         </classes>
     </test>
     <test name="Async updates" preserve-order="true" parallel="none" verbose="10">

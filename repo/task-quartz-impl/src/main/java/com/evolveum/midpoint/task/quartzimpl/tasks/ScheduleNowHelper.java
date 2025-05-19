@@ -100,12 +100,8 @@ class ScheduleNowHelper {
         }
     }
 
-    void scheduleWaitingTaskNow(TaskQuartzImpl task, OperationResult result) {
-        scheduleWaitingTaskNow(task, false, result);
-    }
-
     // experimental, todo revise the logic
-    void scheduleWaitingTaskNow(TaskQuartzImpl task, boolean synchronizeTask, OperationResult result) {
+    void scheduleWaitingTaskNow(TaskQuartzImpl task, OperationResult result) {
         stateCheck(task.getSchedulingState() == TaskSchedulingStateType.WAITING,
                 "Task is not waiting: %s (%s)", task, task.getSchedulingState());
         try {
@@ -113,11 +109,6 @@ class ScheduleNowHelper {
             task.setExecutionAndSchedulingStateImmediate(
                     TaskExecutionStateType.RUNNABLE, TaskSchedulingStateType.READY,
                     TaskSchedulingStateType.WAITING, result);
-
-            if (synchronizeTask) {
-                task.synchronizeWithQuartz(result);
-            }
-
             localScheduler.addTriggerNowForTask(task, result);
         } catch (SchedulerException | ObjectNotFoundException | SchemaException | PreconditionViolationException e) {
             String message = "Waiting task " + task + " cannot be scheduled: " + e.getMessage();
