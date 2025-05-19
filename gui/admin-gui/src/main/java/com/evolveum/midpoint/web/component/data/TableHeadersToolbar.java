@@ -140,10 +140,10 @@ public class TableHeadersToolbar<T> extends AjaxFallbackHeadersToolbar<String> {
 
                         String ariaLabel = switch (currentOrder) {
                             case ASCENDING ->
-                                    LocalizationUtil.translate("Table.item.sorted.ascending", columnLabel);
+                                    LocalizationUtil.translate("TableHeadersToolbar.item.sorted.ascending", columnLabel);
                             case DESCENDING ->
-                                    LocalizationUtil.translate("Table.item.sorted.descending", columnLabel);
-                            default -> LocalizationUtil.translate("Table.item.unsorted", columnLabel);
+                                    LocalizationUtil.translate("TableHeadersToolbar.item.sorted.descending", columnLabel);
+                            default -> LocalizationUtil.translate("TableHeadersToolbar.item.unsorted", columnLabel);
                         };
                         tag.put("aria-label", ariaLabel);
                     }

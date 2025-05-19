@@ -11,6 +11,7 @@ import java.util.List;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.form.AjaxSubmitLink;
+import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.list.ListItem;
@@ -73,10 +74,12 @@ public abstract class SearchButtonWithDropdownMenu<E extends Enum> extends BaseP
         Label buttonLabel = new Label(ID_SEARCH_BUTTON_LABEL, new LoadableDetachableModel<String>() {
             @Override
             protected String load() {
-                return createStringResource(mode.getObject()).getString();
+                return getString(mode.getObject());
             }
         });
         searchButton.add(buttonLabel);
+        searchButton.add(AttributeAppender.append("aria-label", () ->
+                getString("SearchButtonWithDropdownMenu.search.type", getString(mode.getObject()))));
         add(searchButton);
 
         AjaxButton dropdownButton = new AjaxButton(ID_DROPDOWN_BUTTON) {
