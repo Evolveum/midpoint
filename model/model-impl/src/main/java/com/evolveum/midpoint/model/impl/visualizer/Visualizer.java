@@ -489,7 +489,7 @@ public class Visualizer {
         }
         if (valuesToDelete != null) {
             for (PrismContainerValue<C> value : valuesToDelete) {
-                if (containsOnlyOperationalItems(value) && !context.isIncludeOperationalItems()) {
+                if (isOperationalContainer(value) && !context.isIncludeOperationalItems()) {
                     continue;
                 }
                 visualizeContainerDeltaValue(value, DELETE, delta, visualization, context, task, result);
@@ -497,7 +497,8 @@ public class Visualizer {
         }
         if (valuesToAdd != null) {
             for (PrismContainerValue<C> value : valuesToAdd) {
-                if (containsOnlyOperationalItems(value) && !context.isIncludeOperationalItems()) {
+                if ((isOperationalContainer(value) || containsOnlyOperationalItems(value))
+                        && !context.isIncludeOperationalItems()) {
                     continue;
                 }
                 visualizeContainerDeltaValue(value, ADD, delta, visualization, context, task, result);
@@ -505,7 +506,14 @@ public class Visualizer {
         }
     }
 
+    private <C extends Containerable> boolean isOperationalContainer(PrismContainerValue<C> value) {
+        return value == null || value.getDefinition() == null || value.getDefinition().isOperational();
+    }
+
     private <C extends Containerable> boolean containsOnlyOperationalItems(PrismContainerValue<C> value) {
+        if (value == null) {
+            return true;
+        }
         for (Item<?, ?> item : value.getItems()) {
             if (item.getDefinition() != null && !item.getDefinition().isOperational()) {
                 return false;
