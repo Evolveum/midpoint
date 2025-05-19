@@ -222,6 +222,15 @@ public abstract class SelectableItemListPopoverPanel<T extends FilterableSearchI
     private void closeMorePopoverPerformed(AjaxRequestTarget target) {
         String popoverId = get(ID_POPOVER).getMarkupId();
         target.appendJavaScript("$('#" + popoverId + "').toggle();");
+        Component component = this.getPopoverReferenceComponent();
+        if (component != null && component.getMarkupId() != null) {
+            target.appendJavaScript(
+                    "setTimeout(function() {" +
+                            "var el = document.getElementById('" + component.getMarkupId() + "');" +
+                            "if (el) { el.focus(); }" +
+                            "}, 100);"
+            );
+        }
     }
 
     private List<T> getSelectedItemList() {
