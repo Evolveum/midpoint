@@ -1,4 +1,4 @@
-= The `items` Correlator
+= The Items Correlator
 :page-toc: top
 
 
