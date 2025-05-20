@@ -378,14 +378,14 @@ public class PropagatePasswordPanel<F extends FocusType> extends ChangePasswordP
             @Override
             protected DisplayType getIconDisplayType(IModel<PasswordAccountDto> rowModel) {
                 String cssClass = "fa fa-question text-info";
-                String tooltip = "ActivationStatusType.null";
+                String tooltip = "ChangePasswordPanel.undefined";
                 if (rowModel != null && rowModel.getObject() != null && rowModel.getObject().isEnabled() != null) {
                     if (rowModel.getObject().isEnabled()) {
                         cssClass = GuiStyleConstants.CLASS_APPROVAL_OUTCOME_ICON_APPROVED_COLORED;
-                        tooltip = "ActivationStatusType.ENABLED";
+                        tooltip = "ChangePasswordPanel.enabled";
                     } else {
                         cssClass = GuiStyleConstants.CLASS_APPROVAL_OUTCOME_ICON_REJECTED_COLORED;
-                        tooltip = "ActivationStatusType.DISABLED";
+                        tooltip = "ChangePasswordPanel.disabled";
                     }
                 }
                 return GuiDisplayTypeUtil.createDisplayType(cssClass + " fa-fw fa-lg", "", createStringResource(tooltip).getString());

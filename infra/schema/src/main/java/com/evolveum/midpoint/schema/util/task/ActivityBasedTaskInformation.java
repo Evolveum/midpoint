@@ -146,6 +146,10 @@ public class ActivityBasedTaskInformation extends TaskInformation {
         int failed = workersInformation.getWorkersFailed();
         int stalled = workersInformation.getWorkersStalled();
 
+        if (getTask().getExecutionState() == TaskExecutionStateType.CLOSED) {
+            return null;
+        }
+
         if (executing == 0) {
             return new SingleLocalizableMessage("ActivityBasedTaskInformation.taskStatusDescription.zeroExecuting");
         }

@@ -19,7 +19,17 @@
       xmlns:wicket="http://wicket.apache.org">
 <body>
 <wicket:panel>
+
+    <h2><wicket:message key="TaskErrorsPanel.operationExecutionErrors"/></h2>
+
     <div wicket:id="taskErrors"/>
+
+    <wicket:enclosure child="subtasksErrors">
+        <h2 class="mt-5"><wicket:message key="TaskErrorsPanel.taskOverviewErrors"/></h2>
+
+        <div wicket:id="subtasksErrors"/>
+    </wicket:enclosure>
+
 </wicket:panel>
 </body>
 </html>

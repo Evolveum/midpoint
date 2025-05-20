@@ -71,6 +71,9 @@ public class TestObjectMarks extends AbstractEmptyModelIntegrationTest {
     private static final String TYPE_DEVELOPER = "developer";
     private static final String INTENT_DEVELOPER = "developer";
 
+    private static final String PRIVILEGED_ACCESS_MARK_NAME = "Privileged access";
+    private static final String PRIVILEGED_ACCESS_POLICY_NAME = "Privileged access policy";
+
     private String markNoSyncOid;
 
     private String markReadOnlyOid;
@@ -708,4 +711,66 @@ public class TestObjectMarks extends AbstractEmptyModelIntegrationTest {
         assertUser(oid, "before")
                 .assertEffectiveMarks(MARK_DO_NOT_TOUCH.oid);
     }
+
+    /**
+     *
+     * MID-10641
+     */
+    @Test(enabled = false)
+    public void test700ObjectMarkOnUnassign() throws Exception {
+        var task = getTestTask();
+        var result = task.getResult();
+        var roleName = getTestNameShort();
+
+        given("a privileged classification policy inducing a mark 'Privileged access'");
+        var markOid = addObject(
+                new MarkType()
+                        .name(PRIVILEGED_ACCESS_MARK_NAME),
+                task, result);
+
+        var policyOid = addObject(
+                new PolicyType()
+                        .name(PRIVILEGED_ACCESS_POLICY_NAME)
+                        .inducement(
+                                new AssignmentType()
+                                        .policyRule(
+                                                new PolicyRuleType()
+                                                        .policyConstraints(
+                                                                new PolicyConstraintsType()
+                                                                        .alwaysTrue(
+                                                                                new AlwaysTruePolicyConstraintType()
+                                                                                        .name("mark-focus-always-true")
+                                                                        )
+                                                        )
+                                                        .markRef(markOid, MarkType.COMPLEX_TYPE)
+                                                        .policyActions(
+                                                                new PolicyActionsType()
+                                                                        .record(new RecordPolicyActionType())
+                                                        )
+                                        )
+                        ),
+                task, result);
+
+
+        when("the role with policy assignment is created and marked");
+        var roleOid = addObject(
+                new RoleType()
+                        .name(roleName)
+                        .assignment(
+                                new AssignmentType()
+                                        .targetRef(policyOid, PolicyType.COMPLEX_TYPE)),
+                task, result);
+
+        then("the role is marked");
+        assertRole(roleOid, "before")
+                .assertEffectiveMarks(markOid);
+
+        when("unassign a privileged classification policy from the role");
+        unassign(PolicyType.class, policyOid, roleOid, task, result);
+
+        then("the role is not marked anymore");
+        assertRole(roleOid, "after unmarked")
+                .assertEffectiveMarks();
+    }
+
 }

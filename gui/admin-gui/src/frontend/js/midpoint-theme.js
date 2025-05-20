@@ -256,11 +256,13 @@ export default class MidPointTheme {
                 if (input.attr('type') === "password") {
                     input.attr('type', 'text');
                     $(this).attr('aria-pressed', 'true');
+                    $(this).attr('aria-label', $(this).attr('data-pwd-hide'));
                     $(this).addClass("fa-eye-slash");
                     $(this).removeClass("fa-eye");
                 } else {
                     input.attr('type', 'password');
                     $(this).attr('aria-pressed', 'false');
+                    $(this).attr('aria-label', $(this).attr('data-pwd-show'));
                     $(this).removeClass("fa-eye-slash");
                     $(this).addClass("fa-eye");
                 }
@@ -378,7 +380,7 @@ export default class MidPointTheme {
         var container = $("#" + containerHtmlElement.id)
         if (container.length) {
             var select = container.find("select");
-            if (select.length){
+            if (select.length) {
                 var attribute = select.attr("aria-label")
 
                 var combobox = container.find("span[role='combobox']");
@@ -427,6 +429,56 @@ export default class MidPointTheme {
                         }
                     });
 
+                    const searchField = combobox.find('.select2-search__field');
+                    const updateBindings = () => {
+                        const choices = combobox.find('.select2-selection__choice');
+                        choices.attr({
+                            tabindex: 0,
+                            role: 'option',
+                            'aria-selected': 'true'
+                        });
+
+                        choices.off('.keyboardNav').on('keydown.keyboardNav', function (e) {
+                            const index = choices.index(this);
+
+                            if (e.key === 'Delete' || e.key === 'Backspace') {
+                                e.preventDefault();
+                                $(this).find('.select2-selection__choice__remove').trigger('click');
+                                setTimeout(() => searchField.trigger('focus'), 0);
+                                return;
+                            }
+
+                            if (e.key === 'Tab' && !e.shiftKey) {
+                                e.preventDefault();
+                                if (index < choices.length - 1) {
+                                    choices.eq(index + 1).get(0).focus();
+                                } else {
+                                    searchField.get(0).focus();
+                                }
+                            }
+
+                            if (e.key === 'Tab' && e.shiftKey && index > 0) {
+                                e.preventDefault();
+                                choices.eq(index - 1).get(0).focus();
+                            }
+                        });
+
+                        searchField.off('.shiftTab').on('keydown.shiftTab', function (e) {
+                            if (e.key === 'Tab' && e.shiftKey) {
+                                const choices = combobox.find('.select2-selection__choice');
+                                if (choices.length) {
+                                    e.preventDefault();
+                                    choices.last().get(0).focus();
+                                }
+                            }
+                        });
+                    };
+
+                    updateBindings();
+
+                    select.on('select2:select select2:unselect', function () {
+                        setTimeout(updateBindings, 0);
+                    });
                 }
             }
         }
@@ -1120,5 +1172,36 @@ export default class MidPointTheme {
             event.preventDefault();
             element.dispatchEvent(new Event('keyup', { bubbles: true }));
         }
+    }
+
+    updatePasswordErrorState(errorId, fieldId) {
+        const INVALID_CLASS = 'is-invalid';
+        const error = document.getElementById(errorId);
+        const field = document.getElementById(fieldId);
+
+        if (error && field) {
+            const hasError = error.textContent.trim() !== '';
+            if (hasError && !field.classList.contains(INVALID_CLASS)) {
+                field.classList.add(INVALID_CLASS);
+            }
+            else if (!hasError && field.classList.contains(INVALID_CLASS)) {
+                field.classList.remove(INVALID_CLASS);
+            }
+        }
+    }
+
+    saveFocus(componentId) {
+        this.lastFocusedButtonId = componentId;
+    }
+
+    restoreFocus() {
+        setTimeout(() => {
+            if (this.lastFocusedButtonId) {
+                const el = document.querySelector(`[data-component-id='${this.lastFocusedButtonId}']`);
+                if (el) {
+                    el.focus();
+                }
+            }
+        }, 100);
     }
 }

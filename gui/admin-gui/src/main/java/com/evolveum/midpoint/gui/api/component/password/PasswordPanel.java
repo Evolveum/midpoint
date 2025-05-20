@@ -8,9 +8,7 @@ package com.evolveum.midpoint.gui.api.component.password;
 
 import java.io.Serial;
 import java.time.Duration;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 
@@ -212,10 +210,12 @@ public class PasswordPanel extends InputPanel {
 
             @Override
             protected void onUpdate(AjaxRequestTarget target) {
-//                limitationsModel.reset();
                 validationPanel.refreshItems(target);
                 updatePasswordValidation(target);
                 target.add(password2ValidationMessage);
+                target.appendJavaScript(String.format("""
+                        window.MidPointTheme.updatePasswordErrorState('%s', '%s');
+                 """, password2ValidationMessage.getMarkupId(), password2.getMarkupId()));
             }
 
             @Override
@@ -236,6 +236,9 @@ public class PasswordPanel extends InputPanel {
             @Override
             protected void onUpdate(AjaxRequestTarget target) {
                 target.add(password2ValidationMessage);
+                target.appendJavaScript(String.format("""
+                        window.MidPointTheme.updatePasswordErrorState('%s', '%s');
+                 """, password2ValidationMessage.getMarkupId(), password2.getMarkupId()));
             }
 
             @Override

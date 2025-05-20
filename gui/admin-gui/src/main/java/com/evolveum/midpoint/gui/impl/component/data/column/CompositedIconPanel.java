@@ -20,7 +20,6 @@ import org.apache.wicket.model.PropertyModel;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIcon;
 import com.evolveum.midpoint.gui.impl.component.icon.LayerIcon;
-import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.IconType;
 
 /**
@@ -68,6 +67,20 @@ public class CompositedIconPanel extends BasePanel<CompositedIcon> {
             }
             return null;
         }));
+
+        basicIcon.add(AttributeAppender.append("aria-label", () -> {
+            if (getModelObject() != null && StringUtils.isNotBlank(getModelObject().getTitle())) {
+                return getModelObject().getTitle();
+            }
+            return null;
+        }));
+        basicIcon.add(AttributeAppender.append("tabindex",  () -> {
+            if (getModelObject() != null && StringUtils.isNotBlank(getModelObject().getTitle())) {
+                return "0";
+            }
+            return "-1";
+        }));
+
         layeredIcon.add(basicIcon);
 
         ListView<LayerIcon> validationItems = new ListView<LayerIcon>(ID_LAYER_ICONS, new PropertyModel(getModel(), CompositedIcon.F_LAYER_ICONS)) {

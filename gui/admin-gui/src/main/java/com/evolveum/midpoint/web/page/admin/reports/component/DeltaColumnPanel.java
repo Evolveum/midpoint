@@ -43,6 +43,7 @@ public class DeltaColumnPanel extends BasePanel<ItemDelta<? extends PrismValue, 
     private static final String ID_NEW_VALUES = "newValues";
     private static final String ID_MODIFICATION_TYPE = "modificationType";
     private static final String ID_NEW_VALUE = "newValue";
+    private static final String ID_ARROW = "arrow";
 
     private boolean showOldValues = true;
 
@@ -76,6 +77,10 @@ public class DeltaColumnPanel extends BasePanel<ItemDelta<? extends PrismValue, 
         };
         oldValues.add(new VisibleBehaviour(() -> showOldValues));
         add(oldValues);
+
+        WebMarkupContainer arrow = new WebMarkupContainer(ID_ARROW);
+        arrow.add(new VisibleBehaviour(() -> showOldValues && showNewValues && !oldValuesModel.getObject().isEmpty()));
+        add(arrow);
 
         IModel<List<Pair<ModificationType, PrismValue>>> newValuesModel = new LoadableDetachableModel<>() {
 

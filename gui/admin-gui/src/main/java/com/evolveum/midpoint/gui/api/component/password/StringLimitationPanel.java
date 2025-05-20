@@ -60,6 +60,9 @@ public class StringLimitationPanel extends BasePanel<StringLimitationResult> {
         icon.add(AttributeModifier.append(
                 "title",
                 (IModel<String>) () -> LocalizationUtil.translate("StringLimitationPanel.decision." + Boolean.TRUE.equals(getModelObject().isSuccess()))));
+        icon.add(AttributeModifier.append(
+                "aria-label",
+                (IModel<String>) () -> LocalizationUtil.translate("StringLimitationPanel.decision." + Boolean.TRUE.equals(getModelObject().isSuccess()))));
         add(icon);
 
         LabelWithHelpPanel label = new LabelWithHelpPanel(ID_NAME, Model.of(WebComponentUtil.getTranslatedPolyString(getModelObject().getName()))){

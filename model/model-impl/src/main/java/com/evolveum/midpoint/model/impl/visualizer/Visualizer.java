@@ -333,7 +333,7 @@ public class Visualizer {
         itemsToShow.sort(getItemDisplayOrderComparator());
 
         for (Item<?, ?> item : itemsToShow) {
-            if (context.isHidden(item.getPath())) {
+            if (!context.isPathToBeShown(item.getPath()) || context.isHidden(item.getPath())) {
                 continue;
             }
             if (item instanceof PrismProperty) {
@@ -458,7 +458,7 @@ public class Visualizer {
         if (delta.isEmpty()) {
             return;
         }
-        if (context.isHidden(delta.getPath())) {
+        if (!context.isPathToBeShown(delta.getPath()) || context.isHidden(delta.getPath())) {
             return;
         }
         PrismContainerDefinition def = delta.getDefinition();
@@ -489,14 +489,37 @@ public class Visualizer {
         }
         if (valuesToDelete != null) {
             for (PrismContainerValue<C> value : valuesToDelete) {
+                if (isOperationalContainer(value) && !context.isIncludeOperationalItems()) {
+                    continue;
+                }
                 visualizeContainerDeltaValue(value, DELETE, delta, visualization, context, task, result);
             }
         }
         if (valuesToAdd != null) {
             for (PrismContainerValue<C> value : valuesToAdd) {
+                if ((isOperationalContainer(value) || containsOnlyOperationalItems(value))
+                        && !context.isIncludeOperationalItems()) {
+                    continue;
+                }
                 visualizeContainerDeltaValue(value, ADD, delta, visualization, context, task, result);
             }
         }
+    }
+
+    private <C extends Containerable> boolean isOperationalContainer(PrismContainerValue<C> value) {
+        return value == null || value.getDefinition() == null || value.getDefinition().isOperational();
+    }
+
+    private <C extends Containerable> boolean containsOnlyOperationalItems(PrismContainerValue<C> value) {
+        if (value == null) {
+            return true;
+        }
+        for (Item<?, ?> item : value.getItems()) {
+            if (item.getDefinition() != null && !item.getDefinition().isOperational()) {
+                return false;
+            }
+        }
+        return true;
     }
 
     private <C extends Containerable> void visualizeContainerDeltaValue(PrismContainerValue<C> value, ChangeType changeType,
@@ -587,7 +610,7 @@ public class Visualizer {
 
     private void visualizeAtomicDelta(ItemDelta<?, ?> delta, VisualizationImpl visualization, VisualizationContext context, Task task, OperationResult result)
             throws SchemaException {
-        if (context.isHidden(delta.getPath())) {
+        if (!context.isPathToBeShown(delta.getPath()) || context.isHidden(delta.getPath())) {
             return;
         }
         ItemPath deltaParentPath = delta.getParentPath();

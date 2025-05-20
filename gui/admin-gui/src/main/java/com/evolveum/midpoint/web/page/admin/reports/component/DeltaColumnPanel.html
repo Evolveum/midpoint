@@ -15,14 +15,16 @@
                     <span wicket:id="oldValue"/>
                 </div>
             </div>
-            <i class="fa fa-arrow-right text-secondary"/>
         </wicket:enclosure>
-        <div class="d-flex flex-column gap-2">
-            <div class="d-flex gap-1 align-items-center changed-item-panel-value" wicket:id="newValues">
-                <i wicket:id="modificationType"/>
-                <span wicket:id="newValue"/>
+        <i wicket:id="arrow" class="fa fa-arrow-right text-secondary"/>
+        <wicket:enclosure child="newValues">
+            <div class="d-flex flex-column gap-2">
+                <div class="d-flex gap-1 align-items-center changed-item-panel-value" wicket:id="newValues">
+                    <i wicket:id="modificationType"/>
+                    <span wicket:id="newValue"/>
+                </div>
             </div>
-        </div>
+        </wicket:enclosure>
     </div>
 </wicket:panel>
 </html>

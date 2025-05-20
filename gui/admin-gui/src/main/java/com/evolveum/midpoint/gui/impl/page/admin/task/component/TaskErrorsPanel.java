@@ -6,14 +6,11 @@
  */
 package com.evolveum.midpoint.gui.impl.page.admin.task.component;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.gui.api.model.LoadableModel;
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -31,7 +28,10 @@ import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.util.GuiDisplayTypeUtil;
+import com.evolveum.midpoint.gui.api.util.LocalizationUtil;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.impl.component.data.provider.ListDataProvider;
 import com.evolveum.midpoint.gui.impl.component.data.provider.SelectableBeanContainerDataProvider;
 import com.evolveum.midpoint.gui.impl.component.data.provider.SelectableBeanObjectDataProvider;
 import com.evolveum.midpoint.gui.impl.component.search.Search;
@@ -49,6 +49,8 @@ import com.evolveum.midpoint.prism.query.ObjectOrdering;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.OrderDirection;
 import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
+import com.evolveum.midpoint.schema.util.OperationResultUtil;
+import com.evolveum.midpoint.schema.util.task.ActivityStateOverviewUtil;
 import com.evolveum.midpoint.schema.util.task.TaskInformation;
 import com.evolveum.midpoint.util.SingleLocalizableMessage;
 import com.evolveum.midpoint.web.application.PanelDisplay;
@@ -57,8 +59,10 @@ import com.evolveum.midpoint.web.application.PanelType;
 import com.evolveum.midpoint.web.component.data.BoxedTablePanel;
 import com.evolveum.midpoint.web.component.data.column.AjaxLinkColumn;
 import com.evolveum.midpoint.web.component.data.column.EnumPropertyColumn;
+import com.evolveum.midpoint.web.component.data.column.IconColumn;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.page.admin.server.RefreshableTabPanel;
+import com.evolveum.midpoint.web.page.admin.server.dto.OperationResultStatusPresentationProperties;
 import com.evolveum.midpoint.web.page.admin.server.dto.TaskErrorSelectableBeanImpl;
 import com.evolveum.midpoint.web.page.admin.server.dto.TaskErrorSelectableBeanImplOld;
 import com.evolveum.midpoint.web.session.PageStorage;
@@ -78,6 +82,8 @@ public class TaskErrorsPanel extends AbstractObjectMainPanel<TaskType, TaskDetai
     private static final long serialVersionUID = 1L;
 
     private static final String ID_TASK_ERRORS = "taskErrors";
+
+    private static final String ID_SUBTASKS_ERRORS = "subtasksErrors";
 
     private IModel<Search<OperationExecutionType>> searchModel;
 
@@ -161,6 +167,150 @@ public class TaskErrorsPanel extends AbstractObjectMainPanel<TaskType, TaskDetai
         };
         table.setOutputMarkupId(true);
         add(table);
+
+        initSubtasksErrorsTable();
+    }
+
+    private void initSubtasksErrorsTable() {
+        IModel<List<ActivityTaskStateOverviewType>> overviewModel = new LoadableDetachableModel<>() {
+
+            @Override
+            protected List<ActivityTaskStateOverviewType> load() {
+                List<ActivityTaskStateOverviewType> result = new ArrayList<>();
+
+                PrismObject<TaskType> object = getObjectWrapperObject();
+                if (object == null) {
+                    return result;
+                }
+
+                ActivityStateOverviewType rootOverview = ActivityStateOverviewUtil.getStateOverview(object.asObjectable());
+                if (rootOverview == null) {
+                    return result;
+                }
+
+                ActivityStateOverviewUtil.StateOverviewVisitor visitor = state -> state.getTask().stream()
+                        .filter(o -> OperationResultUtil.isError(o.getResultStatus()))
+                        .forEach(o -> result.add(o));
+
+                ActivityStateOverviewUtil.acceptStateOverviewVisitor(rootOverview, visitor);
+
+                result.sort(Comparator.comparing(o -> getTaskName(o)));
+
+                return result;
+            }
+        };
+        var provider = new ListDataProvider(this, overviewModel);
+
+        BoxedTablePanel<?> table = new BoxedTablePanel<>(ID_SUBTASKS_ERRORS, provider, initTaskErrorsColumns());
+        table.setOutputMarkupId(true);
+        table.add(new VisibleBehaviour(() -> !overviewModel.getObject().isEmpty()));
+        add(table);
+    }
+
+    private String getTaskName(ActivityTaskStateOverviewType overview) {
+        ObjectReferenceType taskRef = overview.getTaskRef();
+        if (taskRef == null || taskRef.getOid() == null) {
+            return "";
+        }
+
+        return taskRef.getTargetName() != null ? taskRef.getTargetName().getOrig() : taskRef.getOid();
+    }
+
+    private List<IColumn<ActivityTaskStateOverviewType, String>> initTaskErrorsColumns() {
+        List<IColumn<ActivityTaskStateOverviewType, String>> columns = new ArrayList<>();
+
+        columns.add(new AjaxLinkColumn<>(createStringResource("TaskErrorsPanel.taskName")) {
+
+            @Override
+            protected IModel createLinkModel(IModel<ActivityTaskStateOverviewType> rowModel) {
+                return new LoadableDetachableModel() {
+
+                    @Override
+                    protected String load() {
+                        ActivityTaskStateOverviewType state = rowModel.getObject();
+                        if (state.getTaskRef() == null) {
+                            return null;
+                        }
+
+                        ObjectReferenceType ref = state.getTaskRef();
+                        if (ref.getTargetName() != null) {
+                            return ref.getTargetName().getOrig();
+                        }
+
+                        return ref.getOid();
+                    }
+                };
+            }
+
+            @Override
+            public boolean isEnabled(IModel<ActivityTaskStateOverviewType> rowModel) {
+                ObjectReferenceType ref = rowModel.getObject().getTaskRef();
+                return ref != null && ref.getOid() != null;
+            }
+
+            @Override
+            public void onClick(AjaxRequestTarget target, IModel<ActivityTaskStateOverviewType> rowModel) {
+                ObjectReferenceType ref = rowModel.getObject().getTaskRef();
+                if (ref == null || ref.getOid() == null) {
+                    return;
+                }
+
+                DetailsPageUtil.dispatchToObjectDetailsPage(
+                        TaskType.class, ref.getOid(), TaskErrorsPanel.this, true);
+            }
+        });
+
+        columns.add(new PropertyColumn<>(
+                createStringResource("TaskErrorsPanel.node"),
+                ActivityTaskStateOverviewType.F_NODE.getLocalPart()));
+
+        columns.add(new EnumPropertyColumn<>(
+                createStringResource("TaskErrorsPanel.executionState"),
+                ActivityTaskStateOverviewType.F_EXECUTION_STATE.getLocalPart()));
+
+        columns.add(new IconColumn<ActivityTaskStateOverviewType>(createStringResource("TaskErrorsPanel.resultStatus")) {
+
+            @Override
+            protected DisplayType getIconDisplayType(IModel<ActivityTaskStateOverviewType> rowModel) {
+                OperationResultStatusType status = rowModel.getObject().getResultStatus();
+                if (status == null) {
+                    status = OperationResultStatusType.UNKNOWN;
+                }
+
+                String icon = OperationResultStatusPresentationProperties.parseOperationalResultStatus(status).getIcon();
+                String title = createStringResource(status).getString();
+
+                return GuiDisplayTypeUtil.createDisplayType(icon, "", title);
+            }
+        });
+
+        columns.add(new AbstractColumn<>(createStringResource("TaskErrorsPanel.message")) {
+
+            @Override
+            public void populateItem(
+                    Item<ICellPopulator<ActivityTaskStateOverviewType>> cellItem,
+                    String componentId,
+                    IModel<ActivityTaskStateOverviewType> rowModel) {
+
+                IModel<String> model = new LoadableDetachableModel<>() {
+
+                    @Override
+                    protected String load() {
+                        ActivityTaskStateOverviewType overview = rowModel.getObject();
+                        LocalizableMessageType msg = overview.getUserFriendlyMessage();
+                        if (msg == null) {
+                            return overview.getMessage();
+                        }
+
+                        return LocalizationUtil.translateMessage(msg);
+                    }
+                };
+
+                cellItem.add(new Label(componentId, model));
+            }
+        });
+
+        return columns;
     }
 
     private Component createSearch(String headerId) {
