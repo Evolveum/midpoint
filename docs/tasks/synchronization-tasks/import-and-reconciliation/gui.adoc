@@ -18,7 +18,7 @@ Adjust your resource object-related settings based on what kind of objects you a
 
 [NOTE]
 ====
-Make sure you have configured xref:/midpoint/reference/admin-gui/resource-wizard/object-type/synchronization/[synchronization] and xref:/midpoint/reference/admin-gui/resource-wizard/object-type/mapping/[mapping] rules before you run any kind of synchronization task.
+Make sure you have configured xref:/midpoint/reference/admin-gui/resource-wizard/#synchronization[synchronization] and xref:/midpoint/reference/admin-gui/resource-wizard/#mappings[mapping] rules before you run any kind of synchronization task.
 ====
 
 image::../../create-task-from-resource-account-list.webp[title="Create tasks using the Tasks menu in the resource account list"]
