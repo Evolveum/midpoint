@@ -20,9 +20,12 @@ image::corerlation-rules-setup-accounts-configure-menu.webp[title="Configuration
     ** *Rule name*: A descriptive name of the rule. Needs to be unique in the context of the resource.
     ** *Description*: An optional detailed description of the rule.
     ** *Weight*: Signifies the rule confidence. 1.0 means 100% confidence.
-		// The weight is multiplied by correlator confidence to get the rule confidence value.
+		The weight is multiplied by the accumulated confidence of individual correlators within the rule to get the final confidence value of the rule. +
+		See xref:/midpoint/reference/correlation/rule-composition/#composition-algorithm-outline[] for details.
     ** *Tier*: Tiers dictate the order of rule processing. If and only if the rule doesn't provide confident-enough match, next tier is processed
-    ** *Ignore if matched by*: // TODO - add explanation @dakle 2025-05-20
+    ** *Ignore if matched by*: You can block the rule from evaluation if the correlator within the rule is matched in another rule already. 
+		This is useful to avoid getting skewed confidence values if multiple rules use the same correlator (e.g., _employeeNumber_), as they would add up and reach confidence over 100%. +
+		See xref:/midpoint/reference/correlation/rule-composition/#ignore-if-matched-by-flag[] for details.
     ** *Enabled*: An option to temporarily disable a rule. _Undefined_ is the same as _Enabled_.
 . <<set-up-correlators,Set up correlators>> for each rule.
 . Click icon:plus-circle[] btn:[Add rule] and repeat until you add all the rules.
