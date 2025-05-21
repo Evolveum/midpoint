@@ -23,12 +23,11 @@ Make sure you have configured xref:/midpoint/reference/admin-gui/resource-wizard
 
 image::../../create-task-from-resource-account-list.webp[title="Create tasks using the Tasks menu in the resource account list"]
 
-Some screens described in the steps below are not relevant and displayed for all kinds of tasks.
-You won't see all the screens described below in all the task kinds.
+You will not see all the screens described below in every task type.
 This guide is universal, but the screens are combined into the wizards as appropriate for the selected scenario.
 For instance, you won't see the Schedule screen in the wizard for import tasks.
 If you select a task the wizard of which doesn't contain a certain screen included below,
-skip the steps that aren't relevant for you.
+skip the steps that are not relevant for you.
 
 . In icon:database[] *Resources* > icon:database[] *All resources*, select your resource.
 . In the resource-specific left-side menu, select icon:male[] *Accounts*.
