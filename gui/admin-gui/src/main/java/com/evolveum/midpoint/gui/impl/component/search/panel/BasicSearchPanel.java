@@ -164,7 +164,7 @@ public class BasicSearchPanel extends BasePanel<BasicQueryWrapper> {
     }
 
     private void addPopoverStatusMessage(AjaxRequestTarget target, String markupId, String message, int refreshInMillis) {
-        target.appendJavaScript(String.format("window.MidPointTheme.updateStatusMessage('%s', '%s', '%d');",
+        target.appendJavaScript(String.format("window.MidPointTheme.updateStatusMessage('%s', '%s', %d);",
                 markupId, message, refreshInMillis));
     }
 
