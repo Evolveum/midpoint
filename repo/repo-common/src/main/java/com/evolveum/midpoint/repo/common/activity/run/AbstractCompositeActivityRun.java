@@ -122,6 +122,12 @@ public abstract class AbstractCompositeActivityRun<
             ActivityRunResult childRunResult = child.getRun().run(result);
             childResults.add(childRunResult);
             updateRunResultStatus(childRunResult);
+            if (childRunResult.isHaltingActivityError()) {
+                // current activity execution should be stopped,
+                // but we should continue with another activity
+                continue;
+            }
+
             if (!childRunResult.isFinished()) {
                 allChildrenFinished = false;
                 break; // Can be error, waiting, or interruption.
@@ -148,6 +154,10 @@ public abstract class AbstractCompositeActivityRun<
             runResult.setRunResultStatus(TEMPORARY_ERROR, childRunResult.getThrowable());
         } else if (childRunResult.isHaltingError()) {
             runResult.setRunResultStatus(HALTING_ERROR, childRunResult.getThrowable());
+        } else if (childRunResult.isHaltingActivityError()) {
+            runResult.setRunResultStatus(HALTING_ACTIVITY_ERROR, childRunResult.getThrowable());
+        } else if (childRunResult.isRestartActivityError()) {
+            runResult.setRunResultStatus(RESTART_ACTIVITY_ERROR, childRunResult.getThrowable());
         } else if (childRunResult.isWaiting()) {
             runResult.setRunResultStatus(IS_WAITING);
         }

@@ -28,6 +28,7 @@ import static com.evolveum.midpoint.task.api.TaskRunResult.TaskRunResultStatus.T
 public class TaskRunResult implements Serializable {
 
     public enum TaskRunResultStatus {
+
         /**
          * The task run has finished.
          *
@@ -41,7 +42,7 @@ public class TaskRunResult implements Serializable {
          * The run has failed.
          *
          * The error is permanent. Unless the administrator does something to recover from the situation, there is no point in
-         * re-trying the run. Usual case of this error is task misconfiguration.
+         * re-trying the run. The usual case of this error is task misconfiguration.
          */
         PERMANENT_ERROR,
 
@@ -51,22 +52,35 @@ public class TaskRunResult implements Serializable {
          * The error is temporary. The situation may change later when the conditions will be more "favorable".
          * It makes sense to retry the run. Usual cases of this error are network timeouts.
          *
-         * For single-run tasks we SUSPEND them on such occasion. So the administrator can release them after
+         * For single-run tasks we SUSPEND them on such occasions. So the administrator can release them after
          * correcting the problem.
          */
         TEMPORARY_ERROR,
 
         /**
-         * Error that prevent the task from running, continuing its work.
-         * Task and it's dependent tasks should be suspended.
+         * Error that prevents the task from running, continuing its work.
+         * Task and its dependent tasks should be suspended.
          *
          * Currently used when handling policy actions that should suspend tasks.
          */
         HALTING_ERROR,
 
         /**
-         * Task run hasn't finished but nevertheless it must end (for now). An example of such a situation is
-         * when the long-living task run execution is requested to stop (e.g. when suspending the task or
+         * Error that prevents activity from running, if the task has more activities, it should continue with the next one.
+         * If the task does not have any more activities, it should finish.
+         */
+        HALTING_ACTIVITY_ERROR,
+
+        /**
+         * Error that prevents the activity from running.
+         * The current activity should be restarted.
+         * Limits might be in place to limit the number of restarts and to decide what to do if the limit is exceeded.
+         */
+        RESTART_ACTIVITY_ERROR,
+
+        /**
+         * Task run hasn't finished, but nevertheless it must end (for now). An example of such a situation is
+         * when the long-living task run execution is requested to stop (e.g., when suspending the task or
          * shutting down the node).
          */
         INTERRUPTED,

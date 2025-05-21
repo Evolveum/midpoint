@@ -13,6 +13,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import com.evolveum.midpoint.task.api.ActivityThresholdPolicyViolationException;
+import com.evolveum.midpoint.task.api.TaskRunResult;
 import com.evolveum.midpoint.util.SingleLocalizableMessage;
 
 import org.jetbrains.annotations.NotNull;
@@ -170,12 +172,31 @@ public class ActivityPolicyRulesProcessor {
     private void executeAlwaysActions(EvaluatedActivityPolicyRule rule, OperationResult result)
             throws ThresholdPolicyViolationException {
 
+        TaskRunResult.TaskRunResultStatus status = null;
+
+        if (rule.containsAction(RestartActivityPolicyActionType.class)) {
+            LOGGER.debug("Restarting because of policy violation, rule: {}", rule);
+
+            status = TaskRunResult.TaskRunResultStatus.RESTART_ACTIVITY_ERROR;
+        }
+
+        if (rule.containsAction(SkipActivityPolicyActionType.class)) {
+            LOGGER.debug("Skipping activity because of policy violation, rule: {}", rule);
+
+            status = TaskRunResult.TaskRunResultStatus.HALTING_ACTIVITY_ERROR;
+        }
+
         if (rule.containsAction(SuspendTaskActivityPolicyActionType.class)) {
             LOGGER.debug("Suspending task because of policy violation, rule: {}", rule);
 
-            throw new ThresholdPolicyViolationException(
+            status = TaskRunResult.TaskRunResultStatus.HALTING_ERROR;
+        }
+
+        if (status != null) {
+            throw new ActivityThresholdPolicyViolationException(
                     new SingleLocalizableMessage("ActivityPolicyRulesProcessor.policyViolationMessage", new Object[] { rule.getName() }),
-                    "Policy violation, rule: " + rule.getName());
+                    "Policy violation, rule: " + rule.getName(),
+                    status);
         }
     }
 }

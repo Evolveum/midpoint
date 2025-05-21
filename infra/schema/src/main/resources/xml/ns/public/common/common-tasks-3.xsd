@@ -2105,10 +2105,52 @@
         </xsd:annotation>
         <xsd:sequence>
             <!-- Currently only suspendTask/notify are supported -->
-            <!-- markRef will be a part of record action later on -->
+            <!-- markRef will be a part of the record action later on -->
             <xsd:element name="notification" type="tns:NotificationActivityPolicyActionType" minOccurs="0"/>
             <xsd:element name="suspendTask" type="tns:SuspendTaskActivityPolicyActionType" minOccurs="0"/>
+            <xsd:element name="restartActivity" type="tns:RestartActivityPolicyActionType" minOccurs="0"/>
+            <xsd:element name="skipActivity" type="tns:SkipActivityPolicyActionType" minOccurs="0"/>
         </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="SkipActivityPolicyActionType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Skip activity that triggered policy constraint, continue with next activity.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:since>4.10</a:since>
+                <a:container>true</a:container>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:ActivityPolicyActionType" />
+        </xsd:complexContent>
+    </xsd:complexType>
+
+    <xsd:complexType name="RestartActivityPolicyActionType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Restart activity that triggered policy constraint.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:since>4.10</a:since>
+                <a:container>true</a:container>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:ActivityPolicyActionType">
+                <xsd:sequence>
+                    <xsd:element name="retryLimit" type="xsd:int" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Maximal number of retries to execute activity. (Null means unlimited.)
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
     </xsd:complexType>
 
     <xsd:complexType name="ActivityPolicyActionType" abstract="true">

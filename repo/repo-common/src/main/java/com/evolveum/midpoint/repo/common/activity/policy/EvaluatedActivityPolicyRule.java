@@ -66,6 +66,8 @@ public class EvaluatedActivityPolicyRule implements DebugDumpable {
         List<ActivityPolicyActionType> result = new ArrayList<>();
 
         addAction(result, actions.getNotification());
+        addAction(result, actions.getRestartActivity());
+        addAction(result, actions.getSkipActivity());
         addAction(result, actions.getSuspendTask());
 
         return result;

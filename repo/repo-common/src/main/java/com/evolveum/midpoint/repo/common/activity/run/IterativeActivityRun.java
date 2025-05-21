@@ -26,6 +26,7 @@ import com.evolveum.midpoint.repo.common.activity.run.reports.ItemsReport;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.reporting.ConnIdOperation;
+import com.evolveum.midpoint.task.api.ActivityThresholdPolicyViolationException;
 import com.evolveum.midpoint.task.api.ConnIdOperationsListener;
 import com.evolveum.midpoint.util.Holder;
 import com.evolveum.midpoint.util.exception.*;
@@ -509,6 +510,10 @@ public abstract class IterativeActivityRun<
             // TODO In the future we should distinguish between permanent and temporary errors here.
 
             if (stoppingException instanceof ThresholdPolicyViolationException) {
+                if (stoppingException instanceof ActivityThresholdPolicyViolationException ae) {
+                    return ActivityRunResult.exception(FATAL_ERROR, ae.getTaskRunResultStatus(), stoppingException);
+                }
+
                 return ActivityRunResult.exception(FATAL_ERROR, HALTING_ERROR, stoppingException);
             }
 
