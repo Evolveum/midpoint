@@ -8,19 +8,22 @@
 package com.evolveum.midpoint.model.intest.tasks;
 
 import java.io.File;
+import java.nio.charset.StandardCharsets;
 
 import com.evolveum.midpoint.model.intest.AbstractEmptyModelIntegrationTest;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.repo.common.activity.policy.ActivityPolicyUtils;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.task.ActivityPath;
-import com.evolveum.midpoint.schema.util.task.ActivityTreeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.TestObject;
+import com.evolveum.midpoint.test.asserter.TaskAsserter;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityPolicyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SimulationResultType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 
+import org.apache.commons.io.FileUtils;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Test;
@@ -34,8 +37,8 @@ public class TestActivityExecutionTimeThresholds extends AbstractEmptyModelInteg
     private static final TestObject<TaskType> TASK_SIMPLE_NOOP =
             TestObject.file(TEST_DIR, "task-simple-noop.xml", "54464a8e-7cd3-47e3-9bf6-0d07692a893b");
 
-    private static final TestObject<TaskType> TASK_MULTI_NOOP =
-            TestObject.file(TEST_DIR, "task-simple-noop.xml", "54464a8e-7cd3-47e3-9bf6-0d07692a893b");
+    private static final TestObject<TaskType> TASK_COMPOSITE_NOOP =
+            TestObject.file(TEST_DIR, "task-composite-noop.xml", "50a4d2af-4302-4268-99db-ff49895242d5");
 
     @Test
     public void test100SingleThread() throws Exception {
@@ -47,7 +50,45 @@ public class TestActivityExecutionTimeThresholds extends AbstractEmptyModelInteg
         testTask(TASK_SIMPLE_NOOP, 2);
     }
 
-    public void testTask(TestObject<TaskType> task, int threads) throws Exception {
+    @Test
+    public void test200TestComplexSkip() throws Exception {
+        Task testTask = getTestTask();
+        OperationResult testResult = testTask.getResult();
+
+        TestObject<TaskType> object = TASK_COMPOSITE_NOOP;
+        object.reset();
+
+        when();
+
+        deleteIfPresent(object, testResult);
+        addObject(object, getTestTask(), testResult, t -> {
+
+//            if (threads > 0) {
+//                rootActivityWorkerThreadsCustomizer(threads).accept(t);
+//            }
+        });
+
+//        waitForTaskFinish(task.oid, 15000);
+        Thread.sleep(15000L);
+
+        var options = schemaService.getOperationOptionsBuilder()
+                .item(TaskType.F_RESULT).retrieve()
+                .item(TaskType.F_SUBTASK_REF).retrieve()
+                .build();
+        PrismObject<TaskType> task = taskManager.getObject(TaskType.class, object.oid, options, getTestOperationResult());
+        File file = new File("./target/test-activity-composite.xml");
+        if (!file.exists()) {
+            file.createNewFile();
+        }
+        FileUtils.write(file, PrismTestUtil.serializeToXml(task.asObjectable()), StandardCharsets.UTF_8, false);
+
+        TaskAsserter ta = TaskAsserter.forTask(task);
+        ta.assertSuspended()
+                .activityState(ActivityPath.fromId("activity to be skipped"))
+                    .assertFatalError();
+    }
+
+    private void testTask(TestObject<TaskType> task, int threads) throws Exception {
         given();
         Task testTask = getTestTask();
         OperationResult testResult = testTask.getResult();

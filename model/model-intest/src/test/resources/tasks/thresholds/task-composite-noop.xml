@@ -1,0 +1,86 @@
+<!--
+  ~ Copyright (C) 2010-2025 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<task xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        oid="50a4d2af-4302-4268-99db-ff49895242d5">
+    <name>Composite noop</name>
+    <ownerRef oid="00000000-0000-0000-0000-000000000002" type="UserType"/>
+    <executionState>runnable</executionState>
+    <activity>
+        <composition>
+            <!--<activity>-->
+            <!--    <identifier>activity to be restarted</identifier>-->
+            <!--    <work>-->
+            <!--        <noOp>-->
+            <!--            <steps>5</steps>-->
+            <!--            <delay>1000</delay>-->
+            <!--        </noOp>-->
+            <!--    </work>-->
+            <!--    <policies>-->
+            <!--        <policy>-->
+            <!--            <name>Max. 3s execution</name>-->
+            <!--            <policyConstraints>-->
+            <!--                <executionTime>-->
+            <!--                    <exceeds>PT3S</exceeds>-->
+            <!--                </executionTime>-->
+            <!--            </policyConstraints>-->
+            <!--            <policyActions>-->
+            <!--                <restartActivity>-->
+            <!--                    <retryLimit>1</retryLimit>-->
+            <!--                </restartActivity>-->
+            <!--            </policyActions>-->
+            <!--        </policy>-->
+            <!--    </policies>-->
+            <!--</activity>-->
+            <activity>
+                <identifier>activity to be skipped</identifier>
+                <work>
+                    <noOp>
+                        <steps>5</steps>
+                        <delay>1000</delay>
+                    </noOp>
+                </work>
+                <policies>
+                    <policy>
+                        <name>Max. 3s execution</name>
+                        <policyConstraints>
+                            <executionTime>
+                                <exceeds>PT3S</exceeds>
+                            </executionTime>
+                        </policyConstraints>
+                        <policyActions>
+                            <skipActivity/>
+                        </policyActions>
+                    </policy>
+                </policies>
+            </activity>
+            <activity>
+                <identifier>activity to suspend</identifier>
+                <work>
+                    <noOp>
+                        <steps>5</steps>
+                        <delay>1000</delay>
+                    </noOp>
+                </work>
+                <policies>
+                    <policy>
+                        <name>Max. 3s execution</name>
+                        <policyConstraints>
+                            <executionTime>
+                                <exceeds>PT3S</exceeds>
+                            </executionTime>
+                        </policyConstraints>
+                        <policyActions>
+                            <notification/>
+                            <suspendTask/>
+                        </policyActions>
+                    </policy>
+                </policies>
+            </activity>
+        </composition>
+    </activity>
+</task>
