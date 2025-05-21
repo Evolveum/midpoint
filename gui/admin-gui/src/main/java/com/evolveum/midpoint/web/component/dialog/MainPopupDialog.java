@@ -79,18 +79,7 @@ public class MainPopupDialog extends ModalDialog {
         ModalDialog dialog = super.open(target);
 
         String overlayId = get("overlay").getMarkupId();
-        target.appendJavaScript(String.format(
-                """
-                const modalEl = document.getElementById('%s');
-                if (modalEl) {
-                    $(modalEl).off('hidden.bs.modal').on('hidden.bs.modal', function () {
-                        window.MidPointTheme.restoreFocus();
-                    });
-                    $(modalEl).modal('show');
-                }
-                """, overlayId
-        ));
-
+        target.appendJavaScript(String.format("window.MidPointTheme.showModalWithRestoreFocus('%s')", overlayId));
         return dialog;
     }
 

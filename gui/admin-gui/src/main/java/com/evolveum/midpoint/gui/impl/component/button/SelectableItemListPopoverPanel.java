@@ -186,6 +186,10 @@ public abstract class SelectableItemListPopoverPanel<T extends FilterableSearchI
             @Override
             public void onClick(AjaxRequestTarget target) {
                 addItemsPerformed(getSelectedItemList(), target);
+                Component component = getPopoverReferenceComponent();
+                if (component != null && component.getMarkupId() != null) {
+                    target.appendJavaScript(String.format("window.MidPointTheme.setFocus('%s');", component.getMarkupId()));
+                }
             }
         };
         addButton.add(new VisibleBehaviour(this::isSelectable));
@@ -219,9 +223,8 @@ public abstract class SelectableItemListPopoverPanel<T extends FilterableSearchI
 
     protected abstract String getItemHelp(T item);
 
-    private void closeMorePopoverPerformed(AjaxRequestTarget target) {
-        String popoverId = get(ID_POPOVER).getMarkupId();
-        target.appendJavaScript("$('#" + popoverId + "').toggle();");
+    protected void closeMorePopoverPerformed(AjaxRequestTarget target) {
+        togglePopover(target);
     }
 
     private List<T> getSelectedItemList() {
@@ -239,5 +242,9 @@ public abstract class SelectableItemListPopoverPanel<T extends FilterableSearchI
 
     protected String getPopoverCustomArrowStyle() {
         return null;
+    }
+
+    public String getPopoverMarkupId() {
+        return get(ID_POPOVER).getMarkupId();
     }
 }

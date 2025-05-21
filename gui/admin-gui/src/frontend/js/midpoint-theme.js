@@ -796,9 +796,12 @@ export default class MidPointTheme {
         if (!show) {
             if (popup.is(':visible')) {
                 popup.fadeOut(200);
+                ref.attr('aria-expanded', 'false');
+                ref.focus();
             }
         } else {
             if (!popup.is(':visible')) {
+                ref.attr('aria-expanded', 'true');
                 var position = ref.position();
 
                 var left = position.left + (ref.outerWidth() - popup.outerWidth() - 9) / 2;// - paddingRight;
@@ -1195,13 +1198,42 @@ export default class MidPointTheme {
     }
 
     restoreFocus() {
-        setTimeout(() => {
-            if (this.lastFocusedButtonId) {
-                const el = document.querySelector(`[data-component-id='${this.lastFocusedButtonId}']`);
-                if (el) {
-                    el.focus();
-                }
+        if (this.lastFocusedButtonId) {
+            const element = document.querySelector(`[data-component-id='${this.lastFocusedButtonId}']`);
+            if (element) {
+                setTimeout(() => {
+                    element.focus();
+                }, 100);
             }
-        }, 100);
+        }
+    }
+
+    updateStatusMessage(elementId, textValue, timeout) {
+        const element = document.getElementById(elementId);
+        if (element) {
+            element.textContent = '';
+            setTimeout(() => {
+                element.textContent = textValue;
+            }, timeout);
+        }
+    }
+
+    setFocus(elementId) {
+        const element = document.getElementById(elementId);
+        if (element) {
+            setTimeout(() => {
+                element.focus();
+            }, 100);
+        }
+    }
+
+    showModalWithRestoreFocus(modalId) {
+        const dialog = document.getElementById(modalId);
+        if (dialog) {
+            $(dialog).off('hidden.bs.modal').on('hidden.bs.modal', () => {
+                this.restoreFocus();
+            });
+            $(dialog).modal('show');
+        }
     }
 }
