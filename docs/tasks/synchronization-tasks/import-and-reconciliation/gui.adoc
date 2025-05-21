@@ -1,34 +1,39 @@
-= Import Tasks in GUI
-:page-nav-title: 'Import Tasks in GUI'
+= Create and Run Tasks in GUI
+:page-nav-title: 'Tasks in GUI'
 :page-display-order: 10
 :page-toc: top
 :experimental:
 
-MidPoint graphical user interface features a streamlined wizard helping you configure import tasks without needing to delve into XML configurations.
-You can use the wizard to the set up a simulated import and check the simulation results before running the import for real.
+The midPoint graphical user interface features a streamlined wizard, helping you
+configure import, reconciliation, and live synchronization tasks without needing to delve into XML configurations.
+You can use the wizard to set up a simulated import, for instance, and check the simulation results before running the import for real.
+
+We suggest setting up tasks as simulations first.
+This helps to make sure your resource configuration works as expected before you let the task make any changes to your data.
+
+== Create a Task to Import, Synchronize, or Reconcile Resource Objects
+
+The steps below illustrate creating a task in GUI.
+Adjust your resource object-related settings based on what kind of objects you are working with.
 
 [NOTE]
 ====
-Make sure you have configured xref:/midpoint/reference/admin-gui/resource-wizard/#synchronization[synchronization] and xref:/midpoint/reference/admin-gui/resource-wizard/#mappings[mapping] rules before your run an import task.
-====
-
-== Import Objects From a Resource
-
-The steps below illustrate creating an import task to import user accounts.
-Adjust your resource object-related settings if you're importing a different kind of objects.
-
-[TIP]
-====
-We suggest setting up tasks as simulations first.
-This helps to make sure your resource configuration works as expected before you let the task make actual changes to your data.
+Make sure you have configured xref:/midpoint/reference/admin-gui/resource-wizard/#synchronization[synchronization] and xref:/midpoint/reference/admin-gui/resource-wizard/#mappings[mapping] rules before you run any kind of synchronization task.
 ====
 
 image::../../create-task-from-resource-account-list.webp[title="Create tasks using the Tasks menu in the resource account list"]
 
+You will not see all the screens described below in every task type.
+This guide is universal, but the screens are combined into the wizards as appropriate for the selected scenario.
+For instance, you won't see the Schedule screen in the wizard for import tasks.
+If you select a task the wizard of which doesn't contain a certain screen included below,
+skip the steps that are not relevant for you.
+
 . In icon:database[] *Resources* > icon:database[] *All resources*, select your resource.
 . In the resource-specific left-side menu, select icon:male[] *Accounts*.
 . Click icon:tasks[] btn:[Tasks ▼] and select icon:plus-circle[] *Create task*.
-. Click icon:upload[] btn:[Import task].
+. Click a tile based on what kind of task you want to create.
+	For example, click icon:upload[] btn:[Import task] to create an import task.
     ** Optionally, switch on the *Simulate task* toggle to preview what _would_ the task do.
 . Click icon:plus-circle[] btn:[Create task].
 
@@ -45,8 +50,8 @@ Select which resource objects should be processed by the task.
 In most cases, you can keep the settings on this screen as they are.
 
 If you need to change the object selection, refer to xref:/midpoint/reference/tasks/activities/resource-object-set-specification/[].
-It's important to remember that you can specify objects either by the object class, or by the combination of kind and intent.
-Don't use all the three properties together.
+You can specify objects either by the object class, or by the combination of kind and intent.
+Don't use all three properties together.
 
 Click btn:[Next: Execution] to continue to the next screen.
 
@@ -55,16 +60,25 @@ Click btn:[Next: Execution] to continue to the next screen.
 This screen appears only if you switch on the simulation toggle at the beginning.
 
 The task execution options dictate the modus operandi of the task.
-The mode and configuration give a fair number options.
+The mode and configuration give a fair number of options.
 Let's cover the basics here:
 
-* If you want to simulate import and ensure the task doesn't modify data, select *Mode*: _Preview_ and *Predefined* (configuration): _Development_.
-* If you want to actually import the accounts (i.e., create focal objects for the resource objects), select *Mode*: _Undefined_ and *Predefined* (configuration): _Production_.
+* If you want to simulate and ensure the task doesn't modify data, select *Mode*: _Preview_ and *Predefined* (configuration): _Development_.
+* If you want to actually import, reconcile, or synchronize the objects (i.e., create focal objects for the resource objects), select *Mode*: _Undefined_ and *Predefined* (configuration): _Production_.
 
 Refer to these resources for more information on the topic:
 
 * xref:/midpoint/reference/tasks/activities/execution-mode/[]
 * xref:/midpoint/reference/simulation[]
+
+Click btn:[Next: Schedule] to continue to the next screen.
+
+=== Schedule
+
+For certain tasks, like reconciliation, it makes sense to make them run periodically at set intervals.
+
+* Use *Interval* to specify time in seconds between individual runs.
+* Use *Cron-like pattern* to specify a more complex execution arrangement using a link:https://en.wikipedia.org/wiki/Cron[cron-like sequence definition].
 
 Click btn:[Next: Distribution] to continue to the next screen.
 
@@ -82,15 +96,15 @@ You can learn more in xref:/midpoint/reference/tasks/activities/distribution/[].
 
 You can find all tasks you've created for a resource in the resource-specific left-side menu under icon:tasks[] *Defined Tasks*.
 
-Once you find the task you want to adjust, run, or inspect, click the name of the task.
+Once you find the task you want to adjust, run, or inspect, click the name of the task to open it.
 
-The top of the task detail screen tell you all about the status of the task.
+The top of the task detail screen tells you all about the status of the task.
 
 image::../../task-status-top-bar.webp[title="Status and action bars in the task detail screen"]
 
 * The status of the task above is icon:question-circle[] *Unknown* and the task is icon:bed[] *Suspended*, meaning that it has never run.
 * The type of the task is icon:upload[] *Import task*.
-* The only available *Task operation* is icon:check-square[] btn:[Resume] because it never ran before.
+* The only available *Task operation* is icon:check-square[] btn:[Resume] because it has never run before.
 
 You can use the screens under icon:cog[] *Activity* to adjust settings of the task, such as the execution mode and configuration.
 After you make changes, click icon:save[] btn:[Save] or icon:save[] btn:[Save & Run].
@@ -102,9 +116,9 @@ After you run a task once, the button changes to icon:play[] btn:[Run now].
 // TODO: This should be under a section about task simulations rather than here. @dakle 2025-04-26
 // And maybe the whole simulation section should be under tasks/activities?
 
-After you run a simulation task and it finishes the processing, the top bar in the task detail screen shows a new button: btn:[Show simulation result].
+After you run a simulation task, and it finishes the processing, the top bar in the task detail screen shows a new button: btn:[Show simulation result].
 
-image::../gui-view-task-simulation-results-button.webp[title="View simulation results button at the top bar of the task screen details screen"]
+image::../gui-view-task-simulation-results-button.webp[title="View simulation results button in the top bar of the task screen details screen"]
 
 Click the btn:[Show simulation result] button to get an overview of the simulated changes, i.e., what _would_ have happened if it weren't only a simulation.
 Nothing of what you see in the overview has really happened, but it gives you a great option to inspect whether all your resource and object type settings behave as you wish.
@@ -113,11 +127,11 @@ image::../gui-task-simulation-results-overview.webp[title="Task simulation resul
 
 * The numbers in the left sidebar are links you can use to inspect each category of affected objects.
 * The cards on the right are an easy-to-scan overview of important events.
-* The above screen tells that 33 users from the HRIS would have their foci activated while shadows of 15 resource objects would stay unmodified because of errors.
+* The above screen tells that 33 users from the HRIS would have their focal objects activated, while shadows of 15 resource objects would stay unmodified because of errors.
 
 == Simulate Import of a Single Object
 
-Before importing objects from a resource to midPoint, it's useful to simulate import of a single object to see whether all the mappings behave as expected.
+Before importing objects from a resource to midPoint, it's useful to simulate the import of a single object to see whether all the mappings behave as expected.
 
 Simulating import of a single object is particularly useful if you're working with a resource that contains thousands of objects because it could take a long time to simulate import of them all.
 You'll likely have to simulate the import of all of them eventually anyway, but it's faster to debug your configuration on a handful of cherry-picked objects beforehand.
@@ -125,13 +139,13 @@ You'll likely have to simulate the import of all of them eventually anyway, but 
 . In icon:database[] *Resources* > icon:database[] *All resources*, select your resource.
 . In the resource-specific left-side menu, select icon:male[] *Accounts*.
 . Pick an account you want to test with.
-. Click the dropdown menu button btn:[▼] at the far right of the row and select *Import preview*.
+. Click the drop-down menu button btn:[▼] at the far right of the row and select *Import preview*.
 . In the modal dialog that appears, select the task *execution mode*:
     ** _Simulated production_ if your resource or parts of its configuration you want to test are in the _Active_ lifecycle state.
     ** _Simulated development_ if your resource or parts of its configuration you want to test are in the _Proposed_ lifecycle state.
 . Click btn:[Select]
 
-image::../gui-import-preview-single-account-from-account-list.webp[title="Account list with the dropdown menu to create an import task for a single account"]
+image::../gui-import-preview-single-account-from-account-list.webp[title="Account list with the drop-down menu to create an import task for a single account"]
 
 === Check the Simulation Results
 
