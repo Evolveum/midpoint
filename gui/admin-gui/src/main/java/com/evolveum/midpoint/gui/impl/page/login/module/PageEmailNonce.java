@@ -10,9 +10,11 @@ package com.evolveum.midpoint.gui.impl.page.login.module;
 import java.io.Serial;
 
 import com.evolveum.midpoint.gui.api.component.result.Toast;
+import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 
+import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.model.IModel;
 import org.jetbrains.annotations.NotNull;
@@ -42,9 +44,6 @@ import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
 import javax.xml.datatype.Duration;
 import javax.xml.datatype.XMLGregorianCalendar;
-
-import static com.evolveum.midpoint.schema.util.ValueMetadataTypeUtil.getLastChangeTimestamp;
-import static com.evolveum.midpoint.schema.util.ValueMetadataTypeUtil.getMetadata;
 
 /**
  * @author lskublik
@@ -278,6 +277,26 @@ public class PageEmailNonce extends PageAbstractAuthenticationModule<CredentialM
                 return sb.toString();
             }
         };
+    }
+
+    public @Nullable XMLGregorianCalendar getLastChangeTimestamp(MetadataType metadata) {
+        if (metadata == null) {
+            return null;
+        }
+        XMLGregorianCalendar modifyTimestamp = metadata.getModifyTimestamp();
+        if (modifyTimestamp != null) {
+            return modifyTimestamp;
+        } else {
+            return metadata.getCreateTimestamp();
+        }
+    }
+
+    public @Nullable MetadataType getMetadata(NonceType nonce) {
+        if (nonce == null || nonce.getMetadata() == null) {
+            return null;
+        }
+        return nonce.getMetadata();
+
     }
 
 }
