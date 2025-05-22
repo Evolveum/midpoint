@@ -31,6 +31,10 @@ public class UserFriendlyPrettyPrinterOptions {
 
     private String itemSeparatorEnd = "}";
 
+    private boolean showOperationalItems = true;
+
+    private boolean useLocalization = false;
+
     private ToStringStyle toStringStyle = DEFAULT_TO_STRING_STYLE;
 
     public String indentation() {
@@ -39,6 +43,24 @@ public class UserFriendlyPrettyPrinterOptions {
 
     public UserFriendlyPrettyPrinterOptions indentation(String indentation) {
         this.indentation = indentation;
+        return this;
+    }
+
+    public boolean useLocalization() {
+        return useLocalization;
+    }
+
+    public UserFriendlyPrettyPrinterOptions useLocalization(boolean useLocalization) {
+        this.useLocalization = useLocalization;
+        return this;
+    }
+
+    public boolean showOperational() {
+        return showOperationalItems;
+    }
+
+    public UserFriendlyPrettyPrinterOptions showOperational(boolean showOperational) {
+        this.showOperationalItems = showOperational;
         return this;
     }
 

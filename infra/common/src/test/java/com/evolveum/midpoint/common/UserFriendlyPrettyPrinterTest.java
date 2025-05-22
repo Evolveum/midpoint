@@ -9,12 +9,16 @@ package com.evolveum.midpoint.common;
 
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.impl.PrismPropertyValueImpl;
 
+import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
 import org.apache.commons.lang3.StringUtils;
 import org.assertj.core.api.Assertions;
@@ -147,5 +151,38 @@ public class UserFriendlyPrettyPrinterTest extends AbstractUnitTest {
         assignment.setTargetRef(targetRef);
 
         return assignment;
+    }
+
+    @Test
+    public void testItemDeltaSimple() throws Exception {
+        String oid = UUID.randomUUID().toString();
+        ObjectDelta<UserType> delta = PrismTestUtil.getPrismContext().deltaFor(UserType.class)
+                .item(UserType.F_ORGANIZATION)
+                .delete(PolyString.fromOrig("qwe"))
+                .add(PolyString.fromOrig("123"), PolyString.fromOrig("456"))
+                .item(UserType.F_ASSIGNMENT)
+                .add(createAssignment())
+                .asObjectDelta(oid);
+
+        UserFriendlyPrettyPrinterOptions options = new UserFriendlyPrettyPrinterOptions();
+
+        UserFriendlyPrettyPrinter printer = new UserFriendlyPrettyPrinter(options);
+        String strDelta = printer.prettyPrintObjectDelta(delta, 0);
+
+        String expected = oid + ", UserType (MODIFY): \n"
+                + "  organization: \n"
+                + "    Add: 123, 456\n"
+                + "    Delete: qwe\n"
+                + "  assignment: \n"
+                + "    Add: \n"
+                + "      null:\n"
+                + "        description: some description is here not very long\n"
+                + "        activation: \n"
+                + "          administrativeStatus: ENABLED\n"
+                + "          validFrom: 2025-04-14T11:12:15.274+02:00\n"
+                + "        targetRef: c720ca00-15f3-4fd5-a2c1-f5857adc129f (UserType)";
+
+        Assertions.assertThat(strDelta)
+                .isEqualTo(expected);
     }
 }
