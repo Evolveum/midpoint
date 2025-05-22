@@ -199,7 +199,7 @@
         <opendj.version>2.6.2</opendj.version>
         <quartz.version>2.3.2.e3</quartz.version>
         <slf4j.version>1.7.36</slf4j.version>
-        <logback.version>1.2.12</logback.version>
+        <logback.version>1.2.13</logback.version>
         <spring-security.version>5.6.12</spring-security.version>
         <opensaml.version>4.1.1</opensaml.version>
         <cache2k.version>2.0.0.Final</cache2k.version>
@@ -218,10 +218,10 @@
         193 was used for 4 years with few problems, so it's still here to stay.
         -->
         <h2.version>1.4.193</h2.version>
-        
+
         <!-- Updated to latest Spring Framework version of 5.3.x (before incompatible API changes introduced in 6) -->
         <spring-framework.version>5.3.39</spring-framework.version>
-        <tomcat.version>9.0.102</tomcat.version>        
+        <tomcat.version>9.0.102</tomcat.version>
         <!-- Spring Boot parent declares most fresh versions for JDBC drivers for all our servers -->
         <wicket.version>9.18.0</wicket.version>
         <wicket.chartjs.version>0.1</wicket.chartjs.version>
