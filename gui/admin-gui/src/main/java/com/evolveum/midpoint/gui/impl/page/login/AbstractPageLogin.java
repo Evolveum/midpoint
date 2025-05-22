@@ -24,6 +24,7 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.protocol.http.servlet.ServletWebRequest;
 import org.apache.wicket.request.cycle.RequestCycle;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.WebAttributes;
@@ -218,6 +219,10 @@ public abstract class AbstractPageLogin extends PageAdminLTE {
     protected boolean isModuleApplicable(ModuleAuthentication moduleAuthentication) {
         return moduleAuthentication != null && (AuthenticationModuleNameConstants.LOGIN_FORM.equals(moduleAuthentication.getModuleTypeName())
                 || AuthenticationModuleNameConstants.LDAP.equals(moduleAuthentication.getModuleTypeName()));
+    }
+
+    protected void reloadDescriptionPanel(@NotNull AjaxRequestTarget target) {
+        target.add(get(ID_PANEL_DESCRIPTION));
     }
 
 }

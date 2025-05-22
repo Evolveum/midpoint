@@ -17,6 +17,7 @@ import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.LoadableDetachableModel;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -60,13 +61,16 @@ public class PageEmailNonce extends PageAbstractAuthenticationModule<CredentialM
 
     private static final String ID_SEND_NONCE = "sendNonce";
     private static final String OPERATION_DETERMINE_NONCE_CREDENTIALS_POLICY = DOT_CLASS + "determineNonceCredentialsPolicy";
+    private static final String OPERATION_LOAD_USER = DOT_CLASS + "loadAuthenticatedUser";
 
     private NonceCredentialsPolicyType noncePolicy;
-    private UserType user;
+    private LoadableDetachableModel<UserType> userModel;
+    private LoadableDetachableModel<String> panelDescriptionModel;
 
     public PageEmailNonce() {
-        initUser();
+        initUserModel();
         initNoncePolicy();
+        initDescriptionModel();
 
         if (!userHasValidNonce()) {
             LOGGER.debug("Nonce will be generated and saved to user.");
@@ -76,13 +80,49 @@ public class PageEmailNonce extends PageAbstractAuthenticationModule<CredentialM
         }
     }
 
-    private void initUser() {
-        user = searchUser();
-        validateUserNotNullOrFail(user);
+    private void initUserModel() {
+        userModel = new LoadableDetachableModel<>() {
+            @Serial private static final long serialVersionUID = 1L;
+
+            @Override
+            protected UserType load() {
+                UserType user = searchUser();
+                validateUserNotNullOrFail(user);
+
+                //we need to load user again to get the latest nonce information
+                OperationResult result = new OperationResult("loadUser");
+                Task task = createAnonymousTask(OPERATION_LOAD_USER);
+                PrismObject<UserType> loadedUser = runPrivileged((Producer<PrismObject<UserType>>) () ->
+                        WebModelServiceUtils.loadObject(UserType.class, user.getOid(), PageEmailNonce.this, task, result));
+
+                return loadedUser.asObjectable();
+            }
+        };
     }
 
     private void initNoncePolicy() {
         noncePolicy = getMailNoncePolicy();
+    }
+
+    private void initDescriptionModel() {
+        panelDescriptionModel = new LoadableDetachableModel<>() {
+            @Serial private static final long serialVersionUID = 1L;
+
+            @Override
+            protected String load() {
+                NonceType userNonce = getUserNonce();
+                XMLGregorianCalendar nonceModified = userNonce != null ?
+                        getLastChangeTimestamp(getMetadata(userNonce)) : null;
+                StringBuilder sb = new StringBuilder();
+                sb.append(createStringResource("PageForgotPassword.form.submited.message").getString());
+                if (nonceModified != null) {
+                    sb.append("\n");
+                    sb.append(createStringResource("PageForgotPassword.form.mailSent.additionalInfo",
+                            WebComponentUtil.formatDate(nonceModified)).getString());
+                }
+                return sb.toString();
+            }
+        };
     }
 
     private boolean userHasValidNonce() {
@@ -93,6 +133,7 @@ public class PageEmailNonce extends PageAbstractAuthenticationModule<CredentialM
     }
 
     private NonceType getUserNonce() {
+        UserType user = userModel.getObject();
         if (user.getCredentials() == null) {
             return null;
         }
@@ -137,9 +178,12 @@ public class PageEmailNonce extends PageAbstractAuthenticationModule<CredentialM
 
 
     private void generateAndSendNonce(AjaxRequestTarget target) {
+        UserType user = userModel.getObject();
         LOGGER.trace("Reset Password user: {}", user);
 
         OperationResult result = saveUserNonce(user, noncePolicy);
+        panelDescriptionModel.detach();
+        userModel.detach();
         if (result.getStatus() != OperationResultStatus.SUCCESS) {
             LOGGER.error("Failed to send nonce to user: {} ", result.getMessage());
         } else if (target != null) {
@@ -151,6 +195,7 @@ public class PageEmailNonce extends PageAbstractAuthenticationModule<CredentialM
                     .delay(5_000)
                     .body(getString("PageEmailNonce.sentNonce.message"))
                     .show(target);
+            reloadDescriptionPanel(target);
         }
 
     }
@@ -184,9 +229,9 @@ public class PageEmailNonce extends PageAbstractAuthenticationModule<CredentialM
         Task task = createAnonymousTask(OPERATION_DETERMINE_NONCE_CREDENTIALS_POLICY);
         task.setChannel(SchemaConstants.CHANNEL_SELF_REGISTRATION_URI);
         OperationResult result = task.getResult();
-
+        PrismObject<UserType> user = userModel.getObject().asPrismObject();
         try {
-            return getModelInteractionService().determineNonceCredentialsPolicy(user.asPrismObject(), credentialsName, task, result);
+            return getModelInteractionService().determineNonceCredentialsPolicy(user, credentialsName, task, result);
         } catch (CommonException e) {
             LOGGER.error("Could not retrieve nonce policy: {}", e.getMessage(), e);
             return null;
@@ -259,24 +304,7 @@ public class PageEmailNonce extends PageAbstractAuthenticationModule<CredentialM
 
     @Override
     protected IModel<String> getLoginPanelDescriptionModel() {
-        return new LoadableModel<>() {
-            @Serial private static final long serialVersionUID = 1L;
-
-            @Override
-            protected String load() {
-                NonceType userNonce = getUserNonce();
-                XMLGregorianCalendar nonceModified = userNonce != null ?
-                        getLastChangeTimestamp(getMetadata(userNonce)) : null;
-                StringBuilder sb = new StringBuilder();
-                sb.append(createStringResource("PageForgotPassword.form.submited.message").getString());
-                if (nonceModified != null) {
-                    sb.append("\n");
-                    sb.append(createStringResource("PageForgotPassword.form.mailSent.additionalInfo",
-                            WebComponentUtil.formatDate(nonceModified)).getString());
-                }
-                return sb.toString();
-            }
-        };
+        return panelDescriptionModel;
     }
 
     public @Nullable XMLGregorianCalendar getLastChangeTimestamp(MetadataType metadata) {
