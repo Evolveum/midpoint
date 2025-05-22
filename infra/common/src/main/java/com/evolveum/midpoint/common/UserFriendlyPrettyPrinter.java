@@ -138,7 +138,41 @@ public class UserFriendlyPrettyPrinter {
                 .collect(Collectors.joining("\n"));
         sb.append(values);
 
+//        addItemSeparatorEnd(sb);
+
         return sb.toString();
+    }
+
+    private void addItemSeparatorStart(StringBuilder sb) {
+        if (options.containerSeparatorStart() == null) {
+            return;
+        }
+
+        sb.append(options.containerSeparatorStart());
+    }
+
+    private void addItemSeparatorStart(StringBuilder sb, boolean additionalCondition) {
+        if (!additionalCondition) {
+            return;
+        }
+
+        addItemSeparatorStart(sb);
+    }
+
+    private void addItemSeparatorEnd(StringBuilder sb) {
+        if (options.containerSeparatorEnd() == null) {
+            return;
+        }
+
+        sb.append(options.containerSeparatorEnd());
+    }
+
+    private void addItemSeparatorEnd(StringBuilder sb, boolean additionalCondition) {
+        if (!additionalCondition) {
+            return;
+        }
+
+        addItemSeparatorEnd(sb);
     }
 
     private boolean isSingleLineType(ItemDefinition<?> def) {
@@ -184,6 +218,10 @@ public class UserFriendlyPrettyPrinter {
     }
 
     public <O extends ObjectType> String prettyPrintObjectDelta(ObjectDelta<O> delta, int indent) {
+        return prettyPrintObjectDelta(delta, false, indent);
+    }
+
+    public <O extends ObjectType> String prettyPrintObjectDelta(ObjectDelta<O> delta, boolean useEstimatedOld, int indent) {
         if (delta == null) {
             return "";
         }
@@ -205,7 +243,7 @@ public class UserFriendlyPrettyPrinter {
         }
 
         List<String> itemDeltaStr = delta.getModifications().stream()
-                .map(d -> prettyPrintItemDelta(d, indent + 1))
+                .map(d -> prettyPrintItemDelta(d, useEstimatedOld, indent + 1))
                 .filter(StringUtils::isNotEmpty)
                 .toList();
 
@@ -215,6 +253,10 @@ public class UserFriendlyPrettyPrinter {
     }
 
     public String prettyPrintItemDelta(ItemDelta<?, ?> item, int indent) {
+        return prettyPrintItemDelta(item, false, indent);
+    }
+
+    public String prettyPrintItemDelta(ItemDelta<?, ?> item, boolean useEstimatedOld, int indent) {
         if (item == null) {
             return "";
         }
@@ -224,6 +266,16 @@ public class UserFriendlyPrettyPrinter {
         sb.append(": ");
 
         boolean canUseSingleLine = isSingleLineType(item.getDefinition());
+
+        if (useEstimatedOld) {
+            String old = prettyPrintItemModifications(null, item.getEstimatedOldValues(), indent + 1, canUseSingleLine);
+            if (StringUtils.isNotEmpty(old)) {
+                sb.append("\n");
+                sb.append(old);
+            }
+
+            return sb.toString();
+        }
 
         String add = prettyPrintItemModifications(ModificationType.ADD, item.getValuesToAdd(), indent + 1, canUseSingleLine);
         if (StringUtils.isNotEmpty(add)) {
@@ -250,11 +302,16 @@ public class UserFriendlyPrettyPrinter {
         }
 
         // todo localization
-        String operation = switch (modificationType) {
-            case ADD -> "Add: ";
-            case DELETE -> "Delete: ";
-            case REPLACE -> "Replace: ";
-        };
+        String operation;
+        if (modificationType == null) {
+            operation = "Estimated old:";
+        } else {
+            operation = switch (modificationType) {
+                case ADD -> "Add: ";
+                case DELETE -> "Delete: ";
+                case REPLACE -> "Replace: ";
+            };
+        }
 
         StringBuilder sb = new StringBuilder();
         sb.append(indent(indent));
@@ -348,7 +405,13 @@ public class UserFriendlyPrettyPrinter {
         if (!isObjectValue && !isSingleValueContainer) {
             sb.append(indent(indent));
             sb.append(pcv.getId());
-            sb.append(":\n");
+            sb.append(":");
+
+            addItemSeparatorStart(sb);
+
+            sb.append("\n");
+        } else {
+            addItemSeparatorStart(sb);
         }
 
         String values = pcv.getItems().stream()
@@ -356,6 +419,8 @@ public class UserFriendlyPrettyPrinter {
                 .collect(Collectors.joining("\n"));
 
         sb.append(values);
+
+        addItemSeparatorEnd(sb);
 
         return sb.toString();
     }

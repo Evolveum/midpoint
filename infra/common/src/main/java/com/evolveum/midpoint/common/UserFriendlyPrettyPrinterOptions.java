@@ -27,9 +27,15 @@ public class UserFriendlyPrettyPrinterOptions {
 
     private String indentation = DEFAULT_INDENT;
 
-    private String itemSeparatorStart = "{";
+    private String itemSeparator = ", ";
 
-    private String itemSeparatorEnd = "}";
+    private String containerSeparatorStart;
+
+    private String containerSeparatorEnd;
+
+    private String collectionSeparatorStart;
+
+    private String collectionSeparatorEnd;
 
     private boolean showOperationalItems = true;
 
@@ -64,21 +70,48 @@ public class UserFriendlyPrettyPrinterOptions {
         return this;
     }
 
-    public String itemSeparatorEnd() {
-        return itemSeparatorEnd;
+    public String containerSeparatorEnd() {
+        return containerSeparatorEnd;
     }
 
-    public UserFriendlyPrettyPrinterOptions itemSeparatorEnd(String itemSeparatorEnd) {
-        this.itemSeparatorEnd = itemSeparatorEnd;
+    public UserFriendlyPrettyPrinterOptions containerSeparatorEnd(String containerSeparatorEnd) {
+        this.containerSeparatorEnd = containerSeparatorEnd;
         return this;
     }
 
-    public String itemSeparatorStart() {
-        return itemSeparatorStart;
+    public String containerSeparatorStart() {
+        return containerSeparatorStart;
     }
 
-    public UserFriendlyPrettyPrinterOptions itemSeparatorStart(String itemSeparatorStart) {
-        this.itemSeparatorStart = itemSeparatorStart;
+    public UserFriendlyPrettyPrinterOptions containerSeparatorStart(String containerSeparatorStart) {
+        this.containerSeparatorStart = containerSeparatorStart;
+        return this;
+    }
+
+    public String collectionSeparatorEnd() {
+        return collectionSeparatorEnd;
+    }
+
+    public UserFriendlyPrettyPrinterOptions collectionSeparatorEnd(String collectionSeparatorEnd) {
+        this.collectionSeparatorEnd = collectionSeparatorEnd;
+        return this;
+    }
+
+    public String collectionSeparatorStart() {
+        return collectionSeparatorStart;
+    }
+
+    public UserFriendlyPrettyPrinterOptions collectionSeparatorStart(String collectionSeparatorStart) {
+        this.collectionSeparatorStart = collectionSeparatorStart;
+        return this;
+    }
+
+    public String itemSeparator() {
+        return itemSeparator;
+    }
+
+    public UserFriendlyPrettyPrinterOptions itemSeparator(String itemSeparator) {
+        this.itemSeparator = itemSeparator;
         return this;
     }
 

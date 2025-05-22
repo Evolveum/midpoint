@@ -311,7 +311,7 @@ public abstract class ItemTreeDelta
     // todo better name
     public List<ItemDelta<?,?>> toDeltas() {
         return getValues().stream()
-                .map(v -> v.getModifications(true))
+                .map(v -> v.getModifications(false))
                 .flatMap(Collection::stream)
                 .toList();
     }

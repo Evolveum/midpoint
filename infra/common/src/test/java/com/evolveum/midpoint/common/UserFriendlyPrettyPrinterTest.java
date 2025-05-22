@@ -19,7 +19,10 @@ import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.impl.PrismPropertyValueImpl;
 
 import com.evolveum.midpoint.prism.polystring.PolyString;
+import com.evolveum.midpoint.prism.util.PrismPrettyPrinter;
 import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
+import com.evolveum.midpoint.util.PrettyPrinter;
+
 import org.apache.commons.lang3.StringUtils;
 import org.assertj.core.api.Assertions;
 import org.testng.annotations.BeforeSuite;
