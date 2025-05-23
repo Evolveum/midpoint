@@ -109,8 +109,6 @@ This is useful to override attribute visibility, its display name, tolerance etc
 | image::step-2-mappings-override-detail-limitations.png[link=step-2-mappings-override-detail-limitations.png, 100%, title=Detailed configuration of attribute override - limitations configuration]
 |===
 
-include::../../configuration-resource-panels.adoc[]
+include::../../limitation-all.adoc[]
 
-include::../../how-to-use-lifecycle-state.adoc[]
-
-include::../../limitation-mapping.adoc[]
+include::../../see-also.adoc[]
