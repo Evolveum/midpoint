@@ -2,44 +2,76 @@
 :page-nav-title: Correlation
 :page-toc: top
 :page-since: "4.9"
+:experimental:
 
-Correlation allows you to define how midPoint should recognize relations between resource objects and midPoint objects.
-In short, this is about searching the resource object owners in midPoint.
+Smart correlation in midPoint is a mechanism that links resource object shadows to existing focal objects, enabling efficient synchronization through a configurable matching system.
+In short, it's a means of searching for resource object owners in midPoint.
 
-You can create one or several correlation rules.
+Correlation rules dictate how to find the object owners.
+You can define one or more correlation rules.
 
-Click btn:[Add rule] to add a new correlation rule.
+Refer to xref:/midpoint/reference/correlation/[] for more details on the topic.
 
-For the correlation, you can configure the following:
+image::correlation-rules-setup-accounts-configure-menu.webp[title="Configuration menu in resource accounts list as an entry point to the correlation rules wizard"]
 
-* *Rule name* for documentation and troubleshooting purposes
-* *Description*
-* *Weight*, *Tier*, *Ignore if matched by* for more complex scenarios
-* *Enabled* to enable or disable the correlation rule
+== Create Correlation Rules
 
-image::step-4-correlator-rule.png[link=step-4-correlator-rule.png,100%,title=Table of correlation rules]
+. In icon:database[] *Resources* > icon:database[] *All Resources*, select your resource.
+. In icon:male[] *Accounts*, click icon:cog[] btn:[Configure] > icon:code-branch[] *Correlation*.
+. Click icon:plus-circle[] btn:[Add rule] and configure the new rule:
+    ** *Rule name*: A descriptive name of the rule. Needs to be unique in the context of the resource.
+    ** *Description*: An optional detailed description of the rule.
+    ** *Weight*: Signifies the rule confidence. 1.0 means 100% confidence.
+		The weight is multiplied by the accumulated confidence of link:#set-up-correlators[individual correlators] within the rule to get the final confidence value of the rule. +
+		See xref:/midpoint/reference/correlation/rule-composition/#composition-algorithm-outline[] for details.
+    ** *Tier*: Tiers determine the order of rule processing. If and only if a higher-tier rule doesn't provide a confident-enough match, the next tier is processed.
+		Lower numbers mean higher tiers.
+    ** *Ignore if matched by*: You can block the rule from evaluation if the correlator within the rule is matched in another rule already. 
+		This is useful to avoid getting skewed confidence values if multiple rules use the same correlator (e.g., _surname_), as they would add up and reach confidence over 100%. +
+		See xref:/midpoint/reference/correlation/rule-composition/#ignore-if-matched-by-flag[] for details.
+    ** *Enabled*: An option to temporarily disable a rule. _Undefined_ is the same as _Enabled_.
+. <<set-up-correlators,Set up correlators>> for each rule.
+. Click icon:plus-circle[] btn:[Add rule] and repeat until you add all the rules.
+. Click icon:check[] btn:[Save correlation settings] to save the rules and exit the wizard.
 
-Click btn:[Edit] button to edit details of the correlation rule.
+image::correlation-rules-list.webp[title="List of configured correlation rules. The tier 10 rule will run only if the higher-tier rule fails to yield a result. The lower-level rule will always result in a correlation case because its confidence is <1.0."]
 
-Specify the item configuration:
+[[set-up-correlators]]
+=== Set up Correlators
 
-* *Item* refers to a midPoint property for which an inbound mapping exists. This will be used for correlation. E.g. if there is an inbound mapping from AD's `sAMAccountName` attribute to midPoint user's `name` property, you would use `name` item
-+
-TIP: For target resources where inbound mappings are normally not used, the inbound mapping can be in a special <<#use_inbound_for_correlation,"Use for correlation only" mode>>.
-* *Search method* allows to specify either exact match or one of the fuzzy search methods supported by midPoint
+For each correlation rule, you need to add a *correlator*.
+Correlators specify the values of which attributes are to be compared when matching resource and focal objects.
 
+You can have multiple correlators for one correlation rule.
+For each correlator, you specify an attribute for which you have an inbound mapping from the resource you're correlating.
 
-.Table of correlation items for one correlation rule
-image::step-4-correlator-item.png[link=step-4-correlator-item.png,100%,title=Table of correlation items for one correlation rule]
+For instance, if you have an HR system with employee numbers and an LDAP system that uses the same employee numbers, you may inbound-map the employee numbers to `empnum` in both resources and use the `empnum` attribute for correlation.
 
-.See also the following pages for more information:
-* xref:/midpoint/reference/correlation/items-correlator/[]
-* xref:/midpoint/reference/correlation/[Smart Correlation]
+[TIP]
+====
+You can use _correlation-only_ xref:/midpoint/reference/admin-gui/resource-wizard/object-type/mapping/[inbound mappings] for target resources, where you normally don't use inbound mappings.
+// TODO: link to the section about correlation-only mappings after this section is written @dakle 2025-05-20
+====
 
-Click btn:[Save correlation settings] when done to return to the previous page from which you started the correlation editor.
+To add correlators to correlation rules:
 
-include::../../configuration-resource-panels.adoc[]
+. Open the list of correlation rules in your resource via icon:male[] *Accounts* > icon:cog[] btn:[Configure] > icon:code-branch[] *Correlation*.
+. In the list, click icon:edit[] btn:[Edit] at the far right on a correlation rule for which you want to configure the correlator.
+. Click icon:plus-circle[] btn:[Add correlator].
+. Under *Item*, select the attribute to correlate.
+	** *Item* refers to a midPoint property for which an inbound mapping exists.
+		This will be used for correlation.
+		For example, if you have an inbound mapping from AD's _sAMAccountName_ attribute to midPoint user's _name_ property, you would select _name_ here.
+. Select the *Search method*:
+	** _Exact match_: The attribute values need to match exactly for the objects to correlate (get linked, in other words).
+	** _Levenshtein distance_: Method of approximate matching with a threshold of the maximum permitted number of single-character edits. Refer to link:https://en.wikipedia.org/wiki/Levenshtein_distance[Levenshtein distance on Wikipedia] for more details about the method.
+	** _Trigram similarity_: Method of approximate matching using the ratio of common trigrams to all trigrams in compared strings.
+. For the fuzzy-search methods, define the *Match threshold* and whether the threshold value is *Inclusive* (in the mathematical sense).
+. Click icon:check[] btn:[Confirm settings] to save the correlators and return to the correlation rule list.
 
-include::../../how-to-use-lifecycle-state.adoc[]
+image::correlation-rules-multiple-correlator.webp[title="List of correlators for one correlation rule. In this configuration, all three values must match exactly for whole rule to gain the maximum confidence."]
 
-include::../../limitation-corelation.adoc[]
+include::../../limitation-all.adoc[]
+
+include::../../see-also.adoc[]
+
