@@ -11,11 +11,8 @@ podTemplate(
         nodeSelector: params.NODE_SELECTOR,
         activeDeadlineSeconds: 7200,
         idleMinutes: 5,
-        volumes: [
-                // No need for secret volume, no mvn deploy done here.
-                persistentVolumeClaim(claimName: "jenkins-shared-m2-repository", mountPath: "/root/.m2/repository"),
-                dynamicPVC(requestsSize: "5Gi", mountPath: "/root/.m2/repository/com/evolveum")
-        ],
+        // No need for secret volume, no mvn deploy done here.
+        volumes: [ persistentVolumeClaim(claimName: "midpoint-quick-pipeline-m2repo", mountPath: "/root/.m2/repository")],
         //workspaceVolume: dynamicPVC(requestsSize: "10Gi"),
         workspaceVolume: dynamicPVC(requestsSize: "20Gi"),
         containers: [

@@ -11,10 +11,6 @@ podTemplate(
         nodeSelector: params.NODE_SELECTOR,
         activeDeadlineSeconds: 1800,
         idleMinutes: 1,
-        volumes: [
-                persistentVolumeClaim(claimName: "jenkins-shared-m2-repository", mountPath: "/root/.m2/repository"),
-                dynamicPVC(requestsSize: "5Gi", mountPath: "/root/.m2/repository/com/evolveum")
-        ],
         workspaceVolume: dynamicPVC(requestsSize: "10Gi"),
         containers: [
                 containerTemplate(name: 'jnlp',

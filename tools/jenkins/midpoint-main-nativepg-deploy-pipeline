@@ -12,12 +12,7 @@ podTemplate(
         activeDeadlineSeconds: 21600, // 6h total build limit
         idleMinutes: 10,
         // No need for secret volume, no mvn deploy done here.
-        volumes: [
-                secretVolume(secretName: "jenkins-nexus", mountPath: "/root/jenkins-nexus"),
-
-                persistentVolumeClaim(claimName: "jenkins-shared-m2-repository", mountPath: "/root/.m2/repository"),
-                dynamicPVC(requestsSize: "5Gi", mountPath: "/root/.m2/repository/com/evolveum")
-        ],
+        volumes: [ secretVolume(secretName: "jenkins-nexus", mountPath: "/root/jenkins-nexus")],
         workspaceVolume: dynamicPVC(requestsSize: "20Gi"),
         containers: [
                 containerTemplate(name: 'jnlp',
