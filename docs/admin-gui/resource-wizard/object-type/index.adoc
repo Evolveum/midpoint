@@ -6,7 +6,7 @@
 :page-display-order: 20
 
 In midPoint, configuring object types is the key to defining the structure of different identity objects, such as users, roles, and resources.
-This guide is here to guide you through the basic steps involved in setting up object types.
+This guide describes the basic steps involved in setting up object types.
 It also provides links to follow-up materials for more advanced configurations.
 
 You can configure the object types for xref:/midpoint/reference/resources/resource-configuration/schema-handling/[schema handling], essentially defining the behavior of midPoint with respect to the resource.
@@ -41,7 +41,7 @@ Define the basic information about the object type.
 * *Default*: Specifies if the provided intent should be used as a default in case you define multiple intents for the same object kind.
 	Select `True` if you use only a single intent.
 * *Lifecycle state*: Set to _Proposed_ before you finish the setup and test it.
-	Refer to the xref:#how-to-use-lifecycle-state[brief guide on using lifecycle states] for more details.
+	Refer to the xref:/midpoint/reference/concepts/object-lifecycle/[] for more details.
 
 Click btn:[Next: Resource data] to continue to the next object type configuration screen.
 
@@ -145,8 +145,6 @@ After you confirm whether your settings produce expected results, you can choose
 * xref:./credentials/[Credentials]: Configure mappings for credentials (e.g., passwords).
 * xref:./policies/[Policies]: Configure the resource operation policies.
 
-include::../configuration-resource-panels.adoc[]
-
-include::../how-to-use-lifecycle-state.adoc[]
-
 include::../limitation-all.adoc[]
+
+include::../see-also.adoc[]
