@@ -24,6 +24,4 @@ image::step-8-marking.png[link=step-8-marking.png,100%,title=Configuration of ma
 
 Click btn:[Save marking rules] when done to return to the previous page from which you started the marking editor.
 
-include::../../configuration-resource-panels.adoc[]
-
-include::../../how-to-use-lifecycle-state.adoc[]
+include::../../see-also.adoc[]

@@ -1,14 +1,13 @@
 :page-toc: top
-:page-since: "4.9"
 :page-visibility: hidden
 
 == Limitations
 
-Resource wizard has several limitations as of midPoint 4.8, such as:
+Resource wizard has several limitations, such as:
 
-* expression editor supports `As is`, `Script`, `Literal` and `Generate` expressions only
-* xref:/midpoint/reference/expressions/mappings/range/[mapping ranges] are not supported
-* xref:/midpoint/reference/expressions/mappings/#mapping-domain[mapping domains] are not supported
-* correlation configuration currently supports only xref:/midpoint/reference/correlation/items-correlator/[]
+* Expression editor supports _As is_, _Script_, _Literal_ and _Generate_ expressions only.
+* xref:/midpoint/reference/expressions/mappings/range/[Mapping ranges] are not supported.
+* xref:/midpoint/reference/expressions/mappings/#mapping-domain[Mapping domains] are not supported.
+* Correlation configuration currently supports xref:/midpoint/reference/correlation/items-correlator/[] only.
 
-midPoint resource wizard won't be able to show or allow editing of these features but should tolerate them and keep them in the configuration.
+MidPoint resource wizard can't show or edit these features but tolerates them and keeps them untouched if you configure them in XML.
