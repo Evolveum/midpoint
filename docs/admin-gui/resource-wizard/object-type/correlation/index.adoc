@@ -12,7 +12,7 @@ You can define one or more correlation rules.
 
 Refer to xref:/midpoint/reference/correlation/[] for more details on the topic.
 
-image::corerlation-rules-setup-accounts-configure-menu.webp[title="Configuration menu in resource accounts list as an entry point to the correlation rules wizard"]
+image::correlation-rules-setup-accounts-configure-menu.webp[title="Configuration menu in resource accounts list as an entry point to the correlation rules wizard"]
 
 == Create Correlation Rules
 
@@ -22,28 +22,30 @@ image::corerlation-rules-setup-accounts-configure-menu.webp[title="Configuration
     ** *Rule name*: A descriptive name of the rule. Needs to be unique in the context of the resource.
     ** *Description*: An optional detailed description of the rule.
     ** *Weight*: Signifies the rule confidence. 1.0 means 100% confidence.
-		The weight is multiplied by the accumulated confidence of individual correlators within the rule to get the final confidence value of the rule. +
+		The weight is multiplied by the accumulated confidence of link:#set-up-correlators[individual correlators] within the rule to get the final confidence value of the rule. +
 		See xref:/midpoint/reference/correlation/rule-composition/#composition-algorithm-outline[] for details.
-    ** *Tier*: Tiers determine the order of rule processing. If and only if the rule doesn't provide a confident-enough match, the next tier is processed.
+    ** *Tier*: Tiers determine the order of rule processing. If and only if a higher-tier rule doesn't provide a confident-enough match, the next tier is processed.
+		Lower numbers mean higher tiers.
     ** *Ignore if matched by*: You can block the rule from evaluation if the correlator within the rule is matched in another rule already. 
-		This is useful to avoid getting skewed confidence values if multiple rules use the same correlator (e.g., _employeeNumber_), as they would add up and reach confidence over 100%. +
+		This is useful to avoid getting skewed confidence values if multiple rules use the same correlator (e.g., _surname_), as they would add up and reach confidence over 100%. +
 		See xref:/midpoint/reference/correlation/rule-composition/#ignore-if-matched-by-flag[] for details.
     ** *Enabled*: An option to temporarily disable a rule. _Undefined_ is the same as _Enabled_.
 . <<set-up-correlators,Set up correlators>> for each rule.
 . Click icon:plus-circle[] btn:[Add rule] and repeat until you add all the rules.
 . Click icon:check[] btn:[Save correlation settings] to save the rules and exit the wizard.
 
-image::corerlation-rules-list.webp[title="List of configured correlation rules"]
+image::correlation-rules-list.webp[title="List of configured correlation rules. The tier 10 rule will run only if the higher-tier rule fails to yield a result. The lower-level rule will always result in a correlation case because its confidence is <1.0."]
 
 [[set-up-correlators]]
 === Set up Correlators
 
-For each correlation rule, you need to also add a *correlator*.
-Correlators specify the values of which attributes to compare when matching resource and focal objects.
+For each correlation rule, you need to add a *correlator*.
+Correlators specify the values of which attributes are to be compared when matching resource and focal objects.
+
 You can have multiple correlators for one correlation rule.
 For each correlator, you specify an attribute for which you have an inbound mapping from the resource you're correlating.
 
-For instance, if you have an HR system with employee numbers and an LDAP system that uses the same employee numbers, you may inbound-map the employee numbers to `empnum` in both the resources and use the `empnum` attribute for correlation.
+For instance, if you have an HR system with employee numbers and an LDAP system that uses the same employee numbers, you may inbound-map the employee numbers to `empnum` in both resources and use the `empnum` attribute for correlation.
 
 [TIP]
 ====
@@ -51,9 +53,9 @@ You can use _correlation-only_ xref:/midpoint/reference/admin-gui/resource-wizar
 // TODO: link to the section about correlation-only mappings after this section is written @dakle 2025-05-20
 ====
 
-To add correlators for correlation rules:
+To add correlators to correlation rules:
 
-. Open the list of correlation rules from your resource accounts list via icon:cog[] btn:[Configure] > icon:code-branch[] *Correlation*.
+. Open the list of correlation rules in your resource via icon:male[] *Accounts* > icon:cog[] btn:[Configure] > icon:code-branch[] *Correlation*.
 . In the list, click icon:edit[] btn:[Edit] at the far right on a correlation rule for which you want to configure the correlator.
 . Click icon:plus-circle[] btn:[Add correlator].
 . Under *Item*, select the attribute to correlate.
@@ -62,12 +64,12 @@ To add correlators for correlation rules:
 		For example, if you have an inbound mapping from AD's _sAMAccountName_ attribute to midPoint user's _name_ property, you would select _name_ here.
 . Select the *Search method*:
 	** _Exact match_: The attribute values need to match exactly for the objects to correlate (get linked, in other words).
-	** _Levenshtein distance_: Method of approximate matching with a threshold of the minimum number of single-character edits. Refer to link:https://en.wikipedia.org/wiki/Levenshtein_distance[Levenshtein distance on Wikipedia] for more details about the method.
+	** _Levenshtein distance_: Method of approximate matching with a threshold of the maximum permitted number of single-character edits. Refer to link:https://en.wikipedia.org/wiki/Levenshtein_distance[Levenshtein distance on Wikipedia] for more details about the method.
 	** _Trigram similarity_: Method of approximate matching using the ratio of common trigrams to all trigrams in compared strings.
-. For the fuzzy-search methods, define *Match threshold* and whether the value is *Inclusive* (in the mathematical sense).
+. For the fuzzy-search methods, define the *Match threshold* and whether the threshold value is *Inclusive* (in the mathematical sense).
 . Click icon:check[] btn:[Confirm settings] to save the correlators and return to the correlation rule list.
 
-image::corerlation-rules-multiple-correlator.webp[title="List of correlators for one correlation rule. In this configuration, all three values must match exactly for the resource objects to be correlated to their focus counterparts."]
+image::correlation-rules-multiple-correlator.webp[title="List of correlators for one correlation rule. In this configuration, all three values must match exactly for whole rule to gain the maximum confidence."]
 
 include::../../limitation-all.adoc[]
 
