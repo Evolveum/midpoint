@@ -10,6 +10,8 @@ In short, it's a means of searching for resource object owners in midPoint.
 Correlation rules dictate how to find the object owners.
 You can define one or more correlation rules.
 
+Refer to xref:/midpoint/reference/correlation/[] for more details on the topic.
+
 image::corerlation-rules-setup-accounts-configure-menu.webp[title="Configuration menu in resource accounts list as an entry point to the correlation rules wizard"]
 
 == Create Correlation Rules
@@ -22,7 +24,7 @@ image::corerlation-rules-setup-accounts-configure-menu.webp[title="Configuration
     ** *Weight*: Signifies the rule confidence. 1.0 means 100% confidence.
 		The weight is multiplied by the accumulated confidence of individual correlators within the rule to get the final confidence value of the rule. +
 		See xref:/midpoint/reference/correlation/rule-composition/#composition-algorithm-outline[] for details.
-    ** *Tier*: Tiers dictate the order of rule processing. If and only if the rule doesn't provide confident-enough match, next tier is processed
+    ** *Tier*: Tiers determine the order of rule processing. If and only if the rule doesn't provide a confident-enough match, the next tier is processed.
     ** *Ignore if matched by*: You can block the rule from evaluation if the correlator within the rule is matched in another rule already. 
 		This is useful to avoid getting skewed confidence values if multiple rules use the same correlator (e.g., _employeeNumber_), as they would add up and reach confidence over 100%. +
 		See xref:/midpoint/reference/correlation/rule-composition/#ignore-if-matched-by-flag[] for details.
@@ -38,14 +40,14 @@ image::corerlation-rules-list.webp[title="List of configured correlation rules"]
 
 For each correlation rule, you need to also add a *correlator*.
 Correlators specify the values of which attributes to compare when matching resource and focal objects.
-You can have multiple correlators for one correlation rules.
+You can have multiple correlators for one correlation rule.
 For each correlator, you specify an attribute for which you have an inbound mapping from the resource you're correlating.
 
-For instance, if you have an HR system with employee numbers, and an LDAP system that uses the same employee numbers, you may inbound-map the employee numbers to `empnum` in both the resources and use the `empnum` attribute for correlation.
+For instance, if you have an HR system with employee numbers and an LDAP system that uses the same employee numbers, you may inbound-map the employee numbers to `empnum` in both the resources and use the `empnum` attribute for correlation.
 
 [TIP]
 ====
-You can use _correlation-only_ xref:/midpoint/reference/admin-gui/resource-wizard/object-type/mapping/[inbound mapping] for target resources where you normally don't use inbound mappings.
+You can use _correlation-only_ xref:/midpoint/reference/admin-gui/resource-wizard/object-type/mapping/[inbound mappings] for target resources, where you normally don't use inbound mappings.
 // TODO: link to the section about correlation-only mappings after this section is written @dakle 2025-05-20
 ====
 
@@ -67,8 +69,7 @@ To add correlators for correlation rules:
 
 image::corerlation-rules-multiple-correlator.webp[title="List of correlators for one correlation rule. In this configuration, all three values must match exactly for the resource objects to be correlated to their focus counterparts."]
 
-.Refer to the following resources for more information:
-* xref:/midpoint/reference/correlation/items-correlator/[]
-* xref:/midpoint/reference/correlation/[Smart Correlation]
+include::../../limitation-all.adoc[]
 
-include::../../limitation-corelation.adoc[]
+include::../../see-also.adoc[]
+
