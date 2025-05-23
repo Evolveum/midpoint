@@ -83,13 +83,12 @@ Filtering uses xref:/midpoint/reference/concepts/query/midpoint-query-language/[
 For example, to ignore all accounts of part-time employees (_PTE_), use `attributes/emptype != "PTE"` as the filter query.
 `emptype` is the employment type attribute here as defined on the resource (e.g., a column in the source CSV file).
 
+If you change filtering conditions for an existing object type, you then need to xref:/midpoint/reference/tasks/shadow-reclassification-task/gui/[reclassify the shadow objects] of this type.
+
 .Learn more about schema handling, classification, and delineation:
 * xref:/midpoint/reference/resources/resource-configuration/schema-handling/[]
 * xref:/midpoint/reference/resources/resource-configuration/schema-handling/classification/[]
 * xref:/midpoint/reference/resources/resource-configuration/schema-handling/delineation/[]
-
-// TODO we do not have better Delination example! I have created https://support.evolveum.com/wp/9404 to track this @vix
-// TODO: we need to add a (link to?) shadow reclassification guide @dakle 2025-04-16
 
 image::step-1-object-type-resource-data.webp[link=step-1-object-type-resource-data.webp, 100%,title=Resource data]
 
