@@ -1,14 +1,18 @@
 = Resource wizard: Object type mappings
 :page-nav-title: Mappings
 :page-toc: top
+:experimental:
 :page-since: "4.9"
 
-This part of object type wizard allows you to define attribute xref:/midpoint/reference/expressions/mappings/[mappings].
-This way you can define midPoint behavior for resource attributes: how the resource attributes values should be fetched to midPoint (xref:/midpoint/reference/expressions/mappings/inbound-mapping/[inbound mappings]) or how the resource attribute values should be populated in resource (xref:/midpoint/reference/expressions/mappings/outbound-mapping/[outbound mappings]).
+Mapping is a mechanism that takes input properties from the source, transforms them, and insers the result into another property that is then used by a resource.
+In other words, mapping allows you to use the data from your source systems, such as HR applications, and adapt them so that you can use them in your target systems, such as LDAP.
 
-Click either *Inbound mappings* or *Outbound mappings* header in the table of mappings.
+To access mappings, click icon:database[] *Resources* > icon:database[] *All resources* > *your_resource* > icon:male[] *Accounts* > icon:cog[] *Configure* > icon:retweet[] *Mappings*.
 
-.See also the following pages for more information:
+image::step-2-mappings-inbound.png[link=step-2-mappings-inbound.png, 100%, title=Table of inbound mappings]
+
+For a more technical description, see also the following pages:
+
 * xref:/midpoint/reference/resources/resource-configuration/schema-handling/[Resource Schema Handling]
 * xref:/midpoint/reference/expressions/mappings/[Mappings]
 * xref:/midpoint/reference/expressions/[MidPoint Expressions and Mappings]
@@ -17,23 +21,28 @@ Click either *Inbound mappings* or *Outbound mappings* header in the table of ma
 
 == Inbound mappings
 
-Use xref:/midpoint/reference/expressions/mappings/inbound-mapping/[inbound mappings] to store resource attribute values in midPoint properties.
+Inbound mapping transforms data from authoritative sources to midPoint. Typically, it is used to populate new user objects with data from an HR system.
+See the xref:/midpoint/reference/expressions/mappings/inbound-mapping/[inbound mappings] page for more details.
 
-Click btn:[Add inbound] to add a new inbound mapping.
+To add a new inbound mapping:
 
-To define a mapping, you need to configure:
-
-* *Name* of the mapping. This is technically not mandatory, but helps a lot during troubleshooting and when using resource template inheritance.
-* *From resource attribute* allows you to type (with autocompletion) the resource attribute that should be used as a source of the mapping.
-* *Expression* specifies how the source attribute(s) should be used. Resource wizard support the following xref:/midpoint/reference/expressions/expressions/[expression types]:
-** *As is* (default) simply copies the value from resource attribute to midPoint target property
-** *Literal* allows to specify a constant value
-** *Script* allows to write a more complex behavior using a xref:/midpoint/reference/expressions/expressions/[midPoint expression] (by default in Groovy language)
-** *Generate* allows to generate a random string using a value policy (useful for generating passwords)
+. Click icon:circle-plus[] btn:[Add inbound].
+. Configure the following: +
+* *Name* of the mapping. While not mandatory, this is convenient during troubleshooting and when using xref:/midpoint/reference/resources/resource-configuration/inheritance/[resource template inheritance].
+* *From resource attribute* defines the resource attribute that is used as the source of the mapping.
+* *Expression* specifies how the source attribute is used. You can choose from the following xref:/midpoint/reference/expressions/expressions/[expression types]:
+** *As is* (default) copies the value from the resource attribute to the midPoint target property.
+** *Literal* Upon clicking btn:[Show values],allows you to specify a constant value.
+** *Script* Upon clicking btn:[Show script],allows you to write a more complex behavior using a xref:/midpoint/reference/expressions/expressions/[midPoint expression] (by default in Groovy).
+** *Generate* allows you to generate a random string using a xref:/midpoint/reference/security/credentials/password-policy/#value-policy[value policy]. This is typically used for generating passwords. Upon clicking btn:[Show generate], you can choose from the following options in the Mode menu:
+*** *Undefined* generates passwords without specific constraints based on the default random generation method.
+*** *Policy* requires you to select a value policy that controls the password generation.
+*** *Universal Unique Identifier* generates passwords in the form of a Universal Unique Identifier (UUID). This is useful when you need passwords that are guaranteed to be unique and not easily guessable.
+** *Path* 
 * *Target* allows you to type (with autocompletion) the midPoint property that should be used to store the value generated by the inbound mapping
 * *Lifecycle state* allows you to define the lifecycle state of the mapping. This can be used during xref:/midpoint/reference/admin-gui/simulations/[Simulations], e.g. specifying lifecycle state as `Proposed` will be used only to simulate the mapping, `Draft` disables the mapping etc.
+. Click icon:check[] btn:[Save mappings]
 
-image::step-2-mappings-inbound.png[link=step-2-mappings-inbound.png, 100%, title=Table of inbound mappings]
 
 TIP: Adding new mappings to existing configuration can utilize simulations if you use `Proposed` as the new mappings' lifecycle state. Such mappings can be simulated without influencing the real data.
 
