@@ -186,10 +186,7 @@ public abstract class SelectableItemListPopoverPanel<T extends FilterableSearchI
             @Override
             public void onClick(AjaxRequestTarget target) {
                 addItemsPerformed(getSelectedItemList(), target);
-                Component component = getPopoverReferenceComponent();
-                if (component != null && component.getMarkupId() != null) {
-                    target.appendJavaScript(String.format("window.MidPointTheme.setFocus('%s');", component.getMarkupId()));
-                }
+                target.focusComponent(getPopoverReferenceComponent());
             }
         };
         addButton.add(new VisibleBehaviour(this::isSelectable));

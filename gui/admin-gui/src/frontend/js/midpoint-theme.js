@@ -1218,15 +1218,6 @@ export default class MidPointTheme {
         }
     }
 
-    setFocus(elementId) {
-        const element = document.getElementById(elementId);
-        if (element) {
-            setTimeout(() => {
-                element.focus();
-            }, 100);
-        }
-    }
-
     showModalWithRestoreFocus(modalId) {
         const dialog = document.getElementById(modalId);
         if (dialog) {
