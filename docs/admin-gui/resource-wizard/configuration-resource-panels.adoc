@@ -2,6 +2,7 @@
 :page-since: "4.9"
 :page-visibility: hidden
 
-== Configuration of resource wizard panels
+== Configuration of Resource Wizard Panels
 
-Some wizard panels are configurable, for more information see xref:/midpoint/reference/admin-gui/admin-gui-config/#wizard-panels[Wizard panels].
+Some wizard panels are configurable.
+See xref:/midpoint/reference/admin-gui/admin-gui-config/#wizard-panels[Wizard panels] for more information.

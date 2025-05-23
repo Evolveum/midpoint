@@ -60,6 +60,4 @@ For non-authoritative target systems, though, you would probably want to use the
 
 Refer to xref:/midpoint/reference/schema/focus-and-projections/[] for an explanation of the term _focus_. In the most basic scenarios when synchronizing users and their accounts, _focus_ corresponds to the user object in midPoint.
 
-include::../../configuration-resource-panels.adoc[]
-
-include::../../how-to-use-lifecycle-state.adoc[]
+include::../../see-also.adoc[]

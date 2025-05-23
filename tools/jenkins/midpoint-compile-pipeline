@@ -11,6 +11,7 @@ podTemplate(
         nodeSelector: params.NODE_SELECTOR,
         activeDeadlineSeconds: 900,
         idleMinutes: 1,
+        volumes: [ persistentVolumeClaim(claimName: "midpoint-compile-pipeline-m2repo", mountPath: "/root/.m2/repository")],
         workspaceVolume: dynamicPVC(requestsSize: "10Gi"),
         containers: [
                 containerTemplate(name: 'jnlp',
@@ -47,6 +48,12 @@ podTemplate(
             }
             stage("compile") {
                 container('maven') {
+                    if (params.CLEAN_M2_REPOSITORY) {
+                        sh "rm -rf ~/.m2/repository/*"
+                    }
+
+                    sh "rm -rf ~/.m2/repository/com/evolveum"
+
                     sh """#!/bin/bash -ex
                         if [ "${verbose}" -ge 1 ]
                         then

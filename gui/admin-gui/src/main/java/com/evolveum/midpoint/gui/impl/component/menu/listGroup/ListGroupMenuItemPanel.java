@@ -12,6 +12,8 @@ import java.io.Serializable;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.ComponentTag;
+import org.apache.wicket.markup.head.IHeaderResponse;
+import org.apache.wicket.markup.head.OnDomReadyHeaderItem;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
@@ -19,6 +21,8 @@ import org.apache.wicket.model.IModel;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
+
+import org.apache.wicket.model.Model;
 
 /**
  * Created by Viliam Repan (lazyman).
@@ -31,6 +35,7 @@ public class ListGroupMenuItemPanel<T extends Serializable> extends BasePanel<Li
     private static final String ID_ITEMS_CONTAINER = "itemsContainer";
     private static final String ID_ITEMS = "items";
     private static final String ID_ITEM = "item";
+    private static final String ID_ITEMS_LIVE_STATUS = "itemsLiveStatus";
 
     public ListGroupMenuItemPanel(String id, IModel<ListGroupMenuItem<T>> model, int level) {
         super(id, model);
@@ -43,6 +48,23 @@ public class ListGroupMenuItemPanel<T extends Serializable> extends BasePanel<Li
         super.onComponentTag(tag);
 
         checkComponentTag(tag, "li");
+    }
+
+    @Override
+    public void renderHead(IHeaderResponse response) {
+        super.renderHead(response);
+        if(getModelObject().isActive()) {
+            String liveStatusId = get(ID_ITEMS_LIVE_STATUS).getMarkupId();
+            String message;
+            if (getModelObject().isOpen()) {
+                message = getString("ListGroupMenuItemPanel.status.opened");
+            }
+            else {
+                message = getString("ListGroupMenuItemPanel.status.closed");
+            }
+            response.render(OnDomReadyHeaderItem.forScript(
+                    String.format("MidPointTheme.updateStatusMessage('%s', '%s', %d)", liveStatusId, message, 300)));
+        }
     }
 
     private void initLayout(int level) {
@@ -58,6 +80,11 @@ public class ListGroupMenuItemPanel<T extends Serializable> extends BasePanel<Li
             }
             return "false";
         }));
+
+        WebMarkupContainer itemsLiveStatus = new WebMarkupContainer(ID_ITEMS_LIVE_STATUS, Model.of(""));
+        itemsLiveStatus.setOutputMarkupId(true);
+        add(itemsLiveStatus);
+
 
         MenuItemLinkPanel link = new MenuItemLinkPanel(ID_LINK, getModel(), level) {
 
