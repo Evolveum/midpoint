@@ -40,7 +40,13 @@ skip the steps that are not relevant for you.
 === Configuration
 
 On this screen, fill in the basic task attributes, such as the task name or a description of its purpose.
-We suggest giving the task a descriptive name so that you can easily recognize it later in the task list.
+We suggest giving the task a descriptive name so that you can easily recognize it later in the task list. +
+For example:
+
+* _HRIS import - preview : development_
+* _HRIS import - real : production_
+* _LDAP reconciliation - simulation_
+* _LDAP reconciliation - preview : production_
 
 Click btn:[Next: Resource objects] to continue to the next screen.
 
@@ -64,7 +70,7 @@ The mode and configuration give a fair number of options.
 Let's cover the basics here:
 
 * If you want to simulate and ensure the task doesn't modify data, select *Mode*: _Preview_ and *Predefined* (configuration): _Development_.
-* If you want to actually import, reconcile, or synchronize the objects (i.e., create focal objects for the resource objects), select *Mode*: _Undefined_ and *Predefined* (configuration): _Production_.
+* If you want to actually import, reconcile, or synchronize the objects, select *Mode*: _Undefined_ and *Predefined* (configuration): _Production_.
 
 Refer to these resources for more information on the topic:
 
