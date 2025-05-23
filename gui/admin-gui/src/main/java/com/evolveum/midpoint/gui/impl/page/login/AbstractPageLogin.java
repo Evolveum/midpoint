@@ -31,6 +31,7 @@ import org.apache.wicket.model.Model;
 import org.apache.wicket.protocol.http.servlet.ServletWebRequest;
 import org.apache.wicket.request.cycle.RequestCycle;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.WebAttributes;
@@ -296,5 +297,9 @@ public abstract class AbstractPageLogin<MA extends ModuleAuthentication>  extend
         }
         //noinspection unchecked
         return (MA) mpAuthentication.getProcessingModuleAuthentication();
+    }
+
+    protected void reloadDescriptionPanel(@NotNull AjaxRequestTarget target) {
+        target.add(get(ID_PANEL_DESCRIPTION));
     }
 }

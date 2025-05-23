@@ -27,9 +27,19 @@ public class UserFriendlyPrettyPrinterOptions {
 
     private String indentation = DEFAULT_INDENT;
 
-    private String itemSeparatorStart = "{";
+    private String itemSeparator = ", ";
 
-    private String itemSeparatorEnd = "}";
+    private String containerSeparatorStart;
+
+    private String containerSeparatorEnd;
+
+    private String collectionSeparatorStart;
+
+    private String collectionSeparatorEnd;
+
+    private boolean showOperationalItems = true;
+
+    private boolean useLocalization = false;
 
     private ToStringStyle toStringStyle = DEFAULT_TO_STRING_STYLE;
 
@@ -42,21 +52,66 @@ public class UserFriendlyPrettyPrinterOptions {
         return this;
     }
 
-    public String itemSeparatorEnd() {
-        return itemSeparatorEnd;
+    public boolean useLocalization() {
+        return useLocalization;
     }
 
-    public UserFriendlyPrettyPrinterOptions itemSeparatorEnd(String itemSeparatorEnd) {
-        this.itemSeparatorEnd = itemSeparatorEnd;
+    public UserFriendlyPrettyPrinterOptions useLocalization(boolean useLocalization) {
+        this.useLocalization = useLocalization;
         return this;
     }
 
-    public String itemSeparatorStart() {
-        return itemSeparatorStart;
+    public boolean showOperational() {
+        return showOperationalItems;
     }
 
-    public UserFriendlyPrettyPrinterOptions itemSeparatorStart(String itemSeparatorStart) {
-        this.itemSeparatorStart = itemSeparatorStart;
+    public UserFriendlyPrettyPrinterOptions showOperational(boolean showOperational) {
+        this.showOperationalItems = showOperational;
+        return this;
+    }
+
+    public String containerSeparatorEnd() {
+        return containerSeparatorEnd;
+    }
+
+    public UserFriendlyPrettyPrinterOptions containerSeparatorEnd(String containerSeparatorEnd) {
+        this.containerSeparatorEnd = containerSeparatorEnd;
+        return this;
+    }
+
+    public String containerSeparatorStart() {
+        return containerSeparatorStart;
+    }
+
+    public UserFriendlyPrettyPrinterOptions containerSeparatorStart(String containerSeparatorStart) {
+        this.containerSeparatorStart = containerSeparatorStart;
+        return this;
+    }
+
+    public String collectionSeparatorEnd() {
+        return collectionSeparatorEnd;
+    }
+
+    public UserFriendlyPrettyPrinterOptions collectionSeparatorEnd(String collectionSeparatorEnd) {
+        this.collectionSeparatorEnd = collectionSeparatorEnd;
+        return this;
+    }
+
+    public String collectionSeparatorStart() {
+        return collectionSeparatorStart;
+    }
+
+    public UserFriendlyPrettyPrinterOptions collectionSeparatorStart(String collectionSeparatorStart) {
+        this.collectionSeparatorStart = collectionSeparatorStart;
+        return this;
+    }
+
+    public String itemSeparator() {
+        return itemSeparator;
+    }
+
+    public UserFriendlyPrettyPrinterOptions itemSeparator(String itemSeparator) {
+        this.itemSeparator = itemSeparator;
         return this;
     }
 

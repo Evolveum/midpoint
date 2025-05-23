@@ -1,0 +1,9 @@
+:page-toc: top
+:page-visibility: hidden
+
+== See Also
+
+Here are additional resources to explore:
+
+* xref:/midpoint/reference/concepts/object-lifecycle/[]: Gain a deeper understanding of object lifecycle management in midPoint.
+* xref:/midpoint/reference/admin-gui/admin-gui-config/#wizard-panels[]: See configuration options for certain wizard panels and the GUI in general.

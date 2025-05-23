@@ -172,6 +172,9 @@ public class GuiDisplayNameUtil {
     }
 
     public static String getDisplayName(ShadowAssociationTypeDefinitionType associationType, boolean allowNull) {
+        if (associationType == null) {
+            return allowNull ? null : "";
+        }
         if (StringUtils.isNotEmpty(associationType.getDisplayName())) {
             return associationType.getDisplayName();
         }
