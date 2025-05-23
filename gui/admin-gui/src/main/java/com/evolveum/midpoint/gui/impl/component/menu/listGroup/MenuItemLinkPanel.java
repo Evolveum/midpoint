@@ -56,12 +56,13 @@ public abstract class MenuItemLinkPanel<T extends Serializable> extends BasePane
 
             @Override
             public void onClick(AjaxRequestTarget target) {
-                target.appendJavaScript(String.format("MidPointTheme.saveFocus('%s');", ID_LINK));
                 onClickPerformed(target, MenuItemLinkPanel.this.getModelObject());
+                target.appendJavaScript(String.format("MidPointTheme.saveFocus('%s');", ID_LINK));
                 target.appendJavaScript("MidPointTheme.restoreFocus();");
             }
         };
-        link.add(new AttributeModifier("data-component-id", ID_LINK));
+        link.add(new AttributeModifier("data-component-id", () ->
+                MenuItemLinkPanel.this.getModelObject().isActive() ? ID_LINK : null));
         link.add(AttributeAppender.append("aria-pressed", () -> {
             if (isChevronLinkVisible()) {
                 return getModelObject().isOpen() ? "true" : "false";
