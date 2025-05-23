@@ -284,7 +284,9 @@ Panels applicable for all FocusType objects:
 
 | Indirect assignments
 | `indirectAssignments`
-| Panel showing direct and also indirect assignments. In details menu present as a submenu of `assignments`
+| Panel showing direct and also indirect assignments.
+In details menu present as a submenu of `assignments`.
+Limited to use only default "in memory" assignment data provider without a possibility to configure Repository assignment data provider.
 |
 
 | Data protection assignments
@@ -1209,6 +1211,7 @@ assignment panels. Currently, we support two implementations:
 IMPORTANT: Repository Search Provider is mainly intended for All Assignments panel,
 we do not recommend enabling it for other assignments panels, because they may
 be using not indexed properties.
+Also, it's impossible to configure Repository Search Provider for 'All direct/indirect assignments'.
 
 
 In order to enable repository search, you need to modify panel configuration

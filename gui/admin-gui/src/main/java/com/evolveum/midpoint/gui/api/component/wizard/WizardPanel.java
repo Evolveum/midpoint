@@ -10,8 +10,6 @@ package com.evolveum.midpoint.gui.api.component.wizard;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import com.evolveum.midpoint.gui.api.util.LocalizationUtil;
-
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.Component;
@@ -21,10 +19,10 @@ import org.apache.wicket.markup.ComponentTag;
 import org.apache.wicket.markup.head.IHeaderResponse;
 import org.apache.wicket.markup.head.OnDomReadyHeaderItem;
 import org.apache.wicket.markup.html.WebMarkupContainer;
-import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.Model;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.jetbrains.annotations.NotNull;
 
@@ -45,6 +43,7 @@ public class WizardPanel extends BasePanel implements WizardListener {
     private static final String ID_LINE = "line";
     private static final String ID_CONTENT_HEADER = "contentHeader";
     public static final String ID_CONTENT_BODY = "contentBody";
+    private static final String ID_STEP_STATUS = "stepStatus";
 
     private WizardModel wizardModel;
 
@@ -94,6 +93,11 @@ public class WizardPanel extends BasePanel implements WizardListener {
 
         response.render(OnDomReadyHeaderItem.forScript(
                 "MidPointTheme.updatePageUrlParameter('" + WizardModel.PARAM_STEP + "', '" + wizardModel.getActiveStep().getStepId() + "');"));
+
+        String stepStatusId = get(ID_HEADER + ":" + ID_STEP_STATUS).getMarkupId();
+        String stepPage = getString("WizardPanel.stepStatus", wizardModel.getActiveStep().getTitle().getObject());
+        response.render(OnDomReadyHeaderItem.forScript(
+                String.format("MidPointTheme.updateStatusMessage('%s', '%s', %d)", stepStatusId, stepPage, 400)));
     }
 
     @Override
@@ -117,6 +121,10 @@ public class WizardPanel extends BasePanel implements WizardListener {
         header.add(AttributeAppender.append("class", getCssForStepsHeader()));
         header.setOutputMarkupId(true);
         add(header);
+
+        WebMarkupContainer stepStatus = new WebMarkupContainer(ID_STEP_STATUS, Model.of(""));
+        stepStatus.setOutputMarkupId(true);
+        header.add(stepStatus);
 
         ListView<IModel<String>> steps = new ListView<>(ID_STEPS, createStepsModel()) {
 

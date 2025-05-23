@@ -54,6 +54,8 @@ podTemplate(
                         sh "rm -rf ~/.m2/repository/*"
                     }
 
+                    sh "rm -rf ~/.m2/repository/com/evolveum"
+
                     sh """#!/bin/bash -ex
                         if [ "${verbose}" -ge 1 ]
                         then

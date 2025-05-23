@@ -49,6 +49,7 @@ public class WizardHeaderStepPanel extends BasePanel<String> {
     private void initLayout() {
         add(AttributeAppender.append("class", () -> isActiveIndex() ? "step active" : "step"));
         add(AttributeAppender.append("aria-current", () -> isActiveIndex() ? "step" : null));
+        add(AttributeAppender.append("tabindex", ()-> isActiveIndex() ? "0" : "-1"));
 
         Label stepStatus = new Label(ID_STATUS, () -> {
             String key = "";
@@ -63,7 +64,12 @@ public class WizardHeaderStepPanel extends BasePanel<String> {
         add(stepStatus);
 
         add(new Label(ID_CIRCLE, () -> index + 1));
-        add(new Label(ID_LABEL, () -> getModelObject()));
+
+        Label stepTitle = new Label(ID_LABEL, this::getModelObject);
+        stepTitle.setOutputMarkupId(true);
+        add(stepTitle);
+
+        add(AttributeAppender.append("aria-labelledby", String.format("%s %s", stepStatus.getMarkupId(), stepTitle.getMarkupId())));
     }
 
     private boolean isActiveIndex() {

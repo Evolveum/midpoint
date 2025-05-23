@@ -152,4 +152,4 @@ With the resource created and configured, continue with the configuration furthe
 
 :sectnums!:
 
-include::how-to-use-lifecycle-state.adoc[]
+include::see-also.adoc[]

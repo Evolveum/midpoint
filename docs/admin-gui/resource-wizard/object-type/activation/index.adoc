@@ -67,8 +67,6 @@ This can be used during xref:/midpoint/reference/admin-gui/simulations/[Simulati
 
 Click btn:[Save settings] when done to return to the previous page from which you started the activation editor.
 
-include::../../configuration-resource-panels.adoc[]
-
-include::../../how-to-use-lifecycle-state.adoc[]
-
 include::../../limitation-all.adoc[]
+
+include::../../see-also.adoc[]

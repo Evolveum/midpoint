@@ -16,6 +16,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
@@ -57,8 +58,6 @@ public class RoleOfTeammateMenuPanel<T extends Serializable>
         extends BasePanel<ListGroupMenuItem<T>> implements AccessRequestMixin {
 
     @Serial private static final long serialVersionUID = 1L;
-
-    private static final Trace LOGGER = TraceManager.getTrace(RoleCatalogPanel.class);
 
     private static final int AUTOCOMPLETE_MIN_INPUT_LENGTH = 2;
 
@@ -135,9 +134,12 @@ public class RoleOfTeammateMenuPanel<T extends Serializable>
 
             @Override
             public void onClick(AjaxRequestTarget target) {
+                target.appendJavaScript(String.format("MidPointTheme.saveFocus('%s');", ID_MANUAL));
                 onManualSelectionPerformed(target);
             }
         };
+        manual.add(new AttributeModifier("data-component-id", ID_MANUAL));
+        manual.setOutputMarkupId(true);
         container.add(manual);
     }
 
