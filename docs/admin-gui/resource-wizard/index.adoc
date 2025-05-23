@@ -641,35 +641,6 @@ You can get to the task details either using menu:Server tasks[All tasks] or cli
 
 image::task-wizard-defined-tasks.png[link=task-wizard-defined-tasks.png,100%,title="List of tasks defined for the resource"]
 
-== Configuration of resource wizard panels
+include::limitation-all.adoc[]
 
-Some wizard panels are configurable, for more information see xref:/midpoint/reference/admin-gui/admin-gui-config/#wizard-panels[Wizard panels].
-
-== How to use Lifecycle state
-
-Resource, object type, attribute, mapping, synchronization situation and other aspects of resource configuration can be configured in different lifecycle states.
-As it was mentioned earlier, the Lifecycle state property can be used  with xref:/midpoint/reference/admin-gui/simulations/[Simulations].
-The resource is created in `Proposed` lifecycle state by default, it won't work for normal deployment without switching to `Active` state.
-
-By using the lifecycle state `Proposed`, you can test (simulate) the configuration without causing any damage to your target system data.
-When the simulation results are satisfactory, you can switch the lifecycle state to `Active`.
-
-As the lifecycle state can be set on various configuration items, midPoint gives you a way of turning on specific parts of configuration incrementally.
-For example, after you switch your resource to `Active` lifecycle state, we recommend to add any new mappings first in `Proposed` lifecycle state.
-The new mapping can be simulated without causing any harm and switched to `Active` lifecycle state when ready.
-
-See also:
-
-* xref:/midpoint/reference/concepts/object-lifecycle/[]
-* xref:/midpoint/methodology/first-steps/[]
-
-== Limitations
-
-Resource wizard has several limitations as of midPoint 4.8, such as:
-
-* expression editor supports `As is`, `Script`, `Literal` and `Generate` expressions only
-* xref:/midpoint/reference/expressions/mappings/range/[mapping ranges] are not supported
-* xref:/midpoint/reference/expressions/mappings/#mapping-domain[mapping domains] are not supported
-* correlation configuration currently supports only xref:/midpoint/reference/correlation/items-correlator/[]
-
-midPoint resource wizard won't be able to show or allow editing of these features but should tolerate them and keep them in the configuration.
+include::see-also.adoc[]
