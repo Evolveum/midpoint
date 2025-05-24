@@ -37,6 +37,8 @@ skip the steps that are not relevant for you.
     ** Optionally, switch on the *Simulate task* toggle to preview what _would_ the task do.
 . Click icon:plus-circle[] btn:[Create task].
 
+image::../gui-task-type-selection-modal.webp[title="Select the type of task you want to create"]
+
 === Configuration
 
 On this screen, fill in the basic task attributes, such as the task name or a description of its purpose.
