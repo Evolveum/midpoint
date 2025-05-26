@@ -211,7 +211,8 @@ public class WorkItemDetailsPanel extends BasePanel<CaseWorkItemType> {
         reasonPanel.setOutputMarkupId(true);
         add(reasonPanel);
 
-        if (CaseTypeUtil.isApprovalCase(parentCase) || CaseTypeUtil.isManualProvisioningCase(parentCase)) {
+        if ((CaseTypeUtil.isApprovalCase(parentCase) || CaseTypeUtil.isManualProvisioningCase(parentCase))
+                && visualizationModel.getObject() != null) {    //something went wrong while creating visualizationModel, feedback panel will show the problem
             VisualizationPanel visualizationPanel = new VisualizationPanel(ID_DELTAS_TO_APPROVE, visualizationModel);
             visualizationPanel.setOutputMarkupId(true);
             add(visualizationPanel);
