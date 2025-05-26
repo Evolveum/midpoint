@@ -3200,7 +3200,7 @@
             <xsd:enumeration value="estimatedOld">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Can be used to display deltas - only estimated old value if available.
+                        Can be used to display the item/object delta, only estimated old value if available.
                     </xsd:documentation>
                     <xsd:appinfo>
                         <jaxb:typesafeEnumMember name="ESTIMATED_OLD"/>
@@ -3210,7 +3210,7 @@
             <xsd:enumeration value="changes">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Can be used to display deltas - only estimated new value if available.
+                        Can be used to display the item/object delta, only changes will be displayed if available.
                     </xsd:documentation>
                     <xsd:appinfo>
                         <jaxb:typesafeEnumMember name="CHANGES"/>
@@ -3220,7 +3220,7 @@
             <xsd:enumeration value="estimatedOldAndChanges">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Can be used to display deltas - both estimated old and new value should be displayed.
+                        Can be used to display the item/object delta, both estimated old and changes should be displayed.
                     </xsd:documentation>
                     <xsd:appinfo>
                         <jaxb:typesafeEnumMember name="ESTIMATED_OLD_AND_CHANGES"/>

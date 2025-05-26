@@ -459,7 +459,7 @@ New `UserFriendlyPrettyPrinter` with multiple options was created to help with t
 There are the two main option classes that can customize the delta column:
 
 * `DeltaPrinterOptions`
-** `showWholeObjectDelta`
+** `showFullObjectDelta`
 +
 Whether to show the whole object delta (i.e., the whole change) in case the changed item path in search is empty.
 ** `showPartialDeltas`
