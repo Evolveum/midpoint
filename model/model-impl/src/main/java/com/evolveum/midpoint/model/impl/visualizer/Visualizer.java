@@ -15,6 +15,7 @@ import static com.evolveum.midpoint.schema.SelectorOptions.createCollection;
 
 import java.util.*;
 
+import com.evolveum.midpoint.prism.impl.PrismContainerImpl;
 import org.apache.commons.collections4.CollectionUtils;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -652,6 +653,7 @@ public class Visualizer {
                 VisualizationImpl parentPartialVisualization = getOrCreateParentPartialVisualization(visualization, deltaPathWithoutLast, true);
                 if (parentPartialVisualization != null) {
                     parentPartialVisualization.addPartialVisualization(visualizationForItem);
+                    evaluateDescriptionHandlers(parentPartialVisualization, visualization, task, result);
                 } else {
                     visualization.addPartialVisualization(visualizationForItem);
                 }
@@ -683,6 +685,18 @@ public class Visualizer {
             ItemPath allExceptLast = path.allExceptLast();
             if (allExceptLast.isEmpty() || ItemPath.equivalent(path.removeIds(), allExceptLast)) {
                 parentVis = createContainerVisualization(MODIFY, path, parentVisualization);
+                var sourceValue = parentVisualization.getSourceValue();
+                //we want to find source value in the parent container by the path
+                // the following piece of code looks strange and requires a refactoring
+                if (sourceValue != null) {
+                    Item<?, ?> visSourceVal = sourceValue.findItem(path.removeIds());
+                    if (visSourceVal instanceof PrismContainerImpl<?> pcvi) {
+                        var contValue = pcvi.find(ItemPath.create(path.last()));
+                        if (contValue != null) {
+                            parentVis.setSourceValue((PrismContainerValue<?>) contValue);
+                        }
+                    }
+                }
                 parentVisualization.addPartialVisualization(parentVis);
             } else {
                 return getOrCreateParentPartialVisualization(parentVisualization, allExceptLast, false);
