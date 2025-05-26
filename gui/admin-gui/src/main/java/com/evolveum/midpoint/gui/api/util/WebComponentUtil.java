@@ -3146,6 +3146,7 @@ public final class WebComponentUtil {
             return new VisualizationDto(deltaVisualization);
         } catch (SchemaException | ExpressionEvaluationException ex) {
             LOGGER.error("Unable to create delta visualization for case {}: {}", caseObject, ex.getLocalizedMessage(), ex);
+            pageBase.showResult(result);
         }
         return null;
     }

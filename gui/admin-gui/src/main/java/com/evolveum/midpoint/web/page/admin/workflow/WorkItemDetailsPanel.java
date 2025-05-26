@@ -250,7 +250,8 @@ public class WorkItemDetailsPanel extends BasePanel<CaseWorkItemType> {
         add(reasonPanel);
 
         Component visualizationPanel;
-        if (CaseTypeUtil.isApprovalCase(parentCase) || CaseTypeUtil.isManualProvisioningCase(parentCase)) {
+        if (CaseTypeUtil.isApprovalCase(parentCase) || CaseTypeUtil.isManualProvisioningCase(parentCase)
+                && visualizationModel.getObject() != null) {    //something went wrong while creating visualizationModel, feedback panel will show the problem
             visualizationPanel = new VisualizationPanel(ID_DELTAS_TO_APPROVE, visualizationModel);
 
         } else if (CaseTypeUtil.isCorrelationCase(parentCase)) {
