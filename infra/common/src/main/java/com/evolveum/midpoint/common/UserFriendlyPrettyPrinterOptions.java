@@ -7,6 +7,8 @@
 
 package com.evolveum.midpoint.common;
 
+import java.util.Locale;
+
 import org.apache.commons.lang3.builder.ToStringStyle;
 import org.jetbrains.annotations.NotNull;
 
@@ -46,11 +48,13 @@ public class UserFriendlyPrettyPrinterOptions {
 
     private boolean showOperationalItems = true;
 
-    private boolean useLocalization = false;
-
     private boolean showDeltaItemPath = true;
 
     private ToStringStyle toStringStyle = DEFAULT_TO_STRING_STYLE;
+
+    private LocalizationService localizationService;
+
+    private Locale locale;
 
     public boolean showDeltaItemPath() {
         return showDeltaItemPath;
@@ -84,12 +88,21 @@ public class UserFriendlyPrettyPrinterOptions {
         return this;
     }
 
-    public boolean useLocalization() {
-        return useLocalization;
+    public Locale locale() {
+        return locale;
     }
 
-    public UserFriendlyPrettyPrinterOptions useLocalization(boolean useLocalization) {
-        this.useLocalization = useLocalization;
+    public UserFriendlyPrettyPrinterOptions locale(Locale locale) {
+        this.locale = locale;
+        return this;
+    }
+
+    public LocalizationService localizationService() {
+        return localizationService;
+    }
+
+    public UserFriendlyPrettyPrinterOptions localizationService(LocalizationService localizationService) {
+        this.localizationService = localizationService;
         return this;
     }
 

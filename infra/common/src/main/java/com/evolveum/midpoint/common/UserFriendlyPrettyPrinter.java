@@ -7,6 +7,7 @@
 
 package com.evolveum.midpoint.common;
 
+import java.text.DateFormat;
 import java.util.Collection;
 import java.util.List;
 import java.util.Locale;
@@ -42,7 +43,7 @@ public class UserFriendlyPrettyPrinter {
 
     private LocalizationService localizationService;
 
-    private Locale locale = Locale.getDefault();
+    private Locale locale;
 
     public UserFriendlyPrettyPrinter() {
         this(new UserFriendlyPrettyPrinterOptions());
@@ -58,7 +59,7 @@ public class UserFriendlyPrettyPrinter {
     }
 
     public UserFriendlyPrettyPrinter locale(Locale locale) {
-        this.locale = locale != null ? locale : Locale.getDefault();
+        this.locale = locale;
         return this;
     }
 
@@ -408,11 +409,13 @@ public class UserFriendlyPrettyPrinter {
             return defaultValue;
         }
 
-//        if (options.useLocalization()) {
-//            return translate(item.get, defaultValue);
-//        }
+        if (!useLocalization()) {
+            return defaultValue;
+        }
 
-        return defaultValue;
+        String displayName = def.getDisplayName() != null ? def.getDisplayName() : defaultValue;
+
+        return translate(displayName, displayName);
     }
 
     private String getDefaultItemName(Item<?, ?> item) {
@@ -496,13 +499,30 @@ public class UserFriendlyPrettyPrinter {
         Object value = ppv.getValue();
 
         String result;
-        if (value instanceof AbstractPlainStructured) {
+        if (value instanceof Enum<?> e) {
+            result = translateEnum(e);
+        } else if (value instanceof XMLGregorianCalendar cal) {
+            result = translateXmlGregorianCalendar(cal);
+        } else if (value instanceof AbstractPlainStructured) {
             result = ToStringBuilder.reflectionToString(value, options.toStringStyle());
         } else {
             result = PrettyPrinter.prettyPrint(value);
         }
 
         return indent(indent) + result;
+    }
+
+    private String translateXmlGregorianCalendar(XMLGregorianCalendar cal) {
+        if (cal == null) {
+            return "";
+        }
+
+        if (!useLocalization()) {
+            return cal.toString();
+        }
+
+        DateFormat dateFormat = DateFormat.getDateTimeInstance(DateFormat.DEFAULT, DateFormat.DEFAULT, getLocale());
+        return dateFormat.format(cal.toGregorianCalendar().getTime());
     }
 
     public String prettyPrintReferenceValue(PrismReferenceValue value) {
@@ -534,7 +554,7 @@ public class UserFriendlyPrettyPrinter {
             return "";
         }
 
-        if (!options.useLocalization()) {
+        if (!useLocalization()) {
             return type.getLocalPart();
         }
 
@@ -549,7 +569,7 @@ public class UserFriendlyPrettyPrinter {
             return "";
         }
 
-        if (!options.useLocalization()) {
+        if (!useLocalization()) {
             return e.name();
         }
 
@@ -557,7 +577,22 @@ public class UserFriendlyPrettyPrinter {
         return translate(key, e.name());
     }
 
+    private LocalizationService getLocalizationService() {
+        return localizationService != null ? localizationService : options.localizationService();
+    }
+
+    private Locale getLocale() {
+        return locale != null ? locale : options.locale();
+    }
+
+    private boolean useLocalization() {
+        return getLocalizationService() != null && getLocale() != null;
+    }
+
     private String translate(String key, String defaultValue) {
+        LocalizationService localizationService = getLocalizationService();
+        Locale locale = getLocale();
+
         if (localizationService == null || locale == null) {
             return defaultValue;
         }

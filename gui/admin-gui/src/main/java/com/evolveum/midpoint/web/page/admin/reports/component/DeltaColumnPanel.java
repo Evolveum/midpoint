@@ -13,6 +13,10 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import com.evolveum.midpoint.common.UserFriendlyPrettyPrinter;
+
+import com.evolveum.midpoint.common.UserFriendlyPrettyPrinterOptions;
+
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.WebMarkupContainer;
@@ -23,8 +27,6 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.LoadableDetachableModel;
 import org.apache.wicket.util.string.Strings;
 
-import com.evolveum.midpoint.common.UserFriendlyPrettyPrinter;
-import com.evolveum.midpoint.common.UserFriendlyPrettyPrinterOptions;
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.util.LocalizationUtil;
@@ -45,8 +47,6 @@ public class DeltaColumnPanel extends BasePanel<ItemDelta<? extends PrismValue, 
     private static final String ID_NEW_VALUE = "newValue";
     private static final String ID_ARROW = "arrow";
 
-    private UserFriendlyPrettyPrinter prettyPrinter;
-
     private boolean showOldValues = true;
 
     private boolean showNewValues = true;
@@ -55,21 +55,6 @@ public class DeltaColumnPanel extends BasePanel<ItemDelta<? extends PrismValue, 
         super(id, model);
 
         initLayout();
-    }
-
-    @Override
-    protected void onInitialize() {
-        super.onInitialize();
-
-        UserFriendlyPrettyPrinterOptions options = new UserFriendlyPrettyPrinterOptions()
-                .defaultUIIndentation()
-                .showDeltaItemPath(false)
-                .showFullAddObjectDelta(false)
-                .showOperational(false);
-
-        prettyPrinter = new UserFriendlyPrettyPrinter(options)
-                .locale(getLocale())
-                .localizationService(getPageBase().getLocalizationService());
     }
 
     private void initLayout() {
@@ -165,9 +150,23 @@ public class DeltaColumnPanel extends BasePanel<ItemDelta<? extends PrismValue, 
             sb.append("/");
         }
 
+        UserFriendlyPrettyPrinter prettyPrinter = createPrettyPrinter();
         sb.append(prettyPrinter.prettyPrintValue(value, 0));
 
         return escapePrettyPrintedValue(sb.toString());
+    }
+
+    private UserFriendlyPrettyPrinter createPrettyPrinter() {
+        UserFriendlyPrettyPrinterOptions options = new UserFriendlyPrettyPrinterOptions()
+                .defaultUIIndentation()
+                .showDeltaItemPath(false)
+                .showFullAddObjectDelta(false)
+                .showOperational(false)
+                .locale(getLocale())
+                .localizationService(getPageBase().getLocalizationService());
+
+        return new UserFriendlyPrettyPrinter(options);
+
     }
 
     public DeltaColumnPanel setShowNewValues(boolean showNewValues) {

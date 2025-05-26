@@ -753,6 +753,8 @@ public class ReportUtils {
         ObjectDeltaOperation<?> delta = DeltaConvertor.createObjectDeltaOperation(deltaOperation, true);
 
         UserFriendlyPrettyPrinter printer = new UserFriendlyPrettyPrinter(options.prettyPrinterOptions());
+//        printer.locale();
+//        printer.localizationService();
 
         boolean useEstimatedOld = options.useEstimatedOldValues();
 
