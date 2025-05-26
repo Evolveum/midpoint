@@ -17,6 +17,7 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.web.component.util.SerializableSupplier;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.wicket.Component;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.export.AbstractExportableColumn;
@@ -104,15 +105,19 @@ public class ConfigurableExpressionColumn<S extends SelectableRow<T>, T extends 
         if (model.getObject() instanceof Collection) {
             RepeatingView listItems = new RepeatingView(componentId);
             for (Object object : (Collection) model.getObject()) {
-                listItems.add(new Label(listItems.newChildId(), () -> object));
+                listItems.add(createLabel(listItems.newChildId(), () -> object));
             }
             item.add(listItems);
         } else {
-            item.add(new Label(componentId, model));
+            item.add(createLabel(componentId, model));
         }
         if (customColumn.getDisplay() != null && customColumn.getDisplay().getCssStyle() != null) {
             item.add(AttributeAppender.append("style", customColumn.getDisplay().getCssStyle()));
         }
+    }
+
+    protected Component createLabel(String componentId, IModel<?> model) {
+        return new Label(componentId, model);
     }
 
     @Override
@@ -205,7 +210,11 @@ public class ConfigurableExpressionColumn<S extends SelectableRow<T>, T extends 
         return item.getValues().stream()
                 .filter(Objects::nonNull)
                 .map(itemValue -> getStringValue(itemValue, lookupTable))
-                .collect(Collectors.joining(", "));
+                .collect(Collectors.joining(getStringValueDelimiter()));
+    }
+
+    protected String getStringValueDelimiter() {
+        return ", ";
     }
 
     private <V> String getValuesAsString(Collection<V> collection, DisplayValueType displayValue) {
@@ -218,7 +227,7 @@ public class ConfigurableExpressionColumn<S extends SelectableRow<T>, T extends 
         return collection.stream()
                 .filter(Objects::nonNull)
                 .map(object -> getStringValue(object, null))
-                .collect(Collectors.joining(", "));
+                .collect(Collectors.joining(getStringValueDelimiter()));
     }
 
     protected <V> Collection<V> evaluateExpression(T rowValue, com.evolveum.midpoint.prism.Item<?, ?> columnItem, ExpressionType expression, GuiObjectColumnType customColumn) {

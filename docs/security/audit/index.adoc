@@ -417,7 +417,122 @@ If there's no such header, network-level client address is used.
 
 If the header contains more values (separated by commas), the first i.e. leftmost one is used.
 
-== Resource oid column
+== Column configuration
+
+=== Delta column (changed items)
+
+Delta column is a column in the audit table that contains information about the changes made to the target object.
+This column will show the delta or part of the delta based on the changed item path defined in search.
+
+Default visibility of the column can be configured via `visiblity` attribute.
+If not set or set to `automatic`, the column will be visible only if the changed item path is defined in search.
+If set to `visible`, the column will always be visible.
+
+Simple configuration of the delta column can display estimated old values, changes or both.
+By default, it displays changes only.
+
+Content of the column in simple configuration will display the following values:
+
+* Object oid/name/type in case of object delta that contains add object operation
+* Item deltas without operational attributes that match the whole item path, no partial deltas
++
+For example, item delta for `assignment/1/activation/effectiveStatus` will not be displayed if searched the item path is for `assignment`.
+
+.Code example for the simple delta column configuration
+[source,xml]
+----
+<objectCollectionView>
+    <identifier>allAudits</identifier>
+    <column>
+        <name>deltaColumn</name>
+        <path>delta</path>
+        <visibility>visible</visibility>
+        <displayValue>estimatedOldAndChanges</displayValue>
+    </column>
+    <includeDefaultColumns>true</includeDefaultColumns>
+    <type>AuditEventRecordType</type>
+</objectCollectionView>
+----
+
+For more complex configuration as well as for columns used in reports, script expression can be used.
+New `UserFriendlyPrettyPrinter` with multiple options was created to help with the delta column configuration.
+There are the two main option classes that can customize the delta column:
+
+* `DeltaPrinterOptions`
+** `showFullObjectDelta`
++
+Whether to show the whole object delta (i.e., the whole change) in case the changed item path in search is empty.
+** `showPartialDeltas`
++
+Show partial changes. If the changed item path is set to `assignment` and `showPartialDeltas` is true, then also deltas with item path `assignment/*` will be printed.
+** `useEstimatedOldValues`
++
+Whether to show estimated old values in the delta column.
+* `UserFriendlyPrettyPrinterOptions`
+** `showFullAddObjectDelta`
++
+Whether to show full add object delta (i.e., the whole change) in the delta printer or shortened name/oid/type of the object.
+** `indentation`
++
+Indentation used for the printed delta. By default, it's set to `UserFriendlyPrettyPrinterOptions.DEFAULT_INDENT` (spaces),
+other common value is `UserFriendlyPrettyPrinterOptions.DEFAULT_UI_INDENT` to get proper indents for the user interface.
+`UserFriendlyPrettyPrinterOptions@
+** `showOperationalItems`
++
+Whether to display changes in operational items. E.g., `assignment/activation/effectiveStatus`.
+** `useLocalization`
++
+If set to `true`, printer will try to translate item names, enumeration values, object types.
+** `showDeltaItemPath`
++
+If set to `true`, the printer will show the concrete item path for each item delta.
+
+.Code example for the more complex delta column configuration
+[source,xml]
+----
+<objectCollectionView>
+    <identifier>allAudits</identifier>
+    <column>
+        <name>deltaColumn</name>
+        <path>delta</path>
+        <export>
+            <expression>
+                <script>
+                    <code>
+                        import com.evolveum.midpoint.common.UserFriendlyPrettyPrinterOptions
+                        import com.evolveum.midpoint.prism.path.ItemPath
+                        import com.evolveum.midpoint.report.impl.DeltaPrinterOptions
+                        import com.evolveum.midpoint.report.impl.ReportUtils
+
+                        ItemPath path = changedItem != null ? changedItem.getItemPath() : ItemPath.EMPTY_PATH
+
+                        DeltaPrinterOptions opts = new DeltaPrinterOptions()
+                                .showObjectDelta(true)
+                                .showPartialDeltas(true)
+
+                        opts.prettyPrinterOptions()
+                                .showFullAddObjectDelta(false)
+                                .showOperational(false)
+                                // or defaultUIIndentation() can be used
+                                .indentation(UserFriendlyPrettyPrinterOptions.DEFAULT_UI_INDENT)
+
+                        result = []
+                        for (var delta : input) {
+                            result.addAll(ReportUtils.printDelta(delta, path, opts))
+                        }
+
+                        return result
+                    </code>
+                </script>
+            </expression>
+        </export>
+    </column>
+    <includeDefaultColumns>true</includeDefaultColumns>
+    <type>AuditEventRecordType</type>
+</objectCollectionView>
+----
+
+=== Resource oid column
 
 [WARNING]
 .EXPERIMENTAL
@@ -457,7 +572,7 @@ see xref:/midpoint/reference/repository/native-audit/#audit-tables[audit tables]
 Generic repository uses `m_audit_resource` to store the information, see
 xref:/midpoint/reference/repository/generic/generic-audit/#audit-tables[audit tables] for more details.
 
-== Custom column
+=== Custom column
 
 [WARNING]
 .EXPERIMENTAL

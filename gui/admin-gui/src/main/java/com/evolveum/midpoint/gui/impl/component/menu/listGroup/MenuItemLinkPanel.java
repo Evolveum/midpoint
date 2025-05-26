@@ -63,12 +63,9 @@ public abstract class MenuItemLinkPanel<T extends Serializable> extends BasePane
         };
         link.add(new AttributeModifier("data-component-id", () ->
                 MenuItemLinkPanel.this.getModelObject().isActive() ? ID_LINK : null));
-        link.add(AttributeAppender.append("aria-pressed", () -> {
-            if (isChevronLinkVisible()) {
-                return getModelObject().isOpen() ? "true" : "false";
-            }
-            return null;
-        }));
+        link.add(AttributeAppender.append("aria-pressed", () ->
+                getModelObject().isActive() ? "true" : "false"
+        ));
         link.setOutputMarkupId(true);
         add(link);
 

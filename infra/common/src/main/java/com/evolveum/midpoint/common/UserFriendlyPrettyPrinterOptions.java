@@ -19,7 +19,14 @@ public class UserFriendlyPrettyPrinterOptions {
 
     public static final String DEFAULT_INDENT = "  ";
 
+    public static final String DEFAULT_UI_INDENT = "&emsp;";
+
     private static final ToStringStyle DEFAULT_TO_STRING_STYLE = new UserFriendlyToStringStyle();
+
+    /**
+     * Whether to show full add object delta (i.e., the whole change) in the delta printer or simple name/oid/type of the object.
+     */
+    private boolean showFullAddObjectDelta = false;
 
     private boolean multiline = true;
 
@@ -41,14 +48,39 @@ public class UserFriendlyPrettyPrinterOptions {
 
     private boolean useLocalization = false;
 
+    private boolean showDeltaItemPath = true;
+
     private ToStringStyle toStringStyle = DEFAULT_TO_STRING_STYLE;
+
+    public boolean showDeltaItemPath() {
+        return showDeltaItemPath;
+    }
+
+    public UserFriendlyPrettyPrinterOptions showDeltaItemPath(boolean showDeltaItemPath) {
+        this.showDeltaItemPath = showDeltaItemPath;
+        return this;
+    }
 
     public String indentation() {
         return indentation;
     }
 
+    public UserFriendlyPrettyPrinterOptions defaultUIIndentation() {
+        this.indentation = DEFAULT_UI_INDENT;
+        return this;
+    }
+
     public UserFriendlyPrettyPrinterOptions indentation(String indentation) {
         this.indentation = indentation;
+        return this;
+    }
+
+    public boolean showFullAddObjectDelta() {
+        return showFullAddObjectDelta;
+    }
+
+    public UserFriendlyPrettyPrinterOptions showFullAddObjectDelta(boolean showFullAddObjectDelta) {
+        this.showFullAddObjectDelta = showFullAddObjectDelta;
         return this;
     }
 

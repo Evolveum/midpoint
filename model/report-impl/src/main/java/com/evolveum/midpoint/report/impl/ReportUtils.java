@@ -25,7 +25,6 @@ import com.evolveum.midpoint.audit.api.AuditEventType;
 import com.evolveum.midpoint.certification.api.OutcomeUtils;
 import com.evolveum.midpoint.common.LocalizationService;
 import com.evolveum.midpoint.common.UserFriendlyPrettyPrinter;
-import com.evolveum.midpoint.common.UserFriendlyPrettyPrinterOptions;
 import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
 import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
 import com.evolveum.midpoint.prism.*;
@@ -662,6 +661,7 @@ public class ReportUtils {
     }
 
     /**
+     * // todo decide what to do about this method! [viliam]
      * Used in object collections (audit), midPoint initial objects.
      */
     @SuppressWarnings("unused")
@@ -703,17 +703,30 @@ public class ReportUtils {
             return null;
         }
 
-        if (itemTreeDelta == null || itemTreeDelta instanceof ObjectTreeDelta<?>) {
+        if (itemTreeDelta instanceof ObjectTreeDelta<?>) {
             return null;
         }
 
-        if (showPartialDeltas) {
-            return itemTreeDelta.toDeltas();
+        ItemDelta<?,?> mainDelta = itemTreeDelta.toDelta();
+        if (!showPartialDeltas) {
+            if (mainDelta == null || mainDelta.isEmpty()) {
+                return null;
+            }
+
+            return List.of(mainDelta);
         }
 
-        return List.of(itemTreeDelta.toDelta());
+        List<ItemDelta<?,?>> result = new ArrayList<>();
+        if (mainDelta != null && !mainDelta.isEmpty()) {
+            result.add(mainDelta);
+        }
+
+        result.addAll(itemTreeDelta.toChildDeltas());
+
+        return result;
     }
 
+    @SuppressWarnings("unused")
     public static ItemDelta<?, ?> findItemDelta(ObjectDeltaOperationType deltaOp, ItemPath path) throws SchemaException {
         if (deltaOp == null) {
             return null;
@@ -724,55 +737,6 @@ public class ReportUtils {
     }
 
     @SuppressWarnings("unused")
-    public static String printDelta(
-            ObjectDeltaOperationType deltaOp, ItemPath path, UserFriendlyPrettyPrinterOptions opts)
-            throws SchemaException {
-
-        ObjectDeltaOperation<?> delta = DeltaConvertor.createObjectDeltaOperation(deltaOp, true);
-
-        if (opts == null) {
-            opts = new UserFriendlyPrettyPrinterOptions()
-                    .indentation("\t");
-        }
-
-        ItemDelta<?, ?> itemDelta = findItemDelta(delta.getObjectDelta(), path);
-        if (itemDelta == null) {
-            return "";
-        }
-
-        UserFriendlyPrettyPrinter pp = new UserFriendlyPrettyPrinter(opts);
-
-        List<String> result = new ArrayList<>();
-
-        addModifications(ModificationType.ADD, itemDelta.getValuesToAdd(), result, pp);
-        addModifications(ModificationType.DELETE, itemDelta.getValuesToDelete(), result, pp);
-        addModifications(ModificationType.REPLACE, itemDelta.getValuesToReplace(), result, pp);
-
-        return StringUtils.joinWith("; ", result);
-    }
-
-    private static void addModifications(
-            ModificationType modificationType, Collection<?> values, List<String> result, UserFriendlyPrettyPrinter pp) {
-
-        if (values == null) {
-            return;
-        }
-
-        String op = switch (modificationType) {
-            case ADD -> "Add: ";
-            case DELETE -> "Delete: ";
-            case REPLACE -> "Replace: ";
-        };
-
-        String vals = values.stream()
-                .map(v -> pp.prettyPrintValue((PrismValue) v, 0))
-                .collect(Collectors.joining(", "));
-
-        result.add(op + vals);
-    }
-
-    // ***************
-
     public static List<String> printDelta(ObjectDeltaOperationType deltaOperation, ItemPath itemPath, DeltaPrinterOptions options)
             throws SchemaException {
 
@@ -793,17 +757,21 @@ public class ReportUtils {
         boolean useEstimatedOld = options.useEstimatedOldValues();
 
         if (itemPath.isEmpty()) {
-            if (!options.showObjectDelta()) {
+            if (!options.showFullObjectDelta()) {
                 return List.of();
-            } else {
-                ObjectDelta objectDelta = delta.getObjectDelta();
-                return List.of(printer.prettyPrintObjectDelta(objectDelta, useEstimatedOld, 0));
             }
+
+            ObjectDelta objectDelta = delta.getObjectDelta();
+            return List.of(printer.prettyPrintObjectDelta(objectDelta, useEstimatedOld, 0));
         }
 
         List<ItemDelta<?, ?>> deltas = findItemDelta(delta.getObjectDelta(), itemPath, options.showPartialDeltas());
         if (deltas.isEmpty()) {
             return List.of();
+        }
+
+        if (deltas.size() == 1) {
+            options.prettyPrinterOptions().showDeltaItemPath(false);
         }
 
         return deltas.stream()

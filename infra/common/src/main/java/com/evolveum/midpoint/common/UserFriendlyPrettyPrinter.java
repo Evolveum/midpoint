@@ -97,6 +97,10 @@ public class UserFriendlyPrettyPrinter {
             return "";
         }
 
+        if (isItemEmpty(item)) {
+            return "";
+        }
+
         StringBuilder sb = new StringBuilder();
         sb.append(indent(indent));
         sb.append(getItemName(item));
@@ -141,6 +145,31 @@ public class UserFriendlyPrettyPrinter {
 //        addItemSeparatorEnd(sb);
 
         return sb.toString();
+    }
+
+    private boolean isItemEmpty(Item<?, ?> item) {
+        if (item == null || item.isEmpty()) {
+            return true;
+        }
+
+        if (options.showOperational()) {
+            return false;
+        }
+
+        // check whether there's at least one non-operational item (non-empty)
+        if (!(item instanceof PrismContainer<?> pc)) {
+            return false;
+        }
+
+        for (PrismContainerValue<?> pcv : pc.getValues()) {
+            for (Item<?, ?> child : pcv.getItems()) {
+                if (!child.getDefinition().isOperational()) {
+                    return false;
+                }
+            }
+        }
+
+        return true;
     }
 
     private void addItemSeparatorStart(StringBuilder sb) {
@@ -213,7 +242,11 @@ public class UserFriendlyPrettyPrinter {
             return "";
         }
 
-        ObjectTypes t = ObjectTypes.getObjectType(type);
+        ObjectTypes t = ObjectTypes.getObjectTypeIfKnown(type);
+        if (t == null) {
+            return type.getSimpleName();
+        }
+
         return translateObjectType(t.getTypeQName());
     }
 
@@ -238,8 +271,12 @@ public class UserFriendlyPrettyPrinter {
         sb.append("\n");
 
         if (delta.getObjectToAdd() != null) {
-            String object = prettyPrintItem(delta.getObjectToAdd(), indent + 1);
-            sb.append(object);
+            if (options.showFullAddObjectDelta()) {
+                String object = prettyPrintItem(delta.getObjectToAdd(), indent + 1);
+                sb.append(object);
+            } else {
+                sb.append(prettyPrintObjectSimple(delta.getObjectToAdd(), indent + 1));
+            }
         }
 
         List<String> itemDeltaStr = delta.getModifications().stream()
@@ -252,6 +289,29 @@ public class UserFriendlyPrettyPrinter {
         return sb.toString();
     }
 
+    private String prettyPrintObjectSimple(PrismObject<?> object, int indent) {
+        StringBuilder sb = new StringBuilder();
+        sb.append(indent(indent));
+
+        if (object.getName() != null) {
+            sb.append(object.getName().getOrig());
+        }
+
+        sb.append(" (");
+
+        if (object.getOid() != null) {
+            sb.append(object.getOid());
+            sb.append(", ");
+        }
+
+        // noinspection unchecked
+        sb.append(prettyPrintObjectTypeClass((Class<? extends ObjectType>) object.getCompileTimeClass()));
+
+        sb.append(")");
+
+        return sb.toString();
+    }
+
     public String prettyPrintItemDelta(ItemDelta<?, ?> item, int indent) {
         return prettyPrintItemDelta(item, false, indent);
     }
@@ -260,40 +320,46 @@ public class UserFriendlyPrettyPrinter {
         if (item == null) {
             return "";
         }
+
+        if (item.isOperational() && !options.showOperational()) {
+            return "";
+        }
+
         StringBuilder sb = new StringBuilder();
-        sb.append(indent(indent));
-        sb.append(item.getPath());
-        sb.append(": ");
+        if (options.showDeltaItemPath()) {
+            sb.append(indent(indent));
+            sb.append(item.getPath());
+            sb.append(": ");
+        }
 
         boolean canUseSingleLine = isSingleLineType(item.getDefinition());
 
         if (useEstimatedOld) {
             String old = prettyPrintItemModifications(null, item.getEstimatedOldValues(), indent + 1, canUseSingleLine);
             if (StringUtils.isNotEmpty(old)) {
-                sb.append("\n");
+                if (!sb.isEmpty()) {
+                    sb.append("\n");
+                }
                 sb.append(old);
             }
 
             return sb.toString();
         }
-
-        String add = prettyPrintItemModifications(ModificationType.ADD, item.getValuesToAdd(), indent + 1, canUseSingleLine);
-        if (StringUtils.isNotEmpty(add)) {
-            sb.append("\n");
-            sb.append(add);
-        }
-        String delete = prettyPrintItemModifications(ModificationType.DELETE, item.getValuesToDelete(), indent + 1, canUseSingleLine);
-        if (StringUtils.isNotEmpty(delete)) {
-            sb.append("\n");
-            sb.append(delete);
-        }
-        String replace = prettyPrintItemModifications(ModificationType.REPLACE, item.getValuesToReplace(), indent + 1, canUseSingleLine);
-        if (StringUtils.isNotEmpty(replace)) {
-            sb.append("\n");
-            sb.append(replace);
-        }
+        prettyPrintItemModifications(sb, ModificationType.ADD, item.getValuesToAdd(), indent + 1, canUseSingleLine);
+        prettyPrintItemModifications(sb, ModificationType.DELETE, item.getValuesToDelete(), indent + 1, canUseSingleLine);
+        prettyPrintItemModifications(sb, ModificationType.REPLACE, item.getValuesToReplace(), indent + 1, canUseSingleLine);
 
         return sb.toString();
+    }
+
+    private void prettyPrintItemModifications(StringBuilder sb, ModificationType modificationType, Collection<?> values, int indent, boolean canUseSingleLine) {
+        String itemModifications = prettyPrintItemModifications(modificationType, values, indent, canUseSingleLine);
+        if (StringUtils.isNotEmpty(itemModifications)) {
+            if (!sb.isEmpty()) {
+                sb.append("\n");
+            }
+            sb.append(itemModifications);
+        }
     }
 
     private String prettyPrintItemModifications(ModificationType modificationType, Collection<?> values, int indent, boolean canUseSingleLine) {
@@ -304,7 +370,7 @@ public class UserFriendlyPrettyPrinter {
         // todo localization
         String operation;
         if (modificationType == null) {
-            operation = "Estimated old:";
+            operation = "Estimated old: ";
         } else {
             operation = switch (modificationType) {
                 case ADD -> "Add: ";
@@ -416,6 +482,7 @@ public class UserFriendlyPrettyPrinter {
 
         String values = pcv.getItems().stream()
                 .map(item -> prettyPrintItem(item, isObjectValue || isSingleValueContainer ? indent : indent + 1))
+                .filter(StringUtils::isNotBlank)
                 .collect(Collectors.joining("\n"));
 
         sb.append(values);

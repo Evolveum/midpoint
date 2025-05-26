@@ -25,7 +25,6 @@ import org.apache.wicket.model.Model;
 
 import com.evolveum.midpoint.common.UserFriendlyPrettyPrinter;
 import com.evolveum.midpoint.common.UserFriendlyPrettyPrinterOptions;
-import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.impl.component.search.Search;
 import com.evolveum.midpoint.gui.impl.component.search.wrapper.PropertySearchItemWrapper;
 import com.evolveum.midpoint.prism.ModificationType;
@@ -52,12 +51,12 @@ public class DeltaColumn extends AbstractExportableColumn<SelectableBean<AuditEv
     private static final Trace LOGGER = TraceManager.getTrace(DeltaColumn.class);
 
     private static final List<DisplayValueType> ALLOWED_DISPLAY_VALUES = List.of(
-            DisplayValueType.OLD_VALUE,
-            DisplayValueType.NEW_VALUE,
-            DisplayValueType.OLD_NEW_VALUE
+            DisplayValueType.ESTIMATED_OLD,
+            DisplayValueType.CHANGES,
+            DisplayValueType.ESTIMATED_OLD_AND_CHANGES
     );
 
-    private static final DisplayValueType DEFAULT_DISPLAY_VALUE = DisplayValueType.NEW_VALUE;
+    private static final DisplayValueType DEFAULT_DISPLAY_VALUE = DisplayValueType.CHANGES;
 
     private final GuiObjectColumnType guiObjectColumn;
 
@@ -141,8 +140,8 @@ public class DeltaColumn extends AbstractExportableColumn<SelectableBean<AuditEv
         RepeatingView listItems = new RepeatingView(componentId);
         for (ItemDelta<?, ?> delta : createChangedItems(rowModel)) {
             DeltaColumnPanel panel = new DeltaColumnPanel(listItems.newChildId(), () -> delta);
-            panel.setShowOldValues(getDisplayValueType() == DisplayValueType.OLD_VALUE || getDisplayValueType() == DisplayValueType.OLD_NEW_VALUE);
-            panel.setShowNewValues(getDisplayValueType() == DisplayValueType.NEW_VALUE || getDisplayValueType() == DisplayValueType.OLD_NEW_VALUE);
+            panel.setShowOldValues(getDisplayValueType() == DisplayValueType.ESTIMATED_OLD || getDisplayValueType() == DisplayValueType.ESTIMATED_OLD_AND_CHANGES);
+            panel.setShowNewValues(getDisplayValueType() == DisplayValueType.CHANGES || getDisplayValueType() == DisplayValueType.ESTIMATED_OLD_AND_CHANGES);
 
             listItems.add(panel);
         }
@@ -180,6 +179,7 @@ public class DeltaColumn extends AbstractExportableColumn<SelectableBean<AuditEv
                 })
                 .filter(Objects::nonNull)
                 .map(delta -> delta.toDelta())
+//                .flatMap(List::stream)
                 .toList();
     }
 

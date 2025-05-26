@@ -53,7 +53,7 @@ public class ListGroupMenuItemPanel<T extends Serializable> extends BasePanel<Li
     @Override
     public void renderHead(IHeaderResponse response) {
         super.renderHead(response);
-        if(getModelObject().isActive()) {
+        if (!getModelObject().isEmpty() && getModelObject().isActive()) {
             String liveStatusId = get(ID_ITEMS_LIVE_STATUS).getMarkupId();
             String message;
             if (getModelObject().isOpen()) {
