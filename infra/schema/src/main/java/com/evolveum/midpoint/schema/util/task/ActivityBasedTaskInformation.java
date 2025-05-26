@@ -106,6 +106,7 @@ public class ActivityBasedTaskInformation extends TaskInformation {
     @Override
     public double getProgress() {
         if (progressInformation.isComplete()) {
+            // MID-10287 standardize the progress to 1.0 when the task is complete (100%).
             return 1.0;
         }
 
