@@ -19,7 +19,14 @@ public class UserFriendlyPrettyPrinterOptions {
 
     public static final String DEFAULT_INDENT = "  ";
 
+    public static final String DEFAULT_UI_INDENT = "&emsp;";
+
     private static final ToStringStyle DEFAULT_TO_STRING_STYLE = new UserFriendlyToStringStyle();
+
+    /**
+     * Whether to show full add object delta (i.e., the whole change) in the delta printer or simple name/oid/type of the object.
+     */
+    private boolean showFullAddObjectDelta = false;
 
     private boolean multiline = true;
 
@@ -49,6 +56,15 @@ public class UserFriendlyPrettyPrinterOptions {
 
     public UserFriendlyPrettyPrinterOptions indentation(String indentation) {
         this.indentation = indentation;
+        return this;
+    }
+
+    public boolean showFullAddObjectDelta() {
+        return showFullAddObjectDelta;
+    }
+
+    public UserFriendlyPrettyPrinterOptions showFullAddObjectDelta(boolean showFullAddObjectDelta) {
+        this.showFullAddObjectDelta = showFullAddObjectDelta;
         return this;
     }
 
