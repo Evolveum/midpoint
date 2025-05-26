@@ -386,6 +386,37 @@ export default class MidPointTheme {
                 var combobox = container.find("span[role='combobox']");
                 var selectContainer = container.find(".select2-container");
 
+                select.on("select2:open", function () {
+                    setTimeout(() => {
+                        const resultsList = document.querySelector('.select2-container--open ul.select2-results__options');
+                        if (resultsList) {
+                            let liveStatusUpdated = false;
+                            const observer = new MutationObserver(() => {
+                                const hasResult = resultsList.querySelector('li[role="option"]') !== null;
+                                if (hasResult && !liveStatusUpdated) {
+                                    liveStatusUpdated = true;
+                                    $("#comboBoxLiveStatus").text($("#comboBoxLiveStatus").attr("data-live-status"));
+                                }
+                                else if (!hasResult && liveStatusUpdated) {
+                                    liveStatusUpdated = false;
+                                    $("#comboBoxLiveStatus").text("");
+                                }
+                            });
+
+                            observer.observe(resultsList, {
+                                childList: true,
+                                subtree: false
+                            });
+
+                            select.on('select2:close', () => {
+                                observer.disconnect();
+                                liveStatusUpdated = false;
+                                $("#comboBoxLiveStatus").text("");
+                            });
+                        }
+                    }, 0);
+                });
+
                 if (attribute != null) {
                     var input = container.find("input");
 
@@ -1203,7 +1234,7 @@ export default class MidPointTheme {
             if (element) {
                 setTimeout(() => {
                     element.focus();
-                }, 100);
+                }, 200);
             }
         }
     }
