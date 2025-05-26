@@ -14,8 +14,8 @@ import org.jetbrains.annotations.NotNull;
 public class DeltaPrinterOptions {
 
     /**
-     * Whether to show object delta (i.e. the whole change) in the delta printer in
-     * case changed {@link com.evolveum.midpoint.prism.path.ItemPath} is empty.
+     * Whether to show whole object delta (i.e., the whole change) in the delta printer in
+     * case changed {@link com.evolveum.midpoint.prism.path.ItemPath} is empty or null.
      */
     private boolean showObjectDelta = true;
 
