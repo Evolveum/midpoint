@@ -757,7 +757,7 @@ public class ReportUtils {
         boolean useEstimatedOld = options.useEstimatedOldValues();
 
         if (itemPath.isEmpty()) {
-            if (!options.showObjectDelta()) {
+            if (!options.showFullObjectDelta()) {
                 return List.of();
             }
 
@@ -768,6 +768,10 @@ public class ReportUtils {
         List<ItemDelta<?, ?>> deltas = findItemDelta(delta.getObjectDelta(), itemPath, options.showPartialDeltas());
         if (deltas.isEmpty()) {
             return List.of();
+        }
+
+        if (deltas.size() == 1) {
+            options.prettyPrinterOptions().showDeltaItemPath(false);
         }
 
         return deltas.stream()

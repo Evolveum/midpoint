@@ -48,10 +48,26 @@ public class UserFriendlyPrettyPrinterOptions {
 
     private boolean useLocalization = false;
 
+    private boolean showDeltaItemPath = true;
+
     private ToStringStyle toStringStyle = DEFAULT_TO_STRING_STYLE;
+
+    public boolean showDeltaItemPath() {
+        return showDeltaItemPath;
+    }
+
+    public UserFriendlyPrettyPrinterOptions showDeltaItemPath(boolean showDeltaItemPath) {
+        this.showDeltaItemPath = showDeltaItemPath;
+        return this;
+    }
 
     public String indentation() {
         return indentation;
+    }
+
+    public UserFriendlyPrettyPrinterOptions defaultUIIndentation() {
+        this.indentation = DEFAULT_UI_INDENT;
+        return this;
     }
 
     public UserFriendlyPrettyPrinterOptions indentation(String indentation) {

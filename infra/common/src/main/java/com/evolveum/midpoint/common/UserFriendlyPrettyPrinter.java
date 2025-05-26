@@ -147,7 +147,7 @@ public class UserFriendlyPrettyPrinter {
         return sb.toString();
     }
 
-    private boolean isItemEmpty(Item<?,?> item) {
+    private boolean isItemEmpty(Item<?, ?> item) {
         if (item == null || item.isEmpty()) {
             return true;
         }
@@ -162,7 +162,7 @@ public class UserFriendlyPrettyPrinter {
         }
 
         for (PrismContainerValue<?> pcv : pc.getValues()) {
-            for (Item<?,?> child : pcv.getItems()) {
+            for (Item<?, ?> child : pcv.getItems()) {
                 if (!child.getDefinition().isOperational()) {
                     return false;
                 }
@@ -320,40 +320,46 @@ public class UserFriendlyPrettyPrinter {
         if (item == null) {
             return "";
         }
+
+        if (item.isOperational() && !options.showOperational()) {
+            return "";
+        }
+
         StringBuilder sb = new StringBuilder();
-        sb.append(indent(indent));
-        sb.append(item.getPath());
-        sb.append(": ");
+        if (options.showDeltaItemPath()) {
+            sb.append(indent(indent));
+            sb.append(item.getPath());
+            sb.append(": ");
+        }
 
         boolean canUseSingleLine = isSingleLineType(item.getDefinition());
 
         if (useEstimatedOld) {
             String old = prettyPrintItemModifications(null, item.getEstimatedOldValues(), indent + 1, canUseSingleLine);
             if (StringUtils.isNotEmpty(old)) {
-                sb.append("\n");
+                if (!sb.isEmpty()) {
+                    sb.append("\n");
+                }
                 sb.append(old);
             }
 
             return sb.toString();
         }
-
-        String add = prettyPrintItemModifications(ModificationType.ADD, item.getValuesToAdd(), indent + 1, canUseSingleLine);
-        if (StringUtils.isNotEmpty(add)) {
-            sb.append("\n");
-            sb.append(add);
-        }
-        String delete = prettyPrintItemModifications(ModificationType.DELETE, item.getValuesToDelete(), indent + 1, canUseSingleLine);
-        if (StringUtils.isNotEmpty(delete)) {
-            sb.append("\n");
-            sb.append(delete);
-        }
-        String replace = prettyPrintItemModifications(ModificationType.REPLACE, item.getValuesToReplace(), indent + 1, canUseSingleLine);
-        if (StringUtils.isNotEmpty(replace)) {
-            sb.append("\n");
-            sb.append(replace);
-        }
+        prettyPrintItemModifications(sb, ModificationType.ADD, item.getValuesToAdd(), indent + 1, canUseSingleLine);
+        prettyPrintItemModifications(sb, ModificationType.DELETE, item.getValuesToDelete(), indent + 1, canUseSingleLine);
+        prettyPrintItemModifications(sb, ModificationType.REPLACE, item.getValuesToReplace(), indent + 1, canUseSingleLine);
 
         return sb.toString();
+    }
+
+    private void prettyPrintItemModifications(StringBuilder sb, ModificationType modificationType, Collection<?> values, int indent, boolean canUseSingleLine) {
+        String itemModifications = prettyPrintItemModifications(modificationType, values, indent, canUseSingleLine);
+        if (StringUtils.isNotEmpty(itemModifications)) {
+            if (!sb.isEmpty()) {
+                sb.append("\n");
+            }
+            sb.append(itemModifications);
+        }
     }
 
     private String prettyPrintItemModifications(ModificationType modificationType, Collection<?> values, int indent, boolean canUseSingleLine) {
@@ -476,6 +482,7 @@ public class UserFriendlyPrettyPrinter {
 
         String values = pcv.getItems().stream()
                 .map(item -> prettyPrintItem(item, isObjectValue || isSingleValueContainer ? indent : indent + 1))
+                .filter(StringUtils::isNotBlank)
                 .collect(Collectors.joining("\n"));
 
         sb.append(values);
