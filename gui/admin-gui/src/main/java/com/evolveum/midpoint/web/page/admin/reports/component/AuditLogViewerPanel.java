@@ -16,14 +16,6 @@ import java.util.List;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.gui.impl.component.search.Search;
-import com.evolveum.midpoint.gui.impl.component.search.wrapper.PropertySearchItemWrapper;
-import com.evolveum.midpoint.schema.expression.VariablesMap;
-
-import com.evolveum.midpoint.util.DisplayableValue;
-import com.evolveum.midpoint.web.component.util.SerializableSupplier;
-import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
-
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
@@ -56,7 +48,9 @@ import com.evolveum.midpoint.gui.impl.component.data.provider.SelectableBeanCont
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIcon;
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
 import com.evolveum.midpoint.gui.impl.component.icon.IconCssStyle;
+import com.evolveum.midpoint.gui.impl.component.search.Search;
 import com.evolveum.midpoint.gui.impl.component.search.SearchContext;
+import com.evolveum.midpoint.gui.impl.component.search.wrapper.PropertySearchItemWrapper;
 import com.evolveum.midpoint.gui.impl.util.IconAndStylesUtil;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectOrdering;
@@ -64,6 +58,7 @@ import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.OrderDirection;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
+import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.task.api.Task;
@@ -74,6 +69,7 @@ import com.evolveum.midpoint.web.component.data.column.AuditSelectableLinkColumn
 import com.evolveum.midpoint.web.component.data.column.LinkColumn;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.component.util.SelectableBeanImpl;
+import com.evolveum.midpoint.web.component.util.SerializableSupplier;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.session.PageStorage;
 import com.evolveum.midpoint.web.session.SessionStorage;
@@ -81,6 +77,7 @@ import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventTypeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 
 /**
  * Created by honchar
@@ -496,14 +493,6 @@ public class AuditLogViewerPanel extends ContainerableListPanel<AuditEventRecord
             return createOutcomeColumn();
         }
 
-        boolean hasCustomExpression = guiObjectColumn != null
-                && guiObjectColumn.getExport() != null
-                && guiObjectColumn.getExport().getExpression() != null;
-
-        if (AuditEventRecordType.F_DELTA.equivalent(path) && !hasCustomExpression) {
-            return createDeltaColumn(displayModel, guiObjectColumn);
-        }
-
         SerializableSupplier<VariablesMap> customVariables = () -> {
             VariablesMap variablesMap = new VariablesMap();
 
@@ -518,6 +507,10 @@ public class AuditLogViewerPanel extends ContainerableListPanel<AuditEventRecord
 
             return variablesMap;
         };
+
+        if (AuditEventRecordType.F_DELTA.equivalent(path)) {
+            return createDeltaColumn(displayModel, guiObjectColumn, customVariables, expression);
+        }
 
         return super.createCustomExportableColumn(displayModel, guiObjectColumn, customVariables, expression);
     }
@@ -543,12 +536,23 @@ public class AuditLogViewerPanel extends ContainerableListPanel<AuditEventRecord
     }
 
     private IColumn<SelectableBean<AuditEventRecordType>, String> createDeltaColumn(
-            IModel<String> displayModel, GuiObjectColumnType guiObjectColumn) {
-        if (!getColumnTypeConfigContext().isChangedItemSearchItemVisible()
-                && (guiObjectColumn != null && guiObjectColumn.getVisibility() != UserInterfaceElementVisibilityType.VISIBLE)) {
-            return null;
+            IModel<String> displayModel, GuiObjectColumnType guiObjectColumn, SerializableSupplier<VariablesMap> variablesSupplier, ExpressionType expression) {
+
+        if (expression != null) {
+            return new DeltaExpressionColumn(
+                    displayModel, null, guiObjectColumn, variablesSupplier, expression, getPageBase());
         }
-        return new DeltaColumn(displayModel, guiObjectColumn, getSearchModel());
+
+        boolean defaultDeltaColumnVisible =
+                getColumnTypeConfigContext().isChangedItemSearchItemVisible() ||
+                        (guiObjectColumn != null && guiObjectColumn.getVisibility() != UserInterfaceElementVisibilityType.VISIBLE);
+
+        if (defaultDeltaColumnVisible) {
+            return new DeltaColumn(displayModel, guiObjectColumn, getSearchModel());
+        }
+
+        return new DeltaExpressionColumn(
+                displayModel, null, guiObjectColumn, variablesSupplier, expression, getPageBase());
     }
 
     @Override

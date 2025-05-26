@@ -45,6 +45,8 @@ public class DeltaColumnPanel extends BasePanel<ItemDelta<? extends PrismValue, 
     private static final String ID_NEW_VALUE = "newValue";
     private static final String ID_ARROW = "arrow";
 
+    private UserFriendlyPrettyPrinter prettyPrinter;
+
     private boolean showOldValues = true;
 
     private boolean showNewValues = true;
@@ -53,6 +55,21 @@ public class DeltaColumnPanel extends BasePanel<ItemDelta<? extends PrismValue, 
         super(id, model);
 
         initLayout();
+    }
+
+    @Override
+    protected void onInitialize() {
+        super.onInitialize();
+
+        UserFriendlyPrettyPrinterOptions options = new UserFriendlyPrettyPrinterOptions()
+                .defaultUIIndentation()
+                .showDeltaItemPath(false)
+                .showFullAddObjectDelta(false)
+                .showOperational(false);
+
+        prettyPrinter = new UserFriendlyPrettyPrinter(options)
+                .locale(getLocale())
+                .localizationService(getPageBase().getLocalizationService());
     }
 
     private void initLayout() {
@@ -148,18 +165,9 @@ public class DeltaColumnPanel extends BasePanel<ItemDelta<? extends PrismValue, 
             sb.append("/");
         }
 
-        sb.append(
-                new UserFriendlyPrettyPrinter(
-                        new UserFriendlyPrettyPrinterOptions()
-                                .indentation("&emsp;"))
-                        .locale(getLocale())
-                        .localizationService(getPageBase().getLocalizationService())
-                        .prettyPrintValue(value, 0));
+        sb.append(prettyPrinter.prettyPrintValue(value, 0));
 
-        String escaped = Strings.escapeMarkup(sb.toString()).toString();
-
-        Matcher matcher = ESCAPE_PATTERN.matcher(escaped);
-        return matcher.replaceAll(match -> "&emsp;".repeat(match.group(0).length() / "&amp;emsp;".length()));
+        return escapePrettyPrintedValue(sb.toString());
     }
 
     public DeltaColumnPanel setShowNewValues(boolean showNewValues) {
@@ -170,5 +178,18 @@ public class DeltaColumnPanel extends BasePanel<ItemDelta<? extends PrismValue, 
     public DeltaColumnPanel setShowOldValues(boolean showOldValues) {
         this.showOldValues = showOldValues;
         return this;
+    }
+
+    /**
+     * This method will escape markup in the value. However, it will leave "&emsp;" as is.
+     */
+    public static String escapePrettyPrintedValue(String value) {
+        if (value == null) {
+            return null;
+        }
+        String escaped = Strings.escapeMarkup(value).toString();
+
+        Matcher matcher = ESCAPE_PATTERN.matcher(escaped);
+        return matcher.replaceAll(match -> "&emsp;".repeat(match.group(0).length() / "&amp;emsp;".length()));
     }
 }
