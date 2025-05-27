@@ -16,6 +16,7 @@ import com.evolveum.midpoint.schema.util.task.TaskTypeUtil;
 import com.evolveum.midpoint.authentication.api.authorization.AuthorizationAction;
 import com.evolveum.midpoint.authentication.api.authorization.PageDescriptor;
 import com.evolveum.midpoint.authentication.api.authorization.Url;
+import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.web.application.*;
 import com.evolveum.midpoint.gui.api.component.data.provider.ISelectableDataProvider;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -126,6 +127,14 @@ public class PageTasks extends PageAdmin {
                 return Model.ofList(Collections.singletonList(objectRef));
 
             }
+
+            @Override
+            protected Collection<SelectorOptions<GetOperationOptions>> getOptions(ObjectReferenceType ref) {
+                if (ref != null && QNameUtil.match(ResourceType.COMPLEX_TYPE, ref.getType())) {
+                    return GetOperationOptions.createNoFetchReadOnlyCollection();
+                }
+                return null;
+            }
         });
         columns.add(4, new AbstractExportableColumn<>(createStringResource("pageTasks.task.currentRunTime"), TaskType.F_COMPLETION_TIMESTAMP.getLocalPart()) {
             @Serial private static final long serialVersionUID = 1L;
@@ -181,14 +190,6 @@ public class PageTasks extends PageAdmin {
             @Override
             public IModel<String> getDataModel(IModel<SelectableBean<TaskType>> rowModel) {
                 return Model.of(createScheduledToRunAgain(rowModel));
-            }
-
-            @Override
-            protected Collection<SelectorOptions<GetOperationOptions>> getOptions(ObjectReferenceType ref) {
-                if (ref != null && QNameUtil.match(ResourceType.COMPLEX_TYPE, ref.getType())) {
-                    return GetOperationOptions.createNoFetchReadOnlyCollection();
-                }
-                return null;
             }
         });
     }
