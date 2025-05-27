@@ -13,6 +13,10 @@ import java.util.Collections;
 import java.util.List;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.util.QNameUtil;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
+
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
@@ -119,6 +123,14 @@ public class PageTasks extends PageAdmin {
                     objectRef.asReferenceValue().clearParent();
                 }
                 return Model.ofList(Collections.singletonList(objectRef));
+            }
+
+            @Override
+            protected Collection<SelectorOptions<GetOperationOptions>> getOptions(ObjectReferenceType ref) {
+                if (ref != null && QNameUtil.match(ResourceType.COMPLEX_TYPE, ref.getType())) {
+                    return GetOperationOptions.createNoFetchReadOnlyCollection();
+                }
+                return null;
             }
         });
     }
