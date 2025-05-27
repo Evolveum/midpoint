@@ -66,7 +66,7 @@ export default class MidPointTheme {
                     var showPopover = function () {
                         parent.find(inputId).each(function () {
                             var itemH = $(this).innerHeight() + 27;
-                            parent.find(popover).fadeIn(300).css({top: itemH, left: 0}).css("display", "block");
+                            parent.find(popover).css({top: itemH, left: 0}).fadeIn(300);
                         });
                     }
 
@@ -76,7 +76,7 @@ export default class MidPointTheme {
                     });
 
                     var deletePopover = function () {
-                        parent.find(popover).fadeIn(300).css("display", "none");
+                        parent.find(popover).fadeOut(300);
                     };
 
                     $(this).on("blur", function () {
@@ -94,7 +94,7 @@ export default class MidPointTheme {
                         if (parent.find(inputId + ":hover").length !== 0) {
                             parent.find(inputId).each(function () {
                                 var itemH = $(this).innerHeight() + 9;
-                                parent.find(popover).fadeIn(300).css({top: itemH, left: 0}).css("display", "block");
+                                parent.find(popover).css({top: itemH, left: 0}).fadeIn(300);
                             });
                         }
                     }
@@ -104,7 +104,7 @@ export default class MidPointTheme {
                     });
 
                     var deletePopover = function () {
-                        parent.find(popover).fadeIn(300).css("display", "none");
+                        parent.find(popover).fadeOut(300);
                     };
 
                     $(this).on("mouseleave", function () {
