@@ -9,10 +9,7 @@ package com.evolveum.midpoint.web.page.admin.reports.component;
 import static com.evolveum.midpoint.gui.impl.util.DetailsPageUtil.dispatchToObjectDetailsPage;
 
 import java.io.Serial;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
@@ -538,34 +535,35 @@ public class AuditLogViewerPanel extends ContainerableListPanel<AuditEventRecord
     private IColumn<SelectableBean<AuditEventRecordType>, String> createDeltaColumn(
             IModel<String> displayModel, GuiObjectColumnType guiObjectColumn, SerializableSupplier<VariablesMap> variablesSupplier, ExpressionType expression) {
 
-        if (expression != null) {
-            return new DeltaExpressionColumn(
-                    displayModel, null, guiObjectColumn, variablesSupplier, expression, getPageBase());
+        boolean changedItemVisible = getColumnTypeConfigContext().isChangedItemSearchItemVisible();
+
+        boolean conditionallyVisible =
+                changedItemVisible
+                        && !columnVisibilityMatches(guiObjectColumn, UserInterfaceElementVisibilityType.VISIBLE, UserInterfaceElementVisibilityType.AUTOMATIC);
+
+        if (conditionallyVisible || getColumnVisibility(guiObjectColumn) == UserInterfaceElementVisibilityType.VISIBLE) {
+            return new DeltaColumn(displayModel, guiObjectColumn, getSearchModel(), variablesSupplier, expression, getPageBase());
         }
 
-        boolean defaultDeltaColumnVisible =
-                getColumnTypeConfigContext().isChangedItemSearchItemVisible() ||
-                        (guiObjectColumn != null && guiObjectColumn.getVisibility() != UserInterfaceElementVisibilityType.VISIBLE);
+        return null;
+    }
 
-        if (defaultDeltaColumnVisible) {
-            return new DeltaColumn(displayModel, guiObjectColumn, getSearchModel());
+    private UserInterfaceElementVisibilityType getColumnVisibility(GuiObjectColumnType column) {
+        return column != null ? column.getVisibility() : null;
+    }
+
+    private boolean columnVisibilityMatches(GuiObjectColumnType column, UserInterfaceElementVisibilityType... visibilities) {
+        UserInterfaceElementVisibilityType real = column != null ? column.getVisibility() : null;
+        if (real == null) {
+            return false;
         }
 
-        return new DeltaExpressionColumn(
-                displayModel, null, guiObjectColumn, variablesSupplier, expression, getPageBase());
+        return Arrays.stream(visibilities).anyMatch(v -> v == real);
     }
 
     @Override
     public void refreshTable(AjaxRequestTarget target) {
-        boolean searchItemVisible = getColumnTypeConfigContext().isChangedItemSearchItemVisible();
-
-        // noinspection unchecked
-        boolean isChangedItemColumnVisible = getTable().getDataTable().getColumns().stream()
-                .anyMatch(column -> column instanceof DeltaColumn);
-
-        if (searchItemVisible != isChangedItemColumnVisible) {
-            resetTableColumns();
-        }
+        resetTableColumns();
 
         super.refreshTable(target);
     }

@@ -12,11 +12,10 @@ import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
-import com.evolveum.midpoint.gui.api.util.LocalizationUtil;
-
 import org.apache.commons.lang3.StringUtils;
+import org.apache.wicket.Component;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.export.AbstractExportableColumn;
+import org.apache.wicket.markup.html.basic.MultiLineLabel;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.markup.repeater.RepeatingView;
 import org.apache.wicket.model.IModel;
@@ -25,6 +24,9 @@ import org.apache.wicket.model.Model;
 
 import com.evolveum.midpoint.common.UserFriendlyPrettyPrinter;
 import com.evolveum.midpoint.common.UserFriendlyPrettyPrinterOptions;
+import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.util.LocalizationUtil;
+import com.evolveum.midpoint.gui.impl.component.data.column.ConfigurableExpressionColumn;
 import com.evolveum.midpoint.gui.impl.component.search.Search;
 import com.evolveum.midpoint.gui.impl.component.search.wrapper.PropertySearchItemWrapper;
 import com.evolveum.midpoint.prism.ModificationType;
@@ -34,19 +36,22 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.delta.ItemTreeDelta;
 import com.evolveum.midpoint.schema.delta.ObjectTreeDelta;
+import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.util.DisplayableValue;
 import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
+import com.evolveum.midpoint.web.component.util.SerializableSupplier;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.DisplayValueType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.GuiObjectColumnType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 
-public class DeltaColumn extends AbstractExportableColumn<SelectableBean<AuditEventRecordType>, String> {
+public class DeltaColumn extends ConfigurableExpressionColumn<SelectableBean<AuditEventRecordType>, AuditEventRecordType> {
 
     private static final Trace LOGGER = TraceManager.getTrace(DeltaColumn.class);
 
@@ -58,24 +63,40 @@ public class DeltaColumn extends AbstractExportableColumn<SelectableBean<AuditEv
 
     private static final DisplayValueType DEFAULT_DISPLAY_VALUE = DisplayValueType.CHANGES;
 
-    private final GuiObjectColumnType guiObjectColumn;
-
     private final IModel<Search<AuditEventRecordType>> searchModel;
 
     public DeltaColumn(
             IModel<String> displayModel,
             GuiObjectColumnType guiObjectColumn,
-            IModel<Search<AuditEventRecordType>> searchModel) {
+            IModel<Search<AuditEventRecordType>> searchModel,
+            SerializableSupplier<VariablesMap> variablesSupplier, ExpressionType expressionType, PageBase modelServiceLocator) {
 
-        super(displayModel != null ? displayModel : Model.of());
+        super(displayModel != null ? displayModel : Model.of(), null, guiObjectColumn, variablesSupplier, expressionType, modelServiceLocator);
 
-        this.guiObjectColumn = guiObjectColumn;
         this.searchModel = searchModel;
     }
 
     @Override
-    public String getSortProperty() {
-        return null;
+    protected Component createLabel(String componentId, IModel<?> model) {
+        IModel<String> labelModel = new LoadableDetachableModel<>() {
+
+            @Override
+            protected String load() {
+                Object obj = model.getObject();
+                String str = obj != null ? obj.toString() : "";
+                return DeltaColumnPanel.escapePrettyPrintedValue(str);
+            }
+        };
+
+        MultiLineLabel label = new MultiLineLabel(componentId, labelModel);
+        label.setEscapeModelStrings(false);
+
+        return label;
+    }
+
+    @Override
+    protected String getStringValueDelimiter() {
+        return "\n";
     }
 
     @Override
@@ -123,12 +144,8 @@ public class DeltaColumn extends AbstractExportableColumn<SelectableBean<AuditEv
         return itemPathType != null ? itemPathType.getItemPath() : null;
     }
 
-    @Override
-    public String getCssClass() {
-        if (guiObjectColumn == null) {
-            return super.getCssClass();
-        }
-        return guiObjectColumn.getDisplay() != null ? guiObjectColumn.getDisplay().getCssClass() : null;
+    private boolean useSimpleDeltaPanel() {
+        return getExpression() == null;
     }
 
     @Override
@@ -136,6 +153,11 @@ public class DeltaColumn extends AbstractExportableColumn<SelectableBean<AuditEv
             Item<ICellPopulator<SelectableBean<AuditEventRecordType>>> item,
             String componentId,
             IModel<SelectableBean<AuditEventRecordType>> rowModel) {
+
+        if (!useSimpleDeltaPanel()) {
+            super.populateItem(item, componentId, rowModel);
+            return;
+        }
 
         RepeatingView listItems = new RepeatingView(componentId);
         for (ItemDelta<?, ?> delta : createChangedItems(rowModel)) {
@@ -149,7 +171,7 @@ public class DeltaColumn extends AbstractExportableColumn<SelectableBean<AuditEv
     }
 
     private DisplayValueType getDisplayValueType() {
-        DisplayValueType display = guiObjectColumn.getDisplayValue() != null ? guiObjectColumn.getDisplayValue() : DEFAULT_DISPLAY_VALUE;
+        DisplayValueType display = getCustomColumn().getDisplayValue() != null ? getCustomColumn().getDisplayValue() : DEFAULT_DISPLAY_VALUE;
         if (!ALLOWED_DISPLAY_VALUES.contains(display)) {
             return DEFAULT_DISPLAY_VALUE;
         }
@@ -184,11 +206,15 @@ public class DeltaColumn extends AbstractExportableColumn<SelectableBean<AuditEv
     }
 
     @Override
-    public IModel<List<String>> getDataModel(IModel<SelectableBean<AuditEventRecordType>> rowModel) {
+    public IModel<String> getDataModel(IModel<SelectableBean<AuditEventRecordType>> rowModel) {
+        if (!useSimpleDeltaPanel()) {
+            return super.getDataModel(rowModel);
+        }
+
         return new LoadableDetachableModel<>() {
 
             @Override
-            protected List<String> load() {
+            protected String load() {
                 List<ItemDelta<?, ?>> deltas = createChangedItems(rowModel);
                 return deltas.stream()
                         .map(item -> {
@@ -230,7 +256,7 @@ public class DeltaColumn extends AbstractExportableColumn<SelectableBean<AuditEv
                             return oldValues + " -> " + newValues;
                         })
                         .filter(StringUtils::isNotBlank)
-                        .toList();
+                        .collect(Collectors.joining(getStringValueDelimiter()));
             }
         };
     }

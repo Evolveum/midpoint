@@ -94,6 +94,14 @@ public class ConfigurableExpressionColumn<S extends SelectableRow<T>, T extends 
         this.modelServiceLocator = modelServiceLocator;
     }
 
+    protected ExpressionType getExpression() {
+        return expression;
+    }
+
+    protected GuiObjectColumnType getCustomColumn() {
+        return customColumn;
+    }
+
     protected PageBase getPageBase() {
         return modelServiceLocator;
     }
