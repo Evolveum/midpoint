@@ -480,9 +480,9 @@ other common value is `UserFriendlyPrettyPrinterOptions.DEFAULT_UI_INDENT` to ge
 ** `showOperationalItems`
 +
 Whether to display changes in operational items. E.g., `assignment/activation/effectiveStatus`.
-** `useLocalization`
+** `localizationService` and `locale`
 +
-If set to `true`, printer will try to translate item names, enumeration values, object types.
+If defined, printer will try to translate item names, enumeration values, object types.
 ** `showDeltaItemPath`
 +
 If set to `true`, the printer will show the concrete item path for each item delta.

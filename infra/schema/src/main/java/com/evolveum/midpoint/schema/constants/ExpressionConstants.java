@@ -51,6 +51,7 @@ public class ExpressionConstants {
     public static final String VAR_MODEL_ELEMENT_CONTEXT = "modelElementContext";
     public static final String VAR_PRISM_CONTEXT = "prismContext";
     public static final String VAR_LOCALIZATION_SERVICE = "localizationService";
+    public static final String VAR_LOCALE = "locale";
     public static final String VAR_CONFIGURATION = "configuration";
     public static final String VAR_ENTITLEMENT = "entitlement";
     public static final String VAR_FILE = "file";
