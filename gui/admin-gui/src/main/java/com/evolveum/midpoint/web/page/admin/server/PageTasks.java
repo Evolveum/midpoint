@@ -182,6 +182,14 @@ public class PageTasks extends PageAdmin {
             public IModel<String> getDataModel(IModel<SelectableBean<TaskType>> rowModel) {
                 return Model.of(createScheduledToRunAgain(rowModel));
             }
+
+            @Override
+            protected Collection<SelectorOptions<GetOperationOptions>> getOptions(ObjectReferenceType ref) {
+                if (ref != null && QNameUtil.match(ResourceType.COMPLEX_TYPE, ref.getType())) {
+                    return GetOperationOptions.createNoFetchReadOnlyCollection();
+                }
+                return null;
+            }
         });
     }
 

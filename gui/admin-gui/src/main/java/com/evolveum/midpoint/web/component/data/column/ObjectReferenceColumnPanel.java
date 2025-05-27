@@ -2,6 +2,11 @@ package com.evolveum.midpoint.web.component.data.column;
 
 import com.evolveum.midpoint.gui.impl.util.DetailsPageUtil;
 import com.evolveum.midpoint.gui.impl.util.IconAndStylesUtil;
+import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.SelectorOptions;
+
+import com.evolveum.midpoint.task.api.Task;
+
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.model.IModel;
@@ -16,12 +21,19 @@ import com.evolveum.midpoint.gui.impl.component.icon.IconCssStyle;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.web.component.AjaxButton;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
+import javax.xml.namespace.QName;
+import java.io.Serial;
+import java.util.Collection;
+
 public class ObjectReferenceColumnPanel extends BasePanel<ObjectReferenceType> {
 
+    @Serial private static final long serialVersionUID = 1L;
+
+    private static final String DOT_CLASS = ObjectReferenceColumnPanel.class.getName() + ".";
+    private static final String OPERATION_LOAD_TARGET_REF_OBJECT = DOT_CLASS + "loadTargetRefObject";
     private static final String ID_IMAGE = "image";
     private static final String ID_NAME = "name";
 
@@ -51,7 +63,7 @@ public class ObjectReferenceColumnPanel extends BasePanel<ObjectReferenceType> {
         add(name);
     }
 
-    private <R extends AbstractRoleType> PrismObject<R> getResolvedTarget() {
+    private <O extends ObjectType> PrismObject<O> getResolvedTarget() {
         ObjectReferenceType rowValue = getModelObject();
         if (rowValue == null) {
             return null;
@@ -62,12 +74,22 @@ public class ObjectReferenceColumnPanel extends BasePanel<ObjectReferenceType> {
         }
 
         if (rowValue.getOid() != null) {
-            PrismObject<R> resolvedTarget = WebModelServiceUtils.loadObject(rowValue, getPageBase());
+            OperationResult result = new OperationResult(OPERATION_LOAD_TARGET_REF_OBJECT);
+            Task task = getPageBase().createSimpleTask(OPERATION_LOAD_TARGET_REF_OBJECT);
+
+            QName targetType = rowValue.getType();
+            Class targetClass = WebComponentUtil.qnameToClass(getPageBase().getPrismContext(), targetType);
+            PrismObject<O> resolvedTarget = WebModelServiceUtils.loadObject(targetClass, rowValue.getOid(),
+                    getOptions(), getPageBase(), task, result);
             if (resolvedTarget != null) {
                 return resolvedTarget;
             }
         }
 
+        return null;
+    }
+
+    protected Collection<SelectorOptions<GetOperationOptions>> getOptions() {
         return null;
     }
 
