@@ -39,6 +39,20 @@ import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
  */
 public class UserFriendlyPrettyPrinter {
 
+    private static final String KEY_ESTIMATED_OLD = "UserFriendlyPrettyPrinter.estimatedOld";
+    private static final String KEY_ADD = "UserFriendlyPrettyPrinter.add";
+    private static final String KEY_DELETE = "UserFriendlyPrettyPrinter.delete";
+    private static final String KEY_REPLACE = "UserFriendlyPrettyPrinter.replace";
+    private static final String KEY_FILTER = "UserFriendlyPrettyPrinter.filter";
+    private static final String KEY_UNDEFINED = "UserFriendlyPrettyPrinter.undefined";
+
+    private static final String KEY_ESTIMATED_OLD_DEFAULT = "Estimated old:";
+    private static final String KEY_ADD_DEFAULT = "Add:";
+    private static final String KEY_DELETE_DEFAULT = "Delete:";
+    private static final String KEY_REPLACE_DEFAULT = "Replace:";
+    private static final String KEY_FILTER_DEFAULT = "filter";
+    private static final String KEY_UNDEFINED_DEFAULT = "undefined";
+
     private final UserFriendlyPrettyPrinterOptions options;
 
     private LocalizationService localizationService;
@@ -94,7 +108,9 @@ public class UserFriendlyPrettyPrinter {
     }
 
     private String prettyPrintItem(Item<?, ?> item, int indent, boolean canUseSingleLine) {
-        if (item.getDefinition().isOperational() && !options.showOperational()) {
+        ItemDefinition def = item.getDefinition();
+
+        if (def != null && def.isOperational() && !options.showOperational()) {
             return "";
         }
 
@@ -122,7 +138,7 @@ public class UserFriendlyPrettyPrinter {
 
         if (item.isEmpty()) {
             return sb.toString();
-        } else if (canUseSingleLine && item.size() == 1 && isSingleLineType(item.getDefinition())) {
+        } else if (canUseSingleLine && item.size() == 1 && isSingleLineType(def)) {
             // indent here is 0 because we are on the same line as the item name, e.g. "givenName: VALUE_WE_ARE_PRETTY_PRINTING"
             sb.append(prettyPrintValue(item.getValues().get(0), 0));
 
@@ -146,6 +162,12 @@ public class UserFriendlyPrettyPrinter {
 //        addItemSeparatorEnd(sb);
 
         return sb.toString();
+    }
+
+    private void printLineSeparator(StringBuilder sb) {
+        if (options.lineSeparator() != null) {
+            sb.append(options.lineSeparator());
+        }
     }
 
     private boolean isItemEmpty(Item<?, ?> item) {
@@ -327,11 +349,6 @@ public class UserFriendlyPrettyPrinter {
         }
 
         StringBuilder sb = new StringBuilder();
-        if (options.showDeltaItemPath()) {
-            sb.append(indent(indent));
-            sb.append(item.getPath());
-            sb.append(": ");
-        }
 
         boolean canUseSingleLine = isSingleLineType(item.getDefinition());
 
@@ -349,6 +366,22 @@ public class UserFriendlyPrettyPrinter {
         prettyPrintItemModifications(sb, ModificationType.ADD, item.getValuesToAdd(), indent + 1, canUseSingleLine);
         prettyPrintItemModifications(sb, ModificationType.DELETE, item.getValuesToDelete(), indent + 1, canUseSingleLine);
         prettyPrintItemModifications(sb, ModificationType.REPLACE, item.getValuesToReplace(), indent + 1, canUseSingleLine);
+
+        String values = sb.toString();
+        if (StringUtils.isBlank(values)) {
+            return "";
+        }
+
+        sb = new StringBuilder();
+        if (options.showDeltaItemPath()) {
+            sb.append(indent(indent));
+            sb.append(item.getPath());
+            sb.append(": ");
+
+            sb.append("\n");
+        }
+
+        sb.append(values);
 
         return sb.toString();
     }
@@ -368,26 +401,31 @@ public class UserFriendlyPrettyPrinter {
             return "";
         }
 
-        // todo localization
+        int valueIndent = canUseSingleLine ? 0 : indent + 1;
+        List<String> valuesStr = values.stream()
+                .map(v -> prettyPrintValue((PrismValue) v, valueIndent))
+                .filter(StringUtils::isNotEmpty)
+                .toList();
+
+        if (valuesStr.isEmpty()) {
+            return "";
+        }
+
         String operation;
         if (modificationType == null) {
-            operation = "Estimated old: ";
+            operation = translate(KEY_ESTIMATED_OLD, KEY_ESTIMATED_OLD_DEFAULT);
         } else {
             operation = switch (modificationType) {
-                case ADD -> "Add: ";
-                case DELETE -> "Delete: ";
-                case REPLACE -> "Replace: ";
+                case ADD -> translate(KEY_ADD, KEY_ADD_DEFAULT);
+                case DELETE -> translate(KEY_DELETE, KEY_DELETE_DEFAULT);
+                case REPLACE -> translate(KEY_REPLACE, KEY_REPLACE_DEFAULT);
             };
         }
 
         StringBuilder sb = new StringBuilder();
         sb.append(indent(indent));
         sb.append(operation);
-
-        int valueIndent = canUseSingleLine ? 0 : indent + 1;
-        List<String> valuesStr = values.stream()
-                .map(v -> prettyPrintValue((PrismValue) v, valueIndent))
-                .toList();
+        sb.append(" ");
 
         if (canUseSingleLine) {
             sb.append(valuesStr.stream().collect(Collectors.joining(", ")));
@@ -467,10 +505,19 @@ public class UserFriendlyPrettyPrinter {
     }
 
     public String prettyPrintContainerValue(PrismContainerValue<?> pcv, int indent) {
-        StringBuilder sb = new StringBuilder();
-
         boolean isObjectValue = pcv instanceof PrismObjectValue<?>;
         boolean isSingleValueContainer = isSingleValueContainer(pcv.getParent());
+
+        String values = pcv.getItems().stream()
+                .map(item -> prettyPrintItem(item, isObjectValue || isSingleValueContainer ? indent : indent + 1))
+                .filter(StringUtils::isNotBlank)
+                .collect(Collectors.joining("\n"));
+
+        if (StringUtils.isBlank(values)) {
+            return "";
+        }
+
+        StringBuilder sb = new StringBuilder();
         if (!isObjectValue && !isSingleValueContainer) {
             sb.append(indent(indent));
             sb.append(pcv.getId());
@@ -482,11 +529,6 @@ public class UserFriendlyPrettyPrinter {
         } else {
             addItemSeparatorStart(sb);
         }
-
-        String values = pcv.getItems().stream()
-                .map(item -> prettyPrintItem(item, isObjectValue || isSingleValueContainer ? indent : indent + 1))
-                .filter(StringUtils::isNotBlank)
-                .collect(Collectors.joining("\n"));
 
         sb.append(values);
 
@@ -535,9 +577,9 @@ public class UserFriendlyPrettyPrinter {
         } else if (value.getOid() != null) {
             sb.append(value.getOid());
         } else if (value.getFilter() != null) {
-            sb.append(translate("UserFriendlyPrettyPrinter.filter", "filter"));
+            sb.append(translate(KEY_FILTER, KEY_FILTER_DEFAULT));
         } else {
-            sb.append(translate("UserFriendlyPrettyPrinter.undefined", "undefined"));
+            sb.append(translate(KEY_UNDEFINED, KEY_UNDEFINED_DEFAULT));
         }
 
         if (value.getTargetType() != null) {

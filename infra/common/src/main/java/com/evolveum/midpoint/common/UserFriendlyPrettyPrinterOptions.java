@@ -30,8 +30,6 @@ public class UserFriendlyPrettyPrinterOptions {
      */
     private boolean showFullAddObjectDelta = false;
 
-    private boolean multiline = true;
-
     private String lineSeparator = DEFAULT_LINE_SEPARATOR;
 
     private String indentation = DEFAULT_INDENT;
@@ -166,15 +164,6 @@ public class UserFriendlyPrettyPrinterOptions {
 
     public UserFriendlyPrettyPrinterOptions lineSeparator(String lineSeparator) {
         this.lineSeparator = lineSeparator;
-        return this;
-    }
-
-    public boolean multiline() {
-        return multiline;
-    }
-
-    public UserFriendlyPrettyPrinterOptions multiline(boolean multiline) {
-        this.multiline = multiline;
         return this;
     }
 

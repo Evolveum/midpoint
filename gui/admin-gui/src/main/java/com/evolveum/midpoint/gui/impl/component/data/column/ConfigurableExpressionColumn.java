@@ -10,6 +10,7 @@ package com.evolveum.midpoint.gui.impl.component.data.column;
 import java.io.Serializable;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Locale;
 import java.util.Objects;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
@@ -255,6 +256,8 @@ public class ConfigurableExpressionColumn<S extends SelectableRow<T>, T extends 
             } else {
                 variablesMap.put(ExpressionConstants.VAR_INPUT, null, String.class);
             }
+
+            variablesMap.put(ExpressionConstants.VAR_LOCALE, getPageBase().getLocale(), Locale.class);
 
             processVariables(variablesMap, rowValue);
             return evaluate(variablesMap, expression, task, result);

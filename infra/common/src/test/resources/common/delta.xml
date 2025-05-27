@@ -1,0 +1,70 @@
+<!--
+  ~ Copyright (C) 2010-2025 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<objectDelta
+        xmlns="http://prism.evolveum.com/xml/ns/public/types-3"
+        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:type="ObjectDeltaType">
+    <changeType>modify</changeType>
+    <objectType>UserType</objectType>
+    <itemDelta>
+        <modificationType>add</modificationType>
+        <path>organization</path>
+        <value xsi:type="PolyStringType">123</value>
+        <value>456</value>
+        <estimatedOldValue xsi:type="PolyStringType">000</estimatedOldValue>
+        <estimatedOldValue xsi:type="PolyStringType">111</estimatedOldValue>
+    </itemDelta>
+    <itemDelta>
+        <modificationType>delete</modificationType>
+        <path>organization</path>
+        <value>qwe</value>
+        <estimatedOldValue xsi:type="PolyStringType">qwe</estimatedOldValue>
+    </itemDelta>
+    <itemDelta>
+        <modificationType>replace</modificationType>
+        <path>assignment[1]/activation/effectiveStatus</path>
+        <value xsi:type="c:ActivationStatusType">enabled</value>
+    </itemDelta>
+    <itemDelta>
+        <modificationType>replace</modificationType>
+        <path>assignment</path>
+        <value xsi:type="c:AssignmentType">
+            <c:targetRef oid="0e5b7304-ea5c-438e-84d1-2b0ce40517ce" type="c:RoleType"/>
+            <c:activation>
+                <c:administrativeStatus>enabled</c:administrativeStatus>
+                <c:effectiveStatus>enabled</c:effectiveStatus>
+            </c:activation>
+        </value>
+        <value xsi:type="c:AssignmentType" id="123">
+            <c:targetRef oid="aaaa7304-ea5c-438e-84d1-2b0ce40517ce" type="c:RoleType"/>
+            <c:activation>
+                <c:effectiveStatus>enabled</c:effectiveStatus>
+            </c:activation>
+        </value>
+        <estimatedOldValue xsi:type="c:AssignmentType" id="35">
+            <c:targetRef oid="35b8f4a0-1c3e-4d2b-9a5f-7c6d1e0f2a3b" type="c:RoleType"/>
+            <c:activation>
+                <c:administrativeStatus>enabled</c:administrativeStatus>
+                <c:effectiveStatus>enabled</c:effectiveStatus>
+            </c:activation>
+        </estimatedOldValue>
+    </itemDelta>
+
+    <itemDelta>
+        <modificationType>add</modificationType>
+        <path>c:assignment[37]/@metadata</path>
+        <value xsi:type="c:ValueMetadataType">
+            <c:storage>
+                <c:modifyTimestamp>2025-04-28T12:13:56.485+02:00</c:modifyTimestamp>
+                <c:modifierRef oid="00000000-0000-0000-0000-000000000002" type="c:UserType"/>
+                <c:modifyChannel>http://midpoint.evolveum.com/xml/ns/public/common/channels-3#rest</c:modifyChannel>
+            </c:storage>
+        </value>
+    </itemDelta>
+</objectDelta>
