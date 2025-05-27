@@ -145,7 +145,7 @@ public class UserFriendlyPrettyPrinter {
             return sb.toString();
         }
 
-        sb.append("\n");
+        printLineSeparator(sb);
 
         if (item instanceof PrismObject<?> o) {
             sb.append(prettyPrintContainerValue(o.getValue(), indent + 1));
@@ -156,7 +156,7 @@ public class UserFriendlyPrettyPrinter {
 
         String values = item.getValues().stream()
                 .map(value -> prettyPrintValue(value, valueIndent))
-                .collect(Collectors.joining("\n"));
+                .collect(Collectors.joining(getLineSeparator()));
         sb.append(values);
 
 //        addItemSeparatorEnd(sb);
@@ -168,6 +168,10 @@ public class UserFriendlyPrettyPrinter {
         if (options.lineSeparator() != null) {
             sb.append(options.lineSeparator());
         }
+    }
+
+    private String getLineSeparator() {
+        return options.lineSeparator() != null ? options.lineSeparator() : "";
     }
 
     private boolean isItemEmpty(Item<?, ?> item) {
@@ -291,7 +295,7 @@ public class UserFriendlyPrettyPrinter {
         sb.append(translateEnum(delta.getChangeType()));   // todo localization?
         sb.append(")");
         sb.append(": ");
-        sb.append("\n");
+        printLineSeparator(sb);
 
         if (delta.getObjectToAdd() != null) {
             if (options.showFullAddObjectDelta()) {
@@ -307,7 +311,7 @@ public class UserFriendlyPrettyPrinter {
                 .filter(StringUtils::isNotEmpty)
                 .toList();
 
-        sb.append(StringUtils.join(itemDeltaStr, "\n"));
+        sb.append(StringUtils.join(itemDeltaStr, getLineSeparator()));
 
         return sb.toString();
     }
@@ -356,7 +360,7 @@ public class UserFriendlyPrettyPrinter {
             String old = prettyPrintItemModifications(null, item.getEstimatedOldValues(), indent + 1, canUseSingleLine);
             if (StringUtils.isNotEmpty(old)) {
                 if (!sb.isEmpty()) {
-                    sb.append("\n");
+                    printLineSeparator(sb);
                 }
                 sb.append(old);
             }
@@ -378,7 +382,7 @@ public class UserFriendlyPrettyPrinter {
             sb.append(item.getPath());
             sb.append(": ");
 
-            sb.append("\n");
+            printLineSeparator(sb);
         }
 
         sb.append(values);
@@ -390,7 +394,7 @@ public class UserFriendlyPrettyPrinter {
         String itemModifications = prettyPrintItemModifications(modificationType, values, indent, canUseSingleLine);
         if (StringUtils.isNotEmpty(itemModifications)) {
             if (!sb.isEmpty()) {
-                sb.append("\n");
+                printLineSeparator(sb);
             }
             sb.append(itemModifications);
         }
@@ -431,7 +435,7 @@ public class UserFriendlyPrettyPrinter {
             sb.append(valuesStr.stream().collect(Collectors.joining(", ")));
         } else {
             valuesStr.forEach(v -> {
-                sb.append("\n");
+                printLineSeparator(sb);
                 sb.append(v);
             });
         }
@@ -525,7 +529,7 @@ public class UserFriendlyPrettyPrinter {
 
             addItemSeparatorStart(sb);
 
-            sb.append("\n");
+            printLineSeparator(sb);
         } else {
             addItemSeparatorStart(sb);
         }

@@ -399,6 +399,9 @@ class ColumnDataConverter<C> {
         } else {
             variables.put(ExpressionConstants.VAR_INPUT, input, input.getClass());
         }
+
+        variables.put(ExpressionConstants.VAR_LOCALE, Locale.getDefault(), Locale.class);
+
         try {
             return reportService.evaluateScript(report.asPrismObject(), expression, variables,
                     "value for column '" + column.getName() + "' (export)", task, result);
