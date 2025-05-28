@@ -8,7 +8,6 @@
 package com.evolveum.midpoint.gui.impl.component.input;
 
 import com.evolveum.midpoint.gui.api.util.LocalizationUtil;
-import com.evolveum.midpoint.gui.impl.component.input.converter.DateConverter;
 import com.evolveum.midpoint.web.security.MidPointAuthWebSession;
 import com.evolveum.midpoint.web.session.SessionStorage;
 
@@ -19,9 +18,7 @@ import org.jetbrains.annotations.NotNull;
 import java.io.Serial;
 import java.io.Serializable;
 import java.text.SimpleDateFormat;
-import java.time.*;
 import java.time.chrono.IsoChronology;
-import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeFormatterBuilder;
 import java.time.format.FormatStyle;
 import java.util.*;
@@ -123,6 +120,23 @@ public class DateTimePickerOptions implements Serializable {
         sb.append("useCurrent: false,");
 
         sb.append("viewDate: MidPointTheme.createCurrentDateForDatePicker()");
+
+        sb.append("}");
+        return sb.toString();
+    }
+
+    /**
+     * Produce string that represent options for date time picker displayed in a modal dialog which can be used for js script.
+     */
+    public String toJsConfiguration(String modalDialogId) {
+        StringBuilder sb = new StringBuilder();
+        sb.append("{");
+
+        sb.append("container: document.querySelector('#").append(modalDialogId).append(" .modal-content'),");
+
+        String configuration = toJsConfiguration();
+        configuration = configuration.substring(1, configuration.length() - 1);
+        sb.append(configuration);
 
         sb.append("}");
         return sb.toString();
