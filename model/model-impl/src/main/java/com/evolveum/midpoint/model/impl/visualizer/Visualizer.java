@@ -553,6 +553,7 @@ public class Visualizer {
         for (VisualizationDescriptionHandler handler : descriptionHandlers) {
             if (handler.match(visualization, parentVisualization)) {
                 handler.apply(visualization, parentVisualization, task, result);
+                break;
             }
         }
     }

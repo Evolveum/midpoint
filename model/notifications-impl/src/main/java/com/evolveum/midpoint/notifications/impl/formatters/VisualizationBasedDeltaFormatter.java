@@ -118,7 +118,7 @@ public final class VisualizationBasedDeltaFormatter implements DeltaFormatter {
         final String objectName = encloseIfNotEmpty(getObjectName(visualization.getName()), "\"", "\"");
         final String objectType = getObjectType(visualization);
 
-        return concatenateNonEmptyStrings(" ", objectType, objectName, "has been modified");
+        return concatenateNonEmptyStrings(" ", objectType, objectName, "was modified");
     }
 
     private String createAddOrDeleteHeading(Visualization visualization) {
