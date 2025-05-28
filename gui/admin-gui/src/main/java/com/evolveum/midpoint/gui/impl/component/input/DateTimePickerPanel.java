@@ -14,6 +14,7 @@ import com.evolveum.midpoint.web.model.XmlGregorianCalendarModel;
 
 import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnChangeAjaxFormUpdatingBehavior;
 
+import org.apache.wicket.Component;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.head.IHeaderResponse;
 import org.apache.wicket.markup.head.OnDomReadyHeaderItem;
@@ -36,6 +37,8 @@ public class DateTimePickerPanel extends InputPanel {
 
     private final DateTimePickerOptions dateTimePickerOptions = DateTimePickerOptions.of();
 
+    private boolean hasModalParent = false;
+
     public static DateTimePickerPanel createByDateModel(String id, IModel<Date> model) {
         return new DateTimePickerPanel(id, model);
     }
@@ -49,16 +52,35 @@ public class DateTimePickerPanel extends InputPanel {
         initLayout(model);
     }
 
+    @Override
+    protected void onInitialize() {
+        super.onInitialize();
+        hasModalParent = isModalParent();
+    }
+
+    private boolean isModalParent() {
+        Component component = this.getParent();
+        while (component != null) {
+            if (component.getId().equals(getPageBase().getMainPopup().getId())) {
+                return true;
+            }
+            component = component.getParent();
+        }
+        return false;
+    }
+
     private void initLayout(IModel<Date> model) {
         WebMarkupContainer container = new WebMarkupContainer(ID_CONTAINER) {
             @Override
             public void renderHead(IHeaderResponse response) {
                 super.renderHead(response);
-                response.render(
-                        OnDomReadyHeaderItem.forScript(
-                                "MidPointTheme.initDateTimePicker("
-                                        + getMarkupId() + ", "
-                                        + dateTimePickerOptions.toJsConfiguration() + ");"));
+
+                String config = hasModalParent
+                        ? dateTimePickerOptions.toJsConfiguration(getPageBase().getMainPopup().getMarkupId())
+                        : dateTimePickerOptions.toJsConfiguration();
+
+                response.render(OnDomReadyHeaderItem.forScript(
+                        String.format("MidPointTheme.initDateTimePicker(%s, %s);", getMarkupId(), config)));
             }
         };
         container.setOutputMarkupId(true);
