@@ -9,6 +9,8 @@ package com.evolveum.midpoint.common;
 
 import java.util.Locale;
 
+import com.evolveum.midpoint.util.annotation.Experimental;
+
 import org.apache.commons.lang3.builder.ToStringStyle;
 import org.jetbrains.annotations.NotNull;
 
@@ -34,7 +36,7 @@ public class UserFriendlyPrettyPrinterOptions {
 
     private String indentation = DEFAULT_INDENT;
 
-    private String itemSeparator = ", ";
+    private String itemSeparator;
 
     private String containerSeparatorStart;
 
@@ -113,46 +115,56 @@ public class UserFriendlyPrettyPrinterOptions {
         return this;
     }
 
+    @Experimental
     public String containerSeparatorEnd() {
         return containerSeparatorEnd;
     }
 
+    @Experimental
     public UserFriendlyPrettyPrinterOptions containerSeparatorEnd(String containerSeparatorEnd) {
         this.containerSeparatorEnd = containerSeparatorEnd;
         return this;
     }
 
+    @Experimental
     public String containerSeparatorStart() {
         return containerSeparatorStart;
     }
 
+    @Experimental
     public UserFriendlyPrettyPrinterOptions containerSeparatorStart(String containerSeparatorStart) {
         this.containerSeparatorStart = containerSeparatorStart;
         return this;
     }
 
+    @Experimental
     public String collectionSeparatorEnd() {
         return collectionSeparatorEnd;
     }
 
+    @Experimental
     public UserFriendlyPrettyPrinterOptions collectionSeparatorEnd(String collectionSeparatorEnd) {
         this.collectionSeparatorEnd = collectionSeparatorEnd;
         return this;
     }
 
+    @Experimental
     public String collectionSeparatorStart() {
         return collectionSeparatorStart;
     }
 
+    @Experimental
     public UserFriendlyPrettyPrinterOptions collectionSeparatorStart(String collectionSeparatorStart) {
         this.collectionSeparatorStart = collectionSeparatorStart;
         return this;
     }
 
+    @Experimental
     public String itemSeparator() {
         return itemSeparator;
     }
 
+    @Experimental
     public UserFriendlyPrettyPrinterOptions itemSeparator(String itemSeparator) {
         this.itemSeparator = itemSeparator;
         return this;
