@@ -1,4 +1,4 @@
-= Resource wizard: Object type mappings
+= Resource Wizard: Object Type Mappings
 :page-nav-title: Mappings
 :page-toc: top
 :experimental:
@@ -9,106 +9,100 @@ In other words, mapping allows you to use the data from your source systems, suc
 
 To access mappings, click icon:database[] *Resources* > icon:database[] *All resources* > *your_resource* > icon:male[] *Accounts* > icon:cog[] *Configure* > icon:retweet[] *Mappings*.
 
-image::step-2-mappings-inbound.png[link=step-2-mappings-inbound.png, 100%, title=Table of inbound mappings]
+Mappings are composed of two complementary parts:
+
+* *<<inbound_mappings,Inbound mappings>>*: Control the transfer of data from source systems to midPoint objects.
+* *<<outbound_mappings,Outbound mappings>>*: Control the transfer of data from midPoint objects to target systems.
 
 For a more technical description, see also the following pages:
 
 * xref:/midpoint/reference/resources/resource-configuration/schema-handling/[Resource Schema Handling]
 * xref:/midpoint/reference/expressions/mappings/[Mappings]
 * xref:/midpoint/reference/expressions/[MidPoint Expressions and Mappings]
-* xref:/midpoint/reference/expressions/mappings/inbound-mapping/[Inbound mappings]
-* xref:/midpoint/reference/expressions/mappings/outbound-mapping/[Outbound mappings]
 
 [[inbound_mappings]]
 == Inbound Mappings
-
 Inbound mapping transforms data from authoritative sources to midPoint. Typically, it is used to populate new user objects with data from an HR system.
-See the xref:/midpoint/reference/expressions/mappings/inbound-mapping/[inbound mappings] page for more details.
+See the xref:/midpoint/reference/expressions/mappings/inbound-mapping/[Inbound Mapping] page for more details.
+
+image::step-2-mappings-inbound.png[link=step-2-mappings-inbound.png, 100%, title=Table of inbound mappings]
 
 To add a new inbound mapping:
 
 . Click icon:circle-plus[] btn:[Add inbound].
 . Configure the following: +
-* *Name* of the mapping. While not mandatory, this is convenient during troubleshooting and when using xref:/midpoint/reference/resources/resource-configuration/inheritance/[resource template inheritance].
-* *From resource attribute* defines the resource attribute that is used as input for the mapping.
-* *Expression* specifies how the source attribute is used.
-You can choose from the following xref:/midpoint/reference/expressions/expressions/[expression types]:
-** _As is_ (default) copies the value from the resource attribute to the midPoint target property.
-** _Literal_ allows you to specify a constant value upon clicking btn:[Show values].
-** _Script_ allows you to write a more complex behavior using a xref:/midpoint/reference/expressions/expressions/[midPoint expression] (by default in Groovy) upon clicking btn:[Show script].
-** _Generate_ allows you to generate a random string using a xref:/midpoint/reference/security/credentials/password-policy/#value-policy[value policy].
+* *Name*: Name of the mapping. While not mandatory, this is convenient during troubleshooting and when using xref:/midpoint/reference/resources/resource-configuration/inheritance/[resource template inheritance].
+* *From resource attribute*: Defines a resource attribute that is used as input for the mapping.
+* *Expression*: Specifies how the source attribute is used:
+** _As is_ (default): Copies values from the resource attribute to the midPoint target property.
+** _Literal_: Allows you to specify a constant value upon clicking btn:[Show values].
+** _Script_: Allows you to define a more complex behavior using a xref:/midpoint/reference/expressions/expressions/[midPoint expression] (by default in Groovy) upon clicking btn:[Show script].
+** _Generate_: Allows you to generate a random string using a xref:/midpoint/reference/security/credentials/password-policy/#value-policy[value policy].
 This is typically used for generating passwords. Upon clicking btn:[Show generate], you can choose from the following options in the Mode menu:
-*** _Undefined_ generates passwords without specific constraints based on the default random generation method.
-*** _Policy_ requires you to select a value policy that controls the password generation.
-*** _Universal Unique Identifier_ generates passwords in the form of a Universal Unique Identifier (UUID).
+*** _Policy_: Selects a value policy that controls the password generation.
+*** _Universal Unique Identifier_: Generates passwords in the form of a Universal Unique Identifier (UUID).
 This is useful when you need passwords that are guaranteed to be unique and not easily guessable.
-** _Path_ specifies a data path to a specific attribute or property in the resource object upon clicking btn:[Show path].
-For example, if you want to create an inbound mapping for an attribute like `fullname`, and you want it to derive it from the `givenName` and `familyName` attributes, you can set the path to
-`givenName + ' ' + familyName`
-* *Target* defines the midPoint property that should be used to store the value generated by the inbound mapping.
-* *Lifecycle state* defines the lifecycle state of the mapping.
-This can be used during xref:/midpoint/reference/admin-gui/simulations/[Simulations], e.g. specifying lifecycle state as `Proposed` will be used only to simulate the mapping, `Draft` disables the mapping, etc.
-+
-Alternatively, you can use <<advanced_mappings,advanced configuration options>> by clicking the icon:edit[] btn:[Edit] button:
+** _Path_: Specifies a data path to a specific attribute or property in the resource object upon clicking btn:[Show path].
+For example, if you want to create an inbound mapping for an attribute like `fullname`, and you want to derive it from the `givenName` and `familyName` attributes, you can set the path to
+`givenName + ' ' + familyName`.
+* *Target*: Defines the midPoint property used to store the value generated by the inbound mapping.
+* *Lifecycle state*: Defines the xref:/midpoint/reference/concepts/object-lifecycle/[lifecycle state] of the mapping.
+This can be used for xref:/midpoint/reference/admin-gui/simulations/[Simulations].
+For example, if you set the lifecycle state to `Proposed`, it will only be used to simulate the mapping without influencing the real data.
+Alternatively, setting the lifecycle state to `Draft` disables the mapping, etc.
 . Click icon:check[] btn:[Save mappings]
 
 You can delete a mapping by clicking the btn:[Delete] button.
 
 Click btn:[Attribute overrides] if you need to <<attribute_override,override attribute>> visibility or other behavior.
 
-TIP: You can test new mappings without influencing the real data by setting their *Lifecycle state* to `Proposed` and use xref:/midpoint/reference/admin-gui/simulations/[Simulations].
-
 [[advanced_mappings]]
 === Advanced Inbound Mappings
-[%autowidth, cols="a,a", frame=none, grid=none, role=center]
-|===
-| image::step-2-mappings-inbound-detail-main.png[link=step-2-mappings-inbound-detail-main.png, 100%, title=Main configuration of inbound mapping (complex view)]
-| image::step-2-mappings-inbound-detail-optional.png[link=step-2-mappings-inbound-detail-optional.png, 100%, title=Optional configuration of inbound mapping (complex view)]
-|===
+As an alternative to the standard inbound mapping settings, you can also use a more detailed advanced configuration.
 
 [#use_inbound_for_correlation]
-In addition to the already described options, this advanced view allows you to configure also:
+. For an existing inbound mapping, click the icon:edit[] btn:[Edit] button, and configure:
 
-* *Strength* which defines how aggressively the mapping should be applied:
-** _Undefined_ applies the default defined in the xref:/midpoint/reference/resources/resource-schema[Resource Schema XSD].
-** _Strong_ always enforces the particular values.
-** _Normal_ applies the mapping if there is a change in the source properties.
+* *Strength*: Defines how aggressively the mapping should be applied:
+** _Strong_: Always enforces the particular values.
+** _Normal_: Applies the mapping if there is a change in the source properties.
 This is used to implement the _last change wins_ strategy.
-If the source value was modified in midPoint, then the mapping is applied, and the target is modified.
+If the source value was modified, then the mapping is applied, and the target is modified.
 If the target is modified directly, then the mapping does not overwrite the target value.
-** _Weak_ applies the mapping only if the target has no value.
-* *Use for*
-** _Undefined_ applies the default defined in the xref:/midpoint/reference/resources/resource-schema[Resource Schema XSD].
-** _Synchronization_ uses the mapping for synchronization, e.g. during initial import, reconciliation, or live synchronization tasks.
-** _Correlation_ uses the mapping for correlation.
-See an example of how you can define inbound mappings to be used in correlation when an item correlator is used, even for target resources where you typically have no inbound mappings - xref:/midpoint/reference/correlation/#example-4-correlation-for-outbound-resources[correlation-only inbound mapping example].
-** _All_ uses the mapping during both synchronization and correlation.
-* *Source* defines a midPoint property that is used as input for the mapping.
-This extends the range of usable objects and provides you with more room in writing custom scripts.
-* *Condition* allows you to control if the mapping is used or not dynamically, based on a specific condition.
-The mapping is used if the conditions evaluates to `true`.
+** _Weak_: Applies the mapping only if the target has no value.
+* *Use for*: Defines what operations the mapping is used for.
+** _Synchronization_: Uses the mapping for xref:/midpoint/reference/admin-gui/resource-wizard/object-type/synchronization/[synchronization], e.g. during initial import, reconciliation, or live synchronization.
+** _Correlation_: Uses the mapping for xref:/midpoint/reference/admin-gui/resource-wizard/object-type/correlation/[correlation].
+See xref:/midpoint/reference/correlation/#example-4-correlation-for-outbound-resources[an example] of how you can define inbound mappings to be used in correlation when an item correlator is used, even for target resources where you typically have no inbound mappings.
+** _All_: Uses the mapping during both synchronization and correlation.
+* *Source*: Defines a midPoint property that is used as input for the mapping.
+This complements the source property defined in *From resource attribute*, and provides you with more room for writing custom scripts by extending the range of usable objects also to midPoint properties.
+* *Condition*: Allows you to control the mapping usage dynamically with a custom script in which you can define a specific condition.
+The mapping is used if the condition evaluates to `true`.
 For example, you may want to apply your mapping only if a user has a specific role or status.
+. Click btn:[Next: Optional] and configure:
 
-And, upon clicking btn:[Next: Optional], you can also specify:
-
-* *Authoritative* controls how mapping treats changes in source values:
-** _Undefined_ applies the default defined in the xref:/midpoint/reference/resources/resource-schema[Resource Schema XSD].
-** _True_ always updates the target values with the source values, if they are different.
-This is typically used when there is only one source and you want your values to be up-to-date.
-** _False_ does not update non-empty target values when source values change.
+* *Authoritative*: Controls how mapping treats changes in source values:
+** _True_: Always updates the target values with the source values, if they are different.
+This is typically used when there is only one source and you want your target values to always be up-to-date.
+** _False_: Does not update non-empty target values when source values change.
 Use this option if you have multiple sources, or if you want to retain custom changes of your target values.
-* *Exclusive* defines how many mappings a target property has: 
-** _Undefined_ applies the default defined in the xref:/midpoint/reference/resources/resource-schema[Resource Schema XSD].
-** _True_ treats the mapping as exclusive to the selected target property.
+* *Exclusive*: Defines how many mappings a target property can have:
+** _True_: Treats the mapping as exclusive to the selected target property.
 Using the same target property in a different mapping would trigger an error.
-** _False_ (default) allows you to use the selected target property also in other mappings.
-* *Channel* limits the mapping to a specific channel in which it is applied.
+** _False_: Allows you to use the selected target property also in other mappings (default).
+* *Channel*: Limits the mapping to a specific channel in which it is applied.
 If no channels are entered, the mapping is applied for all channels.
-* *Except channel* defines a channel to which the mapping is not applied.
+* *Except channel*: Defines a channel to which the mapping is not applied.
+. Click btn:[Done] to save the changes.
 
+NOTE: The _Undefined_ option that is available in various settings applies the default defined in the xref:/midpoint/reference/resources/resource-schema[Resource Schema XSD].
+
+[[outbound_mappings]]
 == Outbound Mappings
 
 Outbound mappings are used to populate target resource attribute values by midPoint properties.
+See the xref:/midpoint/reference/expressions/mappings/outbound-mapping/[Outbound Mapping] page for more details.
 
 image::step-2-mappings-outbound.png[link=step-2-mappings-outbound.png, 100%, title=Table of outbound mappings]
 
@@ -116,45 +110,84 @@ To add and outbound mapping:
 
 . Click btn:[Add outbound].
 . Configure the individual settings.
-The available options are the same as for <<inbound_mappings,inbound mappings>>.
-The difference is that while the inbound mappings control data transfer between source systems and midPoint, the outbound mappings control data transfer from midPoint to target systems, such as LDAP.
+The available settings are the same as for <<inbound_mappings,inbound mappings>>.
+The difference is that while inbound mappings control data transfer between source systems and midPoint, outbound mappings control data transfer from midPoint to target systems, such as LDAP.
 . Click icon:check[] btn:[Save mappings]
 
 TIP: You can test new mappings without influencing the real data by setting their *Lifecycle state* to `Proposed` and use xref:/midpoint/reference/admin-gui/simulations/[Simulations].
 
 Click btn:[Attribute overrides] if you need to <<attribute_override,override attribute>> visibility or other behavior.
 
-See the xref:/midpoint/reference/expressions/mappings/outbound-mapping/[outbound mappings] page for more details.
-
 
 [[attribute_override]]
-== Attribute override
+== Attribute Override
 
-Attribute configuration can be xref:/midpoint/reference/resources/resource-configuration/schema-handling/attributes/[overridden] beyond the context of the mappings.
-This is used to override the following attribute parameters:
+Attribute configuration can be overridden beyond the context of the mappings to give you more maneuvering space, for example to override the default connector behavior.
+For more details on attributes, see the xref:/midpoint/reference/resources/resource-configuration/schema-handling/attributes/[Attribute Definitions] page.
 
-* *Ref* - The path of the item that the definition describes.
+image::step-2-mappings-override.png[link=step-2-mappings-override.png, 100%, title=Table of attribute overrides]
+
+. On the inbound/outbound mappings page, click btn:[Attribute overrides].
+You can then override the following attribute parameters:
+
+* *Ref*: Specifies the path to the attribute.
 The path must point to an object property or to an attribute in the resource schema that belongs to the respective object class.
-* *Display name* of the attribute.
-* *Description* of the attribute.
-* *Mandatory field* defines if the attribute is mandatory (_True_) or not (_False_).
-* *Multi-value* defines if the attribute can contain multiple values (_True_) or only a single value (_False_).
-* *Tolerant* defines how different values are tolerated.
+* *Display name*: Defines the display name of the attribute.
+* *Description*: Defines the description of the attribute.
+* *Mandatory field*: Defines if the attribute is mandatory (_True_) or not (_False_).
+* *Multi-value*: Defines if the attribute can contain multiple values (_True_) or only a single value (_False_).
+* *Tolerant*: Defines how different values are tolerated.
 If set to _True_, values set outside of midPoint, or outside the object template mappings, are allowed.
 In such a case, synchronization only removes values that are assigned by midPoint or template mappings, while extra native values are tolerated.
 If set to _False_, extra values are not tolerated.
 When midPoint detects such a value, e.g. during a reconciliation, it removes it.
-* *Lifecycle state* defines the lifecycle state of the attribute.
+* *Lifecycle state*: Defines the xref:/midpoint/reference/concepts/object-lifecycle/[lifecycle state] of the attribute.
+. Click icon:check[] btn:[Save overrides] to save your changes.
 
-{empty} +
-[%autowidth, cols="a,a", frame=none, grid=none, role=center]
-|===
+[[advanced_attribute_override]]
+=== Advanced Attribute Override
 
-2+| image::step-2-mappings-override.png[link=step-2-mappings-override.png, 100%, title=Table of attribute overrides]
+As an alternative to the standard attribute override settings, you can also use a more detailed advanced configuration:
 
-| image::step-2-mappings-override-detail-basic.png[link=step-2-mappings-override-detail-basic.png, 100%, title=Detailed configuration of attribute override configuration]
-| image::step-2-mappings-override-detail-limitations.png[link=step-2-mappings-override-detail-limitations.png, 100%, title=Detailed configuration of attribute override - limitations configuration]
-|===
+. For an existing override, click the icon:edit[] btn:[Edit] button.
+. On the Main configuration page, configure:
+
+* *Help*: Defines the help text that is displayed when you click the attribute help or information icon.
+* *Exclusive strong*: Defines how multi-value attributes are treated in the mapping.
+** _True_: If the attribute contains at least one strong value, only strong values are used. If there are no strong values, normal values are used.
+** _False_: Both strong and normal values are merged to produce the final set of values.
+* *Read replace mode*: Helps you workaround the connector behavior in case the add, delete, and replace operations are processed in a non-standard manner.
+** _True_: Modifications to the attribute are executed only as a REPLACE operation.
+This means that if an ADD or DELETE VALUE operation is requested, midPoint fetches the object state, computes the expected result, and writes it to the resource object using a REPLACE VALUE operation.
+** _False_: The REPLACE operation is not forced.
+* *Fetch strategy*: Defines when and how midPoint fetches the attribute:
+** _Implicit_: MidPoint expects that the attribute is implicitly returned by the connector in each fetch request (default).
+** _Explicit_: MidPoint requests the attribute in each fetch request.
+Use this for attributes that the connector does not return by default but which you want to see in midPoint.
+** _Minimal_: Fetches the attribute only if it is necessary.
+Use this for values that may cause performance overhead, such as lists of members of large groups, or large binary attributes.
+* *Matching rule*: Selects a matching rule that compares attribute values.
+As the default matching rule is a case-sensitive literal comparison, this is used to prevent unnecessary updating of values in resources that are case-insensitive.
+* *Volatility incoming*/*outgoing operation*: Tells midPoint to expect changes resulting from the selected operation (_Add_, _Modify_, or _Delete_).
+For incoming operations, the change occurs in midPoint and is caused by an unexpected input.
+For outgoing operations, an unexpected value in midPoint causes a change outside of midPoint.
+For example, if a user's name changes, we can expect that their email address will be updated to reflect that change.
+. Click btn:[Next: Limitations] and on the Limitations page configure:
+
+* *Read*/*Add*/*Modify*: When set to _False_, disables the respective operation for the attribute.
+You can use these restrictions as a precaution to protect data when you work with an unreliable input.
+By default (_Undefined_), these operations are allowed.
+* *Min/Max occurs*: Defines if the attribute is mandatory, and if it is single/multi-valued by overriding the resource schema definition of xref:/midpoint/reference/resources/resource-schema/index.adoc#object-class[minOccurs and maxOccurs].
+* *Processing*: Specifies the depth of processing:
+** _Ignore_: The attribute is not processed at all.
+** _Minimal_: The attribute basic data structure is maintained and the attribute values can be logged.
+You can process the attribute and the underlying data structure using a custom code.
+However, all built-in automatic processing, presentation, transformation, or any similar processing is skipped.
+. Click btn:[Done] to save the configuration.
+
+NOTE: The _Undefined_ option that is available in various settings applies the default defined in the xref:/midpoint/reference/resources/resource-schema[Resource Schema XSD].
+
+
 
 include::../../limitation-all.adoc[]
 
