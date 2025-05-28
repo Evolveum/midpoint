@@ -24,6 +24,7 @@ import com.evolveum.midpoint.audit.api.AuditEventStage;
 import com.evolveum.midpoint.audit.api.AuditEventType;
 import com.evolveum.midpoint.certification.api.OutcomeUtils;
 import com.evolveum.midpoint.common.LocalizationService;
+import com.evolveum.midpoint.common.UserFriendlyPrettyPrinter;
 import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
 import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
 import com.evolveum.midpoint.prism.*;
@@ -33,6 +34,7 @@ import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.report.impl.controller.*;
+import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.ObjectDeltaOperation;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.delta.ItemTreeDelta;
@@ -40,6 +42,7 @@ import com.evolveum.midpoint.schema.delta.ObjectTreeDelta;
 import com.evolveum.midpoint.schema.expression.TypedValue;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.*;
@@ -658,6 +661,7 @@ public class ReportUtils {
     }
 
     /**
+     * // todo decide what to do about this method! [viliam]
      * Used in object collections (audit), midPoint initial objects.
      */
     @SuppressWarnings("unused")
@@ -668,14 +672,113 @@ public class ReportUtils {
 
         ObjectDelta<O> delta = deltaOp.getObjectDelta();
 
+        ItemDelta<?, ?> itemDelta = findItemDelta(delta, path);
+        if (itemDelta == null || itemDelta.isEmpty()) {
+            return "";
+        }
+        return prettyPrintForReport(itemDelta);
+    }
+
+    private static ItemDelta<?, ?> findItemDelta(ObjectDelta<? extends ObjectType> delta, ItemPath path) {
+        List<ItemDelta<?, ?>> deltas = findItemDelta(delta, path, false);
+        if (deltas == null || deltas.isEmpty()) {
+            return null;
+        }
+
+        return deltas.get(0);
+    }
+
+    private static List<ItemDelta<?, ?>> findItemDelta(ObjectDelta<? extends ObjectType> delta, ItemPath path, boolean showPartialDeltas) {
+        if (delta == null) {
+            return null;
+        }
+
         ObjectTreeDelta<? extends ObjectType> treeDelta = ObjectTreeDelta.fromItemDelta(delta);
         ItemTreeDelta<?, ?, ?, ?> itemTreeDelta = treeDelta.findItemDelta(path);
         if (itemTreeDelta == null) {
-            return "";
+            return null;
         }
 
-        ItemDelta<?, ?> itemDelta = itemTreeDelta.toDelta();
-        return prettyPrintForReport(itemDelta);
+        if (itemTreeDelta instanceof ObjectTreeDelta<?> && !showPartialDeltas) {
+            return null;
+        }
+
+        if (itemTreeDelta instanceof ObjectTreeDelta<?>) {
+            return null;
+        }
+
+        ItemDelta<?,?> mainDelta = itemTreeDelta.toDelta();
+        if (!showPartialDeltas) {
+            if (mainDelta == null || mainDelta.isEmpty()) {
+                return null;
+            }
+
+            return List.of(mainDelta);
+        }
+
+        List<ItemDelta<?,?>> result = new ArrayList<>();
+        if (mainDelta != null && !mainDelta.isEmpty()) {
+            result.add(mainDelta);
+        }
+
+        result.addAll(itemTreeDelta.toChildDeltas());
+
+        return result;
+    }
+
+    @SuppressWarnings("unused")
+    public static ItemDelta<?, ?> findItemDelta(ObjectDeltaOperationType deltaOp, ItemPath path) throws SchemaException {
+        if (deltaOp == null) {
+            return null;
+        }
+
+        ObjectDeltaOperation<?> delta = DeltaConvertor.createObjectDeltaOperation(deltaOp, true);
+        return findItemDelta(delta.getObjectDelta(), path);
+    }
+
+    @SuppressWarnings("unused")
+    public static List<String> printDelta(ObjectDeltaOperationType deltaOperation, ItemPath itemPath, DeltaPrinterOptions options)
+            throws SchemaException {
+
+        if (deltaOperation == null) {
+            return List.of();
+        }
+
+        itemPath = itemPath == null ? ItemPath.EMPTY_PATH : itemPath;
+
+        if (options == null) {
+            options = new DeltaPrinterOptions();
+        }
+
+        ObjectDeltaOperation<?> delta = DeltaConvertor.createObjectDeltaOperation(deltaOperation, true);
+
+        UserFriendlyPrettyPrinter printer = new UserFriendlyPrettyPrinter(options.prettyPrinterOptions());
+//        printer.locale();
+//        printer.localizationService();
+
+        boolean useEstimatedOld = options.useEstimatedOldValues();
+
+        if (itemPath.isEmpty()) {
+            if (!options.showFullObjectDelta()) {
+                return List.of();
+            }
+
+            ObjectDelta objectDelta = delta.getObjectDelta();
+            return List.of(printer.prettyPrintObjectDelta(objectDelta, useEstimatedOld, 0));
+        }
+
+        List<ItemDelta<?, ?>> deltas = findItemDelta(delta.getObjectDelta(), itemPath, options.showPartialDeltas());
+        if (deltas.isEmpty()) {
+            return List.of();
+        }
+
+        if (deltas.size() == 1) {
+            options.prettyPrinterOptions().showDeltaItemPath(false);
+        }
+
+        return deltas.stream()
+                .map(d -> printer.prettyPrintItemDelta(d, useEstimatedOld, 0))
+                .toList();
     }
 
     public static <O extends ObjectType> String printDelta(ObjectDeltaOperation<O> deltaOp) {

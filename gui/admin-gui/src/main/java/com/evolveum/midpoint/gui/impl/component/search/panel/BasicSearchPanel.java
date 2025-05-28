@@ -11,7 +11,7 @@ import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.behavior.AttributeAppender;
-import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.model.IModel;
@@ -88,7 +88,7 @@ public class BasicSearchPanel extends BasePanel<BasicQueryWrapper> {
         };
         add(items);
 
-        Label propertiesStatus = new Label(ID_MORE_PROPERTIES_POPOVER_STATUS, Model.of(""));
+        WebMarkupContainer propertiesStatus = new WebMarkupContainer(ID_MORE_PROPERTIES_POPOVER_STATUS, Model.of(""));
         propertiesStatus.setOutputMarkupId(true);
         add(propertiesStatus);
 
@@ -164,7 +164,7 @@ public class BasicSearchPanel extends BasePanel<BasicQueryWrapper> {
     }
 
     private void addPopoverStatusMessage(AjaxRequestTarget target, String markupId, String message, int refreshInMillis) {
-        target.appendJavaScript(String.format("window.MidPointTheme.updateStatusMessage('%s', '%s', %d);",
+        target.appendJavaScript(String.format("MidPointTheme.updateStatusMessage('%s', '%s', %d);",
                 markupId, message, refreshInMillis));
     }
 

@@ -2,6 +2,9 @@ package com.evolveum.midpoint.web.component.data.column;
 
 import com.evolveum.midpoint.gui.impl.util.DetailsPageUtil;
 import com.evolveum.midpoint.gui.impl.util.IconAndStylesUtil;
+import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.SelectorOptions;
+
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.model.IModel;
@@ -20,6 +23,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 import org.apache.wicket.model.LoadableDetachableModel;
+
+import java.util.Collection;
 
 public class ObjectReferenceColumnPanel extends BasePanel<ObjectReferenceType> {
 
@@ -53,12 +58,16 @@ public class ObjectReferenceColumnPanel extends BasePanel<ObjectReferenceType> {
                 }
 
                 if (rowValue.getOid() != null) {
-                    return WebModelServiceUtils.loadObject(rowValue, getPageBase());
+                    return WebModelServiceUtils.loadObject(rowValue, getOptions(), getPageBase());
                 }
 
                 return null;
             }
         };
+    }
+
+    protected Collection<SelectorOptions<GetOperationOptions>> getOptions() {
+        return null;
     }
 
     private void initLayout() {

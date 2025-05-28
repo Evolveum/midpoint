@@ -19,7 +19,6 @@ import org.apache.wicket.markup.ComponentTag;
 import org.apache.wicket.markup.head.IHeaderResponse;
 import org.apache.wicket.markup.head.OnDomReadyHeaderItem;
 import org.apache.wicket.markup.html.WebMarkupContainer;
-import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.model.IModel;
@@ -123,7 +122,7 @@ public class WizardPanel extends BasePanel implements WizardListener {
         header.setOutputMarkupId(true);
         add(header);
 
-        Label stepStatus = new Label(ID_STEP_STATUS, Model.of(""));
+        WebMarkupContainer stepStatus = new WebMarkupContainer(ID_STEP_STATUS, Model.of(""));
         stepStatus.setOutputMarkupId(true);
         header.add(stepStatus);
 

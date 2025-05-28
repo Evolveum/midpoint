@@ -66,7 +66,7 @@ export default class MidPointTheme {
                     var showPopover = function () {
                         parent.find(inputId).each(function () {
                             var itemH = $(this).innerHeight() + 27;
-                            parent.find(popover).fadeIn(300).css({top: itemH, left: 0}).css("display", "block");
+                            parent.find(popover).css({top: itemH, left: 0}).fadeIn(300);
                         });
                     }
 
@@ -76,7 +76,7 @@ export default class MidPointTheme {
                     });
 
                     var deletePopover = function () {
-                        parent.find(popover).fadeIn(300).css("display", "none");
+                        parent.find(popover).fadeOut(300);
                     };
 
                     $(this).on("blur", function () {
@@ -94,7 +94,7 @@ export default class MidPointTheme {
                         if (parent.find(inputId + ":hover").length !== 0) {
                             parent.find(inputId).each(function () {
                                 var itemH = $(this).innerHeight() + 9;
-                                parent.find(popover).fadeIn(300).css({top: itemH, left: 0}).css("display", "block");
+                                parent.find(popover).css({top: itemH, left: 0}).fadeIn(300);
                             });
                         }
                     }
@@ -104,7 +104,7 @@ export default class MidPointTheme {
                     });
 
                     var deletePopover = function () {
-                        parent.find(popover).fadeIn(300).css("display", "none");
+                        parent.find(popover).fadeOut(300);
                     };
 
                     $(this).on("mouseleave", function () {
@@ -385,6 +385,37 @@ export default class MidPointTheme {
 
                 var combobox = container.find("span[role='combobox']");
                 var selectContainer = container.find(".select2-container");
+
+                select.on("select2:open", function () {
+                    setTimeout(() => {
+                        const resultsList = document.querySelector('.select2-container--open ul.select2-results__options');
+                        if (resultsList) {
+                            let liveStatusUpdated = false;
+                            const observer = new MutationObserver(() => {
+                                const hasResult = resultsList.querySelector('li[role="option"]') !== null;
+                                if (hasResult && !liveStatusUpdated) {
+                                    liveStatusUpdated = true;
+                                    $("#comboBoxLiveStatus").text($("#comboBoxLiveStatus").attr("data-live-status"));
+                                }
+                                else if (!hasResult && liveStatusUpdated) {
+                                    liveStatusUpdated = false;
+                                    $("#comboBoxLiveStatus").text("");
+                                }
+                            });
+
+                            observer.observe(resultsList, {
+                                childList: true,
+                                subtree: false
+                            });
+
+                            select.on('select2:close', () => {
+                                observer.disconnect();
+                                liveStatusUpdated = false;
+                                $("#comboBoxLiveStatus").text("");
+                            });
+                        }
+                    }, 0);
+                });
 
                 if (attribute != null) {
                     var input = container.find("input");
@@ -1203,7 +1234,7 @@ export default class MidPointTheme {
             if (element) {
                 setTimeout(() => {
                     element.focus();
-                }, 100);
+                }, 200);
             }
         }
     }
@@ -1215,15 +1246,6 @@ export default class MidPointTheme {
             setTimeout(() => {
                 element.textContent = textValue;
             }, timeout);
-        }
-    }
-
-    setFocus(elementId) {
-        const element = document.getElementById(elementId);
-        if (element) {
-            setTimeout(() => {
-                element.focus();
-            }, 100);
         }
     }
 

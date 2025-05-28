@@ -7,15 +7,12 @@
 
 package com.evolveum.midpoint.common;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
-import com.evolveum.midpoint.prism.PrismPropertyValue;
-
-import com.evolveum.midpoint.prism.impl.PrismPropertyValueImpl;
-
-import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
 import org.apache.commons.lang3.StringUtils;
 import org.assertj.core.api.Assertions;
 import org.testng.annotations.BeforeSuite;
@@ -23,16 +20,29 @@ import org.testng.annotations.Test;
 import org.xml.sax.SAXException;
 
 import com.evolveum.midpoint.prism.Item;
+import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.PrismValue;
+import com.evolveum.midpoint.prism.delta.ItemDelta;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.impl.PrismPropertyValueImpl;
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
+import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.MidPointPrismContextFactory;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
 import com.evolveum.midpoint.tools.testng.AbstractUnitTest;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
 
 public class UserFriendlyPrettyPrinterTest extends AbstractUnitTest {
+
+    private static final File TEST_DIR = new File("./src/test/resources/common");
+
+    private static final File FILE_DELTA = new File(TEST_DIR, "delta.xml");
 
     private static final String SAMPLE_DATE = "2025-04-14T11:12:15.274+02:00";
 
@@ -74,7 +84,7 @@ public class UserFriendlyPrettyPrinterTest extends AbstractUnitTest {
         PrismPropertyValue<RolesOfTeammateType> value = new PrismPropertyValueImpl<>(rolesOfTeammate);
         String strPropertyValue = prettyPrintValue(value);
 
-        String expected ="RolesOfTeammateType[autocompleteConfiguration=PCV(1):["
+        String expected = "RolesOfTeammateType[autocompleteConfiguration=PCV(1):["
                 + "PP({.../common/common-3}autocompleteMinChars):[PPV(Integer:2)], "
                 + "PP({.../common/common-3}displayExpression):["
                 + "PPV(ExpressionType:ExpressionType(variable=[],evaluator=script:com.evolveum.midpoint.xml.ns._public.common."
@@ -147,5 +157,132 @@ public class UserFriendlyPrettyPrinterTest extends AbstractUnitTest {
         assignment.setTargetRef(targetRef);
 
         return assignment;
+    }
+
+    @Test
+    public void testItemDeltaSimple() throws Exception {
+        String oid = UUID.randomUUID().toString();
+        ObjectDelta<UserType> delta = PrismTestUtil.getPrismContext().deltaFor(UserType.class)
+                .item(UserType.F_ORGANIZATION)
+                .delete(PolyString.fromOrig("qwe"))
+                .add(PolyString.fromOrig("123"), PolyString.fromOrig("456"))
+                .item(UserType.F_ASSIGNMENT)
+                .add(createAssignment())
+                .asObjectDelta(oid);
+
+        UserFriendlyPrettyPrinterOptions options = new UserFriendlyPrettyPrinterOptions();
+
+        UserFriendlyPrettyPrinter printer = new UserFriendlyPrettyPrinter(options);
+        String strDelta = printer.prettyPrintObjectDelta(delta, 0);
+
+        String expected = oid + ", UserType (MODIFY): \n"
+                + "  organization: \n"
+                + "    Add: 123, 456\n"
+                + "    Delete: qwe\n"
+                + "  assignment: \n"
+                + "    Add: \n"
+                + "      null:\n"
+                + "        description: some description is here not very long\n"
+                + "        activation: \n"
+                + "          administrativeStatus: ENABLED\n"
+                + "          validFrom: 2025-04-14T11:12:15.274+02:00\n"
+                + "        targetRef: c720ca00-15f3-4fd5-a2c1-f5857adc129f (UserType)";
+
+        Assertions.assertThat(strDelta)
+                .isEqualTo(expected);
+    }
+
+    @Test
+    public void testSimpleDelta() throws Exception {
+        ObjectDeltaType deltaType = PrismTestUtil.parseAnyValue(FILE_DELTA);
+
+        ObjectDelta<?> delta = DeltaConvertor.createObjectDelta(deltaType, PrismTestUtil.getPrismContext());
+
+        ItemDelta<?, ?> itemDelta = delta.findItemDelta(ItemPath.create(AssignmentHolderType.F_ASSIGNMENT, 1L, AssignmentType.F_ACTIVATION, ActivationType.F_EFFECTIVE_STATUS));
+        Assertions.assertThat(itemDelta).isNotNull();
+
+        String real = prettyPrintItemDelta(
+                itemDelta,
+                new UserFriendlyPrettyPrinterOptions()
+                        .showOperational(false)
+                        .showDeltaItemPath(false));
+        Assertions.assertThat(real)
+                .isEqualTo("");
+
+        real = prettyPrintItemDelta(
+                itemDelta,
+                new UserFriendlyPrettyPrinterOptions()
+                        .showDeltaItemPath(false));
+
+        Assertions.assertThat(real)
+                .isEqualTo("  Replace: ENABLED");
+
+        real = prettyPrintItemDelta(
+                itemDelta,
+                new UserFriendlyPrettyPrinterOptions());
+
+        Assertions.assertThat(real)
+                .isEqualTo(
+                        "assignment/[1]/activation/effectiveStatus: \n" +
+                                "  Replace: ENABLED");
+    }
+
+    @Test
+    public void testAssignmentDelta() throws Exception {
+        ObjectDeltaType deltaType = PrismTestUtil.parseAnyValue(FILE_DELTA);
+
+        ObjectDelta<?> delta = DeltaConvertor.createObjectDelta(deltaType, PrismTestUtil.getPrismContext());
+
+        ItemDelta<?, ?> itemDelta = delta.findItemDelta(ItemPath.create(AssignmentHolderType.F_ASSIGNMENT));
+        Assertions.assertThat(itemDelta).isNotNull();
+
+        String real = prettyPrintItemDelta(
+                itemDelta,
+                new UserFriendlyPrettyPrinterOptions()
+                        .showOperational(false));
+        Assertions.assertThat(real)
+                .isEqualTo("assignment: \n"
+                        + "  Replace: \n"
+                        + "    null:\n"
+                        + "      targetRef: 0e5b7304-ea5c-438e-84d1-2b0ce40517ce (RoleType)\n"
+                        + "      activation: \n"
+                        + "        administrativeStatus: ENABLED\n"
+                        + "    123:\n"
+                        + "      targetRef: aaaa7304-ea5c-438e-84d1-2b0ce40517ce (RoleType)");
+    }
+
+    @Test
+    public void testAssignmentMetadata() throws Exception {
+        ObjectDeltaType deltaType = PrismTestUtil.parseAnyValue(FILE_DELTA);
+
+        ObjectDelta<?> delta = DeltaConvertor.createObjectDelta(deltaType, PrismTestUtil.getPrismContext());
+
+        ItemDelta<?, ?> itemDelta = delta.findItemDeltasSubPath(ItemPath.create(AssignmentHolderType.F_ASSIGNMENT, 37L)).stream().findFirst().orElse(null);
+        Assertions.assertThat(itemDelta).isNotNull();
+
+        String real = prettyPrintItemDelta(
+                itemDelta,
+                new UserFriendlyPrettyPrinterOptions()
+                        .showOperational(false));
+        Assertions.assertThat(real).isEmpty();
+
+        real = prettyPrintItemDelta(
+                itemDelta,
+                new UserFriendlyPrettyPrinterOptions()
+                        .showDeltaItemPath(true));
+        Assertions.assertThat(real).isEqualTo(
+                "assignment/[37]/@metadata: \n"
+                        + "  Add: \n"
+                        + "    null:\n"
+                        + "      storage: \n"
+                        + "        modifyTimestamp: 2025-04-28T12:13:56.485+02:00\n"
+                        + "        modifierRef: 00000000-0000-0000-0000-000000000002 (UserType)\n"
+                        + "        modifyChannel: http://midpoint.evolveum.com/xml/ns/public/common/channels-3#rest");
+    }
+
+    private String prettyPrintItemDelta(ItemDelta<?, ?> itemDelta, UserFriendlyPrettyPrinterOptions opts) {
+        UserFriendlyPrettyPrinter printer = new UserFriendlyPrettyPrinter(opts);
+
+        return printer.prettyPrintItemDelta(itemDelta, 0);
     }
 }

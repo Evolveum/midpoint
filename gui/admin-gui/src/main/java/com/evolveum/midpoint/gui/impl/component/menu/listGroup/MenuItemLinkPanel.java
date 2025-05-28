@@ -10,6 +10,7 @@ package com.evolveum.midpoint.gui.impl.component.menu.listGroup;
 import java.io.Serializable;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.behavior.AttributeAppender;
@@ -19,7 +20,8 @@ import org.apache.wicket.model.IModel;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
-import com.evolveum.midpoint.web.util.TooltipBehavior;
+
+import org.apache.wicket.model.LoadableDetachableModel;
 
 /**
  * Created by Viliam Repan (lazyman).
@@ -55,8 +57,15 @@ public abstract class MenuItemLinkPanel<T extends Serializable> extends BasePane
             @Override
             public void onClick(AjaxRequestTarget target) {
                 onClickPerformed(target, MenuItemLinkPanel.this.getModelObject());
+                target.appendJavaScript(String.format("MidPointTheme.saveFocus('%s');", ID_LINK));
+                target.appendJavaScript("MidPointTheme.restoreFocus();");
             }
         };
+        link.add(new AttributeModifier("data-component-id", () ->
+                MenuItemLinkPanel.this.getModelObject().isActive() ? ID_LINK : null));
+        link.add(AttributeAppender.append("aria-pressed", () ->
+                getModelObject().isActive() ? "true" : "false"
+        ));
         link.setOutputMarkupId(true);
         add(link);
 
@@ -76,16 +85,34 @@ public abstract class MenuItemLinkPanel<T extends Serializable> extends BasePane
         AjaxLink chevronLink = new AjaxLink<>(ID_CHEVRON_LINK) {
             @Override
             public void onClick(AjaxRequestTarget target) {
+                target.appendJavaScript(String.format("MidPointTheme.saveFocus('%s');", ID_CHEVRON_LINK));
                 onChevronClickPerformed(target, MenuItemLinkPanel.this.getModelObject());
+                target.appendJavaScript("MidPointTheme.restoreFocus();");
             }
         };
+        chevronLink.add(new AttributeModifier("data-component-id", ID_CHEVRON_LINK));
         chevronLink.add(new VisibleBehaviour(this::isChevronLinkVisible));
+
+        IModel<String> chevronTitleModel = LoadableDetachableModel.of(() -> {
+            if (isChevronLinkVisible()) {
+                String labelValue = getModelObject().getLabel();
+                if (labelValue != null) {
+                    String labelTitle = getString(labelValue, null, labelValue);
+                    return String.format("%s - %s", labelTitle, getString("MenuItemLinkPanel.chevron"));
+                }
+                return getString("MenuItemLinkPanel.chevron");
+            }
+            return null;
+        });
+        chevronLink.add(AttributeAppender.append("aria-label", chevronTitleModel));
+        chevronLink.add(AttributeAppender.append("title", chevronTitleModel));
+        chevronLink.add(AttributeAppender.append("aria-pressed", () -> getModelObject().isOpen() ? "true" : "false"));
+        chevronLink.setOutputMarkupId(true);
         add(chevronLink);
 
         WebMarkupContainer chevron = new WebMarkupContainer(ID_CHEVRON);
         chevron.add(AttributeAppender.append("class",
                 () -> getModelObject().isOpen() ? "fa fa-chevron-down" : "fa fa-chevron-left"));
-
         chevronLink.add(chevron);
     }
 
