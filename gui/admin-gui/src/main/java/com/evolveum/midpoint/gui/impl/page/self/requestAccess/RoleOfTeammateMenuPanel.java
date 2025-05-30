@@ -41,8 +41,6 @@ import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AutocompleteSearchConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
@@ -134,11 +132,12 @@ public class RoleOfTeammateMenuPanel<T extends Serializable>
 
             @Override
             public void onClick(AjaxRequestTarget target) {
-                target.appendJavaScript(String.format("MidPointTheme.saveFocus('%s');", ID_MANUAL));
+                target.appendJavaScript(String.format("MidPointTheme.saveFocus('%s');", this.getPageRelativePath()));
                 onManualSelectionPerformed(target);
+
             }
         };
-        manual.add(new AttributeModifier("data-component-id", ID_MANUAL));
+        manual.add(new AttributeModifier("data-component-id", manual::getPageRelativePath));
         manual.setOutputMarkupId(true);
         container.add(manual);
     }
