@@ -2034,6 +2034,7 @@
                     <a:form>expanded</a:form>
                     <a:subitemInclusion>exclude</a:subitemInclusion>
                 </a:diagram>
+                <a:displayName>UserType.displayName</a:displayName>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:complexContent>

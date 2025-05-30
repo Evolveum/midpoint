@@ -10,6 +10,8 @@ package com.evolveum.midpoint.model.impl.visualizer;
 import javax.xml.namespace.QName;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.Ordered;
+import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.model.api.visualizer.LocalizationCustomizationContext;
@@ -29,6 +31,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
  * Created by Viliam Repan (lazyman).
  */
 @Component
+@Order(Ordered.LOWEST_PRECEDENCE - 100)
 public class AssignmentDescriptionHandler implements VisualizationDescriptionHandler {
 
     private static final SingleLocalizableMessage ON = new SingleLocalizableMessage(

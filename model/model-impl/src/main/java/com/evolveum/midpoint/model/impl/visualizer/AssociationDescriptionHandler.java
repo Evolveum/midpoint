@@ -11,6 +11,8 @@ import java.util.List;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.Ordered;
+import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.model.api.visualizer.LocalizationCustomizationContext;
@@ -39,6 +41,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
  * Created by Viliam Repan (lazyman).
  */
 @Component
+@Order(Ordered.LOWEST_PRECEDENCE - 100)
 public class AssociationDescriptionHandler extends ShadowDescriptionHandler {
      private static final LocalizableMessage ASSOCIATION = new SingleLocalizableMessage(
              "shadowDescriptionHandler.association.association", null, "Association");

@@ -21,6 +21,8 @@ import com.evolveum.midpoint.util.LocalizableMessage;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 
+import org.springframework.core.Ordered;
+import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.model.impl.visualizer.output.VisualizationImpl;
@@ -36,6 +38,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
  * Created by Viliam Repan (lazyman).
  */
 @Component
+@Order(Ordered.LOWEST_PRECEDENCE - 100)
 public class ActivationDescriptionHandler implements VisualizationDescriptionHandler {
 
     private static final Trace LOGGER = TraceManager.getTrace(ActivationDescriptionHandler.class);
