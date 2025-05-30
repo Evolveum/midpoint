@@ -59,6 +59,7 @@ public class CustomValidityPanel extends BasePanel<CustomValidity> {
         from.add(new VisibleBehaviour(this::isFromFieldVisible));
         from.getBaseFormComponent().add(
                 AttributeAppender.append("aria-label", createStringResource("ActivationType.validFrom")));
+        from.getBaseFormComponent().setLabel(createStringResource("ActivationType.validFrom"));
         from.setOutputMarkupId(true);
         add(from);
 
@@ -66,6 +67,7 @@ public class CustomValidityPanel extends BasePanel<CustomValidity> {
         to.add(new VisibleBehaviour(this::isToFieldVisible));
         to.getBaseFormComponent().add(
                 AttributeAppender.append("aria-label", createStringResource("ActivationType.validTo")));
+        to.getBaseFormComponent().setLabel(createStringResource("ActivationType.validTo"));
         to.setOutputMarkupId(true);
         add(to);
     }
