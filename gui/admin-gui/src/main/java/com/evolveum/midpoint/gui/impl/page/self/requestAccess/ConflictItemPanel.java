@@ -19,6 +19,7 @@ import org.apache.wicket.markup.html.form.Radio;
 import org.apache.wicket.markup.html.form.RadioGroup;
 import org.apache.wicket.markup.html.panel.Fragment;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.ResourceModel;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.gui.api.component.Badge;
@@ -50,6 +51,7 @@ public class ConflictItemPanel extends CardOutlineLeftPanel<Conflict> {
     private static final String ID_OPTION1 = "option1";
     private static final String ID_OPTION2 = "option2";
     private static final String ID_FORM = "form";
+    private static final String ID_ACTION = "action";
 
     private IModel<ConflictItem> selectedOption;
 
@@ -200,6 +202,10 @@ public class ConflictItemPanel extends CardOutlineLeftPanel<Conflict> {
         Fragment option = new Fragment(id, ID_OPTION, this);
         option.add(AttributeAppender.append("class", "form-check"));
 
+        Label action = new Label(ID_ACTION, new ResourceModel("ConflictItemPanel.iWantToKeep"));
+        action.setOutputMarkupId(true);
+        option.add(action);
+
         Label label = new Label(ID_LABEL, () -> item.getObject().getDisplayName());
         label.setOutputMarkupId(true);
         option.add(label);
@@ -210,7 +216,7 @@ public class ConflictItemPanel extends CardOutlineLeftPanel<Conflict> {
         option.add(state);
 
         Radio radio = new Radio(ID_RADIO, item);
-        radio.add(AttributeAppender.append("aria-labelledby", label.getMarkupId() + " " + state.getMarkupId()));
+        radio.add(AttributeAppender.append("aria-labelledby", action.getMarkupId() + " " + label.getMarkupId() + " " + state.getMarkupId()));
         option.add(radio);
 
         return option;
