@@ -81,7 +81,9 @@ management:
         - env
         - info
         - metrics
-
+  endpoint:
+    heapdump:
+      enabled: true
 wicket:
   request-cycle:
     timeout: 1m
