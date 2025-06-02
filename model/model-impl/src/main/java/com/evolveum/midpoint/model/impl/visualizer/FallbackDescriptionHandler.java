@@ -31,8 +31,6 @@ import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 
 import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
 
 @Component
 @Order(Ordered.LOWEST_PRECEDENCE)
@@ -66,17 +64,26 @@ public class FallbackDescriptionHandler implements VisualizationDescriptionHandl
 
         final LocalizableMessage localizableChangePerformed = new SingleLocalizableMessage(
                 "FallbackDescriptionHandler.changeType.performed." + change.name());
-        final LocalizableMessage localizableChangeInPresentTense = new SingleLocalizableMessage(
-                "FallbackDescriptionHandler.changeType.present.tense." + change.name());
+        final LocalizableMessage visualizationDisplayName = getVisualizationDisplayName(visualization);
 
+
+        LocalizationPart[] localizationParts;
         if (visualization.getOwner() != null) {
+            localizationParts = new LocalizationPart[] {
+                    LocalizationPart.forObjectName(localizableContainerName, LocalizationCustomizationContext.empty()),
+                    LocalizationPart.forHelpingWords(WAS),
+                    LocalizationPart.forAction(localizableChangePerformed, LocalizationCustomizationContext.empty())
+            };
+        } else {
+            localizationParts = new LocalizationPart[] {
+                    LocalizationPart.forObject(localizableContainerName, LocalizationCustomizationContext.empty()),
+                    LocalizationPart.forObjectName(visualizationDisplayName, LocalizationCustomizationContext.empty()),
+                    LocalizationPart.forHelpingWords(WAS),
+                    LocalizationPart.forAction(localizableChangePerformed, LocalizationCustomizationContext.empty())
+            };
+        }
             final WrapableLocalization<String, LocalizationCustomizationContext> customizableOverview =
-                    WrapableLocalization.of(
-                            LocalizationPart.forObjectName(localizableContainerName, LocalizationCustomizationContext.empty()),
-                            //todo add container name if any exists
-                            LocalizationPart.forHelpingWords(WAS),
-                            LocalizationPart.forAction(localizableChangePerformed, LocalizationCustomizationContext.empty())
-                    );
+                    WrapableLocalization.of(localizationParts);
             visualization.getName().setCustomizableOverview(customizableOverview);
             visualization.getName().setOverview(
                     new SingleLocalizableMessage("FallbackDescriptionHandler.performed.message",
@@ -84,23 +91,6 @@ public class FallbackDescriptionHandler implements VisualizationDescriptionHandl
                                     localizableContainerName, localizableChangePerformed
                             })
             );
-        } else {
-            LocalizableMessage visualizationDisplayName = getVisualizationDisplayName(visualization);
-
-            final WrapableLocalization<String, LocalizationCustomizationContext> customizableOverview =
-                    WrapableLocalization.of(
-                            LocalizationPart.forAction(localizableChangeInPresentTense, LocalizationCustomizationContext.empty()),
-                            LocalizationPart.forObject(localizableContainerName, LocalizationCustomizationContext.empty()),
-                            LocalizationPart.forObjectName(visualizationDisplayName, LocalizationCustomizationContext.empty())
-                    );
-            visualization.getName().setCustomizableOverview(customizableOverview);
-            visualization.getName().setOverview(
-                    new SingleLocalizableMessage("FallbackDescriptionHandler.present.tense.message",
-                            new Object[] {
-                                    localizableChangeInPresentTense, localizableContainerName, visualizationDisplayName
-                            })
-            );
-        }
     }
 
     private String getTypeDisplayName(PrismContainerValue<?> value) {
