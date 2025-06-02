@@ -21,12 +21,18 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 
 import com.evolveum.midpoint.util.LocalizableMessage;
+import com.evolveum.midpoint.util.LocalizableMessageList;
 import com.evolveum.midpoint.util.SingleLocalizableMessage;
 
+import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
+
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 
 @Component
 @Order(Ordered.LOWEST_PRECEDENCE)
@@ -34,6 +40,10 @@ public class FallbackDescriptionHandler implements VisualizationDescriptionHandl
 
     private static final LocalizableMessage WAS = new SingleLocalizableMessage(
             "FallbackDescriptionHandler.was", null, "was");
+    private static final LocalizableMessage CLOSE_PARENTHESIS = new SingleLocalizableMessage(
+            ")", null, ")");
+    private static final LocalizableMessage NAME_AND_DISPLAY_NAME_SEPARATOR = new SingleLocalizableMessage(
+            " (", null, " (");
 
     @Override
     public boolean match(VisualizationImpl visualization, @Nullable VisualizationImpl parentVisualization) {
@@ -63,6 +73,7 @@ public class FallbackDescriptionHandler implements VisualizationDescriptionHandl
             final WrapableLocalization<String, LocalizationCustomizationContext> customizableOverview =
                     WrapableLocalization.of(
                             LocalizationPart.forObjectName(localizableContainerName, LocalizationCustomizationContext.empty()),
+                            //todo add container name if any exists
                             LocalizationPart.forHelpingWords(WAS),
                             LocalizationPart.forAction(localizableChangePerformed, LocalizationCustomizationContext.empty())
                     );
@@ -74,19 +85,19 @@ public class FallbackDescriptionHandler implements VisualizationDescriptionHandl
                             })
             );
         } else {
-            LocalizableMessage visualizationName = getVisualizationName(visualization);
+            LocalizableMessage visualizationDisplayName = getVisualizationDisplayName(visualization);
 
             final WrapableLocalization<String, LocalizationCustomizationContext> customizableOverview =
                     WrapableLocalization.of(
                             LocalizationPart.forAction(localizableChangeInPresentTense, LocalizationCustomizationContext.empty()),
                             LocalizationPart.forObject(localizableContainerName, LocalizationCustomizationContext.empty()),
-                            LocalizationPart.forObjectName(visualizationName, LocalizationCustomizationContext.empty())
+                            LocalizationPart.forObjectName(visualizationDisplayName, LocalizationCustomizationContext.empty())
                     );
             visualization.getName().setCustomizableOverview(customizableOverview);
             visualization.getName().setOverview(
                     new SingleLocalizableMessage("FallbackDescriptionHandler.present.tense.message",
                             new Object[] {
-                                    localizableChangeInPresentTense, localizableContainerName, visualizationName
+                                    localizableChangeInPresentTense, localizableContainerName, visualizationDisplayName
                             })
             );
         }
@@ -110,17 +121,30 @@ public class FallbackDescriptionHandler implements VisualizationDescriptionHandl
         return value.getCompileTimeClass().getSimpleName();
     }
 
-    private LocalizableMessage getVisualizationName(Visualization visualization) {
+    private LocalizableMessage getVisualizationDisplayName(Visualization visualization) {
         if (visualization.getName() == null) {
             return null;
         }
         LocalizableMessage displayName = visualization.getName().getDisplayName();
-        if (displayName != null) {
+        LocalizableMessage simpleName = visualization.getName().getSimpleName();
+        if (displayName == null) {
+            return simpleName;
+        }
+        if (sameNames(displayName, simpleName)) {
             return displayName;
         }
-        return visualization.getName().getSimpleName();
+        return new LocalizableMessageList(Arrays.asList(displayName, simpleName),
+                NAME_AND_DISPLAY_NAME_SEPARATOR, null, CLOSE_PARENTHESIS);
     }
 
+    private boolean sameNames(LocalizableMessage name1, LocalizableMessage name2) {
+        if (name1 == null && name2 == null) {
+            return true;
+        }
+        if (name1 == null || name2 == null) {
+            return false;
+        }
 
-
+        return StringUtils.equals(name1.getFallbackMessage(), name2.getFallbackMessage());
+    }
 }
