@@ -57,7 +57,7 @@ You can access xref:/midpoint/reference/admin-gui/resource-wizard/object-type/ma
 
 You can delete a mapping by clicking the icon:trash-alt[] *Delete* icon.
 
-Click icon:[shuffle] btn:[Attribute overrides] if you need to <<attribute_override,override attribute>> visibility or other behavior.
+Click icon:shuffle[] btn:[Attribute overrides] if you need to <<attribute_override,override attribute>> visibility or other behavior.
 
 [[outbound_mappings]]
 == Outbound Mappings
@@ -79,7 +79,7 @@ You can access xref:/midpoint/reference/admin-gui/resource-wizard/object-type/ma
 
 TIP: You can test new mappings without influencing the real data by setting their *Lifecycle state* to _Proposed_ and use xref:/midpoint/reference/admin-gui/simulations/[Simulations].
 
-Click icon:[shuffle] btn:[Attribute overrides] if you need to <<attribute_override,override attribute>> visibility or other behavior.
+Click icon:shuffle[] btn:[Attribute overrides] if you need to <<attribute_override,override attribute>> visibility or other behavior.
 
 
 [[attribute_override]]
@@ -90,7 +90,7 @@ For more details on attributes, see the xref:/midpoint/reference/resources/resou
 
 image::step-2-mappings-override.png[link=step-2-mappings-override.png, 100%, title=Table of attribute overrides]
 
-. On the inbound/outbound mappings page, click icon:[shuffle] btn:[Attribute overrides].
+. On the inbound/outbound mappings page, click icon:shuffle[] btn:[Attribute overrides].
 You can then override the following attribute parameters:
 
     * *Ref*: Specifies the path to the attribute.
