@@ -70,7 +70,7 @@ In addition to the xref:/midpoint/reference/admin-gui/resource-wizard/object-typ
 
 . Go to icon:database[] *Resources* > icon:database[] *All resources* > *your_resource* > icon:male[] *Accounts* > icon:cog[] *Configure* > icon:retweet[] *Mappings*.
 . Select icon:arrow-right-to-bracket[] *Inbound mappings (to midPoint)* or icon:arrow-right-from-bracket[] *Outbound mappings (to Resource)*.
-. Click icon:[shuffle] btn:[Attribute overrides].
+. Click icon:shuffle[] btn:[Attribute overrides].
 . For an existing override, click the icon:edit[] *Edit* icon.
 . On the Main configuration page, configure:
     * *Help*: Defines the help text displayed via a tooltip icon whenever the attribute appears in midPoint, such as the user details screen for standard attributes like given name.
