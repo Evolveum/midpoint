@@ -29,13 +29,11 @@ import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
-import org.apache.wicket.model.StringResourceModel;
 
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.evolveum.midpoint.web.component.data.column.ColumnUtils.createStringResource;
 
 /**
  * @author honchar
@@ -140,6 +138,7 @@ public class InlineMenuButtonColumn<T extends Serializable> extends AbstractColu
                 btn.add(AttributeAppender.append("class", getInlineMenuItemCssClass()));
                 btn.add(new EnableBehaviour(() -> isButtonMenuItemEnabled(model)));
                 btn.titleAsLabel(showButtonLabel(index, buttonMenuItems));
+                btn.add(AttributeAppender.append("aria-label", getButtonTitle(index, buttonMenuItems)));
                 return btn;
             }
 
