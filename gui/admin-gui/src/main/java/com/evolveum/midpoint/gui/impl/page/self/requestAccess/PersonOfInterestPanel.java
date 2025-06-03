@@ -393,11 +393,11 @@ public class PersonOfInterestPanel extends BasicWizardStepPanel<RequestAccess> i
 
             @Override
             public void onClick(AjaxRequestTarget target) {
-                target.appendJavaScript(String.format("window.MidPointTheme.saveFocus('%s');", ID_SELECT_MANUALLY));
+                target.appendJavaScript(String.format("window.MidPointTheme.saveFocus('%s');", this.getPageRelativePath()));
                 selectManuallyPerformed(target);
             }
         };
-        selectManually.add(new AttributeModifier("data-component-id", ID_SELECT_MANUALLY));
+        selectManually.add(new AttributeModifier("data-component-id", selectManually::getPageRelativePath));
         fragment.add(selectManually);
 
         Label userSelectionLabel = new Label(ID_USER_SELECTION_LABEL, () -> {

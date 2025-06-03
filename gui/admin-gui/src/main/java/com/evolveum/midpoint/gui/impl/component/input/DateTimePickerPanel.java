@@ -12,9 +12,9 @@ import com.evolveum.midpoint.web.component.prism.InputPanel;
 
 import com.evolveum.midpoint.web.model.XmlGregorianCalendarModel;
 
-import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnChangeAjaxFormUpdatingBehavior;
-
 import org.apache.wicket.Component;
+import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.head.IHeaderResponse;
 import org.apache.wicket.markup.head.OnDomReadyHeaderItem;
@@ -34,6 +34,7 @@ public class DateTimePickerPanel extends InputPanel {
     private static final String ID_CONTAINER = "container";
     private static final String ID_INPUT = "input";
     private static final String ID_ICON_CONTAINER = "iconContainer";
+    private final static String INVALID_FIELD_CLASS = "is-invalid";
 
     private final DateTimePickerOptions dateTimePickerOptions = DateTimePickerOptions.of();
 
@@ -69,18 +70,20 @@ public class DateTimePickerPanel extends InputPanel {
         return false;
     }
 
+    private String getDateTimePickerInitScript() {
+        String config = hasModalParent
+                ? dateTimePickerOptions.toJsConfiguration(getPageBase().getMainPopup().getMarkupId())
+                : dateTimePickerOptions.toJsConfiguration();
+
+        return String.format("MidPointTheme.initDateTimePicker(%s, %s);", getMarkupId(), config);
+    }
+
     private void initLayout(IModel<Date> model) {
         WebMarkupContainer container = new WebMarkupContainer(ID_CONTAINER) {
             @Override
             public void renderHead(IHeaderResponse response) {
                 super.renderHead(response);
-
-                String config = hasModalParent
-                        ? dateTimePickerOptions.toJsConfiguration(getPageBase().getMainPopup().getMarkupId())
-                        : dateTimePickerOptions.toJsConfiguration();
-
-                response.render(OnDomReadyHeaderItem.forScript(
-                        String.format("MidPointTheme.initDateTimePicker(%s, %s);", getMarkupId(), config)));
+                response.render(OnDomReadyHeaderItem.forScript(getDateTimePickerInitScript()));
             }
         };
         container.setOutputMarkupId(true);
@@ -99,7 +102,23 @@ public class DateTimePickerPanel extends InputPanel {
         };
         input.setType(Date.class);
         input.setOutputMarkupId(true);
-        input.add(new EmptyOnChangeAjaxFormUpdatingBehavior());
+        input.add(new AjaxFormComponentUpdatingBehavior("change") {
+            private boolean wasError = false;
+            @Override
+            protected void onUpdate(AjaxRequestTarget target) {
+                if (wasError) {
+                    wasError = false;
+                    target.add(container);
+                }
+            }
+
+            @Override
+            protected void onError(AjaxRequestTarget target, RuntimeException e) {
+                wasError = true;
+                target.add(container);
+            }
+        });
+        input.add(AttributeAppender.append("class", () -> input.hasErrorMessage() ? INVALID_FIELD_CLASS : ""));
         container.add(input);
 
         WebMarkupContainer iconContainer = new WebMarkupContainer(ID_ICON_CONTAINER);

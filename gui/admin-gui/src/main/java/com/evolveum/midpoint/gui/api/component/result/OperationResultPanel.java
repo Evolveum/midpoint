@@ -27,6 +27,7 @@ import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.model.StringResourceModel;
 
@@ -67,6 +68,7 @@ public class OperationResultPanel extends BasePanel<OpResult> implements Popupab
     private static final String ID_ERROR_STACK_TRACE = "errorStackTrace";
     private static final String ID_DETAILS = "details";
     private static final String ID_DETAILS_CONTAINER = "detailsContainer";
+    private static final String ID_SUB_RESULTS_STATUS = "subResultsActiveStatus";
 
     static final String OPERATION_RESOURCE_KEY_PREFIX = "operation.";
 
@@ -199,15 +201,27 @@ public class OperationResultPanel extends BasePanel<OpResult> implements Popupab
         processedObject.add(new VisibleBehaviour(() -> getModelObject().getProcessedObjectOid() != null && getModelObject().isProcessedObjectVisible()));
         message.add(processedObject);
 
+        Label subResultsStatus = new Label(ID_SUB_RESULTS_STATUS, Model.of(""));
+        subResultsStatus.setOutputMarkupId(true);
+        box.add(subResultsStatus);
+
+        final AjaxLink<String>[] hideAllHolder = new AjaxLink[1];
         AjaxLink<String> showAll = new AjaxLink<>(ID_SHOW_ALL) {
             private static final long serialVersionUID = 1L;
 
             @Override
             public void onClick(AjaxRequestTarget target) {
                 showHideAll(true, target);
+
+                target.appendJavaScript(String.format("MidPointTheme.updateStatusMessage('%s', '%s', %d);",
+                        subResultsStatus.getMarkupId(), getString("OperationResultPanel.subResults.displayed"), 600));
+                if (hideAllHolder[0] != null) {
+                    target.focusComponent(hideAllHolder[0]);
+                }
             }
         };
         showAll.add(new VisibleBehaviour(() -> isDisplayOnlyTopLevel() && !OperationResultPanel.this.getModelObject().isShowMore()));
+        showAll.setOutputMarkupId(true);
         box.add(showAll);
 
         AjaxLink<String> hideAll = new AjaxLink<>(ID_HIDE_ALL) {
@@ -216,9 +230,15 @@ public class OperationResultPanel extends BasePanel<OpResult> implements Popupab
             @Override
             public void onClick(AjaxRequestTarget target) {
                 showHideAll(false, target);
+
+                target.appendJavaScript(String.format("MidPointTheme.updateStatusMessage('%s', '%s', %d);",
+                        subResultsStatus.getMarkupId(), getString("OperationResultPanel.subResults.closed"), 10));
+                target.focusComponent(showAll);
             }
         };
         hideAll.add(new VisibleBehaviour(() -> isDisplayOnlyTopLevel() && OperationResultPanel.this.getModelObject().isShowMore()));
+        hideAll.setOutputMarkupId(true);
+        hideAllHolder[0] = hideAll;
         box.add(hideAll);
 
         AjaxLink<String> close = new AjaxLink<>("close") {

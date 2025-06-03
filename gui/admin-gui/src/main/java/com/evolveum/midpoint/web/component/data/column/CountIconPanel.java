@@ -70,6 +70,8 @@ public class CountIconPanel extends BasePanel<List<DisplayType>> {
                 icon.add(AttributeAppender.append("style", () -> StringUtils.isNotBlank(getColor(item.getModelObject())) ? "color: " + getColor(item.getModelObject()) + ";" : ""));
                 icon.setOutputMarkupId(true);
                 icon.add(new VisibleBehaviour(() -> item.getModelObject() != null && item.getModelObject().getIcon() != null && StringUtils.isNotEmpty(item.getModelObject().getIcon().getCssClass())));
+                icon.add(AttributeAppender.append("tabindex", "0"));
+                icon.add(AttributeAppender.append("aria-label", () -> getString(item.getModelObject().getTooltip().getOrig())));
                 item.add(icon);
 
                 Integer count = icons.get(item.getModelObject());

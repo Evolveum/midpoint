@@ -24,11 +24,12 @@
                 </a>
             </div>
 
+            <div wicket:id="subResultsActiveStatus" class="sr-only" role="alert"></div>
             <div class="card-tools">
-                <a wicket:id="showAll" class="btn btn-tool" wicket:message="title:OperationResultPanel.button.showAll">
+                <a wicket:id="showAll" class="btn btn-tool" aria-expanded="false" wicket:message="title:OperationResultPanel.button.showAll">
                     <i class="fa fa-chevron-left"></i>
                 </a>
-                <a wicket:id="hideAll" class="btn btn-tool" wicket:message="title:OperationResultPanel.button.hideAll">
+                <a wicket:id="hideAll" class="btn btn-tool" aria-expanded="true" wicket:message="title:OperationResultPanel.button.hideAll">
                     <i class="fa fa-chevron-down"></i>
                 </a>
                 <a wicket:id="downloadXml" class="btn btn-tool" wicket:message="title:OperationResultPanel.button.downloadXml">
