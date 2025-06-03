@@ -57,12 +57,12 @@ public abstract class MenuItemLinkPanel<T extends Serializable> extends BasePane
             @Override
             public void onClick(AjaxRequestTarget target) {
                 onClickPerformed(target, MenuItemLinkPanel.this.getModelObject());
-                target.appendJavaScript(String.format("MidPointTheme.saveFocus('%s');", ID_LINK));
+                target.appendJavaScript(String.format("MidPointTheme.saveFocus('%s');", this.getPageRelativePath()));
                 target.appendJavaScript("MidPointTheme.restoreFocus();");
             }
         };
         link.add(new AttributeModifier("data-component-id", () ->
-                MenuItemLinkPanel.this.getModelObject().isActive() ? ID_LINK : null));
+                MenuItemLinkPanel.this.getModelObject().isActive() ? link.getPageRelativePath() : null));
         link.add(AttributeAppender.append("aria-pressed", () ->
                 getModelObject().isActive() ? "true" : "false"
         ));
@@ -85,12 +85,12 @@ public abstract class MenuItemLinkPanel<T extends Serializable> extends BasePane
         AjaxLink chevronLink = new AjaxLink<>(ID_CHEVRON_LINK) {
             @Override
             public void onClick(AjaxRequestTarget target) {
-                target.appendJavaScript(String.format("MidPointTheme.saveFocus('%s');", ID_CHEVRON_LINK));
                 onChevronClickPerformed(target, MenuItemLinkPanel.this.getModelObject());
+                target.appendJavaScript(String.format("MidPointTheme.saveFocus('%s');", this.getPageRelativePath()));
                 target.appendJavaScript("MidPointTheme.restoreFocus();");
             }
         };
-        chevronLink.add(new AttributeModifier("data-component-id", ID_CHEVRON_LINK));
+        chevronLink.add(new AttributeModifier("data-component-id", chevronLink::getPageRelativePath));
         chevronLink.add(new VisibleBehaviour(this::isChevronLinkVisible));
 
         IModel<String> chevronTitleModel = LoadableDetachableModel.of(() -> {

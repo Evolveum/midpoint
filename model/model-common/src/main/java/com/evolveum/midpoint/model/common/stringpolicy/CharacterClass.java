@@ -7,6 +7,7 @@
 
 package com.evolveum.midpoint.model.common.stringpolicy;
 
+import java.security.SecureRandom;
 import java.util.*;
 import javax.xml.namespace.QName;
 
@@ -30,7 +31,7 @@ import org.jetbrains.annotations.VisibleForTesting;
 @VisibleForTesting
 public class CharacterClass {
 
-    private static final Random RANDOM = new Random();
+    private static final Random RANDOM = new SecureRandom();
 
     private static final CharacterClass DEFAULT = unnamed(ascii7());
 
