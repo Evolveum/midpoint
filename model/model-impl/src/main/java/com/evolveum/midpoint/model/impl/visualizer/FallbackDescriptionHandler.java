@@ -67,7 +67,9 @@ public class FallbackDescriptionHandler implements VisualizationDescriptionHandl
         final LocalizableMessage visualizationDisplayName = getVisualizationDisplayName(visualization);
 
 
-        LocalizationPart[] localizationParts;
+        LocalizationPart[] localizationParts;   // we want to show "Display name (name)" for object headers and "Container name"
+                                                // as a header name for other child containers. Therefore, there is the
+                                                // following condition
         if (visualization.getOwner() != null) {
             localizationParts = new LocalizationPart[] {
                     LocalizationPart.forObjectName(localizableContainerName, LocalizationCustomizationContext.empty()),
@@ -123,6 +125,9 @@ public class FallbackDescriptionHandler implements VisualizationDescriptionHandl
         if (sameNames(displayName, simpleName)) {
             return displayName;
         }
+        // this is some kind of hack to get the display name of the object to the state "Display name (name)"
+        // e.g. "Jack Jackson (jjackson)". The separator between display name and name contains " (".
+        //  The postfix for the messages list is ")" just to close the opened parenthesis.
         return new LocalizableMessageList(Arrays.asList(displayName, simpleName),
                 NAME_AND_DISPLAY_NAME_SEPARATOR, null, CLOSE_PARENTHESIS);
     }
