@@ -91,7 +91,7 @@ EOF
 
                         #sleep 30 - sometimes suggested, but it seems to work without it just fine
                         # -b for sqlcmd is "fail on error"
-                        /opt/mssql-tools18/bin/sqlcmd -b -S localhost -U sa -P 'Pa55word!' -d master -i create-db.sql -C TrustServerCertificate=yes
+                        /opt/mssql-tools18/bin/sqlcmd -b -S "localhost;Encrypt=yes;TrustServerCertificate=yes" -U sa -P 'Pa55word!' -d master -i create-db.sql
 
                         # -I enables QUOTED_IDENTIFIER, see https://stackoverflow.com/a/51201270/658826
                         # Without it the script fails on CREATE INDEX (probably iPrimaryIdentifierValueWithOC, if the line is right).
