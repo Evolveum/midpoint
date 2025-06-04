@@ -29,6 +29,7 @@ import org.apache.wicket.markup.repeater.RepeatingView;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.LoadableDetachableModel;
 import org.apache.wicket.model.Model;
+import org.apache.wicket.model.ResourceModel;
 import org.apache.wicket.request.resource.AbstractResource;
 
 import com.evolveum.midpoint.gui.api.component.Badge;
@@ -80,7 +81,13 @@ public abstract class AbstractSummaryPanel<C extends Containerable> extends Base
 
     protected static final String BOX_CSS_CLASS = "col-xs-12 info-box";
     protected static final String ICON_BOX_CSS_CLASS = "info-box-icon";
-    protected static final String ARCHETYPE_ICON_FONT_SIZE = "font-size: 45px !important;";
+
+    protected static final String ID_SR_MESSAGE_FOR_DISPLAY_NAME = "srMessageForSummaryDisplayName";
+    protected static final String ID_SR_MESSAGE_FOR_IDENTIFIER = "srMessageForSummaryIdentifier";
+    protected static final String ID_SR_MESSAGE_FOR_BADGES = "srMessageForBadges";
+    protected static final String ID_SR_MESSAGE_FOR_TITLE = "srMessageForSummaryTitle";
+    protected static final String ID_SR_MESSAGE_FOR_ORGANIZATION = "srMessageForSummaryOrganization";
+    protected static final String ID_SR_MESSAGE_FOR_TAG_BOX = "srMessageForSummaryTagBox";
 
     protected SummaryPanelSpecificationType configuration;
 
@@ -122,6 +129,7 @@ public abstract class AbstractSummaryPanel<C extends Containerable> extends Base
             box.add(displayName);
         }
 
+
         ObjectTypes type = ObjectTypes.getObjectTypeIfKnown(getModelObject().getClass());
         IModel<String> messageModel;
         if (type != null) {
@@ -131,6 +139,10 @@ public abstract class AbstractSummaryPanel<C extends Containerable> extends Base
             messageModel = getPageBase().createStringResource("AbstractSummaryPanel.srMessage");
         }
         box.add(new Label(ID_SR_MESSAGE_FOR_SUMMARY_PANEL, messageModel));
+
+        box.add(new Label(ID_SR_MESSAGE_FOR_DISPLAY_NAME, new ResourceModel("AbstractSummaryPanel.srMessageDisplayName"))
+                .setMarkupId(ID_SR_MESSAGE_FOR_DISPLAY_NAME)
+                .setOutputMarkupId(true));
 
         WebMarkupContainer identifierPanel = new WebMarkupContainer(ID_IDENTIFIER_PANEL);
         Label identifier = new Label(ID_IDENTIFIER, createLabelModel(getIdentifierPropertyName(), SummaryPanelSpecificationType.F_IDENTIFIER));
@@ -146,10 +158,18 @@ public abstract class AbstractSummaryPanel<C extends Containerable> extends Base
         });
         box.add(identifierPanel);
 
+        box.add(new Label(ID_SR_MESSAGE_FOR_IDENTIFIER, new ResourceModel("AbstractSummaryPanel.srMessageIdentifier"))
+                .setMarkupId(ID_SR_MESSAGE_FOR_IDENTIFIER)
+                .setOutputMarkupId(true));
+
+
         IModel<List<Badge>> badgesModel = createBadgesModel();
         BadgeListPanel badges = new BadgeListPanel(ID_BADGES, badgesModel);
         badges.add(new VisibleBehaviour(() -> !badgesModel.getObject().isEmpty()));
         box.add(badges);
+        box.add(new Label(ID_SR_MESSAGE_FOR_BADGES, new ResourceModel("AbstractSummaryPanel.srMessageBadges"))
+                .setMarkupId(ID_SR_MESSAGE_FOR_BADGES)
+                .setOutputMarkupId(true));
 
         AjaxButton navigateToObject = new AjaxButton(ID_NAVIGATE_TO_OBJECT_BUTTON) {
             @Override
@@ -174,10 +194,18 @@ public abstract class AbstractSummaryPanel<C extends Containerable> extends Base
         addTitle(box, getTitle2Model(), getTitle2PropertyName(), SummaryPanelSpecificationType.F_TITLE2, ID_TITLE2);
         addTitle(box, getTitle3Model(), getTitle3PropertyName(), SummaryPanelSpecificationType.F_TITLE3, ID_TITLE3);
 
+        box.add(new Label(ID_SR_MESSAGE_FOR_TITLE, new ResourceModel("AbstractSummaryPanel.srMessageTitles"))
+                .setMarkupId(ID_SR_MESSAGE_FOR_TITLE)
+                .setOutputMarkupId(true));
+
         final IModel<String> parentOrgModel = getParentOrgModel();
         Label parentOrgLabel = new Label(ID_ORGANIZATION, parentOrgModel);
         parentOrgLabel.add(new VisibleBehaviour(() -> StringUtils.isNotBlank(parentOrgModel.getObject())));
         box.add(parentOrgLabel);
+
+        box.add(new Label(ID_SR_MESSAGE_FOR_ORGANIZATION, new ResourceModel("AbstractSummaryPanel.srMessageParentOrganization"))
+                .setMarkupId(ID_SR_MESSAGE_FOR_ORGANIZATION)
+                .setOutputMarkupId(true));
 
         IModel<String> marksModel = createMarksModel();
         Label marks = new Label(ID_MARKS, marksModel);
@@ -197,14 +225,6 @@ public abstract class AbstractSummaryPanel<C extends Containerable> extends Base
         Label icon = new Label(ID_ICON, "");
 
         icon.add(AttributeModifier.append("class", getIconCssClass()));
-
-//        String archetypeIconCssClass = getArchetypeIconCssClass();
-//        if (StringUtils.isNotEmpty(archetypeIconCssClass)) {
-//            icon.add(AttributeModifier.append("class", archetypeIconCssClass));
-//            icon.add(AttributeModifier.append("style", ARCHETYPE_ICON_FONT_SIZE));
-//        } else {
-//            icon.add(AttributeModifier.append("class", getDefaultIconCssClass()));
-//        }
         icon.add(new VisibleEnableBehaviour() {
             @Override
             public boolean isVisible() {
@@ -226,9 +246,7 @@ public abstract class AbstractSummaryPanel<C extends Containerable> extends Base
         tagBox = new RepeatingView(ID_TAG_BOX);
         List<SummaryTag<C>> summaryTags = getSummaryTagComponentList();
 
-//        if (getArchetypeSummaryTag() != null) {
         summaryTags.add(getArchetypeSummaryTag());
-//        }
         summaryTags.forEach(summaryTag -> {
             WebMarkupContainer summaryTagPanel = new WebMarkupContainer(tagBox.newChildId());
             summaryTagPanel.setOutputMarkupId(true);
@@ -241,6 +259,10 @@ public abstract class AbstractSummaryPanel<C extends Containerable> extends Base
         }
         tagBox.add(new VisibleBehaviour(() -> CollectionUtils.isNotEmpty(summaryTags)));
         box.add(tagBox);
+
+        box.add(new Label(ID_SR_MESSAGE_FOR_TAG_BOX, new ResourceModel("AbstractSummaryPanel.srMessageTags"))
+                .setMarkupId(ID_SR_MESSAGE_FOR_TAG_BOX)
+                .setOutputMarkupId(true));
     }
 
     private void addTitle(
