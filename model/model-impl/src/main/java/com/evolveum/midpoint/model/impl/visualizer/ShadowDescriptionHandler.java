@@ -27,12 +27,15 @@ import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.Ordered;
+import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 
 /**
  * Created by Viliam Repan (lazyman).
  */
 @Component
+@Order(Ordered.LOWEST_PRECEDENCE - 100)
 public class ShadowDescriptionHandler implements VisualizationDescriptionHandler {
     private static final LocalizableMessage ON = new SingleLocalizableMessage(
             "ShadowDescriptionHandler.shadow.on", null, "on");

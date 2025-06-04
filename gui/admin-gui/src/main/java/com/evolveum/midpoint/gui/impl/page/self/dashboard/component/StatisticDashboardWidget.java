@@ -150,9 +150,4 @@ public class StatisticDashboardWidget extends BasePanel<PreviewContainerPanelCon
             return "background-color: " + iconColor + " !important";
         };
     }
-
-    private boolean isExternalLink() {
-//        return getModelObject().getTargetUrl() != null && new UrlValidator().isValid(getModelObject().getTargetUrl());
-        return false;
-    }
 }

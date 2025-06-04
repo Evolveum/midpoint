@@ -7,6 +7,8 @@
 
 package com.evolveum.midpoint.model.impl.visualizer;
 
+import org.springframework.core.Ordered;
+import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.model.api.visualizer.LocalizationCustomizationContext;
@@ -28,6 +30,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationT
  * Created by Viliam Repan (lazyman).
  */
 @Component
+@Order(Ordered.LOWEST_PRECEDENCE - 100)
 public class ClassLoggerDescriptionHandler implements VisualizationDescriptionHandler {
 
 

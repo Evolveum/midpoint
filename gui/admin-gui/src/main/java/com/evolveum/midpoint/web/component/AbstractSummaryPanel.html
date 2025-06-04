@@ -17,40 +17,30 @@
                 <div class="sr-only" wicket:id="srMessageForSummaryPanel"/>
                 <div class="info-box-number d-flex gap-2" style="padding: 0px;">
                     <wicket:enclosure child="summaryDisplayName">
-                        <div class="sr-only">
-                            <wicket:message key="AbstractSummaryPanel.srMessageDisplayName"/>
-                        </div>
-                        <span class="summary-panel-display-name" wicket:id="summaryDisplayName" style="padding: 0px;"/>
+                        <div class="sr-only" wicket:id="srMessageForSummaryDisplayName"/>
+                        <span class="summary-panel-display-name" aria-labelledby="srMessageForSummaryDisplayName" wicket:id="summaryDisplayName" style="padding: 0px;"/>
                     </wicket:enclosure>
                     <wicket:enclosure child="summaryIdentifierPanel">
-                        <div class="sr-only">
-                            <wicket:message key="AbstractSummaryPanel.srMessageIdentifier"/>
-                        </div>
-                        <span class="summary-panel-identifier" wicket:id="summaryIdentifierPanel" style="padding: 0px;">(<span wicket:id="summaryIdentifier"/>)</span>
+                        <div class="sr-only" wicket:id="srMessageForSummaryIdentifier"/>
+                        <span class="summary-panel-identifier" aria-labelledby="srMessageForSummaryIdentifier" wicket:id="summaryIdentifierPanel" style="padding: 0px;">(<span wicket:id="summaryIdentifier"/>)</span>
                     </wicket:enclosure>
                     <wicket:enclosure child="badges">
-                        <div class="sr-only">
-                            <wicket:message key="AbstractSummaryPanel.srMessageBadges"/>
-                        </div>
-                        <span wicket:id="badges"/>
+                        <div class="sr-only" wicket:id="srMessageForBadges"/>
+                        <span wicket:id="badges" aria-labelledby="srMessageForBadges"/>
                     </wicket:enclosure>
                     <a wicket:id="navigateToObject" class="summary-panel-navigation-button">
                         <i class="fa fa-share"/>
                     </a>
                 </div>
                 <wicket:enclosure child="summaryTitle">
-                    <div class="sr-only">
-                        <wicket:message key="AbstractSummaryPanel.srMessageTitles"/>
-                    </div>
-                    <span wicket:id="summaryTitle" class="summary-panel-title"/>
+                    <div class="sr-only" wicket:id="srMessageForSummaryTitle"/>
+                    <span wicket:id="summaryTitle" aria-labelledby="srMessageForSummaryTitle" class="summary-panel-title"/>
                     <span wicket:id="summaryTitle2" class="summary-panel-title" style="display: block"/>
                     <span wicket:id="summaryTitle3" class="summary-panel-title" style="display: block"/>
                 </wicket:enclosure>
                 <wicket:enclosure child="summaryOrganization">
-                    <div class="sr-only">
-                        <wicket:message key="AbstractSummaryPanel.srMessageParentOrganization"/>
-                    </div>
-                    <span wicket:id="summaryOrganization" class="summary-panel-organization"/>
+                    <div class="sr-only" wicket:id="srMessageForSummaryOrganization"/>
+                    <span wicket:id="summaryOrganization" aria-labelledby="srMessageForSummaryOrganization" class="summary-panel-organization"/>
                 </wicket:enclosure>
                 <wicket:enclosure child="marks">
                     <div class="text-sm" wicket:message="title:AbstractSummaryPanel.objectMarks">
@@ -61,12 +51,9 @@
             </div>
             <div class="summary-tag-box">
                 <wicket:enclosure child="summaryTagBox">
-                    <div class="sr-only">
-                        <wicket:message key="AbstractSummaryPanel.srMessageTags"/>
-                    </div>
+                    <div class="sr-only" wicket:id="srMessageForSummaryTagBox"/>
                     <wicket:container wicket:id="summaryTagBox">
-                        <span wicket:id="summaryTag"/>
-                        <span class="sr-only">.</span>
+                        <span wicket:id="summaryTag" aria-labelledby="srMessageForSummaryTagBox"/>
                     </wicket:container>
                 </wicket:enclosure>
                 <wicket:child/>

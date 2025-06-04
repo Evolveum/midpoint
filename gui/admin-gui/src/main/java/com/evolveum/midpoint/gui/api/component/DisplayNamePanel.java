@@ -19,6 +19,8 @@ import com.evolveum.midpoint.gui.impl.util.RelationUtil;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.markup.head.IHeaderResponse;
+import org.apache.wicket.markup.head.OnDomReadyHeaderItem;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.list.ListItem;
@@ -51,6 +53,7 @@ public class DisplayNamePanel<C extends Containerable> extends BasePanel<C> {
     private static final String ID_DESCRIPTION = "description";
     private static final String ID_DESCRIPTION_LABELS = "descriptionLabels";
     private static final String ID_NAVIGATE_TO_OBJECT = "navigateToObject";
+    private static final String ID_PANEL_STATUS = "panelStatus";
 
     public DisplayNamePanel(String id, IModel<C> model) {
         super(id, model);
@@ -62,7 +65,21 @@ public class DisplayNamePanel<C extends Containerable> extends BasePanel<C> {
         initLayout();
     }
 
+    @Override
+    public void renderHead(IHeaderResponse response) {
+        super.renderHead(response);
+        String statusId = get(ID_PANEL_STATUS).getMarkupId();
+        String displayName = get(ID_DISPLAY_NAME).getDefaultModelObjectAsString();
+        String message = getString("DisplayNamePanel.opened", displayName);
+        response.render(OnDomReadyHeaderItem.forScript(
+                String.format("MidPointTheme.updateStatusMessage('%s', '%s', %d)", statusId, message, 250)));
+    }
+
     private void initLayout() {
+        Label panelStatus = new Label(ID_PANEL_STATUS, Model.of(""));
+        panelStatus.setOutputMarkupId(true);
+        add(panelStatus);
+
         WebMarkupContainer typeImage = createTypeImagePanel(ID_TYPE_IMAGE);
         add(typeImage);
 
