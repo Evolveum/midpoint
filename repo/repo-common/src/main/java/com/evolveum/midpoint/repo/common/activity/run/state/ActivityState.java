@@ -10,6 +10,7 @@ package com.evolveum.midpoint.repo.common.activity.run.state;
 import com.evolveum.midpoint.prism.ComplexTypeDefinition;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.repo.common.activity.run.ActivityRunException;
 import com.evolveum.midpoint.repo.common.activity.run.UpdateActivityPoliciesOperation;
@@ -569,4 +570,31 @@ public abstract class ActivityState implements DebugDumpable {
         return new UpdateActivityPoliciesOperation(getTask(), policiesItemPath, policies, beans).execute(result);
     }
     //endregion
+
+    public Integer getExecutionAttempt() {
+        return getTask().getPropertyRealValue(
+                stateItemPath.append(ActivityStateType.F_EXECUTION_ATTEMPT), Integer.class);
+    }
+
+    // todo make it cleaner, move to custom operation class together with preparation/store
+    //  of new execution attempt (history) for state+overview/tree
+    public void incrementExecutionAttempt(@NotNull OperationResult result)
+        throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException {
+            beans.plainRepositoryService.modifyObjectDynamically(
+                    TaskType.class, getTask().getOid(), null, this::prepareModifications, null, result);
+        // todo implement increment execution attempt + store previous execution in activity execution (also tree?)
+    }
+
+    private @NotNull Collection<? extends ItemDelta<?, ?>> prepareModifications(TaskType task) throws SchemaException {
+        Integer executionAttempt = task.asPrismObject().getPropertyRealValue(
+                stateItemPath.append(ActivityStateType.F_EXECUTION_ATTEMPT), Integer.class);
+        if (executionAttempt == null) {
+            executionAttempt = 0;
+        }
+        executionAttempt++;
+
+        return PrismContext.get().deltaFor(TaskType.class)
+                .item(stateItemPath.append(ActivityStateType.F_EXECUTION_ATTEMPT)).replace(executionAttempt)
+                .asItemDeltas();
+    }
 }

@@ -7,24 +7,26 @@
 
 package com.evolveum.midpoint.repo.common.activity;
 
+import java.util.UUID;
+
+import com.evolveum.midpoint.repo.common.activity.run.state.ActivityExecutionWriter;
+
+import org.jetbrains.annotations.NotNull;
+
 import com.evolveum.midpoint.repo.common.activity.definition.ActivityDefinition;
 import com.evolveum.midpoint.repo.common.activity.definition.WorkDefinition;
-import com.evolveum.midpoint.repo.common.activity.run.ActivityRunException;
 import com.evolveum.midpoint.repo.common.activity.handlers.ActivityHandler;
-import com.evolveum.midpoint.repo.common.activity.run.state.ActivityTreePurger;
+import com.evolveum.midpoint.repo.common.activity.run.ActivityRunException;
 import com.evolveum.midpoint.repo.common.activity.run.CommonTaskBeans;
+import com.evolveum.midpoint.repo.common.activity.run.state.ActivityTreePurger;
 import com.evolveum.midpoint.repo.common.activity.run.task.ActivityBasedTaskRun;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.task.ActivityPath;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DebugDumpable;
-
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.SchemaException;
-
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityTreeRealizationStateType;
-
-import org.jetbrains.annotations.NotNull;
 
 /**
  * Represents the tree of activities that comprise a logical task.
@@ -117,5 +119,18 @@ public class ActivityTree implements DebugDumpable {
             throws ActivityRunException {
         new ActivityTreePurger(taskRun, beans)
                 .purge(result);
+    }
+
+    public void updateNewTaskRunIdentifier(OperationResult result) throws ActivityRunException {
+        String identifier = UUID.randomUUID().toString();
+
+        treeStateOverview.updateTaskRunIdentifier(identifier, result);
+
+        // todo also for detailed state
+    }
+
+    public void createActivityExecution(ActivityBasedTaskRun taskRun, OperationResult result)
+            throws ActivityRunException {
+        new ActivityExecutionWriter(taskRun, beans).writeActivityExecution(result);
     }
 }

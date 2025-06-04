@@ -124,7 +124,7 @@ public abstract class AbstractCompositeActivityRun<
             updateRunResultStatus(childRunResult);
             if (childRunResult.isHaltingActivityError()) {
                 // current activity execution should be stopped,
-                // but we should continue with another activity
+                // but we should continue with next activity
                 continue;
             }
 

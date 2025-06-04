@@ -19,27 +19,25 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType.F_AC
 
 import java.util.List;
 import java.util.Objects;
-
-import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
-import com.evolveum.midpoint.repo.common.activity.run.*;
-import com.evolveum.midpoint.schema.util.LocalizationUtil;
-import com.evolveum.midpoint.schema.util.task.ActivityStateOverviewUtil;
+import javax.xml.datatype.XMLGregorianCalendar;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.repo.api.RepositoryService.ModificationsSupplier;
+import com.evolveum.midpoint.repo.common.activity.run.*;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.LocalizationUtil;
+import com.evolveum.midpoint.schema.util.task.ActivityStateOverviewUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.Holder;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
-import javax.xml.datatype.XMLGregorianCalendar;
 
 /**
  * Represents the activity tree state overview that is stored in the root task.
@@ -481,5 +479,55 @@ public class ActivityTreeStateOverview {
         } catch (ObjectAlreadyExistsException e) {
             throw new SystemException("Unexpected ObjectAlreadyExistsException: " + e.getMessage(), e);
         }
+    }
+
+    public void updateTaskRunIdentifier(String identifier, OperationResult result) throws ActivityRunException {
+        updateActivityStateTree(
+                updateTaskRunIdentifierRecursively(getActivityStateTree(), identifier),
+                result);
+    }
+
+    private ActivityStateOverviewType updateTaskRunIdentifierRecursively(ActivityStateOverviewType state, String identifier) {
+        if (state == null) {
+            return null;
+        }
+
+        state.setTaskRunIdentifier(identifier);
+
+        for (ActivityStateOverviewType child : state.getActivity()) {
+            updateTaskRunIdentifierRecursively(child, identifier);
+        }
+
+        state.getActivity().removeIf(Objects::isNull);
+
+        return state;
+    }
+
+    public void createActivityExecution(OperationResult result) throws ActivityRunException {
+        updateActivityStateTree(
+                createActivityExecutionRecursively(getActivityStateTree()),
+                result);
+    }
+
+    private ActivityStateOverviewType createActivityExecutionRecursively(ActivityStateOverviewType state) {
+        if (state == null) {
+            return null;
+        }
+
+        ActivityExecutionType history = new ActivityExecutionType();
+        history.setTaskRunIdentifier(state.getTaskRunIdentifier());
+        history.setResultStatus(state.getResultStatus());
+//        history.setRunStartTimestamp(state.get());
+//        history.setRunEndTimestamp();
+//        history.setPolicies();
+        // todo more
+
+        state.getActivityExecution().add(history);
+
+        for (ActivityStateOverviewType child : state.getActivity()) {
+            createActivityExecutionRecursively(child);
+        }
+
+        return state;
     }
 }

@@ -7,6 +7,8 @@
 
 package com.evolveum.midpoint.task.api;
 
+import com.evolveum.midpoint.prism.path.ItemPath;
+
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.util.LocalizableMessage;
@@ -16,14 +18,25 @@ public class ActivityThresholdPolicyViolationException extends ThresholdPolicyVi
 
     private final TaskRunResult.TaskRunResultStatus taskRunResultStatus;
 
+    private final String ruleId;
+
     public ActivityThresholdPolicyViolationException(
-            LocalizableMessage userFriendlyMessage, String technicalMessage, @NotNull TaskRunResult.TaskRunResultStatus taskRunResultStatus) {
+            LocalizableMessage userFriendlyMessage,
+            String technicalMessage,
+            @NotNull TaskRunResult.TaskRunResultStatus taskRunResultStatus,
+            @NotNull String ruleId) {
+
         super(userFriendlyMessage, technicalMessage);
 
         this.taskRunResultStatus = taskRunResultStatus;
+        this.ruleId = ruleId;
     }
 
     public TaskRunResult.TaskRunResultStatus getTaskRunResultStatus() {
         return taskRunResultStatus;
+    }
+
+    public String getRuleId() {
+        return ruleId;
     }
 }

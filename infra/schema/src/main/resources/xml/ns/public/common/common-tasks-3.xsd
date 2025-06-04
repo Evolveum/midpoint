@@ -2148,10 +2148,39 @@
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
+                    <xsd:element name="retryLimitExceededAction" type="tns:RetryLimitExceededActionType" minOccurs="0"/>
                 </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
+
+    <xsd:simpleType name="RetryLimitExceededActionType">
+        <xsd:annotation>
+            <xsd:documentation>
+                What to do when retry limit for activity is exceeded.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:since>4.10</a:since>
+                <jaxb:typesafeEnumClass/>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="skipAction">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="SKIP_ACTION"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="suspendTask">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="SUSPEND_TASK"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+        </xsd:restriction>
+    </xsd:simpleType>
 
     <xsd:complexType name="ActivityPolicyActionType" abstract="true">
         <xsd:annotation>
@@ -3309,6 +3338,18 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element name="taskRunIdentifier" type="xsd:string" minOccurs="0"/>
+            <xsd:element name="executionAttempt" type="xsd:int" minOccurs="0"/>
+            <xsd:element ref="tns:activityExecution" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        This is used to track the activity execution history in the task.
+                        Contains overall state/results of activity before it was restarted.
+
+                        NOTE: It will be recorded only if activity has to be restarted.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
             <xsd:element name="realizationState" type="tns:ActivityRealizationStateType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -3395,16 +3436,7 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="policies" type="tns:ActivityPoliciesStateType" minOccurs="0">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        State of the policies related to the execution of the activity, grouped into related categories.
-                        One of the categories are policies needed to implement thresholds for policy rules.
-
-                        Note: The policies may be moved to separate repository object later to improve performance.
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
+            <xsd:element ref="tns:policies" minOccurs="0"/>
             <xsd:element name="simulation" type="tns:ActivitySimulationStateType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -3446,6 +3478,65 @@
             </xsd:element>
         </xsd:sequence>
         <xsd:attribute name="id" type="xsd:long"/>
+    </xsd:complexType>
+
+    <xsd:element name="policies" type="tns:ActivityPoliciesStateType">
+        <xsd:annotation>
+            <xsd:documentation>
+                State of the policies related to the execution of the activity, grouped into related categories.
+                One of those categories are policies needed to implement thresholds for policy rules.
+
+                Note: The policies may be moved to the separate repository the object later to improve performance.
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+
+    <xsd:element name="activityExecution" type="tns:ActivityExecutionType">
+        <xsd:annotation>
+            <xsd:documentation>
+                This is used to track the activity execution history in the task.
+                Contains overall state/results of activity before it was restarted.
+
+                NOTE: It will be recorded only if activity has to be restarted.
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+
+    <xsd:complexType name="ActivityExecutionType">
+        <xsd:annotation>
+            <xsd:documentation>
+                This is used to track the activity execution history in the task.
+                Contains overall state/results of activity before it was restarted.
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="taskRunIdentifier" type="xsd:string" minOccurs="0"/>
+            <xsd:element name="executionAttempt" type="xsd:int" minOccurs="0"/>
+            <xsd:element name="runStartTimestamp" type="xsd:dateTime" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        When did the current (or last) run start?
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="runEndTimestamp" type="xsd:dateTime" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        When did the current (or last) run end? If null, this means that the current run is in progress.
+                        Note that this is different from the last finish timestamp in tasks, which is set to the previous
+                        run value even if the new run is in progress.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="resultStatus" type="tns:OperationResultStatusType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Operation result status of this activity.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element ref="tns:policies" minOccurs="0"/>
+        </xsd:sequence>
     </xsd:complexType>
 
     <xsd:complexType name="ActivityTreeStateType">
@@ -3500,6 +3591,18 @@
                 <xsd:annotation>
                     <xsd:documentation>
                         Identifier of the activity.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="taskRunIdentifier" type="xsd:string" minOccurs="0"/>
+            <xsd:element name="executionAttempt" type="xsd:int" minOccurs="0"/>
+            <xsd:element ref="tns:activityExecution" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        This is used to track information about previous activity execution in the task.
+                        Contains overall state/results of activity before it was restarted.
+
+                        NOTE: It will be recorded only if activity has to be restarted.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>

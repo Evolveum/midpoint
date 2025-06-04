@@ -7,28 +7,17 @@
 
 package com.evolveum.midpoint.repo.common.activity.run;
 
-import static com.evolveum.midpoint.task.api.TaskRunResult.TaskRunResultStatus.FINISHED;
-
 import static java.util.Objects.requireNonNull;
 
 import static com.evolveum.midpoint.repo.common.activity.run.state.ActivityProgress.Counters.COMMITTED;
 import static com.evolveum.midpoint.repo.common.activity.run.state.ActivityProgress.Counters.UNCOMMITTED;
 import static com.evolveum.midpoint.schema.result.OperationResultStatus.FATAL_ERROR;
-import static com.evolveum.midpoint.task.api.TaskRunResult.TaskRunResultStatus.PERMANENT_ERROR;
+import static com.evolveum.midpoint.task.api.TaskRunResult.TaskRunResultStatus.*;
 import static com.evolveum.midpoint.util.MiscUtil.emptyIfNull;
 import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
 
 import java.util.Collection;
 import java.util.Map;
-
-import com.evolveum.midpoint.repo.common.activity.definition.ActivityExecutionModeDefinition;
-
-import com.evolveum.midpoint.repo.common.activity.policy.ActivityPolicyRulesContext;
-import com.evolveum.midpoint.repo.common.activity.policy.ActivityPolicyRulesProcessor;
-
-import com.evolveum.midpoint.repo.common.activity.policy.EvaluatedActivityPolicyRule;
-import com.evolveum.midpoint.util.exception.*;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -36,9 +25,13 @@ import org.jetbrains.annotations.Nullable;
 import com.evolveum.axiom.concepts.Lazy;
 import com.evolveum.midpoint.repo.common.activity.*;
 import com.evolveum.midpoint.repo.common.activity.definition.ActivityDefinition;
+import com.evolveum.midpoint.repo.common.activity.definition.ActivityExecutionModeDefinition;
 import com.evolveum.midpoint.repo.common.activity.definition.ActivityReportingDefinition;
 import com.evolveum.midpoint.repo.common.activity.definition.WorkDefinition;
 import com.evolveum.midpoint.repo.common.activity.handlers.ActivityHandler;
+import com.evolveum.midpoint.repo.common.activity.policy.ActivityPolicyRulesContext;
+import com.evolveum.midpoint.repo.common.activity.policy.ActivityPolicyRulesProcessor;
+import com.evolveum.midpoint.repo.common.activity.policy.EvaluatedActivityPolicyRule;
 import com.evolveum.midpoint.repo.common.activity.run.state.ActivityProgress;
 import com.evolveum.midpoint.repo.common.activity.run.state.ActivityState;
 import com.evolveum.midpoint.repo.common.activity.run.state.ActivityStateDefinition;
@@ -50,13 +43,17 @@ import com.evolveum.midpoint.schema.statistics.DummyOperationImpl;
 import com.evolveum.midpoint.schema.statistics.IterativeOperationStartInfo;
 import com.evolveum.midpoint.schema.statistics.Operation;
 import com.evolveum.midpoint.schema.util.task.ActivityPath;
+import com.evolveum.midpoint.task.api.ActivityThresholdPolicyViolationException;
 import com.evolveum.midpoint.task.api.ExecutionSupport;
 import com.evolveum.midpoint.task.api.RunningTask;
+import com.evolveum.midpoint.task.api.TaskRunResult;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
+import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
  * Implements (represents) a run (execution) of an activity in the current task.
@@ -73,12 +70,12 @@ import com.evolveum.midpoint.util.logging.TraceManager;
  * . Provides methods for navigation to more distant objects of the framework and other auxiliary objects (beans).
  *
  * . Provides skeleton of the execution - see {@link #run(OperationResult)}, managing (among others):
- *    a. activity state initialization and closing,
- *    b. execution of "before run" code,
- *    c. conversion of exceptions into {@link ActivityRunResult} (such conversion is done at various other levels, btw),
- *    d. start/end logging,
- *    e. updating task statistics,
- *    f. sending notifications.
+ * a. activity state initialization and closing,
+ * b. execution of "before run" code,
+ * c. conversion of exceptions into {@link ActivityRunResult} (such conversion is done at various other levels, btw),
+ * d. start/end logging,
+ * e. updating task statistics,
+ * f. sending notifications.
  *
  * +
  * Some of these duties are related to ones of {@link LocalActivityRun#runInternal(OperationResult)}
@@ -217,6 +214,91 @@ public abstract class AbstractActivityRun<
      * @see LocalActivityRun#runInternal(OperationResult)
      */
     public @NotNull ActivityRunResult run(OperationResult result) throws ActivityRunException {
+        boolean restarted = false;
+        while (true) {
+            ActivityRunResult runResult = runOnce(result, restarted);
+
+            if (!runResult.isRestartActivityError()) {
+                LOGGER.debug("Not restarting activity {} ({}) after run result: {}",
+                        activity.getIdentifier(), activity.getPath(), runResult);
+                return runResult;
+            }
+
+            Integer executionRestartLimit = getExecutionRestartLimit(runResult);
+            if (executionRestartLimit == null) {
+                LOGGER.debug("Couldn't figure out restart activity limit for activity {} ({}), halting",
+                        activity.getIdentifier(), activity.getPath());
+                runResult.setRunResultStatus(TaskRunResult.TaskRunResultStatus.HALTING_ERROR);
+
+                return runResult;
+            }
+
+            int executionAttempt = activityState.getExecutionAttempt() != null ? activityState.getExecutionAttempt() : 1;
+            if (executionAttempt >= executionRestartLimit) {
+                TaskRunResult.TaskRunResultStatus status = getMaxExecutionAttemptsReachedStatus(runResult);
+
+                LOGGER.debug("Maximum execution attempts reached for activity {} ({}), sending status: {}",
+                        activity.getIdentifier(), activity.getPath(), status);
+
+                runResult.setRunResultStatus(status);
+
+                return runResult;
+            }
+
+            LOGGER.debug("Restarting activity {} ({}), execution attempt {}/{}",
+                    activity.getIdentifier(), activity.getPath(), executionAttempt, executionRestartLimit);
+
+            try {
+                activityState.incrementExecutionAttempt(result);
+            } catch (ObjectNotFoundException | SchemaException | ObjectAlreadyExistsException ex) {
+                return ActivityRunResult.exception(result.getStatus(), PERMANENT_ERROR, ex);
+            }
+
+            restarted = true; // so that we know that this is a restart
+        }
+    }
+
+    private RestartActivityPolicyActionType getRestartPolicyAction(ActivityRunResult result) {
+        if (!result.isRestartActivityError()) {
+            return null;
+        }
+
+        if (!(result.getThrowable() instanceof ActivityThresholdPolicyViolationException atp)) {
+            return null;
+        }
+
+        String ruleId = atp.getRuleId();
+        if (ruleId == null) {
+            return null;
+        }
+
+        ActivityPolicyRulesContext ctx = getActivityPolicyRulesContext();
+        EvaluatedActivityPolicyRule rule = ctx.getPolicyRule(ruleId);
+        if (rule == null) {
+            return null;
+        }
+
+        ActivityPolicyActionsType policyActions = rule.getPolicy().getPolicyActions();
+        return policyActions != null ? policyActions.getRestartActivity() : null;
+    }
+
+    private Integer getExecutionRestartLimit(ActivityRunResult result) {
+        RestartActivityPolicyActionType restartAction = getRestartPolicyAction(result);
+        return restartAction.getRetryLimit();
+    }
+
+    private @NotNull TaskRunResult.TaskRunResultStatus getMaxExecutionAttemptsReachedStatus(ActivityRunResult result) {
+        RestartActivityPolicyActionType restartAction = getRestartPolicyAction(result);
+        RetryLimitExceededActionType action = restartAction.getRetryLimitExceededAction();
+
+        if (action == RetryLimitExceededActionType.SKIP_ACTION) {
+            return TaskRunResult.TaskRunResultStatus.HALTING_ACTIVITY_ERROR;
+        }
+
+        return HALTING_ERROR;
+    }
+
+    private @NotNull ActivityRunResult runOnce(OperationResult result, boolean restarted) throws ActivityRunException {
 
         initializeState(result);
 

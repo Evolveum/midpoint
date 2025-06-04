@@ -196,7 +196,8 @@ public class ActivityPolicyRulesProcessor {
             throw new ActivityThresholdPolicyViolationException(
                     new SingleLocalizableMessage("ActivityPolicyRulesProcessor.policyViolationMessage", new Object[] { rule.getName() }),
                     "Policy violation, rule: " + rule.getName(),
-                    status);
+                    status,
+                    rule.getRuleId());
         }
     }
 }

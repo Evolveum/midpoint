@@ -7,10 +7,11 @@
 
 package com.evolveum.midpoint.repo.common.activity.policy;
 
-import org.jetbrains.annotations.NotNull;
-
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
+
+import org.jetbrains.annotations.NotNull;
 
 public class ActivityPolicyRulesContext {
 
@@ -23,5 +24,12 @@ public class ActivityPolicyRulesContext {
     public void setPolicyRules(@NotNull List<EvaluatedActivityPolicyRule> policyRules) {
         this.policyRules.clear();
         this.policyRules.addAll(policyRules);
+    }
+
+    public EvaluatedActivityPolicyRule getPolicyRule(@NotNull String ruleId) {
+        return policyRules.stream()
+                .filter(rule -> Objects.equals(ruleId, rule.getRuleId()))
+                .findFirst()
+                .orElse(null);
     }
 }
