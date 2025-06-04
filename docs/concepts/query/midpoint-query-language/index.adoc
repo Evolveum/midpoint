@@ -2,43 +2,50 @@
 :page-display-order: 100
 :page-toc: top
 :toclevels: 3
+:experimental:
 :page-moved-from: /midpoint/reference/concepts/query/axiom-query-language/
 
-_MidPoint Query Language_ is designed to query objects in midPoint repository.
-It is a universal language used to search for objects in the repository, filter objects, set up object references and so on. It is used in all the places where we need to look for an object, not only in GUI.
+_MidPoint Query Language_ (MQL) is a complex yet universal language that is designed to query xref:./searchable-items.adoc[searchable objects] in the midPoint repository.
+It enables skilled users and midPoint professionals to search for objects, filter them, set up object references, etc.
 
-The language closely follows midPoint data model.
-Names of the properties, attributes and all the data items are directly taken from midPoint xref:/midpoint/reference/schema/[data model].
+The language follows closely the midPoint xref:/midpoint/reference/schema/[data model] which defines the names of properties, attributes, and all data items.
 
-Not all items in midPoint objects are searchable. The list of searchable items (elements) in midPoint is provided in xref:./searchable-items.adoc[searchable items] document.
-
-MidPoint Query language is complex. It is expected to be used by slightly skilled users and midPoint professionals.
+For more details, refer to xref:introduction.adoc[].
 
 
-== Using midPoint Query Language in midPoint
+== Scope of Use
 
-=== Using in GUI
+MQL can be used in:
 
-Search panel is shown in GUI above each view by default.
-By default, it displays basic search. This search option is designed to be easy to use by end users.
+* <<gui,*GUI*>>
+* <<configuration,*Configuration*>>
+* <<midpoint_studio,*midPoint Studio*>>
+* <<query_playground,*Query Playground*>>
 
-Midpoint Query Language is available in GUI as *Advanced search*. Its interface can be enabled by switching the search option from _Basic_ to _Advanced_.
+[[gui]]
+=== GUI
 
-image:advanced-query-select.png[Select Advanced query]
+MQL is available as an advanced version of the search functionality in all views.
 
-You can test the queries directly in GUI. Starting in All users view. It is easy and straightforward.
-As an example, to select all users with given name starting with "J" just enter `givenName startsWith "J"` to search bar and click search button.
+Access it by unwrapping the icon:search[] search drop-down menu and selecting _Advanced_.
+By default, search is set to _Basic_ to be easier to use by end users.
 
-Examples how to use the midPoint query in GUI can be found in xref:/midpoint/reference/concepts/query/midpoint-query-language/query-examples[query examples] page.
+image:advanced-query-select.webp[Select Advanced query]
 
+TIP: Try searching for all users whose given name starts with the letter "T" in the Users page.
+Type the following in the search bar and click the search button: `givenName startsWith "T"`
 
-=== Using in Configuration
+For examples, refer to xref:/midpoint/reference/concepts/query/midpoint-query-language/query-examples[].
 
-MidPoint Query filters can be used in any configuration place. In XML configuration files it is wrapped inside `<text>` element inside `<filter>` element.
+[[configuration]]
+=== Configuration
 
-For example query `givenName startsWith "J"` is stored in midPoint configuration this way.
+MidPoint Query filters can be used in any configuration.
+In XML configuration files, MQL is wrapped inside the `<text>` child element of the `<filter>` element.
 
-.midPoint Query in XML configuration format
+For example, the query `givenName startsWith "T"` is stored in midPoint configuration as follows:
+
+.midPoint Query in the XML configuration format
 [source, xml]
 ----
 <query>
@@ -48,14 +55,14 @@ For example query `givenName startsWith "J"` is stored in midPoint configuration
 </query>
 ----
 
-.midPoint Query in YAML configuration format
+.midPoint Query in the YAML configuration format
 [source, yaml]
 ----
 filter:
   text: givenName startsWith "J"
 ----
 
-.midPoint Query in JSON configuration format
+.midPoint Query in the JSON configuration format
 [source, json]
 ----
 "query" : {
@@ -66,34 +73,26 @@ filter:
 ----
 
 
-To start with midPoint Query Language, please read xref:introduction.adoc[*Introduction to midPoint Query Language*].
+[[midpoint_studio]]
+=== midPoint Studio
 
+xref:/midpoint/tools/studio[Midpoint Studio] is a great tool that helps midPoint engineers and administrators with midPoint configuration.
+See how to xref:/midpoint/tools/studio/usage#_browsing_objects[use MQL in midPoint Studio].
 
-=== Using in midPoint Studio
-
-xref:/midpoint/tools/studio[Midpoint Studio] is great tool helping midPoint engineers and administrators with configuration and daily work.
-You can use midPoint Query Language for xref:/midpoint/tools/studio/usage#_browsing_objects[querying of midPoint objects in midPoint Studio] as well.
-
+[[query_playground]]
 === Query Playground
 
-To experiment with the query language, there is hardly a better place than the actual running midPoint.
-MidPoint provides xref:./query-playground/index.adoc#_query_playground[query playground] feature that allows administrator more advanced experimenting with midPoint queries.
-
-You may need to convert existing configuration using XML queries to midPoint Query Language.
-There is xref:./query-playground/index.adoc#_query_converter[query converter] in midPoint that is helpful with such query conversion.
+You can experiment with MQL queries in xref:./query-playground/index.adoc#_query_playground[].
+This enables you to perform more advanced MQL experiments, and also provides xref:./query-playground/index.adoc#_query_converter[Query Converter] that you can use to convert your existing configuration to MQL.
 
 
-== Motivation, Origin and Future
+== Motivation for MQL
 
-MidPoint Query Language was developed during xref:/midpoint/projects/midscale[midScale] project. It was formerly known as Axiom query language.
-The concepts of the language are based on xref:/midpoint/devel/axiom/[Axiom data modeling].
-MidPoint Query Language is replacing an old xref:../xml-query-language/[XML-based query language].
-The new language is more natural, user-friendly and better aligned with foundations of xref:/midpoint/devel/axiom/[Axiom data modeling].
+MQL, formerly known as _Axiom Query Language_, was developed as a replacement for the xref:../xml-query-language/[XML-based query language] as a part of the xref:/midpoint/projects/midscale[midScale] project.
+Its concepts are based on xref:/midpoint/devel/axiom/[Axiom data modeling], however, MQL is more natural, user-friendly, and better aligned with the foundations of xref:/midpoint/devel/axiom/[Axiom data modeling].
 
-MidPoint Query Language was introduced in midPoint 4.3.
-It was almost fully supported in midPoint 4.4 LTS, except for embedded expression.
-Since midPoint 4.5, midPoint Query Language is fully supported and recommended option.
+MQL was introduced in midPoint 4.3, and except for embedded expressions, it was fully supported in midPoint 4.4 LTS.
+Since midPoint 4.5, MQL is fully supported and is the recommended option.
 
-The midPoint Query Language is a full replacement for XML-based language.
-The XML-based language will be still supported for some time, but it will be dropped eventually.
-Users of XML-based query language should migrate to midPoint Query Language as soon as possible.
+MQL fully replaces the XML-based query language which is still supported but considered deprecated.
+If you are using the XML-based query language, migrate to MQL as soon as possible.
