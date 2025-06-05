@@ -1,0 +1,52 @@
+= Resolve Correlation Cases
+:page-nav-title: 'Resolve Correlation Cases'
+:page-display-order: 60
+:page-toc: top
+:experimental:
+:icons: font
+
+Correlation cases in midPoint address scenarios where automated identity matching fails, requiring manual resolution.
+
+== What Is a Correlation Case
+
+When the identity correlation in midPoint can't produce a 100%-certain match between a resource object (like an account) and a corresponding focus object, midPoint creates a case for review.
+These correlation cases give you an option to analyze attributes, confirm ownership, or adjust mappings if need be.
+This process ensures accurate connections between resource shadow objects and their corresponding focus objects already, which are already linked to other resource object shadows belonging to the same identity.
+
+While still evolving, this feature aligns with the broader case management capabilities for approvals, remediation, and access certification.
+
+.Refer to the following resources for details about correlation and case management:
+* xref:/midpoint/reference/correlation[]
+* xref:/midpoint/features/planned/manual-correlation/[]
+* xref:/midpoint/features/planned/case-management/[]
+
+A common scenario leading to correlation cases is a discrepancy of data between multiple resource:
+For example, user having different names or an employee number in the HR system and in another system like an Active Directory or LDAP system.
+
+When it is impossible to find the corresponding focus object for a resource object reliably,
+midPoint creates a correlation case with a list of possible candidates.
+And that's where you come in.
+
+You inspect the possible candidates for correlation, pick the right match, and correlate the identities manually.
+From then on, the identity is bound between the systems.
+The logical next step is to correct the data in one of the systems so that both the systems contain accurate data.
+
+image::../correlation-case-list.webp[title="List of cases pending resolution"]
+
+== Resolve Correlation Cases
+
+. You can find all cases under icon:case_thick[] *Cases* > icon:case_thick[] *All cases*.
+    ** Select any subsection under icon:case_thick[] *Cases* to list cases of a specific category.
+. Click the name of the case to open its details:
+    ** icon:circle[] *Basic* shows details about the particular case.
+    ** icon:circle[] *Correlation* shows you know how closely the resource object shadow and its suggested focal object match.
+    ** icon:circle[] *Workitems* is the workbench for correlation cases resolution.
+. Check the suggested resource object shadow owners on the icon:circle[] *Workitems* screen.
+    ** If any of them is the right one, click the the btn:[Correlate] button in the particular candidate column.
+    ** If no suitable owner exists in midPoint, you can btn:[Create new] focal object in midPoint. +
+           That's not, however, recommended for cases with authoritative systems like HR systems
+           as the focus objects in midPoint should reflect the authoritative system state. +
+           It is better to find the root cause of the discrepancy and fix it rather than create new foci arbitrarily.
+           This, however, depends heavily on your particular situation, of course.
+
+image::../ldap-hris-correlation-case-workitem-resolution.webp[title="Workitems screen in the correlation section of midPoint, showing a suggested resource object shadow owner candidate"]
