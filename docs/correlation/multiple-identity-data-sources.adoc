@@ -1,4 +1,5 @@
 = Multiple Identity Data Sources
+:page-display-order: 30
 :page-experimental: true
 :page-toc: top
 :page-since: "4.6"
