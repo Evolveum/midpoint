@@ -11,7 +11,7 @@
 
 
 Imagine that you want to split approval of an object modification into more independent approval processes, each with its own approval schema.
-For example, you need to approve any change of user's `costCenter` attribute separately from other changes for that user.
+For example, you need to approve any change of user's _costCenter_ attribute separately from other changes for that user.
 
 Something like this:
 
@@ -24,7 +24,7 @@ Something like this:
 
 
 | 2
-| Each modification of user's `costCenter` should be approved by his line manager and an accounting department representative.
+| Each modification of user's _costCenter_ should be approved by his line manager and an accounting department representative.
 |===
 
 So, the behavior for a typical scenarios would be:
@@ -34,19 +34,19 @@ So, the behavior for a typical scenarios would be:
 | Scenario | Description | Behavior
 
 | 1
-| User's `administrativeStatus` is changed.
+| User's _administrativeStatus_ is changed.
 | One process is created, asking the line manager for his approval.
 
 | 2
-| User's `costCenter` is changed (e.g., a new value is added).
+| User's _costCenter_ is changed (e.g., a new value is added).
 | One process is created, asking the line manager and an accounting department representative for their approvals.
 
 | 3
-| User's `costCenter` and `administrativeStatus` are changed.
+| User's _costCenter_ and _administrativeStatus_ are changed.
 a| Two processes are created:
 
-    * An approval of `administrativeStatus` change: The line manager is asked.
-    * An approval of `costCenter` change (add/delete/replace of one or more values): The line manager and an accounting department representative are asked.
+    * An approval of _administrativeStatus_ change: The line manager is asked.
+    * An approval of _costCenter_ change (add/delete/replace of one or more values): The line manager and an accounting department representative are asked.
 
 |===
 
@@ -79,7 +79,7 @@ The implementation is done using the following policy rules:
 </globalPolicyRule>
 ----
 
-.Implementation of rule 2 (`costCenter` modification)
+.Implementation of rule 2 (_costCenter_ modification)
 [source,xml]
 ----
 <globalPolicyRule>
@@ -132,7 +132,7 @@ The rules would look like this:
 
 
 | 2
-| Each modification of a user's `costCenter` should be approved by his line manager and the manager of the cost center being added or removed.
+| Each modification of a user's _costCenter_ should be approved by his line manager and the manager of the cost center being added or removed.
 
 
 |===
@@ -144,17 +144,17 @@ So, the behavior for typical scenarios would be:
 | Scenario | Description | Behavior
 
 | 1
-| User's `administrativeStatus` is changed.
+| User's _administrativeStatus_ is changed.
 | One process is created, asking the line manager for his approval.
 
 
 | 2
-| User's `costCenter` is changed: A single new value is added.
+| User's _costCenter_ is changed: A single new value is added.
 | One process is created, asking the line manager and the cost center manager for their approvals.
 
 
 | 3
-| User's `costCenter` is changed: One value (CC1) is removed and two new values (CC2, CC3) are added.
+| User's _costCenter_ is changed: One value (CC1) is removed and two new values (CC2, CC3) are added.
 a| Three processes are created:
 
     * A removal of CC1: asking line manager and CC1 manager for their approvals.
@@ -162,11 +162,11 @@ a| Three processes are created:
     * An addition of CC3: Asking the line manager the and CC3 manager for their approvals.
 
 | 3
-| User's `costCenter` and `administrativeStatus` are changed.
+| User's _costCenter_ and _administrativeStatus_ are changed.
 The value of CC3 is removed and the value of CC4 is added.
 a| Three processes are created:
 
-    * An approval to change `administrativeStatus`: the line manager is asked.
+    * An approval to change _administrativeStatus_: the line manager is asked.
     * An approval to remove  CC3: The line manager and the CC3 manager are asked.
     * An approval to add CC4: The line manager and the CC4 manager are asked,
 
@@ -175,7 +175,7 @@ a| Three processes are created:
 As for the implementation, rule 1 is the same as in previous example.
 Rule 2 is slightly modified:
 
-.Implementation of rule 2 (`costCenter` modification)
+.Implementation of rule 2 (_costCenter_ modification)
 [source,xml]
 ----
 <globalPolicyRule>
@@ -206,6 +206,6 @@ Rule 2 is slightly modified:
 
 ----
 
-`<item>costCenter</item>` was changed to `<itemValue>costCenter</itemValue>`, meaning that we are no more interested in the change of `costCenter` as such, but in each value of `costCenter` that is being added or deleted.
+`<item>costCenter</item>` was changed to `<itemValue>costCenter</itemValue>`, meaning that we are no more interested in the change of _costCenter_ as such, but in each value of _costCenter_ that is being added or deleted.
 Also, the fixed `approverRef` is replaced by `approverExpression`.
 Details of the expression are left as an exercise for the reader.
