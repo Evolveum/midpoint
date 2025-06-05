@@ -553,7 +553,7 @@ public class TestNotifications extends AbstractInitializedModelIntegrationTest {
                         + "|	Role \"Superuser\" unassigned:\n"
                         + "|	|	Description: hi\n"
                         + "|	|	Target: Superuser\n"
-                        + "|	|	Delete \"Activation\"\n"
+                        + "|	|	\"Activation\" was deleted\n"
                         + "\n"
                         + "Channel: ");
     }

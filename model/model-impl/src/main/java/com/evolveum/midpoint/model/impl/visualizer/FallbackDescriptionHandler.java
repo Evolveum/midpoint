@@ -62,8 +62,9 @@ public class FallbackDescriptionHandler implements VisualizationDescriptionHandl
         String displayName = getTypeDisplayName(value);
         final LocalizableMessage localizableContainerName = new SingleLocalizableMessage(displayName, null, displayName);
 
-        final LocalizableMessage localizableChangePerformed = new SingleLocalizableMessage(
-                "FallbackDescriptionHandler.changeType.performed." + change.name());
+        String changeName = change != null ? change.name() : null;
+        String changeKey = changeName != null ? "FallbackDescriptionHandler.changeType.performed." + change.name() : "";
+        final LocalizableMessage localizableChangePerformed = new SingleLocalizableMessage(changeKey);
         final LocalizableMessage visualizationDisplayName = getVisualizationDisplayName(visualization);
 
 
