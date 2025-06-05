@@ -49,4 +49,4 @@ image::../correlation-case-list.webp[title="List of cases pending resolution"]
            It is better to find the root cause of the discrepancy and fix it rather than create new foci arbitrarily.
            This, however, depends heavily on your particular situation, of course.
 
-image::../ldap-hris-correlation-case-workitem-resolution.webp[title="Workitems screen in the correlation section of midPoint, showing a suggested resource object shadow owner candidate"]
+image::../ldap-hris-correlation-case-workitem-resolution.webp[title="Workitems screen in the cases section of midPoint, showing a suggested resource object shadow owner candidate"]
