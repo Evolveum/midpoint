@@ -8,11 +8,12 @@
 
 <html xmlns="http://www.w3.org/1999/xhtml" xmlns:wicket="http://wicket.apache.org">
 <wicket:panel>
+    <div class="sr-only" wicket:id="panelStatus" aria-live="polite"/>
     <div class="property-stripe" wicket:id="localizedValueContainer">
         <div class="col-3" wicket:id="localizedValueLabel" />
         <div wicket:id="localizedValueWithButton" class="input-group">
             <wicket:container wicket:id="localizedValue"/>
-            <a class="input-group-append" tabindex="0" wicket:id="showHideLanguagesLocalized" wicket:message="title:PolyStringEditorPanel.editTranslation">
+            <a class="input-group-append" tabindex="0" role="button" aria-expanded="true" wicket:id="showHideLanguagesLocalized" wicket:message="title:PolyStringEditorPanel.editTranslation">
                 <div class="input-group-text">
                     <i class="fa fa-language"/>
                 </div>
@@ -24,7 +25,7 @@
             <div class="col-3" wicket:id="originValueLabel" />
             <div wicket:id="origValueWithButton" class="input-group">
                 <wicket:container wicket:id="origValue"/>
-                <a class="input-group-append" tabindex="0" wicket:id="showHideLanguagesOrig" wicket:message="title:PolyStringEditorPanel.editTranslation">
+                <a class="input-group-append" tabindex="0" role="button" aria-expanded="false" wicket:id="showHideLanguagesOrig" wicket:message="title:PolyStringEditorPanel.editTranslation">
                     <div class="input-group-text">
                         <i class="fa fa-language"/>
                     </div>

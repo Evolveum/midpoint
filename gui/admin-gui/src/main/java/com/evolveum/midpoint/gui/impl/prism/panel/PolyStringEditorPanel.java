@@ -68,6 +68,7 @@ public class PolyStringEditorPanel extends InputPanel {
     private static final String ID_ADD_LANGUAGE_VALUE_BUTTON = "addLanguageValue";
     private static final String ID_REMOVE_LANGUAGE_BUTTON = "removeLanguageButton";
     private static final String ID_INPUT = "input";
+    private static final String ID_PANEL_STATUS = "panelStatus";
 
     private final StringBuilder currentlySelectedLang = new StringBuilder();
     private final IModel<PolyString> model;
@@ -108,6 +109,10 @@ public class PolyStringEditorPanel extends InputPanel {
     private void initLayout() {
         setOutputMarkupId(true);
 
+        Label panelStatus = new Label(ID_PANEL_STATUS);
+        panelStatus.setOutputMarkupId(true);
+        add(panelStatus);
+
         String localizedValue = getLocalizedPolyStringValue();
 
         WebMarkupContainer localizedValueContainer = new WebMarkupContainer(ID_LOCALIZED_VALUE_CONTAINER);
@@ -140,6 +145,8 @@ public class PolyStringEditorPanel extends InputPanel {
             @Override
             public void onClick(AjaxRequestTarget target) {
                 showHideLanguagesPerformed(target);
+                target.appendJavaScript(String.format("MidPointTheme.updateStatusMessage('%s', '%s', %d);",
+                        panelStatus.getMarkupId(), getString("PolyStringEditorPanel.status.closed"), 100));
             }
         };
         showHideLanguagesLocalizedButton.setOutputMarkupId(true);
@@ -367,6 +374,8 @@ public class PolyStringEditorPanel extends InputPanel {
             @Override
             public void onClick(AjaxRequestTarget target) {
                 showHideLanguagesPerformed(target);
+                target.appendJavaScript(String.format("MidPointTheme.updateStatusMessage('%s', '%s', %d);",
+                        panelStatus.getMarkupId(), getString("PolyStringEditorPanel.status.opened"), 150));
             }
         };
         showHideLanguagesButton.setOutputMarkupId(true);
