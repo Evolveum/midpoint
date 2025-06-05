@@ -1,0 +1,185 @@
+/*
+ * Copyright (C) 2010-2022 Evolveum and contributors
+ *
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
+ */
+
+// Our MS SQL Server docs: https://docs.evolveum.com/midpoint/reference/repository/generic/ms-sql/
+def verbose = params.VERBOSE ?: '0'
+
+// ; needs to be escaped with \ for bash below (that is \\ in Groovy string)
+def dbprops = '-Dmidpoint.repository.jdbcUrl=jdbc:sqlserver://localhost:1433\\;database=midtest\\;trustServerCertificate=true' +
+    ' -Dmidpoint.repository.jdbcPassword=password' +
+    ' -Dmidpoint.repository.jdbcUsername=midtest' +
+    ' -Dmidpoint.repository.database=sqlserver' +
+    ' -Dmidpoint.repository.hibernateHbm2ddl=validate'
+
+podTemplate(
+        nodeSelector: params.NODE_SELECTOR,
+        activeDeadlineSeconds: 21600, // 6h total build limit
+        idleMinutes: 10,
+        // No need for secret volume, no mvn deploy done here.
+        workspaceVolume: dynamicPVC(requestsSize: "20Gi"),
+        containers: [
+                containerTemplate(name: 'jnlp',
+                        image: 'jenkins/inbound-agent:4.13-2-alpine',
+                        runAsUser: '0',
+                        resourceRequestCpu: '1',
+                        resourceLimitCpu: '1',
+                        resourceRequestMemory: '1Gi',
+                        resourceLimitMemory: '1Gi'),
+                containerTemplate(name: 'db',
+                        image: params.DB_IMAGE ?: 'mcr.microsoft.com/mssql/server:2019-CU15-ubuntu-20.04',
+                        runAsUser: '0',
+                        ttyEnabled: true,
+                        resourceRequestCpu: '2',
+                        resourceLimitCpu: '2',
+                        resourceRequestMemory: '4Gi',
+                        resourceLimitMemory: '4Gi',
+                        envVars: [
+                                envVar(key: 'ACCEPT_EULA', value: 'Y'),
+                                envVar(key: 'SA_PASSWORD', value: 'Pa55word!'),
+                                // TODO is separate mount for data necessary?
+                        ],
+                        // TODO needed? ports: [portMapping(name: 'mssql', containerPort: 5432)]
+                ),
+                containerTemplate(name: 'maven',
+                        image: params.BUILDER_IMAGE ?: 'maven:3.8.5-openjdk-17',
+                        runAsUser: '0',
+                        ttyEnabled: true,
+                        command: 'cat',
+                        resourceRequestCpu: params.BUILDER_CPU ?: '4',
+                        resourceLimitCpu: params.BUILDER_CPU ?: '4',
+                        resourceRequestMemory: '10Gi',
+                        resourceLimitMemory: '10Gi') // see also -Xmx flag lower
+        ]
+) {
+    node(POD_LABEL) {
+        try {
+            stage("checkout") {
+                retry(3) {
+                    git branch: params.BRANCH ?: 'master',
+                            url: 'https://github.com/Evolveum/midpoint.git'
+                }
+            }
+            stage("db-init") {
+                container('db') {
+                    // TODO: update https://docs.evolveum.com/midpoint/reference/repository/generic/ms-sql/ with this script,
+                    // mention sqlcmd and few tips from below, like -b and -I flags.
+                    sh """#!/bin/bash -ex
+cat > create-db.sql << EOF
+CREATE DATABASE midtest
+    COLLATE SQL_Latin1_General_CP1_CS_AS;
+GO
+
+ALTER DATABASE midtest SET SINGLE_USER WITH ROLLBACK IMMEDIATE;
+ALTER DATABASE midtest SET ALLOW_SNAPSHOT_ISOLATION ON;
+ALTER DATABASE midtest SET MULTI_USER;
+
+CREATE LOGIN midtest WITH PASSWORD = 'password', CHECK_POLICY = OFF;
+GO
+
+USE midtest;
+GO
+
+CREATE USER [midtest] FOR LOGIN [midtest] WITH DEFAULT_SCHEMA=[dbo];
+GO
+ALTER ROLE [db_owner] ADD MEMBER [midtest];
+GO
+EOF
+
+                        # sleep 30
+                        # -b for sqlcmd is "fail on error"
+                        /opt/mssql-tools18/bin/sqlcmd -b -S localhost -U sa -P 'Pa55word!' -d master -i create-db.sql -N -C
+
+                        # -I enables QUOTED_IDENTIFIER, see https://stackoverflow.com/a/51201270/658826
+                        # Without it the script fails on CREATE INDEX (probably iPrimaryIdentifierValueWithOC, if the line is right).
+                        /opt/mssql-tools18/bin/sqlcmd -b -I -S localhost -U midtest -P password -d midtest -N -C \
+                            -i config/sql/generic/sqlserver-*-all.sql -i repo/repo-sql-impl-test/sql-procedures/sqlserver.sql
+                    """
+                }
+            }
+            stage("build-with-tests") {
+                container('maven') {
+                    sh """#!/bin/bash -ex
+                        if [ "${verbose}" -ge 1 ]
+                        then
+                            env | sort
+                            mvn --version
+                            df -h
+                        fi
+
+                        mvn -B -ntp -Dmaven.test.failure.ignore -P dbtest,-dist clean install ${dbprops}
+
+                        if [ "${verbose}" -ge 1 ]
+                        then
+                            df -h
+                        fi
+                    """
+                }
+            }
+            stage("tests-extra") {
+                container('maven') {
+                    // -Xmx6g should fit into 8GB of RAM, 4g is on the edge for some tests
+                    sh """#!/bin/bash -ex
+                        if [ "${verbose}" -ge 1 ]
+                        then
+                            df -h
+                        fi
+
+                        mvn -B -ntp -Dmaven.test.failure.ignore -P extratest,-dist verify -rf testing ${dbprops} \
+                            -Dfailsafe.args="-Xms2g -Xmx6g -Duser.language=en --add-exports java.management/sun.management=ALL-UNNAMED"
+
+                        if [ "${verbose}" -ge 1 ]
+                        then
+                            df -h
+                        fi
+                    """
+                }
+            }
+            stage("collect-test-results") {
+                container('maven') {
+                    // If we get here it's success, test results can change it to UNSTABLE.
+                    currentBuild.result = 'SUCCESS'
+
+                    step([
+                            $class: 'Publisher',
+                            reportFilenamePattern: '**/testng-results.xml',
+                            failureOnFailedTestConfig: true
+                    ])
+
+                    if (currentBuild.result == 'UNSTABLE' || params.ARCHIVE_LOGS) {
+                        sh "find . -wholename '*/target/test.log' -print0 | tar -czf test-logs.tgz --null -T -"
+	                    archiveArtifacts allowEmptyArchive: true, artifacts: "test-logs.tgz", followSymlinks: false
+                    }
+                }
+            }
+        } catch (Exception e) {
+            currentBuild.result = 'FAILURE' // error below will not set result for mailer!
+            error "Marking build as FAILURE because of: ${e}"
+        } finally {
+            if (verbose > '0') {
+                echo "Build: ${currentBuild}"
+                echo "Result: ${currentBuild.currentResult}"
+            }
+
+            try {
+                // Very basic mails, later we can use https://plugins.jenkins.io/email-ext/
+                step([$class: 'Mailer',
+                    notifyEveryUnstableBuild: true,
+                    recipients: env.DEFAULT_MAIL_RECIPIENT,
+                    sendToIndividuals: false])
+
+                sh """#!/bin/bash -ex
+                    if [ "${verbose}" -ge 1 ]
+                    then
+                        df -h
+                    fi
+                """
+            } catch (Exception e) {
+                println 'Could not send email: ' + e
+            }
+        }
+    }
+}
