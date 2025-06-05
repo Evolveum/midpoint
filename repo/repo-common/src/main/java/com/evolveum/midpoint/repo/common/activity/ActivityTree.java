@@ -7,10 +7,6 @@
 
 package com.evolveum.midpoint.repo.common.activity;
 
-import java.util.UUID;
-
-import com.evolveum.midpoint.repo.common.activity.run.state.ActivityExecutionWriter;
-
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.repo.common.activity.definition.ActivityDefinition;
@@ -119,18 +115,5 @@ public class ActivityTree implements DebugDumpable {
             throws ActivityRunException {
         new ActivityTreePurger(taskRun, beans)
                 .purge(result);
-    }
-
-    public void updateNewTaskRunIdentifier(OperationResult result) throws ActivityRunException {
-        String identifier = UUID.randomUUID().toString();
-
-        treeStateOverview.updateTaskRunIdentifier(identifier, result);
-
-        // todo also for detailed state
-    }
-
-    public void createActivityExecution(ActivityBasedTaskRun taskRun, OperationResult result)
-            throws ActivityRunException {
-        new ActivityExecutionWriter(taskRun, beans).writeActivityExecution(result);
     }
 }

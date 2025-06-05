@@ -130,15 +130,8 @@ public class ActivityBasedTaskRun implements TaskRun {
     }
 
     private void prepareNewRealization(OperationResult result) throws ActivityRunException {
-        activityTree.createActivityExecution(this, result);
-
         activityTree.updateRealizationState(ActivityTreeRealizationStateType.IN_PREPARATION, result);
-
-        // todo save activity execution history
-
         activityTree.purgeState(this, result);
-
-        activityTree.updateNewTaskRunIdentifier(result);
     }
 
     private void updateStateOnRootRunEnd(ActivityRunResult runResult, OperationResult result) throws ActivityRunException {

@@ -217,6 +217,7 @@ public abstract class AbstractActivityRun<
         boolean restarted = false;
         while (true) {
             ActivityRunResult runResult = runOnce(result, restarted);
+            // if (1==1) return runResult; // TODO remove this
 
             if (!runResult.isRestartActivityError()) {
                 LOGGER.debug("Not restarting activity {} ({}) after run result: {}",

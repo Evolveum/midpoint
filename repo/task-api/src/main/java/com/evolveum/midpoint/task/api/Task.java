@@ -81,6 +81,13 @@ public interface Task extends DebugDumpable, StatisticsCollector, ConnIdOperatio
     String getTaskIdentifier();
 
     /**
+     * Return identifier that is used to identify a particular run of the task.
+     *
+     * This is a unique identifier, which is assigned to each run of the task.
+     */
+    String getTaskRunIdentifier();
+
+    /**
      * Returns task OID.
      *
      * Only persistent tasks have OID. So this method returns null if the task is not persistent.

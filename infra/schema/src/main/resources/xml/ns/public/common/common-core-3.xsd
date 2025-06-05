@@ -13758,6 +13758,20 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element name="maxRecords" minOccurs="0" default="10">
+                <xsd:annotation>
+                    <xsd:documentation>
+
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="maxRecordsPerTask" minOccurs="0" default="7">
+                <xsd:annotation>
+                    <xsd:documentation>
+
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
         </xsd:sequence>
         <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
@@ -21126,6 +21140,17 @@
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:objectReferenceTargetType>tns:TaskType</a:objectReferenceTargetType>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="taskRunIdentifier" type="xsd:string" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Identifier of specific task run that can be used to differentiate between multiple
+                        task executions if task is executed recurrently.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:since>4.10</a:since>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>

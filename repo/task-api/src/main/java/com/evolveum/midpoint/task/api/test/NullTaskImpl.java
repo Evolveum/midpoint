@@ -136,6 +136,11 @@ public class NullTaskImpl implements Task {
     }
 
     @Override
+    public String getTaskRunIdentifier() {
+        return null;
+    }
+
+    @Override
     public PrismObject<? extends FocusType> getOwner(OperationResult result) {
         return null;
     }
