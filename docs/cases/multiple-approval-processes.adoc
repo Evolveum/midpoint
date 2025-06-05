@@ -1,5 +1,6 @@
 = Creation of Multiple Object-Related Approval Processes via Policy Rules
 :page-nav-title: Multiple Approval Processes Via Policy Rules
+:page-toc: top
 :page-wiki-name: Creation of multiple object-related approval processes via policy rules HOWTO
 :page-wiki-id: 24675665
 :page-wiki-metadata-create-user: mederly
