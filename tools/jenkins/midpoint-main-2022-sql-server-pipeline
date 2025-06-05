@@ -89,13 +89,13 @@ ALTER ROLE [db_owner] ADD MEMBER [midtest];
 GO
 EOF
 
-                        sleep 30
+                        # sleep 30
                         # -b for sqlcmd is "fail on error"
-                        /opt/mssql-tools18/bin/sqlcmd -b -S localhost -U sa -P 'Pa55word!' -d master -i create-db.sql -C
+                        /opt/mssql-tools18/bin/sqlcmd -b -S localhost -U sa -P 'Pa55word!' -d master -i create-db.sql -N -C
 
                         # -I enables QUOTED_IDENTIFIER, see https://stackoverflow.com/a/51201270/658826
                         # Without it the script fails on CREATE INDEX (probably iPrimaryIdentifierValueWithOC, if the line is right).
-                        /opt/mssql-tools18/bin/sqlcmd -b -I -S localhost -U midtest -P password -d midtest \
+                        /opt/mssql-tools18/bin/sqlcmd -b -I -S localhost -U midtest -P password -d midtest -N -C \
                             -i config/sql/generic/sqlserver-*-all.sql -i repo/repo-sql-impl-test/sql-procedures/sqlserver.sql
                     """
                 }
