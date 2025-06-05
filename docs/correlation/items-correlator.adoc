@@ -1,4 +1,5 @@
 = The Items Correlator
+:page-display-order: 50
 :page-toc: top
 
 
@@ -265,6 +266,7 @@ For example, let us specify the default search options used when correlating by 
 NOTE: These search options are completely overridden when `search` element is present in a correlator.
 (Meaning there is no partial override.)
 
+[#_short_form]
 == Short (Attribute-Bound) Form
 
 In simple scenarios, it is possible to define single-item correlator right on the resource object attribute.
