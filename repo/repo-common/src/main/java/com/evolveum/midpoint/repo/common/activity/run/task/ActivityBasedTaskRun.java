@@ -29,8 +29,6 @@ import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 
-import java.util.UUID;
-
 import static com.evolveum.midpoint.schema.result.OperationResultStatus.FATAL_ERROR;
 import static com.evolveum.midpoint.task.api.TaskRunResult.TaskRunResultStatus.PERMANENT_ERROR;
 
@@ -125,6 +123,10 @@ public class ActivityBasedTaskRun implements TaskRun {
         // interrupted during previous realization reparation action.
         if (isFirstRealization() || isRealizationComplete() || isRealizationInPreparation()) {
             prepareNewRealization(result);
+
+            // this will not flush the task run identifier, it will be flushed
+            // later together with the realization state
+            activityTree.createTaskRunIdentifier(result);
         }
         activityTree.updateRealizationState(ActivityTreeRealizationStateType.IN_PROGRESS, result);
     }

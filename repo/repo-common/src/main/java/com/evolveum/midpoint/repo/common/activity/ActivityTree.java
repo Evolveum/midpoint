@@ -24,6 +24,8 @@ import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityTreeRealizationStateType;
 
+import java.util.UUID;
+
 /**
  * Represents the tree of activities that comprise a logical task.
  *
@@ -96,6 +98,16 @@ public class ActivityTree implements DebugDumpable {
     public void updateRealizationState(ActivityTreeRealizationStateType value, OperationResult result)
             throws ActivityRunException {
         treeStateOverview.updateRealizationState(value, result);
+    }
+
+    /**
+     * Creates a new task run identifier and stores it in the tree state overview.
+     * This is called at the beginning of a task run, this doesn't flush pending
+     * modifications to the database.
+     */
+    public void createTaskRunIdentifier(OperationResult result) throws ActivityRunException{
+        String taskRunIdentifier = UUID.randomUUID().toString();
+        treeStateOverview.createTaskRunIdentifier(taskRunIdentifier, result);
     }
 
     /** Purges the activity state (usually before new realization). */

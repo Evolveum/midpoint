@@ -897,7 +897,12 @@ public class TaskQuartzImpl implements Task {
 
     @Override
     public String getTaskRunIdentifier() {
-        return null; // TODO implement [viliam]
+        return getPropertyRealValue(
+                ItemPath.create(
+                        TaskType.F_ACTIVITY_STATE,
+                        TaskActivityStateType.F_TREE,
+                        ActivityTreeStateType.F_TASK_RUN_IDENTIFIER),
+                String.class);
     }
 
     public void setTaskIdentifier(String value) {

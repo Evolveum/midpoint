@@ -97,22 +97,6 @@
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
-                    <xsd:element name="taskRunIdentifier" type="xsd:string" minOccurs="0">
-                        <xsd:annotation>
-                            <xsd:documentation>
-                                <p>
-                                    Task (lightweight) identifier. This is a unique identification of specific task run.
-                                    Task run identifier can be useful when one wants to distinguish between different
-                                    executions of a recurrent task.
-                                </p>
-                                <p>
-                                    Task run identifier is assigned automatically when the task starts after it was
-                                    previously finished. Start from suspended unfinished state does not change the
-                                    task run identifier (e.g. when the task is resumed).
-                                </p>
-                            </xsd:documentation>
-                        </xsd:annotation>
-                    </xsd:element>
                     <xsd:element name="taskRunHistory" type="tns:TaskRunHistoryType" minOccurs="0" maxOccurs="unbounded"/>
                     <xsd:element name="ownerRef" type="tns:ObjectReferenceType" minOccurs="0">
                         <xsd:annotation>
@@ -3536,6 +3520,22 @@
                 <xsd:annotation>
                     <xsd:documentation>
                         Realization state of the activity tree.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="taskRunIdentifier" type="xsd:string" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        <p>
+                            Task (lightweight) identifier. This is a unique identification of specific task run.
+                            Task run identifier can be useful when one wants to distinguish between different
+                            executions of a recurrent task.
+                        </p>
+                        <p>
+                            Task run identifier is assigned automatically when the task starts after it was
+                            previously finished. Start from suspended unfinished state does not change the
+                            task run identifier (e.g. when the task is resumed).
+                        </p>
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>

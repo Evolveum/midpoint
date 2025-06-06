@@ -21,6 +21,8 @@ import java.util.List;
 import java.util.Objects;
 import javax.xml.datatype.XMLGregorianCalendar;
 
+import com.evolveum.midpoint.prism.PrismContext;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -54,6 +56,8 @@ public class ActivityTreeStateOverview {
 
     @NotNull private static final ItemPath PATH_REALIZATION_STATE
             = ItemPath.create(F_ACTIVITY_STATE, F_TREE, ActivityTreeStateType.F_REALIZATION_STATE);
+    @NotNull private static final ItemPath PATH_TASK_RUN_IDENTIFIER
+            = ItemPath.create(F_ACTIVITY_STATE, F_TREE, ActivityTreeStateType.F_TASK_RUN_IDENTIFIER);
     @NotNull private static final ItemPath PATH_ACTIVITY_STATE_TREE
             = ItemPath.create(F_ACTIVITY_STATE, F_TREE, ActivityTreeStateType.F_ACTIVITY);
 
@@ -401,6 +405,24 @@ public class ActivityTreeStateOverview {
             rootTask.flushPendingModifications(result);
         } catch (CommonException e) {
             throw new ActivityRunException("Couldn't update tree realization state", FATAL_ERROR, PERMANENT_ERROR, e);
+        }
+    }
+
+    public void createTaskRunIdentifier(String taskRunIdentifier, OperationResult result)
+            throws ActivityRunException {
+        try {
+            rootTask.setItemRealValues(PATH_TASK_RUN_IDENTIFIER, taskRunIdentifier);
+
+            TaskRunHistoryType taskRunHistory = new TaskRunHistoryType();
+            taskRunHistory.setTaskRunIdentifier(taskRunIdentifier);
+
+            rootTask.modify(
+                    PrismContext.get().deltaFor(TaskType.class)
+                            .item(TaskType.F_TASK_RUN_HISTORY)
+                            .add(taskRunHistory)
+                            .asItemDelta());
+        } catch (SchemaException ex) {
+            throw new ActivityRunException("Couldn't update task run identifier in the activity tree", FATAL_ERROR, PERMANENT_ERROR, ex);
         }
     }
 
