@@ -51,8 +51,6 @@ public class AssociationDescriptionHandler extends ShadowDescriptionHandler {
              "shadowDescriptionHandler.association.and", null, "and");
      private static final LocalizableMessage HAS_BEEN = new SingleLocalizableMessage(
              "shadowDescriptionHandler.association.hasBeen", null, "has been");
-     private static final LocalizableMessage WAS = new SingleLocalizableMessage(
-             "shadowDescriptionHandler.association.was", null, "was");
 
     @Autowired
     private Resolver resolver;
@@ -136,7 +134,7 @@ public class AssociationDescriptionHandler extends ShadowDescriptionHandler {
                 LocalizationPart.forObjectName(localizableSubjectName, shadowTypeCustomizationContext),
                 LocalizationPart.forHelpingWords(AND),
                 LocalizationPart.forObjectName(localizableObjectName, shadowTypeCustomizationContext),
-                LocalizationPart.forHelpingWords(WAS),
+                LocalizationPart.forHelpingWords(HAS_BEEN),
                 LocalizationPart.forAction(localizableAction, LocalizationCustomizationContext.empty()));
 
         visualization.getName().setCustomizableOverview(customizableOverview);

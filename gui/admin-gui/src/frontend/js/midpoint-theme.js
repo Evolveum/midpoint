@@ -1242,9 +1242,9 @@ export default class MidPointTheme {
     updateStatusMessage(elementId, textValue, timeout) {
         const element = document.getElementById(elementId);
         if (element) {
-            element.textContent = '';
+            element.innerText = '';
             setTimeout(() => {
-                element.textContent = textValue;
+                element.innerText = textValue;
             }, timeout);
         }
     }
@@ -1257,5 +1257,22 @@ export default class MidPointTheme {
             });
             $(dialog).modal('show');
         }
+    }
+
+    updateStatusMessageForMenu(menuId, menuTimeout, messageId, messageTimeout) {
+        setTimeout(() => {
+            const menuElement = document.getElementById(menuId);
+            const messageElement = document.getElementById(messageId);
+            if (menuElement && messageElement) {
+                const isOpen = menuElement.classList.contains("menu-open");
+                const textValue = isOpen
+                                ? messageElement.getAttribute("data-menu-open")
+                                : messageElement.getAttribute("data-menu-close");
+                messageElement.innerText = "";
+                setTimeout(() => {
+                    messageElement.innerText = textValue;
+                }, messageTimeout)
+            }
+        }, menuTimeout);
     }
 }

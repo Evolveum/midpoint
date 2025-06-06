@@ -398,10 +398,6 @@ public class PasswordPanel extends InputPanel {
         return prismObject;
     }
 
-    private PageAdminLTE getParentPage() {
-        return WebComponentUtil.getPage(PasswordPanel.this, PageAdminLTE.class);
-    }
-
     protected boolean removePasswordValueAttribute() {
         return true;
     }

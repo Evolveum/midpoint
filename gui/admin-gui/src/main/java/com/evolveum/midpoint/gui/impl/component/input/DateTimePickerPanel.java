@@ -7,6 +7,7 @@
 
 package com.evolveum.midpoint.gui.impl.component.input;
 
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.component.input.converter.DateConverter;
 import com.evolveum.midpoint.web.component.prism.InputPanel;
 
@@ -56,18 +57,7 @@ public class DateTimePickerPanel extends InputPanel {
     @Override
     protected void onInitialize() {
         super.onInitialize();
-        hasModalParent = isModalParent();
-    }
-
-    private boolean isModalParent() {
-        Component component = this.getParent();
-        while (component != null) {
-            if (component.getId().equals(getPageBase().getMainPopup().getId())) {
-                return true;
-            }
-            component = component.getParent();
-        }
-        return false;
+        hasModalParent = WebComponentUtil.hasPopupableParent(this);
     }
 
     private String getDateTimePickerInitScript() {

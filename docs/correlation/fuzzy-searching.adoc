@@ -1,4 +1,5 @@
 = Fuzzy Searching
+:page-display-order: 20
 :page-toc: top
 :page-since: "4.6"
 

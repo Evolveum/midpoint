@@ -68,8 +68,21 @@ public abstract class InputPanel extends Panel implements Validatable {
         this.required = required;
     }
 
+    /**
+     * Use getParentPage instead of getPageBase if it's suitable
+     * @return
+     */
     public PageBase getPageBase() {
-        return (PageBase) getPage();
+        return WebComponentUtil.getPageBase(this);
+    }
+
+    /**
+     *  InputPanel component not necessarily has PageBase as a parent page. For example,
+     *  such pages as Self Registration, Identity Recovery pages are extending PageAdminLTE.
+     *  It is better to use this method instead of getPageBase not to get in trouble on non-PageBase-extending pages
+     */
+    public PageAdminLTE getParentPage() {
+        return WebComponentUtil.getPage(this, PageAdminLTE.class);
     }
 
     public StringResourceModel createStringResource(String key) {
