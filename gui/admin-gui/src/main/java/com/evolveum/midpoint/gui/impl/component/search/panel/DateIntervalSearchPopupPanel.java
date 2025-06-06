@@ -169,40 +169,6 @@ public class DateIntervalSearchPopupPanel extends PopoverSearchPopupPanel {
                 Objects.equals(model.getObject(), selectedIntervalPreset.getObject()) ? CLASS_PRESET_SELECTED : null);
     }
 
-    private Pair<XMLGregorianCalendar, XMLGregorianCalendar> computeInterval(NamedIntervalPreset preset) {
-        NamedIntervalPreset.DurationAnchor anchor = preset.anchor();
-        if (anchor == null) {
-            // no anchor means that the preset represents undefined interval
-            return Pair.of(null, null);
-        }
-
-        Long time = preset.timeSupplier().get();
-        Duration duration = preset.duration();
-
-        XMLGregorianCalendar from = null;
-        XMLGregorianCalendar to = null;
-        switch (anchor) {
-            case FROM:
-                from = XmlTypeConverter.createXMLGregorianCalendar(time);
-
-                if (time != null && duration != null) {
-                    to = XmlTypeConverter.createXMLGregorianCalendar(time);
-                    to.add(duration);
-                }
-                break;
-            case TO:
-                if (time != null && duration != null) {
-                    from = XmlTypeConverter.createXMLGregorianCalendar(time);
-                    from.add(duration.negate());
-                }
-
-                to = XmlTypeConverter.createXMLGregorianCalendar(time);
-                break;
-        }
-
-        return Pair.of(from, to);
-    }
-
     private void updateSelectedIntervalPreset() {
         XMLGregorianCalendar from = fromDateModel.getObject();
         XMLGregorianCalendar to = toDateModel.getObject();
@@ -212,7 +178,7 @@ public class DateIntervalSearchPopupPanel extends PopoverSearchPopupPanel {
         for (NamedIntervalPreset preset : intervalPresetsModel.getObject()) {
             Duration duration = preset.duration();
             if (duration == null) {
-                Pair<XMLGregorianCalendar, XMLGregorianCalendar> expected = computeInterval(preset);
+                Pair<XMLGregorianCalendar, XMLGregorianCalendar> expected = preset.getInterval();
                 if (Objects.equals(from, expected.getLeft()) && Objects.equals(to, expected.getRight())) {
                     selectedIntervalPreset.setObject(preset);
                     return;
@@ -234,7 +200,7 @@ public class DateIntervalSearchPopupPanel extends PopoverSearchPopupPanel {
     }
 
     private void selectIntervalPreset(NamedIntervalPreset preset) {
-        Pair<XMLGregorianCalendar, XMLGregorianCalendar> interval = computeInterval(preset);
+        Pair<XMLGregorianCalendar, XMLGregorianCalendar> interval = preset.getInterval();
 
         fromDateModel.setObject(interval.getLeft());
         toDateModel.setObject(interval.getRight());

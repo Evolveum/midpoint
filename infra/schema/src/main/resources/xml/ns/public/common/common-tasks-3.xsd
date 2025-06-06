@@ -113,7 +113,7 @@
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
-                    <xsd:element name="taskExecution" type="tns:TaskRunHistoryType" minOccurs="0" maxOccurs="unbounded"/>
+                    <xsd:element name="taskRunHistory" type="tns:TaskRunHistoryType" minOccurs="0" maxOccurs="unbounded"/>
                     <xsd:element name="ownerRef" type="tns:ObjectReferenceType" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>

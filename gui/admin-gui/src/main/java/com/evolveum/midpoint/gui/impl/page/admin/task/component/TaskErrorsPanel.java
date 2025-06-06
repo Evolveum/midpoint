@@ -6,11 +6,10 @@
  */
 package com.evolveum.midpoint.gui.impl.page.admin.task.component;
 
+import java.text.DateFormat;
 import java.util.*;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
-
-import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -61,6 +60,7 @@ import com.evolveum.midpoint.web.component.data.column.AjaxLinkColumn;
 import com.evolveum.midpoint.web.component.data.column.EnumPropertyColumn;
 import com.evolveum.midpoint.web.component.data.column.IconColumn;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.page.admin.server.RefreshableTabPanel;
 import com.evolveum.midpoint.web.page.admin.server.dto.OperationResultStatusPresentationProperties;
 import com.evolveum.midpoint.web.page.admin.server.dto.TaskErrorSelectableBeanImpl;
@@ -355,8 +355,6 @@ public class TaskErrorsPanel extends AbstractObjectMainPanel<TaskType, TaskDetai
         SearchContext ctx = new SearchContext();
 
         NamedIntervalPreset current = new NamedIntervalPreset(
-                null,
-                NamedIntervalPreset.DurationAnchor.FROM,
                 () -> {
                     TaskType task = getObjectWrapperObject().asObjectable();
                     TaskInformation info = TaskInformation.createForTask(task, task);
@@ -367,18 +365,32 @@ public class TaskErrorsPanel extends AbstractObjectMainPanel<TaskType, TaskDetai
 
                     return startTimestamp.toGregorianCalendar().getTimeInMillis();
                 },
+                null,
+                null,
                 new SingleLocalizableMessage("TaskErrorsPanel.showCurrentRun"));
 
-        List<NamedIntervalPreset> presets = new ArrayList<>();
+        TaskType task = getObjectWrapperObject().asObjectable();
+        List<NamedIntervalPreset> runHistoryPresets = task.getTaskRunHistory().stream()
+                .filter(r -> r.getRunStartTimestamp() != null && r.getRunEndTimestamp() != null)
+                .map(r -> {
+                    return new NamedIntervalPreset(
+                            () -> r.getRunStartTimestamp().toGregorianCalendar().getTimeInMillis(),
+                            () -> r.getRunEndTimestamp().toGregorianCalendar().getTimeInMillis(),
+                            null,
+                            new SingleLocalizableMessage(
+                                    "TaskErrorsPanel.runHistoryPreset",
+                                    new Object[] {
+                                            WebComponentUtil.formatDate(DateFormat.SHORT, r.getRunStartTimestamp()),
+                                            WebComponentUtil.formatDate(DateFormat.SHORT, r.getRunEndTimestamp())
+                                    }));
+                })
+                .sorted()
+                .toList();
 
+        List<NamedIntervalPreset> presets = new ArrayList<>();
         presets.add(current);
-        // this doesn't make sense to have current/all for single activity state persistence and current/all/24h for perpetual
-        // when we can have current/all and multiple time intervals for all of them
-//        if (hasSingleActivityStatePersistence()) {
-//            presets.add(NamedIntervalPreset.ALL);
-//        } else {
-//            presets.addAll(NamedIntervalPreset.DEFAULT_PRESETS);
-//        }
+        presets.addAll(runHistoryPresets);
+
         presets.addAll(NamedIntervalPreset.DEFAULT_PRESETS);
 
         ctx.setIntervalPresets(OperationExecutionType.F_TIMESTAMP, presets);
