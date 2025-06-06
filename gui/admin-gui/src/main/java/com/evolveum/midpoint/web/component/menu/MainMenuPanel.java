@@ -51,6 +51,7 @@ public class MainMenuPanel extends BasePanel<MainMenuItem> {
     private static final String ID_SR_CURRENT_MESSAGE_SUB_ITEM = "srCurrentMessageSubItem";
     private static final String ID_SUB_LABEL = "subLabel";
     private static final String ID_SUB_LINK_ICON = "subLinkIcon";
+    private static final String ID_ITEM_STATUS = "itemStatus";
 
     private static final Trace LOGGER = TraceManager.getTrace(MainMenuPanel.class);
 
@@ -76,6 +77,11 @@ public class MainMenuPanel extends BasePanel<MainMenuItem> {
 
         item.add(AttributeModifier.append("style", () -> isMenuExpanded() ? "" : "display: none;"));
 
+        Label itemStatus = new Label(ID_ITEM_STATUS, Model.of(""));
+        itemStatus.add(new VisibleBehaviour(() -> getModelObject().containsSubMenu()));
+        itemStatus.setOutputMarkupId(true);
+        item.add(itemStatus);
+
         StringResourceModel labelModel = new StringResourceModel(
                 "${nameModel}",
                 getModel()).setDefaultValue(new PropertyModel<>(getModel(), "nameModel"));
@@ -85,6 +91,8 @@ public class MainMenuPanel extends BasePanel<MainMenuItem> {
             @Override
             public void onClick(AjaxRequestTarget target) {
                 mainMenuPerformed();
+                target.appendJavaScript(String.format("MidPointTheme.updateStatusMessageForMenu('%s', %d, '%s', %d);",
+                        item.getMarkupId(), 300, itemStatus.getMarkupId(), 100));
             }
         };
         link.add(AttributeModifier.append("class", () -> {
