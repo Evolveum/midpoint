@@ -65,35 +65,34 @@ public class FallbackDescriptionHandler implements VisualizationDescriptionHandl
         String changeName = change != null ? change.name() : null;
         String changeKey = changeName != null ? "FallbackDescriptionHandler.changeType.performed." + change.name() : "";
         final LocalizableMessage localizableChangePerformed = new SingleLocalizableMessage(changeKey);
+        final LocalizableMessage localizableChangeInPresentTense = new SingleLocalizableMessage(
+                "FallbackDescriptionHandler.changeType.present.tense." + change.name());
         final LocalizableMessage visualizationDisplayName = getVisualizationDisplayName(visualization);
 
-
         LocalizationPart[] localizationParts;   // we want to show "Display name (name)" for object headers and "Container name"
-                                                // as a header name for other child containers. Therefore, there is the
-                                                // following condition
+        // as a header name for other child containers. Therefore, there is the
+        // following condition
         if (visualization.getOwner() != null) {
             localizationParts = new LocalizationPart[] {
-                    LocalizationPart.forObjectName(localizableContainerName, LocalizationCustomizationContext.empty()),
-                    LocalizationPart.forHelpingWords(WAS),
-                    LocalizationPart.forAction(localizableChangePerformed, LocalizationCustomizationContext.empty())
+                    LocalizationPart.forAction(localizableChangeInPresentTense, LocalizationCustomizationContext.empty()),
+                    LocalizationPart.forObjectName(localizableContainerName, LocalizationCustomizationContext.empty())
             };
         } else {
             localizationParts = new LocalizationPart[] {
+                    LocalizationPart.forAction(localizableChangeInPresentTense, LocalizationCustomizationContext.empty()),
                     LocalizationPart.forObject(localizableContainerName, LocalizationCustomizationContext.empty()),
                     LocalizationPart.forObjectName(visualizationDisplayName, LocalizationCustomizationContext.empty()),
-                    LocalizationPart.forHelpingWords(WAS),
-                    LocalizationPart.forAction(localizableChangePerformed, LocalizationCustomizationContext.empty())
             };
         }
-            final WrapableLocalization<String, LocalizationCustomizationContext> customizableOverview =
-                    WrapableLocalization.of(localizationParts);
-            visualization.getName().setCustomizableOverview(customizableOverview);
-            visualization.getName().setOverview(
-                    new SingleLocalizableMessage("FallbackDescriptionHandler.performed.message",
-                            new Object[] {
-                                    localizableContainerName, localizableChangePerformed
-                            })
-            );
+        final WrapableLocalization<String, LocalizationCustomizationContext> customizableOverview =
+                WrapableLocalization.of(localizationParts);
+        visualization.getName().setCustomizableOverview(customizableOverview);
+        visualization.getName().setOverview(
+                new SingleLocalizableMessage("FallbackDescriptionHandler.present.tense.message",
+                        new Object[] {
+                                localizableChangeInPresentTense, localizableContainerName, visualizationDisplayName
+                        })
+        );
     }
 
     private String getTypeDisplayName(PrismContainerValue<?> value) {
