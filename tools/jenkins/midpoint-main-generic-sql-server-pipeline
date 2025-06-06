@@ -65,6 +65,14 @@ podTemplate(
             }
             stage("db-init") {
                 container('db') {
+                    def conMaster, conMidtest
+                    if (params.USE_SQL_SERVER_2022) {
+                        conMaster  = '/opt/mssql-tools18/bin/sqlcmd -b -S localhost -U sa -P Pa55word! -d master -i create-db.sql -N -C'
+                        conMidtest = '/opt/mssql-tools18/bin/sqlcmd -b -I -S localhost -U midtest -P password -d midtest -N -C'
+                    } else {
+                        conMaster  = '/opt/mssql-tools/bin/sqlcmd -b -S localhost -U sa -P Pa55word! -d master -i create-db.sql'
+                        conMidtest = '/opt/mssql-tools/bin/sqlcmd -b -I -S localhost -U midtest -P password -d midtest'
+                    }
                     // TODO: update https://docs.evolveum.com/midpoint/reference/repository/generic/ms-sql/ with this script,
                     // mention sqlcmd and few tips from below, like -b and -I flags.
                     sh """#!/bin/bash -ex
@@ -88,16 +96,14 @@ GO
 ALTER ROLE [db_owner] ADD MEMBER [midtest];
 GO
 EOF
+"""
+                        // sleep 30 - sometimes suggested, but it seems to work without it just fine
+                        // -b for sqlcmd is "fail on error"
+                        sh conMaster
 
-                        #sleep 30 - sometimes suggested, but it seems to work without it just fine
-                        # -b for sqlcmd is "fail on error"
-                        /opt/mssql-tools18/bin/sqlcmd -b -S "localhost;Encrypt=yes;TrustServerCertificate=yes" -U sa -P 'Pa55word!' -d master -i create-db.sql
-
-                        # -I enables QUOTED_IDENTIFIER, see https://stackoverflow.com/a/51201270/658826
-                        # Without it the script fails on CREATE INDEX (probably iPrimaryIdentifierValueWithOC, if the line is right).
-                        /opt/mssql-tools18/bin/sqlcmd -b -I -S localhost -U midtest -P password -d midtest \
-                            -i config/sql/generic/sqlserver-*-all.sql -i repo/repo-sql-impl-test/sql-procedures/sqlserver.sql
-                    """
+                        // -I enables QUOTED_IDENTIFIER, see https://stackoverflow.com/a/51201270/658826
+                        // Without it the script fails on CREATE INDEX (probably iPrimaryIdentifierValueWithOC, if the line is right).
+                        sh "${conMidtest} -i config/sql/generic/sqlserver-*-all.sql -i repo/repo-sql-impl-test/sql-procedures/sqlserver.sql"
                 }
             }
             stage("build-with-tests") {

@@ -109,7 +109,7 @@ public class PolyStringEditorPanel extends InputPanel {
     private void initLayout() {
         setOutputMarkupId(true);
 
-        Label panelStatus = new Label(ID_PANEL_STATUS);
+        Label panelStatus = new Label(ID_PANEL_STATUS, Model.of(""));
         panelStatus.setOutputMarkupId(true);
         add(panelStatus);
 

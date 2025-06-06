@@ -1,4 +1,5 @@
 = Rule Composition
+:page-display-order: 40
 :page-toc: top
 
 == Correlators (Correlation Rules)

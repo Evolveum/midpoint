@@ -1,5 +1,7 @@
-= Creation of multiple object-related approval processes via policy rules
-:page-wiki-name: Creation of multiple object-related approval processes via policy rules HOWTO
+= Create Multiple Object-Related Approval Processes via Policy Rules
+:page-nav-title: Multiple Approval Processes Via Policy Rules
+:page-toc: top
+:page-wiki-name: Create multiple object-related approval processes via policy rules HOWTO
 :page-wiki-id: 24675665
 :page-wiki-metadata-create-user: mederly
 :page-wiki-metadata-create-date: 2017-10-18T15:37:03.073+02:00
@@ -10,7 +12,7 @@
 
 
 Imagine that you want to split approval of an object modification into more independent approval processes, each with its own approval schema.
-For example, you need to approve any change of user's costCenter attribute separately from other changes for that user.
+For example, you need to approve any change of user's _costCenter_ attribute separately from other changes for that user.
 
 Something like this:
 
@@ -23,32 +25,33 @@ Something like this:
 
 
 | 2
-| Each modification of user's costCenter should be approved by his line manager and accounting department representative.
+| Each modification of user's _costCenter_ should be approved by his line manager and an accounting department representative.
 |===
 
-So, the behavior for typical scenarios will be:
+So, the behavior for a typical scenarios would be:
 
 [%autowidth,cols="h,1,1"]
 |===
 | Scenario | Description | Behavior
 
 | 1
-| User's administrativeStatus is changed.
-| One process is created, asking line manager for his approval.
+| User's _administrativeStatus_ is changed.
+| One process is created, asking the line manager for his approval.
 
 | 2
-| User's costCenter is changed (e.g. new value is added).
-| One process is created, asking line manager and accounting department representative for their approvals.
+| User's _costCenter_ is changed (e.g., a new value is added).
+| One process is created, asking the line manager and an accounting department representative for their approvals.
 
 | 3
-| User's costCenter and administrativeStatus are changed.
-| Two processes are created:
+| User's _costCenter_ and _administrativeStatus_ are changed.
+a| Two processes are created:
 
-.. approval of administrativeStatus change: line manager is asked
-
-.. approval of costCenter change (add/delete/replace of one or more values): line manager and accounting department representative are asked
+    * An approval of _administrativeStatus_ change: The line manager is asked.
+    * An approval of _costCenter_ change (add/delete/replace of one or more values): The line manager and an accounting department representative are asked.
 
 |===
+
+== Rule-Based Approvals
 
 The implementation is done using the following policy rules:
 
@@ -68,7 +71,7 @@ The implementation is done using the following policy rules:
             <compositionStrategy>
                 <order>10</order>
             </compositionStrategy>
-			<approverExpression> ... </approverExpression>		<!-- selection of line manager is here -->
+			<approverExpression> ... </approverExpression>		<!-- selection of the line manager is here -->
         </approval>
     </policyActions>
     <focusSelector>
@@ -77,7 +80,7 @@ The implementation is done using the following policy rules:
 </globalPolicyRule>
 ----
 
-.Implementation of rule 2 (costCenter modification)
+.Implementation of rule 2 (_costCenter_ modification)
 [source,xml]
 ----
 <globalPolicyRule>
@@ -108,15 +111,15 @@ The implementation is done using the following policy rules:
 
 ----
 
-Note that the approval action in the second policy rule refers to the first rule (includeAction: line-manager-approval).
-It is done to avoid duplication of code for line manager approval instruction.
-The includeAction is currently limited to those actions that are triggered together with the referring one.
+The approval action in the second policy rule refers to the first rule (`includeAction`: `line-manager-approval`).
+It is done to avoid duplication of code for the line manager approval instruction.
+The `includeAction` is currently limited to those actions that are triggered together with the referring action.
 This might change in the future - the whole multi-process approvals is considered an experimental feature in midPoint 3.7.
 
 
-== "Per value" approvals
+== Per-Value Approvals
 
-Now let's assume that we want to approve each cost center being added or removed individually, e.g. by a manager of given cost center.
+Now let's assume that we want to approve each cost center being added or removed individually, e.g., by a manager of a given cost center.
 (Another, perhaps more realistic, example is approving inducements added or removed from a role by their owners or approvers.)
 
 The rules would look like this:
@@ -130,60 +133,50 @@ The rules would look like this:
 
 
 | 2
-| Each modification of user's costCenter should be approved by his line manager and the manager of the cost center being added or removed.
+| Each modification of a user's _costCenter_ should be approved by his line manager and the manager of the cost center being added or removed.
 
 
 |===
 
-So, the behavior for typical scenarios will be:
+So, the behavior for typical scenarios would be:
 
-[%autowidth,cols="h,1,1"]
+[cols="h,4,6"]
 |===
 | Scenario | Description | Behavior
 
 | 1
-| User's administrativeStatus is changed.
-| One process is created, asking line manager for his approval.
+| User's _administrativeStatus_ is changed.
+| One process is created, asking the line manager for his approval.
 
 
 | 2
-| User's costCenter is changed: single new value is added.
-| One process is created, asking line manager and cost center manager for their approvals.
+| User's _costCenter_ is changed: A single new value is added.
+| One process is created, asking the line manager and the cost center manager for their approvals.
 
 
 | 3
-| User's costCenter is changed: one value (CC1) is removed and two new values (CC2, CC3) are added.
-| Three processes are created:
+| User's _costCenter_ is changed: One value (CC1) is removed and two new values (CC2, CC3) are added.
+a| Three processes are created:
 
-.. removal of CC1: asking line manager and CC1 manager for their approvals,
-
-.. addition of CC2: asking line manager and CC2 manager for their approvals,
-
-.. addition of CC3: asking line manager and CC3 manager for their approvals.
-
-
-
+    * A removal of CC1: asking line manager and CC1 manager for their approvals.
+    * An addition of CC2: Asking the line manager the and CC2 manager for their approvals.
+    * An addition of CC3: Asking the line manager the and CC3 manager for their approvals.
 
 | 3
-| User's costCenter and administrativeStatus are changed.
-Value of CC3 is removed and value of CC4 is added.
-| Three processes are created:
+| User's _costCenter_ and _administrativeStatus_ are changed.
+The value of CC3 is removed and the value of CC4 is added.
+a| Three processes are created:
 
-.. approval of administrativeStatus change: line manager is asked,
-
-.. approval of removal of CC3: line manager and CC3 manager are asked,
-
-.. approval of addition of CC4: line manager and CC4 manager are asked,
-
-
-
+    * An approval to change _administrativeStatus_: the line manager is asked.
+    * An approval to remove  CC3: The line manager and the CC3 manager are asked.
+    * An approval to add CC4: The line manager and the CC4 manager are asked,
 
 |===
 
 As for the implementation, rule 1 is the same as in previous example.
 Rule 2 is slightly modified:
 
-.Implementation of rule 2 (costCenter modification)
+.Implementation of rule 2 (_costCenter_ modification)
 [source,xml]
 ----
 <globalPolicyRule>
@@ -214,7 +207,6 @@ Rule 2 is slightly modified:
 
 ----
 
-<item>costCenter</item> was changed to <itemValue>costCenter</itemValue> meaning that we are no more interested in change of costCenter as such but in each value of costCenter that is being added or deleted.
-Also, fixed approverRef is replaced by approverExpression.
+`<item>costCenter</item>` was changed to `<itemValue>costCenter</itemValue>`, meaning that we are no more interested in the change of _costCenter_ as such, but in each value of _costCenter_ that is being added or deleted.
+Also, the fixed `approverRef` is replaced by `approverExpression`.
 Details of the expression are left as an exercise for the reader.
-☺

@@ -12,12 +12,15 @@ import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.WebMarkupContainer;
+import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.model.IModel;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.input.TextPanel;
+
+import org.apache.wicket.model.Model;
 
 /**
  * @author honchar
@@ -31,6 +34,9 @@ public abstract class PopoverSearchPanel<T> extends BasePanel<T> {
     private static final String ID_POPOVER = "popover";
 
     private static final String ID_CONFIGURE = "configure";
+    private static final String ID_POPOVER_SEARCH_STATUS = "popoverSearchStatus";
+
+    private boolean isPopoverOpen = false;
 
     public PopoverSearchPanel(String id) {
         super(id);
@@ -59,6 +65,10 @@ public abstract class PopoverSearchPanel<T> extends BasePanel<T> {
         setOutputMarkupId(true);
         add(AttributeAppender.append("class", "d-flex align-items-center gap-1"));
 
+        Label popoverSearchStatus = new Label(ID_POPOVER_SEARCH_STATUS, Model.of(""));
+        popoverSearchStatus.setOutputMarkupId(true);
+        add(popoverSearchStatus);
+
         TextPanel<String> textField = createTextPanel(ID_POPOVER_PANEL, getTextValue());
         add(textField);
 
@@ -68,6 +78,20 @@ public abstract class PopoverSearchPanel<T> extends BasePanel<T> {
             @Override
             public Component getPopoverReferenceComponent() {
                 return PopoverSearchPanel.this.get(ID_CONFIGURE);
+            }
+
+            @Override
+            public void toggle(AjaxRequestTarget target) {
+                super.toggle(target);
+                String message;
+                if (isPopoverOpen) {
+                    message = getString("PopoverSearchPanel.closed");
+                } else {
+                    message = getString("PopoverSearchPanel.opened");
+                }
+                target.appendJavaScript(String.format("MidPointTheme.updateStatusMessage('%s', '%s', %d);",
+                        popoverSearchStatus.getMarkupId(), message, 100));
+                isPopoverOpen = !isPopoverOpen;
             }
         };
         add(popover);
