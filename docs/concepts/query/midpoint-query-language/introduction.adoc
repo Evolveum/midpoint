@@ -246,7 +246,7 @@ See the configuration snippet below in which the query selects `User` with name 
 ----
 
 
-== Advanced filters
+== Advanced Filters
 
 === Matches Filter
 
@@ -299,7 +299,7 @@ You can also perform inverse queries using a `referencedBy` filter to search for
 For example, search for roles by properties of their members.
 
 [#_Matches_Filter_in_References]
-==== matches filter in references
+==== Matches Filter in References
 
 A reference is a structured value which contains the target OID, type, and relationship.
 

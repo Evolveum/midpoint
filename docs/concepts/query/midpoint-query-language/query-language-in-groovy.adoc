@@ -2,22 +2,22 @@
 :page-nav-title: Use in Groovy
 :page-display-order: 300
 
-You can use midPoint Query Language in Groovy expressions using `midpoint.queryFor` and `midpoint.preparedQueryFor` functions.
+This page shows you how you can use midPoint Query Language (MQL) in Groovy expressions by using the `midpoint.queryFor` and `midpoint.preparedQueryFor` functions.
 
-== Creating and using Queries
-.Using midpoint functions
+== Creating and Using Queries
+.Using midPoint functions
 [source, groovy]
 ----
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 def query = midpoint.queryFor(UserType.class, "activation matches (effectiveStatus = 'enabled' and enableTimestamp > '2022-05-10')") // <1>
 def result = midpoint.searchObjects(query); // <2>
 ----
-<1> Creates `TypedQuery` for specified object type (in this case `UserType`)
-<2> Search objects using query
+<1> Creates `TypedQuery` for the specified object type (in this case `UserType`).
+<2> Searches for objects using the query.
 
-=== Additional parameters and APIs of Typed Query
+=== Additional Parameters and APIs of Typed Queries
 
-TypedQuery API allows user to also specify ordering, paging and options of resulting query.
+TypedQuery API enables you to also specify ordering, paging and other options for the resulting query.
 
 [source, groovy]
 ----
@@ -31,12 +31,13 @@ query.orderBy(ItemPath.create(UserType.F_ACTIVATION, ActivationType.F_ENABLE_TIM
 query.maxSize(10) // <2>
 def result = midpoint.searchObjects(query);
 ----
-<1> Orders result set by `activation/enableTimestamp` descending (newest first)
-<2> Limit search to 10 items
+<1> Orders the result set by `activation/enableTimestamp` in descending order (newest first).
+<2> Limits the search results to 10 items.
 
-== Prepared Queries:  (with Placeholders)
+== Prepared Queries with Placeholders
 
-In order to facilitate better support for use in code, `placeholders` are introduced. Placeholders can be bind later to variables and MidPoint code will take care of proper escaping and type checking.
+For a better support of queries in code, you can use `placeholders`.
+Placeholders can be bound to variables at a later stage, and midPoint will then be able to provide proper escaping and type checking.
 
 [source, groovy]
 ----
@@ -44,16 +45,17 @@ def prepared = midpoint.preparedQueryFor(UserType.class, "activation matches (ef
 def query = prepared.bind(basic.fromNow("-P1D"));  // <2>
 def result = midpoint.searchObjects(query); // <3>
 ----
-<1> Creates PreparedQuery for specified object type (in this case `UserType`)
-<2> Binds positional arguments to PreparedQuery using var args
-<3> Executes search using query
+<1> Creates `PreparedQuery` for the specified object type (in this case `UserType`).
+<2> Binds positional arguments to `PreparedQuery` using varargs.
+<3> Executes the search using the query.
 
 === Named Placeholders
 
-Positional (anonymous placeholders) are fine for simple queries, but for larger queries it may be good idea to have support for named placeholders.
-Named placeholders are entered in form `:name` and their value could be set by `PreparedQuery.set(name, value)` method.
+Positional, or anonymous, placeholders are suitable for simple queries, however, for larger queries, you should consider using named placeholders.
+Named placeholders are entered in the form of `:name`, and their value can be set using the `PreparedQuery.set(name, value)` method.
 
-Before query can be used for search it needs to be build using `build()` method. (This converts prepared query to normal query).
+Before you can use your queries for searching, you need to build them using the `build()` method.
+This converts the prepared queries with placeholders to normal queries.
 
 [source, groovy]
 ----
@@ -63,8 +65,8 @@ prepared.set("date", basic.fromNow("-P1D")); // <3>
 def query = prepared.build();  // <4>
 def result = midpoint.searchObjects(UserType.class, query); // <5>
 ----
-<1> Creates PreparedQuery for specified object type (in this case `UserType`)
-<2> Binds `status` argument to value "enabled"
-<3> Binds `date` argument to one day in past (same time and hour)
-<4> Builds query
-<5> Executes search using query
+<1> Creates `PreparedQuery` for the specified object type (in this case `UserType`).
+<2> Binds the `status` argument to the "enabled" value.
+<3> Binds the `date` argument to one day in the past (same time and hour).
+<4> Builds the query.
+<5> Executes the search using the query.
