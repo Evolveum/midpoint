@@ -9,8 +9,9 @@
 <html xmlns:wicket="http://wicket.apache.org">
 <wicket:panel>
     <div class="search-item-field" wicket:id="valueTextField" />
+    <div wicket:id="popoverSearchStatus" class="sr-only" aria-live="polite"/>
     <div class="d-flex search-item-controls">
-        <a wicket:id="configure" class="btn btn-xs border-0 px-1" wicket:message="title:PopoverSearchPanel.adjustProperty">
+        <a wicket:id="configure" class="btn btn-xs border-0 px-1" role="button" wicket:message="title:PopoverSearchPanel.adjustProperty">
             <i class="fa fa-cog"/>
         </a>
         <wicket:child />
