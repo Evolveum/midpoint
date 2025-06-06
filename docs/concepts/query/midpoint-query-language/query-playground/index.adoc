@@ -6,7 +6,7 @@ To experiment with the query language, there is hardly a better place than the a
 
 
 [#_query_playground]
-== Query playground
+== Query Playground
 
 Log in the GUI as administrator and choose *Query playground* in the main menu on the left, all the way down, just above *About*.
 
@@ -42,7 +42,7 @@ Native repository uses `LEFT JOIN` only to traverse across single-valued contain
 so even then the distinct option is useless and, when honoured, can potentially hurt SQL performance.
 ====
 
-=== Fluent API script translation
+=== Fluent API Script Translation
 
 Query playground offers an option to translate queries from fluent API scripts.
 This way you can debug the Groovy code for an expression directly in the GUI before using it.
@@ -84,7 +84,7 @@ may need additional imports from packages like `com.evolveum.midpoint.schema`,
 NOTE: While using expressions, do not add lines performing the search itself (e.g. midpoint.searchObjects(query)) in query builder. The conversion can fail.
 
 [#_query_converter]
-== Query converter
+== Query Converter
 
 Midpoint can help you convert your old-fashioned XML queries to midPoint Query Language.
 Query converter allows such conversion.

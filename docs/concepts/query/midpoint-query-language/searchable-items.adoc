@@ -1,24 +1,28 @@
 = Searchable Items in midPoint
 :page-nav-title: Searchable items
 :page-display-order: 400
+:page-toc: top
 
 
-This document provides list of searchable items (elements) in midPoint that can be used while querying data with _MidPoint Query Language_.
+This page provides a list of searchable items (elements) in midPoint that can be used while querying data with midPoint Query Language (MQL).
 
-It also provides easily searchable translation table between displayName that users can see in GUI and the item name that is being used in queries.
+It also provides a searchable translation table between `displayName` that users can see in GUI, and the item name that is being used in queries.
 
-NOTE: Column Display Name displays actual English translation of the element. Different language versions have different names. It can be even customized in your implementation.
+NOTE: The Display Name column shows the actual English translation of elements.
+Different language versions have different names that can be customized in your implementation.
 
-== Searchable items
+== Searchable Items
 
-Each object type has different set of searchable items.
-Display name contains element identification in GUI.
-Item name contains name of the element according the schema.
+Each object type has a different set of searchable items:
 
-Some items recently added (e.g. personalNumber) are searchable in the native repository only. Please use Native repository.
+* *Item Name*: Contains the name of the element according to the xref:/midpoint/reference/resources/resource-schema/[schema].
+* *Display Name*: Contains the element identification in GUI.
+* *Item Type*: Specifies the XML schema type, including xref:/midpoint/devel/xml-namespace-list/[namespace prefixes] (e.g. `t:`, `c:`).
+* *Inherited from*: The schema type where the item is originally defined.
 
-NOTE: For preparation of queries use names in the Item name column.
+NOTE: When constructing queries, use the names in the Item Name column.
 
+Some recently added items, such as `personalNumber`, are only searchable in the native repository.
 
 [#_abstractroletype]
 === AbstractRoleType
