@@ -95,9 +95,17 @@ public class VisualizationPanel extends BasePanel<VisualizationDto> {
         initModels();
         initLayout();
 
-        if (!advanced && overviewModel.getObject() != null) {
+        if (!advanced && isMinimalizedForPartialVisualization()) {
             minimalized.setObject(true);
         }
+    }
+
+    private boolean isMinimalizedForPartialVisualization() {
+        // we want to minimalize delta details panel if there is good enough overview for this delta
+        // e.g. "Role "TestRole" assigned" is enough for assignment adding delta
+        // but in case of object delta, we don't want to minimalize it by default
+        Visualization visualization = getModelObject().getVisualization();
+        return visualization.getOwner() != null && overviewModel.getObject() != null;
     }
 
     private void initModels() {
