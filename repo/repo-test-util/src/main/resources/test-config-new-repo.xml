@@ -79,8 +79,6 @@
             <ad2012UsersDn>CN=Users,DC=ad2012,DC=lab,DC=evolveum,DC=com</ad2012UsersDn>
             <ad2019BaseDn>DC=ad2019,DC=lab,DC=evolveum,DC=com</ad2019BaseDn>
             <ad2019UsersDn>CN=Users,DC=ad2019,DC=lab,DC=evolveum,DC=com</ad2019UsersDn>
-            <ad2016BaseDn>DC=ad2016,DC=lab,DC=evolveum,DC=com</ad2016BaseDn>
-            <ad2016UsersDn>CN=Users,DC=ad2016,DC=lab,DC=evolveum,DC=com</ad2016UsersDn>
             <ad2022BaseDn>DC=ad2022,DC=lab,DC=evolveum,DC=com</ad2022BaseDn>
             <ad2022UsersDn>CN=Users,DC=ad2022,DC=lab,DC=evolveum,DC=com</ad2022UsersDn>
         </constants>
