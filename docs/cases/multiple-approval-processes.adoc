@@ -1,7 +1,7 @@
-= Creation of Multiple Object-Related Approval Processes via Policy Rules
+= Create Multiple Object-Related Approval Processes via Policy Rules
 :page-nav-title: Multiple Approval Processes Via Policy Rules
 :page-toc: top
-:page-wiki-name: Creation of multiple object-related approval processes via policy rules HOWTO
+:page-wiki-name: Create multiple object-related approval processes via policy rules HOWTO
 :page-wiki-id: 24675665
 :page-wiki-metadata-create-user: mederly
 :page-wiki-metadata-create-date: 2017-10-18T15:37:03.073+02:00
@@ -51,7 +51,7 @@ a| Two processes are created:
 
 |===
 
-== Rule-based Approvals
+== Rule-Based Approvals
 
 The implementation is done using the following policy rules:
 
