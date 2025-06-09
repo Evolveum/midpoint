@@ -8,6 +8,7 @@
 <html xmlns:wicket="http://wicket.apache.org">
 <wicket:panel>
     <li wicket:id="item" class="nav-item" role="menuitem" tabindex="0">
+        <span wicket:id="itemStatus" aria-live="polite" role="status" wicket:message="data-menu-open:MainMenuPanel.opened,data-menu-close:MainMenuPanel.closed" class="sr-only"/>
         <a wicket:id="link" tabindex="-1" class="d-flex nav-link" data-bs-toggle="tooltip" data-bs-placement="right">
             <span class="flex-shrink-1">
                 <i wicket:id="icon" class="nav-icon"/>
