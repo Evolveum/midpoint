@@ -68,6 +68,10 @@ public class OperationExecutionRecorderForTasks {
         }
     }
 
+    public int getMaximumRecordsPerTask() {
+        return writer.getMaximumRecordsPerTask();
+    }
+
     private void recordOperationExecutionToOwner(Target target, OperationExecutionType recordToAdd,
             RunningTask task, OperationResult result) {
         ObjectType owner = target.ownerObject.asObjectable();

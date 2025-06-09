@@ -17660,7 +17660,7 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="simpleOperationExecutions" type="tns:CleanupPolicyType" minOccurs="0">
+            <xsd:element name="simpleOperationExecutions" type="tns:OperationExecutionCleanupPolicyType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:appinfo>
                         <a:displayName>CleanupPoliciesType.simpleOperationExecutions</a:displayName>
@@ -17668,7 +17668,7 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="complexOperationExecutions" type="tns:CleanupPolicyType" minOccurs="0">
+            <xsd:element name="complexOperationExecutions" type="tns:OperationExecutionCleanupPolicyType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:appinfo>
                         <a:displayName>CleanupPoliciesType.complexOperationExecutions</a:displayName>
@@ -17686,6 +17686,16 @@
             </xsd:element>
         </xsd:sequence>
         <xsd:attribute name="id" type="xsd:long"/>
+    </xsd:complexType>
+
+    <xsd:complexType name="OperationExecutionCleanupPolicyType">
+        <xsd:complexContent>
+            <xsd:extension base="tns:CleanupPolicyType">
+                <xsd:sequence>
+                    <xsd:element name="maxRecordsPerTask" type="xsd:int" minOccurs="0"/>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
     </xsd:complexType>
 
     <xsd:complexType name="CleanupPolicyType">
@@ -21126,6 +21136,17 @@
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:objectReferenceTargetType>tns:TaskType</a:objectReferenceTargetType>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="taskRunIdentifier" type="xsd:string" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Identifier of specific task run that can be used to differentiate between multiple
+                        task executions if task is executed recurrently.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:since>4.10</a:since>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>

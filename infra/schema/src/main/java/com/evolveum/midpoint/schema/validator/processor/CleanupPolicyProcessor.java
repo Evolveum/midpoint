@@ -59,13 +59,20 @@ public class CleanupPolicyProcessor implements UpgradeObjectProcessor<ObjectType
         CleanupPolicyType policy = policies.getObjectResults();
         policies.setObjectResults(null);
         if (policies.getSimpleOperationExecutions() == null) {
-            policies.setSimpleOperationExecutions(policy.clone());
+            policies.setSimpleOperationExecutions(createOperationExecutionCleanupPolicyType(policy));
         }
 
         if (policies.getComplexOperationExecutions() == null) {
-            policies.setComplexOperationExecutions(policy.clone());
+            policies.setComplexOperationExecutions(createOperationExecutionCleanupPolicyType(policy));
         }
 
         return true;
+    }
+
+    private OperationExecutionCleanupPolicyType createOperationExecutionCleanupPolicyType(CleanupPolicyType policy) {
+        OperationExecutionCleanupPolicyType result = new OperationExecutionCleanupPolicyType();
+        result.setMaxAge(policy.getMaxAge());
+        result.setMaxRecords(policy.getMaxRecords());
+        return result;
     }
 }

@@ -136,6 +136,11 @@ public class NullTaskImpl implements Task {
     }
 
     @Override
+    public String getTaskRunIdentifier() {
+        return null;
+    }
+
+    @Override
     public PrismObject<? extends FocusType> getOwner(OperationResult result) {
         return null;
     }
@@ -779,5 +784,10 @@ public class NullTaskImpl implements Task {
     @Override
     public void setCleanupAfterCompletion(Duration duration) {
 
+    }
+
+    @Override
+    public List<TaskRunHistoryType> getTaskRunHistory() {
+        return List.of();
     }
 }

@@ -20,6 +20,7 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType.F_AC
 import java.util.List;
 import java.util.Objects;
 
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.repo.common.activity.run.*;
 import com.evolveum.midpoint.schema.util.LocalizationUtil;
@@ -56,6 +57,8 @@ public class ActivityTreeStateOverview {
 
     @NotNull private static final ItemPath PATH_REALIZATION_STATE
             = ItemPath.create(F_ACTIVITY_STATE, F_TREE, ActivityTreeStateType.F_REALIZATION_STATE);
+    @NotNull private static final ItemPath PATH_TASK_RUN_IDENTIFIER
+            = ItemPath.create(F_ACTIVITY_STATE, F_TREE, ActivityTreeStateType.F_TASK_RUN_IDENTIFIER);
     @NotNull private static final ItemPath PATH_ACTIVITY_STATE_TREE
             = ItemPath.create(F_ACTIVITY_STATE, F_TREE, ActivityTreeStateType.F_ACTIVITY);
 
@@ -404,6 +407,87 @@ public class ActivityTreeStateOverview {
         } catch (CommonException e) {
             throw new ActivityRunException("Couldn't update tree realization state", FATAL_ERROR, PERMANENT_ERROR, e);
         }
+    }
+
+    public void createTaskRunIdentifier(String taskRunIdentifier, OperationResult result)
+            throws ActivityRunException {
+        try {
+            rootTask.setItemRealValues(PATH_TASK_RUN_IDENTIFIER, taskRunIdentifier);
+        } catch (SchemaException ex) {
+            throw new ActivityRunException("Couldn't update task run identifier in the activity tree", FATAL_ERROR, PERMANENT_ERROR, ex);
+        }
+    }
+
+    public void recordTaskRunHistoryStart() throws ActivityRunException {
+        try {
+            String taskRunIdentifier = rootTask.getPropertyRealValue(PATH_TASK_RUN_IDENTIFIER, String.class);
+
+            List<TaskRunHistoryType> historyList = rootTask.getTaskRunHistory();
+            TaskRunHistoryType history = findTaskRunHistoryByIdentifier(historyList, taskRunIdentifier);
+            if (history != null) {
+                LOGGER.warn("Task run history already exists for identifier: {}", taskRunIdentifier);
+                return; // this should not happen, but we can handle it gracefully
+            }
+
+            int maxRecordsPerTask = beans.operationExecutionRecorder.getMaximumRecordsPerTask();
+            if (historyList.size() > maxRecordsPerTask) {
+                // todo sort and remove the oldest records
+            }
+
+            TaskRunHistoryType taskRunHistory = new TaskRunHistoryType();
+            taskRunHistory.setTaskRunIdentifier(taskRunIdentifier);
+            taskRunHistory.setRunStartTimestamp(XmlTypeConverter.createXMLGregorianCalendar());
+
+            rootTask.modify(
+                    PrismContext.get().deltaFor(TaskType.class)
+                            .item(TaskType.F_TASK_RUN_HISTORY)
+                            .add(taskRunHistory)
+                            .asItemDelta());
+        } catch (SchemaException ex) {
+            throw new ActivityRunException("Couldn't update task run identifier in the activity tree", FATAL_ERROR, PERMANENT_ERROR, ex);
+        }
+    }
+
+    private TaskRunHistoryType findTaskRunHistoryByIdentifier(List<TaskRunHistoryType> historyList, String taskRunIdentifier) {
+        return historyList.stream()
+                .filter(h -> Objects.equals(taskRunIdentifier, h.getTaskRunIdentifier()))
+                .findFirst()
+                .orElse(null);
+    }
+
+    public void recordTaskRunHistoryEnd() throws ActivityRunException {
+        try {
+            String taskRunIdentifier = rootTask.getPropertyRealValue(PATH_TASK_RUN_IDENTIFIER, String.class);
+
+            List<TaskRunHistoryType> historyList = rootTask.getTaskRunHistory();
+            TaskRunHistoryType history = findTaskRunHistoryByIdentifier(historyList, taskRunIdentifier);
+
+            if (history == null) {
+                LOGGER.warn("No task run history found for identifier: {}", taskRunIdentifier);
+                return; // nothing to do, no history found
+            }
+
+            TaskRunHistoryType cloned = history.clone();
+            cloned.setRunEndTimestamp(XmlTypeConverter.createXMLGregorianCalendar());
+            rootTask.modify(
+                    PrismContext.get().deltaFor(TaskType.class)
+                            .item(TaskType.F_TASK_RUN_HISTORY)
+                            .add(cloned)
+                            .delete(history)
+                            .asItemDelta());
+
+
+//            Long id = history.asPrismContainerValue().getId();
+//
+//            rootTask.modify(
+//                    PrismContext.get().deltaFor(TaskType.class)
+//                            .item(TaskType.F_TASK_RUN_HISTORY, id, TaskRunHistoryType.F_RUN_END_TIMESTAMP)
+//                            .add(XmlTypeConverter.createXMLGregorianCalendar())
+//                            .asItemDelta());
+        } catch (SchemaException ex) {
+            throw new ActivityRunException("Couldn't update task run identifier in the activity tree", FATAL_ERROR, PERMANENT_ERROR, ex);
+        }
+
     }
 
     private ActivityStateOverviewType getActivityStateTree() {
