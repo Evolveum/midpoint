@@ -63,10 +63,8 @@ public class FallbackDescriptionHandler implements VisualizationDescriptionHandl
         final LocalizableMessage localizableContainerName = new SingleLocalizableMessage(displayName, null, displayName);
 
         String changeName = change != null ? change.name() : null;
-        String changeKey = changeName != null ? "FallbackDescriptionHandler.changeType.performed." + change.name() : "";
-        final LocalizableMessage localizableChangePerformed = new SingleLocalizableMessage(changeKey);
-        final LocalizableMessage localizableChangeInPresentTense = new SingleLocalizableMessage(
-                "FallbackDescriptionHandler.changeType.present.tense." + change.name());
+        String changeKey = changeName != null ? "FallbackDescriptionHandler.changeType.present.tense." + change.name() : "";
+        final LocalizableMessage localizableChangeInPresentTense = new SingleLocalizableMessage(changeKey);
         final LocalizableMessage visualizationDisplayName = getVisualizationDisplayName(visualization);
 
         LocalizationPart[] localizationParts;   // we want to show "Display name (name)" for object headers and "Container name"
