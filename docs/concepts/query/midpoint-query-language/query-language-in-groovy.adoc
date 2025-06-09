@@ -1,8 +1,9 @@
 = Using MidPoint Query Language in Groovy
 :page-nav-title: Use in Groovy
 :page-display-order: 300
+:page-toc: top
 
-This page shows you how you can use midPoint Query Language (MQL) in Groovy expressions by using the `midpoint.queryFor` and `midpoint.preparedQueryFor` functions.
+This page shows you how to work with midPoint Query Language (MQL) in Groovy expressions using the `midpoint.queryFor` and `midpoint.preparedQueryFor` functions.
 
 == Creating and Using Queries
 .Using midPoint functions
@@ -17,7 +18,7 @@ def result = midpoint.searchObjects(query); // <2>
 
 === Additional Parameters and APIs of Typed Queries
 
-TypedQuery API enables you to also specify ordering, paging and other options for the resulting query.
+With TypedQuery API, you can specify ordering, paging and other options for the resulting query.
 
 [source, groovy]
 ----
@@ -36,7 +37,7 @@ def result = midpoint.searchObjects(query);
 
 == Prepared Queries with Placeholders
 
-For a better support of queries in code, you can use `placeholders`.
+For a better support of queries in code, you can use placeholders.
 Placeholders can be bound to variables at a later stage, and midPoint will then be able to provide proper escaping and type checking.
 
 [source, groovy]
@@ -51,7 +52,8 @@ def result = midpoint.searchObjects(query); // <3>
 
 === Named Placeholders
 
-Positional, or anonymous, placeholders are suitable for simple queries, however, for larger queries, you should consider using named placeholders.
+Positional, or anonymous, placeholders are suitable for simple queries.
+However, for larger queries, you should consider using named placeholders.
 Named placeholders are entered in the form of `:name`, and their value can be set using the `PreparedQuery.set(name, value)` method.
 
 Before you can use your queries for searching, you need to build them using the `build()` method.

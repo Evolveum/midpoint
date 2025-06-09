@@ -6,7 +6,7 @@
 
 This page provides a list of searchable items (elements) in midPoint that can be used while querying data with midPoint Query Language (MQL).
 
-It also provides a searchable translation table between `displayName` that users can see in GUI, and the item name that is being used in queries.
+It also provides a searchable translation table between `displayName` that users can see in GUI, and the item name that is used in queries.
 
 NOTE: The Display Name column shows the actual English translation of elements.
 Different language versions have different names that can be customized in your implementation.
