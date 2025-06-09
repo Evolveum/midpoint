@@ -9,6 +9,10 @@ package com.evolveum.midpoint.model.intest.tasks;
 
 import java.io.File;
 
+import com.evolveum.midpoint.repo.common.util.OperationExecutionWriter;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultStatusType;
+
 import org.assertj.core.api.Assertions;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
@@ -32,6 +36,9 @@ public class TestTasks extends AbstractEmptyModelIntegrationTest {
 
     private static final TestObject<TaskType> TASK_10496 =
             TestObject.file(TEST_DIR, "task-10496.xml", "6ea1fcdf-f388-43ff-8c31-43ee2f3909fb");
+
+    private static final TestObject<TaskType> TASK_NOOP_RECURRENT =
+            TestObject.file(TEST_DIR, "task-noop-recurrent.xml", "b1701de1-6e3f-441a-accf-c853b1e41fe0");
 
     /**
      * MID-10496 task not starting after suspend/resume based on cron schedule. Only start once (executed immediately).
@@ -103,5 +110,33 @@ public class TestTasks extends AbstractEmptyModelIntegrationTest {
         Assertions.assertThat(currentTask).isNotNull();
 
         Assertions.assertThat(currentTask.getLastRunStartTimestamp()).isGreaterThan(lastRun);
+    }
+
+    @Test
+    public void test100TaskRunHistoryCleanup() throws Exception{
+        OperationResult result = createOperationResult();
+        PrismObject<TaskType> task = TASK_NOOP_RECURRENT.get();
+
+        logger.info("Adding task");
+        taskManager.addTask(task, result);
+
+        logger.info("Waiting for task to start");
+        waitForTaskStart(task.getOid(), result, 5000L, 500);
+
+        // let's wait for the task to run for 4-5 times
+        Thread.sleep(5000L);
+
+        taskManager.suspendTaskTree(task.getOid(), 1000L, result);
+
+        task = getTask(TASK_NOOP_RECURRENT.oid);
+        TaskType taskType = task.asObjectable();
+
+        Assertions.assertThat(taskType)
+                .isNotNull();
+//                .extracting(t-> t.getResultStatus())
+//                .isEqualTo(OperationResultStatusType.SUCCESS);
+
+        Assertions.assertThat(taskType.getTaskRunHistory())
+                .hasSize(OperationExecutionWriter.DEFAUL_NUMBER_OF_RESULTS_TO_KEEP_PER_TASK);
     }
 }

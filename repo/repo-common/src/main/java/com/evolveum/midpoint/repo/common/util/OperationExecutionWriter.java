@@ -67,9 +67,9 @@ public class OperationExecutionWriter implements SystemConfigurationChangeListen
     @Autowired private PrismContext prismContext;
     @Autowired @Qualifier("cacheRepositoryService") private RepositoryService repositoryService;
 
-    private static final int DEFAULT_NUMBER_OF_RESULTS_TO_KEEP = 5;
+    public static final int DEFAULT_NUMBER_OF_RESULTS_TO_KEEP = 5;
 
-    private static final int DEFAUL_NUMBER_OF_RESULTS_TO_KEEP_PER_TASK = 3;
+    public static final int DEFAUL_NUMBER_OF_RESULTS_TO_KEEP_PER_TASK = 3;
 
     private static final String OP_WRITE = OperationExecutionWriter.class.getName() + ".write";
 
@@ -341,16 +341,23 @@ public class OperationExecutionWriter implements SystemConfigurationChangeListen
     }
 
     public int getMaximumRecordsPerTask() {
-        int maxRecordsPerTask = 0;
+        Integer maxRecordsPerTask = null;
 
         for (OperationExecutionRecordTypeType type : OperationExecutionRecordTypeType.values()) {
             OperationExecutionCleanupPolicyType policy = selectCleanupPolicy(type);
-            if (policy != null && policy.getMaxRecordsPerTask() != null) {
-                maxRecordsPerTask = Math.max(maxRecordsPerTask, policy.getMaxRecordsPerTask());
+            if (policy == null || policy.getMaxRecordsPerTask() == null) {
+                continue;
             }
+
+            if (maxRecordsPerTask == null) {
+                maxRecordsPerTask = policy.getMaxRecordsPerTask();
+                continue;
+            }
+
+            maxRecordsPerTask = Math.max(maxRecordsPerTask, policy.getMaxRecordsPerTask());
         }
 
-        return maxRecordsPerTask;
+        return maxRecordsPerTask != null ? maxRecordsPerTask : DEFAUL_NUMBER_OF_RESULTS_TO_KEEP_PER_TASK;
     }
 
     /** An easy-to-process extract from the cleanup policy bean, along with a couple of methods. */
