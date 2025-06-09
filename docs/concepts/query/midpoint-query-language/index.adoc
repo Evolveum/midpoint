@@ -8,7 +8,7 @@
 _MidPoint Query Language_ (MQL) is a complex yet universal language that is designed to query xref:./searchable-items.adoc[searchable objects] in the midPoint repository.
 It enables skilled users and midPoint professionals to search for objects, filter them, set up object references, etc.
 
-The language follows closely the midPoint xref:/midpoint/reference/schema/[data model] which defines the names of properties, attributes, and all data items.
+The language closely follows the midPoint xref:/midpoint/reference/schema/[data model] which defines the names of properties, attributes, and all data items.
 
 For more details, refer to xref:introduction.adoc[].
 
@@ -27,7 +27,7 @@ MQL can be used in:
 
 MQL is available as an advanced version of the search functionality in all views.
 
-Access it by unwrapping the icon:search[] search drop-down menu and selecting _Advanced_.
+Access it by opening the icon:search[] search drop-down menu and selecting _Advanced_.
 By default, search is set to _Basic_ to be easier to use by end users.
 
 image:advanced-query-select.webp[Select Advanced query]
@@ -43,7 +43,7 @@ For examples, refer to xref:/midpoint/reference/concepts/query/midpoint-query-la
 MidPoint Query filters can be used in any configuration.
 In XML configuration files, MQL is wrapped inside the `<text>` child element of the `<filter>` element.
 
-For example, the query `givenName startsWith "T"` is stored in midPoint configuration as follows:
+For example, the `givenName startsWith "T"` query is stored in midPoint configuration as follows:
 
 .midPoint Query in the XML configuration format
 [source, xml]
@@ -83,16 +83,16 @@ See how to xref:/midpoint/tools/studio/usage#_browsing_objects[use MQL in midPoi
 === Query Playground
 
 You can experiment with MQL queries in xref:./query-playground/index.adoc#_query_playground[].
-This enables you to perform more advanced MQL experiments, and also provides xref:./query-playground/index.adoc#_query_converter[Query Converter] that you can use to convert your existing configuration to MQL.
+Also, you can convert your existing configuration to MQL using xref:./query-playground/index.adoc#_query_converter[Query Converter].
 
 
-== Motivation for MQL
+== Transition from XML to MQL
 
 MQL, formerly known as _Axiom Query Language_, was developed as a replacement for the xref:../xml-query-language/[XML-based query language] as a part of the xref:/midpoint/projects/midscale[midScale] project.
-Its concepts are based on xref:/midpoint/devel/axiom/[Axiom data modeling], however, MQL is more natural, user-friendly, and better aligned with the foundations of xref:/midpoint/devel/axiom/[Axiom data modeling].
+Although XML is conceptually based on xref:/midpoint/devel/axiom/[Axiom data modeling], MQL is more natural, user-friendly, and better aligned with that model.
 
 MQL was introduced in midPoint 4.3, and except for embedded expressions, it was fully supported in midPoint 4.4 LTS.
 Since midPoint 4.5, MQL is fully supported and is the recommended option.
 
-MQL fully replaces the XML-based query language which is still supported but considered deprecated.
+MQL fully replaces the XML-based query language which, although still supported, is considered deprecated.
 If you are using the XML-based query language, migrate to MQL as soon as possible.
