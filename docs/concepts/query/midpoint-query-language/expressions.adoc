@@ -8,8 +8,7 @@
 
 MidPoint Query Language (MQL) provides a special syntax support for most common expression types.
 
-IMPORTANT: To ensure security, expressions are not executed/supported for user entered queries in
-search boxes in midPoint GUI since that would enable users to execute code.
+IMPORTANT: To ensure security, expressions are not executed in search boxes in midPoint GUI as that would enable users to execute code.
 
 Script expressions are supported for the following filters:
 
@@ -41,13 +40,13 @@ There are two syntax options for script expressions:
 
 By default, scripts are xref:/midpoint/reference/expressions/expressions/script/#languages[Groovy scripts], unless other scripting language is specified.
 
-.Single-line Groovy expressions
+.Single-line Groovy expression
 ----
 @metadata/storage/createTimestamp > `basic.fromNow("-P30D")`
 ----
 
-Single-line expressions are written as strings surrounded by single ``` (backtick)
-characters. This enables you to use quotes inside scripts without needing to escape them.
+Single-line expressions are written as strings surrounded by single backtick (```) characters.
+This enables you to use quotes inside scripts without needing to escape them.
 
 .Multi-line Groovy expression
 ----
@@ -72,14 +71,15 @@ the script quotes with the language name, for example:
 @metadata/storage/createTimestamp > groovy`basic.fromNow("-P30D")`
 ----
 
-The language name is the same as you would use in XML filter script expressions.
+The language name is the same as in XML filter script expressions.
 
 == Other Expression Types
 
-If you plan to use an expression type that does not have a simplified syntax, you can use `yaml` expressions.
-Note that in midPoint, the `yaml` language is only available in queries.
+If you plan to use an expression type that does not have a simplified syntax, you can use YAML expressions.
 
-`yaml` expressions enable you to use the standard `expression` element serialized in the YAML format.
+NOTE: In midPoint, YAML is only available in queries.
+
+YAML expressions enable you to use the standard `expression` element serialized in the YAML format.
 
 This is useful when you need to define additional properties for an expression, or use other expression types that do not have a built-in syntax support.
 

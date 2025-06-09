@@ -2,6 +2,7 @@
 :page-wiki-metadata-create-user: mspanik
 :page-display-order: 550
 :experimental:
+:page-toc: top
 
 MidPoint provides multiple mechanisms to xref:/midpoint/reference/concepts/query/[query] data and search for information.
 This page provides basic information and examples of advanced search using xref:/midpoint/reference/concepts/query/midpoint-query-language/[midPoint query language (MQL)] in midPoint GUI.
@@ -10,15 +11,15 @@ The page is intended for users who understand midPoint concepts and architecture
 
 == Basic Information
 
-MQL is designed to query objects in the midPoint repository.
-It is a universal language used to search for objects in the repository, filter objects, set up object references, and so on. The language closely follows the midPoint xref:/midpoint/reference/schema/data-model-essentials/[data model]. Names of the properties, attributes, and all data items are directly taken from the midPoint data model (e.g. fullName, activation/effectiveStatus).
+MQL is designed to query objects in the midPoint repository, filter objects, set up object references, and so on.
+The language closely follows the midPoint xref:/midpoint/reference/schema/data-model-essentials/[data model]. Names of properties, attributes, and all data items are directly taken from the midPoint data model (e.g. fullName, activation/effectiveStatus).
 
-MQL provides the following comparison operators: "=", "!=", "<", "<=", ">", ">=" with their usual meaning. Strings may be compared also with _"startsWith"_, _"endsWith"_, _"contains"_ and _"fullText"_ operators.
+MQL provides the following comparison operators: "=", "!=", "<", "<=", ">", ">=" with their usual meaning. Strings may also be compared using the _"startsWith"_, _"endsWith"_, _"contains"_ and _"fullText"_ operators.
 Note that the fullText operator requires configuration of the fulltext index.
 
-It also provides logical operators _"and"_, _"or"_ and _"not"_. Execution of complex queries may be ordered using brackets "(" and ")".
+It also provides logical operators _"and"_, _"or"_ and _"not"_. Execution of complex queries may be ordered using brackets.
 
-Objects in midPoint are bound by relations (assignments, inducements, etc.). MQL provides dereferencing mechanism with the "@" operator which allows searching for objects using attributes and values in references. See <<advanced_query_examples,usage examples>>.
+Objects in midPoint are bound by relations (assignments, inducements, etc.). MQL provides dereferencing mechanism with the "`@`" operator which allows searching for objects using attributes and values in references. See <<advanced_query_examples,usage examples>>.
 
 You can create complex queries also using the _"matches"_ operator and _"exists"_ operators. See <<advanced_query_examples,usage examples>>.
 
@@ -26,15 +27,15 @@ For more information on operators, refer to xref:/midpoint/reference/concepts/qu
 
 == How to Start
 
-In each view in GUI, search is set to _Basic_ by default. To be able to use MQL queries, you need to unwrap the search options and select _Advanced_.
+In each view in GUI, search is set to _Basic_ by default. To be able to use MQL queries, you need to open the search options and select _Advanced_.
 
 image:advanced-query-select.webp[Select Advanced query]
 
-Each query is searching for objects within the currently opened view in GUI. If you want to search for all objects of a specific type, you need to select the relevant view (All users, All roles, All services).
+Each query searches for objects within the currently opened view in GUI. If you want to search for all objects of a specific type, you need to select the relevant view (All users, All roles, All services).
 
 It is necessary to be familiar with the internal structure of midPoint objects.
-You should at least know the basic names of attributes, have an understanding of the assignment/targetRef attribute and the roleMembershipRef attribute.
-To find the name of a specific attribute, use icon:edit[] btn:[Edit raw] button on the object details page.
+You should know the basic names of attributes, have an understanding of the assignment/targetRef attribute and the roleMembershipRef attribute.
+To find the name of a specific attribute, use the icon:edit[] btn:[Edit raw] button on the object details page.
 
 Search queries are case-sensitive. For example, the query `givenName = "John"` is different from `givenName = "john"`.
 
@@ -47,7 +48,7 @@ image:advanced-query-save-search.webp[Save filter]
 [[advanced_query_examples]]
 == Advanced Query Examples
 
-See examples of MQL queries.
+See examples of MQL queries below.
 
 === Search by Attributes in Objects and References
 
@@ -70,7 +71,7 @@ See examples of MQL queries.
 
 |Find services where the _Application URL_ extension attribute contains a specific string.
 |`extension/appUrl contains "mycompanyname.com"`
-|Attributes specific for the deployment are in objects stored as extension attributes in the <extension> XML element.
+|Attributes specific to a deployment are in objects stored as extension attributes in the <extension> XML element.
 
 To search for these attributes, you need to include "extension/" in the attribute name.
 
@@ -84,9 +85,9 @@ To search for these attributes, you need to include "extension/" in the attribut
 
 3+|*Search by attributes in referenced objects*
 
-|Find User with a specific assignment.
+|Find a user with a specific assignment.
 |`assignment/targetRef/@/name = "End user"`
-|The dereferencing operator "@" states that everything coming after it relates to the referenced object.
+|The dereferencing operator "`@`" states that everything coming after it relates to the referenced object.
 
 |Find users with an indirectly assigned service object.
 |`roleMembershipRef/@/name = "SAP application"`
@@ -172,9 +173,9 @@ The query is complex because each user has at least one assignment (the archetyp
 | `assignment/targetRef matches (targetType=RoleType and relation=owner)`
 | The relation value is of the QName type and therefore no quotation marks are used. +
 The namespace (org:owner) is optional. +
-See xref:../introduction.adoc#_Matches_Filter_in_References[matches filter in references].
+See xref:../introduction.adoc#_Matches_Filter_in_References[Matches filter in references].
 
-|Find users with accounts on a specific resource.
+|Find users with accounts in a specific resource.
 |`linkRef/@ matches ( +
 . type ShadowType +
 and resourceRef matches (oid = "093ba5b5-7b15-470a-a147-889d09c2850f") +
@@ -182,7 +183,7 @@ and intent = "default"
 )`
 |The resource is identified by OID.
 
-|Find users with an account on a specific resource.
+|Find users with an account in a specific resource.
 |`linkRef/@ matches ( +
 . type ShadowType +
 and resourceRef/@/name = "LDAP" +
@@ -205,7 +206,7 @@ It makes no difference if the user is a member or manager of the ORG.
 
 |Find all users who are members of an ORG specified by its name.
 |`parentOrgRef/@/name = "DeptA"`
-|The query is the same as the previous query, only in this case, the ORG can be conveniently specified by its name.
+|The query is the same as the previous query, only in this case, the ORG is conveniently specified by its name.
 
 |Find a manager of an ORG.
 |`parentOrgRef matches (relation=org:manager and @ matches (name  = "DeptA"))`
@@ -287,7 +288,7 @@ Views in assignments panels display the content of the "assignment" attribute, i
 
 |Find all assignments (roles or other) with the name starting with "C".
 |`targetRef/@/name startsWith "C"`
-|Dereferencing (searching with "@"") only works in the assignment panel when xref:/midpoint/guides/assignment-repository-search/index.adoc[repository search is enabled].
+|Dereferencing (searching with "`@`") only works in the assignment panel when xref:/midpoint/guides/assignment-repository-search/index.adoc[repository search is enabled].
 |===
 
 === Searching in Tasks
@@ -317,7 +318,7 @@ Technically, the reconciliation tasks may be searched also via archetype.
 
 |Find all tasks that perform reconciliation on the XYZ resource.
 |`affectedObjects/activity/activityType = "c:reconciliation" and affectedObjects/activity/resourceObjects/resourceRef/@/name = "XYZ"`
-|You can use archetypes or resource OIDs, however, dereferenced names is easier to read.
+|You can use archetypes or resource OIDs, however, dereferenced names are easier to read.
 
 |Find all simulation tasks.
 |`affectedObjects/activity/executionMode = "preview"`
@@ -372,16 +373,16 @@ Therefore, the dates must be defined explicitly and updated if necessary.
 
 |Find all events related to the "XYZ" resource.
 |`delta matches (resourceName = "XYZ")`
-|You can also use the resource OID, without dereferencing: `delta matches (resourceOid = "71dcd12f-dba3-437e-bc0d-b021d937832d" )`
+|You can also use the resource OID, without dereferencing: `delta matches (resourceOid = "71dcd12f-dba3-437e-bc0d-b021d937832d")`
 
-|Find all events related to the "john" account on the "XYZ" resource.
+|Find all events related to the "john" account in the "XYZ" resource.
 |`delta matches (resourceName = "Target2-with-roles" and shadowKind = "account" and objectName = "john")`
 |The delta components `resourceName` and `objectName` contain values relevant during the event creation.
 These may be modified at a later point.
 
-|Find all events related to user "JohnDoe" on the "XYZ" resource.
+|Find all events related to user "JohnDoe" in the "XYZ" resource.
 |`targetRef/@/name="JohnDoe" and delta matches (resourceName = "XYZ")`
-|While the previous query was searching for modifications of an account on a resource, this query provides audit events on the specified resource related to a specific user (not only accounts but potentially also entitlements or accounts with different names).
+|While the previous query was searching for modifications of an account in a resource, this query provides audit events in the specified resource related to a specific user (not only accounts but potentially also entitlements or accounts with different names).
 
 |Find all events generated by specific task (any run).
 |`taskOID="4a9b055d-2d31-474a-8e39-6a2e6ac104a2"`
@@ -389,7 +390,7 @@ These may be modified at a later point.
 
 |Find all events generated by a specific task (single run).
 |`taskIdentifier = "1695198082065-43516-1"`
-|The task identifier is individual for each run of the task.
+|The task identifier is unique for each run of the task.
 
 |Find all object modifications that did not go well.
 |`eventType = "modifyObject" and eventStage = "execution" and outcome != "success"`
@@ -397,7 +398,7 @@ These may be modified at a later point.
 
 3+|*Searching in audit deltas*
 
-|Find all events in which accounts on the "XYZ" resource were created or modified.
+|Find all events in which accounts in the "XYZ" resource were created or modified.
 |`delta matches (resourceName = "XYZ" and shadowKind = "account")`
 |
 

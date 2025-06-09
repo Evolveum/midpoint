@@ -1,56 +1,50 @@
 = Query Playground and Query Converter
 :page-nav-title: Query playground and converter
 :page-display-order: 600
+:experimental:
+:page-toc: top
 
-To experiment with the query language, there is hardly a better place than the actually running midPoint.
+This page shows you how you can experiment with midPoint Query Language (MQL) directly in midPoint, in *Query playground*, and how you can convert your XML queries to MQL in *Query converter*.
 
 
 [#_query_playground]
 == Query Playground
 
-Log in the GUI as administrator and choose *Query playground* in the main menu on the left, all the way down, just above *About*.
-
 image:query-playground.png[Query playground]
 
-To test the query, you have to:
+To experiment with a query:
 
-. Select the *Object type*,
-** Object type defines type of objects the query will be selecting from. While searching in GUI the object type is defined by actually opened view. In query playground you need to define it manually.
-** check *Distinct* if needed (first try without it),
-. write the *query* into the text area,
-. press *Translate and execute*.
-
-Alternatively use an existing example from the selection box below.
-
-You can either execute the query or just simulate it.
-In both cases you will see the translated SQL query (or HQL for the old Generic repository) and the parameter values.
+. Log into midPoint GUI as an administrator and select icon:search[] btn:[Query playground] at the bottom of the main menu on the left.
+. In Query playground, select the *Object type* from which the query will be selecting.
+    When searching in GUI, the object type is defined by the currently opened view.
+    In Query playground, you need to define it manually. +
+    Check *Distinct* if you only want to return unique objects, i.e. midPoint will eliminate duplicates and display each object only once.
+. Type your query into the text area, or use a predefined query by selecting it in the *Or use an example* drop-down menu.
+. Click btn:[Translate to SQL query] to preview the SQL query and parameters, or click btn:[Translate and execute] to run the query directly.
 
 [NOTE]
-Container value queries are not yet supported by the Query playground.
+Container value queries are not supported in Query playground.
 
 [IMPORTANT]
 ====
-The *distinct* option is often essential to get the right count of objects when searching in the Generic repository.
-This is caused by `LEFT JOIN` used even when traversing to multi-value containers.
-E.g., filter on `assignment/targetRef` causes each object with multiple assignments to be returned multiple times.
-Using Exists filter (see later) does not fix this in the Generic repository either, as it also uses `LEFT JOIN` internally.
+The *distinct* option is often essential to get the correct count of objects when searching in the Generic repository.
+This is caused by the SQL `LEFT JOIN` clause which is used when traversing to multi-value containers.
+For example, using a filter on `assignment/targetRef` causes each object with multiple assignments to be returned multiple times.
+Using the Exists filter does not fix this in the Generic repository as that repository also uses `LEFT JOIN` internally.
 
-The new xref:/midpoint/reference/repository/native-postgresql/[Native repository] does not suffer
-by these problems as it always uses SQL `EXISTS` when traversing to multi-value containers and also for Exists filter.
-Native repository actually *ignores distinct* if there is no `JOIN` in the final query, as the returned raws must be distinct.
-Native repository uses `LEFT JOIN` only to traverse across single-valued containers and references and their targets,
-so even then the distinct option is useless and, when honoured, can potentially hurt SQL performance.
+Contrary to the Generic repository, the newer xref:/midpoint/reference/repository/native-postgresql/[Native repository] does not have these problems as it always uses the SQL `EXISTS` clause both in the Exists filter, and when traversing to multi-value containers.
+The Native repository ignores the *distinct* option if there is no `JOIN` in the final query, as the returned raws must be distinct.
+Native repository uses `LEFT JOIN` only to traverse across single-valued containers and references and their targets.
+That is why using the *distinct* option with the Native repository can potentially lead to lower SQL performance.
 ====
 
 === Fluent API Script Translation
 
-Query playground offers an option to translate queries from fluent API scripts.
-This way you can debug the Groovy code for an expression directly in the GUI before using it.
+Query playground has a feature that translates queries from fluent API scripts.
+This enables you to debug the Groovy code for an expression directly in the GUI before using it:
 
-To do this, follow these steps:
-
-* Check *Translate from Query API script*, the expression text area will appear.
-* Enter the code as an expression, e.g.:
+. Check *Translate from Query API script*, the expression text area will appear.
+. Enter the code as an expression, for example:
 +
 [source, groovy]
 ----
@@ -58,9 +52,9 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*
 
 def query = midpoint.queryFor(UserType.class, "name startsWith 'a'")
 ----
-
-** You can use older XML like query definitions as well:
-
++
+You can use older XML-like query definitions as well: +
++
 [source, groovy]
 ----
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*
@@ -68,44 +62,38 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*
 prismContext.queryFor(FocusType.class)
     .item(FocusType.F_NAME).startsWith("a").build()
 ----
++
+. Select the *Object type* like you would for any other query.
+In our example, we are using the type from the `queryFor(...)` call, i.e. `FocusType`.
+. In the *Language* drop-down menu, select the language in which the script is written (_XML_/_JSON_/_YAML_).
+. Press *Translate and execute*.
+This executes the query in the expression and also shows the query in the selected language.
 
-* Select the *Object type*, just like for any other query.
-Just use the type from `queryFor(...)` call, in our example `FocusType`.
-If the query does not provide expected results, very likely the object type selection is not right.
-* Press *Translate and execute*.
+Using expressions requires proper imports.
+Depending on the complexity of the script, you may need additional imports from packages like `com.evolveum.midpoint.schema`, `com.evolveum.midpoint.prism.query`, or others.
 
-This will execute the query in the expression and also shows the query in the text area for
-XML/JSON/YAML query - in the language currently chosen.
-
-Using the expression requires proper imports - depending on the complexity of the script you
-may need additional imports from packages like `com.evolveum.midpoint.schema`,
-`com.evolveum.midpoint.prism.query` or others.
-
-NOTE: While using expressions, do not add lines performing the search itself (e.g. midpoint.searchObjects(query)) in query builder. The conversion can fail.
+[NOTE]
+====
+* If the query does not provide expected results, check that you have selected the correct object type.
+* When using expressions, do not add lines that perform the actual searches (e.g. midpoint.searchObjects(query)) in the query builder to prevent conversion failures.
+====
 
 [#_query_converter]
 == Query Converter
 
-Midpoint can help you convert your old-fashioned XML queries to midPoint Query Language.
-Query converter allows such conversion.
-
-*Query converter* is available on the second tab of *Query playground*.
+Midpoint can help you convert your old-fashioned XML queries to MQL in *Query converter* which is available in a tab next to the *Query playground* tab.
 
 image:query-converter.png[Query converter]
 
-To convert the XML query, just:
+To convert an XML query:
 
-. Select the *Object type*,
-. Write or paste your original XML query into the query converter text area
+. Select the *Object type* from which the query will be selecting.
+. Paste your full original query, i.e. starting with the `<query>` element, into the *XML Query* text area.
+    Make sure you remove namespaces from XML elements, or define them in the `<query>` element.
 . Press *Convert query*.
 
-Following *hints* can help you while converting:
 
-* Select correct object type. The resulting query depends on object type.
-* When entering XML query please enter whole query starting with `<query>` element as seen on the picture above or example below.
-* Remove namespaces from XML elements, or define required namespaces in `<query>` element. See examples below.
-
-.Example without namespaces
+.An example without namespaces
 [source,xml]
 ----
 <query>
@@ -119,7 +107,7 @@ Following *hints* can help you while converting:
 </query>
 ----
 
-.Example with namespace definition
+.An example with a namespace definition
 [source,xml]
 ----
 <query xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3">
