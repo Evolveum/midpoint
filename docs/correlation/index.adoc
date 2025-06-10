@@ -191,16 +191,16 @@ An example:
 ----
 
 
-==== Example 4: Correlation for outbound resources
+==== Example 4: Correlation for Outbound Resources
 
 Smart correlation relies on inbound mapping converting resource's attribute to a property of midPoint object.
 Such approach is perfect for inbound resources because it simplifies the configuration.
-Nevertheless, there are use cases with strictly outbound resource with existing accounts that need to be correlater.
+Nevertheless, there are use cases with strictly outbound resource with existing accounts that need to be correlator.
 In such cases having an inbound mapping is not desired.
 
 For this situation midPoint supports the option to configure mapping for evaluation only for correlation and not for "standard" processing (by clockwork).
 
-.Listing 4. use inbound mapping only for correlation
+.Listing 4. Using inbound mapping only for correlation
 [source,xml]
 ----
 <schemaHandling>
@@ -223,8 +223,8 @@ For this situation midPoint supports the option to configure mapping for evaluat
     </objectType>
 </schemaHandling>
 ----
-<1> Means that the inbound mapping will be used only for correlation and otherwise won't be processed
-<2> Represents the outbound mapping as usual
+<1> Means that the inbound mapping will be used only for correlation and otherwise won't be processed.
+<2> Represents the outbound mapping as usual.
 
 == Advanced Concepts
 
