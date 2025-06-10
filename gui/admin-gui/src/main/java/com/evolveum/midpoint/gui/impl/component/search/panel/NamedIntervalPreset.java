@@ -34,25 +34,25 @@ public record NamedIntervalPreset(
 
     @Override
     public int compareTo(@NotNull NamedIntervalPreset o) {
-        if (o == null) {
-            return 1; // nulls are always "less" than non-null
-        }
-
         Pair<XMLGregorianCalendar, XMLGregorianCalendar> interval = getInterval();
-        Long from = interval.getLeft() != null ? interval.getLeft().toGregorianCalendar().getTimeInMillis() : null;
-        Long to = interval.getRight() != null ? interval.getRight().toGregorianCalendar().getTimeInMillis() : null;
+        Long from = millisFromCalendar(interval.getLeft());
+        Long to = millisFromCalendar(interval.getRight());
 
         Pair<Long, Long> first = Pair.of(from, to);
 
         Pair<XMLGregorianCalendar, XMLGregorianCalendar> otherInterval = o.getInterval();
-        Long otherFrom = otherInterval.getLeft() != null ? otherInterval.getLeft().toGregorianCalendar().getTimeInMillis() : null;
-        Long otherTo = otherInterval.getRight() != null ? otherInterval.getRight().toGregorianCalendar().getTimeInMillis() : null;
+        Long otherFrom = millisFromCalendar(otherInterval.getLeft());
+        Long otherTo = millisFromCalendar(otherInterval.getRight());
 
         Pair<Long, Long> second = Pair.of(otherFrom, otherTo);
 
         return Comparator.comparing((Pair<Long, Long> value) -> value.getLeft(), Comparator.nullsFirst(Comparator.naturalOrder()))
                 .thenComparing((Pair<Long, Long> value) -> value.getRight(), Comparator.nullsFirst(Comparator.naturalOrder()))
                 .compare(first, second);
+    }
+
+    private Long millisFromCalendar(XMLGregorianCalendar calendar) {
+        return calendar != null ? calendar.toGregorianCalendar().getTimeInMillis() : null;
     }
 
     public Pair<XMLGregorianCalendar, XMLGregorianCalendar> getInterval() {

@@ -452,17 +452,14 @@ public class ActivityTreeStateOverview {
         }
 
         int maxRecordsPerTask = beans.operationExecutionRecorder.getMaximumRecordsPerTask();
-
-        if (history.size() <= maxRecordsPerTask) {
-            return List.of();
+        if (maxRecordsPerTask <= 0) {
+            return history.stream()
+                    .map(TaskRunHistoryType::clone)
+                    .toList();
         }
 
-        int toRemove = history.size() - maxRecordsPerTask + 1;
-        if (toRemove <= 0) {
-            return List.of();
-        }
-
-        if (toRemove >= history.size()) {
+        int itemsToRemove = history.size() - maxRecordsPerTask + 1;
+        if (itemsToRemove >= history.size()) {
             return history.stream()
                     .map(TaskRunHistoryType::clone)
                     .toList();
@@ -476,7 +473,7 @@ public class ActivityTreeStateOverview {
                         .thenComparing(
                                 t -> getMillisFromCalendar(t.getRunEndTimestamp()),
                                 Comparator.nullsFirst(Comparator.naturalOrder())))
-                .limit(toRemove)
+                .limit(itemsToRemove)
                 .map(t -> t.clone()) // clone to avoid modifying the original items
                 .toList();
     }

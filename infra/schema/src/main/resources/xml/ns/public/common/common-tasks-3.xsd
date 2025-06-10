@@ -673,6 +673,7 @@
             <xsd:appinfo>
                 <a:since>4.10</a:since>
                 <a:container>true</a:container>
+                <a:operational>true</a:operational>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>

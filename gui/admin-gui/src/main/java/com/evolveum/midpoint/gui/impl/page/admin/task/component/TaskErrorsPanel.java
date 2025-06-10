@@ -8,7 +8,6 @@ package com.evolveum.midpoint.gui.impl.page.admin.task.component;
 
 import java.text.DateFormat;
 import java.util.*;
-import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
 import org.apache.commons.lang3.tuple.Pair;
@@ -355,21 +354,6 @@ public class TaskErrorsPanel extends AbstractObjectMainPanel<TaskType, TaskDetai
     private SearchContext createAdditionalSearchContext() {
         SearchContext ctx = new SearchContext();
 
-        NamedIntervalPreset current = new NamedIntervalPreset(
-                () -> {
-                    TaskType task = getObjectWrapperObject().asObjectable();
-                    TaskInformation info = TaskInformation.createForTask(task, task);
-                    XMLGregorianCalendar startTimestamp = info.getStartTimestamp();
-                    if (startTimestamp == null) {
-                        return null;
-                    }
-
-                    return startTimestamp.toGregorianCalendar().getTimeInMillis();
-                },
-                null,
-                null,
-                new SingleLocalizableMessage("TaskErrorsPanel.showCurrentRun"));
-
         TaskType task = getObjectWrapperObject().asObjectable();
         List<NamedIntervalPreset> runHistoryPresets = task.getTaskRunHistory().stream()
                 .map(r -> {
@@ -380,29 +364,32 @@ public class TaskErrorsPanel extends AbstractObjectMainPanel<TaskType, TaskDetai
 
                     return Pair.of(start, end);
                 })
-                .map(p ->
-                    new NamedIntervalPreset(
-                            () -> p.getLeft(),
-                            () -> p.getRight(),
-                            null,
+                .map(p -> {
+                    SingleLocalizableMessage msg = p.getRight() != null ?
+                            // previous run
                             new SingleLocalizableMessage(
                                     "TaskErrorsPanel.runHistoryPreset",
                                     new Object[] {
                                             p.getLeft() != null ? WebComponentUtil.formatDate(DateFormat.SHORT, new Date(p.getLeft())) : "",
                                             p.getRight() != null ? WebComponentUtil.formatDate(DateFormat.SHORT, new Date(p.getRight())) : ""
-                                    }))
-                )
-                .sorted()
+                                    })
+                            :
+                            // current run
+                            new SingleLocalizableMessage("TaskErrorsPanel.showCurrentRun");
+
+                    return new NamedIntervalPreset(() -> p.getLeft(), () -> p.getRight(), null, msg);
+                })
+                .sorted(Comparator.reverseOrder())
                 .toList();
 
         List<NamedIntervalPreset> presets = new ArrayList<>();
-        presets.add(current);
         presets.addAll(runHistoryPresets);
-
         presets.addAll(NamedIntervalPreset.DEFAULT_PRESETS);
 
         ctx.setIntervalPresets(OperationExecutionType.F_TIMESTAMP, presets);
-        ctx.setSelectedIntervalPreset(OperationExecutionType.F_TIMESTAMP, current);
+
+        NamedIntervalPreset selected = !runHistoryPresets.isEmpty() ? runHistoryPresets.get(0) : NamedIntervalPreset.LAST_1_DAY;
+        ctx.setSelectedIntervalPreset(OperationExecutionType.F_TIMESTAMP, selected);
 
         return ctx;
     }
