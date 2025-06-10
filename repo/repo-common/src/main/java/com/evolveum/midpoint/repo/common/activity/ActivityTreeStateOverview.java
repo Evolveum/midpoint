@@ -506,24 +506,16 @@ public class ActivityTreeStateOverview {
 
             TaskRunHistoryType cloned = history.clone();
             cloned.setRunEndTimestamp(XmlTypeConverter.createXMLGregorianCalendar());
+            // replacing the whole container, because we don't have container ID in memory
             rootTask.modify(
                     PrismContext.get().deltaFor(TaskType.class)
                             .item(TaskType.F_TASK_RUN_HISTORY)
-                            .add(cloned)
                             .delete(history.clone())
+                            .add(cloned)
                             .asItemDelta());
-
-//            Long id = history.asPrismContainerValue().getId();
-//
-//            rootTask.modify(
-//                    PrismContext.get().deltaFor(TaskType.class)
-//                            .item(TaskType.F_TASK_RUN_HISTORY, id, TaskRunHistoryType.F_RUN_END_TIMESTAMP)
-//                            .add(XmlTypeConverter.createXMLGregorianCalendar())
-//                            .asItemDelta());
         } catch (SchemaException ex) {
             throw new ActivityRunException("Couldn't update task run identifier in the activity tree", FATAL_ERROR, PERMANENT_ERROR, ex);
         }
-
     }
 
     private ActivityStateOverviewType getActivityStateTree() {

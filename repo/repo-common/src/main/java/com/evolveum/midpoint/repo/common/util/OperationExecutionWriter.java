@@ -218,6 +218,7 @@ public class OperationExecutionWriter implements SystemConfigurationChangeListen
         // Let us continue with matching record type only.
         recordsToConsider.removeIf(record -> !recordTypeMatches(record, currentRecordType));
 
+        // Group records by task oid and delete the oldest ones if maxRecordsPerTask is exceeded
         Map<String, List<OperationExecutionType>> recordsByTask = recordsToConsider.stream()
                 .collect(Collectors.groupingBy(r -> r.getTaskRef() != null ?r.getTaskRef().getOid() : null));
 
