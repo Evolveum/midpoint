@@ -38,7 +38,7 @@ Requirement that every application should have an owner is present in almost eve
 The ideal place for implementation of this governance rule is _Application_ archetype.
 _Application_ archetype is a pre-configured object (present in default xref:/midpoint/reference/deployment/initial-objects/[initial objects]) which is applied to all applications.
 Therefore, natural method of enforcing a policy rules is to place the rule inside an xref:/midpoint/reference/roles-policies/assignment/assignment-vs-inducement/[inducement] in the _Application_ archetype.
-As the xref:/midpoint/reference/schema/archetypes/[archetype] efficiently acts as a xref:/midpoint/reference/support-4.9/roles-policies/metaroles/[meta-role], the policy rule in the inducement is applied to all applications.
+As the xref:/midpoint/reference/schema/archetypes/[archetype] efficiently acts as a xref:/midpoint/reference/roles-policies/metaroles/[meta-role], the policy rule in the inducement is applied to all applications.
 
 .Application archetype
 [source,xml]
