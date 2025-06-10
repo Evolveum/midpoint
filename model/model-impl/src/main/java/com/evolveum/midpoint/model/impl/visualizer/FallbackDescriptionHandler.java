@@ -17,7 +17,9 @@ import com.evolveum.midpoint.prism.ComplexTypeDefinition;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.delta.ChangeType;
+import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.LocalizationUtil;
 import com.evolveum.midpoint.task.api.Task;
 
 import com.evolveum.midpoint.util.LocalizableMessage;
@@ -108,6 +110,11 @@ public class FallbackDescriptionHandler implements VisualizationDescriptionHandl
                 return displayName;
             }
         }
+        var objectType = ObjectTypes.getObjectTypeFromTypeQName(value.getTypeName());
+        if (objectType != null) {
+            return LocalizationUtil.createKeyForEnum(objectType);
+        }
+
         return value.getCompileTimeClass().getSimpleName();
     }
 

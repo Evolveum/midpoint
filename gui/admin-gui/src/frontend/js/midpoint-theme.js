@@ -1239,8 +1239,17 @@ export default class MidPointTheme {
         }
     }
 
+    updateStatusMessageByPath(path, textValue, timeout) {
+        const element = document.querySelector(`[data-component-id="${path}"]`);
+        this._updateStatusMessageElement(element, textValue, timeout);
+    }
+
     updateStatusMessage(elementId, textValue, timeout) {
         const element = document.getElementById(elementId);
+        this._updateStatusMessageElement(element, textValue, timeout);
+    }
+
+    _updateStatusMessageElement(element, textValue, timeout) {
         if (element) {
             element.innerText = '';
             setTimeout(() => {
