@@ -1,3 +1,9 @@
+/*
+ * Copyright (C) 2025 Evolveum and contributors
+ *
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
+ */
 package com.evolveum.midpoint.notifications.impl.formatters;
 
 import java.util.ArrayList;
@@ -12,8 +18,12 @@ import com.evolveum.midpoint.common.LocalizationService;
 import com.evolveum.midpoint.model.api.visualizer.VisualizationDeltaItem;
 import com.evolveum.midpoint.model.api.visualizer.VisualizationItem;
 import com.evolveum.midpoint.model.api.visualizer.VisualizationItemValue;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 
 final class ContainerPropertiesModificationFormatter implements PropertiesFormatter<VisualizationDeltaItem> {
+
+    private static final Trace LOGGER = TraceManager.getTrace(ContainerPropertiesModificationFormatter.class);
 
     private final PropertiesFormatter<VisualizationItem> propertiesFormatter;
     private final IndentationGenerator indentationGenerator;
@@ -29,6 +39,7 @@ final class ContainerPropertiesModificationFormatter implements PropertiesFormat
 
     @Override
     public String formatProperties(Collection<VisualizationDeltaItem> items, int nestingLevel) {
+        LOGGER.trace("Formatting the properties: {}", items);
         if (items.isEmpty()) {
             return "";
         }
@@ -48,7 +59,7 @@ final class ContainerPropertiesModificationFormatter implements PropertiesFormat
         final String baseIndentation = this.indentationGenerator.indentation(nestingLevel);
         final int propertiesNestingLevel = nestingLevel + 1;
 
-        return Stream.of(
+        var formatingResult = Stream.of(
                 prefixIfNotEmpty(baseIndentation, "Added properties:\n", formatAddedProperties(addedProperties,
                         propertiesNestingLevel)),
                 prefixIfNotEmpty(baseIndentation, "Deleted properties:\n", formatDeletedProperties(deletedProperties,
@@ -57,6 +68,8 @@ final class ContainerPropertiesModificationFormatter implements PropertiesFormat
                         propertiesNestingLevel)))
                 .filter(Predicate.not(String::isEmpty))
                 .collect(Collectors.joining("\n"));
+        LOGGER.trace("Properties formatting ends up with result: {}", formatingResult);
+        return formatingResult;
     }
 
     @Override
