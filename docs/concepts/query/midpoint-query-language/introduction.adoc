@@ -83,7 +83,7 @@ The exact syntax of queries for values of different types is described in the fo
 
 | dateTime
 | `metadata/createTimestamp >= "2024-03-01"`
-| DateTime values are enclosed in quotes (`'`) or double quotes (`"`). They can be compared as dates, or as date and time (following the of https://en.wikipedia.org/wiki/ISO_8601[ISO-8601] format).
+| DateTime values are enclosed in quotes (`'`) or double quotes (`"`). They can be compared as dates, or as date and time (following the https://en.wikipedia.org/wiki/ISO_8601[ISO-8601] format).
 
 |
 | `metadata/createTimestamp >= "2024-03-01T15:30:00"`
