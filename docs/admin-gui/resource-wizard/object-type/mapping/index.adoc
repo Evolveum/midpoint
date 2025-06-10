@@ -7,7 +7,7 @@
 Mapping is a mechanism that takes input properties from the source, transforms them, and inserts the result into another property that is then used by a resource.
 In other words, mapping enables you to use the data from your source systems, such as HR applications, and adapt them so that you can use them in your target systems, such as LDAP.
 
-To access mappings, click icon:database[] *Resources* > icon:database[] *All resources* > *your_resource* > icon:male[] *Accounts* > icon:cog[] *Configure* > icon:retweet[] *Mappings*.
+To access mappings, click icon:database[] *Resources* > icon:database[] *All resources* > *your_resource* > icon:male[] *Accounts* > icon:cog[] *Configure* > icon:retweet[] *Mappings*.
 
 Mappings are composed of two complementary parts:
 
@@ -29,7 +29,7 @@ image::step-2-mappings-inbound.png[link=step-2-mappings-inbound.png, 100%, title
 
 To add an inbound mapping:
 
-. Go to icon:database[] *Resources* > icon:database[] *All resources* > *your_resource* > icon:male[] *Accounts* > icon:cog[] *Configure* > icon:retweet[] *Mappings*.
+. Go to icon:database[] *Resources* > icon:database[] *All resources* > *your_resource* > icon:male[] *Accounts* > icon:cog[] *Configure* > icon:retweet[] *Mappings*.
 . Click icon:circle-plus[] btn:[Add inbound].
 . Configure the following: +
     * *Name*: Name of the mapping. This is convenient during troubleshooting and when using xref:/midpoint/reference/resources/resource-configuration/inheritance/[resource template inheritance].
@@ -51,13 +51,13 @@ To add an inbound mapping:
     This can be used for xref:/midpoint/reference/admin-gui/simulations/[Simulations].
     For example, if you set the lifecycle state to `Proposed`, it will only be used to simulate the mapping without influencing the real data.
     Alternatively, setting the lifecycle state to `Draft` disables the mapping, etc.
-. Click icon:check[] btn:[Save mappings]
+. Click icon:check[] btn:[Save mappings]
 
-You can access xref:/midpoint/reference/admin-gui/resource-wizard/object-type/mapping/advanced-mappings.adoc#advanced_inbound_mappings[advanced inbound mapping configuration] by clicking its icon:edit[] *Edit* icon.
+You can access xref:/midpoint/reference/admin-gui/resource-wizard/object-type/mapping/advanced-mappings.adoc#advanced_inbound_mappings[advanced inbound mapping configuration] by clicking the icon:edit[] *Edit* button.
 
-You can delete a mapping by clicking the icon:trash-alt[] *Delete* icon.
+You can delete a mapping by clicking icon:trash-alt[] *Delete*.
 
-Click icon:shuffle[] btn:[Attribute overrides] if you need to <<attribute_override,override attribute>> visibility or other behavior.
+Click icon:shuffle[] btn:[Attribute overrides] if you need to <<attribute_override,override attribute>> visibility or other behavior.
 
 [[outbound_mappings]]
 == Outbound Mappings
@@ -68,18 +68,18 @@ image::step-2-mappings-outbound.png[link=step-2-mappings-outbound.png, 100%, tit
 
 To add an outbound mapping:
 
-. Go to icon:database[] *Resources* > icon:database[] *All resources* > *your_resource* > icon:male[] *Accounts* > icon:cog[] *Configure* > icon:retweet[] *Mappings* > icon:arrow-right-from-bracket[] *Outbound mappings (to Resource)*.
+. Go to icon:database[] *Resources* > icon:database[] *All resources* > *your_resource* > icon:male[] *Accounts* > icon:cog[] *Configure* > icon:retweet[] *Mappings* > icon:arrow-right-from-bracket[] *Outbound mappings (to Resource)*.
 . Click btn:[Add outbound].
 . Configure the individual settings.
 The available settings are the same as for <<inbound_mappings,inbound mappings>>.
 The difference is that while inbound mappings control data transfer between source systems and midPoint, outbound mappings control data transfer from midPoint to target systems, such as LDAP.
-. Click icon:check[] btn:[Save mappings]
+. Click icon:check[] btn:[Save mappings]
 
-You can access xref:/midpoint/reference/admin-gui/resource-wizard/object-type/mapping/advanced-mappings.adoc#advanced_outbound_mappings[advanced outbound mapping configuration] by clicking the icon:edit[] *Edit* icon.
+You can access xref:/midpoint/reference/admin-gui/resource-wizard/object-type/mapping/advanced-mappings.adoc#advanced_outbound_mappings[advanced outbound mapping configuration] by clicking the icon:edit[] *Edit* button.
 
 TIP: You can test new mappings without influencing the real data by setting their *Lifecycle state* to _Proposed_ and use xref:/midpoint/reference/admin-gui/simulations/[Simulations].
 
-Click icon:shuffle[] btn:[Attribute overrides] if you need to <<attribute_override,override attribute>> visibility or other behavior.
+Click icon:shuffle[] btn:[Attribute overrides] if you need to <<attribute_override,override attribute>> visibility or other behavior.
 
 
 [[attribute_override]]
@@ -90,7 +90,7 @@ For more details on attributes, see the xref:/midpoint/reference/resources/resou
 
 image::step-2-mappings-override.png[link=step-2-mappings-override.png, 100%, title=Table of attribute overrides]
 
-. On the inbound/outbound mappings page, click icon:shuffle[] btn:[Attribute overrides].
+. On the inbound/outbound mappings page, click icon:shuffle[] btn:[Attribute overrides].
 You can then override the following attribute parameters:
 
     * *Ref*: Specifies the path to the attribute.
@@ -105,9 +105,9 @@ The path must point to an object property or to an attribute in the resource sch
     If set to _False_, these other values are not tolerated.
     When midPoint detects them, e.g. during a reconciliation, it removes them.
     * *Lifecycle state*: Defines the xref:/midpoint/reference/concepts/object-lifecycle/[lifecycle state] of the attribute.
-. Click icon:check[] btn:[Save overrides] to save your changes.
+. Click icon:check[] btn:[Save overrides] to save your changes.
 
-You can access xref:/midpoint/reference/admin-gui/resource-wizard/object-type/mapping/advanced-mappings.adoc#advanced_attribute_override[advanced attribute override configuration] by clicking the icon:edit[] *Edit* icon.
+You can access xref:/midpoint/reference/admin-gui/resource-wizard/object-type/mapping/advanced-mappings.adoc#advanced_attribute_override[advanced attribute override configuration] by clicking the icon:edit[] *Edit* button.
 
 include::../../limitation-all.adoc[]
 
