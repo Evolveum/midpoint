@@ -76,8 +76,6 @@ public abstract class SingleSearchItemPanel<S extends AbstractSearchItemWrapper>
         return get(createComponentPath(ID_SEARCH_ITEM_CONTAINER, ID_SEARCH_ITEM_FIELD));
     }
 
-    ;
-
     protected void initLayout() {
         setOutputMarkupId(true);
 
@@ -147,6 +145,8 @@ public abstract class SingleSearchItemPanel<S extends AbstractSearchItemWrapper>
         };
         removeButton.add(new VisibleBehaviour(() -> canRemoveSearchItem()));
         removeButton.setOutputMarkupId(true);
+        removeButton.add(AttributeModifier.replace("title",
+                getParentPage().createStringResource("SingleSearchItemPanel.removeProperty", createLabelModel().getObject())));
         searchItemContainer.add(removeButton);
     }
 

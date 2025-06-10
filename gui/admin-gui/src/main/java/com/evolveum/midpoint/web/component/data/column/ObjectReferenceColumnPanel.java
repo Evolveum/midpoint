@@ -83,6 +83,7 @@ public class ObjectReferenceColumnPanel extends BasePanel<ObjectReferenceType> {
                 DetailsPageUtil.dispatchToObjectDetailsPage(ObjectReferenceColumnPanel.this.getModelObject(), ObjectReferenceColumnPanel.this, false);
             }
         };
+        name.setVisible(target.getObject() != null);
         add(name);
     }
 
