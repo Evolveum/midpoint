@@ -7,7 +7,6 @@
 package com.evolveum.midpoint.gui.impl.prism.panel;
 
 import com.evolveum.midpoint.util.exception.CommonException;
-import com.evolveum.midpoint.web.component.data.SelectableDataTable;
 import com.evolveum.midpoint.web.util.ExpressionValidator;
 
 import org.apache.commons.collections4.CollectionUtils;
@@ -19,9 +18,9 @@ import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.feedback.ComponentFeedbackMessageFilter;
 import org.apache.wicket.markup.html.WebMarkupContainer;
-import org.apache.wicket.markup.html.form.FormComponent;
+import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.LambdaModel;
+import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
@@ -42,7 +41,6 @@ import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
-import org.apache.wicket.util.visit.IVisitor;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -63,6 +61,8 @@ public abstract class PrismValuePanel<T, IW extends ItemWrapper, VW extends Pris
     private static final String ID_SHOW_METADATA = "showMetadata";
 
     private static final String ID_METADATA = "metadata";
+
+    private static final String ID_DELETE_STATUS = "deleteStatusMessage";
 
     private final ItemPanelSettings settings;
 
@@ -94,6 +94,11 @@ public abstract class PrismValuePanel<T, IW extends ItemWrapper, VW extends Pris
         WebMarkupContainer buttonContainer = new WebMarkupContainer(ID_HEADER_CONTAINER);
         buttonContainer.add(new VisibleBehaviour(() -> getSettings() != null && !getSettings().isDisplayedInColumn()));
 
+        Label statusMessage = new Label(ID_DELETE_STATUS, Model.of(""));
+        statusMessage.setOutputMarkupId(true);
+        statusMessage.add(AttributeAppender.append("data-component-id", statusMessage::getPageRelativePath));
+        buttonContainer.add(statusMessage);
+
         AjaxLink<Void> removeButton = new AjaxLink<>(ID_REMOVE_BUTTON) {
             private static final long serialVersionUID = 1L;
 
@@ -101,6 +106,8 @@ public abstract class PrismValuePanel<T, IW extends ItemWrapper, VW extends Pris
             public void onClick(AjaxRequestTarget target) {
                 try {
                     PrismValuePanel.this.remove(PrismValuePanel.this.getModelObject(), target);
+                    target.appendJavaScript(String.format("MidPointTheme.updateStatusMessageByPath('%s', '%s', %d);",
+                            statusMessage.getPageRelativePath(), getString("PrismValuePanel.deleteInfo"), 150));
                 } catch (SchemaException e) {
                     LOGGER.error("Cannot remove value: {}", getModelObject());
                     getSession().error("Cannot remove value " + getModelObject());
