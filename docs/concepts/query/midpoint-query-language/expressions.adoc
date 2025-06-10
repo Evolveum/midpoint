@@ -1,52 +1,52 @@
-= Using expressions in midPoint Query Language
+= Using Expressions in midPoint Query Language
 :page-nav-title: Expressions
 :page-display-order: 200
 :page-toc: top
 :page-moved-from: /midpoint/reference/concepts/query/axiom-query-language/expressions/
 :triple-backtick: ```
+:experimental:
 
-MidPoint Query Language provides special syntax support for most common
-expression types.
+MidPoint Query Language (MQL) provides a special syntax support for most common expression types.
 
-IMPORTANT: Expressions are not executed / supported for user entered queries in
-search box in midPoint GUI, since that would allow users to execute code and
-may pose additional security risks.
+IMPORTANT: To ensure security, expressions are not executed in search boxes in midPoint GUI as that would enable users to execute code.
 
-Script expressions are supported for following filters:
+Script expressions are supported for the following filters:
 
-* **Value comparison filters**
-** `=`, `<`, `>`, `&lt;=`, `>=`
-** `equal`, `less`, `greater`, `lessOrEqual`, `greaterOrEqual`
-* **String filters**
-** `contains`, `startsWith`, `endsWith`
+* xref:introduction.adoc#comparison_filters[*Value comparison filters*]
+    ** `=`, `<`, `>`, `&lt;=`, `>=`
+    ** `equal`, `less`, `greater`, `lessOrEqual`, `greaterOrEqual`
+* xref:introduction.adoc#string_filters[*String filters*]
+    ** `contains`, `startsWith`, `endsWith`
 
 
-== Path Expression
+== Path Expressions
 
-The syntax for path expression is pretty straight-forward, since most path expression
-references variable.
+The syntax for path expressions is straight-forward since most path expressions reference variables.
 
-Variables start with dollar `$` symbol. Note that variables are only supported
-as right-hand side value.
+Variables start with the dollar `$` symbol and they are only supported as right-hand side values.
 
-.Path Expression in Equals filter
+.Path expression in an Equals filter
 ----
 name = $c:account/c:attributes/ri:uid
 ----
 
 
-== Script
+== Scripts
 
-There are two syntax options for script expression: single-line scripts and multi-line scripts.
-By default, scripts are Groovy scripts unless other scripting language is specified.
+There are two syntax options for script expressions:
+
+* single-line scripts
+* multi-line scripts
+
+By default, scripts are xref:/midpoint/reference/expressions/expressions/script/#languages[Groovy scripts], unless other scripting language is specified.
 
 .Single-line Groovy expression
 ----
 @metadata/storage/createTimestamp > `basic.fromNow("-P30D")`
 ----
 
-Single-line expressions are written as strings surrounded with single ``` (backtick)
-character. This allows you to use quotes inside script without need to escape them.
+Single-line expressions are written as strings surrounded by single backtick (```) characters.
+This enables you to use quotes inside scripts without needing to escape them.
 
 .Multi-line Groovy expression
 ----
@@ -57,35 +57,31 @@ character. This allows you to use quotes inside script without need to escape th
     ```
 ----
 
-The syntax for multi-line expressions is a bit more elaborated, multi-line script
-starts with triple backticks followed by new-line (`{triple-backtick}\n`).
-Script body is closed by triple backticks (`{triple-backtick}`). This minimizes
-need for escaping most of the quotes or sequences inside the script body.
+The syntax for multi-line expressions starts with triple backticks followed by a new-line (`{triple-backtick}\n`).
+The script body is enclosed by triple backticks (`{triple-backtick}`).
+This minimizes the need for escaping most of the quotes or sequences inside the script body.
 
-NOTE: Script expressions are not allowed in search box in GUI.
+=== Other Scripting Languages
 
-=== Other Scripting languages
-
-You can use other supported scripting language for expressions, by prefixing
-quotes with language name e.g.:
+You can use xref:/midpoint/reference/expressions/expressions/script/#languages[other supported scripting languages] in expressions, by prefixing
+the script quotes with the language name, for example:
 
 [source]
 ----
 @metadata/storage/createTimestamp > groovy`basic.fromNow("-P30D")`
 ----
 
-The language name is same as you would use in XML filter script expressions.
+The language name is the same as in XML filter script expressions.
 
-== Other expression types
+== Other Expression Types
 
-If you plan to use expression type, which does not have simplified syntax,
-you can use `yaml` expression (`yaml` language is only available in midPoint queries).
+If you plan to use an expression type that does not have a simplified syntax, you can use YAML expressions.
 
-`yaml` expression allows you to pass-thru standard `expression` element
-serialized in YAML format.
+NOTE: In midPoint, YAML is only available in queries.
 
-This is useful, if you need to define additional properties of expression,
-or use other expression types, which does not have built-in syntax support.
+YAML expressions enable you to use the standard `expression` element serialized in the YAML format.
+
+This is useful when you need to define additional properties for an expression, or use other expression types that do not have a built-in syntax support.
 
 ----
 @metadata/storage/createTimestamp > yaml```
@@ -100,11 +96,10 @@ or use other expression types, which does not have built-in syntax support.
 
 [WARNING]
 ====
-You *have to indent* the content of the YAML expression with at least
-one space, otherwise it will not parse with quite an obscure error.
-// TODO fixed in 4.9? MID-8286
+You have to indent the content of YAML expressions with at least one space.
+// TODO fixed in 4.9? MID-8286. Edit: https://support.evolveum.com/wp/8286
 ====
 
 == See Also
 
-* xref:/midpoint/reference/expressions/expressions/[Expressions] in general
+* xref:/midpoint/reference/expressions/expressions/[Expressions]
