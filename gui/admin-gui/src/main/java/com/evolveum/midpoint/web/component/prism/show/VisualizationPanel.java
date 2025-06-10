@@ -49,9 +49,11 @@ import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.util.TooltipBehavior;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
+import java.io.Serial;
+
 public class VisualizationPanel extends BasePanel<VisualizationDto> {
 
-    private static final long serialVersionUID = 1L;
+    @Serial private static final long serialVersionUID = 1L;
 
     public static final String ID_ICON = "icon";
     public static final String ID_OVERVIEW = "overview";
@@ -104,8 +106,7 @@ public class VisualizationPanel extends BasePanel<VisualizationDto> {
         // we want to minimalize delta details panel if there is good enough overview for this delta
         // e.g. "Role "TestRole" assigned" is enough for assignment adding delta
         // but in case of object delta, we don't want to minimalize it by default
-        Visualization visualization = getModelObject().getVisualization();
-        return visualization.getOwner() != null && overviewModel.getObject() != null;
+        return useOverview();
     }
 
     private void initModels() {
@@ -151,8 +152,6 @@ public class VisualizationPanel extends BasePanel<VisualizationDto> {
         final VisibleBehaviour visibleIfNotWrapper = new VisibleBehaviour(() -> !getModelObject().isWrapper());
         final VisibleBehaviour visibleIfWrapper = new VisibleBehaviour(() -> getModelObject().isWrapper());
 
-        final IModel<VisualizationDto> model = getModel();
-
         final WebMarkupContainer headerPanel = new WebMarkupContainer(ID_HEADER_PANEL);
         headerPanel.add(new AjaxEventBehavior("click") {
             @Override
@@ -181,11 +180,11 @@ public class VisualizationPanel extends BasePanel<VisualizationDto> {
 
         final Label overview = new Label(ID_OVERVIEW, overviewModel);
         overview.setEscapeModelStrings(false);
-        overview.add(new VisibleBehaviour(() -> overviewModel.getObject() != null));
+        overview.add(new VisibleBehaviour(this::useOverview));
         headerPanel.add(overview);
 
         WebMarkupContainer fullDescription = new WebMarkupContainer("fullDescription");
-        fullDescription.add(new VisibleBehaviour(() -> overviewModel.getObject() == null));
+        fullDescription.add(new VisibleBehaviour(() -> !useOverview()));
         headerPanel.add(fullDescription);
 
         IModel<String> displayNameModel = () -> {
@@ -338,11 +337,9 @@ public class VisualizationPanel extends BasePanel<VisualizationDto> {
         final Visualization visualization = getModelObject().getVisualization();
         final PrismContainerValue<?> value = visualization.getSourceValue();
 
-        if (value == null || !(value.getParent() instanceof PrismObject)) {
+        if (value == null || !(value.getParent() instanceof PrismObject<?> obj)) {
             return false;
         }
-
-        PrismObject<?> obj = (PrismObject<?>) value.getParent();
 
         return DetailsPageUtil.hasDetailsPage(obj) &&
                 obj.getOid() != null && (visualization.getSourceDelta() == null || !visualization.getSourceDelta().isAdd());
@@ -409,5 +406,28 @@ public class VisualizationPanel extends BasePanel<VisualizationDto> {
 
             return LocalizationUtil.translate(SchemaConstants.OBJECT_TYPE_KEY_PREFIX + def.getTypeName().getLocalPart());
         }
+    }
+
+    private boolean useOverview() {
+        if (overviewModel == null || overviewModel.getObject() == null) {
+            return false;
+        }
+        Visualization visualization = getModelObject().getVisualization();
+        var def = visualization.getSourceDefinition();
+        // in GUI we want to show an object name as a link in some cases
+        // therefore we cannot use the overview translated message (generated as one string label)
+        // but we should use full description (with display name as a part which can be generated in GUI as a link)
+        if (def != null && def.canRepresent(ObjectType.COMPLEX_TYPE)) {
+            return false;
+        }
+        var sourceVal = getModelObject().getVisualization().getSourceValue();
+        if (sourceVal != null) {
+            var containerName = sourceVal.getTypeName();
+            var containerClass = WebComponentUtil.qnameToClass(containerName);
+            if (ObjectType.class.isAssignableFrom(containerClass)) {
+                return false;
+            }
+        }
+        return true;
     }
 }
