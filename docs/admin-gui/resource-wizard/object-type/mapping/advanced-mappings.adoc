@@ -16,9 +16,9 @@ image::step-2-mappings-inbound.png[link=step-2-mappings-inbound.png, 100%, title
 In addition to the xref:/midpoint/reference/admin-gui/resource-wizard/object-type/mapping/index.adoc#inbound_mappings[basic inbound mapping settings], you can use a more advanced configuration:
 
 [#use_inbound_for_correlation]
-. Go to icon:database[] *Resources* > icon:database[] *All resources* > *your_resource* > icon:male[] *Accounts* > icon:cog[] *Configure* > icon:retweet[] *Mappings*.
+. Go to icon:database[] *Resources* > icon:database[] *All resources* > *your_resource* > icon:male[] *Accounts* > icon:cog[] *Configure* > icon:retweet[] *Mappings*.
 
-. For an existing inbound mapping, click the icon:edit[] *Edit* icon, and configure:
+. For an existing inbound mapping, click icon:edit[] *Edit*, and configure:
 
     * *Strength*: Defines how aggressively the mapping is applied:
         ** _Strong_: Always enforces source values.
@@ -52,13 +52,13 @@ In addition to the xref:/midpoint/reference/admin-gui/resource-wizard/object-typ
     * *Channel*: Limits the mapping to a specific xref:/midpoint/reference/concepts/channel.adoc[channel] in which it is applied.
     If no channels are entered, the mapping is applied for all channels.
     * *Except channel*: Defines a xref:/midpoint/reference/concepts/channel.adoc[channel] to which the mapping is not applied.
-. Click icon:check[] btn:[Done] to save the changes.
+. Click icon:check[] btn:[Done] to save the changes.
 
 NOTE: The _Undefined_ option that is available in various settings applies the default defined in the xref:/midpoint/reference/resources/resource-schema[Resource Schema XSD].
 
 [[advanced_outbound_mappings]]
 == Advanced Outbound Mappings
-To set up your outbound mappings, go to icon:database[] *Resources* > icon:database[] *All resources* > *your_resource* > icon:male[] *Accounts* > icon:cog[] *Configure* > icon:retweet[] *Mappings* > icon:arrow-right-from-bracket[] *Outbound mappings (to Resource)*.
+To set up your outbound mappings, go to icon:database[] *Resources* > icon:database[] *All resources* > *your_resource* > icon:male[] *Accounts* > icon:cog[] *Configure* > icon:retweet[] *Mappings* > icon:arrow-right-from-bracket[] *Outbound mappings (to Resource)*.
 
 The available settings are the same as for <<advanced_inbound_mappings,inbound mappings>>.
 The difference is that while inbound mappings control data transfer between source systems and midPoint, outbound mappings control data transfer from midPoint to target systems, such as LDAP.
@@ -68,10 +68,10 @@ The difference is that while inbound mappings control data transfer between sour
 
 In addition to the xref:/midpoint/reference/admin-gui/resource-wizard/object-type/mapping/index.adoc#attribute_override[standard attribute override settings], you can use a more advanced configuration:
 
-. Go to icon:database[] *Resources* > icon:database[] *All resources* > *your_resource* > icon:male[] *Accounts* > icon:cog[] *Configure* > icon:retweet[] *Mappings*.
-. Select icon:arrow-right-to-bracket[] *Inbound mappings (to midPoint)* or icon:arrow-right-from-bracket[] *Outbound mappings (to Resource)*.
+. Go to icon:database[] *Resources* > icon:database[] *All resources* > *your_resource* > icon:male[] *Accounts* > icon:cog[] *Configure* > icon:retweet[] *Mappings*.
+. Select icon:arrow-right-to-bracket[] *Inbound mappings (to midPoint)* or icon:arrow-right-from-bracket[] *Outbound mappings (to Resource)*.
 . Click icon:shuffle[] btn:[Attribute overrides].
-. For an existing override, click the icon:edit[] *Edit* icon.
+. For an existing override, click icon:edit[] *Edit*.
 . On the Main configuration page, configure:
     * *Help*: Defines the help text displayed via a tooltip icon whenever the attribute appears in midPoint, such as the user details screen for standard attributes like given name.
     * *Exclusive strong*: Defines how multi-value attributes are treated in the mapping.
@@ -105,6 +105,6 @@ In addition to the xref:/midpoint/reference/admin-gui/resource-wizard/object-typ
         ** _Minimal_: The attribute basic data structure is maintained and the attribute values can be logged.
         You can process the attribute and the underlying data structure using a custom code.
         However, all built-in automatic processing, presentation, transformation, or any similar processing is skipped.
-. Click icon:check[] btn:[Done] to save the configuration.
+. Click icon:check[] btn:[Done] to save the configuration.
 
 NOTE: The _Undefined_ option that is available in various settings applies the default defined in the xref:/midpoint/reference/resources/resource-schema[Resource Schema XSD].
