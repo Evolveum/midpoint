@@ -110,9 +110,13 @@ public class FallbackDescriptionHandler implements VisualizationDescriptionHandl
                 return displayName;
             }
         }
-        var objectType = ObjectTypes.getObjectTypeFromTypeQName(value.getTypeName());
-        if (objectType != null) {
-            return LocalizationUtil.createKeyForEnum(objectType);
+        try {
+            var objectType = ObjectTypes.getObjectTypeFromTypeQName(value.getTypeName());
+            if (objectType != null) {
+                return LocalizationUtil.createKeyForEnum(objectType);
+            }
+        } catch (Exception e) {
+            //nothing to do here, the type couldn't be found among object types
         }
 
         return value.getCompileTimeClass().getSimpleName();
