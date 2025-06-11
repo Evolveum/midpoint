@@ -205,6 +205,12 @@
 
 
         <hibernate.version>6.5.3.Final</hibernate.version>
+        <!--
+            Older version (given via spring boot 3.3.7) used to avoid issue of connections being non-valid
+            and not closed in hikariCP pool when thread has interrupted=true flag.
+            TestTaskManagerBasic.test180SuspendLongRunning() was failing for oracle generic repository with newer drivers.
+        -->
+        <oracle-database.version>21.9.0.0</oracle-database.version>
 
         <commons.io.version>2.18.0</commons.io.version>
         <commons.cli>1.9.0</commons.cli>
