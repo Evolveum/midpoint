@@ -17,6 +17,9 @@ import java.util.Collections;
 import java.util.List;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.schema.processor.ResourceObjectTypeIdentification;
+import com.evolveum.midpoint.web.session.ResourceContentStorage;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -205,14 +208,50 @@ public abstract class ResourceObjectsPanel extends AbstractObjectMainPanel<Resou
     }
 
     private void createObjectTypeChoice() {
-        var objectTypes = new DropDownChoicePanel<>(ID_OBJECT_TYPE,
-                Model.of(getObjectDetailsModels().getDefaultObjectType(getKind())),
-                () -> {
-                    List<? extends ResourceObjectTypeDefinition> choices = getObjectDetailsModels()
-                            .getResourceObjectTypesDefinitions(getKind());
-                    return choices != null ? choices : Collections.emptyList();
-                },
-                new ResourceObjectTypeChoiceRenderer(), true) {
+        LoadableDetachableModel<ResourceObjectTypeIdentification> objectTypeModel = new LoadableDetachableModel<>() {
+            @Override
+            protected ResourceObjectTypeIdentification load() {
+                ResourceContentStorage storage = getPageStorage();
+                String intent = null;
+                if (storage != null) {
+                    intent = storage.getContentSearch().getIntent();
+                }
+                if (intent == null) {
+                    return null;
+                }
+                return getObjectDetailsModels().getObjectTypeDefinition(getKind(), intent).getTypeIdentification();
+            }
+
+            @Override
+            public void setObject(ResourceObjectTypeIdentification object) {
+                ResourceContentStorage storage = getPageStorage();
+                if (storage != null) {
+                    storage.getContentSearch().setIntent(object == null ? null : object.getIntent());
+                }
+            }
+        };
+
+        if (getPageStorage() == null || getPageStorage().getContentSearch().getIntent() == null) {
+            ResourceObjectTypeDefinition defaultObjectTypeDef = getObjectDetailsModels().getDefaultObjectType(getKind());
+            if (defaultObjectTypeDef != null) {
+                objectTypeModel.setObject(defaultObjectTypeDef.getTypeIdentification());
+            }
+        }
+
+        LoadableDetachableModel<List<? extends ResourceObjectTypeIdentification>> choices = new LoadableDetachableModel<>() {
+            @Override
+            protected List<? extends ResourceObjectTypeIdentification> load() {
+                List<? extends ResourceObjectTypeDefinition> choices = getObjectDetailsModels()
+                        .getResourceObjectTypesDefinitions(getKind());
+                return choices != null ? choices.stream().map(ResourceObjectTypeDefinition::getTypeIdentification).toList() : Collections.emptyList();
+            }
+        };
+
+        var objectTypes = new DropDownChoicePanel<>(
+                ID_OBJECT_TYPE,
+                objectTypeModel,
+                choices,
+                new ResourceObjectTypeChoiceRenderer(getObjectDetailsModels()), true) {
 
         };
 
@@ -224,6 +263,7 @@ public abstract class ResourceObjectsPanel extends AbstractObjectMainPanel<Resou
                 target.add(get(ID_CONFIGURATION));
                 target.add(get(ID_TASKS));
                 target.add(getShadowTable());
+                objectTypeModel.detach();
             }
         });
         objectTypes.setOutputMarkupId(true);
@@ -399,7 +439,7 @@ public abstract class ResourceObjectsPanel extends AbstractObjectMainPanel<Resou
 
             @Override
             public PageStorage getPageStorage() {
-                return getPageBase().getSessionStorage().getResourceContentStorage(getKind());
+                return ResourceObjectsPanel.this.getPageStorage();
             }
 
             @Override
@@ -841,9 +881,10 @@ public abstract class ResourceObjectsPanel extends AbstractObjectMainPanel<Resou
     }
 
     private ResourceObjectTypeDefinition getSelectedObjectTypeDefinition() {
-        DropDownChoicePanel<ResourceObjectTypeDefinition> objectTypeSelector = getObjectTypeSelector();
-        if (objectTypeSelector != null && objectTypeSelector.getModel() != null) {
-            return objectTypeSelector.getModel().getObject();
+        DropDownChoicePanel<ResourceObjectTypeIdentification> objectTypeSelector = getObjectTypeSelector();
+        if (objectTypeSelector != null && objectTypeSelector.getModel() != null && objectTypeSelector.getModel().getObject() != null) {
+            ResourceObjectTypeIdentification objectTypeIdentifier = objectTypeSelector.getModel().getObject();
+            return getObjectDetailsModels().getObjectTypeDefinition(objectTypeIdentifier.getKind(), objectTypeIdentifier.getIntent());
         }
         return null;
     }
@@ -864,8 +905,8 @@ public abstract class ResourceObjectsPanel extends AbstractObjectMainPanel<Resou
         return null;
     }
 
-    private DropDownChoicePanel<ResourceObjectTypeDefinition> getObjectTypeSelector() {
-        return (DropDownChoicePanel<ResourceObjectTypeDefinition>) get(ID_OBJECT_TYPE);
+    private DropDownChoicePanel<ResourceObjectTypeIdentification> getObjectTypeSelector() {
+        return (DropDownChoicePanel<ResourceObjectTypeIdentification>) get(ID_OBJECT_TYPE);
     }
 
     private ShadowTablePanel getShadowTable() {
@@ -876,4 +917,8 @@ public abstract class ResourceObjectsPanel extends AbstractObjectMainPanel<Resou
         return (WebMarkupContainer) get(ID_CHART_CONTAINER);
     }
 
+
+    private ResourceContentStorage getPageStorage() {
+        return getPageBase().getSessionStorage().getResourceContentStorage(getKind());
+    }
 }

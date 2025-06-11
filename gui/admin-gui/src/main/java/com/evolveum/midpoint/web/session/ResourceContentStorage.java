@@ -58,7 +58,7 @@ public class ResourceContentStorage implements PageStorage {
 
     public ResourceContentSearchDto getContentSearch() {
         if (contentSearch == null) {
-            return new ResourceContentSearchDto(kind);
+            contentSearch = new ResourceContentSearchDto(kind);
         }
         return contentSearch;
     }
