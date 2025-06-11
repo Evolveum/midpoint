@@ -12,7 +12,7 @@ podTemplate(
         workspaceVolume: dynamicPVC(requestsSize: "20Gi"),
         containers: [
                 containerTemplate(name: 'jnlp',
-                        image: 'jenkins/inbound-agent:4.13-3-alpine',
+                        image: 'jenkins/inbound-agent:4.13.3-1-alpine',
                         runAsUser: '0',
                         resourceLimitCpu: '900m',
                         resourceLimitMemory: '1Gi',
