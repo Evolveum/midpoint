@@ -10,9 +10,12 @@
 <body>
 <wicket:panel>
     <div class="d-flex justify-content-end mp-w-8 mp-w-xxl-6">
-        <div class="d-flex flex-column flex-grow-1 align-items-end has-feedback form-group">
+        <div class="d-flex flex-row gap-2 flex-grow-1 align-items-center has-feedback form-group">
+            <label wicket:for="axiomQueryField" class="mb-0" style="font-weight: normal;">
+                <wicket:message key="SearchPanel.inputQuery"/>
+            </label>
             <input wicket:id="axiomQueryField" type="text" class="form-control form-control-sm mp-w-12"/>
-            <span class="text-wrap" wicket:id="advancedError"/>
+            <span class="text-wrap mb-0" wicket:id="advancedError"/>
         </div>
     </div>
 </wicket:panel>
