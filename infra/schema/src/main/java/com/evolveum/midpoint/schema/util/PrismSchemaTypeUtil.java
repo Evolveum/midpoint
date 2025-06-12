@@ -169,7 +169,9 @@ public class PrismSchemaTypeUtil {
         }
 
         processItemDefinition(mutator, referenceDefinitionBean, lifecycleState);
-        mutator.setTargetTypeName(referenceDefinitionBean.getObjectReferenceTargetType());
+        if (referenceDefinitionBean.getObjectReferenceTargetType() != null) {
+            mutator.setTargetTypeName(referenceDefinitionBean.getObjectReferenceTargetType());
+        }
     }
 
     private static void processItemDefinition(
