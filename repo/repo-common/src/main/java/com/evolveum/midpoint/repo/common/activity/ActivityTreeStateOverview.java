@@ -459,6 +459,10 @@ public class ActivityTreeStateOverview {
         }
 
         int itemsToRemove = history.size() - maxRecordsPerTask + 1;
+        if (itemsToRemove <= 0) {
+            return List.of();
+        }
+
         if (itemsToRemove >= history.size()) {
             return history.stream()
                     .map(TaskRunHistoryType::clone)
