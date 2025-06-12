@@ -233,6 +233,8 @@
 
         <!-- Spring Boot parent declares most fresh versions for JDBC drivers for all our servers. -->
 
+        <!-- security fixes -->
+        <postgresql.version>42.7.7</postgresql.version>
 
         <!-- Groovy 4.0.24 is also default for Spring Boot 3.4.0 -->
         <groovy.version>4.0.24</groovy.version>
