@@ -227,6 +227,9 @@
 
         <!-- Spring Boot parent declares most fresh versions for JDBC drivers for all our servers. -->
 
+        <!-- security fixes -->
+        <postgresql.version>42.7.7</postgresql.version>
+
         <!-- START of Spring Boot dependencies overrides (temporary/security fixes, revise regularly!) -->
         <!-- END of Spring Boot dependencies overrides -->
 
