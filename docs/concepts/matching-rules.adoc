@@ -54,7 +54,7 @@ Note that besides in attribute definitions, matching rules can also be used in q
 ----
 locality =[origIgnoreCase] "Edinburgh"
 ----
-For more information about matching rules in query see xref:./query/midpoint-query-language/introduction.adoc#_matching_rules[matching rules chapter] in introduction to Midpoint Query Language.
+For more information about matching rules in query see xref:./query/midpoint-query-language/filters.adoc#_matching_rules[matching rules chapter].
 
 In XML query, the matching rules are represented using the tag _<matching>_.
 An example for XML query:

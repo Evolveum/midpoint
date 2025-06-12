@@ -1,33 +1,36 @@
-= Introduction to midPoint Query Language
-:page-nav-title: Introduction
+= midPoint Query Language Filters
+:page-nav-title: Filters
 :page-display-order: 100
 :page-toc: top
 :toclevels: 2
 :experimental:
 
-This page introduces the structure of the midPoint Query Language (MQL) and describes available filters.
+This page describes how filters are constructed using midPoint Query Language (MQL).
 
-== Language Description
+== Overview
 
-MQL is designed to construct complex queries.
+For filtering in midPoint, the following components are required:
 
-A _query_ is a combination of a _filter_ and additional parts, such as paging and sorting.
+* <<filter_structure,Filter definition>>
+* <<object_type_definition,Object type definition>>
 
-Simple filters usually take the form of triplets consisting of:
+Optionally, you can also include paging (for result size and offset), and sorting (for ordering results).
+
+In GUI, the object type is defined by the context, i.e. the current page, and paging and sorting are controlled in the results table.
+
+[[filter_structure]]
+=== Filter Structure
+
+<<simple_filters,Simple filters>> usually take the form of triplets consisting of:
 
 * <<item_path,*Item path*>>: Specifies the xref:./searchable-items.adoc[searchable item] to which the filter is applied.
 * <<filter_name,*Filter name*>>: Defines the name of the filter.
 * <<value,*Value*>>: Defines a value literal or item path that should be matched according to the filter specification.
-Note that strings need to be enclosed in quotes (`'`) or double-quotes (`"`).
 
-Some examples of valid filters are:
-
-* `fullName = "John Doe"`
-* `givenName startsWith "J"`
-* `activation/effectiveStatus = "enabled"`
+Advanced filters may follow a similar structure but can also be more sophisticated. See individual <<advanced_filters,Advanced filters>>.
 
 [[item_path]]
-=== Item Path
+==== Item Path
 
 Item path specifies the item by which data are filtered.
 In its simplest form, it is a name of an object _property_, or names of items and containers separated by slashes, such as:
@@ -39,11 +42,11 @@ In its simplest form, it is a name of an object _property_, or names of items an
 For details, refer to xref:/midpoint/reference/concepts/item-path/[Item path].
 
 [[filter_name]]
-=== Filter Name
+==== Filter Name
 The filter name, or its alias, specifies a filtering condition that should be used.
 
 [[value]]
-=== Value
+==== Value
 
 Values are usually string literals enclosed in double quotes.
 However, values can take various forms.
@@ -53,7 +56,7 @@ In some cases, values may be complex.
 The exact form of the value part of the filter depends on the operator and the type of the value.
 
 [#_querying_values_of_different_types]
-==== Querying Values of Different Types
+===== Querying Values of Different Types
 
 The exact syntax of queries for values of different types is described in the following table:
 
@@ -93,10 +96,6 @@ The exact syntax of queries for values of different types is described in the fo
 | `extension/empStartDate >= "2019-10-01" and extension/empStartDate < "2019-10-02"`
 | As datetime values contain the exact time value (down to milliseconds), you need to compare dates as intervals.
 
-| ObjectReferenceType
-| `assignment/targetRef/@/name = "End user"`
-| Object references are queried using the `matches` filter, or the dereferencing operator `@`. See <<advanced_filters,Advanced filters>>.
-
 | QName
 | `assignment/targetRef matches (relation=owner)`
 | QName values (a relation in this example) are entered into queries without quotation marks.
@@ -105,6 +104,32 @@ The exact syntax of queries for values of different types is described in the fo
 | `assignment/targetRef matches (relation=org:owner)`
 | QNames may use namespaces. Unless values conflict, namespaces are not necessary in queries. In this case, both `relation=owner` and `relation=org:owner` return the same results.
 |====
+
+[[object_type_definition]]
+=== Object Type Definition
+
+Midpoint performs queries over a defined set of objects.
+While in GUI, this set is defined by the currently opened view, in configuration, you need to specify the object type for a query explicitly.
+This is done outside of the filter query.
+See the configuration snippet below in which the query selects `User` with the name "XYZ".
+
+[source,XML]
+----
+    <activity>
+        <work>
+            <recomputation>
+                <objects>
+                    <type>UserType</type>
+                    <query>
+                        <q:filter>
+                            <q:text>name = "XYZ"</q:text>
+                        </q:filter>
+                    </query>
+                </objects>
+            </recomputation>
+        </work>
+    </activity>
+----
 
 [[simple_filters]]
 == Simple Filters
@@ -123,8 +148,7 @@ The following table summarizes common comparison filters:
 |====
 | Name | Alias | Description
 | `equal` | `=` | Matches items equal to a value.
-a| `not equal` +
-`notEqual`
+| `notEqual`
 | != | Matches items different from a value.
 
 | `less` | `<` | Matches items smaller than a value.
@@ -184,14 +208,7 @@ The following table summarizes additional filters that can be applied to string 
 [[logical_filters]]
 === Logical Filters
 
-Logical filters are used to combine several subfilters into one filter, or to negate a filter, for example:
-
-[source,midpoint-query]
-----
-givenName = "John" and familyName = "Doe"
-----
-
-You can use the following logic operators:
+Logical filters combine several subfilters into one filter using logical operators:
 
 .Logical Operators
 [options="header", cols="10,30,30", width=70]
@@ -200,55 +217,49 @@ You can use the following logic operators:
 
 | `and`
 | `givenName = "John" and familyName = "Doe"`
-| All subfilters must be `true``.
+| All subfilters must be `true`.
 
 | `or`
 | `givenName = "Bill" or nickName = "Bill"`
-| Any of the subfilters has to be `true``.
+| Any of the subfilters has to be `true`.
 
 | `not`
 | `givenName not startsWith "J"` +
-`givenName != "John"`
+`givenName != "John"` +
+not ( givenName = "Leonardo" )
 | Logical negation where `not` prefixes the filter name.
 
 |====
 
-You can use brackets to group logical statements for better readability, for example:
+In more complex filters, you can use brackets to group logical statements for better readability.
+If you do not use brackets, midPoint will evaluate the filter following this logic:
+
+* `and` takes precedence over `or`
+* `not` is executed first as it changes the meaning of the filter
+
+See the following examples of filters:
+
+[source,midpoint-query]
+----
+givenName = "John" and familyName = "Doe"
+----
 
 ----
 familyName = "Doe" and (givenName = "John" or givenName ="Bill")
 ----
 
-=== Object Selection
-
-Midpoint performs queries over a defined set of objects.
-In GUI, this set is defined by the currently opened view.
-
-In configuration, the object type must be explicitly specified for a query.
-However, not within the query itself.
-See the configuration snippet below in which the query selects `User` with the name "XYZ".
-
-[source,XML]
-----
-    <activity>
-        <work>
-            <recomputation>
-                <objects>
-                    <type>UserType</type>
-                    <query>
-                        <q:filter>
-                            <q:text>name = "XYZ"</q:text>
-                        </q:filter>
-                    </query>
-                </objects>
-            </recomputation>
-        </work>
-    </activity>
-----
-
 [[advanced_filters]]
 == Advanced Filters
 
+* <<matches_filter,Matches filter>>
+* <<inoid_filter,inOid filter>>
+* <<reference_filters,Reference filters>>
+* <<organization_filters,Organization filters>>
+* <<#_similarity_filters,Similarity filters>>
+* <<filtering_all_objects_of_specified_type, Filtering All Objects of Specified Type>>
+* <<other_filters,Other filters>>
+
+[[matches_filter]]
 === Matches Filter
 
 The _Matches_ filter operates on a container or a structured value, and specifies conditions that must be met by a single container value.
@@ -277,6 +288,7 @@ The first filter will match users who have one assignment starting after 2022, a
 The second filter with match users who have an assignment which starts in 2022 and expires before 2023.
 ====
 
+[[inoid_filter]]
 === inOid Filter
 
 You can query objects by their object identifiers (OID) in _inOid_ filters.
@@ -292,12 +304,14 @@ An example of querying 2 specific objects by their OIDs:
 
 `. inOid ("eb21455d-17cc-4390-a736-f1d6afa82057", "87e048ae-6fcf-47bb-a55e-60acb8604ead")`
 
-
+[[reference_filters]]
 === Reference Filters
 
-Reference filters match references utilizing Matches filters on properties of referenced objects, using the dereferencing operator (`@`).
+Reference filters are used to find objects that have a reference (like `targetRef` or `orgRef`) pointing to another object.
+You can then filter these based on the properties of the referenced object.
+To do that, you use the `@` operator, which lets you access properties of the referenced object, not just the reference itself.
 
-You can also perform inverse queries using a _referencedBy_ filter to search for an object by properties of its referencer.
+You can also perform inverse queries using the _referencedBy_ filter to search for an object by properties of its referencer.
 For example, you can search for roles by properties of their members.
 
 [#_Matches_Filter_in_References]
@@ -311,7 +325,9 @@ You can use Matches filters with nested subfilters to target these properties of
 * *relation* matches any reference with a specified relation (QName). Example: `roleMembershipRef matches (relation = manager)`
 * *targetType* matches any reference with a specified target type (QName). Example: `roleMembershipRef matches (targetType = OrgType)`
 
-It is possible to match any combination of these three properties of a reference, however, only `equals` and `and` filters are supported.
+You can use any combination of these three properties of a reference, however, only `equals` and `and` filters are supported.
+This limits the maximum number of conditions that you can use in a filter to three (see the example below).
+However, you can workaround this limitation using <<dereferencing,dereferencing>> which enables you to match the three properties on multiple objects.
 
 ----
 roleMembershipRef matches (
@@ -321,8 +337,7 @@ roleMembershipRef matches (
 )
 ----
 
-NOTE: If you need to query referenced objects of a specified type you must use the _targetType_ keyword. See the example above.
-
+[[dereferencing]]
 ==== Dereferencing
 
 With dereferencing, you can write filter conditions which are executed on referenced objects.
@@ -333,18 +348,19 @@ This enables you to enhance paths with properties of referenced objects, such as
 For example, dereferencing enables you to search for users with a specific assigned role by the role name instead of its OID, even if the execution time will be slightly longer since we need to dereference objects.
 `assignment/targetRef/@/name = "Superuser"` matches any user who is directly assigned the superuser role.
 
+[TIP]
+====
+* To also match users who are assigned a role indirectly, you should use `roleMembershipRef` instead of `assignment/targetRef`.
+* If you need to match a referenced object on multiple properties, you should use the Matches filter.
+====
+
 [NOTE]
 ====
 * Dereferencing is not supported in authorizations, in-memory, and in resource searches.
-* To also match users who are assigned a role indirectly, you should use `roleMembershipRef` instead of `assignment/targetRef`.
-* If you need to match a referenced object on multiple properties, you should use the Matches filter.
-* Dereferencing is not supported for object references defined via schema extensions.
+It is also not supported for object references defined via schema extensions.
 ====
 
 ==== Dereferencing Inside Reference Matches Filter
-
-This feature is currently supported only in the midPoint native repository.
-It is not supported in authorizations, in-memory and in resource searches.
 
 You can use dereferencing inside a Reference Matches filter to match properties of a reference, and also properties of its target.
 
@@ -367,6 +383,12 @@ assignment/targetRef matches ( <1>
 <5> Name of the role archetype should be `Business Role`.
 This is done by dereferencing `archetypeRef`, using `@` in the item path.
 
+[NOTE]
+====
+This feature is currently supported only in the midPoint native repository.
+It is not supported in authorizations, in-memory and in resource searches.
+==== 
+
 ==== referencedBy Filter
 
 With _referencedBy_ filters, you can find objects based on properties of objects that reference them since the object as a whole is referenced in the item path.
@@ -381,7 +403,7 @@ In order to use a referencedBy filter, you must also specify the `type` of objec
   and name = "Administrator" <4>
 )
 ----
-<1> `. referencedBy` is the filter name.
+<1> `referencedBy` is the filter name.
 <2> `@type` (required) is a special filter property which specifies the `type` of objects that should be considered when evaluating the filter. In this case, we are interested in users.
 <3> `@path` (required) is a special filter property which specifies which object reference should be used in the filter.
 In this case, we are interested in directly assigned roles (`assignment/targetRef`).
@@ -413,6 +435,7 @@ In midPoint queries, any filter that is not a special property of ownedBy is aut
 . ownedBy ( @type = AbstractRoleType and @path = inducement)
 ----
 
+[[organization_filters]]
 === Organization Filters
 
 Organization filters are used to filter objects based on their organization membership.
@@ -436,7 +459,6 @@ If you only need to match users in a specified organization, use the ONE_LEVEL m
 `. isRoot`::
 Matches all roles and organization units that are organization tree roots.
 
-
 [#_similarity_filters]
 === Similarity Filters
 
@@ -450,14 +472,14 @@ Their meaning is explained in following table:
 [options="header",cols="10,10,30,30",width=90]
 |===
 | Name | Value | Description | Parameters
-| Levenshtein
+| levenshtein
 | (value, threshold, inclusive)
 | Matches objects for which the queried attribute has the Levenshtein distance *lower than* (or equal to, depending on the inclusive parameter value) the specified threshold.
 a| * Value (string): A string value that is compared with the queried attribute.
 * Threshold (integer): The compared distance value. The result must be less than (or equal to) the threshold.
 * Inclusive (boolean): Defines if objects with the threshold value should be included in the result (_true_) or not (_false_).
 
-| Similarity
+| similarity
 | (value, threshold, inclusive)
 | Matches objects for which the queried attribute has similarity *greater than* (or equal to, depending on the inclusive parameter value) the specified threshold. +
 Similarity of 1 means an exact match, while 0 means no similarity.
@@ -480,17 +502,7 @@ Matches all users whose name has similarity of 0.5 or lower from the string 'gre
 
 NOTE: The Levenshtein distance between two strings is the number of modifications required to transform one string (s1) into the other string (s2). It allows for single-character edits such as deletion, insertion, and substitution. For example, for s1=“helloIndia” and s2=“halloindia,” the Levenshtein distance is 2.
 
-
-=== Other Filters
-
-[options="header",cols="10,10,30",width=70]
-|===
-| Name | Value | Description
-| exists | N/A | Matches an item if it exists, i.e. if it has a value. This filter does not have a value.
-| type | object type | Matches an object if it is of the specified type. This is usually used in combination with the `and` filter for dereferenced objects, or when you need to match a property defined in a more specific type.
-|===
-
-
+[[filtering_all_objects_of_specified_type]]
 === Filtering All Objects of Specified Type
 
 Sometimes, in configuration files, you need to select all objects of a specific object type.
@@ -508,114 +520,14 @@ The object collection below lists all roles (all objects of RoleType) in midPoin
 </objectCollection>
 ----
 
+[[other_filters]]
+=== Other Filters
 
-[#_query_examples]
-== Basic Query Examples
+[options="header",cols="10,10,30",width=70]
+|===
+| Name | Value | Description
+| exists | N/A | Matches an item if it exists, i.e. if it has a value. This filter does not have a value.
+| type | object type | Matches an object if it is of the specified type. This is usually used in combination with the `and` filter for dereferenced objects, or when you need to match a property defined in a more specific type.
+|===
 
-This section provides examples of MQL role queries that can be utilized when configuring midPoint.
-
-For additional examples, refer to xref:/midpoint/reference/concepts/query/midpoint-query-language/query-examples[].
-
-=== Search by Archetype Name
-
-You can search for reports with an archetype using the archetype name:
-
-.midPoint query
-----
-archetypeRef/@/name = "Report export task"
-----
-
-Where `archetypeRef/@` specifies that we are not matching a reference value but its target. In this case, it is an archetype.
-
-
-=== Search by Assigned Role Name
-
-.midPoint query
-----
-assignment/targetRef/@/name = "Role Name"
-----
-
-Where `assignment/targetRef/@` specifies that we are not matching a reference value but its target. In this case, it is an assigned role.
-
-
-=== Users with Account on Specific Resource
-
-You can search for users who have an account specified resource by using the default intent.
-
-.midPoint query
-----
-linkRef/@ matches (
-  . type ShadowType
-  and resourceRef matches (oid = "ff735c0a-21e3-11e8-a91a-df0065248d2d")
-  and intent = "default"
-)
-----
-
-Where:
-
-* `linkRef/@` specifies the dereference target of `linkRef`.
-This behaves similarly to SQL `JOIN` and enables you to filter properties of the target.
-* `matches` specifies a subfilter for the dereferenced target, i.e. the filter that `linkRef` must match.
-  ** `. type ShadowType` searches for shadows on the resource.
-  This is necessary to be able to use shadow properties for the filter.
-  ** `resourceRef matches (oid = "..." )` matches a specific resource to which the shadow belongs.
-  ** `intent = "default"` matches the shadow with the default intent.
-
-
-==== All Roles which Are Assigned to System Users
-
-.midPoint query using `UserType` in a referencedBy filter
-----
-. referencedBy (
-  @type = UserType
-  and @path = assignment/targetRef
-  and archetypeRef/@/name = "System user"
-)
-----
-
-.midPoint query using `AssignmentType` in a referencedBy filter
-----
-. referencedBy (
-   @type = AssignmentType
-   and @path = targetRef
-   and . ownedBy (
-      @type = UserType
-      and @path = assignment
-      and archetypeRef/@/name = "System user"
-   )
-)
-----
-
-==== All Roles Assigned Using Inducement
-The following filter is only supported in the midPoint native repository.
-
-.midPoint query
-----
-. referencedBy (
-  @type = AbstractRoleType
-  and @path = inducement/targetRef
-)
-----
-
-
-==== All Roles Assigned to Administrator Using Full Text Search
-
-.midPoint query
-----
-. referencedBy (
-   @type = UserType
-   and @path = roleMembershipRef
-   and . fullText "administrator"
-)
-----
-
-
-==== Search Assigned Role Using Full Text Search
-
-.midPoint query
-----
-assignment/targetRef/@ matches (
-   . fullText "secret"
-)
-----
 
