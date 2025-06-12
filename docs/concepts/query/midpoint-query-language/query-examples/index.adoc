@@ -45,6 +45,118 @@ You can save filters for future use by clicking the icon:save[] btn:[Save filte
 
 image:advanced-query-save-search.webp[Save filter]
 
+[[basic_query_examples]]
+[#_query_examples]
+== Basic Query Examples
+
+This section provides examples of MQL queries that can be utilized when configuring midPoint.
+
+=== Search by Archetype Name
+
+You can search for reports with an archetype using the archetype name:
+
+.midPoint query
+----
+archetypeRef/@/name = "Report export task"
+----
+
+Where `archetypeRef/@` specifies that we are not matching a reference value but its target. In this case, it is an archetype.
+
+
+=== Search by Assigned Role Name
+
+.midPoint query
+----
+assignment/targetRef/@/name = "Role Name"
+----
+
+Where `assignment/targetRef/@` specifies that we are not matching a reference value but its target. In this case, it is an assigned role.
+
+
+=== Users with Account on Specific Resource
+
+You can search for users who have an account specified resource by using the default intent.
+
+.midPoint query
+----
+linkRef/@ matches (
+  . type ShadowType
+  and resourceRef matches (oid = "ff735c0a-21e3-11e8-a91a-df0065248d2d")
+  and intent = "default"
+)
+----
+
+Where:
+
+* `linkRef/@` specifies the dereference target of `linkRef`.
+This behaves similarly to SQL `JOIN` and enables you to filter properties of the target.
+* `matches` specifies a subfilter for the dereferenced target, i.e. the filter that `linkRef` must match.
+  ** `. type ShadowType` searches for shadows on the resource.
+  This is necessary to be able to use shadow properties for the filter.
+  ** `resourceRef matches (oid = "..." )` matches a specific resource to which the shadow belongs.
+  ** `intent = "default"` matches the shadow with the default intent.
+
+
+==== All Roles which Are Assigned to System Users
+
+.midPoint query using `UserType` in a referencedBy filter
+----
+. referencedBy (
+  @type = UserType
+  and @path = assignment/targetRef
+  and archetypeRef/@/name = "System user"
+)
+----
+
+.midPoint query using `AssignmentType` in a referencedBy filter
+----
+. referencedBy (
+   @type = AssignmentType
+   and @path = targetRef
+   and . ownedBy (
+      @type = UserType
+      and @path = assignment
+      and archetypeRef/@/name = "System user"
+   )
+)
+----
+
+==== All Roles Assigned Using Inducement
+The following filter is only supported in the midPoint native repository.
+
+.midPoint query
+----
+. referencedBy (
+  @type = AbstractRoleType
+  and @path = inducement/targetRef
+)
+----
+
+
+==== All Roles Assigned to Administrator Using Full Text Search
+
+.midPoint query
+----
+. referencedBy (
+   @type = UserType
+   and @path = roleMembershipRef
+   and . fullText "administrator"
+)
+----
+
+
+==== Search Assigned Role Using Full Text Search
+
+.midPoint query
+----
+assignment/targetRef/@ matches (
+   . fullText "secret"
+)
+----
+
+
+
+
 [[advanced_query_examples]]
 == Advanced Query Examples
 
@@ -173,7 +285,7 @@ The query is complex because each user has at least one assignment (the archetyp
 | `assignment/targetRef matches (targetType=RoleType and relation=owner)`
 | The relation value is of the QName type and therefore no quotation marks are used. +
 The namespace (org:owner) is optional. +
-See xref:../introduction.adoc#_Matches_Filter_in_References[Matches filter in references].
+See xref:../filters.adoc#_Matches_Filter_in_References[Matches filter in references].
 
 |Find users with accounts in a specific resource.
 |`linkRef/@ matches ( +
