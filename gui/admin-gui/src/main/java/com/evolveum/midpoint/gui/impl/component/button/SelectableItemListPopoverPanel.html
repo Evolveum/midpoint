@@ -10,18 +10,16 @@
         <div class="search-popover popover-body">
             <input wicket:message="aria-label:SelectableItemListPopoverPanel.searchItem" wicket:id="searchText" type="text" class="form-control form-control-sm mt-1 mb-2" style="width: auto;" size="20">
 
-            <dl class="border-bottom mb-2" wicket:id="itemList">
-                <dt class="mb-1">
-                    <div wicket:id="itemsTitle" />
-                </dt>
-                <dd wicket:id="items">
-                    <label>
-                        <input wicket:id="itemCheckbox" type="checkbox">&nbsp;
-                        <a wicket:id="itemLink" wicket:message="title:SelectableItemListPopoverPanel.addItem"><span wicket:id="itemName"/></a>
+            <fieldset class="border-bottom mb-2" wicket:id="itemList">
+                <legend class="mb-1" wicket:id="itemsTitle"/>
+                <div wicket:id="items" class="mb-1">
+                    <label class="form-check-label align-items-center d-flex gap-2">
+                        <input wicket:id="itemCheckbox" type="checkbox">
+                        <a wicket:id="itemLink" class="flex-grow-1" wicket:message="title:SelectableItemListPopoverPanel.addItem"><span wicket:id="itemName"/></a>
                         <i wicket:id="itemHelp" tabindex="0" role="button" class="clickable-by-enter"/>
                     </label>
-                </dd>
-            </dl>
+                </div>
+            </fieldset>
 
             <div class="mt-2 mb-1">
                 <a wicket:id="addButton" class="btn btn-sm btn-success" wicket:message="title:SelectableItemListPopoverPanel.addSelectedItem"/>
