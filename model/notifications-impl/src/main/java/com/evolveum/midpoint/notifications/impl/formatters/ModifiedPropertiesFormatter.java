@@ -1,3 +1,9 @@
+/*
+ * Copyright (C) 2025 Evolveum and contributors
+ *
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
+ */
 package com.evolveum.midpoint.notifications.impl.formatters;
 
 import java.util.ArrayList;
@@ -10,8 +16,12 @@ import java.util.stream.Stream;
 
 import com.evolveum.midpoint.model.api.visualizer.VisualizationDeltaItem;
 import com.evolveum.midpoint.model.api.visualizer.VisualizationItemValue;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 
 final class ModifiedPropertiesFormatter implements PropertiesFormatter<VisualizationDeltaItem> {
+
+    private static final Trace LOGGER = TraceManager.getTrace(ModifiedPropertiesFormatter.class);
 
     private final PropertyFormatter propertyFormatter;
     private final IndentationGenerator indentationGenerator;
@@ -24,6 +34,7 @@ final class ModifiedPropertiesFormatter implements PropertiesFormatter<Visualiza
 
     @Override
     public String formatProperties(Collection<VisualizationDeltaItem> propertiesDeltas, int nestingLevel) {
+        LOGGER.trace("Formatting the properties: {}", propertiesDeltas);
         final String labelIndentation = this.indentationGenerator.indentation(nestingLevel);
         final String operationIndentation = this.indentationGenerator.indentation(nestingLevel + 1);
         final String valuesIndentation = this.indentationGenerator.indentation(nestingLevel + 2);
@@ -38,9 +49,11 @@ final class ModifiedPropertiesFormatter implements PropertiesFormatter<Visualiza
                         operationIndentation, valuesIndentation));
             }
         }
-        return Stream.of(replacedProperties, addedOrDeletedProperties)
+        var formatingResult = Stream.of(replacedProperties, addedOrDeletedProperties)
                 .flatMap(Collection::stream)
                 .collect(Collectors.joining("\n"));
+        LOGGER.trace("Properties formatting ends up with result: {}", formatingResult);
+        return formatingResult;
     }
 
     @Override

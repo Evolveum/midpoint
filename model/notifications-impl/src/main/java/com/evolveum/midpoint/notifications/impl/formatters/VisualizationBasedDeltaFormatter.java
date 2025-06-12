@@ -1,3 +1,9 @@
+/*
+ * Copyright (C) 2025 Evolveum and contributors
+ *
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
+ */
 package com.evolveum.midpoint.notifications.impl.formatters;
 
 import static com.evolveum.midpoint.util.MiscUtil.emptyIfNull;
@@ -18,8 +24,13 @@ import com.evolveum.midpoint.model.api.visualizer.localization.LocalizationParts
 import com.evolveum.midpoint.model.api.visualizer.localization.LocalizationPartsWrapper;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 
 public final class VisualizationBasedDeltaFormatter implements DeltaFormatter {
+
+    private static final Trace LOGGER = TraceManager.getTrace(VisualizationBasedDeltaFormatter.class);
+
     private final PropertiesFormatter<VisualizationItem> propertiesFormatter;
     private final PropertiesFormatter<VisualizationItem> additionalIdentificationFormatter;
     private final PropertiesFormatter<VisualizationDeltaItem> containerPropertiesModificationFormatter;
@@ -42,7 +53,10 @@ public final class VisualizationBasedDeltaFormatter implements DeltaFormatter {
 
     @Override
     public String formatVisualization(Visualization visualization) {
-        return formatContainer(visualization, 0);
+        LOGGER.trace("Starting to format visualization {}", getObjectName(visualization.getName()));
+        var formatingResult = formatContainer(visualization, 0);
+        LOGGER.trace("Visualization formating ends up with a result: {}", formatingResult);
+        return formatingResult;
     }
 
     private String formatContainer(Visualization visualization, int nestingLevel) {

@@ -2538,7 +2538,7 @@ public final class WebComponentUtil {
 
         StringBuilder title = new StringBuilder(getOrigStringFromPolyOrEmpty(basicIconDisplayType.getTooltip()));
         if (StringUtils.isBlank(title)) {
-            title = new StringBuilder(getOrigStringFromPoly(basicIconDisplayType.getLabel()));
+            title = new StringBuilder(getOrigStringFromPolyOrEmpty(basicIconDisplayType.getLabel()));
         }
         if (lifecycleStateIcon != null) {
             builder.appendLayerIcon(lifecycleStateIcon, IconCssStyle.BOTTOM_LEFT_FOR_COLUMN_STYLE);  // TODO: do we really want to expect not null icon for layerIcon?
