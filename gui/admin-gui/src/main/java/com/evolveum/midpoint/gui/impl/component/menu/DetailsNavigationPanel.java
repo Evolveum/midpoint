@@ -188,6 +188,10 @@ public class DetailsNavigationPanel<O extends ObjectType> extends BasePanel<List
             if (hasActiveSubmenu(storageConfig, itemModelObject)) {
                 key = "DetailsNavigationPanel.srActiveSubItemMessage";
             }
+            if (ID_SUB_NAVIGATION.equals(this.getId())) {
+                key = "DetailsNavigationPanel.srSubItemMessage";
+                return getPageBase().createStringResource(key).getString();
+            }
             return getPageBase().createStringResource(key).getString();
         });
         srCurrentMessage.add(new VisibleBehaviour(() -> {
