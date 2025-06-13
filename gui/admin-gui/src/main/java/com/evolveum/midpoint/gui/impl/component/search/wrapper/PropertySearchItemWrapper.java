@@ -210,6 +210,9 @@ public class PropertySearchItemWrapper<T> extends FilterableSearchItemWrapper<T>
         } else if (SchemaConstants.T_POLY_STRING_TYPE.equals(valueTypeName)) {
                 //we're looking for string value, therefore substring filter should be used
                 String text = (String) getValue().getValue();
+                if (text != null) {
+                    text = text.toLowerCase();
+                }
             //noinspection unchecked
             return ctx.queryFor(type)
                     .item(path, itemDef).contains(text).matchingNorm().buildFilter();
