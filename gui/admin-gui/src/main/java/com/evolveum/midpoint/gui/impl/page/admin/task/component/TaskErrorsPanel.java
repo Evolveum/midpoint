@@ -136,15 +136,6 @@ public class TaskErrorsPanel extends AbstractObjectMainPanel<TaskType, TaskDetai
                 return createContentQuery(getObjectWrapper().getOid(), getPageBase());
             }
 
-            @Override
-            protected Integer countObjects(
-                    Class<OperationExecutionType> type, ObjectQuery query, Collection<SelectorOptions<GetOperationOptions>> currentOptions,
-                    Task task, OperationResult result) throws CommonException {
-                System.out.println("TaskErrorsPanel.countObjects: " + type + ", query: " + query);
-
-                return super.countObjects(type, query, currentOptions, task, result);
-            }
-
             @NotNull
             @Override
             protected List<ObjectOrdering> createObjectOrderings(SortParam<String> sortParam) {
