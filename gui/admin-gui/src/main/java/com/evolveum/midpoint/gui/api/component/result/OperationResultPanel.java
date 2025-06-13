@@ -20,6 +20,9 @@ import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.attributes.AjaxRequestAttributes;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.behavior.AttributeAppender;
+import org.apache.wicket.behavior.Behavior;
+import org.apache.wicket.markup.head.IHeaderResponse;
+import org.apache.wicket.markup.head.OnDomReadyHeaderItem;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.link.DownloadLink;
@@ -69,6 +72,7 @@ public class OperationResultPanel extends BasePanel<OpResult> implements Popupab
     private static final String ID_DETAILS = "details";
     private static final String ID_DETAILS_CONTAINER = "detailsContainer";
     private static final String ID_SUB_RESULTS_STATUS = "subResultsActiveStatus";
+    private static final String ID_DETAIL_BOX_MESSAGE = "detailBoxMessage";
 
     static final String OPERATION_RESOURCE_KEY_PREFIX = "operation.";
 
@@ -85,9 +89,21 @@ public class OperationResultPanel extends BasePanel<OpResult> implements Popupab
     }
 
     public void initLayout() {
+        Label detailBoxMessage = new Label(ID_DETAIL_BOX_MESSAGE, Model.of(""));
+        detailBoxMessage.setOutputMarkupId(true);
+        add(detailBoxMessage);
 
         WebMarkupContainer detailsBox = new WebMarkupContainer(ID_DETAILS_BOX);
         detailsBox.setOutputMarkupId(true);
+        detailsBox.add(new Behavior() {
+            @Override
+            public void renderHead(Component component, IHeaderResponse response) {
+                super.renderHead(component, response);
+                Component label = get(createComponentPath(ID_DETAILS_BOX, ID_MESSAGE, ID_MESSAGE_LABEL));
+                response.render(OnDomReadyHeaderItem.forScript(String.format("MidPointTheme.updateStatusMessage('%s', '%s', %d);",
+                        detailBoxMessage.getMarkupId(), label.getDefaultModelObjectAsString(), 10)));
+            }
+        });
         detailsBox.add(AttributeModifier.append("class", createHeaderCss()));
         add(detailsBox);
 
