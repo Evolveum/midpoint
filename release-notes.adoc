@@ -597,6 +597,12 @@ Please upgrade to 4.8.5 first.
 NOTE: This section is relevant to the majority of midPoint deployments.
 It refers to the most significant functionality removals and changes in this version.
 
+* _Induced Entitlements_ panel was removed from the default Application Role configuration.
+This means that this panel is not displayed on the Application Role details page anymore.
+Anyhow, midPoint still keeps this panel as available to be configured in case there is a need to support a deprecated association configuration.
+For more information, how _Induced Entitlements_ panel can be configured to be visible on the Application Role details page, please, have a look at the following piece of link:https://github.com/Evolveum/midpoint/blob/support-4.8/config/initial-objects/archetype/029-archetype-application.xml#L94[xml].
+Panel removal is connected with the association improvements which were introduced in the current version.
+
 // * The `mailNonce` and `securityQuestionsForm` authentication modules were re-worked.
 // Since 4.8, we won't support authentication sequences with only `mailNonce` or only `securityQuestionsForm` module defined for password reset flow.
 // These modules have to be used together with `focusIdentification` module.
