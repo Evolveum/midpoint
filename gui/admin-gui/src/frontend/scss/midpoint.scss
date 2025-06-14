@@ -1793,6 +1793,19 @@ th, td {
   text-transform: uppercase;
 }
 
+div.search-popover legend {
+  font-size: 0.9rem;
+  font-weight: 700;
+}
+
+div.search-popover > fieldset {
+    height: 150px;
+    max-height: 150px;
+    overflow: auto;
+    white-space: nowrap;
+    padding-right: 18px;
+}
+
 div.search-popover > dl {
   height: 150px;
   max-height: 150px;
@@ -2413,4 +2426,11 @@ footer.main-footer a {
 .select2-selection__choice:focus {
     outline: 2px solid #2684FF;
     outline-offset: 2px;
+}
+
+.btn.btn-tool > i {
+  display: inline-flex;
+  align-items: center;
+  min-width: 24px;
+  min-height: 24px;
 }

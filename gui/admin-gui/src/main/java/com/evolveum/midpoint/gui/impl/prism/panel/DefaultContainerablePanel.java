@@ -9,13 +9,19 @@ package com.evolveum.midpoint.gui.impl.prism.panel;
 import java.util.List;
 import javax.xml.namespace.QName;
 
+import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
+import org.apache.wicket.behavior.Behavior;
+import org.apache.wicket.markup.head.IHeaderResponse;
+import org.apache.wicket.markup.head.OnDomReadyHeaderItem;
 import org.apache.wicket.markup.html.WebMarkupContainer;
+import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.model.StringResourceModel;
 
@@ -35,6 +41,7 @@ public class DefaultContainerablePanel<C extends Containerable, CVW extends Pris
     public static final String ID_PROPERTIES_LABEL = "propertiesLabel";
     protected static final String ID_CONTAINERS_LABEL = "containersLabel";
     protected static final String ID_SHOW_EMPTY_BUTTON = "showEmptyButton";
+    protected static final String ID_SHOW_HIDE_MESSAGE = "showHideMessage";
 
     private ItemPanelSettings settings;
 
@@ -85,6 +92,10 @@ public class DefaultContainerablePanel<C extends Containerable, CVW extends Pris
             @Override
             public void onClick(AjaxRequestTarget target) {
                 onShowEmptyClick(target);
+                String key = DefaultContainerablePanel.this.getModelObject().isShowEmpty() ?
+                        "DefaultContainerablePanel.message.show" : "DefaultContainerablePanel.message.hide";
+                target.appendJavaScript(String.format("MidPointTheme.updateStatusMessage('%s', '%s', %d);",
+                        DefaultContainerablePanel.this.get(ID_SHOW_HIDE_MESSAGE).getMarkupId(), getString(key), 300));
             }
 
             @Override
@@ -95,6 +106,10 @@ public class DefaultContainerablePanel<C extends Containerable, CVW extends Pris
     }
 
     protected void createContainersPanel() {
+        Label showHideMessage = new Label(ID_SHOW_HIDE_MESSAGE, Model.of(""));
+        showHideMessage.setOutputMarkupId(true);
+        add(showHideMessage);
+
         WebMarkupContainer containersLabel = new WebMarkupContainer(ID_CONTAINERS_LABEL);
         add(containersLabel);
         ListView<PrismContainerWrapper<?>> containers = new ListView<>("containers", createContainersModel()) {
@@ -132,6 +147,17 @@ public class DefaultContainerablePanel<C extends Containerable, CVW extends Pris
             panel.setOutputMarkupId(true);
             item.add(new VisibleBehaviour(() -> itemWrapper.isVisible(getModelObject(), getVisibilityHandler())));
             panel.add(AttributeAppender.replace("style", () -> getModelObject().isExpanded() ? "" : "display:none"));
+            if (item.getIndex() == 0 && DefaultContainerablePanel.this.getModelObject().isShowEmpty()) {
+                item.add(new Behavior() {
+                    @Override
+                    public void renderHead(Component component, IHeaderResponse response) {
+                        super.renderHead(component, response);
+                        panel.add(AttributeAppender.append("tabindex", "-1"));
+                            response.render(OnDomReadyHeaderItem.forScript(
+                                    "setTimeout(function() { document.getElementById('" + panel.getMarkupId() + "').focus(); }, 10);"));
+                    }
+                });
+            }
             item.add(panel);
         } catch (SchemaException e1) {
             throw new SystemException("Cannot instantiate " + itemWrapper.getTypeName());
