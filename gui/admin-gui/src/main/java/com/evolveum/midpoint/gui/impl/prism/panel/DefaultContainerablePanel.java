@@ -12,9 +12,6 @@ import javax.xml.namespace.QName;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
-import org.apache.wicket.behavior.Behavior;
-import org.apache.wicket.markup.head.IHeaderResponse;
-import org.apache.wicket.markup.head.OnDomReadyHeaderItem;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.list.ListItem;
@@ -42,6 +39,8 @@ public class DefaultContainerablePanel<C extends Containerable, CVW extends Pris
     protected static final String ID_CONTAINERS_LABEL = "containersLabel";
     protected static final String ID_SHOW_EMPTY_BUTTON = "showEmptyButton";
     protected static final String ID_SHOW_HIDE_MESSAGE = "showHideMessage";
+    protected static final String ID_PROPERTIES = "properties";
+    protected static final String ID_PROPERTY = "property";
 
     private ItemPanelSettings settings;
 
@@ -68,7 +67,7 @@ public class DefaultContainerablePanel<C extends Containerable, CVW extends Pris
 
         IModel<List<ItemWrapper<?, ?>>> nonContainerWrappers = new PropertyModel<>(getModel(), "nonContainers");
 
-        ListView<ItemWrapper<?, ?>> properties = new ListView<>("properties", nonContainerWrappers) {
+        ListView<ItemWrapper<?, ?>> properties = new ListView<>(ID_PROPERTIES, nonContainerWrappers) {
 
             @Override
             protected void populateItem(ListItem<ItemWrapper<?, ?>> item) {
@@ -92,10 +91,15 @@ public class DefaultContainerablePanel<C extends Containerable, CVW extends Pris
             @Override
             public void onClick(AjaxRequestTarget target) {
                 onShowEmptyClick(target);
+                Component firstProperty = DefaultContainerablePanel.this.get(
+                        createComponentPath(ID_PROPERTIES_LABEL, ID_PROPERTIES, "0", ID_PROPERTY));
+                if (firstProperty != null) {
+                    target.focusComponent(firstProperty);
+                }
                 String key = DefaultContainerablePanel.this.getModelObject().isShowEmpty() ?
                         "DefaultContainerablePanel.message.show" : "DefaultContainerablePanel.message.hide";
                 target.appendJavaScript(String.format("MidPointTheme.updateStatusMessage('%s', '%s', %d);",
-                        DefaultContainerablePanel.this.get(ID_SHOW_HIDE_MESSAGE).getMarkupId(), getString(key), 300));
+                        DefaultContainerablePanel.this.get(ID_SHOW_HIDE_MESSAGE).getMarkupId(), getString(key), 200));
             }
 
             @Override
@@ -143,21 +147,10 @@ public class DefaultContainerablePanel<C extends Containerable, CVW extends Pris
             }
 
             ItemPanelSettings settings = getSettings() != null ? getSettings().copy() : null;
-            Panel panel = getParentPage().initItemPanel("property", typeName, item.getModel(), settings);
+            Panel panel = getParentPage().initItemPanel(ID_PROPERTY, typeName, item.getModel(), settings);
             panel.setOutputMarkupId(true);
             item.add(new VisibleBehaviour(() -> itemWrapper.isVisible(getModelObject(), getVisibilityHandler())));
             panel.add(AttributeAppender.replace("style", () -> getModelObject().isExpanded() ? "" : "display:none"));
-            if (item.getIndex() == 0 && DefaultContainerablePanel.this.getModelObject().isShowEmpty()) {
-                item.add(new Behavior() {
-                    @Override
-                    public void renderHead(Component component, IHeaderResponse response) {
-                        super.renderHead(component, response);
-                        panel.add(AttributeAppender.append("tabindex", "-1"));
-                            response.render(OnDomReadyHeaderItem.forScript(
-                                    "setTimeout(function() { document.getElementById('" + panel.getMarkupId() + "').focus(); }, 10);"));
-                    }
-                });
-            }
             item.add(panel);
         } catch (SchemaException e1) {
             throw new SystemException("Cannot instantiate " + itemWrapper.getTypeName());
