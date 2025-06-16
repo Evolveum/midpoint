@@ -69,7 +69,7 @@ public class TaskRunResult implements Serializable {
          * Error that prevents activity from running, if the task has more activities, it should continue with the next one.
          * If the task does not have any more activities, it should finish.
          */
-        HALTING_ACTIVITY_ERROR,
+        SKIP_ACTIVITY_ERROR,
 
         /**
          * Error that prevents the activity from running.

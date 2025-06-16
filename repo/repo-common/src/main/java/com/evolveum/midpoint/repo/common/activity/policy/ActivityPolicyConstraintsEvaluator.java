@@ -25,6 +25,9 @@ public class ActivityPolicyConstraintsEvaluator {
     @Autowired
     private ExecutionTimeConstraintEvaluator executionTimeEvaluator;
 
+    @Autowired
+    private ItemStateConstraintEvaluator itemStateEvaluator;
+
     @PostConstruct
     public void init() {
         instance = this;
@@ -45,6 +48,10 @@ public class ActivityPolicyConstraintsEvaluator {
 
         if (constraints.getExecutionTime() != null) {
             triggers.addAll(executionTimeEvaluator.evaluate(constraints.getExecutionTime(), context, result));
+        }
+
+        if (constraints.getItemState() != null) {
+            triggers.addAll(itemStateEvaluator.evaluate(constraints.getItemState(), context, result));
         }
 
         return triggers;

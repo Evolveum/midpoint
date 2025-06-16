@@ -214,92 +214,6 @@ public abstract class AbstractActivityRun<
      * @see LocalActivityRun#runInternal(OperationResult)
      */
     public @NotNull ActivityRunResult run(OperationResult result) throws ActivityRunException {
-        boolean restarted = false;
-        while (true) {
-            ActivityRunResult runResult = runOnce(result, restarted);
-            // if (1==1) return runResult; // TODO remove this
-
-            if (!runResult.isRestartActivityError()) {
-                LOGGER.debug("Not restarting activity {} ({}) after run result: {}",
-                        activity.getIdentifier(), activity.getPath(), runResult);
-                return runResult;
-            }
-
-            Integer executionRestartLimit = getExecutionRestartLimit(runResult);
-            if (executionRestartLimit == null) {
-                LOGGER.debug("Couldn't figure out restart activity limit for activity {} ({}), halting",
-                        activity.getIdentifier(), activity.getPath());
-                runResult.setRunResultStatus(TaskRunResult.TaskRunResultStatus.HALTING_ERROR);
-
-                return runResult;
-            }
-
-            int executionAttempt = activityState.getExecutionAttempt() != null ? activityState.getExecutionAttempt() : 1;
-            if (executionAttempt >= executionRestartLimit) {
-                TaskRunResult.TaskRunResultStatus status = getMaxExecutionAttemptsReachedStatus(runResult);
-
-                LOGGER.debug("Maximum execution attempts reached for activity {} ({}), sending status: {}",
-                        activity.getIdentifier(), activity.getPath(), status);
-
-                runResult.setRunResultStatus(status);
-
-                return runResult;
-            }
-
-            LOGGER.debug("Restarting activity {} ({}), execution attempt {}/{}",
-                    activity.getIdentifier(), activity.getPath(), executionAttempt, executionRestartLimit);
-
-            try {
-                activityState.incrementExecutionAttempt(result);
-            } catch (ObjectNotFoundException | SchemaException | ObjectAlreadyExistsException ex) {
-                return ActivityRunResult.exception(result.getStatus(), PERMANENT_ERROR, ex);
-            }
-
-            restarted = true; // so that we know that this is a restart
-        }
-    }
-
-    private RestartActivityPolicyActionType getRestartPolicyAction(ActivityRunResult result) {
-        if (!result.isRestartActivityError()) {
-            return null;
-        }
-
-        if (!(result.getThrowable() instanceof ActivityThresholdPolicyViolationException atp)) {
-            return null;
-        }
-
-        String ruleId = atp.getRuleId();
-        if (ruleId == null) {
-            return null;
-        }
-
-        ActivityPolicyRulesContext ctx = getActivityPolicyRulesContext();
-        EvaluatedActivityPolicyRule rule = ctx.getPolicyRule(ruleId);
-        if (rule == null) {
-            return null;
-        }
-
-        ActivityPolicyActionsType policyActions = rule.getPolicy().getPolicyActions();
-        return policyActions != null ? policyActions.getRestartActivity() : null;
-    }
-
-    private Integer getExecutionRestartLimit(ActivityRunResult result) {
-        RestartActivityPolicyActionType restartAction = getRestartPolicyAction(result);
-        return restartAction.getRetryLimit();
-    }
-
-    private @NotNull TaskRunResult.TaskRunResultStatus getMaxExecutionAttemptsReachedStatus(ActivityRunResult result) {
-        RestartActivityPolicyActionType restartAction = getRestartPolicyAction(result);
-        RetryLimitExceededActionType action = restartAction.getRetryLimitExceededAction();
-
-        if (action == RetryLimitExceededActionType.SKIP_ACTION) {
-            return TaskRunResult.TaskRunResultStatus.HALTING_ACTIVITY_ERROR;
-        }
-
-        return HALTING_ERROR;
-    }
-
-    private @NotNull ActivityRunResult runOnce(OperationResult result, boolean restarted) throws ActivityRunException {
 
         initializeState(result);
 
@@ -328,7 +242,7 @@ public abstract class AbstractActivityRun<
 
             try {
                 // this evaluation handles activity policy rules with "below" constraints (at the end of activity run)
-                processor.evaluateAndEnforceRules(result);
+                processor.evaluateAndEnforceRules(null, result);
             } catch (ThresholdPolicyViolationException e) {
                 throw new ActivityRunException(
                         "Threshold policy violation", FATAL_ERROR, PERMANENT_ERROR, e);

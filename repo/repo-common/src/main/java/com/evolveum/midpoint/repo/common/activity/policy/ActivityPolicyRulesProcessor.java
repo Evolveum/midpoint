@@ -13,6 +13,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import com.evolveum.midpoint.repo.common.activity.run.processing.ItemProcessingResult;
 import com.evolveum.midpoint.task.api.ActivityThresholdPolicyViolationException;
 import com.evolveum.midpoint.task.api.TaskRunResult;
 import com.evolveum.midpoint.util.SingleLocalizableMessage;
@@ -61,7 +62,7 @@ public class ActivityPolicyRulesProcessor {
         activityRun.getActivityPolicyRulesContext().setPolicyRules(rules);
     }
 
-    public void evaluateAndEnforceRules(OperationResult result)
+    public void evaluateAndEnforceRules(ItemProcessingResult processingResult, @NotNull OperationResult result)
             throws ThresholdPolicyViolationException, SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException {
 
         LOGGER.trace("Evaluating activity policy rules for {} ({})",
@@ -74,7 +75,7 @@ public class ActivityPolicyRulesProcessor {
 
         Collection<ActivityPolicyStateType> policyStates = new ArrayList<>();
         for (EvaluatedActivityPolicyRule rule : rules) {
-            ActivityPolicyStateType state = evaluateRule(rule, result);
+            ActivityPolicyStateType state = evaluateRule(rule, processingResult, result);
             if (state != null) {
                 policyStates.add(state);
             }
@@ -93,7 +94,9 @@ public class ActivityPolicyRulesProcessor {
         }
     }
 
-    private ActivityPolicyStateType evaluateRule(EvaluatedActivityPolicyRule rule, OperationResult result) {
+    private ActivityPolicyStateType evaluateRule(
+            EvaluatedActivityPolicyRule rule, ItemProcessingResult processingResult, OperationResult result) {
+
         if (rule.isTriggered()) {
             LOGGER.trace("Policy rule {} was already triggered, skipping evaluation", rule);
             return null;
@@ -103,7 +106,7 @@ public class ActivityPolicyRulesProcessor {
 
         ActivityPolicyConstraintsEvaluator evaluator = ActivityPolicyConstraintsEvaluator.get();
 
-        ActivityPolicyRuleEvaluationContext context = new ActivityPolicyRuleEvaluationContext(rule, activityRun);
+        ActivityPolicyRuleEvaluationContext context = new ActivityPolicyRuleEvaluationContext(rule, activityRun, processingResult);
 
         List<EvaluatedActivityPolicyRuleTrigger<?>> triggers = evaluator.evaluateConstraints(constraints, context, result);
         rule.setTriggers(triggers);
@@ -183,7 +186,7 @@ public class ActivityPolicyRulesProcessor {
         if (rule.containsAction(SkipActivityPolicyActionType.class)) {
             LOGGER.debug("Skipping activity because of policy violation, rule: {}", rule);
 
-            status = TaskRunResult.TaskRunResultStatus.HALTING_ACTIVITY_ERROR;
+            status = TaskRunResult.TaskRunResultStatus.SKIP_ACTIVITY_ERROR;
         }
 
         if (rule.containsAction(SuspendTaskActivityPolicyActionType.class)) {

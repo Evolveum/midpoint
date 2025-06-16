@@ -2054,6 +2054,46 @@
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
+                    <xsd:element name="itemState" type="tns:ItemStatePolicyConstraintType" minOccurs="0"/>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+
+    <xsd:complexType name="ItemStatePolicyConstraintType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Constraint based on the state of the item.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:since>4.10</a:since>
+                <a:container>true</a:container>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:AbstractPolicyConstraintType">
+                <xsd:sequence>
+                    <xsd:element name="status" type="tns:OperationResultStatusType" minOccurs="0" maxOccurs="unbounded">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Operation result status to match. It can be either PARTIAL_ERROR or FATAL_ERROR.
+                                If not present, we decide solely on error category. If error categories are not specified,
+                                any error matches.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="errorCategory" type="tns:ErrorCategoryType" minOccurs="0" maxOccurs="unbounded">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Error category (network, security, policy, ...) to match.
+
+                                NOTE: that some errors are not propagated to the level where they can be recognized
+                                by this selector.
+
+                                If not present, we decide solely on the status.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
                 </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>
@@ -2114,7 +2154,7 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="action" type="tns:PolicyActionsType"/>
+            <xsd:element name="action" type="tns:ActivityPolicyActionsType"/>
         </xsd:sequence>
     </xsd:complexType>
 
@@ -2166,46 +2206,27 @@
         <xsd:complexContent>
             <xsd:extension base="tns:ActivityPolicyActionType">
                 <xsd:sequence>
-                    <xsd:element name="retryLimit" type="xsd:int" minOccurs="0">
+                    <xsd:element name="delay" type="xsd:int" minOccurs="0" default="3000">
                         <xsd:annotation>
                             <xsd:documentation>
-                                Maximal number of retries to execute activity. (Null means unlimited.)
+                                What delay (in milliseconds) to introduce between attempts. Actual delay is taken as
+                                a random number between 0 and delay*(2^(n-1)), where n is the number attempts so far.
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
-                    <xsd:element name="retryLimitExceededAction" type="tns:RetryLimitExceededActionType" minOccurs="0"/>
+                    <xsd:element name="restartCounters" minOccurs="0" default="false">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Whether to reset counters for the activity when it is restarted.
+                                If set to false, the counters are not reset and the activity is restarted
+                                with the same counters as before.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
                 </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
-
-    <xsd:simpleType name="RetryLimitExceededActionType">
-        <xsd:annotation>
-            <xsd:documentation>
-                What to do when retry limit for activity is exceeded.
-            </xsd:documentation>
-            <xsd:appinfo>
-                <a:since>4.10</a:since>
-                <jaxb:typesafeEnumClass/>
-            </xsd:appinfo>
-        </xsd:annotation>
-        <xsd:restriction base="xsd:string">
-            <xsd:enumeration value="skipAction">
-                <xsd:annotation>
-                    <xsd:appinfo>
-                        <jaxb:typesafeEnumMember name="SKIP_ACTION"/>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:enumeration>
-            <xsd:enumeration value="suspendTask">
-                <xsd:annotation>
-                    <xsd:appinfo>
-                        <jaxb:typesafeEnumMember name="SUSPEND_TASK"/>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:enumeration>
-        </xsd:restriction>
-    </xsd:simpleType>
 
     <xsd:complexType name="ActivityPolicyActionType" abstract="true">
         <xsd:annotation>

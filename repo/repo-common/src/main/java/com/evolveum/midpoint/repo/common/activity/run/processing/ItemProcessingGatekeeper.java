@@ -112,7 +112,7 @@ class ItemProcessingGatekeeper<I> {
     @NotNull private final ItemProcessingMonitor<I> itemProcessingMonitor;
 
     /** What was the final processing result? */
-    private ProcessingResult processingResult;
+    private ItemProcessingResult processingResult;
 
     /**
      * True if the flow of new events can continue. It can be switched to false either if the item processor
@@ -149,15 +149,7 @@ class ItemProcessingGatekeeper<I> {
         try {
             workerTask.setExecutionSupport(activityRun);
 
-            try {
-                ActivityPolicyRulesProcessor processor = new ActivityPolicyRulesProcessor(activityRun);
-                processor.evaluateAndEnforceRules(result);
-            } catch (Exception e) {
-                result.recordFatalError(e);
-                processingResult = ProcessingResult.fromException(result, e);
-
-                throw e;
-            }
+            // todo evaluate rules that don't need processing result here?
 
             logOperationStart();
             operation = updateStatisticsOnStart();
@@ -182,6 +174,16 @@ class ItemProcessingGatekeeper<I> {
 
             itemProcessingMonitor.stopProfilingAndTracing();
             writeOperationExecutionRecord(result);
+
+            try {
+                ActivityPolicyRulesProcessor processor = new ActivityPolicyRulesProcessor(activityRun);
+                processor.evaluateAndEnforceRules(processingResult, result);
+            } catch (Exception e) {
+                result.recordFatalError(e);
+                processingResult = ItemProcessingResult.fromException(result, e);
+
+                throw e;
+            }
 
             if (isError()) {
                 canContinue = handleError(result) && canContinue;
@@ -244,7 +246,7 @@ class ItemProcessingGatekeeper<I> {
         if (internalOperationReportRequested &&
                 afterConditionForInternalOpReportPasses(result)) {
             activityRun.getActivityState().getInternalOperationsReport()
-                    .add(request, activityRun.getBucket(), processingResult.operationResult, workerTask, result);
+                    .add(request, activityRun.getBucket(), processingResult.operationResult(), workerTask, result);
         }
         activityRun.getConnIdOperationsReport().flush(workerTask, result);
         reportItemProcessed(result);
@@ -282,7 +284,7 @@ class ItemProcessingGatekeeper<I> {
                     .type(startInfo.getItem().getObjectType())
                     .oid(startInfo.getItem().getObjectOid())
                     .bucketSequentialNumber(activityRun.getBucket().getSequentialNumber())
-                    .outcome(processingResult.outcome)
+                    .outcome(processingResult.outcome())
                     .startTimestamp(XmlTypeConverter.createXMLGregorianCalendar(startInfo.getStartTimeMillis()))
                     .endTimestamp(XmlTypeConverter.createXMLGregorianCalendar(operation.getEndTimeMillis()))
                     .duration(operation.getDurationRounded())
@@ -294,7 +296,7 @@ class ItemProcessingGatekeeper<I> {
     /**
      * Fills-in resultException and processingResult.
      */
-    private @NotNull ProcessingResult doProcessItem(OperationResult parentResult) {
+    private @NotNull ItemProcessingResult doProcessItem(OperationResult parentResult) {
 
         OperationResult itemOpResult = new OperationResult("dummy");
 
@@ -314,7 +316,7 @@ class ItemProcessingGatekeeper<I> {
 
             computeStatusIfNeeded(itemOpResult);
 
-            return ProcessingResult.fromOperationResult(itemOpResult);
+            return ItemProcessingResult.fromOperationResult(itemOpResult);
 
         } catch (Throwable t) {
 
@@ -322,7 +324,7 @@ class ItemProcessingGatekeeper<I> {
 
             // This is an error with top-level exception.
             // Note that we intentionally do not rethrow the exception.
-            return ProcessingResult.fromException(itemOpResult, t);
+            return ItemProcessingResult.fromException(itemOpResult, t);
 
         } finally {
             RepositoryCache.exitLocalCaches();
@@ -361,8 +363,8 @@ class ItemProcessingGatekeeper<I> {
     }
 
     private void cleanupAndSummarizeResults(OperationResult parentResult) {
-        assert processingResult.operationResult.isClosed();
-        processingResult.operationResult.deleteSubresultsIfPossible();
+        assert processingResult.operationResult().isClosed();
+        processingResult.operationResult().deleteSubresultsIfPossible();
 
         // parentResult is worker-thread-specific result (because of concurrency issues)
         // or parentResult as obtained in handle(..) method in single-thread scenario
@@ -373,11 +375,11 @@ class ItemProcessingGatekeeper<I> {
     private void logOperationEnd() {
 
         new StatisticsLogger(activityRun)
-                .logItemCompletion(operation, processingResult.operationResult.getStatus());
+                .logItemCompletion(operation, processingResult.operationResult().getStatus());
 
         if (isError() && getReportingCharacteristics().isLogErrors()) {
             LOGGER.error("{} of object {}{} failed: {}", activityRun.getShortName(), iterationItemInformation,
-                    activityRun.getContextDescriptionSpaced(), processingResult.getMessage(), processingResult.exception);
+                    activityRun.getContextDescriptionSpaced(), processingResult.getMessage(), processingResult.exception());
         }
     }
 
@@ -386,7 +388,7 @@ class ItemProcessingGatekeeper<I> {
      * TODO implement better
      */
     private boolean handleError(OperationResult result) {
-        OperationResultStatus status = processingResult.operationResult.getStatus();
+        OperationResultStatus status = processingResult.operationResult().getStatus();
         Throwable exception = processingResult.getExceptionRequired();
         LOGGER.debug("Starting handling error with status={}, exception={}", status, exception.getMessage(), exception);
 
@@ -411,7 +413,7 @@ class ItemProcessingGatekeeper<I> {
 
     private void recordIterativeOperationEnd(Operation operation) {
         // Does NOT increase progress. (Currently.)
-        operation.done(processingResult.outcome, processingResult.exception);
+        operation.done(processingResult.outcome(), processingResult.exception());
     }
 
     private void computeStatusIfNeeded(OperationResult result) {
@@ -438,7 +440,7 @@ class ItemProcessingGatekeeper<I> {
     private void storeTraceIfRequested(OperationResult parentResult) {
         if (tracingRequested) {
             itemProcessingMonitor.storeTrace(getTracer(), afterItemProcessingVariableProvider(), workerTask,
-                    processingResult.operationResult, parentResult);
+                    processingResult.operationResult(), parentResult);
             TracingAppender.removeSink(); // todo reconsider
             LevelOverrideTurboFilter.cancelLoggingOverride(); // todo reconsider
         }
@@ -447,7 +449,7 @@ class ItemProcessingGatekeeper<I> {
     private AdditionalVariableProvider afterItemProcessingVariableProvider() {
         return variables -> {
             variables.put(ExpressionConstants.VAR_OPERATION, operation, Operation.class);
-            variables.put(ExpressionConstants.VAR_OPERATION_RESULT, processingResult.operationResult, OperationResult.class);
+            variables.put(ExpressionConstants.VAR_OPERATION_RESULT, processingResult.operationResult(), OperationResult.class);
         };
     }
 
@@ -478,7 +480,7 @@ class ItemProcessingGatekeeper<I> {
         OperationExecutionRecorderForTasks.Target target = request.getOperationExecutionRecordingTarget();
         if (target != null) {
             getOperationExecutionRecorder().recordOperationExecution(target, coordinatorTask,
-                    activityRun.getActivityPath(), processingResult.operationResult, result);
+                    activityRun.getActivityPath(), processingResult.operationResult(), result);
         } else {
             LOGGER.trace("No target to write operation execution record to.");
         }
@@ -509,7 +511,7 @@ class ItemProcessingGatekeeper<I> {
         recordIterativeOperationEnd(operation);
         ActivityStatistics liveStats = activityRun.getActivityState().getLiveStatistics();
         if (getReportingCharacteristics().areSynchronizationStatisticsSupported()) {
-            liveStats.stopCollectingSynchronizationStatistics(workerTask, processingResult.outcome);
+            liveStats.stopCollectingSynchronizationStatistics(workerTask, processingResult.outcome());
         }
         if (getReportingCharacteristics().areActionsExecutedStatisticsSupported()) {
             liveStats.stopCollectingActionsExecuted(workerTask);
@@ -526,7 +528,7 @@ class ItemProcessingGatekeeper<I> {
      * Increments the progress and updates various statistics in the tasks (LAT, coordinator, tree).
      */
     private void updateStatisticsInTasks(OperationResult result) throws SchemaException, ObjectNotFoundException {
-        activityRun.incrementProgress(processingResult.outcome);
+        activityRun.incrementProgress(processingResult.outcome());
 
         boolean updateThreadLocalStatisticsInCoordinator;
         if (activityRun.isMultithreaded()) {
@@ -571,81 +573,6 @@ class ItemProcessingGatekeeper<I> {
 
     @NotNull ItemProcessingRequest<I> getRequest() {
         return request;
-    }
-
-    @Experimental
-    private static class ProcessingResult {
-
-        /** Outcome of the processing */
-        @NotNull private final QualifiedItemProcessingOutcomeType outcome;
-
-        /**
-         * Exception (either native or constructed) related to the error in processing.
-         * Always non-null if there is an error and null if there is no error! We can rely on this.
-         */
-        @Nullable private final Throwable exception;
-
-        /**
-         * The operation result for item processing. Should be closed.
-         * Must not be used for further recording. (Only for analysis.)
-         */
-        @NotNull private final OperationResult operationResult;
-
-        private ProcessingResult(
-                @NotNull ItemProcessingOutcomeType outcome,
-                @Nullable Throwable exception,
-                @NotNull OperationResult operationResult) {
-            this.operationResult = operationResult;
-            this.outcome = new QualifiedItemProcessingOutcomeType()
-                    .outcome(outcome);
-            this.exception = exception;
-            argCheck(outcome != ItemProcessingOutcomeType.FAILURE || exception != null,
-                    "Error without exception");
-        }
-
-        static ProcessingResult fromOperationResult(OperationResult result) {
-            if (result.isError()) {
-                // This is an error without visible top-level exception, so we have to find one.
-                Throwable exception = RepoCommonUtils.getResultException(result);
-                return new ProcessingResult(ItemProcessingOutcomeType.FAILURE, exception, result);
-            } else if (result.isNotApplicable()) {
-                return new ProcessingResult(ItemProcessingOutcomeType.SKIP, null, result);
-            } else {
-                return new ProcessingResult(ItemProcessingOutcomeType.SUCCESS, null, result);
-            }
-        }
-
-        static ProcessingResult fromException(OperationResult result, Throwable e) {
-            return new ProcessingResult(ItemProcessingOutcomeType.FAILURE, e, result);
-        }
-
-        boolean isError() {
-            return outcome.getOutcome() == ItemProcessingOutcomeType.FAILURE;
-        }
-
-        boolean isSuccess() {
-            return outcome.getOutcome() == ItemProcessingOutcomeType.SUCCESS;
-        }
-
-        boolean isSkip() {
-            return outcome.getOutcome() == ItemProcessingOutcomeType.SKIP;
-        }
-
-        String getMessage() {
-            return exception != null ? exception.getMessage() : null;
-        }
-
-        Throwable getExceptionRequired() {
-            return requireNonNull(exception, "Error without exception");
-        }
-
-        @Override
-        public String toString() {
-            return "ProcessingResult{" +
-                    "outcome=" + outcome +
-                    ", exception=" + exception +
-                    '}';
-        }
     }
 
     /**

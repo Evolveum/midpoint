@@ -10,6 +10,7 @@ package com.evolveum.midpoint.repo.common.activity.policy;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.repo.common.activity.run.AbstractActivityRun;
+import com.evolveum.midpoint.repo.common.activity.run.processing.ItemProcessingResult;
 
 /**
  * Context that holds important information for evaluation of activity policy rule.
@@ -21,12 +22,16 @@ public class ActivityPolicyRuleEvaluationContext {
     @NotNull
     private final AbstractActivityRun<?, ?, ?> activityRun;
 
+    private final ItemProcessingResult processingResult;
+
     public ActivityPolicyRuleEvaluationContext(
             @NotNull EvaluatedActivityPolicyRule rule,
-            @NotNull AbstractActivityRun<?, ?, ?> activityRun) {
+            @NotNull AbstractActivityRun<?, ?, ?> activityRun,
+            ItemProcessingResult processingResult) {
 
         this.activityRun = activityRun;
         this.rule = rule;
+        this.processingResult = processingResult;
     }
 
     public @NotNull AbstractActivityRun<?, ?, ?> getActivityRun() {
@@ -35,5 +40,9 @@ public class ActivityPolicyRuleEvaluationContext {
 
     public @NotNull EvaluatedActivityPolicyRule getRule() {
         return rule;
+    }
+
+    public ItemProcessingResult getProcessingResult() {
+        return processingResult;
     }
 }

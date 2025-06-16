@@ -122,7 +122,7 @@ public abstract class AbstractCompositeActivityRun<
             ActivityRunResult childRunResult = child.getRun().run(result);
             childResults.add(childRunResult);
             updateRunResultStatus(childRunResult);
-            if (childRunResult.isHaltingActivityError()) {
+            if (childRunResult.isSkipActivityError()) {
                 // current activity execution should be stopped,
                 // but we should continue with next activity
                 continue;
@@ -154,8 +154,8 @@ public abstract class AbstractCompositeActivityRun<
             runResult.setRunResultStatus(TEMPORARY_ERROR, childRunResult.getThrowable());
         } else if (childRunResult.isHaltingError()) {
             runResult.setRunResultStatus(HALTING_ERROR, childRunResult.getThrowable());
-        } else if (childRunResult.isHaltingActivityError()) {
-            runResult.setRunResultStatus(HALTING_ACTIVITY_ERROR, childRunResult.getThrowable());
+        } else if (childRunResult.isSkipActivityError()) {
+            runResult.setRunResultStatus(SKIP_ACTIVITY_ERROR, childRunResult.getThrowable());
         } else if (childRunResult.isRestartActivityError()) {
             runResult.setRunResultStatus(RESTART_ACTIVITY_ERROR, childRunResult.getThrowable());
         } else if (childRunResult.isWaiting()) {
