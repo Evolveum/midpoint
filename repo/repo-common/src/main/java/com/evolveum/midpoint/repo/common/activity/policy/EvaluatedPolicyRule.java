@@ -9,11 +9,15 @@ package com.evolveum.midpoint.repo.common.activity.policy;
 
 public interface EvaluatedPolicyRule {
 
+    String getName();
+
     String getRuleIdentifier();
 
     int getCount();
 
     void setCount(int count);
+
+    boolean isTriggered();
 
     boolean hasThreshold();
 }

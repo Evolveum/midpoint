@@ -100,7 +100,7 @@ public class ActivityPolicyRulesProcessor {
     private void updateCounters(OperationResult result)
             throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException {
 
-        new PolicyRuleCounterUpdater(activityRun)
+        new ActivityPolicyRuleUpdater(activityRun)
                 .updateCounters(result);
     }
 

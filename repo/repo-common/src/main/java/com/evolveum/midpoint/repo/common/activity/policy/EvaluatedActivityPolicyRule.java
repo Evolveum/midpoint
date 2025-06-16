@@ -47,6 +47,7 @@ public class EvaluatedActivityPolicyRule implements EvaluatedPolicyRule, DebugDu
         return ActivityPolicyUtils.createIdentifier(path, policy);
     }
 
+    @Override
     public String getName() {
         return policy.getName();
     }
@@ -122,6 +123,7 @@ public class EvaluatedActivityPolicyRule implements EvaluatedPolicyRule, DebugDu
         this.currentState = currentState;
     }
 
+    @Override
     public boolean isTriggered() {
         return !triggers.isEmpty() || (currentState != null && !currentState.getTriggers().isEmpty());
     }

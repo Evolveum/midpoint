@@ -15,7 +15,6 @@ import java.util.stream.Collectors;
 
 import org.jetbrains.annotations.NotNull;
 
-import com.evolveum.midpoint.repo.common.activity.run.AbstractActivityRun;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.ExecutionSupport;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
@@ -32,23 +31,27 @@ import com.evolveum.midpoint.util.logging.TraceManager;
  * Consider refactoring to avoid code duplication, however new set of interfaces for
  * PolicyRulesContext and EvaluatedPolicyRule will be needed.
  */
-public class PolicyRuleCounterUpdater {
+public abstract class PolicyRuleCounterUpdater {
 
     private static final Trace LOGGER = TraceManager.getTrace(PolicyRuleCounterUpdater.class);
 
-    private final @NotNull AbstractActivityRun<?, ?, ?> activityRun;
+    private final @NotNull ExecutionSupport executionSupport;
 
-    public PolicyRuleCounterUpdater(@NotNull AbstractActivityRun<?, ?, ?> activityRun) {
-        this.activityRun = activityRun;
+    public PolicyRuleCounterUpdater(@NotNull ExecutionSupport executionSupport) {
+        this.executionSupport = executionSupport;
     }
+
+    protected abstract PolicyRulesContext<?> getPolicyRulesContext();
+
+    protected abstract ExecutionSupport.CountersGroup getCountersGroup();
 
     public void updateCounters(OperationResult result)
             throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException {
 
-        ActivityPolicyRulesContext context = activityRun.getActivityPolicyRulesContext();
+        PolicyRulesContext<?> context = getPolicyRulesContext();
 
-        List<EvaluatedActivityPolicyRule> rulesToIncrement = new ArrayList<>();
-        for (EvaluatedActivityPolicyRule rule : context.getPolicyRules()) {
+        List<EvaluatedPolicyRule> rulesToIncrement = new ArrayList<>();
+        for (EvaluatedPolicyRule rule : context.getPolicyRules()) {
             if (!rule.isTriggered() || !rule.hasThreshold()) {
                 LOGGER.trace("Rule {} is not triggered or does not have a threshold, skipping counter update", rule.getRuleIdentifier());
                 continue;
@@ -68,12 +71,12 @@ public class PolicyRuleCounterUpdater {
             rulesToIncrement.add(rule);
         }
 
-        Map<String, EvaluatedActivityPolicyRule> rulesByIdentifier = rulesToIncrement.stream()
-                .collect(Collectors.toMap(EvaluatedActivityPolicyRule::getRuleIdentifier, Function.identity()));
+        Map<String, EvaluatedPolicyRule> rulesByIdentifier = rulesToIncrement.stream()
+                .collect(Collectors.toMap(EvaluatedPolicyRule::getRuleIdentifier, Function.identity()));
 
-        Map<String, Integer> currentValues =
-                activityRun.incrementCounters(
-                        ExecutionSupport.CountersGroup.ACTIVITY_POLICY_RULES, rulesByIdentifier.keySet(), result);
+        ExecutionSupport.CountersGroup group = getCountersGroup();
+
+        Map<String, Integer> currentValues = executionSupport.incrementCounters(group, rulesByIdentifier.keySet(), result);
 
         currentValues.forEach((id, value) -> {
             rulesByIdentifier.get(id).setCount(value);
