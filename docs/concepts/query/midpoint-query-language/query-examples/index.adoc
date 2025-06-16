@@ -517,6 +517,24 @@ These may be modified at a later point.
 |===
 
 
+[[filtering_all_objects_of_specified_type]]
+=== Filtering All Objects of Specified Type
+
+Sometimes, in configuration files, you need to select all objects of a specific object type.
+An example of such a case would be selecting all users in midPoint through an object collection.
+
+To select all objects, just omit the `<filter>` element in the query, or the entire query.
+
+The object collection below lists all roles (all objects of RoleType) in midPoint.
+
+[source,XML]
+----
+<objectCollection oid="72b1f98e-f587-4b9f-b92b-72e251dbb255">
+    <name>All roles</name>
+    <type>RoleType</type>
+</objectCollection>
+----
+
 == See Also
 
 - xref:/midpoint/reference/concepts/query/midpoint-query-language/[midPoint Query Language] - The main page of MQL.
