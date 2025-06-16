@@ -1,931 +1,1787 @@
 <?xml version="1.0"?>
+
 <!--
-  ~ Copyright (C) 2010-2022 Evolveum and contributors
-  ~
-  ~ This work is dual-licensed under the Apache License 2.0
-  ~ and European Union Public License. See LICENSE file for details.
-  -->
+
+~ Copyright (C) 2010-2022 Evolveum and contributors
+
+~
+
+~ This work is dual-licensed under the Apache License 2.0
+
+~ and European Union Public License. See LICENSE file for details.
+
+\-->
 
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-        xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
-    <modelVersion>4.0.0</modelVersion>
 
-    <parent>
-        <artifactId>gui</artifactId>
-        <groupId>com.evolveum.midpoint.gui</groupId>
-        <version>4.10-SNAPSHOT</version>
-    </parent>
+xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
 
-    <artifactId>admin-gui</artifactId>
-    <packaging>jar</packaging>
+<modelVersion>4.0.0</modelVersion>
 
-    <name>midPoint User Interface - admin web gui</name>
+<parent>
 
-    <dependencies>
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-web</artifactId>
-            <scope>runtime</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-autoconfigure</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-actuator</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.springframework.security</groupId>
-            <artifactId>spring-security-saml2-service-provider</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.springframework.security</groupId>
-            <artifactId>spring-security-oauth2-client</artifactId>
-        </dependency>
+<artifactId>gui</artifactId>
 
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-tomcat</artifactId>
-            <scope>runtime</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.tomcat.embed</groupId>
-            <artifactId>tomcat-embed-core</artifactId>
-            <exclusions>
-                <exclusion>
-                    <groupId>org.apache.tomcat</groupId>
-                    <artifactId>tomcat-annotations-api</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
-        <dependency>
-            <groupId>jakarta.annotation</groupId>
-            <artifactId>jakarta.annotation-api</artifactId>
-        </dependency>
+<groupId>com.evolveum.midpoint.gui</groupId>
 
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot</artifactId>
-        </dependency>
+<version>4.10-SNAPSHOT</version>
 
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-security</artifactId>
-            <scope>runtime</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-actuator</artifactId>
-            <scope>runtime</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-actuator-autoconfigure</artifactId>
-        </dependency>
+</parent>
 
-        <!-- webjars -->
-        <dependency>
-            <groupId>org.webjars</groupId>
-            <artifactId>jquery</artifactId>
-            <scope>runtime</scope>
-        </dependency>
+<artifactId>admin-gui</artifactId>
 
-        <!-- JDBC DRIVERS -->
-        <dependency>
-            <groupId>org.postgresql</groupId>
-            <artifactId>postgresql</artifactId>
-            <scope>runtime</scope>
-        </dependency>
-        <!-- Following drivers are provided here for developers, but not repackaged in midpoint-jar. -->
-        <dependency>
-            <groupId>com.microsoft.sqlserver</groupId>
-            <artifactId>mssql-jdbc</artifactId>
-            <scope>provided</scope>
-        </dependency>
-        <dependency>
-            <groupId>com.oracle.database.jdbc</groupId>
-            <artifactId>ojdbc11</artifactId>
-            <scope>provided</scope>
-        </dependency>
+<packaging>jar</packaging>
 
-        <!-- MIDPOINT -->
-        <dependency>
-            <groupId>com.evolveum.commons</groupId>
-            <artifactId>util</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>com.evolveum.prism</groupId>
-            <artifactId>prism-api</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>com.evolveum.prism</groupId>
-            <artifactId>prism-impl</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>com.evolveum.axiom</groupId>
-            <artifactId>axiom</artifactId>
-        </dependency>
+<name>midPoint User Interface - admin web gui</name>
 
-        <dependency>
-            <groupId>com.evolveum.midpoint.infra</groupId>
-            <artifactId>schema</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>com.evolveum.midpoint.repo</groupId>
-            <artifactId>repo-api</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>com.evolveum.midpoint.repo</groupId>
-            <artifactId>repo-common</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>com.evolveum.midpoint.model</groupId>
-            <artifactId>report-api</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>com.evolveum.midpoint.model</groupId>
-            <artifactId>model-api</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>com.evolveum.midpoint.provisioning</groupId>
-            <artifactId>provisioning-api</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>com.evolveum.midpoint.model</groupId>
-            <artifactId>model-common</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>com.evolveum.midpoint.repo</groupId>
-            <artifactId>security-api</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>com.evolveum.midpoint.repo</groupId>
-            <artifactId>security-enforcer-api</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>com.evolveum.midpoint.model</groupId>
-            <artifactId>cases-api</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>com.evolveum.midpoint.model</groupId>
-            <artifactId>workflow-api</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>com.evolveum.midpoint.model</groupId>
-            <artifactId>certification-api</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>com.evolveum.midpoint.repo</groupId>
-            <artifactId>task-api</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>com.evolveum.midpoint.repo</groupId>
-            <artifactId>system-init</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>com.evolveum.midpoint.repo</groupId>
-            <artifactId>repo-sqlbase</artifactId>
-            <version>${project.version}</version>
-        </dependency>
+<dependencies>
 
-        <!-- MIDPOINT RUNTIME DEPENDENCIES -->
-        <dependency>
-            <groupId>com.evolveum.midpoint.repo</groupId>
-            <artifactId>repo-sql-impl</artifactId>
-            <version>${project.version}</version>
-            <scope>runtime</scope>
-        </dependency>
-        <dependency>
-            <groupId>com.evolveum.midpoint.repo</groupId>
-            <artifactId>repo-sqale</artifactId>
-            <version>${project.version}</version>
-            <scope>runtime</scope>
-        </dependency>
-        <dependency>
-            <groupId>com.evolveum.midpoint</groupId>
-            <artifactId>midpoint-localization</artifactId>
-            <version>${project.version}</version>
-            <scope>runtime</scope>
-        </dependency>
-        <dependency>
-            <groupId>com.evolveum.midpoint.model</groupId>
-            <artifactId>rest-impl</artifactId>
-            <version>${project.version}</version>
-        </dependency>
+<dependency>
 
-        <dependency>
-            <groupId>org.apache.groovy</groupId>
-            <artifactId>groovy-all</artifactId>
-            <type>pom</type>
-            <scope>runtime</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.groovy</groupId>
-            <artifactId>groovy-astbuilder</artifactId>
-            <scope>runtime</scope>
-        </dependency>
-        <dependency>
-            <groupId>joda-time</groupId>
-            <artifactId>joda-time</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>com.evolveum.midpoint.repo</groupId>
-            <artifactId>task-quartz-impl</artifactId>
-            <version>${project.version}</version>
-            <scope>runtime</scope>
-        </dependency>
-        <dependency>
-            <groupId>com.evolveum.midpoint.repo</groupId>
-            <artifactId>audit-log-impl</artifactId>
-            <version>${project.version}</version>
-            <scope>runtime</scope>
-        </dependency>
-        <dependency>
-            <groupId>com.evolveum.midpoint.repo</groupId>
-            <artifactId>security-impl</artifactId>
-            <version>${project.version}</version>
-            <scope>runtime</scope>
-        </dependency>
-        <dependency>
-            <groupId>com.evolveum.midpoint.repo</groupId>
-            <artifactId>security-enforcer-impl</artifactId>
-            <version>${project.version}</version>
-            <scope>runtime</scope>
-        </dependency>
-        <dependency>
-            <groupId>com.evolveum.midpoint.model</groupId>
-            <artifactId>model-impl</artifactId>
-            <version>${project.version}</version>
-            <scope>runtime</scope>
-        </dependency>
-        <dependency>
-            <groupId>com.evolveum.midpoint.model</groupId>
-            <artifactId>certification-impl</artifactId>
-            <version>${project.version}</version>
-            <scope>runtime</scope>
-        </dependency>
-        <dependency>
-            <groupId>com.evolveum.midpoint.model</groupId>
-            <artifactId>cases-impl</artifactId>
-            <version>${project.version}</version>
-            <scope>runtime</scope>
-        </dependency>
-        <dependency>
-            <groupId>com.evolveum.midpoint.model</groupId>
-            <artifactId>workflow-impl</artifactId>
-            <version>${project.version}</version>
-            <scope>runtime</scope>
-        </dependency>
-        <dependency>
-            <groupId>com.evolveum.midpoint.model</groupId>
-            <artifactId>notifications-impl</artifactId>
-            <version>${project.version}</version>
-            <scope>runtime</scope>
-        </dependency>
-        <dependency>
-            <groupId>com.evolveum.midpoint.provisioning</groupId>
-            <artifactId>provisioning-impl</artifactId>
-            <version>${project.version}</version>
-            <scope>runtime</scope>
-        </dependency>
-        <dependency>
-            <groupId>com.evolveum.midpoint.provisioning</groupId>
-            <artifactId>ucf-impl-builtin</artifactId>
-            <version>${project.version}</version>
-            <scope>runtime</scope>
-        </dependency>
-        <dependency>
-            <groupId>com.evolveum.midpoint.model</groupId>
-            <artifactId>report-impl</artifactId>
-            <version>${project.version}</version>
-            <scope>runtime</scope>
-        </dependency>
-        <dependency>
-            <groupId>com.evolveum.midpoint.model</groupId>
-            <artifactId>authentication-impl</artifactId>
-            <version>${project.version}</version>
-            <scope>runtime</scope>
-        </dependency>
+<groupId>org.springframework.boot</groupId>
 
-        <dependency>
-            <groupId>com.evolveum.midpoint.infra</groupId>
-            <artifactId>common</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>com.evolveum.midpoint.model</groupId>
-            <artifactId>authentication-api</artifactId>
-            <version>${project.version}</version>
-        </dependency>
+<artifactId>spring-boot-starter-web</artifactId>
 
-        <!-- SPRING -->
-        <dependency>
-            <groupId>org.springframework</groupId>
-            <artifactId>spring-web</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.springframework</groupId>
-            <artifactId>spring-core</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.springframework</groupId>
-            <artifactId>spring-beans</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.springframework</groupId>
-            <artifactId>spring-context</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.springframework</groupId>
-            <artifactId>spring-webmvc</artifactId>
-        </dependency>
-        <dependency> <!-- needed as runtime dependency otherwise spring won't start -->
-            <groupId>org.springframework</groupId>
-            <artifactId>spring-aspects</artifactId>
-            <scope>runtime</scope>
-        </dependency>
+<scope>runtime</scope>
 
-        <!-- SPRING SECURITY -->
-        <dependency>
-            <groupId>org.springframework.security</groupId>
-            <artifactId>spring-security-core</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.springframework.security</groupId>
-            <artifactId>spring-security-web</artifactId>
-        </dependency>
+</dependency>
 
-        <!-- WICKET DEPENDENCIES -->
-        <dependency>
-            <groupId>org.apache.wicket</groupId>
-            <artifactId>wicket-core</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.wicket</groupId>
-            <artifactId>wicket-request</artifactId>
-        </dependency>
+<dependency>
 
-        <dependency>
-            <groupId>org.apache.wicket</groupId>
-            <artifactId>wicket-ioc</artifactId>
-            <exclusions>
-                <exclusion>
-                    <groupId>jakarta.inject</groupId>
-                    <artifactId>jakarta.inject-api</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.wicket</groupId>
-            <artifactId>wicket-util</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.wicket</groupId>
-            <artifactId>wicket-devutils</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.wicket</groupId>
-            <artifactId>wicket-auth-roles</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.wicket</groupId>
-            <artifactId>wicket-spring</artifactId>
-            <exclusions>
-                <exclusion>
-                    <groupId>org.springframework</groupId>
-                    <artifactId>*</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.wicket</groupId>
-            <artifactId>wicket-extensions</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.wicketstuff</groupId>
-            <artifactId>wicketstuff-select2</artifactId>
-        </dependency>
+<groupId>org.springframework.security</groupId>
 
-        <dependency>
-            <groupId>com.evolveum.chartjs</groupId>
-            <artifactId>wicket-chartjs-core</artifactId>
-        </dependency>
+<artifactId>spring-security-saml2-service-provider</artifactId>
 
-        <dependency>
-            <groupId>jp.try0.wicket</groupId>
-            <artifactId>wicket-honeypot-core</artifactId>
-        </dependency>
+</dependency>
 
-        <dependency>
-            <groupId>commons-validator</groupId>
-            <artifactId>commons-validator</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>commons-io</groupId>
-            <artifactId>commons-io</artifactId>
-        </dependency>
+<dependency>
 
-        <dependency>
-            <groupId>org.apache.commons</groupId>
-            <artifactId>commons-collections4</artifactId>
-        </dependency>
+<groupId>org.springframework.boot</groupId>
 
-        <dependency>
-            <!-- In LDAP/AD connector we use custom build of HTTP client with CredSSP support.
-                 As AD/LDAP connector is bundled then this triggers a conflict in dependency convergence.
-                 Therefore explicitly use the custom version. -->
-            <groupId>org.apache.httpcomponents</groupId>
-            <artifactId>httpclient</artifactId>
-            <scope>runtime</scope>
-        </dependency>
-        <dependency>
-            <!-- In LDAP/AD connector we use custom build of HTTP client with CredSSP support.
-                 As AD/LDAP connector is bundled then this triggers a conflict in dependency convergence.
-                 Therefore explicitly use the custom version. -->
-            <groupId>org.apache.httpcomponents</groupId>
-            <artifactId>httpcore</artifactId>
-            <scope>runtime</scope>
-        </dependency>
+<artifactId>spring-boot-autoconfigure</artifactId>
 
-        <dependency>
-            <groupId>org.apache.commons</groupId>
-            <artifactId>commons-lang3</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.commons</groupId>
-            <artifactId>commons-text</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>commons-codec</groupId>
-            <artifactId>commons-codec</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.commons</groupId>
-            <artifactId>commons-configuration2</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>commons-beanutils</groupId>
-            <artifactId>commons-beanutils</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>commons-javaflow</groupId>
-            <artifactId>commons-javaflow</artifactId>
-            <scope>runtime</scope> <!-- TODO: review if we need this dependency -->
-        </dependency>
-        <dependency>
-            <groupId>org.jetbrains</groupId>
-            <artifactId>annotations</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.codehaus.janino</groupId>
-            <artifactId>janino</artifactId>
-            <scope>runtime</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.ow2.asm</groupId>
-            <artifactId>asm</artifactId>
-            <scope>runtime</scope>
-        </dependency>
-        <dependency>
-            <groupId>com.github.openjson</groupId>
-            <artifactId>openjson</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>com.fasterxml.jackson.core</groupId>
-            <artifactId>jackson-annotations</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>com.fasterxml.jackson.core</groupId>
-            <artifactId>jackson-databind</artifactId>
-        </dependency>
+</dependency>
 
+<dependency>
 
-        <!-- Messaging -->
-        <dependency>
-            <groupId>org.apache.activemq</groupId>
-            <artifactId>artemis-jakarta-client</artifactId>
-            <scope>runtime</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.activemq</groupId>
-            <artifactId>artemis-core-client</artifactId>
-            <scope>runtime</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.activemq</groupId>
-            <artifactId>artemis-commons</artifactId>
-            <scope>runtime</scope>
-        </dependency>
-        <dependency>
-            <groupId>com.google.guava</groupId>
-            <artifactId>guava</artifactId>
-        </dependency>
+<groupId>org.springframework.boot</groupId>
 
-        <!-- TEST -->
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-test</artifactId>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-test</artifactId>
-            <scope>test</scope>
-        </dependency>
+<artifactId>spring-boot-actuator</artifactId>
 
-        <dependency>
-            <groupId>com.evolveum.midpoint.infra</groupId>
-            <artifactId>test-util</artifactId>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>com.evolveum.midpoint.repo</groupId>
-            <artifactId>repo-test-util</artifactId>
-            <version>${project.version}</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>com.evolveum.midpoint.repo</groupId>
-            <artifactId>repo-sql-impl-test</artifactId>
-            <version>${project.version}</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>com.evolveum.icf</groupId>
-            <artifactId>dummy-resource</artifactId>
-            <version>${project.version}</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.springframework</groupId>
-            <artifactId>spring-test</artifactId>
-            <scope>test</scope>
-        </dependency>
-        <dependency><!-- Not used, but required for surefire plugin not to complain -->
-            <groupId>org.testng</groupId>
-            <artifactId>testng</artifactId>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>com.evolveum.commons</groupId>
-            <artifactId>test-ng</artifactId>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>junit</groupId>
-            <artifactId>junit</artifactId>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.wicket</groupId>
-            <artifactId>wicket-tester</artifactId>
-            <version>${wicket.version}</version>
-            <scope>test</scope>
-        </dependency>
+</dependency>
 
-        <!-- Dependencies to connectors -->
-        <dependency>
-            <groupId>com.evolveum.polygon</groupId>
-            <artifactId>connector-ldap</artifactId>
-            <scope>runtime</scope>
-            <exclusions>
-                <exclusion>
-                    <groupId>org.slf4j</groupId>
-                    <artifactId>slf4j-jdk14</artifactId>
-                </exclusion>
-                <!--
-                Exclude api-all and connector-common, we don't want these in the final archive.
-                We only want the api-all from the connector jar that would be loaded by the ConnId.
-                -->
-                <exclusion>
-                    <groupId>org.apache.directory.api</groupId>
-                    <artifactId>api-all</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>com.evolveum.polygon</groupId>
-                    <artifactId>connector-common</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
-        <dependency>
-            <groupId>com.evolveum.polygon</groupId>
-            <artifactId>connector-databasetable</artifactId>
-            <scope>runtime</scope>
-        </dependency>
-        <dependency>
-            <groupId>com.evolveum.polygon</groupId>
-            <artifactId>connector-csv</artifactId>
-            <scope>runtime</scope>
-        </dependency>
+<dependency>
 
-        <!-- end connectors -->
+<groupId>org.springframework.security</groupId>
 
-        <!-- report dependency (needed for Microsoft Office formats) -->
-        <dependency>
-            <groupId>org.apache.poi</groupId>
-            <artifactId>poi</artifactId>
-        </dependency>
+<artifactId>spring-security-saml2-service-provider</artifactId>
 
-        <dependency>
-            <groupId>com.github.inamik.text.tables</groupId>
-            <artifactId>inamik-text-tables</artifactId>
-        </dependency>
+</dependency>
 
-        <!-- testing dependencies -->
-        <dependency>
-            <groupId>com.evolveum.midpoint.model</groupId>
-            <artifactId>model-test</artifactId>
-            <version>${project.version}</version>
-            <scope>test</scope>
-        </dependency>
+<dependency>
 
-        <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>jcl-over-slf4j</artifactId>
-        </dependency>
-    </dependencies>
+<groupId>org.springframework.security</groupId>
 
-    <build>
-        <resources>
-            <resource>
-                <filtering>false</filtering>
-                <directory>src/main/resources</directory>
-                <excludes>
-                    <exclude>**/org.identityconnectors.common.logging</exclude>
-                </excludes>
-            </resource>
-            <resource>
-                <filtering>true</filtering>
-                <directory>src/main/resources</directory>
-                <includes>
-                    <include>banner.txt</include>
-                </includes>
-            </resource>
-            <!-- ICF LOGGING CONFIGURATION -->
-            <resource>
-                <targetPath>META-INF/services</targetPath>
-                <filtering>false</filtering>
-                <directory>src/main/resources</directory>
-                <includes>
-                    <include>**/org.identityconnectors.common.logging</include>
-                </includes>
-            </resource>
+<artifactId>spring-security-oauth2-client</artifactId>
 
-            <resource>
-                <filtering>false</filtering>
-                <directory>src/main/java</directory>
-                <excludes>
-                    <exclude>**/*.java</exclude>
-                    <exclude>**/*.properties</exclude>
-                </excludes>
-            </resource>
-            <resource>
-                <filtering>true</filtering>
-                <directory>src/main/java</directory>
-                <includes>
-                    <include>**/*.properties</include>
-                </includes>
-            </resource>
-            <resource>
-                <directory>target/generated-resources/webpack</directory>
-                <filtering>false</filtering>
-            </resource>
-        </resources>
-        <testResources>
-            <testResource>
-                <filtering>false</filtering>
-                <directory>src/test/resources</directory>
-            </testResource>
-            <testResource>
-                <filtering>false</filtering>
-                <directory>src/test/java</directory>
-                <excludes>
-                    <exclude>**/*.java</exclude>
-                    <exclude>**/*.properties</exclude>
-                </excludes>
-            </testResource>
-            <testResource>
-                <filtering>true</filtering>
-                <directory>src/test/java</directory>
-                <includes>
-                    <include>**/*.properties</include>
-                </includes>
-            </testResource>
-        </testResources>
-        <plugins>
-            <plugin>
-                <groupId>pl.project13.maven</groupId>
-                <artifactId>git-commit-id-plugin</artifactId>
-                <executions>
-                    <execution>
-                        <goals>
-                            <goal>revision</goal>
-                        </goals>
-                    </execution>
-                </executions>
-                <configuration>
-                    <verbose>false</verbose>
-                    <offline>true</offline>
-                </configuration>
-            </plugin>
+</dependency>
 
-            <!-- reference failsafe to run integration tests (surefire/units run by default) -->
-            <plugin>
-                <artifactId>maven-failsafe-plugin</artifactId>
-            </plugin>
+<dependency>
 
-            <!--
-            We use both main and test classes downstream.
-            TODO (still true?): We can't use JAR plugin for main classes, Maven requires different classifier than for
-            the main artifact (which is WAR for admin-gui).
-            -->
-            <plugin>
-                <artifactId>maven-jar-plugin</artifactId>
-                <executions>
-                    <execution>
-                        <goals>
-                            <goal>test-jar</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-clean-plugin</artifactId>
-                <configuration>
-                    <filesets>
-                        <fileset>
-                            <directory>./node_modules</directory>
-                        </fileset>
-                    </filesets>
-                </configuration>
-            </plugin>
-            <plugin>
-                <!--
-                 This plugin is used to parse current project version for later use with npm version which requires semantic versioning
-                 -->
-                <groupId>org.codehaus.mojo</groupId>
-                <artifactId>build-helper-maven-plugin</artifactId>
-                <version>3.4.0</version>
-                <executions>
-                    <execution>
-                        <id>parse-version</id>
-                        <goals>
-                            <goal>parse-version</goal>
-                        </goals>
-                        <configuration>
-                            <propertyPrefix>parsedVersion</propertyPrefix>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin>
-            <plugin>
-                <groupId>com.github.eirslett</groupId>
-                <artifactId>frontend-maven-plugin</artifactId>
-                <version>1.15.1</version>
+<groupId>org.springframework.boot</groupId>
 
-                <executions>
-                    <execution>
-                        <id>install node and npm</id>
-                        <goals>
-                            <goal>install-node-and-npm</goal>
-                        </goals>
-                    </execution>
-                    <!-- TODO temporary -->
-                    <execution>
-                        <id>npm ignore certs</id>
-                        <goals>
-                            <goal>npm</goal>
-                        </goals>
-                        <configuration>
-                            <arguments>config set strict-ssl false</arguments>
-                        </configuration>
-                    </execution>
-                    <execution>
-                        <id>npm install</id>
-                        <goals>
-                            <goal>npm</goal>
-                        </goals>
-                    </execution>
-                    <execution>
-                        <!--
-                        uses build-helper-maven-plugin parsed version to create semantic version for
-                        package.json that matches current project version
-                        -->
-                        <id>npm update package.json version if necessary</id>
-                        <goals>
-                            <goal>npm</goal>
-                        </goals>
-                        <configuration>
-                            <arguments>version ${parsedVersion.majorVersion}.${parsedVersion.minorVersion}.${parsedVersion.incrementalVersion} --allow-same-version</arguments>
-                        </configuration>
-                    </execution>
-                    <execution>
-                        <id>npm build with webpack</id>
-                        <goals>
-                            <goal>npm</goal>
-                        </goals>
-                        <configuration>
-                            <arguments>run build</arguments>
-                        </configuration>
-                    </execution>
-                </executions>
-                <configuration>
-                    <nodeDownloadRoot>https://nexus.evolveum.com/nexus/repository/nodejs-dist/</nodeDownloadRoot>
-                    <npmDownloadRoot>https://nexus.evolveum.com/nexus/repository/npmjs-dist/</npmDownloadRoot>
-                    <nodeVersion>v22.14.0</nodeVersion>
-                    <npmVersion>11.1.0</npmVersion>
-                    <installDirectory>target</installDirectory>
-                </configuration>
-            </plugin>
-        </plugins>
-    </build>
+<artifactId>spring-boot-starter-tomcat</artifactId>
 
-    <profiles>
-        <profile>
-            <id>perftest</id>
-            <build>
-                <plugins>
-                    <plugin>
-                        <artifactId>maven-failsafe-plugin</artifactId>
-                        <configuration>
-                            <skipTests>false</skipTests>
-                            <systemPropertyVariables>
-                                <mp.perf.report.prefix>target/PERF</mp.perf.report.prefix>
-                            </systemPropertyVariables>
-                            <suiteXmlFiles>
-                                <suiteXmlFile>testng-perf.xml</suiteXmlFile>
-                            </suiteXmlFiles>
-                        </configuration>
-                    </plugin>
-                </plugins>
-            </build>
-        </profile>
-        <profile>
-            <id>dependencytrack</id>
-            <build>
-                <plugins>
-                    <plugin>
-                        <groupId>com.github.eirslett</groupId>
-                        <artifactId>frontend-maven-plugin</artifactId>
-                        <executions>
-                            <execution>
-                                <id>npm sbom</id>
-                                <goals>
-                                    <goal>npm</goal>
-                                </goals>
-                                <configuration>
-                                    <environmentVariables>
-                                        <!-- this variable will be used by package.json -->
-                                        <OUTPUT_FORMAT>xml</OUTPUT_FORMAT>
-                                        <OUTPUT_BOM_NAME>bom-frontend</OUTPUT_BOM_NAME>
-                                        <OUTPUT_BOM_DIRECTORY>${project.build.directory}</OUTPUT_BOM_DIRECTORY>
-                                    </environmentVariables>
-                                    <arguments>run sbom_maven</arguments>
-                                </configuration>
-                            </execution>
-                        </executions>
-                    </plugin>
-                    <plugin>
-                        <groupId>io.github.pmckeown</groupId>
-                        <artifactId>dependency-track-maven-plugin</artifactId>
-                        <executions>
-                            <execution>
-                                <id>upload-bom</id>
-                                <phase>verify</phase>
-                                <goals>
-                                    <goal>upload-bom</goal>
-                                </goals>
-                            </execution>
-                        </executions>
-                        <configuration>
-                            <projectName>admin-gui-frontend</projectName>
-                            <bomLocation>./gui/admin-gui/target/bom-frontend.xml</bomLocation>
-                            <pollingConfig>
-                                <enabled>true</enabled>
-                                <pause>500</pause>
-                                <attempts>100</attempts>
-                                <timeUnit>MILLIS</timeUnit>
-                            </pollingConfig>
-                        </configuration>
-                    </plugin>
-                </plugins>
-            </build>
-        </profile>
-    </profiles>
+<scope>runtime</scope>
+
+</dependency>
+
+<dependency>
+
+<groupId>org.apache.tomcat.embed</groupId>
+
+<artifactId>tomcat-embed-core</artifactId>
+
+<exclusions>
+
+<exclusion>
+
+<groupId>org.apache.tomcat</groupId>
+
+<artifactId>tomcat-annotations-api</artifactId>
+
+</exclusion>
+
+</exclusions>
+
+</dependency>
+
+<dependency>
+
+<groupId>jakarta.annotation</groupId>
+
+<artifactId>jakarta.annotation-api</artifactId>
+
+</dependency>
+
+<dependency>
+
+<groupId>org.springframework.boot</groupId>
+
+<artifactId>spring-boot</artifactId>
+
+</dependency>
+
+<dependency>
+
+<groupId>org.springframework.boot</groupId>
+
+<artifactId>spring-boot-starter-security</artifactId>
+
+<scope>runtime</scope>
+
+</dependency>
+
+<dependency>
+
+<groupId>org.springframework.boot</groupId>
+
+<artifactId>spring-boot-starter-actuator</artifactId>
+
+<scope>runtime</scope>
+
+</dependency>
+
+<dependency>
+
+<groupId>org.springframework.boot</groupId>
+
+<artifactId>spring-boot-actuator-autoconfigure</artifactId>
+
+</dependency>
+
+<!-- webjars -->
+
+<dependency>
+
+<groupId>org.webjars</groupId>
+
+<artifactId>jquery</artifactId>
+
+<scope>runtime</scope>
+
+</dependency>
+
+<!-- JDBC DRIVERS -->
+
+<dependency>
+
+<groupId>org.postgresql</groupId>
+
+<artifactId>postgresql</artifactId>
+
+<scope>runtime</scope>
+
+</dependency>
+
+<!-- Following drivers are provided here for developers, but not repackaged in midpoint-jar. -->
+
+<dependency>
+
+<groupId>com.microsoft.sqlserver</groupId>
+
+<artifactId>mssql-jdbc</artifactId>
+
+<scope>provided</scope>
+
+</dependency>
+
+<dependency>
+
+<groupId>com.oracle.database.jdbc</groupId>
+
+<artifactId>ojdbc11</artifactId>
+
+<scope>provided</scope>
+
+</dependency>
+
+<!-- MIDPOINT -->
+
+<dependency>
+
+<groupId>com.evolveum.commons</groupId>
+
+<artifactId>util</artifactId>
+
+</dependency>
+
+<dependency>
+
+<groupId>com.evolveum.prism</groupId>
+
+<artifactId>prism-api</artifactId>
+
+</dependency>
+
+<dependency>
+
+<groupId>com.evolveum.prism</groupId>
+
+<artifactId>prism-impl</artifactId>
+
+</dependency>
+
+<dependency>
+
+<groupId>com.evolveum.axiom</groupId>
+
+<artifactId>axiom</artifactId>
+
+</dependency>
+
+<dependency>
+
+<groupId>com.evolveum.midpoint.infra</groupId>
+
+<artifactId>schema</artifactId>
+
+<version>${project.version}</version>
+
+</dependency>
+
+<dependency>
+
+<groupId>com.evolveum.midpoint.repo</groupId>
+
+<artifactId>repo-api</artifactId>
+
+<version>${project.version}</version>
+
+</dependency>
+
+<dependency>
+
+<groupId>com.evolveum.midpoint.repo</groupId>
+
+<artifactId>repo-common</artifactId>
+
+<version>${project.version}</version>
+
+</dependency>
+
+<dependency>
+
+<groupId>com.evolveum.midpoint.model</groupId>
+
+<artifactId>report-api</artifactId>
+
+<version>${project.version}</version>
+
+</dependency>
+
+<dependency>
+
+<groupId>com.evolveum.midpoint.model</groupId>
+
+<artifactId>model-api</artifactId>
+
+<version>${project.version}</version>
+
+</dependency>
+
+<dependency>
+
+<groupId>com.evolveum.midpoint.provisioning</groupId>
+
+<artifactId>provisioning-api</artifactId>
+
+<version>${project.version}</version>
+
+</dependency>
+
+<dependency>
+
+<groupId>com.evolveum.midpoint.model</groupId>
+
+<artifactId>model-common</artifactId>
+
+<version>${project.version}</version>
+
+</dependency>
+
+<dependency>
+
+<groupId>com.evolveum.midpoint.repo</groupId>
+
+<artifactId>security-api</artifactId>
+
+<version>${project.version}</version>
+
+</dependency>
+
+<dependency>
+
+<groupId>com.evolveum.midpoint.repo</groupId>
+
+<artifactId>security-enforcer-api</artifactId>
+
+<version>${project.version}</version>
+
+</dependency>
+
+<dependency>
+
+<groupId>com.evolveum.midpoint.model</groupId>
+
+<artifactId>cases-api</artifactId>
+
+<version>${project.version}</version>
+
+</dependency>
+
+<dependency>
+
+<groupId>com.evolveum.midpoint.model</groupId>
+
+<artifactId>workflow-api</artifactId>
+
+<version>${project.version}</version>
+
+</dependency>
+
+<dependency>
+
+<groupId>com.evolveum.midpoint.model</groupId>
+
+<artifactId>certification-api</artifactId>
+
+<version>${project.version}</version>
+
+</dependency>
+
+<dependency>
+
+<groupId>com.evolveum.midpoint.repo</groupId>
+
+<artifactId>task-api</artifactId>
+
+<version>${project.version}</version>
+
+</dependency>
+
+<dependency>
+
+<groupId>com.evolveum.midpoint.repo</groupId>
+
+<artifactId>system-init</artifactId>
+
+<version>${project.version}</version>
+
+</dependency>
+
+<dependency>
+
+<groupId>com.evolveum.midpoint.repo</groupId>
+
+<artifactId>repo-sqlbase</artifactId>
+
+<version>${project.version}</version>
+
+</dependency>
+
+<!-- MIDPOINT RUNTIME DEPENDENCIES -->
+
+<dependency>
+
+<groupId>com.evolveum.midpoint.repo</groupId>
+
+<artifactId>repo-sql-impl</artifactId>
+
+<version>${project.version}</version>
+
+<scope>runtime</scope>
+
+</dependency>
+
+<dependency>
+
+<groupId>com.evolveum.midpoint.repo</groupId>
+
+<artifactId>repo-sqale</artifactId>
+
+<version>${project.version}</version>
+
+<scope>runtime</scope>
+
+</dependency>
+
+<dependency>
+
+<groupId>com.evolveum.midpoint</groupId>
+
+<artifactId>midpoint-localization</artifactId>
+
+<version>${project.version}</version>
+
+<scope>runtime</scope>
+
+</dependency>
+
+<dependency>
+
+<groupId>com.evolveum.midpoint.model</groupId>
+
+<artifactId>rest-impl</artifactId>
+
+<version>${project.version}</version>
+
+</dependency>
+
+<dependency>
+
+<groupId>org.apache.groovy</groupId>
+
+<artifactId>groovy-all</artifactId>
+
+<type>pom</type>
+
+<scope>runtime</scope>
+
+</dependency>
+
+<dependency>
+
+<groupId>org.apache.groovy</groupId>
+
+<artifactId>groovy-astbuilder</artifactId>
+
+<scope>runtime</scope>
+
+</dependency>
+
+<dependency>
+
+<groupId>joda-time</groupId>
+
+<artifactId>joda-time</artifactId>
+
+</dependency>
+
+<dependency>
+
+<groupId>com.evolveum.midpoint.repo</groupId>
+
+<artifactId>task-quartz-impl</artifactId>
+
+<version>${project.version}</version>
+
+<scope>runtime</scope>
+
+</dependency>
+
+<dependency>
+
+<groupId>com.evolveum.midpoint.repo</groupId>
+
+<artifactId>audit-log-impl</artifactId>
+
+<version>${project.version}</version>
+
+<scope>runtime</scope>
+
+</dependency>
+
+<dependency>
+
+<groupId>com.evolveum.midpoint.repo</groupId>
+
+<artifactId>security-impl</artifactId>
+
+<version>${project.version}</version>
+
+<scope>runtime</scope>
+
+</dependency>
+
+<dependency>
+
+<groupId>com.evolveum.midpoint.repo</groupId>
+
+<artifactId>security-enforcer-impl</artifactId>
+
+<version>${project.version}</version>
+
+<scope>runtime</scope>
+
+</dependency>
+
+<dependency>
+
+<groupId>com.evolveum.midpoint.model</groupId>
+
+<artifactId>model-impl</artifactId>
+
+<version>${project.version}</version>
+
+<scope>runtime</scope>
+
+</dependency>
+
+<dependency>
+
+<groupId>com.evolveum.midpoint.model</groupId>
+
+<artifactId>certification-impl</artifactId>
+
+<version>${project.version}</version>
+
+<scope>runtime</scope>
+
+</dependency>
+
+<dependency>
+
+<groupId>com.evolveum.midpoint.model</groupId>
+
+<artifactId>cases-impl</artifactId>
+
+<version>${project.version}</version>
+
+<scope>runtime</scope>
+
+</dependency>
+
+<dependency>
+
+<groupId>com.evolveum.midpoint.model</groupId>
+
+<artifactId>workflow-impl</artifactId>
+
+<version>${project.version}</version>
+
+<scope>runtime</scope>
+
+</dependency>
+
+<dependency>
+
+<groupId>com.evolveum.midpoint.model</groupId>
+
+<artifactId>notifications-impl</artifactId>
+
+<version>${project.version}</version>
+
+<scope>runtime</scope>
+
+</dependency>
+
+<dependency>
+
+<groupId>com.evolveum.midpoint.provisioning</groupId>
+
+<artifactId>provisioning-impl</artifactId>
+
+<version>${project.version}</version>
+
+<scope>runtime</scope>
+
+</dependency>
+
+<dependency>
+
+<groupId>com.evolveum.midpoint.provisioning</groupId>
+
+<artifactId>ucf-impl-builtin</artifactId>
+
+<version>${project.version}</version>
+
+<scope>runtime</scope>
+
+</dependency>
+
+<dependency>
+
+<groupId>com.evolveum.midpoint.model</groupId>
+
+<artifactId>report-impl</artifactId>
+
+<version>${project.version}</version>
+
+<scope>runtime</scope>
+
+</dependency>
+
+<dependency>
+
+<groupId>com.evolveum.midpoint.model</groupId>
+
+<artifactId>authentication-impl</artifactId>
+
+<version>${project.version}</version>
+
+<scope>runtime</scope>
+
+</dependency>
+
+<dependency>
+
+<groupId>com.evolveum.midpoint.infra</groupId>
+
+<artifactId>common</artifactId>
+
+<version>${project.version}</version>
+
+</dependency>
+
+<dependency>
+
+<groupId>com.evolveum.midpoint.model</groupId>
+
+<artifactId>authentication-api</artifactId>
+
+<version>${project.version}</version>
+
+</dependency>
+
+<!-- SPRING -->
+
+<dependency>
+
+<groupId>org.springframework</groupId>
+
+<artifactId>spring-web</artifactId>
+
+</dependency>
+
+<dependency>
+
+<groupId>org.springframework</groupId>
+
+<artifactId>spring-core</artifactId>
+
+</dependency>
+
+<dependency>
+
+<groupId>org.springframework</groupId>
+
+<artifactId>spring-beans</artifactId>
+
+</dependency>
+
+<dependency>
+
+<groupId>org.springframework</groupId>
+
+<artifactId>spring-context</artifactId>
+
+</dependency>
+
+<dependency>
+
+<groupId>org.springframework</groupId>
+
+<artifactId>spring-webmvc</artifactId>
+
+</dependency>
+
+<dependency> <!-- needed as runtime dependency otherwise spring won't start -->
+
+<groupId>org.springframework</groupId>
+
+<artifactId>spring-aspects</artifactId>
+
+<scope>runtime</scope>
+
+</dependency>
+
+<!-- SPRING SECURITY -->
+
+<dependency>
+
+<groupId>org.springframework.security</groupId>
+
+<artifactId>spring-security-core</artifactId>
+
+</dependency>
+
+<dependency>
+
+<groupId>org.springframework.security</groupId>
+
+<artifactId>spring-security-web</artifactId>
+
+</dependency>
+
+<!-- WICKET DEPENDENCIES -->
+
+<dependency>
+
+<groupId>org.apache.wicket</groupId>
+
+<artifactId>wicket-core</artifactId>
+
+</dependency>
+
+<dependency>
+
+<groupId>org.apache.wicket</groupId>
+
+<artifactId>wicket-request</artifactId>
+
+</dependency>
+
+<dependency>
+
+<groupId>org.apache.wicket</groupId>
+
+<artifactId>wicket-ioc</artifactId>
+
+<exclusions>
+
+<exclusion>
+
+<groupId>jakarta.inject</groupId>
+
+<artifactId>jakarta.inject-api</artifactId>
+
+</exclusion>
+
+</exclusions>
+
+</dependency>
+
+<dependency>
+
+<groupId>org.apache.wicket</groupId>
+
+<artifactId>wicket-util</artifactId>
+
+</dependency>
+
+<dependency>
+
+<groupId>org.apache.wicket</groupId>
+
+<artifactId>wicket-devutils</artifactId>
+
+</dependency>
+
+<dependency>
+
+<groupId>org.apache.wicket</groupId>
+
+<artifactId>wicket-auth-roles</artifactId>
+
+</dependency>
+
+<dependency>
+
+<groupId>org.apache.wicket</groupId>
+
+<artifactId>wicket-spring</artifactId>
+
+<exclusions>
+
+<exclusion>
+
+<groupId>org.springframework</groupId>
+
+<artifactId>\*</artifactId>
+
+</exclusion>
+
+</exclusions>
+
+</dependency>
+
+<dependency>
+
+<groupId>org.apache.wicket</groupId>
+
+<artifactId>wicket-extensions</artifactId>
+
+</dependency>
+
+<dependency>
+
+<groupId>org.wicketstuff</groupId>
+
+<artifactId>wicketstuff-select2</artifactId>
+
+</dependency>
+
+<dependency>
+
+<groupId>com.evolveum.chartjs</groupId>
+
+<artifactId>wicket-chartjs-core</artifactId>
+
+</dependency>
+
+<dependency>
+
+<groupId>jp.try0.wicket</groupId>
+
+<artifactId>wicket-honeypot-core</artifactId>
+
+</dependency>
+
+<dependency>
+
+<groupId>commons-validator</groupId>
+
+<artifactId>commons-validator</artifactId>
+
+</dependency>
+
+<dependency>
+
+<groupId>commons-io</groupId>
+
+<artifactId>commons-io</artifactId>
+
+</dependency>
+
+<dependency>
+
+<groupId>org.apache.commons</groupId>
+
+<artifactId>commons-collections4</artifactId>
+
+</dependency>
+
+<dependency>
+
+<!-- In LDAP/AD connector we use custom build of HTTP client with CredSSP support.
+
+As AD/LDAP connector is bundled then this triggers a conflict in dependency convergence.
+
+Therefore explicitly use the custom version. -->
+
+<groupId>org.apache.httpcomponents</groupId>
+
+<artifactId>httpclient</artifactId>
+
+<scope>runtime</scope>
+
+</dependency>
+
+<dependency>
+
+<!-- In LDAP/AD connector we use custom build of HTTP client with CredSSP support.
+
+As AD/LDAP connector is bundled then this triggers a conflict in dependency convergence.
+
+Therefore explicitly use the custom version. -->
+
+<groupId>org.apache.httpcomponents</groupId>
+
+<artifactId>httpcore</artifactId>
+
+<scope>runtime</scope>
+
+</dependency>
+
+<dependency>
+
+<groupId>org.apache.commons</groupId>
+
+<artifactId>commons-lang3</artifactId>
+
+</dependency>
+
+<dependency>
+
+<groupId>org.apache.commons</groupId>
+
+<artifactId>commons-text</artifactId>
+
+</dependency>
+
+<dependency>
+
+<groupId>commons-codec</groupId>
+
+<artifactId>commons-codec</artifactId>
+
+</dependency>
+
+<dependency>
+
+<groupId>org.apache.commons</groupId>
+
+<artifactId>commons-configuration2</artifactId>
+
+</dependency>
+
+<dependency>
+
+<groupId>commons-beanutils</groupId>
+
+<artifactId>commons-beanutils</artifactId>
+
+</dependency>
+
+<dependency>
+
+<groupId>commons-javaflow</groupId>
+
+<artifactId>commons-javaflow</artifactId>
+
+<scope>runtime</scope> <!-- TODO: review if we need this dependency -->
+
+</dependency>
+
+<dependency>
+
+<groupId>org.jetbrains</groupId>
+
+<artifactId>annotations</artifactId>
+
+</dependency>
+
+<dependency>
+
+<groupId>org.codehaus.janino</groupId>
+
+<artifactId>janino</artifactId>
+
+<scope>runtime</scope>
+
+</dependency>
+
+<dependency>
+
+<groupId>org.ow2.asm</groupId>
+
+<artifactId>asm</artifactId>
+
+<scope>runtime</scope>
+
+</dependency>
+
+<dependency>
+
+<groupId>com.github.openjson</groupId>
+
+<artifactId>openjson</artifactId>
+
+</dependency>
+
+<dependency>
+
+<groupId>com.fasterxml.jackson.core</groupId>
+
+<artifactId>jackson-annotations</artifactId>
+
+</dependency>
+
+<dependency>
+
+<groupId>com.fasterxml.jackson.core</groupId>
+
+<artifactId>jackson-databind</artifactId>
+
+</dependency>
+
+<!-- Messaging -->
+
+<dependency>
+
+<groupId>org.apache.activemq</groupId>
+
+<artifactId>artemis-jakarta-client</artifactId>
+
+<scope>runtime</scope>
+
+</dependency>
+
+<dependency>
+
+<groupId>org.apache.activemq</groupId>
+
+<artifactId>artemis-core-client</artifactId>
+
+<scope>runtime</scope>
+
+</dependency>
+
+<dependency>
+
+<groupId>org.apache.activemq</groupId>
+
+<artifactId>artemis-commons</artifactId>
+
+<scope>runtime</scope>
+
+</dependency>
+
+<dependency>
+
+<groupId>com.google.guava</groupId>
+
+<artifactId>guava</artifactId>
+
+</dependency>
+
+<!-- TEST -->
+
+<dependency>
+
+<groupId>org.springframework.boot</groupId>
+
+<artifactId>spring-boot-starter-test</artifactId>
+
+<scope>test</scope>
+
+</dependency>
+
+<dependency>
+
+<groupId>org.springframework.boot</groupId>
+
+<artifactId>spring-boot-test</artifactId>
+
+<scope>test</scope>
+
+</dependency>
+
+<dependency>
+
+<groupId>com.evolveum.midpoint.infra</groupId>
+
+<artifactId>test-util</artifactId>
+
+<scope>test</scope>
+
+</dependency>
+
+<dependency>
+
+<groupId>com.evolveum.midpoint.repo</groupId>
+
+<artifactId>repo-test-util</artifactId>
+
+<version>${project.version}</version>
+
+<scope>test</scope>
+
+</dependency>
+
+<dependency>
+
+<groupId>com.evolveum.midpoint.repo</groupId>
+
+<artifactId>repo-sql-impl-test</artifactId>
+
+<version>${project.version}</version>
+
+<scope>test</scope>
+
+</dependency>
+
+<dependency>
+
+<groupId>com.evolveum.icf</groupId>
+
+<artifactId>dummy-resource</artifactId>
+
+<version>${project.version}</version>
+
+<scope>test</scope>
+
+</dependency>
+
+<dependency>
+
+<groupId>org.springframework</groupId>
+
+<artifactId>spring-test</artifactId>
+
+<scope>test</scope>
+
+</dependency>
+
+<dependency><!-- Not used, but required for surefire plugin not to complain -->
+
+<groupId>org.testng</groupId>
+
+<artifactId>testng</artifactId>
+
+<scope>test</scope>
+
+</dependency>
+
+<dependency>
+
+<groupId>com.evolveum.commons</groupId>
+
+<artifactId>test-ng</artifactId>
+
+<scope>test</scope>
+
+</dependency>
+
+<dependency>
+
+<groupId>junit</groupId>
+
+<artifactId>junit</artifactId>
+
+<scope>test</scope>
+
+</dependency>
+
+<dependency>
+
+<groupId>org.apache.wicket</groupId>
+
+<artifactId>wicket-tester</artifactId>
+
+<version>${wicket.version}</version>
+
+<scope>test</scope>
+
+</dependency>
+
+<!-- Dependencies to connectors -->
+
+<dependency>
+
+<groupId>com.evolveum.polygon</groupId>
+
+<artifactId>connector-ldap</artifactId>
+
+<scope>runtime</scope>
+
+<exclusions>
+
+<exclusion>
+
+<groupId>org.slf4j</groupId>
+
+<artifactId>slf4j-jdk14</artifactId>
+
+</exclusion>
+
+<!--
+
+Exclude api-all and connector-common, we don't want these in the final archive.
+
+We only want the api-all from the connector jar that would be loaded by the ConnId.
+
+\-->
+
+<exclusion>
+
+<groupId>org.apache.directory.api</groupId>
+
+<artifactId>api-all</artifactId>
+
+</exclusion>
+
+<exclusion>
+
+<groupId>com.evolveum.polygon</groupId>
+
+<artifactId>connector-common</artifactId>
+
+</exclusion>
+
+</exclusions>
+
+</dependency>
+
+<dependency>
+
+<groupId>com.evolveum.polygon</groupId>
+
+<artifactId>connector-databasetable</artifactId>
+
+<scope>runtime</scope>
+
+</dependency>
+
+<dependency>
+
+<groupId>com.evolveum.polygon</groupId>
+
+<artifactId>connector-csv</artifactId>
+
+<scope>runtime</scope>
+
+</dependency>
+
+<!-- end connectors -->
+
+<!-- report dependency (needed for Microsoft Office formats) -->
+
+<dependency>
+
+<groupId>org.apache.poi</groupId>
+
+<artifactId>poi</artifactId>
+
+</dependency>
+
+<dependency>
+
+<groupId>com.github.inamik.text.tables</groupId>
+
+<artifactId>inamik-text-tables</artifactId>
+
+</dependency>
+
+<!-- testing dependencies -->
+
+<dependency>
+
+<groupId>com.evolveum.midpoint.model</groupId>
+
+<artifactId>model-test</artifactId>
+
+<version>${project.version}</version>
+
+<scope>test</scope>
+
+</dependency>
+
+<dependency>
+
+<groupId>org.slf4j</groupId>
+
+<artifactId>jcl-over-slf4j</artifactId>
+
+</dependency>
+
+</dependencies>
+
+<build>
+
+<resources>
+
+<resource>
+
+<filtering>false</filtering>
+
+<directory>src/main/resources</directory>
+
+<excludes>
+
+<exclude>\*\*/org.identityconnectors.common.logging</exclude>
+
+</excludes>
+
+</resource>
+
+<resource>
+
+<filtering>true</filtering>
+
+<directory>src/main/resources</directory>
+
+<includes>
+
+<include>banner.txt</include>
+
+</includes>
+
+</resource>
+
+<!-- ICF LOGGING CONFIGURATION -->
+
+<resource>
+
+<targetPath>META-INF/services</targetPath>
+
+<filtering>false</filtering>
+
+<directory>src/main/resources</directory>
+
+<includes>
+
+<include>\*\*/org.identityconnectors.common.logging</include>
+
+</includes>
+
+</resource>
+
+<resource>
+
+<filtering>false</filtering>
+
+<directory>src/main/java</directory>
+
+<excludes>
+
+<exclude>\*\*/\*.java</exclude>
+
+<exclude>\*\*/\*.properties</exclude>
+
+</excludes>
+
+</resource>
+
+<resource>
+
+<filtering>true</filtering>
+
+<directory>src/main/java</directory>
+
+<includes>
+
+<include>\*\*/\*.properties</include>
+
+</includes>
+
+</resource>
+
+<resource>
+
+<directory>target/generated-resources/webpack</directory>
+
+<filtering>false</filtering>
+
+</resource>
+
+</resources>
+
+<testResources>
+
+<testResource>
+
+<filtering>false</filtering>
+
+<directory>src/test/resources</directory>
+
+</testResource>
+
+<testResource>
+
+<filtering>false</filtering>
+
+<directory>src/test/java</directory>
+
+<excludes>
+
+<exclude>\*\*/\*.java</exclude>
+
+<exclude>\*\*/\*.properties</exclude>
+
+</excludes>
+
+</testResource>
+
+<testResource>
+
+<filtering>true</filtering>
+
+<directory>src/test/java</directory>
+
+<includes>
+
+<include>\*\*/\*.properties</include>
+
+</includes>
+
+</testResource>
+
+</testResources>
+
+<plugins>
+
+<plugin>
+
+<groupId>pl.project13.maven</groupId>
+
+<artifactId>git-commit-id-plugin</artifactId>
+
+<executions>
+
+<execution>
+
+<goals>
+
+<goal>revision</goal>
+
+</goals>
+
+</execution>
+
+</executions>
+
+<configuration>
+
+<verbose>false</verbose>
+
+<offline>true</offline>
+
+</configuration>
+
+</plugin>
+
+<!-- reference failsafe to run integration tests (surefire/units run by default) -->
+
+<plugin>
+
+<artifactId>maven-failsafe-plugin</artifactId>
+
+</plugin>
+
+<!--
+
+We use both main and test classes downstream.
+
+TODO (still true?): We can't use JAR plugin for main classes, Maven requires different classifier than for
+
+the main artifact (which is WAR for admin-gui).
+
+\-->
+
+<plugin>
+
+<artifactId>maven-jar-plugin</artifactId>
+
+<executions>
+
+<execution>
+
+<goals>
+
+<goal>test-jar</goal>
+
+</goals>
+
+</execution>
+
+</executions>
+
+</plugin>
+
+<plugin>
+
+<groupId>org.apache.maven.plugins</groupId>
+
+<artifactId>maven-clean-plugin</artifactId>
+
+<configuration>
+
+<filesets>
+
+<fileset>
+
+<directory>./node_modules</directory>
+
+</fileset>
+
+</filesets>
+
+</configuration>
+
+</plugin>
+
+<plugin>
+
+<!--
+
+This plugin is used to parse current project version for later use with npm version which requires semantic versioning
+
+\-->
+
+<groupId>org.codehaus.mojo</groupId>
+
+<artifactId>build-helper-maven-plugin</artifactId>
+
+<version>3.4.0</version>
+
+<executions>
+
+<execution>
+
+<id>parse-version</id>
+
+<goals>
+
+<goal>parse-version</goal>
+
+</goals>
+
+<configuration>
+
+<propertyPrefix>parsedVersion</propertyPrefix>
+
+</configuration>
+
+</execution>
+
+</executions>
+
+</plugin>
+
+<plugin>
+
+<groupId>com.github.eirslett</groupId>
+
+<artifactId>frontend-maven-plugin</artifactId>
+
+<version>1.15.1</version>
+
+<executions>
+
+<execution>
+
+<id>install node and npm</id>
+
+<goals>
+
+<goal>install-node-and-npm</goal>
+
+</goals>
+
+</execution>
+
+<!-- TODO temporary -->
+
+<execution>
+
+<id>npm ignore certs</id>
+
+<goals>
+
+<goal>npm</goal>
+
+</goals>
+
+<configuration>
+
+<arguments>config set strict-ssl false</arguments>
+
+</configuration>
+
+</execution>
+
+<execution>
+
+<id>npm install</id>
+
+<goals>
+
+<goal>npm</goal>
+
+</goals>
+
+</execution>
+
+<execution>
+
+<!--
+
+uses build-helper-maven-plugin parsed version to create semantic version for
+
+package.json that matches current project version
+
+\-->
+
+<id>npm update package.json version if necessary</id>
+
+<goals>
+
+<goal>npm</goal>
+
+</goals>
+
+<configuration>
+
+<arguments>version ${parsedVersion.majorVersion}.${parsedVersion.minorVersion}.${parsedVersion.incrementalVersion} --allow-same-version</arguments>
+
+</configuration>
+
+</execution>
+
+<execution>
+
+<id>npm build with webpack</id>
+
+<goals>
+
+<goal>npm</goal>
+
+</goals>
+
+<configuration>
+
+<arguments>run build</arguments>
+
+</configuration>
+
+</execution>
+
+</executions>
+
+<configuration>
+
+<nodeDownloadRoot>https://nexus.evolveum.com/nexus/repository/nodejs-dist/</nodeDownloadRoot>
+
+<npmDownloadRoot>https://nexus.evolveum.com/nexus/repository/npmjs-dist/</npmDownloadRoot>
+
+<nodeVersion>v22.14.0</nodeVersion>
+
+<npmVersion>11.1.0</npmVersion>
+
+<installDirectory>target</installDirectory>
+
+</configuration>
+
+</plugin>
+
+</plugins>
+
+</build>
+
+<profiles>
+
+<profile>
+
+<id>perftest</id>
+
+<build>
+
+<plugins>
+
+<plugin>
+
+<artifactId>maven-failsafe-plugin</artifactId>
+
+<configuration>
+
+<skipTests>false</skipTests>
+
+<systemPropertyVariables>
+
+<mp.perf.report.prefix>target/PERF</mp.perf.report.prefix>
+
+</systemPropertyVariables>
+
+<suiteXmlFiles>
+
+<suiteXmlFile>testng-perf.xml</suiteXmlFile>
+
+</suiteXmlFiles>
+
+</configuration>
+
+</plugin>
+
+</plugins>
+
+</build>
+
+</profile>
+
+<profile>
+
+<id>dependencytrack</id>
+
+<build>
+
+<plugins>
+
+<plugin>
+
+<groupId>com.github.eirslett</groupId>
+
+<artifactId>frontend-maven-plugin</artifactId>
+
+<executions>
+
+<execution>
+
+<id>npm sbom</id>
+
+<goals>
+
+<goal>npm</goal>
+
+</goals>
+
+<configuration>
+
+<environmentVariables>
+
+<!-- this variable will be used by package.json -->
+
+<OUTPUT_FORMAT>xml</OUTPUT_FORMAT>
+
+<OUTPUT_BOM_NAME>bom-frontend</OUTPUT_BOM_NAME>
+
+<OUTPUT_BOM_DIRECTORY>${project.build.directory}</OUTPUT_BOM_DIRECTORY>
+
+</environmentVariables>
+
+<arguments>run sbom_maven</arguments>
+
+</configuration>
+
+</execution>
+
+</executions>
+
+</plugin>
+
+<plugin>
+
+<groupId>io.github.pmckeown</groupId>
+
+<artifactId>dependency-track-maven-plugin</artifactId>
+
+<executions>
+
+<execution>
+
+<id>upload-bom</id>
+
+<phase>verify</phase>
+
+<goals>
+
+<goal>upload-bom</goal>
+
+</goals>
+
+</execution>
+
+</executions>
+
+<configuration>
+
+<projectName>admin-gui-frontend</projectName>
+
+<bomLocation>./gui/admin-gui/target/bom-frontend.xml</bomLocation>
+
+<pollingConfig>
+
+<enabled>true</enabled>
+
+<pause>500</pause>
+
+<attempts>100</attempts>
+
+<timeUnit>MILLIS</timeUnit>
+
+</pollingConfig>
+
+</configuration>
+
+</plugin>
+
+</plugins>
+
+</build>
+
+</profile>
+
+</profiles>
+
 </project>
