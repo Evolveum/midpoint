@@ -415,6 +415,10 @@ public class NativeShadowAttributeDefinitionImpl<T>
         this.referencedObjectClassName = value;
     }
 
+    public void setDescription(String description) {
+        ucfData.setDescription(description);
+    }
+
     @Override
     public void shortDump(StringBuilder sb) {
         sb.append(this);

@@ -210,6 +210,7 @@ class ConnIdSchemaParser {
             if (ObjectClass.ACCOUNT_NAME.equals(connIdClassInfo.getType())) {
                 ocDefBuilder.setDefaultAccountDefinition(true);
             }
+            ocDefBuilder.setDescription(connIdClassInfo.getDescription());
         }
 
         private ItemName resolveFrameworkName(String frameworkName) {
@@ -293,6 +294,7 @@ class ConnIdSchemaParser {
             processCommonDefinitionParts(mpItemDef, connIdAttrInfo);
             mpItemDef.setMatchingRuleQName(
                     connIdAttributeInfoToMatchingRule(connIdAttrInfo));
+            mpItemDef.setDescription(connIdClassInfo.getDescription());
 
             if (!Uid.NAME.equals(connIdAttrName)) {
                 ocDefBuilder.add(mpItemDef);
