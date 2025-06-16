@@ -646,10 +646,12 @@ public abstract class TestThresholds extends AbstractEmptyModelIntegrationTest {
                                     .exceeds(XmlTypeConverter.createDuration(exceedsExecutionTimeThreshold))
                                 .<ActivityPolicyConstraintsType>end()
                             .<ActivityPolicyType>end()
-                            .beginPolicyActions()
-                                .beginSuspendTask()
-                                    // no parameters
-                                .<ActivityPolicyActionsType>end()
+                            .beginPolicyReaction()
+                                .beginAction()
+                                    .beginSuspendTask()
+                                        // no parameters
+                                    .<ActivityPolicyActionsType>end()
+                                .<PolicyReactionType>end()
                             .<ActivityPolicyType>end()
                         .<ActivityPoliciesType>end()
                     .<ActivityDefinitionType>end();

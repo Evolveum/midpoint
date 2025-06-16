@@ -241,7 +241,6 @@ public abstract class AbstractActivityRun<
             sendActivityRealizationCompleteEvent(result);
 
             try {
-                // this evaluation handles activity policy rules with "below" constraints (at the end of activity run)
                 processor.evaluateAndEnforceRules(null, result);
             } catch (ThresholdPolicyViolationException e) {
                 throw new ActivityRunException(

@@ -2027,8 +2027,6 @@
             </xsd:element>
             <xsd:element ref="tns:documentation" minOccurs="0"/>
             <xsd:element name="policyConstraints" type="tns:ActivityPolicyConstraintsType" minOccurs="0"/>
-            <!-- TODO REMOVE -->
-            <xsd:element name="policyActions" type="tns:ActivityPolicyActionsType" minOccurs="0"/>
             <xsd:element name="policyReaction" type="tns:PolicyReactionType" minOccurs="0" maxOccurs="unbounded"/>
         </xsd:sequence>
     </xsd:complexType>
@@ -2144,14 +2142,18 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
-            <xsd:element name="threshold" type="tns:PolicyThresholdType">
+            <xsd:element name="name" type="xsd:string" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Unique identifier of the reaction rule. It's used for diagnostic purposes.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="threshold" type="tns:PolicyThresholdType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
                         <!-- TODO -->
                     </xsd:documentation>
-                    <xsd:appinfo>
-                        <a:since>4.10</a:since>
-                    </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="action" type="tns:ActivityPolicyActionsType"/>
@@ -8947,6 +8949,13 @@
                 <xsd:annotation>
                     <xsd:documentation>
                         Counters for policy rules in full execution mode.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="activityPolicyRules" type="tns:ActivityCounterGroupType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Counters for policy rules in activity.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>

@@ -20,7 +20,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.jetbrains.annotations.NotNull;
 
-public class EvaluatedActivityPolicyRule implements DebugDumpable {
+public class EvaluatedActivityPolicyRule implements EvaluatedPolicyRule, DebugDumpable {
 
     private final @NotNull ActivityPolicyType policy;
 
@@ -35,12 +35,15 @@ public class EvaluatedActivityPolicyRule implements DebugDumpable {
 
     private ActivityPolicyStateType currentState;
 
+    private int count;
+
     public EvaluatedActivityPolicyRule(@NotNull ActivityPolicyType policy, @NotNull ActivityPath path) {
         this.policy = policy;
         this.path = path;
     }
 
-    public String getRuleId() {
+    @Override
+    public String getRuleIdentifier() {
         return ActivityPolicyUtils.createIdentifier(path, policy);
     }
 
@@ -48,14 +51,33 @@ public class EvaluatedActivityPolicyRule implements DebugDumpable {
         return policy.getName();
     }
 
+    @Override
+    public int getCount() {
+        return count;
+    }
+
+    @Override
+    public void setCount(int count) {
+        this.count = count;
+    }
+
     @NotNull
     public ActivityPolicyType getPolicy() {
         return policy;
     }
 
+    @Override
+    public boolean hasThreshold() {
+        return policy.getPolicyReaction().stream().anyMatch(r -> r.getThreshold() != null);
+    }
+
+    // todo fix -> we now have reactions
+    @Deprecated
     public boolean containsAction(Class<? extends ActivityPolicyActionType> policyActionType) {
-        return getActions(policy.getPolicyActions()).stream()
-                .anyMatch(policyActionType::isInstance);
+        return false;
+
+//        return getActions(policy.getPolicyActions()).stream()
+//                .anyMatch(policyActionType::isInstance);
     }
 
     private List<ActivityPolicyActionType> getActions(ActivityPolicyActionsType actions) {

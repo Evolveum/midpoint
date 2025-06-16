@@ -64,7 +64,12 @@ public interface ExecutionSupport {
         /**
          * Counters used to monitor policy rules thresholds in "full" execution mode.
          */
-        FULL_EXECUTION_MODE_POLICY_RULES(ActivityCounterGroupsType.F_FULL_EXECUTION_MODE_POLICY_RULES);
+        FULL_EXECUTION_MODE_POLICY_RULES(ActivityCounterGroupsType.F_FULL_EXECUTION_MODE_POLICY_RULES),
+
+        /**
+         * Counters used to monitor policy rules thresholds in activities.
+         */
+        ACTIVITY_POLICY_RULES(ActivityCounterGroupsType.F_ACTIVITY_POLICY_RULES);
 
         @NotNull private final ItemName itemName;
 

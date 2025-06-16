@@ -7,6 +7,13 @@
 
 package com.evolveum.midpoint.repo.common.activity.policy;
 
-public class ActivityPolicyRulesContext extends PolicyRulesContext<EvaluatedActivityPolicyRule> {
+public interface EvaluatedPolicyRule {
 
+    String getRuleIdentifier();
+
+    int getCount();
+
+    void setCount(int count);
+
+    boolean hasThreshold();
 }
