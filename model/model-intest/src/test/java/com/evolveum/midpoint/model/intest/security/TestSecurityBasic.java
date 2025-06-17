@@ -1255,6 +1255,70 @@ public class TestSecurityBasic extends AbstractInitializedSecurityTest {
                 .focusContext().objectNew().assertName("Jack's role");
     }
 
+    /**
+     * Jack has no authorization to see the projections. The preview should not contain them, but it should not fail
+     * with "Access denied" (as it did previously) either.
+     *
+     * MID-10397
+     */
+    @Test
+    public void test225PreviewWithHiddenProjections() throws Exception {
+        given();
+        cleanupAutzTest(USER_JACK_OID);
+        assignRole(USER_JACK_OID, ROLE_SHOW_USERS_HIDE_SHADOWS.oid);
+        assignAccountToUser(USER_JACK_OID, RESOURCE_DUMMY_OID, null);
+        when();
+        login(USER_JACK_USERNAME);
+        then();
+        assertReadAllow();
+        ObjectDelta<UserType> jackGivenNameDelta = deltaFor(UserType.class)
+                .item(UserType.F_GIVEN_NAME).replace(PolyString.fromOrig("Jackie"))
+                .asObjectDelta(USER_JACK_OID);
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+        // WHEN: preview changes
+        ModelContext<UserType> previewContext = previewChanges(jackGivenNameDelta, null, task, result);
+        assertSuccess(result);
+        assertPreviewContext(previewContext)
+                .focusContext()
+                .objectOld()
+                .assertName(USER_JACK_USERNAME)
+                .asUser()
+                .assertGivenName(USER_JACK_GIVEN_NAME)
+                .end()
+                .end()
+                .objectNew()
+                .assertName(USER_JACK_USERNAME)
+                .asUser()
+                .assertGivenName("Jackie")
+                .end()
+                .end()
+                .primaryDelta()
+                .assertModify()
+                .assertModifications(1)
+                .property(UserType.F_GIVEN_NAME)
+                .valuesToReplace()
+                .single()
+                .assertPolyStringValue("Jackie")
+                .end()
+                .end()
+                .end()
+                .end()
+                .secondaryDelta()
+                .assertModify()
+                .assertModifications(1)
+                .end()
+                .end()
+                .projectionContexts()
+                .assertNone(); // projection context is not visible
+        // WHEN: real modification
+        assertModifyAllow(UserType.class, USER_JACK_OID, UserType.F_GIVEN_NAME, PolyString.fromOrig("Jackie"));
+        PrismObject<UserType> userJack = getUser(USER_JACK_OID);
+        assertUser(userJack, "after modify (read by jack)")
+                .assertName(USER_JACK_USERNAME)
+                .assertGivenName("Jackie");
+    }
+
     @Test
     public void test230AutzJackMasterMinistryOfRum() throws Exception {
         given();

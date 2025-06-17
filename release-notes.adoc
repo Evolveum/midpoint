@@ -28,6 +28,10 @@ The {release-version} release brings security, stability and miscellaneous bugfi
 {% include release-dedication.html content=dedicationContent %}
 ++++
 
+== Changes with Respect To Version 4.8.8
+
+* Fixed "preview changes" and "access request" functionality when some projections are hidden by authorizations. See bug:MID-10397[].
+
 == Changes with Respect To Version 4.8.7
 
 * Fixed fatal error when sorting by time column in created reports. See bug:MID-10645[].
@@ -992,6 +996,16 @@ _Actions required:_
 * Inspect your configuration for deprecated items, and replace them by their suggested equivalents.
 Make sure you don't use any removed items.
 You can use `ninja` tool for this.
+
+[#_behavior_changes_since_4_8_4]
+=== Behavior Changes Since 4.8.4
+
+* Projections with denied access no longer cause "preview changes" operation to fail.
+
+If a user has no authorization to see particular projection (shadow), the "preview changes" operation used to finish with "Access denied" fatal error even if there were parts of the result visible to the user.
+This is now changed (fixed): only the relevant projections are hidden now.
+All the remaining data are displayed to the user.
+See also bug:MID-10397[].
 
 [#_behavior_changes_since_4_8_3]
 === Behavior Changes Since 4.8.3
