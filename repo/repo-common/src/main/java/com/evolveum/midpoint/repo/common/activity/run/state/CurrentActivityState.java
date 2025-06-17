@@ -204,6 +204,7 @@ public class CurrentActivityState<WS extends AbstractActivityWorkStateType>
                 .item(stateItemPath.append(ActivityStateType.F_ACTIVITY))
                 .add(new ActivityStateType()
                         .identifier(identifier)
+                        .executionAttempt(1)
                         .persistence(activityStateDefinition.getPersistence()))
                 .asItemDelta();
         task.modify(itemDelta);

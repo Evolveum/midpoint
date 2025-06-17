@@ -7,35 +7,37 @@
 
 package com.evolveum.midpoint.repo.common.activity.policy;
 
-import com.evolveum.midpoint.task.api.TaskRunResult;
 import org.jetbrains.annotations.NotNull;
 
+import com.evolveum.midpoint.task.api.TaskRunResult;
 import com.evolveum.midpoint.util.LocalizableMessage;
 import com.evolveum.midpoint.util.exception.ThresholdPolicyViolationException;
 
 public class ActivityThresholdPolicyViolationException extends ThresholdPolicyViolationException {
 
-    private final TaskRunResult.TaskRunResultStatus taskRunResultStatus;
+    private final @NotNull TaskRunResult.TaskRunResultStatus taskRunResultStatus;
 
-    private final String ruleId;
+    private final @NotNull PolicyViolationContext policyViolationContext;
 
     public ActivityThresholdPolicyViolationException(
             LocalizableMessage userFriendlyMessage,
             String technicalMessage,
             @NotNull TaskRunResult.TaskRunResultStatus taskRunResultStatus,
-            @NotNull String ruleId) {
+            @NotNull PolicyViolationContext policyViolationContext) {
 
         super(userFriendlyMessage, technicalMessage);
 
         this.taskRunResultStatus = taskRunResultStatus;
-        this.ruleId = ruleId;
+        this.policyViolationContext = policyViolationContext;
     }
 
+    @NotNull
     public TaskRunResult.TaskRunResultStatus getTaskRunResultStatus() {
         return taskRunResultStatus;
     }
 
-    public String getRuleId() {
-        return ruleId;
+    @NotNull
+    public PolicyViolationContext getPolicyViolationContext() {
+        return policyViolationContext;
     }
 }

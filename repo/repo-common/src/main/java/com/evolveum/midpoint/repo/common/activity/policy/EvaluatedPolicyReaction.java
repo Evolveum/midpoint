@@ -16,10 +16,7 @@ import java.util.List;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.util.DebugDumpable;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityPolicyActionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityPolicyActionsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyReactionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyThresholdType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 public class EvaluatedPolicyReaction implements DebugDumpable {
 
@@ -50,26 +47,49 @@ public class EvaluatedPolicyReaction implements DebugDumpable {
             return false;
         }
 
-        threshold.getLowWaterMark();
-        threshold.getHighWaterMark();
+        int count = rule.getCount();
 
-        return false;
+        WaterMarkType lowWaterMark = threshold.getLowWaterMark();
+        if (lowWaterMark == null || lowWaterMark.getCount() == null) {
+            return true;
+        }
+
+        if (lowWaterMark.getCount() == null) {
+            return true;
+        }
+
+        if (count < lowWaterMark.getCount()) {
+            return false;
+        }
+
+        WaterMarkType highWaterMark = threshold.getHighWaterMark();
+        if (highWaterMark == null || highWaterMark.getCount() == null) {
+            return true;
+        }
+
+        if (count > highWaterMark.getCount()) {
+            return false;
+        }
+
+        return true;
     }
 
     public boolean containsAction(Class<? extends ActivityPolicyActionType> policyActionType) {
-        return getActions(reaction.getAction()).stream()
+        return getActions().stream()
                 .anyMatch(policyActionType::isInstance);
     }
 
     public <T extends ActivityPolicyActionType> T getAction(Class<T> policyActionType) {
-        return getActions(reaction.getAction()).stream()
+        return getActions().stream()
                 .filter(policyActionType::isInstance)
                 .map(policyActionType::cast)
                 .findFirst()
                 .orElse(null);
     }
 
-    private List<ActivityPolicyActionType> getActions(ActivityPolicyActionsType actions) {
+    @NotNull
+    public List<ActivityPolicyActionType> getActions() {
+        ActivityPolicyActionsType actions = reaction.getAction();
         if (actions == null) {
             return List.of();
         }

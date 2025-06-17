@@ -2216,7 +2216,7 @@
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
-                    <xsd:element name="restartCounters" minOccurs="0" default="false">
+                    <xsd:element name="restartCounters" type="xsd:boolean" minOccurs="0" default="false">
                         <xsd:annotation>
                             <xsd:documentation>
                                 Whether to reset counters for the activity when it is restarted.
