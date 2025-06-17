@@ -49,13 +49,13 @@ Overall, midPoint 4.9 is a major step from the past into the future.
 * Clustering attributes configuration was improved within Role Analysis feature.
 * Upgraded Spring Boot to version 3.3.11.
 * Upgraded Spring Security to version 6.4.9.
-
 * In case you are using a separate database for audit, please, ensure, that _ObjectType_ enum contains '_SCHEMA_' value.
 Within the audit schema, you can simply run the following SQL command to add the missing value.
 For more information, please, refer to the bug:[MID-10437].
 
     ALTER TYPE ObjectType ADD VALUE IF NOT EXISTS 'SCHEMA' AFTER 'ROLE_ANALYSIS_OUTLIER';
 
+* bug:MID-10739[] Use SecureRandom instead of Random.
 
 == Changes with Respect To Version 4.9.1
 
