@@ -12,13 +12,14 @@ import static com.evolveum.midpoint.util.DebugUtil.*;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.jetbrains.annotations.NotNull;
+
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.util.PrismPrettyPrinter;
 import com.evolveum.midpoint.schema.util.task.ActivityPath;
 import com.evolveum.midpoint.util.DebugDumpable;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
-import org.jetbrains.annotations.NotNull;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityPolicyStateType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityPolicyType;
 
 public class EvaluatedActivityPolicyRule implements EvaluatedPolicyRule, DebugDumpable {
 
@@ -69,37 +70,31 @@ public class EvaluatedActivityPolicyRule implements EvaluatedPolicyRule, DebugDu
 
     @Override
     public boolean hasThreshold() {
-        return policy.getPolicyReaction().stream().anyMatch(r -> r.getThreshold() != null);
+        return policy.getPolicyReaction().stream()
+                .anyMatch(r -> r.getThreshold() != null);
     }
 
-    // todo fix -> we now have reactions
-    @Deprecated
-    public boolean containsAction(Class<? extends ActivityPolicyActionType> policyActionType) {
-        return false;
-
-//        return getActions(policy.getPolicyActions()).stream()
-//                .anyMatch(policyActionType::isInstance);
+    public List<EvaluatedPolicyReaction> getApplicableReactions() {
+        return policy.getPolicyReaction().stream()
+                .map(r -> new EvaluatedPolicyReaction(this, r))
+                .filter(r -> !r.hasThreshold() || r.isWithinThreshold())
+                .toList();
     }
 
-    private List<ActivityPolicyActionType> getActions(ActivityPolicyActionsType actions) {
-        if (actions == null) {
-            return List.of();
-        }
-
-        List<ActivityPolicyActionType> result = new ArrayList<>();
-
-        addAction(result, actions.getNotification());
-        addAction(result, actions.getRestartActivity());
-        addAction(result, actions.getSkipActivity());
-        addAction(result, actions.getSuspendTask());
-
-        return result;
+    public List<EvaluatedPolicyReaction> getReactionsWithoutThreshold() {
+        return policy.getPolicyReaction().stream()
+                .filter(r -> r.getThreshold() == null)
+                .map(r -> new EvaluatedPolicyReaction(this, r))
+                .filter(r -> !r.hasThreshold())
+                .toList();
     }
 
-    private void addAction(List<ActivityPolicyActionType> actions, ActivityPolicyActionType action) {
-        if (action != null) {
-            actions.add(action);
-        }
+    public List<EvaluatedPolicyReaction> getReactionsWithinThreshold() {
+        return policy.getPolicyReaction().stream()
+                .filter(r -> r.getThreshold() != null)
+                .map(r -> new EvaluatedPolicyReaction(this, r))
+                .filter(EvaluatedPolicyReaction::isWithinThreshold)
+                .toList();
     }
 
     @NotNull

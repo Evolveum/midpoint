@@ -11,6 +11,10 @@ import java.util.*;
 
 import org.jetbrains.annotations.NotNull;
 
+/**
+ * Base class for policy rules context.
+ * Stores policy rules and counters for each rule.
+ */
 public class PolicyRulesContext<T extends EvaluatedPolicyRule> {
 
     private final @NotNull List<T> policyRules = new ArrayList<>();

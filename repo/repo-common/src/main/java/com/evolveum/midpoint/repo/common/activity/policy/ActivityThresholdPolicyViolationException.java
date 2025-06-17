@@ -5,10 +5,9 @@
  * and European Union Public License. See LICENSE file for details.
  */
 
-package com.evolveum.midpoint.task.api;
+package com.evolveum.midpoint.repo.common.activity.policy;
 
-import com.evolveum.midpoint.prism.path.ItemPath;
-
+import com.evolveum.midpoint.task.api.TaskRunResult;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.util.LocalizableMessage;

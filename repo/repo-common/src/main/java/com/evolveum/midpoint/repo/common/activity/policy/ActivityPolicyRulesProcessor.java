@@ -19,8 +19,8 @@ import com.evolveum.midpoint.repo.common.activity.run.AbstractActivityRun;
 import com.evolveum.midpoint.repo.common.activity.run.processing.ItemProcessingResult;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.LocalizationUtil;
-import com.evolveum.midpoint.task.api.ActivityThresholdPolicyViolationException;
 import com.evolveum.midpoint.task.api.TaskRunResult;
+import com.evolveum.midpoint.util.LocalizableMessage;
 import com.evolveum.midpoint.util.SingleLocalizableMessage;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
@@ -96,7 +96,6 @@ public class ActivityPolicyRulesProcessor {
         return policyStates;
     }
 
-    // todo this is way to similar to PolicyRuleCounterUpdater.updateCounters()
     private void updateCounters(OperationResult result)
             throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException {
 
@@ -119,14 +118,15 @@ public class ActivityPolicyRulesProcessor {
                     continue;
                 }
 
-                if (!rule.isEnforced()) {
-                    LOGGER.trace("Enforcing policy rule {}", rule);
-                    rule.enforced();
+                for (EvaluatedPolicyReaction reaction : rule.getApplicableReactions()) {
+                    if (!rule.isEnforced()) {
+                        executeOneTimeActions(reaction, result);
+                    }
 
-                    executeOneTimeActions(rule, result);
+                    executeAlwaysActions(reaction, result);
                 }
 
-                executeAlwaysActions(rule, result);
+                rule.enforced();
             }
         } finally {
             Collection<EvaluatedActivityPolicyRule> rules = getPolicyRulesContext().getPolicyRules();
@@ -179,46 +179,60 @@ public class ActivityPolicyRulesProcessor {
     /**
      * Actions that should be triggered once. E.g. notifications for the given rule.
      */
-    private void executeOneTimeActions(EvaluatedActivityPolicyRule rule, OperationResult result) {
-        if (rule.containsAction(NotificationActivityPolicyActionType.class)) {
-            LOGGER.debug("Sending notification because of policy violation, rule: {}", rule);
+    private void executeOneTimeActions(EvaluatedPolicyReaction reaction, OperationResult result) {
+        if (reaction.containsAction(NotificationActivityPolicyActionType.class)) {
+            LOGGER.debug("Sending notification because of policy violation, rule: {}", reaction);
 
-            activityRun.sendActivityPolicyRuleTriggeredEvent(rule, result);
+            activityRun.sendActivityPolicyRuleTriggeredEvent(reaction.getRule(), result);
         }
     }
 
     /**
      * Actions that should be triggered always. E.g. suspend task.
      */
-    private void executeAlwaysActions(EvaluatedActivityPolicyRule rule, OperationResult result)
+    private void executeAlwaysActions(EvaluatedPolicyReaction reaction, OperationResult result)
             throws ThresholdPolicyViolationException {
+
+        EvaluatedActivityPolicyRule rule = reaction.getRule();
+
+        String ruleName = rule.getName();
+        String reactionName = reaction.getName();
+
+        LocalizableMessage message = new SingleLocalizableMessage(
+                "ActivityPolicyRulesProcessor.policyViolationMessage", new Object[] { ruleName, reactionName });
+
+        String defaultMessage = "Policy violation, rule: ".formatted(ruleName, reactionName);
 
         TaskRunResult.TaskRunResultStatus status = null;
 
-        if (rule.containsAction(RestartActivityPolicyActionType.class)) {
-            LOGGER.debug("Restarting because of policy violation, rule: {}", rule);
+        RestartActivityPolicyActionType restartAction = reaction.getAction(RestartActivityPolicyActionType.class);
+        if (restartAction != null) {
+            LOGGER.debug("Restarting because of policy violation, rule: {}", reaction);
 
-            status = TaskRunResult.TaskRunResultStatus.RESTART_ACTIVITY_ERROR;
+            throw new ActivityThresholdPolicyViolationException(
+                    message,
+                    defaultMessage,
+                    TaskRunResult.TaskRunResultStatus.RESTART_ACTIVITY_ERROR,
+                    rule.getRuleIdentifier());
         }
 
-        if (rule.containsAction(SkipActivityPolicyActionType.class)) {
-            LOGGER.debug("Skipping activity because of policy violation, rule: {}", rule);
+        if (reaction.containsAction(SkipActivityPolicyActionType.class)) {
+            LOGGER.debug("Skipping activity because of policy violation, rule: {}", reaction);
 
             status = TaskRunResult.TaskRunResultStatus.SKIP_ACTIVITY_ERROR;
         }
 
-        if (rule.containsAction(SuspendTaskActivityPolicyActionType.class)) {
-            LOGGER.debug("Suspending task because of policy violation, rule: {}", rule);
+        if (reaction.containsAction(SuspendTaskActivityPolicyActionType.class)) {
+            LOGGER.debug("Suspending task because of policy violation, rule: {}", reaction);
 
             status = TaskRunResult.TaskRunResultStatus.HALTING_ERROR;
         }
 
-        if (status != null) {
-            throw new ActivityThresholdPolicyViolationException(
-                    new SingleLocalizableMessage("ActivityPolicyRulesProcessor.policyViolationMessage", new Object[] { rule.getName() }),
-                    "Policy violation, rule: " + rule.getName(),
-                    status,
-                    rule.getRuleIdentifier());
+        if (status == null) {
+            LOGGER.debug("No action to take for policy violation, rule: {}", reaction);
+            return;
         }
+
+        throw new ActivityThresholdPolicyViolationException(message, defaultMessage, status, rule.getRuleIdentifier());
     }
 }
