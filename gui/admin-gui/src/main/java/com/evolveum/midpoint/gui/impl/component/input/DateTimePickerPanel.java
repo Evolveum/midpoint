@@ -13,7 +13,6 @@ import com.evolveum.midpoint.web.component.prism.InputPanel;
 
 import com.evolveum.midpoint.web.model.XmlGregorianCalendarModel;
 
-import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
 import org.apache.wicket.behavior.AttributeAppender;
@@ -26,6 +25,7 @@ import org.apache.wicket.util.convert.IConverter;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 import java.util.Date;
+import java.util.stream.Collectors;
 
 /**
  * Panel for Date. Panel use date time picker. We can use Model of types Date or XMLGregorianCalendar.
@@ -109,6 +109,9 @@ public class DateTimePickerPanel extends InputPanel {
             }
         });
         input.add(AttributeAppender.append("class", () -> input.hasErrorMessage() ? INVALID_FIELD_CLASS : ""));
+        input.add(AttributeAppender.replace("title", () ->
+                getParentPage().getString("DateTimePickerPanel.dateFormatHint",
+                        dateTimePickerOptions.getDateTimeFormat().stream().map(d -> "'" + d + "'").collect(Collectors.joining(", ")))));
         container.add(input);
 
         WebMarkupContainer iconContainer = new WebMarkupContainer(ID_ICON_CONTAINER);
