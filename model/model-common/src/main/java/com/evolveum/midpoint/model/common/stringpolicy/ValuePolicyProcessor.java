@@ -7,6 +7,7 @@
 
 package com.evolveum.midpoint.model.common.stringpolicy;
 
+import java.security.SecureRandom;
 import java.util.*;
 import java.util.function.Consumer;
 
@@ -97,7 +98,7 @@ public class ValuePolicyProcessor {
     private static final String OP_GENERATE = ValuePolicyProcessor.class.getName() + ".generate";
     private static final Trace LOGGER = TraceManager.getTrace(ValuePolicyProcessor.class);
 
-    private static final Random RAND = new Random(System.currentTimeMillis());
+    private static final Random RAND = new SecureRandom();
     private static final String ALPHANUMERIC_CHARS = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890";
 
     private static final String DOT_CLASS = ValuePolicyProcessor.class.getName() + ".";
