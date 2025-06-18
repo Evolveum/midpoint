@@ -25,7 +25,7 @@
                 </translation>
             </label>
             <pluralLabel>
-                <orig>Correlation cases</orig>
+                <orig>Application roles</orig>
                 <translation>
                     <key>applicationRole.pluralLabel</key>
                 </translation>
