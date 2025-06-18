@@ -12,10 +12,10 @@ IMPORTANT: To ensure security, expressions are not executed in search boxes in m
 
 Script expressions are supported for the following filters:
 
-* xref:introduction.adoc#comparison_filters[*Value comparison filters*]
+* xref:filters.adoc#comparison_filters[*Value comparison filters*]
     ** `=`, `<`, `>`, `&lt;=`, `>=`
     ** `equal`, `less`, `greater`, `lessOrEqual`, `greaterOrEqual`
-* xref:introduction.adoc#string_filters[*String filters*]
+* xref:filters.adoc#string_filters[*String filters*]
     ** `contains`, `startsWith`, `endsWith`
 
 
