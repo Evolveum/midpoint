@@ -457,6 +457,7 @@ For more information see xrefv:/midpoint/reference/support-4.9/deployment/ninja/
 * 538-archetype-task-certification-reiterate-campaign.xml: task activity panel was fixed to display the data from the certificationReiterateCampaign container.
 * 029-archetype-application.xml: fixed the displaying of the application classifications.
 * 041-role-approver.xml: added manualProvisioningContext item to read authorization of the CaseType object in order to correctly display case details page.
+* 010-value-policy.xml: improved localization
 
 Please review link:https://github.com/Evolveum/midpoint/commits/master/gui/admin-gui/src/main/resources/initial-objects[source code history] for detailed list of changes.
 
