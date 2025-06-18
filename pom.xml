@@ -243,9 +243,13 @@
         <postgresql.version>42.7.7</postgresql.version>
 
         <!-- START of Spring Boot dependencies overrides (temporary/security fixes, revise regularly!) -->
+        <!-- security fix for CVE-2025-48988 -->
+        <tomcat.version>10.1.42</tomcat.version>
+        <!-- security fix for CVE-2025-48976 -->
+        <commons.fileupload2.version>2.0.0-M4</commons.fileupload2.version>
         <!-- END of Spring Boot dependencies overrides -->
 
-        <wicket.version>10.4.0</wicket.version>
+        <wicket.version>10.5.0</wicket.version>
         <wicketstuff.version>10.1.1</wicketstuff.version>
         <wicket.chartjs.version>0.5</wicket.chartjs.version>
         <!-- Groovy 4.0.24 is also default for Spring Boot 3.4.0 -->
@@ -1648,6 +1652,12 @@
             <!--        </exclusion>-->
             <!--    </exclusions>-->
             <!--</dependency>-->
+            <dependency>
+                <!-- security fix for CVE-2025-48976 2.0.0-M4 -->
+                <groupId>org.apache.commons</groupId>
+                <artifactId>commons-fileupload2-jakarta-servlet5</artifactId>
+                <version>${commons.fileupload2.version}</version>
+            </dependency>
         </dependencies>
     </dependencyManagement>
 
