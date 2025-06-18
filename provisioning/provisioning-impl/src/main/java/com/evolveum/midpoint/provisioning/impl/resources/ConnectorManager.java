@@ -366,7 +366,8 @@ public class ConnectorManager implements Cache, ConnectorDiscoveryListener {
         if (productionUse) {
             connector.initialize(
                     ResourceSchemaFactory.getNativeSchema(resource),
-                    connectorSpec.getNativeCapabilities(),
+                    connector.fetchCapabilities(result),    // fix for #10676 and #10644; when the connector is initialized the first time, we want
+                                                            // to get not only native capabilities, but parsed by midPoint capabilities as well
                     result);
         }
     }
