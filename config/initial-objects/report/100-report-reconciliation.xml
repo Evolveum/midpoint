@@ -35,7 +35,7 @@
                                 code: |
                                     import javax.xml.namespace.QName;
                                     if (objectClass != null)
-                                        return new QName("http://midpoint.evolveum.com/xml/ns/public/resource/instance-3", objectClass)                                "
+                                        return new QName("http://midpoint.evolveum.com/xml/ns/public/resource/instance-3", objectClass)
                     ``` and kind = yaml```
                             queryInterpretationOfNoValue: filterAll
                             path: "$kind"
