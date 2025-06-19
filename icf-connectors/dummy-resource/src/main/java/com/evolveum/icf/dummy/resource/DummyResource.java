@@ -78,13 +78,17 @@ public class DummyResource implements DebugDumpable {
 
     // Specific stores for the respective standard object types.
     private final ObjectStore<DummyAccount> accountStore =
-            new ObjectStore<>(DummyAccount.class, DummyAccount.OBJECT_CLASS_NAME, DummyObjectClass.standard());
+            new ObjectStore<>(DummyAccount.class, DummyAccount.OBJECT_CLASS_NAME, DummyObjectClass.standard(),
+                    DummyAccount.OBJECT_CLASS_DESCRIPTION);
     private final ObjectStore<DummyGroup> groupStore =
-            new ObjectStore<>(DummyGroup.class, DummyGroup.OBJECT_CLASS_NAME, DummyObjectClass.standard());
+            new ObjectStore<>(DummyGroup.class, DummyGroup.OBJECT_CLASS_NAME, DummyObjectClass.standard(),
+                    DummyGroup.OBJECT_CLASS_DESCRIPTION);
     private final ObjectStore<DummyPrivilege> privilegeStore =
-            new ObjectStore<>(DummyPrivilege.class, DummyPrivilege.OBJECT_CLASS_NAME, DummyObjectClass.standard());
+            new ObjectStore<>(DummyPrivilege.class, DummyPrivilege.OBJECT_CLASS_NAME, DummyObjectClass.standard(),
+                    DummyPrivilege.OBJECT_CLASS_DESCRIPTION);
     private final ObjectStore<DummyOrg> orgStore =
-            new ObjectStore<>(DummyOrg.class, DummyOrg.OBJECT_CLASS_NAME, DummyObjectClass.standard());
+            new ObjectStore<>(DummyOrg.class, DummyOrg.OBJECT_CLASS_NAME, DummyObjectClass.standard(),
+                    DummyOrg.OBJECT_CLASS_DESCRIPTION);
 
     private final Map<String, DummyObjectClass> auxiliaryObjectClassMap = new ConcurrentHashMap<>();
     private final Map<String, LinkClassDefinition> linkClassDefinitionMap = new ConcurrentHashMap<>();
@@ -1138,14 +1142,20 @@ public class DummyResource implements DebugDumpable {
     public void populateWithDefaultSchema() {
         var accountObjectClass = accountStore.getObjectClass();
         accountObjectClass.clear();
-        accountObjectClass.addAttributeDefinition(DummyAccount.ATTR_FULLNAME_NAME, String.class, true, false);
-        accountObjectClass.addAttributeDefinition(DummyAccount.ATTR_INTERNAL_ID, Integer.class, false, false);
-        accountObjectClass.addAttributeDefinition(DummyAccount.ATTR_DESCRIPTION_NAME, String.class, false, false);
-        accountObjectClass.addAttributeDefinition(DummyAccount.ATTR_INTERESTS_NAME, String.class, false, true);
-        accountObjectClass.addAttributeDefinition(DummyAccount.ATTR_PRIVILEGES_NAME, String.class, false, true);
+        accountObjectClass.addAttributeDefinition(DummyAccount.ATTR_FULLNAME_NAME, String.class, true, false,
+                "A string attribute representing a complete name, used primarily for display and identification.");
+        accountObjectClass.addAttributeDefinition(DummyAccount.ATTR_INTERNAL_ID, Integer.class, false, false,
+                "A system-assigned, immutable unique identifier.");
+        accountObjectClass.addAttributeDefinition(DummyAccount.ATTR_DESCRIPTION_NAME, String.class, false, false,
+                "A human-readable text field for providing additional context or notes about the identity or entity.");
+        accountObjectClass.addAttributeDefinition(DummyAccount.ATTR_INTERESTS_NAME, String.class, false, true,
+                "A list of personal or professional interests.");
+        accountObjectClass.addAttributeDefinition(DummyAccount.ATTR_PRIVILEGES_NAME, String.class, false, true,
+                "A defined set of assigned access rights or permissions.");
         var groupObjectClass = groupStore.getObjectClass();
         groupObjectClass.clear();
-        groupObjectClass.addAttributeDefinition(DummyGroup.ATTR_MEMBERS_NAME, String.class, false, true);
+        groupObjectClass.addAttributeDefinition(DummyGroup.ATTR_MEMBERS_NAME, String.class, false, true,
+                "A list of unique identifiers of identities which are members of the group.");
         privilegeStore.getObjectClass().clear();
         orgStore.getObjectClass().clear();
     }

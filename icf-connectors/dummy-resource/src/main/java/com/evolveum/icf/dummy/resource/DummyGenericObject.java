@@ -17,19 +17,30 @@ public class DummyGenericObject extends DummyObject {
 
     @NotNull private final String objectClassName;
 
+    private final String objectClassDescription;
+
     public DummyGenericObject(@NotNull String objectClassName) {
         this.objectClassName = objectClassName;
+        this.objectClassDescription = null;
     }
 
     public DummyGenericObject(@NotNull String objectClassName, @NotNull String name) {
         super(name);
         this.objectClassName = objectClassName;
+        this.objectClassDescription = null;
     }
 
     public DummyGenericObject(@NotNull String objectClassName, @Nullable String name, @NotNull DummyResource resource) {
+
+        this(objectClassName, name, resource, null);
+    }
+
+    public DummyGenericObject(@NotNull String objectClassName, @Nullable String name, @NotNull DummyResource resource,
+            String objectClassDescription) {
         super(generateNameIfNeeded(objectClassName, name, resource),
                 resource);
         this.objectClassName = objectClassName;
+        this.objectClassDescription = objectClassDescription;
     }
 
     private static String generateNameIfNeeded(String objectClassName, String name, DummyResource resource) {
@@ -47,6 +58,11 @@ public class DummyGenericObject extends DummyObject {
     @Override
     public @NotNull String getObjectClassName() {
         return objectClassName;
+    }
+
+    @Override
+    public String getObjectClassDescription() {
+        return objectClassDescription;
     }
 
     @Override

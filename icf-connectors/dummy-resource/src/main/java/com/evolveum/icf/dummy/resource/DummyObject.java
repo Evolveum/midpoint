@@ -609,6 +609,8 @@ public abstract class DummyObject implements DebugDumpable {
 
     @NotNull public abstract String getObjectClassName();
 
+    public abstract String getObjectClassDescription();
+
     /** {@link #resource} must be set up! */
     public Collection<DummyObject> getLinkedObjects(@NotNull String linkName) {
         return getResourceRequired().getLinkedObjects(this, linkName);

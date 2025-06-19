@@ -15,6 +15,8 @@ import org.jetbrains.annotations.NotNull;
 public class DummyPrivilege extends DummyObject {
 
     public static final String OBJECT_CLASS_NAME = "privilege";
+    public static final String OBJECT_CLASS_DESCRIPTION = "A right or permission granted to a account or group that defines what"
+            + " actions they are allowed to perform on a system or resource.";
 
     public DummyPrivilege() {
         super();
@@ -31,6 +33,10 @@ public class DummyPrivilege extends DummyObject {
     @Override
     public @NotNull String getObjectClassName() {
         return OBJECT_CLASS_NAME;
+    }
+
+    public String getObjectClassDescription() {
+        return OBJECT_CLASS_DESCRIPTION;
     }
 
     @Override

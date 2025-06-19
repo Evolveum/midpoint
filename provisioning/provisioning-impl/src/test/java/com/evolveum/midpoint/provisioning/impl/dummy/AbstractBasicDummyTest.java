@@ -737,6 +737,8 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
         assertFalse("No nativeObjectClass in account",
                 StringUtils.isEmpty(accountDef.getObjectClassDefinition().getNativeObjectClassName()));
 
+        assertNotNull("Null description attribute in account", accountDef.getDescription());
+
         ResourceObjectTypeDefinition accountTypeDef = accountDef.getTypeDefinition();
         assertNotNull("Account type definition is missing", accountTypeDef);
         assertEquals("Unexpected kind in account definition", ShadowKindType.ACCOUNT, accountTypeDef.getKind());
@@ -766,6 +768,7 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
         // MID-3144
         assertEquals("Wrong NAME displayOrder", (Integer) 110, nameDef.getDisplayOrder());
         assertEquals("Wrong NAME displayName", "Username", nameDef.getDisplayName());
+        assertNotNull("Null description for the NAME attribute", nameDef.getDescription()); // TODO should this have a description?
 
         ShadowSimpleAttributeDefinition<?> fullnameDef = accountDef.findSimpleAttributeDefinitionRequired("fullname");
         assertEquals(1, fullnameDef.getMaxOccurs());
@@ -773,6 +776,7 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
         assertTrue("No fullname create", fullnameDef.canAdd());
         assertTrue("No fullname update", fullnameDef.canModify());
         assertTrue("No fullname read", fullnameDef.canRead());
+        assertNotNull("Null description for the fullName attribute", fullnameDef.getDescription());
         // MID-3144
         if (fullnameDef.getDisplayOrder() == null || fullnameDef.getDisplayOrder() < 100 || fullnameDef.getDisplayOrder() > 400) {
             AssertJUnit.fail("Wrong fullname displayOrder: " + fullnameDef.getDisplayOrder());

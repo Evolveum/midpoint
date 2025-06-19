@@ -22,6 +22,8 @@ public class DummyGroup extends DummyObject {
 
     /** BEWARE! The dummy controller may represent this class as `__GROUP__` (if using legacy schema mode). */
     public static final String OBJECT_CLASS_NAME = "group";
+    public static final String OBJECT_CLASS_DESCRIPTION = "A logical collection of accounts or other groups,"
+            + "that are managed together for access control, policy enforcement and administration.";
 
     public static final String ATTR_MEMBERS_NAME = "members";
 
@@ -62,6 +64,11 @@ public class DummyGroup extends DummyObject {
     @Override
     public @NotNull String getObjectClassName() {
         return OBJECT_CLASS_NAME;
+    }
+
+    @Override
+    public String getObjectClassDescription() {
+        return OBJECT_CLASS_DESCRIPTION;
     }
 
     @Override
