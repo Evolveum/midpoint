@@ -32,6 +32,7 @@ The {release-version} release brings security, stability and miscellaneous bugfi
 
 * Fixed "preview changes" and "access request" functionality when some projections are hidden by authorizations. See bug:MID-10397[].
 * bug:MID-10739[] Use SecureRandom instead of Random.
+* Security update for Apache Tomcat (CVE-2025-48988) and Apache Commons FileUpload2 (CVE-2025-48976)
 
 == Changes with Respect To Version 4.8.7
 
