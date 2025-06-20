@@ -115,6 +115,7 @@ See bug:MID-9737[] and bug:MID-9986[].
 * Add an error message when the 'securityQuestionsForm' authentication module is the first in the authentication sequence. See bug:MID-10149[].
 * bug:MID-10225[] Fix issue where opening of certification campaign stage hangs indefinitely.
 * Fixed "preview changes" and "access request" functionality when some projections are hidden by authorizations. See bug:MID-10397[].
+* bug:MID-10739[] Use SecureRandom instead of Random.
 * Fixed different certification bugs. See bug:MID-10208[], bug:MID-10190[], bug:MID-10134[], bug:MID-10262[], bug:MID-10261[], bug:MID-10373[], bug:MID-10376[], bug:MID-10469[], bug:MID-10520[] and others.
 * Fixed organizations list display bug. See bug:MID-10150[].
 * Fixed the icon for Case type objects that was not displayed. See bug:MID-10164[].
