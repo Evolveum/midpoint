@@ -344,13 +344,20 @@ public class ValueSelector implements DebugDumpable, Serializable {
             ConfigurationException, ObjectNotFoundException {
         ctx.traceFilterProcessingStart(this);
         for (SelectorClause clause : clauses) {
-            if (!clause.toFilter(ctx)) {
+            if (isClauseApplicable(clause, ctx) && !clause.toFilter(ctx)) {
                 ctx.traceFilterProcessingEnd(this, false);
                 return false;
             }
         }
         ctx.getFilterCollector().nullToAll();
         ctx.traceFilterProcessingEnd(this, true);
+        return true;
+    }
+
+    private boolean isClauseApplicable (SelectorClause clause, FilteringContext ctx) {
+        if (clause instanceof ArchetypeRefClause) {
+            return AssignmentHolderType.class.isAssignableFrom(ctx.getFilterType());
+        }
         return true;
     }
 
