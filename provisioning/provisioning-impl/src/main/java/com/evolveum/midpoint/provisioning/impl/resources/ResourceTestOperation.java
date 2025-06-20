@@ -481,7 +481,7 @@ class ResourceTestOperation {
                 schemaHelper.evaluateExpressionsInConfigurationProperties(connectorSpec, resource, task, result);
 
                 CommonBeans.get().connectorManager
-                        .configureAndInitializeConnectorInstance(connector, connectorSpec, options.isFullMode(), result);
+                        .configureAndInitializeConnectorInstance(connector, connectorSpec, options.isFullMode(), false, result);
 
             } catch (CommunicationException e) {
                 onConfigurationProblem(e, "Communication error", DOWN, result);
