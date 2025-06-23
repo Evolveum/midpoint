@@ -183,20 +183,20 @@ public class ConnectorManager implements Cache, ConnectorDiscoveryListener {
                     // Configured but needs reconfiguration (is not fresh, or forcing reconfiguration)
                     // Note that the connector is already cached, so we don't need to cache it.
                     // The reconfiguration affects the cache immediately (unlike the state before 4.9).
-                    configureAndInitializeConnectorInstance(connectorInstance, connectorSpec, true, result);
+                    configureAndInitializeConnectorInstance(connectorInstance, connectorSpec, true, false, result);
                     return connectorInstance;
                 } else {
                     LOGGER.trace("Non-fresh connector instance found, so the reconfiguration would be expected. "
                             + "But we need the connector instance for non-production use, so we keep the cached one intact, "
                             + "and create a new (uncached) instance: {}", connectorSpec);
                     var newConnectorInstance = createConnectorInstance(connectorSpec, result);
-                    configureAndInitializeConnectorInstance(newConnectorInstance, connectorSpec, false, result);
+                    configureAndInitializeConnectorInstance(newConnectorInstance, connectorSpec, false, false, result);
                     return newConnectorInstance;
                 }
             } else {
                 // not configured and initialized yet
                 LOGGER.trace("Configuring new connector instance for: {}", connectorSpec);
-                configureAndInitializeConnectorInstance(connectorInstance, connectorSpec, productionUse, result);
+                configureAndInitializeConnectorInstance(connectorInstance, connectorSpec, productionUse, true, result);
                 if (productionUse) {
                     cacheConfiguredAndInitializedConnectorInstance(connectorCacheEntry, connectorSpec);
                 }
@@ -342,7 +342,8 @@ public class ConnectorManager implements Cache, ConnectorDiscoveryListener {
 
     /** If production use is {@code false}, the connector is only configured, not initialized. */
     void configureAndInitializeConnectorInstance(
-            ConnectorInstance connector, ConnectorSpec connectorSpec, boolean productionUse, OperationResult result)
+            ConnectorInstance connector, ConnectorSpec connectorSpec, boolean productionUse, boolean fetchCapabilities,
+            OperationResult result)
             throws SchemaException, CommunicationException, GenericFrameworkException, ConfigurationException {
 
         // We generally do not consider empty configuration as a problem.
@@ -367,8 +368,8 @@ public class ConnectorManager implements Cache, ConnectorDiscoveryListener {
         if (productionUse) {
             connector.initialize(
                     ResourceSchemaFactory.getNativeSchema(resource),
-                    connector.fetchCapabilities(result),    // fix for #10676 and #10644; when the connector is initialized the first time, we want
-                                                            // to get not only native capabilities, but parsed by midPoint capabilities as well
+                    fetchCapabilities ? null : connectorSpec.getNativeCapabilities(),   // fix for #10676 and #10644
+                                                                    //we want to fetch the capabilities during first connector initialization
                     result);
         }
     }
