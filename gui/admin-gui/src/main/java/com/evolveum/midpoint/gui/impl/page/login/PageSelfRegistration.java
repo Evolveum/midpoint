@@ -163,6 +163,9 @@ public class PageSelfRegistration extends PageAbstractFlow {
                 AttributeAppender.append("aria-label", createStringResource("UserType.emailAddress")));
         email.getBaseFormComponent().add(
                 AttributeAppender.replace("type", "email"));
+        email.getBaseFormComponent().add(
+                AttributeAppender.replace("title", createStringResource("PageSelfRegistration.emailAddress.hint")));
+
         createPasswordPanel(staticRegistrationForm);
         return staticRegistrationForm;
     }
@@ -182,21 +185,6 @@ public class PageSelfRegistration extends PageAbstractFlow {
                 AttributeAppender.append("aria-label", createStringResource("CredentialsType.password")));
         password.getBaseFormComponent().setRequired(true);
         staticRegistrationForm.add(password);
-
-//        Label help = new Label(ID_TOOLTIP);
-//        final StringResourceModel tooltipText = createStringResource("PageSelfRegistration.password.policy");
-//        help.add(AttributeModifier.replace("title", tooltipText));
-//        help.add(new InfoTooltipBehavior());
-//        help.add(new VisibleEnableBehaviour() {
-//            private static final long serialVersionUID = 1L;
-//
-//            @Override
-//            public boolean isVisible() {
-//
-//                return StringUtils.isNotEmpty(tooltipText.getObject());
-//            }
-//        });
-//        staticRegistrationForm.add(help);
     }
 
     @Override

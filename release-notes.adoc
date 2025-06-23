@@ -56,6 +56,7 @@ Overall, midPoint 4.9 is a major step from the past into the future.
 * bug:MID-10410[] Better indication for failed tasks and their subtasks.
 * bug:MID-10412[] Implemented configurable thresholds for task activities.
 * bug:MID-10496[] Task doesn't start at next scheduled time.
+* bug:MID-10414[] Page size global configuration for object collection views.
 
 === Other Improvements
 
@@ -74,7 +75,7 @@ Overall, midPoint 4.9 is a major step from the past into the future.
 * Assignment modification constraint of policy rules allows specification of scope.
 This can be used for approval of indirect role assignments and similar cases. See bug:MID-10663[].
 * There are two new functions in midPoint function library for access to "governance" users (approvers/owners): `getRoleMemberUsers`, `getServiceMemberUsers`.
-* Use delta's "visualizer" used by GUI also in notifications. See bug:MID-6112[].
+* Use delta's "visualizer" used by GUI also in notifications and other improvements in notifications. See bug:MID-6112[], bug:MID-10633[], bug:MID-10632[], bug:MID-10635[], bug:MID-10372[], bug:MID-10634[], bug:MID-10636[].
 
 === Other Bug Fixes
 
@@ -114,6 +115,63 @@ See bug:MID-9737[] and bug:MID-9986[].
 * Add an error message when the 'securityQuestionsForm' authentication module is the first in the authentication sequence. See bug:MID-10149[].
 * bug:MID-10225[] Fix issue where opening of certification campaign stage hangs indefinitely.
 * Fixed "preview changes" and "access request" functionality when some projections are hidden by authorizations. See bug:MID-10397[].
+* bug:MID-10739[] Use SecureRandom instead of Random.
+* Fixed different certification bugs. See bug:MID-10208[], bug:MID-10190[], bug:MID-10134[], bug:MID-10262[], bug:MID-10261[], bug:MID-10373[], bug:MID-10376[], bug:MID-10469[], bug:MID-10520[] and others.
+* Fixed organizations list display bug. See bug:MID-10150[].
+* Fixed the icon for Case type objects that was not displayed. See bug:MID-10164[].
+* Fixed the issue with date field update. See bug:MID-10107[].
+* Fixed the issue with wrong redirection after unassigning the object. See bug:MID-10151[].
+* Fixed the issue with displaying Service type objects in the role catalog. See bug:MID-10206[].
+* Password policy checks are being applied to an extension attribute of the ProtectedStringType. See bug:MID-10129[].
+* Fixed empty required fields validation in UI in case the parent container is empty. See bug:MID-10210[].
+* Fixed the issue with password policy check popover. See bug:MID-10128[].
+* Fixed the sorting of the organisation tree in the Role catalog (from now, sorted by display name). See bug:MID-10246[].
+* Fixed filtering of the work items in UI. See bug:MID-10167[].
+* Fixed input string validation in the Flexible Authentication module. See bug:MID-10123[].
+* Fixed the displaying of the historical user data. See bug:MID-10153[].
+* Fixed error in logs during the work in the resource wizard. See bug:MID-10233[].
+* Hided password strength bar for the protected string panel. See bug:MID-10129[].
+* Fixed the error while creating new application service object with manager. See bug:MID-10277[].
+* Fixed the error during self password update. See bug:MID-10316[].
+* Fixed the usage of the MidpointFormValidator during object updates. See bug:MID-10127[].
+* Fixed authorization check in GUI by using EndPointsUrlMapping actions check. See bug:MID-10336[].
+* Fixed the displaying of the Policy rule panel. See bug:MID-10343[].
+* Fixed the issue with duplicated error message displaying on the Repository objects page. See bug:MID-10344[].
+* Made authorization error message more user-friendly. See bug:MID-10206[].
+* Fixed default panels configuration of the details pages for start campaign and reiterate campaign tasks. See bug:MID-10205[].
+* Fixed error on the Task Internal performance panel. See bug:MID-10445[].
+* Fixed error on the task details page. See bug:MID-10395[].
+* Fixed defaultAssignmentConstraints configuration usage during Request Access. See bug:MID-10425[].
+* Fixed Person of interests step in Access Request to take into account objects filter and to analyze more carefully changing the persons of interest. See bug:MID-10398[].
+* Fixed changing the mark for user object. See bug:MID-10423[].
+* Fixed session storage for Cases table. See bug:MID-10473[].
+* Fixed the issue with the displaying the value of the work item Name column. See bug:MID-10427[].
+* Fixed the issue with dashboard resource widget. See bug:MID-10497[].
+* Fixed the sorting of the first column in the collection view table. See bug:MID-10486[].
+* Removed the button for credentials change on the Password panel of the object details page to be hidden without proper authorization. See bug:MID-10507[].
+* Fixed error when setting read permission with filter on ReportDataType. See bug:MID-10498[].
+* Fixed localization error while changing the password. See bug:MID-10471[].
+* Fixed the accumulation of the authentication attempts. See bug:MID-10502[].
+* Fixed loading the fresh user object on the Self Service Credentials page. See bug:MID-10544[].
+* Fixed saving schema extension. See bug:MID-10437[].
+* Fixed creation of the new generic PolicyType. See bug:MID-10463[].
+* Fixed Access Request checkout step when validity is set to mandatory. See bug:MID-10459[].
+* Fixed import object with ObjectReferenceType extension attribute. See bug:MID-10503[].
+* Fixed deny rule for task delete operation. See bug:MID-10625[].
+* Fixed setting of the assignment subtype. See bug:MID-10624[].
+* Fixed sorting in the All Tasks table. See bug:MID-10640[].
+* Fixed incorrect message while approving a work item. See bug:MID-10629[].
+* Fixed Reconciliation report running. See bug:MID-10436[].
+* Fixed displaying the list of the application classifications. See bug:MID-10638[].
+* Fixed Object collection search item visibility on object list pages. See bug:MID-10648[].
+* Fixed mark (*) visibility on the custom forms. See bug:MID-10656[].
+* Fixed manual unlock of the user. See bug:MID-9856[].
+* Improved the message on the mail nonce module panel during Reset password flow. See bug:MID-10679[].
+* Fixed case details page displaying. See bug:MID-10690[].
+* Fixed schema fetch error. See bug:MID-10665[].
+* Connid version was upgraded to 1.6.0.0. See bug:MID-10552[].
+* Fixed the error during saving the extension schema if there is ObjectReferenceType item. See bug:MID-10693[].
+* Fixed the search with upper case letters on the Projections panel. See bug:MID-10713[].
 
 === Releases Of Other Components
 
@@ -379,7 +437,7 @@ It refers to the most significant functionality removals and changes in this ver
 // * Ninja command line options were consolidated, some options were renamed.
 // More info xrefv:/midpoint/reference/support-4.9/deployment/ninja[here] and in bug:MID-7483[].
 
-=== Changes In Initial Objects Since 4.8
+=== Changes In Initial Objects Since 4.9
 
 NOTE: This section is relevant to the majority of midPoint deployments.
 
@@ -396,27 +454,18 @@ The complete new set of initial objects is in the `config/initial-objects` direc
 _Actions required:_ Please review the changes and apply them appropriately to your configuration. Ninja can help with updating existing initial objects during upgrade procedure using `initial-objects` command.
 For more information see xrefv:/midpoint/reference/support-4.9/deployment/ninja/use-case/upgrade-with-ninja/#initial-objects[here].
 
-* 040-role-enduser.xml: The `End user` role was updated with a hidden visibility for `myCertificationItems` dashboard widget.
-* 042-role-enduser.xml: The `Reviewer` role was extended with `myActiveCertificationCampaigns` UI authorization for active campaigns page and with more items of the certification campaign object to be read.
-* 000-system-configuration.xml: The `SystemConfiguration` object was extended with a new dashboard widget configuration for certification items.
-* 250-object-collection-resource.xml: The `All resources` object collection was updated with a filter to exclude resource templates.
-* 251-object-collection-resource-up.xml: The `Resources up` object collection was updated with a filter to exclude resource templates.
-* 520-archetype-task-certification.xml: Changes for proper functioning of certification related tasks.
-* 534-archetype-task-certification-campaign-open-next-stage.xml: Archetype for campaign open next stage (start campaign) related task.
-* 535-archetype-task-certification-remediation.xml: Archetype for campaign remediation related task.
-* A set of initial objects was updated to extend polystring type elements with translation keys configuration.
-The full set of changed objects you can see in the link:https://github.com/Evolveum/midpoint/commit/cf7cade899b8f663d90e5a9785037e0d0d1927c0[commit] with some further changes in the next commits: link:https://github.com/Evolveum/midpoint/commit/d381b6637139464ee967e5c553e1233ba1750499[archetype correlation case label fix], link:https://github.com/Evolveum/midpoint/commit/54f03f9b6e919d45a9651d22a71f796efa662989[fixes in system configuration object], link:https://github.com/Evolveum/midpoint/commit/54f03f9b6e919d45a9651d22a71f796efa662989[archetype and report objects fixes], link:https://github.com/Evolveum/midpoint/commit/16e3f923aaca7433452689565fa6ede40aab9573[application label fix].
-* 029-archetype-application.xml: updated panels for application archetype.
-* 700-archetype-event-mark.xml: updated admin gui configuration - hidden object operation policy panel.
-* 800-804 marks: updated object operation policy membership.
-* 030-role-superuser.xml: updated policy.
+* 536-archetype-task-certification-start-campaign.xml: task activity panel was fixed to display the data from the certificationStartCampaign container.
+* 538-archetype-task-certification-reiterate-campaign.xml: task activity panel was fixed to display the data from the certificationReiterateCampaign container.
+* 029-archetype-application.xml: fixed the displaying of the application classifications.
+* 041-role-approver.xml: added manualProvisioningContext item to read authorization of the CaseType object in order to correctly display case details page.
+* 010-value-policy.xml: improved localization
 
 Please review link:https://github.com/Evolveum/midpoint/commits/master/gui/admin-gui/src/main/resources/initial-objects[source code history] for detailed list of changes.
 
 TIP: Copies of initial object files are located in `config/initial-objects` directory of midPoint distribution packages. These files can be used as a reference during upgrades.
 On-line version can be found in https://github.com/Evolveum/midpoint/tree/v{release-version}/config/initial-objects[midPoint source code].
 
-=== Schema Changes Since 4.8
+=== Schema Changes Since 4.9
 
 NOTE: This section is relevant to the majority of midPoint deployments.
 It describes what data items were marked as deprecated, or removed altogether from the schema.

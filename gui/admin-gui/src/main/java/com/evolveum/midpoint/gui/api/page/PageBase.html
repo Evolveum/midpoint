@@ -12,13 +12,13 @@
     <div wicket:id="mainPopup"/>
     <div class="wrapper">
         <div id="skip-link">
-            <a href="#main-content" class="btn-sm">
+            <a href="#main-content" tabindex="1" class="btn-sm">
                 <wicket:message key="Accessibility.PageBase.skiplink.title"/>
             </a>
         </div>
         <nav wicket:id="mainHeader" class="main-header navbar navbar-expand border-bottom-0">
             <div class="navbar-nav">
-                <a wicket:id="menuToggle" class="nav-link" data-widget="pushmenu" href="#" role="button" wicket:message="title:Accessibility.PageBase.pushmenu.title"><i class="fas fa-bars"></i></a>
+                <a wicket:id="menuToggle"  tabindex="3"  class="nav-link" data-widget="pushmenu" href="#" role="button" wicket:message="title:Accessibility.PageBase.pushmenu.title"><i class="fas fa-bars"></i></a>
             </div>
             <div class="ml-2 navbar-title" wicket:id="pageTitleContainer" role="heading" aria-level="1">
                 <span class="page-title" wicket:id="pageTitle">
@@ -33,7 +33,7 @@
                 <div class="nav-item d-none d-md-inline" style="min-width: 0; width: 100%" wicket:message="aria-label:PageBase.breadcrumb" role="navigation">
                     <ol class="breadcrumb d-none d-xl-flex justify-content-end p-0" style="width: 100%; overflow: hidden;">
                         <li wicket:id="breadcrumb" style="padding: 5px;">
-                            <a wicket:id="bcLink">
+                            <a  wicket:id="bcLink" tabindex="4">
                                 <i wicket:id="bcIcon"></i>&nbsp;
                                 <span class="sr-only" wicket:id="bcSrCurrentMessage"><wicket:message key="PageBase.bcSrCurrentMessage"/></span>
                                 <span wicket:id="bcName"/>
@@ -44,7 +44,7 @@
                 <ul class="navbar-nav" role="menu">
                     <wicket:enclosure child="cartLink">
                         <li class="nav-item" role="menuitem">
-                            <a class="nav-link" wicket:id="cartLink">
+                            <a  class="nav-link" wicket:id="cartLink" tabindex="5">
                                 <i class="fas fa-cart-shopping"></i>
                                 <span class="badge badge-danger navbar-badge" wicket:id="cartCount"/>
                             </a>
@@ -52,7 +52,7 @@
                     </wicket:enclosure>
                     <wicket:remove>
                         <li class="nav-item notification" role="menuitem">
-                            <a class="nav-link">
+                            <a  class="nav-link" tabindex="6">
                                 <i class="fas fa-bell"></i>
                                 <span class="badge badge-danger">1</span>
                             </a>
@@ -63,13 +63,13 @@
                     </li>
                     <wicket:enclosure child="mode">
                         <li class="nav-item" role="menuitem">
-                            <a class="nav-link" href="#" wicket:id="mode"/>
+                            <a  class="nav-link" href="#" wicket:id="mode" tabindex="8"/>
                         </li>
                     </wicket:enclosure>
                     <wicket:enclosure child="logoutForm">
                         <li class="nav-item" role="menuitem">
                             <form method="post" wicket:id="logoutForm">
-                                <button type="submit" class="btn btn-link nav-link" wicket:message="title:PageBase.logout,aria-label:PageBase.logout">
+                                <button type="submit" class="btn btn-link nav-link" tabindex="9" wicket:message="title:PageBase.logout,aria-label:PageBase.logout">
                                     <i class="fas fa-power-off"></i>
                                 </button>
                             </form>
