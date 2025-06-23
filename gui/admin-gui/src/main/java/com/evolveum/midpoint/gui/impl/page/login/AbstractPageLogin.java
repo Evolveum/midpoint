@@ -62,6 +62,7 @@ public abstract class AbstractPageLogin extends PageAdminLTE {
     private static final String ID_PANEL_DESCRIPTION = "panelDescription";
     private static final String ID_SWITCH_TO_DEFAULT_SEQUENCE = "switchToDefaultSequence";
     private static final String ID_BACK_BUTTON = "back";
+    private static final String ID_SYSTEM_NAME = "systemName";
 
     private final List<String> errorMessages = new ArrayList<>();
 
@@ -117,6 +118,10 @@ public abstract class AbstractPageLogin extends PageAdminLTE {
     }
 
     private void initLayout() {
+        Label systemName = new Label(ID_SYSTEM_NAME, getSystemNameModel());
+        systemName.setOutputMarkupId(true);
+        add(systemName);
+
         Label panelTitle = new Label(ID_PANEL_TITLE, getLoginPanelTitleModel());
         panelTitle.setOutputMarkupId(true);
         panelTitle.add(new VisibleBehaviour(() -> StringUtils.isNotEmpty(getLoginPanelTitleModel().getObject())));
