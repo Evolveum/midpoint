@@ -21,8 +21,6 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.AjaxSubmitButton;
 import com.evolveum.midpoint.web.component.form.MidpointForm;
 import com.evolveum.midpoint.web.component.prism.DynamicFormPanel;
@@ -32,8 +30,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 public abstract class PageAbstractFlow extends PageRegistrationBase {
 
     private static final long serialVersionUID = 1L;
-
-    private static final Trace LOGGER = TraceManager.getTrace(PageAbstractFlow.class);
 
     private static final String ID_MAIN_FORM = "mainForm";
     private static final String ID_SUBMIT_REGISTRATION = "submitRegistration";
@@ -104,6 +100,7 @@ public abstract class PageAbstractFlow extends PageRegistrationBase {
             @Override
             protected void onError(AjaxRequestTarget target) {
                 showErrors(target);
+                handleErrors(target);
             }
 
             protected void onSubmit(AjaxRequestTarget target) {
@@ -158,4 +155,6 @@ public abstract class PageAbstractFlow extends PageRegistrationBase {
                 createComponentPath(ID_MAIN_FORM, ID_CONTENT_AREA, ID_DYNAMIC_FORM));
     }
 
+    protected void handleErrors(AjaxRequestTarget target) {
+    }
 }

@@ -100,7 +100,7 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-dependencies</artifactId>
-        <version>3.5.3</version>
+        <version>3.5.0</version>
         <!-- This parent also declares dependencies listed here:
         https://docs.spring.io/spring-boot/appendix/dependency-versions/coordinates.html
         -->
@@ -233,21 +233,15 @@
 
         <!-- Spring Boot parent declares most fresh versions for JDBC drivers for all our servers. -->
 
-        <!-- security fixes -->
-        <postgresql.version>42.7.7</postgresql.version>
 
         <!-- Groovy 4.0.24 is also default for Spring Boot 3.4.0 -->
         <groovy.version>4.0.24</groovy.version>
 
 
         <!-- START of Spring Boot dependencies overrides (temporary/security fixes, revise regularly!) -->
-
         <!-- END of Spring Boot dependencies overrides -->
 
-        <!-- security fix for CVE-2025-48976 -->
-        <commons.fileupload2.version>2.0.0-M4</commons.fileupload2.version>
-
-        <wicket.version>10.5.0</wicket.version>
+        <wicket.version>10.4.0</wicket.version>
         <wicketstuff.version>10.1.1</wicketstuff.version>
         <wicket.chartjs.version>0.6-SNAPSHOT</wicket.chartjs.version>
 
@@ -1647,12 +1641,6 @@
             <!--        </exclusion>-->
             <!--    </exclusions>-->
             <!--</dependency>-->
-            <dependency>
-                <!-- security fix for CVE-2025-48976 2.0.0-M4 -->
-                <groupId>org.apache.commons</groupId>
-                <artifactId>commons-fileupload2-jakarta-servlet5</artifactId>
-                <version>${commons.fileupload2.version}</version>
-            </dependency>
         </dependencies>
     </dependencyManagement>
 

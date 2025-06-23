@@ -6,12 +6,17 @@
  */
 package com.evolveum.midpoint.gui.impl.page.login;
 
+import com.evolveum.midpoint.web.component.message.FeedbackAlerts;
+import com.evolveum.midpoint.web.component.prism.InputPanel;
+
+import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
 import org.apache.wicket.behavior.AttributeAppender;
-import org.apache.wicket.feedback.ContainerFeedbackMessageFilter;
+import org.apache.wicket.feedback.ComponentFeedbackMessageFilter;
 import org.apache.wicket.markup.html.WebMarkupContainer;
-import org.apache.wicket.markup.html.panel.FeedbackPanel;
+import org.apache.wicket.markup.html.form.FormComponent;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.PropertyModel;
 
@@ -44,6 +49,10 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
+import org.apache.wicket.util.visit.IVisit;
+
+import java.util.concurrent.atomic.AtomicBoolean;
+
 @PageDescriptor(urls = { @Url(mountUrl = "/registration", matchUrlForSecurity = "/registration") },
         permitAll = true, loginPage = true, authModule = AuthenticationModuleNameConstants.MAIL_NONCE)
 public class PageSelfRegistration extends PageAbstractFlow {
@@ -54,11 +63,15 @@ public class PageSelfRegistration extends PageAbstractFlow {
 
     private static final String ID_MAIN_FORM = "mainForm";
     private static final String ID_FIRST_NAME = "firstName";
+    private static final String ID_FIRST_NAME_FEEDBACK = "firstNameFeedback";
     private static final String ID_LAST_NAME = "lastName";
+    private static final String ID_LAST_NAME_FEEDBACK = "lastNameFeedback";
     private static final String ID_EMAIL = "email";
+    private static final String ID_EMAIL_FEEDBACK = "emailFeedback";
     private static final String ID_PASSWORD = "password";
-    private static final String ID_COMPONENT_FEEDBACK = "componentFeedback";
+    private static final String ID_PASSWORD_FEEDBACK = "passwordFeedback";
     private static final String ID_STATIC_FORM = "staticForm";
+    private final static String INVALID_FIELD_CLASS = "is-invalid";
 
     protected IModel<UserType> userModel;
     private UserType user;
@@ -119,11 +132,6 @@ public class PageSelfRegistration extends PageAbstractFlow {
         staticRegistrationForm.add(new VisibleBehaviour(() -> !isSubmitted));
         add(staticRegistrationForm);
 
-        FeedbackPanel feedback = new FeedbackPanel(ID_COMPONENT_FEEDBACK,
-                new ContainerFeedbackMessageFilter(PageSelfRegistration.this));
-        feedback.setOutputMarkupId(true);
-        staticRegistrationForm.add(feedback);
-
         TextPanel<String> firstName = new TextPanel<>(ID_FIRST_NAME,
                 new PropertyModel<>(getUserModel(), UserType.F_GIVEN_NAME.getLocalPart() + ".orig") {
 
@@ -134,8 +142,11 @@ public class PageSelfRegistration extends PageAbstractFlow {
                         getUserModel().getObject().setGivenName(new PolyStringType(object));
                     }
                 });
-        initInputProperties(feedback, firstName);
+        FeedbackAlerts firstNameFeedback = new FeedbackAlerts(ID_FIRST_NAME_FEEDBACK);
+        initInputProperties(firstName, firstNameFeedback);
         staticRegistrationForm.add(firstName);
+        staticRegistrationForm.add(firstNameFeedback);
+        firstName.getBaseFormComponent().setLabel(createStringResource("UserType.givenName"));
         firstName.getBaseFormComponent().add(
                 AttributeAppender.append("aria-label", createStringResource("UserType.givenName")));
 
@@ -150,15 +161,21 @@ public class PageSelfRegistration extends PageAbstractFlow {
                     }
 
                 });
-        initInputProperties(feedback, lastName);
+        FeedbackAlerts lastNameFeedback = new FeedbackAlerts(ID_LAST_NAME_FEEDBACK);
+        initInputProperties(lastName, lastNameFeedback);
         staticRegistrationForm.add(lastName);
+        staticRegistrationForm.add(lastNameFeedback);
+        lastName.getBaseFormComponent().setLabel(createStringResource("UserType.familyName"));
         lastName.getBaseFormComponent().add(
                 AttributeAppender.append("aria-label", createStringResource("UserType.familyName")));
 
         TextPanel<String> email = new TextPanel<>(ID_EMAIL,
                 new PropertyModel<>(getUserModel(), UserType.F_EMAIL_ADDRESS.getLocalPart()));
-        initInputProperties(feedback, email);
+        FeedbackAlerts emailFeedback = new FeedbackAlerts(ID_EMAIL_FEEDBACK);
+        initInputProperties(email, emailFeedback);
         staticRegistrationForm.add(email);
+        staticRegistrationForm.add(emailFeedback);
+        email.getBaseFormComponent().setLabel(createStringResource("UserType.emailAddress"));
         email.getBaseFormComponent().add(
                 AttributeAppender.append("aria-label", createStringResource("UserType.emailAddress")));
         email.getBaseFormComponent().add(
@@ -170,11 +187,33 @@ public class PageSelfRegistration extends PageAbstractFlow {
         return staticRegistrationForm;
     }
 
-    private void initInputProperties(FeedbackPanel feedback, TextPanel<String> input) {
-        input.getBaseFormComponent().add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
+    private void initInputProperties(InputPanel input, FeedbackAlerts feedback) {
+        //input.getBaseFormComponent().add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
         input.getBaseFormComponent().setRequired(true);
-        feedback.setFilter(new ContainerFeedbackMessageFilter(input.getBaseFormComponent()));
+        feedback.setOutputMarkupId(true);
+        feedback.setOutputMarkupPlaceholderTag(true);
+        feedback.setFilter(new ComponentFeedbackMessageFilter(input.getBaseFormComponent()));
         input.setRenderBodyOnly(true);
+
+        input.getBaseFormComponent().add(new AjaxFormComponentUpdatingBehavior("change") {
+            boolean wasUpdated = false;
+            @Override
+            protected void onUpdate(AjaxRequestTarget target) {
+                if (!wasUpdated) {
+                    input.getBaseFormComponent();
+                    target.add(input.getBaseFormComponent());
+                    wasUpdated = true;
+                }
+            }
+
+            @Override
+            protected void onError(AjaxRequestTarget target, RuntimeException e) {
+                if (!wasUpdated) {
+                    target.add(input.getBaseFormComponent());
+                }
+            }
+        });
+        input.getBaseFormComponent().add(AttributeModifier.append("class", () -> input.getBaseFormComponent().hasErrorMessage() ? INVALID_FIELD_CLASS : ""));
     }
 
     private void createPasswordPanel(WebMarkupContainer staticRegistrationForm) {
@@ -183,8 +222,11 @@ public class PageSelfRegistration extends PageAbstractFlow {
         password.getBaseFormComponent().add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
         password.getBaseFormComponent().add(
                 AttributeAppender.append("aria-label", createStringResource("CredentialsType.password")));
-        password.getBaseFormComponent().setRequired(true);
+        password.getBaseFormComponent().setLabel(createStringResource("CredentialsType.password"));
         staticRegistrationForm.add(password);
+        FeedbackAlerts passwordFeedback = new FeedbackAlerts(ID_PASSWORD_FEEDBACK);
+        initInputProperties(password, passwordFeedback);
+        staticRegistrationForm.add(passwordFeedback);
     }
 
     @Override
@@ -435,5 +477,20 @@ public class PageSelfRegistration extends PageAbstractFlow {
 
             }
         };
+    }
+
+    @Override
+    protected void handleErrors(AjaxRequestTarget target) {
+       WebMarkupContainer c = (WebMarkupContainer) get(createComponentPath(ID_MAIN_FORM, ID_CONTENT_AREA, ID_STATIC_FORM));
+       AtomicBoolean hasError = new AtomicBoolean(false);
+       c.visitChildren(FormComponent.class, (FormComponent<?> child, IVisit<FormComponent<?>> visit) -> {
+            if (child.hasErrorMessage()) {
+                hasError.set(true);
+                //target.add(child);
+            }
+        });
+      if (hasError.get()) {
+          target.add(c);
+       }
     }
 }
