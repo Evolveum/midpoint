@@ -12,6 +12,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.evolveum.midpoint.gui.api.util.GuiDisplayTypeUtil;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.web.page.error.PageError;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.DisplayType;
@@ -71,6 +72,7 @@ public abstract class AbstractPageLogin<MA extends ModuleAuthentication>  extend
     private static final String ID_BACK_BUTTON = "back";
     private static final String ID_ACTION_LINK = "actionLink";
     private static final String ID_ACTION_LINK_LABEL = "actionLinkLabel";
+    private static final String ID_SYSTEM_NAME = "systemName";
 
     private final List<String> errorMessages = new ArrayList<>();
 
@@ -126,6 +128,10 @@ public abstract class AbstractPageLogin<MA extends ModuleAuthentication>  extend
     }
 
     private void initLayout() {
+        Label systemName = new Label(ID_SYSTEM_NAME, getSystemNameModel());
+        systemName.setOutputMarkupId(true);
+        add(systemName);
+
         Label panelTitle = new Label(ID_PANEL_TITLE, getLoginPanelTitleModel());
         panelTitle.setOutputMarkupId(true);
         panelTitle.add(new VisibleBehaviour(() -> StringUtils.isNotEmpty(getLoginPanelTitleModel().getObject())));
