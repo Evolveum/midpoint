@@ -220,7 +220,8 @@ public class OperationExecutionWriter implements SystemConfigurationChangeListen
 
         // Group records by task oid and delete the oldest ones if maxRecordsPerTask is exceeded
         Map<String, List<OperationExecutionType>> recordsByTask = recordsToConsider.stream()
-                .collect(Collectors.groupingBy(r -> r.getTaskRef() != null ?r.getTaskRef().getOid() : null));
+                .filter(r -> r.getTaskRef() != null && r.getTaskRef().getOid() != null)
+                .collect(Collectors.groupingBy(r -> r.getTaskRef().getOid()));
 
         int maxRecordsPerTask = cleaningSpecification.recordsToKeepPerTask;
         for (List<OperationExecutionType> mapValue : recordsByTask.values()) {
