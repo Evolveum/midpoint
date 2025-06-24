@@ -174,14 +174,14 @@ public class ConnectorManager implements Cache, ConnectorDiscoveryListener {
 
         if (forceFresh && connectorCacheEntry.isConfigured()) {
             LOGGER.debug("FORCE in connector cache: reconfiguring cached connector {}", connectorSpec);
-            configureConnector(connectorInstance, connectorSpec, productionUse, result);
+            configureConnector(connectorInstance, connectorSpec, productionUse, false, result);
             // Connector is cached already. No need to put it into cache.
             return connectorInstance;
         }
 
         if (connectorCacheEntry.isConfigured() && !isFresh(connectorCacheEntry, connectorSpec)) {
             LOGGER.trace("Reconfiguring connector {} because the configuration is not fresh", connectorSpec);
-            configureConnector(connectorInstance, connectorSpec, productionUse, result);
+            configureConnector(connectorInstance, connectorSpec, productionUse, false, result);
             // Connector is cached already. No need to put it into cache. We just need to update the configuration.
             connectorCacheEntry.setConfiguration(connectorSpec.getConnectorConfiguration());
             return connectorInstance;
@@ -189,7 +189,7 @@ public class ConnectorManager implements Cache, ConnectorDiscoveryListener {
 
         if (!connectorCacheEntry.isConfigured()) {
             LOGGER.trace("Configuring new connector {}", connectorSpec);
-            configureConnector(connectorInstance, connectorSpec, productionUse, result);
+            configureConnector(connectorInstance, connectorSpec, productionUse, true, result);
             if (productionUse) {
                 cacheConfiguredConnector(connectorCacheEntry, connectorSpec);
             }
@@ -341,8 +341,8 @@ public class ConnectorManager implements Cache, ConnectorDiscoveryListener {
     }
 
     private void configureConnector(
-            ConnectorInstance connector, ConnectorSpec connectorSpec, boolean productionUse, OperationResult result)
-            throws SchemaException, CommunicationException, ConfigurationException {
+            ConnectorInstance connector, ConnectorSpec connectorSpec, boolean productionUse, boolean fetchCapabilities,
+            OperationResult result) throws SchemaException, CommunicationException, ConfigurationException {
 
         PrismContainerValue<ConnectorConfigurationType> connectorConfigurationVal = connectorSpec.getConnectorConfiguration() != null ?
                 connectorSpec.getConnectorConfiguration().getValue() : null;
@@ -370,7 +370,9 @@ public class ConnectorManager implements Cache, ConnectorDiscoveryListener {
 
             if (productionUse) {
                 ResourceSchema resourceSchema = ResourceSchemaFactory.getRawSchema(resource);
-                CapabilityCollectionType connectorCapabilities = connectorSpec.getNativeCapabilities();
+                CapabilityCollectionType connectorCapabilities = fetchCapabilities ?
+                        null : connectorSpec.getNativeCapabilities();   // fix for #10676 and #10644
+                                                                        // we want to fetch the capabilities during first connector initialization
 
                 connector.initialize(
                         resourceSchema,
