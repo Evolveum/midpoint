@@ -101,7 +101,7 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-dependencies</artifactId>
-        <version>3.5.0</version>
+        <version>3.5.3</version>
         <!-- This parent also declares dependencies listed here:
         https://docs.spring.io/spring-boot/docs/current/reference/html/appendix-dependency-versions.html
         -->
@@ -231,11 +231,11 @@
         <postgresql.version>42.7.7</postgresql.version>
 
         <!-- START of Spring Boot dependencies overrides (temporary/security fixes, revise regularly!) -->
-        <!-- security fix for CVE-2025-48988 -->
-        <tomcat.version>10.1.42</tomcat.version>
+
+        <!-- END of Spring Boot dependencies overrides -->
+
         <!-- security fix for CVE-2025-48976 -->
         <commons.fileupload2.version>2.0.0-M4</commons.fileupload2.version>
-        <!-- END of Spring Boot dependencies overrides -->
 
         <wicket.version>10.4.0</wicket.version>
         <wicketstuff.version>10.1.1</wicketstuff.version>
