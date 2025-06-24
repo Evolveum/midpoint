@@ -236,7 +236,7 @@ public class PageSelfRegistration extends PageAbstractFlow {
 
     private void createPasswordPanel(WebMarkupContainer staticRegistrationForm) {
         PasswordPanel password = new PasswordPropertyPanel(ID_PASSWORD,
-                new PropertyModel<>(getUserModel(), "credentials.password.value"), false, true, null);
+                new PropertyModel<>(getUserModel(), "credentials.password.value"), false, true, null, true);
         password.getBaseFormComponent().add(
                 AttributeAppender.append("aria-label", createStringResource("CredentialsType.password")));
         password.getBaseFormComponent().setLabel(createStringResource("CredentialsType.password"));
@@ -516,7 +516,7 @@ public class PageSelfRegistration extends PageAbstractFlow {
     }
 
     private String[] getInputs(TextPanel<String> panel) {
-        String[] EMPTY_STRING_ARRAY = new String[] { "" };
+        String[] emptyStringArray = new String[] { "" };
         Request request = panel.getRequest();
         IRequestParameters parameters = request.getPostParameters();
         List<StringValue> list = parameters.getParameterValues(panel.getBaseFormComponent().getInputName());
@@ -528,10 +528,10 @@ public class PageSelfRegistration extends PageAbstractFlow {
             }
         }
         if (values != null && values.length == 1 && values[0] == null) {
-            return EMPTY_STRING_ARRAY;
+            return emptyStringArray;
         }
         if (values != null && values.length == 2 && "".equals(values[0])) {
-            return EMPTY_STRING_ARRAY;
+            return emptyStringArray;
         }
         return values;
     }

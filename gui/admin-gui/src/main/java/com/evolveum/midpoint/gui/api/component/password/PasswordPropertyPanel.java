@@ -44,8 +44,8 @@ public class PasswordPropertyPanel extends PasswordPanel {
         this(id, passwordModel, isReadOnly, isInputVisible, showOneLinePasswordPanel,null);
     }
 
-    public <F extends FocusType> PasswordPropertyPanel(String id, IModel<ProtectedStringType> passwordModel, boolean isReadOnly, boolean isInputVisible, PrismObject<F> object) {
-        this(id, passwordModel, isReadOnly, isInputVisible, false, object);
+    public <F extends FocusType> PasswordPropertyPanel(String id, IModel<ProtectedStringType> passwordModel, boolean isReadOnly, boolean isInputVisible, PrismObject<F> object, boolean isTabIndexForLimitationPanelEnabled) {
+        super(id, passwordModel, isReadOnly, isInputVisible, false, object, isTabIndexForLimitationPanelEnabled);
     }
 
     public <F extends FocusType> PasswordPropertyPanel(
