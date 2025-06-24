@@ -17,6 +17,7 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.common.secrets.SecretsProviderManager;
 import com.evolveum.midpoint.gui.impl.page.admin.certification.column.AbstractGuiColumn;
+import com.evolveum.midpoint.gui.impl.page.login.AbstractPageLogin;
 import com.evolveum.midpoint.model.api.authentication.GuiProfiledPrincipal;
 import com.evolveum.midpoint.model.api.mining.RoleAnalysisService;
 import com.evolveum.midpoint.model.api.simulation.SimulationResultManager;
@@ -280,6 +281,8 @@ public abstract class PageAdminLTE extends WebPage implements ModelServiceLocato
 
     // No need to store this in the session. Retrieval is cheap.
     private transient CompiledGuiProfile compiledGuiProfile;
+
+    private static final String DEFAULT_SYSTEM_NAME = "midPoint";
 
     public PageAdminLTE(PageParameters parameters) {
         super(parameters);
@@ -1117,5 +1120,12 @@ public abstract class PageAdminLTE extends WebPage implements ModelServiceLocato
     }
 
     public void changeLocal(AjaxRequestTarget target) {
+    }
+
+    public IModel<String> getSystemNameModel() {
+        return () -> {
+            String customSystemName = WebComponentUtil.getMidpointCustomSystemName(PageAdminLTE.this, DEFAULT_SYSTEM_NAME);
+            return StringUtils.isNotEmpty(customSystemName) ? customSystemName : DEFAULT_SYSTEM_NAME;
+        };
     }
 }
