@@ -72,7 +72,10 @@ class PolicyRuleEnforcer<O extends ObjectType> {
         }
 
         computeEnforcementForFocusRules();
-        computeEnforcementForAssignmentRules();
+        //fix for #10743; we don't want to evaluate assignment policies in case of object removal operation
+        if (shouldEnforceAssignmentPolicies()) {
+            computeEnforcementForAssignmentRules();
+        }
         // TODO projection rules
 
         if (isEnforcementPreviewMode()) {
@@ -118,6 +121,10 @@ class PolicyRuleEnforcer<O extends ObjectType> {
             evaluatedAssignmentTriple.simpleAccept(
                     assignment -> computeEnforcementForTriggeredRules(assignment.getAllTargetsPolicyRules()));
         }
+    }
+
+    private boolean shouldEnforceAssignmentPolicies() {
+        return context.getFocusContext() == null || !context.getFocusContext().isDelete();
     }
 
     private void computeEnforcementForTriggeredRules(Collection<? extends EvaluatedPolicyRule> policyRules) {
