@@ -56,6 +56,7 @@ public class PageRegistrationBase extends PageAdminLTE {
     private static final String ID_TITLE = "formTitle";
     private static final String ID_DESCRIPTION = "formDescription";
     private static final String ID_BACK = "back";
+    private static final String ID_SYSTEM_NAME = "systemName";
 
     private SelfRegistrationDto selfRegistrationDto;
     private SelfRegistrationDto postAuthenticationDto;
@@ -67,6 +68,10 @@ public class PageRegistrationBase extends PageAdminLTE {
     }
 
     private void initLayout() {
+        Label systemName = new Label(ID_SYSTEM_NAME, getSystemNameModel());
+        systemName.setOutputMarkupId(true);
+        add(systemName);
+
         Label header = new Label(ID_TITLE, createStringResource("PageSelfRegistration.welcome.message"));
         header.add(new VisibleBehaviour(() -> StringUtils.isNotEmpty(getTitleModel().getObject())));
         header.setOutputMarkupId(true);
