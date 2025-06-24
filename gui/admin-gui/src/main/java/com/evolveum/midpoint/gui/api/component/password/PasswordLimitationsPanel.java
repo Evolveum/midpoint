@@ -31,9 +31,16 @@ public class PasswordLimitationsPanel extends BasePanel<List<StringLimitationRes
     private static final String ID_VALIDATION_ITEMS_PARENT = "validationItemsParent";
     private static final String ID_VALIDATION_ITEMS = "validationItems";
     private static final String ID_VALIDATION_ITEM = "validationItem";
+    private boolean addTabIndex = false;
+
 
     public PasswordLimitationsPanel(String id, LoadableDetachableModel<List<StringLimitationResult>> model) {
         super(id, model);
+    }
+
+    public PasswordLimitationsPanel(String id, LoadableDetachableModel<List<StringLimitationResult>> model, boolean addTabIndex) {
+        super(id, model);
+        this.addTabIndex = addTabIndex;
     }
 
     @Override
@@ -67,6 +74,9 @@ public class PasswordLimitationsPanel extends BasePanel<List<StringLimitationRes
             @Override
             protected void populateItem(ListItem<StringLimitationResult> item) {
                 StringLimitationPanel limitationPanel = new StringLimitationPanel(ID_VALIDATION_ITEM, item.getModel());
+                if (addTabIndex) {
+                    limitationPanel.enableTabIndex();
+                }
                 limitationPanel.setOutputMarkupId(true);
                 item.add(limitationPanel);
                 item.add(AttributeAppender.append("class", showInTwoColumns() ? "col-xxl-6 col-xl-12" : ""));
