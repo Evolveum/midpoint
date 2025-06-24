@@ -12,7 +12,7 @@ import org.apache.wicket.markup.html.form.FormComponent;
 import org.apache.wicket.markup.html.form.TextField;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.util.convert.IConverter;
-import org.apache.wicket.util.string.Strings;
+
 
 public class TextPanel<T> extends InputPanel {
 
@@ -54,6 +54,16 @@ public class TextPanel<T> extends InputPanel {
             public <C> IConverter<C> getConverter(Class<C> type) {
                 return super.getConverter(type);
             }
+
+            @Override
+            public String[] getInputAsArray() {
+                String[] values = TextPanel.this.getInputValues();
+                if (values == null) {
+                    return super.getInputAsArray();
+                }
+                return values;
+            }
+
         };
         text.setType(clazz);
         add(text);
@@ -66,5 +76,9 @@ public class TextPanel<T> extends InputPanel {
     @Override
     public FormComponent<T> getBaseFormComponent() {
         return (FormComponent) get(ID_INPUT);
+    }
+
+    protected String[] getInputValues() {
+        return null;
     }
 }
