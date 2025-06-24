@@ -147,58 +147,71 @@ export default class MidPointTheme {
         (function ($) {
             $.fn.showTooltip = function () {
                 if (typeof $(this).tooltip === "function") {
-                    var wl = $.fn.tooltip.Constructor.Default.whiteList;
+                    var wl = $.extend(true, {}, $.fn.tooltip.Constructor.Default.whiteList);
                     wl['xsd:documentation'] = [];
+
                     var parent = $(this).closest('.modal-dialog-content');
                     var container = "body";
                     if (parent.length !== 0) {
                         container = '#' + parent.attr('id');
                     }
-                    $(this).tooltip({html: true, whiteList: wl, container: container, trigger: 'manual'});
-                    $(this).tooltip("show");
-                }
-            };
-            $(function () {
-                var isHovered = false;
-                var isTooltipHovered = false;
 
-                function showTooltip($el) {
-                    $el.tooltip('show');
-                    setTimeout(function() {
-                        var $tooltip = $('.tooltip');
+                    $(this).tooltip({
+                        html: true,
+                        whiteList: wl,
+                        container: container,
+                        trigger: 'manual'
+                    });
+
+                    $(this).tooltip("show");
+
+                    setTimeout(() => {
+                        var tooltipId = $(this).attr("aria-describedby");
+                        var $tooltip = tooltipId ? $("#" + tooltipId) : $('.tooltip');
+
+                        $tooltip.attr('tabindex', '0');
 
                         $tooltip.off('mouseenter mouseleave')
-                        .on('mouseenter', function () {
-                            isTooltipHovered = true;
-                        }).on('mouseleave', function () {
-                            isTooltipHovered = false;
-                            checkHide($el);
-                        });
+                            .on('mouseenter', function () {
+                                isTooltipHovered = true;
+                            })
+                            .on('mouseleave', () => {
+                                isTooltipHovered = false;
+                                checkHide($(this));
+                            });
                     }, 100);
                 }
+            };
 
-                function checkHide($el) {
-                    setTimeout(function() {
-                        if (!isHovered && !isTooltipHovered && !$el.is(':focus')) {
-                            $el.tooltip('hide');
-                        }
-                    }, 150);
-                }
+            var isHovered = false;
+            var isTooltipHovered = false;
 
-                $(document).on("mouseenter", "*[data-toggle='tooltip']", function () {
+            function checkHide($el) {
+                setTimeout(() => {
+                    var tooltipId = $el.attr("aria-describedby");
+                    var $tooltip = tooltipId ? $("#" + tooltipId) : $('.tooltip');
+                    var isTooltipFocused = $tooltip.is(':focus') || $tooltip.find(':focus').length > 0;
+
+                    if (!isHovered && !isTooltipHovered && !$el.is(':focus') && !isTooltipFocused) {
+                        $el.tooltip('hide');
+                    }
+                }, 300);
+            }
+
+            $(function () {
+                $(document).on("mouseenter", "[data-toggle='tooltip']", function () {
                     var $el = $(this);
                     if (!$el.data('bs.tooltip')) {
                         $el.showTooltip();
+                    } else {
+                        $el.tooltip("show");
                     }
-
                     isHovered = true;
-                    showTooltip($el);
                 });
 
-                $(document).on("mouseleave blur", "*[data-toggle='tooltip']", function () {
-                    var $el = $(this);
+                $(document).on("mouseleave blur", "[data-toggle='tooltip']", function () {
                     isHovered = false;
-                    checkHide($el);
+                    checkHide($(this));
                 });
 
                 $(document).on("keydown", function (e) {
@@ -208,8 +221,9 @@ export default class MidPointTheme {
                             e.preventDefault();
                             if (!$el.data('bs.tooltip')) {
                                 $el.showTooltip();
+                            } else {
+                                $el.tooltip("show");
                             }
-                            showTooltip($el);
                         }
                     }
 
@@ -224,10 +238,21 @@ export default class MidPointTheme {
                     }
                 });
 
-                $(document).on("click", ".compositedButton[data-toggle='tooltip']", function () {
-                    var parent = $(this).closest('.modal-dialog-content');
-                    if (parent.length !== 0) {
-                        $(this).tooltip("hide");
+                $(document).on("click", "[data-toggle='tooltip']", function () {
+                    var $el = $(this);
+
+                    if (!$el.data('bs.tooltip')) {
+                        $el.showTooltip();
+                        return;
+                    }
+
+                    var tooltipId = $el.attr("aria-describedby");
+                    var isVisible = tooltipId && $("#" + tooltipId).is(":visible");
+
+                    if (isVisible) {
+                        $el.tooltip("hide");
+                    } else {
+                        $el.tooltip("show");
                     }
                 });
             });
