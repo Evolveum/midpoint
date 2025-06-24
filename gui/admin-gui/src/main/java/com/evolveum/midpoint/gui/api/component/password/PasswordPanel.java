@@ -38,7 +38,6 @@ import org.apache.wicket.validation.ValidationError;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.authentication.api.util.AuthUtil;
-import com.evolveum.midpoint.gui.api.page.PageAdminLTE;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.model.api.validator.StringLimitationResult;
@@ -80,6 +79,7 @@ public class PasswordPanel extends InputPanel {
     protected boolean isReadOnly;
     private boolean shouldTrimInput = false;
     private final boolean showOneLinePasswordPanel;
+    private final boolean addTabIndexForLimitationPanel;
 
     public <F extends FocusType> PasswordPanel(
             String id,
@@ -87,7 +87,7 @@ public class PasswordPanel extends InputPanel {
             boolean isReadOnly,
             boolean isInputVisible,
             PrismObject<F> prismObject) {
-        this(id, passwordModel, isReadOnly, isInputVisible, false, prismObject);
+        this(id, passwordModel, isReadOnly, isInputVisible, false, prismObject, false);
     }
 
     public <F extends FocusType> PasswordPanel(
@@ -97,12 +97,24 @@ public class PasswordPanel extends InputPanel {
             boolean isInputVisible,
             boolean showOneLinePasswordPanel,
             PrismObject<F> prismObject) {
+        this(id, passwordModel, isReadOnly, isInputVisible, showOneLinePasswordPanel, prismObject, false);
+    }
+
+    public <F extends FocusType> PasswordPanel(
+            String id,
+            IModel<ProtectedStringType> passwordModel,
+            boolean isReadOnly,
+            boolean isInputVisible,
+            boolean showOneLinePasswordPanel,
+            PrismObject<F> prismObject,
+            boolean addTabIndexForLimitationPanel) {
         super(id);
         this.passwordInputVisible = isInputVisible;
         this.passwordModel = passwordModel;
         this.isReadOnly = isReadOnly;
         this.showOneLinePasswordPanel = showOneLinePasswordPanel;
         this.prismObject = prismObject;
+        this.addTabIndexForLimitationPanel = addTabIndexForLimitationPanel;
         initLayout();
     }
 
@@ -133,7 +145,7 @@ public class PasswordPanel extends InputPanel {
             }
         };
 
-        final PasswordLimitationsPanel validationPanel = new PasswordLimitationsPanel(ID_VALIDATION_PANEL, limitationsModel);
+        final PasswordLimitationsPanel validationPanel = new PasswordLimitationsPanel(ID_VALIDATION_PANEL, limitationsModel, addTabIndexForLimitationPanel);
         validationPanel.add(new VisibleBehaviour(this::isPasswordLimitationPopupVisible));
         validationPanel.setOutputMarkupId(true);
         inputContainer.add(validationPanel);
@@ -213,9 +225,8 @@ public class PasswordPanel extends InputPanel {
                 validationPanel.refreshItems(target);
                 updatePasswordValidation(target);
                 target.add(password2ValidationMessage);
-                target.appendJavaScript(String.format("""
-                        window.MidPointTheme.updatePasswordErrorState('%s', '%s');
-                 """, password2ValidationMessage.getMarkupId(), password2.getMarkupId()));
+                target.appendJavaScript(String.format("MidPointTheme.updatePasswordErrorState('%s', '%s');",
+                        password2ValidationMessage.getMarkupId(), password2.getMarkupId()));
             }
 
             @Override
@@ -236,9 +247,8 @@ public class PasswordPanel extends InputPanel {
             @Override
             protected void onUpdate(AjaxRequestTarget target) {
                 target.add(password2ValidationMessage);
-                target.appendJavaScript(String.format("""
-                        window.MidPointTheme.updatePasswordErrorState('%s', '%s');
-                 """, password2ValidationMessage.getMarkupId(), password2.getMarkupId()));
+                target.appendJavaScript(String.format("MidPointTheme.updatePasswordErrorState('%s', '%s');",
+                        password2ValidationMessage.getMarkupId(), password2.getMarkupId()));
             }
 
             @Override
