@@ -1,0 +1,29 @@
+<!--
+  ~ Copyright (C) 2010-2025 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<task xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        oid="b1701de1-6e3f-441a-accf-c853b1e41fe0">
+
+    <name>noop recurrent</name>
+    <assignment>
+        <targetRef oid="00000000-0000-0000-0000-000000000528" type="ArchetypeType"/>
+    </assignment>
+    <ownerRef oid="00000000-0000-0000-0000-000000000002"/>
+    <executionState>runnable</executionState>
+    <binding>tight</binding>
+    <schedule>
+        <interval>1</interval>
+    </schedule>
+    <activity>
+        <work>
+            <noOp>
+                <steps>3</steps>
+                <delay>100</delay>
+            </noOp>
+        </work>
+    </activity>
+</task>

@@ -596,6 +596,12 @@ public abstract class AbstractActivityRun<
                 () -> "no start timestamp in " + this);
     }
 
+    public long getEndTimestampRequired() {
+        return requireNonNull(
+                endTimestamp,
+                () -> "no end timestamp in " + this);
+    }
+
     @Override
     public Operation recordIterativeOperationStart(@NotNull IterativeOperationStartInfo info) {
         if (areStatisticsSupported()) {

@@ -125,6 +125,7 @@ public class ActivityBasedTaskRun implements TaskRun {
             // this will not flush the task run identifier, it will be flushed
             // later together with the realization state
             activityTree.createTaskRunIdentifier(result);
+            activityTree.recordTaskRunHistoryStart();
         }
         activityTree.updateRealizationState(ActivityTreeRealizationStateType.IN_PROGRESS, result);
     }
@@ -137,6 +138,10 @@ public class ActivityBasedTaskRun implements TaskRun {
     private void updateStateOnRootRunEnd(ActivityRunResult runResult, OperationResult result) throws ActivityRunException {
         // TODO clean up things related to !canRun & finished
         if (getRunningTask().canRun() && runResult.isFinished()) {
+            // this will not flush the task run history, it will be flushed
+            // later together with the realization state
+            activityTree.recordTaskRunHistoryEnd();
+
             activityTree.updateRealizationState(ActivityTreeRealizationStateType.COMPLETE, result);
         }
     }

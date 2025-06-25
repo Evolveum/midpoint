@@ -673,13 +673,14 @@
             <xsd:appinfo>
                 <a:since>4.10</a:since>
                 <a:container>true</a:container>
+                <a:operational>true</a:operational>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
             <xsd:element name="taskRunIdentifier" type="xsd:string">
                 <xsd:annotation>
                     <xsd:documentation>
-                        <!--TODO-->
+                        Identifier that represents single execution of the task.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
@@ -3567,7 +3568,7 @@
                 <xsd:annotation>
                     <xsd:documentation>
                         <p>
-                            Task (lightweight) identifier. This is a unique identification of specific task run.
+                            Task run identifier. This is a unique identification of specific task run.
                             Task run identifier can be useful when one wants to distinguish between different
                             executions of a recurrent task.
                         </p>

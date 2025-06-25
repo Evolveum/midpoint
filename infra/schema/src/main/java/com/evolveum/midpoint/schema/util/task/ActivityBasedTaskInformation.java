@@ -153,6 +153,16 @@ public class ActivityBasedTaskInformation extends TaskInformation {
             return null;
         }
 
+        if (executing == 0 && progressInformation.isComplete()) {
+            // e.g., task run is complete, the task is ready for the next run (recurrent and tight binding, like live sync)
+
+            if (failed == 0 && stalled == 0) {
+                return null;
+            } else {
+                // write messages about failed/stalled workers
+            }
+        }
+
         if (executing == 0) {
             return new SingleLocalizableMessage("ActivityBasedTaskInformation.taskStatusDescription.zeroExecuting");
         }

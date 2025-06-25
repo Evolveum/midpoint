@@ -785,4 +785,9 @@ public class NullTaskImpl implements Task {
     public void setCleanupAfterCompletion(Duration duration) {
 
     }
+
+    @Override
+    public List<TaskRunHistoryType> getTaskRunHistory() {
+        return List.of();
+    }
 }

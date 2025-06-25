@@ -977,6 +977,8 @@ public interface Task extends DebugDumpable, StatisticsCollector, ConnIdOperatio
     Duration getCleanupAfterCompletion();
 
     void setCleanupAfterCompletion(Duration duration);
+
+    List<TaskRunHistoryType> getTaskRunHistory();
     //endregion
 
     //region Misc

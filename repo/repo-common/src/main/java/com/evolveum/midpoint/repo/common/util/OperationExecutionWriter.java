@@ -42,6 +42,7 @@ import jakarta.annotation.PreDestroy;
 import javax.xml.datatype.XMLGregorianCalendar;
 import java.util.*;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.OperationExecutionRecordTypeType.SIMPLE;
 
@@ -66,7 +67,9 @@ public class OperationExecutionWriter implements SystemConfigurationChangeListen
     @Autowired private PrismContext prismContext;
     @Autowired @Qualifier("cacheRepositoryService") private RepositoryService repositoryService;
 
-    private static final int DEFAULT_NUMBER_OF_RESULTS_TO_KEEP = 5;
+    public static final int DEFAULT_NUMBER_OF_RESULTS_TO_KEEP = 5;
+
+    public static final int DEFAUL_NUMBER_OF_RESULTS_TO_KEEP_PER_TASK = 3;
 
     private static final String OP_WRITE = OperationExecutionWriter.class.getName() + ".write";
 
@@ -77,10 +80,10 @@ public class OperationExecutionWriter implements SystemConfigurationChangeListen
     private volatile OperationExecutionRecordingStrategyType complexExecsRecordingStrategy;
 
     /** Extracted cleanup policy for simple OpExec records (from system configuration). */
-    private volatile CleanupPolicyType simpleExecsCleanupPolicy;
+    private volatile OperationExecutionCleanupPolicyType simpleExecsCleanupPolicy;
 
     /** Extracted cleanup policy for complex OpExec records (from system configuration). */
-    private volatile CleanupPolicyType complexExecsCleanupPolicy;
+    private volatile OperationExecutionCleanupPolicyType complexExecsCleanupPolicy;
 
     /**
      * Writes operation execution record and deletes the one(s) that have to be deleted,
@@ -146,7 +149,11 @@ public class OperationExecutionWriter implements SystemConfigurationChangeListen
         return ref != null ? ref.getOid() : null;
     }
 
-    private CleanupPolicyType selectCleanupPolicy(OperationExecutionRecordTypeType recordType) {
+    private static String getTaskRunIdentifier(OperationExecutionType execution) {
+        return execution.getTaskRunIdentifier() != null ? execution.getTaskRunIdentifier() : null;
+    }
+
+    private OperationExecutionCleanupPolicyType selectCleanupPolicy(OperationExecutionRecordTypeType recordType) {
         return select(recordType, simpleExecsCleanupPolicy, complexExecsCleanupPolicy);
     }
 
@@ -202,6 +209,7 @@ public class OperationExecutionWriter implements SystemConfigurationChangeListen
 
         OperationExecutionRecordTypeType currentRecordType = toNotNull(request.recordToAdd.getRecordType());
         String taskOid = request.getTaskOid();
+        String taskRunIdentifier = request.getTaskRunIdentifier();
         ActivityPathType activityPath = request.getActivityPath();
 
         List<OperationExecutionType> recordsToDelete = new ArrayList<>();
@@ -210,12 +218,32 @@ public class OperationExecutionWriter implements SystemConfigurationChangeListen
         // Let us continue with matching record type only.
         recordsToConsider.removeIf(record -> !recordTypeMatches(record, currentRecordType));
 
+        // Group records by task oid and delete the oldest ones if maxRecordsPerTask is exceeded
+        Map<String, List<OperationExecutionType>> recordsByTask = recordsToConsider.stream()
+                .filter(r -> r.getTaskRef() != null && r.getTaskRef().getOid() != null)
+                .collect(Collectors.groupingBy(r -> r.getTaskRef().getOid()));
+
+        int maxRecordsPerTask = cleaningSpecification.recordsToKeepPerTask;
+        for (List<OperationExecutionType> mapValue : recordsByTask.values()) {
+            if (mapValue.size() <= maxRecordsPerTask) {
+                // If the number of records for this task is less than or equal to the maximum, we do not delete any.
+                continue;
+            }
+
+            mapValue.sort(
+                    Comparator.nullsFirst(
+                            Comparator.comparing(
+                                    oe -> oe.getTimestamp() != null ? oe.getTimestamp().toGregorianCalendar().getTimeInMillis() : null)));
+
+            recordsToDelete.addAll(mapValue.subList(0, mapValue.size() - maxRecordsPerTask));
+        }
+
         // Delete all records related to the current task (regardless of whether we add something or not)
         // It is questionable if we should remove task-related records from ALL or from those with matching type.
         // If the former is preferable, then please move this block of code just above the filtering on record type.
         for (Iterator<OperationExecutionType> iterator = recordsToConsider.iterator(); iterator.hasNext(); ) {
             OperationExecutionType record = iterator.next();
-            if (shouldDeleteBecauseOfTheSameTaskAndActivity(record, taskOid, activityPath)) {
+            if (shouldDeleteBecauseOfTheSameTaskAndActivity(record, taskOid, taskRunIdentifier, activityPath)) {
                 recordsToDelete.add(record);
                 iterator.remove();
             }
@@ -250,10 +278,16 @@ public class OperationExecutionWriter implements SystemConfigurationChangeListen
         return toNotNull(record.getRecordType()) == recordType;
     }
 
-    private boolean shouldDeleteBecauseOfTheSameTaskAndActivity(OperationExecutionType execution, String taskOid,
+    private boolean shouldDeleteBecauseOfTheSameTaskAndActivity(
+            OperationExecutionType execution,
+            String taskOid,
+            String taskRunIdentifier,
             ActivityPathType activityPath) {
-        return taskOid != null && taskOid.equals(getTaskOid(execution)) &&
-                Objects.equals(activityPath, execution.getActivityPath());
+        return taskOid != null
+                && taskOid.equals(getTaskOid(execution))
+                && taskRunIdentifier != null
+                && taskRunIdentifier.equals(getTaskRunIdentifier(execution))
+                && Objects.equals(activityPath, execution.getActivityPath());
     }
 
     @PostConstruct
@@ -308,23 +342,46 @@ public class OperationExecutionWriter implements SystemConfigurationChangeListen
         return recordingStrategy != null && Boolean.TRUE.equals(recordingStrategy.isSkipWhenSuccess());
     }
 
+    public int getMaximumRecordsPerTask() {
+        Integer maxRecordsPerTask = null;
+
+        for (OperationExecutionRecordTypeType type : OperationExecutionRecordTypeType.values()) {
+            OperationExecutionCleanupPolicyType policy = selectCleanupPolicy(type);
+            if (policy == null || policy.getMaxRecordsPerTask() == null) {
+                continue;
+            }
+
+            if (maxRecordsPerTask == null) {
+                maxRecordsPerTask = policy.getMaxRecordsPerTask();
+                continue;
+            }
+
+            maxRecordsPerTask = Math.max(maxRecordsPerTask, policy.getMaxRecordsPerTask());
+        }
+
+        return maxRecordsPerTask != null ? maxRecordsPerTask : DEFAUL_NUMBER_OF_RESULTS_TO_KEEP_PER_TASK;
+    }
+
     /** An easy-to-process extract from the cleanup policy bean, along with a couple of methods. */
     private static class CleaningSpecification {
         private final int recordsToKeep;
+        private final int recordsToKeepPerTask;
         private final long deleteBefore;
 
-        private CleaningSpecification(int recordsToKeep, long deleteBefore) {
+        private CleaningSpecification(int recordsToKeep, int recordsToKeepPerTask, long deleteBefore) {
             this.recordsToKeep = recordsToKeep;
+            this.recordsToKeepPerTask = recordsToKeepPerTask;
             this.deleteBefore = deleteBefore;
         }
 
-        private static CleaningSpecification createFrom(CleanupPolicyType policy) {
+        private static CleaningSpecification createFrom(OperationExecutionCleanupPolicyType policy) {
             if (policy != null) {
                 return new CleaningSpecification(
                         ObjectUtils.defaultIfNull(policy.getMaxRecords(), Integer.MAX_VALUE),
+                        ObjectUtils.defaultIfNull(policy.getMaxRecordsPerTask(), Integer.MAX_VALUE),
                         computeDeleteBefore(policy));
             } else {
-                return new CleaningSpecification(DEFAULT_NUMBER_OF_RESULTS_TO_KEEP, 0L);
+                return new CleaningSpecification(DEFAULT_NUMBER_OF_RESULTS_TO_KEEP, DEFAUL_NUMBER_OF_RESULTS_TO_KEEP_PER_TASK, 0L);
             }
         }
 
@@ -392,6 +449,10 @@ public class OperationExecutionWriter implements SystemConfigurationChangeListen
 
         private String getTaskOid() {
             return OperationExecutionWriter.getTaskOid(recordToAdd);
+        }
+
+        private String getTaskRunIdentifier() {
+            return OperationExecutionWriter.getTaskRunIdentifier(recordToAdd);
         }
 
         private ActivityPathType getActivityPath() {

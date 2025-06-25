@@ -105,9 +105,17 @@ public class ActivityTree implements DebugDumpable {
      * This is called at the beginning of a task run, this doesn't flush pending
      * modifications to the database.
      */
-    public void createTaskRunIdentifier(OperationResult result) throws ActivityRunException{
+    public void createTaskRunIdentifier(OperationResult result) throws ActivityRunException {
         String taskRunIdentifier = UUID.randomUUID().toString();
         treeStateOverview.createTaskRunIdentifier(taskRunIdentifier, result);
+    }
+
+    public void recordTaskRunHistoryStart() throws ActivityRunException  {
+        treeStateOverview.recordTaskRunHistoryStart();
+    }
+
+    public void recordTaskRunHistoryEnd() throws ActivityRunException {
+        treeStateOverview.recordTaskRunHistoryEnd();
     }
 
     /** Purges the activity state (usually before new realization). */

@@ -1706,6 +1706,13 @@ public class TaskQuartzImpl implements Task {
     }
 
     @Override
+    public List<TaskRunHistoryType> getTaskRunHistory() {
+        synchronized (prismAccess) {
+            return new ArrayList<>(taskPrism.asObjectable().getTaskRunHistory());
+        }
+    }
+
+    @Override
     public Long getNextRunStartTime(OperationResult result) {
         return taskManager.getNextRunStartTime(getOid(), result);
     }

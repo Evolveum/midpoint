@@ -8,9 +8,9 @@ package com.evolveum.midpoint.gui.impl.page.admin.task.component;
 
 import java.text.DateFormat;
 import java.util.*;
-import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import org.apache.commons.lang3.tuple.Pair;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
@@ -38,6 +38,8 @@ import com.evolveum.midpoint.gui.impl.component.search.SearchBuilder;
 import com.evolveum.midpoint.gui.impl.component.search.SearchContext;
 import com.evolveum.midpoint.gui.impl.component.search.panel.NamedIntervalPreset;
 import com.evolveum.midpoint.gui.impl.component.search.panel.SearchPanel;
+import com.evolveum.midpoint.gui.impl.component.search.wrapper.DateSearchItemWrapper;
+import com.evolveum.midpoint.gui.impl.component.search.wrapper.PropertySearchItemWrapper;
 import com.evolveum.midpoint.gui.impl.page.admin.AbstractObjectMainPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.task.TaskDetailsModel;
 import com.evolveum.midpoint.gui.impl.util.DetailsPageUtil;
@@ -47,11 +49,16 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectOrdering;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.OrderDirection;
+import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
+import com.evolveum.midpoint.schema.SelectorOptions;
+import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.OperationResultUtil;
 import com.evolveum.midpoint.schema.util.task.ActivityStateOverviewUtil;
 import com.evolveum.midpoint.schema.util.task.TaskInformation;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.SingleLocalizableMessage;
+import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.web.application.PanelDisplay;
 import com.evolveum.midpoint.web.application.PanelInstance;
 import com.evolveum.midpoint.web.application.PanelType;
@@ -176,20 +183,21 @@ public class TaskErrorsPanel extends AbstractObjectMainPanel<TaskType, TaskDetai
 
             @Override
             protected List<ActivityTaskStateOverviewType> load() {
-                List<ActivityTaskStateOverviewType> result = new ArrayList<>();
-
                 PrismObject<TaskType> object = getObjectWrapperObject();
                 if (object == null) {
-                    return result;
+                    return List.of();
                 }
 
                 ActivityStateOverviewType rootOverview = ActivityStateOverviewUtil.getStateOverview(object.asObjectable());
                 if (rootOverview == null) {
-                    return result;
+                    return List.of();
                 }
+
+                List<ActivityTaskStateOverviewType> result = new ArrayList<>();
 
                 ActivityStateOverviewUtil.StateOverviewVisitor visitor = state -> state.getTask().stream()
                         .filter(o -> OperationResultUtil.isError(o.getResultStatus()))
+                        .filter(o -> o.getTaskRef() == null || !Objects.equals(object.getOid(), o.getTaskRef().getOid()))
                         .forEach(o -> result.add(o));
 
                 ActivityStateOverviewUtil.acceptStateOverviewVisitor(rootOverview, visitor);
@@ -337,13 +345,20 @@ public class TaskErrorsPanel extends AbstractObjectMainPanel<TaskType, TaskDetai
                                     .modelServiceLocator(getPageBase());
 
                     search = searchBuilder.build();
-                }
 
-                // todo paging?
+                    if (storage != null) {
+                        storage.setSearch(search);
+                        // todo paging?
+                    }
+                } else {
+                    // we have to make sure named time intervals are up to date as the task might be running
+                    PropertySearchItemWrapper wrapper = search.findPropertySearchItem(OperationExecutionType.F_TIMESTAMP);
+                    if (wrapper instanceof DateSearchItemWrapper dateItem) {
+                        List<NamedIntervalPreset> history = createTaskRunNamedIntervals();
+                        List<NamedIntervalPreset> presets = createTimestampNamedIntervals(history);
 
-                if (storage != null) {
-                    storage.setSearch(search);
-                    // todo paging?
+                        dateItem.setIntervalPresets(presets);
+                    }
                 }
 
                 return search;
@@ -351,50 +366,55 @@ public class TaskErrorsPanel extends AbstractObjectMainPanel<TaskType, TaskDetai
         };
     }
 
-    private SearchContext createAdditionalSearchContext() {
-        SearchContext ctx = new SearchContext();
+    private List<NamedIntervalPreset> createTimestampNamedIntervals(List<NamedIntervalPreset> runHistoryPresets) {
+        List<NamedIntervalPreset> presets = new ArrayList<>();
+        presets.addAll(runHistoryPresets);
+        presets.addAll(NamedIntervalPreset.DEFAULT_PRESETS);
 
-        NamedIntervalPreset current = new NamedIntervalPreset(
-                () -> {
-                    TaskType task = getObjectWrapperObject().asObjectable();
-                    TaskInformation info = TaskInformation.createForTask(task, task);
-                    XMLGregorianCalendar startTimestamp = info.getStartTimestamp();
-                    if (startTimestamp == null) {
-                        return null;
-                    }
+        return presets;
+    }
 
-                    return startTimestamp.toGregorianCalendar().getTimeInMillis();
-                },
-                null,
-                null,
-                new SingleLocalizableMessage("TaskErrorsPanel.showCurrentRun"));
-
+    private List<NamedIntervalPreset> createTaskRunNamedIntervals() {
         TaskType task = getObjectWrapperObject().asObjectable();
-        List<NamedIntervalPreset> runHistoryPresets = task.getTaskRunHistory().stream()
-                .filter(r -> r.getRunStartTimestamp() != null && r.getRunEndTimestamp() != null)
+        return task.getTaskRunHistory().stream()
                 .map(r -> {
-                    return new NamedIntervalPreset(
-                            () -> r.getRunStartTimestamp().toGregorianCalendar().getTimeInMillis(),
-                            () -> r.getRunEndTimestamp().toGregorianCalendar().getTimeInMillis(),
-                            null,
+                    Long start = r.getRunStartTimestamp() != null ?
+                            r.getRunStartTimestamp().toGregorianCalendar().getTimeInMillis() : null;
+                    Long end = r.getRunEndTimestamp() != null ?
+                            r.getRunEndTimestamp().toGregorianCalendar().getTimeInMillis() : null;
+
+                    return Pair.of(start, end);
+                })
+                .map(p -> {
+                    SingleLocalizableMessage msg = p.getRight() != null ?
+                            // previous run
                             new SingleLocalizableMessage(
                                     "TaskErrorsPanel.runHistoryPreset",
                                     new Object[] {
-                                            WebComponentUtil.formatDate(DateFormat.SHORT, r.getRunStartTimestamp()),
-                                            WebComponentUtil.formatDate(DateFormat.SHORT, r.getRunEndTimestamp())
-                                    }));
+                                            p.getLeft() != null ? WebComponentUtil.formatDate(DateFormat.SHORT, new Date(p.getLeft())) : "",
+                                            p.getRight() != null ? WebComponentUtil.formatDate(DateFormat.SHORT, new Date(p.getRight())) : ""
+                                    })
+                            :
+                            // current run
+                            new SingleLocalizableMessage("TaskErrorsPanel.showCurrentRun");
+
+                    return new NamedIntervalPreset(() -> p.getLeft(), () -> p.getRight(), null, msg);
                 })
-                .sorted()
+                .sorted(Comparator.reverseOrder())
                 .toList();
+    }
 
-        List<NamedIntervalPreset> presets = new ArrayList<>();
-        presets.add(current);
-        presets.addAll(runHistoryPresets);
+    private SearchContext createAdditionalSearchContext() {
+        SearchContext ctx = new SearchContext();
 
-        presets.addAll(NamedIntervalPreset.DEFAULT_PRESETS);
+        List<NamedIntervalPreset> runHistoryPresets = createTaskRunNamedIntervals();
+
+        List<NamedIntervalPreset> presets = createTimestampNamedIntervals(runHistoryPresets);
 
         ctx.setIntervalPresets(OperationExecutionType.F_TIMESTAMP, presets);
-        ctx.setSelectedIntervalPreset(OperationExecutionType.F_TIMESTAMP, current);
+
+        NamedIntervalPreset selected = !runHistoryPresets.isEmpty() ? runHistoryPresets.get(0) : NamedIntervalPreset.LAST_1_DAY;
+        ctx.setSelectedIntervalPreset(OperationExecutionType.F_TIMESTAMP, selected);
 
         return ctx;
     }

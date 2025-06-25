@@ -17,6 +17,7 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityState
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.TaskActivityStateType.F_TREE;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType.F_ACTIVITY_STATE;
 
+import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
 import javax.xml.datatype.XMLGregorianCalendar;
@@ -412,14 +413,107 @@ public class ActivityTreeStateOverview {
             throws ActivityRunException {
         try {
             rootTask.setItemRealValues(PATH_TASK_RUN_IDENTIFIER, taskRunIdentifier);
+        } catch (SchemaException ex) {
+            throw new ActivityRunException("Couldn't update task run identifier in the activity tree", FATAL_ERROR, PERMANENT_ERROR, ex);
+        }
+    }
 
-            TaskRunHistoryType taskRunHistory = new TaskRunHistoryType();
-            taskRunHistory.setTaskRunIdentifier(taskRunIdentifier);
+    public void recordTaskRunHistoryStart() throws ActivityRunException {
+        try {
+            String taskRunIdentifier = rootTask.getPropertyRealValue(PATH_TASK_RUN_IDENTIFIER, String.class);
+            List<TaskRunHistoryType> historyList = rootTask.getTaskRunHistory();
+
+            List<TaskRunHistoryType> toDelete = getTaskRunHistoryToDelete(historyList);
+
+            TaskRunHistoryType history = findTaskRunHistoryByIdentifier(historyList, taskRunIdentifier);
+            TaskRunHistoryType newItem = null;
+            if (history != null) {
+                // this should not happen, but we can handle it gracefully
+                LOGGER.warn("Task run history already exists for identifier: {}", taskRunIdentifier);
+            } else {
+                newItem = new TaskRunHistoryType();
+                newItem.setTaskRunIdentifier(taskRunIdentifier);
+                newItem.setRunStartTimestamp(XmlTypeConverter.createXMLGregorianCalendar());
+            }
 
             rootTask.modify(
                     PrismContext.get().deltaFor(TaskType.class)
                             .item(TaskType.F_TASK_RUN_HISTORY)
-                            .add(taskRunHistory)
+                            .deleteRealValues(toDelete)
+                            .add(newItem)
+                            .asItemDelta());
+        } catch (SchemaException ex) {
+            throw new ActivityRunException("Couldn't update task run identifier in the activity tree", FATAL_ERROR, PERMANENT_ERROR, ex);
+        }
+    }
+
+    private List<TaskRunHistoryType> getTaskRunHistoryToDelete(List<TaskRunHistoryType> history) {
+        if (history == null || history.isEmpty()) {
+            return List.of();
+        }
+
+        int maxRecordsPerTask = beans.operationExecutionRecorder.getMaximumRecordsPerTask();
+        if (maxRecordsPerTask <= 0) {
+            return history.stream()
+                    .map(TaskRunHistoryType::clone)
+                    .toList();
+        }
+
+        int itemsToRemove = history.size() - maxRecordsPerTask + 1;
+        if (itemsToRemove <= 0) {
+            return List.of();
+        }
+
+        if (itemsToRemove >= history.size()) {
+            return history.stream()
+                    .map(TaskRunHistoryType::clone)
+                    .toList();
+        }
+
+        return history.stream()
+                .sorted(Comparator
+                        .<TaskRunHistoryType, Long>comparing(
+                                t -> getMillisFromCalendar(t.getRunStartTimestamp()),
+                                Comparator.nullsFirst(Comparator.naturalOrder()))
+                        .thenComparing(
+                                t -> getMillisFromCalendar(t.getRunEndTimestamp()),
+                                Comparator.nullsFirst(Comparator.naturalOrder())))
+                .limit(itemsToRemove)
+                .map(t -> t.clone()) // clone to avoid modifying the original items
+                .toList();
+    }
+
+    private Long getMillisFromCalendar(XMLGregorianCalendar calendar) {
+        return calendar != null ? calendar.toGregorianCalendar().getTimeInMillis() : null;
+    }
+
+    private TaskRunHistoryType findTaskRunHistoryByIdentifier(List<TaskRunHistoryType> historyList, String taskRunIdentifier) {
+        return historyList.stream()
+                .filter(h -> Objects.equals(taskRunIdentifier, h.getTaskRunIdentifier()))
+                .findFirst()
+                .orElse(null);
+    }
+
+    public void recordTaskRunHistoryEnd() throws ActivityRunException {
+        try {
+            String taskRunIdentifier = rootTask.getPropertyRealValue(PATH_TASK_RUN_IDENTIFIER, String.class);
+
+            List<TaskRunHistoryType> historyList = rootTask.getTaskRunHistory();
+            TaskRunHistoryType history = findTaskRunHistoryByIdentifier(historyList, taskRunIdentifier);
+
+            if (history == null) {
+                LOGGER.warn("No task run history found for identifier: {}", taskRunIdentifier);
+                return; // nothing to do, no history found
+            }
+
+            TaskRunHistoryType cloned = history.clone();
+            cloned.setRunEndTimestamp(XmlTypeConverter.createXMLGregorianCalendar());
+            // replacing the whole container, because we don't have container ID in memory
+            rootTask.modify(
+                    PrismContext.get().deltaFor(TaskType.class)
+                            .item(TaskType.F_TASK_RUN_HISTORY)
+                            .delete(history.clone())
+                            .add(cloned)
                             .asItemDelta());
         } catch (SchemaException ex) {
             throw new ActivityRunException("Couldn't update task run identifier in the activity tree", FATAL_ERROR, PERMANENT_ERROR, ex);
