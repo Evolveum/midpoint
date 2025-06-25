@@ -393,7 +393,7 @@ public class PersonOfInterestPanel extends BasicWizardStepPanel<RequestAccess> i
 
             @Override
             public void onClick(AjaxRequestTarget target) {
-                target.appendJavaScript(String.format("window.MidPointTheme.saveFocus('%s');", this.getPageRelativePath()));
+                target.appendJavaScript(String.format("MidPointTheme.saveFocus('%s');", this.getPageRelativePath()));
                 selectManuallyPerformed(target);
             }
         };
