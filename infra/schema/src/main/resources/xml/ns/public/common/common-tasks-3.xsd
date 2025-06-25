@@ -97,6 +97,7 @@
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
+                    <xsd:element name="taskRunHistory" type="tns:TaskRunHistoryType" minOccurs="0" maxOccurs="unbounded"/>
                     <xsd:element name="ownerRef" type="tns:ObjectReferenceType" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>
@@ -660,6 +661,46 @@
         </xsd:complexContent>
     </xsd:complexType>
     <xsd:element name="task" type="tns:TaskType" substitutionGroup="c:object"/>
+
+    <xsd:complexType name="TaskRunHistoryType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Information about a single task run.
+                Contains just task run identifier, start and end timestamps.
+
+                Can be used to search for operation executions created by this task during different runs.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:since>4.10</a:since>
+                <a:container>true</a:container>
+                <a:operational>true</a:operational>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="taskRunIdentifier" type="xsd:string">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Identifier that represents single execution of the task.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="runStartTimestamp" type="xsd:dateTime">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        The time when the task run was started.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="runEndTimestamp" type="xsd:dateTime" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        The time when the task run was finished, successfully or unsuccessfully.
+                        (If node crashes, this attribute is not updated.)
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
 
     <xsd:complexType name="TaskExecutionEnvironmentType">
         <xsd:annotation>
@@ -3422,6 +3463,22 @@
                 <xsd:annotation>
                     <xsd:documentation>
                         Realization state of the activity tree.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="taskRunIdentifier" type="xsd:string" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        <p>
+                            Task run identifier. This is a unique identification of specific task run.
+                            Task run identifier can be useful when one wants to distinguish between different
+                            executions of a recurrent task.
+                        </p>
+                        <p>
+                            Task run identifier is assigned automatically when the task starts after it was
+                            previously finished. Start from suspended unfinished state does not change the
+                            task run identifier (e.g. when the task is resumed).
+                        </p>
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>

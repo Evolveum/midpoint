@@ -8,45 +8,88 @@
 package com.evolveum.midpoint.gui.impl.component.search.panel;
 
 import java.io.Serializable;
+import java.util.Comparator;
 import java.util.List;
 import javax.xml.datatype.Duration;
+import javax.xml.datatype.XMLGregorianCalendar;
 
+import org.apache.commons.lang3.tuple.Pair;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.util.LocalizableMessage;
 import com.evolveum.midpoint.util.SingleLocalizableMessage;
 import com.evolveum.midpoint.web.component.util.SerializableSupplier;
 
-/**
- * @param duration
- * @param anchor if null, then the meaning is interval is not defined
- * @param timeSupplier if supplier returns null value, then the meaning is interval is not defined
- * @param text
- */
 public record NamedIntervalPreset(
-        @Nullable Duration duration,
-        @Nullable DurationAnchor anchor,
-        @NotNull SerializableSupplier<Long> timeSupplier,
+        SerializableSupplier<Long> from,
+        SerializableSupplier<Long> to,
+        Duration duration,
         @NotNull LocalizableMessage text)
-        implements Serializable {
+        implements Serializable, Comparable<NamedIntervalPreset> {
 
     public NamedIntervalPreset(Duration duration, LocalizableMessage text) {
-        this(duration, DurationAnchor.TO, () -> System.currentTimeMillis(), text);
+        this(null, () -> System.currentTimeMillis(), duration, text);
     }
 
-    public enum DurationAnchor {
+    @Override
+    public int compareTo(@NotNull NamedIntervalPreset o) {
+        Pair<XMLGregorianCalendar, XMLGregorianCalendar> interval = getInterval();
+        Long from = millisFromCalendar(interval.getLeft());
+        Long to = millisFromCalendar(interval.getRight());
 
-        FROM,
+        Pair<Long, Long> first = Pair.of(from, to);
 
-        TO
+        Pair<XMLGregorianCalendar, XMLGregorianCalendar> otherInterval = o.getInterval();
+        Long otherFrom = millisFromCalendar(otherInterval.getLeft());
+        Long otherTo = millisFromCalendar(otherInterval.getRight());
+
+        Pair<Long, Long> second = Pair.of(otherFrom, otherTo);
+
+        return Comparator.comparing((Pair<Long, Long> value) -> value.getLeft(), Comparator.nullsFirst(Comparator.naturalOrder()))
+                .thenComparing((Pair<Long, Long> value) -> value.getRight(), Comparator.nullsFirst(Comparator.naturalOrder()))
+                .compare(first, second);
+    }
+
+    private Long millisFromCalendar(XMLGregorianCalendar calendar) {
+        return calendar != null ? calendar.toGregorianCalendar().getTimeInMillis() : null;
+    }
+
+    public Pair<XMLGregorianCalendar, XMLGregorianCalendar> getInterval() {
+        Long fromMillis = from != null ? from.get() : null;
+        Long toMillis = to != null ? to.get() : null;
+
+        XMLGregorianCalendar fromDate = null;
+        if (fromMillis != null) {
+            fromDate = XmlTypeConverter.createXMLGregorianCalendar(fromMillis);
+        }
+
+        XMLGregorianCalendar toDate = null;
+        if (toMillis != null) {
+            toDate = XmlTypeConverter.createXMLGregorianCalendar(toMillis);
+        }
+
+        if (fromDate == null) {
+            if (toDate != null && duration != null) {
+                fromDate = XmlTypeConverter.createXMLGregorianCalendar(toMillis);
+                fromDate.add(duration.negate());
+            }
+        }
+
+        if (toDate == null) {
+            if (fromDate != null && duration != null) {
+                toDate = XmlTypeConverter.createXMLGregorianCalendar(fromMillis);
+                toDate.add(duration);
+            }
+        }
+
+        return Pair.of(fromDate, toDate);
     }
 
     public static final NamedIntervalPreset ALL = new NamedIntervalPreset(
             null,
             null,
-            () -> null,
+            null,
             new SingleLocalizableMessage("NamedIntervalPreset.all"));
 
     public static final NamedIntervalPreset LAST_15_MINUTES = new NamedIntervalPreset(

@@ -895,6 +895,16 @@ public class TaskQuartzImpl implements Task {
         return getProperty(TaskType.F_TASK_IDENTIFIER);
     }
 
+    @Override
+    public String getTaskRunIdentifier() {
+        return getPropertyRealValue(
+                ItemPath.create(
+                        TaskType.F_ACTIVITY_STATE,
+                        TaskActivityStateType.F_TREE,
+                        ActivityTreeStateType.F_TASK_RUN_IDENTIFIER),
+                String.class);
+    }
+
     public void setTaskIdentifier(String value) {
         setProperty(TaskType.F_TASK_IDENTIFIER, value);
     }
@@ -1693,6 +1703,13 @@ public class TaskQuartzImpl implements Task {
     @Override
     public void setCleanupAfterCompletion(Duration duration) {
         setProperty(TaskType.F_CLEANUP_AFTER_COMPLETION, duration);
+    }
+
+    @Override
+    public List<TaskRunHistoryType> getTaskRunHistory() {
+        synchronized (prismAccess) {
+            return new ArrayList<>(taskPrism.asObjectable().getTaskRunHistory());
+        }
     }
 
     @Override

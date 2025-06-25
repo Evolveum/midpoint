@@ -11,6 +11,7 @@ import static com.evolveum.midpoint.gui.api.page.PageBase.createStringResourceSt
 import java.io.*;
 import java.net.URI;
 import java.text.Collator;
+import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.function.Supplier;
@@ -21,10 +22,12 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.authentication.api.authorization.EndPointsUrlMapping;
 import com.evolveum.midpoint.authentication.api.authorization.Url;
+import com.evolveum.midpoint.gui.impl.component.input.DateTimePickerOptions;
 import com.evolveum.midpoint.gui.impl.component.input.converter.DateConverter;
 import com.evolveum.midpoint.gui.impl.component.action.AbstractGuiAction;
 import com.evolveum.midpoint.gui.impl.page.admin.focus.FocusDetailsModels;
 import com.evolveum.midpoint.model.api.trigger.TriggerHandler;
+import com.evolveum.midpoint.schema.processor.ResourceObjectTypeDefinition;
 import com.evolveum.midpoint.web.component.input.QNameObjectTypeChoiceRenderer;
 import com.evolveum.midpoint.web.component.util.*;
 import com.evolveum.midpoint.web.page.admin.server.dto.ApprovalOutcomeIcon;
@@ -134,6 +137,7 @@ import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.ObjectDeltaOperation;
+import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
@@ -1545,6 +1549,28 @@ public final class WebComponentUtil {
         }
         SimpleDateFormat dateFormat = new SimpleDateFormat(format, locale);
         return dateFormat.format(date);
+    }
+
+    public static String formatDate(int format, Date date) {
+        if (date == null) {
+            return null;
+        }
+
+        Locale locale = Session.get().getLocale();
+        if (locale == null) {
+            locale = Locale.getDefault();
+        }
+
+        DateFormat dateFormat = DateFormat.getDateTimeInstance(format, format, locale);
+        return dateFormat.format(date);
+    }
+
+    public static String formatDate(int format, XMLGregorianCalendar cal) {
+        if (cal == null) {
+            return null;
+        }
+
+        return formatDate(format, cal.toGregorianCalendar().getTime());
     }
 
     public static String getLocalizedDatePattern(String style) {

@@ -34,6 +34,8 @@ public class StringLimitationPanel extends BasePanel<StringLimitationResult> {
     private static final String ID_NAME = "name";
     private static final String ID_RULES = "rules";
 
+    private boolean addTabIndex = false;
+
     public StringLimitationPanel(String id, IModel<StringLimitationResult> model) {
         super(id, model);
     }
@@ -63,6 +65,7 @@ public class StringLimitationPanel extends BasePanel<StringLimitationResult> {
         icon.add(AttributeModifier.append(
                 "aria-label",
                 (IModel<String>) () -> LocalizationUtil.translate("StringLimitationPanel.decision." + Boolean.TRUE.equals(getModelObject().isSuccess()))));
+        icon.add(AttributeModifier.append("tabindex", () -> addTabIndex ? "0" : null));
         add(icon);
 
         LabelWithHelpPanel label = new LabelWithHelpPanel(ID_NAME, Model.of(WebComponentUtil.getTranslatedPolyString(getModelObject().getName()))){
@@ -72,12 +75,14 @@ public class StringLimitationPanel extends BasePanel<StringLimitationResult> {
             }
         };
         label.setOutputMarkupId(true);
+        label.add(AttributeModifier.append("tabindex", () -> addTabIndex ? "0" : null));
         add(label);
 
         IModel<String> rulesModel = getRulesModel();
         Label rules = new Label(ID_RULES, rulesModel);
         rules.setOutputMarkupId(true);
         rules.add(new VisibleBehaviour(() -> StringUtils.isNotEmpty(rulesModel.getObject())));
+        rules.add(AttributeModifier.append("tabindex", () -> addTabIndex ? "0" : null));
         add(rules);
     }
 
@@ -112,5 +117,9 @@ public class StringLimitationPanel extends BasePanel<StringLimitationResult> {
                 return sb.toString();
             }
         };
+    }
+
+    public void enableTabIndex() {
+        addTabIndex = true;
     }
 }
