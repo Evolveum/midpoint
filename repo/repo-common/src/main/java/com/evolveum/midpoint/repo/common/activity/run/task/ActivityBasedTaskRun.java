@@ -73,8 +73,6 @@ public class ActivityBasedTaskRun implements TaskRun {
         logStart();
 
         try {
-//            String taskRunIdentifier = runningTask.getTaskRunIdentifier();
-
             if (isRootRun()) {
                 setupTaskArchetypeIfNeeded(result);
                 updateStateOnRootRunStart(result);

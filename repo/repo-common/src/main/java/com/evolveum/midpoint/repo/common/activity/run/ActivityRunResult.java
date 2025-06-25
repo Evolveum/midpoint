@@ -8,14 +8,13 @@
 package com.evolveum.midpoint.repo.common.activity.run;
 
 import static com.evolveum.midpoint.schema.result.OperationResultStatus.*;
-import static com.evolveum.midpoint.schema.result.OperationResultStatus.createStatusType;
 import static com.evolveum.midpoint.task.api.TaskRunResult.TaskRunResultStatus.*;
-
-import com.evolveum.midpoint.schema.result.OperationResult;
 
 import com.google.common.base.MoreObjects;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
+import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.task.api.TaskRunResult;
 import com.evolveum.midpoint.task.api.TaskRunResult.TaskRunResultStatus;
@@ -25,8 +24,6 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivitySimplifiedRealizationStateType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultStatusType;
-
-import org.jetbrains.annotations.Nullable;
 
 /**
  * Result of an run of an activity.

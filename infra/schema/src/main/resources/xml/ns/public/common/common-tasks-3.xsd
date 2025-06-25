@@ -2052,6 +2052,7 @@
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
+                    <xsd:element name="restartActivity" type="tns:NumericThresholdPolicyConstraintType" minOccurs="0"/>
                     <xsd:element name="itemState" type="tns:ItemStatePolicyConstraintType" minOccurs="0"/>
                 </xsd:sequence>
             </xsd:extension>
@@ -2095,6 +2096,22 @@
                 </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>
+    </xsd:complexType>
+
+    <xsd:complexType name="NumericThresholdPolicyConstraintType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Constraints based on numeric value (integer).
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:since>4.10</a:since>
+                <a:container>true</a:container>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:choice>
+            <xsd:element name="below" type="xsd:int" minOccurs="0"/>
+            <xsd:element name="exceeds" type="xsd:int" minOccurs="0"/>
+        </xsd:choice>
     </xsd:complexType>
 
     <xsd:complexType name="DurationThresholdPolicyConstraintType">

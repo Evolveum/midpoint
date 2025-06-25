@@ -19,6 +19,7 @@ import com.evolveum.midpoint.repo.common.activity.run.AbstractActivityRun;
 import com.evolveum.midpoint.repo.common.activity.run.processing.ItemProcessingResult;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.LocalizationUtil;
+import com.evolveum.midpoint.task.api.ActivityThresholdPolicyViolationException;
 import com.evolveum.midpoint.task.api.TaskRunResult;
 import com.evolveum.midpoint.util.LocalizableMessage;
 import com.evolveum.midpoint.util.SingleLocalizableMessage;
@@ -221,6 +222,6 @@ public class ActivityPolicyRulesProcessor {
                 message,
                 defaultMessage,
                 resultStatus,
-                PolicyViolationContext.from(reaction, action));
+                PolicyViolationContextBuilder.from(reaction, action));
     }
 }

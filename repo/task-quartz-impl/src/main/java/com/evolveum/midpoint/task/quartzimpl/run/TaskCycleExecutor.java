@@ -7,27 +7,30 @@
 
 package com.evolveum.midpoint.task.quartzimpl.run;
 
+import org.jetbrains.annotations.NotNull;
+import org.quartz.SchedulerException;
+
+import com.evolveum.midpoint.repo.api.PreconditionViolationException;
 import com.evolveum.midpoint.schema.constants.Channel;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
+import com.evolveum.midpoint.task.api.PolicyViolationContext;
 import com.evolveum.midpoint.task.api.TaskHandler;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.task.api.TaskRunResult;
 import com.evolveum.midpoint.task.quartzimpl.RunningTaskQuartzImpl;
-
 import com.evolveum.midpoint.task.quartzimpl.TaskBeans;
-
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
-
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-
-import org.jetbrains.annotations.NotNull;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RestartActivityPolicyActionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskExecutionStateType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskSchedulingStateType;
 
 /**
  * Executes so called "task cycles" i.e. executions of the task handler.
@@ -226,6 +229,8 @@ class TaskCycleExecutor {
         } else if (runResult.getRunResultStatus() == TaskRunResult.TaskRunResultStatus.HALTING_ERROR) {
             LOGGER.trace("Task encountered halting error. Suspending it. Task = {}", task);
             beans.taskStateManager.suspendTaskNoException(task, TaskManager.DO_NOT_STOP, true, result);
+        } else if (runResult.getRunResultStatus() == TaskRunResult.TaskRunResultStatus.RESTART_ACTIVITY_ERROR) {
+            treatRestartActivityRunResult(runResult, result);
         } else if (runResult.getRunResultStatus() == TaskRunResult.TaskRunResultStatus.FINISHED) {
             LOGGER.trace("Task finished normally. Closing it. Task = {}", task);
             beans.taskStateManager.closeTask(task, result);
@@ -233,6 +238,37 @@ class TaskCycleExecutor {
             LOGGER.trace("Task switched to waiting state. No need to change the task state here. Task = {}", task);
         } else {
             invalidValue(runResult);
+        }
+    }
+
+    private void treatRestartActivityRunResult(TaskRunResult runResult, OperationResult result)
+            throws SchemaException, ObjectNotFoundException {
+
+        LOGGER.trace("Task handler requested restart of the activity. Suspending it. Task = {}", task);
+
+        beans.taskStateManager.suspendTaskNoException(task, TaskManager.DO_NOT_STOP, true, result);
+
+        RestartActivityPolicyActionType action = PolicyViolationContext.getPolicyAction(runResult, RestartActivityPolicyActionType.class);
+        if (action == null) {
+            action = new RestartActivityPolicyActionType();
+        }
+
+        int delay = action.getDelay() != null ? action.getDelay() : 5000;
+        if (delay <= 0) {
+            beans.taskStateManager.scheduleTaskNow(task, result);
+            return;
+        }
+
+        try {
+            LOGGER.trace("Rescheduling task {} to run later ({} ms) because of activity restart", task, delay);
+            task.setExecutionAndSchedulingStateImmediate(
+                    TaskExecutionStateType.RUNNABLE, TaskSchedulingStateType.READY,
+                    TaskSchedulingStateType.SUSPENDED, result);
+
+            beans.localScheduler.rescheduleLater(task, System.currentTimeMillis() + delay);
+        } catch (PreconditionViolationException | SchedulerException ex) {
+            LOGGER.error("Couldn't reschedule task {} (rescheduled because of activity restart): {}",
+                    task, ex.getMessage(), ex);
         }
     }
 
@@ -251,6 +287,9 @@ class TaskCycleExecutor {
         } else if (runResult.getRunResultStatus() == TaskRunResult.TaskRunResultStatus.HALTING_ERROR) {
             LOGGER.trace("Task encountered halting error. Suspending it. Task = {}", task);
             beans.taskStateManager.suspendTaskNoException(task, TaskManager.DO_NOT_STOP, true, result);
+            throw new StopTaskException();
+        } else if (runResult.getRunResultStatus() == TaskRunResult.TaskRunResultStatus.RESTART_ACTIVITY_ERROR) {
+            treatRestartActivityRunResult(runResult, result);
             throw new StopTaskException();
         } else if (runResult.getRunResultStatus() == TaskRunResult.TaskRunResultStatus.FINISHED) {
             LOGGER.trace("Task handler finished normally. Continuing as scheduled. Task = {}", task);
@@ -298,7 +337,7 @@ class TaskCycleExecutor {
         try {
             task.refresh(result);
         } catch (ObjectNotFoundException ex) {
-            LOGGER.error("Error refreshing task "+task+": Object not found: "+ex.getMessage(),ex);
+            LOGGER.error("Error refreshing task " + task + ": Object not found: " + ex.getMessage(), ex);
             throw new StopTaskException();
         }
 

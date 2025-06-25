@@ -558,6 +558,18 @@ public abstract class ActivityState implements DebugDumpable {
         return new CountersIncrementOperation(getTask(), counterGroupItemPath, countersIdentifiers, beans)
                 .execute(result);
     }
+
+    // todo make nicer [viliam]
+    public void clearCounters(@NotNull ExecutionSupport.CountersGroup counterGroup, @NotNull OperationResult result)
+            throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException {
+        ItemPath counterGroupItemPath = stateItemPath.append(ActivityStateType.F_COUNTERS, counterGroup.getItemName());
+        beans.plainRepositoryService.modifyObjectDynamically(
+                TaskType.class, getTask().getOid(), null,
+                task -> PrismContext.get().deltaFor(TaskType.class)
+                            .item(counterGroupItemPath)
+                            .replace(List.of())
+                            .asItemDeltas(), null, result);
+    }
     //endregion
 
     //region Policies (thresholds)

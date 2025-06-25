@@ -5,11 +5,10 @@
  * and European Union Public License. See LICENSE file for details.
  */
 
-package com.evolveum.midpoint.repo.common.activity.policy;
+package com.evolveum.midpoint.task.api;
 
 import org.jetbrains.annotations.NotNull;
 
-import com.evolveum.midpoint.task.api.TaskRunResult;
 import com.evolveum.midpoint.util.LocalizableMessage;
 import com.evolveum.midpoint.util.exception.ThresholdPolicyViolationException;
 

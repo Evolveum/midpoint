@@ -22,11 +22,9 @@ public class ActivityPolicyConstraintsEvaluator {
 
     private static ActivityPolicyConstraintsEvaluator instance;
 
-    @Autowired
-    private ExecutionTimeConstraintEvaluator executionTimeEvaluator;
+    @Autowired private ExecutionTimeConstraintEvaluator executionTimeEvaluator;
 
-    @Autowired
-    private ItemStateConstraintEvaluator itemStateEvaluator;
+    @Autowired private ItemStateConstraintEvaluator itemStateEvaluator;
 
     @PostConstruct
     public void init() {

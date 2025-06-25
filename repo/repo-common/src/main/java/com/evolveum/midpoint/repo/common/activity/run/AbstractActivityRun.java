@@ -19,6 +19,9 @@ import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
 import java.util.Collection;
 import java.util.Map;
 
+import com.evolveum.midpoint.task.api.PolicyViolationContext;
+
+import org.apache.commons.lang3.BooleanUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -330,6 +333,20 @@ public abstract class AbstractActivityRun<
             activityState.markComplete(currentResultStatus, endTimestamp);
         } else if (currentResultStatus != null && currentResultStatus != activityState.getResultStatus()) {
             activityState.setResultStatus(currentResultStatus);
+        }
+
+        if (runResult.isRestartActivityError()) {
+            RestartActivityPolicyActionType action =
+                    PolicyViolationContext.getPolicyAction(runResult.createTaskRunResult(), RestartActivityPolicyActionType.class);
+
+            if (action != null && BooleanUtils.isNotFalse(action.isRestartCounters())) {
+                try {
+                    activityState.clearCounters(CountersGroup.ACTIVITY_POLICY_RULES, result);
+                } catch (SchemaException |  ObjectNotFoundException | ObjectAlreadyExistsException e) {
+                    throw new RuntimeException(e);
+                }
+            }
+            // todo cleanup
         }
 
         try {
