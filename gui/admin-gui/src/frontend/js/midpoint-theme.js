@@ -145,7 +145,11 @@ export default class MidPointTheme {
         })(jQuery);
 
         (function ($) {
-            $.fn.showTooltip = function () {
+            let lastTooltipTrigger = null;
+            let isHovered = false;
+            let isTooltipHovered = false;
+
+            $.fn.showTooltip = function (setFocus = false) {
                 if (typeof $(this).tooltip === "function") {
                     var wl = $.extend(true, {}, $.fn.tooltip.Constructor.Default.whiteList);
                     wl['xsd:documentation'] = [];
@@ -155,6 +159,8 @@ export default class MidPointTheme {
                     if (parent.length !== 0) {
                         container = '#' + parent.attr('id');
                     }
+
+                    $(this).tooltip("dispose");
 
                     $(this).tooltip({
                         html: true,
@@ -166,93 +172,117 @@ export default class MidPointTheme {
                     $(this).tooltip("show");
 
                     setTimeout(() => {
-                        var tooltipId = $(this).attr("aria-describedby");
-                        var $tooltip = tooltipId ? $("#" + tooltipId) : $('.tooltip');
+                        const tooltipId = $(this).attr("aria-describedby");
+                        const $tooltip = tooltipId ? $("#" + tooltipId) : $('.tooltip');
+                        const $tooltipInner = $tooltip.find('.tooltip-inner');
 
-                        $tooltip.attr('tabindex', '0');
-
-                        $tooltip.off('mouseenter mouseleave')
-                            .on('mouseenter', function () {
+                        $tooltipInner
+                            .attr('tabindex', '0')
+                            .attr('role', 'tooltip')
+                     //       .attr('aria-live', 'polite')
+                            .off('keydown')
+                            .on('keydown', function (e) {
+                                const SCROLL_STEP = 30;
+                                if (e.key === "ArrowDown") {
+                                    e.preventDefault();
+                                    this.scrollTop += SCROLL_STEP;
+                                } else if (e.key === "ArrowUp") {
+                                    e.preventDefault();
+                                    this.scrollTop -= SCROLL_STEP;
+                                }
+                            })
+                            .on('mouseenter', () => {
                                 isTooltipHovered = true;
                             })
                             .on('mouseleave', () => {
                                 isTooltipHovered = false;
                                 checkHide($(this));
                             });
+
+                        $tooltip.off('mouseenter mouseleave')
+                            .on('mouseenter', () => {
+                                isTooltipHovered = true;
+                            })
+                            .on('mouseleave', () => {
+                                isTooltipHovered = false;
+                                checkHide($(this));
+                            });
+
+                        if (setFocus) {
+                            $tooltipInner.focus();
+                            lastTooltipTrigger = $(this);
+                        }
                     }, 100);
                 }
             };
 
-            var isHovered = false;
-            var isTooltipHovered = false;
-
             function checkHide($el) {
                 setTimeout(() => {
-                    var tooltipId = $el.attr("aria-describedby");
-                    var $tooltip = tooltipId ? $("#" + tooltipId) : $('.tooltip');
-                    var isTooltipFocused = $tooltip.is(':focus') || $tooltip.find(':focus').length > 0;
+                    if (!$el || !$el.length) return;
 
-                    if (!isHovered && !isTooltipHovered && !$el.is(':focus') && !isTooltipFocused) {
+                    const tooltipId = $el.attr("aria-describedby");
+                    const $tooltip = tooltipId ? $("#" + tooltipId) : $('.tooltip');
+                    const isTooltipFocused = $tooltip.is(':focus') || $tooltip.find(':focus').length > 0;
+
+                    const shouldHide = !isHovered && !isTooltipHovered && !$el.is(':focus') && !isTooltipFocused;
+
+                    if (shouldHide) {
                         $el.tooltip('hide');
                     }
-                }, 300);
+                }, 200);
             }
 
             $(function () {
-                $(document).on("mouseenter", "[data-toggle='tooltip']", function () {
-                    var $el = $(this);
-                    if (!$el.data('bs.tooltip')) {
-                        $el.showTooltip();
-                    } else {
-                        $el.tooltip("show");
-                    }
-                    isHovered = true;
-                });
-
-                $(document).on("mouseleave blur", "[data-toggle='tooltip']", function () {
-                    isHovered = false;
-                    checkHide($(this));
-                });
-
                 $(document).on("keydown", function (e) {
                     if ((e.key === "Enter" || e.key === " ") && document.activeElement) {
-                        var $el = $(document.activeElement);
+                        const $el = $(document.activeElement);
                         if ($el.is("[data-toggle='tooltip']")) {
                             e.preventDefault();
-                            if (!$el.data('bs.tooltip')) {
-                                $el.showTooltip();
-                            } else {
-                                $el.tooltip("show");
-                            }
+                            $el.tooltip("dispose");
+                            $el.showTooltip(true); // focus tooltip
                         }
                     }
 
                     if (e.key === "Escape") {
                         $("[data-toggle='tooltip']").tooltip('hide');
+                        if (lastTooltipTrigger) {
+                            $(lastTooltipTrigger).focus();
+                            lastTooltipTrigger = null;
+                        }
                     }
                 });
 
-                $(document).on("focusin", function (e) {
-                    if (!$(e.target).closest('.tooltip').length) {
-                        $("[data-toggle='tooltip']").tooltip('hide');
-                    }
+                $(document).on("mouseenter", "[data-toggle='tooltip']", function () {
+                    const $el = $(this);
+                    isHovered = true;
+                    $el.tooltip("dispose");
+                    $el.showTooltip(false);
+                });
+
+                $(document).on("mouseleave", "[data-toggle='tooltip']", function () {
+                    isHovered = false;
+                    checkHide($(this));
+                });
+
+                $(document).on("focusin", "[data-toggle='tooltip']", function () {
+                    // Just track focus for possible hide
+                });
+
+                $(document).on("blur", "[data-toggle='tooltip']", function () {
+                    isHovered = false;
+                    checkHide($(this));
                 });
 
                 $(document).on("click", "[data-toggle='tooltip']", function () {
-                    var $el = $(this);
-
-                    if (!$el.data('bs.tooltip')) {
-                        $el.showTooltip();
-                        return;
-                    }
-
-                    var tooltipId = $el.attr("aria-describedby");
-                    var isVisible = tooltipId && $("#" + tooltipId).is(":visible");
+                    const $el = $(this);
+                    const tooltipId = $el.attr("aria-describedby");
+                    const isVisible = tooltipId && $("#" + tooltipId).is(":visible");
 
                     if (isVisible) {
                         $el.tooltip("hide");
                     } else {
-                        $el.tooltip("show");
+                        $el.tooltip("dispose");
+                        $el.showTooltip(true);
                     }
                 });
             });
