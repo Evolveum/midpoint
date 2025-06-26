@@ -32,6 +32,8 @@ public class TestSecurityMedium extends AbstractInitializedSecurityTest {
 
     private static final File ROLE_EMPLOYEE_MANAGER_FILE = new File(TEST_DIR, "role-employee-manager.xml");
     private static final String ROLE_EMPLOYEE_MANAGER_OID = "5549cb8e-d573-11e9-a61e-7f2eff22715a";
+    private static final File ROLE_ARCHETYPE_REF_REVIEWER_FILE = new File(TEST_DIR, "role-archetype-ref-reviewer.xml");
+    private static final String ROLE_ARCHETYPE_REF_REVIEWER_OID = "5549cb8e-d573-11e9-a61e-7f2e1232715a";
 
     private static final TestObject<RoleType> ROLE_RESOURCE_NO_SUPER =
             TestObject.file(TEST_DIR, "role-resource-no-super.xml", "127e6393-371d-4a15-952f-e454748bfc09");
@@ -46,10 +48,11 @@ public class TestSecurityMedium extends AbstractInitializedSecurityTest {
 
         repoAddObjectFromFile(ARCHETYPE_EMPLOYEE_FILE, initResult);
         repoAddObjectFromFile(ROLE_EMPLOYEE_MANAGER_FILE, initResult);
+        repoAddObjectFromFile(ROLE_ARCHETYPE_REF_REVIEWER_FILE, initResult);
         repoAdd(ROLE_RESOURCE_NO_SUPER, initResult);
     }
 
-    private static final int NUMBER_OF_IMPORTED_ROLES = 2;
+    private static final int NUMBER_OF_IMPORTED_ROLES = 3;
 
     protected int getNumberOfRoles() {
         return super.getNumberOfRoles() + NUMBER_OF_IMPORTED_ROLES;
@@ -164,4 +167,21 @@ public class TestSecurityMedium extends AbstractInitializedSecurityTest {
                 ResourceType.F_SUPER.append(SuperResourceDeclarationType.F_RESOURCE_REF),
                 new ObjectReferenceType().oid(randomOid).type(ResourceType.COMPLEX_TYPE));
     }
+
+    // #10683; USER_EMPLOYEE_FRED_FILE should be already imported in test102AutzEmployeeManagerAddEmployee
+    @Test
+    public void test300ArchetypeRefAuthWithUndefinedType() throws Exception {
+        // GIVEN
+        given();
+        cleanupAutzTest(USER_JACK_OID);
+        assignRole(USER_JACK_OID, ROLE_ARCHETYPE_REF_REVIEWER_OID);
+        login(USER_JACK_USERNAME);
+
+        // THEN
+        then();
+        assertSearch(UserType.class, null, 1);
+        assertSearch(AccessCertificationCampaignType.class, null, 4);
+        assertSearch(ObjectType.class, null, 4);    //this should find 4 campaign objects
+    }
+
 }

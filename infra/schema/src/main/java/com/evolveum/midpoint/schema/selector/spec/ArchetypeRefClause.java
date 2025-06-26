@@ -101,6 +101,9 @@ public class ArchetypeRefClause extends SelectorClause {
      */
     @Override
     public boolean toFilter(@NotNull FilteringContext ctx) throws SchemaException {
+        if (!isApplicable(ctx)) {
+            return false;
+        }
         addConjunct(
                 ctx,
                 PrismContext.get().queryFor(AssignmentHolderType.class)
@@ -108,6 +111,16 @@ public class ArchetypeRefClause extends SelectorClause {
                         .ref(archetypeOids.toArray(new String[0]))
                         .buildFilter());
         return true;
+    }
+
+    private boolean isApplicable(@NotNull FilteringContext ctx) {
+        if (AssignmentHolderType.class.isAssignableFrom(ctx.getFilterType())) {
+            return true;
+        }
+        if (AssignmentHolderType.class.isAssignableFrom(ctx.getRestrictedType())) {
+            return true;
+        }
+        return false;
     }
 
     @Override

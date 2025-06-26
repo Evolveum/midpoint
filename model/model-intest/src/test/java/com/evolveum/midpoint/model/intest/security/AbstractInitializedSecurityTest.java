@@ -202,6 +202,7 @@ public abstract class AbstractInitializedSecurityTest extends AbstractInitialize
     protected static final TestObject<AccessCertificationCampaignType> CAMPAIGN1 = TestObject.file(TEST_DIR, "access-certification-campaign-1.xml", "f2122c2f-d61f-4176-a35d-132a9f575a70");
     protected static final TestObject<AccessCertificationCampaignType> CAMPAIGN2 = TestObject.file(TEST_DIR, "access-certification-campaign-2.xml", "8c0027d6-9074-4ab0-bb60-03c29c3e8130");
     protected static final TestObject<AccessCertificationCampaignType> CAMPAIGN3 = TestObject.file(TEST_DIR, "access-certification-campaign-3.xml", "cb88d128-20f9-450f-88f3-889c15f88a62");
+    protected static final TestObject<AccessCertificationCampaignType> CAMPAIGN4 = TestObject.file(TEST_DIR, "access-certification-campaign-4.xml", "cb88d128-20f9-450f-88f3-889c15f88a62");
 
     protected static final TestObject<CaseType> CASE1 = TestObject.file(TEST_DIR, "case-1.xml", "99cf4e9f-fced-4f09-a302-57ad3ad6c0c1");
     protected static final TestObject<CaseType> CASE2 = TestObject.file(TEST_DIR, "case-2.xml", "13326d91-9308-499f-9ea7-a4d6daaad437");
@@ -232,6 +233,7 @@ public abstract class AbstractInitializedSecurityTest extends AbstractInitialize
         repoAdd(CAMPAIGN1, initResult);
         repoAdd(CAMPAIGN2, initResult);
         repoAdd(CAMPAIGN3, initResult);
+        repoAdd(CAMPAIGN4, initResult);
 
         ARCHETYPE_ADMIN.init(this, initTask, initResult);
         ARCHETYPE_PERSONA_ROLE.init(this, initTask, initResult);
