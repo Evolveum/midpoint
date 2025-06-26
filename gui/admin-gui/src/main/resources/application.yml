@@ -26,7 +26,7 @@ server:
     basedir: ${midpoint.home}
     max-http-form-post-size: 100MB
     # tomcat hard limit for multipart/form-data requests (default is 10)
-    max-part-count: 100
+    max-part-count: 250
 
 ## Enable and configuration ajp connector for mp
 #    ajp:
