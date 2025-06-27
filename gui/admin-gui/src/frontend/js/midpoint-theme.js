@@ -162,6 +162,9 @@ export default class MidPointTheme {
 
                     $(this).tooltip("dispose");
 
+                    const tooltipId = 'tooltip-' + Math.random().toString(16).substr(2, 6);
+                    $(this).attr('data-tooltip-id', tooltipId);
+
                     $(this).tooltip({
                         html: true,
                         whiteList: wl,
@@ -170,16 +173,17 @@ export default class MidPointTheme {
                     });
 
                     $(this).tooltip("show");
+                    $(this).removeAttr("aria-describedby");
 
                     setTimeout(() => {
-                        const tooltipId = $(this).attr("aria-describedby");
-                        const $tooltip = tooltipId ? $("#" + tooltipId) : $('.tooltip');
+                        const $tooltip = $('.tooltip:visible').last();
+                        $tooltip.removeAttr('role');
+                        $tooltip.attr('aria-hidden', 'false');
                         const $tooltipInner = $tooltip.find('.tooltip-inner');
+                        $tooltip.attr('id', tooltipId);
 
                         $tooltipInner
                             .attr('tabindex', '0')
-                            .attr('role', 'tooltip')
-                     //       .attr('aria-live', 'polite')
                             .off('keydown')
                             .on('keydown', function (e) {
                                 const SCROLL_STEP = 30;
@@ -189,6 +193,13 @@ export default class MidPointTheme {
                                 } else if (e.key === "ArrowUp") {
                                     e.preventDefault();
                                     this.scrollTop -= SCROLL_STEP;
+                                } else if (e.key === "Tab") {
+                                     e.preventDefault();
+                                     const $tooltip = $(this).closest('.tooltip');
+                                     const $trigger = $("[data-tooltip-id='" + $tooltip.attr('id') + "']");
+                                     $tooltip.attr('aria-hidden', 'true');
+                                     $trigger.tooltip('hide');
+                                     $trigger.focus()
                                 }
                             })
                             .on('mouseenter', () => {
@@ -220,13 +231,14 @@ export default class MidPointTheme {
                 setTimeout(() => {
                     if (!$el || !$el.length) return;
 
-                    const tooltipId = $el.attr("aria-describedby");
+                    const tooltipId = $el.attr('data-tooltip-id');
                     const $tooltip = tooltipId ? $("#" + tooltipId) : $('.tooltip');
                     const isTooltipFocused = $tooltip.is(':focus') || $tooltip.find(':focus').length > 0;
 
                     const shouldHide = !isHovered && !isTooltipHovered && !$el.is(':focus') && !isTooltipFocused;
 
                     if (shouldHide) {
+                        $tooltip.attr('aria-hidden', 'true');
                         $el.tooltip('hide');
                     }
                 }, 200);
@@ -239,12 +251,17 @@ export default class MidPointTheme {
                         if ($el.is("[data-toggle='tooltip']")) {
                             e.preventDefault();
                             $el.tooltip("dispose");
-                            $el.showTooltip(true); // focus tooltip
+                            $el.showTooltip(true);
                         }
                     }
 
                     if (e.key === "Escape") {
-                        $("[data-toggle='tooltip']").tooltip('hide');
+                        $("[data-toggle='tooltip']").each(function () {
+                            const $tooltip = $("#" + $(this).attr("data-tooltip-id"));
+                            $tooltip.attr('aria-hidden', 'true');
+                            $(this).tooltip('hide');
+                        });
+
                         if (lastTooltipTrigger) {
                             $(lastTooltipTrigger).focus();
                             lastTooltipTrigger = null;
@@ -275,10 +292,11 @@ export default class MidPointTheme {
 
                 $(document).on("click", "[data-toggle='tooltip']", function () {
                     const $el = $(this);
-                    const tooltipId = $el.attr("aria-describedby");
+                    const tooltipId = $el.attr("data-tooltip-id");
                     const isVisible = tooltipId && $("#" + tooltipId).is(":visible");
 
                     if (isVisible) {
+                        $("#" + tooltipId).attr('aria-hidden', 'true');
                         $el.tooltip("hide");
                     } else {
                         $el.tooltip("dispose");
