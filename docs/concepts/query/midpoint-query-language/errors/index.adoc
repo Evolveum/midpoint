@@ -161,7 +161,7 @@ a| The Matches filter in the query requires the "`targetType`" keyword to search
 a| `assignment/targetRef matches (targetType=RoleType)`
 
 | Troubleshooting hints
-a| See xref:../introduction.adoc#_querying_values_of_different_types[querying values of different types].
+a| See xref:../filters.adoc#_querying_values_of_different_types[querying values of different types].
 |====
 
 
@@ -225,7 +225,7 @@ For polystrings, you need to use the `origIgnoreCase` matching rule.
 | `locality =[origIgnoreCase] "Edinburgh"`
 
 | Troubleshooting hints
-a| * For more information about matching rules in queries, refer to xref:../introduction.adoc#_matching_rules[matching rules].
+a| * For more information about matching rules in queries, refer to xref:../filters.adoc#_matching_rules[matching rules].
 * For a list of all matching rules, refer to the xref:/midpoint/reference/concepts/matching-rules.adoc[] page.
 
 |====
@@ -253,7 +253,7 @@ The query is missing a space between `levenshtein` and `(`.
 | `name levenshtein ("ang",2,true)`
 
 | Troubleshooting hints
-a| xref:../introduction.adoc#_similarity_filters[Similarity search filters] require 3 attributes.
+a| xref:../filters.adoc#_similarity_filters[Similarity search filters] require 3 attributes.
 The set of attributes is enclosed in brackets.
 
 |====
@@ -282,7 +282,7 @@ image:err-qname-value-expected.png[Error - QName value expected]
 `assignment/targetRef matches (relation=owner)`
 
 | Troubleshooting hints
-a| * See xref:../introduction.adoc#_querying_values_of_different_types[querying values of different types].
+a| * See xref:../filters.adoc#_querying_values_of_different_types[querying values of different types].
 * Namespaces are optional.
 |====
 
