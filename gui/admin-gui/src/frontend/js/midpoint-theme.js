@@ -149,102 +149,17 @@ export default class MidPointTheme {
             let isHovered = false;
             let isTooltipHovered = false;
 
-            $.fn.showTooltip = function (setFocus = false) {
-                if (typeof $(this).tooltip === "function") {
-                    var wl = $.extend(true, {}, $.fn.tooltip.Constructor.Default.whiteList);
-                    wl['xsd:documentation'] = [];
-
-                    var parent = $(this).closest('.modal-dialog-content');
-                    var container = "body";
-                    if (parent.length !== 0) {
-                        container = '#' + parent.attr('id');
-                    }
-
-                    $(this).tooltip("dispose");
-
-                    const tooltipId = 'tooltip-' + Math.random().toString(16).substr(2, 6);
-                    $(this).attr('data-tooltip-id', tooltipId);
-
-                    $(this).tooltip({
-                        html: true,
-                        whiteList: wl,
-                        container: container,
-                        trigger: 'manual'
-                    });
-
-                    $(this).tooltip("show");
-                    $(this).removeAttr("aria-describedby");
-
-                    setTimeout(() => {
-                        const $tooltip = $('.tooltip:visible').last();
-                        $tooltip.removeAttr('role');
-                        $tooltip.attr('aria-hidden', 'false');
-                        const $tooltipInner = $tooltip.find('.tooltip-inner');
-                        $tooltip.attr('id', tooltipId);
-
-                        $tooltipInner
-                            .attr('tabindex', '0')
-                            .off('keydown')
-                            .on('keydown', function (e) {
-                                const SCROLL_STEP = 30;
-                                if (e.key === "ArrowDown") {
-                                    e.preventDefault();
-                                    this.scrollTop += SCROLL_STEP;
-                                } else if (e.key === "ArrowUp") {
-                                    e.preventDefault();
-                                    this.scrollTop -= SCROLL_STEP;
-                                } else if (e.key === "Tab") {
-                                     e.preventDefault();
-                                     const $tooltip = $(this).closest('.tooltip');
-                                     const $trigger = $("[data-tooltip-id='" + $tooltip.attr('id') + "']");
-                                     $tooltip.attr('aria-hidden', 'true');
-                                     $trigger.tooltip('hide');
-                                     $trigger.focus()
-                                }
-                            })
-                            .on('mouseenter', () => {
-                                isTooltipHovered = true;
-                            })
-                            .on('mouseleave', () => {
-                                isTooltipHovered = false;
-                                checkHide($(this));
-                            });
-
-                        $tooltip.off('mouseenter mouseleave')
-                            .on('mouseenter', () => {
-                                isTooltipHovered = true;
-                            })
-                            .on('mouseleave', () => {
-                                isTooltipHovered = false;
-                                checkHide($(this));
-                            });
-
-                        if (setFocus) {
-                            $tooltipInner.focus();
-                            lastTooltipTrigger = $(this);
-                        }
-                    }, 100);
-                }
-            };
-
-            function checkHide($el) {
-                setTimeout(() => {
-                    if (!$el || !$el.length) return;
-
-                    const tooltipId = $el.attr('data-tooltip-id');
-                    const $tooltip = tooltipId ? $("#" + tooltipId) : $('.tooltip');
-                    const isTooltipFocused = $tooltip.is(':focus') || $tooltip.find(':focus').length > 0;
-
-                    const shouldHide = !isHovered && !isTooltipHovered && !$el.is(':focus') && !isTooltipFocused;
-
-                    if (shouldHide) {
-                        $tooltip.attr('aria-hidden', 'true');
-                        $el.tooltip('hide');
-                    }
-                }, 200);
-            }
 
             $(function () {
+                $(document).on("focusin mouseenter", "[data-toggle='tooltip']", function () {
+                    const $el = $(this);
+                    const titleText = $el.attr("title");
+                    if (!$el.attr("data-tooltip-content") && titleText) {
+                        $el.attr("data-tooltip-content", titleText);
+                        $el.removeAttr("title");
+                    }
+                });
+
                 $(document).on("keydown", function (e) {
                     if ((e.key === "Enter" || e.key === " ") && document.activeElement) {
                         const $el = $(document.activeElement);
@@ -258,7 +173,6 @@ export default class MidPointTheme {
                     if (e.key === "Escape") {
                         $("[data-toggle='tooltip']").each(function () {
                             const $tooltip = $("#" + $(this).attr("data-tooltip-id"));
-                            $tooltip.attr('aria-hidden', 'true');
                             $(this).tooltip('hide');
                         });
 
@@ -296,7 +210,6 @@ export default class MidPointTheme {
                     const isVisible = tooltipId && $("#" + tooltipId).is(":visible");
 
                     if (isVisible) {
-                        $("#" + tooltipId).attr('aria-hidden', 'true');
                         $el.tooltip("hide");
                     } else {
                         $el.tooltip("dispose");
@@ -304,6 +217,99 @@ export default class MidPointTheme {
                     }
                 });
             });
+
+            $.fn.showTooltip = function (setFocus = false) {
+                const $el = $(this);
+                if (typeof $el.tooltip === "function") {
+                    var wl = $.extend(true, {}, $.fn.tooltip.Constructor.Default.whiteList);
+                    wl['xsd:documentation'] = [];
+
+                    var parent = $el.closest('.modal-dialog-content');
+                    var container = "body";
+                    if (parent.length !== 0) {
+                        container = '#' + parent.attr('id');
+                    }
+
+                    $el.tooltip("dispose");
+
+                    const tooltipId = 'tooltip-' + Math.random().toString(16).substr(2, 6);
+                    $el.attr('data-tooltip-id', tooltipId);
+
+                    $el.tooltip({
+                        html: true,
+                        title: $el.attr('data-tooltip-content') || '',
+                        whiteList: wl,
+                        container: container,
+                        trigger: 'manual'
+                    });
+
+                    $el.tooltip("show");
+                    $el.removeAttr("aria-describedby");
+
+                    setTimeout(() => {
+                        const $tooltip = $('.tooltip:visible').last();
+                        $tooltip.removeAttr('role');
+                        const $tooltipInner = $tooltip.find('.tooltip-inner');
+                        $tooltip.attr('id', tooltipId);
+
+                        $tooltipInner
+                            .attr('tabindex', '0')
+                            .off('keydown')
+                            .on('keydown', function (e) {
+                                const SCROLL_STEP = 30;
+                                if (e.key === "ArrowDown") {
+                                   e.preventDefault();
+                                   this.scrollTop += SCROLL_STEP;
+                                } else if (e.key === "ArrowUp") {
+                                   e.preventDefault();
+                                   this.scrollTop -= SCROLL_STEP;
+                                } else if (e.key === "Tab") {
+                                    const $tooltip = $(this).closest('.tooltip');
+                                    const $trigger = $("[data-tooltip-id='" + $tooltip.attr('id') + "']");
+                                    $trigger.tooltip('hide');
+                                    $trigger.focus();
+                                }
+                            })
+                            .on('mouseenter', () => {
+                                isTooltipHovered = true;
+                            })
+                            .on('mouseleave', () => {
+                                isTooltipHovered = false;
+                                checkHide($el);
+                            });
+
+                        $tooltip.off('mouseenter mouseleave')
+                            .on('mouseenter', () => {
+                                isTooltipHovered = true;
+                            })
+                            .on('mouseleave', () => {
+                                isTooltipHovered = false;
+                                checkHide($el);
+                            });
+
+                        if (setFocus) {
+                            $tooltipInner.focus();
+                            lastTooltipTrigger = $el;
+                        }
+                    }, 100);
+                }
+            };
+
+            function checkHide($el) {
+                setTimeout(() => {
+                    if (!$el || !$el.length) return;
+
+                    const tooltipId = $el.attr('data-tooltip-id');
+                    const $tooltip = tooltipId ? $("#" + tooltipId) : $('.tooltip');
+                    const isTooltipFocused = $tooltip.is(':focus') || $tooltip.find(':focus').length > 0;
+
+                    const shouldHide = !isHovered && !isTooltipHovered && !$el.is(':focus') && !isTooltipFocused;
+
+                    if (shouldHide) {
+                        $el.tooltip('hide');
+                    }
+                }, 200);
+            }
         })(jQuery);
 
         jQuery(function ($) {
