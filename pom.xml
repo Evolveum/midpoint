@@ -253,6 +253,7 @@
 
         <xmlsec.version>2.2.6</xmlsec.version>
         <!-- NOTE: also update the version number in TestConnectorManager -->
+        <!--TODO-->
         <connid.version>1.6.0.0-SNAPSHOT</connid.version>
 
         <poi.version>5.2.3</poi.version>

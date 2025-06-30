@@ -342,7 +342,7 @@ public interface PartiallyMutableItemDefinition<I extends Item<?,?>> extends Ite
         }
 
         @Override
-        default void setDescription(String description) {
+        default void setNativeDescription(String nativeDescription) {
             throw new IllegalStateException("Item Definition is not modifiable");
         }
     }

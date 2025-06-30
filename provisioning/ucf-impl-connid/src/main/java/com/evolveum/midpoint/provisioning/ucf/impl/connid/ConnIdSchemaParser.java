@@ -294,7 +294,7 @@ class ConnIdSchemaParser {
             processCommonDefinitionParts(mpItemDef, connIdAttrInfo);
             mpItemDef.setMatchingRuleQName(
                     connIdAttributeInfoToMatchingRule(connIdAttrInfo));
-            mpItemDef.setDescription(connIdClassInfo.getDescription());
+            mpItemDef.setNativeDescription(connIdAttrInfo.getDescription());
 
             if (!Uid.NAME.equals(connIdAttrName)) {
                 ocDefBuilder.add(mpItemDef);

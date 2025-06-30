@@ -59,7 +59,7 @@ public interface ShadowAttributeUcfDefinition extends Serializable, ShortDumpabl
     /**
      *  Returns the description of an Attribute. Can be used to determine the potential use of the Attribute.
      */
-    String getDescription();
+    String getNativeDescription();
 
     interface Delegable extends ShadowAttributeUcfDefinition {
 
@@ -77,8 +77,8 @@ public interface ShadowAttributeUcfDefinition extends Serializable, ShortDumpabl
             return ucfData().getFrameworkAttributeName();
         }
 
-        default String getDescription() {
-            return ucfData().getDescription();
+        default String getNativeDescription() {
+            return ucfData().getNativeDescription();
         }
     }
 
@@ -91,7 +91,7 @@ public interface ShadowAttributeUcfDefinition extends Serializable, ShortDumpabl
 
         void setFrameworkAttributeName(String frameworkAttributeName);
 
-        void setDescription(String description);
+        void setNativeDescription(String nativeDescription);
 
         interface Delegable extends Mutable {
 
@@ -109,8 +109,8 @@ public interface ShadowAttributeUcfDefinition extends Serializable, ShortDumpabl
                 ucfData().setFrameworkAttributeName(frameworkAttributeName);
             }
 
-            default void setDescription(String description) {
-                ucfData().setDescription(description);
+            default void setNativeDescription(String nativeDescription) {
+                ucfData().setNativeDescription(nativeDescription);
             }
         }
     }
@@ -128,7 +128,7 @@ public interface ShadowAttributeUcfDefinition extends Serializable, ShortDumpabl
 
         private Boolean returnedByDefault;
 
-        private String description;
+        private String nativeDescription;
 
         @Override
         public String getNativeAttributeName() {
@@ -151,8 +151,8 @@ public interface ShadowAttributeUcfDefinition extends Serializable, ShortDumpabl
         }
 
         @Override
-        public void setDescription(String description) {
-            this.description = description;
+        public void setNativeDescription(String nativeDescription) {
+            this.nativeDescription = nativeDescription;
         }
 
         @Override
@@ -160,9 +160,8 @@ public interface ShadowAttributeUcfDefinition extends Serializable, ShortDumpabl
             return returnedByDefault;
         }
 
-        @Override
-        public String getDescription() {
-            return description;
+        public String getNativeDescription() {
+            return nativeDescription;
         }
 
         public void setReturnedByDefault(Boolean returnedByDefault) {
@@ -185,9 +184,9 @@ public interface ShadowAttributeUcfDefinition extends Serializable, ShortDumpabl
                 sb.append(returnedByDefault);
             }
 
-            if (description != null) {
-                sb.append(" description=");
-                sb.append(description);
+            if (nativeDescription != null) {
+                sb.append(" nativeDescription=");
+                sb.append(nativeDescription);
             }
         }
 
@@ -195,7 +194,7 @@ public interface ShadowAttributeUcfDefinition extends Serializable, ShortDumpabl
             this.nativeAttributeName = source.nativeAttributeName;
             this.frameworkAttributeName = source.frameworkAttributeName;
             this.returnedByDefault = source.returnedByDefault;
-            this.description = source.description;
+            this.nativeDescription = source.nativeDescription;
         }
 
         @Override
@@ -210,12 +209,12 @@ public interface ShadowAttributeUcfDefinition extends Serializable, ShortDumpabl
             return Objects.equals(nativeAttributeName, data.nativeAttributeName)
                     && Objects.equals(frameworkAttributeName, data.frameworkAttributeName)
                     && Objects.equals(returnedByDefault, data.returnedByDefault)
-                    && Objects.equals(description, data.description);
+                    && Objects.equals(nativeDescription, data.nativeDescription);
         }
 
         @Override
         public int hashCode() {
-            return Objects.hash(nativeAttributeName, frameworkAttributeName, returnedByDefault, description);
+            return Objects.hash(nativeAttributeName, frameworkAttributeName, returnedByDefault, nativeDescription);
         }
     }
 }

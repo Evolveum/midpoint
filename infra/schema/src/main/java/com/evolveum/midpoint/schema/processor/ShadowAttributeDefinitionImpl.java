@@ -339,6 +339,11 @@ public abstract class ShadowAttributeDefinitionImpl<
     }
 
     @Override
+    public String getNativeDescription() {
+        return nativeDefinition.getNativeDescription();
+    }
+
+    @Override
     public String getFrameworkAttributeName() {
         return nativeDefinition.getFrameworkAttributeName();
     }
@@ -520,7 +525,7 @@ public abstract class ShadowAttributeDefinitionImpl<
         if (getDisplayName() != null) {
             sb.append(",Disp");
         }
-        if (getDescription() != null) {
+        if (getNativeDescription() != null) {
             sb.append(",Desc");
         }
         if (hasOutboundMapping()) {
