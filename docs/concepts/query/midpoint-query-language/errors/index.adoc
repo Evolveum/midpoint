@@ -1,68 +1,68 @@
-= Errors While Querying with midPoint Query Language
+= Errors Related to midPoint Query Language
 :page-nav-title: Errors while querying
 :page-display-order: 500
 :page-toc: top
 :toclevels: 3
 
+This page explains error messages that you may encounter while searching with midPoint Query Language (MQL), and provides troubleshooting suggestions.
 
-While searching with midPoint Query Language you can encounter various error messages.
-Some of them can be quite cryptic, especially for new users.
-
-== Error messages in GUI
-
-Error messages in GUI are displayed below the query.
+In GUI, error messages are typically displayed below the query field.
 
 
-=== Path is not present in type
+== Path Is Not Present in Type
 
 image::err-path-is-not-present.png[Error path is not present]
 
-In this case administrator wanted to search for user with name "adam".
+In this case, an administrator wanted to search for a user with the name "adam".
 
-Midpoint says that attribute namex can't be found in the object type UserType that is displayed in the view Users we are searching.
+MidPoint says the `namex` attribute cannot be found in the `UserType` object type that is displayed in the view Users in which the administrator is searching.
 
 This is the most typical error you can encounter.
-It is caused by incorrect identification of property (attribute) in query.
-Often this error is caused by typo in the name of the attribute.
-In the example above it is additional "x" in _name_.
+It is caused by an incorrect identification of the property (attribute) in the query.
+Often this error is caused by a typo in the name of the attribute.
+In the example above, it is caused by the additional "x" in _name_.
 
-The {http://midpoint.evolveum.com/xml/ns/public/common/common-3} is the namespace of the type UserType. You can ignore it at this place.
+`{http://midpoint.evolveum.com/xml/ns/public/common/common-3}` is the namespace of the `UserType` type.
+You can ignore it here.
 
 [cols="15h,50" width=85%]
 |====
 | Request
-| Find user with name "adam"
+| Find users with the name "adam".
 
 | Query
 | `namex = "adam"`
 
 | Error message
-| Path *namex* is not present in type {http://midpoint.evolveum.com/xml/ns/public/common/common-3} *UserType*
+| Path namex is not present in type {http://midpoint.evolveum.com/xml/ns/public/common/common-3} UserType
 
 | Reason
-| In this case the reason for error was typo: _namex_ vs _name_
+| In this case, the error was caused by a typo: `namex` vs. `name`
 
 | Correct query
 | `name = "adam"`
 
 | Troubleshooting hints
-a| * Verify, that the attribute is present in the object type you are searching. You can check it at xref:../searchable-items.adoc[searchable items] page.
-* Attribute _name_ differs from name that is displayed in GUI (the _displayName_). Search is using name of the attribute. The translation between _name_ and _displayName_ (english) is described at xref:../searchable-items.adoc[searchable items] page.
-* Verify, that you don't have typo (e.g. case mismatch) in the name of the property
-* Verify, that the view is displaying the object type you want to search. You can see its name at the end of the error message.
+a| * Verify, that the attribute is present in the object type in which you are searching.
+You can verify it at the xref:../searchable-items.adoc[] page.
+* The `name` attribute differs from the name that is displayed in GUI (the _displayName_).
+Search is using the name of the attribute.
+The translation between _name_ and _displayName_ is described at the xref:../searchable-items.adoc[] page.
+* Verify that you do not have a typo (e.g. case mismatch) in the name of the property.
+* Verify that the view is displaying the object type you want to search for.
+You can see its name at the end of the error message.
 |====
 
-=== Path is not present in type - dereferencing
+== Path Is Not Present in Type - Dereferencing
 
 image::err-path-is-not-present-deref.png[Error path is not present - dereferencing]
 
 Another kind of the "path is not present in type" error can occur while searching in referenced objects.
 
-
 [cols="15h,50" width=85%]
 |====
 | Request
-| Find all users with assigned role identified by value "III" of identifier attribute.
+| Find all users with an assigned role identified by the value "III" of the identifier attribute.
 
 | Query
 | `assignment/targetRef/@ matches (identifier="III")`
@@ -71,49 +71,51 @@ Another kind of the "path is not present in type" error can occur while searchin
 | Path identifier is not present in type {http://midpoint.evolveum.com/xml/ns/public/common/common-3}AssignmentHolderType
 
 | Reason
-a| While using dereferencing, midPoint has to know type of the referenced object to correctly process the query. +
-In this query, midPoint can't identify the type of the referenced object and incorrectly assumes it is of AssignmentHolderType.
+a| While using dereferencing, midPoint has to know the type of the referenced object to correctly process the query. +
+In this query, midPoint cannot identify the type of the referenced object, and it incorrectly assumes it is of the `AssignmentHolderType` type.
 
 | Correct query
 | `assignment/targetRef/@ matches (. type RoleType and identifier="III")`
 
 | Troubleshooting hints
-a| * In this case you need to redefine the type of the referenced object. The code `. type RoleType` tells midPoint that type of the referenced object is RoleType. MidPoint then can find `identifier` attribute correctly.
-* When the type is explicitly defined, midPoint knows the actual schema of the object. It means, that you can search extension attributes as well. +
-E.g. the `assignment/targetRef/@ matches (. type RoleType and extension/sapType="SAP555")` is valid query when the sapType extension attribute was defined in extension schema.
+a| * In this case, you need to redefine the type of the referenced object.
+The code `. type RoleType` tells midPoint that the type of the referenced object is `RoleType`. MidPoint can then find the `identifier` attribute correctly.
+* When the type is explicitly defined, midPoint knows the actual schema of the object.
+It means that you can search for extension attributes as well. +
+For example, `assignment/targetRef/@ matches (. type RoleType and extension/sapType="SAP555")` is a valid query if the `sapType` extension attribute is defined in the extension schema.
 |====
 
 
-=== Definition is not property
+== Definition Is Not Property
 
 image:err-definition-is-not-property.png[Error definition is not property]
 
 [cols="15h,50" width=85%]
 |====
 | Request
-| Find all users with assigned role "System user".
+| Find all users with the "System user" role assigned.
 
 | Query
 | `assignment/targetRef = "System user"`
 
 | Error message
-| Definition PRD:{.../common/common-3} *targetRef* {.../common/common-3}ObjectReferenceType[0,1],RAM is not property
+| Definition PRD:{.../common/common-3} targetRef {.../common/common-3}ObjectReferenceType[0,1],RAM is not property
 
 | Reason
 a| The targetRef is a reference to an object. Not to a searchable property. +
-To search for the assigned object name you need to reference properties within the object. E.g. its name.
+To search for an assigned object name, you need to reference properties within the object, for example their name.
 
 | Correct query
 | `assignment/targetRef/@/name = "System user"`
 
 | Troubleshooting hints
-a| * Verify, that the attribute is present in the object type you are searching. You can check it at xref:../searchable-items.adoc[searchable items] page.
-* Use dereferencing operator "@" for referencing attributes of the assigned object.
+a| * Verify that the attribute is present in the object type you are searching. You can check it at the xref:../searchable-items.adoc[] page.
+* Use the dereferencing operator "`@`" for referencing attributes of the assigned object.
 
 |====
 
 
-=== Additional unsupported filter specified
+== Additional Unsupported Filter Specified
 
 image:err-add-unsupported-filter.png[Error additional unsupported filter specified]
 
@@ -129,24 +131,22 @@ image:err-add-unsupported-filter.png[Error additional unsupported filter specifi
 | Additional unsupported filter specified: name="ABC:Admin"
 
 | Reason
-a| Query should be searching in referenced objects but the dereferencing operator `@` is missing.
+a| The query should be searching in referenced objects but the dereferencing operator `@` is missing.
 
 | Correct query
 a| `assignment/targetRef/@ matches (name="ABC:Admin")`
 
-| Troubleshooting hints
-a|
 |====
 
 
-==== Additional unsupported filter specified: type=...
+=== Additional Unsupported Filter Specified: type=...
 
-image:err-add-unsupported-filter-type.png[Error - additional unsuported filter specified - type]
+image:err-add-unsupported-filter-type.png[Error - additional unsupported filter specified - type]
 
 [cols="15h,50" width=85%]
 |====
 | Request
-| Query all users who have any role assigned.
+| Query all users who have a role assigned.
 
 | Query
 | `assignment/targetRef matches (type=RoleType)`
@@ -155,59 +155,60 @@ image:err-add-unsupported-filter-type.png[Error - additional unsuported filter s
 | Additional unsupported filter specified: type=RoleType
 
 | Reason
-a| matches filter in query requires _"targetType"_ keyword to search for assigned object type.
+a| The Matches filter in the query requires the "`targetType`" keyword to search for the assigned object type.
 
 | Correct query
 a| `assignment/targetRef matches (targetType=RoleType)`
 
 | Troubleshooting hints
-a| See xref:../introduction.adoc#_querying_values_of_different_types[querying values of different types].
+a| See xref:../filters.adoc#_querying_values_of_different_types[querying values of different types].
 |====
 
 
-=== Cannot find enum value for string
+== Cannot Find Enum Value for String
 
 image:err-cannot-find-enum-value.png[Error cannot find enum value for string]
 
 [cols="15h,50" width=85%]
 |====
 | Request
-| Find all users with normal lockout status.
+| Find all users with the normal lockout status.
 
 | Query
 | `activation/lockoutStatus = "Normal"`
 
 | Error message
-| Cannot find enum value for string *'Normal'* in class com.evolveum.midpoint.xml.ns._public.common.common_3.*LockoutStatusType*
+| Cannot find enum value for string 'Normal' in class com.evolveum.midpoint.xml.ns._public.common.common_3.LockoutStatusType
 
 | Reason
-a| The schema defines enumerated value for this attribute. In this case the allowed values are "normal" and "locked". All lowercase.
+a| The schema defines an enumerated value for this attribute.
+In this case, the valid values are "normal" and "locked" (lowercase).
 
 | Correct query
 | `activation/lockoutStatus = "normal"`
 
 | Troubleshooting hints
-a| Search for allowed values in schema definition. Schemas are described in
-xref:/midpoint/reference/schema/schemadoc.adoc[SchemaDoc].
-Select version according your midPoint version. +
-In this case search in schema "common/common-3" for "LockoutStatusType"
+a| Search for valid values in the xref:/midpoint/reference/schema/schemadoc.adoc[schema definition].
+Select a version corresponding to your midPoint version. +
+In this case, search in "common/common-3" schema for "LockoutStatusType".
 
 |====
 
-=== Couldn't count objects
+== Couldn't Count Objects
 
-This is error message telling that processing of the query failed somehow during processing.
+This error message tells you that the query failed during processing.
 
-To know why it failed you need to open the error message and see what happened in the messages below.
+This message covers multiple failure scenarios.
+You need to open the error message and review the subsequent messages to find the root cause of the failure.
 
-==== Unsupported matching rule 'stringIgnoreCase'
+== Unsupported Matching Rule 'stringIgnoreCase'
 
 image:err-unsupported-matching-rule.png[Error unsupported matching rule]
 
 [cols="15h,50" width=85%]
 |====
 | Request
-| Find all users with locality "Edinburgh" ignoring case. Find all with "edinburgh", "EDINBURGH" or "Edinbugh".
+| Find all users with the locality "Edinburgh" while ignoring casing, i.e. the locality is "edinburgh", "EDINBURGH", "Edinburgh", etc.
 
 | Query
 | `locality =[stringIgnoreCase] "Edinburgh"`
@@ -216,27 +217,27 @@ image:err-unsupported-matching-rule.png[Error unsupported matching rule]
 | Unsupported matching rule 'stringIgnoreCase' for value type 'PolyStringType'.
 
 | Reason
-a| The matching rules relate to attribute type. +
-locality is of PolystringType and `stringIgnoreCase` matching rule is defined for strings only. +
-For polystring you need to use `origIgnoreCase` matching rule.
+a| The matching rules relate to the attribute type. +
+`locality` is of PolystringType and the `stringIgnoreCase` matching rule is defined for strings only. +
+For polystrings, you need to use the `origIgnoreCase` matching rule.
 
 | Correct query
 | `locality =[origIgnoreCase] "Edinburgh"`
 
 | Troubleshooting hints
-a| * For more information about matching rules in query see xref:../introduction.adoc#_matching_rules[matching rules chapter] in introduction to Midpoint Query Language.
-* List of all matching rules is defined in xref:/midpoint/reference/concepts/matching-rules.adoc[matching rules] page.
+a| * For more information about matching rules in queries, refer to xref:../filters.adoc#_matching_rules[matching rules].
+* For a list of all matching rules, refer to the xref:/midpoint/reference/concepts/matching-rules.adoc[] page.
 
 |====
 
-==== Cannot invoke ..SubfilterOrValueContext.valueSet() because "subfilterOrValue" is null
+== Cannot Invoke ..SubfilterOrValueContext.valueSet() Because "subfilterOrValue" Is Null
 
 image:err-cannot-invoke-subfilter-value-is-null.png[Error cannot invoke subfilter - value is null]
 
 [cols="15h,50" width=85%]
 |====
 | Request
-| Find all users having name similar to "ang" using levenshtein distance search.
+| Find all users with the name similar to "ang" using a Levenshtein distance search.
 
 | Query
 | `name levenshtein("ang",2,true)`
@@ -245,26 +246,27 @@ image:err-cannot-invoke-subfilter-value-is-null.png[Error cannot invoke subfilte
 | Cannot invoke "com.evolveum.axiom.lang.antlr.query.AxiomQueryParser$SubfilterOrValueContext.valueSet()" because "subfilterOrValue" is null
 
 | Reason
-a| The `levenshtein` is filter name. Not a function with parameters. +
-There is missing space between `levenshtein` filter name and `(`
+a| `levenshtein` is a filter name, not a function with parameters. +
+The query is missing a space between `levenshtein` and `(`.
 
 | Correct query
 | `name levenshtein ("ang",2,true)`
 
 | Troubleshooting hints
-a| xref:../introduction.adoc#_similarity_filters[Similarity search filters] require 3 attributes. The set of attributes is enclosed in brackets.
+a| xref:../filters.adoc#_similarity_filters[Similarity search filters] require 3 attributes.
+The set of attributes is enclosed in brackets.
 
 |====
 
 
-==== QName value expected
+== QName Value Expected
 
 image:err-qname-value-expected.png[Error - QName value expected]
 
 [cols="15h,50" width=85%]
 |====
 | Request
-| Find all owners (find all users who have any assignment assigned as owner.)
+| Find all owners, i.e. all users who have an owner assignment.
 
 | Query
 | `assignment/targetRef matches ( relation="org:owner")`
@@ -273,14 +275,14 @@ image:err-qname-value-expected.png[Error - QName value expected]
 | QName value expected
 
 | Reason
-| Relation is of QName type. QName values are included in queries without quotation marks. +
+| `relation` is of the `QName` type. `QName` values are included in queries without quotation marks. +
 
 | Correct query
 | `assignment/targetRef matches (relation=org:owner)`  or +
 `assignment/targetRef matches (relation=owner)`
 
 | Troubleshooting hints
-| See xref:../introduction.adoc#_querying_values_of_different_types[querying values of different types]. +
-Additionally, namespaces are optional.
+a| * See xref:../filters.adoc#_querying_values_of_different_types[querying values of different types].
+* Namespaces are optional.
 |====
 
