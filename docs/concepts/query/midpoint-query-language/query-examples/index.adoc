@@ -248,7 +248,6 @@ The value containing time is larger than the value that only contains the date, 
 === Search Through Assignments or Other References
 
 These searches are valid in views listing objects, such as users, roles, or services.
-For searches in the object panels, see <<searching_for_objects_marked_by_object_marks,searching for objects marked by object marks>>.
 
 [options="header", cols="20, 30, 40"]
 |===
@@ -338,28 +337,6 @@ The exact meaning of the query is: "Return objects that are referenced in the us
 
 |===
 
-[[searching_for_objects_marked_by_object_marks]]
-=== Searching for Objects Marked by Object Marks
-
-++++
-{% include since.html since="4.9" %}
-++++
-
-[options="header", cols="20, 30, 40"]
-|===
-|Request
-|Advanced query
-|Details
-
-|Find all shadows with the "Suspicious" object mark.
-|`effectiveMarkRef/@/name = "Suspicious"`
-|If used within the resource Accounts or Entitlements panels in GUI, the query returns only shadows related to the particular resource.
-
-|Find all users that have shadows with the "Suspicious" object mark.
-|`linkRef/@/effectiveMarkRef/@/name = "Suspicious"`
-|The exact meaning of the query is: "Return objects with linked shadows that have an active object mark with the name Suspicious."
-
-|===
 
 === Searching in All Accesses Panel
 
@@ -411,6 +388,10 @@ The standard task object structure is not designed for searching.
 Therefore, an additional `affectedObjects` element is used since midPoint 4.8.
 This enables you to search for tasks by affected objects and their execution mode.
 
+++++
+{% include since.html since="4.8" %}
+++++
+
 [options="header", cols="20, 30, 40"]
 |===
 |Request
@@ -447,6 +428,10 @@ You can utilize MQL also in Audit Log Viewer which enables you to review failed 
 
 There is no specific timeframe defined for _Advanced_ search.
 In audit searches, especially if they are extensive, it is recommended to specify timestamps for better performance.
+
+++++
+{% include since.html since="4.8" %}
+++++
 
 [options="header", cols="20, 30, 40"]
 |===

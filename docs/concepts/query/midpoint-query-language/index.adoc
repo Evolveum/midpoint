@@ -12,6 +12,11 @@ The language closely follows the midPoint xref:/midpoint/reference/schema/[data 
 
 For more details, refer to xref:filters.adoc[].
 
+[NOTE]
+====
+The new query language is undergoing renaming from 'Axiom' to 'midPoint Query Language' since midPoint version 4.8.
+Consider _Axiom Query Language_ and _midPoint Query Language_ as synonyms.
+====
 
 == Scope of Use
 
