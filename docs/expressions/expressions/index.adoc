@@ -331,7 +331,7 @@ The same mechanism can be used for defining role parameters and other attributes
 
 ==== Using Assignment Extension Properties
 
-If you extend your assignments using xref:/schema/custom-schema-extension/changing-schema-extension-via-GUI/[custom schema extension], you can address the assignment extension properties during assignments:
+If you extend your assignments using xref:/midpoint/reference/schema/custom-schema-extension/changing-schema-extension-via-GUI/[custom schema extension], you can address the assignment extension properties during assignments:
 
 .Assignment expression with custom extension properties
 [source,xml]
