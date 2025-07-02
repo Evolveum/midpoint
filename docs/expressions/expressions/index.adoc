@@ -325,9 +325,41 @@ If you need to create assignment for a user with specific activation settings yo
 </expression>
 ----
 
-When the example above is user, each role assigned with it has administrativeStatus property set to the ENABLED and validTo date set to the 31.12.2016 EOD.
+When the example above is used, each _assignment_ of the role assigned with it has `activation/administrativeStatus` property set to the ENABLED and `activation/validTo` date set to the 31.12.2016 EOD.
 This mechanism provide possibility to create assignment of roles, orgs, services with specific activation settings according to some focus attributes.
 The same mechanism can be used for defining role parameters and other attributes.
+
+==== Using Assignment Extension Properties
+
+If you extend your assignments using xref:/schema/custom-schema-extension/changing-schema-extension-via-GUI/[custom schema extension], you can address the assignment extension properties during assignments:
+
+.Assignment expression with custom extension properties
+[source,xml]
+----
+<expression>
+    <assignmentTargetSearch>
+        <targetType>RoleType</targetType>
+        <filter>
+            <!-- ... filter here ... -->
+        </filter>
+        <populate>
+            <populateItem>
+            <expression>
+                <script>
+                    <code>return 'admin'</code>
+                </script>
+            </expression>
+            <target>
+                <path>extension/myParameter</path>
+            </target>
+            </populateItem>
+        </populate>
+    </assignmentTargetSearch>
+</expression>
+----
+
+When the example above is used, each _assignment_ of the role assigned with it has `extension/myParameter` property set to `admin`.
+This assumes that schema for `AssignmentType` has been extended with `myParameter` property.
 
 [#_create_on_demand]
 ==== Create on Demand
