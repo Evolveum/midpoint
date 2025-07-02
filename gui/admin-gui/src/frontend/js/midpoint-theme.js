@@ -149,7 +149,6 @@ export default class MidPointTheme {
             let isHovered = false;
             let isTooltipHovered = false;
 
-
             $(function () {
                 $(document).on("focusin mouseenter", "[data-toggle='tooltip']", function () {
                     const $el = $(this);
@@ -594,8 +593,23 @@ export default class MidPointTheme {
         }
     }
 
-    initDateTimePicker(containerId, configuration) {
-        new TempusDominus(containerId, configuration);
+    initDateTimePicker(containerId, configuration, pickerStatusId, messageOpen, messageClose) {
+        const picker = new TempusDominus(containerId, configuration);
+        const pickerStatus = document.getElementById(pickerStatusId);
+        if (pickerStatus) {
+            picker.subscribe('show.td', () => {
+                pickerStatus.textContent = '';
+                setTimeout(() => {
+                    pickerStatus.textContent = messageOpen;
+                }, 350);
+            });
+            picker.subscribe('hide.td', () => {
+                pickerStatus.textContent = '';
+                setTimeout(() => {
+                    pickerStatus.textContent = messageClose;
+                }, 250);
+            });
+        }
     }
 
     createCurrentDateForDatePicker(containerId, configuration) {
