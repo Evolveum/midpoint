@@ -13,10 +13,11 @@
     <div class="form-group">
         <div class='input-group flex-nowrap' data-td-target-input="nearest" data-td-target-toggle="nearest" wicket:id="container">
             <input type='text' class="form-control form-control-sm" wicket:id="input"/>
+            <div class="sr-only" wicket:id="pickerStatus" id="pickerStatus" role="status" aria-live="polite" aria-atomic="true"/>
             <span wicket:id="iconContainer" class="clickable-by-enter input-group-text input-group-append btn"
                     tabindex="0" data-td-toggle="datetimepicker"
                     style="border-top-left-radius: 0 !important; border-bottom-left-radius: 0 !important;">
-                <i class="fa fa-fw fa-calendar" role="button" wicket:message="aria-label:DateTimePickerOptions.selectDate"></i>
+                <i class="fa fa-fw fa-calendar" role="button" wicket:message="aria-label:DateTimePickerPanel.openPicker"></i>
             </span>
         </div>
     </div>

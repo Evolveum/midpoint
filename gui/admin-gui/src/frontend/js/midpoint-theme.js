@@ -89,14 +89,11 @@ export default class MidPointTheme {
                 return this.each(function () {
 
                     var parent = $(this).parent();
+                    var icon = $(this).find("i");
 
                     var showPopover = function () {
-                        if (parent.find(inputId + ":hover").length !== 0) {
-                            parent.find(inputId).each(function () {
-                                var itemH = $(this).innerHeight() + 9;
-                                parent.find(popover).css({top: itemH, left: 0}).fadeIn(300);
-                            });
-                        }
+                        var itemH = icon.innerHeight() + 9;
+                        parent.find(popover).css({ top: itemH, left: 0 }).fadeIn(300);
                     }
 
                     $(this).on("mouseenter", function () {
@@ -115,6 +112,22 @@ export default class MidPointTheme {
                     parent.find(popover).on("mouseleave", function () {
                         if (parent.find(inputId + ":hover").length === 0) {
                             deletePopover();
+                        }
+                    });
+                    icon.on("keydown", function (e) {
+                        if (e.key === "Enter" || e.keyCode === 13) {
+                            showPopover();
+                            e.preventDefault();
+                        }
+                        if (e.key === "Escape" || e.keyCode === 27) {
+                            deletePopover();
+                            e.preventDefault();
+                        }
+                    });
+                    parent.find(popover).on("keydown", function (e) {
+                        if (e.key === "Escape" || e.keyCode === 27) {
+                            deletePopover();
+                            e.preventDefault();
                         }
                     });
                 });
@@ -148,7 +161,6 @@ export default class MidPointTheme {
             let lastTooltipTrigger = null;
             let isHovered = false;
             let isTooltipHovered = false;
-
 
             $(function () {
                 $(document).on("focusin mouseenter", "[data-toggle='tooltip']", function () {
@@ -335,13 +347,13 @@ export default class MidPointTheme {
                 if (input.attr('type') === "password") {
                     input.attr('type', 'text');
                     $(this).attr('aria-pressed', 'true');
-                    $(this).attr('aria-label', $(this).attr('data-pwd-hide'));
+                    $(this).attr('aria-label', $(this).attr('data-pwd-show'));
                     $(this).addClass("fa-eye-slash");
                     $(this).removeClass("fa-eye");
                 } else {
                     input.attr('type', 'password');
-                    $(this).attr('aria-pressed', 'false');
-                    $(this).attr('aria-label', $(this).attr('data-pwd-show'));
+                    $(this).attr('aria-pressed', 'true');
+                    $(this).attr('aria-label', $(this).attr('data-pwd-hide'));
                     $(this).removeClass("fa-eye-slash");
                     $(this).addClass("fa-eye");
                 }
@@ -594,8 +606,23 @@ export default class MidPointTheme {
         }
     }
 
-    initDateTimePicker(containerId, configuration) {
-        new TempusDominus(containerId, configuration);
+    initDateTimePicker(containerId, configuration, pickerStatusId, messageOpen, messageClose) {
+        const picker = new TempusDominus(containerId, configuration);
+        const pickerStatus = document.getElementById(pickerStatusId);
+        if (pickerStatus) {
+            picker.subscribe('show.td', () => {
+                pickerStatus.textContent = '';
+                setTimeout(() => {
+                    pickerStatus.textContent = messageOpen;
+                }, 350);
+            });
+            picker.subscribe('hide.td', () => {
+                pickerStatus.textContent = '';
+                setTimeout(() => {
+                    pickerStatus.textContent = messageClose;
+                }, 250);
+            });
+        }
     }
 
     createCurrentDateForDatePicker(containerId, configuration) {

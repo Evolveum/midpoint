@@ -12,12 +12,12 @@
 
             <fieldset class="border-bottom mb-2" wicket:id="itemList">
                 <legend class="mb-1" wicket:id="itemsTitle"/>
-                <div wicket:id="items" class="mb-1">
-                    <label class="form-check-label align-items-center d-flex gap-2">
+                <div wicket:id="items" class="mb-1 d-flex align-items-center">
+                    <label class="form-check-label align-items-center d-flex gap-2 flex-grow-1 m-0">
                         <input wicket:id="itemCheckbox" type="checkbox">
                         <a wicket:id="itemLink" class="flex-grow-1" wicket:message="title:SelectableItemListPopoverPanel.addItem"><span wicket:id="itemName"/></a>
-                        <i wicket:id="itemHelp" tabindex="0" role="button" class="clickable-by-enter"/>
                     </label>
+                    <i wicket:id="itemHelp" tabindex="0" role="button" class="clickable-by-enter ml-auto pl-2"/>
                 </div>
             </fieldset>
 
