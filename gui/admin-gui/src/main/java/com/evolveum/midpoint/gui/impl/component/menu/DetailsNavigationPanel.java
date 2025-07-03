@@ -82,7 +82,7 @@ public class DetailsNavigationPanel<O extends ObjectType> extends BasePanel<List
         AjaxSubmitLink link = createNavigationLink(item);
         navigationDetails.add(link);
 
-        addParentMenuItemDescription(link);
+        addParentMenuItemDescription(link, item);
 
         DetailsNavigationPanel<O> subPanel = createDetailsSubNavigationPanel(item);
         navigationDetails.add(subPanel);
@@ -230,7 +230,7 @@ public class DetailsNavigationPanel<O extends ObjectType> extends BasePanel<List
         link.add(submenuLink);
     }
 
-    private void addParentMenuItemDescription(AjaxSubmitLink link) {
+    private void addParentMenuItemDescription(AjaxSubmitLink link, ListItem<ContainerPanelConfigurationType> item) {
         // in case there is parent menu item (e.g. Assignments is parent for Role menu item)
         // we want to add a description for a screen reader to describe this parent item
         DetailsNavigationPanel<?> parentPanel = link.findParent(DetailsNavigationPanel.class);
@@ -238,9 +238,10 @@ public class DetailsNavigationPanel<O extends ObjectType> extends BasePanel<List
         if (parentMenuItemPanel != null && ID_NAVIGATION_DETAILS.equals(parentMenuItemPanel.getId())) {
             Component labelComponent = parentMenuItemPanel.get(ID_NAV_ITEM_LINK).get(ID_NAV_ITEM);
             Object parentLinkLabel = labelComponent.getDefaultModelObject();
-            if (parentLinkLabel instanceof String label && StringUtils.isNotEmpty(label)) {
+            if (parentLinkLabel instanceof String parentLabel && StringUtils.isNotEmpty(parentLabel)) {
+                String currentItemLabel = createButtonLabel(item.getModel()).getObject();
                 link.add(AttributeAppender.append("aria-label",
-                        createStringResource("DetailsNavigationPanel.parentMenuItemDescription", label)));
+                        createStringResource("DetailsNavigationPanel.parentMenuItemDescription", currentItemLabel, parentLabel)));
             }
         }
     }
