@@ -480,30 +480,62 @@ export default class MidPointTheme {
                 select.on("select2:open", function () {
                     setTimeout(() => {
                         const resultsList = document.querySelector('.select2-container--open ul.select2-results__options');
+                        const input = document.querySelector('.select2-container--open input.select2-search__field');
+
                         if (resultsList) {
                             let liveStatusUpdated = false;
-                            const observer = new MutationObserver(() => {
+
+                            const resultsObserver = new MutationObserver(() => {
                                 const hasResult = resultsList.querySelector('li[role="option"]') !== null;
                                 if (hasResult && !liveStatusUpdated) {
                                     liveStatusUpdated = true;
-                                    $("#comboBoxLiveStatus").text($("#comboBoxLiveStatus").attr("data-live-status"));
-                                }
-                                else if (!hasResult && liveStatusUpdated) {
+                                    $("#comboBoxLiveStatus").text("");
+                                    setTimeout(() => {
+                                        $("#comboBoxLiveStatus").text($("#comboBoxLiveStatus").attr("data-live-status"));
+                                    }, 50);
+                                } else if (!hasResult && liveStatusUpdated) {
                                     liveStatusUpdated = false;
                                     $("#comboBoxLiveStatus").text("");
                                 }
                             });
 
-                            observer.observe(resultsList, {
+                            resultsObserver.observe(resultsList, {
                                 childList: true,
                                 subtree: false
                             });
 
                             select.on('select2:close', () => {
-                                observer.disconnect();
+                                resultsObserver.disconnect();
                                 liveStatusUpdated = false;
                                 $("#comboBoxLiveStatus").text("");
+                                if (input) {
+                                    input.removeAttribute('aria-activedescendant');
+                                }
                             });
+
+                            if (input) {
+                                const highlightObserver = new MutationObserver(() => {
+                                    const highlighted = resultsList.querySelector('.select2-results__option--highlighted');
+                                    if (highlighted) {
+                                        if (!highlighted.id) {
+                                            highlighted.id = 'select2-option-' + Date.now();
+                                        }
+                                        input.setAttribute('aria-activedescendant', highlighted.id);
+                                    }
+                                });
+
+                                highlightObserver.observe(resultsList, {
+                                    childList: true,
+                                    subtree: true,
+                                    attributes: true,
+                                    attributeFilter: ['class']
+                                });
+
+                                select.on('select2:close', () => {
+                                    highlightObserver.disconnect();
+                                    input.removeAttribute('aria-activedescendant');
+                                });
+                            }
                         }
                     }, 0);
                 });
