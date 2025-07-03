@@ -275,6 +275,7 @@ EOF
             }
             stage("build-with-tests") {
                 container('maven') {
+                    export MAVEN_OPTS="-Xmx8g -Xms2g"
                     sh """#!/bin/bash -ex
                             mvn -B -ntp -Dmaven.test.failure.ignore -P dbtest,-dist verify ${dbprops}
 
@@ -288,6 +289,7 @@ EOF
             stage("tests-extra") {
                 container('maven') {
                     // -Xmx6g should fit into 8GB of RAM, 4g is on the edge for some tests
+                    export MAVEN_OPTS="-Xmx8g -Xms2g"
                     sh """#!/bin/bash -ex
                             mvn -B -ntp -Dmaven.test.failure.ignore -P extratest,-dist verify -rf testing ${dbprops} \
                                 -Dfailsafe.args="-Xms2g -Xmx6g -Duser.language=en --add-exports java.management/sun.management=ALL-UNNAMED"
