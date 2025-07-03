@@ -89,14 +89,11 @@ export default class MidPointTheme {
                 return this.each(function () {
 
                     var parent = $(this).parent();
+                    var icon = $(this).find("i");
 
                     var showPopover = function () {
-                        if (parent.find(inputId + ":hover").length !== 0) {
-                            parent.find(inputId).each(function () {
-                                var itemH = $(this).innerHeight() + 9;
-                                parent.find(popover).css({top: itemH, left: 0}).fadeIn(300);
-                            });
-                        }
+                        var itemH = icon.innerHeight() + 9;
+                        parent.find(popover).css({ top: itemH, left: 0 }).fadeIn(300);
                     }
 
                     $(this).on("mouseenter", function () {
@@ -115,6 +112,22 @@ export default class MidPointTheme {
                     parent.find(popover).on("mouseleave", function () {
                         if (parent.find(inputId + ":hover").length === 0) {
                             deletePopover();
+                        }
+                    });
+                    icon.on("keydown", function (e) {
+                        if (e.key === "Enter" || e.keyCode === 13) {
+                            showPopover();
+                            e.preventDefault();
+                        }
+                        if (e.key === "Escape" || e.keyCode === 27) {
+                            deletePopover();
+                            e.preventDefault();
+                        }
+                    });
+                    parent.find(popover).on("keydown", function (e) {
+                        if (e.key === "Escape" || e.keyCode === 27) {
+                            deletePopover();
+                            e.preventDefault();
                         }
                     });
                 });
