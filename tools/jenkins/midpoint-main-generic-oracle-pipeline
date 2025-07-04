@@ -276,7 +276,6 @@ EOF
             stage("build-with-tests") {
                 container('maven') {
                     sh """#!/bin/bash -ex
-                            export MAVEN_OPTS="-Xmx8g -Xms2g"
                             mvn -B -ntp -Dmaven.test.failure.ignore -P dbtest,-dist verify ${dbprops}
 
                             if [ "${verbose}" -ge 1 ]
@@ -290,9 +289,8 @@ EOF
                 container('maven') {
                     // -Xmx6g should fit into 8GB of RAM, 4g is on the edge for some tests
                     sh """#!/bin/bash -ex
-                            export MAVEN_OPTS="-Xmx8g -Xms2g"
                             mvn -B -ntp -Dmaven.test.failure.ignore -P extratest,-dist verify -rf testing ${dbprops} \
-                                -Dfailsafe.args="-Xms2g -Xmx6g -Duser.language=en --add-exports java.management/sun.management=ALL-UNNAMED"
+                                -Dfailsafe.argLine="-Xms2g -Xmx8g -Duser.language=en --add-exports java.management/sun.management=ALL-UNNAMED"
 
                             if [ "${verbose}" -ge 1 ]
                             then
