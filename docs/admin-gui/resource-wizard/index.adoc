@@ -2,7 +2,7 @@
 // :page-toc: top
 :page-nav-title: Resource Wizards
 :page-description: Simplify identity resource management with midPoint's resource wizard. Create and configure resources effortlessly and efficiently.
-:page-keywords: [ 'resource wizard', 'resource management', 'configure resources', 'integration' ]
+:page-keywords: resource wizard, resource management, configure resources, integration
 :page-since: "4.6"
 :page-since-improved: [ "4.8", "4.9" ]
 
