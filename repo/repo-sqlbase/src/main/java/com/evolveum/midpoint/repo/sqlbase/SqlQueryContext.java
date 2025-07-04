@@ -583,7 +583,16 @@ public abstract class SqlQueryContext<S, Q extends FlexibleRelationalPathBase<R>
                     entityPathMapping.createRowTransformer(this, jdbcSession, options);
 
             rowTransformer.beforeTransformation(result.content(), entityPath);
-            PageOf<S> transformedResult = result.map(row -> rowTransformer.transform(row, entityPath));
+            PageOf<S> transformedResult = result.map(row -> {
+                //possible decision for #10682
+                //main question: can we handle one row exception here not to send exception further?
+                try {
+                    return rowTransformer.transform(row, entityPath);
+                } catch (Exception ex) {
+                    //todo add some logging?
+                }
+                return null;
+            });
             rowTransformer.finishTransformation();
 
             return transformedResult;
