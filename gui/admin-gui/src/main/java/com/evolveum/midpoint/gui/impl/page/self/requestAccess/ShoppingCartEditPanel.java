@@ -330,6 +330,7 @@ public class ShoppingCartEditPanel extends BasePanel<ShoppingCartItem> implement
                 () -> isItemVisible(ItemPath.create(AssignmentHolderType.F_ASSIGNMENT, AssignmentType.F_ACTIVATION, ActivationType.F_VALID_FROM))
                         || isItemVisible(ItemPath.create(AssignmentHolderType.F_ASSIGNMENT, AssignmentType.F_ACTIVATION, ActivationType.F_VALID_TO)),
                 () -> validitySettingsEnabled));
+        customValidity.setOutputMarkupId(true);
         add(customValidity);
     }
 
@@ -351,6 +352,7 @@ public class ShoppingCartEditPanel extends BasePanel<ShoppingCartItem> implement
             @Override
             protected void onError(AjaxRequestTarget target) {
                 target.add(ShoppingCartEditPanel.this.get(ID_MESSAGE));
+                target.add(ShoppingCartEditPanel.this.get(ID_CUSTOM_VALIDITY));
             }
 
             @Override
@@ -513,21 +515,6 @@ public class ShoppingCartEditPanel extends BasePanel<ShoppingCartItem> implement
     private boolean isDetailsPanelVisible() {
         PrismContainerValueWrapper<AssignmentType> wrapper = assignmentModel.getObject();
         return !isEmpty(wrapper);
-//        try {
-//            if (isEmpty(wrapper)) {
-//                return false;
-//            }
-//            PrismContainerWrapper cw = wrapper.findItem(ItemPath.create(AssignmentType.F_EXTENSION));
-//            if (cw == null || cw.isEmpty()) {
-//                return false;
-//            }
-//            PrismContainerValueWrapper pcvw = (PrismContainerValueWrapper) cw.getValue();
-//            List items = pcvw.getItems();
-//
-//            return items != null && !items.isEmpty();
-//        } catch (SchemaException ex) {
-//            return true;
-//        }
     }
 
     private boolean isEmpty(PrismContainerValueWrapper<AssignmentType> wrapper) {
