@@ -91,39 +91,60 @@ export default class MidPointTheme {
                     var parent = $(this).parent();
                     var icon = $(this).find("i");
 
+                    var liveRegion = $("#popoverValidationPanelStatus");
+
+                    var updateLiveRegion = function (message) {
+                        liveRegion.text("");
+                        setTimeout(function () {
+                            liveRegion.text(message);
+                        }, 100);
+                    };
+
                     var showPopover = function () {
                         var itemH = icon.innerHeight() + 9;
                         parent.find(popover).css({ top: itemH, left: 0 }).fadeIn(300);
+                        var showMessage = liveRegion.data("status-show");
+                        updateLiveRegion(showMessage);
                     }
+
+                    var deletePopover = function () {
+                        parent.find(popover).fadeOut(300);
+                        var showMessage = liveRegion.data("status-hide");
+                        updateLiveRegion(showMessage);
+                    };
 
                     $(this).on("mouseenter", function () {
                         showPopover();
                     });
-
-                    var deletePopover = function () {
-                        parent.find(popover).fadeOut(300);
-                    };
 
                     $(this).on("mouseleave", function () {
                         if (parent.find(popover + ":hover").length === 0) {
                             deletePopover();
                         }
                     });
+
                     parent.find(popover).on("mouseleave", function () {
-                        if (parent.find(inputId + ":hover").length === 0) {
-                            deletePopover();
-                        }
+                       if (parent.find(inputId + ":hover").length === 0) {
+                           deletePopover();
+                       }
                     });
+
                     icon.on("keydown", function (e) {
-                        if (e.key === "Enter" || e.keyCode === 13) {
-                            showPopover();
-                            e.preventDefault();
-                        }
                         if (e.key === "Escape" || e.keyCode === 27) {
                             deletePopover();
                             e.preventDefault();
                         }
+                        if (e.key === "Enter" || e.keyCode === 13) {
+                            showPopover();
+                            e.preventDefault();
+                        }
                     });
+
+                    icon.on("click", function (e) {
+                        showPopover();
+                        e.preventDefault();
+                    });
+
                     parent.find(popover).on("keydown", function (e) {
                         if (e.key === "Escape" || e.keyCode === 27) {
                             deletePopover();
