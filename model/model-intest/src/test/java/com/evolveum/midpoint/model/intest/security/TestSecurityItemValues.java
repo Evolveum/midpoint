@@ -123,7 +123,7 @@ public class TestSecurityItemValues extends AbstractInitializedSecurityTest {
         login(USER_JACK_USERNAME);
 
         then("can see all cert campaigns (because of 'all cases' object selector)");
-        assertSearchCampaigns(CAMPAIGN1.oid, CAMPAIGN2.oid, CAMPAIGN3.oid);
+        assertSearchCampaigns(CAMPAIGN1.oid, CAMPAIGN2.oid, CAMPAIGN3.oid, CAMPAIGN4.oid);
 
         and("but only allowed items are visible");
         // @formatter:off
@@ -174,7 +174,7 @@ public class TestSecurityItemValues extends AbstractInitializedSecurityTest {
         login(USER_JACK_USERNAME);
 
         then("can see all cert campaigns (because of 'all cases' object selector)");
-        assertSearchCampaigns(CAMPAIGN1.oid, CAMPAIGN2.oid, CAMPAIGN3.oid);
+        assertSearchCampaigns(CAMPAIGN1.oid, CAMPAIGN2.oid, CAMPAIGN3.oid, CAMPAIGN4.oid);
 
         and("but only allowed items are visible");
         // @formatter:off

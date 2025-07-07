@@ -11,6 +11,7 @@ import com.evolveum.midpoint.gui.impl.component.input.DateTimePickerPanel;
 
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 
+import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.form.TextField;
@@ -31,6 +32,7 @@ public class CustomValidityPanel extends BasePanel<CustomValidity> {
 
     private static final String ID_FROM = "from";
     private static final String ID_TO = "to";
+    private final static String INVALID_FIELD_CLASS = "is-invalid";
 
     public CustomValidityPanel(String id, IModel<CustomValidity> model) {
         super(id, model);
@@ -60,6 +62,10 @@ public class CustomValidityPanel extends BasePanel<CustomValidity> {
         from.getBaseFormComponent().add(
                 AttributeAppender.append("aria-label", createStringResource("ActivationType.validFrom")));
         from.getBaseFormComponent().setLabel(createStringResource("ActivationType.validFrom"));
+        from.getBaseFormComponent().add(AttributeModifier.append("class", () -> {
+            Form<?> form = findParent(Form.class);
+            return form.hasErrorMessage() ? INVALID_FIELD_CLASS : "";
+        }));
         from.setOutputMarkupId(true);
         add(from);
 
@@ -68,6 +74,10 @@ public class CustomValidityPanel extends BasePanel<CustomValidity> {
         to.getBaseFormComponent().add(
                 AttributeAppender.append("aria-label", createStringResource("ActivationType.validTo")));
         to.getBaseFormComponent().setLabel(createStringResource("ActivationType.validTo"));
+        to.getBaseFormComponent().add(AttributeModifier.append("class", () -> {
+            Form<?> form = findParent(Form.class);
+            return form.hasErrorMessage() ? INVALID_FIELD_CLASS : "";
+        }));
         to.setOutputMarkupId(true);
         add(to);
     }
@@ -79,4 +89,6 @@ public class CustomValidityPanel extends BasePanel<CustomValidity> {
     protected boolean isToFieldVisible() {
         return true;
     }
+
+    protected void onError() {}
 }

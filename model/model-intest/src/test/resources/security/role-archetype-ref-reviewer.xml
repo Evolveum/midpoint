@@ -1,0 +1,40 @@
+<!--
+  ~ Copyright (c) 2025 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+  <!-- MID-10683 -->
+<role oid="5549cb8e-d573-11e9-a61e-7f2e1232715a"
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+    <name>Certification reviewer</name>
+    <authorization>
+        <name>read-some-roles</name>
+        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>
+        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#get</action>
+        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#search</action>
+        <object>
+            <archetypeRef oid="7135e68c-ee53-11e8-8025-170b77da3fd6"/> <!-- Emplooyee -->
+        </object>
+    </authorization>
+    <authorization>
+        <name>certification-campaign-read</name>
+        <description>
+            Allow to read stageNumber property of certification campaign.
+        </description>
+        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>
+        <object>
+            <type>AccessCertificationCampaignType</type>
+        </object>
+        <item>name</item>
+        <item>stageNumber</item>
+        <item>state</item>
+        <item>iteration</item>
+        <item>startTimestamp</item>
+    </authorization>
+    <authorization id="3">
+        <name>read-and-make-decisions</name>
+        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#readOwnCertificationDecisions</action>
+        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#recordCertificationDecision</action>
+    </authorization>
+</role>

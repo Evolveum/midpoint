@@ -139,7 +139,7 @@ public class InlineMenuButtonColumn<T extends Serializable> extends AbstractColu
                 btn.add(new EnableBehaviour(() -> isButtonMenuItemEnabled(model)));
                 btn.titleAsLabel(showButtonLabel(index, buttonMenuItems));
                 btn.add(AttributeAppender.append("aria-label", getButtonTitle(index, buttonMenuItems)));
-                btn.add(AttributeAppender.append("aria-expanded", "false"));
+                btn.add(AttributeAppender.append("aria-pressed", "false"));
                 return btn;
             }
 

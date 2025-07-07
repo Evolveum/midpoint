@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<!--
+  ~ Copyright (C) 2025 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<accessCertificationCampaign
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        oid="e3212c2f-d61f-4176-a35d-132a9f575a70">
+    <name>All user assignments 4 (Jack is reviewer)</name>
+    <description>Certifies all users' assignments. Everything is certified by the Jack.</description>
+    <definitionRef oid="068e0a87-b456-47c7-811a-5fd9b6f78099"
+            type="c:AccessCertificationDefinitionType"><!-- All user assignments --></definitionRef>
+    <ownerRef oid="00000000-0000-0000-0000-000000000002" type="c:UserType"><!-- administrator --></ownerRef>
+    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/certification/handlers-3#direct-assignment</handlerUri>
+    <iteration>1</iteration>
+    <stageDefinition>
+        <number>1</number>
+        <name>User's Jack review</name>
+        <duration>P14D</duration>
+        <reviewerSpecification>
+            <defaultReviewerRef oid="c0c010c0-d34d-b33f-f00d-111111111111" type="c:UserType"><!-- Jack --></defaultReviewerRef>
+        </reviewerSpecification>
+    </stageDefinition>
+    <startTimestamp>2015-12-04T00:38:03.031+01:00</startTimestamp>
+    <state>inReviewStage</state>
+    <stageNumber>1</stageNumber>
+    <stage>
+        <number>1</number>
+        <name>User's Jack review</name>
+        <startTimestamp>2015-12-04T00:38:00.708+01:00</startTimestamp>
+        <endTimestamp>2015-12-18T23:59:59.999+01:00</endTimestamp>
+    </stage>
+    <case xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+            xsi:type="c:AccessCertificationAssignmentCaseType">
+        <objectRef oid="00000000-0000-0000-0000-000000000002" type="c:UserType"><!-- administrator --></objectRef>
+        <targetRef oid="00000000-0000-0000-0000-000000000004" type="c:RoleType"><!-- Superuser --></targetRef>
+        <stageNumber>1</stageNumber>
+        <iteration>1</iteration>
+        <workItem>
+            <stageNumber>1</stageNumber>
+            <assigneeRef oid="c0c010c0-d34d-b33f-f00d-111111111111" type="c:UserType"><!-- Jack --></assigneeRef>
+            <iteration>1</iteration>
+        </workItem>
+        <currentStageCreateTimestamp>2015-12-04T00:38:00.708+01:00</currentStageCreateTimestamp>
+        <currentStageDeadline>2015-12-18T23:59:59.999+01:00</currentStageDeadline>
+        <isInducement>false</isInducement>
+    </case>
+</accessCertificationCampaign>

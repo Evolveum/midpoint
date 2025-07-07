@@ -19,8 +19,10 @@ import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.head.IHeaderResponse;
 import org.apache.wicket.markup.head.OnDomReadyHeaderItem;
 import org.apache.wicket.markup.html.WebMarkupContainer;
+import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.TextField;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.Model;
 import org.apache.wicket.util.convert.IConverter;
 
 import javax.xml.datatype.XMLGregorianCalendar;
@@ -35,6 +37,7 @@ public class DateTimePickerPanel extends InputPanel {
     private static final String ID_CONTAINER = "container";
     private static final String ID_INPUT = "input";
     private static final String ID_ICON_CONTAINER = "iconContainer";
+    private final static String ID_PICKER_STATUS = "pickerStatus";
     private final static String INVALID_FIELD_CLASS = "is-invalid";
 
     private final DateTimePickerOptions dateTimePickerOptions = DateTimePickerOptions.of();
@@ -64,8 +67,10 @@ public class DateTimePickerPanel extends InputPanel {
         String config = hasModalParent
                 ? dateTimePickerOptions.toJsConfiguration(getPageBase().getMainPopup().getMarkupId())
                 : dateTimePickerOptions.toJsConfiguration();
-
-        return String.format("MidPointTheme.initDateTimePicker(%s, %s);", getMarkupId(), config);
+        String messageOpen = getString("DateTimePickerPanel.pickerOpened");
+        String messageClose = getString("DateTimePickerPanel.pickerClosed");
+        return String.format("MidPointTheme.initDateTimePicker(%s, %s, '%s', '%s', '%s');",
+                getMarkupId(), config, ID_PICKER_STATUS, messageOpen, messageClose);
     }
 
     private void initLayout(IModel<Date> model) {
@@ -78,6 +83,10 @@ public class DateTimePickerPanel extends InputPanel {
         };
         container.setOutputMarkupId(true);
         add(container);
+
+        Label pickerStatus = new Label(ID_PICKER_STATUS, Model.of(""));
+        pickerStatus.setOutputMarkupId(true);
+        container.add(pickerStatus);
 
         final TextField<Date> input = new TextField<>(ID_INPUT, model) {
             @Override

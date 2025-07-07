@@ -89,14 +89,11 @@ export default class MidPointTheme {
                 return this.each(function () {
 
                     var parent = $(this).parent();
+                    var icon = $(this).find("i");
 
                     var showPopover = function () {
-                        if (parent.find(inputId + ":hover").length !== 0) {
-                            parent.find(inputId).each(function () {
-                                var itemH = $(this).innerHeight() + 9;
-                                parent.find(popover).css({top: itemH, left: 0}).fadeIn(300);
-                            });
-                        }
+                        var itemH = icon.innerHeight() + 9;
+                        parent.find(popover).css({ top: itemH, left: 0 }).fadeIn(300);
                     }
 
                     $(this).on("mouseenter", function () {
@@ -115,6 +112,22 @@ export default class MidPointTheme {
                     parent.find(popover).on("mouseleave", function () {
                         if (parent.find(inputId + ":hover").length === 0) {
                             deletePopover();
+                        }
+                    });
+                    icon.on("keydown", function (e) {
+                        if (e.key === "Enter" || e.keyCode === 13) {
+                            showPopover();
+                            e.preventDefault();
+                        }
+                        if (e.key === "Escape" || e.keyCode === 27) {
+                            deletePopover();
+                            e.preventDefault();
+                        }
+                    });
+                    parent.find(popover).on("keydown", function (e) {
+                        if (e.key === "Escape" || e.keyCode === 27) {
+                            deletePopover();
+                            e.preventDefault();
                         }
                     });
                 });
@@ -145,117 +158,170 @@ export default class MidPointTheme {
         })(jQuery);
 
         (function ($) {
-            $.fn.showTooltip = function () {
-                if (typeof $(this).tooltip === "function") {
+            let lastTooltipTrigger = null;
+            let isHovered = false;
+            let isTooltipHovered = false;
+
+            $(function () {
+                $(document).on("focusin mouseenter", "[data-toggle='tooltip']", function () {
+                    const $el = $(this);
+                    const titleText = $el.attr("title");
+                    if (!$el.attr("data-tooltip-content") && titleText) {
+                        $el.attr("data-tooltip-content", titleText);
+                        $el.removeAttr("title");
+                    }
+                });
+
+                $(document).on("keydown", function (e) {
+                    if ((e.key === "Enter" || e.key === " ") && document.activeElement) {
+                        const $el = $(document.activeElement);
+                        if ($el.is("[data-toggle='tooltip']")) {
+                            e.preventDefault();
+                            $el.tooltip("dispose");
+                            $el.showTooltip(true);
+                        }
+                    }
+
+                    if (e.key === "Escape") {
+                        $("[data-toggle='tooltip']").each(function () {
+                            const $tooltip = $("#" + $(this).attr("data-tooltip-id"));
+                            $(this).tooltip('hide');
+                        });
+
+                        if (lastTooltipTrigger) {
+                            $(lastTooltipTrigger).focus();
+                            lastTooltipTrigger = null;
+                        }
+                    }
+                });
+
+                $(document).on("mouseenter", "[data-toggle='tooltip']", function () {
+                    const $el = $(this);
+                    isHovered = true;
+                    $el.tooltip("dispose");
+                    $el.showTooltip(false);
+                });
+
+                $(document).on("mouseleave", "[data-toggle='tooltip']", function () {
+                    isHovered = false;
+                    checkHide($(this));
+                });
+
+                $(document).on("focusin", "[data-toggle='tooltip']", function () {
+                    // Just track focus for possible hide
+                });
+
+                $(document).on("blur", "[data-toggle='tooltip']", function () {
+                    isHovered = false;
+                    checkHide($(this));
+                });
+
+                $(document).on("click", "[data-toggle='tooltip']", function () {
+                    const $el = $(this);
+                    const tooltipId = $el.attr("data-tooltip-id");
+                    const isVisible = tooltipId && $("#" + tooltipId).is(":visible");
+
+                    if (isVisible) {
+                        $el.tooltip("hide");
+                    } else {
+                        $el.tooltip("dispose");
+                        $el.showTooltip(true);
+                    }
+                });
+            });
+
+            $.fn.showTooltip = function (setFocus = false) {
+                const $el = $(this);
+                if (typeof $el.tooltip === "function") {
                     var wl = $.extend(true, {}, $.fn.tooltip.Constructor.Default.whiteList);
                     wl['xsd:documentation'] = [];
 
-                    var parent = $(this).closest('.modal-dialog-content');
+                    var parent = $el.closest('.modal-dialog-content');
                     var container = "body";
                     if (parent.length !== 0) {
                         container = '#' + parent.attr('id');
                     }
 
-                    $(this).tooltip({
+                    $el.tooltip("dispose");
+
+                    const tooltipId = 'tooltip-' + Math.random().toString(16).substr(2, 6);
+                    $el.attr('data-tooltip-id', tooltipId);
+
+                    $el.tooltip({
                         html: true,
+                        title: $el.attr('data-tooltip-content') || '',
                         whiteList: wl,
                         container: container,
                         trigger: 'manual'
                     });
 
-                    $(this).tooltip("show");
+                    $el.tooltip("show");
+                    $el.removeAttr("aria-describedby");
 
                     setTimeout(() => {
-                        var tooltipId = $(this).attr("aria-describedby");
-                        var $tooltip = tooltipId ? $("#" + tooltipId) : $('.tooltip');
+                        const $tooltip = $('.tooltip:visible').last();
+                        $tooltip.removeAttr('role');
+                        const $tooltipInner = $tooltip.find('.tooltip-inner');
+                        $tooltip.attr('id', tooltipId);
 
-                        $tooltip.attr('tabindex', '0');
-
-                        $tooltip.off('mouseenter mouseleave')
-                            .on('mouseenter', function () {
+                        $tooltipInner
+                            .attr('tabindex', '0')
+                            .off('keydown')
+                            .on('keydown', function (e) {
+                                const SCROLL_STEP = 30;
+                                if (e.key === "ArrowDown") {
+                                   e.preventDefault();
+                                   this.scrollTop += SCROLL_STEP;
+                                } else if (e.key === "ArrowUp") {
+                                   e.preventDefault();
+                                   this.scrollTop -= SCROLL_STEP;
+                                } else if (e.key === "Tab") {
+                                    const $tooltip = $(this).closest('.tooltip');
+                                    const $trigger = $("[data-tooltip-id='" + $tooltip.attr('id') + "']");
+                                    $trigger.tooltip('hide');
+                                    $trigger.focus();
+                                }
+                            })
+                            .on('mouseenter', () => {
                                 isTooltipHovered = true;
                             })
                             .on('mouseleave', () => {
                                 isTooltipHovered = false;
-                                checkHide($(this));
+                                checkHide($el);
                             });
+
+                        $tooltip.off('mouseenter mouseleave')
+                            .on('mouseenter', () => {
+                                isTooltipHovered = true;
+                            })
+                            .on('mouseleave', () => {
+                                isTooltipHovered = false;
+                                checkHide($el);
+                            });
+
+                        if (setFocus) {
+                            $tooltipInner.focus();
+                            lastTooltipTrigger = $el;
+                        }
                     }, 100);
                 }
             };
 
-            var isHovered = false;
-            var isTooltipHovered = false;
-
             function checkHide($el) {
                 setTimeout(() => {
-                    var tooltipId = $el.attr("aria-describedby");
-                    var $tooltip = tooltipId ? $("#" + tooltipId) : $('.tooltip');
-                    var isTooltipFocused = $tooltip.is(':focus') || $tooltip.find(':focus').length > 0;
+                    if (!$el || !$el.length) return;
 
-                    if (!isHovered && !isTooltipHovered && !$el.is(':focus') && !isTooltipFocused) {
+                    const tooltipId = $el.attr('data-tooltip-id');
+                    const $tooltip = tooltipId ? $("#" + tooltipId) : $('.tooltip');
+                    const isTooltipFocused = $tooltip.is(':focus') || $tooltip.find(':focus').length > 0;
+
+                    const shouldHide = !isHovered && !isTooltipHovered && !$el.is(':focus') && !isTooltipFocused;
+
+                    if (shouldHide) {
                         $el.tooltip('hide');
                     }
-                }, 300);
+                }, 200);
             }
-
-            $(function () {
-                $(document).on("mouseenter", "[data-toggle='tooltip']", function () {
-                    var $el = $(this);
-                    if (!$el.data('bs.tooltip')) {
-                        $el.showTooltip();
-                    } else {
-                        $el.tooltip("show");
-                    }
-                    isHovered = true;
-                });
-
-                $(document).on("mouseleave blur", "[data-toggle='tooltip']", function () {
-                    isHovered = false;
-                    checkHide($(this));
-                });
-
-                $(document).on("keydown", function (e) {
-                    if ((e.key === "Enter" || e.key === " ") && document.activeElement) {
-                        var $el = $(document.activeElement);
-                        if ($el.is("[data-toggle='tooltip']")) {
-                            e.preventDefault();
-                            if (!$el.data('bs.tooltip')) {
-                                $el.showTooltip();
-                            } else {
-                                $el.tooltip("show");
-                            }
-                        }
-                    }
-
-                    if (e.key === "Escape") {
-                        $("[data-toggle='tooltip']").tooltip('hide');
-                    }
-                });
-
-                $(document).on("focusin", function (e) {
-                    if (!$(e.target).closest('.tooltip').length) {
-                        $("[data-toggle='tooltip']").tooltip('hide');
-                    }
-                });
-
-                $(document).on("click", "[data-toggle='tooltip']", function () {
-                    var $el = $(this);
-
-                    if (!$el.data('bs.tooltip')) {
-                        $el.showTooltip();
-                        return;
-                    }
-
-                    var tooltipId = $el.attr("aria-describedby");
-                    var isVisible = tooltipId && $("#" + tooltipId).is(":visible");
-
-                    if (isVisible) {
-                        $el.tooltip("hide");
-                    } else {
-                        $el.tooltip("show");
-                    }
-                });
-            });
         })(jQuery);
 
         jQuery(function ($) {
@@ -281,13 +347,13 @@ export default class MidPointTheme {
                 if (input.attr('type') === "password") {
                     input.attr('type', 'text');
                     $(this).attr('aria-pressed', 'true');
-                    $(this).attr('aria-label', $(this).attr('data-pwd-hide'));
+                    $(this).attr('aria-label', $(this).attr('data-pwd-show'));
                     $(this).addClass("fa-eye-slash");
                     $(this).removeClass("fa-eye");
                 } else {
                     input.attr('type', 'password');
-                    $(this).attr('aria-pressed', 'false');
-                    $(this).attr('aria-label', $(this).attr('data-pwd-show'));
+                    $(this).attr('aria-pressed', 'true');
+                    $(this).attr('aria-label', $(this).attr('data-pwd-hide'));
                     $(this).removeClass("fa-eye-slash");
                     $(this).addClass("fa-eye");
                 }
@@ -414,30 +480,62 @@ export default class MidPointTheme {
                 select.on("select2:open", function () {
                     setTimeout(() => {
                         const resultsList = document.querySelector('.select2-container--open ul.select2-results__options');
+                        const input = document.querySelector('.select2-container--open input.select2-search__field');
+
                         if (resultsList) {
                             let liveStatusUpdated = false;
-                            const observer = new MutationObserver(() => {
+
+                            const resultsObserver = new MutationObserver(() => {
                                 const hasResult = resultsList.querySelector('li[role="option"]') !== null;
                                 if (hasResult && !liveStatusUpdated) {
                                     liveStatusUpdated = true;
-                                    $("#comboBoxLiveStatus").text($("#comboBoxLiveStatus").attr("data-live-status"));
-                                }
-                                else if (!hasResult && liveStatusUpdated) {
+                                    $("#comboBoxLiveStatus").text("");
+                                    setTimeout(() => {
+                                        $("#comboBoxLiveStatus").text($("#comboBoxLiveStatus").attr("data-live-status"));
+                                    }, 50);
+                                } else if (!hasResult && liveStatusUpdated) {
                                     liveStatusUpdated = false;
                                     $("#comboBoxLiveStatus").text("");
                                 }
                             });
 
-                            observer.observe(resultsList, {
+                            resultsObserver.observe(resultsList, {
                                 childList: true,
                                 subtree: false
                             });
 
                             select.on('select2:close', () => {
-                                observer.disconnect();
+                                resultsObserver.disconnect();
                                 liveStatusUpdated = false;
                                 $("#comboBoxLiveStatus").text("");
+                                if (input) {
+                                    input.removeAttribute('aria-activedescendant');
+                                }
                             });
+
+                            if (input) {
+                                const highlightObserver = new MutationObserver(() => {
+                                    const highlighted = resultsList.querySelector('.select2-results__option--highlighted');
+                                    if (highlighted) {
+                                        if (!highlighted.id) {
+                                            highlighted.id = 'select2-option-' + Date.now();
+                                        }
+                                        input.setAttribute('aria-activedescendant', highlighted.id);
+                                    }
+                                });
+
+                                highlightObserver.observe(resultsList, {
+                                    childList: true,
+                                    subtree: true,
+                                    attributes: true,
+                                    attributeFilter: ['class']
+                                });
+
+                                select.on('select2:close', () => {
+                                    highlightObserver.disconnect();
+                                    input.removeAttribute('aria-activedescendant');
+                                });
+                            }
                         }
                     }, 0);
                 });
@@ -540,8 +638,23 @@ export default class MidPointTheme {
         }
     }
 
-    initDateTimePicker(containerId, configuration) {
-        new TempusDominus(containerId, configuration);
+    initDateTimePicker(containerId, configuration, pickerStatusId, messageOpen, messageClose) {
+        const picker = new TempusDominus(containerId, configuration);
+        const pickerStatus = document.getElementById(pickerStatusId);
+        if (pickerStatus) {
+            picker.subscribe('show.td', () => {
+                pickerStatus.textContent = '';
+                setTimeout(() => {
+                    pickerStatus.textContent = messageOpen;
+                }, 350);
+            });
+            picker.subscribe('hide.td', () => {
+                pickerStatus.textContent = '';
+                setTimeout(() => {
+                    pickerStatus.textContent = messageClose;
+                }, 250);
+            });
+        }
     }
 
     createCurrentDateForDatePicker(containerId, configuration) {

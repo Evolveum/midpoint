@@ -10,9 +10,11 @@ import java.util.List;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.AttributeModifier;
+import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.form.AjaxSubmitLink;
 import org.apache.wicket.behavior.AttributeAppender;
+import org.apache.wicket.behavior.Behavior;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.list.ListItem;
@@ -79,6 +81,8 @@ public class DetailsNavigationPanel<O extends ObjectType> extends BasePanel<List
 
         AjaxSubmitLink link = createNavigationLink(item);
         navigationDetails.add(link);
+
+        addParentMenuItemDescription(link, item);
 
         DetailsNavigationPanel<O> subPanel = createDetailsSubNavigationPanel(item);
         navigationDetails.add(subPanel);
@@ -209,21 +213,37 @@ public class DetailsNavigationPanel<O extends ObjectType> extends BasePanel<List
         link.add(icon);
     }
 
-    private void addLabel(org.apache.wicket.ajax.markup.html.form.AjaxSubmitLink link, ListItem<ContainerPanelConfigurationType> item) {
+    private void addLabel(AjaxSubmitLink link, ListItem<ContainerPanelConfigurationType> item) {
         Label buttonLabel = new Label(ID_NAV_ITEM, createButtonLabel(item.getModel()));
         link.add(buttonLabel);
     }
 
-    private void addCount(org.apache.wicket.ajax.markup.html.form.AjaxSubmitLink link, ListItem<ContainerPanelConfigurationType> item) {
+    private void addCount(AjaxSubmitLink link, ListItem<ContainerPanelConfigurationType> item) {
         Label label = new Label(ID_COUNT, createCountModel(item.getModel()));
         label.add(new VisibleBehaviour(() -> getCounterProvider(item.getModel()) != null));
         link.add(label);
     }
 
-    private void addSubmenuLink(org.apache.wicket.ajax.markup.html.form.AjaxSubmitLink link, ListItem<ContainerPanelConfigurationType> item) {
+    private void addSubmenuLink(AjaxSubmitLink link, ListItem<ContainerPanelConfigurationType> item) {
         WebMarkupContainer submenuLink = new WebMarkupContainer(ID_SUBMENU_LINK);
         submenuLink.add(new VisibleBehaviour(() -> isSubMenuVisible(item.getModelObject())));
         link.add(submenuLink);
+    }
+
+    private void addParentMenuItemDescription(AjaxSubmitLink link, ListItem<ContainerPanelConfigurationType> item) {
+        // in case there is parent menu item (e.g. Assignments is parent for Role menu item)
+        // we want to add a description for a screen reader to describe this parent item
+        DetailsNavigationPanel<?> parentPanel = link.findParent(DetailsNavigationPanel.class);
+        WebMarkupContainer parentMenuItemPanel = parentPanel != null ? (WebMarkupContainer) parentPanel.getParent() : null;
+        if (parentMenuItemPanel != null && ID_NAVIGATION_DETAILS.equals(parentMenuItemPanel.getId())) {
+            Component labelComponent = parentMenuItemPanel.get(ID_NAV_ITEM_LINK).get(ID_NAV_ITEM);
+            Object parentLinkLabel = labelComponent.getDefaultModelObject();
+            if (parentLinkLabel instanceof String parentLabel && StringUtils.isNotEmpty(parentLabel)) {
+                String currentItemLabel = createButtonLabel(item.getModel()).getObject();
+                link.add(AttributeAppender.append("aria-label",
+                        createStringResource("DetailsNavigationPanel.parentMenuItemDescription", currentItemLabel, parentLabel)));
+            }
+        }
     }
 
     private DetailsNavigationPanel<O> createDetailsSubNavigationPanel(ListItem<ContainerPanelConfigurationType> item) {
