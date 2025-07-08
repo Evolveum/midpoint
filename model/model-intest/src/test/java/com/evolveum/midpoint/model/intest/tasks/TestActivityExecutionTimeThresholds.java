@@ -10,6 +10,11 @@ package com.evolveum.midpoint.model.intest.tasks;
 import java.io.File;
 import java.nio.charset.StandardCharsets;
 
+import org.apache.commons.io.FileUtils;
+import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.context.ContextConfiguration;
+import org.testng.annotations.Test;
+
 import com.evolveum.midpoint.model.intest.AbstractEmptyModelIntegrationTest;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
@@ -23,11 +28,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityPolicyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SimulationResultType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 
-import org.apache.commons.io.FileUtils;
-import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.ContextConfiguration;
-import org.testng.annotations.Test;
-
 @ContextConfiguration(locations = { "classpath:ctx-model-intest-test-main.xml" })
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 public class TestActivityExecutionTimeThresholds extends AbstractEmptyModelIntegrationTest {
@@ -39,6 +39,9 @@ public class TestActivityExecutionTimeThresholds extends AbstractEmptyModelInteg
 
     private static final TestObject<TaskType> TASK_COMPOSITE_NOOP =
             TestObject.file(TEST_DIR, "task-composite-noop.xml", "50a4d2af-4302-4268-99db-ff49895242d5");
+
+    private static final TestObject<TaskType> TASK_SIMPLE_NOOP_RESTART =
+            TestObject.file(TEST_DIR, "task-simple-noop-restart.xml", "0020d7c9-5eac-4ad5-a900-e342ffb775e4");
 
     @Test
     public void test100SingleThread() throws Exception {
@@ -85,7 +88,7 @@ public class TestActivityExecutionTimeThresholds extends AbstractEmptyModelInteg
         TaskAsserter ta = TaskAsserter.forTask(task);
         ta.assertSuspended()
                 .activityState(ActivityPath.fromId("activity to be skipped"))
-                    .assertFatalError();
+                .assertFatalError();
     }
 
     private void testTask(TestObject<TaskType> task, int threads) throws Exception {
@@ -177,5 +180,42 @@ public class TestActivityExecutionTimeThresholds extends AbstractEmptyModelInteg
                 .progress().assertSuccessCount(0,0).display().end()
                 .itemProcessingStatistics().display().end();
         // @formatter:on
+    }
+
+    @Test
+    public void test300TestSimpleRestartThenSkip() throws Exception {
+        Task testTask = getTestTask();
+        OperationResult testResult = testTask.getResult();
+
+        TestObject<TaskType> object = TASK_SIMPLE_NOOP_RESTART;
+        object.reset();
+
+        when();
+
+        deleteIfPresent(object, testResult);
+        addObject(object, testTask, testResult);
+
+        waitForTaskCloseOrSuspend(object.oid, 15000);
+
+        then();
+
+        PrismObject<TaskType> task = getTask(object.oid);
+
+        ActivityPolicyType policy = task.asObjectable().getActivity().getPolicies().getPolicy().get(0);
+        String identifier = ActivityPolicyUtils.createIdentifier(ActivityPath.empty(), policy);
+
+        // @formatter:off
+        assertTaskTree(object.oid, "after")
+                .assertSuspended()
+                .assertFatalError()
+                .assertTaskRunHistorySize(1)
+                .rootActivityState()
+                    .assertExecutionAttempts(2)
+                    .assertFatalError()
+                    .activityPolicyStates()
+                        .display()
+                        .assertOnePolicyStateTriggers(identifier, 1);
+        // @formatter:on
+
     }
 }

@@ -19,7 +19,7 @@ import org.springframework.stereotype.Component;
 
 @Component
 public class ExecutionTimeConstraintEvaluator
-        extends EvaluatedDurationThresholdConstraintEvaluator<DurationThresholdPolicyConstraintType> {
+        extends DurationThresholdConstraintEvaluator<DurationThresholdPolicyConstraintType> {
 
     @Override
     protected Long getDurationValue(ActivityPolicyRuleEvaluationContext context) {

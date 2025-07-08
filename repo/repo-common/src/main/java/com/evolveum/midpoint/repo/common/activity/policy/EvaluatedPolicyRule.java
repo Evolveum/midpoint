@@ -13,6 +13,14 @@ public interface EvaluatedPolicyRule {
 
     String getRuleIdentifier();
 
+    /**
+     * Return true if this rule represents a policy with constraint that uses a counter.
+     * For example {@link com.evolveum.midpoint.xml.ns._public.common.common_3.ItemStatePolicyConstraintType}.
+     * On the other hand, if rule contains only single
+     * @return
+     */
+    boolean isUsePolicyCounter();
+
     int getCount();
 
     void setCount(int count);

@@ -18,27 +18,16 @@
             </noOp>
         </work>
         <policies>
+
             <policy>
                 <name>Max. 3s execution</name>
                 <policyConstraints>
                     <executionTime>
                         <exceeds>PT3S</exceeds>
                     </executionTime>
-                    <itemState>
-                        <status>fatal_error</status>
-                        <errorCategory>network</errorCategory>
-                    </itemState>
                 </policyConstraints>
                 <policyReaction>
                     <name>restart me</name>
-                    <threshold>
-                        <lowWaterMark>
-                            <count>2</count>
-                        </lowWaterMark>
-                        <highWaterMark>
-                            <count>3</count>
-                        </highWaterMark>
-                    </threshold>
                     <action>
                         <restartActivity>
                             <delay>2000</delay>
@@ -46,6 +35,13 @@
                         </restartActivity>
                     </action>
                 </policyReaction>
+            </policy>
+
+            <policy>
+                <name>count restarts</name>
+                <policyConstraints>
+                    <restartActivity/>
+                </policyConstraints>
                 <policyReaction>
                     <name>suspend the task because of me</name>
                     <threshold>
@@ -58,24 +54,6 @@
                     </action>
                 </policyReaction>
             </policy>
-
-            <!--<policy>-->
-            <!--    <name>count restarts</name>-->
-            <!--    <policyConstraints>-->
-            <!--        <restartActivity/>-->
-            <!--    </policyConstraints>-->
-            <!--    <policyReaction>-->
-            <!--        <name>suspend the task because of me</name>-->
-            <!--        <threshold>-->
-            <!--            <lowWaterMark>-->
-            <!--                <count>2</count>-->
-            <!--            </lowWaterMark>-->
-            <!--        </threshold>-->
-            <!--        <action>-->
-            <!--            <suspendTask/>-->
-            <!--        </action>-->
-            <!--    </policyReaction>-->
-            <!--</policy>-->
         </policies>
     </activity>
 </task>

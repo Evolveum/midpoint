@@ -2049,12 +2049,52 @@
                     <xsd:element name="executionTime" type="tns:DurationThresholdPolicyConstraintType" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>
-                                Duration of the activity execution.
+                                The execution time constraint doesn’t use counters, implicit value to check
+                                constraint/threshold is the activity execution time.
+
+                                When the exceeds element is specified, constraint will trigger if the task execution
+                                time exceeds the specified value. When the below element is specified, constraint will
+                                trigger if the task execution time is below the specified value.
+
+                                If this constraint is not combined with other constraints, then exceeds/below element
+                                doesn’t have to be specified and policyReaction/threshold/interval can be used to evaluate
+                                the threshold, while not taking into account processed items (policy counter).
+
+                                If this constraint is combined with other constraints, then it has to have exceeds/below
+                                element specified, otherwise it will never trigger. In this case, the
+                                policyReaction/threshold/[low|high]WaterMark/count will be used to evaluate the threshold
+                                against counter for policy.
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
-                    <xsd:element name="restartActivity" type="tns:NumericThresholdPolicyConstraintType" minOccurs="0"/>
-                    <xsd:element name="itemState" type="tns:ItemStatePolicyConstraintType" minOccurs="0"/>
+                    <xsd:element name="restartActivity" type="tns:NumericThresholdPolicyConstraintType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                The restart activity constraint doesn’t use counters, implicit value to check
+                                constraint/threshold is the number of execution attempts stored in activity state.
+
+                                When the exceeds element is specified, constraint will trigger if the number of attempts
+                                exceeds the specified value. When the below element is specified, constraint will trigger
+                                if the number of attempts is below the specified value.
+
+                                If this constraint is not combined with other constraints, then exceeds/below element
+                                doesn’t have to be specified and policyReaction/threshold/[low|high]WaterMark/count can be
+                                used to evaluate the threshold, while not taking into account processed items (policy counter).
+
+                                If this constraint is combined with other constraints, then it has to have exceeds/below
+                                element specified, otherwise it will never trigger. In this case, the
+                                policyReaction/threshold/[low|high]WaterMark/count will be used to evaluate the threshold
+                                against counter for policy.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="itemState" type="tns:ItemStatePolicyConstraintType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Item state constraint uses policy counters to evaluate the threshold if defined.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
                 </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>
@@ -2109,10 +2149,16 @@
                 <a:container>true</a:container>
             </xsd:appinfo>
         </xsd:annotation>
-        <xsd:choice>
-            <xsd:element name="below" type="xsd:int" minOccurs="0"/>
-            <xsd:element name="exceeds" type="xsd:int" minOccurs="0"/>
-        </xsd:choice>
+        <xsd:complexContent>
+            <xsd:extension base="tns:AbstractPolicyConstraintType">
+                <xsd:sequence>
+                    <xsd:choice>
+                        <xsd:element name="below" type="xsd:int" minOccurs="0"/>
+                        <xsd:element name="exceeds" type="xsd:int" minOccurs="0"/>
+                    </xsd:choice>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
     </xsd:complexType>
 
     <xsd:complexType name="DurationThresholdPolicyConstraintType">

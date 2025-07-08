@@ -151,4 +151,9 @@ public class EvaluatedActivityPolicyRule implements EvaluatedPolicyRule, DebugDu
                 ", triggers=" + triggers.size() +
                 '}';
     }
+
+    @Override
+    public boolean isUsePolicyCounter() {
+        return false;
+    }
 }

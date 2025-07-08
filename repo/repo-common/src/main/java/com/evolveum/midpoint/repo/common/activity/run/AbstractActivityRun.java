@@ -339,7 +339,7 @@ public abstract class AbstractActivityRun<
             RestartActivityPolicyActionType action =
                     PolicyViolationContext.getPolicyAction(runResult.createTaskRunResult(), RestartActivityPolicyActionType.class);
 
-            if (action != null && BooleanUtils.isNotFalse(action.isRestartCounters())) {
+            if (action != null && BooleanUtils.isTrue(action.isRestartCounters())) {
                 try {
                     activityState.clearCounters(CountersGroup.ACTIVITY_POLICY_RULES, result);
                 } catch (SchemaException |  ObjectNotFoundException | ObjectAlreadyExistsException e) {

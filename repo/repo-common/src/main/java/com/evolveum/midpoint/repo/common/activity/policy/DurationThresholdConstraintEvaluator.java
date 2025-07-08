@@ -20,10 +20,10 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.DurationThresholdPol
 
 import org.jetbrains.annotations.Nullable;
 
-public abstract class EvaluatedDurationThresholdConstraintEvaluator<C extends DurationThresholdPolicyConstraintType>
+public abstract class DurationThresholdConstraintEvaluator<C extends DurationThresholdPolicyConstraintType>
         implements ActivityPolicyConstraintEvaluator<C, DurationThresholdPolicyTrigger<C>> {
 
-    private static final Trace LOGGER = TraceManager.getTrace(EvaluatedDurationThresholdConstraintEvaluator.class);
+    private static final Trace LOGGER = TraceManager.getTrace(DurationThresholdConstraintEvaluator.class);
 
     public enum ThresholdType {
         BELOW, EXCEEDS

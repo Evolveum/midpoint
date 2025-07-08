@@ -34,6 +34,14 @@ public class ActivityStateAsserter<RA> extends AbstractAsserter<RA> {
         this.activityState = information;
     }
 
+    public ActivityStateAsserter<RA> assertExecutionAttempts(Integer expected) {
+        assertThat(activityState.getExecutionAttempt())
+                .as("execution attempts")
+                .isEqualTo(expected);
+
+        return this;
+    }
+
     public ActivityStateAsserter<RA> assertComplete() {
         return assertRealizationState(ActivityRealizationStateType.COMPLETE);
     }
