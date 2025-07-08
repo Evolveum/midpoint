@@ -60,27 +60,92 @@ export default class MidPointTheme {
         !function ($) {
             $.fn.passwordFieldValidatorPopover = function (inputId, popover) {
                 return this.each(function () {
-
+                    var hideTimeout;
                     var parent = $(this).parent();
 
+                    var cancelPopoverHide = function () {
+                        clearTimeout(hideTimeout);
+                    };
+
                     var showPopover = function () {
+                        cancelPopoverHide();
                         parent.find(inputId).each(function () {
                             var itemH = $(this).innerHeight() + 27;
                             parent.find(popover).css({top: itemH, left: 0}).fadeIn(300);
                         });
                     }
 
-                    showPopover();
-                    $(this).on("focus", function () {
-                        showPopover();
-                    });
-
                     var deletePopover = function () {
                         parent.find(popover).fadeOut(300);
                     };
 
-                    $(this).on("blur", function () {
-                        deletePopover();
+                    var schedulePopoverHide = function () {
+                        hideTimeout = setTimeout(function () {
+                            if (!parent.find(inputId + ":hover").length && !parent.find(popover + ":hover").length) {
+                                deletePopover();
+                            }
+                        }, 200);
+                    };
+
+                    showPopover();
+
+                    $(this).on("mouseenter", function () {
+                        showPopover();
+                    });
+
+                    $(this).on("mouseleave", function () {
+                        schedulePopoverHide();
+                    });
+
+                    parent.find(popover)
+                        .on("mouseenter", function () {
+                            cancelPopoverHide();
+                        })
+                        .on("mouseleave", function () {
+                            schedulePopoverHide();
+                        });
+
+                    $(this).on("keydown", function (e) {
+                        if (e.key === "Enter" || e.keyCode === 13) {
+                            showPopover();
+                            e.preventDefault();
+                        }
+                        if (e.key === "Escape" || e.keyCode === 27) {
+                            deletePopover();
+                            e.preventDefault();
+                        }
+                    });
+
+                    $(this).on("click", function (e) {
+                        showPopover();
+                        e.preventDefault();
+                    });
+
+                    parent.find(popover).on("keydown", function (e) {
+                        if (e.key === "Escape" || e.keyCode === 27) {
+                            deletePopover();
+                            e.preventDefault();
+                            parent.find(inputId).focus();
+                        }
+                    });
+
+                    parent.find(inputId).on("focus", function () {
+                        showPopover();
+                    });
+
+                    parent.find(inputId).on("keydown", function (e) {
+                        if (e.key === "Escape" || e.keyCode === 27) {
+                            deletePopover();
+                            e.preventDefault();
+                        }
+                    })
+
+                    parent.find(popover).on("focusout", function () {
+                        setTimeout(function () {
+                            if (!parent.find(popover).find(':focus').length && !parent.find(inputId).is(':focus') && !parent.find('.fa-info-circle').is(':focus')) {
+                                deletePopover();
+                            }
+                        }, 10);
                     });
                 });
             };
