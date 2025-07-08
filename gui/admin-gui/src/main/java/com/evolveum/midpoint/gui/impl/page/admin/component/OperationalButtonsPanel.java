@@ -8,6 +8,8 @@ package com.evolveum.midpoint.gui.impl.page.admin.component;
 
 import java.io.Serial;
 
+import com.evolveum.midpoint.web.component.breadcrumbs.Breadcrumb;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
@@ -84,6 +86,16 @@ public class OperationalButtonsPanel<O extends ObjectType> extends BasePanel<Pri
                     String title = null;
                     if (button instanceof AjaxIconButton) {
                         title = ((AjaxIconButton) button).getTitle().getObject();
+                        if (getString("pageAdminFocus.button.back").equals(title)) {
+                            Breadcrumb breadcrumb = getPageBase().getPreviousBreadcrumb();
+                            if (breadcrumb != null && breadcrumb.getLabel() != null) {
+                                String backTo = breadcrumb.getLabel().getObject();
+                                title = getString("OperationalButtonsPanel.buttons.main.label.backTo", backTo);
+                            }
+                            else {
+                                title = getString("OperationalButtonsPanel.buttons.main.label.backToHome");
+                            }
+                        }
                     } else if (button instanceof AjaxCompositedIconSubmitButton) {
                         title = ((AjaxCompositedIconSubmitButton) button).getTitle().getObject();
                     }
