@@ -6,13 +6,22 @@
  */
 package com.evolveum.midpoint.gui.impl.page.self;
 
+import com.evolveum.midpoint.authentication.api.util.AuthUtil;
+import com.evolveum.midpoint.gui.api.model.LoadableModel;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
+import com.evolveum.midpoint.gui.impl.page.admin.component.UserOperationalButtonsPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.user.PageUser;
 
 import com.evolveum.midpoint.gui.impl.page.admin.user.UserDetailsModel;
+import com.evolveum.midpoint.gui.impl.page.self.dashboard.PageSelfDashboard;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.GuiObjectDetailsPageType;
+import com.evolveum.midpoint.web.component.AjaxIconButton;
+import com.evolveum.midpoint.web.page.self.PagePostAuthentication;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
+import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.behavior.AttributeAppender;
+import org.apache.wicket.markup.repeater.RepeatingView;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
@@ -25,6 +34,10 @@ import com.evolveum.midpoint.authentication.api.authorization.PageDescriptor;
 import com.evolveum.midpoint.authentication.api.authorization.Url;
 import com.evolveum.midpoint.web.component.breadcrumbs.Breadcrumb;
 import com.evolveum.midpoint.web.page.self.PageSelf;
+
+import org.jetbrains.annotations.NotNull;
+
+import java.io.Serial;
 
 @PageDescriptor(
         urls = {
@@ -48,6 +61,58 @@ public class PageUserSelfProfile extends PageUser {
 
     public PageUserSelfProfile(PageParameters parameters) {
         super(parameters);
+    }
+
+    @Override
+    protected UserOperationalButtonsPanel createButtonsPanel(String id, LoadableModel<PrismObjectWrapper<UserType>> wrapperModel) {
+        return new UserOperationalButtonsPanel(id, wrapperModel, getObjectDetailsModels().getExecuteOptionsModel(), getObjectDetailsModels().isSelfProfile()) {
+
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            protected void createBackButton(@NotNull RepeatingView repeatingView) {
+                AjaxIconButton back = new AjaxIconButton(repeatingView.newChildId(), Model.of(GuiStyleConstants.ARROW_LEFT),
+                        getPageBase().createStringResource("PageUserSelfProfile.button.backToHome")) {
+                    @Serial private static final long serialVersionUID = 1L;
+
+                    @Override
+                    public void onClick(AjaxRequestTarget ajaxRequestTarget) {
+                        backPerformed(ajaxRequestTarget);
+                    }
+                };
+
+                back.showTitleAsLabel(true);
+                back.add(AttributeAppender.append("class", getBackCssClass()));
+                repeatingView.add(back);
+            }
+
+            @Override
+            protected void backPerformedConfirmed() {
+                if (AuthUtil.isPostAuthenticationEnabled(getTaskManager(), getModelInteractionService())) {
+                    setResponsePage(PagePostAuthentication.class);
+                }
+                setResponsePage(PageSelfDashboard.class);
+            }
+
+            @Override
+            protected void refresh(AjaxRequestTarget target) {
+                PageUserSelfProfile.this.refresh(target);
+            }
+            @Override
+            protected void submitPerformed(AjaxRequestTarget target) {
+                PageUserSelfProfile.this.savePerformed(target);
+            }
+
+            @Override
+            protected void previewPerformed(AjaxRequestTarget target) {
+                PageUserSelfProfile.this.previewPerformed(target);
+            }
+
+            @Override
+            protected boolean hasUnsavedChanges(AjaxRequestTarget target) {
+                return PageUserSelfProfile.this.hasUnsavedChanges(target);
+            }
+        };
     }
 
     @Override

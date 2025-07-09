@@ -29,6 +29,7 @@ public class NavigationPanel extends BasePanel {
     private static final long serialVersionUID = 1L;
 
     private static final String ID_BACK = "back";
+    private static final String ID_BACK_LABEL = "backLabel";
     private static final String ID_TITLE = "title";
     private static final String ID_CONTENT = "content";
     private static final String ID_NEXT = "next";
@@ -45,7 +46,7 @@ public class NavigationPanel extends BasePanel {
     private void initLayout() {
         add(AttributeAppender.append("class", "d-flex align-items-center flex-wrap gap-3 mb-3"));
 
-        AjaxLink back = createBackButton(ID_BACK);
+        AjaxLink back = createBackButton(ID_BACK, createBackTitleModel());
         add(back);
         Component next = createNextButton(ID_NEXT, createNextTitleModel());
         add(next);
@@ -65,6 +66,10 @@ public class NavigationPanel extends BasePanel {
 
     protected IModel<String> createNextTitleModel() {
         return () -> null;
+    }
+
+    protected IModel<String> createBackTitleModel() {
+        return createStringResource("NavigationPanel.back");
     }
 
     protected IModel<String> createTitleModel() {
@@ -99,7 +104,7 @@ public class NavigationPanel extends BasePanel {
         return VisibleEnableBehaviour.ALWAYS_VISIBLE_ENABLED;
     }
 
-    protected AjaxLink createBackButton(String id) {
+    protected AjaxLink createBackButton(String id, IModel<String> backTitle) {
         AjaxLink back = new AjaxLink<>(id) {
 
             @Override
@@ -110,7 +115,7 @@ public class NavigationPanel extends BasePanel {
         back.setOutputMarkupId(true);
         back.setOutputMarkupPlaceholderTag(true);
         WebComponentUtil.addDisabledClassBehavior(back);
-
+        back.add(new Label(ID_BACK_LABEL, backTitle));
         back.add(new BehaviourDelegator(() -> getBackVisibilityBehaviour()));
 
         return back;

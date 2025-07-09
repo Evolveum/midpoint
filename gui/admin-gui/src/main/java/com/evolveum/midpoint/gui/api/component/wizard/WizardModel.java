@@ -175,7 +175,7 @@ public class WizardModel implements IClusterable {
         return findPreviousStep() != null;
     }
 
-    private WizardStep findPreviousStep() {
+    public WizardStep findPreviousStep() {
         for (int i = activeStepIndex - 1; i >= 0; i--) {
             if (i < 0) {
                 return null;
