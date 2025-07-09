@@ -13,6 +13,8 @@ import static com.evolveum.midpoint.test.util.MidPointTestConstants.TEST_RESOURC
 
 import java.io.File;
 
+import com.evolveum.midpoint.util.exception.CommonException;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
@@ -51,7 +53,7 @@ public class TestSmartIntegrationService extends AbstractEmptyModelIntegrationTe
     }
 
     @Test
-    public void test100SuggestFocusType() {
+    public void test100SuggestFocusType() throws CommonException {
         var task = getTestTask();
         var result = task.getResult();
 

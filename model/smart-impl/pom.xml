@@ -22,14 +22,14 @@
     <name>midPoint Smart Integration Layer - impl</name>
 
     <dependencies>
-        <!--<dependency>-->
-        <!--    <groupId>com.evolveum.commons</groupId>-->
-        <!--    <artifactId>util</artifactId>-->
-        <!--</dependency>-->
-        <!--<dependency>-->
-        <!--    <groupId>com.evolveum.prism</groupId>-->
-        <!--    <artifactId>prism-api</artifactId>-->
-        <!--</dependency>-->
+        <dependency>
+            <groupId>com.evolveum.commons</groupId>
+            <artifactId>util</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.evolveum.prism</groupId>
+            <artifactId>prism-api</artifactId>
+        </dependency>
         <!--<dependency>-->
         <!--    <groupId>com.evolveum.prism</groupId>-->
         <!--    <artifactId>prism-impl</artifactId>-->
@@ -60,11 +60,11 @@
             <artifactId>task-api</artifactId>
             <version>${project.version}</version>
         </dependency>
-        <!--<dependency>-->
-        <!--    <groupId>com.evolveum.midpoint.repo</groupId>-->
-        <!--    <artifactId>repo-common</artifactId>-->
-        <!--    <version>${project.version}</version>-->
-        <!--</dependency>-->
+        <dependency>
+            <groupId>com.evolveum.midpoint.repo</groupId>
+            <artifactId>repo-common</artifactId>
+            <version>${project.version}</version>
+        </dependency>
         <!--<dependency>-->
         <!--    <groupId>com.evolveum.midpoint.repo</groupId>-->
         <!--    <artifactId>security-enforcer-api</artifactId>-->
@@ -75,11 +75,11 @@
         <!--    <artifactId>common</artifactId>-->
         <!--    <version>${project.version}</version>-->
         <!--</dependency>-->
-        <!--<dependency>-->
-        <!--    <groupId>com.evolveum.midpoint.model</groupId>-->
-        <!--    <artifactId>model-api</artifactId>-->
-        <!--    <version>${project.version}</version>-->
-        <!--</dependency>-->
+        <dependency>
+            <groupId>com.evolveum.midpoint.model</groupId>
+            <artifactId>model-api</artifactId>
+            <version>${project.version}</version>
+        </dependency>
         <!--<dependency>-->
         <!--    <groupId>com.evolveum.midpoint.model</groupId>-->
         <!--    <artifactId>certification-api</artifactId>-->
@@ -96,10 +96,10 @@
         <!--    <version>${project.version}</version>-->
         <!--</dependency>-->
 
-        <!--<dependency>-->
-        <!--    <groupId>org.jetbrains</groupId>-->
-        <!--    <artifactId>annotations</artifactId>-->
-        <!--</dependency>-->
+        <dependency>
+            <groupId>org.jetbrains</groupId>
+            <artifactId>annotations</artifactId>
+        </dependency>
         <!--<dependency>-->
         <!--    <groupId>org.apache.commons</groupId>-->
         <!--    <artifactId>commons-lang3</artifactId>-->
@@ -127,14 +127,19 @@
             <groupId>org.springframework</groupId>
             <artifactId>spring-context</artifactId>
         </dependency>
-        <!--<dependency>-->
-        <!--    <groupId>org.springframework</groupId>-->
-        <!--    <artifactId>spring-beans</artifactId>-->
-        <!--</dependency>-->
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-beans</artifactId>
+        </dependency>
         <!--<dependency>-->
         <!--    <groupId>jakarta.annotation</groupId>-->
         <!--    <artifactId>jakarta.annotation-api</artifactId>-->
         <!--</dependency>-->
+
+        <dependency>
+            <groupId>org.apache.cxf</groupId>
+            <artifactId>cxf-rt-rs-client</artifactId>
+        </dependency>
 
         <!-- Dependency definition added, client to fetch reports -->
 

@@ -26,10 +26,10 @@
     </properties>
 
     <dependencies>
-        <!--<dependency>-->
-        <!--    <groupId>com.evolveum.commons</groupId>-->
-        <!--    <artifactId>util</artifactId>-->
-        <!--</dependency>-->
+        <dependency>
+            <groupId>com.evolveum.commons</groupId>
+            <artifactId>util</artifactId>
+        </dependency>
         <!--<dependency>-->
         <!--    <groupId>com.evolveum.prism</groupId>-->
         <!--    <artifactId>prism-api</artifactId>-->

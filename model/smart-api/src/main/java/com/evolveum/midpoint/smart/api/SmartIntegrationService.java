@@ -10,6 +10,7 @@ package com.evolveum.midpoint.smart.api;
 import com.evolveum.midpoint.schema.processor.ResourceObjectTypeIdentification;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.DelineationsSuggestionType;
 
 import javax.xml.namespace.QName;
@@ -24,7 +25,9 @@ public interface SmartIntegrationService {
 
     /** Suggests a discrete focus type for the application (resource) object type. */
     QName suggestFocusType(
-            String resourceOid, ResourceObjectTypeIdentification typeIdentification, Task task, OperationResult result);
+            String resourceOid, ResourceObjectTypeIdentification typeIdentification, Task task, OperationResult result)
+            throws SchemaException, ExpressionEvaluationException, SecurityViolationException, CommunicationException,
+            ConfigurationException, ObjectNotFoundException;
 
     //void suggestCorrelation();
 

@@ -11877,6 +11877,17 @@
                         </xsd:annotation>
                     </xsd:element>
                     <xsd:element name="secretsProviders" type="tns:SecretsProvidersType" minOccurs="0"/>
+                    <xsd:element minOccurs="0" name="smartIntegration" type="tns:SmartIntegrationConfigurationType">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Global settings related to smart integration.
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:displayName>SystemConfigurationType.smartIntegration</a:displayName>
+                                <a:since>4.11</a:since>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
                 </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>

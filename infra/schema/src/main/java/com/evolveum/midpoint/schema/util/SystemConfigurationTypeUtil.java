@@ -156,4 +156,9 @@ public class SystemConfigurationTypeUtil {
         var shadowCaching = internalsConfig != null ? internalsConfig.getShadowCaching() : null;
         return shadowCaching != null ? shadowCaching.getDefaultPolicy() : null;
     }
+
+    public static @Nullable SmartIntegrationConfigurationType getSmartIntegrationConfiguration(
+            @Nullable SystemConfigurationType systemConfiguration) {
+        return systemConfiguration != null ? systemConfiguration.getSmartIntegration() : null;
+    }
 }

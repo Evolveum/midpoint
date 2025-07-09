@@ -31,6 +31,28 @@
 
     <xsd:include schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-core-3" />
 
+    <xsd:complexType name="SmartIntegrationConfigurationType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Configuration related to smart integration feature.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:since>4.11</a:since>
+                <a:container>true</a:container>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="serviceUrl" type="xsd:string" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        A URL of the smart integration [micro]service.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+    <xsd:element name="smartIntegrationConfiguration" type="tns:SmartIntegrationConfigurationType"/>
+
     <xsd:complexType name="DelineationsSuggestionType">
         <xsd:annotation>
             <xsd:documentation>
