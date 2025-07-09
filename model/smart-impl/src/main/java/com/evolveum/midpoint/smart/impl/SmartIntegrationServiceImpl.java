@@ -9,10 +9,12 @@ package com.evolveum.midpoint.smart.impl;
 
 import com.evolveum.midpoint.schema.processor.ResourceObjectTypeIdentification;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.smart.api.DelineationSuggestions;
-import com.evolveum.midpoint.smart.api.FocusTypeSuggestions;
 import com.evolveum.midpoint.smart.api.SmartIntegrationService;
 import com.evolveum.midpoint.task.api.Task;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.DelineationsSuggestionType;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 import org.springframework.stereotype.Service;
 
@@ -22,14 +24,14 @@ import javax.xml.namespace.QName;
 public class SmartIntegrationServiceImpl implements SmartIntegrationService {
 
     @Override
-    public DelineationSuggestions suggestDelineation(
+    public DelineationsSuggestionType suggestDelineations(
             String resourceOid, QName objectClassName, Task task, OperationResult result) {
-        return new DelineationSuggestions();
+        return new DelineationsSuggestionType(); // TODO replace with real implementation
     }
 
     @Override
-    public FocusTypeSuggestions suggestFocusType(
+    public QName suggestFocusType(
             String resourceOid, ResourceObjectTypeIdentification typeIdentification, Task task, OperationResult result) {
-        return new FocusTypeSuggestions();
+        return UserType.COMPLEX_TYPE; // TODO replace with real implementation
     }
 }

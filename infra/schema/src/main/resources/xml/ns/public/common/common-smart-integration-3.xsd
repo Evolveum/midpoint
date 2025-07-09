@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--
+  ~ Copyright (c) 2010-2025 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<xsd:schema targetNamespace="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+            xmlns:tns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+            xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+            xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-3"
+            xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+            xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
+            xmlns:jaxb="https://jakarta.ee/xml/ns/jaxb"
+            elementFormDefault="qualified"
+            xmlns:xjc="http://java.sun.com/xml/ns/jaxb/xjc"
+            jaxb:extensionBindingPrefixes="xjc"
+            jaxb:version="3.0">
+
+    <xsd:annotation>
+        <xsd:documentation>
+            Parts related to the smart integration (midPilot).
+        </xsd:documentation>
+    </xsd:annotation>
+
+    <!-- Don't provide schemaLocation here, as it causes xjc to really contact the URIs (!) -->
+    <xsd:import namespace="http://prism.evolveum.com/xml/ns/public/annotation-3"/>
+    <xsd:import namespace="http://prism.evolveum.com/xml/ns/public/types-3"/>
+
+    <xsd:include schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-core-3" />
+
+    <xsd:complexType name="DelineationsSuggestionType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Delineations suggestion: the output of "suggest delineations" smart integration service API method.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:since>4.11</a:since>
+                <a:container>true</a:container>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="suggestion" type="tns:DelineationSuggestionType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Collection of suggestions.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+    <xsd:element name="delineationsSuggestion" type="tns:DelineationsSuggestionType"/>
+
+    <xsd:complexType name="DelineationSuggestionType">
+        <xsd:annotation>
+            <xsd:documentation>
+                A single delineation suggestion.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:since>4.11</a:since>
+                <a:container>true</a:container>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="type" type="tns:ResourceObjectTypeIdentificationType">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Identification of a suggested type (kind and intent).
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="delineation" type="tns:ResourceObjectTypeDelineationType">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Suggested delineation.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+    <xsd:element name="delineationSuggestion" type="tns:DelineationSuggestionType"/>
+</xsd:schema>

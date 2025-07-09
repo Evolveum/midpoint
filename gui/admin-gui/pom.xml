@@ -317,6 +317,12 @@
         </dependency>
         <dependency>
             <groupId>com.evolveum.midpoint.model</groupId>
+            <artifactId>smart-impl</artifactId>
+            <version>${project.version}</version>
+            <scope>runtime</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.evolveum.midpoint.model</groupId>
             <artifactId>authentication-impl</artifactId>
             <version>${project.version}</version>
             <scope>runtime</scope>

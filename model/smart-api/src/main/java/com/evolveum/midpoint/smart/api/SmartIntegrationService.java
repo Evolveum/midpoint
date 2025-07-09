@@ -10,6 +10,7 @@ package com.evolveum.midpoint.smart.api;
 import com.evolveum.midpoint.schema.processor.ResourceObjectTypeIdentification;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.DelineationsSuggestionType;
 
 import javax.xml.namespace.QName;
 
@@ -18,11 +19,11 @@ import javax.xml.namespace.QName;
  */
 public interface SmartIntegrationService {
 
-    /** TODO */
-    DelineationSuggestions suggestDelineation(String resourceOid, QName objectClassName, Task task, OperationResult result);
+    /** Suggests delineations for the given resource and object class. */
+    DelineationsSuggestionType suggestDelineations(String resourceOid, QName objectClassName, Task task, OperationResult result);
 
-    /** TODO */
-    FocusTypeSuggestions suggestFocusType(
+    /** Suggests a discrete focus type for the application (resource) object type. */
+    QName suggestFocusType(
             String resourceOid, ResourceObjectTypeIdentification typeIdentification, Task task, OperationResult result);
 
     //void suggestCorrelation();
