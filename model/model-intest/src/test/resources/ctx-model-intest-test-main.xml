@@ -35,4 +35,5 @@
     <import resource="ctx-security.xml"/>
     <import resource="ctx-notifications.xml"/>
     <import resource="ctx-report.xml"/>
+    <import resource="ctx-smart-integration.xml"/>
 </beans>

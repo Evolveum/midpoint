@@ -1,0 +1,294 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (C) 2010-2022 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <artifactId>model</artifactId>
+        <groupId>com.evolveum.midpoint.model</groupId>
+        <version>4.11-SNAPSHOT</version>
+    </parent>
+
+    <artifactId>smart-impl</artifactId>
+    <packaging>jar</packaging>
+
+    <name>midPoint Smart Integration Layer - impl</name>
+
+    <dependencies>
+        <!--<dependency>-->
+        <!--    <groupId>com.evolveum.commons</groupId>-->
+        <!--    <artifactId>util</artifactId>-->
+        <!--</dependency>-->
+        <!--<dependency>-->
+        <!--    <groupId>com.evolveum.prism</groupId>-->
+        <!--    <artifactId>prism-api</artifactId>-->
+        <!--</dependency>-->
+        <!--<dependency>-->
+        <!--    <groupId>com.evolveum.prism</groupId>-->
+        <!--    <artifactId>prism-impl</artifactId>-->
+        <!--</dependency>-->
+
+        <dependency>
+            <groupId>com.evolveum.midpoint.model</groupId>
+            <artifactId>smart-api</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.evolveum.midpoint.infra</groupId>
+            <artifactId>schema</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <!--<dependency>-->
+        <!--    <groupId>com.evolveum.midpoint.repo</groupId>-->
+        <!--    <artifactId>repo-api</artifactId>-->
+        <!--    <version>${project.version}</version>-->
+        <!--</dependency>-->
+        <!--<dependency>-->
+        <!--    <groupId>com.evolveum.midpoint.repo</groupId>-->
+        <!--    <artifactId>audit-api</artifactId>-->
+        <!--    <version>${project.version}</version>-->
+        <!--</dependency>-->
+        <dependency>
+            <groupId>com.evolveum.midpoint.repo</groupId>
+            <artifactId>task-api</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <!--<dependency>-->
+        <!--    <groupId>com.evolveum.midpoint.repo</groupId>-->
+        <!--    <artifactId>repo-common</artifactId>-->
+        <!--    <version>${project.version}</version>-->
+        <!--</dependency>-->
+        <!--<dependency>-->
+        <!--    <groupId>com.evolveum.midpoint.repo</groupId>-->
+        <!--    <artifactId>security-enforcer-api</artifactId>-->
+        <!--    <version>${project.version}</version>-->
+        <!--</dependency>-->
+        <!--<dependency>-->
+        <!--    <groupId>com.evolveum.midpoint.infra</groupId>-->
+        <!--    <artifactId>common</artifactId>-->
+        <!--    <version>${project.version}</version>-->
+        <!--</dependency>-->
+        <!--<dependency>-->
+        <!--    <groupId>com.evolveum.midpoint.model</groupId>-->
+        <!--    <artifactId>model-api</artifactId>-->
+        <!--    <version>${project.version}</version>-->
+        <!--</dependency>-->
+        <!--<dependency>-->
+        <!--    <groupId>com.evolveum.midpoint.model</groupId>-->
+        <!--    <artifactId>certification-api</artifactId>-->
+        <!--    <version>${project.version}</version>-->
+        <!--</dependency>-->
+        <!--<dependency>-->
+        <!--    <groupId>com.evolveum.midpoint.model</groupId>-->
+        <!--    <artifactId>model-common</artifactId>-->
+        <!--    <version>${project.version}</version>-->
+        <!--</dependency>-->
+        <!--<dependency>-->
+        <!--    <groupId>com.evolveum.midpoint.model</groupId>-->
+        <!--    <artifactId>cases-api</artifactId>-->
+        <!--    <version>${project.version}</version>-->
+        <!--</dependency>-->
+
+        <!--<dependency>-->
+        <!--    <groupId>org.jetbrains</groupId>-->
+        <!--    <artifactId>annotations</artifactId>-->
+        <!--</dependency>-->
+        <!--<dependency>-->
+        <!--    <groupId>org.apache.commons</groupId>-->
+        <!--    <artifactId>commons-lang3</artifactId>-->
+        <!--</dependency>-->
+        <!--<dependency>-->
+        <!--    <groupId>org.apache.commons</groupId>-->
+        <!--    <artifactId>commons-text</artifactId>-->
+        <!--</dependency>-->
+        <!--<dependency>-->
+        <!--    <groupId>commons-io</groupId>-->
+        <!--    <artifactId>commons-io</artifactId>-->
+        <!--</dependency>-->
+        <!--<dependency>-->
+        <!--    <groupId>org.apache.commons</groupId>-->
+        <!--    <artifactId>commons-collections4</artifactId>-->
+        <!--</dependency>-->
+
+        <!--<dependency>-->
+        <!--    <groupId>commons-javaflow</groupId>-->
+        <!--    <artifactId>commons-javaflow</artifactId>-->
+        <!--    <scope>runtime</scope>-->
+        <!--</dependency>-->
+
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-context</artifactId>
+        </dependency>
+        <!--<dependency>-->
+        <!--    <groupId>org.springframework</groupId>-->
+        <!--    <artifactId>spring-beans</artifactId>-->
+        <!--</dependency>-->
+        <!--<dependency>-->
+        <!--    <groupId>jakarta.annotation</groupId>-->
+        <!--    <artifactId>jakarta.annotation-api</artifactId>-->
+        <!--</dependency>-->
+
+        <!-- Dependency definition added, client to fetch reports -->
+
+        <!--<dependency>-->
+        <!--    <groupId>jakarta.ws.rs</groupId>-->
+        <!--    <artifactId>jakarta.ws.rs-api</artifactId>-->
+        <!--</dependency>-->
+
+        <!--<dependency>-->
+        <!--    <groupId>com.google.guava</groupId>-->
+        <!--    <artifactId>guava</artifactId>-->
+        <!--</dependency>-->
+
+        <!-- Test -->
+        <dependency>
+            <groupId>com.evolveum.midpoint.repo</groupId>
+            <artifactId>repo-cache</artifactId>
+            <version>${project.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.evolveum.midpoint.provisioning</groupId>
+            <artifactId>provisioning-impl</artifactId>
+            <version>${project.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.evolveum.midpoint.repo</groupId>
+            <artifactId>task-quartz-impl</artifactId>
+            <version>${project.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.evolveum.icf</groupId>
+            <artifactId>dummy-resource</artifactId>
+            <version>${project.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.evolveum.midpoint.repo</groupId>
+            <artifactId>audit-log-impl</artifactId>
+            <version>${project.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.evolveum.midpoint.repo</groupId>
+            <artifactId>security-impl</artifactId>
+            <version>${project.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.evolveum.midpoint.repo</groupId>
+            <artifactId>security-enforcer-impl</artifactId>
+            <version>${project.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.evolveum.midpoint.model</groupId>
+            <artifactId>model-test</artifactId>
+            <version>${project.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.evolveum.midpoint.model</groupId>
+            <artifactId>model-impl</artifactId>
+            <version>${project.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.evolveum.midpoint.model</groupId>
+            <artifactId>notifications-impl</artifactId>
+            <version>${project.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.evolveum.midpoint.repo</groupId>
+            <artifactId>repo-sql-impl</artifactId>
+            <version>${project.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.evolveum.midpoint</groupId>
+            <artifactId>midpoint-localization</artifactId>
+            <version>${project.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.evolveum.midpoint.repo</groupId>
+            <artifactId>repo-test-util</artifactId>
+            <version>${project.version}</version>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>com.evolveum.midpoint.infra</groupId>
+            <artifactId>test-util</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.testng</groupId>
+            <artifactId>testng</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.evolveum.commons</groupId>
+            <artifactId>test-ng</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.evolveum.midpoint.repo</groupId>
+            <artifactId>system-init</artifactId>
+            <version>${project.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.evolveum.midpoint.repo</groupId>
+            <artifactId>repo-sql-impl-test</artifactId>
+            <version>${project.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency> <!-- needed as runtime dependency otherwise spring won't start -->
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-aspects</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency> <!-- needed as runtime dependency otherwise spring won't start -->
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-aop</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>jakarta.servlet</groupId>
+            <artifactId>jakarta.servlet-api</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.googlecode.java-diff-utils</groupId>
+            <artifactId>diffutils</artifactId>
+            <version>1.3.0</version>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <plugins>
+            <!-- reference failsafe to run integration tests (surefire/units run by default) -->
+            <plugin>
+                <artifactId>maven-failsafe-plugin</artifactId>
+            </plugin>
+        </plugins>
+    </build>
+</project>

@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (C) 2010-2022 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <artifactId>model</artifactId>
+        <groupId>com.evolveum.midpoint.model</groupId>
+        <version>4.11-SNAPSHOT</version>
+    </parent>
+
+    <artifactId>smart-api</artifactId>
+    <packaging>jar</packaging>
+
+    <name>midPoint Smart Integration Layer - api</name>
+
+    <properties>
+        <maven.test.skip>true</maven.test.skip>
+    </properties>
+
+    <dependencies>
+        <!--<dependency>-->
+        <!--    <groupId>com.evolveum.commons</groupId>-->
+        <!--    <artifactId>util</artifactId>-->
+        <!--</dependency>-->
+        <!--<dependency>-->
+        <!--    <groupId>com.evolveum.prism</groupId>-->
+        <!--    <artifactId>prism-api</artifactId>-->
+        <!--</dependency>-->
+
+        <dependency>
+            <groupId>com.evolveum.midpoint.infra</groupId>
+            <artifactId>schema</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.evolveum.midpoint.repo</groupId>
+            <artifactId>task-api</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <!--<dependency>-->
+        <!--    <groupId>com.evolveum.midpoint.repo</groupId>-->
+        <!--    <artifactId>security-api</artifactId>-->
+        <!--    <version>${project.version}</version>-->
+        <!--</dependency>-->
+        <!--<dependency>-->
+        <!--    <groupId>com.evolveum.midpoint.model</groupId>-->
+        <!--    <artifactId>model-api</artifactId>-->
+        <!--    <version>${project.version}</version>-->
+        <!--</dependency>-->
+
+        <!--<dependency>-->
+        <!--    <groupId>org.jetbrains</groupId>-->
+        <!--    <artifactId>annotations</artifactId>-->
+        <!--</dependency>-->
+    </dependencies>
+</project>
