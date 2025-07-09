@@ -13,6 +13,11 @@ import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Test;
 
+/**
+ * Unit tests for the Smart Integration Service implementation.
+ *
+ * It is unclear if this class will ever be used.
+ */
 @ContextConfiguration(locations = { "classpath:ctx-smart-integration-test-main.xml" })
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 public class TestSmartIntegrationServiceImpl extends AbstractModelIntegrationTest {
