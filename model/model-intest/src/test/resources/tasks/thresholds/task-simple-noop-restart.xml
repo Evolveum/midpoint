@@ -18,7 +18,6 @@
             </noOp>
         </work>
         <policies>
-
             <policy>
                 <name>Max. 3s execution</name>
                 <policyConstraints>
@@ -35,6 +34,7 @@
                         </restartActivity>
                     </action>
                 </policyReaction>
+                <order>20</order>
             </policy>
 
             <policy>
@@ -53,6 +53,7 @@
                         <suspendTask/>
                     </action>
                 </policyReaction>
+                <order>10</order>
             </policy>
         </policies>
     </activity>

@@ -16,6 +16,8 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.NumericThresholdPolicyConstraintType;
 
+import jakarta.xml.bind.JAXBElement;
+
 public abstract class NumericConstraintEvaluator<C extends NumericThresholdPolicyConstraintType>
         implements ActivityPolicyConstraintEvaluator<C, NumericConstraintTrigger<C>> {
 
@@ -28,7 +30,9 @@ public abstract class NumericConstraintEvaluator<C extends NumericThresholdPolic
     // todo improve messages [viliam]
     // todo figure out how to merge this with DurationThresholdConstraintEvaluator [viliam]
     @Override
-    public List<NumericConstraintTrigger<C>> evaluate(C constraint, ActivityPolicyRuleEvaluationContext context, OperationResult result) {
+    public List<NumericConstraintTrigger<C>> evaluate(JAXBElement<C> element, ActivityPolicyRuleEvaluationContext context, OperationResult result) {
+        C constraint = element.getValue();
+
         Integer value = getValue(context);
         if (value == null) {
             LOGGER.trace("No numeric value to evaluate for constraint {}", constraint.getName());

@@ -21,6 +21,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ErrorCategoryType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ItemStatePolicyConstraintType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultStatusType;
 
+import jakarta.xml.bind.JAXBElement;
+import org.checkerframework.checker.units.qual.C;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -30,9 +32,11 @@ public class ItemStateConstraintEvaluator implements ActivityPolicyConstraintEva
 
     @Override
     public List<EvaluatedItemStatePolicyTrigger> evaluate(
-            ItemStatePolicyConstraintType constraint,
+            JAXBElement<ItemStatePolicyConstraintType> element,
             ActivityPolicyRuleEvaluationContext context,
             OperationResult result) {
+
+        ItemStatePolicyConstraintType constraint = element.getValue();
 
         ItemProcessingResult processingResult = context.getProcessingResult();
 

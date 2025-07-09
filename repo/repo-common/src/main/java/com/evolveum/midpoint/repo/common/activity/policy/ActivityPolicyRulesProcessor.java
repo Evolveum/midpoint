@@ -7,12 +7,12 @@
 
 package com.evolveum.midpoint.repo.common.activity.policy;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
+import com.evolveum.midpoint.util.MiscUtil;
+
+import jakarta.xml.bind.JAXBElement;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.repo.common.activity.run.AbstractActivityRun;
@@ -58,6 +58,10 @@ public class ActivityPolicyRulesProcessor {
 
         List<EvaluatedActivityPolicyRule> rules = policies.stream()
                 .map(ap -> new EvaluatedActivityPolicyRule(ap, activityRun.getActivityPath()))
+                .sorted(
+                        Comparator.comparing(
+                                EvaluatedActivityPolicyRule::getOrder,
+                                Comparator.nullsLast(Comparator.naturalOrder())))
                 .toList();
 
         ActivityPolicyRulesContext ctx = getPolicyRulesContext();
@@ -141,21 +145,25 @@ public class ActivityPolicyRulesProcessor {
             EvaluatedActivityPolicyRule rule, ItemProcessingResult processingResult, OperationResult result) {
 
         ActivityPolicyConstraintsType constraints = rule.getPolicy().getPolicyConstraints();
-
-        ActivityPolicyConstraintsEvaluator evaluator = ActivityPolicyConstraintsEvaluator.get();
+        JAXBElement<ActivityPolicyConstraintsType> element = new JAXBElement<>(ActivityPolicyConstraintsType.F_AND, ActivityPolicyConstraintsType.class, constraints);
 
         ActivityPolicyRuleEvaluationContext context = new ActivityPolicyRuleEvaluationContext(rule, activityRun, processingResult);
 
-        List<EvaluatedActivityPolicyRuleTrigger<?>> triggers = evaluator.evaluateConstraints(constraints, context, result);
-        rule.setTriggers(triggers);
+        ActivityCompositeConstraintEvaluator evaluator = ActivityCompositeConstraintEvaluator.get();
 
-        if (triggers.isEmpty()) {
+        List<ActivityCompositeTrigger> compositeTriggers = evaluator.evaluate(element, context, result);
+        ActivityCompositeTrigger compositeTrigger = MiscUtil.extractSingleton(compositeTriggers);
+        if (compositeTrigger != null && !compositeTrigger.getInnerTriggers().isEmpty()) {
+            rule.setTriggers(List.copyOf(compositeTrigger.getInnerTriggers()));
+        }
+
+        if (compositeTriggers.isEmpty()) {
             return null;
         }
 
         ActivityPolicyStateType newState = new ActivityPolicyStateType();
         newState.setIdentifier(rule.getRuleIdentifier());
-        triggers.stream()
+        compositeTriggers.stream()
                 .map(t -> createActivityStateTrigger(rule, t))
                 .forEach(t -> newState.getTriggers().add(t));
         newState.freeze();

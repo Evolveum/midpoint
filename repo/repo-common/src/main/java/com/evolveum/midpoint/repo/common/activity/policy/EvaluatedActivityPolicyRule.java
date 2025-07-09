@@ -54,6 +54,11 @@ public class EvaluatedActivityPolicyRule implements EvaluatedPolicyRule, DebugDu
     }
 
     @Override
+    public Integer getOrder() {
+        return policy.getOrder();
+    }
+
+    @Override
     public int getCount() {
         return count;
     }

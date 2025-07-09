@@ -11,7 +11,6 @@ import java.util.ArrayList;
 import java.util.List;
 import javax.xml.namespace.QName;
 
-import jakarta.annotation.PostConstruct;
 import jakarta.xml.bind.JAXBElement;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -22,8 +21,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 @Component
 public class ActivityPolicyConstraintsEvaluator {
 
-    private static ActivityPolicyConstraintsEvaluator instance;
-
     @Autowired private ExecutionTimeConstraintEvaluator executionTimeEvaluator;
 
     @Autowired private ItemStateConstraintEvaluator itemStateEvaluator;
@@ -32,17 +29,8 @@ public class ActivityPolicyConstraintsEvaluator {
 
     @Autowired private ActivityCompositeConstraintEvaluator compositeEvaluator;
 
-    @PostConstruct
-    public void init() {
-        instance = this;
-    }
-
-    public static ActivityPolicyConstraintsEvaluator get() {
-        return instance;
-    }
-
     public List<EvaluatedActivityPolicyRuleTrigger<?>> evaluateConstraints(
-            ActivityPolicyConstraintsType constraints, ActivityPolicyRuleEvaluationContext context, OperationResult result) {
+            ActivityPolicyConstraintsType constraints, boolean allMustApply, ActivityPolicyRuleEvaluationContext context, OperationResult result) {
 
         if (constraints == null) {
             return List.of();
@@ -55,7 +43,7 @@ public class ActivityPolicyConstraintsEvaluator {
             ActivityPolicyConstraintEvaluator evaluator = findEvaluator(element);
 
             List<? extends EvaluatedActivityPolicyRuleTrigger<?>> evaluatedTriggers =
-                    evaluator.evaluate(element.getValue(), context, result);
+                    evaluator.evaluate(element, context, result);
             triggers.addAll(evaluatedTriggers);
         }
 
@@ -82,16 +70,19 @@ public class ActivityPolicyConstraintsEvaluator {
 
     private ActivityPolicyConstraintEvaluator<?, ?> findEvaluator(JAXBElement<AbstractPolicyConstraintType> element) {
         AbstractPolicyConstraintType constraint = element.getValue();
+
         if (constraint instanceof DurationThresholdPolicyConstraintType) {
-            if (ActivityPolicyConstraintsType.F_EXECUTION_TIME.equals(constraint.getName())) {
+            if (ActivityPolicyConstraintsType.F_EXECUTION_TIME.equals(element.getName())) {
                 return executionTimeEvaluator;
             }
         } else if (constraint instanceof NumericThresholdPolicyConstraintType) {
-            if (ActivityPolicyConstraintsType.F_RESTART_ACTIVITY.equals(constraint.getName())) {
+            if (ActivityPolicyConstraintsType.F_RESTART_ACTIVITY.equals(element.getName())) {
                 return restartActivityEvaluator;
             }
         } else if (constraint instanceof ItemStatePolicyConstraintType) {
             return itemStateEvaluator;
+        } else if (constraint instanceof PolicyConstraintsType) {
+            return compositeEvaluator;
         }
 
         throw new IllegalArgumentException("No evaluator found for constraint type: " + constraint.getClass());

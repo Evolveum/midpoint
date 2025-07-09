@@ -2029,6 +2029,7 @@
             <xsd:element ref="tns:documentation" minOccurs="0"/>
             <xsd:element name="policyConstraints" type="tns:ActivityPolicyConstraintsType" minOccurs="0"/>
             <xsd:element name="policyReaction" type="tns:PolicyReactionType" minOccurs="0" maxOccurs="unbounded"/>
+            <xsd:element name="order" type="xsd:int" minOccurs="0"/>
         </xsd:sequence>
     </xsd:complexType>
 
@@ -2093,6 +2094,38 @@
                             <xsd:documentation>
                                 Item state constraint uses policy counters to evaluate the threshold if defined.
                             </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="and" type="tns:ActivityPolicyConstraintsType" minOccurs="0" maxOccurs="unbounded">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Constraints that must all apply. (But note that if there are more values of this item,
+                                they are interpreted according to the enclosing operator.)
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:since>4.10</a:since>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="or" type="tns:ActivityPolicyConstraintsType" minOccurs="0" maxOccurs="unbounded">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Constraints from which at least one must apply. (But note that if there are more values of this item,
+                                they are interpreted according to the enclosing operator.)
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:since>4.10</a:since>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="not" type="tns:ActivityPolicyConstraintsType" minOccurs="0" maxOccurs="unbounded">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                The inner constraint must not apply.
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:since>4.10</a:since>
+                            </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
                 </xsd:sequence>

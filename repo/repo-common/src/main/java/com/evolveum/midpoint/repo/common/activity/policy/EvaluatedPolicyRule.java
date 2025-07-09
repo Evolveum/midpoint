@@ -7,11 +7,20 @@
 
 package com.evolveum.midpoint.repo.common.activity.policy;
 
+import java.time.Duration;
+
 public interface EvaluatedPolicyRule {
+
+    enum PolicyValueType {
+
+        INTEGER, DURATION
+    }
 
     String getName();
 
     String getRuleIdentifier();
+
+    Integer getOrder();
 
     /**
      * Return true if this rule represents a policy with constraint that uses a counter.
@@ -21,9 +30,15 @@ public interface EvaluatedPolicyRule {
      */
     boolean isUsePolicyCounter();
 
+//    void usePolicyCounter();
+
     int getCount();
 
     void setCount(int count);
+
+//    Object getCustomPolicyValue();
+//
+//    void setCustomPolicyValue(Object value);
 
     boolean isTriggered();
 

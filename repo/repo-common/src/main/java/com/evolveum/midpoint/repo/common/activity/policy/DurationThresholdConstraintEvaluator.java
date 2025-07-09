@@ -18,6 +18,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.DurationThresholdPolicyConstraintType;
 
+import jakarta.xml.bind.JAXBElement;
 import org.jetbrains.annotations.Nullable;
 
 public abstract class DurationThresholdConstraintEvaluator<C extends DurationThresholdPolicyConstraintType>
@@ -31,9 +32,11 @@ public abstract class DurationThresholdConstraintEvaluator<C extends DurationThr
 
     @Override
     public List<DurationThresholdPolicyTrigger<C>> evaluate(
-            C constraint,
+            JAXBElement<C> element,
             ActivityPolicyRuleEvaluationContext context,
             OperationResult result) {
+
+        C constraint = element.getValue();
 
         Long value = getDurationValue(context);
         if (value == null) {
