@@ -1,0 +1,26 @@
+= Policies Wizard
+:page-nav-title: Policies
+:page-toc: top
+:experimental:
+:page-since: "4.9"
+
+ToDo
+
+////
+Policies enable you to apply your organizational procedures to roles, i.e. to manage user access to applications based on defined rules.
+
+This is convenient in situations like the following:
+
+* Some of your applications contain sensitive information and you only want to grand access to users with a signed NDA.
+
+* When off-boarding users, you want to disconnect users from all critical systems but you want to let them use the email for another one or two months.
+
+== How It Works
+
+. *Classify the applications* - Categorize them into groups based on their requirements:
+    .. Define categories for applications
+    .. Assign categories to applications
+. *Define clearances* - Specify requirements that need to be met, such as NDAs, professional certifications, user categories (internal/external).
+
+These policies then make sure that only eligible users (with corresponding clearances) can access the classified applications.
+////

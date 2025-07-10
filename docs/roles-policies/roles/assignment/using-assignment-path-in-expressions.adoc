@@ -1,0 +1,122 @@
+= Using Assignment Path in Expressions
+:page-wiki-name: Using Assignment Path in Expressions
+:page-wiki-id: 24675854
+:page-wiki-metadata-create-user: semancik
+:page-wiki-metadata-create-date: 2017-11-07T18:43:19.039+01:00
+:page-wiki-metadata-modify-user: martin.lizner
+:page-wiki-metadata-modify-date: 2018-02-07T12:59:10.541+01:00
+:page-moved-from: /midpoint/reference/roles-policies/assignment/using-assignment-path-in-expressions/
+
+== Getting Specific Path Segment
+
+[source]
+----
+// third segment of assignment path (index=2)
+assignmentPath[2]
+
+// target of a third segment
+assignmentPath[2].getTarget()
+----
+
+
+== First-Order Chain and Proto-Role
+
+Assignment path is often used to apply xref:/midpoint/reference/roles-policies/metaroles/gensync/[meta-roles]. However, the high-order inducements in the meta-roles often need to get data from other roles in the hierarchy.
+That is exactly what assignment path is for.
+But, the entire assignment path may be confusing and quite difficult to understand and process.
+Therefore there are two method that are designed to make the life with assignment path easier.
+
+Firstly, there is a way how to get first-order chain from the assignment path.
+This is the chain (hierarchy) of roles as the "user" understands it.
+The chain is formed by processing metaroles and "expanding" them.
+The meta-roles are not part of the chain.
+So this pretends that there are no meta-roles and the high order inducement are placed directly in the roles in a plain role hierarchy.
+The first order chain is easy to get and work with:
+
+[source]
+----
+// entire first-order chain
+assignmentPath.getFirstOrderChain()
+
+// first segment of the first-order chain
+assignmentPath.getFirstOrderChain()[0]
+
+// last segment of the first-order chain
+assignmentPath.getFirstOrderChain()[-1]
+----
+
+Especially the last segment of first-order chain is interesting.
+This is what we call _proto-role_. Proto-role is the role that the currently-processed inducement "applies to".
+I.e. the role that would contain this inducement in case that meta-roles were not used.
+This role is quite often used when working with meta-roles.
+Therefore even though the proto-role is quite easy to get from the first-order chain there is a special method to get it.
+So this is all easier and more obvious.
+
+[source]
+----
+assignmentPath.getProtoRole()
+----
+
+
+== Meta-meta-cases
+
+There are cases when meta-meta-roles and even meta-meta-meta-roles are used.
+First-order chain and proto-roles are generic concepts and they should work well in all those meta-meta-cases.
+However, these cases may need also a different roles than a proto-role or first-order roles.
+That is the reason why the entire assignment path structure is exposed for use in expressions.
+
+
+== Example
+
+This example "stamps" each focus with the description of assigned role.
+
+To be effective, we outsource logic to one common meta role that all other stamping roles assigns:
+
+[source]
+----
+<role oid="8ce0a59d-dd67-40b4-b2d3-80f9173afa9c">
+ <name>Metarole: Stamping service</name>
+ <inducement>
+  <focusMappings>
+   <mapping>
+    <expression>
+     <script>
+      <code>
+       basic.stringify(assignmentPath[0].target.description) + '-bearer'
+      </code>
+     </script>
+    </expression>
+    <target>
+     <path>fullName</path>
+    </target>
+   </mapping>
+  </focusMappings>
+  <order>2</order>
+  <focusType>UserType</focusType>
+ </inducement>
+</role>
+----
+
+Then each stamping role has assignment to this metarole:
+
+[source]
+----
+<role>
+ <name>Stamping role</name>
+ <description>stamp1</description>
+ <assignment>
+  <targetRef oid="8ce0a59d-dd67-40b4-b2d3-80f9173afa9c" type="RoleType">
+         <!-- Metarole: Stamping service -->
+  </targetRef>
+ </assignment>
+</role>
+----
+
+Finally, any FocusType (e.g. UserType) assigned to Stamping role will have its fullName attribute populated with the value of the Stamping role's description ("stamp1-bearer" in this case).
+
+
+== See Also
+
+* xref:/midpoint/reference/roles-policies/assignment/assignment-path-variables-example/[Assignment Path Variables Example]
+
+* xref:/midpoint/reference/roles-policies/assignment/configuration/[Assignment Configuration]

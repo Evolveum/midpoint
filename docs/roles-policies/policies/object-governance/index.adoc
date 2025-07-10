@@ -1,0 +1,125 @@
+---
+midpoint-feature: object-governance
+doc-type: [ 'intro', 'config' ]
+---
+= Object Governance
+:page-keywords: [ 'governance', 'relationship', 'relationship type', 'ownership' ]
+:page-upkeep-status: orange
+:page-moved-from: /midpoint/reference/roles-policies/object-governance/
+
+NOTE: Work in progress
+
+Object governance is a mechanism based on maintaining governance _relations_ to objects, such as relations of ownership, management or approval.
+Complex governance rules can be built on top of the relations to implement business and regulatory compliance policies.
+
+== Assignment and Relation
+
+Object governance starts with feature:assignment[assignment] and feature:relation[relation].
+_Assignment_ provides ability to create relationship between objects, _relation_ further specifies type of that relationship.
+Relations such as `owner`, `manager` and `approver` are commonly used for governance purposes.
+When specifying governance relationship of an object, assignment is created in an entity that is governing (usually user) to an entity that is governed (usually application, role or org), as shown in the following example.
+
+[source,xml]
+----
+<service oid="45bb3cea-fde9-4590-812a-e86b37492bcd">
+    <name>Public Website</name>
+    <assignment>
+        <!-- Application archetype -->
+        <targetRef oid="00000000-0000-0000-0000-000000000329" type="ArchetypeType" />
+    </assignment>
+    ...
+</service>
+
+<user oid="631009e9-f48e-4b04-80d6-d05ed6583370">
+    <name>eevans</name>
+    ...
+    <assignment>
+        <targetRef oid="45bb3cea-fde9-4590-812a-e86b37492bcd" type="ServiceType" relation="org:owner"/>
+    </assignment>
+</user>
+----
+
+Relations used for governance purposes are summarized in following table.
+
+[%autowidth]
+|===
+| Relation | Description | Usually denotes
+
+| `owner`
+| Relation "is owner of".
+Specifies that the subject is a (business) owner of specified (abstract) role.
+The owner will be asked for decision if the role is modified, when the associated policy changes and so on.
+Owner is responsible for maintaining role definition and policies.
+
+May be used to denote _accountable_ persons as well, such as _sponsor_ of a project, as opposed to a _manager_ who is responsible for day-to-day operation.
+
+Owner is NOT necessarily concerned with role use (e.g. assignment).
+The `approver` relation is meant for that purpose.
+| Business owner of a role or application. +
+Responsible person for a policy, e.g. person responsible for a feature:information-classification[classification scheme]. +
+Sponsor of a project, or a stakeholder who is not involved in day-to-day operation.
+
+
+| `manager`
+| Relation "is manager of".
+Specifies that the subject is a manager of organizational unit.
+Managers are supposed to be operational leaders, involved in day-to-day operations.
+| Managers of organizational units, such as departments, teams and projects.
+
+
+| `approver`
+| Relation "is approver of".
+Specifies that the subject is a (general) approver of specified (abstract) role.
+The approver will be asked for decision if the role is assigned, if there is a rule conflict during assignment (e.g. SoD conflict) or if there is any similar situation.
+This is a generic approver used for all the situation.
+The system may be customized with more specific approver roles, e.g. `technicalApprover`, `securityApprover`, etc.
+This approver is responsible for the use of the role, which mostly means that he decides about role assignment.
+It is *not* meant to approve role changes.
+Role owner is meant for that purpose.
+| Person responsible for approval of assignment of roles in feature:access-request-process[access request process].
+
+|===
+
+NOTE: There are other relations, some of them are quite commonly used.
+However, they are not closely related to object governance.
+Full list of pre-defined relations can be found on xref:/midpoint/reference/concepts/relation/[relation page].
+
+_Ownership_ relationship is perhaps the most common one, and also the most useful one.
+Ownership of roles and applications make sure there is always responsible person to take care of such role and application.
+Usually, every application and many roles should have specified owner.
+
+Governance relations can be easily managed in midPoint administration user interface.
+Object detail pages have `Governance` panel, designed especially for setting up object governance relations.
+
+image::website-governance-owner.png[Managing application owner in GUI]
+
+// TODO: later: showing owners as a separate column in application/role lists
+
+== Authorizations
+
+// TODO: delegate role maintenance to owner
+
+== Approval Policies
+
+// TODO: approval by role approver
+
+// TODO: using owners to control lifecycle, e.g. role modification, lifecycle state modification
+
+== Policy Rules
+
+// TODO: each application must have an owner - to ensure maintenance
+
+== Processes and Procedures
+
+// TODO: methodology
+// TODO: describe common scenarios and pre-configured mechanisms
+// TODO: owner vs approver
+// TODO: owner vs custodian
+
+== See Also
+
+* xref:/midpoint/reference/roles-policies/policy-rules/[Policy Rules]
+
+* xref:/midpoint/reference/concepts/object-lifecycle/[Object Lifecycle]
+
+* xref:/midpoint/reference/concepts/relation/[]

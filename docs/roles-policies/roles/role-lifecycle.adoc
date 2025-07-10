@@ -1,0 +1,75 @@
+= Role Lifecycle
+:page-wiki-name: Role Lifecycle
+:page-wiki-id: 24084560
+:page-wiki-metadata-create-user: semancik
+:page-wiki-metadata-create-date: 2016-11-28T14:27:36.604+01:00
+:page-wiki-metadata-modify-user: mederly
+:page-wiki-metadata-modify-date: 2016-11-30T11:46:44.461+01:00
+:page-upkeep-status: yellow
+:page-moved-from: /midpoint/reference/roles-policies/role-lifecycle/
+
+MidPoint contains mechanisms that can be used to manage lifecycle of the roles and role-like objects (xref:/midpoint/architecture/archive/data-model/midpoint-common-schema/roletype/[roles], xref:/midpoint/architecture/archive/data-model/midpoint-common-schema/orgtype/[orgs], xref:/midpoint/reference/misc/services/[services] and even xref:/midpoint/architecture/archive/data-model/midpoint-common-schema/usertype/[users]). Lifecycle management means that midPoint can apply constraints and xref:/midpoint/reference/roles-policies/policy-rules/[rules] to various lifecycle events such as creation of a new role, change of role definition, deletion and so on.
+MidPoint can prohibit certain lifecycle transitions, require approval and so on.
+
+The role lifecycle is implemented by combining xref:/midpoint/reference/cases/approval/[approval] process with xref:/midpoint/reference/roles-policies/policy-rules/[policy rules]. The policy rules are triggered when the role is created, modified or deleted.
+The rules specify xref:/midpoint/reference/cases/approval/[approval] as an action, therefore the change operation is suspended and it is driven through approval processes.
+Therefore configuration of role lifecycle management is a matter of specifying correct policy rules and setting up the approvers.
+
+
+== Role Lifecycle Management Rule Example
+
+The following configuration causes that all role creation operations will be approved by defined user (administrator in this case).
+
+[source,xml]
+----
+<systemConfiguration>
+    ...
+    <globalPolicyRule>
+        <name>New role approvals</name>
+        <policyConstraints>
+            <modification>
+                <operation>add</operation>
+            </modification>
+        </policyConstraints>
+        <policyActions>
+            <approval>
+                <approverRef oid="00000000-0000-0000-0000-000000000002" type="UserType"/>   <!-- approve by administrator -->
+            </approval>
+        </policyActions>
+        <focusSelector>
+            <type>RoleType</type>
+        </focusSelector>
+    </globalPolicyRule>
+    ...
+</systemConfiguration>
+----
+
+If needed, it would be possible to nominate administrator also as an approver for all other role operations (modification, removal) by simply adding corresponding operation names (`modify`, `delete`) into the `policyConstraints/modification` element or by removing the `operation` element altogether.
+
+But default approvers for modification and removal of existing roles are users that have an assignment of relation `owner` pointing to the role.
+An example of such assignment:
+
+[source,xml]
+----
+<assignment>
+    <targetRef oid="6035c4bd-01c0-4f4d-870c-d5635c67ed76" type="RoleType" relation="owner" />
+</assignment>
+----
+
+So, for example, if user `jack` has the above assignment, all attempted modification and removal operations of role with OID `6035c4bd-01c0-4f4d-870c-d5635c67ed76` have to be approved by him.
+
+
+== Object Lifecycle Property
+
+MidPoint contains a xref:/midpoint/reference/concepts/object-lifecycle/[special property to control object lifecycle]: `lifecycleState`. This property specifies current lifecycle state of the object.
+It specified whether the object represents a draft, proposed definition, whether it is active, deprecated, and so on.
+There are several pre-defined lifecycle states and new custom states can be used if needed.
+This property can be used to implement complex role lifecycle management.
+See xref:/midpoint/reference/concepts/object-lifecycle/[Object Lifecycle] page for more details.
+
+
+== See Also
+
+* xref:/midpoint/reference/roles-policies/policy-rules/[Policy Rules]
+
+* xref:/midpoint/reference/concepts/object-lifecycle/[Object Lifecycle]

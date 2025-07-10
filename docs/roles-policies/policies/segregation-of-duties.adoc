@@ -1,0 +1,139 @@
+---
+midpoint-feature: sod
+doc-type: config
+compliance:
+    iso27001:
+        '5.3':
+            description: 'Description of SoD mechanism configuration.'
+---
+= Segregation of Duties
+:page-wiki-name: Segregation of Duties
+:page-wiki-id: 4423716
+:page-wiki-metadata-create-user: semancik
+:page-wiki-metadata-create-date: 2012-04-18T15:57:03.768+02:00
+:page-wiki-metadata-modify-user: mederly
+:page-wiki-metadata-modify-date: 2021-03-02T23:37:12.075+01:00
+:page-upkeep-status: yellow
+:page-moved-from: /midpoint/reference/roles-policies/
+
+Segregation of Duties (SoD) is a mechanisms that prevents accumulating of too much power in the hands of a single person.
+It places constraints on assignments of entitlements to users.
+For example SoD may prevent a single user from creating a request and also approving it.
+
+In its simplest form the Segregation of Duties is implemented at the RBAC level by _role exclusions_. It means that roles that _exclude_ each other cannot be assigned to the same user at the same time.
+This is the basic SoD mechanism that is implemented in midPoint now.
+More complex SoD rules will be implemented in the future.
+
+
+[#_role_exclusion_definition]
+== Role Exclusion Definition
+
+Following role excludes role with oid `12345678-d34d-b33f-f00d-987987987988`. These two roles cannot be assigned at the same time.
+Attempt to do so will result in an error.
+The exclusion is considered to be bi-directional even if it is defined in only one of the two excluded roles.
+Therefore the order of role assignment is insignificant, whichever role is assigned as second will result in a failure.
+In midPoint 3.5 and later the exclusion is defined by using the xref:/midpoint/reference/roles-policies/policy-rules/[policy rules] mechanism:
+
+[source,xml]
+----
+<role>
+    <name>Judge</name>
+    <inducement>
+        <construction>
+            <resourceRef oid="ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff" type="ResourceType"/>
+        </construction>
+    </inducement>
+    <assignment>
+        <policyRule>
+            <name>excluded-role</name>
+            <policyConstraints>
+                <exclusion>
+                    <targetRef oid="12345678-d34d-b33f-f00d-987987987988" type="RoleType"/>
+                </exclusion>
+            </policyConstraints>
+            <policyActions>
+                <enforcement/>
+            </policyActions>
+        </policyRule>
+    </assignment>
+</role>
+----
+
+[NOTE]
+====
+Currently, the role exclusion mechanism ignores the _time validity_ of individual assignments.
+Hence, if roles `A` and `B` are mutually exclusive, and a user has an assignment of `A` valid from Monday to Wednesday, and an assignment of `B` valid from Thursday to Sunday, these two are still considered to be in conflict.
+
+(Technically, both roles are still _assigned_ at the same time. The other things is that those two assignments cannot be _effectively active_ at any moment.)
+
+See also bug:MID-8299[].
+We are considering an improvement that would weaken this definition a bit (see bug:MID-8572[]).
+====
+
+== Policy Actions
+
+xref:/midpoint/reference/roles-policies/policy-rules/[Policy Rules] have two parts important for role exclusion configurations: _constraints_ and _action_. _Constraints_ part defines which roles are exclude which roles.
+The action part define what to do when such an exclusion is detected.
+There are three options:
+
+* *Enforcement* means that role conflict is not allowed.
+Any attempt to assign conflicting roles will end with an error.
+
+* *Pruning* means that the conflicting roles are unassigned.
+When a new role is assigned the existing roles that are in conflict with the new role will be unassigned.
+
+* *Approval* means that the request will be subject to an additional approval.
+The approver may decide whether to allow assignment of conflicting roles.
+If the operation is approved then it proceeds.
+(Optionally you can request recording the situation in the assignments by using "record" policy action.)
+
+* *Record* means that the conflict will be recorded using a feature:object-mark[mark].
+The mark can be used to report violations, and gradually enforce the policy.
+
+== Exclusion Class
+
+MidPoint does not have direct configuration for role exclusion classes (set of roles where each excludes all other roles from the same class or from different classes).
+However this configuration can easily be created an maintained by using xref:/midpoint/reference/roles-policies/rbac/[role hierarchies] and xref:/midpoint/reference/roles-policies/metaroles/gensync/[metaroles].
+
+For example, the following example illustrates "exclusion class" between executive and controlling roles.
+The controlling metarole defines exclusion of all executive roles:
+
+[source,xml]
+----
+<role>
+    <name>Controlling metarole</name>
+    <description>Excludes all executive roles using a filter</description>
+    <inducement>
+        <policyRule>
+            <name>executive exclusion</name>
+            <policyConstraints>
+                <exclusion>
+                    <targetRef type="RoleType">
+                        <filter>
+                            <q:text>subtype = "executive"</q:text>
+                        </filter>
+                        <resolutionTime>run</resolutionTime>
+                    </targetRef>
+                </exclusion>
+            </policyConstraints>
+            <policyActions>
+                <enforcement/>
+            </policyActions>
+        </policyRule>
+    </inducement>
+</role>
+----
+
+The metarole above is to be assigned to controlling roles (where subtype is different from "executive", e.g. "controlling"). If the user has any controlling role assigned and attempts to have other role with subtype="executive" assigned, the request will be refused because of the SoD conflict.
+Thus it is not possible to mix executive and controlling roles.
+
+
+== History
+
+Basic role exclusion with strict enforcement is available in midPoint since version 2.x. The definition based on xref:/midpoint/reference/roles-policies/policy-rules/[Policy Rules] is available since midPoint 3.5. However, this was still limited to strict enforcement.
+The other policy actions are available since midPoint 3.6.
+
+== See Also
+
+* xref:/midpoint/reference/roles-policies/policy-rules/[Policy Rules]
+* xref:/midpoint/reference/roles-policies/gradual-policy-enforcement/[]
