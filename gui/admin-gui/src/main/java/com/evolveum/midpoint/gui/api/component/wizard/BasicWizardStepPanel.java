@@ -204,7 +204,7 @@ public class BasicWizardStepPanel<T> extends WizardStepPanel<T> {
     }
 
     protected IModel<String> getBackLabelModel() {
-        return getPageBase().createStringResource("WizardHeader.back");
+        return createStringResource("WizardHeader.back");
     }
 
     protected AjaxSubmitButton getSubmit() {

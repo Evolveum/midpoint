@@ -72,7 +72,7 @@ public class PageUserSelfProfile extends PageUser {
             @Override
             protected void createBackButton(@NotNull RepeatingView repeatingView) {
                 AjaxIconButton back = new AjaxIconButton(repeatingView.newChildId(), Model.of(GuiStyleConstants.ARROW_LEFT),
-                        getPageBase().createStringResource("PageUserSelfProfile.button.backToHome")) {
+                        createStringResource("PageUserSelfProfile.button.backToHome")) {
                     @Serial private static final long serialVersionUID = 1L;
 
                     @Override
