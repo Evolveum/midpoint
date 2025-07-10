@@ -1,0 +1,100 @@
+---
+midpoint-feature: meta-role
+doc-type: intro
+---
+= Meta-roles
+:page-wiki-name: Metaroles
+:page-wiki-id: 34570284
+:page-wiki-metadata-create-user: semancik
+:page-wiki-metadata-create-date: 2019-07-09T08:27:27.521+02:00
+:page-wiki-metadata-modify-user: semancik
+:page-wiki-metadata-modify-date: 2019-07-09T08:34:41.528+02:00
+:page-keywords: [ 'metarole', 'meta-role', 'metaroles', 'meta-roles', 'meta' ]
+:page-upkeep-status: orange
+:page-toc: top
+:page-moved-from: /midpoint/reference/roles-policies/metaroles/
+
+
+== Introduction
+
+MidPoint xref:/midpoint/reference/roles-policies/rbac/[roles] are usually applied to users.
+However, midPoint roles are quite universal things.
+The roles can be applied to almost any midPoint object.
+Roles can be applied to users, organizations, services - and even to roles themselves.
+Which creates _meta-roles_.
+
+Simply speaking, meta-roles are roles applied to other roles.
+Ordinary role applies its characteristics to a _user_.
+Meta-role applies its characteristics to another _role_ or similar role-like object.
+This is perfectly possible in midPoint, as role can be applied to almost any midPoint object.
+Applying roles to another roles may seem like a pretty useless exercise, but the truth is that meta-roles are tremendously useful.
+
+Repetition is daily bread in almost all identity management deployments.
+E.g. all`_business roles_ have something in common.
+For example, business roles may have the same approval process.
+There may be role classes that have similar exclusion policies, as part of global segregation of duties (SoD) policy.
+There may be roles that are tied to entitlements in a systematic way.
+Roles, organizational units, services and other role-like objects tend to be quite similar.
+Therefore, defining the policy in one meta-role and applying that meta-role to many roles can be very useful.
+
+feature:archetype[Archetypes] and feature:policy-concept[policy objects] act as a natural meta-roles, which is clearly illustrated by use of policy objects as feature:information-classification[classifications].
+Other archetype:abstract-role[abstract roles] such as feature:org[orgs] and feature:service-concept[services] can act as meta-roles too.
+For example, feature:application-concept[applications] can be quite useful when used as meta-roles.
+
+== Mechanism
+
+Meta-roles are (abstract) roles that are _assigned_ to other roles.
+In meta-roles themselves, _inducement_ is used to apply policies to target role:
+
+[source,xml]
+----
+<role oid="6924fb9c-a184-11e9-840e-2feb476335f4">
+    <name>Account Manager</name>
+    <description>
+        This is business role that corresponds to account manager job.
+    </description>
+    <assignment>
+        <!-- Metarole assignment -->
+        <targetRef oid="a3065910-a183-11e9-835c-0b6edc3d44c3" type="ArchetypeType"/>
+    </assignment>
+    <inducement>
+        <!--
+             Privileges specific to account manager.
+        -->
+    </inducement>
+</role>
+
+<archetype oid="a3065910-a183-11e9-835c-0b6edc3d44c3">
+    <name>Business role</name>
+    <inducement>
+        <!--
+            Policies and constructions that should be applied to all
+            business roles.
+        -->
+    </inducement>
+</archetype>
+----
+
+In this case, feature:archetype[archetype] acts as a meta-role.
+In fact, archetype is an archetype:abstract-role[abstract roles], which means that it is just like a role, with some extra mechanisms that add fancy cosmetics to objects, such as icon and colors.
+Fancy or not, archetype still acts as meta-role, specifying common policies and characteristics for all objects that have the archetype _assigned_.
+
+At the first sight, meta-roles may seem similar to xref:/midpoint/reference/roles-policies/rbac/[role hierarchy].
+However, it is a completely different concept.
+The crucial difference is that meta-role is applied to the _role_ and not the user.
+The inducements in the meta-role often contain _policies_ such as approval policy.
+There may also be construction clauses that create groups or organizational units, which is often used in xref:/midpoint/reference/roles-policies/metaroles/gensync/[generic synchronization].
+We usually do not want to create a group for each _user_, but we often want to create a group for a _role_.
+That's what meta-role can do.
+
+== See Also
+
+* xref:/midpoint/reference/roles-policies/metaroles/gensync/['Roles, Metaroles and Generic Synchronization']
+
+* xref:/midpoint/reference/roles-policies/metaroles/policy/[Using Metaroles for Policy Configuration]
+
+* xref:/midpoint/reference/schema/archetypes/[Archetypes]
+
+* xref:/midpoint/reference/schema/policy[]
+
+* xref:/midpoint/reference/roles-policies/classification/[]
