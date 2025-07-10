@@ -42,4 +42,8 @@ public abstract class AbstractParserTest extends AbstractSchemaTest {
     protected PrismContext getPrismContext() {
         return PrismTestUtil.getPrismContext();
     }
+
+    boolean isJson() {
+        return PrismContext.LANG_JSON.equals(language);
+    }
 }

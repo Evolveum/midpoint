@@ -17,6 +17,8 @@ import com.evolveum.midpoint.test.AttrName;
 import com.evolveum.midpoint.test.DummyResourceContoller;
 import com.evolveum.midpoint.test.ObjectClassName;
 
+import java.time.ZonedDateTime;
+
 /**
  * Represents the basic scenario for smart integration service integration tests.
  *
@@ -64,8 +66,8 @@ public class DummyBasicScenario extends AbstractDummyScenario {
             controller.addAttrDef(oc, AttributeNames.EMAIL.local(), String.class, true, false);
             controller.addAttrDef(oc, AttributeNames.PHONE.local(), String.class, false, false);
             controller.addAttrDef(oc, AttributeNames.STATUS.local(), String.class, false, false);
-            controller.addAttrDef(oc, AttributeNames.CREATED.local(), java.util.Date.class, false, false);
-            controller.addAttrDef(oc, AttributeNames.LAST_LOGIN.local(), java.util.Date.class, false, false);
+            controller.addAttrDef(oc, AttributeNames.CREATED.local(), ZonedDateTime.class, false, false);
+            controller.addAttrDef(oc, AttributeNames.LAST_LOGIN.local(), ZonedDateTime.class, false, false);
         }
 
         @Override

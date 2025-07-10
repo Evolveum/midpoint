@@ -96,10 +96,11 @@ class DefaultServiceClientImpl implements ServiceClient {
     }
 
     /** A generic method that calls a remote service. Treats serialization/parsing of the exchanged data. */
-    private <REQ, RESP> RESP callService(String method, REQ request, Class<RESP> responseClass) throws SchemaException {
+    private <REQ, RESP> RESP callService(String method, REQ request, Class<RESP> responseClass)
+            throws SchemaException {
         // FIXME this is a temporary hack to work around limitations of our JSON serializer/deserializer.
         //  So we serialize/deserialize the data ourselves.
-        var requestText = PrismContext.get().jsonSerializer().serializeRealValue(request, new QName("request"));
+        var requestText = PrismContext.get().jsonSerializer().serializeRealValueContent(request);
         LOGGER.trace("Calling {} with request (class: {}):\n{}", method, request.getClass().getName(), requestText);
         webClient.type(MediaType.APPLICATION_JSON);
         webClient.accept(MediaType.APPLICATION_JSON);
@@ -109,7 +110,10 @@ class DefaultServiceClientImpl implements ServiceClient {
             var responseText = response.readEntity(String.class);
             LOGGER.trace("Response (status: {}, expected class: {}):\n{}", statusType, responseClass, responseText);
             if (statusType.getFamily() == Response.Status.Family.SUCCESSFUL) {
-                return PrismContext.get().parserFor(responseText).parseRealValue(responseClass);
+                // Another hack: we don't have "parseRealValueContent" method that would parse the response.
+                // So we wrap it in a JSON object that will look like a regularly serialized Item.
+                var wrappedResponseText = "{ \"wrapper\": " + responseText + " }";
+                return PrismContext.get().parserFor(wrappedResponseText).parseRealValue(responseClass);
             } else {
                 throw new SystemException("Service call (%s) failed with status: %d %s".formatted(
                         method, statusType.getStatusCode(), statusType.getReasonPhrase()));
