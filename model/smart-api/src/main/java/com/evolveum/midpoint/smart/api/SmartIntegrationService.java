@@ -7,13 +7,13 @@
 
 package com.evolveum.midpoint.smart.api;
 
+import javax.xml.namespace.QName;
+
 import com.evolveum.midpoint.schema.processor.ResourceObjectTypeIdentification;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.DelineationsSuggestionType;
-
-import javax.xml.namespace.QName;
 
 /**
  * Provides methods for suggesting parts of the integration solution, like inbound/outbound mappings.

@@ -51,6 +51,14 @@ public interface MidpointConfiguration {
     String ADMINISTRATOR_INITIAL_PASSWORD = "midpoint.administrator.initialPassword";
 
     /**
+     * System property for Smart Integration service URL override. To be used mainly for testing purposes.
+     *
+     * Accessed via {@link System#getProperty(String)}, not via configuration subsystem
+     * (this is to be reconsidered in the future).
+     */
+    String SMART_INTEGRATION_SERVICE_URL_OVERRIDE = "midpoint.smartIntegration.serviceUrlOverride";
+
+    /**
      * Reference to midpoint-system.properties generated in system-init component.
      * It is generated during the build.
      * This file contains various system properties such midPoint version, build ID, build timestamp and so on.

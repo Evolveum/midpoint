@@ -9,6 +9,8 @@ package com.evolveum.midpoint.smart.impl;
 
 import javax.xml.namespace.QName;
 
+import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.TestOnly;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -26,12 +28,18 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.DelineationsSuggestionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 
+import java.util.function.Supplier;
+
 @Service
 public class SmartIntegrationServiceImpl implements SmartIntegrationService {
 
     private static final Trace LOGGER = TraceManager.getTrace(SmartIntegrationServiceImpl.class);
 
     private static final String OP_SUGGEST_FOCUS_TYPE = "suggestFocusType";
+
+    /** Supplies a mock service client for testing purposes. */
+    @TestOnly
+    @Nullable private Supplier<ServiceClient> serviceClientSupplier;
 
     @Autowired private SystemObjectCache systemObjectCache;
     @Autowired private ModelService modelService;
@@ -72,10 +80,17 @@ public class SmartIntegrationServiceImpl implements SmartIntegrationService {
         }
     }
 
-    private ServiceClient getServiceClient(OperationResult result) throws SchemaException {
+    private ServiceClient getServiceClient(OperationResult result) throws SchemaException, ConfigurationException {
+        if (serviceClientSupplier != null) {
+            return serviceClientSupplier.get();
+        }
         var smartIntegrationConfiguration =
                 SystemConfigurationTypeUtil.getSmartIntegrationConfiguration(
                         systemObjectCache.getSystemConfigurationBean(result));
-        return new ServiceClient(smartIntegrationConfiguration);
+        return new DefaultServiceClientImpl(smartIntegrationConfiguration);
+    }
+
+    public void setServiceClientSupplier(@Nullable Supplier<ServiceClient> serviceClientSupplier) {
+        this.serviceClientSupplier = serviceClientSupplier;
     }
 }

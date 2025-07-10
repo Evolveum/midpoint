@@ -13,19 +13,19 @@ import static com.evolveum.midpoint.test.util.MidPointTestConstants.TEST_RESOURC
 
 import java.io.File;
 
-import com.evolveum.midpoint.util.exception.CommonException;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Test;
 
+import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
 import com.evolveum.midpoint.model.intest.AbstractEmptyModelIntegrationTest;
 import com.evolveum.midpoint.schema.processor.ResourceObjectTypeIdentification;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.smart.api.SmartIntegrationService;
+import com.evolveum.midpoint.smart.impl.SmartIntegrationServiceImpl;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.DummyTestResource;
+import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 /**
@@ -37,7 +37,8 @@ public class TestSmartIntegrationService extends AbstractEmptyModelIntegrationTe
 
     public static final File TEST_DIR = new File(TEST_RESOURCES_PATH, "smart");
 
-    @Autowired private SmartIntegrationService smartIntegrationService;
+    /** Using the implementation in order to set mock service client for testing. */
+    @Autowired private SmartIntegrationServiceImpl smartIntegrationService;
 
     private static DummyBasicScenario basicScenario;
 
@@ -50,6 +51,11 @@ public class TestSmartIntegrationService extends AbstractEmptyModelIntegrationTe
         super.initSystem(initTask, initResult);
 
         initAndTestDummyResource(RESOURCE_DUMMY_BASIC, initTask, initResult);
+
+        if (System.getProperty(MidpointConfiguration.SMART_INTEGRATION_SERVICE_URL_OVERRIDE) == null) {
+            // For tests without a real service, we have to use a mock service client.
+            smartIntegrationService.setServiceClientSupplier(MockServiceClientImpl::new);
+        }
     }
 
     @Test
