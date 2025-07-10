@@ -7,14 +7,9 @@
 
 package com.evolveum.midpoint.repo.common.activity.policy;
 
-import java.time.Duration;
+import org.jetbrains.annotations.NotNull;
 
 public interface EvaluatedPolicyRule {
-
-    enum PolicyValueType {
-
-        INTEGER, DURATION
-    }
 
     String getName();
 
@@ -22,23 +17,13 @@ public interface EvaluatedPolicyRule {
 
     Integer getOrder();
 
-    /**
-     * Return true if this rule represents a policy with constraint that uses a counter.
-     * For example {@link com.evolveum.midpoint.xml.ns._public.common.common_3.ItemStatePolicyConstraintType}.
-     * On the other hand, if rule contains only single
-     * @return
-     */
-    boolean isUsePolicyCounter();
+    @NotNull ThresholdValueType getThresholdValueType();
 
-//    void usePolicyCounter();
+    void setThresholdValueType(@NotNull ThresholdValueType thresholdValueType);
 
-    int getCount();
+    <T> T getThresholdValue(Class<T> type);
 
-    void setCount(int count);
-
-//    Object getCustomPolicyValue();
-//
-//    void setCustomPolicyValue(Object value);
+    void setThresholdValue(Object value);
 
     boolean isTriggered();
 

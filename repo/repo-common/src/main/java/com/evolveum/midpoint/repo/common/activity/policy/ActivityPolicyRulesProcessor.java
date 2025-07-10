@@ -145,7 +145,8 @@ public class ActivityPolicyRulesProcessor {
             EvaluatedActivityPolicyRule rule, ItemProcessingResult processingResult, OperationResult result) {
 
         ActivityPolicyConstraintsType constraints = rule.getPolicy().getPolicyConstraints();
-        JAXBElement<ActivityPolicyConstraintsType> element = new JAXBElement<>(ActivityPolicyConstraintsType.F_AND, ActivityPolicyConstraintsType.class, constraints);
+        JAXBElement<ActivityPolicyConstraintsType> element =
+                new JAXBElement<>(ActivityPolicyConstraintsType.F_AND, ActivityPolicyConstraintsType.class, constraints);
 
         ActivityPolicyRuleEvaluationContext context = new ActivityPolicyRuleEvaluationContext(rule, activityRun, processingResult);
 

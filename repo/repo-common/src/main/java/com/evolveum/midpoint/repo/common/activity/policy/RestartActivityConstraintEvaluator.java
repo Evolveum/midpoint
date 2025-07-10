@@ -21,4 +21,9 @@ public class RestartActivityConstraintEvaluator
         AbstractActivityRun<?, ?, ?> activityRun = context.getActivityRun();
         return activityRun.getActivityState().getExecutionAttempt();
     }
+
+    @Override
+    protected boolean shouldTriggerOnEmptyConstraint(NumericThresholdPolicyConstraintType constraint, Integer value) {
+        return value != null && value > 1;
+    }
 }

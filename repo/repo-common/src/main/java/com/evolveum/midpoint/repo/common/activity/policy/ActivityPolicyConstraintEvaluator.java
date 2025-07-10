@@ -19,4 +19,6 @@ public interface ActivityPolicyConstraintEvaluator<
         T extends EvaluatedActivityPolicyRuleTrigger<C>> {
 
     List<T> evaluate(JAXBElement<C> constraint, ActivityPolicyRuleEvaluationContext context, OperationResult result);
+
+//    ThresholdValueType getThresholdValueType(JAXBElement<C> constraint, ActivityPolicyRuleEvaluationContext  context);
 }

@@ -9,14 +9,14 @@ package com.evolveum.midpoint.repo.common.activity.policy;
 
 import java.util.List;
 
+import jakarta.xml.bind.JAXBElement;
+
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.LocalizableMessage;
 import com.evolveum.midpoint.util.SingleLocalizableMessage;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.NumericThresholdPolicyConstraintType;
-
-import jakarta.xml.bind.JAXBElement;
 
 public abstract class NumericConstraintEvaluator<C extends NumericThresholdPolicyConstraintType>
         implements ActivityPolicyConstraintEvaluator<C, NumericConstraintTrigger<C>> {
@@ -57,8 +57,22 @@ public abstract class NumericConstraintEvaluator<C extends NumericThresholdPolic
             return List.of(createTrigger(constraint, message, message));
         }
 
+        if (below == null && exceeds == null) {
+            LOGGER.trace("No below/exceeds thresholds defined for constraint {}", constraint.getName());
+
+            if (shouldTriggerOnEmptyConstraint(constraint, value)) {
+                LOGGER.trace("Triggering on empty constraint {}", constraint.getName());
+
+                LocalizableMessage message = new SingleLocalizableMessage("NumericConstraintEvaluator.empty");
+
+                return List.of(createTrigger(constraint, message, message));
+            }
+        }
+
         return List.of();
     }
+
+    protected abstract boolean shouldTriggerOnEmptyConstraint(C constraint, Integer value);
 
     private NumericConstraintTrigger<C> createTrigger(C constraint, LocalizableMessage message, LocalizableMessage shortMessage) {
         return new NumericConstraintTrigger<>(constraint, message, shortMessage);

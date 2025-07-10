@@ -36,7 +36,9 @@ public class EvaluatedActivityPolicyRule implements EvaluatedPolicyRule, DebugDu
 
     private ActivityPolicyStateType currentState;
 
-    private int count;
+    private ThresholdValueType thresholdValueType;
+
+    private Object thresholdValue;
 
     public EvaluatedActivityPolicyRule(@NotNull ActivityPolicyType policy, @NotNull ActivityPath path) {
         this.policy = policy;
@@ -59,13 +61,23 @@ public class EvaluatedActivityPolicyRule implements EvaluatedPolicyRule, DebugDu
     }
 
     @Override
-    public int getCount() {
-        return count;
+    public <T> T getThresholdValue(Class<T> type) {
+        return null;
     }
 
     @Override
-    public void setCount(int count) {
-        this.count = count;
+    public @NotNull ThresholdValueType getThresholdValueType() {
+        return thresholdValueType;
+    }
+
+    @Override
+    public void setThresholdValueType(@NotNull ThresholdValueType thresholdValueType) {
+        this.thresholdValueType = thresholdValueType;
+    }
+
+    @Override
+    public void setThresholdValue(Object value) {
+
     }
 
     @NotNull
@@ -155,10 +167,5 @@ public class EvaluatedActivityPolicyRule implements EvaluatedPolicyRule, DebugDu
                 "policy=" + policy.getName() +
                 ", triggers=" + triggers.size() +
                 '}';
-    }
-
-    @Override
-    public boolean isUsePolicyCounter() {
-        return false;
     }
 }

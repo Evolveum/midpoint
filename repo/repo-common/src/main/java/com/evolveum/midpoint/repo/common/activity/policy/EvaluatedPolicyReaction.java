@@ -47,7 +47,10 @@ public class EvaluatedPolicyReaction implements DebugDumpable {
             return false;
         }
 
-        int count = rule.getCount();
+        Integer count = rule.getThresholdValue(Integer.class);
+        if (count == null) {
+            count = 0;
+        }
 
         WaterMarkType lowWaterMark = threshold.getLowWaterMark();
         if (lowWaterMark == null || lowWaterMark.getCount() == null) {

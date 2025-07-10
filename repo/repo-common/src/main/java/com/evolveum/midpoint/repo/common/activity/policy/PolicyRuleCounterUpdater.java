@@ -57,10 +57,15 @@ public abstract class PolicyRuleCounterUpdater {
                 continue;
             }
 
+            if (rule.getThresholdValueType() != ThresholdValueType.COUNTER) {
+                LOGGER.trace("Rule {} does not have a threshold against counters, skipping counter update", rule.getRuleIdentifier());
+                continue;
+            }
+
             if (context.getCounter(rule.getRuleIdentifier()) != null) {
                 // The counter was already incremented in this run, so we just copy it to the rule.
                 Integer counter = context.getCounter(rule.getRuleIdentifier());
-                rule.setCount(counter);
+                rule.setThresholdValue(counter);
                 LOGGER.trace("Counter for rule {} was already incremented to {}, copying it to the rule",
                         rule.getRuleIdentifier(), counter);
                 continue;
@@ -79,7 +84,7 @@ public abstract class PolicyRuleCounterUpdater {
         Map<String, Integer> currentValues = executionSupport.incrementCounters(group, rulesByIdentifier.keySet(), result);
 
         currentValues.forEach((id, value) -> {
-            rulesByIdentifier.get(id).setCount(value);
+            rulesByIdentifier.get(id).setThresholdValue(value);
             context.setCounter(id, value);
         });
     }
