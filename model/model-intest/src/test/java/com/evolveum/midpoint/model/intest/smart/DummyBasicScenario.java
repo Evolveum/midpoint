@@ -50,15 +50,22 @@ public class DummyBasicScenario extends AbstractDummyScenario {
         public static class AttributeNames {
             public static final AttrName FULLNAME = AttrName.ri(DummyAccount.ATTR_FULLNAME_NAME);
             public static final AttrName DESCRIPTION = AttrName.ri(DummyAccount.ATTR_DESCRIPTION_NAME);
-            public static final AttrName XYZ = AttrName.ri("xyz");
-            // ...
+            public static final AttrName EMAIL = AttrName.ri("email");
+            public static final AttrName PHONE = AttrName.ri("phone");
+            public static final AttrName STATUS = AttrName.ri("status");
+            public static final AttrName CREATED = AttrName.ri("created");
+            public static final AttrName LAST_LOGIN = AttrName.ri("lastLogin");
         }
 
         void initialize() {
             var oc = controller.getDummyResource().getAccountObjectClass();
-            controller.addAttrDef(oc, AttributeNames.FULLNAME.local(), String.class, false, false);
+            controller.addAttrDef(oc, AttributeNames.FULLNAME.local(), String.class, true, false);
             controller.addAttrDef(oc, AttributeNames.DESCRIPTION.local(), String.class, false, false);
-            controller.addAttrDef(oc, AttributeNames.XYZ.local(), String.class, false, false);
+            controller.addAttrDef(oc, AttributeNames.EMAIL.local(), String.class, true, false);
+            controller.addAttrDef(oc, AttributeNames.PHONE.local(), String.class, false, false);
+            controller.addAttrDef(oc, AttributeNames.STATUS.local(), String.class, false, false);
+            controller.addAttrDef(oc, AttributeNames.CREATED.local(), java.util.Date.class, false, false);
+            controller.addAttrDef(oc, AttributeNames.LAST_LOGIN.local(), java.util.Date.class, false, false);
         }
 
         @Override
@@ -73,11 +80,17 @@ public class DummyBasicScenario extends AbstractDummyScenario {
 
         public static class AttributeNames {
             public static final AttrName DESCRIPTION = AttrName.ri("description");
+            public static final AttrName DISPLAY_NAME = AttrName.ri("displayName");
+            public static final AttrName TYPE = AttrName.ri("type");
+            public static final AttrName OWNER = AttrName.ri("owner");
         }
 
         void initialize() {
             var oc = controller.getDummyResource().getAccountObjectClass();
             controller.addAttrDef(oc, AttributeNames.DESCRIPTION.local(), String.class, false, false);
+            controller.addAttrDef(oc, AttributeNames.DISPLAY_NAME.local(), String.class, true, false);
+            controller.addAttrDef(oc, AttributeNames.TYPE.local(), String.class, true, false);
+            controller.addAttrDef(oc, AttributeNames.OWNER.local(), String.class, true, false);
         }
 
         @Override
@@ -90,6 +103,21 @@ public class DummyBasicScenario extends AbstractDummyScenario {
 
         public static final ObjectClassName OBJECT_CLASS_NAME = custom("privilege");
 
+        public static class AttributeNames {
+            public static final AttrName NAME = AttrName.ri("name");
+            public static final AttrName DESCRIPTION = AttrName.ri("description");
+            public static final AttrName LEVEL = AttrName.ri("level");
+            public static final AttrName ASSIGNED_TO = AttrName.ri("assignedTo");
+        }
+
+        void initialize() {
+            var oc = controller.getDummyResource().getPrivilegeObjectClass();
+            controller.addAttrDef(oc, AttributeNames.NAME.local(), String.class, true, false);
+            controller.addAttrDef(oc, AttributeNames.DESCRIPTION.local(), String.class, false, false);
+            controller.addAttrDef(oc, AttributeNames.LEVEL.local(), Integer.class, false, false);
+            controller.addAttrDef(oc, AttributeNames.ASSIGNED_TO.local(), String.class, true, true);
+        }
+
         @Override
         public @NotNull ObjectClassName getObjectClassName() {
             return OBJECT_CLASS_NAME;
@@ -99,6 +127,23 @@ public class DummyBasicScenario extends AbstractDummyScenario {
     public class OrgUnit extends ScenarioObjectClass {
 
         public static final ObjectClassName OBJECT_CLASS_NAME = custom("orgUnit");
+
+        public static class AttributeNames {
+            public static final AttrName NAME = AttrName.ri("name");
+            public static final AttrName DESCRIPTION = AttrName.ri("description");
+            public static final AttrName MANAGER = AttrName.ri("manager");
+            public static final AttrName LOCATION = AttrName.ri("location");
+            public static final AttrName PARENT_UNIT = AttrName.ri("parentUnit");
+        }
+
+        void initialize() {
+            var oc = controller.getDummyResource().getOrgObjectClass();
+            controller.addAttrDef(oc, AttributeNames.NAME.local(), String.class, false, false);
+            controller.addAttrDef(oc, AttributeNames.DESCRIPTION.local(), String.class, false, false);
+            controller.addAttrDef(oc, AttributeNames.MANAGER.local(), String.class, false, false);
+            controller.addAttrDef(oc, AttributeNames.LOCATION.local(), String.class, false, false);
+            controller.addAttrDef(oc, AttributeNames.PARENT_UNIT.local(), String.class, false, false);
+        }
 
         @Override
         public @NotNull ObjectClassName getObjectClassName() {
