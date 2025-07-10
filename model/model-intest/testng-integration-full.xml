@@ -212,4 +212,9 @@
             <class name="com.evolveum.midpoint.model.intest.manual.TestDummyItsmIntegration"/>
         </classes>
     </test>
+    <test name="Smart Integration" preserve-order="true" parallel="none" verbose="10">
+        <classes>
+            <class name="com.evolveum.midpoint.model.intest.smart.TestSmartIntegrationService"/>
+        </classes>
+    </test>
 </suite>
