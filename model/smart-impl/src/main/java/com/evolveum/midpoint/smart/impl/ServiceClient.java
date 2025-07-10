@@ -14,6 +14,7 @@ import com.evolveum.midpoint.schema.processor.ResourceObjectTypeDelineation;
 import com.evolveum.midpoint.schema.processor.ResourceObjectTypeIdentification;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.exception.SchemaException;
 
 /**
  * Generic interface for a client that communicates with a remote service.
@@ -27,7 +28,7 @@ public interface ServiceClient extends AutoCloseable {
             ResourceObjectClassDefinition objectClassDef,
             ResourceObjectTypeDelineation delineation,
             Task task,
-            OperationResult result);
+            OperationResult result) throws SchemaException;
 
     @Override
     void close();

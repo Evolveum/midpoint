@@ -103,4 +103,44 @@
         </xsd:sequence>
     </xsd:complexType>
     <xsd:element name="delineationSuggestion" type="tns:DelineationSuggestionType"/>
+
+    <!-- Protocol for the communication with the Python service -->
+    <!-- TODO shouldn't this be in a separate namespace? -->
+    <xsd:complexType name="SuggestFocusTypeRequestType">
+        <xsd:annotation>
+            <xsd:appinfo>
+                <a:since>4.11</a:since>
+                <!-- intentionally not a container -->
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="kind" type="xsd:string" />
+            <xsd:element name="intent" type="xsd:string" />
+            <xsd:element name="objectClassName" type="xsd:string" />
+            <xsd:element name="baseContextFilter" type="xsd:string" minOccurs="0" maxOccurs="unbounded" />
+            <xsd:element name="attributeDefinition" type="tns:SuggestFocusTypeRequestAttributeDefinitionType" minOccurs="0" maxOccurs="unbounded" />
+        </xsd:sequence>
+    </xsd:complexType>
+    <xsd:complexType name="SuggestFocusTypeRequestAttributeDefinitionType">
+        <xsd:annotation>
+            <xsd:appinfo>
+                <a:since>4.11</a:since>
+                <!-- intentionally not a container -->
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="name" type="xsd:string" />
+        </xsd:sequence>
+    </xsd:complexType>
+    <xsd:complexType name="SuggestFocusTypeResponseType">
+        <xsd:annotation>
+            <xsd:appinfo>
+                <a:since>4.11</a:since>
+                <!-- intentionally not a container -->
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="focusTypeName" type="xsd:string" />
+        </xsd:sequence>
+    </xsd:complexType>
 </xsd:schema>

@@ -23,6 +23,8 @@
     <logger name="com.evolveum.midpoint.security" level="TRACE"/>
     <logger name="PROFILING" level="OFF" />
 
+    <logger name="com.evolveum.midpoint.smart" level="TRACE"/>
+
     <root level="INFO">
         <appender-ref ref="X" />
     </root>
