@@ -1,4 +1,5 @@
-= Managing cluster nodes
+= Manage Cluster Nodes
+:page-nav-title: Manage Cluster Nodes
 :page-wiki-name: Managing cluster nodes
 :page-wiki-id: 44302379
 :page-wiki-metadata-create-user: mederly
@@ -6,94 +7,57 @@
 :page-wiki-metadata-modify-user: mederly
 :page-wiki-metadata-modify-date: 2020-01-13T12:07:35.715+01:00
 :page-since: [ "4.1", "4.0.2" ]
+:page-toc: top
+// TODO add meta keywords
+// TODO add meta description
 
 // also available in 4.0.2
 
 
 MidPoint can run in clustered mode with two or more nodes.
-Here we describe the most important parameters influencing how nodes are named and managed.
+This article describes the most important parameters influencing how nodes are named and managed.
 
 
-== Node identification (naming)
+== How to Construct a Node Identifier
 
 Each node in cluster must have a unique node identifier (name).
+The property to use is `nodeId`.
 
+MidPoint configuration properties support expressions in the form of `${variable}` or `${prefix:variable}`.
+The first form evaluates using a configuration option specified by `variable`. The second one is more general and supports the following prefixes:
 
-=== nodeId vs. nodeIdSource
-
-There are two properties that can be used to set the node identifier:
-
-[%autowidth]
-|===
-| Property | Meaning | Placement | Alternative specification | Examples
-
-| `nodeId`
-| A constant value or an expression that yields the node name
-| `<midpoint>`  section in `config.xml`
-| `-Dmidpoint.nodeId`  command line parameter
-| `NodeA`, `${env:NodeID}`
-
-
-| `nodeIdSource`
-| Mechanism that is used to derive node Id (obsolete)
-| `<midpoint>`  section in `config.xml`
-| `-Dmidpoint.nodeIdSource`  command line parameter
-| `hostname`, `random`, `sequence`
-
-
-|===
-
-The `nodeIdSource` was originally meant as a way to assign node identifiers without the need to specify them as constants.
-However, after `nodeId` started supporting expressions, `nodeIdSource`  is now simply translated into `nodeId`.
-
-[TIP]
-====
-The translation looks like this:
-
-* if `nodeIdSource`  value contains ':' (e.g. it is `random:number:0:9999`) then it is copied into `nodeId` by wrapping in `${...}`. For example:  `random:number:0:9999`  ${`random:number:0:9999}`
-
-* if `nodeIdSource`  value does not contain ':' (e.g. it is `hostname`) then it is copied into `nodeId`  by wrapping in `${...}` with appended colon at the end.
-For example:  `hostname` `${hostname:}`
-
-====
-
-So, let's deal with the syntax of `nodeId`  only in the following discussion.
-
-
-=== Using nodeId property
-
-Since 4.0.2/4.1, midPoint configuration properties support expressions in the form of `${variable}` or `${prefix:variable}`. The first form evaluates using a configuration option specified by `variable`. The second one is more general and supports the following prefixes:
-
+.Configuration properties for node identifier construction
 [%autowidth]
 |===
 | Prefix | Meaning | Example
 
 | `sys`
-| References given Java system properties.
+| References Java system properties.
 | `${sys:user.home}`
 
 
 | `env`
-| References given operating system environment variables.
+| References operating system environment variables.
 | `${env:ENVIRONMENT}`
 
 
 | `hostname`
 | References local host name as determined by midPoint.
-Note that the colon after hostname is obligatory.
+The colon after hostname is obligatory.
 | `${hostname:}`
 
 
 | `random`
 | Generates random node ID.
-Full format is `${random:number:lower-limit:upper-limit}` but accepts also forms of `${random:}`, `${random:number}`, and `${random:number:upper-limit}`. Default values are lower limit = 0, upper limit = 999999999.
-Lower and upper limits are inclusive.
+The full format is `${random:number:lower-limit:upper-limit}` but you can also use `${random:}`, `${random:number}`, and `${random:number:upper-limit}`.
+The default limits are between 0 and 999999999, inclusive.
 | `${random:}`
 
 
 | `sequence`
 | Uses first available node ID in a given sequence.
-Full format is `${sequence:start:end:format}` but accepted forms are also `${sequence:}`, `${sequence:start}`, and `${sequence:start:end}`. Default values are: start = 0, end = 100, format = %d.
+The full format is `${sequence:start:end:format}` but you can also use `${sequence:}`, `${sequence:start}`, and `${sequence:start:end}`.
+Default values are: `start = 0`, `end = 100`, `format = %d`.
 | `${sequence:0:99:%02d}`
 
 
@@ -101,102 +65,105 @@ Full format is `${sequence:start:end:format}` but accepted forms are also `${seq
 
 The `sequence` expression works like this:
 
-. A counter starts at the `start` value, incrementing by 1 up to (and including) the `end` value.
+. The counter starts at the `start` value, incrementing by 1 up to the `end` value, inclusive.
 
-. At each step, node name is determined using the formatting string and other parts of the expression, and is checked for availability.
+. At each step, the node name is determined using the formatting string and other parts of the expression, and is checked for availability.
 
 . If such a node does not exist in the repository, the name is used.
 Technically speaking, the node name is allocated by creating the node in the repository.
 If the operation succeeds, the node is acquired.
-This is to avoid race conditions: only the first midPoint instance that successfully creates a node object can use this name.
+This is to avoid race condition: only the first midPoint instance that successfully creates a node object can use this name.
 
-. If a node with a given name exists but the node is permanently down (this is determined by `running` property being set to `false`) the name is used.
+. If a node with the given name exists, but the node is permanently down (this is determined by the `running` property being set to `false`), the name is used.
 This is implemented by removing the node object and then retrying the allocation attempt.
 
-. Names of nodes that are not marked as down but are not alive are *not* used here.
-This is to avoid using names of nodes that are e.g. currently booting, or temporarily unavailable.
-Please see the Node state management section below.
+. Names of nodes that are not marked as down but are not alive either, are *not* used here.
+This is to avoid using names of nodes that are currently booting, or temporarily unavailable, for instance.
+See the Node state management section below.
 
-Note that `sequence`  expression can be combined with other ones.
-E.g. you can specify `nodeId` as `${env:ENVIRONMENT}-${sequence:0:99:%02d}`, yielding names like `Test-01`, `Test-02`, ..., `QA-01`, `QA-02`, ..., `Prod-01`, `Prod-02`, ...
+The `sequence`  expression can be combined with other name constituents.
+For example, you can specify the `nodeId` as `${env:ENVIRONMENT}-${sequence:0:99:%02d}`, yielding names like `Test-01`, `Test-02`, …, `QA-01`, `QA-02`, …, `Prod-01`, `Prod-02`, …
 
+== Node State Management
 
-== Node state management
+A midPoint node can be in one of the following states:
 
-A midPoint node can be typically in one of the following states:
-
+.Possible midPoint node states
 [%autowidth]
 |===
 | State | Characterization
 
 | up and alive
-| Node regularly checks into the repository.
+| The node regularly checks into the repository.
 Its `operationalState`  property is `UP` and its `lastCheckInTime` is regularly updated (less than `nodeTimeout` ago).
 
 
 | up, but not checking in
-| There's an issue with this node.
+| There's an issue with the node.
 Its `operationalState`  property is `UP` but its `lastCheckInTime` is older than `nodeTimeout` seconds.
-Nodes in this state are excluded from some operations e.g. status querying or cache invalidation calls.
+Nodes in this state are excluded from some operations, e.g., status querying or xref:../cache-invalidation[cache invalidation] calls.
 
 
 | down
-| Node's `operationalState` property is `DOWN`. This typically occurs when the node is going down cleanly: it marks itself as down.
-If node goes down abruptly (without having a chance to do this modification), other nodes watch its `lastCheckInTime` and after it's older than `nodeAlivenessTimeout` ago, they mark the respective node as down by setting its `operationalState` property to `DOWN`. This check is occurring every `nodeAlivenessCheckInterval` seconds.
+| The `operationalState` property of the node is `DOWN`.
+This typically occurs when the node went down cleanly: the xref:/midpoint/reference/tasks/task-manager/[task manager] marked it as being down.
+If a node goes down abruptly without having a chance to inform the task manager and get marked in the central repository DB accordingly, other nodes watch its `lastCheckInTime` in the DB.
+After it is older than `nodeAlivenessTimeout` seconds,
+the task manager marks the respective node as down by setting its `operationalState` property in the DB to `DOWN`.
+This check is occurring every `nodeAlivenessCheckInterval` seconds.
 Nodes in this state are excluded from almost all operations.
 
 
 | starting
-| Node's `operationalState`  property is `STARTING`. Nodes in this state are excluded from some operations e.g. status querying or cache invalidation calls.
+| The `operationalState` property of the node is `STARTING`.
+Nodes in this state are excluded from some operations, e.g., status querying or xref:../cache-invalidation[cache invalidation] calls.
 
 
 | deleted
-| Node object no longer exists in the repository.
-The deletion can occur either manually or by the Cleanup task.
-The task deletes nodes that have `lastCheckInTime` older than `deadNodes/maxAge` ago.
+| The node object no longer exists in the repository.
+The deletion can occur either manually or by a cleanup task.
+The task deletes nodes that have `lastCheckInTime` older than `deadNodes/maxAge`.
 
 
 |===
 
-Default parameter values:
+=== Timeout and Check Interval Default Values
 
+.Timeout and check interval default values
 [%autowidth]
 |===
-| Parameter | Where it is | Description | Default value
+| Parameter | Location | Description | Default value
 
 | `nodeTimeout`
 | `taskManager` section of `config.xml`
-| When to start considering node as not checked in.
+| When to start considering a node as not checking in.
 | 30 seconds
 
 
 | `nodeAlivenessTimeout`
 | `taskManager` section of `config.xml`
-| When to start considering node as being down.
+| When to start considering a node as being down.
 | 900 seconds
 
 
 | `nodeAlivenessCheckInterval`
 | `taskManager` section of `config.xml`
-| How often is the node aliveness check carried out.
+| How often is a node availability check carried out.
 | 120 seconds
 
 
 | `nodeStartupTimeout`
 | `taskManager` section of `config.xml`
-| When to start reporting node as starting too long.
+| When to start reporting a node as starting for too long.
 | 900 seconds
 
 
 | `deadNodes/maxAge`
-| cleanup policy e.g. in the system configuration object
-| After what not-checked-in time should the node be deleted.
-| none
-
+| cleanup policy, e.g., in the system configuration object
+| How long can a node go without check-in before it is deleted.
+| none​footnote:[The nodes are not cleaned up by default.
+If you would like to enable this feature, you can set this parameter to 1 day, for example.
+Note that cleanup tasks run once per day by default.
+However, you can change this interval or you can schedule another cleanup task dedicated specifically to cleaning up dead nodes.]
 
 |===
-
- The nodes are not cleaned up by default.
-If you'd like to enable this feature, you can set this parameter to e.g. 1 day.
-Note that cleanup task runs - by default - once per day.
-But you can change this interval or you can schedule other cleanup task, devoted specifically to cleaning up dead nodes.
