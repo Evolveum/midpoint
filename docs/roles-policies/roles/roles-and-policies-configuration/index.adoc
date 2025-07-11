@@ -1,5 +1,5 @@
-= Roles and Policies Configuration
-:page-wiki-name: Roles and Policies Configuration
+= Roles Configuration
+:page-wiki-name: Roles Configuration
 :page-wiki-id: 11075593
 :page-wiki-metadata-create-user: semancik
 :page-wiki-metadata-create-date: 2013-06-12T13:50:50.738+02:00
@@ -300,6 +300,7 @@ Unless you are creating a very complex setup there is a simple rule of the thumb
 
 See xref:/midpoint/reference/roles-policies/assignment/assignment-vs-inducement/[Assignment vs Inducement] for more details.
 
+[[role_hierarchy]]
 == Role Hierarchy
 
 Roles contain inducements which have identical structure to user assignments.
