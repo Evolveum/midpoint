@@ -1,4 +1,4 @@
-= Achieve High Availability with Clustering
+= Achieve High Availability of MidPoint with Clustering
 :page-nav-title: High Availability with Clustering
 :page-wiki-name: Clustering / high availability setup
 :page-wiki-id: 11075783
@@ -171,6 +171,7 @@ This component is responsible for creating worker tasks, which are then picked u
 The data on which nodes operate are stored in the central database.
 However, there are occasions when the nodes need to communicate with each other directly.
 
+[[cache-invalidation]]
 One such occasion is *cache invalidation*.
 When a node changes data in the midPoint database, the node informs other nodes about the need to invalidate their cache.
 
