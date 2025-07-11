@@ -12,129 +12,151 @@ doc-type: intro
 :page-upkeep-status: orange
 :page-toc: top
 :toclevels: 3
+// TODO add meta keywords
+// TODO add meta description
 
-Task Manager is controlling tasks.
+The task manager controls tasks.
 It is kind of smart "cluster-aware" scheduler combined with a thread pool.
-It will scan for tasks to execute, coordinate with other hosts in the cluster, allocate a thread for execution, execute the task and monitor it.
-It will also make sure that the task entry in the repository is updated accordingly.
+It scans for tasks to execute, coordinates with other hosts in the cluster, allocates a thread for execution, executes the task, and monitors it.
+It also makes sure that the task entry in the repository is updated accordingly.
 
-Currently, Task Manager is based on link:http://quartz-scheduler.org/[Quartz scheduler], which provides a lot of this functionality.
+Currently, the task manager is based on link:http://quartz-scheduler.org/[Quartz scheduler], which provides most of this functionality.
 
 
-== Task
+== What Is a Task
 
 A *task* is a logical unit of work or a "thread of execution" that takes non-negligible amount of time.
-A typical example is a modification of user object with subsequent provisioning, optionally including approvals.
-Generally speaking, tasks in midPoint are of two kinds: synchronously executing ones and asynchronously executing ones.
-The former are executing quite shortly, are usually stored in memory only, and therefore invisible to the system administrator.
-The latter ones generally take longer to execute, are stored primarily in the repository, and the system administrator can see and manage them through the administrative user interface (see Persistence status below).
+A typical example is a modification of a user object with subsequent provisioning, optionally including approvals.
 
-An example of an asynchronous task is an approval that waits for interaction of (several) users and therefore cannot be executed synchronously.
-Another example is a data import which usually takes a lot of time.
-Yet another examples are synchronization and reconciliation tasks that need to be scheduled and run in background.
+=== Synchronous and Asynchronous Tasks
 
-As for asynchronous tasks, their state must be completely serializable, i.e. able to be stored in the repository.
-Tasks move between IDM nodes, may be passed to a non-IDM node, may be suspended, resumed and must survive even a sudden restart of all nodes.
-Therefore a task must be able to store its complete state to the repository and also to recover the state back to memory.
+Tasks in midPoint are of two kinds:
+
+* *Synchronously executing* tasks execute quite shortly and are usually stored only in the runtime memory.
+    As such, they are invisible to the system administrator.
+* *Asynchronously executing* tasks generally take longer to execute, are stored primarily in the repository, and the system administrator can see and manage them through the administrative user interface (see <<persistence-status,Persistence status>> below).
+
+An *example of an asynchronous task* is an approval that waits for interaction of (possibly several) users and therefore cannot be executed synchronously.
+Another example is a data import which usually runs for some time.
+Yet another examples are synchronization and reconciliation tasks that need to be scheduled and run in the background.
+
+The state of asynchronous tasks must be completely serializable, i.e., it must be possible to store it in the repository.
+Tasks move between midPoint nodes, may be passed outside midPoint, may be suspended, resumed, and must survive even a sudden restart of all nodes.
+Therefore, a task must be able to store its complete state to the repository, as well as to recover its state back to the runtime memory.
 Tasks should also survive system upgrades.
-Therefore an approval process that started in version X must be able to finish after upgrade to version X+1. These requirements place significant constraints on the design of task mechanism and task flexibility and also impact performance.
-Therefore asynchronous tasks are *not* suitable for every operation.
-We definitely do not want every "read" operation to be wrapped in such a heavyweight task.
-Generally, only operations that require asynchronous execution should be implemented as asynchronous tasks.
+For instance, an approval process that started on version X must be able to finish after upgrade to version X+1.
 
-Task is a data structure that can be stored in memory or in the repository.
-As said above, in-memory tasks are usually used for synchronous operations.
-In such a case storing task state in the repository would present unacceptable overhead.
-The repository tasks are stored in cases of asynchronous, background or scheduled tasks.
-In such cases storing the task state in the repository is necessary.
+These requirements place significant constraints on the design of task mechanism and task flexibility, and also impact performance.
+This means that *asynchronous tasks are not suitable for every kind of operation*, such as every trivial _read_ operation.
+Generally, only the operations that require asynchronous execution should be implemented as asynchronous tasks.
 
+A task is a data structure that can be stored in the runtime memory or in the repository.
+In-memory tasks are typically used for relatively simple and short-lived synchronous operations.
+For such tasks, storing task state in the repository would present an unacceptable overhead.
+Tasks are stored in the repository in cases of asynchronous, background or scheduled tasks.
+In such cases, storing the task state in the repository is necessary.
 
-=== Task State
+== Task States
 
 From the general point of view, task state is a superposition of persistence status and execution status.
-Additionally, each task can have a business-specific state, e.g. the live synchronization token, described below.
+Additionally, each task can have a business-specific state, e.g., the live synchronization token, as described below.
 
 
-==== Persistence Status
+=== Persistence Status
 
-Persistence status tells whether the task is in-memory or persisted in the repository.
+Persistence status signifies whether the task is in the runtime memory or persisted in the repository.
 
-* *Transient*: The task is in-memory only, it is not stored in the repository.
+* *Transient*: The task is in the memory only, it is not stored in the repository.
 Only synchronous foreground tasks may use this approach.
-As the task data only exists while the task is being executed, the user or the client application needs to (synchronously) wait for a task to complete.
+As the task data only exists while the task runs, the user or the client application needs to (synchronously) wait for the task to complete.
 
 * *Persistent*: The task is stored in the repository.
-Both synchronous (foreground) and asynchronous (background, scheduled, etc.) tasks may use this approach, however it is used almost exclusively for asynchronous tasks.
+Both synchronous (foreground) and asynchronous (background, scheduled, etc.) tasks may use this approach.
+However, it is used almost exclusively for asynchronous tasks.
 
-==== Execution Status
+=== Execution Status
 
 Execution status provides information about the task overall high-level execution state.
-It tells whether the task is running, waits for something or is done.
+It tells whether the task is running, waits for something, or is done.
 
-* *Running:* The task is actually executing at a midPoint node.
+* *Running*: The task is actually executing on a midPoint node.
 It means that there is a thread on one of the nodes that executes the task.
 
 * *Runnable*: The task is ready to be executed.
-This state implies that the task is prepared to be started when a defined time arrives.
+This state implies that the task is prepared to be started as scheduled.
 
-* *Waiting*: The IDM system is waiting while the task is being executed on an external node (e.g. external workflow engine) or is waiting for some kind of external signal (e.g. approval in internal workflow).
-The task may be running on external node or be blocked on IDM node.
+* *Waiting*:  MidPoint is waiting while the task is being executed on an external node (e.g., an external workflow engine) or is waiting for some kind of external signal (e.g., an approval in an internal workflow).
+The task may be running on external node or be blocked on midPoint node.
 One way or another, there is no point in allocating a thread to run this task.
-Other task properties provide more information about the actual "business" state of the task.
+Other task properties provide more information about the actual _business_ state of the task.
 
-* *Suspended*: The task is suspended, e.g. by the system administrator.
+* *Suspended*: The task is suspended, e.g., by the system administrator.
 The task will not be executed until it is explicitly resumed, usually by system administrator.
 
 * *Closed*: The task is done.
 No other changes or progress will happen.
-The task in this state is considered immutable and the only things that can happen to it is a delete by a cleanup code.
+The task in this state is considered immutable and the only thing that can happen to it is a delete by a cleanup task.
 
-The distinction between Running and Runnable states is currently not done at the level of task attributes; the `executionState` attribute for both cases is `runnable`. These states can be distinguished by calling `TaskManager.isTaskThreadActiveClusterwide` method.
+The distinction between Running and Runnable states is currently not done at the level of task attributes; the `executionState` attribute for both cases is `runnable`.
+These states can be distinguished by calling the `TaskManager.isTaskThreadActiveClusterwide` method.
 
-==== Business Status
+=== Business Status
 
 TODO:  ....
 
-=== Single-run and Recurring Tasks
+== Single-run and Recurring Tasks
 
-Some tasks in midPoint are *single-run*. A usual example is the initial import of accounts from a resource.
-This import is started by the system administrator, executes on background, and after its work is done (or a unsolvable error is encountered), it finishes.
-Another example is execution of an operation requiring an approval, e.g. assignment of a role to a user.
-After the approval is got and the operation is executed, the task finishes and is closed.
-Single-run tasks may start either immediately after creation (this is the majority of cases) or according to a defined schedule (this is not implemented yet); in the latter case we call them scheduled single-run tasks.
+Some tasks in midPoint are *single-run*.
+A usual example is the initial import of accounts from a resource.
+This import is started by the system administrator, executes on background, and after its work is done (or an irrecoverable error occurs), it finishes.
+Another example is an execution of an operation requiring an approval, e.g., an assignment of a role to a user.
+After the approval is obtained and the operation is executed, the task finishes and is closed.
 
-However, there are tasks that have to be repeated at defined time instants.
-We call such tasks *recurring*. Examples are live synchronization (scheduled to run e.g. every 5 seconds) or reconciliation (scheduled to run e.g. every day at 3:00am).
-MidPoint currently supports two styles of schedule description: interval-based and cron-like.
-The former says that a task should repeat every N seconds, while the latter provides the ability of specifying starting time intervals using cron expression.
-For more information on these expressions, please see the link:http://quartz-scheduler.org/documentation/quartz-2.1.x/tutorials/crontrigger[Quartz documentation].
+Single-run tasks may start
+either immediately after they are created (this is the majority of cases)
+or according to a defined schedule (this is not implemented yet); in the latter case, we call them scheduled single-run tasks.
+// TODO: does it make sense to mention this if it's not implemented yet? @dakle 2025-07-11
+
+Other tasks have to be repeated.
+We call such tasks *recurring*.
+
+Examples of recurring tasks are live synchronization (scheduled to run, e.g., every 5 seconds) or reconciliation (scheduled to run, e.g., every day at 3:00).
+
+MidPoint currently supports two styles of schedule description:
+
+* Interval-based scheduling repeats a task every N seconds.
+* Cron-like scheduling provides the ability to specify starting time intervals using link:https://en.wikipedia.org/wiki/Cron[cron expression].
+    For more information on these expressions, please see the link:https://www.quartz-scheduler.org/documentation/quartz-2.3.0/tutorials/crontrigger.html[Quartz documentation].
 
 
-==== Tightly and Loosely Bound Tasks
+=== Tightly and Loosely Bound Tasks
 
-A recurring task can be bound to an IDM node either tightly or loosely.
+A recurring task can be bound to a midPoint node either tightly or loosely.
 
-A *tightly-bound task* is given a thread, in which it executes.
+A *tightly bound task* is given a thread in which it executes.
 Even between executions, the thread is allocated to the task.
-(Technically speaking, it just sleeps using `Thread.sleep` method.) A direct consequence is that each execution of this task occurs on the same node.
-Main positive aspects are that the execution is a bit more efficient (scheduling via Quartz is avoided) and that the troubleshooting is a simpler, as all executions are recorded in the same midPoint log file.
-A negative aspect is that such a task consumes permanently one thread.
-A general rule is that a task should be tightly bound only when its scheduling interval is quite small, e.g. under 30 seconds.
-(In current Quartz-based implementation of Task Manager, it is even not possible to use a cron expression for a tightly-bound task.)
+(Technically, it just sleeps using `Thread.sleep` method.)
+A direct consequence is that each execution of this task occurs on the same node.
+This has some pros and cons:
 
-On the other hand, a *loosely-bound task* has no thread permanently allocated to it.
-It waits in the repository until its start time arrives.
-After that, it is started at (any) available IDM node.
+* The main positive aspects are that the execution is a bit more efficient (scheduling via Quartz is avoided) and that the troubleshooting is a simpler, as all the executions are recorded in a log file on the same node.
+* A negative aspect is that such a task consumes permanently one thread.
+
+As a general rule, a task should be tightly bound only when its scheduling interval is quite short, e.g., under 30 seconds.
+(In the current Quartz-based implementation of the task manager, it is not possible to use a cron expression for a tightly bound task.)
+
+On the other hand, a *loosely bound task* has no thread permanently allocated to it.
+It waits in the repository until its start time comes.
+At the time, it is started on any available midPoint node.
 When its execution finishes, the thread is released and the task waits for the next start time.
-Individual task executions can be on the same IDM node or on different nodes (therefore the name 'loosely-bound'), as determined by the Quartz scheduler algorithm.
-(link:http://quartz-scheduler.org/documentation/quartz-2.x/configuration/ConfigJDBCJobStoreClustering[Quartz doc] states that "The load balancing mechanism is near-random for busy schedulers (lots of triggers) but favors the same node for non-busy (e.g. few triggers) schedulers.")
+A loosely bound task may execute repeatedly on the same node or on different nodes, as determined by the Quartz scheduler algorithm (hence the name 'loosely bound').
+link:https://www.quartz-scheduler.org/documentation/quartz-2.3.0/configuration/ConfigJDBCJobStoreClustering.html[Quartz doc] states that "The load balancing mechanism is near-random for busy schedulers (lots of triggers) but favors the same node for non-busy (e.g., few triggers) schedulers."
 
-==== Task Execution - a Bit of Terminology
+=== Task Execution Terminology
 
 [NOTE]
 ====
 These are only preliminary terms, open to discussion.
-
 ====
 
 *Task run* (or sometimes "task cycle run") denotes one execution of task's logic, provided by task handler or handlers, see below.
@@ -142,18 +164,18 @@ These are only preliminary terms, open to discussion.
 
 For _single-run tasks_, task run is the same as task thread run - and there is only one such run (or thread run) during the task lifetime.
 
-For _loosely-bound recurring tasks_, task run is the same as task thread run as well.
+For _loosely bound recurring tasks_, task run is the same as task thread run as well.
 However, in this case, there are potentially many runs (or thread runs) during the task lifetime.
 
-For _tightly-bound recurring tasks_, there is only one task thread run, because the task thread is allocated to the task permanently.
+For _tightly bound recurring tasks_, there is only one task thread run, because the task thread is allocated to the task permanently.
 Within this task thread run there are many task runs, occurring at defined points in time.
 
 (For this discussion, we are not thinking about task failovers and node restarts.)
 
-Start and end of task thread run are logged to the console as debug messages.
-Start and end of task run are recorded as `lastRunStartTimestamp` and `lastRunFinishTimestamp` attributes.
+Starts and ends of a task thread run are logged to the console as debug messages.
+Starts and ends of a task run are recorded as `lastRunStartTimestamp` and `lastRunFinishTimestamp` attributes.
 
-==== Task Scheduling
+=== Task Scheduling
 
 Task scheduling is governed by the `schedule` attribute, having the following parts:
 
@@ -161,7 +183,7 @@ Task scheduling is governed by the `schedule` attribute, having the following pa
 Used only for recurring tasks.
 
 . `cronLikePattern`: Cron-like pattern specifying time(s) when the task is to be run.
-Currently only loosely-bound recurring tasks can use this feature.
+Currently only loosely bound recurring tasks can use this feature.
 (In the future, scheduled single-run tasks could use this feature to specify their first - and only - run start time.)
 
 . `earliestStartTime`: Earliest time when the task is allowed to start.
@@ -170,47 +192,54 @@ Usable for any kind of task.
 . `latestStartTime`: Latest time when the task is allowed to start.
 Usable for any kind of task.
 
-. `latestFinishTime`: Latest time when the task is allowed to run (a reason that one could have to specify this time is perhaps because another task that conflicts with this one is scheduled to start at this time, so the first one must NOT run at that moment).
-It is the responsibility of the task handler to finish working when this time arrives - it will not be enforced by the task manager.
+. `latestFinishTime`: Latest time when the task is allowed to run.
+    A reason to specify this time may be because another task conflicting with this task is scheduled to start at this time, so the task for which you specify `latestFinishTime` must NOT run after that moment.
+    It is a responsibility of the task handler to finish working when this time comes.
+    It is not enforced by the task manager.
 
-Besides these parameters, there is also the last one, called `misfireAction`, which controls what is to be done when the planned start time arrives without the task actually starting (e.g. because no node or thread is available to execute the task at that time).
+==== When a Task Fails to Start as Scheduled
+
+Besides the parameters above, there is also `misfireAction` that controls what is to be done when the task fails to start at its specified start time (e.g., because no node or thread are available to execute the task at that time).
 There are the following possibilities:
 
-. `executeImmediately`: The task will be executed immediately.
+. `executeImmediately`: The task is to be executed immediately when possible.
 
-. `reschedule`: The task will be rescheduled according to its schedule.
-(This can be used only for loosely-bound recurring tasks.)
+. `reschedule`: The task is rescheduled according to its schedule.
+This can be used only for loosely bound recurring tasks.
 
-. `forget`: The task will not be executed at all.
-(This can be used only for scheduled single-run tasks.
-And is not implemented yet.)
+. `forget`: The task is not executed at all.
+This can be used only for scheduled single-run tasks.
+Not yet implemented.
+// TODO Does it make sense to mention this if it's not implemented or planned? @dakle 2025-07-11
 
-=== Resilient and Non-resilient Tasks (ThreadStopAction Attribute)
+== Resilient and Non-Resilient Tasks: ThreadStopAction
 
 By default, all persistent tasks are resilient.
-It means that after a node is stopped (either regularly, e.g. by shutting down the application server, or not regularly, e.g. caused by hardware malfunction), the task continues to execute on another node in a cluster, or (if no other nodes are available), after a node becoming ready.
+It means that after a node is stopped (either regularly, e.g., by shutting down the application server, or  irregularly, e.g., by a hardware malfunction), persistent tasks continue to execute on another node in a cluster, or (if no other nodes are available), after an available node appears.
 
-However, there are situations in which such a resilience is not suitable.
-In these cases, a task can be declared non-resilient; which means that after a node shutdown or failure the task will *not* be started on another node, and will be simply suspended or closed.
-The use case for such a feature would be perhaps the "manual" synchronization of resources - something that will be started by the system administrator, with the expectation that it will execute only until the node is down.
+However, there are situations when such a resilience is not desirable.
+A task can be declared non-resilient, meaning that after a node shuts down or fails, the task is *not* started on another node, and is simply suspended or closed.
+The use case for such a feature may be a manual synchronization of resources.
+Something that is started by the system administrator with the expectation that it executes only until the node is down.
 
-More precisely, this task behavior is controlled by `threadStopAction` attribute, which can have the following values:
+This task behavior is controlled by *`threadStopAction` attribute*, which can have the following values:
 
-. `restart`: The task will be restarted on first node available (i.e. either immediately, if there is a suitable node in the cluster, or later, when a suitable node becomes available).
+. `restart`: The task will restart on the first node available (i.e., either immediately, if there is a suitable node in the cluster, or later, when a suitable node becomes available).
 
-. `reschedule`: The task will be rescheduled according to its schedule (for single-run and tightly-bound recurring tasks this is the same as 'restart').
+. `reschedule`: The task will be rescheduled according to its schedule (for single-run and tightly bound recurring tasks, this is the same as 'restart').
 
 . `suspend`: The task will be suspended.
 
 . `close`: The task will be closed.
 
-First two options are used to implement resilient task behavior, while the last two ones for non-resilient tasks.
+The restart and reschedule options are used to implement resilient task behavior, while the suspend and close options are for non-resilient tasks.
 
-Please note that for tasks, which have no threads allocated at the moment of node down (e.g. loosely-bound recurring tasks, but also scheduled single-run tasks), this setting has no effect.
-These tasks will be simply started when their start time arrives.
-For these cases it is advisable to use suspend/close option only when there is a strong reason to do it, e.g. when an administrator wants to manually review task state after such an interruption.
+For tasks which have no threads allocated when their node goes down (loosely bound recurring tasks and scheduled single-run tasks), the `threadStopAction` attribute has no effect.
+These tasks are simply started when their next start time comes.
+We recommend using the suspend and close options only when there is a strong reason to do it, e.g., when the administrator wants to manually review the task state after such an interruption.
+//TODO scheduled single-run tasks are not implemented yet, delete? @dakle 2025-07-11
 
-=== Handler URI and Task Category
+== Handler URI and Task Category
 
 Handler URI indirectly specifies which class (called handler, implementing TaskHandler interface) is responsible to handle the task.
 The handler will execute reaction to a task lifecycle events such as executing the task, task heartbeat, etc.
@@ -228,7 +257,7 @@ At this moment the task is automatically closed.
 Task category denotes a user-recognizable type of task.
 Some examples: LiveSynchronization, Reconciliation, ImportingAccounts, ImportFromFile, UserRecomputation, Workflow, Demo.
 
-=== Associated Object
+== Associated Object
 
 Tasks may be associated with a particular objects.
 For example a "import from resource" task is associated with the resource definition object that it imports from.
@@ -238,12 +267,12 @@ This is an optional property.
 The object could be also specified using usual extension mechanism.
 But it would be difficult to search for all the tasks that work on a particular resource or other object.
 
-=== Task Owner
+== Task Owner
 
-Task owner is (usually) an IDM user that initiated the task.
-This attribute is used e.g. for auditing reasons.
+Task owner is (usually) a midPoint user that initiated the task.
+This attribute is used, e.g., for auditing reasons.
 
-=== Clustering and High Availability
+== Clustering and High Availability
 
 As mentioned above, there can be more nodes working in a *cluster*. These nodes share the workload: when a task becomes ready to be executed, one of nodes takes and executes it.
 (This process is governed by Quartz.)
@@ -256,28 +285,28 @@ When a node becomes unavailable (either because of shutdown, or due to sudden cr
 
 In this way, high availability of the solution with regards to task execution is ensured.
 
-=== Task State in midPoint Repository and Quartz Job Store
+== Task State in midPoint Repository and Quartz Job Store
 
-Generally speaking, midPoint repository contains general task information, including its execution and business state, while Quartz job store is responsible for maintaining information necessary for task scheduling (e.g. next planned start time).
+Generally speaking, midPoint repository contains general task information, including its execution and business state, while Quartz job store is responsible for maintaining information necessary for task scheduling (e.g., next planned start time).
 With minor limitations, the information in Quartz job store can be erased at any time, and recreated from midPoint repository (at node startup) - the only damage that could occur is that some tasks could be executed one more or one less time.
 
-Because of this, the most simple installations (e.g. demonstration ones) can be run with *in-memory Quartz job store* - a store that will be re-created at node startup.
+Because of this, the most simple installations (e.g., demonstration ones) can be run with *in-memory Quartz job store* - a store that will be re-created at node startup.
 The limitations of this approach are:
 
 . clustering (failover) feature is not available,
 
-. tasks do not "know" when they run last time, so e.g. interval-based loosely-coupled tasks will be started immediately, even if their expected start time has not come yet; or misfired cron-based tasks would not start (even if configured to do so), because the information on the misfire event would not be present.
+. tasks do not "know" when they run last time, so, e.g., interval-based loosely-coupled tasks will be started immediately, even if their expected start time has not come yet; or misfired cron-based tasks would not start (even if configured to do so), because the information on the misfire event would not be present.
 This may cause for example reconciliation task(s) to be started immediately after midPoint is started.
 
 More advanced installations could use *JDBC-based Quartz job store* - a store that will remember task scheduling information.
 
-=== Task Manager Configuration and Administration
+== Task Manager Configuration and Administration
 
 This topic is discussed in detail in xref:/midpoint/guides/admin-gui-user-guide/[Administration Interface].
 
-=== Authorizing specific operations
+== Authorizing specific operations
 
-==== Task-related operations
+=== Task-related operations
 
 In order to authorize task-related operations, the following action URIs are defined.
 These are evaluated with respect to task objects, i.e. you can define a filter that selects tasks that can be acted upon.
@@ -307,7 +336,7 @@ These are evaluated with respect to task objects, i.e. you can define a filter t
 Note that "suspend and delete a task" operation uses standard "delete" action URI.
 I.e. for simply deleting a task and deleting a task after suspending it you would use the same authorizations.
 
-==== Node-related operations
+=== Node-related operations
 
 For node-related operations, the following action URIs are defined.
 These are evaluated with respect to node objects, i.e. you can define a filter that selects nodes that can be acted upon (although we do not expect such a selection would be frequently used in practice).
@@ -326,7 +355,7 @@ These are evaluated with respect to node objects, i.e. you can define a filter t
 
 |===
 
-==== Other operations
+=== Other operations
 
 Finally, the following actions URIs are defined for operations that are not bound to specific task nor node:
 
