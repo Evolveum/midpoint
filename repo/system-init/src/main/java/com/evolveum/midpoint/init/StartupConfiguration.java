@@ -40,7 +40,13 @@ import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 
-public class StartupConfiguration implements MidpointConfiguration {
+import org.springframework.context.EnvironmentAware;
+import org.springframework.core.env.AbstractEnvironment;
+import org.springframework.core.env.EnumerablePropertySource;
+import org.springframework.core.env.Environment;
+import org.springframework.core.env.PropertySource;
+
+public class StartupConfiguration implements MidpointConfiguration, EnvironmentAware {
 
     private static final String SAFE_MODE = "safeMode";
     private static final String PROFILING_ENABLED = "profilingEnabled";
@@ -97,6 +103,8 @@ public class StartupConfiguration implements MidpointConfiguration {
 
     private final String configFilename;
 
+    private Environment environment;
+
     /**
      * Default constructor
      */
@@ -113,6 +121,11 @@ public class StartupConfiguration implements MidpointConfiguration {
     public StartupConfiguration(String midPointHome, String configFilename) {
         this.midPointHomePath = midPointHome;
         this.configFilename = configFilename;
+    }
+
+    @Override
+    public void setEnvironment(@NotNull Environment environment) {
+        this.environment = environment;
     }
 
     @Override
@@ -346,11 +359,24 @@ public class StartupConfiguration implements MidpointConfiguration {
     private void applyEnvironmentProperties() {
         Properties properties = System.getProperties();
         properties.forEach((key, value) -> {
-            LOGGER.trace("Property {} = '{}'", key, valuePrintout(String.valueOf(key), value));
+            LOGGER.trace("System property {} = '{}'", key, valuePrintout(String.valueOf(key), value));
             if (key instanceof String && ((String) key).startsWith("midpoint.")) {
                 overrideProperty((String) key, value);
             }
         });
+        if (environment != null) {
+            for (PropertySource<?> ps : ((AbstractEnvironment) environment).getPropertySources()) {
+                if (ps instanceof EnumerablePropertySource) {
+                    for (String name : ((EnumerablePropertySource<?>) ps).getPropertyNames()) {
+                        if (name.startsWith("midpoint.")) {
+                            String value = environment.getProperty(name);
+                            LOGGER.trace("Environment property {} = '{}'", name, valuePrintout(name, value));
+                            overrideProperty(name, value);
+                        }
+                    }
+                }
+            }
+        }
     }
 
     private void overrideProperty(String key, Object value) {
