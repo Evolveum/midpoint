@@ -13,7 +13,11 @@ import com.evolveum.midpoint.schema.processor.ResourceObjectTypeIdentification;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.*;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.DelineationsSuggestionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
+import org.jetbrains.annotations.Nullable;
+
+import java.util.Collection;
 
 /**
  * Provides methods for suggesting parts of the integration solution, like inbound/outbound mappings.
@@ -21,7 +25,9 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.DelineationsSuggesti
 public interface SmartIntegrationService {
 
     /** Suggests delineations for the given resource and object class. */
-    DelineationsSuggestionType suggestDelineations(String resourceOid, QName objectClassName, Task task, OperationResult result);
+    DelineationsSuggestionType suggestDelineations(String resourceOid, QName objectClassName, Task task, OperationResult result)
+            throws SchemaException, ExpressionEvaluationException, SecurityViolationException, CommunicationException,
+            ConfigurationException, ObjectNotFoundException;
 
     /** Suggests a discrete focus type for the application (resource) object type. */
     QName suggestFocusType(
@@ -29,9 +35,40 @@ public interface SmartIntegrationService {
             throws SchemaException, ExpressionEvaluationException, SecurityViolationException, CommunicationException,
             ConfigurationException, ObjectNotFoundException;
 
-    //void suggestCorrelation();
+    /** Suggests a correlations. TODO specify this method more precisely */
+    default Object suggestCorrelation(
+            String resourceOid,
+            ResourceObjectTypeIdentification typeIdentification,
+            QName focusTypeName,
+            Object interactionMetadata)
+            throws SchemaException, ExpressionEvaluationException, SecurityViolationException, CommunicationException,
+            ConfigurationException, ObjectNotFoundException {
+        throw new UnsupportedOperationException();
+    }
 
-    //void suggestAttributeMapping();
+    /** Suggests inbound/outbound mappings for the given resource object type and focus type. */
+    MappingsSuggestionType suggestMappings(
+            String resourceOid,
+            ResourceObjectTypeIdentification typeIdentification,
+            QName focusTypeName,
+            @Nullable MappingsSuggestionFiltersType filters,
+            MappingsSuggestionInteractionMetadataType interactionMetadata,
+            Task task,
+            OperationResult result)
+            throws SchemaException, ExpressionEvaluationException, SecurityViolationException, CommunicationException,
+            ConfigurationException, ObjectNotFoundException;
 
-    //void suggestAssociations();
+    /**
+     * Suggests association type definitions for the given resource. (Either for all object types, or with some restrictions.)
+     *
+     * NOTE: Interaction metadata will be added later.
+     */
+    AssociationsSuggestionType suggestAssociations(
+            String resourceOid,
+            Collection<ResourceObjectTypeIdentification> subjectTypeIdentifications,
+            Collection<ResourceObjectTypeIdentification> objectTypeIdentifications,
+            Task task,
+            OperationResult result)
+            throws SchemaException, ExpressionEvaluationException, SecurityViolationException, CommunicationException,
+            ConfigurationException, ObjectNotFoundException;
 }

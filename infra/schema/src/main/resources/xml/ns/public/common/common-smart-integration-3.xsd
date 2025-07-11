@@ -53,6 +53,12 @@
     </xsd:complexType>
     <xsd:element name="smartIntegrationConfiguration" type="tns:SmartIntegrationConfigurationType"/>
 
+    <!-- ================================================================================================================== -->
+    <!--                              Complex types for the API of SmartIntegrationService                                  -->
+    <!-- ================================================================================================================== -->
+
+    <!-- suggestDelineations method -->
+
     <xsd:complexType name="DelineationsSuggestionType">
         <xsd:annotation>
             <xsd:documentation>
@@ -104,8 +110,254 @@
     </xsd:complexType>
     <xsd:element name="delineationSuggestion" type="tns:DelineationSuggestionType"/>
 
-    <!-- Protocol for the communication with the Python service -->
+    <!-- suggestMappings method -->
+
+    <xsd:complexType name="MappingsSuggestionType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Suggestions of inbound/outbound mappings.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:since>4.11</a:since>
+                <a:container>true</a:container>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="attributeMappings" type="tns:AttributeMappingsSuggestionType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Suggestions of attribute mappings. There may be multiple suggestions for a given attribute.
+                        If they are there, we provide multiple values of this item (pointing to the same attribute),
+                        one for each suggestion.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="extensionItem" type="tns:ExtensionItemSuggestionType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Suggestions of new extension items.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+    <xsd:element name="mappingsSuggestion" type="tns:MappingsSuggestionType"/>
+
+    <xsd:complexType name="MappingsSuggestionFiltersType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Filters for the "suggestMappings" method.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:since>4.11</a:since>
+                <a:container>true</a:container>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="focusItem" type="t:ItemPathType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Focus item(s) to include.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="shadowItem" type="t:ItemPathType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Shadow item(s) to include.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="includeInbounds" type="xsd:boolean" minOccurs="0" default="true">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Should inbound mappings be included?
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="includeOutbounds" type="xsd:boolean" minOccurs="0" default="true">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Should outbound mappings be included?
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+    <xsd:element name="mappingsSuggestionFilters" type="tns:MappingsSuggestionFiltersType"/>
+
+    <xsd:complexType name="MappingsSuggestionInteractionMetadataType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Interaction metadata related to suggestions of inbound/outbound mappings.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:since>4.11</a:since>
+                <a:container>true</a:container>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="rejectedAttributeMappingsSuggestion" type="tns:AttributeMappingsSuggestionType"
+                    minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Rejected suggestions of attribute mappings. The content should be equal to the content of suggestions
+                        that were provided earlier.
+                    </xsd:documentation>
+                    <!-- Reason for requiring full information on rejected suggestions: we assume that the smart integration
+                         service is stateless, so it does not keep earlier suggestion (so they cannot be referenced). -->
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="rejectedExtensionItemSuggestion" type="tns:ExtensionItemSuggestionType"
+                    minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Rejected suggestions of new extension items. The content should be equal to the content of suggestions
+                        that were provided earlier.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+    <xsd:element name="mappingsSuggestionInteractionMetadata" type="tns:MappingsSuggestionInteractionMetadataType"/>
+
+    <xsd:complexType name="AttributeMappingsSuggestionType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Suggestions of inbound/outbound mappings for a given attribute.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:since>4.11</a:since>
+                <a:container>true</a:container>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="definition" type="tns:ResourceAttributeDefinitionType">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Suggested attribute definition. Must contain at least "ref" (pointing to the attribute name).
+                        May contain "inbound" and "outbound" items holding the mappings.
+                        Other items should be left empty.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <!-- We may later factor the following information (order + expectedQuality) into something like "metadata" -->
+            <xsd:element name="order" type="xsd:int" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        If there are multiple suggestions per attribute, this is the relative order of given suggestion.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="expectedQuality" type="xsd:float" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Expected quality of provided information.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+    <xsd:element name="attributeMappingsSuggestion" type="tns:AttributeMappingsSuggestionType"/>
+
+    <xsd:complexType name="ExtensionItemSuggestionType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Suggestion of a new extension item.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:since>4.11</a:since>
+                <a:container>true</a:container>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="name" type="xsd:QName">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Suggested extension item name. Must be consistent with "definition".
+                        The reason why it's here is to make life easier for clients - they don't need to parse the whole
+                        definition just to learn the item name.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="definition" type="t:SchemaDefinitionType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Suggested extension item definition. Optional.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="order" type="xsd:int" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        If there are multiple suggestions per extension item, this is the relative order of given suggestion.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="expectedQuality" type="xsd:float" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Expected quality of provided information.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+    <xsd:element name="extensionItemSuggestion" type="tns:ExtensionItemSuggestionType"/>
+
+    <!-- suggestAssociations method -->
+
+    <xsd:complexType name="AssociationsSuggestionType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Suggestions of associations.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:since>4.11</a:since>
+                <a:container>true</a:container>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="association" type="tns:AssociationSuggestionType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Suggestions of association type definitions. There should not be any duplicates/alternatives.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+    <xsd:element name="associationsSuggestion" type="tns:AssociationsSuggestionType"/>
+
+    <xsd:complexType name="AssociationSuggestionType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Suggestion of an association type definitions.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:since>4.11</a:since>
+                <a:container>true</a:container>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="definition" type="tns:ShadowAssociationTypeDefinitionType">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Suggested association type definition.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+    <xsd:element name="associationSuggestion" type="tns:AssociationSuggestionType"/>
+
+    <!-- interaction metadata and suggestion quality are to be defined later -->
+
+    <!-- ================================================================================================================== -->
+    <!--                                            API of Python Microservice                                              -->
+    <!-- ================================================================================================================== -->
     <!-- TODO shouldn't this be in a separate namespace? -->
+
     <xsd:complexType name="SuggestFocusTypeRequestType">
         <xsd:annotation>
             <xsd:appinfo>
