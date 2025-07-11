@@ -9,22 +9,21 @@ They define conditions and constraints that govern how users, roles, resources, 
 Policies are used to ensure that access is granted in accordance with organizational rules, regulatory requirements, and best practices.
 They can be applied to a wide range of scenarios, including access control, segregation of duties (SoD), information classification, and lifecycle management.
 
-// zdůraznit, že v principu se jedná o rozdělení aplikací na kategorie, na něž pak aplikuju konkrétní clearances.
+A common use case for using a policy in midPoint is to enforce access restrictions based on data classification.
+For example, consider an application that handles sensitive information and therefore requires elevated protection.
+You can classify this application as `secret`.
+You then define a policy to restrict access to all applications labeled as `secret`.
+This policy requires users to have a specific security training to access the `secret` applications.
+This ensures that users who have not completed the training requirement cannot be assigned a role that grants access to such applications — even if the role itself is misconfigured and would otherwise permit access.
 
-The primary data type used to represent policies in midPoint is the xref:/midpoint/reference/schema/policy/index.adoc[`PolicyType`].
+The primary data type used to represent policies in midPoint is the xref:/midpoint/reference/schema/policy.adoc[`PolicyType`].
 This data type is part of the midPoint schema and is used as a container for policy rules and other related configurations.
 
 Policy objects typically contain xref:policy-rules.adoc[policy rules] that are evaluated when certain conditions are met.
 These rules can enforce constraints, trigger actions, or generate alerts based on the defined conditions.
 The `PolicyType` also includes metadata such as the policy name, description, and other attributes that help in organizing and managing policies within the system.
 
-A common use case for using a policy in midPoint is to enforce access restrictions based on data classification.
-For example, consider an application that handles secret information and therefore requires elevated protection. You can classify this application as secret.
-A policy can then be defined to restrict access to all applications labeled as secret by requiring users to complete a specific security training beforehand.
-This ensures that users who haven't fulfilled the training requirement cannot be assigned a role that grants access to such applications — even if the role itself is misconfigured and would otherwise permit access.
-
 MidPoint supports a variety of policy related features:
-
 
 ++++
 {% children %}
