@@ -143,10 +143,10 @@
 
         <!-- Dependency definition added, client to fetch reports -->
 
-        <!--<dependency>-->
-        <!--    <groupId>jakarta.ws.rs</groupId>-->
-        <!--    <artifactId>jakarta.ws.rs-api</artifactId>-->
-        <!--</dependency>-->
+        <dependency>
+            <groupId>jakarta.ws.rs</groupId>
+            <artifactId>jakarta.ws.rs-api</artifactId>
+        </dependency>
 
         <!--<dependency>-->
         <!--    <groupId>com.google.guava</groupId>-->
