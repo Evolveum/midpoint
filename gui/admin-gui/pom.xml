@@ -492,6 +492,8 @@
             <artifactId>annotations</artifactId>
         </dependency>
         <dependency>
+            <!-- used as logback dependency to support conditional processing -->
+            <!-- https://logback.qos.ch/setup.html#janino -->
             <groupId>org.codehaus.janino</groupId>
             <artifactId>janino</artifactId>
             <scope>runtime</scope>

@@ -69,14 +69,20 @@ export default class MidPointTheme {
 
                     var showPopover = function () {
                         cancelPopoverHide();
-                        parent.find(inputId).each(function () {
-                            var itemH = $(this).innerHeight() + 27;
-                            parent.find(popover).css({top: itemH, left: 0}).fadeIn(300);
-                        });
+                        var $popover = parent.find(popover);
+                        if (!$popover.is(':visible')) {
+                            parent.find(inputId).each(function () {
+                                var itemH = $(this).innerHeight() + 27;
+                                $popover.css({ top: itemH, left: 0 }).fadeIn(300);
+                            });
+                        }
                     }
 
                     var deletePopover = function () {
-                        parent.find(popover).fadeOut(300);
+                        var $popover = parent.find(popover);
+                        if ($popover.is(':visible')) {
+                            $popover.fadeOut(300);
+                        }
                     };
 
                     var schedulePopoverHide = function () {
@@ -85,6 +91,15 @@ export default class MidPointTheme {
                                 deletePopover();
                             }
                         }, 200);
+                    };
+
+                    var hideOnFocusOut = function () {
+                        setTimeout(function () {
+                            const active = document.activeElement;
+                            if (!parent.find(popover).find(':focus').length && !parent.find(inputId).is(':focus') && !$(active).closest('.tooltip-inner').length) {
+                                deletePopover();
+                            }
+                        }, 10);
                     };
 
                     showPopover();
@@ -129,23 +144,16 @@ export default class MidPointTheme {
                         }
                     });
 
-                    parent.find(inputId).on("focus", function () {
+                    parent.find(inputId).on("focus", function (e) {
                         showPopover();
                     });
 
-                    parent.find(inputId).on("keydown", function (e) {
-                        if (e.key === "Escape" || e.keyCode === 27) {
-                            deletePopover();
-                            e.preventDefault();
-                        }
-                    })
+                    parent.find(inputId).on("focusout", function () {
+                        hideOnFocusOut();
+                    });
 
                     parent.find(popover).on("focusout", function () {
-                        setTimeout(function () {
-                            if (!parent.find(popover).find(':focus').length && !parent.find(inputId).is(':focus') && !parent.find('.fa-info-circle').is(':focus')) {
-                                deletePopover();
-                            }
-                        }, 10);
+                        hideOnFocusOut();
                     });
                 });
             };
