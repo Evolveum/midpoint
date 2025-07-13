@@ -212,21 +212,25 @@ This can be used only for scheduled single-run tasks.
 Not yet implemented.
 // TODO Does it make sense to mention this if it's not implemented or planned? @dakle 2025-07-11
 
+[[threadstopaction]]
 == Resilient and Non-Resilient Tasks: ThreadStopAction
 
 By default, all persistent tasks are resilient.
-It means that after a node is stopped (either regularly, e.g., by shutting down the application server, or  irregularly, e.g., by a hardware malfunction), persistent tasks continue to execute on another node in a cluster, or (if no other nodes are available), after an available node appears.
+It means that after a node is stopped (either regularly, e.g., by shutting down the application server, or  irregularly, e.g., by a hardware malfunction), *persistent tasks continue to execute on another node* in the cluster.
+If no suitable node is available at the time, they resume after an available node appears.
 
 However, there are situations when such a resilience is not desirable.
-A task can be declared non-resilient, meaning that after a node shuts down or fails, the task is *not* started on another node, and is simply suspended or closed.
-The use case for such a feature may be a manual synchronization of resources.
+For such cases, you can declare a task as non-resilient,
+*Non-resilient tasks do not resume on another node* after their node goes down.
+They are simply suspended or closed.
+The use case for non-resilient tasks may be a manual synchronization of resources.
 Something that is started by the system administrator with the expectation that it executes only until the node is down.
 
 This task behavior is controlled by *`threadStopAction` attribute*, which can have the following values:
 
-. `restart`: The task will restart on the first node available (i.e., either immediately, if there is a suitable node in the cluster, or later, when a suitable node becomes available).
+. `restart`: The task will restart on the first node available (i.e., either immediately if there is a suitable node in the cluster, or later when a suitable node appears).
 
-. `reschedule`: The task will be rescheduled according to its schedule (for single-run and tightly bound recurring tasks, this is the same as 'restart').
+. `reschedule`: The task will be rescheduled according to its schedule (for single-run and tightly bound recurring tasks, this is the same as `restart`).
 
 . `suspend`: The task will be suspended.
 
@@ -236,17 +240,17 @@ The restart and reschedule options are used to implement resilient task behavior
 
 For tasks which have no threads allocated when their node goes down (loosely bound recurring tasks and scheduled single-run tasks), the `threadStopAction` attribute has no effect.
 These tasks are simply started when their next start time comes.
-We recommend using the suspend and close options only when there is a strong reason to do it, e.g., when the administrator wants to manually review the task state after such an interruption.
+We recommend using the suspend and close options only when there is a strong reason for it, e.g., when the administrator wants to manually review the task state after an interruption.
 //TODO scheduled single-run tasks are not implemented yet, delete? @dakle 2025-07-11
 
 == Handler URI and Task Category
 
 Handler URI indirectly specifies which class (called handler, implementing TaskHandler interface) is responsible to handle the task.
-The handler will execute reaction to a task lifecycle events such as executing the task, task heartbeat, etc.
+The handler executes reactions to task lifecycle events, such as executing the task, task heartbeat, etc.
 
 Handler URI can be also understood as a specification of task _subtype_.
 
-The task handlers will register themselves with appropriate URI at midPoint initialization.
+The task handlers will register themselves with an appropriate URI on midPoint initialization.
 The URI is used instead of a direct class name to provide additional robustness during system upgrades.
 
 A single-run task can have a list of handler URIs.
@@ -254,55 +258,64 @@ After first handler finishes its execution, it is removed from the list of handl
 The process continues until the list of handlers is empty.
 At this moment the task is automatically closed.
 
-Task category denotes a user-recognizable type of task.
-Some examples: LiveSynchronization, Reconciliation, ImportingAccounts, ImportFromFile, UserRecomputation, Workflow, Demo.
+A task category denotes a user-recognizable type of task.
+For example: LiveSynchronization, Reconciliation, ImportingAccounts, ImportFromFile, UserRecomputation, Workflow, Demo.
 
 == Associated Object
 
-Tasks may be associated with a particular objects.
-For example a "import from resource" task is associated with the resource definition object that it imports from.
-Similarly for synchronization and reconciliation tasks.
+Tasks may be associated with particular objects.
+For example, an "import from resource" task is associated with the resource definition object from which it imports.
+Synchronization and reconciliation tasks may have similar resource object associations.
 This is an optional property.
 
-The object could be also specified using usual extension mechanism.
-But it would be difficult to search for all the tasks that work on a particular resource or other object.
+The associated object could be also specified using the usual extension mechanism.
+That would not be optimal, though, because it would be difficult to search for all the tasks that work on a particular object, be it a resource or something else.
 
 == Task Owner
 
-Task owner is (usually) a midPoint user that initiated the task.
-This attribute is used, e.g., for auditing reasons.
+Task owner is (usually) the midPoint user who initiated the task.
+This attribute is used for auditing reasons, for instance.
 
 == Clustering and High Availability
 
-As mentioned above, there can be more nodes working in a *cluster*. These nodes share the workload: when a task becomes ready to be executed, one of nodes takes and executes it.
-(This process is governed by Quartz.)
+As mentioned above, there can be more nodes working in a *cluster*.
+These nodes share the workload: when a task becomes ready to be executed, one of the nodes takes and executes it.
+This process is governed by link:https://www.quartz-scheduler.org/[Quartz job scheduler].
 
-When a node becomes unavailable (either because of shutdown, or due to sudden crash), the task manager:
+When a node becomes unavailable (either because of shutdown, or due to sudden crash), the task manager performs the following:
 
-. takes tasks running on that node and restarts them on remaining available nodes - subject to the threadStopAction described above,
+. It takes the tasks running on that node and restarts them on other available nodes.
+    This is subject to the <<threadstopaction,threadStopAction settings>> described above.
 
-. executes other (scheduled) tasks on remaining available nodes.
+. It executes other (scheduled) tasks on remaining available nodes.
 
-In this way, high availability of the solution with regards to task execution is ensured.
+This way, the high availability of the task execution is ensured.
 
-== Task State in midPoint Repository and Quartz Job Store
+Refer to xref:/midpoint/reference/deployment/clustering-ha/[] for more information on deploying a high availability setup.
 
-Generally speaking, midPoint repository contains general task information, including its execution and business state, while Quartz job store is responsible for maintaining information necessary for task scheduling (e.g., next planned start time).
-With minor limitations, the information in Quartz job store can be erased at any time, and recreated from midPoint repository (at node startup) - the only damage that could occur is that some tasks could be executed one more or one less time.
+== Task State in the midPoint Repository and Quartz Job Store
 
-Because of this, the most simple installations (e.g., demonstration ones) can be run with *in-memory Quartz job store* - a store that will be re-created at node startup.
+The midPoint repository contains general task information, such as execution and business states,
+while the Quartz job store is responsible for maintaining information necessary for task scheduling (e.g., next planned start time).
+The information in Quartz job store can be erased at any time, and recreated from midPoint repository at node startup with only minor consequences.
+The only damage that can occur is that some tasks may be executed one more or one less time.
+
+Because of this, the simplest installations (e.g., showcase ones) can be run with *in-memory Quartz job store*: a store that is re-created at node startup.
 The limitations of this approach are:
 
-. clustering (failover) feature is not available,
+. Clustering (failover) feature is not available,
 
-. tasks do not "know" when they run last time, so, e.g., interval-based loosely-coupled tasks will be started immediately, even if their expected start time has not come yet; or misfired cron-based tasks would not start (even if configured to do so), because the information on the misfire event would not be present.
-This may cause for example reconciliation task(s) to be started immediately after midPoint is started.
+. Tasks do not know their last run time.
+The consequences of this are, for example:
+    ** Interval-based loosely-coupled tasks will start immediately, even if their expected start time has not come yet.
+    ** Misfired cron-scheduled tasks will not start, even if configured to do so, because the information on the misfire event is not present.
+    ** This may cause, e.g., reconciliation tasks to be started immediately after midPoint starts.
 
-More advanced installations could use *JDBC-based Quartz job store* - a store that will remember task scheduling information.
+More advanced installations could use *JDBC-based Quartz job store*—a store that remembers task scheduling information.
 
 == Task Manager Configuration and Administration
 
-This topic is discussed in detail in xref:/midpoint/guides/admin-gui-user-guide/[Administration Interface].
+Refer to xref:/midpoint/guides/admin-gui-user-guide/#task-manager-configuration[].
 
 == Authorizing specific operations
 
@@ -315,42 +328,42 @@ These are evaluated with respect to task objects, i.e. you can define a filter t
 |===
 | Operation | Action URI
 
-| suspend a task
-| http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#*suspendTask*
+| Suspend a task
+| `http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#suspendTask`
 
 
-| suspend and delete a task
-| http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#*delete*
+| Suspend and delete a task
+| `http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#delete`
 
 
-| resume a task
-| http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#resumeTask
+| Resume a task
+| `http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#resumeTask`
 
 
-| schedule a task to run instantly
-| http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#runTaskImmediately
+| Schedule a task to run instantly
+| `http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#runTaskImmediately`
 
 
 |===
 
-Note that "suspend and delete a task" operation uses standard "delete" action URI.
-I.e. for simply deleting a task and deleting a task after suspending it you would use the same authorizations.
+Note that "suspend and delete a task" operation uses the `delete` action URI.
+That means, for both deleting a task and deleting a task after suspending it, you would use the same authorizations.
 
 === Node-related operations
 
 For node-related operations, the following action URIs are defined.
-These are evaluated with respect to node objects, i.e. you can define a filter that selects nodes that can be acted upon (although we do not expect such a selection would be frequently used in practice).
+These are evaluated with respect to node objects, i.e., you can define a filter that selects nodes that can be acted upon (although we do not expect such a selection would be frequently used in practice).
 
 [%autowidth]
 |===
 | Operation | Action URI
 
-| start task scheduler
-| http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#*startTaskScheduler*
+| Start the task scheduler
+| `http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#startTaskScheduler`
 
 
-| stop task scheduler (optionally with stopping tasks that are executing on it)
-| http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#*stopTaskScheduler*
+| Stop the task scheduler (optionally with stopping tasks that are executing on it)
+| `http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#stopTaskScheduler`
 
 
 |===
@@ -363,16 +376,16 @@ Finally, the following actions URIs are defined for operations that are not boun
 |===
 | Operation | Action URI
 
-| stop all service threads
-| http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#stopServiceThreads
+| Stop all service threads
+| `http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#stopServiceThreads`
 
 
-| start all service threads
-| http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#startServiceThreads
+| Start all service threads
+| `http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#startServiceThreads`
 
 
-| synchronize tasks between midPoint repository and Quartz scheduler
-| http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#*synchronizeTasks*
+| Synchronize tasks between the midPoint repository and the Quartz scheduler
+| `http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#synchronizeTasks`
 
 
 |===
