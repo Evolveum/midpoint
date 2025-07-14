@@ -1,5 +1,6 @@
 = Manage Cluster Nodes
 :page-nav-title: Manage Cluster Nodes
+:page-wiki-name: Managing cluster nodes
 :page-wiki-id: 44302379
 :page-wiki-metadata-create-user: mederly
 :page-wiki-metadata-create-date: 2019-12-12T12:06:43.846+01:00
