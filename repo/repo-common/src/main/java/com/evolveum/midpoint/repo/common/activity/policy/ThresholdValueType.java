@@ -7,12 +7,14 @@
 
 package com.evolveum.midpoint.repo.common.activity.policy;
 
+import org.jetbrains.annotations.NotNull;
+
 public enum ThresholdValueType {
 
     /**
      * The threshold value is tested against a policy trigger counter.
      */
-    COUNTER,
+    COUNTER(new IntegerThresholdEvaluator()),
 
     /**
      * The threshold value is tested against a custom integer value.
@@ -20,11 +22,22 @@ public enum ThresholdValueType {
      * via policy trigger counter, but rather by custom value stored in
      * the activity state.
      */
-    INTEGER,
+    INTEGER(new IntegerThresholdEvaluator()),
 
     /**
      * The threshold value is tested against a custom duration value.
      * For example, the execution time.
      */
-    DURATION
+    DURATION(new DurationThresholdEvaluator());
+
+    private final ThresholdEvaluator evaluator;
+
+    ThresholdValueType(ThresholdEvaluator evaluator) {
+        this.evaluator = evaluator;
+    }
+
+    @NotNull
+    public ThresholdEvaluator getEvaluator() {
+        return evaluator;
+    }
 }

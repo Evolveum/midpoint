@@ -65,7 +65,7 @@ public abstract class PolicyRuleCounterUpdater {
             if (context.getCounter(rule.getRuleIdentifier()) != null) {
                 // The counter was already incremented in this run, so we just copy it to the rule.
                 Integer counter = context.getCounter(rule.getRuleIdentifier());
-                rule.setThresholdValue(counter);
+                rule.setThresholdValueType(ThresholdValueType.COUNTER, counter);
                 LOGGER.trace("Counter for rule {} was already incremented to {}, copying it to the rule",
                         rule.getRuleIdentifier(), counter);
                 continue;
@@ -84,7 +84,7 @@ public abstract class PolicyRuleCounterUpdater {
         Map<String, Integer> currentValues = executionSupport.incrementCounters(group, rulesByIdentifier.keySet(), result);
 
         currentValues.forEach((id, value) -> {
-            rulesByIdentifier.get(id).setThresholdValue(value);
+            rulesByIdentifier.get(id).setThresholdValueType(ThresholdValueType.COUNTER, value);
             context.setCounter(id, value);
         });
     }

@@ -18,14 +18,12 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.NumericThresholdPolicyConstraintType;
 
+import org.checkerframework.checker.units.qual.C;
+
 public abstract class NumericConstraintEvaluator<C extends NumericThresholdPolicyConstraintType>
         implements ActivityPolicyConstraintEvaluator<C, NumericConstraintTrigger<C>> {
 
     private static final Trace LOGGER = TraceManager.getTrace(NumericConstraintEvaluator.class);
-
-    public enum ThresholdType {
-        BELOW, EXCEEDS
-    }
 
     // todo improve messages [viliam]
     // todo figure out how to merge this with DurationThresholdConstraintEvaluator [viliam]
@@ -34,7 +32,17 @@ public abstract class NumericConstraintEvaluator<C extends NumericThresholdPolic
         C constraint = element.getValue();
 
         Integer value = getValue(context);
+        updateRuleThresholdTypeAndValue(context.getRule(), constraint, value);
+
         if (value == null) {
+            if (shouldTriggerOnNullValue(value)) {
+                LOGGER.trace("Triggering on empty value for constraint {}", constraint.getName());
+
+                LocalizableMessage message = new SingleLocalizableMessage("NumericConstraintEvaluator.emptyValue");
+
+                return List.of(createTrigger(constraint, message, message));
+            }
+
             LOGGER.trace("No numeric value to evaluate for constraint {}", constraint.getName());
             return List.of();
         }
@@ -72,7 +80,16 @@ public abstract class NumericConstraintEvaluator<C extends NumericThresholdPolic
         return List.of();
     }
 
-    protected abstract boolean shouldTriggerOnEmptyConstraint(C constraint, Integer value);
+    protected void updateRuleThresholdTypeAndValue(EvaluatedPolicyRule rule, C constraint, Integer value) {
+    }
+
+    protected boolean shouldTriggerOnNullValue(Integer value) {
+        return false;
+    }
+
+    protected boolean shouldTriggerOnEmptyConstraint(C constraint, Integer value) {
+        return false;
+    }
 
     private NumericConstraintTrigger<C> createTrigger(C constraint, LocalizableMessage message, LocalizableMessage shortMessage) {
         return new NumericConstraintTrigger<>(constraint, message, shortMessage);

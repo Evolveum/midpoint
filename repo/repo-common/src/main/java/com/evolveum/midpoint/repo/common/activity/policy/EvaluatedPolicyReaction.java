@@ -16,7 +16,10 @@ import java.util.List;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.util.DebugDumpable;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityPolicyActionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityPolicyActionsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyReactionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyThresholdType;
 
 public class EvaluatedPolicyReaction implements DebugDumpable {
 
@@ -44,37 +47,12 @@ public class EvaluatedPolicyReaction implements DebugDumpable {
     public boolean isWithinThreshold() {
         PolicyThresholdType threshold = reaction.getThreshold();
         if (threshold == null) {
-            return false;
-        }
-
-        Integer count = rule.getThresholdValue(Integer.class);
-        if (count == null) {
-            count = 0;
-        }
-
-        WaterMarkType lowWaterMark = threshold.getLowWaterMark();
-        if (lowWaterMark == null || lowWaterMark.getCount() == null) {
             return true;
         }
 
-        if (lowWaterMark.getCount() == null) {
-            return true;
-        }
+        ThresholdEvaluator thresholdEvaluator = rule.getThresholdValueType().getEvaluator();
 
-        if (count < lowWaterMark.getCount()) {
-            return false;
-        }
-
-        WaterMarkType highWaterMark = threshold.getHighWaterMark();
-        if (highWaterMark == null || highWaterMark.getCount() == null) {
-            return true;
-        }
-
-        if (count > highWaterMark.getCount()) {
-            return false;
-        }
-
-        return true;
+        return thresholdEvaluator.evaluate(threshold, rule.getThresholdValue());
     }
 
     public boolean containsAction(Class<? extends ActivityPolicyActionType> policyActionType) {

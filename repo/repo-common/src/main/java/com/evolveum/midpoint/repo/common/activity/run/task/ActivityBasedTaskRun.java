@@ -7,6 +7,7 @@
 
 package com.evolveum.midpoint.repo.common.activity.run.task;
 
+import com.evolveum.midpoint.repo.common.activity.policy.ActivityPolicyProcessorHelper;
 import com.evolveum.midpoint.repo.common.activity.run.ActivityRunException;
 import com.evolveum.midpoint.repo.common.activity.run.ActivityRunResult;
 import com.evolveum.midpoint.repo.common.activity.run.state.LegacyProgressUpdater;
@@ -79,6 +80,9 @@ public class ActivityBasedTaskRun implements TaskRun {
             }
 
             AbstractActivityRun<?, ?, ?> localRootRun = localRootActivity.createRun(this, result);
+
+            ActivityPolicyProcessorHelper.setCurrentActivityRun(localRootRun);
+
             ActivityRunResult runResult = localRootRun.run(result);
 
             if (isRootRun()) {
@@ -94,6 +98,8 @@ public class ActivityBasedTaskRun implements TaskRun {
         } catch (Throwable t) {
             logException(t);
             throw t;
+        } finally {
+            ActivityPolicyProcessorHelper.clearCurrentActivityRun();
         }
     }
 

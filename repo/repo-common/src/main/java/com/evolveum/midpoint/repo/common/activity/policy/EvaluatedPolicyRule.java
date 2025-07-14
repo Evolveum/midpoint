@@ -19,11 +19,9 @@ public interface EvaluatedPolicyRule {
 
     @NotNull ThresholdValueType getThresholdValueType();
 
-    void setThresholdValueType(@NotNull ThresholdValueType thresholdValueType);
+    void setThresholdValueType(@NotNull ThresholdValueType thresholdValueType, Object value);
 
-    <T> T getThresholdValue(Class<T> type);
-
-    void setThresholdValue(Object value);
+    Object getThresholdValue();
 
     boolean isTriggered();
 

@@ -61,23 +61,24 @@ public class EvaluatedActivityPolicyRule implements EvaluatedPolicyRule, DebugDu
     }
 
     @Override
-    public <T> T getThresholdValue(Class<T> type) {
-        return null;
+    public Object getThresholdValue() {
+        return thresholdValue;
     }
 
     @Override
     public @NotNull ThresholdValueType getThresholdValueType() {
-        return thresholdValueType;
+        return thresholdValueType != null ? thresholdValueType : ThresholdValueType.COUNTER;
     }
 
     @Override
-    public void setThresholdValueType(@NotNull ThresholdValueType thresholdValueType) {
+    public void setThresholdValueType(@NotNull ThresholdValueType thresholdValueType, Object value) {
+        if (this.thresholdValueType != null && this.thresholdValueType != thresholdValueType) {
+            throw new IllegalStateException(
+                    "Cannot change threshold value type from " + this.thresholdValueType + " to " + thresholdValueType);
+        }
+
         this.thresholdValueType = thresholdValueType;
-    }
-
-    @Override
-    public void setThresholdValue(Object value) {
-
+        this.thresholdValue = value;
     }
 
     @NotNull

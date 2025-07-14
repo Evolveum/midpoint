@@ -11,6 +11,7 @@ package com.evolveum.midpoint.repo.common.activity.policy;
 
 import org.jetbrains.annotations.NotNull;
 
+import com.evolveum.midpoint.repo.common.activity.run.AbstractActivityRun;
 import com.evolveum.midpoint.repo.common.activity.run.processing.ItemProcessingResult;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
@@ -18,24 +19,44 @@ import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.ThresholdPolicyViolationException;
 
-import java.util.Map;
-
 /**
  * Helper class for activity policy processing that can be used in non-iterative activities.
  */
 public class ActivityPolicyProcessorHelper {
 
-    // todo implement
-    public static void initialize(Map map) {
-        // todo how to get ActivityRun from TaskType because there's nothing really accessible from script...
-        ActivityPolicyRulesProcessor processor = new ActivityPolicyRulesProcessor(null);
+    private static final ThreadLocal<AbstractActivityRun<?, ?, ?>> ACTIVITY_RUN_THREAD_LOCAL = new ThreadLocal<>();
+
+    public static void setCurrentActivityRun(@NotNull AbstractActivityRun<?, ?, ?> activityRun) {
+        ACTIVITY_RUN_THREAD_LOCAL.set(activityRun);
+    }
+
+    public static void clearCurrentActivityRun() {
+        ACTIVITY_RUN_THREAD_LOCAL.remove();
+    }
+
+    private static AbstractActivityRun<?, ?, ?> getCurrentActivityRun() {
+        return ACTIVITY_RUN_THREAD_LOCAL.get();
+    }
+
+    public static void initialize() {
+        AbstractActivityRun<?, ?, ?> activityRun = getCurrentActivityRun();
+        if (activityRun == null) {
+            throw new IllegalStateException("ActivityRun is not available in the current thread. ");
+        }
+
+        ActivityPolicyRulesProcessor processor = new ActivityPolicyRulesProcessor(activityRun);
         processor.collectRules();
     }
 
     public static void evaluateAndEnforceRules(ItemProcessingResult processingResult, @NotNull OperationResult result)
             throws SchemaException, ObjectNotFoundException, ThresholdPolicyViolationException, ObjectAlreadyExistsException {
 
-        ActivityPolicyRulesProcessor processor = new ActivityPolicyRulesProcessor(null);
+        AbstractActivityRun<?, ?, ?> activityRun = getCurrentActivityRun();
+        if (activityRun == null) {
+            throw new IllegalStateException("ActivityRun is not available in the current thread. ");
+        }
+
+        ActivityPolicyRulesProcessor processor = new ActivityPolicyRulesProcessor(activityRun);
         processor.evaluateAndEnforceRules(null, result);
     }
 }

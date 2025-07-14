@@ -23,6 +23,20 @@ public class RestartActivityConstraintEvaluator
     }
 
     @Override
+    protected void updateRuleThresholdTypeAndValue(EvaluatedPolicyRule rule, NumericThresholdPolicyConstraintType constraint, Integer value) {
+        if (!constraint.asPrismContainerValue().isEmpty()) {
+            return;
+        }
+
+        rule.setThresholdValueType(ThresholdValueType.INTEGER, value);
+    }
+
+    @Override
+    protected boolean shouldTriggerOnNullValue(Integer value) {
+        return false;
+    }
+
+    @Override
     protected boolean shouldTriggerOnEmptyConstraint(NumericThresholdPolicyConstraintType constraint, Integer value) {
         return value != null && value > 1;
     }
