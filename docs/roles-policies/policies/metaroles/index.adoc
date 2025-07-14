@@ -2,7 +2,7 @@
 midpoint-feature: meta-role
 doc-type: intro
 ---
-= Meta-roles
+= Metaroles
 :page-wiki-name: Metaroles
 :page-wiki-id: 34570284
 :page-wiki-metadata-create-user: semancik
@@ -21,32 +21,32 @@ MidPoint xref:/midpoint/reference/roles-policies/rbac/[roles] are usually applie
 However, midPoint roles are quite universal things.
 The roles can be applied to almost any midPoint object.
 Roles can be applied to users, organizations, services - and even to roles themselves.
-Which creates _meta-roles_.
+Which creates _metaroles_.
 
-Simply speaking, meta-roles are roles applied to other roles.
+Simply speaking, metaroles are roles applied to other roles.
 Ordinary role applies its characteristics to a _user_.
-Meta-role applies its characteristics to another _role_ or similar role-like object.
+Metarole applies its characteristics to another _role_ or similar role-like object.
 This is perfectly possible in midPoint, as roles can be applied to almost any midPoint object.
-Applying roles to other roles may seem like a useless exercise but the truth is that meta-roles are tremendously useful.
+Applying roles to other roles may seem like a useless exercise but the truth is that metaroles are tremendously useful.
 
 Repetition is extensive in almost all identity management deployments.
 For example, all _business roles_ may have the same approval process.
 There may be role classes that have similar exclusion policies, as part of a global segregation of duties (SoD) policy.
 There may be roles that are tied to entitlements in a systematic way.
 Roles, organizational units, services, and other role-like objects tend to be quite similar.
-Therefore, defining the policy in one meta-role and applying that meta-role to multiple other roles can be very useful.
+Therefore, defining the policy in one metarole and applying that metarole to multiple other roles can be very useful.
 
-feature:archetype[Archetypes] and feature:policy-concept[policy objects] act as natural meta-roles, which is clearly illustrated by using policy objects as feature:information-classification[classifications].
+feature:archetype[Archetypes] and feature:policy-concept[policy objects] act as natural metaroles, which is clearly illustrated by using policy objects as feature:information-classification[classifications].
 
-There are also other objects that can act as meta-roles:
+There are also other objects that can act as metaroles:
  
 * feature:abstract-role[Abstract roles] such as feature:org[orgs] and feature:service-concept[services]
-* feature:application-concept[Applications] can be quite useful when used as meta-roles.
+* feature:application-concept[Applications] can be quite useful when used as metaroles.
 
 == Mechanism
 
-Meta-roles are (abstract) roles that are _assigned_ to other roles.
-In meta-roles, policies are applied to target roles through _inducement_:
+Metaroles are (abstract) roles that are _assigned_ to other roles.
+In metaroles, policies are applied to target roles through _inducement_:
 
 [source,xml]
 ----
@@ -77,17 +77,17 @@ In meta-roles, policies are applied to target roles through _inducement_:
 </archetype>
 ----
 
-In this case, the feature:archetype[archetype] acts as a meta-role.
+In this case, the feature:archetype[archetype] acts as a metarole.
 In fact, archetype is an archetype:abstract-role[abstract role] which means that it is just like a role, with some extra mechanisms that enrich objects, for example with icons and colors.
-In this example, the archetype acts as meta-role, specifying common policies and characteristics for all objects that have the archetype _assigned_.
+In this example, the archetype acts as metarole, specifying common policies and characteristics for all objects that have the archetype _assigned_.
 
-At first sight, meta-roles may seem similar to the concept of xref:/midpoint/reference/roles-policies/rbac/[role hierarchy].
+At first sight, metaroles may seem similar to the concept of xref:/midpoint/reference/roles-policies/rbac/[role hierarchy].
 However, there is a crucial difference.
-Meta-roles are applied to _roles_, not users.
-Inducements in meta-roles often contain _policies_, such as approval policies.
+Metaroles are applied to _roles_, not users.
+Inducements in metaroles often contain _policies_, such as approval policies.
 There may also be construction clauses that create groups or organizational units, which is often used in xref:/midpoint/reference/roles-policies/metaroles/gensync/[generic synchronization].
 We usually do not want to create a group for each _user_, but we often want to create a group for a _role_.
-That is what meta-roles can do.
+That is what metaroles can do.
 
 == See Also
 

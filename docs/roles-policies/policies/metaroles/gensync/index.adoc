@@ -79,13 +79,13 @@ It describes what another role should look like.
 Therefore you can simply assign the `Group Metarole` to any role that you want to synchronize as a group to the resource.
 All the mappings and configurations are in the metarole.
 The regular role contains just a simple assignment.
-Therefore if you want to adjust the configuration you just need to change the meta-role and the change is applied to all the affected regular roles using a normal RBAC mechanisms.
+Therefore if you want to adjust the configuration you just need to change the metarole and the change is applied to all the affected regular roles using a normal RBAC mechanisms.
 
 This is a very powerful feature.
 You can create roles that are applied to other roles or orgs.
 This can be used to define a multitude of synchronization schemes for synchronization of roles to groups and privileges to the resources, for synchronization of parts of organizational structures to many resources in a very flexible way and so on.
-And all of that configuration is cleanly organized into a couple of meta-roles in a proper RBAC fashion.
-And meta-roles are still just roles.
+And all of that configuration is cleanly organized into a couple of metaroles in a proper RBAC fashion.
+And metaroles are still just roles.
 Therefore their assignment is properly audited, it is a subject to authorizations, it may be subject to approvals and so on.
 
 
@@ -216,23 +216,23 @@ For example, the following inducement will be applied to all situations where th
 
 There are special kinds of assignments that are used to define xref:/midpoint/reference/misc/deputy/[deputies].
 These assignments delegate privileges by setting xref:/midpoint/reference/concepts/relation/[relation] to `deputy`.
-Therefore they are not considered a part of the normal order when evaluating meta-roles.
+Therefore they are not considered a part of the normal order when evaluating metaroles.
 This means that what was originally order 2 will become order 3, etc.
 See the xref:/midpoint/reference/misc/deputy/[Deputy] page for details.
 
 // nemáme k tomu nějaké schéma, které to ukáže? Nebo aspoň příklad kódu?
 
-== Meta-Meta-Roles
+== Meta-MetaRoles
 
 Meta roles may be assigned to other roles.
-This is how meta-meta-roles are created.
+This is how meta-metaroles are created.
 
 Their usage may not be entirely straightforward in some cases.
 For example, the `associationFromLink` expression needs one object to get links from.
 However, in the meta-meta-meta scenarios, there are many objects to choose from.
 There is a way to choose the object explicitly using the `assignmentPathIndex` property of the `associationFromLink` expression.
 This index points to the object that should be used as a source from which a link is gotten.
-Index 0 is the focal object, index 1 is the first (plain) role, index 2 is a meta-role, index 3 is a meta-meta-role, and so on.
+Index 0 is the focal object, index 1 is the first (plain) role, index 2 is a metarole, index 3 is a meta-metarole, and so on.
 Negative index can also be used.
 In such a case, the order is reversed: index -1 is the last meta-meta-meta-...-role, index -2 is the last but one, etc.
 
