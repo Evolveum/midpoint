@@ -110,6 +110,92 @@
     </xsd:complexType>
     <xsd:element name="delineationSuggestion" type="tns:DelineationSuggestionType"/>
 
+    <xsd:complexType name="ShadowObjectClassStatisticsType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Statistical data needed for suggesting delineations.
+
+                TODO where to put this structure?
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:since>4.11</a:since>
+                <a:container>true</a:container>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="attribute" type="tns:ShadowAttributeStatisticsType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Statistical data about a particular attribute.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="size" type="xsd:int">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        How many shadows were considered.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="complete" type="xsd:boolean">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Is the coverage complete, i.e., did we see all shadows?
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="timestamp" type="xsd:dateTime">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        When was this information collected?
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+    <xsd:element name="shadowObjectClassStatistics" type="tns:ShadowObjectClassStatisticsType"/>
+
+    <xsd:complexType name="ShadowAttributeStatisticsType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Statistical data for particular attribute needed for suggesting delineations.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:since>4.11</a:since>
+                <a:container>true</a:container>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="ref" type="t:ItemPathType">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Attribute name (or path). Exact format is to be decided.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="valueCount" type="xsd:int">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        How many non-null values are there for this attribute?
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="uniqueValueCount" type="xsd:int">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        How many unique non-null values are there for this attribute?
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <!-- missingValueCount = size - valueCount, so we don't need to store it here -->
+            <!-- TODO: -->
+            <!--  cross table value counts (on low cardinality columns) -->
+            <!--  string manipulation queries (sql "like", for prefixes) -->
+            <!--  we will find out more/less queries after interviewing engineers -->
+        </xsd:sequence>
+    </xsd:complexType>
+    <xsd:element name="shadowAttributeStatistics" type="tns:ShadowAttributeStatisticsType"/>
+
     <!-- suggestMappings method -->
 
     <xsd:complexType name="MappingsSuggestionType">

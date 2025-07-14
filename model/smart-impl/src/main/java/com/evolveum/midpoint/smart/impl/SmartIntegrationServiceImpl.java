@@ -59,6 +59,7 @@ public class SmartIntegrationServiceImpl implements SmartIntegrationService {
                 .build();
         try {
             var resource = modelService.getObject(ResourceType.class, resourceOid, null, task, result);
+            var shadowObjectClassStatistics = (ShadowObjectClassStatisticsType) null; // TODO fetch the data from somewhere
             var objectClassDef = Resource.of(resource)
                     .getCompleteSchemaRequired()
                     .findObjectClassDefinitionRequired(objectClassName);

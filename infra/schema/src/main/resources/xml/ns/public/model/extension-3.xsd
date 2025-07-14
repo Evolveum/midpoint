@@ -50,6 +50,24 @@
         </xsd:annotation>
     </xsd:import>
 
+    <!-- TEMPORARY, until we decide what to do with this -->
+    <xsd:complexType name="GenericObjectExtensionType">
+        <xsd:annotation>
+            <xsd:appinfo>
+                <a:extension ref="c:GenericObjectType"/>
+                <xsd:documentation>
+                    This is a temporary way of storing resource-related statistics in order to support delineation suggestion
+                    in midPilot.
+                </xsd:documentation>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="resourceOid" type="xsd:string" minOccurs="0"/>
+            <xsd:element name="objectClassLocalName" type="xsd:string" minOccurs="0"/> <!-- local name, to be easily searchable -->
+            <xsd:element name="statistics" type="c:ShadowObjectClassStatisticsType" minOccurs="0"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
     <xsd:complexType name="TaskExtensionType">
         <xsd:annotation>
             <xsd:appinfo>
