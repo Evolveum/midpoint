@@ -314,7 +314,7 @@ image::rbac-6.png[]
 
 See xref:/midpoint/reference/roles-policies/roles-services-and-orgs/['Roles, Services and Orgs']
 
-== Meta-Roles
+== Metaroles
 
 See xref:/midpoint/reference/roles-policies/metaroles/gensync/['Roles, Metaroles and Generic Synchronization']
 
@@ -354,12 +354,12 @@ The role must be evaluated for all situations: all assignment paths, all orders,
 | `conservative`
 | This value indicates, that the evaluation of this role gives the same results regardless of its position in the assignment/inducement hierarchy.
 I.e. evaluation of this roles does not depend on the assignment parameters of focus or any of the preceding roles.
-However, the role will still be re-evaluated if it is found with assignment path of different depths or orders (e.g. in meta-role situations).
+However, the role will still be re-evaluated if it is found with assignment path of different depths or orders (e.g. in metarole situations).
 
 
 | `aggressive`
 | This value indicates, that the evaluation of this role gives the same results regardless of its position in the assignment/inducement hierarchy including different path lengths and evaluation orders.
-I.e. evaluation of this roles does not depend on the assignment parameters of focus or any of the preceding roles and it has no meta-role capability (e.g. higher-order inducements).
+I.e. evaluation of this roles does not depend on the assignment parameters of focus or any of the preceding roles and it has no metarole capability (e.g. higher-order inducements).
 
 
 |===
