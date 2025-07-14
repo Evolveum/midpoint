@@ -57,12 +57,13 @@
     <!--                              Complex types for the API of SmartIntegrationService                                  -->
     <!-- ================================================================================================================== -->
 
-    <!-- suggestDelineations method -->
+    <!-- suggestObjectTypes method -->
 
-    <xsd:complexType name="DelineationsSuggestionType">
+    <xsd:complexType name="ObjectTypesSuggestionType">
         <xsd:annotation>
             <xsd:documentation>
-                Delineations suggestion: the output of "suggest delineations" smart integration service API method.
+                Suggestions of object types and their delineation: the output of "suggestObjectTypes" smart integration
+                service API method.
             </xsd:documentation>
             <xsd:appinfo>
                 <a:since>4.11</a:since>
@@ -70,7 +71,7 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
-            <xsd:element name="suggestion" type="tns:DelineationSuggestionType" minOccurs="0" maxOccurs="unbounded">
+            <xsd:element name="objectType" type="tns:ObjectTypeSuggestionType" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
                     <xsd:documentation>
                         Collection of suggestions.
@@ -79,12 +80,12 @@
             </xsd:element>
         </xsd:sequence>
     </xsd:complexType>
-    <xsd:element name="delineationsSuggestion" type="tns:DelineationsSuggestionType"/>
+    <xsd:element name="objectTypesSuggestion" type="tns:ObjectTypesSuggestionType"/>
 
-    <xsd:complexType name="DelineationSuggestionType">
+    <xsd:complexType name="ObjectTypeSuggestionType">
         <xsd:annotation>
             <xsd:documentation>
-                A single delineation suggestion.
+                A suggestion for a single object type and its delineation.
             </xsd:documentation>
             <xsd:appinfo>
                 <a:since>4.11</a:since>
@@ -92,7 +93,7 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
-            <xsd:element name="type" type="tns:ResourceObjectTypeIdentificationType">
+            <xsd:element name="identification" type="tns:ResourceObjectTypeIdentificationType">
                 <xsd:annotation>
                     <xsd:documentation>
                         Identification of a suggested type (kind and intent).
@@ -108,7 +109,7 @@
             </xsd:element>
         </xsd:sequence>
     </xsd:complexType>
-    <xsd:element name="delineationSuggestion" type="tns:DelineationSuggestionType"/>
+    <xsd:element name="objectTypeSuggestion" type="tns:ObjectTypeSuggestionType"/>
 
     <xsd:complexType name="ShadowObjectClassStatisticsType">
         <xsd:annotation>

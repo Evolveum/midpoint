@@ -24,8 +24,8 @@ import java.util.Collection;
  */
 public interface SmartIntegrationService {
 
-    /** Suggests delineations for the given resource and object class. */
-    DelineationsSuggestionType suggestDelineations(String resourceOid, QName objectClassName, Task task, OperationResult result)
+    /** Suggests partitioning of given object class into object types. */
+    ObjectTypesSuggestionType suggestObjectTypes(String resourceOid, QName objectClassName, Task task, OperationResult result)
             throws SchemaException, ExpressionEvaluationException, SecurityViolationException, CommunicationException,
             ConfigurationException, ObjectNotFoundException;
 

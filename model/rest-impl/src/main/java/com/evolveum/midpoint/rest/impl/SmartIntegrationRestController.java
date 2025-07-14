@@ -11,7 +11,7 @@ import com.evolveum.midpoint.model.api.util.SmartIntegrationConstants;
 import com.evolveum.midpoint.schema.processor.ResourceObjectTypeIdentification;
 import com.evolveum.midpoint.smart.api.SmartIntegrationService;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.DelineationsSuggestionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectTypesSuggestionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -33,26 +33,26 @@ public class SmartIntegrationRestController extends AbstractRestController {
 
     private static final String CLASS_DOT = SmartIntegrationRestController.class.getName() + ".";
 
-    private static final String OPERATION_SUGGEST_DELINEATIONS = CLASS_DOT + "suggestDelineations";
+    private static final String OPERATION_SUGGEST_OBJECT_TYPES = CLASS_DOT + "suggestObjectTypes";
     private static final String OPERATION_SUGGEST_FOCUS_TYPE = CLASS_DOT + "suggestFocusType";
 
     @Autowired private SmartIntegrationService smartIntegrationService;
 
     /**
-     * Suggests delineations for the given resource and object class.
+     * Suggests object types (and their delineations) for the given resource and object class.
      *
-     * Returned body contains the serialized form of {@link DelineationsSuggestionType}.
+     * Returned body contains the serialized form of {@link ObjectTypesSuggestionType}.
      */
-    @GetMapping(SmartIntegrationConstants.RPC_SUGGEST_DELINEATIONS)
-    public ResponseEntity<?> suggestDelineations(
+    @GetMapping(SmartIntegrationConstants.RPC_SUGGEST_OBJECT_TYPES)
+    public ResponseEntity<?> suggestObjectTypes(
             @RequestParam("resourceOid") String resourceOid,
             @RequestParam("objectClassName") String objectClassName) {
         var task = initRequest();
-        var result = createSubresult(task, OPERATION_SUGGEST_DELINEATIONS);
+        var result = createSubresult(task, OPERATION_SUGGEST_OBJECT_TYPES);
         try {
-            var delineations = smartIntegrationService.suggestDelineations(
+            var types = smartIntegrationService.suggestObjectTypes(
                     resourceOid, new QName(NS_RI, objectClassName), task, result);
-            return createResponse(HttpStatus.OK, delineations, result);
+            return createResponse(HttpStatus.OK, types, result);
         } catch (Throwable t) {
             return handleException(result, t);
         } finally {

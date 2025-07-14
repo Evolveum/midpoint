@@ -36,7 +36,7 @@ public class SmartIntegrationServiceImpl implements SmartIntegrationService {
 
     private static final Trace LOGGER = TraceManager.getTrace(SmartIntegrationServiceImpl.class);
 
-    private static final String OP_SUGGEST_DELINEATIONS = "suggestDelineations";
+    private static final String OP_SUGGEST_OBJECT_TYPES = "suggestObjectTypes";
     private static final String OP_SUGGEST_FOCUS_TYPE = "suggestFocusType";
     private static final String OP_SUGGEST_MAPPINGS = "suggestMappings";
     private static final String OP_SUGGEST_ASSOCIATIONS = "suggestAssociations";
@@ -49,11 +49,11 @@ public class SmartIntegrationServiceImpl implements SmartIntegrationService {
     @Autowired private ModelService modelService;
 
     @Override
-    public DelineationsSuggestionType suggestDelineations(
+    public ObjectTypesSuggestionType suggestObjectTypes(
             String resourceOid, QName objectClassName, Task task, OperationResult parentResult)
             throws SchemaException, ExpressionEvaluationException, SecurityViolationException, CommunicationException,
             ConfigurationException, ObjectNotFoundException {
-        var result = parentResult.subresult(OP_SUGGEST_DELINEATIONS)
+        var result = parentResult.subresult(OP_SUGGEST_OBJECT_TYPES)
                 .addParam("resourceOid", resourceOid)
                 .addParam("objectClassName", objectClassName)
                 .build();
@@ -64,7 +64,7 @@ public class SmartIntegrationServiceImpl implements SmartIntegrationService {
                     .getCompleteSchemaRequired()
                     .findObjectClassDefinitionRequired(objectClassName);
 
-            return new DelineationsSuggestionType(); // TODO replace with real implementation
+            return new ObjectTypesSuggestionType(); // TODO replace with real implementation
         } catch (Throwable t) {
             result.recordException(t);
             throw t;
