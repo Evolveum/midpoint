@@ -9,11 +9,11 @@ doc-type: intro
 :page-wiki-metadata-create-date: 2012-04-21T22:13:53.012+02:00
 :page-wiki-metadata-modify-user: mederly
 :page-wiki-metadata-modify-date: 2019-02-04T10:33:54.276+01:00
-:page-upkeep-status: orange
+:page-upkeep-status: green
 :page-toc: top
 :toclevels: 3
-// TODO add meta keywords
-// TODO add meta description
+:page-description: The task manager is a smart scheduler that coordinates tasks in a cluster, allocates them to threads, executes the tasks and monitors them.
+:page-keywords: task manager, single-run tasks, recurring tasks, task scheduling, high availability, cluster
 
 The task manager controls tasks.
 It is kind of smart "cluster-aware" scheduler combined with a thread pool.
@@ -212,7 +212,6 @@ This can be used only for loosely bound recurring tasks.
 . `forget`: The task is not executed at all.
 This would be used only for xref:/midpoint/features/planned/scheduled-single-run-tasks/[scheduled single-run tasks].
 Not yet implemented.
-// TODO Does it make sense to mention this if it's not implemented or planned? @dakle 2025-07-11
 
 [[threadstopaction]]
 == Resilient and Non-Resilient Tasks: ThreadStopAction
