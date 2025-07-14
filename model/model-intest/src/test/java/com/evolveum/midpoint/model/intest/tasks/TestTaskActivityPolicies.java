@@ -23,6 +23,7 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.task.ActivityPath;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.TestObject;
+import com.evolveum.midpoint.test.asserter.ActivityPolicyStateAsserter;
 import com.evolveum.midpoint.test.asserter.TaskAsserter;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityPolicyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SimulationResultType;
@@ -30,7 +31,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 
 @ContextConfiguration(locations = { "classpath:ctx-model-intest-test-main.xml" })
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
-public class TestActivityExecutionTimeThresholds extends AbstractEmptyModelIntegrationTest {
+public class TestTaskActivityPolicies extends AbstractEmptyModelIntegrationTest {
 
     private static final File TEST_DIR = new File("src/test/resources/tasks/thresholds");
 
@@ -42,6 +43,9 @@ public class TestActivityExecutionTimeThresholds extends AbstractEmptyModelInteg
 
     private static final TestObject<TaskType> TASK_SIMPLE_NOOP_RESTART =
             TestObject.file(TEST_DIR, "task-simple-noop-restart.xml", "0020d7c9-5eac-4ad5-a900-e342ffb775e4");
+
+    private static final TestObject<TaskType> TASK_NON_ITERATIVE_RESTART =
+            TestObject.file(TEST_DIR, "task-non-iterative-restart.xml", "d5c0d175-ebda-4506-821d-6205eeae85cf");
 
     @Test
     public void test100SingleThread() throws Exception {
@@ -201,9 +205,6 @@ public class TestActivityExecutionTimeThresholds extends AbstractEmptyModelInteg
 
         PrismObject<TaskType> task = getTask(object.oid);
 
-        ActivityPolicyType policy = task.asObjectable().getActivity().getPolicies().getPolicy().get(0);
-        String identifier = ActivityPolicyUtils.createIdentifier(ActivityPath.empty(), policy);
-
         // @formatter:off
         assertTaskTree(object.oid, "after")
                 .assertSuspended()
@@ -214,8 +215,17 @@ public class TestActivityExecutionTimeThresholds extends AbstractEmptyModelInteg
                     .assertFatalError()
                     .activityPolicyStates()
                         .display()
-                        .assertOnePolicyStateTriggers(identifier, 1);
+                        .assertPolicyStateCount(2)
+                        .activityPolicyState(getActivityIdentifier(task.asObjectable(),"Max. 3s execution"))
+                            .assertTriggerCount(1)
+                        .end()
+                        .activityPolicyState(getActivityIdentifier(task.asObjectable(),"count restarts"))
+                            .assertTriggerCount(1);
         // @formatter:on
+    }
 
+    private String getActivityIdentifier(TaskType task, String policyName) {
+        ActivityPolicyType policy = ActivityPolicyStateAsserter.forName(task.getActivity(), policyName);
+        return ActivityPolicyUtils.createIdentifier(ActivityPath.empty(), policy);
     }
 }

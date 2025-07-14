@@ -1,0 +1,81 @@
+<!--
+  ~ Copyright (C) 2010-2025 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<task xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:s="http://midpoint.evolveum.com/xml/ns/public/model/scripting-3"
+        oid="d5c0d175-ebda-4506-821d-6205eeae85cf">
+    <name>Simple non-iterative restart activity</name>
+    <ownerRef oid="00000000-0000-0000-0000-000000000002" type="UserType"/>
+    <executionState>runnable</executionState>
+    <activity>
+        <work>
+            <nonIterativeScripting>
+                <scriptExecutionRequest>
+                    <s:execute>
+                        <s:forWholeInput>true</s:forWholeInput>
+                        <s:script>
+                            <code>
+                                import com.evolveum.midpoint.repo.common.activity.policy.ActivityPolicyProcessorHelper
+                                import com.evolveum.midpoint.schema.result.OperationResult
+
+                                ActivityPolicyProcessorHelper.initialize()
+
+                                for (int i = 0; i &lt; 10; i++) {
+                                    println "No-op iteration ${i}"
+                                    log.info("No-op iteration ${i}")
+
+                                    ActivityPolicyProcessorHelper.evaluateAndEnforceRules(null, new OperationResult("sample"))
+
+                                    Thread.sleep(500)
+                                }
+                            </code>
+                        </s:script>
+                    </s:execute>
+                </scriptExecutionRequest>
+            </nonIterativeScripting>
+        </work>
+        <policies>
+            <policy>
+                <name>Max. 3s execution</name>
+                <policyConstraints>
+                    <executionTime>
+                        <exceeds>PT3S</exceeds>
+                    </executionTime>
+                </policyConstraints>
+                <policyReaction>
+                    <name>restart me</name>
+                    <action>
+                        <restartActivity>
+                            <delay>2000</delay>
+                            <restartCounters>true</restartCounters>
+                        </restartActivity>
+                    </action>
+                </policyReaction>
+                <order>20</order>
+            </policy>
+
+            <policy>
+                <name>count restarts</name>
+                <policyConstraints>
+                    <restartActivity/>
+                </policyConstraints>
+                <policyReaction>
+                    <name>suspend the task because of me</name>
+                    <threshold>
+                        <lowWaterMark>
+                            <count>2</count>
+                        </lowWaterMark>
+                    </threshold>
+                    <action>
+                        <suspendTask/>
+                    </action>
+                </policyReaction>
+                <order>10</order>
+            </policy>
+        </policies>
+    </activity>
+</task>
