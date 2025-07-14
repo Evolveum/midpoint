@@ -114,13 +114,11 @@
     <xsd:complexType name="ShadowObjectClassStatisticsType">
         <xsd:annotation>
             <xsd:documentation>
-                Statistical data needed for suggesting delineations.
-
-                TODO where to put this structure?
+                Statistical data about a particular object class needed for suggesting object types delineations.
             </xsd:documentation>
             <xsd:appinfo>
                 <a:since>4.11</a:since>
-                <a:container>true</a:container>
+                <!-- intentionally not a container, because this is used also in Python service API -->
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
@@ -131,6 +129,13 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element name="attributeTuple" type="tns:ShadowAttributeTupleStatisticsType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Statistical data about a particular attribute pairs (maybe tuples - later).
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
             <xsd:element name="size" type="xsd:int">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -138,10 +143,10 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="complete" type="xsd:boolean">
+            <xsd:element name="coverage" type="xsd:float">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Is the coverage complete, i.e., did we see all shadows?
+                        An estimation of the coverage - how many of all the resource objects are covered by this statistics: a number between 0 and 1.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
@@ -154,7 +159,6 @@
             </xsd:element>
         </xsd:sequence>
     </xsd:complexType>
-    <xsd:element name="shadowObjectClassStatistics" type="tns:ShadowObjectClassStatisticsType"/>
 
     <xsd:complexType name="ShadowAttributeStatisticsType">
         <xsd:annotation>
@@ -163,39 +167,139 @@
             </xsd:documentation>
             <xsd:appinfo>
                 <a:since>4.11</a:since>
-                <a:container>true</a:container>
+                <!-- intentionally not a container, because this is used also in Python service API -->
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
-            <xsd:element name="ref" type="t:ItemPathType">
+            <xsd:element name="ref" type="xsd:QName">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Attribute name (or path). Exact format is to be decided.
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="valueCount" type="xsd:int">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        How many non-null values are there for this attribute?
+                        Attribute name (or later, path). Exact format is to be decided.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="uniqueValueCount" type="xsd:int">
                 <xsd:annotation>
                     <xsd:documentation>
-                        How many unique non-null values are there for this attribute?
+                        How many unique (non-null) values are there for this attribute?
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <!-- missingValueCount = size - valueCount, so we don't need to store it here -->
-            <!-- TODO: -->
-            <!--  cross table value counts (on low cardinality columns) -->
-            <!--  string manipulation queries (sql "like", for prefixes) -->
-            <!--  we will find out more/less queries after interviewing engineers -->
+            <xsd:element name="missingValueCount" type="xsd:int">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        How many objects have no value for this attribute?
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="valueCount" type="tns:ShadowAttributeValueCountType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Information about the number of occurrences of a particular value in this attribute.
+                        Present only for low cardinality attributes; so after reaching a given threshold (e.g. 30 unique values or 1% of all objects) this data are removed.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="valuePatternCount" type="tns:ShadowAttributeValueCountType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Information about the number of occurrences of a particular value pattern in this attribute.
+                        An example:
+
+                        pattern = ".*admin.*", count = 200
+                        pattern = ".*test.*", count = 100
+                        pattern = "a-.*", count = 500
+                        pattern = "x-.*", count = 50
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
         </xsd:sequence>
     </xsd:complexType>
-    <xsd:element name="shadowAttributeStatistics" type="tns:ShadowAttributeStatisticsType"/>
+
+    <xsd:complexType name="ShadowAttributeValueCountType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Number of occurrences of a particular value or value pattern.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:since>4.11</a:since>
+                <!-- intentionally not a container, because this is used also in Python service API -->
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="value" type="xsd:string">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Value or value pattern.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="count" type="xsd:int">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Number of occurrences.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="ShadowAttributeTupleStatisticsType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Statistical data for particular attribute tuple needed for suggesting delineations.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:since>4.11</a:since>
+                <!-- intentionally not a container, because this is used also in Python service API -->
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="ref" type="xsd:QName" minOccurs="2" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Attributes names (or paths). Exact format is to be decided.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="tupleCount" type="tns:ShadowAttributeTupleCountType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Information about the number of occurrences of a particular tuple [values] in this attribute.
+                        Present only for tuples where the number of these counts is reasonably low.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="ShadowAttributeTupleCountType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Number of occurrences of a particular value or value pattern.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:since>4.11</a:since>
+                <!-- intentionally not a container, because this is used also in Python service API -->
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="value" type="xsd:string" minOccurs="2" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Values - in the order corresponding to the order of attributes in the containing structure.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="count" type="xsd:int">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Number of occurrences.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
 
     <!-- suggestMappings method -->
 
@@ -443,7 +547,89 @@
     <!-- ================================================================================================================== -->
     <!--                                            API of Python Microservice                                              -->
     <!-- ================================================================================================================== -->
-    <!-- TODO shouldn't this be in a separate namespace? -->
+    <!-- TODO shouldn't this be in a separate namespace? Or, should we use "Si" (= Smart integration) prefix? -->
+
+    <!-- suggestObjectTypes method -->
+
+    <xsd:complexType name="SiSuggestObjectTypesRequestType">
+        <xsd:annotation>
+            <xsd:appinfo>
+                <a:since>4.11</a:since>
+                <!-- intentionally not a container -->
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="schema" type="tns:SiObjectClassSchemaType" />
+            <xsd:element name="statistics" type="tns:ShadowObjectClassStatisticsType" />
+        </xsd:sequence>
+    </xsd:complexType>
+    <xsd:complexType name="SiSuggestObjectTypesResponseType">
+        <xsd:annotation>
+            <xsd:appinfo>
+                <a:since>4.11</a:since>
+                <!-- intentionally not a container -->
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <!-- ... -->
+        </xsd:sequence>
+    </xsd:complexType>
+    <xsd:complexType name="SiObjectClassSchemaType">
+        <xsd:annotation>
+            <xsd:appinfo>
+                <a:since>4.11</a:since>
+                <!-- intentionally not a container -->
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="name" type="xsd:string" />
+            <xsd:element name="description" type="xsd:string" minOccurs="0" />
+            <xsd:element name="attribute" type="tns:SiAttributeDefinitionType" minOccurs="0" maxOccurs="unbounded" />
+        </xsd:sequence>
+    </xsd:complexType>
+    <xsd:complexType name="SiAttributeDefinitionType">
+        <xsd:annotation>
+            <xsd:appinfo>
+                <a:since>4.11</a:since>
+                <!-- intentionally not a container -->
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="name" type="xsd:string" />
+            <xsd:element name="type" type="xsd:QName" minOccurs="0" />
+            <xsd:element name="description" type="xsd:string" minOccurs="0" />
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <!-- suggestFocusType method (new style) -->
+
+    <xsd:complexType name="SiSuggestFocusTypeRequestType">
+        <xsd:annotation>
+            <xsd:appinfo>
+                <a:since>4.11</a:since>
+                <!-- intentionally not a container -->
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="kind" type="xsd:string" />
+            <xsd:element name="intent" type="xsd:string" />
+            <xsd:element name="schema" type="tns:SiObjectClassSchemaType" />
+            <xsd:element name="baseContextFilter" type="xsd:string" minOccurs="0" maxOccurs="unbounded" />
+        </xsd:sequence>
+    </xsd:complexType>
+    <xsd:complexType name="SiSuggestFocusTypeResponseType">
+        <xsd:annotation>
+            <xsd:appinfo>
+                <a:since>4.11</a:since>
+                <!-- intentionally not a container -->
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="focusTypeName" type="xsd:string" />
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <!-- suggestFocusType method (old style) -->
 
     <xsd:complexType name="SuggestFocusTypeRequestType">
         <xsd:annotation>
