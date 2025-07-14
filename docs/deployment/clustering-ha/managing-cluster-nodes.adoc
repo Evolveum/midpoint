@@ -101,7 +101,7 @@ Its `operationalState`  property is `UP` and its `lastCheckInTime` is regularly 
 | up, but not checking in
 | There's an issue with the node.
 Its `operationalState`  property is `UP` but its `lastCheckInTime` is older than `nodeTimeout` seconds.
-Nodes in this state are excluded from some operations, e.g., status querying or xref:../cache-invalidation[cache invalidation] calls.
+Nodes in this state are excluded from some operations, e.g., status querying or xref:../#cache-invalidation[cache invalidation] calls.
 
 
 | down
@@ -116,7 +116,7 @@ Nodes in this state are excluded from almost all operations.
 
 | starting
 | The `operationalState` property of the node is `STARTING`.
-Nodes in this state are excluded from some operations, e.g., status querying or xref:../cache-invalidation[cache invalidation] calls.
+Nodes in this state are excluded from some operations, e.g., status querying or xref:../#cache-invalidation[cache invalidation] calls.
 
 
 | deleted
