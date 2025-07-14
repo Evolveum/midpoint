@@ -7,12 +7,10 @@
 :page-wiki-metadata-modify-user: mederly
 :page-wiki-metadata-modify-date: 2020-01-13T12:07:35.715+01:00
 :page-since: [ "4.1", "4.0.2" ]
+:page-upkeep-status: green
 :page-toc: top
-// TODO add meta keywords
-// TODO add meta description
-
-// also available in 4.0.2
-
+:page-keywords: clustering, high availability, node configuration, node state
+:page-description: Construct midPoint node identifiers and understand possible node states in high availability deployment.
 
 MidPoint can run in clustered mode with two or more nodes.
 This article describes the most important parameters influencing how nodes are named and managed.
