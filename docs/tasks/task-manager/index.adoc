@@ -115,19 +115,19 @@ Another example is an execution of an operation requiring an approval, e.g., an 
 After the approval is obtained and the operation is executed, the task finishes and is closed.
 
 Single-run tasks may start
-either immediately after they are created (this is the majority of cases)
-or according to a defined schedule (this is not implemented yet); in the latter case, we call them scheduled single-run tasks. You can "adopt" the xref:/midpoint/features/planned/scheduled-single-run-tasks/[] feature if you find it useful.
+either immediately after they are created
+or according to a defined schedule. However, the latter option is not implemented yet. You can sponsor the xref:/midpoint/features/planned/scheduled-single-run-tasks/[] feature if you find it useful.
 
 Other tasks have to be repeated.
 We call such tasks *recurring*.
 
 Examples of recurring tasks are live synchronization (scheduled to run, e.g., every 5 seconds) or reconciliation (scheduled to run, e.g., every day at 3:00).
 
-MidPoint currently supports two styles of schedule description:
+MidPoint currently supports two styles of schedule definition:
 
 * Interval-based scheduling repeats a task every N seconds.
 * Cron-like scheduling provides the ability to specify starting time intervals using a link:https://en.wikipedia.org/wiki/Cron[cron expression].
-    For more information on these expressions, please see the link:https://www.quartz-scheduler.org/documentation/quartz-2.3.0/tutorials/crontrigger.html[Quartz documentation].
+    For more information on these expressions, see the link:https://www.quartz-scheduler.org/documentation/quartz-2.3.0/tutorials/crontrigger.html[Quartz documentation].
 
 
 === Tightly and Loosely Bound Tasks
@@ -136,7 +136,7 @@ A recurring task can be bound to a midPoint node either tightly or loosely.
 
 A *tightly bound task* is given a thread in which it executes.
 Even between executions, the thread is allocated to the task.
-(Technically, it just sleeps using `Thread.sleep` method.)
+(Technically, the thread just sleeps between the runs using the `Thread.sleep` method.)
 A direct consequence is that each execution of this task occurs on the same node.
 This has some pros and cons:
 
@@ -151,34 +151,35 @@ It waits in the repository until its start time comes.
 At the time, it is started on any available midPoint node.
 When its execution finishes, the thread is released and the task waits for the next start time.
 A loosely bound task may execute repeatedly on the same node or on different nodes, as determined by the Quartz scheduler algorithm (hence the name 'loosely bound').
-link:https://www.quartz-scheduler.org/documentation/quartz-2.3.0/configuration/ConfigJDBCJobStoreClustering.html[Quartz doc] states that "The load balancing mechanism is near-random for busy schedulers (lots of triggers) but favors the same node for non-busy schedulers (e.g., few triggers)."
+The link:https://www.quartz-scheduler.org/documentation/quartz-2.3.0/configuration/ConfigJDBCJobStoreClustering.html[Quartz documentation] states that "The load balancing mechanism is near-random for busy schedulers (lots of triggers) but favors the same node for non-busy schedulers (few triggers)."
 
 === Task Execution Terminology
 
-[NOTE]
-====
-These are only preliminary terms, open to discussion.
-====
+*Task run* (or sometimes "task cycle run") denotes one execution of a task logic, provided by task handler or handlers, see below.
+*Task thread run* denotes one execution of a task thread.
 
-*Task run* (or sometimes "task cycle run") denotes one execution of task's logic, provided by task handler or handlers, see below.
-*Task thread run* denotes one execution of task's thread.
+For _single-run tasks_, a task run is the same as a task thread run:
+there is only one such run (or thread run) during the task lifetime.
 
-For _single-run tasks_, task run is the same as task thread run - and there is only one such run (or thread run) during the task lifetime.
-
-For _loosely bound recurring tasks_, task run is the same as task thread run as well.
+For _loosely bound recurring tasks_, a task run is the same as a task thread run as well.
 However, in this case, there are potentially many runs (or thread runs) during the task lifetime.
 
 For _tightly bound recurring tasks_, there is only one task thread run, because the task thread is allocated to the task permanently.
-Within this task thread run there are many task runs, occurring at defined points in time.
+Within this task thread run, there are many task runs occurring at defined points in time.
 
-(For this discussion, we are not thinking about task failovers and node restarts.)
+For this discussion, we do not consider task failovers and node restarts.
 
-* Starts and ends of a task thread run are logged to the console as debug messages.
-* Starts and ends of a task run are recorded as `lastRunStartTimestamp` and `lastRunFinishTimestamp` attributes.
+* Starts and ends of a task thread run are xref:/midpoint/reference/diag/logging/[logged] to the console (standard output) as debug messages.
+* Starts and ends of a task run are logged as `lastRunStartTimestamp` and `lastRunFinishTimestamp` attributes.
+
+[NOTE]
+====
+These are only preliminary terms open to discussion.
+====
 
 === Task Scheduling
 
-Task scheduling is governed by the `schedule` attribute, having the following parts:
+Task scheduling is governed by the `schedule` attribute, which has the following parts:
 
 . `interval`: Denotes interval in seconds between task runs.
 Used only for recurring tasks.
@@ -209,7 +210,7 @@ There are the following possibilities:
 This can be used only for loosely bound recurring tasks.
 
 . `forget`: The task is not executed at all.
-This can be used only for scheduled single-run tasks.
+This would be used only for xref:/midpoint/features/planned/scheduled-single-run-tasks/[scheduled single-run tasks].
 Not yet implemented.
 // TODO Does it make sense to mention this if it's not implemented or planned? @dakle 2025-07-11
 
@@ -217,7 +218,7 @@ Not yet implemented.
 == Resilient and Non-Resilient Tasks: ThreadStopAction
 
 By default, all persistent tasks are resilient.
-It means that after a node is stopped (either regularly, e.g., by shutting down the application server, or  irregularly, e.g., by a hardware malfunction), *persistent tasks continue to execute on another node* in the cluster.
+It means that after a node is stopped (either regularly, e.g., by shutting down the application server, or irregularly, e.g., by a hardware malfunction), *persistent tasks continue to execute on another node* in the cluster.
 If no suitable node is available at the time, they resume after an available node appears.
 
 However, there are situations when such a resilience is not desirable.
@@ -239,10 +240,9 @@ This task behavior is controlled by *`threadStopAction` attribute*, which can ha
 
 The restart and reschedule options are used to implement resilient task behavior, while the suspend and close options are for non-resilient tasks.
 
-For tasks which have no threads allocated when their node goes down (loosely bound recurring tasks and scheduled single-run tasks), the `threadStopAction` attribute has no effect.
+For tasks with no threads allocated when their node goes down (loosely bound recurring tasks and scheduled single-run tasks), the `threadStopAction` attribute has no effect.
 These tasks are simply started when their next start time comes.
 We recommend using the suspend and close options only when there is a strong reason for it, e.g., when the administrator wants to manually review the task state after an interruption.
-//TODO scheduled single-run tasks are not implemented yet, delete? @dakle 2025-07-11
 
 == Handler URI and Task Category
 
@@ -250,14 +250,15 @@ Handler URI indirectly specifies which class (called handler, implementing TaskH
 The handler executes reactions to task lifecycle events, such as executing the task, task heartbeat, etc.
 
 Handler URI can be also understood as a specification of task _subtype_.
+Refer to xref:/midpoint/reference/tasks/custom-task-java/[] for implementation details.
 
-The task handlers will register themselves with an appropriate URI on midPoint initialization.
+The task handlers register themselves with an appropriate URI on midPoint initialization.
 The URI is used instead of a direct class name to provide additional robustness during system upgrades.
 
 A single-run task can have a list of handler URIs.
 After first handler finishes its execution, it is removed from the list of handlers and second handler starts.
 The process continues until the list of handlers is empty.
-At this moment the task is automatically closed.
+At that moment, the task is automatically closed.
 
 A task category denotes a user-recognizable type of task.
 For example: LiveSynchronization, Reconciliation, ImportingAccounts, ImportFromFile, UserRecomputation, Workflow, Demo.
@@ -274,16 +275,16 @@ That would not be optimal, though, because it would be difficult to search for a
 
 == Task Owner
 
-Task owner is (usually) the midPoint user who initiated the task.
+Task owner is (usually) the midPoint user who created the task.
 This attribute is used for auditing reasons, for instance.
 
 == Clustering and High Availability
 
-As mentioned above, there can be more nodes working in a *cluster*.
-These nodes share the workload: when a task becomes ready to be executed, one of the nodes takes and executes it.
-This process is governed by link:https://www.quartz-scheduler.org/[Quartz job scheduler].
+As <<tightly-and-loosely-bound-tasks,mentioned above>>, there can be multiple midPoint nodes working in a *cluster*.
+These nodes share the workload: when a task becomes ready to be executed, one of the nodes takes the task and executes it.
+This process is governed by the link:https://www.quartz-scheduler.org/[Quartz job scheduler].
 
-When a node becomes unavailable (either because of shutdown, or due to sudden crash), the task manager performs the following:
+When a node becomes unavailable (either because of a shutdown, or due to a sudden crash), the task manager performs the following:
 
 . It takes the tasks running on that node and restarts them on other available nodes.
     This is subject to the <<threadstopaction,threadStopAction settings>> described above.
@@ -298,21 +299,22 @@ Refer to xref:/midpoint/reference/deployment/clustering-ha/[] for more informati
 
 The midPoint repository contains general task information, such as execution and business states,
 while the Quartz job store is responsible for maintaining information necessary for task scheduling (e.g., next planned start time).
-The information in Quartz job store can be erased at any time, and recreated from midPoint repository at node startup with only minor consequences.
+
+The information in Quartz job store can be erased at any time and recreated from the midPoint repository on node startup with only minor consequences.
 The only damage that can occur is that some tasks may be executed one more or one less time.
 
-Because of this, the simplest installations (e.g., showcase ones) can be run with *in-memory Quartz job store*: a store that is re-created at node startup.
-The limitations of this approach are:
+Because of this, the simplest installations, such as those serving a showcase purpose, can be run with *in-memory Quartz job store*: a store that is re-created on node startup.
+This approach has the following limitations:
 
-. Clustering (failover) feature is not available,
+. Clustering (failover) feature is not available.
 
 . Tasks do not know their last run time.
 The consequences of this are, for example:
     ** Interval-based loosely-coupled tasks will start immediately, even if their expected start time has not come yet.
-    ** Misfired cron-scheduled tasks will not start, even if configured to do so, because the information on the misfire event is not present.
-    ** This may cause, e.g., reconciliation tasks to be started immediately after midPoint starts.
+    ** Misfired cron-scheduled tasks will not start, even if configured to do so, because the information on the misfire event was lost.
+    ** Reconciliation tasks, for instance, may start immediately after midPoint start.
 
-More advanced installations could use *JDBC-based Quartz job store*—a store that remembers task scheduling information.
+More advanced installations could use link:https://www.quartz-scheduler.org/documentation/quartz-2.1.7/configuration/ConfigJobStoreTX.html[*JDBC-based Quartz job store*]—a store that remembers task scheduling information.
 
 == Task Manager Configuration and Administration
 
@@ -323,7 +325,7 @@ Refer to xref:/midpoint/guides/admin-gui-user-guide/#task-manager-configuration[
 === Task-related operations
 
 In order to authorize task-related operations, the following action URIs are defined.
-These are evaluated with respect to task objects, i.e. you can define a filter that selects tasks that can be acted upon.
+These are evaluated with respect to task objects, i.e., you define a filter that selects tasks to act upon.
 
 [%autowidth]
 |===
@@ -353,7 +355,7 @@ That means, for both deleting a task and deleting a task after suspending it, yo
 === Node-related operations
 
 For node-related operations, the following action URIs are defined.
-These are evaluated with respect to node objects, i.e., you can define a filter that selects nodes that can be acted upon (although we do not expect such a selection would be frequently used in practice).
+These are evaluated with respect to node objects, i.e., you define a filter that selects nodes to act upon (although we do not expect such a selection would be used in practice frequently).
 
 [%autowidth]
 |===
