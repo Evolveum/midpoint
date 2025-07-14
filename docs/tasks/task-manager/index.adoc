@@ -3,6 +3,7 @@ midpoint-feature: task-management
 doc-type: intro
 ---
 = Task Manager
+:page-wiki-name: Task Manager
 :page-wiki-id: 4423729
 :page-wiki-metadata-create-user: mederly
 :page-wiki-metadata-create-date: 2012-04-21T22:13:53.012+02:00
