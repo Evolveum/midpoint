@@ -30,7 +30,7 @@ it is up to you to determine the viable number of nodes experimentally based on 
 
 In the following schema, there are two midPoint nodes with a shared central repository and a load balancer.
 
-image::midpoint-HA-deployment-schema-two-nodes.svg[]
+image::midpoint-HA-deployment-schema-two-nodes.svg[title="A midPoint deployment with two nodes, a shared repository, and a load balancer"]
 
 The nodes in the cluster share the load as follows:
 
