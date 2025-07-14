@@ -23,49 +23,37 @@ BEGIN   EXECUTE IMMEDIATE 'DROP TABLE qrtz_locks';               EXCEPTION   WHE
 BEGIN   EXECUTE IMMEDIATE 'DROP TABLE qrtz_scheduler_state';     EXCEPTION   WHEN OTHERS THEN      IF SQLCODE != -942 THEN         RAISE;      END IF;     END;;
 
 BEGIN
-  DECLARE
-    v_major_version NUMBER;
-    v_sql           CLOB;
-  BEGIN
-    SELECT TO_NUMBER(REGEXP_SUBSTR(version, '^\d{2}')) INTO v_major_version FROM v$instance;
-
-    IF v_major_version >= 23 THEN
-      v_sql := q'[
-        CREATE TABLE qrtz_job_details (
-          SCHED_NAME          VARCHAR2(120) NOT NULL,
-          JOB_NAME            VARCHAR2(200) NOT NULL,
-          JOB_GROUP           VARCHAR2(200) NOT NULL,
-          DESCRIPTION         VARCHAR2(250),
-          JOB_CLASS_NAME      VARCHAR2(250) NOT NULL,
-          IS_DURABLE          BOOLEAN NOT NULL,
-          IS_NONCONCURRENT    BOOLEAN NOT NULL,
-          IS_UPDATE_DATA      BOOLEAN NOT NULL,
-          REQUESTS_RECOVERY   BOOLEAN NOT NULL,
-          JOB_DATA            BLOB,
-          CONSTRAINT QRTZ_JOB_DETAILS_PK PRIMARY KEY (SCHED_NAME, JOB_NAME, JOB_GROUP)
-        )
-      ]';
-      EXECUTE IMMEDIATE v_sql;
-
-    ELSE
-      v_sql := q'[
-        CREATE TABLE qrtz_job_details (
-          SCHED_NAME          VARCHAR2(120) NOT NULL,
-          JOB_NAME            VARCHAR2(200) NOT NULL,
-          JOB_GROUP           VARCHAR2(200) NOT NULL,
-          DESCRIPTION         VARCHAR2(250),
-          JOB_CLASS_NAME      VARCHAR2(250) NOT NULL,
-          IS_DURABLE          VARCHAR2(1) NOT NULL,
-          IS_NONCONCURRENT    VARCHAR2(1) NOT NULL,
-          IS_UPDATE_DATA      VARCHAR2(1) NOT NULL,
-          REQUESTS_RECOVERY   VARCHAR2(1) NOT NULL,
-          JOB_DATA            BLOB,
-          CONSTRAINT QRTZ_JOB_DETAILS_PK PRIMARY KEY (SCHED_NAME, JOB_NAME, JOB_GROUP)
-        )
-      ]';
-      EXECUTE IMMEDIATE v_sql;
-    END IF;
-  END;
+  IF DBMS_DB_VERSION.VERSION >= 23 THEN
+    EXECUTE IMMEDIATE '
+      CREATE TABLE qrtz_job_details (
+        SCHED_NAME          VARCHAR2(120) NOT NULL,
+        JOB_NAME            VARCHAR2(200) NOT NULL,
+        JOB_GROUP           VARCHAR2(200) NOT NULL,
+        DESCRIPTION         VARCHAR2(250),
+        JOB_CLASS_NAME      VARCHAR2(250) NOT NULL,
+        IS_DURABLE          BOOLEAN NOT NULL,
+        IS_NONCONCURRENT    BOOLEAN NOT NULL,
+        IS_UPDATE_DATA      BOOLEAN NOT NULL,
+        REQUESTS_RECOVERY   BOOLEAN NOT NULL,
+        JOB_DATA            BLOB,
+        CONSTRAINT QRTZ_JOB_DETAILS_PK PRIMARY KEY (SCHED_NAME, JOB_NAME, JOB_GROUP)
+      )';
+  ELSE
+    EXECUTE IMMEDIATE '
+      CREATE TABLE qrtz_job_details (
+        SCHED_NAME          VARCHAR2(120) NOT NULL,
+        JOB_NAME            VARCHAR2(200) NOT NULL,
+        JOB_GROUP           VARCHAR2(200) NOT NULL,
+        DESCRIPTION         VARCHAR2(250),
+        JOB_CLASS_NAME      VARCHAR2(250) NOT NULL,
+        IS_DURABLE          VARCHAR2(1) NOT NULL,
+        IS_NONCONCURRENT    VARCHAR2(1) NOT NULL,
+        IS_UPDATE_DATA      VARCHAR2(1) NOT NULL,
+        REQUESTS_RECOVERY   VARCHAR2(1) NOT NULL,
+        JOB_DATA            BLOB,
+        CONSTRAINT QRTZ_JOB_DETAILS_PK PRIMARY KEY (SCHED_NAME, JOB_NAME, JOB_GROUP)
+      )';
+  END IF;
 END;
 /
 
@@ -117,61 +105,49 @@ CREATE TABLE qrtz_cron_triggers
 );
 
 BEGIN
-  DECLARE
-    v_major_version NUMBER;
-    v_sql           CLOB;
-  BEGIN
-    SELECT TO_NUMBER(REGEXP_SUBSTR(version, '^\d{2}')) INTO v_major_version FROM v$instance;
-
-    IF v_major_version >= 23 THEN
-      v_sql := q'[
-        CREATE TABLE qrtz_simprop_triggers (
-          SCHED_NAME     VARCHAR2(120) NOT NULL,
-          TRIGGER_NAME   VARCHAR2(200) NOT NULL,
-          TRIGGER_GROUP  VARCHAR2(200) NOT NULL,
-          STR_PROP_1     VARCHAR2(512),
-          STR_PROP_2     VARCHAR2(512),
-          STR_PROP_3     VARCHAR2(512),
-          INT_PROP_1     NUMBER(10),
-          INT_PROP_2     NUMBER(10),
-          LONG_PROP_1    NUMBER(13),
-          LONG_PROP_2    NUMBER(13),
-          DEC_PROP_1     NUMERIC(13,4),
-          DEC_PROP_2     NUMERIC(13,4),
-          BOOL_PROP_1    BOOLEAN,
-          BOOL_PROP_2    BOOLEAN,
-          CONSTRAINT QRTZ_SIMPROP_TRIG_PK PRIMARY KEY (SCHED_NAME, TRIGGER_NAME, TRIGGER_GROUP),
-          CONSTRAINT QRTZ_SIMPROP_TRIG_FK FOREIGN KEY (SCHED_NAME, TRIGGER_NAME, TRIGGER_GROUP)
-            REFERENCES QRTZ_TRIGGERS(SCHED_NAME, TRIGGER_NAME, TRIGGER_GROUP)
-        )
-      ]';
-      EXECUTE IMMEDIATE v_sql;
-
-    ELSE
-      v_sql := q'[
-        CREATE TABLE qrtz_simprop_triggers (
-          SCHED_NAME     VARCHAR2(120) NOT NULL,
-          TRIGGER_NAME   VARCHAR2(200) NOT NULL,
-          TRIGGER_GROUP  VARCHAR2(200) NOT NULL,
-          STR_PROP_1     VARCHAR2(512),
-          STR_PROP_2     VARCHAR2(512),
-          STR_PROP_3     VARCHAR2(512),
-          INT_PROP_1     NUMBER(10),
-          INT_PROP_2     NUMBER(10),
-          LONG_PROP_1    NUMBER(13),
-          LONG_PROP_2    NUMBER(13),
-          DEC_PROP_1     NUMERIC(13,4),
-          DEC_PROP_2     NUMERIC(13,4),
-          BOOL_PROP_1    VARCHAR2(1),
-          BOOL_PROP_2    VARCHAR2(1),
-          CONSTRAINT QRTZ_SIMPROP_TRIG_PK PRIMARY KEY (SCHED_NAME, TRIGGER_NAME, TRIGGER_GROUP),
-          CONSTRAINT QRTZ_SIMPROP_TRIG_FK FOREIGN KEY (SCHED_NAME, TRIGGER_NAME, TRIGGER_GROUP)
-            REFERENCES QRTZ_TRIGGERS(SCHED_NAME, TRIGGER_NAME, TRIGGER_GROUP)
-        )
-      ]';
-      EXECUTE IMMEDIATE v_sql;
-    END IF;
-  END;
+  IF DBMS_DB_VERSION.VERSION >= 23 THEN
+    EXECUTE IMMEDIATE '
+      CREATE TABLE qrtz_simprop_triggers (
+        SCHED_NAME     VARCHAR2(120) NOT NULL,
+        TRIGGER_NAME   VARCHAR2(200) NOT NULL,
+        TRIGGER_GROUP  VARCHAR2(200) NOT NULL,
+        STR_PROP_1     VARCHAR2(512),
+        STR_PROP_2     VARCHAR2(512),
+        STR_PROP_3     VARCHAR2(512),
+        INT_PROP_1     NUMBER(10),
+        INT_PROP_2     NUMBER(10),
+        LONG_PROP_1    NUMBER(13),
+        LONG_PROP_2    NUMBER(13),
+        DEC_PROP_1     NUMERIC(13,4),
+        DEC_PROP_2     NUMERIC(13,4),
+        BOOL_PROP_1    BOOLEAN,
+        BOOL_PROP_2    BOOLEAN,
+        CONSTRAINT QRTZ_SIMPROP_TRIG_PK PRIMARY KEY (SCHED_NAME, TRIGGER_NAME, TRIGGER_GROUP),
+        CONSTRAINT QRTZ_SIMPROP_TRIG_FK FOREIGN KEY (SCHED_NAME, TRIGGER_NAME, TRIGGER_GROUP)
+          REFERENCES QRTZ_TRIGGERS(SCHED_NAME, TRIGGER_NAME, TRIGGER_GROUP)
+      )';
+  ELSE
+    EXECUTE IMMEDIATE '
+      CREATE TABLE qrtz_simprop_triggers (
+        SCHED_NAME     VARCHAR2(120) NOT NULL,
+        TRIGGER_NAME   VARCHAR2(200) NOT NULL,
+        TRIGGER_GROUP  VARCHAR2(200) NOT NULL,
+        STR_PROP_1     VARCHAR2(512),
+        STR_PROP_2     VARCHAR2(512),
+        STR_PROP_3     VARCHAR2(512),
+        INT_PROP_1     NUMBER(10),
+        INT_PROP_2     NUMBER(10),
+        LONG_PROP_1    NUMBER(13),
+        LONG_PROP_2    NUMBER(13),
+        DEC_PROP_1     NUMERIC(13,4),
+        DEC_PROP_2     NUMERIC(13,4),
+        BOOL_PROP_1    VARCHAR2(1),
+        BOOL_PROP_2    VARCHAR2(1),
+        CONSTRAINT QRTZ_SIMPROP_TRIG_PK PRIMARY KEY (SCHED_NAME, TRIGGER_NAME, TRIGGER_GROUP),
+        CONSTRAINT QRTZ_SIMPROP_TRIG_FK FOREIGN KEY (SCHED_NAME, TRIGGER_NAME, TRIGGER_GROUP)
+          REFERENCES QRTZ_TRIGGERS(SCHED_NAME, TRIGGER_NAME, TRIGGER_GROUP)
+      )';
+  END IF;
 END;
 /
 
@@ -200,57 +176,45 @@ CREATE TABLE qrtz_paused_trigger_grps
 );
 
 BEGIN
-  DECLARE
-    v_major_version NUMBER;
-    v_sql           CLOB;
-  BEGIN
-    SELECT TO_NUMBER(REGEXP_SUBSTR(version, '^\d{2}')) INTO v_major_version FROM v$instance;
-
-    IF v_major_version >= 23 THEN
-      v_sql := q'[
-        CREATE TABLE qrtz_fired_triggers (
-          SCHED_NAME         VARCHAR2(120) NOT NULL,
-          ENTRY_ID           VARCHAR2(95) NOT NULL,
-          TRIGGER_NAME       VARCHAR2(200) NOT NULL,
-          TRIGGER_GROUP      VARCHAR2(200) NOT NULL,
-          INSTANCE_NAME      VARCHAR2(200) NOT NULL,
-          FIRED_TIME         NUMBER(13) NOT NULL,
-          SCHED_TIME         NUMBER(13) NOT NULL,
-          PRIORITY           NUMBER(13) NOT NULL,
-          EXECUTION_GROUP    VARCHAR2(200),
-          STATE              VARCHAR2(16) NOT NULL,
-          JOB_NAME           VARCHAR2(200),
-          JOB_GROUP          VARCHAR2(200),
-          IS_NONCONCURRENT   BOOLEAN,
-          REQUESTS_RECOVERY  BOOLEAN,
-          CONSTRAINT QRTZ_FIRED_TRIGGER_PK PRIMARY KEY (SCHED_NAME, ENTRY_ID)
-        )
-      ]';
-      EXECUTE IMMEDIATE v_sql;
-
-    ELSE
-      v_sql := q'[
-        CREATE TABLE qrtz_fired_triggers (
-          SCHED_NAME         VARCHAR2(120) NOT NULL,
-          ENTRY_ID           VARCHAR2(95) NOT NULL,
-          TRIGGER_NAME       VARCHAR2(200) NOT NULL,
-          TRIGGER_GROUP      VARCHAR2(200) NOT NULL,
-          INSTANCE_NAME      VARCHAR2(200) NOT NULL,
-          FIRED_TIME         NUMBER(13) NOT NULL,
-          SCHED_TIME         NUMBER(13) NOT NULL,
-          PRIORITY           NUMBER(13) NOT NULL,
-          EXECUTION_GROUP    VARCHAR2(200),
-          STATE              VARCHAR2(16) NOT NULL,
-          JOB_NAME           VARCHAR2(200),
-          JOB_GROUP          VARCHAR2(200),
-          IS_NONCONCURRENT   VARCHAR2(1),
-          REQUESTS_RECOVERY  VARCHAR2(1),
-          CONSTRAINT QRTZ_FIRED_TRIGGER_PK PRIMARY KEY (SCHED_NAME, ENTRY_ID)
-        )
-      ]';
-      EXECUTE IMMEDIATE v_sql;
-    END IF;
-  END;
+  IF DBMS_DB_VERSION.VERSION >= 23 THEN
+    EXECUTE IMMEDIATE '
+      CREATE TABLE qrtz_fired_triggers (
+        SCHED_NAME         VARCHAR2(120) NOT NULL,
+        ENTRY_ID           VARCHAR2(95) NOT NULL,
+        TRIGGER_NAME       VARCHAR2(200) NOT NULL,
+        TRIGGER_GROUP      VARCHAR2(200) NOT NULL,
+        INSTANCE_NAME      VARCHAR2(200) NOT NULL,
+        FIRED_TIME         NUMBER(13) NOT NULL,
+        SCHED_TIME         NUMBER(13) NOT NULL,
+        PRIORITY           NUMBER(13) NOT NULL,
+        EXECUTION_GROUP    VARCHAR2(200),
+        STATE              VARCHAR2(16) NOT NULL,
+        JOB_NAME           VARCHAR2(200),
+        JOB_GROUP          VARCHAR2(200),
+        IS_NONCONCURRENT   BOOLEAN,
+        REQUESTS_RECOVERY  BOOLEAN,
+        CONSTRAINT QRTZ_FIRED_TRIGGER_PK PRIMARY KEY (SCHED_NAME, ENTRY_ID)
+      )';
+  ELSE
+    EXECUTE IMMEDIATE '
+      CREATE TABLE qrtz_fired_triggers (
+        SCHED_NAME         VARCHAR2(120) NOT NULL,
+        ENTRY_ID           VARCHAR2(95) NOT NULL,
+        TRIGGER_NAME       VARCHAR2(200) NOT NULL,
+        TRIGGER_GROUP      VARCHAR2(200) NOT NULL,
+        INSTANCE_NAME      VARCHAR2(200) NOT NULL,
+        FIRED_TIME         NUMBER(13) NOT NULL,
+        SCHED_TIME         NUMBER(13) NOT NULL,
+        PRIORITY           NUMBER(13) NOT NULL,
+        EXECUTION_GROUP    VARCHAR2(200),
+        STATE              VARCHAR2(16) NOT NULL,
+        JOB_NAME           VARCHAR2(200),
+        JOB_GROUP          VARCHAR2(200),
+        IS_NONCONCURRENT   VARCHAR2(1),
+        REQUESTS_RECOVERY  VARCHAR2(1),
+        CONSTRAINT QRTZ_FIRED_TRIGGER_PK PRIMARY KEY (SCHED_NAME, ENTRY_ID)
+      )';
+  END IF;
 END;
 /
 
