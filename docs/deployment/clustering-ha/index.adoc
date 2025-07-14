@@ -1,3 +1,7 @@
+---
+midpoint-feature: ha
+doc-type: config
+---
 = Achieve High Availability of MidPoint with Clustering
 :page-nav-title: High Availability with Clustering
 :page-wiki-name: Clustering / high availability setup
@@ -6,18 +10,49 @@
 :page-wiki-metadata-create-date: 2013-06-28T10:24:03.273+02:00
 :page-wiki-metadata-modify-user: mederly
 :page-wiki-metadata-modify-date: 2020-09-23T16:15:32.817+02:00
-:page-upkeep-status: yellow
+:page-upkeep-status: green
 :page-toc: top
+:page-moved-from: /midpoint/reference/deployment/ha/
+:page-description: Use a cluster of multiple nodes to create scalable, robust, and highly available midPoint deployment
+:page-keywords: clustering, high availability, node configuration, load balancing
+// TODO redirects in the Reference don't work currently. @dakle 2025-07-14
 
 == Introduction
 
-You can achieve xref:/midpoint/reference/tasks/task-manager/[high availability] by setting up cluster of several midPoint nodes working with a common midPoint repository.
+To achieve a high availability deployment, se up a cluster of several midPoint nodes working with a common midPoint repository.
+You can combine the multi-node deployment with a load balancer to attain a reasonably even load across the deployed nodes.
 
-image::failover.png[]
+=== Architecture of a MidPoint Cluster
 
-In order to do this, it is necessary to set a couple of parameters in midPoint configuration.
+There can be two or more nodes in a cluster.
+Although there is no fixed limit to the number of nodes in a cluster, practical limits always exist;
+it is up to you to determine the viable number of nodes experimentally based on your needs.
 
-When using the default PostgreSQL database:
+In the following schema, there are two midPoint nodes with a shared central repository and a load balancer.
+
+image::midpoint-HA-deployment-schema-two-nodes.svg[]
+
+The nodes in the cluster share the load as follows:
+
+* MidPoint tasks, such as live synchronization, reconciliation, import, or workflow approvals, can run on whichever node.
+    The work scheduler tries to load the nodes evenly.
+* Users connecting to the graphical user interface (GUI) can work on any of the nodes.
+
+Here is an outline of technologies used and recommended for the work distribution:
+
+* For task load balancing, midPoint uses link:http://www.quartz-scheduler.org[Quartz scheduler].
+    See xref:/midpoint/reference/tasks/task-manager/[] for architectural description and implementation details of the solution.
+* For load balancing the traffic to the GUI, we recommend using the standard link:http://tomcat.apache.org/tomcat-8.0-doc/balancer-howto.html[Apache Tomcat solution].
+* If you wish to fail over GUI sessions without load balancing, you can use a network-level setup with a virtual IP.
+
+== Configure Your MidPoint Cluster
+
+In order to deploy midPoint in a cluster, you need to adjust a couple of parameters in the midPoint configuration.
+This section covers the all the required settings you need to get you started.
+
+=== Basic Setup
+
+Here is a bare-bones configuration to start with when using the default PostgreSQL database:
 
 [source,xml]
 ----
@@ -41,29 +76,31 @@ If you need clustering for failover, set this to `true` as shown in this example
 .Clustering needs to be enabled on all nodes
 [WARNING]
 ====
-If you have more nodes sharing a repository, all of them must have the parameter `clustered` set to `true`.
-Otherwise, tasks will not be scheduled and distributed correctly.
+All nodes sharing the same repository must have the parameter `clustered` set to `true`.
+If they some are set up differently, tasks will not be scheduled and distributed correctly.
 MidPoint disables scheduling tasks on non-conformant nodes, i.e., on non-clustered nodes that are parts of such a system.
 The best way how to avoid configuration discrepancy like this is to have common configuration file.
 If that is not possible or practical, make sure that all nodes have the same settings.
 ====
 
 In some circumstances, the Quartz component in task manager needs to use a separate database.
-If that's the case, proper configuration is needed.
+If that's the case, a proper configuration is needed.
 
 In either case, when deploying clustered nodes, ensure your *system time is synchronized* across all node members (using NTP or similar service).
 Otherwise, unexpected behaviour may occur such as tasks restarting on different nodes.
 
-== Other Cluster Configuration Items
+=== Node Identification and  Discovery Configuration
 
-You can either use the `config.xml` file to hold your configuration (see the Configuration parameter table column below).
+Even though the nodes in your cluster mainly talk to the shared DB and the Quartz scheduler, at times, they need to communicate with each other as well. 
+For this reason, you need to adjust their identification and discovery configuration.
+
+You can use the `config.xml` file to hold your configuration (see the Configuration parameter column in the table below).
 In this case, place the configuration keys directly under the `<midpoint>` element.
 
-Alternatively, you can specify the configuration via link:https://en.wikipedia.org/wiki/Command-line_interface[CLI] parameters in the form of `-Dkey=value`. See the Command-line parameter table column below.
+Alternatively, you can specify the configuration via link:https://en.wikipedia.org/wiki/Command-line_interface[CLI] parameters in the form of `-Dkey=value`. See the Command-line parameter column in the table below.
 Refer to xref:/midpoint/reference/deployment/midpoint-home-directory/overriding-config-xml-parameters/[] for details.
 
-Configuration items are:
-
+.Parameters specifying node identification and discovery options in a clustered midPoint deployment
 [%autowidth]
 |===
 | Command-line parameter | Configuration parameter | Description
@@ -77,8 +114,11 @@ For clustered ones, either `nodeId` or `nodeIdSource` must be used.
 | `-Dmidpoint.nodeIdSource`
 | `nodeIdSource`
 | Source of the node identifier.
-It is applied if explicit node ID is not defined.
-The source can be either `hostname`, meaning that the host name is used as the node identifier, or `random`, meaning that the random value for node ID is generated when the node is started.
+It is applied if `nodeId` is not defined explicitly.
+The source can be either `hostname`, meaning that the host name is used as the node identifier, or `random`, meaning that a random value for node ID is generated when the node starts.
+
+This attribute is obsolete.
+However, you can still use it if you manage nodes manually, need deterministic node IDs for testing, or you're migrating from an old midPoint version and need to preserve existing node IDs.
 
 | `-Dmidpoint.hostName`
 | `hostName`
@@ -95,11 +135,11 @@ If not specified, Tomcat/Catalina is queried to determine the HTTP port informat
 This information is used only to construct URL address used for intra-cluster communication (see below).
 
 
-If you run a node behind a reverse proxy or link:https://en.wikipedia.org/wiki/Network_address_translation[NAT], for instance, you need to specify the port to the node based on the network configuration.
-That means you always need to specify the port number under which other nodes can see the particular node from their point of view.
+If you run a node behind a reverse proxy or link:https://en.wikipedia.org/wiki/Network_address_translation[NAT], for instance, you need to specify the port based on the network configuration.
+That means that you always need to specify the port number under which other nodes can see the particular node from their point of view.
 Normally, you do not need to specify this information.
 
-If you want to run midPoint under a custom port, use `-Dserver.port=xxx` instead.
+If you want to run midPoint under a custom port, use xref:/midpoint/operations-manual/#changing-the-midpoint-embedded-tomcat-configuration[`-Dserver.port=xxx`] instead.
 
 
 | `-Dmidpoint.url`
@@ -146,25 +186,7 @@ This feature is experimental.
 
 In CLI, use `-Dmidpoint.taskManager.localNodeClusteringEnabled=true`.
 
-== Communication Among Nodes
-
-Midpoint needs to have an intra-cluster HTTP URL pattern specified.
-This should be the HTTP pattern which is used by midPoint nodes to communicate among themselves.
-The pattern is a URL prefix pointing to the root URL of the application.
-The pattern is specified in the system configuration object as present in the example below.
-// NOTE: I'm intentionally using HTTP instead of HTTPS because the protocol is, per se, HTTP.
-//      Regardless of whether or not it is secured by a TLS or SSL, those being different technologies. @dakle 2025-07-09
-
-[source,xml]
-----
-<systemConfiguration>
-  ...
-  <infrastructure>
-    <intraClusterHttpUrlPattern>https://$host/midpoint</intraClusterHttpUrlPattern>
-  </infrastructure>
-  ...
-</systemConfiguration>
-----
+== Communication in the Cluster Explained
 
 Cluster nodes primarily communicate with the central Quartz component.
 This component is responsible for creating worker tasks, which are then picked up by the nodes.
@@ -193,16 +215,37 @@ It doesn't save user objects because they change often, but are rarely needed.
 Another case when nodes communicate directly is handling user sessions.
 For example, when a node changes roles for a user, it informs the other nodes about the new permission scope of the user.
 
-On the other hand, if a node runs a task to creates a report, for example, the resulting report file is saved on the local file system of the node.
-If user sitting on a different node requests the report for download, the node the user is on asks the central DB where the report is and then redirects the user to the node which generated the report.
+This is why midPoint needs to have an intra-cluster HTTP URL pattern specified.
+It is used by midPoint nodes to communicate among themselves.
+The pattern is a URL prefix pointing to the root URL of the application.
+Specify it in the system configuration object as in the example below:
+// NOTE: I'm intentionally using HTTP instead of HTTPS because the protocol is, per se, HTTP.
+//      Regardless of whether or not it is secured by a TLS or SSL, those being different technologies. @dakle 2025-07-09
+
+[source,xml]
+----
+<systemConfiguration>
+  ...
+  <infrastructure>
+    <intraClusterHttpUrlPattern>https://$host/midpoint</intraClusterHttpUrlPattern>
+  </infrastructure>
+  ...
+</systemConfiguration>
+----
+
+On the other hand, if a node runs a task to xref:/midpoint/features/current/reporting/[create a report], for example, the resulting report file is saved on the local file system of the node.
+If user sitting on a different node requests the report for download,
+the node on which the user is asks the central DB for the location of the report
+and then redirects the user to the node with the generated report.
 Hence, no inter-node communication occurs in such a case.
 
 == Common Issues and Fixes
 
-These are critical critera your configuration must meet:
+These are the critical criteria your configuration must meet:
 
-* Use a shared repository, i.e., all nodes must connect to the same repository.
-* Define node URLs like `<midpoint><url>...</midpoint>` or `intraClusterHttpUrlPattern` in the system configuration to ensure nodes can discover each other.
+* Use a shared repository.
+    All nodes must connect to the same repository.
+* Define node URLs using the `<midpoint><url>...</midpoint>` or `intraClusterHttpUrlPattern` configuration options in the system configuration to ensure nodes can discover each other.
 * Clustering in production requires an link:https://evolveum.com/services/support-subscriptions/[active subscription] (log error: _Clustering is not supported in production mode without a subscription_).
 
 Here are a few common issues, their possible causes, and tips on how to resolve them:
@@ -215,7 +258,7 @@ Here are a few common issues, their possible causes, and tips on how to resolve 
     ** Fix: Check your deployment configuration and all possibly related network settings. Test connectivity between nodes using `curl` or a similar tool. 
 . *Sticky sessions*
     ** Cause: Load balancer is not using sticky sessions (e.g., `ip_hash` in NGINX).
-    ** Fix: Configure the load balancer to maintain session affinity (e.g., by using sticky cookie or source IP). 
+    ** Fix: Configure the load balancer to maintain session affinity (e.g., by using link:https://en.wikipedia.org/wiki/Load_balancing_(computing)#Persistence[sticky cookie] or source IP). 
 . *Database locks or task scheduling issues*
     ** Cause: Inconsistent `clustered=true` settings across nodes.
     ** Fix: Ensure all nodes have the consistent `clustered=true`. 
@@ -227,13 +270,20 @@ Clustering functionality assumes *homogeneous* cluster environment.
 That means each cluster node must have the same environment, configuration, connectivity (e.g., to load balancers), connectors and so on.
 Clustering implementation assumes that a task can be executed on any cluster node, giving the same result regardless.
 Any configuration differences between cluster nodes are likely to cause operational issues.
-Following aspects must be the same on all cluster nodes:
 
-* The same version of the following on all nodes:
+The following aspects must be the same on all cluster nodes:
+
+* Version of
     ** MidPoint
     ** Connectors
     ** Schema extension
-    ** Keystore
+    ** Key store
 * Network access to all configured resources
-* Access to filesystems, including network filesystems (e.g. for CSV resoruces)
+* Access to file systems, including network file systems (e.g., for CSV resources)
 * Network configuration, including routing and DNS configuration
+
+== See Also
+
+* xref:/midpoint/reference/tasks/task-manager/[]
+
+* xref:/midpoint/install/system-requirements/[]
