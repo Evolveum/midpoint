@@ -4,6 +4,7 @@ doc-type: config
 ---
 = Achieve High Availability of MidPoint with Clustering
 :page-nav-title: High Availability with Clustering
+:page-wiki-name: Clustering / high availability setup
 :page-wiki-id: 11075783
 :page-wiki-metadata-create-user: mederly
 :page-wiki-metadata-create-date: 2013-06-28T10:24:03.273+02:00
