@@ -32,11 +32,6 @@ public class RestartActivityConstraintEvaluator
     }
 
     @Override
-    protected boolean shouldTriggerOnNullValue(Integer value) {
-        return false;
-    }
-
-    @Override
     protected boolean shouldTriggerOnEmptyConstraint(NumericThresholdPolicyConstraintType constraint, Integer value) {
         return value != null && value > 1;
     }

@@ -7,9 +7,12 @@
 
 package com.evolveum.midpoint.repo.common.activity.policy;
 
-import java.util.GregorianCalendar;
+import java.util.Date;
 import java.util.List;
 import javax.xml.datatype.Duration;
+
+import jakarta.xml.bind.JAXBElement;
+import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.LocalizableMessage;
@@ -17,9 +20,6 @@ import com.evolveum.midpoint.util.SingleLocalizableMessage;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.DurationThresholdPolicyConstraintType;
-
-import jakarta.xml.bind.JAXBElement;
-import org.jetbrains.annotations.Nullable;
 
 public abstract class DurationThresholdConstraintEvaluator<C extends DurationThresholdPolicyConstraintType>
         implements ActivityPolicyConstraintEvaluator<C, DurationThresholdPolicyTrigger<C>> {
@@ -38,16 +38,30 @@ public abstract class DurationThresholdConstraintEvaluator<C extends DurationThr
 
         C constraint = element.getValue();
 
-        Long value = getDurationValue(context);
+        Duration value = getDurationValue(context);
+        updateRuleThresholdTypeAndValue(context.getRule(), constraint, value);
+
         if (value == null) {
+            if (shouldTriggerOnNullValue(value)) {
+                LOGGER.trace("Triggering on empty value for constraint {}", constraint.getName());
+
+                LocalizableMessage message = new SingleLocalizableMessage("DurationThresholdConstraintEvaluator.emptyValue");
+
+                return List.of(createTrigger(constraint, message, message));
+            }
+
             LOGGER.trace("No duration value to evaluate for constraint {}", constraint.getName());
             return List.of();
         }
 
         LOGGER.trace("Evaluating duration constraint {} against value {}", constraint.getName(), value);
 
-        Long below = durationToMillis(constraint.getBelow(), context.getActivityRun().getStartTimestampRequired());
-        if (below != null && context.getActivityRun().getActivityState().isComplete() && value < below) {
+        final Date now = new Date();    // arbitrary point in time, used for duration comparison
+
+        Long valueMs = durationToMillis(value, now);
+
+        Long belowMs = durationToMillis(constraint.getBelow(), now);
+        if (belowMs != null && context.getActivityRun().getActivityState().isComplete() && valueMs < belowMs) {
             LOGGER.trace("Duration value {} is below the threshold of constraint {}, creating trigger", value, constraint.getName());
 
             LocalizableMessage message = createMessage(constraint.getName(), value, constraint.getBelow(), ThresholdType.BELOW);
@@ -56,9 +70,9 @@ public abstract class DurationThresholdConstraintEvaluator<C extends DurationThr
             return List.of(createTrigger(constraint, message, shortMessage));
         }
 
-        Long exceeds = durationToMillis(constraint.getExceeds(), context.getActivityRun().getStartTimestampRequired());
+        Long exceedsMs = durationToMillis(constraint.getExceeds(), now);
 
-        if (exceeds != null && value > exceeds) {
+        if (exceedsMs != null && valueMs > exceedsMs) {
             LOGGER.trace("Duration value {}ms exceeds the threshold of constraint {}, creating trigger", value, constraint.getName());
 
             LocalizableMessage message = createMessage(constraint.getName(), value, constraint.getExceeds(), ThresholdType.EXCEEDS);
@@ -67,19 +81,39 @@ public abstract class DurationThresholdConstraintEvaluator<C extends DurationThr
             return List.of(createTrigger(constraint, message, shortMessage));
         }
 
+        if (belowMs == null && exceedsMs == null) {
+            LOGGER.trace("No below/exceeds thresholds defined for constraint {}", constraint.getName());
+
+            if (shouldTriggerOnEmptyConstraint(constraint, value)) {
+                LOGGER.trace("Triggering on empty constraint {}", constraint.getName());
+
+                LocalizableMessage message = new SingleLocalizableMessage("DurationThresholdConstraintEvaluator.empty");
+
+                return List.of(createTrigger(constraint, message, message));
+            }
+        }
+
         return List.of();
     }
 
-    private Long durationToMillis(Duration duration, long startTimestamp) {
-        if (duration == null) {
-            return null;
+    private Long durationToMillis(Duration duration, Date offset) {
+        return duration != null ? duration.getTimeInMillis(offset) : null;
+    }
+
+    protected void updateRuleThresholdTypeAndValue(EvaluatedPolicyRule rule, C constraint, Duration value) {
+        if (!constraint.asPrismContainerValue().isEmpty()) {
+            return;
         }
 
-        GregorianCalendar calendar = new GregorianCalendar();
-        calendar.setTimeInMillis(startTimestamp);
-        duration.addTo(calendar);
+        rule.setThresholdValueType(ThresholdValueType.DURATION, value);
+    }
 
-        return calendar.getTimeInMillis() - startTimestamp;
+    protected boolean shouldTriggerOnNullValue(Duration value) {
+        return false;
+    }
+
+    protected boolean shouldTriggerOnEmptyConstraint(C constraint, Duration value) {
+        return value != null;
     }
 
     protected DurationThresholdPolicyTrigger<C> createTrigger(
@@ -92,9 +126,9 @@ public abstract class DurationThresholdConstraintEvaluator<C extends DurationThr
      * If value is null, constraint evaluation will be skipped.
      */
     @Nullable
-    protected abstract Long getDurationValue(ActivityPolicyRuleEvaluationContext context);
+    protected abstract Duration getDurationValue(ActivityPolicyRuleEvaluationContext context);
 
-    protected LocalizableMessage createMessage(String constraintName, Long realValue, Duration threshold, ThresholdType type) {
+    protected LocalizableMessage createMessage(String constraintName, Duration realValue, Duration threshold, ThresholdType type) {
         String key = type == ThresholdType.EXCEEDS ?
                 "EvaluatedDurationThresholdConstraintEvaluator.exceedsMessage" :
                 "EvaluatedDurationThresholdConstraintEvaluator.belowMessage";
@@ -114,7 +148,7 @@ public abstract class DurationThresholdConstraintEvaluator<C extends DurationThr
         return new SingleLocalizableMessage(key, new Object[] { constraintName }, message);
     }
 
-    protected String createDefaultMessage(String constraintName, Long realValue, Duration threshold, ThresholdType type) {
+    protected String createDefaultMessage(String constraintName, Duration realValue, Duration threshold, ThresholdType type) {
         String msg = type == ThresholdType.EXCEEDS ?
                 "Measured duration is %s ms, which exceeds the threshold of constraint %s (%s)" :
                 "Measured duration is %s ms, which is below the threshold of constraint %s (%s)";

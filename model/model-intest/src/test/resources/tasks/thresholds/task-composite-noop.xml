@@ -48,13 +48,18 @@
                     <policy>
                         <name>Max. 3s execution</name>
                         <policyConstraints>
-                            <executionTime>
-                                <exceeds>PT3S</exceeds>
-                            </executionTime>
+                            <executionTime/>
                         </policyConstraints>
-                        <policyActions>
-                            <skipActivity/>
-                        </policyActions>
+                        <policyReaction>
+                            <threshold>
+                                <timeInterval>
+                                    <interval>PT3S</interval>
+                                </timeInterval>
+                            </threshold>
+                            <action>
+                                <skipActivity/>
+                            </action>
+                        </policyReaction>
                     </policy>
                 </policies>
             </activity>
@@ -70,14 +75,19 @@
                     <policy>
                         <name>Max. 3s execution</name>
                         <policyConstraints>
-                            <executionTime>
-                                <exceeds>PT3S</exceeds>
-                            </executionTime>
+                            <executionTime/>
                         </policyConstraints>
-                        <policyActions>
-                            <notification/>
-                            <suspendTask/>
-                        </policyActions>
+                        <policyReaction>
+                            <threshold>
+                                <timeInterval>
+                                    <interval>PT3S</interval>
+                                </timeInterval>
+                            </threshold>
+                            <action>
+                                <notification/>
+                                <suspendTask/>
+                            </action>
+                        </policyReaction>
                     </policy>
                 </policies>
             </activity>

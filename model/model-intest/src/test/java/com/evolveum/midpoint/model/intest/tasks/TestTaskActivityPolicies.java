@@ -47,6 +47,9 @@ public class TestTaskActivityPolicies extends AbstractEmptyModelIntegrationTest 
     private static final TestObject<TaskType> TASK_NON_ITERATIVE_RESTART =
             TestObject.file(TEST_DIR, "task-non-iterative-restart.xml", "d5c0d175-ebda-4506-821d-6205eeae85cf");
 
+    private static final TestObject<TaskType> TASK_EXECUTION_TIME_NOTIFICAITON =
+            TestObject.file(TEST_DIR, "task-execution-time-notification.xml", "38d0f53c-5e01-44dc-8d6a-439e0153b4d8");
+
     @Test
     public void test100SingleThread() throws Exception {
         testTask(TASK_SIMPLE_NOOP, 0);
@@ -175,14 +178,19 @@ public class TestTaskActivityPolicies extends AbstractEmptyModelIntegrationTest 
                 .assertSuspended()
                 .assertFatalError()
                 .rootActivityState()
-                .display()
-                .activityPolicyStates()
-                .display()
-                .assertOnePolicyStateTriggers(identifier, 1)
-                .end()
-                .assertInProgressLocal()
-                .progress().assertSuccessCount(0,0).display().end()
-                .itemProcessingStatistics().display().end();
+                    .display()
+                    .activityPolicyStates()
+                        .display()
+                        .assertOnePolicyStateTriggers(identifier, 1)
+                        .end()
+                    .assertInProgressLocal()
+                    .progress()
+                        .assertSuccessCount(0,0)
+                        .display()
+                        .end()
+                    .itemProcessingStatistics()
+                        .display()
+                        .end();
         // @formatter:on
     }
 
@@ -227,5 +235,40 @@ public class TestTaskActivityPolicies extends AbstractEmptyModelIntegrationTest 
     private String getActivityIdentifier(TaskType task, String policyName) {
         ActivityPolicyType policy = ActivityPolicyStateAsserter.forName(task.getActivity(), policyName);
         return ActivityPolicyUtils.createIdentifier(ActivityPath.empty(), policy);
+    }
+
+    @Test
+    public void test350ExecutionTimeNotification() throws Exception {
+        Task testTask = getTestTask();
+        OperationResult testResult = testTask.getResult();
+
+        TestObject<TaskType> object = TASK_EXECUTION_TIME_NOTIFICAITON;
+        object.reset();
+
+        when();
+
+        deleteIfPresent(object, testResult);
+        addObject(object, testTask, testResult);
+
+        waitForTaskCloseOrSuspend(object.oid, 8000);
+
+        then();
+
+        PrismObject<TaskType> task = getTask(object.oid);
+
+        // @formatter:off
+        assertTaskTree(object.oid, "after")
+                .assertSuspended()
+                .assertFatalError()
+                .assertTaskRunHistorySize(1)
+                .rootActivityState()
+                    .assertExecutionAttempts(1)
+                    .assertFatalError()
+                    .activityPolicyStates()
+                        .display()
+                        .assertPolicyStateCount(1)
+                        .activityPolicyState(getActivityIdentifier(task.asObjectable(),"Execution notification"))
+                            .assertTriggerCount(3);
+        // @formatter:on
     }
 }

@@ -30,7 +30,7 @@ public class EvaluatedActivityPolicyRule implements EvaluatedPolicyRule, DebugDu
     private final List<EvaluatedActivityPolicyRuleTrigger<?>> triggers = new ArrayList<>();
 
     /**
-     * Whether the rule was enforced (i.e. the action was taken).
+     * Whether the rule was enforced (i.e., the action was taken).
      */
     private boolean enforced;
 

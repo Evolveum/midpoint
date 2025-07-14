@@ -25,10 +25,12 @@
                         <exceeds>PT6S</exceeds>
                     </executionTime>
                 </policyConstraints>
-                <policyActions>
-                    <notification/>
-                    <suspendTask/>
-                </policyActions>
+                <policyReaction>
+                    <action>
+                        <notification/>
+                        <suspendTask/>
+                    </action>
+                </policyReaction>
             </policy>
         </policies>
     </activity>

@@ -1,0 +1,63 @@
+<!--
+  ~ Copyright (C) 2010-2025 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<task xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        oid="38d0f53c-5e01-44dc-8d6a-439e0153b4d8">
+    <name>Execution time notification</name>
+    <ownerRef oid="00000000-0000-0000-0000-000000000002" type="UserType"/>
+    <executionState>runnable</executionState>
+    <activity>
+        <work>
+            <noOp>
+                <steps>20</steps>
+                <delay>500</delay>
+            </noOp>
+        </work>
+        <policies>
+            <policy>
+                <name>Execution notification</name>
+                <policyConstraints>
+                    <executionTime/>
+                </policyConstraints>
+                <policyReaction>
+                    <name>First notification</name>
+                    <threshold>
+                        <timeInterval>
+                            <interval>PT2S</interval>
+                        </timeInterval>
+                    </threshold>
+                    <action>
+                        <notification/>
+                    </action>
+                </policyReaction>
+                <policyReaction>
+                    <name>Second notification</name>
+                    <threshold>
+                        <timeInterval>
+                            <interval>PT4S</interval>
+                        </timeInterval>
+                    </threshold>
+                    <action>
+                        <notification/>
+                    </action>
+                </policyReaction>
+                <policyReaction>
+                    <name>Third notification and suspend</name>
+                    <threshold>
+                        <timeInterval>
+                            <interval>PT6S</interval>
+                        </timeInterval>
+                    </threshold>
+                    <action>
+                        <notification/>
+                        <suspendTask/>
+                    </action>
+                </policyReaction>
+            </policy>
+        </policies>
+    </activity>
+</task>

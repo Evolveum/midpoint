@@ -172,11 +172,11 @@ public class ActivityPolicyRulesProcessor {
         return newState;
     }
 
-    private ActivityPolicyTriggerType createActivityStateTrigger(
+    private EvaluatedActivityPolicyTriggerType createActivityStateTrigger(
             EvaluatedActivityPolicyRule rule, EvaluatedActivityPolicyRuleTrigger<?> trigger) {
 
-        ActivityPolicyTriggerType state = new ActivityPolicyTriggerType();
-        state.setConstraintIdentifier(rule.getName());
+        EvaluatedActivityPolicyTriggerType state = new EvaluatedActivityPolicyTriggerType();
+        state.setRuleName(rule.getName());
         state.setMessage(LocalizationUtil.createLocalizableMessageType(trigger.getMessage()));
 
         return state;

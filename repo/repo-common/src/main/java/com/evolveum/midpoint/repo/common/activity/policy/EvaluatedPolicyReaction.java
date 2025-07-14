@@ -55,11 +55,6 @@ public class EvaluatedPolicyReaction implements DebugDumpable {
         return thresholdEvaluator.evaluate(threshold, rule.getThresholdValue());
     }
 
-    public boolean containsAction(Class<? extends ActivityPolicyActionType> policyActionType) {
-        return getActions().stream()
-                .anyMatch(policyActionType::isInstance);
-    }
-
     public <T extends ActivityPolicyActionType> T getAction(Class<T> policyActionType) {
         return getActions().stream()
                 .filter(policyActionType::isInstance)
