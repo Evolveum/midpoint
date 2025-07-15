@@ -614,7 +614,8 @@
             <xsd:element name="kind" type="xsd:string" />
             <xsd:element name="intent" type="xsd:string" />
             <xsd:element name="schema" type="tns:SiObjectClassSchemaType" />
-            <xsd:element name="baseContextFilter" type="xsd:string" minOccurs="0" maxOccurs="unbounded" />
+            <xsd:element name="baseContextFilter" type="xsd:string" minOccurs="0" />
+            <!-- TODO delineation filters as well? -->
         </xsd:sequence>
     </xsd:complexType>
     <xsd:complexType name="SiSuggestFocusTypeResponseType">

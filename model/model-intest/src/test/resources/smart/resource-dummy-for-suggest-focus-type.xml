@@ -10,7 +10,7 @@
         xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
         xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
         xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">
-    <name>resource-dummy-basic</name>
+    <name>resource-dummy-for-suggest-focus-type</name>
     <connectorRef type="ConnectorType">
         <filter>
             <q:and>
@@ -28,7 +28,8 @@
     <connectorConfiguration xmlns:icfi="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.icf.dummy/com.evolveum.icf.dummy.connector.DummyConnector"
             xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3">
         <icfc:configurationProperties>
-            <icfi:instanceId>basic</icfi:instanceId>
+            <icfi:instanceId>for-suggest-focus-type</icfi:instanceId>
+            <icfi:useLegacySchema>false</icfi:useLegacySchema>
         </icfc:configurationProperties>
     </connectorConfiguration>
     <schemaHandling>
@@ -37,8 +38,25 @@
             <intent>default</intent>
             <default>true</default>
             <delineation>
-                <objectClass>ri:AccountObjectClass</objectClass>
+                <objectClass>ri:account</objectClass>
+                <baseContext> <!-- temporary -->
+                    <objectClass>ri:orgUnit</objectClass>
+                    <filter>
+                        <q:text>attributes/name = 'main'</q:text>
+                    </filter>
+                </baseContext>
+                <filter>
+                    <q:text>attributes/personalNumber exists</q:text>
+                </filter>
             </delineation>
         </objectType>
+        <objectClass> <!-- Just to provide descriptions -->
+            <objectClass>ri:account</objectClass>
+            <description>Contains user accounts</description>
+            <attribute>
+                <ref>ri:fullname</ref>
+                <description>User's full name</description>
+            </attribute>
+        </objectClass>
     </schemaHandling>
 </resource>

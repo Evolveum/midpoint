@@ -10,6 +10,10 @@ package com.evolveum.midpoint.smart.impl;
 import java.util.Arrays;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.query.PrismQuerySerialization;
+import com.evolveum.midpoint.schema.processor.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import org.apache.cxf.jaxrs.client.WebClient;
@@ -22,9 +26,6 @@ import com.evolveum.midpoint.common.rest.MidpointXmlProvider;
 import com.evolveum.midpoint.common.rest.MidpointYamlProvider;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.schema.processor.ResourceObjectClassDefinition;
-import com.evolveum.midpoint.schema.processor.ResourceObjectTypeDelineation;
-import com.evolveum.midpoint.schema.processor.ResourceObjectTypeIdentification;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.MiscUtil;
@@ -33,9 +34,6 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SmartIntegrationConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SuggestFocusTypeRequestType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SuggestFocusTypeResponseType;
 
 /**
  * A client for the remote Smart integration service.
@@ -82,17 +80,53 @@ class DefaultServiceClientImpl implements ServiceClient {
             ResourceObjectTypeDelineation delineation,
             Task task,
             OperationResult result) throws SchemaException {
-        SuggestFocusTypeRequestType request = new SuggestFocusTypeRequestType()
+
+        var request = new SiSuggestFocusTypeRequestType()
                 .kind(typeIdentification.getKind().value())
                 .intent(typeIdentification.getIntent())
-                .objectClassName(objectClassDef.getObjectClassLocalName());
-                // TODO attributes
-        var response = callService("suggestFocusType", request, SuggestFocusTypeResponseType.class);
+                .schema(serializeSchema(objectClassDef));
+
+        setBaseContextFilter(request, objectClassDef, delineation);
+
+        var response = callService("suggestFocusType", request, SiSuggestFocusTypeResponseType.class);
         var typeName = response.getFocusTypeName();
         LOGGER.trace("Type suggested by the service: {}", typeName);
         return new QName(
                 SchemaConstants.NS_C,
                 MiscUtil.requireNonNull(typeName, "No returned type name from the service"));
+    }
+
+    private SiObjectClassSchemaType serializeSchema(ResourceObjectClassDefinition objectClassDef) {
+        var schema = new SiObjectClassSchemaType()
+                .name(objectClassDef.getObjectClassLocalName())
+                .description(objectClassDef.getDescription()); // TODO change to native description
+        for (ShadowAttributeDefinition<?, ?, ?, ?> attributeDefinition : objectClassDef.getAttributeDefinitions()) {
+            schema.getAttribute().add(
+                    new SiAttributeDefinitionType()
+                            .name(attributeDefinition.getItemName().getLocalPart())
+                            .type(attributeDefinition.getTypeName())
+                            .description(attributeDefinition.getDescription())); // TODO change to native description
+        }
+        return schema;
+    }
+
+    private static void setBaseContextFilter(
+            SiSuggestFocusTypeRequestType request,
+            ResourceObjectClassDefinition objectClassDef,
+            ResourceObjectTypeDelineation delineation) throws SchemaException {
+        var baseContext = delineation.getBaseContext();
+        var baseContextFilter = baseContext != null ? baseContext.getFilter() : null;
+        if (baseContextFilter != null) {
+            // We hope that object class definition is sufficient to parse the filter.
+            // It should be, because all the attributes are there.
+            var filter = ShadowQueryConversionUtil.parseFilter(baseContextFilter, objectClassDef);
+            try {
+                request.setBaseContextFilter(
+                        PrismContext.get().querySerializer().serialize(filter).filterText());
+            } catch (PrismQuerySerialization.NotSupportedException e) {
+                throw SystemException.unexpected(e, "Cannot serialize base context filter");
+            }
+        }
     }
 
     /** A generic method that calls a remote service. Treats serialization/parsing of the exchanged data. */

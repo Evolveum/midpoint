@@ -42,15 +42,16 @@ public class TestSmartIntegrationService extends AbstractEmptyModelIntegrationTe
 
     private static DummyBasicScenario basicScenario;
 
-    private static final DummyTestResource RESOURCE_DUMMY_BASIC = new DummyTestResource(
-            TEST_DIR, "resource-dummy-basic.xml", "1e97ba6f-90a7-4764-954b-6a29ed5eb597", "basic",
+    private static final DummyTestResource RESOURCE_DUMMY_FOR_SUGGEST_FOCUS_TYPE = new DummyTestResource(
+            TEST_DIR, "resource-dummy-for-suggest-focus-type.xml", "1e97ba6f-90a7-4764-954b-6a29ed5eb597",
+            "for-suggest-focus-type",
             c -> basicScenario = DummyBasicScenario.on(c).initialize());
 
     @Override
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
         super.initSystem(initTask, initResult);
 
-        initAndTestDummyResource(RESOURCE_DUMMY_BASIC, initTask, initResult);
+        initAndTestDummyResource(RESOURCE_DUMMY_FOR_SUGGEST_FOCUS_TYPE, initTask, initResult);
 
         if (System.getProperty(MidpointConfiguration.SMART_INTEGRATION_SERVICE_URL_OVERRIDE) == null) {
             // For tests without a real service, we have to use a mock service client.
@@ -65,7 +66,7 @@ public class TestSmartIntegrationService extends AbstractEmptyModelIntegrationTe
 
         when("suggesting focus type");
         var focusType = smartIntegrationService.suggestFocusType(
-                RESOURCE_DUMMY_BASIC.oid, ResourceObjectTypeIdentification.ACCOUNT_DEFAULT, task, result);
+                RESOURCE_DUMMY_FOR_SUGGEST_FOCUS_TYPE.oid, ResourceObjectTypeIdentification.ACCOUNT_DEFAULT, task, result);
 
         then("the focus type is correct");
         assertSuccess(result);

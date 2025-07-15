@@ -52,6 +52,7 @@ public class DummyBasicScenario extends AbstractDummyScenario {
         public static class AttributeNames {
             public static final AttrName FULLNAME = AttrName.ri(DummyAccount.ATTR_FULLNAME_NAME);
             public static final AttrName DESCRIPTION = AttrName.ri(DummyAccount.ATTR_DESCRIPTION_NAME);
+            public static final AttrName PERSONAL_NUMBER = AttrName.ri("personalNumber");
             public static final AttrName EMAIL = AttrName.ri("email");
             public static final AttrName PHONE = AttrName.ri("phone");
             public static final AttrName STATUS = AttrName.ri("status");
@@ -63,6 +64,7 @@ public class DummyBasicScenario extends AbstractDummyScenario {
             var oc = controller.getDummyResource().getAccountObjectClass();
             controller.addAttrDef(oc, AttributeNames.FULLNAME.local(), String.class, true, false);
             controller.addAttrDef(oc, AttributeNames.DESCRIPTION.local(), String.class, false, false);
+            controller.addAttrDef(oc, AttributeNames.PERSONAL_NUMBER.local(), String.class, false, false);
             controller.addAttrDef(oc, AttributeNames.EMAIL.local(), String.class, true, false);
             controller.addAttrDef(oc, AttributeNames.PHONE.local(), String.class, false, false);
             controller.addAttrDef(oc, AttributeNames.STATUS.local(), String.class, false, false);
