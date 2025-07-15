@@ -14,8 +14,9 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityPolicyAction
 public record PolicyViolationContext(
         @NotNull String ruleIdentifier,
         String ruleName,
-        String ruleReactionName,
-        ActivityPolicyActionType policyAction) {
+        String reactionName,
+        ActivityPolicyActionType policyAction,
+        Integer executionAttempt) {
 
 
 

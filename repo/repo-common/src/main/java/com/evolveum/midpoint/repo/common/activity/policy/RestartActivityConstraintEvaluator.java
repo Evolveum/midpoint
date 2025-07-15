@@ -19,7 +19,13 @@ public class RestartActivityConstraintEvaluator
     @Override
     public Integer getValue(ActivityPolicyRuleEvaluationContext context) {
         AbstractActivityRun<?, ?, ?> activityRun = context.getActivityRun();
-        return activityRun.getActivityState().getExecutionAttempt();
+        Integer executionAttempt = activityRun.getActivityState().getExecutionAttempt();
+        if (executionAttempt == null) {
+            executionAttempt = 1;
+        }
+
+        // The first execution is not after restart...
+        return executionAttempt - 1;
     }
 
     @Override

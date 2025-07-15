@@ -58,6 +58,8 @@ class TaskCycleExecutor {
 
     private static final long WATCHFUL_SLEEP_INCREMENT = 500;
 
+    private static final int DEFAULT_RESTART_ACTIVITY_DELAY = 5000;
+
     TaskCycleExecutor(@NotNull RunningTaskQuartzImpl task, @NotNull TaskHandler handler,
             @NotNull JobExecutor jobExecutor, @NotNull TaskBeans beans) {
         this.task = task;
@@ -250,22 +252,29 @@ class TaskCycleExecutor {
 
         RestartActivityPolicyActionType action = PolicyViolationContext.getPolicyAction(runResult, RestartActivityPolicyActionType.class);
         if (action == null) {
-            action = new RestartActivityPolicyActionType();
+            LOGGER.warn("Task handler requested restart of the activity, but no restart activity action was found in the run result.");
+            throw new IllegalStateException(
+                    "Task handler requested restart of the activity, but no restart activity action was found in the run result.");
         }
 
-        int delay = action.getDelay() != null ? action.getDelay() : 5000;
+        int delay = action.getDelay() != null ? action.getDelay() : DEFAULT_RESTART_ACTIVITY_DELAY;
         if (delay <= 0) {
             beans.taskStateManager.scheduleTaskNow(task, result);
             return;
         }
 
         try {
-            LOGGER.trace("Rescheduling task {} to run later ({} ms) because of activity restart", task, delay);
+            PolicyViolationContext ctx = PolicyViolationContext.getPolicyViolationContext(runResult);
+            int executionAttempt = ctx.executionAttempt() != null ? ctx.executionAttempt() : 1;
+
+            long startAt = System.currentTimeMillis() + (delay * (2 ^ (executionAttempt - 1)));
+
+            LOGGER.trace("Rescheduling task {} to run later (in {} ms) because of activity restart", task, delay);
             task.setExecutionAndSchedulingStateImmediate(
                     TaskExecutionStateType.RUNNABLE, TaskSchedulingStateType.READY,
                     TaskSchedulingStateType.SUSPENDED, result);
 
-            beans.localScheduler.rescheduleLater(task, System.currentTimeMillis() + delay);
+            beans.localScheduler.rescheduleLater(task, startAt);
         } catch (PreconditionViolationException | SchedulerException ex) {
             LOGGER.error("Couldn't reschedule task {} (rescheduled because of activity restart): {}",
                     task, ex.getMessage(), ex);

@@ -219,7 +219,7 @@ public class TestTaskActivityPolicies extends AbstractEmptyModelIntegrationTest 
                 .assertFatalError()
                 .assertTaskRunHistorySize(1)
                 .rootActivityState()
-                    .assertExecutionAttempts(2)
+                    .assertExecutionAttempts(3)     // 1 initial + 2 restarts
                     .assertFatalError()
                     .activityPolicyStates()
                         .display()

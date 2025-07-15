@@ -2305,7 +2305,7 @@
         <xsd:complexContent>
             <xsd:extension base="tns:ActivityPolicyActionType">
                 <xsd:sequence>
-                    <xsd:element name="delay" type="xsd:int" minOccurs="0" default="3000">
+                    <xsd:element name="delay" type="xsd:int" minOccurs="0" default="5000">
                         <xsd:annotation>
                             <xsd:documentation>
                                 What delay (in milliseconds) to introduce between attempts. Actual delay is taken as
