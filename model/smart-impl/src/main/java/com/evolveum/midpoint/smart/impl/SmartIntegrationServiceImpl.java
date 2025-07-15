@@ -9,6 +9,7 @@ package com.evolveum.midpoint.smart.impl;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.common.Clock;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.jetbrains.annotations.Nullable;
@@ -47,6 +48,7 @@ public class SmartIntegrationServiceImpl implements SmartIntegrationService {
 
     @Autowired private SystemObjectCache systemObjectCache;
     @Autowired private ModelService modelService;
+    @Autowired private Clock clock;
 
     @Override
     public ObjectTypesSuggestionType suggestObjectTypes(
@@ -58,13 +60,45 @@ public class SmartIntegrationServiceImpl implements SmartIntegrationService {
                 .addParam("objectClassName", objectClassName)
                 .build();
         try {
-            var resource = modelService.getObject(ResourceType.class, resourceOid, null, task, result);
-            var shadowObjectClassStatistics = (ShadowObjectClassStatisticsType) null; // TODO fetch the data from somewhere
-            var objectClassDef = Resource.of(resource)
-                    .getCompleteSchemaRequired()
-                    .findObjectClassDefinitionRequired(objectClassName);
+            LOGGER.debug("Suggesting object types for resourceOid {}, objectClassName {}", resourceOid, objectClassName);
+            try (var serviceClient = getServiceClient(result)) {
+                var resource = modelService.getObject(ResourceType.class, resourceOid, null, task, result);
+                var shadowObjectClassStatistics = (ShadowObjectClassStatisticsType) null;
+//                var shadowObjectClassStatistics = new ShadowObjectClassStatisticsType()
+//                        .size(1000)
+//                        .coverage(1.0f)
+//                        .timestamp(clock.currentTimeXMLGregorianCalendar())
+//                        .attribute(new ShadowAttributeStatisticsType()
+//                                .ref(ICFS_NAME)
+//                                .missingValueCount(0))
+//                        .attribute(new ShadowAttributeStatisticsType()
+//                                .ref(new QName(NS_RI, "gender"))
+//                                .valueCount(new ShadowAttributeValueCountType()
+//                                        .value("male")
+//                                        .count(490))
+//                                .valueCount(new ShadowAttributeValueCountType()
+//                                        .value("female")
+//                                        .count(500))
+//                                .missingValueCount(10))
+//                        .attributeTuple(new ShadowAttributeTupleStatisticsType()
+//                                .ref(new QName(NS_RI, "city"))
+//                                .ref(new QName(NS_RI, "gender"))
+//                                .tupleCount(new ShadowAttributeTupleCountType()
+//                                        .value("Bratislava")
+//                                        .value("male")
+//                                        .count(200))
+//                                .tupleCount(new ShadowAttributeTupleCountType()
+//                                        .value("Bratislava")
+//                                        .value("female")
+//                                        .count(210)));
 
-            return new ObjectTypesSuggestionType(); // TODO replace with real implementation
+                var objectClassDef = Resource.of(resource)
+                        .getCompleteSchemaRequired()
+                        .findObjectClassDefinitionRequired(objectClassName);
+                var objectTypes = serviceClient.suggestObjectTypes(objectClassDef, shadowObjectClassStatistics, task, result);
+                LOGGER.debug("Suggested object types: {}", objectTypes);
+                return objectTypes;
+            }
         } catch (Throwable t) {
             result.recordException(t);
             throw t;

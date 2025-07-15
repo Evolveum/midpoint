@@ -7,6 +7,8 @@
 
 package com.evolveum.midpoint.model.intest.smart;
 
+import static com.evolveum.midpoint.schema.constants.SchemaConstants.NS_RI;
+
 import static org.assertj.core.api.Assertions.assertThat;
 
 import static com.evolveum.midpoint.test.util.MidPointTestConstants.TEST_RESOURCES_PATH;
@@ -28,6 +30,8 @@ import com.evolveum.midpoint.test.DummyTestResource;
 import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
+import javax.xml.namespace.QName;
+
 /**
  * Integration tests for the Smart Integration Service implementation.
  */
@@ -37,20 +41,25 @@ public class TestSmartIntegrationService extends AbstractEmptyModelIntegrationTe
 
     public static final File TEST_DIR = new File(TEST_RESOURCES_PATH, "smart");
 
+    static final QName OC_ACCOUNT_QNAME = new QName(NS_RI, "account");
+
     /** Using the implementation in order to set mock service client for testing. */
     @Autowired private SmartIntegrationServiceImpl smartIntegrationService;
 
-    private static DummyBasicScenario basicScenario;
-
+    private static final DummyTestResource RESOURCE_DUMMY_FOR_SUGGEST_OBJECT_TYPES = new DummyTestResource(
+            TEST_DIR, "resource-dummy-for-suggest-object-types.xml", "0c59d761-bea9-4342-bbc7-ee0e199d275b",
+            "for-suggest-object-types",
+            c -> DummyBasicScenario.on(c).initialize());
     private static final DummyTestResource RESOURCE_DUMMY_FOR_SUGGEST_FOCUS_TYPE = new DummyTestResource(
             TEST_DIR, "resource-dummy-for-suggest-focus-type.xml", "1e97ba6f-90a7-4764-954b-6a29ed5eb597",
             "for-suggest-focus-type",
-            c -> basicScenario = DummyBasicScenario.on(c).initialize());
+            c -> DummyBasicScenario.on(c).initialize());
 
     @Override
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
         super.initSystem(initTask, initResult);
 
+        initAndTestDummyResource(RESOURCE_DUMMY_FOR_SUGGEST_OBJECT_TYPES, initTask, initResult);
         initAndTestDummyResource(RESOURCE_DUMMY_FOR_SUGGEST_FOCUS_TYPE, initTask, initResult);
 
         if (System.getProperty(MidpointConfiguration.SMART_INTEGRATION_SERVICE_URL_OVERRIDE) == null) {
@@ -60,7 +69,20 @@ public class TestSmartIntegrationService extends AbstractEmptyModelIntegrationTe
     }
 
     @Test
-    public void test100SuggestFocusType() throws CommonException {
+    public void test100SuggestObjectTypes() throws CommonException {
+        var task = getTestTask();
+        var result = task.getResult();
+
+        when("suggesting object types");
+        var objectTypes = smartIntegrationService.suggestObjectTypes(
+                RESOURCE_DUMMY_FOR_SUGGEST_FOCUS_TYPE.oid, OC_ACCOUNT_QNAME, task, result);
+
+        then("there is at least one suggested object type");
+        assertSuccess(result);
+    }
+
+    @Test
+    public void test150SuggestFocusType() throws CommonException {
         var task = getTestTask();
         var result = task.getResult();
 

@@ -35,6 +35,8 @@ import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 
+import static com.evolveum.midpoint.schema.constants.SchemaConstants.NS_RI;
+
 /**
  * A client for the remote Smart integration service.
  *
@@ -43,6 +45,9 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 class DefaultServiceClientImpl implements ServiceClient {
 
     private static final Trace LOGGER = TraceManager.getTrace(DefaultServiceClientImpl.class);
+
+    private static final String METHOD_SUGGEST_OBJECT_TYPES = "suggestObjectTypes";
+    private static final String METHOD_SUGGEST_FOCUS_TYPE = "suggestFocusType";
 
     /** TODO decide if we use this client or not. */
     private final WebClient webClient;
@@ -72,6 +77,29 @@ class DefaultServiceClientImpl implements ServiceClient {
                         + MidpointConfiguration.SMART_INTEGRATION_SERVICE_URL_OVERRIDE);
     }
 
+    @Override
+    public ObjectTypesSuggestionType suggestObjectTypes(
+            ResourceObjectClassDefinition objectClassDef,
+            @Nullable ShadowObjectClassStatisticsType shadowObjectClassStatistics,
+            Task task,
+            OperationResult result) throws SchemaException {
+
+        var request = new SiSuggestObjectTypesRequestType()
+                .schema(serializeSchema(objectClassDef))
+                .statistics(shadowObjectClassStatistics);
+
+        var response = callService(METHOD_SUGGEST_OBJECT_TYPES, request, SiSuggestObjectTypesResponseType.class);
+
+        // FIXME replace with a proper conversion
+        return new ObjectTypesSuggestionType()
+                .objectType(new ObjectTypeSuggestionType()
+                        .identification(new ResourceObjectTypeIdentificationType()
+                                .kind(ShadowKindType.ACCOUNT)
+                                .intent(SchemaConstants.INTENT_DEFAULT))
+                        .delineation(new ResourceObjectTypeDelineationType()
+                                .objectClass(new QName(NS_RI, "account"))));
+    }
+
     /** Calls the `suggestFocusType` method on the remote service. */
     @Override
     public QName suggestFocusType(
@@ -88,7 +116,7 @@ class DefaultServiceClientImpl implements ServiceClient {
 
         setBaseContextFilter(request, objectClassDef, delineation);
 
-        var response = callService("suggestFocusType", request, SiSuggestFocusTypeResponseType.class);
+        var response = callService(METHOD_SUGGEST_FOCUS_TYPE, request, SiSuggestFocusTypeResponseType.class);
         var typeName = response.getFocusTypeName();
         LOGGER.trace("Type suggested by the service: {}", typeName);
         return new QName(

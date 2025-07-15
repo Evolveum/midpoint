@@ -7,22 +7,40 @@
 
 package com.evolveum.midpoint.model.intest.smart;
 
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.processor.ResourceObjectClassDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceObjectTypeDelineation;
 import com.evolveum.midpoint.schema.processor.ResourceObjectTypeIdentification;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.smart.impl.ServiceClient;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
+import org.jetbrains.annotations.Nullable;
 
 import javax.xml.namespace.QName;
+
+import static com.evolveum.midpoint.model.intest.smart.TestSmartIntegrationService.OC_ACCOUNT_QNAME;
 
 /**
  * Service client to be used when there is no real service available.
  */
 public class MockServiceClientImpl implements ServiceClient {
+
+    @Override
+    public ObjectTypesSuggestionType suggestObjectTypes(
+            ResourceObjectClassDefinition objectClassDef,
+            @Nullable ShadowObjectClassStatisticsType shadowObjectClassStatistics,
+            Task task,
+            OperationResult result) {
+        return new ObjectTypesSuggestionType()
+                .objectType(new ObjectTypeSuggestionType()
+                        .identification(new ResourceObjectTypeIdentificationType()
+                                .kind(ShadowKindType.ACCOUNT)
+                                .intent(SchemaConstants.INTENT_DEFAULT))
+                        .delineation(new ResourceObjectTypeDelineationType()
+                                .objectClass(OC_ACCOUNT_QNAME)));
+    }
 
     @Override
     public QName suggestFocusType(

@@ -15,12 +15,23 @@ import com.evolveum.midpoint.schema.processor.ResourceObjectTypeIdentification;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectTypesSuggestionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowObjectClassStatisticsType;
+
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Generic interface for a client that communicates with a remote service.
  * Can point to a real remote service or to a mock for testing purposes.
  */
 public interface ServiceClient extends AutoCloseable {
+
+    /** Calls the `suggestObjectTypes` method on the remote service. */
+    ObjectTypesSuggestionType suggestObjectTypes(
+            ResourceObjectClassDefinition objectClassDef,
+            @Nullable ShadowObjectClassStatisticsType shadowObjectClassStatistics,
+            Task task,
+            OperationResult result) throws SchemaException;
 
     /** Calls the `suggestFocusType` method on the remote service. */
     QName suggestFocusType(
