@@ -46,8 +46,9 @@ class DefaultServiceClientImpl implements ServiceClient {
 
     private static final Trace LOGGER = TraceManager.getTrace(DefaultServiceClientImpl.class);
 
-    private static final String METHOD_SUGGEST_OBJECT_TYPES = "suggestObjectTypes";
-    private static final String METHOD_SUGGEST_FOCUS_TYPE = "suggestFocusType";
+    private static final String URL_PREFIX = "/api/v1/";
+    private static final String METHOD_SUGGEST_OBJECT_TYPES = "objectTypes/suggestObjectTypes";
+    private static final String METHOD_SUGGEST_FOCUS_TYPE = "focusType/suggestFocusType";
 
     /** TODO decide if we use this client or not. */
     private final WebClient webClient;
@@ -166,7 +167,7 @@ class DefaultServiceClientImpl implements ServiceClient {
         LOGGER.trace("Calling {} with request (class: {}):\n{}", method, request.getClass().getName(), requestText);
         webClient.type(MediaType.APPLICATION_JSON);
         webClient.accept(MediaType.APPLICATION_JSON);
-        webClient.path("/" + method);
+        webClient.path(URL_PREFIX + method);
         try (var response = webClient.post(requestText)) {
             var statusType = response.getStatusInfo();
             var responseText = response.readEntity(String.class);
