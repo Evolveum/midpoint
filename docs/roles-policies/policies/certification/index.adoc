@@ -36,7 +36,7 @@ The default is that only cases which were not revoked/reduced are transferred.
 
 Finished (closed) campaign can be *reiterated*.
 Reiteration starts the campaign over, giving another chance to reviewers who, for example, have not provided their responses (decisions) in time.
-More details on iterations can be found on xref:/midpoint/reference/roles-policies/certification/iteration/[this page]
+More details on iterations can be found on xref:/midpoint/reference/roles-policies/policies/certification/iteration/[this page]
 
 In the following we'll see how a campaign looks like.
 Then we'll go through a very quick tutorial.
@@ -129,7 +129,7 @@ More on reviewer specification below.
 
 == Very quick tutorial
 
-It is advisable to go through a xref:/midpoint/reference/roles-policies/certification/tutorial/[very quick tutorial] at this point in order to see how certification works.
+It is advisable to go through a xref:/midpoint/reference/roles-policies/policies/certification/tutorial/[very quick tutorial] at this point in order to see how certification works.
 
 == Campaign definition options
 
@@ -206,7 +206,7 @@ This selects user-role assignments for users that belong under GovernorOffice an
 
 === Stage definitions
 
-This is described in xref:/midpoint/reference/roles-policies/certification/stages/[a separate document].
+This is described in xref:/midpoint/reference/roles-policies/policies/certification/stages/[a separate document].
 
 === Automated scheduling of campaigns
 
@@ -336,8 +336,8 @@ Collection view can also contain columns and actions configuration.
             </defaultView>
 ----
 
-To learn more about actions configuration, please follow to xref:/midpoint/reference/roles-policies/certification/actions/[GUI Actions] page.
-To learn more about columns configuration, please follow to xref:/midpoint/reference/roles-policies/certification/columns-configuration/[Columns configuration] page.
+To learn more about actions configuration, please follow to xref:/midpoint/reference/roles-policies/policies/certification/actions/[GUI Actions] page.
+To learn more about columns configuration, please follow to xref:/midpoint/reference/roles-policies/policies/certification/columns-configuration/[Columns configuration] page.
 
 Object collection view configuration can be also defined within access certification definition (_view_ element).
 This configuration will be merged with the global one and applied to all campaigns created on the base of this definition.
@@ -394,14 +394,14 @@ It is hidden in the `End user` initial object by default and can be adopted to t
 == Reporting
 
 There are four types of reports available: certification definitions, campaigns, campaign cases and campaign decisions.
-They are described on xref:/midpoint/reference/roles-policies/certification/reports/[Access Certification Reports] page.
+They are described on xref:/midpoint/reference/roles-policies/policies/certification/reports/[Access Certification Reports] page.
 
 == Notifications
 
 Certification module provides notifications for certification campaign owner as well as for individual reviewers.
-More information can be found on xref:/midpoint/reference/roles-policies/certification/notifications/[Access Certification Notifications] page.
+More information can be found on xref:/midpoint/reference/roles-policies/policies/certification/notifications/[Access Certification Notifications] page.
 
 == Security
 
 Individual operations are authorized in a specific way.
-For detailed information, please see xref:/midpoint/reference/roles-policies/certification/authorization/[Access Certification Security] page.
+For detailed information, please see xref:/midpoint/reference/roles-policies/policies/certification/authorization/[Access Certification Security] page.

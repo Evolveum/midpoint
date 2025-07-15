@@ -54,7 +54,7 @@ Perhaps the most convenient way to automatically assign a role is to use autoass
 The role above will be automatically assigned to any user that has property `employeeType` set to `intern`. As all midPoint mapping even this mapping is xref:/midpoint/reference/concepts/relativity/[relativistic]. If user becomes an intern (the `employeeType` property is changed) then the role is automatically assigned.
 When the user stops being an intern the role is unassigned.
 
-See xref:/midpoint/reference/roles-policies/role-autoassignment/configuration/[Role Autoassign Configuration] page for more details.
+See xref:/midpoint/reference/roles-policies/roles/role-autoassignment/configuration/[Role Autoassign Configuration] page for more details.
 
 == Autoassignment in Object Template
 
@@ -97,12 +97,12 @@ The xref:/midpoint/reference/expressions/expressions/[Expression] page describes
 == Roles Within Roles
 
 There is sometimes a need to assign one role when another role is assigned.
-As midPoint has full support for xref:/midpoint/reference/roles-policies/rbac/[role hierarchy] this is easily done by nesting the roles inside.
+As midPoint has full support for xref:/midpoint/reference/roles-policies/roles/rbac/[role hierarchy] this is easily done by nesting the roles inside.
 If there is additional condition when the nested role is to be applied then the conditional role approach can be used.
 There are many ways how to implement this functionality.
 
 Sometimes there is a need to unassign a role when another role is assigned.
-xref:/midpoint/reference/roles-policies/segregation-of-duties/[Role exclusion] mechanism may be used to implement this approach, as illustrated by xref:/midpoint/reference/roles-policies/rbac/radio-button-roles/[Radio Button Roles] example.
+xref:/midpoint/reference/roles-policies/policies/segregation-of-duties/[Role exclusion] mechanism may be used to implement this approach, as illustrated by xref:/midpoint/reference/roles-policies/roles/rbac/radio-button-roles/[Radio Button Roles] example.
 However, care must be taken if this is to be combined with role autoassignment as it is easy to set up a conflicting policies.
 MidPoint is a thorough system and it does not like conflicting policies.
 
@@ -114,4 +114,4 @@ MidPoint is a thorough system and it does not like conflicting policies.
 
 * xref:/midpoint/reference/expressions/expressions/[Expression]
 
-* xref:/midpoint/reference/roles-policies/rbac/[Advanced Hybrid RBAC]
+* xref:/midpoint/reference/roles-policies/roles/rbac/[Advanced Hybrid RBAC]

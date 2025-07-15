@@ -22,7 +22,7 @@ compliance:
 == Introduction
 
 Policy rules are a very powerful mechanism that covers a wide range of use cases.
-It can be used to define role xref:/midpoint/reference/cases/approval/[approval], xref:/midpoint/reference/roles-policies/role-lifecycle/[lifecycle of midPoint objects], policies such as xref:/midpoint/reference/roles-policies/segregation-of-duties/[segregation of duties], notifications and other governance and compliance rules.
+It can be used to define role xref:/midpoint/reference/cases/approval/[approval], xref:/midpoint/reference/roles-policies/roles/role-lifecycle/[lifecycle of midPoint objects], policies such as xref:/midpoint/reference/roles-policies/policies/segregation-of-duties/[segregation of duties], notifications and other governance and compliance rules.
 
 Policy rules provide a basic mechanism for many xref:/iam/iga/[identity governance] and xref:/midpoint/compliance/[regulatory compliance] features, as policy rules often define high-level business-oriented policies.
 Governance policies defined by policy rules are applied on top of the usual access control policies, such as feature:rbac[role-based access control (RBAC)].
@@ -39,7 +39,7 @@ This defines the object that is being changed.
 For example, this can be the user who receives a new assignment, or it can be the role that is being created.
 
 * *Target object* (optional).
-This is used when xref:/midpoint/reference/roles-policies/assignment/[assigning] the rule.
+This is used when xref:/midpoint/reference/roles-policies/roles/assignment/[assigning] the rule.
 The target object represents the target of the assignment, which is usually a role, org, or a service.
 
 * *Condition* (optional) when the rule should be applied.
@@ -55,7 +55,7 @@ Affected object is marked in the repository, which can be used for analytic and 
 The actions may range from strong enforcement of the rule (i.e. prohibit the operation) through xref:/midpoint/reference/cases/approval/[Approval] to mild actions such as notifications.
 
 Some of these parts may be implicit.
-For example, if the rule is defined as a xref:/midpoint/reference/roles-policies/metaroles/gensync/[high-order inducement in the metarole], the focal object or target are implicit and do not need to be explicitly specified.
+For example, if the rule is defined as a xref:/midpoint/reference/roles-policies/policies/metaroles/gensync/[high-order inducement in the metarole], the focal object or target are implicit and do not need to be explicitly specified.
 
 == Application
 
@@ -63,7 +63,7 @@ Policy rules are used to implement a wide variety of mechanisms:
 
 * xref:/midpoint/reference/cases/approval/[Assignment approvals]: policy rules may be used to change the default assignment approval schemes in a very flexible and scalable fashion.
 
-* xref:/midpoint/reference/roles-policies/role-lifecycle/[Role lifecycle management]: policy rules may be used to enforce approvals of new roles before they are used in production.
+* xref:/midpoint/reference/roles-policies/roles/role-lifecycle/[Role lifecycle management]: policy rules may be used to enforce approvals of new roles before they are used in production.
 They may be used to approve changed role definitions, etc.
 
 * Compliance reporting: policy rules may be used to set feature:object-mark[marks] in the affected objects.
@@ -105,7 +105,7 @@ Object marks are set on the focal object affected by the triggered rule.
 
 Marks can be used to locate objects for which the rule was triggered, which are usually the objects that violate a policy.
 
-See xref:/midpoint/reference/roles-policies/gradual-policy-enforcement/[] for an example usage of marks with policy rules.
+See xref:/midpoint/reference/roles-policies/policies/gradual-policy-enforcement/[] for an example usage of marks with policy rules.
 
 .Policy situation
 NOTE: MidPoint 4.8 and earlier used `policySituation` instead of object marks.
@@ -241,7 +241,7 @@ The <<metarole_pr,metarole-base approach>> is recommended instead.
 [[metarole_pr]]
 === Metarole-Based Rule Definition
 
-Policy rules can be defined in assignments, which means they can be taken to the meta-level using the usual midPoint mechanism of xref:/midpoint/reference/roles-policies/metaroles/policy/[metaroles].
+Policy rules can be defined in assignments, which means they can be taken to the meta-level using the usual midPoint mechanism of xref:/midpoint/reference/roles-policies/policies/metaroles/policy/[metaroles].
 If all sensitive roles have the same metarole assigned, then the rule can be easily defined in the metarole as a xref:/midpoint/reference/roles-policies/policies/metaroles/gensync/[high-order inducement].
 Like this:
 
@@ -269,12 +269,12 @@ This is a simple and scalable way to define policies that apply to selected role
 This approach is often combined with feature:information-classification[classifications], clearances and other feature:policy-concept[policy objects].
 feature:archetype[Archetypes] can also be used as metaroles to apply policy rules.
 
-See xref:/midpoint/reference/roles-policies/metaroles/policy/[] page for more details about the metarole mechanism.
+See xref:/midpoint/reference/roles-policies/policies/metaroles/policy/[] page for more details about the metarole mechanism.
 
 == Policy Rule Exceptions
 
 MidPoint has a mechanism to support _exceptions_ from policy rules.
-These can help you cover situations when you are using xref:/midpoint/reference/roles-policies/segregation-of-duties/[Segregation of Duties] policies (SoD) but want to allow users to have specific conflicting roles for some reason.
+These can help you cover situations when you are using xref:/midpoint/reference/roles-policies/policies/segregation-of-duties/[Segregation of Duties] policies (SoD) but want to allow users to have specific conflicting roles for some reason.
 
 If you only allowed assigning conflicting roles by overriding the policy, the conflicting assignment would appear in every compliance report.
 Also, the approver would be asked for re-approval after every minor change in the assignment.
@@ -289,14 +289,14 @@ The exceptions information can then also be used to report approved rule excepti
 
 == See Also
 
-* xref:/midpoint/reference/roles-policies/role-lifecycle/[Role Lifecycle]
+* xref:/midpoint/reference/roles-policies/roles/role-lifecycle/[Role Lifecycle]
 
 * xref:/midpoint/reference/cases/approval/[Approval]
 
-* xref:/midpoint/reference/roles-policies/segregation-of-duties/[Segregation of Duties]
+* xref:/midpoint/reference/roles-policies/policies/segregation-of-duties/[Segregation of Duties]
 
-* xref:/midpoint/reference/roles-policies/rbac/radio-button-roles/[Radio Button Roles]
+* xref:/midpoint/reference/roles-policies/roles/rbac/radio-button-roles/[Radio Button Roles]
 
-* xref:/midpoint/reference/roles-policies/gradual-policy-enforcement/[]
+* xref:/midpoint/reference/roles-policies/policies/gradual-policy-enforcement/[]
 
-* xref:/midpoint/reference/roles-policies/metaroles/policy/[]
+* xref:/midpoint/reference/roles-policies/policies/metaroles/policy/[]

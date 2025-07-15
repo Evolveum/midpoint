@@ -30,7 +30,7 @@ It is quite clear that _static_ RBAC methods are not suitable for current access
 However, it does not mean the RBAC _idea_ is wrong, or that the concept is completely useless.
 In fact, the whole role-based idea has many advantages, as we will see later.
 All that RBAC needs is more flexibility, it needs to be a bit more _dynamic_.
-That is exactly what xref:/midpoint/reference/roles-policies/rbac/[midPoint dynamic RBAC] mechanism does.
+That is exactly what xref:/midpoint/reference/roles-policies/roles/rbac/[midPoint dynamic RBAC] mechanism does.
 
 
 == Smart Roles
@@ -83,7 +83,7 @@ Users may have certain privileges just because they are part of certain departme
 Such behaviour is very easy to achieve using midPoint flexible xref:/midpoint/reference/org/[organizational structure].
 
 * *Autoassignment expressions* are a generic tool that can handle pretty much any case.
-Each role may have an xref:/midpoint/reference/roles-policies/role-autoassignment/[autoassignment expression] which specifies when a role is automatically assigned to user (and also automatically unassigned).
+Each role may have an xref:/midpoint/reference/roles-policies/roles/role-autoassignment/[autoassignment expression] which specifies when a role is automatically assigned to user (and also automatically unassigned).
 Role can be automatically assigned for users is specific location, user that has specific combination of job codes and clearance levels, or using any arbitrary algorithm.
 Having such expression in the role itself makes role self-contained, easily delegating role administration.
 Naturally, there is also a method to automatically assign many roles using a single expression.
@@ -102,9 +102,9 @@ Individual midPoint features are certainly attractive.
 However, it is only when they all come together to create very powerful mechanism.
 Role expressions, conditions, relation and parameters provide dynamic behavior of roles, making them smart.
 Archetypes, organizational structure and autoassignment expressions control dynamic role assignment.
-Then there are xref:/midpoint/reference/roles-policies/policy-rules/[policy rules] that can be used for variety of purposes.
-On one hand they implement classic features, such as xref:/midpoint/reference/roles-policies/segregation-of-duties/[segregation of duties].
-They can be used to implement advanced features, such as xref:/midpoint/reference/roles-policies/certification/ad-hoc-certification/[micro-certifications].
+Then there are xref:/midpoint/reference/roles-policies/policies/policy-rules/[policy rules] that can be used for variety of purposes.
+On one hand they implement classic features, such as xref:/midpoint/reference/roles-policies/policies/segregation-of-duties/[segregation of duties].
+They can be used to implement advanced features, such as xref:/midpoint/reference/roles-policies/policies/certification/ad-hoc-certification/[micro-certifications].
 Moreover, policy rules can be used as a last-resort mechanism to implement almost any kind of policy constraint.
 
 Roles, archetypes, organizational structure, policy rules and other midPoint mechanism all together form a consistent policy to control access to your applications.
@@ -181,7 +181,7 @@ Mined policy can be incrementally refined, reviewed and optimized.
 It is better to have a practical approximate approach than to rely on exact yet infeasible method.
 _Done_ is better than _perfect_.
 
-MidPoint 4.8 brings xref:/midpoint/reference/roles-policies/mining/[role mining] mechanism.
+MidPoint 4.8 brings xref:/midpoint/reference/roles-policies/roles/mining/[role mining] mechanism.
 Role mining allows to _mine_ role definitions from existing entitlement data.
 Role definitions form first part of our policy-driven RBAC system.
 Later on, we plan to introduce _policy mining_, which will provide mechanism to add the second part: role assignment rules.
@@ -193,7 +193,7 @@ We rely on _machine learning_ techniques to discover the policy in the dark pool
 MidPoint policy-driven RBAC mechanism may look impressive so far.
 Yet, midPoint goes one more step further.
 We have done quite an unprecedented thing.
-We have applied roles to roles, creating xref:/midpoint/reference/roles-policies/metaroles/[meta-roles].
+We have applied roles to roles, creating xref:/midpoint/reference/roles-policies/policies/metaroles/[meta-roles].
 The concept of meta-roles is used to implement midPoint xref:/midpoint/reference/schema/archetypes/[archetypes].
 Archetypes are used to distinguish various object types and subtypes in midPoint.
 Simply speaking, Archetypes give us ability to have _employees_, _students_ and _contractors_ in midPoint, giving each user type a distinctive behavior.
@@ -224,7 +224,7 @@ This is policy-based access control at its best, is it not?
 
 * xref:/iam/iga/rbac/[]
 
-* xref:/midpoint/reference/roles-policies/rbac/[]
+* xref:/midpoint/reference/roles-policies/roles/rbac/[]
 
 * xref:/midpoint/reference/org/[]
 

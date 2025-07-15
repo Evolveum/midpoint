@@ -8,10 +8,10 @@
 :page-upkeep-status: yellow
 :page-moved-from: /midpoint/reference/roles-policies/role-lifecycle/
 
-MidPoint contains mechanisms that can be used to manage lifecycle of the roles and role-like objects (xref:/midpoint/architecture/archive/data-model/midpoint-common-schema/roletype/[roles], xref:/midpoint/architecture/archive/data-model/midpoint-common-schema/orgtype/[orgs], xref:/midpoint/reference/misc/services/[services] and even xref:/midpoint/architecture/archive/data-model/midpoint-common-schema/usertype/[users]). Lifecycle management means that midPoint can apply constraints and xref:/midpoint/reference/roles-policies/policy-rules/[rules] to various lifecycle events such as creation of a new role, change of role definition, deletion and so on.
+MidPoint contains mechanisms that can be used to manage lifecycle of the roles and role-like objects (xref:/midpoint/architecture/archive/data-model/midpoint-common-schema/roletype/[roles], xref:/midpoint/architecture/archive/data-model/midpoint-common-schema/orgtype/[orgs], xref:/midpoint/reference/misc/services/[services] and even xref:/midpoint/architecture/archive/data-model/midpoint-common-schema/usertype/[users]). Lifecycle management means that midPoint can apply constraints and xref:/midpoint/reference/roles-policies/policies/policy-rules/[rules] to various lifecycle events such as creation of a new role, change of role definition, deletion and so on.
 MidPoint can prohibit certain lifecycle transitions, require approval and so on.
 
-The role lifecycle is implemented by combining xref:/midpoint/reference/cases/approval/[approval] process with xref:/midpoint/reference/roles-policies/policy-rules/[policy rules]. The policy rules are triggered when the role is created, modified or deleted.
+The role lifecycle is implemented by combining xref:/midpoint/reference/cases/approval/[approval] process with xref:/midpoint/reference/roles-policies/policies/policy-rules/[policy rules]. The policy rules are triggered when the role is created, modified or deleted.
 The rules specify xref:/midpoint/reference/cases/approval/[approval] as an action, therefore the change operation is suspended and it is driven through approval processes.
 Therefore configuration of role lifecycle management is a matter of specifying correct policy rules and setting up the approvers.
 
@@ -70,6 +70,6 @@ See xref:/midpoint/reference/concepts/object-lifecycle/[Object Lifecycle] page f
 
 == See Also
 
-* xref:/midpoint/reference/roles-policies/policy-rules/[Policy Rules]
+* xref:/midpoint/reference/roles-policies/policies/policy-rules/[Policy Rules]
 
 * xref:/midpoint/reference/concepts/object-lifecycle/[Object Lifecycle]

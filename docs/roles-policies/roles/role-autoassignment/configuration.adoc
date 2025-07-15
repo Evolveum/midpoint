@@ -158,7 +158,7 @@ Proposed future development is to allow alternative way to specify autoassignmen
 
 == See Also
 
-* xref:/midpoint/reference/roles-policies/role-autoassignment/[Role Autoassignment]
+* xref:/midpoint/reference/roles-policies/roles/role-autoassignment/[Role Autoassignment]
 
 * xref:/midpoint/reference/expressions/object-template/[Object Template]
 

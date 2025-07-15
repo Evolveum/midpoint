@@ -118,7 +118,7 @@ image::website-governance-owner.png[Managing application owner in GUI]
 
 == See Also
 
-* xref:/midpoint/reference/roles-policies/policy-rules/[Policy Rules]
+* xref:/midpoint/reference/roles-policies/policies/policy-rules/[Policy Rules]
 
 * xref:/midpoint/reference/concepts/object-lifecycle/[Object Lifecycle]
 

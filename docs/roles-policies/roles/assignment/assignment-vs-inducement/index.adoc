@@ -11,7 +11,7 @@
 
 
 Assignment and inducement are two very related mechanisms.
-They are used to assign roles, organizational units, accounts, entitlements and other things to xref:/midpoint/reference/schema/focus-and-projections/[focal objects]. Both assignment and inducement has the same internal structure that is described in xref:/midpoint/reference/roles-policies/assignment/configuration/[Assignment Configuration] page.
+They are used to assign roles, organizational units, accounts, entitlements and other things to xref:/midpoint/reference/schema/focus-and-projections/[focal objects]. Both assignment and inducement has the same internal structure that is described in xref:/midpoint/reference/roles-policies/roles/assignment/configuration/[Assignment Configuration] page.
 However the meaning and usage of assignment and inducement is quite different.
 
 
@@ -80,8 +80,8 @@ Therefore the *inducement* in the role causes that an account will be created fo
 
 == See Also
 
-* xref:/midpoint/reference/roles-policies/assignment/configuration/[Assignment Configuration]
+* xref:/midpoint/reference/roles-policies/roles/assignment/configuration/[Assignment Configuration]
 
-* xref:/midpoint/reference/roles-policies/roles-and-policies-configuration/[Roles and Policies Configuration]
+* xref:/midpoint/reference/roles-policies/roles/roles-and-policies-configuration/[Roles and Policies Configuration]
 
-* xref:/midpoint/reference/roles-policies/metaroles/gensync/['Roles, Metaroles and Generic Synchronization']
+* xref:/midpoint/reference/roles-policies/policies/metaroles/gensync/['Roles, Metaroles and Generic Synchronization']

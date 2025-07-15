@@ -72,7 +72,7 @@ Perhaps it has to be discussed and some solution (e.g. assignment of a less powe
 
 .. No Response - the reviewer wants to "undone" his previous decisions regarding this case.
 
-To learn more about decision menu items configuration, as well as about other possible menu item actions, please follow to the xref:/midpoint/reference/roles-policies/certification/actions/[GUI Action Configuration] page.
+To learn more about decision menu items configuration, as well as about other possible menu item actions, please follow to the xref:/midpoint/reference/roles-policies/policies/certification/actions/[GUI Action Configuration] page.
 
 After some decisions are made, it's possible to view the statistics of the responses and some other data on the campaign details view ("*Certification -> Campaigns*" and click on *"All user assignments 1"* campaign).
 

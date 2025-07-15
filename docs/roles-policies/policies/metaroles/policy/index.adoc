@@ -12,20 +12,20 @@
 
 == Introduction
 
-MidPoint is a very flexible system, especially when it comes to xref:/midpoint/reference/roles-policies/policy-rules/[policies], xref:/midpoint/reference/cases/approval/[approvals], and other identity governance mechanisms.
+MidPoint is a very flexible system, especially when it comes to xref:/midpoint/reference/roles-policies/policies/policy-rules/[policy rules], xref:/midpoint/reference/cases/approval/[approvals], and other identity governance mechanisms.
 However, the flexibility comes at a cost.
 Policy definitions can be quite complex.
 Some of this complexity is inherent and cannot really be avoided.
 However, once potentially complex policies are created, then it should be quite easy to apply them to individual objects such as users and roles.
-The mechanism of xref:/midpoint/reference/roles-policies/metaroles/[metaroles] can be used exactly for this purpose.
+The mechanism of xref:/midpoint/reference/roles-policies/policies/metaroles/[metaroles] can be used exactly for this purpose.
 
 The basic idea is to express policies in a form of metaroles.
 For example, a policy that drives role assignment through an approval will be expressed in an "approval by manager" metarole.
-This metarole will contain all xref:/midpoint/reference/roles-policies/policy-rules/[policy rules] necessary to express the approval policy.
+This metarole will contain all xref:/midpoint/reference/roles-policies/policies/policy-rules/[policy rules] necessary to express the approval policy.
 Those policy rules may be quite complex, but they are all conveniently packed into the metarole.
 All that remains is to assign the metarole to an object to which it should apply - which is usually a role.
 So, we end up with a role with an assignment to another role.
-And that is what we call a xref:/midpoint/reference/roles-policies/metaroles/[metarole].
+And that is what we call a xref:/midpoint/reference/roles-policies/policies/metaroles/[metarole].
 The situation looks like this:
 
 image::assignments-rbac-policy-metarole.png[]
@@ -35,7 +35,7 @@ The schema above illustrates an application of approval policy to a `Supervisor`
 After creating the role, we want to apply a usual approval policy to it.
 The usual approval policy is specified in the `Approval by manager` metarole.
 This metarole specifies all the necessary policy rules.
-However, those rules are specified inside an xref:/midpoint/reference/roles-policies/assignment/assignment-vs-inducement/[inducement].
+However, those rules are specified inside an xref:/midpoint/reference/roles-policies/roles/assignment/assignment-vs-inducement/[inducement].
 Therefore the policy rules do not apply to the role which contains them, i.e. the rules do not apply to the `Approval by manager` metarole.
 Those policy rules will apply to any object that has the metarole assigned.
 In this case, it is the `Supervisor` role.
@@ -148,8 +148,8 @@ For more details, see the xref:/midpoint/reference/cases/approval/[description o
 
 == See Also
 
-* xref:/midpoint/reference/roles-policies/applicable-policies/[User-Friendly Policy Selection]
+* xref:/midpoint/reference/roles-policies/policies/applicable-policies/[User-Friendly Policy Selection]
 
-* xref:/midpoint/reference/roles-policies/applicable-policies/configuration/[Applicable Policy Configuration]
+* xref:/midpoint/reference/roles-policies/policies/applicable-policies/configuration/[Applicable Policy Configuration]
 
-* xref:/midpoint/reference/roles-policies/metaroles/gensync/['Roles, Metaroles and Generic Synchronization']
+* xref:/midpoint/reference/roles-policies/policies/metaroles/gensync/['Roles, Metaroles and Generic Synchronization']

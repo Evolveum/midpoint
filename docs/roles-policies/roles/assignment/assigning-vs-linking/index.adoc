@@ -16,7 +16,7 @@ The short answer is that _assignment_ represents what _should be_ and _link_ rep
 == Assignment
 
 Assignment represents what _should be_. Assignment specifies that a user should have an account.
-If an account is assigned to the user the xref:/midpoint/reference/roles-policies/assignment/[assignment] structure is added to the user object.
+If an account is assigned to the user the xref:/midpoint/reference/roles-policies/roles/assignment/[assignment] structure is added to the user object.
 The structure remains there no matter how the state of the resource changes.
 The assignment can be described as a legal right of the user to have an account.
 
@@ -46,7 +46,7 @@ But that may not be an immediate action.
 E.g. if the target resource is down then the account may be created later when the resource goes up.
 However, the operation to add the assignment to the user will finish almost immediately regardless of whether the account was or was not created.
 
-Note that the mechanism of xref:/midpoint/reference/roles-policies/assignment/[assignments] is actually the same concept that is used to model xref:/midpoint/reference/roles-policies/rbac/[roles]. Simply speaking roles can be seen as indirect assignments.
+Note that the mechanism of xref:/midpoint/reference/roles-policies/roles/assignment/[assignments] is actually the same concept that is used to model xref:/midpoint/reference/roles-policies/roles/rbac/[roles]. Simply speaking roles can be seen as indirect assignments.
 
 
 == Link
@@ -103,10 +103,10 @@ If such a case assigned accounts will still be created however accounts that are
 
 == See Also
 
-* xref:/midpoint/reference/roles-policies/assignment/[Assignment]
+* xref:/midpoint/reference/roles-policies/roles/assignment/[Assignment]
 
-* xref:/midpoint/reference/roles-policies/assignment/configuration/[Assignment Configuration]
+* xref:/midpoint/reference/roles-policies/roles/assignment/configuration/[Assignment Configuration]
 
 * xref:/midpoint/reference/synchronization/projection-policy/[Projection Policy]
 
-* xref:/midpoint/reference/roles-policies/assignment/assignment-vs-inducement/[Assignment vs Inducement]
+* xref:/midpoint/reference/roles-policies/roles/assignment/assignment-vs-inducement/[Assignment vs Inducement]

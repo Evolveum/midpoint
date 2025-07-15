@@ -88,7 +88,7 @@ There's a related property, *notifyOnlyWhenNoDecision*. If set to true (the defa
 If set to false, reviewers always get their notifications - regardless of whether they have provided a decision or not.
 Note that notifications to the campaign owner about approaching stage end are sent always, regardless of this setting.
 
-More about certification-related notifications can be found xref:/midpoint/reference/roles-policies/certification/notifications/[in this document].
+More about certification-related notifications can be found xref:/midpoint/reference/roles-policies/policies/certification/notifications/[in this document].
 
 
 == Reviewer selection
@@ -246,4 +246,4 @@ In most situations, if a case is marked as Revoke or Reduce in stage N, it does 
 However, this behavior can be configured: you can list stage outcomes that would prevent (or, in contrary, cause) the case to advance to the next stage.
 However, for most situations it suffices to use default values.
 
-More information about determining stage-level outcome based on responses of individual reviewers can be found xref:/midpoint/reference/roles-policies/certification/determining-case-outcome/[in this document].
+More information about determining stage-level outcome based on responses of individual reviewers can be found xref:/midpoint/reference/roles-policies/policies/certification/determining-case-outcome/[in this document].
