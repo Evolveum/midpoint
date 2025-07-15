@@ -79,7 +79,7 @@ The situation depicted in the diagram could be expressed in XML as:
 
 == Simple Account Assignment
 
-We expect that most midPoint deployments will use xref:/midpoint/reference/roles-policies/rbac/[roles] to manage user accounts, entitlements and privileges.
+We expect that most midPoint deployments will use xref:/midpoint/reference/roles-policies/roles/rbac/[roles] to manage user accounts, entitlements and privileges.
 However we understand that there is always a need to make an "exception" or a special case.
 Therefore it is possible to assign account to a user directly.
 
@@ -131,14 +131,14 @@ Such extension may contain any custom data and such data can be used in the expr
 Such assignment extensions can then be used as a parameters in the roles.
 Therefore a role assignment can specify details such as a department for which the role applies, the branch office, access zone in the building and so on.
 This _parametric_ RBAC structure is a good mechanism to fight the xref:/iam/iga/rbac/role-explosion/[role explosion] problem.
-See xref:/midpoint/reference/roles-policies/rbac/[Advanced Hybrid RBAC] for more details.
-The xref:/midpoint/reference/roles-policies/assignment/configuration/[Assignment Configuration] page provides examples of such parametric assignments.
+See xref:/midpoint/reference/roles-policies/roles/rbac/[Advanced Hybrid RBAC] for more details.
+The xref:/midpoint/reference/roles-policies/roles/assignment/configuration/[Assignment Configuration] page provides examples of such parametric assignments.
 
 
 == See Also
 
-* xref:/midpoint/reference/roles-policies/assignment/configuration/[Assignment Configuration] page in Documentation section
+* xref:/midpoint/reference/roles-policies/roles/assignment/configuration/[Assignment Configuration] page in Documentation section
 
-* xref:/midpoint/reference/roles-policies/rbac/[Advanced Hybrid RBAC]
+* xref:/midpoint/reference/roles-policies/roles/rbac/[Advanced Hybrid RBAC]
 
-* xref:/midpoint/reference/roles-policies/assignment/assigning-vs-linking/[Assigning vs Linking]
+* xref:/midpoint/reference/roles-policies/roles/assignment/assigning-vs-linking/[Assigning vs Linking]

@@ -20,7 +20,7 @@ E.g. a policy rules sets _Orphaned_ mark in case that an application does not ha
 
 . Policy rules are placed into appropriate objects, such as xref:/midpoint/reference/schema/policy/[policies] and xref:/midpoint/reference/schema/archetypes/[archetypes].
 Policies and archetypes group policy rules, forming concepts with business meaning, such as "behavior of business roles" or "Application containing sensitive data".
-The policies and archetypes are applied to individual objects in the ordinary way (usually by using xref:/midpoint/reference/roles-policies/assignment/[assignment]).
+The policies and archetypes are applied to individual objects in the ordinary way (usually by using xref:/midpoint/reference/roles-policies/roles/assignment/[assignment]).
 
 . Marks are applied to the objects as specified by the rules.
 These are _effective_ marks: they are applied by the rules, but they are also removed by the rules as necessary.
@@ -37,8 +37,8 @@ image::policy-rules-marks.png[Policy rules and marks]
 Requirement that every application should have an owner is present in almost every identity governance scenario.
 The ideal place for implementation of this governance rule is _Application_ archetype.
 _Application_ archetype is a pre-configured object (present in default xref:/midpoint/reference/deployment/initial-objects/[initial objects]) which is applied to all applications.
-Therefore, natural method of enforcing a policy rules is to place the rule inside an xref:/midpoint/reference/roles-policies/assignment/assignment-vs-inducement/[inducement] in the _Application_ archetype.
-As the xref:/midpoint/reference/schema/archetypes/[archetype] efficiently acts as a xref:/midpoint/reference/roles-policies/metaroles/[meta-role], the policy rule in the inducement is applied to all applications.
+Therefore, natural method of enforcing a policy rules is to place the rule inside an xref:/midpoint/reference/roles-policies/roles/assignment/assignment-vs-inducement/[inducement] in the _Application_ archetype.
+As the xref:/midpoint/reference/schema/archetypes/[archetype] efficiently acts as a xref:/midpoint/reference/roles-policies/policies/metaroles/[meta-role], the policy rule in the inducement is applied to all applications.
 
 .Application archetype
 [source,xml]
@@ -164,8 +164,8 @@ image::dashboard-widget-orphaned-applications.png[Orphaned applications dashboar
 
 == See Also
 
-* xref:/midpoint/reference/roles-policies/policy-rules/[]
+* xref:/midpoint/reference/roles-policies/policies/policy-rules/[]
 
-* xref:/midpoint/reference/roles-policies/object-governance/[]
+* xref:/midpoint/reference/roles-policies/policies/object-governance/[]
 
 * xref:/midpoint/reference/concepts/mark/[]

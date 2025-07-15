@@ -21,7 +21,7 @@ assignmentPath[2].getTarget()
 
 == First-Order Chain and Proto-Role
 
-Assignment path is often used to apply xref:/midpoint/reference/roles-policies/metaroles/gensync/[meta-roles]. However, the high-order inducements in the meta-roles often need to get data from other roles in the hierarchy.
+Assignment path is often used to apply xref:/midpoint/reference/roles-policies/policies/metaroles/gensync/[meta-roles]. However, the high-order inducements in the meta-roles often need to get data from other roles in the hierarchy.
 That is exactly what assignment path is for.
 But, the entire assignment path may be confusing and quite difficult to understand and process.
 Therefore there are two method that are designed to make the life with assignment path easier.
@@ -117,6 +117,6 @@ Finally, any FocusType (e.g. UserType) assigned to Stamping role will have its f
 
 == See Also
 
-* xref:/midpoint/reference/roles-policies/assignment/assignment-path-variables-example/[Assignment Path Variables Example]
+* xref:/midpoint/reference/roles-policies/roles/assignment/assignment-path-variables-example/[Assignment Path Variables Example]
 
-* xref:/midpoint/reference/roles-policies/assignment/configuration/[Assignment Configuration]
+* xref:/midpoint/reference/roles-policies/roles/assignment/configuration/[Assignment Configuration]

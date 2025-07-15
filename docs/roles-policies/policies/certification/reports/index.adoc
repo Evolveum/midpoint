@@ -64,7 +64,7 @@ image::cert-case-report.png[]
 Notes:
 
 . "In stage" is the stage that the case was last considered in.
-Depending on the xref:/midpoint/reference/roles-policies/certification/determining-case-outcome/[review strategy], some cases might be "stopped": they do not advance to next stage after being e.g. revoked in some (previous) stage.
+Depending on the xref:/midpoint/reference/roles-policies/policies/certification/determining-case-outcome/[review strategy], some cases might be "stopped": they do not advance to next stage after being e.g. revoked in some (previous) stage.
 
 . "Reviewers" are reviewers that are currently assigned - or were assigned for a review stage in what this case was last considered in.
 

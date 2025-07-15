@@ -79,7 +79,7 @@ The expression model is extensible, there are several supported scripting langua
 
 Implied account attributes usually do not need to define the entire set of account attributes.
 There may be other roles that may assign different attributes to the same account, more values to the same attributes of the account and even conflicting values.
-The account may also have existing attributes that are managed by "native" tools (outside IDM) or there may be exceptions from the RBAC policy specified for that account using attribute specification in xref:/midpoint/reference/roles-policies/assignment/[assignments].
+The account may also have existing attributes that are managed by "native" tools (outside IDM) or there may be exceptions from the RBAC policy specified for that account using attribute specification in xref:/midpoint/reference/roles-policies/roles/assignment/[assignments].
 
 
 === Implied Account Entitlements
@@ -152,15 +152,15 @@ But how does midPoint know on which resources the groups should be created? And 
 MidPoint already has a mechanism for this: RBAC. And by following xref:/midpoint/introduction/approach/[midPoint approach] we try to apply existing mechanisms as much as possible and practical.
 Therefore we have applied the mechanism or roles to the roles themselves.
 Thus creating a concept of meta-roles (and meta-meta-roles and meta-meta-meta-roles, ...) This may sound crazy but it in fact a very elegant and powerful mechanism.
-See xref:/midpoint/reference/roles-policies/roles-and-policies-configuration/[Roles and Policies Configuration] and xref:/midpoint/reference/synchronization/generic-synchronization/[Generic Synchronization] for more details.
+See xref:/midpoint/reference/roles-policies/roles/roles-and-policies-configuration/[Roles and Policies Configuration] and xref:/midpoint/reference/synchronization/generic-synchronization/[Generic Synchronization] for more details.
 
 
 == See Also
 
-* xref:/midpoint/reference/roles-policies/pdrbac[]
+* xref:/midpoint/reference/roles-policies/roles/pdrbac[]
 
-* xref:/midpoint/reference/roles-policies/roles-and-policies-configuration/[Roles and Policies Configuration] section in xref:/midpoint/[Documentation]
+* xref:/midpoint/reference/roles-policies/roles/roles-and-policies-configuration/[Roles and Policies Configuration] section in xref:/midpoint/[Documentation]
 
-* xref:/midpoint/reference/roles-policies/assignment/[Assignment]
+* xref:/midpoint/reference/roles-policies/roles/assignment/[Assignment]
 
 * xref:/midpoint/reference/expressions/[Mappings and Expressions]

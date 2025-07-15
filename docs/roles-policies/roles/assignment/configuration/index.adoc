@@ -22,7 +22,7 @@ E.g. an account is assigned to a user, but such account cannot be created becaus
 Assignment represents the desired state.
 The actual state of system as seen by midPoint is represented by links and shadow objects.
 It is a responsibility of IDM system to reconcile these two states and also real state of the target resource.
-The following figure illustrates the concept and the xref:/midpoint/reference/roles-policies/assignment/assigning-vs-linking/[Assigning vs Linking] page describes it in more details.
+The following figure illustrates the concept and the xref:/midpoint/reference/roles-policies/roles/assignment/assigning-vs-linking/[Assigning vs Linking] page describes it in more details.
 
 image::assignments-link-1.png[]
 
@@ -32,7 +32,7 @@ This mechanism is used to implement xref:/midpoint/reference/synchronization/gen
 Please also note that roles contain _inducement_ that is related to the concept of assignment and it actually has a very same structure.
 Every piece of assignment definition described on this page can also be applied to inducement definition.
 However the purpose and behaviour of inducement is quite different.
-See xref:/midpoint/reference/roles-policies/assignment/assignment-vs-inducement/[Assignment vs Inducement] page for a detailed explanation.
+See xref:/midpoint/reference/roles-policies/roles/assignment/assignment-vs-inducement/[Assignment vs Inducement] page for a detailed explanation.
 
 The assignment mechanism is a very powerful one.
 But with great power comes a great responsibility.
@@ -109,24 +109,30 @@ It also specified that the attribute `title` of such account should be set to a 
     </assignment>
 ----
 
-[TIP]
-.Assignment vs direct account modifications
+This _attribute_ definition in assignment use the same principle that is used for resource xref:/midpoint/reference/expressions/mappings/outbound-mapping/[outbound mappings].
+Therefore, the full scale of xref:/midpoint/reference/expressions/mappings/[mapping capabilities] can be used here.
+Other xref:/midpoint/reference/resources/resource-configuration/schema-handling/#attribute-definitions[configuration options of resource attribute], like _tolerance_ or _limitations_, can't be used in assignments.
+
+The new outbound mapping defined in assignment is representing a policy, which will be merged with other policies before the target resource object is provisioned or modified.
+Most importantly the resulting values are merged with the results of resource's xref:/midpoint/reference/expressions/mappings/outbound-mapping/[outbound mappings].
+The values are merged by default and no special configuration is required.
+
+[NOTE]
+.Do not overuse
 ====
-Setting an attribute using an assignment is very different than just setting the attribute value directly on the account.
-As this is an assignment, this specification of the attribute specifies a _policy_.
-I.e. it specifies that the account _should_ always have this value.
-Therefore if midPoint detects that the value of attribute `title` has changed (e.g. during a reconciliation) then midPoint will try to fix the situation and will set the attribute to the correct value.
+Do not overuse the ability of assignments to enforce attribute values.
+Assignments usually specify exceptions to the policies.
+The lower is the number of exceptions the more consistent the policies are.
+Consistent policies are easier to maintain.
+Care should be taken even if this ability is used in a form of xref:/midpoint/reference/roles-policies/roles/rbac/[role inducements].
+Some legacy IDM systems had no other way how to define a policy for attribute values than roles.
+Therefore, some IDM engineers have tendency to abuse RBAC mechanisms to define global policies.
+This is *not* the case with midPoint.
+MidPoint has a clean and elegant mechanism for specifying resource-global policies: xref:/midpoint/reference/expressions/mappings/outbound-mapping/[outbound mappings].
 
-On the other hand if an attribute value is changed directly on the account (e.g. using a midPoint GUI) then the initial result will be the same: the account attribute is changed.
-But if the value is not specified in assignment it will *not* be part of the policy.
-And if someone changes the account attribute value later the midPoint will *not* set it back.
-This is the primary difference:
-
-* Assignment is a policy.
-MidPoint will try to correct the situation when it has a chance (and reason) to do so.
-
-* Direct account modifications just change the reality.
-MidPoint will *not* try to re-apply them later.
+*Rule of the thumb:* xref:/midpoint/reference/expressions/mappings/outbound-mapping/[Outbound mappings] should be used to set attribute values if possible.
+If not then xref:/midpoint/reference/roles-policies/roles/rbac/[role inducements] should be used.
+Specifying attribute values in assignments should be used only if no other mechanisms is sufficient to implement the policy.
 
 ====
 
@@ -320,7 +326,7 @@ In this case we can use algorithm to determine the name of the entitlement (grou
 If an assignment like this appears in a role, it will use the name of the role to determine a group name.
 Therefore if the name of the role is `foo`, it will look for group with name `group-foo`.
 This may not be very useful on its own.
-But when it is combined with a xref:/midpoint/reference/roles-policies/metaroles/gensync/[metarole] mechanism then it becomes an extremely powerful tool.
+But when it is combined with a xref:/midpoint/reference/roles-policies/policies/metaroles/gensync/[metarole] mechanism then it becomes an extremely powerful tool.
 
 === Construction Variables
 
@@ -390,12 +396,12 @@ Use assignmentPath instead.
 | Sequence of assignments from the focal object to the point of evaluation.
 (More exactly, each item in this sequence is an link:https://github.com/Evolveum/midpoint/blob/master/model/model-api/src/main/java/com/evolveum/midpoint/model/api/context/AssignmentPathSegment.java[AssignmentPathSegment].
 It is a structure that contains an assignment augmented with additional information, like the actual source and target objects.)
-See xref:/midpoint/reference/roles-policies/assignment/using-assignment-path-in-expressions/[Using Assignment Path in Expressions] and xref:/midpoint/reference/roles-policies/assignment/assignment-path-variables-example/[Assignment Path Variables Example]
+See xref:/midpoint/reference/roles-policies/roles/assignment/using-assignment-path-in-expressions/[Using Assignment Path in Expressions] and xref:/midpoint/reference/roles-policies/roles/assignment/assignment-path-variables-example/[Assignment Path Variables Example]
 
 
 |===
 
-Use of these variables is xref:/midpoint/reference/roles-policies/assignment/assignment-path-variables-example/[illustrated on the example here].
+Use of these variables is xref:/midpoint/reference/roles-policies/roles/assignment/assignment-path-variables-example/[illustrated on the example here].
 
 === The loginMode Variable
 
@@ -460,14 +466,14 @@ Please be very careful when working with assignments and roles.
 Roles usually contain *inducement* as such inducements should not apply to a role but it should apply to users that have this role.
 However as xref:/midpoint/architecture/archive/data-model/midpoint-common-schema/roletype/[RoleType] is a xref:/midpoint/reference/schema/focus-and-projections/[focal object] it is perfectly legal for a role to contain an *assignment*.
 Such assignment applies to a role itself and it can be used e.g. to create a group as a representation of the role.
-See xref:/midpoint/reference/roles-policies/assignment/assignment-vs-inducement/[Assignment vs Inducement] page for more details.
-Also have a look at xref:/midpoint/reference/roles-policies/rbac/[Advanced Hybrid RBAC] page for an interesting discussion of meta-roles.
+See xref:/midpoint/reference/roles-policies/roles/assignment/assignment-vs-inducement/[Assignment vs Inducement] page for more details.
+Also have a look at xref:/midpoint/reference/roles-policies/roles/rbac/[Advanced Hybrid RBAC] page for an interesting discussion of meta-roles.
 
 == Role Assignments
 
 Role assignments are "indirect" assignments.
 E.g. a role is assigned to a user and such role contains a collection of constructions that applies to the user.
-Obviously a role can be assigned to many users therefore creating an xref:/midpoint/reference/roles-policies/rbac/[RBAC] structure.
+Obviously a role can be assigned to many users therefore creating an xref:/midpoint/reference/roles-policies/roles/rbac/[RBAC] structure.
 
 image::assignments-role-1.png[]
 
@@ -482,7 +488,7 @@ Simple role assignment is really a very simple thing:
 ----
 
 Almost all the power is in the role definition.
-The xref:/midpoint/reference/roles-policies/rbac/[Advanced Hybrid RBAC] and xref:/midpoint/reference/roles-policies/roles-and-policies-configuration/[Roles and Policies Configuration] pages provide much more details about RBAC and role definitions.
+The xref:/midpoint/reference/roles-policies/roles/rbac/[Advanced Hybrid RBAC] and xref:/midpoint/reference/roles-policies/roles/roles-and-policies-configuration/[Roles and Policies Configuration] pages provide much more details about RBAC and role definitions.
 
 == Parametric Assignments
 
@@ -592,7 +598,7 @@ Such extension may contain any custom data and such data can be used in the expr
 Such assignment extensions can then be used as a parameters in the roles.
 Therefore a role assignment can specify details such as a department for which the role applies, the branch office, access zone in the building and so on.
 This _parametric_ RBAC structure is a good mechanism to fight the xref:/iam/iga/rbac/role-explosion/[role explosion] problem.
-See xref:/midpoint/reference/roles-policies/rbac/[Advanced Hybrid RBAC] for more details.
+See xref:/midpoint/reference/roles-policies/roles/rbac/[Advanced Hybrid RBAC] for more details.
 
 == Enforcement Modes
 
@@ -632,7 +638,7 @@ See xref:/midpoint/architecture/concepts/relaxed-referential-integrity/[Relaxed 
 
 == See Also
 
-* xref:/midpoint/reference/roles-policies/assignment/[Assignment] feature description
+* xref:/midpoint/reference/roles-policies/roles/assignment/[Assignment] feature description
 
 * xref:/midpoint/reference/synchronization/generic-synchronization/[Generic Synchronization]
 
@@ -640,9 +646,9 @@ See xref:/midpoint/architecture/concepts/relaxed-referential-integrity/[Relaxed 
 
 * xref:/midpoint/reference/synchronization/projection-policy/[Projection Policy]
 
-* xref:/midpoint/reference/roles-policies/assignment/assigning-vs-linking/[Assigning vs Linking]
+* xref:/midpoint/reference/roles-policies/roles/assignment/assigning-vs-linking/[Assigning vs Linking]
 
-* xref:/midpoint/reference/roles-policies/assignment/assignment-vs-inducement/[Assignment vs Inducement]
+* xref:/midpoint/reference/roles-policies/roles/assignment/assignment-vs-inducement/[Assignment vs Inducement]
 
 * xref:/midpoint/reference/resources/resource-configuration/schema-handling/activation/[Resource Schema Handling: Activation]
 

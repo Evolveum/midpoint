@@ -16,18 +16,18 @@ doc-type: intro
 
 == Introduction
 
-MidPoint is very flexible system, especially when it comes to xref:/midpoint/reference/cases/approval/[approval] and other xref:/midpoint/reference/roles-policies/policy-rules/[policies]. But the flexibility comes at a cost.
+MidPoint is very flexible system, especially when it comes to xref:/midpoint/reference/cases/approval/[approval] and other xref:/midpoint/reference/roles-policies/policies/policy-rules/[policies]. But the flexibility comes at a cost.
 Policy definition can be quite complex.
 Some of this complexity is inherent and cannot really be avoided.
 But once the policies are created then it should be quite easy to apply them to individual objects such as users and roles.
 And starting from midPoint 3.8 there indeed is a simple way how to apply even a very complex policies.
 
-The basic idea is to express the policies in a form of xref:/midpoint/reference/roles-policies/metaroles/policy/[metaroles]. For example the policy that drives role assignment through an approval will be expressed in "approval by manager" metarole.
-This metarole will contain all the xref:/midpoint/reference/roles-policies/policy-rules/[policy rules] necessary to express the approval policy.
+The basic idea is to express the policies in a form of xref:/midpoint/reference/roles-policies/policies/metaroles/policy/[metaroles]. For example the policy that drives role assignment through an approval will be expressed in "approval by manager" metarole.
+This metarole will contain all the xref:/midpoint/reference/roles-policies/policies/policy-rules/[policy rules] necessary to express the approval policy.
 Those policy rules may be quite complex, but they are all conveniently packed into the metarole.
 All that remains is to assign the metarole to an object to which it should apply - which is usually a role.
 So, we end up with a role with an assignment to a another role.
-And that is what we call xref:/midpoint/reference/roles-policies/metaroles/gensync/[metarole]. The situation looks like this:
+And that is what we call xref:/midpoint/reference/roles-policies/policies/metaroles/gensync/[metarole]. The situation looks like this:
 
 image::assignments-rbac-policy-metarole.png[]
 
@@ -38,7 +38,7 @@ It was perhaps just created.
 And now we want to apply the usual approval policy to this role.
 The usual approval policy is specified in the "Approval by manager metarole".
 This metarole specifies all the necessary policy rules.
-But those rules are specified inside xref:/midpoint/reference/roles-policies/assignment/assignment-vs-inducement/[inducement]. Therefore the policy rules do not apply to the role which contains them, i.e. the rules do not apply to the "Approval by manager metarole".
+But those rules are specified inside xref:/midpoint/reference/roles-policies/roles/assignment/assignment-vs-inducement/[inducement]. Therefore the policy rules do not apply to the role which contains them, i.e. the rules do not apply to the "Approval by manager metarole".
 Those policy rules will apply to any object that has the metarole assigned.
 In this case it is the `Supervisor` role.
 The `Supervisor` role will be affected by the policy rules.
@@ -74,7 +74,7 @@ The policies from the "Approval by owner" metarole will be automatically applied
 == Configuration
 
 Obviously, the first step is to set up the metaroles themselves.
-The xref:/midpoint/reference/roles-policies/metaroles/policy/[Using Metaroles for Policy Configuration] page describes the basic principle and also provides some examples.
+The xref:/midpoint/reference/roles-policies/policies/metaroles/policy/[Using Metaroles for Policy Configuration] page describes the basic principle and also provides some examples.
 
 However, there is yet another configuration to be made.
 MidPoint user interface has to know which "applicable policies" to display.
@@ -94,7 +94,7 @@ image::policy_groups.png[]
 
 There is one more thing to do for this setup to work and that is to set up the organizational unit in system configuration so midPoint user interface can find them.
 
-Please see xref:/midpoint/reference/roles-policies/applicable-policies/configuration/[Applicable Policy Configuration] page for configuration details and examples.
+Please see xref:/midpoint/reference/roles-policies/policies/applicable-policies/configuration/[Applicable Policy Configuration] page for configuration details and examples.
 
 
 == Notes
@@ -111,6 +111,6 @@ Global policy rules can be used to apply the rules to all selected objects based
 
 * xref:configuration.adoc[]
 
-* xref:/midpoint/reference/roles-policies/metaroles/policy/[Using Metaroles for Policy Configuration]
+* xref:/midpoint/reference/roles-policies/policies/metaroles/policy/[Using Metaroles for Policy Configuration]
 
-* xref:/midpoint/reference/roles-policies/policy-rules/[Policy Rules]
+* xref:/midpoint/reference/roles-policies/policies/policy-rules/[Policy Rules]

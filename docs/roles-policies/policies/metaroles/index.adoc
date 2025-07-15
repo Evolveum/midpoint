@@ -17,7 +17,7 @@ doc-type: intro
 
 == Introduction
 
-MidPoint xref:/midpoint/reference/roles-policies/rbac/[roles] are usually applied to users.
+MidPoint xref:/midpoint/reference/roles-policies/roles/rbac/[roles] are usually applied to users.
 However, midPoint roles are quite universal things.
 The roles can be applied to almost any midPoint object.
 Roles can be applied to users, organizations, services - and even to roles themselves.
@@ -81,22 +81,22 @@ In this case, the feature:archetype[archetype] acts as a metarole.
 In fact, archetype is an archetype:abstract-role[abstract role] which means that it is just like a role, with some extra mechanisms that enrich objects, for example with icons and colors.
 In this example, the archetype acts as metarole, specifying common policies and characteristics for all objects that have the archetype _assigned_.
 
-At first sight, metaroles may seem similar to the concept of xref:/midpoint/reference/roles-policies/rbac/[role hierarchy].
+At first sight, metaroles may seem similar to the concept of xref:/midpoint/reference/roles-policies/roles/rbac/[role hierarchy].
 However, there is a crucial difference.
 Metaroles are applied to _roles_, not users.
 Inducements in metaroles often contain _policies_, such as approval policies.
-There may also be construction clauses that create groups or organizational units, which is often used in xref:/midpoint/reference/roles-policies/metaroles/gensync/[generic synchronization].
+There may also be construction clauses that create groups or organizational units, which is often used in xref:/midpoint/reference/roles-policies/policies/metaroles/gensync/[generic synchronization].
 We usually do not want to create a group for each _user_, but we often want to create a group for a _role_.
 That is what metaroles can do.
 
 == See Also
 
-* xref:/midpoint/reference/roles-policies/metaroles/gensync/['Roles, Metaroles and Generic Synchronization']
+* xref:/midpoint/reference/roles-policies/policies/metaroles/gensync/['Roles, Metaroles and Generic Synchronization']
 
-* xref:/midpoint/reference/roles-policies/metaroles/policy/[Using Metaroles for Policy Configuration]
+* xref:/midpoint/reference/roles-policies/policies/metaroles/policy/[Using Metaroles for Policy Configuration]
 
 * xref:/midpoint/reference/schema/archetypes/[Archetypes]
 
 * xref:/midpoint/reference/schema/policy[]
 
-* xref:/midpoint/reference/roles-policies/classification/[]
+* xref:/midpoint/reference/roles-policies/policies/classification/[]

@@ -15,12 +15,12 @@ Therefore they are very generic.
 And it is this generality that often causes confusion whether to use roles, services or orgs to achieve a particular goal.
 Therefore this page explains what roles, services and orgs have in common and how they are different:
 
-* *xref:/midpoint/reference/roles-policies/rbac/[Roles]* are used to define _provisioning_ and _access control_ schemes.
+* *xref:/midpoint/reference/roles-policies/roles/rbac/[Roles]* are used to define _provisioning_ and _access control_ schemes.
 Roles give _privileges_ to users (or other objects).
 Roles enable users to do something that they would not be able to do without the role.
-Roles can be xref:/midpoint/reference/roles-policies/rbac/[very flexible and dynamic]. There can be hierarchical roles, conditional roles, parametric roles, etc.
+Roles can be xref:/midpoint/reference/roles-policies/roles/rbac/[very flexible and dynamic]. There can be hierarchical roles, conditional roles, parametric roles, etc.
 Generally speaking roles can contain xref:/midpoint/reference/expressions/[mappings and expressions] to create a very dynamic structures.
-Roles can be personalized for each particular user, e.g. by using xref:/midpoint/reference/roles-policies/assignment/[assignment parameters].
+Roles can be personalized for each particular user, e.g. by using xref:/midpoint/reference/roles-policies/roles/assignment/[assignment parameters].
 
 * *xref:/midpoint/reference/misc/services/[Services]* are used to represent servers, mobile devices, printers, virtual machines, "things" (as in IoT) and other objects whose are not entirely users, orgs or roles.
 Each service can also behave as a role.
@@ -62,7 +62,7 @@ Some of these are described below:
 Roles are very dynamic.
 Especially if parametric and hierarchical roles are used at the same time.
 Roles can also be conditional, therefore a role may sometimes include another role - but not always.
-And this may depend on the way how the role is xref:/midpoint/reference/roles-policies/assignment/[assigned] to a particular user.
+And this may depend on the way how the role is xref:/midpoint/reference/roles-policies/roles/assignment/[assigned] to a particular user.
 And it may also depend on current date and time (e.g. because of validity constraints or time-based mappings).
 However all of that flexibility has a drawback: it is extremely difficult to list all users that have a particular role.
 The reason is that we need to evaluate the particular setup, assignments, roles and sub-roles for each particular user to determine which roles the user has.
@@ -102,7 +102,7 @@ MidPoint cannot do the impossible so there is no way how to get all the features
 But midPoint can surely do miracles and there is a way how to get at least something.
 There is way how to connect role structure and the organizational structure.
 Every org can also behave as a role.
-Simply speaking it can have xref:/midpoint/reference/roles-policies/assignment/assignment-vs-inducement/[inducements]. This can be used for multitude of purposes, e.g. to "automatically assign" roles for members of particular organizational unit or project.
+Simply speaking it can have xref:/midpoint/reference/roles-policies/roles/assignment/assignment-vs-inducement/[inducements]. This can be used for multitude of purposes, e.g. to "automatically assign" roles for members of particular organizational unit or project.
 The same approach also applies to services.
 Services can also have inducements and they behave like roles.
 
@@ -122,7 +122,7 @@ If a sub-org belongs to a super-org this does *not* mean that the sub-org automa
 
 == See Also
 
-* xref:/midpoint/reference/roles-policies/rbac/[Advanced Hybrid RBAC]
+* xref:/midpoint/reference/roles-policies/roles/rbac/[Advanced Hybrid RBAC]
 
 * xref:/midpoint/reference/org/organizational-structure/[Organizational Structure]
 

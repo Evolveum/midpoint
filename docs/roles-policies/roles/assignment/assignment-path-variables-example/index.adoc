@@ -7,7 +7,7 @@
 :page-wiki-metadata-modify-date: 2017-05-23T09:39:02.330+02:00
 :page-moved-from: /midpoint/reference/roles-policies/assignment/assignment-path-variables-example/
 
-To better illustrate meaning of various xref:/midpoint/reference/roles-policies/assignment/configuration/#construction-variables[assignment-related variables] let us present an example.
+To better illustrate meaning of various xref:/midpoint/reference/roles-policies/roles/assignment/configuration/#construction-variables[assignment-related variables] let us present an example.
 
 Here, user `jack` is being assigned a role `Pirate`. This role induces `Sailor`. Both `Pirate` and `Sailor` have assigned `MetaroleCrewMember`. This metarole induces `MetarolePerson`, which induces role `Human`. Each of these roles provides a construction (C1, C2, ..., C5) via an inducement of corresponding order (1 or 2).
 

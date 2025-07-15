@@ -10,7 +10,7 @@
 
 Do not create role that correspond to a single resource, such as "AD" or "Oracle".
 This is usually pointless.
-If you really want to assign just this one resource then use xref:/midpoint/reference/roles-policies/assignment/configuration/[direct construction assignment] and xref:/midpoint/reference/expressions/mappings/outbound-mapping/[outbound mappings]. If you want to create a role create something more generic such as "Basic Role" or "Employee".
+If you really want to assign just this one resource then use xref:/midpoint/reference/roles-policies/roles/assignment/configuration/[direct construction assignment] and xref:/midpoint/reference/expressions/mappings/outbound-mapping/[outbound mappings]. If you want to create a role create something more generic such as "Basic Role" or "Employee".
 Even though it may really contain only one resource at the beginning it can be extended with more resources and logic later.
 
 // TODO: more?

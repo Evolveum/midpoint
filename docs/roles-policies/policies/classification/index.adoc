@@ -37,11 +37,11 @@ Policies help you organize your resources, such as applications, databases, file
 In order to define your organization policies, you need to be able to categorize your applications and define requirements for those categories.
 For this, midPoint contains the following pre-configured xref:/midpoint/reference/schema/archetypes/[archetypes] in the policy object:
 
-* `classification` - Used to set up classification schemes.
+* *`classification`* - Used to set up classification schemes.
 It is used to define sets of _classifications_ (_information labels_) that can be assigned to applications.
 Classifications enable you to categorize applications by specifying security requirements that must be met to be able to gain access to classified applications.
 
-* `clearance` - Used to define clearances.
+* *`clearance`* - Used to define clearances.
 Clearances are objects which testify that security requirements were met by a particular user or organization.
 For example, these can cover:
     ** Knowledge gained at mandatory trainings, such as security or health and security trainings.
@@ -50,6 +50,12 @@ For example, these can cover:
     ** User categories, such as internal vs. external.
     ** Screenings.
 
+* *`generic policy`* - This is not specifically tied to classifications or clearances.
+Generic policies are used to define a wide range of rules and constraints that can be applied to various objects and scenarios within the system.
+Unlike classifications and clearances, which are typically used for information security and access control based on sensitivity levels and user permissions, generic policies can be applied to a broader set of use cases.
+They can include rules for approvals (see an <<generic_policy_example,example below>>), xref:/midpoint/reference/roles-policies/policies/segreation-of-duties/[segregation of duties], access control, and other identity governance policies.
+Generic policies are often used to enforce business rules and compliance requirements that are not directly related to information classification or user clearance levels.
+They provide a flexible mechanism for defining and applying policies that can be tailored to the specific needs of an organization.
 
 Policies typically combine:
 //co můžou ještě obsahovat kromě metarolí a policy rules?
@@ -72,12 +78,13 @@ This is done by assigning the classification policy to the application.
 . *Define clearances*: These represent the security requirements needed to access the classified applications.
 . *Apply clearances to users*: Assign the defined clearances to users who meet the security requirements needed to access classified applications.
 You can do that manually, or automatically via xref:/midpoint/reference/roles-policies/roles/role-autoassignment/[autoassignment], mapping, provisioning, etc.
-. *Enforce policy rules*: Use xref:policy-rules.adoc[policy rules] within classification definitions to enforce the security requirements.
+. *Enforce policy rules*: Use xref:../policy-rules.adoc[policy rules] within classification definitions to enforce the security requirements.
+Make sure you xref:/midpoint/reference/roles-policies/policies/gradual-policy-enforcement/[enforce your policy rules gradually] to avoid conflicts.
 
 See how those individual steps are configured in the <<example,example>> below.
 
 [[example]]
-== Example
+== Scenario-Based Example
 
 This example shows how to implement policies for systems that have different security access requirements:
 
@@ -341,8 +348,13 @@ The policy rule states that the assignment of the application classified using t
 In other words, it prohibits assigning access (`policyAction` is set to `enforce`) in case the user does not have the `NDA` clearance already assigned.
 The policy rule is specified in an _inducement_, therefore it is applied to all objects that have this classification assigned, which means all applications that have the `Category II` classification.
 
-TIP: Classifications naturally act as xref:../metaroles/[meta-roles].
+[TIP]
+====
+* Classifications naturally act as xref:../metaroles/[meta-roles].
 Policies specified in classifications can be transitively applied through the entire assignment/inducement chain, all the way to the user.
+* To avoid conflicts between roles, it is recommended not to enforce your policy rules directly.
+Instead, use xref:/midpoint/reference/roles-policies/policies/gradual-policy-enforcement/[gradual policy enforcement].
+====
 
 Assigning the NDA clearance to external workers explicitly may be a good practice.
 However, for employees, a non-disclosure clause is usually a part of their employment contract.
@@ -418,6 +430,48 @@ NOTE: Application roles must have inducements to applications for policies to wo
 This is a general best practice in all cases that application roles are used.
 Roles must have inducement to applications, even if applications are "empty" (they do not contain any construction statements).
 Applications are objects that link classifications to roles, therefore it is essential to maintain that link.
+
+[[generic_policy_example]]
+== Generic Policy Example
+
+The following generic policy enforces an approval workflow for any assignment of roles or services.
+Specifically, it requires that all owners of the requested object (e.g. role or service) must explicitly approve the assignment before it is completed.
+
+[source]
+----
+<policy oid="e5f05e74-d0e6-45bf-b793-9345ba1df3bf"
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+    <name>Approval by owner</name>
+    <description>Owner of the requested object (role, service) must approve the request.</description>
+    <assignment>
+        <identifier>org-approval-policies</identifier>
+        <targetRef oid="e7a48bb0-5361-4862-bf44-cd970c7ad021" type="OrgType"/>
+    </assignment>
+    <inducement>
+        <policyRule>
+            <name>approval-by-owner</name>
+            <policyConstraints>
+                <assignment/>
+            </policyConstraints>
+            <policyActions>
+                <approval>
+                    <compositionStrategy>
+                        <order>60</order>
+                    </compositionStrategy>
+                    <approvalSchema>
+                        <stage>
+                            <name>Owners (all)</name>
+                            <approverRelation>owner</approverRelation>
+                            <evaluationStrategy>allMustApprove</evaluationStrategy>
+                            <outcomeIfNoApprovers>reject</outcomeIfNoApprovers>
+                        </stage>
+                    </approvalSchema>
+                </approval>
+            </policyActions>
+        </policyRule>
+    </inducement>
+</policy>
+----
 
 == Privileged Access Classification
 

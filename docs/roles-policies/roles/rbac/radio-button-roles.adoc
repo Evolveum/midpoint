@@ -18,11 +18,11 @@ We want only one of them to be assigned at a time.
 
 This configuration is based on three midPoint mechanisms:
 
-. xref:/midpoint/reference/roles-policies/policy-rules/[Policy Rules] that implement (almost) ordinary xref:/midpoint/reference/roles-policies/segregation-of-duties/[role exclusion].
+. xref:/midpoint/reference/roles-policies/policies/policy-rules/[Policy Rules] that implement (almost) ordinary xref:/midpoint/reference/roles-policies/policies/segregation-of-duties/[role exclusion].
 
 . The "prune" policy action.
 
-. Clever use of xref:/midpoint/reference/roles-policies/metaroles/gensync/[metarole] to define the radio button class.
+. Clever use of xref:/midpoint/reference/roles-policies/policies/metaroles/gensync/[metarole] to define the radio button class.
 
 First step is to define exclusion for all the individual "button" roles.
 This is easy to do with policy rules.
@@ -107,8 +107,8 @@ And at the end of the operation only one quota role remains assigned to the user
 
 == See Also
 
-* xref:/midpoint/reference/roles-policies/segregation-of-duties/[Segregation of Duties]
+* xref:/midpoint/reference/roles-policies/policies/segregation-of-duties/[Segregation of Duties]
 
-* xref:/midpoint/reference/roles-policies/policy-rules/[Policy Rules]
+* xref:/midpoint/reference/roles-policies/policies/policy-rules/[Policy Rules]
 
-* xref:/midpoint/reference/roles-policies/metaroles/gensync/['Roles, Metaroles and Generic Synchronization']
+* xref:/midpoint/reference/roles-policies/policies/metaroles/gensync/['Roles, Metaroles and Generic Synchronization']

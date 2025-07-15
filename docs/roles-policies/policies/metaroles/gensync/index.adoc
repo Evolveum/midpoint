@@ -22,12 +22,12 @@ compliance:
 
 xref:/midpoint/reference/synchronization/generic-synchronization/[Generic synchronization] is a powerful feature that distinguished midPoint from many traditional IDM systems.
 Even though the generic synchronization itself is an interesting feature, what makes it incredibly powerful is the combination of generic synchronization with other midPoint features.
-This is especially true for a combination of generic synchronization with xref:/midpoint/reference/roles-policies/rbac/[midPoint RBAC system]. This page describes how these two features work together to create simple and very powerful configuration schemes.
+This is especially true for a combination of generic synchronization with xref:/midpoint/reference/roles-policies/roles/rbac/[midPoint RBAC system]. This page describes how these two features work together to create simple and very powerful configuration schemes.
 
 
 == Usual RBAC
 
-MidPoint xref:/midpoint/reference/roles-policies/rbac/[RBAC mechanism] has all that you can expect from a provisioning RBAC structure.
+MidPoint xref:/midpoint/reference/roles-policies/roles/rbac/[RBAC mechanism] has all that you can expect from a provisioning RBAC structure.
 The most frequently used feature is perhaps xref:/midpoint/reference/roles-policies/roles/roles-and-policies-configuration/index.adoc#role_hierarchy[role hierarchy].
 The following diagrams provides an example of a role hierarchy.
 
@@ -36,18 +36,18 @@ image::rbac-meta-1.png[]
 All the _construction_ definitions placed inside inducements are applied to the user almost as if they are directly assigned.
 Therefore the user will efficiently have _constructions_ for four accounts which in turn means that four accounts will be created for this particular user.
 
-What is important here is xref:/midpoint/reference/roles-policies/assignment/assignment-vs-inducement/[the difference between assignment and inducement]: the _inducements_ are not applied directly.
+What is important here is xref:/midpoint/reference/roles-policies/roles/assignment/assignment-vs-inducement/[the difference between assignment and inducement]: the _inducements_ are not applied directly.
 All the _inducements_ from the entire role hierarchy are applied to the object that contains _assignment_. Which is a user.
 
 
 == Metarole
 
-The xref:/midpoint/reference/roles-policies/assignment/assignment-vs-inducement/[difference between assignment and inducement] may seem like an unnecessary complication.
+The xref:/midpoint/reference/roles-policies/roles/assignment/assignment-vs-inducement/[difference between assignment and inducement] may seem like an unnecessary complication.
 But it is not.
 The true power of this mechanism becomes obvious only when it is used together with xref:/midpoint/reference/synchronization/generic-synchronization/[generic synchronization]. Generic synchronization enables you to synchronize almost all midPoint objects to resources.
 One typical use of generic synchronization is to synchronize midPoint roles with groups on a resource.
 For example, we want to create LDAP groups for some midPoint roles.
-Because xref:/midpoint/reference/roles-policies/assignment/[assignment] is a generic concept that applies to roles and orgs equally as it applies to users, there is a simple way how to do this: we add an assignment with an appropriate _group construction_ statement to every role that want to synchronize to LDAP.
+Because xref:/midpoint/reference/roles-policies/roles/assignment/[assignment] is a generic concept that applies to roles and orgs equally as it applies to users, there is a simple way how to do this: we add an assignment with an appropriate _group construction_ statement to every role that want to synchronize to LDAP.
 But there is a drawback: this needs to be specified in every role.
 This is simple to do if there is just a single group type with simple static mappings.
 But that is rarely the case.
@@ -265,8 +265,8 @@ In such a case, the order is reversed: index -1 is the last meta-meta-meta-...-r
 
 == See Also
 
-* xref:/midpoint/reference/roles-policies/rbac/[Advanced Hybrid RBAC]
+* xref:/midpoint/reference/roles-policies/roles/rbac/[Advanced Hybrid RBAC]
 
-* xref:/midpoint/reference/roles-policies/roles-and-policies-configuration/[Roles and Policies Configuration]
+* xref:/midpoint/reference/roles-policies/roles/roles-and-policies-configuration/[Roles and Policies Configuration]
 
-* xref:/midpoint/reference/roles-policies/assignment/assignment-vs-inducement/[Assignment vs Inducement]
+* xref:/midpoint/reference/roles-policies/roles/assignment/assignment-vs-inducement/[Assignment vs Inducement]
