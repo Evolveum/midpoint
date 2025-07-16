@@ -8988,6 +8988,13 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element name="name" type="xsd:string" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Policy name.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
             <xsd:element name="enforced" type="xsd:boolean" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -8997,13 +9004,14 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="triggers" type="tns:EvaluatedActivityPolicyTriggerType" minOccurs="0" maxOccurs="unbounded">
+            <xsd:element name="trigger" type="tns:EvaluatedActivityPolicyTriggerType" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
                     <xsd:documentation>
                         Triggers associated with the policy.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element name="reaction" type="tns:EvaluatedActivityPolicyReactionType" minOccurs="0" maxOccurs="unbounded"/>
         </xsd:sequence>
     </xsd:complexType>
 
@@ -9018,13 +9026,12 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
-            <xsd:element name="ruleName" type="xsd:string" minOccurs="0"/>
+            <xsd:element name="constraintName" type="xsd:string" minOccurs="0"/>
             <xsd:element name="message" type="tns:LocalizableMessageType" minOccurs="0"/>
-            <xsd:element name="reactions" type="tns:EvaluatedActivityTriggerReactionType" minOccurs="0" maxOccurs="unbounded"/>
         </xsd:sequence>
     </xsd:complexType>
 
-    <xsd:complexType name="EvaluatedActivityTriggerReactionType">
+    <xsd:complexType name="EvaluatedActivityPolicyReactionType">
         <xsd:annotation>
             <xsd:documentation>
                 <!-- TODO -->

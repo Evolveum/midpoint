@@ -52,8 +52,8 @@ public abstract class PolicyRuleCounterUpdater {
 
         List<EvaluatedPolicyRule> rulesToIncrement = new ArrayList<>();
         for (EvaluatedPolicyRule rule : context.getPolicyRules()) {
-            if (!rule.isTriggered() || !rule.hasThreshold()) {
-                LOGGER.trace("Rule {} is not triggered or does not have a threshold, skipping counter update", rule.getRuleIdentifier());
+            if (!rule.isTriggered()) {
+                LOGGER.trace("Rule {} is not triggered, skipping counter update", rule.getRuleIdentifier());
                 continue;
             }
 

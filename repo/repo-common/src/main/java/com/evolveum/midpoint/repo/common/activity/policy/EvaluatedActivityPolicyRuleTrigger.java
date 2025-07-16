@@ -9,6 +9,9 @@ package com.evolveum.midpoint.repo.common.activity.policy;
 
 import java.util.Objects;
 
+import com.evolveum.midpoint.schema.util.LocalizationUtil;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.EvaluatedActivityPolicyTriggerType;
+
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.util.DebugDumpable;
@@ -83,5 +86,13 @@ public class EvaluatedActivityPolicyRuleTrigger<AC extends AbstractPolicyConstra
     }
 
     protected void debugDumpSpecific(StringBuilder sb, int indent) {
+    }
+
+    public EvaluatedActivityPolicyTriggerType toPolicyTriggerType() {
+        EvaluatedActivityPolicyTriggerType state = new EvaluatedActivityPolicyTriggerType();
+        state.setConstraintName(constraint.getName());
+        state.setMessage(LocalizationUtil.createLocalizableMessageType(getMessage()));
+
+        return state;
     }
 }

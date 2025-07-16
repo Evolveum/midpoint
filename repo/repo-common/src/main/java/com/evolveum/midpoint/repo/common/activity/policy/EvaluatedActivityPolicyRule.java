@@ -29,6 +29,8 @@ public class EvaluatedActivityPolicyRule implements EvaluatedPolicyRule, DebugDu
 
     private final List<EvaluatedActivityPolicyRuleTrigger<?>> triggers = new ArrayList<>();
 
+    private final List<EvaluatedPolicyReaction> reactions = new ArrayList<>();
+
     /**
      * Whether the rule was enforced (i.e., the action was taken).
      */
@@ -99,22 +101,6 @@ public class EvaluatedActivityPolicyRule implements EvaluatedPolicyRule, DebugDu
                 .toList();
     }
 
-    public List<EvaluatedPolicyReaction> getReactionsWithoutThreshold() {
-        return policy.getPolicyReaction().stream()
-                .filter(r -> r.getThreshold() == null)
-                .map(r -> new EvaluatedPolicyReaction(this, r))
-                .filter(r -> !r.hasThreshold())
-                .toList();
-    }
-
-    public List<EvaluatedPolicyReaction> getReactionsWithinThreshold() {
-        return policy.getPolicyReaction().stream()
-                .filter(r -> r.getThreshold() != null)
-                .map(r -> new EvaluatedPolicyReaction(this, r))
-                .filter(EvaluatedPolicyReaction::isWithinThreshold)
-                .toList();
-    }
-
     @NotNull
     public List<EvaluatedActivityPolicyRuleTrigger<?>> getTriggers() {
         return triggers;
@@ -138,7 +124,7 @@ public class EvaluatedActivityPolicyRule implements EvaluatedPolicyRule, DebugDu
 
     @Override
     public boolean isTriggered() {
-        return !triggers.isEmpty() || (currentState != null && !currentState.getTriggers().isEmpty());
+        return !triggers.isEmpty() || (currentState != null && !currentState.getTrigger().isEmpty());
     }
 
     public boolean isEnforced() {

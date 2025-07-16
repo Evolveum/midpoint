@@ -60,7 +60,7 @@ public class ActivityPoliciesStateAsserter<RA> extends AbstractAsserter<RA> {
         ActivityPolicyStateType policyState = policyStates.get(0);
 
         Assertions.assertThat(policyState.getIdentifier()).isEqualTo(identifier);
-        Assertions.assertThat(policyState.getTriggers()).hasSize(expectedCount);
+        Assertions.assertThat(policyState.getTrigger()).hasSize(expectedCount);
 
         return this;
     }

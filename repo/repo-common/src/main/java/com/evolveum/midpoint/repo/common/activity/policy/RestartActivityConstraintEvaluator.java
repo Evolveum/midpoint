@@ -24,7 +24,11 @@ public class RestartActivityConstraintEvaluator
             executionAttempt = 1;
         }
 
-        // The first execution is not after restart...
+        if (executionAttempt <= 0) {
+            throw new IllegalStateException("Execution attempt must be greater than 0, but was: " + executionAttempt);
+        }
+
+        // The first execution is just normal execution (zero restarts happened)
         return executionAttempt - 1;
     }
 

@@ -17,6 +17,7 @@ import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.model.intest.AbstractEmptyModelIntegrationTest;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.repo.common.activity.policy.ActivityPolicyUtils;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -25,9 +26,7 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.TestObject;
 import com.evolveum.midpoint.test.asserter.ActivityPolicyStateAsserter;
 import com.evolveum.midpoint.test.asserter.TaskAsserter;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityPolicyType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SimulationResultType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 @ContextConfiguration(locations = { "classpath:ctx-model-intest-test-main.xml" })
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
@@ -49,6 +48,28 @@ public class TestTaskActivityPolicies extends AbstractEmptyModelIntegrationTest 
 
     private static final TestObject<TaskType> TASK_EXECUTION_TIME_NOTIFICAITON =
             TestObject.file(TEST_DIR, "task-execution-time-notification.xml", "38d0f53c-5e01-44dc-8d6a-439e0153b4d8");
+
+    private static final String DUMMY_NOTIFICATION_TRANSPORT = "activityPolicyRuleNotifier";
+
+    @Override
+    public void initSystem(Task initTask, OperationResult initResult) throws Exception {
+        super.initSystem(initTask, initResult);
+
+        SimpleActivityPolicyRuleNotifierType notifier = new SimpleActivityPolicyRuleNotifierType();
+        notifier.getTransport().add("dummy:" + DUMMY_NOTIFICATION_TRANSPORT);
+        EventHandlerType handler = new EventHandlerType();
+        handler.getSimpleActivityPolicyRuleNotifier().add(notifier);
+
+        modifyObjectAddContainer(
+                SystemConfigurationType.class,
+                SystemObjectsType.SYSTEM_CONFIGURATION.value(),
+                ItemPath.create(SystemConfigurationType.F_NOTIFICATION_CONFIGURATION, NotificationConfigurationType.F_HANDLER),
+                initTask,
+                initResult,
+                handler);
+
+        notificationManager.setDisabled(false);
+    }
 
     @Test
     public void test100SingleThread() throws Exception {
@@ -224,12 +245,14 @@ public class TestTaskActivityPolicies extends AbstractEmptyModelIntegrationTest 
                     .activityPolicyStates()
                         .display()
                         .assertPolicyStateCount(2)
-                        .activityPolicyState(getActivityIdentifier(task.asObjectable(),"Max. 3s execution"))
+                        .activityPolicyState(getActivityIdentifier(task.asObjectable(),"Max. 2s execution"))
                             .assertTriggerCount(1)
                         .end()
                         .activityPolicyState(getActivityIdentifier(task.asObjectable(),"count restarts"))
                             .assertTriggerCount(1);
         // @formatter:on
+
+        checkDummyTransportMessages(DUMMY_NOTIFICATION_TRANSPORT, 3);
     }
 
     private String getActivityIdentifier(TaskType task, String policyName) {

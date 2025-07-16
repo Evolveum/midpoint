@@ -13,13 +13,11 @@ import static com.evolveum.midpoint.util.DebugUtil.debugDumpWithLabelLn;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.util.DebugDumpable;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityPolicyActionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityPolicyActionsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyReactionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyThresholdType;
 
 public class EvaluatedPolicyReaction implements DebugDumpable {
 
@@ -94,5 +92,13 @@ public class EvaluatedPolicyReaction implements DebugDumpable {
         debugDumpWithLabelLn(sb, "rule", getRule(), indent + 1);
 
         return sb.toString();
+    }
+
+    public EvaluatedActivityPolicyReactionType toPolicyReactionType() {
+        EvaluatedActivityPolicyReactionType reaction = new EvaluatedActivityPolicyReactionType();
+        reaction.setReactionName(this.reaction.getName());
+        // todo reaction message
+
+        return reaction;
     }
 }

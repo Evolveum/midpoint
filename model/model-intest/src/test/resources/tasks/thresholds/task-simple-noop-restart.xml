@@ -19,17 +19,18 @@
         </work>
         <policies>
             <policy>
-                <name>Max. 3s execution</name>
+                <name>Max. 2s execution</name>
                 <policyConstraints>
                     <executionTime>
-                        <exceeds>PT3S</exceeds>
+                        <exceeds>PT2S</exceeds>
                     </executionTime>
                 </policyConstraints>
                 <policyReaction>
                     <name>restart me</name>
                     <action>
+                        <notification/>
                         <restartActivity>
-                            <delay>2000</delay>
+                            <delay>1000</delay>
                             <restartCounters>true</restartCounters>
                         </restartActivity>
                     </action>
@@ -50,6 +51,7 @@
                         </lowWaterMark>
                     </threshold>
                     <action>
+                        <notification/>
                         <suspendTask/>
                     </action>
                 </policyReaction>

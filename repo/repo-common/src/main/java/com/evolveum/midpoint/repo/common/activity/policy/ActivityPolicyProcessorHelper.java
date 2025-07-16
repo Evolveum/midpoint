@@ -57,6 +57,6 @@ public class ActivityPolicyProcessorHelper {
         }
 
         ActivityPolicyRulesProcessor processor = new ActivityPolicyRulesProcessor(activityRun);
-        processor.evaluateAndEnforceRules(null, result);
+        processor.evaluateAndEnforceRules(processingResult, result);
     }
 }
