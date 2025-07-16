@@ -1837,6 +1837,10 @@
             <identifier>admin-dashboard</identifier>
             <configurableDashboardRef oid="00000000-0000-0000-0001-000000000001" relation="org:default" type="c:DashboardType"/>
         </configurableUserDashboard>
+        <configurableUserDashboard id="272">
+            <identifier>compliance-dashboard</identifier>
+            <configurableDashboardRef oid="f941f3fc-dcef-4415-9e79-ae56b185a501" type="c:DashboardType"/>
+        </configurableUserDashboard>
 
         <accessRequest>
             <roleCatalog>

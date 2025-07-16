@@ -6,13 +6,14 @@
   ~ and European Union Public License. See LICENSE file for details.
   -->
 
-<mark xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"  oid="00000000-0000-0000-0000-000000000811" >
-    <name>Exclusion violation</name>
-    <description>Violation of exclusion policy, such as segregation duty violation</description>
-    <documentation>(ISO27001/A.5.3,ISO27001/A.5.36)</documentation>
+<mark oid="5508aca4-2aef-47a6-ad50-892389823c91"
+      xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+    <name>Unowned</name>
+    <description>Mark for object which does not have an owner.</description>
+    <documentation>(ISO27001/A.5.16,ISO27001/A.5.36)</documentation>
     <display>
         <icon>
-            <cssClass>fa fa-people-arrows</cssClass>
+            <cssClass>fa fa-user-xmark</cssClass>
         </icon>
     </display>
     <assignment id="1">
