@@ -40,7 +40,13 @@ import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 
-public class StartupConfiguration implements MidpointConfiguration {
+import org.springframework.context.EnvironmentAware;
+import org.springframework.core.env.AbstractEnvironment;
+import org.springframework.core.env.EnumerablePropertySource;
+import org.springframework.core.env.Environment;
+import org.springframework.core.env.PropertySource;
+
+public class StartupConfiguration implements MidpointConfiguration, EnvironmentAware {
 
     private static final String SAFE_MODE = "safeMode";
     private static final String PROFILING_ENABLED = "profilingEnabled";
@@ -113,6 +119,19 @@ public class StartupConfiguration implements MidpointConfiguration {
     public StartupConfiguration(String midPointHome, String configFilename) {
         this.midPointHomePath = midPointHome;
         this.configFilename = configFilename;
+    }
+
+    @Override
+    public void setEnvironment(@NotNull Environment environment) {
+        for (PropertySource<?> ps : ((AbstractEnvironment) environment).getPropertySources()) {
+            if (ps instanceof EnumerablePropertySource) {
+                for (String name : ((EnumerablePropertySource<?>) ps).getPropertyNames()) {
+                    if (name.startsWith("midpoint.")) {
+                        System.setProperty(name, Objects.requireNonNull(environment.getProperty(name)));
+                    }
+                }
+            }
+        }
     }
 
     @Override
