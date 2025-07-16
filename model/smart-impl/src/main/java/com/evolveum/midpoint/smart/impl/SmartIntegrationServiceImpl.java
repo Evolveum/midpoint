@@ -32,6 +32,9 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import java.util.Collection;
 import java.util.function.Supplier;
 
+import static com.evolveum.midpoint.schema.constants.SchemaConstants.ICFS_NAME;
+import static com.evolveum.midpoint.schema.constants.SchemaConstants.NS_RI;
+
 @Service
 public class SmartIntegrationServiceImpl implements SmartIntegrationService {
 
@@ -63,23 +66,22 @@ public class SmartIntegrationServiceImpl implements SmartIntegrationService {
             LOGGER.debug("Suggesting object types for resourceOid {}, objectClassName {}", resourceOid, objectClassName);
             try (var serviceClient = getServiceClient(result)) {
                 var resource = modelService.getObject(ResourceType.class, resourceOid, null, task, result);
-                var shadowObjectClassStatistics = (ShadowObjectClassStatisticsType) null;
-//                var shadowObjectClassStatistics = new ShadowObjectClassStatisticsType()
-//                        .size(1000)
-//                        .coverage(1.0f)
-//                        .timestamp(clock.currentTimeXMLGregorianCalendar())
-//                        .attribute(new ShadowAttributeStatisticsType()
-//                                .ref(ICFS_NAME)
-//                                .missingValueCount(0))
-//                        .attribute(new ShadowAttributeStatisticsType()
-//                                .ref(new QName(NS_RI, "gender"))
-//                                .valueCount(new ShadowAttributeValueCountType()
-//                                        .value("male")
-//                                        .count(490))
-//                                .valueCount(new ShadowAttributeValueCountType()
-//                                        .value("female")
-//                                        .count(500))
-//                                .missingValueCount(10))
+                var shadowObjectClassStatistics = new ShadowObjectClassStatisticsType()
+                        .size(1000)
+                        .coverage(1.0f)
+                        .timestamp(clock.currentTimeXMLGregorianCalendar())
+                        .attribute(new ShadowAttributeStatisticsType()
+                                .ref(ICFS_NAME)
+                                .missingValueCount(0))
+                        .attribute(new ShadowAttributeStatisticsType()
+                                .ref(new QName(NS_RI, "gender"))
+                                .valueCount(new ShadowAttributeValueCountType()
+                                        .value("male")
+                                        .count(490))
+                                .valueCount(new ShadowAttributeValueCountType()
+                                        .value("female")
+                                        .count(500))
+                                .missingValueCount(10));
 //                        .attributeTuple(new ShadowAttributeTupleStatisticsType()
 //                                .ref(new QName(NS_RI, "city"))
 //                                .ref(new QName(NS_RI, "gender"))

@@ -7,12 +7,10 @@
 
 package com.evolveum.midpoint.smart.impl;
 
+import static com.evolveum.midpoint.schema.constants.SchemaConstants.NS_RI;
+
 import java.util.Arrays;
 import javax.xml.namespace.QName;
-
-import com.evolveum.midpoint.prism.query.PrismQuerySerialization;
-import com.evolveum.midpoint.schema.processor.*;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
@@ -25,7 +23,9 @@ import com.evolveum.midpoint.common.rest.MidpointJsonProvider;
 import com.evolveum.midpoint.common.rest.MidpointXmlProvider;
 import com.evolveum.midpoint.common.rest.MidpointYamlProvider;
 import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.query.PrismQuerySerialization;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.processor.*;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.MiscUtil;
@@ -34,8 +34,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-
-import static com.evolveum.midpoint.schema.constants.SchemaConstants.NS_RI;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
  * A client for the remote Smart integration service.
@@ -47,7 +46,7 @@ class DefaultServiceClientImpl implements ServiceClient {
     private static final Trace LOGGER = TraceManager.getTrace(DefaultServiceClientImpl.class);
 
     private static final String URL_PREFIX = "/api/v1/";
-    private static final String METHOD_SUGGEST_OBJECT_TYPES = "objectTypes/suggestObjectTypes";
+    private static final String METHOD_SUGGEST_OBJECT_TYPES = "objectType/suggestObjectType"; // This should be plural!
     private static final String METHOD_SUGGEST_FOCUS_TYPE = "focusType/suggestFocusType";
 
     /** TODO decide if we use this client or not. */
@@ -81,7 +80,7 @@ class DefaultServiceClientImpl implements ServiceClient {
     @Override
     public ObjectTypesSuggestionType suggestObjectTypes(
             ResourceObjectClassDefinition objectClassDef,
-            @Nullable ShadowObjectClassStatisticsType shadowObjectClassStatistics,
+            ShadowObjectClassStatisticsType shadowObjectClassStatistics,
             Task task,
             OperationResult result) throws SchemaException {
 

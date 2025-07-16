@@ -16,8 +16,6 @@ import com.evolveum.midpoint.smart.impl.ServiceClient;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
-import org.jetbrains.annotations.Nullable;
-
 import javax.xml.namespace.QName;
 
 import static com.evolveum.midpoint.model.intest.smart.TestSmartIntegrationService.OC_ACCOUNT_QNAME;
@@ -30,7 +28,7 @@ public class MockServiceClientImpl implements ServiceClient {
     @Override
     public ObjectTypesSuggestionType suggestObjectTypes(
             ResourceObjectClassDefinition objectClassDef,
-            @Nullable ShadowObjectClassStatisticsType shadowObjectClassStatistics,
+            ShadowObjectClassStatisticsType shadowObjectClassStatistics,
             Task task,
             OperationResult result) {
         return new ObjectTypesSuggestionType()
