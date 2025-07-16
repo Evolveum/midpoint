@@ -11,18 +11,12 @@ import java.util.Date;
 import javax.xml.datatype.Duration;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyThresholdType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TimeIntervalType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.WaterMarkType;
 
 public class DurationThresholdEvaluator implements ThresholdEvaluator {
 
     @Override
     public boolean evaluate(PolicyThresholdType threshold, Object currentValue) {
-        TimeIntervalType timeInterval = threshold.getTimeInterval();
-        Duration interval = timeInterval.getInterval();
-        if (interval == null) {
-            return true; // no interval means, no threshold
-        }
-
         Duration currentDuration = getDuration(currentValue);
         if (currentDuration == null) {
             return false; // no duration means, no threshold
@@ -30,13 +24,32 @@ public class DurationThresholdEvaluator implements ThresholdEvaluator {
 
         Date date = new Date();
         long currentDurationMs = currentDuration.getTimeInMillis(date);
-        long intervalMs = interval.getTimeInMillis(date);
 
-        if (intervalMs < currentDurationMs) {
-            return true;
+        Long lowDurationMs = getDurationInMillis(threshold.getLowWaterMark(), date);
+        Long highDurationMs = getDurationInMillis(threshold.getHighWaterMark(), date);
+
+        if (lowDurationMs != null) {
+            if (currentDurationMs < lowDurationMs) {
+                return false; // below low water mark
+            }
         }
 
-        return false;
+        if (highDurationMs != null) {
+            if (currentDurationMs > highDurationMs) {
+                return false; // above high water mark
+            }
+        }
+
+        // either marks are not set, or the count is within the range
+        return true;
+    }
+
+    private Long getDurationInMillis(WaterMarkType waterMark, Date date) {
+        if (waterMark == null || waterMark.getDuration() == null) {
+            return null;
+        }
+
+        return waterMark.getDuration().getTimeInMillis(date);
     }
 
     private Duration getDuration(Object currentValue) {

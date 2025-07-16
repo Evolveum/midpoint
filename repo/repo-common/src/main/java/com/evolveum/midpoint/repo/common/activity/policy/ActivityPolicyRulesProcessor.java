@@ -11,6 +11,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 import jakarta.xml.bind.JAXBElement;
+import org.apache.commons.lang3.BooleanUtils;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.repo.common.activity.run.AbstractActivityRun;
@@ -147,8 +148,6 @@ public class ActivityPolicyRulesProcessor {
                 for (EvaluatedPolicyReaction reaction : reactions) {
                     executeActions(reaction, result);
                 }
-
-                rule.enforced();
             }
         } finally {
             Collection<EvaluatedActivityPolicyRule> rules = getPolicyRulesContext().getPolicyRules();
@@ -183,8 +182,15 @@ public class ActivityPolicyRulesProcessor {
     private void executeActions(EvaluatedPolicyReaction reaction, OperationResult result)
             throws ActivityThresholdPolicyViolationException {
 
+        reaction.enforced();
+
         for (ActivityPolicyActionType action : reaction.getActions()) {
-            if (action instanceof NotificationActivityPolicyActionType) {
+            if (action instanceof NotificationActivityPolicyActionType na) {
+                if (BooleanUtils.isTrue(na.isSingle()) && reaction.isEnforced()) {
+                    LOGGER.debug("Skipping notification action (single) because it was already enforced, rule: {}", reaction);
+                    continue;
+                }
+
                 LOGGER.debug("Sending notification because of policy violation, rule: {}", reaction);
 
                 activityRun.sendActivityPolicyRuleTriggeredEvent(reaction.getRule(), result);

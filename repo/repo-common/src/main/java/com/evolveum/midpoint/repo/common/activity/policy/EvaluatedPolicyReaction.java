@@ -13,17 +13,18 @@ import static com.evolveum.midpoint.util.DebugUtil.debugDumpWithLabelLn;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.util.DebugDumpable;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 public class EvaluatedPolicyReaction implements DebugDumpable {
 
     private @NotNull EvaluatedActivityPolicyRule rule;
 
     private @NotNull PolicyReactionType reaction;
+
+    private boolean enforced;
 
     public EvaluatedPolicyReaction(@NotNull EvaluatedActivityPolicyRule rule, @NotNull PolicyReactionType reaction) {
         this.rule = rule;
@@ -51,6 +52,18 @@ public class EvaluatedPolicyReaction implements DebugDumpable {
         ThresholdEvaluator thresholdEvaluator = rule.getThresholdValueType().getEvaluator();
 
         return thresholdEvaluator.evaluate(threshold, rule.getThresholdValue());
+    }
+
+    public boolean isEnforced() {
+        return enforced || rule.isReactionEnforced(getReactionIdentifier());
+    }
+
+    private String getReactionIdentifier() {
+        return reaction.getId() != null ? Long.toString(reaction.getId()) : null;
+    }
+
+    public void enforced() {
+        enforced = true;
     }
 
     public <T extends ActivityPolicyActionType> T getAction(Class<T> policyActionType) {
@@ -95,10 +108,12 @@ public class EvaluatedPolicyReaction implements DebugDumpable {
     }
 
     public EvaluatedActivityPolicyReactionType toPolicyReactionType() {
-        EvaluatedActivityPolicyReactionType reaction = new EvaluatedActivityPolicyReactionType();
-        reaction.setReactionName(this.reaction.getName());
-        // todo reaction message
+        EvaluatedActivityPolicyReactionType r = new EvaluatedActivityPolicyReactionType();
+        r.setRef(getReactionIdentifier());
+        r.setReactionName(reaction.getName());
+        r.setEnforced(enforced);
+        // todo reaction message if there's something...
 
-        return reaction;
+        return r;
     }
 }

@@ -11,10 +11,11 @@
     <ownerRef oid="00000000-0000-0000-0000-000000000002" type="UserType"/>
     <executionState>runnable</executionState>
     <activity>
+        <identifier>main activity</identifier>
         <work>
             <noOp>
                 <steps>20</steps>
-                <delay>500</delay>
+                <delay>400</delay>
             </noOp>
         </work>
         <policies>
@@ -26,9 +27,12 @@
                 <policyReaction>
                     <name>First notification</name>
                     <threshold>
-                        <timeInterval>
-                            <interval>PT2S</interval>
-                        </timeInterval>
+                        <lowWaterMark>
+                            <duration>PT1S</duration>
+                        </lowWaterMark>
+                        <highWaterMark>
+                            <duration>PT2S</duration>
+                        </highWaterMark>
                     </threshold>
                     <action>
                         <notification/>
@@ -37,20 +41,25 @@
                 <policyReaction>
                     <name>Second notification</name>
                     <threshold>
-                        <timeInterval>
-                            <interval>PT4S</interval>
-                        </timeInterval>
+                        <lowWaterMark>
+                            <duration>PT2S</duration>
+                        </lowWaterMark>
+                        <highWaterMark>
+                            <duration>PT4S</duration>
+                        </highWaterMark>
                     </threshold>
                     <action>
-                        <notification/>
+                        <notification>
+                            <single>true</single>
+                        </notification>
                     </action>
                 </policyReaction>
                 <policyReaction>
                     <name>Third notification and suspend</name>
                     <threshold>
-                        <timeInterval>
-                            <interval>PT6S</interval>
-                        </timeInterval>
+                        <lowWaterMark>
+                            <duration>PT4S</duration>
+                        </lowWaterMark>
                     </threshold>
                     <action>
                         <notification/>

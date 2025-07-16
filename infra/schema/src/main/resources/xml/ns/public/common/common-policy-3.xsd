@@ -1535,6 +1535,16 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element name="duration" type="xsd:duration" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Absolute duration that triggers the watermark (e.g., execution time).
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>WaterMarkType.duration</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
         </xsd:sequence>
     </xsd:complexType>
 

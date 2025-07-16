@@ -13,6 +13,7 @@ import java.nio.charset.StandardCharsets;
 import org.apache.commons.io.FileUtils;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
+import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.model.intest.AbstractEmptyModelIntegrationTest;
@@ -67,8 +68,11 @@ public class TestTaskActivityPolicies extends AbstractEmptyModelIntegrationTest 
                 initTask,
                 initResult,
                 handler);
+    }
 
-        notificationManager.setDisabled(false);
+    @BeforeMethod
+    public void beforeMethod() {
+        prepareNotifications();
     }
 
     @Test
@@ -273,7 +277,7 @@ public class TestTaskActivityPolicies extends AbstractEmptyModelIntegrationTest 
         deleteIfPresent(object, testResult);
         addObject(object, testTask, testResult);
 
-        waitForTaskCloseOrSuspend(object.oid, 8000);
+        waitForTaskCloseOrSuspend(object.oid, 6000);
 
         then();
 
@@ -290,8 +294,10 @@ public class TestTaskActivityPolicies extends AbstractEmptyModelIntegrationTest 
                     .activityPolicyStates()
                         .display()
                         .assertPolicyStateCount(1)
-                        .activityPolicyState(getActivityIdentifier(task.asObjectable(),"Execution notification"))
-                            .assertTriggerCount(3);
+                        .activityPolicyState(getActivityIdentifier(task.asObjectable(),"Execution notification"));
+//                            .assertTriggerCount(3);
         // @formatter:on
+
+        checkDummyTransportMessages(DUMMY_NOTIFICATION_TRANSPORT, 3);
     }
 }

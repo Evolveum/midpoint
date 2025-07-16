@@ -69,6 +69,7 @@ public class UpdateActivityPoliciesOperation {
     private @NotNull Collection<? extends ItemDelta<?, ?>> prepareModifications(TaskType task) throws SchemaException {
         updatedPolicies.clear();
 
+        // todo fix merging/storing activity policy states
         List<ItemDelta<?, ?>> deltas = new ArrayList<>();
         for (ActivityPolicyStateType policy : policies) {
             ActivityPolicyStateType current = getCurrentPolicyState(task, policy.getIdentifier());

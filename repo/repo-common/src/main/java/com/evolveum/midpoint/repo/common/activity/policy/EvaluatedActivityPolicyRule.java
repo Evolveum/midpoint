@@ -127,12 +127,10 @@ public class EvaluatedActivityPolicyRule implements EvaluatedPolicyRule, DebugDu
         return !triggers.isEmpty() || (currentState != null && !currentState.getTrigger().isEmpty());
     }
 
-    public boolean isEnforced() {
-        return enforced || (currentState != null && currentState.isEnforced());
-    }
-
-    public void enforced() {
-        enforced = true;
+    public boolean isReactionEnforced(String reactionIdentifier) {
+        return currentState != null
+                && currentState.getReaction().stream()
+                        .anyMatch(r -> reactionIdentifier.equals(r.getRef()) && r.isEnforced());
     }
 
     @Override

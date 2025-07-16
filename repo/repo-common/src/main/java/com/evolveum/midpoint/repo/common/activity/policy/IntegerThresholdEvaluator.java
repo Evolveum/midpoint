@@ -19,29 +19,31 @@ public class IntegerThresholdEvaluator implements ThresholdEvaluator {
             count = 0;
         }
 
-        WaterMarkType lowWaterMark = threshold.getLowWaterMark();
-        if (lowWaterMark == null || lowWaterMark.getCount() == null) {
-            return true;
+        Integer low = getWaterMarkValue(threshold.getLowWaterMark());
+        Integer high = getWaterMarkValue(threshold.getHighWaterMark());
+
+        if (low != null) {
+            if (count < low) {
+                return false; // below low water mark
+            }
         }
 
-        if (lowWaterMark.getCount() == null) {
-            return true;
+        if (high != null) {
+            if (count > high) {
+                return false; // above high water mark
+            }
         }
 
-        if (count < lowWaterMark.getCount()) {
-            return false;
-        }
-
-        WaterMarkType highWaterMark = threshold.getHighWaterMark();
-        if (highWaterMark == null || highWaterMark.getCount() == null) {
-            return true;
-        }
-
-        if (count > highWaterMark.getCount()) {
-            return false;
-        }
-
+        // either marks are not set, or the count is within the range
         return true;
+    }
+
+    private Integer getWaterMarkValue(WaterMarkType waterMark) {
+        if (waterMark == null || waterMark.getDuration() == null) {
+            return null;
+        }
+
+        return waterMark.getCount();
     }
 
     private Integer getCount(Object currentValue) {

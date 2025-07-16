@@ -2352,7 +2352,18 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:complexContent>
-            <xsd:extension base="tns:ActivityPolicyActionType" />
+            <xsd:extension base="tns:ActivityPolicyActionType">
+                <xsd:sequence>
+                    <!-- todo remove? is this useful? -->
+                    <xsd:element name="single" type="xsd:boolean"  minOccurs="0" default="false">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                If true, notification event is sent only the first time policy reaction is enforced.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                </xsd:sequence>
+            </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
 
@@ -8995,15 +9006,6 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="enforced" type="xsd:boolean" minOccurs="0">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        True if triggered policy was already enforced, e.g. policy actions were executed at least once.
-
-                        For example, to avoid sending multiple notifications for the same policy trigger.
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
             <xsd:element name="trigger" type="tns:EvaluatedActivityPolicyTriggerType" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -9042,8 +9044,18 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
+            <xsd:element name="ref" type="xsd:string" minOccurs="0"/>
             <xsd:element name="reactionName" type="xsd:string" minOccurs="0"/>
             <xsd:element name="message" type="tns:LocalizableMessageType" minOccurs="0"/>
+            <xsd:element name="enforced" type="xsd:boolean" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        True if triggered policy reaction was already enforced, e.g. actions were executed at least once.
+
+                        For example, to avoid sending multiple notifications for the same policy trigger.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
         </xsd:sequence>
     </xsd:complexType>
 
