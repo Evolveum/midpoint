@@ -103,6 +103,8 @@ public class StartupConfiguration implements MidpointConfiguration, EnvironmentA
 
     private final String configFilename;
 
+    private Environment environment;
+
     /**
      * Default constructor
      */
@@ -123,15 +125,7 @@ public class StartupConfiguration implements MidpointConfiguration, EnvironmentA
 
     @Override
     public void setEnvironment(@NotNull Environment environment) {
-        for (PropertySource<?> ps : ((AbstractEnvironment) environment).getPropertySources()) {
-            if (ps instanceof EnumerablePropertySource) {
-                for (String name : ((EnumerablePropertySource<?>) ps).getPropertyNames()) {
-                    if (name.startsWith("midpoint.")) {
-                        System.setProperty(name, Objects.requireNonNull(environment.getProperty(name)));
-                    }
-                }
-            }
-        }
+        this.environment = environment;
     }
 
     @Override
@@ -365,11 +359,24 @@ public class StartupConfiguration implements MidpointConfiguration, EnvironmentA
     private void applyEnvironmentProperties() {
         Properties properties = System.getProperties();
         properties.forEach((key, value) -> {
-            LOGGER.trace("Property {} = '{}'", key, valuePrintout(String.valueOf(key), value));
+            LOGGER.trace("System property {} = '{}'", key, valuePrintout(String.valueOf(key), value));
             if (key instanceof String && ((String) key).startsWith("midpoint.")) {
                 overrideProperty((String) key, value);
             }
         });
+        if (environment != null) {
+            for (PropertySource<?> ps : ((AbstractEnvironment) environment).getPropertySources()) {
+                if (ps instanceof EnumerablePropertySource) {
+                    for (String name : ((EnumerablePropertySource<?>) ps).getPropertyNames()) {
+                        if (name.startsWith("midpoint.")) {
+                            String value = environment.getProperty(name);
+                            LOGGER.trace("Environment property {} = '{}'", name, valuePrintout(name, value));
+                            overrideProperty(name, value);
+                        }
+                    }
+                }
+            }
+        }
     }
 
     private void overrideProperty(String key, Object value) {
