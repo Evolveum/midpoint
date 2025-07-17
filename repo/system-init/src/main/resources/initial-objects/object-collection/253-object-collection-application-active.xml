@@ -7,28 +7,28 @@
   -->
 
 <objectCollection xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-        xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
-        oid="00000000-0000-0000-0001-000000000357">
-    <name>Suspicious roles</name>
-    <documentation>(ISO27001/A.5.27,ISO27001/A.5.28,ISO27001/A.5.29,ISO27001/A.6.8)</documentation>
-    <type>RoleType</type>
+                  xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+                  oid="c4a07805-67c5-4b25-961e-e47b75a0b5a5">
+    <name>Active applications</name>
+    <type>ServiceType</type>
     <filter>
-        <q:text>effectiveMarkRef matches ( oid = "00000000-0000-0000-0000-000000000830" )</q:text>
+        <q:text>archetypeRef matches (oid = "00000000-0000-0000-0000-000000000329" and targetType = ArchetypeType) and activation/effectiveStatus = "enabled"</q:text>
     </filter>
     <domain>
+        <collectionRef oid="00000000-0000-0000-0001-000000000017" type="ObjectCollectionType"/>
     </domain>
     <defaultView>
         <display>
             <label>
-                <orig>Suspicious role</orig>
+                <orig>Active application</orig>
                 <translation>
-                    <key>suspiciousRole.label</key>
+                    <key>activeApplication.label</key>
                 </translation>
             </label>
             <pluralLabel>
-                <orig>Suspicious roles</orig>
+                <orig>Active applications</orig>
                 <translation>
-                    <key>suspiciousRole.pluralLabel</key>
+                    <key>activeApplication.pluralLabel</key>
                 </translation>
             </pluralLabel>
         </display>

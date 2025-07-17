@@ -1,0 +1,51 @@
+<!--
+  ~ Copyright (c) 2024-2025 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+<archetype oid="89a34123-1db7-4fc1-a053-6c42b82ef2ab"
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-3">
+    <name>Project</name>
+    <description>Archetype for projects.</description>
+    <documentation>(ISO27001/A.5.8,ISO27001/A.5.15,ISO27001/A.5.16)</documentation>
+    <archetypePolicy>
+        <display>
+            <label>
+                <orig>Project</orig>
+                <translation>
+                    <key>project.label</key>
+                </translation>
+            </label>
+            <pluralLabel>
+                <orig>Projects</orig>
+                <translation>
+                    <key>project.pluralLabel</key>
+                </translation>
+            </pluralLabel>
+            <icon>
+                <cssClass>fa fa-chart-gantt</cssClass>
+                <color>#ffc107</color>
+            </icon>
+        </display>
+    </archetypePolicy>
+    <assignment id="1">
+        <identifier>holderType</identifier>
+        <description>This archetype can be applied to orgs (OrgType).</description>
+        <assignmentRelation id="2">
+            <holderType>OrgType</holderType>
+        </assignmentRelation>
+    </assignment>
+    <inducement id="3">
+        <identifier>membership</identifier>
+        <description>Projects are flat (no sub-teams), have members and manager. May have owner (sponsor).</description>
+        <assignmentRelation id="4">
+            <description>User can be direct member of project, as well as manager and owner.</description>
+            <holderType>UserType</holderType>
+            <relation>org:default</relation>
+            <relation>org:manager</relation>
+            <relation>org:owner</relation>
+        </assignmentRelation>
+    </inducement>
+</archetype>

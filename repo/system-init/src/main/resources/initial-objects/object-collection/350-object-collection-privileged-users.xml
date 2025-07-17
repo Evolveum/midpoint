@@ -6,32 +6,32 @@
   ~ and European Union Public License. See LICENSE file for details.
   -->
 
-<objectCollection oid="00000000-0000-0000-0001-000000000354"
-        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-        xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
-        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
-    <name>Privileged roles</name>
+<objectCollection oid="f968f2ca-1c61-421c-b3d9-6925a8f31983"
+                  xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+                  xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+                  xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+    <name>Privileged users</name>
     <documentation>(ISO27001/A.5.15,ISO27001/A.5.18,ISO27001/A.8.2)</documentation>
-    <type>RoleType</type>
+    <type>UserType</type>
     <filter>
         <q:text>effectiveMarkRef matches ( oid = "c58394cd-c883-4e41-927c-f90a7c7a0c97" )</q:text>
     </filter>
     <defaultView>
         <display>
             <label>
-                <orig>Privileged role</orig>
+                <orig>Privileged user</orig>
                 <translation>
-                    <key>privilegedRole.label</key>
+                    <key>privilegedUser.label</key>
                 </translation>
             </label>
             <pluralLabel>
-                <orig>Privileged roles</orig>
+                <orig>Privileged users</orig>
                 <translation>
-                    <key>privilegedRole.pluralLabel</key>
+                    <key>privilegedUser.pluralLabel</key>
                 </translation>
             </pluralLabel>
             <icon>
-                <cssClass>fe fe-role</cssClass>
+                <cssClass>fa fa-user</cssClass>
                 <color>red</color>
             </icon>
         </display>

@@ -1,5 +1,5 @@
 <!--
-  ~ Copyright (c) 2024 Evolveum and contributors
+  ~ Copyright (c) 2024-2025 Evolveum and contributors
   ~
   ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
@@ -8,6 +8,7 @@
         xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
     <name>Classification</name>
     <description>Archetype for information classifications (labels, levels, compartments).</description>
+    <documentation>(ISO27001/A.5.12,ISO27001/A.5.13)</documentation>
     <archetypePolicy>
         <display>
             <label>

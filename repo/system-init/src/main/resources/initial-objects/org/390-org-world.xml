@@ -1,0 +1,19 @@
+<!--
+  ~ Copyright (c) 2024-2025 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+<org oid="1d0ce5fc-cf45-4c0f-b1d6-781476242a6e"
+     xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+     xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-3">
+    <name>World</name>
+    <description>Root object of all locations, representing the "world". All other locations are part of this location.</description>
+    <documentation>(ISO27001/A.5.14,ISO27001/A.5.15,ISO27001/A.5.16,ISO27001/A.7.1,ISO27001/A.7.2,ISO27001/A.7.3,ISO27001/A.7.4,ISO27001/A.7.9,ISO27001/A.8.3)</documentation>
+    <indestructible>true</indestructible>
+    <displayOrder>400</displayOrder>
+    <assignment id="1">
+        <identifier>archetype</identifier>
+        <targetRef oid="54b098b4-f6dc-44dd-8a05-ffd6c2f2c5b5" type="ArchetypeType"/>
+    </assignment>
+</org>

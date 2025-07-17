@@ -1,20 +1,36 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (c) 2010-2024 Evolveum and contributors
+  ~ Copyright (c) 2010-2025 Evolveum and contributors
   ~
   ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
 
 <objectCollection xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-                  xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
-                  xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-                  oid="00000000-0000-0000-0001-000000000358">
+        xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+        oid="00000000-0000-0000-0001-000000000358">
     <name>Suspicious users</name>
+    <documentation>(ISO27001/A.5.27,ISO27001/A.5.28,ISO27001/A.5.29,ISO27001/A.6.8)</documentation>
     <type>UserType</type>
     <filter>
         <q:text>effectiveMarkRef matches ( oid = "00000000-0000-0000-0000-000000000830" )</q:text>
     </filter>
     <domain>
     </domain>
+    <defaultView>
+        <display>
+            <label>
+                <orig>Suspicious user</orig>
+                <translation>
+                    <key>suspiciousUser.label</key>
+                </translation>
+            </label>
+            <pluralLabel>
+                <orig>Suspicious users</orig>
+                <translation>
+                    <key>suspiciousUser.pluralLabel</key>
+                </translation>
+            </pluralLabel>
+        </display>
+    </defaultView>
 </objectCollection>
