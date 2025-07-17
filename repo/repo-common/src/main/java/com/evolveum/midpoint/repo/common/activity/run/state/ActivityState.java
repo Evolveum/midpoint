@@ -7,15 +7,28 @@
 
 package com.evolveum.midpoint.repo.common.activity.run.state;
 
+import static com.evolveum.midpoint.prism.Referencable.getOid;
+import static com.evolveum.midpoint.schema.result.OperationResultStatus.FATAL_ERROR;
+import static com.evolveum.midpoint.schema.util.task.ActivityStateUtil.isLocal;
+import static com.evolveum.midpoint.task.api.TaskRunResult.TaskRunResultStatus.PERMANENT_ERROR;
+import static com.evolveum.midpoint.util.MiscUtil.*;
+
+import java.util.*;
+import javax.xml.datatype.XMLGregorianCalendar;
+import javax.xml.namespace.QName;
+
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
 import com.evolveum.midpoint.prism.ComplexTypeDefinition;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.repo.common.activity.run.ActivityRunException;
+import com.evolveum.midpoint.repo.common.activity.run.CommonTaskBeans;
 import com.evolveum.midpoint.repo.common.activity.run.UpdateActivityPoliciesOperation;
 import com.evolveum.midpoint.repo.common.activity.run.state.counters.CountersIncrementOperation;
-import com.evolveum.midpoint.repo.common.activity.run.CommonTaskBeans;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
@@ -34,20 +47,6 @@ import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import javax.xml.datatype.XMLGregorianCalendar;
-import javax.xml.namespace.QName;
-import java.util.*;
-import java.util.Objects;
-
-import static com.evolveum.midpoint.prism.Referencable.getOid;
-import static com.evolveum.midpoint.schema.result.OperationResultStatus.FATAL_ERROR;
-import static com.evolveum.midpoint.schema.util.task.ActivityStateUtil.isLocal;
-import static com.evolveum.midpoint.task.api.TaskRunResult.TaskRunResultStatus.PERMANENT_ERROR;
-import static com.evolveum.midpoint.util.MiscUtil.*;
 
 public abstract class ActivityState implements DebugDumpable {
 
@@ -176,9 +175,9 @@ public abstract class ActivityState implements DebugDumpable {
     /**
      * DO NOT use for setting work state items because of dynamic typing of the work state container value.
      */
-     public void addDeleteItemRealValues(@NotNull ItemPath path, @NotNull Collection<?> valuesToAdd,
-             @NotNull Collection<?> valuesToDelete)
-             throws ActivityRunException {
+    public void addDeleteItemRealValues(@NotNull ItemPath path, @NotNull Collection<?> valuesToAdd,
+            @NotNull Collection<?> valuesToDelete)
+            throws ActivityRunException {
         Task task = getTask();
         LOGGER.trace("addDeleteItemRealValues: path={}, valuesToAdd={}, valuesToDelete={} in {}",
                 path, valuesToAdd, valuesToDelete, task);
@@ -467,7 +466,6 @@ public abstract class ActivityState implements DebugDumpable {
      *
      * @param fresh true if we always need to load the parent task from repository; false if we can use
      * cached version (created when the running task started)
-     *
      * @param result Can be null if we are 100% sure it will not be used.
      */
     public @NotNull ActivityState getCurrentActivityStateInParentTask(boolean fresh, @NotNull QName workStateTypeName,
@@ -566,9 +564,9 @@ public abstract class ActivityState implements DebugDumpable {
         beans.plainRepositoryService.modifyObjectDynamically(
                 TaskType.class, getTask().getOid(), null,
                 task -> PrismContext.get().deltaFor(TaskType.class)
-                            .item(counterGroupItemPath)
-                            .replace(List.of())
-                            .asItemDeltas(), null, result);
+                        .item(counterGroupItemPath)
+                        .replace(List.of())
+                        .asItemDeltas(), null, result);
     }
     //endregion
 
@@ -591,9 +589,9 @@ public abstract class ActivityState implements DebugDumpable {
     // todo make it cleaner, move to custom operation class together with preparation/store
     //  of new execution attempt (history) for state+overview/tree
     public void incrementExecutionAttempt(@NotNull OperationResult result)
-        throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException {
-            beans.plainRepositoryService.modifyObjectDynamically(
-                    TaskType.class, getTask().getOid(), null, this::prepareModifications, null, result);
+            throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException {
+        beans.plainRepositoryService.modifyObjectDynamically(
+                TaskType.class, getTask().getOid(), null, this::prepareModifications, null, result);
         // todo implement increment execution attempt + store previous execution in activity execution (also tree?)
     }
 

@@ -8,7 +8,15 @@
 package com.evolveum.midpoint.model.intest.tasks;
 
 import java.io.File;
+import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.util.concurrent.Callable;
+import java.util.function.Consumer;
+import java.util.function.Supplier;
+
+import com.evolveum.midpoint.test.asserter.ActivityStateAsserter;
+import com.evolveum.midpoint.util.Producer;
+import com.evolveum.midpoint.util.exception.*;
 
 import org.apache.commons.io.FileUtils;
 import org.springframework.test.annotation.DirtiesContext;
@@ -50,6 +58,9 @@ public class TestTaskActivityPolicies extends AbstractEmptyModelIntegrationTest 
     private static final TestObject<TaskType> TASK_EXECUTION_TIME_NOTIFICAITON =
             TestObject.file(TEST_DIR, "task-execution-time-notification.xml", "38d0f53c-5e01-44dc-8d6a-439e0153b4d8");
 
+    private static final TestObject<TaskType> TASK_SKIP_RESTART =
+            TestObject.file(TEST_DIR, "task-skip-restart.xml", "cceeb264-3f9f-4cfd-9f6b-de51c1e63f01");
+
     private static final String DUMMY_NOTIFICATION_TRANSPORT = "activityPolicyRuleNotifier";
 
     @Override
@@ -86,7 +97,56 @@ public class TestTaskActivityPolicies extends AbstractEmptyModelIntegrationTest 
     }
 
     @Test
-    public void test200TestComplexSkip() throws Exception {
+    public void test170SkipRestart() throws Exception {
+        // can use waitFor* methods because the task will be suspended for some time (and restarted)
+        TaskAsserter<TaskAsserter> asserter = submitTestTask(TASK_SKIP_RESTART, () -> Thread.sleep(10000));
+
+        // @formatter:off
+        asserter//.assertSuspended()
+                //.assertFatalError()
+                .activityState(ActivityPath.empty())
+                    .display()
+                    .assertExecutionAttempts(2)
+                    .assertFatalError()
+                    .end()
+                .activityState(ActivityPath.fromId("activity to be skipped"))
+                    .display()
+                    .assertFatalError()
+                    .assertExecutionAttempts(1)
+                .end()
+                .activityState(ActivityPath.fromId("activity to be restarted"))
+                    .display()
+                    .assertComplete()
+                    .assertSuccess()
+                    .assertExecutionAttempts(2)
+                    .progress()
+                        .assertSuccessCount(0, 6)
+                        .display()
+                        .end()
+                    .itemProcessingStatistics()
+                        .display()
+                        .end();
+        // @formatter:on
+    }
+
+    private TaskAsserter submitTestTask(TestObject<TaskType> object, ThrowableRunnable waitFunction) throws Exception {
+        Task testTask = getTestTask();
+        OperationResult testResult = testTask.getResult();
+
+        object.reset();
+
+        when();
+
+        deleteIfPresent(object, testResult);
+        addObject(object, getTestTask(), testResult);
+
+        waitFunction.run();
+
+        return assertTask(object.oid, "after");
+    }
+
+    @Test
+    public void test200TestComposite() throws Exception {
         Task testTask = getTestTask();
         OperationResult testResult = testTask.getResult();
 
@@ -96,31 +156,19 @@ public class TestTaskActivityPolicies extends AbstractEmptyModelIntegrationTest 
         when();
 
         deleteIfPresent(object, testResult);
-        addObject(object, getTestTask(), testResult, t -> {
+        addObject(object, getTestTask(), testResult);
 
-//            if (threads > 0) {
-//                rootActivityWorkerThreadsCustomizer(threads).accept(t);
-//            }
-        });
+        waitForTaskCloseOrSuspend(object.oid, 10000);
 
-//        waitForTaskFinish(task.oid, 15000);
-        Thread.sleep(15000L);
+        PrismObject<TaskType> task = getObject(TaskType.class, object.oid);
 
-        var options = schemaService.getOperationOptionsBuilder()
-                .item(TaskType.F_RESULT).retrieve()
-                .item(TaskType.F_SUBTASK_REF).retrieve()
-                .build();
-        PrismObject<TaskType> task = taskManager.getObject(TaskType.class, object.oid, options, getTestOperationResult());
-        File file = new File("./target/test-activity-composite.xml");
-        if (!file.exists()) {
-            file.createNewFile();
-        }
-        FileUtils.write(file, PrismTestUtil.serializeToXml(task.asObjectable()), StandardCharsets.UTF_8, false);
-
-        TaskAsserter ta = TaskAsserter.forTask(task);
+        // @formatter:off
+        TaskAsserter ta = assertTask(object.oid, "after");
         ta.assertSuspended()
                 .activityState(ActivityPath.fromId("activity to be skipped"))
                 .assertFatalError();
+
+        // @formatter:on
     }
 
     private void testTask(TestObject<TaskType> task, int threads) throws Exception {
@@ -299,5 +347,10 @@ public class TestTaskActivityPolicies extends AbstractEmptyModelIntegrationTest 
         // @formatter:on
 
         checkDummyTransportMessages(DUMMY_NOTIFICATION_TRANSPORT, 3);
+    }
+
+    private interface ThrowableRunnable {
+
+        void run() throws Exception;
     }
 }

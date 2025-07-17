@@ -1,0 +1,75 @@
+<!--
+  ~ Copyright (C) 2010-2025 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<task xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        oid="cceeb264-3f9f-4cfd-9f6b-de51c1e63f01">
+    <name>Skip restart noop</name>
+    <ownerRef oid="00000000-0000-0000-0000-000000000002" type="UserType"/>
+    <executionState>runnable</executionState>
+    <activity>
+        <composition>
+            <activity>
+                <identifier>activity to be skipped</identifier>
+                <work>
+                    <noOp>
+                        <steps>6</steps>
+                        <delay>500</delay>
+                    </noOp>
+                </work>
+                <policies>
+                    <policy>
+                        <name>Max. 1s execution</name>
+                        <policyConstraints>
+                            <executionTime/>
+                        </policyConstraints>
+                        <policyReaction>
+                            <name>skip activity</name>
+                            <threshold>
+                                <lowWaterMark>
+                                    <duration>PT1S</duration>
+                                </lowWaterMark>
+                            </threshold>
+                            <action>
+                                <skipActivity/>
+                            </action>
+                        </policyReaction>
+                    </policy>
+                </policies>
+            </activity>
+            <activity>
+                <identifier>activity to be restarted</identifier>
+                <work>
+                    <noOp>
+                        <steps>6</steps>
+                        <delay>500</delay>
+                    </noOp>
+                </work>
+                <policies>
+                    <policy>
+                        <name>1s execution</name>
+                        <policyConstraints>
+                            <executionTime>
+                                <exceeds>PT1S</exceeds>
+                            </executionTime>
+                            <restartActivity>
+                                <below>1</below>
+                            </restartActivity>
+                        </policyConstraints>
+                        <policyReaction>
+                            <name>restart activity</name>
+                            <action>
+                                <restartActivity>
+                                    <delay>1000</delay>
+                                </restartActivity>
+                            </action>
+                        </policyReaction>
+                    </policy>
+                </policies>
+            </activity>
+        </composition>
+    </activity>
+</task>

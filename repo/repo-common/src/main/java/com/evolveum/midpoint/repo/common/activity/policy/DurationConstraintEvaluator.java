@@ -21,10 +21,10 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.DurationThresholdPolicyConstraintType;
 
-public abstract class DurationThresholdConstraintEvaluator<C extends DurationThresholdPolicyConstraintType>
+public abstract class DurationConstraintEvaluator<C extends DurationThresholdPolicyConstraintType>
         implements ActivityPolicyConstraintEvaluator<C, DurationThresholdPolicyTrigger<C>> {
 
-    private static final Trace LOGGER = TraceManager.getTrace(DurationThresholdConstraintEvaluator.class);
+    private static final Trace LOGGER = TraceManager.getTrace(DurationConstraintEvaluator.class);
 
     public enum ThresholdType {
         BELOW, EXCEEDS
@@ -61,7 +61,7 @@ public abstract class DurationThresholdConstraintEvaluator<C extends DurationThr
         Long valueMs = durationToMillis(value, now);
 
         Long belowMs = durationToMillis(constraint.getBelow(), now);
-        if (belowMs != null && context.getActivityRun().getActivityState().isComplete() && valueMs < belowMs) {
+        if (belowMs != null && valueMs < belowMs) {
             LOGGER.trace("Duration value {} is below the threshold of constraint {}, creating trigger", value, constraint.getName());
 
             LocalizableMessage message = createMessage(constraint.getName(), value, constraint.getBelow(), ThresholdType.BELOW);

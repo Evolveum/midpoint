@@ -120,7 +120,7 @@ public class CurrentActivityState<WS extends AbstractActivityWorkStateType>
         }
         try {
             stateItemPath = findOrCreateActivityState(result);
-            updatePersistenceAndExecutionAttempt(result);
+            updatePersistenceType(result);
             if (activityRun.shouldCreateWorkStateOnInitialization()) {
                 createWorkStateIfNeeded(result);
             }
@@ -237,23 +237,14 @@ public class CurrentActivityState<WS extends AbstractActivityWorkStateType>
         LOGGER.debug("Work state created in {} in {}", stateItemPath, task);
     }
 
-    private void updatePersistenceAndExecutionAttempt(OperationResult result) throws ActivityRunException {
+    private void updatePersistenceType(OperationResult result) throws ActivityRunException {
         ActivityStatePersistenceType storedValue =
                 getPropertyRealValue(ActivityStateType.F_PERSISTENCE, ActivityStatePersistenceType.class);
         ActivityStatePersistenceType requiredValue = activityStateDefinition.getPersistence();
         if (requiredValue != storedValue) {
             setItemRealValues(ActivityStateType.F_PERSISTENCE, requiredValue);
+            flushPendingTaskModificationsChecked(result);
         }
-
-        Integer executionAttempt = getPropertyRealValue(ActivityStateType.F_EXECUTION_ATTEMPT, Integer.class);
-        if (executionAttempt == null) {
-            executionAttempt = 0;
-        }
-
-        executionAttempt++;
-
-        setItemRealValues(ActivityStateType.F_EXECUTION_ATTEMPT, executionAttempt);
-        flushPendingTaskModificationsChecked(result);
     }
 
     /** Closes the activity state. Currently, this means closing the reports. */
@@ -283,6 +274,12 @@ public class CurrentActivityState<WS extends AbstractActivityWorkStateType>
     public void recordRealizationStart(XMLGregorianCalendar startTimestamp) throws ActivityRunException {
         setRealizationStartTimestamp(startTimestamp);
         setRealizationEndTimestamp(null);
+    }
+
+    public void markSkipped(OperationResultStatus resultStatus, Long endTimestamp) throws ActivityRunException {
+        setRealizationState(COMPLETE);  // todo maybe custom realization state for skipped
+        setRealizationEndTimestamp(endTimestamp);
+        setResultStatus(resultStatus);
     }
 
     public void markComplete(OperationResultStatus resultStatus, Long endTimestamp) throws ActivityRunException {

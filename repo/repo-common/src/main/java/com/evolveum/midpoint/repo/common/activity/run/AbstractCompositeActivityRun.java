@@ -155,7 +155,7 @@ public abstract class AbstractCompositeActivityRun<
         } else if (childRunResult.isHaltingError()) {
             runResult.setRunResultStatus(HALTING_ERROR, childRunResult.getThrowable());
         } else if (childRunResult.isSkipActivityError()) {
-            runResult.setRunResultStatus(SKIP_ACTIVITY_ERROR, childRunResult.getThrowable());
+            // do nothing for skip activity error, since we want to continue with the next activity
         } else if (childRunResult.isRestartActivityError()) {
             runResult.setRunResultStatus(RESTART_ACTIVITY_ERROR, childRunResult.getThrowable());
         } else if (childRunResult.isWaiting()) {

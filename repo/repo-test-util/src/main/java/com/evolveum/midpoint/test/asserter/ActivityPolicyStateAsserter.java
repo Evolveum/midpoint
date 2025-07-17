@@ -45,6 +45,16 @@ public class ActivityPolicyStateAsserter<RA> extends AbstractAsserter<RA> {
         return this;
     }
 
+    public ActivityPolicyStateAsserter<RA> assertReactionCount(int expectedCount) {
+        List<EvaluatedActivityPolicyReactionType> reactions = state.getReaction();
+
+        Assertions.assertThat(reactions)
+                .withFailMessage("Expected %d reactions, but found %d: %s", expectedCount, reactions.size(), reactions)
+                .hasSize(expectedCount);
+
+        return this;
+    }
+
     public static ActivityPolicyType forName(@NotNull ActivityDefinitionType activityDef, String name) {
         ActivityPoliciesType policies = activityDef.getPolicies();
 

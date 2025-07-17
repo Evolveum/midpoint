@@ -21,7 +21,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.DurationThresholdPol
 
 @Component
 public class ExecutionTimeConstraintEvaluator
-        extends DurationThresholdConstraintEvaluator<DurationThresholdPolicyConstraintType> {
+        extends DurationConstraintEvaluator<DurationThresholdPolicyConstraintType> {
 
     @Override
     protected Duration getDurationValue(ActivityPolicyRuleEvaluationContext context) {

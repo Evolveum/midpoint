@@ -12,14 +12,13 @@ import static java.util.Objects.requireNonNull;
 import static com.evolveum.midpoint.repo.common.activity.run.state.ActivityProgress.Counters.COMMITTED;
 import static com.evolveum.midpoint.repo.common.activity.run.state.ActivityProgress.Counters.UNCOMMITTED;
 import static com.evolveum.midpoint.schema.result.OperationResultStatus.FATAL_ERROR;
-import static com.evolveum.midpoint.task.api.TaskRunResult.TaskRunResultStatus.*;
+import static com.evolveum.midpoint.task.api.TaskRunResult.TaskRunResultStatus.FINISHED;
+import static com.evolveum.midpoint.task.api.TaskRunResult.TaskRunResultStatus.PERMANENT_ERROR;
 import static com.evolveum.midpoint.util.MiscUtil.emptyIfNull;
 import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
 
 import java.util.Collection;
 import java.util.Map;
-
-import com.evolveum.midpoint.task.api.PolicyViolationContext;
 
 import org.apache.commons.lang3.BooleanUtils;
 import org.jetbrains.annotations.NotNull;
@@ -47,10 +46,14 @@ import com.evolveum.midpoint.schema.statistics.IterativeOperationStartInfo;
 import com.evolveum.midpoint.schema.statistics.Operation;
 import com.evolveum.midpoint.schema.util.task.ActivityPath;
 import com.evolveum.midpoint.task.api.ExecutionSupport;
+import com.evolveum.midpoint.task.api.PolicyViolationContext;
 import com.evolveum.midpoint.task.api.RunningTask;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
-import com.evolveum.midpoint.util.exception.*;
+import com.evolveum.midpoint.util.exception.CommonException;
+import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
+import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -223,6 +226,12 @@ public abstract class AbstractActivityRun<
             return ActivityRunResult.finished(activityState.getResultStatus());
         }
 
+        try {
+            activityState.incrementExecutionAttempt(result);
+        } catch (SchemaException | ObjectNotFoundException | ObjectAlreadyExistsException e) {
+            throw new ActivityRunException("Couldn't increment execution attempt", FATAL_ERROR, PERMANENT_ERROR, e);
+        }
+
         ActivityPolicyRulesProcessor processor = new ActivityPolicyRulesProcessor(this);
         processor.collectRules();
 
@@ -240,16 +249,6 @@ public abstract class AbstractActivityRun<
             // TODO Is this really called only once on activity completion? Not sure about distributed/delegated ones.
             onActivityRealizationComplete(result);
             sendActivityRealizationCompleteEvent(result);
-
-            try {
-                processor.evaluateAndEnforceRules(null, result);
-            } catch (ThresholdPolicyViolationException e) {
-                throw new ActivityRunException(
-                        "Threshold policy violation", FATAL_ERROR, PERMANENT_ERROR, e);
-            } catch (CommonException e) {
-                throw new ActivityRunException(
-                        "Couldn't evaluate and enforce activity policy rules", FATAL_ERROR, PERMANENT_ERROR, e);
-            }
         }
 
         return runResult;
@@ -331,6 +330,8 @@ public abstract class AbstractActivityRun<
             // states, along with the timestamp, are written in subclasses. The "complete" state, along with the timestamp,
             // is written here.
             activityState.markComplete(currentResultStatus, endTimestamp);
+        } else if (runResult.isSkipActivityError()) {
+            activityState.markSkipped(currentResultStatus, endTimestamp);
         } else if (currentResultStatus != null && currentResultStatus != activityState.getResultStatus()) {
             activityState.setResultStatus(currentResultStatus);
         }
@@ -342,11 +343,11 @@ public abstract class AbstractActivityRun<
             if (action != null && BooleanUtils.isTrue(action.isRestartCounters())) {
                 try {
                     activityState.clearCounters(CountersGroup.ACTIVITY_POLICY_RULES, result);
-                } catch (SchemaException |  ObjectNotFoundException | ObjectAlreadyExistsException e) {
-                    throw new RuntimeException(e);
+                } catch (SchemaException | ObjectNotFoundException | ObjectAlreadyExistsException e) {
+                    throw new ActivityRunException("Couldn't cleanup counters", FATAL_ERROR, PERMANENT_ERROR, e);
                 }
             }
-            // todo cleanup
+            // todo cleanup of activity state?
         }
 
         try {
