@@ -61,7 +61,7 @@ The policy can be applied by assigning the policy to the archetype:
         <identifier>policy-require-owner</identifier>
         ...
     </inducement>
-</archetype>
+</policy>
 ----
 
 Inducement in the `Require owner` policy contains a policy rule, that sets `Unowned` mark when the affected object does not have an owner.
