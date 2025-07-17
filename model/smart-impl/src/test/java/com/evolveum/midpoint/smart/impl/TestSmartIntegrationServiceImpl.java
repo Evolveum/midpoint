@@ -10,32 +10,27 @@ package com.evolveum.midpoint.smart.impl;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import static com.evolveum.midpoint.schema.constants.SchemaConstants.ICFS_NAME;
-import static com.evolveum.midpoint.schema.constants.SchemaConstants.NS_RI;
 import static com.evolveum.midpoint.test.util.MidPointTestConstants.TEST_RESOURCES_DIR;
 
 import java.io.File;
-import javax.xml.namespace.QName;
 
-import org.springframework.beans.factory.annotation.Autowired;
+import com.evolveum.midpoint.model.test.smart.MockServiceClientImpl;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SiSuggestObjectTypesResponseType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SiSuggestedObjectTypeType;
+
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Test;
 
-import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
-import com.evolveum.midpoint.model.test.AbstractModelIntegrationTest;
 import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.schema.internals.InternalsConfig;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.Resource;
 import com.evolveum.midpoint.smart.impl.activities.StatisticsComputer;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.DummyTestResource;
-import com.evolveum.midpoint.test.TestObject;
 import com.evolveum.midpoint.util.exception.CommonException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAttributeStatisticsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowObjectClassStatisticsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 /**
  * Unit tests for the Smart Integration Service implementation.
@@ -44,21 +39,9 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
  */
 @ContextConfiguration(locations = { "classpath:ctx-smart-integration-test-main.xml" })
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
-public class TestSmartIntegrationServiceImpl extends AbstractModelIntegrationTest {
+public class TestSmartIntegrationServiceImpl extends AbstractSmartIntegrationTest {
 
-    private static final File TEST_DIR = TEST_RESOURCES_DIR;
-
-    public static final File SYSTEM_CONFIGURATION_FILE = new File(TEST_DIR, "system-configuration.xml");
-
-    private static final TestObject<UserType> USER_ADMINISTRATOR = TestObject.file(
-            TEST_DIR, "user-administrator.xml", "00000000-0000-0000-0000-000000000002");
-    private static final TestObject<RoleType> ROLE_SUPERUSER = TestObject.file(
-            TEST_DIR, "role-superuser.xml", "00000000-0000-0000-0000-000000000004");
-
-    static final QName OC_ACCOUNT_QNAME = new QName(NS_RI, "account");
-
-    /** Using the implementation in order to set mock service client for testing. */
-    @Autowired private SmartIntegrationServiceImpl smartIntegrationService;
+    private static final File TEST_DIR = new File(TEST_RESOURCES_DIR, "smart");
 
     private static DummyScenario dummyScenario;
 
@@ -71,23 +54,8 @@ public class TestSmartIntegrationServiceImpl extends AbstractModelIntegrationTes
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
         super.initSystem(initTask, initResult);
 
-        // We want logging config from logback-test.xml and not from system config object (unless suppressed)
-        InternalsConfig.setAvoidLoggingChange(isAvoidLoggingChange());
-
-        repoAddObjectFromFile(SYSTEM_CONFIGURATION_FILE, initResult);
-        repoAdd(USER_ADMINISTRATOR, initResult);
-        repoAdd(ROLE_SUPERUSER, initResult);
-
-        modelService.postInit(initResult);
-        login(USER_ADMINISTRATOR.getNameOrig());
-
         initAndTestDummyResource(RESOURCE_DUMMY_FOR_SUGGEST_OBJECT_TYPES, initTask, initResult);
         createDummyAccounts();
-
-        if (System.getProperty(MidpointConfiguration.SMART_INTEGRATION_SERVICE_URL_OVERRIDE) == null) {
-            // For tests without a real service, we have to use a mock service client.
-            smartIntegrationService.setServiceClientSupplier(MockServiceClientImpl::new);
-        }
     }
 
     private void createDummyAccounts() throws Exception {
@@ -108,6 +76,17 @@ public class TestSmartIntegrationServiceImpl extends AbstractModelIntegrationTes
     /** Calls the remote service directly. */
     @Test
     public void test100SuggestObjectTypes() throws CommonException {
+        if (DefaultServiceClientImpl.hasServiceUrlOverride()) {
+            // We'll go with the real service client. Hence, this test will not check the actual response; only in rough contours.
+        } else {
+            smartIntegrationService.setServiceClientSupplier(
+                    () -> new MockServiceClientImpl<>(
+                            new SiSuggestObjectTypesResponseType()
+                                    .objectType(new SiSuggestedObjectTypeType()
+                                            .kind("account")
+                                            .intent("default"))));
+        }
+
         var task = getTestTask();
         var result = task.getResult();
 

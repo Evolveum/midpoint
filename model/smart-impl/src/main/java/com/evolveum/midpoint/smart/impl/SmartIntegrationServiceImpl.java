@@ -7,41 +7,40 @@
 
 package com.evolveum.midpoint.smart.impl;
 
+import java.util.Collection;
+import java.util.Objects;
+import java.util.function.Supplier;
 import javax.xml.datatype.Duration;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.common.Clock;
-import com.evolveum.midpoint.model.api.ActivitySubmissionOptions;
-import com.evolveum.midpoint.model.impl.controller.ModelInteractionServiceImpl;
-import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
-import com.evolveum.midpoint.repo.common.activity.TaskActivityManager;
-import com.evolveum.midpoint.repo.common.activity.run.CommonTaskBeans;
-import com.evolveum.midpoint.repo.common.activity.run.state.ActivityState;
-import com.evolveum.midpoint.schema.result.OperationResultStatus;
-import com.evolveum.midpoint.schema.util.task.ActivityPath;
-import com.evolveum.midpoint.task.api.TaskManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.smart.api.ServiceClient;
 
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.TestOnly;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import com.evolveum.midpoint.model.api.ActivitySubmissionOptions;
 import com.evolveum.midpoint.model.api.ModelService;
+import com.evolveum.midpoint.model.impl.controller.ModelInteractionServiceImpl;
+import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.repo.common.SystemObjectCache;
+import com.evolveum.midpoint.repo.common.activity.TaskActivityManager;
+import com.evolveum.midpoint.repo.common.activity.run.CommonTaskBeans;
+import com.evolveum.midpoint.repo.common.activity.run.state.ActivityState;
 import com.evolveum.midpoint.schema.processor.ResourceObjectTypeIdentification;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.Resource;
 import com.evolveum.midpoint.schema.util.SystemConfigurationTypeUtil;
+import com.evolveum.midpoint.schema.util.task.ActivityPath;
 import com.evolveum.midpoint.smart.api.SmartIntegrationService;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-
-import java.util.Collection;
-import java.util.Objects;
-import java.util.function.Supplier;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 @Service
 public class SmartIntegrationServiceImpl implements SmartIntegrationService {
@@ -66,7 +65,6 @@ public class SmartIntegrationServiceImpl implements SmartIntegrationService {
     @Autowired private SystemObjectCache systemObjectCache;
     @Autowired private ModelService modelService;
     @Autowired private ModelInteractionServiceImpl modelInteractionService;
-    @Autowired private Clock clock;
     @Autowired private TaskManager taskManager;
     @Autowired private TaskActivityManager activityManager;
 
@@ -152,13 +150,11 @@ public class SmartIntegrationServiceImpl implements SmartIntegrationService {
                 .build();
         try {
             LOGGER.debug("Suggesting object types for resourceOid {}, objectClassName {}", resourceOid, objectClassName);
+            var resource = modelService.getObject(ResourceType.class, resourceOid, null, task, result);
+            var resourceSchema = Resource.of(resource).getCompleteSchemaRequired();
+            var objectClassDef = resourceSchema.findObjectClassDefinitionRequired(objectClassName);
             try (var serviceClient = getServiceClient(result)) {
-                var resource = modelService.getObject(ResourceType.class, resourceOid, null, task, result);
-                var resourceSchema = Resource.of(resource).getCompleteSchemaRequired();
-                var objectClassDef = resourceSchema.findObjectClassDefinitionRequired(objectClassName);
-                var objectTypes = serviceClient.suggestObjectTypes(objectClassDef, statistics, resourceSchema, task, result);
-                LOGGER.debug("Suggested object types: {}", objectTypes);
-                return objectTypes;
+                return ServiceAdapter.create(serviceClient).suggestObjectTypes(objectClassDef, statistics, resourceSchema);
             }
         } catch (Throwable t) {
             result.recordException(t);
@@ -185,8 +181,8 @@ public class SmartIntegrationServiceImpl implements SmartIntegrationService {
                 var resourceSchema = Resource.of(resource).getCompleteSchemaRequired();
                 var objectTypeDef = resourceSchema.getObjectTypeDefinitionRequired(typeIdentification);
                 var objectClassDef = resourceSchema.findObjectClassDefinitionRequired(objectTypeDef.getObjectClassName());
-                var type = serviceClient.suggestFocusType(
-                        typeIdentification, objectClassDef, objectTypeDef.getDelineation(), task, result);
+                var type = ServiceAdapter.create(serviceClient)
+                        .suggestFocusType(typeIdentification, objectClassDef, objectTypeDef.getDelineation());
                 LOGGER.debug("Suggested focus type: {}", type);
                 return type;
             }

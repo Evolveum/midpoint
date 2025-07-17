@@ -15,25 +15,30 @@ import static com.evolveum.midpoint.test.util.MidPointTestConstants.TEST_RESOURC
 import java.io.File;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.model.test.smart.MockServiceClientImpl;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Test;
 
 import com.evolveum.axiom.concepts.CheckedSupplier;
-import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
 import com.evolveum.midpoint.model.intest.AbstractEmptyModelIntegrationTest;
 import com.evolveum.midpoint.model.test.CommonInitialObjects;
 import com.evolveum.midpoint.schema.processor.ResourceObjectTypeIdentification;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.smart.api.SmartIntegrationService;
+import com.evolveum.midpoint.smart.impl.DefaultServiceClientImpl;
 import com.evolveum.midpoint.smart.impl.SmartIntegrationServiceImpl;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.Checker;
 import com.evolveum.midpoint.test.DummyTestResource;
 import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.util.exception.CommonException;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SiSuggestFocusTypeResponseType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SiSuggestObjectTypesResponseType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SiSuggestedObjectTypeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 /**
@@ -45,7 +50,7 @@ public class TestSmartIntegrationService extends AbstractEmptyModelIntegrationTe
 
     public static final File TEST_DIR = new File(TEST_RESOURCES_PATH, "smart");
 
-    static final QName OC_ACCOUNT_QNAME = new QName(NS_RI, "account");
+    private static final QName OC_ACCOUNT_QNAME = new QName(NS_RI, "account");
 
     private static final int TIMEOUT = 20000;
 
@@ -66,22 +71,28 @@ public class TestSmartIntegrationService extends AbstractEmptyModelIntegrationTe
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
         super.initSystem(initTask, initResult);
 
-        //addDummyObjects(RESOURCE_DUMMY_FOR_SUGGEST_OBJECT_TYPES);
-
         initTestObjects(initTask, initResult,
                 CommonInitialObjects.ARCHETYPE_UTILITY_TASK);
 
         initAndTestDummyResource(RESOURCE_DUMMY_FOR_SUGGEST_OBJECT_TYPES, initTask, initResult);
         initAndTestDummyResource(RESOURCE_DUMMY_FOR_SUGGEST_FOCUS_TYPE, initTask, initResult);
-
-        if (System.getProperty(MidpointConfiguration.SMART_INTEGRATION_SERVICE_URL_OVERRIDE) == null) {
-            // For tests without a real service, we have to use a mock service client.
-            smartIntegrationService.setServiceClientSupplier(MockServiceClientImpl::new);
-        }
     }
 
+    /** Tests the "suggest object types" operation (in an asynchronous way). */
     @Test
     public void test100SuggestObjectTypes() throws CommonException {
+        if (DefaultServiceClientImpl.hasServiceUrlOverride()) {
+            // We'll go with the real service client. Hence, this test will not check the actual response; only in rough contours.
+        } else {
+            smartIntegrationService.setServiceClientSupplier(
+                    () -> new MockServiceClientImpl<>(
+                            new SiSuggestObjectTypesResponseType()
+                                    .objectType(new SiSuggestedObjectTypeType()
+                                            .kind("account")
+                                            .intent("default"))));
+        }
+
+        when("submitting 'suggest object types' operation request");
         var task = getTestTask();
         var result = task.getResult();
 
@@ -131,8 +142,18 @@ public class TestSmartIntegrationService extends AbstractEmptyModelIntegrationTe
         return checker.lastStatusInformation.result();
     }
 
+    /** Tests the "suggest focus type" method; currently, only the synchronous API is present. */
     @Test
     public void test150SuggestFocusType() throws CommonException {
+        if (DefaultServiceClientImpl.hasServiceUrlOverride()) {
+            // We'll go with the real service client. Hence, this test will not check the actual response; only in rough contours.
+        } else {
+            smartIntegrationService.setServiceClientSupplier(
+                    () -> new MockServiceClientImpl<>(
+                            new SiSuggestFocusTypeResponseType()
+                                    .focusTypeName(UserType.COMPLEX_TYPE.getLocalPart())));
+        }
+
         var task = getTestTask();
         var result = task.getResult();
 
