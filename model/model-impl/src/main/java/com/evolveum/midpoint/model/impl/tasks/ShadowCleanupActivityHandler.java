@@ -122,7 +122,10 @@ public class ShadowCleanupActivityHandler
         }
 
         @Override
-        public void beforeRun(OperationResult result) throws ActivityRunException, CommonException {
+        public boolean beforeRun(OperationResult result) throws ActivityRunException, CommonException {
+            if (!super.beforeRun(result)) {
+                return false;
+            }
 
             ensureNoPreviewNorDryRun();
 
@@ -132,6 +135,8 @@ public class ShadowCleanupActivityHandler
             processingScope = getActivityHandler().syncTaskHelper
                     .getProcessingScopeCheckingMaintenance(resourceObjectSet, runningTask, result);
             processingScope.checkResourceUp();
+
+            return true;
         }
 
         @Override

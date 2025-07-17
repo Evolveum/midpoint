@@ -8,6 +8,7 @@
 package com.evolveum.midpoint.repo.common.activity.run;
 
 import com.evolveum.midpoint.audit.api.AuditService;
+import com.evolveum.midpoint.common.Clock;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
 import com.evolveum.midpoint.repo.api.RepositoryService;
@@ -61,6 +62,7 @@ public class CommonTaskBeans {
     @Autowired public OperationExecutionRecorderForTasks operationExecutionRecorder;
     @Autowired public LightweightIdentifierGenerator lightweightIdentifierGenerator;
     @Autowired public WorkDefinitionFactory workDefinitionFactory;
+    @Autowired public Clock clock;
 
     @Autowired public BucketingManager bucketingManager;
     @Autowired public TaskActivityManager activityManager;

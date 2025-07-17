@@ -72,7 +72,11 @@ public final class ClassicCollectionReportExportActivityRun<T>
     }
 
     @Override
-    public void beforeRun(OperationResult result) throws ActivityRunException, CommonException {
+    public boolean beforeRun(OperationResult result) throws ActivityRunException, CommonException {
+        if (!super.beforeRun(result)) {
+            return false;
+        }
+
         RunningTask task = getRunningTask();
         support.beforeRun(result);
         @NotNull ReportType report = support.getReport();
@@ -92,6 +96,7 @@ public final class ClassicCollectionReportExportActivityRun<T>
 
         controller.initialize(task, result);
         controller.beforeBucketExecution(1, result);
+        return true;
     }
 
     @Override

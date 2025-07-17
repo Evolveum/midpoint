@@ -80,6 +80,11 @@
             <artifactId>model-api</artifactId>
             <version>${project.version}</version>
         </dependency>
+        <dependency>
+            <groupId>com.evolveum.midpoint.model</groupId>
+            <artifactId>model-impl</artifactId>
+            <version>${project.version}</version>
+        </dependency>
         <!--<dependency>-->
         <!--    <groupId>com.evolveum.midpoint.model</groupId>-->
         <!--    <artifactId>certification-api</artifactId>-->
@@ -131,10 +136,10 @@
             <groupId>org.springframework</groupId>
             <artifactId>spring-beans</artifactId>
         </dependency>
-        <!--<dependency>-->
-        <!--    <groupId>jakarta.annotation</groupId>-->
-        <!--    <artifactId>jakarta.annotation-api</artifactId>-->
-        <!--</dependency>-->
+        <dependency>
+            <groupId>jakarta.annotation</groupId>
+            <artifactId>jakarta.annotation-api</artifactId>
+        </dependency>
 
         <dependency>
             <groupId>org.apache.cxf</groupId>
@@ -174,6 +179,18 @@
         </dependency>
         <dependency>
             <groupId>com.evolveum.icf</groupId>
+            <artifactId>dummy-connector</artifactId>
+            <version>${project.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.evolveum.icf</groupId>
+            <artifactId>dummy-connector-fake</artifactId>
+            <version>${project.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.evolveum.icf</groupId>
             <artifactId>dummy-resource</artifactId>
             <version>${project.version}</version>
             <scope>test</scope>
@@ -199,12 +216,6 @@
         <dependency>
             <groupId>com.evolveum.midpoint.model</groupId>
             <artifactId>model-test</artifactId>
-            <version>${project.version}</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>com.evolveum.midpoint.model</groupId>
-            <artifactId>model-impl</artifactId>
             <version>${project.version}</version>
             <scope>test</scope>
         </dependency>

@@ -66,6 +66,7 @@ public class WorkDefinitionUtil {
         addTypedParameters(values, definitions.getCertificationCloseCurrentStage());
         addTypedParameters(values, definitions.getCertificationReiterateCampaign());
         addTypedParameters(values, definitions.getRepartitioning());
+        addTypedParameters(values, definitions.getObjectTypesSuggestion());
         addUntypedParameters(values, definitions.getExtension());
         return values;
     }

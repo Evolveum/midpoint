@@ -38,27 +38,27 @@ public class SmartIntegrationRestController extends AbstractRestController {
 
     @Autowired private SmartIntegrationService smartIntegrationService;
 
-    /**
-     * Suggests object types (and their delineations) for the given resource and object class.
-     *
-     * Returned body contains the serialized form of {@link ObjectTypesSuggestionType}.
-     */
-    @GetMapping(SmartIntegrationConstants.RPC_SUGGEST_OBJECT_TYPES)
-    public ResponseEntity<?> suggestObjectTypes(
-            @RequestParam("resourceOid") String resourceOid,
-            @RequestParam("objectClassName") String objectClassName) {
-        var task = initRequest();
-        var result = createSubresult(task, OPERATION_SUGGEST_OBJECT_TYPES);
-        try {
-            var types = smartIntegrationService.suggestObjectTypes(
-                    resourceOid, new QName(NS_RI, objectClassName), task, result);
-            return createResponse(HttpStatus.OK, types, result);
-        } catch (Throwable t) {
-            return handleException(result, t);
-        } finally {
-            finishRequest(task, result);
-        }
-    }
+//    /**
+//     * Suggests object types (and their delineations) for the given resource and object class.
+//     *
+//     * Returned body contains the serialized form of {@link ObjectTypesSuggestionType}.
+//     */
+//    @GetMapping(SmartIntegrationConstants.RPC_SUGGEST_OBJECT_TYPES)
+//    public ResponseEntity<?> suggestObjectTypes(
+//            @RequestParam("resourceOid") String resourceOid,
+//            @RequestParam("objectClassName") String objectClassName) {
+//        var task = initRequest();
+//        var result = createSubresult(task, OPERATION_SUGGEST_OBJECT_TYPES);
+//        try {
+//            var types = smartIntegrationService.suggestObjectTypes(
+//                    resourceOid, new QName(NS_RI, objectClassName), task, result);
+//            return createResponse(HttpStatus.OK, types, result);
+//        } catch (Throwable t) {
+//            return handleException(result, t);
+//        } finally {
+//            finishRequest(task, result);
+//        }
+//    }
 
     /**
      * Suggests a discrete focus type for the application (resource) object type.

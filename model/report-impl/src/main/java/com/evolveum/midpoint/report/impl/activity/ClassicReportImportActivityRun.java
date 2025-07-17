@@ -64,7 +64,11 @@ final class ClassicReportImportActivityRun
     }
 
     @Override
-    public void beforeRun(OperationResult result) throws CommonException, ActivityRunException {
+    public boolean beforeRun(OperationResult result) throws CommonException, ActivityRunException {
+        if (!super.beforeRun(result)) {
+            return false;
+        }
+
         support.beforeRun(result);
         ReportType report = support.getReport();
 
@@ -80,6 +84,7 @@ final class ClassicReportImportActivityRun
             result.recordFatalError(message, e);
             throw new ActivityRunException(message, FATAL_ERROR, PERMANENT_ERROR, e);
         }
+        return true;
     }
 
     @Override

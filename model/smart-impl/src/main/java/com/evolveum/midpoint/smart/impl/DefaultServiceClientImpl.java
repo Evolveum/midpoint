@@ -170,7 +170,8 @@ class DefaultServiceClientImpl implements ServiceClient {
         try (var response = webClient.post(requestText)) {
             var statusType = response.getStatusInfo();
             var responseText = response.readEntity(String.class);
-            LOGGER.trace("Response (status: {}, expected class: {}):\n{}", statusType, responseClass, responseText);
+            LOGGER.trace("Response (status: {}, expected class: {}):\n{}",
+                    statusType.getStatusCode(), responseClass, responseText);
             if (statusType.getFamily() == Response.Status.Family.SUCCESSFUL) {
                 // Another hack: we don't have "parseRealValueContent" method that would parse the response.
                 // So we wrap it in a JSON object that will look like a regularly serialized Item.

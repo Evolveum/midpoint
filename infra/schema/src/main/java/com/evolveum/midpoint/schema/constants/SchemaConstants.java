@@ -9,6 +9,7 @@ package com.evolveum.midpoint.schema.constants;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.PrismConstants;
 import com.evolveum.midpoint.prism.path.InfraItemName;
 import com.evolveum.midpoint.prism.path.ItemName;
@@ -459,6 +460,11 @@ public abstract class SchemaConstants {
 
     public static final ItemName MODEL_EXTENSION_CLEANUP_POLICIES = new ItemName(NS_MODEL_EXTENSION,
             "cleanupPolicies");
+
+    // TEMPORARY (until moved to new object type)
+    public static final ItemName MODEL_EXTENSION_RESOURCE_OID = ItemName.from(NS_MODEL_EXTENSION, "resourceOid");
+    public static final ItemName MODEL_EXTENSION_OBJECT_CLASS_LOCAL_NAME = ItemName.from(NS_MODEL_EXTENSION, "objectClassLocalName");
+    public static final ItemName MODEL_EXTENSION_STATISTICS = ItemName.from(NS_MODEL_EXTENSION, "statistics");
 
     public static final ItemName MODEL_EXTENSION_WORK_ITEM_ID = new ItemName(NS_MODEL_EXTENSION, "workItemId");
     public static final ItemName MODEL_EXTENSION_WORK_ITEM_ACTIONS = new ItemName(NS_MODEL_EXTENSION, "workItemActions");

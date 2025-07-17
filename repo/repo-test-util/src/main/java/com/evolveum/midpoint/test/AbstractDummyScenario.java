@@ -42,6 +42,10 @@ public class AbstractDummyScenario {
         this.controller = controller;
     }
 
+    public @NotNull DummyResourceContoller getController() {
+        return controller;
+    }
+
     public @NotNull DummyResource getDummyResource() {
         return controller.getDummyResource();
     }

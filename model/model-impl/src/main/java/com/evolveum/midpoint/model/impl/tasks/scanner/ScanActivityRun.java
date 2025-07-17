@@ -14,6 +14,8 @@ import javax.xml.datatype.XMLGregorianCalendar;
 import com.evolveum.midpoint.repo.common.activity.run.ActivityRunException;
 import com.evolveum.midpoint.repo.common.activity.run.SearchBasedActivityRun;
 
+import com.evolveum.midpoint.util.exception.CommonException;
+
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.model.impl.ModelBeans;
@@ -55,11 +57,15 @@ public abstract class ScanActivityRun<
     }
 
     @Override
-    public void beforeRun(OperationResult result) {
+    public boolean beforeRun(OperationResult result) throws ActivityRunException, CommonException {
+        if (!super.beforeRun(result)) {
+            return false;
+        }
         lastScanTimestamp = getActivityState().getWorkStatePropertyRealValue(ScanWorkStateType.F_LAST_SCAN_TIMESTAMP,
                 XMLGregorianCalendar.class);
         thisScanTimestamp = getModelBeans().clock.currentTimeXMLGregorianCalendar();
         LOGGER.debug("lastScanTimestamp = {}, thisScanTimestamp = {}", lastScanTimestamp, thisScanTimestamp);
+        return true;
     }
 
     @Override

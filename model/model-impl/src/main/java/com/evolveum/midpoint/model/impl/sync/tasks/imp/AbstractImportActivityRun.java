@@ -12,14 +12,12 @@ import com.evolveum.midpoint.model.impl.sync.tasks.ProcessingScope;
 import com.evolveum.midpoint.model.impl.sync.tasks.ResourceSetTaskWorkDefinition;
 import com.evolveum.midpoint.model.impl.sync.tasks.Synchronizer;
 import com.evolveum.midpoint.model.impl.tasks.ModelActivityHandler;
-import com.evolveum.midpoint.repo.common.activity.handlers.ActivityHandler;
 import com.evolveum.midpoint.repo.common.activity.run.*;
 import com.evolveum.midpoint.repo.common.activity.run.buckets.ItemDefinitionProvider;
 import com.evolveum.midpoint.repo.common.activity.run.processing.ItemProcessingRequest;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SchemaService;
 import com.evolveum.midpoint.schema.SelectorOptions;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.RunningTask;
 import com.evolveum.midpoint.util.exception.CommonException;
@@ -55,12 +53,16 @@ public abstract class AbstractImportActivityRun<WD extends ResourceSetTaskWorkDe
     }
 
     @Override
-    public void beforeRun(OperationResult result) throws ActivityRunException, CommonException {
+    public boolean beforeRun(OperationResult result) throws ActivityRunException, CommonException {
+        if (!super.beforeRun(result)) {
+            return false;
+        }
         ResourceObjectSetType resourceObjectSet = getWorkDefinition().getResourceObjectSetSpecification();
 
         processingScope = getModelBeans().syncTaskHelper
                 .getProcessingScopeCheckingMaintenance(resourceObjectSet, getRunningTask(), result);
         synchronizer = createSynchronizer();
+        return true;
     }
 
     @Override

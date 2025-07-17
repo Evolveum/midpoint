@@ -49,12 +49,17 @@ public final class AutoScalingActivityRun extends
     }
 
     @Override
-    public void beforeRun(OperationResult result) throws CommonException, ActivityRunException {
+    public boolean beforeRun(OperationResult result) throws CommonException, ActivityRunException {
+        if (!super.beforeRun(result)) {
+            return false;
+        }
+
         ensureNoPreviewNorDryRun();
 
         XMLGregorianCalendar now = getActivityHandler().getModelBeans().clock.currentTimeXMLGregorianCalendar();
         latch = new ReconciliationLatch(getActivity(), getActivityState(), now);
         latch.determineSituation(result);
+        return true;
     }
 
     @Override

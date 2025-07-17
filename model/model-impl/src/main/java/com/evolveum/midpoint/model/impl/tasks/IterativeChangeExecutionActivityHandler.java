@@ -108,9 +108,12 @@ public class IterativeChangeExecutionActivityHandler
         }
 
         @Override
-        public void beforeRun(OperationResult result) throws CommonException, ActivityRunException {
-            super.beforeRun(result);
+        public boolean beforeRun(OperationResult result) throws CommonException, ActivityRunException {
+            if (!super.beforeRun(result)) {
+                return false;
+            }
             ensureNoDryRun();
+            return true;
         }
 
         @Override

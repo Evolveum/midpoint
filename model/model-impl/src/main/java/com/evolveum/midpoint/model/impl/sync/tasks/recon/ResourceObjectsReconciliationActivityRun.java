@@ -44,9 +44,12 @@ public final class ResourceObjectsReconciliationActivityRun
     }
 
     @Override
-    public void beforeRun(OperationResult result) throws CommonException, ActivityRunException {
-        super.beforeRun(result);
+    public boolean beforeRun(OperationResult result) throws CommonException, ActivityRunException {
+        if (!super.beforeRun(result)) {
+            return false;
+        }
         synchronizer = createSynchronizer();
+        return true;
     }
 
     @Override

@@ -45,13 +45,19 @@ public abstract class PartialReconciliationActivityRun
     }
 
     @Override
-    public void beforeRun(OperationResult result) throws CommonException, ActivityRunException {
+    public boolean beforeRun(OperationResult result) throws CommonException, ActivityRunException {
+        if (!super.beforeRun(result)) {
+            return false;
+        }
+
         ResourceObjectSetType resourceObjectSet = getResourceObjectSet();
 
         processingScope = getModelBeans().syncTaskHelper
                 .getProcessingScopeCheckingMaintenance(resourceObjectSet, getRunningTask(), result);
 
         setContextDescription(getShortName() + " on " + processingScope.getContextDescription()); // TODO?
+
+        return true;
     }
 
     @Override

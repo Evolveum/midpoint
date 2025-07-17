@@ -78,12 +78,18 @@ public final class LiveSyncActivityRun
     }
 
     @Override
-    public void beforeRun(OperationResult result) throws ActivityRunException, CommonException {
+    public boolean beforeRun(OperationResult result) throws ActivityRunException, CommonException {
+        if (!super.beforeRun(result)) {
+            return false;
+        }
+
         RunningTask runningTask = getRunningTask();
         ResourceObjectSetType resourceObjectSet = getResourceObjectSet();
 
         processingScope = getModelBeans().syncTaskHelper
                 .getProcessingScopeCheckingMaintenance(resourceObjectSet, runningTask, result);
+
+        return true;
     }
 
     @Override

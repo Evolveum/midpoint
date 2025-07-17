@@ -10,6 +10,8 @@ import static java.util.Collections.emptyList;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.repo.common.activity.run.ActivityRunException;
+
 import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Component;
 
@@ -99,9 +101,13 @@ public class ReindexActivityHandler
         }
 
         @Override
-        public void beforeRun(OperationResult result) throws CommonException {
+        public boolean beforeRun(OperationResult result) throws CommonException, ActivityRunException {
+            if (!super.beforeRun(result)) {
+                return false;
+            }
             getActivityHandler().securityEnforcer.authorizeAll(getRunningTask(), result);
             ensureNoPreviewNorDryRun();
+            return true;
         }
 
         @Override

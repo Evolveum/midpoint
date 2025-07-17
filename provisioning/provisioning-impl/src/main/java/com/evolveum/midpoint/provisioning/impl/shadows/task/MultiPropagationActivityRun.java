@@ -14,7 +14,6 @@ import com.evolveum.midpoint.schema.ResultHandler;
 
 import org.jetbrains.annotations.NotNull;
 
-import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.provisioning.ucf.api.GenericFrameworkException;
 import com.evolveum.midpoint.repo.common.activity.run.ActivityRunInstantiationContext;
@@ -62,8 +61,12 @@ public final class MultiPropagationActivityRun
     }
 
     @Override
-    public void beforeRun(OperationResult result) {
+    public boolean beforeRun(OperationResult result) throws ActivityRunException, CommonException {
+        if (!super.beforeRun(result)) {
+            return false;
+        }
         ensureNoPreviewNorDryRun();
+        return true;
     }
 
     @Override

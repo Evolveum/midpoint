@@ -56,8 +56,8 @@ public class OtherActivityState extends ActivityState {
             var workState =
                     taskActivityState.asPrismContainerValue().findItem(stateItemPath.append(ActivityStateType.F_WORK_STATE));
             ItemDefinition<?> workStateItemDef = workState != null ? workState.getDefinition() : null;
-            workStateComplexTypeDefinition = workStateItemDef instanceof PrismContainerDefinition<?> ?
-                    ((PrismContainerDefinition<?>) workStateItemDef).getComplexTypeDefinition() : null;
+            workStateComplexTypeDefinition = workStateItemDef instanceof PrismContainerDefinition<?> prismContainerDefinition ?
+                    prismContainerDefinition.getComplexTypeDefinition() : null;
         }
     }
 

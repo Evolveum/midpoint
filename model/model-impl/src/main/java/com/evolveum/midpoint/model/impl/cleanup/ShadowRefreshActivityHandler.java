@@ -96,9 +96,12 @@ public class ShadowRefreshActivityHandler
         }
 
         @Override
-        public void beforeRun(OperationResult result) {
-            super.beforeRun(result);
+        public boolean beforeRun(OperationResult result) throws ActivityRunException, CommonException {
+            if (!super.beforeRun(result)) {
+                return false;
+            }
             ensureNoPreviewNorDryRun();
+            return true;
         }
 
         @Override

@@ -74,7 +74,11 @@ public final class ClassicDashboardReportExportActivityRun
     }
 
     @Override
-    public void beforeRun(OperationResult result) throws ActivityRunException, CommonException {
+    public boolean beforeRun(OperationResult result) throws ActivityRunException, CommonException {
+        if (!super.beforeRun(result)) {
+            return false;
+        }
+
         RunningTask task = getRunningTask();
         support.beforeRun(result);
         @NotNull ReportType report = support.getReport();
@@ -109,6 +113,7 @@ public final class ClassicDashboardReportExportActivityRun
                 mapOfWidgetsController.put(widgetIdentifier, new DashboardWidgetHolder<>(searchSpecificationHolder, controller));
             }
         }
+        return true;
     }
 
     @Override

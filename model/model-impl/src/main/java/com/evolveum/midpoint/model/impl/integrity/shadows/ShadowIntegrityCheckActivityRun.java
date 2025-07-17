@@ -73,8 +73,12 @@ public final class ShadowIntegrityCheckActivityRun
     }
 
     @Override
-    public void beforeRun(OperationResult result)
-            throws CommonException {
+    public boolean beforeRun(OperationResult result)
+            throws CommonException, ActivityRunException {
+        if (!super.beforeRun(result)) {
+            return false;
+        }
+
         ensureNoWorkerThreads();
         ensureNoPreviewNorDryRun();
 
@@ -84,6 +88,7 @@ public final class ShadowIntegrityCheckActivityRun
         configuration.log("Shadow integrity check is starting with the configuration:");
 
         itemProcessor = new ShadowIntegrityCheckItemProcessor(this);
+        return true;
     }
 
     @Override

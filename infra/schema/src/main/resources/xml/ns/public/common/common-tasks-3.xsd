@@ -2515,6 +2515,18 @@
                         </xsd:appinfo>
                     </xsd:annotation>
                 </xsd:element>
+                <xsd:element name="objectTypesSuggestion" type="tns:ObjectTypesSuggestionWorkDefinitionType"
+                        minOccurs="0">
+                    <xsd:annotation>
+                        <xsd:documentation>
+                            Suggests object types for an object class (smart integration).
+                        </xsd:documentation>
+                        <xsd:appinfo>
+                            <a:since>4.11</a:since>
+                            <a:displayName>WorkDefinitionsType.objectTypesSuggestion</a:displayName>
+                        </xsd:appinfo>
+                    </xsd:annotation>
+                </xsd:element>
             </xsd:choice>
             <xsd:element name="extension" type="tns:ExtensionType" minOccurs="0">
                 <xsd:annotation>
@@ -10022,4 +10034,89 @@
         </xsd:complexContent>
     </xsd:complexType>
     <xsd:element name="certificationReiterateCampaignWorkDefinition" type="tns:CertificationReiterateCampaignWorkDefinitionType"/>
+
+    <xsd:complexType name="ObjectTypesSuggestionWorkDefinitionType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Work definition for "suggest object types for an object class" activity (smart integration).
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container>true</a:container>
+                <a:since>4.11</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:AbstractWorkDefinitionType">
+                <xsd:sequence>
+                    <xsd:element name="resourceRef" type="tns:ObjectReferenceType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Resource against which we want to execute the activity.
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:displayName>ResourceObjectSetType.resourceRef</a:displayName>
+                                <a:objectReferenceTargetType>c:ResourceType</a:objectReferenceTargetType>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="objectclass" type="xsd:QName" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Denotes the object class to be processed by the activity.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="statisticsRef" type="tns:ObjectReferenceType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                If specified, the particular statistics file should be used for the operation.
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:displayName>ObjectTypesSuggestionWorkDefinitionType.statisticsRef</a:displayName>
+                                <a:objectReferenceTargetType>c:GenericObjectType</a:objectReferenceTargetType> <!-- temporary -->
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+    <xsd:element name="objectTypesSuggestionWorkDefinition" type="tns:ObjectTypesSuggestionWorkDefinitionType"/>
+
+    <xsd:complexType name="ObjectTypesSuggestionWorkStateType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Work state for "suggest object types for an object class" activity (smart integration).
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container>true</a:container>
+                <a:since>4.11</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:AbstractActivityWorkStateType">
+                <xsd:sequence>
+                    <xsd:element name="statisticsRef" type="tns:ObjectReferenceType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                The statistics file to be used for the operation.
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:displayName>ObjectTypesSuggestionWorkDefinitionType.statisticsRef</a:displayName>
+                                <a:objectReferenceTargetType>c:GenericObjectType</a:objectReferenceTargetType> <!-- temporary -->
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="result" type="tns:ObjectTypesSuggestionType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Result of the operation: suggested object types.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+    <xsd:element name="objectTypesSuggestionWorkState" type="tns:ObjectTypesSuggestionWorkStateType" />
 </xsd:schema>

@@ -11,12 +11,14 @@ import com.evolveum.axiom.concepts.Lazy;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.repo.common.activity.run.ActivityReportingCharacteristics;
+import com.evolveum.midpoint.repo.common.activity.run.ActivityRunException;
 import com.evolveum.midpoint.repo.common.activity.run.ActivityRunInstantiationContext;
 import com.evolveum.midpoint.repo.common.activity.run.processing.ItemProcessingRequest;
 import com.evolveum.midpoint.repo.common.activity.run.SearchBasedActivityRun;
 
 import com.evolveum.midpoint.schema.SchemaService;
 import com.evolveum.midpoint.util.MiscUtil;
+import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.exception.ThresholdPolicyViolationException;
@@ -61,9 +63,13 @@ final class SearchBasedMockActivityRun
     }
 
     @Override
-    public void beforeRun(OperationResult result) {
+    public boolean beforeRun(OperationResult result) throws ActivityRunException, CommonException {
+        if (!super.beforeRun(result)) {
+            return false;
+        }
         getRecorder().recordRealizationStartTimestamp(
                 activityState.getRealizationStartTimestamp());
+        return true;
     }
 
     @Override

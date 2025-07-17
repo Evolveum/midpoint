@@ -10,7 +10,6 @@ package com.evolveum.midpoint.model.impl.sync.tasks.imp.reclassification;
 import java.util.Collection;
 
 import com.evolveum.midpoint.model.impl.sync.tasks.imp.AbstractImportActivityRun;
-import com.evolveum.midpoint.model.impl.sync.tasks.imp.ImportWorkDefinition;
 import com.evolveum.midpoint.util.exception.SchemaException;
 
 import com.evolveum.midpoint.repo.common.activity.run.*;
@@ -32,13 +31,13 @@ public final class ReclassificationActivityRun
     }
 
     @Override
-    public void beforeRun(OperationResult result) throws ActivityRunException, CommonException {
+    public boolean beforeRun(OperationResult result) throws ActivityRunException, CommonException {
         if (getRunningTask().isPersistentAtShadowLevelButNotFully()) {
             throw new SchemaException("Execution mode " + ExecutionModeType.PREVIEW + " is unsupported, please use "
                     + ExecutionModeType.FULL + " for full processing or " + ExecutionModeType.SHADOW_MANAGEMENT_PREVIEW + " for simulation.");
         }
 
-        super.beforeRun(result);
+        return super.beforeRun(result);
     }
 
     @Override

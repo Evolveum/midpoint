@@ -4,6 +4,9 @@ package com.evolveum.midpoint.model.impl.integrity.objects;
 import java.util.Map;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.repo.common.activity.run.*;
+import com.evolveum.midpoint.util.exception.CommonException;
+
 import com.google.common.base.MoreObjects;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Component;
@@ -12,10 +15,6 @@ import com.evolveum.midpoint.model.impl.tasks.simple.SimpleActivityHandler;
 import com.evolveum.midpoint.repo.common.activity.definition.AbstractWorkDefinition;
 import com.evolveum.midpoint.repo.common.activity.definition.ObjectSetSpecificationProvider;
 import com.evolveum.midpoint.repo.common.activity.definition.WorkDefinitionFactory;
-import com.evolveum.midpoint.repo.common.activity.run.ActivityReportingCharacteristics;
-import com.evolveum.midpoint.repo.common.activity.run.ActivityRunInstantiationContext;
-import com.evolveum.midpoint.repo.common.activity.run.SearchBasedActivityRun;
-import com.evolveum.midpoint.repo.common.activity.run.SearchSpecification;
 import com.evolveum.midpoint.repo.common.activity.run.processing.ItemProcessingRequest;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
@@ -123,9 +122,13 @@ public class ObjectIntegrityCheckActivityHandler
         }
 
         @Override
-        public void beforeRun(OperationResult result) {
+        public boolean beforeRun(OperationResult result) throws ActivityRunException, CommonException {
+            if (!super.beforeRun(result)) {
+                return false;
+            }
             ensureNoWorkerThreads();
             ensureNoPreviewNorDryRun();
+            return true;
         }
 
         @Override

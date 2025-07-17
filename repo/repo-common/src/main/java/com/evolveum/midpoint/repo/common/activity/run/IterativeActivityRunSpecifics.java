@@ -46,12 +46,15 @@ public interface IterativeActivityRunSpecifics extends ImplicitSegmentationResol
      * Called before the run.
      *
      * Note that e.g. for search-based activities the search specification is *not* known at this moment.
+     *
+     * @return true if the run should continue, false if it should be skipped.
      */
-    default void beforeRun(OperationResult result) throws CommonException, ActivityRunException {
+    default boolean beforeRun(OperationResult result) throws CommonException, ActivityRunException {
+        return true; // true means that the run should continue
     }
 
     /**
-     * Called after the run.
+     * Called after the run (but only if {@link #beforeRun(OperationResult)} returned `true`).
      */
     default void afterRun(OperationResult result) throws CommonException, ActivityRunException {
     }

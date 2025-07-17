@@ -11,6 +11,9 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.repo.common.activity.run.processing.ItemProcessingRequest;
 
+import com.evolveum.midpoint.util.exception.ConfigurationException;
+import com.evolveum.midpoint.util.exception.SchemaException;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -51,7 +54,8 @@ public interface SearchBasedActivityRunSpecifics<C extends Containerable>
      *
      * Note: freely add {@link CommonException} and {@link ActivityRunException} to the signature of this method if needed.
      */
-    default @Nullable SearchSpecification<C> createCustomSearchSpecification(OperationResult result) {
+    default @Nullable SearchSpecification<C> createCustomSearchSpecification(OperationResult result)
+            throws SchemaException, ConfigurationException {
         return null;
     }
 

@@ -11,7 +11,9 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.schema.processor.ResourceObjectTypeIdentification;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.LocalizableMessage;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
@@ -24,10 +26,14 @@ import java.util.Collection;
  */
 public interface SmartIntegrationService {
 
-    /** Suggests partitioning of given object class into object types. */
-    ObjectTypesSuggestionType suggestObjectTypes(String resourceOid, QName objectClassName, Task task, OperationResult result)
-            throws SchemaException, ExpressionEvaluationException, SecurityViolationException, CommunicationException,
-            ConfigurationException, ObjectNotFoundException;
+    /** Submits "suggest object types" request. Returns a token used to query the status. */
+    String submitSuggestObjectTypesOperation(String resourceOid, QName objectClassName, Task task, OperationResult result)
+            throws CommonException;
+
+    /** Checks the status of the "suggest object types" request. */
+    StatusInformation<ObjectTypesSuggestionType> getSuggestObjectTypesOperationStatus(
+            String token, Task task, OperationResult result)
+            throws SchemaException, ObjectNotFoundException, ConfigurationException;
 
     /** Suggests a discrete focus type for the application (resource) object type. */
     QName suggestFocusType(
@@ -71,4 +77,18 @@ public interface SmartIntegrationService {
             OperationResult result)
             throws SchemaException, ExpressionEvaluationException, SecurityViolationException, CommunicationException,
             ConfigurationException, ObjectNotFoundException;
+
+    /**
+     * @param status Status of the operation, such as {@link OperationResultStatus#IN_PROGRESS} (must be set if the operation
+     *               is still in progress), {@link OperationResultStatus#SUCCESS} (operation was successfully completed),
+     *               {@link OperationResultStatus#FATAL_ERROR} (operation failed).
+     * @param message Human-readable explanation of the status of the operation, if available.
+     * @param result Final result of the operation, if available.
+     * @param <T> Type of the result.
+     */
+    record StatusInformation<T>(
+            OperationResultStatus status,
+            @Nullable LocalizableMessage message,
+            @Nullable T result) {
+    }
 }

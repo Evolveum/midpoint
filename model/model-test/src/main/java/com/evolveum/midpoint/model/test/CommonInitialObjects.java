@@ -70,6 +70,10 @@ public interface CommonInitialObjects {
             ARCHETYPES, "509-archetype-task-iterative-bulk-action.xml",
             SystemObjectsType.ARCHETYPE_ITERATIVE_BULK_ACTION_TASK.value());
 
+    TestObject<ArchetypeType> ARCHETYPE_UTILITY_TASK = TestObject.classPath(
+            ARCHETYPES, "528-archetype-task-util.xml",
+            SystemObjectsType.ARCHETYPE_UTILITY_TASK.value());
+
     TestObject<ArchetypeType> ARCHETYPE_CLASSIFICATION = TestObject.classPath(
             ARCHETYPES, "062-archetype-classification.xml",
             SystemObjectsType.ARCHETYPE_CLASSIFICATION.value());

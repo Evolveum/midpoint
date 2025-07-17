@@ -180,12 +180,12 @@ public abstract class IterativeActivityRun<
 
             transientRunStatistics.recordRunStart(getStartTimestampRequired());
 
-            beforeRun(result);
-            setTaskObjectRef(result); // this method is intentionally run after "beforeRun" (we need the resource ref)
-
-            doRun(result);
-
-            afterRun(result);
+            var shouldRun = beforeRun(result);
+            if (shouldRun) {
+                setTaskObjectRef(result); // this method is intentionally run after "beforeRun" (we need the resource ref)
+                doRun(result);
+                afterRun(result);
+            }
 
             ActivityRunResult runResult = createRunResult();
 
