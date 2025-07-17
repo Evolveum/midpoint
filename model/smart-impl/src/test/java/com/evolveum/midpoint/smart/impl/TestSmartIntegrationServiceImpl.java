@@ -16,7 +16,7 @@ import java.io.IOException;
 import java.util.Comparator;
 
 import com.evolveum.midpoint.model.test.smart.MockServiceClientImpl;
-import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.springframework.test.annotation.DirtiesContext;
@@ -29,7 +29,6 @@ import com.evolveum.midpoint.schema.util.Resource;
 import com.evolveum.midpoint.smart.impl.activities.StatisticsComputer;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.DummyTestResource;
-import com.evolveum.midpoint.util.exception.CommonException;
 
 import javax.xml.namespace.QName;
 
@@ -78,6 +77,14 @@ public class TestSmartIntegrationServiceImpl extends AbstractSmartIntegrationTes
                 .addAttributeValues(DummyScenario.Account.AttributeNames.EMAIL.local(), "jim@evolveum.com")
                 .addAttributeValues(DummyScenario.Account.AttributeNames.STATUS.local(), "suspended");
         // TODO add more accounts, with various attributes
+    }
+
+    private void addDummyAccountsExceedingPercentageLimit() throws Exception {
+        // TODO
+    }
+
+    private void addDummyAccountsExceedingHardLimit() throws Exception {
+        // TODO
     }
 
     /** Calls the remote service directly. */
@@ -230,29 +237,70 @@ public class TestSmartIntegrationServiceImpl extends AbstractSmartIntegrationTes
         var result = task.getResult();
 
         when("computing statistics for accounts");
-        given("account statistics computer");
+        var statistics = computeStatistics(OC_ACCOUNT_QNAME, task, result);
+
+        then("the statistics are OK");
+        displayValue("statistics", PrismContext.get().jsonSerializer().serializeRealValueContent(statistics));
+        assertThat(statistics).isNotNull();
+        assertThat(statistics.getAttribute()).isNotEmpty();
+        // TODO add the assertions for the attributes
+    }
+
+    /** Tests the accounts statistics computer after adding more accounts, exceeding percentage limit for some attributes. */
+    @Test
+    public void test210ComputeAccountStatisticsExceedingPercentageLimit() throws Exception {
+        var task = getTestTask();
+        var result = task.getResult();
+
+        when("additional accounts are created, exceeding the percentage limit for unique attribute values");
+        addDummyAccountsExceedingPercentageLimit();
+
+        when("computing statistics for accounts");
+        var statistics = computeStatistics(OC_ACCOUNT_QNAME, task, result);
+
+        then("the statistics are OK, value stats for particular attributes are eliminated");
+        displayValue("statistics", PrismContext.get().jsonSerializer().serializeRealValueContent(statistics));
+        assertThat(statistics).isNotNull();
+        assertThat(statistics.getAttribute()).isNotEmpty();
+        // TODO add the assertions for the attributes
+    }
+
+    /** Tests the accounts statistics computer after adding more accounts, exceeding hard limit for some attributes. */
+    @Test
+    public void test220ComputeAccountStatisticsExceedingHardLimit() throws Exception {
+        var task = getTestTask();
+        var result = task.getResult();
+
+        when("additional accounts are created, exceeding the hard limit for unique attribute values");
+        addDummyAccountsExceedingHardLimit();
+
+        when("computing statistics for accounts");
+        var statistics = computeStatistics(OC_ACCOUNT_QNAME, task, result);
+
+        then("the statistics are OK, value stats for particular attributes are eliminated");
+        displayValue("statistics", PrismContext.get().jsonSerializer().serializeRealValueContent(statistics));
+        assertThat(statistics).isNotNull();
+        assertThat(statistics.getAttribute()).isNotEmpty();
+        // TODO add the assertions for the attributes
+    }
+
+    @SuppressWarnings("SameParameterValue")
+    private ShadowObjectClassStatisticsType computeStatistics(QName objectClassName, Task task, OperationResult result)
+            throws CommonException {
         var resource = Resource.of(RESOURCE_DUMMY_FOR_SUGGEST_OBJECT_TYPES.get());
         var accountDef = resource
                 .getCompleteSchemaRequired()
-                .findObjectClassDefinitionRequired(OC_ACCOUNT_QNAME);
+                .findObjectClassDefinitionRequired(objectClassName);
         var computer = new StatisticsComputer(accountDef);
-
-        when("computing statistics given the accounts");
         var shadows = provisioningService.searchShadows(
-                resource.queryFor(OC_ACCOUNT_QNAME).build(),
+                resource.queryFor(objectClassName).build(),
                 null,
                 task, result);
         for (var shadow : shadows) {
             computer.process(shadow.getBean());
         }
         computer.postProcessStatistics();
-        var statistics = computer.getStatistics();
-
-        then("the statistics are computed");
-        displayValue("statistics", PrismContext.get().jsonSerializer().serializeRealValueContent(statistics));
-        assertThat(statistics).isNotNull();
-        assertThat(statistics.getAttribute()).isNotEmpty();
-        // TODO add the assertions for the attributes
+        return computer.getStatistics();
     }
 
     private static ShadowObjectClassStatisticsType parseStatistics(File file) throws IOException, SchemaException {
