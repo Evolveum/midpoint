@@ -11,6 +11,8 @@ import static com.evolveum.midpoint.test.ObjectClassName.custom;
 
 import java.time.ZonedDateTime;
 
+import com.evolveum.icf.dummy.resource.DummyObjectClass;
+
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.icf.dummy.resource.DummyAccount;
@@ -32,6 +34,7 @@ public class DummyScenario extends AbstractDummyScenario {
     }
 
     public final Account account = new Account();
+    public final OrganizationalUnit organizationalUnit = new OrganizationalUnit();
 
     public static DummyScenario on(DummyResourceContoller controller) {
         return new DummyScenario(controller);
@@ -39,6 +42,7 @@ public class DummyScenario extends AbstractDummyScenario {
 
     public DummyScenario initialize() {
         account.initialize();
+        organizationalUnit.initialize();
         return this;
     }
 
@@ -53,6 +57,8 @@ public class DummyScenario extends AbstractDummyScenario {
             public static final AttrName EMAIL = AttrName.ri("email");
             public static final AttrName PHONE = AttrName.ri("phone");
             public static final AttrName STATUS = AttrName.ri("status");
+            public static final AttrName TYPE = AttrName.ri("type");
+            public static final AttrName DEPARTMENT = AttrName.ri("department");
             public static final AttrName CREATED = AttrName.ri("created");
             public static final AttrName LAST_LOGIN = AttrName.ri("lastLogin");
         }
@@ -65,8 +71,40 @@ public class DummyScenario extends AbstractDummyScenario {
             controller.addAttrDef(oc, AttributeNames.EMAIL.local(), String.class, true, false);
             controller.addAttrDef(oc, AttributeNames.PHONE.local(), String.class, false, false);
             controller.addAttrDef(oc, AttributeNames.STATUS.local(), String.class, false, false);
+            controller.addAttrDef(oc, AttributeNames.TYPE.local(), String.class, false, false);
+            controller.addAttrDef(oc, AttributeNames.DEPARTMENT.local(), String.class, false, false);
             controller.addAttrDef(oc, AttributeNames.CREATED.local(), ZonedDateTime.class, false, false);
             controller.addAttrDef(oc, AttributeNames.LAST_LOGIN.local(), ZonedDateTime.class, false, false);
+        }
+
+        @Override
+        public @NotNull ObjectClassName getObjectClassName() {
+            return OBJECT_CLASS_NAME;
+        }
+    }
+
+    public class OrganizationalUnit extends ScenarioObjectClass {
+
+        public static final ObjectClassName OBJECT_CLASS_NAME = custom("organizationalUnit");
+
+        public static class AttributeNames {
+            public static final AttrName NAME = AttrName.ri("name");
+            public static final AttrName CN = AttrName.ri("cn");
+            public static final AttrName DESCRIPTION = AttrName.ri("description");
+            public static final AttrName MANAGER = AttrName.ri("manager");
+            public static final AttrName LOCATION = AttrName.ri("location");
+            public static final AttrName PARENT_UNIT = AttrName.ri("parentUnit");
+        }
+
+        void initialize() {
+            var oc = DummyObjectClass.standard();
+            controller.getDummyResource().addStructuralObjectClass(OBJECT_CLASS_NAME.local(), oc);
+            controller.addAttrDef(oc, AttributeNames.NAME.local(), String.class, false, false);
+            controller.addAttrDef(oc, AttributeNames.CN.local(), String.class, false, false);
+            controller.addAttrDef(oc, AttributeNames.DESCRIPTION.local(), String.class, false, false);
+            controller.addAttrDef(oc, AttributeNames.MANAGER.local(), String.class, false, false);
+            controller.addAttrDef(oc, AttributeNames.LOCATION.local(), String.class, false, false);
+            controller.addAttrDef(oc, AttributeNames.PARENT_UNIT.local(), String.class, false, false);
         }
 
         @Override

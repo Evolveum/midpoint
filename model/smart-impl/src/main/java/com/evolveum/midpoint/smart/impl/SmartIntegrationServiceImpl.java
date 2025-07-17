@@ -154,10 +154,9 @@ public class SmartIntegrationServiceImpl implements SmartIntegrationService {
             LOGGER.debug("Suggesting object types for resourceOid {}, objectClassName {}", resourceOid, objectClassName);
             try (var serviceClient = getServiceClient(result)) {
                 var resource = modelService.getObject(ResourceType.class, resourceOid, null, task, result);
-                var objectClassDef = Resource.of(resource)
-                        .getCompleteSchemaRequired()
-                        .findObjectClassDefinitionRequired(objectClassName);
-                var objectTypes = serviceClient.suggestObjectTypes(objectClassDef, statistics, task, result);
+                var resourceSchema = Resource.of(resource).getCompleteSchemaRequired();
+                var objectClassDef = resourceSchema.findObjectClassDefinitionRequired(objectClassName);
+                var objectTypes = serviceClient.suggestObjectTypes(objectClassDef, statistics, resourceSchema, task, result);
                 LOGGER.debug("Suggested object types: {}", objectTypes);
                 return objectTypes;
             }

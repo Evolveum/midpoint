@@ -12,6 +12,7 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.schema.processor.ResourceObjectClassDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceObjectTypeDelineation;
 import com.evolveum.midpoint.schema.processor.ResourceObjectTypeIdentification;
+import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -28,6 +29,7 @@ public interface ServiceClient extends AutoCloseable {
     ObjectTypesSuggestionType suggestObjectTypes(
             ResourceObjectClassDefinition objectClassDef,
             ShadowObjectClassStatisticsType shadowObjectClassStatistics,
+            ResourceSchema resourceSchema,
             Task task,
             OperationResult result) throws SchemaException;
 

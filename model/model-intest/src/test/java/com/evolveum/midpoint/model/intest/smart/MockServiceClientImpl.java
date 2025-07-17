@@ -11,6 +11,7 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.processor.ResourceObjectClassDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceObjectTypeDelineation;
 import com.evolveum.midpoint.schema.processor.ResourceObjectTypeIdentification;
+import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.smart.impl.ServiceClient;
 import com.evolveum.midpoint.task.api.Task;
@@ -29,6 +30,7 @@ public class MockServiceClientImpl implements ServiceClient {
     public ObjectTypesSuggestionType suggestObjectTypes(
             ResourceObjectClassDefinition objectClassDef,
             ShadowObjectClassStatisticsType shadowObjectClassStatistics,
+            ResourceSchema resourceSchema,
             Task task,
             OperationResult result) {
         return new ObjectTypesSuggestionType()

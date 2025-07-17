@@ -8,9 +8,14 @@
 package com.evolveum.midpoint.smart.impl;
 
 import static com.evolveum.midpoint.schema.constants.SchemaConstants.NS_RI;
+import static com.evolveum.midpoint.util.MiscUtil.nullIfEmpty;
+import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
 
 import java.util.Arrays;
 import javax.xml.namespace.QName;
+
+import com.evolveum.midpoint.prism.PrismObjectDefinition;
+import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
@@ -81,23 +86,71 @@ class DefaultServiceClientImpl implements ServiceClient {
     public ObjectTypesSuggestionType suggestObjectTypes(
             ResourceObjectClassDefinition objectClassDef,
             ShadowObjectClassStatisticsType shadowObjectClassStatistics,
+            ResourceSchema resourceSchema,
             Task task,
             OperationResult result) throws SchemaException {
 
-        var request = new SiSuggestObjectTypesRequestType()
+        var siRequest = new SiSuggestObjectTypesRequestType()
                 .schema(serializeSchema(objectClassDef))
                 .statistics(shadowObjectClassStatistics);
 
-        var response = callService(METHOD_SUGGEST_OBJECT_TYPES, request, SiSuggestObjectTypesResponseType.class);
+        var siResponse = callService(METHOD_SUGGEST_OBJECT_TYPES, siRequest, SiSuggestObjectTypesResponseType.class);
+        var response = new ObjectTypesSuggestionType();
 
-        // FIXME replace with a proper conversion
-        return new ObjectTypesSuggestionType()
-                .objectType(new ObjectTypeSuggestionType()
-                        .identification(new ResourceObjectTypeIdentificationType()
-                                .kind(ShadowKindType.ACCOUNT)
-                                .intent(SchemaConstants.INTENT_DEFAULT))
-                        .delineation(new ResourceObjectTypeDelineationType()
-                                .objectClass(new QName(NS_RI, "account"))));
+        var shadowObjectDef = objectClassDef.getPrismObjectDefinition();
+
+        for (SiSuggestedObjectTypeType siObjectType : siResponse.getObjectType()) {
+            var kind = ShadowKindType.fromValue(siObjectType.getKind());
+            var intent = siObjectType.getIntent();
+            LOGGER.trace("Processing suggested object type: kind={}, intent={} for {}", kind, intent, objectClassDef);
+
+            var delineation =
+                    new ResourceObjectTypeDelineationType()
+                            .objectClass(objectClassDef.getTypeName());
+            for (String filterString : siObjectType.getFilter()) {
+                delineation.filter(parseAndSerializeFilter(filterString, shadowObjectDef));
+            }
+
+            // TODO the service should not return empty strings!
+            var siBaseContextClassLocalName = nullIfEmpty(siObjectType.getBaseContextObjectClassName());
+            var siBaseContextFilter = nullIfEmpty(siObjectType.getBaseContextFilter());
+            if (siBaseContextClassLocalName != null || siBaseContextFilter != null) {
+                stateCheck(siBaseContextClassLocalName != null,
+                        "Base context class name must be set if base context filter is set");
+                stateCheck(siBaseContextFilter != null,
+                        "Based context filter must be set if base context class name is set");
+                var baseContextClassQName = new QName(NS_RI, siBaseContextClassLocalName);
+                var baseContextObjectDef = resourceSchema.findObjectClassDefinitionRequired(baseContextClassQName);
+                delineation.baseContext(new ResourceObjectReferenceType()
+                        .objectClass(baseContextClassQName)
+                        .filter(parseAndSerializeFilter(siBaseContextFilter, baseContextObjectDef.getPrismObjectDefinition())));
+            }
+
+            var objectType = new ObjectTypeSuggestionType()
+                    .identification(new ResourceObjectTypeIdentificationType()
+                            .kind(kind)
+                            .intent(intent))
+                    .delineation(delineation);
+            response.getObjectType().add(objectType);
+        }
+
+        LOGGER.debug("Suggested object types for {}:\n{}", objectClassDef, response.debugDump(1));
+
+        return response;
+    }
+
+    private static SearchFilterType parseAndSerializeFilter(
+            String filterString, PrismObjectDefinition<ShadowType> shadowObjectDef)
+            throws SchemaException {
+        LOGGER.trace("Parsing filter: {}", filterString);
+        var parsedFilter = PrismContext.get().createQueryParser().parseFilter(shadowObjectDef, filterString);
+        try {
+            return PrismContext.get().querySerializer().serialize(parsedFilter).toSearchFilterType();
+        } catch (PrismQuerySerialization.NotSupportedException e) {
+            throw SystemException.unexpected(
+                    e,
+                    "Cannot serialize filter: %s for shadow object definition: %s".formatted(filterString, shadowObjectDef));
+        }
     }
 
     /** Calls the `suggestFocusType` method on the remote service. */
