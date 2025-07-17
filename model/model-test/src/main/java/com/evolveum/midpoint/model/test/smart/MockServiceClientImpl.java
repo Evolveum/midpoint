@@ -15,6 +15,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
  */
 public class MockServiceClientImpl<R> implements ServiceClient {
 
+    private Object lastRequest;
     private final R response;
 
     public MockServiceClientImpl(R response) {
@@ -23,8 +24,13 @@ public class MockServiceClientImpl<R> implements ServiceClient {
 
     @Override
     public <REQ, RESP> RESP invoke(Method method, REQ request, Class<RESP> responseClass) throws SchemaException {
+        lastRequest = request;
         //noinspection unchecked
         return (RESP) response;
+    }
+
+    public Object getLastRequest() {
+        return lastRequest;
     }
 
     @Override

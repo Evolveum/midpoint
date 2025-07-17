@@ -143,7 +143,7 @@ class ServiceAdapter {
         for (ShadowAttributeDefinition<?, ?, ?, ?> attributeDefinition : objectClassDef.getAttributeDefinitions()) {
             schema.getAttribute().add(
                     new SiAttributeDefinitionType()
-                            .name(attributeDefinition.getItemName().getLocalPart())
+                            .name(attributeDefinition.getItemName())
                             .type(attributeDefinition.getTypeName())
                             .description(attributeDefinition.getDescription())); // TODO change to native description
         }

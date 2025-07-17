@@ -1,0 +1,54 @@
+{
+  "value" : {
+    "@type" : "c:SiSuggestObjectTypesRequestType",
+    "schema" : {
+      "name" : "account",
+      "attribute" : [ {
+        "name" : "ri:phone",
+        "type" : "xsd:string"
+      }, {
+        "name" : "ri:personalNumber",
+        "type" : "xsd:string"
+      }, {
+        "name" : "ri:department",
+        "type" : "xsd:string"
+      }, {
+        "name" : "ri:email",
+        "type" : "xsd:string"
+      }, {
+        "name" : "ri:created",
+        "type" : "xsd:dateTime"
+      }, {
+        "name" : "ri:status",
+        "type" : "xsd:string"
+      }, {
+        "name" : "ri:description",
+        "type" : "xsd:string"
+      }, {
+        "name" : "icfs:name",
+        "type" : "xsd:string"
+      }, {
+        "name" : "ri:type",
+        "type" : "xsd:string"
+      }, {
+        "name" : "ri:fullname",
+        "type" : "xsd:string"
+      }, {
+        "name" : "ri:lastLogin",
+        "type" : "xsd:dateTime"
+      }, {
+        "name" : "icfs:uid",
+        "type" : "xsd:string"
+      } ]
+    },
+    "statistics" : {
+      "attribute" : [ {
+        "ref" : "icfs:name",
+        "uniqueValueCount" : 0,
+        "missingValueCount" : 10
+      } ],
+      "size" : 1000,
+      "coverage" : 1.0
+    }
+  }
+}
