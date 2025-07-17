@@ -42,9 +42,15 @@ public class ActivityPolicyConstraintsEvaluator {
         for (JAXBElement<AbstractPolicyConstraintType> element : toConstraintList) {
             ActivityPolicyConstraintEvaluator evaluator = findEvaluator(element);
 
-            List<? extends EvaluatedActivityPolicyRuleTrigger<?>> evaluatedTriggers =
-                    evaluator.evaluate(element, context, result);
-            triggers.addAll(evaluatedTriggers);
+            List<? extends EvaluatedActivityPolicyRuleTrigger<?>> newTriggers = evaluator.evaluate(element, context, result);
+            if (!newTriggers.isEmpty()) {
+                triggers.addAll(newTriggers);
+            } else {
+                if (allMustApply) {
+                    // If we require all constraints to apply, and this one does not, we can stop evaluating.
+                    return List.of();
+                }
+            }
         }
 
         return triggers;

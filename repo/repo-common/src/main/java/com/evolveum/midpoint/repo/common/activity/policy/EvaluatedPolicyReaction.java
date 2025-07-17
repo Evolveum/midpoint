@@ -102,7 +102,7 @@ public class EvaluatedPolicyReaction implements DebugDumpable {
         StringBuilder sb = new StringBuilder();
 
         debugDumpLabelLn(sb, "EvaluatedPolicyReaction " + (getName() != null ? getName() + " " : ""), indent);
-        debugDumpWithLabelLn(sb, "rule", getRule(), indent + 1);
+        debugDumpWithLabelLn(sb, "rule", getRule().getName(), indent + 1);
 
         return sb.toString();
     }
