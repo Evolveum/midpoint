@@ -18,7 +18,7 @@ This configuration is a prerequisite for xref:index.adoc[].
 == Configuration
 
 Applicable policies are defined as meta-roles.
-If a policy is applied (e.g. by xref:index.adoc#user_interface[checking a check-box in the application interface]), the corresponding meta-role is assigned.
+If a policy is applied (e.g. by xref:index.adoc#user_interface[selecting a check-box in the application interface]), the corresponding meta-role is assigned.
 Policies are sorted into policy groups.
 Policy groups are, in fact, xref:/midpoint/architecture/archive/data-model/midpoint-common-schema/orgtype/[Orgs].
 Any meta-role which is a member of an org is considered to be a part of the policy group.

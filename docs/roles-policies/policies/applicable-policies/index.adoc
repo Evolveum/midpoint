@@ -17,7 +17,7 @@ doc-type: intro
 
 This describes how to apply policies directly to individual objects, such as users and roles, in GUI.
 
-If you want to apply policies more systematically instead, as opposed to on a role-by-role basis, use xref:/midpoint/reference/roles-policies/policy-rules/#global-policy-rules[global policy rules] that enable you to apply policies to multiple objects based on xref:/midpoint/reference/concepts/query/[filters].
+If you want to apply policies more systematically instead, as opposed to on a role-by-role basis, use xref:/midpoint/reference/roles-policies/policies/policy-rules.adoc#global-policy-rules[global policy rules] that enable you to apply policies to multiple objects based on xref:/midpoint/reference/concepts/query/[filters].
 
 == Introduction
 
@@ -30,7 +30,7 @@ Once you have a metarole defined, you need to assign it to an object to which it
 Effectively, we are assigning a role to another role.
 And that is what we call a xref:/midpoint/reference/roles-policies/policies/metaroles/gensync/[metarole]:
 
-image::assignments-rbac-policy-metarole.png[]
+image::assignments-rbac-policy-metarole.png[Concept of metaroles]
 
 
 The schema above illustrates an application of approval policy to a `Supervisor` role.
@@ -69,9 +69,10 @@ This enables you to manage policy categories using the concept of delegated admi
 +
 Most of the work in setting up applicable policies is in organizing your metaroles into a simple organizational structure.
 You can see policy groups that are configured in the system, and their members (meta-roles with policy rules specified) on the Organization tree page.
++
 Make sure that you select _Policy_ or _All_ in the *Type* drop-down menu to see the available policies.
 +
-image::policy_groups.webp[]
+image::policy_groups.webp[Org structure shows available policies]
 +
 See xref:/midpoint/reference/roles-policies/policies/applicable-policies/configuration/[Applicable Policy Configuration] for configuration details and examples.
 
@@ -84,15 +85,15 @@ To apply a policy to a role:
 
 . Go to icon:role[role=green] *Roles* > icon:role[] *All roles* > role.
 . Click icon:share-alt[] *Applicable Policies*.
-. Assign policies (metaroles) that you want to apply to your role by checking their check-boxes.
+. Assign policies (metaroles) that you want to apply to your role by selecting their check-boxes.
 +
-image::applicable_policies.webp[]
+image::applicable_policies.webp[Assign policies in Applicable Policies]
 
 . Click icon:save[] btn:[Save].
 +
 You can check that the policies have been assigned in the *Assignments* section by clicking icon:assignment[] *Assignments* > icon:assignment[] *All*:
 +
-image::applicable_policies_assignments.webp[]
+image::applicable_policies_assignments.webp[Verify roles have been assigned in role assignments]
 
 
 
