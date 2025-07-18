@@ -623,66 +623,172 @@
 
     <xsd:complexType name="SiSuggestObjectTypesRequestType">
         <xsd:annotation>
+            <xsd:documentation>
+                Request for "suggestObjectTypes" method.
+            </xsd:documentation>
             <xsd:appinfo>
                 <a:since>4.11</a:since>
                 <!-- intentionally not a container -->
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
-            <xsd:element name="schema" type="tns:SiObjectClassSchemaType" />
-            <xsd:element name="statistics" type="tns:ShadowObjectClassStatisticsType" />
+            <xsd:element name="schema" type="tns:SiObjectClassSchemaType">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Schema of the object class for which we want to suggest object types.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="statistics" type="tns:ShadowObjectClassStatisticsType">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Statistical data about objects having a particular object class needed
+                        for suggesting object types delineations.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
         </xsd:sequence>
     </xsd:complexType>
     <xsd:complexType name="SiSuggestObjectTypesResponseType">
         <xsd:annotation>
+            <xsd:documentation>
+                Response for "suggestObjectTypes" method - suggested object types.
+            </xsd:documentation>
             <xsd:appinfo>
                 <a:since>4.11</a:since>
                 <!-- intentionally not a container -->
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
-            <xsd:element name="objectType" type="tns:SiSuggestedObjectTypeType" minOccurs="0" maxOccurs="unbounded"/>
+            <xsd:element name="objectType" type="tns:SiSuggestedObjectTypeType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Suggested object types.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
         </xsd:sequence>
     </xsd:complexType>
     <xsd:complexType name="SiSuggestedObjectTypeType">
         <xsd:annotation>
+            <xsd:documentation>
+                Single suggested object type.
+            </xsd:documentation>
             <xsd:appinfo>
                 <a:since>4.11</a:since>
                 <!-- intentionally not a container -->
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
-            <xsd:element name="kind" type="xsd:string" />
-            <xsd:element name="intent" type="xsd:string" />
-            <xsd:element name="baseContextObjectClassName" type="xsd:string" minOccurs="0" />
-            <xsd:element name="baseContextFilter" type="xsd:string" minOccurs="0" />
-            <xsd:element name="filter" type="xsd:string" minOccurs="0" maxOccurs="unbounded" />
+            <xsd:element name="kind" type="xsd:string">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Suggested kind. Should be one of "account", "entitlement", "generic".
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="intent" type="xsd:string">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Suggested intent. May be arbitrary non-blank string.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="baseContextObjectClassName" type="xsd:string" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Local part of the name (i.e., without XML namespace prefix) of the object class of the base context, i.e.,
+                        the root object for this object type. Typically, an organizationalUnit for LDAP. Must be present
+                        in the schema.
+
+                        Present if and only if "baseContextFilter" is present.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="baseContextFilter" type="xsd:string" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        MQL filter pointing to the base context, i.e., the root object for this object type.
+
+                        Present if and only if "baseContextObjectClassName" is present.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="filter" type="xsd:string" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        MQL filter(s) delineating the object type.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
         </xsd:sequence>
     </xsd:complexType>
     <xsd:complexType name="SiObjectClassSchemaType">
         <xsd:annotation>
+            <xsd:documentation>
+                Description of a schema for given object class.
+            </xsd:documentation>
             <xsd:appinfo>
                 <a:since>4.11</a:since>
                 <!-- intentionally not a container -->
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
-            <xsd:element name="name" type="xsd:string" />
-            <xsd:element name="description" type="xsd:string" minOccurs="0" />
-            <xsd:element name="attribute" type="tns:SiAttributeDefinitionType" minOccurs="0" maxOccurs="unbounded" />
+            <xsd:element name="name" type="xsd:string">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Local name of the object class, e.g., "inetOrgPerson".
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="description" type="xsd:string" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Human-readable description of the object class.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="attribute" type="tns:SiAttributeDefinitionType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Definitions of individual attributes for this object class.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
         </xsd:sequence>
     </xsd:complexType>
     <xsd:complexType name="SiAttributeDefinitionType">
         <xsd:annotation>
+            <xsd:documentation>
+                Definition of a particular resource object attribute.
+            </xsd:documentation>
             <xsd:appinfo>
                 <a:since>4.11</a:since>
                 <!-- intentionally not a container -->
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
-            <xsd:element name="name" type="xsd:QName" />
-            <xsd:element name="type" type="xsd:QName" minOccurs="0" />
-            <xsd:element name="description" type="xsd:string" minOccurs="0" />
+            <xsd:element name="name" type="xsd:QName">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Name of the attribute. Includes a XML namespace prefix, typically "ri:" or "icfs:".
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="type" type="xsd:QName" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Name of the attribute type. Includes a XML namespace prefix, typically "xsd:", like "xsd:string".
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="description" type="xsd:string" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Human-readable description of the attribute.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
         </xsd:sequence>
     </xsd:complexType>
 
@@ -690,68 +796,85 @@
 
     <xsd:complexType name="SiSuggestFocusTypeRequestType">
         <xsd:annotation>
+            <xsd:documentation>
+                Request for "suggestFocusType" method.
+            </xsd:documentation>
             <xsd:appinfo>
                 <a:since>4.11</a:since>
                 <!-- intentionally not a container -->
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
-            <xsd:element name="kind" type="xsd:string" />
-            <xsd:element name="intent" type="xsd:string" />
-            <xsd:element name="schema" type="tns:SiObjectClassSchemaType" />
-            <xsd:element name="baseContextFilter" type="xsd:string" minOccurs="0" />
-            <!-- TODO delineation filters as well? -->
+            <xsd:element name="kind" type="xsd:string">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        "Kind" part of the object type identification.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="intent" type="xsd:string">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        "Intent" part of the object type identification.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="schema" type="tns:SiObjectClassSchemaType">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Description of the schema of particular object type.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <!-- TODO consider extracting the following 3 items to a common type (deduplication) -->
+            <xsd:element name="baseContextObjectClassName" type="xsd:string" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Local part of the name (i.e., without XML namespace prefix) of the object class of the base context, i.e.,
+                        the root object for this object type. Typically, an organizationalUnit for LDAP. Must be present
+                        in the schema.
+
+                        Present if and only if "baseContextFilter" is present.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="baseContextFilter" type="xsd:string" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        MQL filter pointing to the base context, i.e., the root object for this object type.
+
+                        Present if and only if "baseContextObjectClassName" is present.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="filter" type="xsd:string" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        MQL filter(s) delineating the object type.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
         </xsd:sequence>
     </xsd:complexType>
     <xsd:complexType name="SiSuggestFocusTypeResponseType">
         <xsd:annotation>
+            <xsd:documentation>
+                Response for "suggestFocusType" method.
+            </xsd:documentation>
             <xsd:appinfo>
                 <a:since>4.11</a:since>
                 <!-- intentionally not a container -->
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
-            <xsd:element name="focusTypeName" type="xsd:string" />
-        </xsd:sequence>
-    </xsd:complexType>
-
-    <!-- suggestFocusType method (old style) -->
-
-    <xsd:complexType name="SuggestFocusTypeRequestType">
-        <xsd:annotation>
-            <xsd:appinfo>
-                <a:since>4.11</a:since>
-                <!-- intentionally not a container -->
-            </xsd:appinfo>
-        </xsd:annotation>
-        <xsd:sequence>
-            <xsd:element name="kind" type="xsd:string" />
-            <xsd:element name="intent" type="xsd:string" />
-            <xsd:element name="objectClassName" type="xsd:string" />
-            <xsd:element name="baseContextFilter" type="xsd:string" minOccurs="0" maxOccurs="unbounded" />
-            <xsd:element name="attributeDefinition" type="tns:SuggestFocusTypeRequestAttributeDefinitionType" minOccurs="0" maxOccurs="unbounded" />
-        </xsd:sequence>
-    </xsd:complexType>
-    <xsd:complexType name="SuggestFocusTypeRequestAttributeDefinitionType">
-        <xsd:annotation>
-            <xsd:appinfo>
-                <a:since>4.11</a:since>
-                <!-- intentionally not a container -->
-            </xsd:appinfo>
-        </xsd:annotation>
-        <xsd:sequence>
-            <xsd:element name="name" type="xsd:string" />
-        </xsd:sequence>
-    </xsd:complexType>
-    <xsd:complexType name="SuggestFocusTypeResponseType">
-        <xsd:annotation>
-            <xsd:appinfo>
-                <a:since>4.11</a:since>
-                <!-- intentionally not a container -->
-            </xsd:appinfo>
-        </xsd:annotation>
-        <xsd:sequence>
-            <xsd:element name="focusTypeName" type="xsd:string" />
+            <xsd:element name="focusTypeName" type="xsd:string">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Local part of the focus name, i.e., name without XML namespace prefix.
+                        An example: UserType.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
         </xsd:sequence>
     </xsd:complexType>
 </xsd:schema>
