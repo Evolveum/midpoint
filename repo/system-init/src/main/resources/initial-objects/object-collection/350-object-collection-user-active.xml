@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (c) 2010-2025 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<objectCollection xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+                  xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+                  oid="0de46df0-f2d9-437b-84ba-8e8d291ef0e1">
+    <name>Active users</name>
+    <type>UserType</type>
+    <filter>
+        <q:text>activation/effectiveStatus = "enabled"</q:text>
+    </filter>
+    <defaultView>
+        <display>
+            <label>
+                <orig>Active user</orig>
+                <translation>
+                    <key>activeUser.label</key>
+                </translation>
+            </label>
+            <pluralLabel>
+                <orig>Active users</orig>
+                <translation>
+                    <key>activeUser.pluralLabel</key>
+                </translation>
+            </pluralLabel>
+        </display>
+    </defaultView>
+</objectCollection>

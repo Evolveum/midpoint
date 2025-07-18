@@ -204,20 +204,11 @@ public class QueryUtils {
         if (campaignOids == null || campaignOids.isEmpty()) {
             return null;
         }
-        S_FilterEntry queryPrefix = PrismContext.get().queryFor(AccessCertificationWorkItemType.class).block();
-        S_FilterExit filterExit = null;
-        for (String oid : campaignOids) {
-             filterExit = queryPrefix
-                    .exists(PrismConstants.T_PARENT)
-                    .ownerId(oid);
-             if (campaignOids.indexOf(oid) < campaignOids.size() - 1) {
-                 queryPrefix = filterExit.or();
-             }
-        }
-        if (filterExit == null) {
-            return null;
-        }
-        ObjectQuery query = filterExit.endBlock().build();
+        ObjectQuery query = PrismContext.get().queryFor(AccessCertificationWorkItemType.class)
+                .exists(PrismConstants.T_PARENT)
+                .ownerId(campaignOids.toArray(new String[0]))
+                .build();
+
         return createQueryForOpenWorkItems(query, principal, notDecidedOnly);
     }
 
