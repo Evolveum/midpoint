@@ -167,8 +167,25 @@ public class TestTaskActivityPolicies extends AbstractEmptyModelIntegrationTest 
 
         // @formatter:off
         asserter.assertSuspended()
+                .assertFatalError()
+                .activityState(ActivityPath.fromId("activity to be restarted"))
+                    .display()
+                    .assertExecutionAttempts(2)
+                    .assertComplete()
+                    .assertSuccess()
+                    .end()
                 .activityState(ActivityPath.fromId("activity to be skipped"))
-                    .assertFatalError();
+                    .display()
+                    .assertComplete()
+                    .assertFatalError()
+                    .end()
+                .activityState(ActivityPath.fromId("activity to suspend"))
+                    .display()
+                    .assertExecutionAttempts(1)
+                    .assertInProgressLocal()
+                    .assertFatalError()
+                    .progress()
+                        .assertSuccessCount(3, 0);
         // @formatter:on
     }
 

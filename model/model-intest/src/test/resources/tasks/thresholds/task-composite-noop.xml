@@ -12,49 +12,60 @@
     <executionState>runnable</executionState>
     <activity>
         <composition>
-            <!--<activity>-->
-            <!--    <identifier>activity to be restarted</identifier>-->
-            <!--    <work>-->
-            <!--        <noOp>-->
-            <!--            <steps>5</steps>-->
-            <!--            <delay>1000</delay>-->
-            <!--        </noOp>-->
-            <!--    </work>-->
-            <!--    <policies>-->
-            <!--        <policy>-->
-            <!--            <name>Max. 3s execution</name>-->
-            <!--            <policyConstraints>-->
-            <!--                <executionTime>-->
-            <!--                    <exceeds>PT3S</exceeds>-->
-            <!--                </executionTime>-->
-            <!--            </policyConstraints>-->
-            <!--            <policyActions>-->
-            <!--                <restartActivity>-->
-            <!--                    <retryLimit>1</retryLimit>-->
-            <!--                </restartActivity>-->
-            <!--            </policyActions>-->
-            <!--        </policy>-->
-            <!--    </policies>-->
-            <!--</activity>-->
+            <activity>
+                <identifier>activity to be restarted</identifier>
+                <work>
+                    <noOp>
+                        <steps>5</steps>
+                        <delay>400</delay>
+                    </noOp>
+                </work>
+                <policies>
+                    <policy>
+                        <name>Max. 1s execution</name>
+                        <description>
+                            Restart activity only once after it's executing for more than 1s.
+                            In the next run leave it until it's done.
+                        </description>
+                        <policyConstraints>
+                            <executionTime>
+                                <exceeds>PT1S</exceeds>
+                            </executionTime>
+                            <restartActivity>
+                                <below>1</below>
+                            </restartActivity>
+                        </policyConstraints>
+                        <policyReaction>
+                            <name>restart activity</name>
+                            <action>
+                                <restartActivity>
+                                    <delay>1000</delay>
+                                </restartActivity>
+                            </action>
+                        </policyReaction>
+                    </policy>
+                </policies>
+            </activity>
             <activity>
                 <identifier>activity to be skipped</identifier>
                 <work>
                     <noOp>
                         <steps>5</steps>
-                        <delay>1000</delay>
+                        <delay>400</delay>
                     </noOp>
                 </work>
                 <policies>
                     <policy>
-                        <name>Max. 3s execution</name>
+                        <name>Max. 1s execution</name>
                         <policyConstraints>
                             <executionTime/>
                         </policyConstraints>
                         <policyReaction>
+                            <name>skip activity</name>
                             <threshold>
-                                <timeInterval>
-                                    <interval>PT3S</interval>
-                                </timeInterval>
+                                <lowWaterMark>
+                                    <duration>PT1S</duration>
+                                </lowWaterMark>
                             </threshold>
                             <action>
                                 <skipActivity/>
@@ -68,20 +79,21 @@
                 <work>
                     <noOp>
                         <steps>5</steps>
-                        <delay>1000</delay>
+                        <delay>400</delay>
                     </noOp>
                 </work>
                 <policies>
                     <policy>
-                        <name>Max. 3s execution</name>
+                        <name>Max. 1s execution</name>
                         <policyConstraints>
                             <executionTime/>
                         </policyConstraints>
                         <policyReaction>
+                            <name>notification and suspend</name>
                             <threshold>
-                                <timeInterval>
-                                    <interval>PT3S</interval>
-                                </timeInterval>
+                                <lowWaterMark>
+                                    <duration>PT1S</duration>
+                                </lowWaterMark>
                             </threshold>
                             <action>
                                 <notification/>
