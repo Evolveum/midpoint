@@ -62,7 +62,6 @@ In this case, the approval will be requested from the user's manager.
 ----
 <policy oid="834bf178-30fc-11e8-addd-1fc1464266f5">
         <name>metarole-policy-assignment-approval-manager</name>
-        <subtype>policy</subtype>
         <displayName>Assignment approval by user's manager</displayName>
         <!-- assignment of this metarole to the appropriate org would probably be here -->
         <inducement>
@@ -112,7 +111,6 @@ In this case, the approval will be requested from the person that is designated 
 ----
 <policy oid="0851dd7a-30fc-11e8-88fe-3796232f0574">
         <name>metarole-policy-assignment-approval-role-approver</name>
-        <subtype>policy</subtype>
         <displayName>Assignment approval by any role approver</displayName>
         <!-- assignment of this metarole to the appropriate org would probably be here -->
         <inducement>

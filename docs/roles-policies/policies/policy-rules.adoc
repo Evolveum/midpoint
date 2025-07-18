@@ -21,15 +21,24 @@ compliance:
 
 == Introduction
 
-Policy rules are a very powerful mechanism that covers a wide range of use cases.
-It can be used to define role xref:/midpoint/reference/cases/approval/[approval], xref:/midpoint/reference/roles-policies/roles/role-lifecycle/[lifecycle of midPoint objects], policies such as xref:/midpoint/reference/roles-policies/policies/segregation-of-duties/[segregation of duties], notifications and other governance and compliance rules.
-
 Policy rules provide a basic mechanism for many xref:/iam/iga/[identity governance] and xref:/midpoint/compliance/[regulatory compliance] features, as policy rules often define high-level business-oriented policies.
 Governance policies defined by policy rules are applied on top of the usual access control policies, such as feature:rbac[role-based access control (RBAC)].
 
+Policy rules allow you to define conditions (_policy constraints_) that are evaluated against users, roles, assignments, or other objects. 
+When these conditions are met or violated, midPoint can automatically respond with _policy actions_, such as triggering notifications, enforcing approvals, rejecting changes, annotating objects, or pruning assignments.
+
+Policy rules are a very powerful mechanism that covers a wide range of use cases.
+They are typically used to:
+
+* Enforce xref:/midpoint/reference/cases/approval/[approval] workflows for role assignments.
+* React to or restrict actions based on xref:/midpoint/reference/roles-policies/roles/role-lifecycle/[object lifecycle state]. 
+* Implement xref:/midpoint/reference/roles-policies/policies/segregation-of-duties/[segregation of duties] and other access governance policies.
+* Trigger notifications and compliance-related actions.
+
+
 == Structure
 
-Each policy rule has the following parts:
+Policy rules have the following parts:
 
 * *Name* and *description* of the rule are used for configuration management and diagnostics.
 The rule name will be displayed in the log files when the rule is processed.
@@ -59,7 +68,7 @@ For example, if the rule is defined as a xref:/midpoint/reference/roles-policies
 
 == Application
 
-Policy rules are used to implement a wide variety of mechanisms:
+Policy rules are used to implement a wide variety of mechanisms, some of which may be required for ISO27001 compliance:
 
 * xref:/midpoint/reference/cases/approval/[Assignment approvals]: policy rules may be used to change the default assignment approval schemes in a very flexible and scalable fashion.
 
@@ -69,14 +78,24 @@ They may be used to approve changed role definitions, etc.
 * Compliance reporting: policy rules may be used to set feature:object-mark[marks] in the affected objects.
 Marks may be used in reports to identify objects that violate compliance rules, to report the percentage of compliant vs non-compliant objects and so on.
 
-* Flexible notifications, ad-hoc re-certification and other governance and compliance features that are planned for future midPoint versions.
+* Access control based on user clearance: combined with _classifications_ and _clearances_, policy rules can restrict access to sensitive systems or applications unless a specific training, screening, or NDA conditions are met.
+This is especially useful in regulated environments (e.g. healthcare, finance, government).
 
-// TODO: more situations, especially for ISO27001 compliance
+* Segregation of duties: You can define exclusion constraints that ensure that conflicting roles (such as "Developer" and "Deployer") are not assigned to the same user.
+Violations can trigger logging, corrective actions, etc.
+
+* Temporal conditions: Rules can enforce time-sensitive conditions, such as allowing assignments only during specific periods, or delaying notifications until after a grace period.
+For example, you may want to give contractors access to a system only for a 3-month period.
+
+* Identity risk scoring: Based on a "risk score", you can trigger additional governance for your high-risk users.
+For example, to grant access to high-risk users (i.e. users in more sensitive positions), you may require additional audit flags or higher approval levels.
+
+* Flexible notifications, ad-hoc re-certification and other governance and compliance features that are planned for future midPoint versions.
 
 == Rule Content
 
 [[policy_constraints]]
-=== Policy Constraints
+=== Policy Rule Constraints
 
 [TIP]
 .TODO
@@ -88,7 +107,20 @@ If you are midPoint link:https://evolveum.com/services/[subscriber], you can req
 Or you may use the option to xref:/support/subscription-sponsoring/[sponsor] completion of midPoint documentation.
 ====
 
-In case several policy rule constraints are specified at the same time, then the logical AND operator is assumed between them.
+Policy rule constraints are conditions that determine when a policy rule should be activated.
+
+Rather than acting directly, policies first evaluate their constraints, and only if those constraints are met, the rule triggers the defined action, such as removing a conflicting role, requiring an approval, etc.
+
+Policy rule constraints can take various forms.
+Some evaluate the state of the user or object, such as the lifecycle status or specific attributes, while others may detect role conflicts, assignment changes, or transitions between states.
+
+They can contain logical operators AND, OR, and NOT.
+They may also include custom scripted logic for advanced scenarios.
+This flexibility enables you to enforce both simple policies (e.g. deny access if not trained), and complex governance rules (e.g. prevent assignment to finance roles unless a background check passed and no conflicting access exists).
+
+Policy constraints are convenient in scenarios such as segregation of duties, dynamic role eligibility, user offboarding, or regulatory compliance, where conditions vary depending on the user's attributes, history, or your existing role structure.
+
+If you specify multiple policy rule constraints at the same time without using a logical operator, the AND operator is assumed between them.
 This means that all such constraints must be satisfied for the rule to be triggered.
 This is a convenient way to cover overlapping time intervals, modifications of several properties at the same time and so on.
 However, this may be counter-intuitive for some cases, such as exclusion constraints, even though this approach makes complete sense even in those situations.
@@ -96,6 +128,36 @@ The logical AND operator between exclusions may be used to implement a "triangul
 
 In case you need a logical OR operator between several constraints, you just need to re-formulate them into several policy rules.
 Each of the policy rules is triggered individually, therefore implementing a logical OR operation.
+
+.Example policy constraints
+[source,xml]
+----
+<policyRule>
+  <name>Example Policy Rule</name>
+  <policyConstraints>
+    <constraint>
+      <objectState>
+        <filter>
+          <q:text>lifecycleState = "active"</q:text>
+        </filter>
+      </objectState>
+    </constraint>
+    <constraint>
+      <script>
+        <code>
+          return user.getExtension().get("customAttribute") == "allowedValue";
+        </code>
+      </script>
+    </constraint>
+  </policyConstraints>
+  <policyActions>
+    <enforcement/>
+  </policyActions>
+</policyRule>
+----
+
+For more examples of policy constraints, see xref:/midpoint/reference/roles-policies/policies/policy-rule-examples/[policy rule examples].
+
 
 [[object_marks]]
 === Object Marks

@@ -28,18 +28,49 @@ compliance:
 :page-upkeep-status: green
 :page-moved-from: /midpoint/reference/roles-policies/classification/
 
-This describes how to configure a policy in midPoint.
+This describes how to configure policies in midPoint.
+
 
 == Introduction
 
-Policies help you organize your resources, such as applications, databases, file systems, or even individual files, and manage access to them through midPoint.
+Policies help you implement your organizational and business rules in midPoint.
 
-In order to define your organization policies, you need to be able to categorize your applications and define requirements for those categories.
-For this, midPoint contains the following pre-configured xref:/midpoint/reference/schema/archetypes/[archetypes] in the policy object:
+
+=== Generic Policies
+
+You can apply policies to a wide range of scenarios, such as (but not limited to):
+
+* Access control - You can automatically expire access after a period of time, or define access rules that only allow users from a certain region to access specific systems.
+* xref:/midpoint/reference/roles-policies/policies/segregation-of-duties/[Segregation of duties (SoD)] - You can define rules that prevent assigning conflicting roles.
+* Lifecycle management - You can define a policy that automatically revokes roles or disables accounts when employment is terminated.
+* Approvals - Before granting access to sensitive roles or systems, you can trigger approvals.
+
+In all of the situations, you can use what we call _generic policies_.
+These can define a wide range of rules and constraints that can be applied to various objects and scenarios within the system.
+Generic policies are often used to enforce business rules and compliance requirements that are not directly related to information classification or user clearance levels.
+They provide a flexible mechanism for defining and applying policies that can be tailored to the specific needs of an organization.
+
+For example, see the <<generic_policy_example,generic policy example>> below.
+
+=== Classification and Clearances
+
+Besides these _generic policies_, midPoint also supports the concept of _classifications_ and _clearances_.
+These are optional policy types that are designed to help you control access to content (such as applications) based on its categorization.
+They are used to enforce information security and access control based on sensitivity levels and user permissions.
+For example, with classifications, you can categorize your applications, and with clearances, you can define what requirements must be met to access those applications.
+Besides applications, you can also manage access to databases, file systems, or even individual files through midPoint.
+
+MidPoint contains the following pre-configured xref:/midpoint/reference/schema/archetypes/[archetypes] for classifications and clearances in the policy object:
 
 * *`classification`* - Used to set up classification schemes.
 It is used to define sets of _classifications_ (_information labels_) that can be assigned to applications.
 Classifications enable you to categorize applications by specifying security requirements that must be met to be able to gain access to classified applications.
+You can think about them as of security tags or risk labels placed on a system, role, etc.
+They can be used, for example, in the following scenarios:
+    ** To separate GDPR sensitive systems from those that do not contain any GDPR data.
+    ** To separate high risk systems with high impact if breached, such as financial systems, from other non-sensitive content.
+    ** To separate internal systems from external ones.
+Based on the sensitivity of your systems, classifications enable you to create tiers to which you can apply different levels of access requirements, and thus support your security needs.
 
 * *`clearance`* - Used to define clearances.
 Clearances are objects which testify that security requirements were met by a particular user or organization.
@@ -50,26 +81,25 @@ For example, these can cover:
     ** User categories, such as internal vs. external.
     ** Screenings.
 
-* *`generic policy`* - This is not specifically tied to classifications or clearances.
-Generic policies are used to define a wide range of rules and constraints that can be applied to various objects and scenarios within the system.
-Unlike classifications and clearances, which are typically used for information security and access control based on sensitivity levels and user permissions, generic policies can be applied to a broader set of use cases.
-They can include rules for approvals (see an <<generic_policy_example,example below>>), xref:/midpoint/reference/roles-policies/policies/segreation-of-duties/[segregation of duties], access control, and other identity governance policies.
-Generic policies are often used to enforce business rules and compliance requirements that are not directly related to information classification or user clearance levels.
-They provide a flexible mechanism for defining and applying policies that can be tailored to the specific needs of an organization.
-
-Policies typically combine:
-//co můžou ještě obsahovat kromě metarolí a policy rules?
-* Policy objects, which are in fact implementations of xref:../metaroles/[meta-roles]
-* xref:../policy-rules/[Policy rules]
-
-Classifications act as meta-roles, specifying their security requirements in the form of policy rules embedded in second-level inducements.
-Policy rules often require the presence of clearances, which are represented by assignments of clearance objects to users.
-
 Both classifications and clearances are supposed to be xref:/midpoint/reference/schema/policy[policy objects (PolicyType)].
 
 == Configuration
 
-To use policies in midPoint, you:
+Policies can have varying complexity.
+Some may be very simple, and they can used as _observers_. +
+For example, they can only "mark" an object with a property based on an evaluated condition.
+You can use such policies to indicate that a user has passed a certification, has a certain qualification, or to indicate a change in their lifecycle stage, for example that they are in their probation period, have been off-boarded, etc.
+
+
+Other policies may be more complex and they can be better described as _controllers_.
+
+These can actively shape the system behavior based on dynamic conditions, roles, states, and business logic.
+An example of such a policy set up could be a xref:/midpoint/reference/roles-policies/policies/segregation-of-duties/[Segregation of Duties (SoD)] implementation.
+
+The following configuration setup assumes a more complex scenario in which we create tiers for systems that have different access requirements.
+In it, we use _classifications_ and _clearances_ that are otherwise optional and may not be used in simpler scenarios.
+
+Implement a policy as follows:
 
 . *Define categories for applications*: This is the classification phase in which you create policy objects representing the classification categories.
 These categories define the security requirements for different levels of access.
@@ -81,10 +111,26 @@ You can do that manually, or automatically via xref:/midpoint/reference/roles-po
 . *Enforce policy rules*: Use xref:../policy-rules.adoc[policy rules] within classification definitions to enforce the security requirements.
 Make sure you xref:/midpoint/reference/roles-policies/policies/gradual-policy-enforcement/[enforce your policy rules gradually] to avoid conflicts.
 
-See how those individual steps are configured in the <<example,example>> below.
+See how those individual steps are configured in the <<scenario_example,example>> below.
 
-[[example]]
-== Scenario-Based Example
+[[examples]]
+== Examples
+
+This shows the following typical examples of how policies can be used:
+
+* <<regulatory_compliance_example,Regulatory Compliance Example>>
+* <<scenario_example,Classification and Clearance Example>>
+* <<generic_policy_example,Generic Policy Example>>
+
+For more, see xref:/midpoint/reference/roles-policies/policies/policy-constraints-examples/[policy rule examples].
+
+[[regulatory_compliance_example]]
+=== Regulatory Compliance Example
+
++++<iframe width="852" height="480" src="https://www.youtube.com/embed/UrJx_grnmdk?start=589" frameborder="0" allowfullscreen></iframe>+++
+
+[[scenario_example]]
+=== Classification and Clearance Example
 
 This example shows how to implement policies for systems that have different security access requirements:
 
@@ -96,9 +142,10 @@ This example shows how to implement policies for systems that have different sec
 * <<enforce_policy_rules,Enforce policy rules>>
 
 [[scenario]]
-=== Scenario
+==== Scenario
 
-The Slovak transposition of European NIS1 directive specifies that all information systems operated by providers of essential services have to be classified into three categories:
+For an example, we will use a simplified case of the Slovak transposition of the European NIS1 directive.
+This transposition specifies that all information systems operated by providers of essential services have to be classified into three categories:
 
 * Category I: Systems providing public information.
 
@@ -106,10 +153,8 @@ The Slovak transposition of European NIS1 directive specifies that all informati
 
 * Category III: Systems processing sensitive data.
 
-(This description is simplified.
-Full details are available in Slovak at https://www.slov-lex.sk/pravne-predpisy/SK/ZZ/2018/362/#prilohy[Act 2018/362 Z.z.].)
 
-We want to set up following security policy:
+We want to set up the following security policy:
 
 * Access to Category I systems can be granted to any user, by the means of the usual midPoint process.
 Roles can be assigned directly by the system administrator, requested by users and approved, or automatically assigned by a policy.
@@ -126,7 +171,7 @@ Category III systems have to satisfy requirements for all three categories.
 TIP: Full configuration files for this example can be found in xref:/midpoint/reference/samples/distribution-samples/[midPoint samples] in the `classification/classification-nis1-sk` directory.
 
 [[create_classification_schema]]
-=== Create Classification Schema
+==== Create Classification Schema
 
 Firstly, we set up a classification framework.
 We create three policy objects representing the three classification categories.
@@ -179,7 +224,7 @@ We create three policy objects representing the three classification categories.
 ----
 
 [[assign_applications_to_categories]]
-=== Assign Applications to Categories
+==== Assign Applications to Categories
 
 Now we can classify the applications.
 We can assign classification categories to applications using ordinary assignments.
@@ -258,7 +303,7 @@ _Restricted research database_ is classified as Category III:
 ----
 
 [[define_clearances]]
-=== Define Clearances
+==== Define Clearances
 
 It is time to implement our security policy.
 As category I applications are pretty much free-for-all, we do not need to specify any special requirements for category I.
@@ -298,14 +343,14 @@ Similarly, the definition of category III can be extended with requirements for 
 ----
 
 [[apply_clearances_to_users]]
-=== Apply Clearances to Users
+==== Apply Clearances to Users
 
 We will assign the defined clearance to users that have signed the NDA.
 The clearance can be assigned in any way that midPoint supports.
 E.g. it may be assigned manually after the NDA is signed, or automatically based on user property mapped from the HR system.
 
 [[enforce_policy_rules]]
-=== Enforce Policy Rules
+==== Enforce Policy Rules
 
 Now we are going to specify security requirements of category II.
 We absolutely do *not* want to specify the requirements in every application.
@@ -432,7 +477,7 @@ Roles must have inducement to applications, even if applications are "empty" (th
 Applications are objects that link classifications to roles, therefore it is essential to maintain that link.
 
 [[generic_policy_example]]
-== Generic Policy Example
+=== Generic Policy Example
 
 The following generic policy enforces an approval workflow for any assignment of roles or services.
 Specifically, it requires that all owners of the requested object (e.g. role or service) must explicitly approve the assignment before it is completed.
