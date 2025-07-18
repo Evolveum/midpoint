@@ -1,0 +1,153 @@
+= Using Metaroles for Policy Configuration
+:page-wiki-name: Using Metaroles for Policy Configuration
+:page-wiki-id: 24676817
+:page-wiki-metadata-create-user: semancik
+:page-wiki-metadata-create-date: 2018-04-09T17:27:41.988+02:00
+:page-wiki-metadata-modify-user: petr.gasparik
+:page-wiki-metadata-modify-date: 2020-09-02T11:50:47.537+02:00
+:page-keywords: [ 'metarole', 'meta-role', 'metaroles', 'meta-roles', 'meta' ]
+:page-upkeep-status: yellow
+:page-toc: top
+:page-moved-from: /midpoint/reference/roles-policies/metaroles/policy/
+
+== Introduction
+
+MidPoint is a very flexible system, especially when it comes to xref:/midpoint/reference/roles-policies/policies/policy-rules/[policy rules], xref:/midpoint/reference/cases/approval/[approvals], and other identity governance mechanisms.
+However, the flexibility comes at a cost.
+Policy definitions can be quite complex.
+Some of this complexity is inherent and cannot really be avoided.
+However, once potentially complex policies are created, then it should be quite easy to apply them to individual objects such as users and roles.
+The mechanism of xref:/midpoint/reference/roles-policies/policies/metaroles/[metaroles] can be used exactly for this purpose.
+
+The basic idea is to express policies in a form of metaroles.
+For example, a policy that drives role assignment through an approval will be expressed in an "approval by manager" metarole.
+This metarole will contain all xref:/midpoint/reference/roles-policies/policies/policy-rules/[policy rules] necessary to express the approval policy.
+Those policy rules may be quite complex, but they are all conveniently packed into the metarole.
+All that remains is to assign the metarole to an object to which it should apply - which is usually a role.
+So, we end up with a role with an assignment to another role.
+And that is what we call a xref:/midpoint/reference/roles-policies/policies/metaroles/[metarole].
+The situation looks like this:
+
+image::assignments-rbac-policy-metarole.png[]
+
+The schema above illustrates an application of approval policy to a `Supervisor` role.
+`Supervisor` is an ordinary business or an application role.
+After creating the role, we want to apply a usual approval policy to it.
+The usual approval policy is specified in the `Approval by manager` metarole.
+This metarole specifies all the necessary policy rules.
+However, those rules are specified inside an xref:/midpoint/reference/roles-policies/roles/assignment/assignment-vs-inducement/[inducement].
+Therefore the policy rules do not apply to the role which contains them, i.e. the rules do not apply to the `Approval by manager` metarole.
+Those policy rules will apply to any object that has the metarole assigned.
+In this case, it is the `Supervisor` role.
+The `Supervisor` role will be affected by the defined policy rules.
+
+== Examples
+
+See the following examples of how you can apply metaroles to create approval policies:
+
+* <<manager_approval,Approval by manager>>
+* <<approver_approval,Approval by approver>>
+
+
+[[manager_approval]]
+=== Approval By Manager
+
+The following metarole contains a "manager" approval policy.
+When this metarole is applied to an ordinary role, the approval policy is applied to that ordinary role.
+When that ordinary role is assigned to a user, the request is driven through an xref:/midpoint/reference/cases/approval/[approval process].
+In this case, the approval will be requested from the user's manager.
+
+.Approval by manager
+[source,xml]
+----
+<policy oid="834bf178-30fc-11e8-addd-1fc1464266f5">
+        <name>metarole-policy-assignment-approval-manager</name>
+        <displayName>Assignment approval by user's manager</displayName>
+        <!-- assignment of this metarole to the appropriate org would probably be here -->
+        <inducement>
+            <policyRule>
+                <policyConstraints>
+                    <assignment>
+                        <operation>add</operation>
+                    </assignment>
+                </policyConstraints>
+                <policyActions>
+                    <approval>
+                        <compositionStrategy>
+                            <order>100</order>
+                        </compositionStrategy>
+                        <approvalSchema>
+                            <stage>
+                                <name>User's manager</name>
+                                <approverExpression>
+                                    <script>
+                                        <code>midpoint.getManagersOidsExceptUser(object)</code>
+                                    </script>
+                                </approverExpression>
+                                <evaluationStrategy>firstDecides</evaluationStrategy>
+                                <outcomeIfNoApprovers>reject</outcomeIfNoApprovers>
+                            </stage>
+                        </approvalSchema>
+                    </approval>
+                </policyActions>
+            </policyRule>
+        </inducement>
+</policy>
+----
+
+This approval policy is specified in a feature:policy-concept[policy object], which is a special type of object meant to act as a metarole.
+This approach is convenient when you want to manage policies in GUI using the feature:applicable-policies["applicable policy"] feature.
+
+[[approver_approval]]
+=== Approval By Approver
+
+The following metarole contains an "approver" approval policy.
+When this metarole is applied to an ordinary role, the approval policy is applied to that ordinary role.
+When that ordinary role is assigned to a user, the request is driven through an xref:/midpoint/reference/cases/approval/[approval process].
+In this case, the approval will be requested from the person that is designated as the role approver.
+
+.Approval by approver
+[source,xml]
+----
+<policy oid="0851dd7a-30fc-11e8-88fe-3796232f0574">
+        <name>metarole-policy-assignment-approval-role-approver</name>
+        <displayName>Assignment approval by any role approver</displayName>
+        <!-- assignment of this metarole to the appropriate org would probably be here -->
+        <inducement>
+            <policyRule>
+                <policyConstraints>
+                    <assignment>
+                        <operation>add</operation>
+                    </assignment>
+                </policyConstraints>
+                <policyActions>
+                    <approval>
+                        <compositionStrategy>
+                            <order>200</order>
+                        </compositionStrategy>
+                        <approvalSchema>
+                            <stage>
+                                <name>Role approver</name>
+                                <approverRelation>approver</approverRelation>
+                                <evaluationStrategy>firstDecides</evaluationStrategy>
+                                <outcomeIfNoApprovers>reject</outcomeIfNoApprovers>
+                            </stage>
+                        </approvalSchema>
+                    </approval>
+                </policyActions>
+            </policyRule>
+        </inducement>
+</policy>
+----
+
+The policy rule above will drive the role through an approval of a role approver.
+The role approver is determined by examining all users that have this role assigned with a special-purpose `approver` xref:/midpoint/reference/concepts/relation/[relation].
+For more details, see the xref:/midpoint/reference/cases/approval/[description of the approval mechanism].
+
+== See Also
+
+* xref:/midpoint/reference/roles-policies/policies/applicable-policies/[User-Friendly Policy Selection]
+
+* xref:/midpoint/reference/roles-policies/policies/applicable-policies/configuration/[Applicable Policy Configuration]
+
+* xref:/midpoint/reference/roles-policies/policies/metaroles/gensync/['Roles, Metaroles and Generic Synchronization']

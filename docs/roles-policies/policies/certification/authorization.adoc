@@ -1,0 +1,205 @@
+= Access Certification Authorization
+:page-nav-title: Authorization
+:page-wiki-name: Access Certification Security
+:page-wiki-id: 22282369
+:page-wiki-metadata-create-user: mederly
+:page-wiki-metadata-create-date: 2016-02-01T14:26:00.780+01:00
+:page-wiki-metadata-modify-user: mederly
+:page-wiki-metadata-modify-date: 2016-02-01T19:27:02.512+01:00
+:page-upkeep-status: orange
+:page-alias: { "parent" : "/midpoint/reference/security/authorization/", "slug" : "certification",  "title" : "Access Certification" }
+:page-moved-from: /midpoint/reference/roles-policies/certification/authorization/
+
+== Model level
+
+For certification module there is a set of specific authorization action URIs available.
+They are listed in the following table.
+Note that *<prefix>* is the standard prefix denoting authorization actions at the model level, i.e. "*http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3".*
+
+[%autowidth]
+|===
+| Operation | Action URI | Comment
+
+| Create a certification definition
+| <prefix>#add
+| This is a standard action URI used to create an object.
+
+
+| Create a campaign
+| <prefix>#createCertificationCampaign
+| The certification definition object is evaluated with regards to this authorization (not the campaign object itself).
+So, it is possible to specify e.g. that a user can "instantiate" definitions with a specific owner.
+Or definitions with a specific tenantRef, or some extension attribute.Note that the newly created campaign has ownerRef set to the currently logged-in user.
+
+
+| Open a campaign review stage
+| <prefix>#openCertificationCampaignReviewStage
+| The object being evaluated is the certification campaign object.
+
+
+| Close a campaign review stage
+| <prefix>#closeCertificationCampaignReviewStage
+| The object being evaluated is the certification campaign object.
+(Note: If a campaign closure is scheduled automatically on campaign start, it runs under administrator user.)
+
+
+| Start remediation
+| <prefix>#startCertificationRemediation
+| The object being evaluated is the certification campaign object.
+(Note: In case of automated remediation, the task runs under administrator user.)
+
+
+| Close a campaign
+| <prefix>#closeCertificationCampaign
+| The object being evaluated is the certification campaign object.
+
+
+| Read user's own certification decisions (done along with those that are to be done)
+| <prefix>#readOwnCertificationDecisions
+| Evaluated without relation to any object.
+
+
+| Record own certification decision.
+| <prefix>#recordCertificationDecision
+| Evaluated without relation to any object.
+
+
+|===
+
+
+== GUI level
+
+At the GUI level, there are the following action URIs available.
+*<prefix>* is the standard prefix for GUI authorization actions, i.e. "*http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3"*.
+
+[%autowidth]
+|===
+| GUI page | Action URI | Comment
+
+| Certification definitions
+| <prefix>#certificationDefinitions
+|
+
+
+| Add/edit certification definition
+| <prefix>#certificationDefinition
+| Currently there is no way how to distinguish between "add" and "edit" at the GUI level.
+
+
+| Certification campaigns
+| <prefix>#certificationCampaigns
+|
+
+
+| View specific campaign
+| <prefix>#certificationCampaign
+|
+
+
+| My cases to decide
+| <prefix>#myCertificationDecisions
+| Authorization is required for access to Certification items page which can be reached from "_My active campaigns_" page (e.g. by clicking Show items link for a particular campaign).
+In case _accessCertification_ -> _allowCertificationItemsMenus_ option is enabled (set to true) in the system configuration object, this authorization is required to display "_My certification items_" menu item.
+
+| All cases to decide
+| <prefix>#certificationDecisions
+| Authorization is required for access to Certification items page which can be reached from "_Active campaigns_" page (e.g. by clicking Show items link for a particular campaign).
+In case _accessCertification_ -> _allowCertificationItemsMenus_ option is enabled (set to true) in the system configuration object, this authorization is required to display "_Certification items_" menu item.
+
+| My active campaigns
+| <prefix>#myActiveCertificationCampaigns
+|
+
+| All active campaigns
+| <prefix>#activeCertificationCampaigns
+|
+
+| All certification-related pages
+| <prefix>#certificationAll
+|
+
+
+|===
+
+Note that unlike editing user, role and org, GUI does not currently adapt itself to specific security settings for the model level.
+This means that, for example, if a user has an authorization to read but not modify a particular definition, the GUI is the same as if he had an authorization to read as well as to modify it - i.e., all fields are shown and editable.
+Only after "Save" button is pushed, an "access denied" exception occurs in the former case.
+Also, if a user has an authorization to view some of the items but not the others, the form does not adapt to this: it shows all the fields; and those that are not authorized are simply not filled in.
+This is to be fixed in later versions of midPoint.
+
+
+== Example 1: Reviewer role
+
+This role allows a user to:
+
+. read requests he has to certify (including his own decisions) as well as record the decisions - the first authorization,
+
+. display "my cases to decide" page - the second one.
+
+[source,xml]
+----
+<role xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+    <name>Reviewer</name>
+    <authorization>
+        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#readOwnCertificationDecisions</action>
+        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#recordCertificationDecision</action>
+    </authorization>
+    <authorization>
+        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#certificationDecisions</action>
+    </authorization>
+</role>
+----
+
+
+== Example 2: Certification campaign owner
+
+This role allows a user to:
+
+. create campaigns for a given certification definition (in this case, specified by OID, although the any other filter can be used) - the first authorization,
+
+. read and manage campaigns that were derived from this particular definition - the second one,
+
+. use respective GUI pages.
+
+By "manage" we mean opening and closing their stages, starting remediation, but not closing the campaigns prematurely.
+The last privilege could be added by adding action URI #closeCertificationCampaign in the list of URIs in second authorization.
+
+[source,xml]
+----
+<role xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+      xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+      xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3">
+   <name>Campaigns of XYZ owner</name>
+   <authorization id="1">
+      <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#createCertificationCampaign</action>
+      <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>
+      <object>
+         <type>AccessCertificationDefinitionType</type>
+         <filter>
+            <q:text>. inOid "092c35f1-5bcd-477e-a95e-912f73314b02"</q:text>     <!-- OID of the definition of XYZ campaigns -->
+         </filter>
+      </object>
+   </authorization>
+   <authorization id="2">
+      <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>
+      <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#openCertificationCampaignReviewStage</action>
+      <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#closeCertificationCampaignReviewStage</action>
+      <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#startCertificationRemediation</action>
+      <object>
+         <type>AccessCertificationCampaignType</type>
+         <filter>
+            <q:text>definitionRef matches (oid = "092c35f1-5bcd-477e-a95e-912f73314b02")</q:text>
+         </filter>
+      </object>
+   </authorization>
+   <authorization id="3">
+      <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#certificationDefinitions</action>
+      <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#certificationDefinition</action>
+      <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#certificationCampaigns</action>
+      <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#certificationCampaign</action>
+   </authorization>
+</role>
+----
+
+Alternatively, we might want to specify the second authorization in a way of "all campaigns whose owner is currently logged-in user".
+But the implementation of owner = self is not quite finished yet (see bug:MID-2789[]).

@@ -1,0 +1,114 @@
+= Radio Button Roles
+:page-wiki-name: Radio Button Roles
+:page-wiki-id: 24085107
+:page-wiki-metadata-create-user: semancik
+:page-wiki-metadata-create-date: 2017-01-23T16:24:58.134+01:00
+:page-wiki-metadata-modify-user: vix
+:page-wiki-metadata-modify-date: 2019-10-10T11:23:19.896+02:00
+:page-upkeep-status: yellow
+:page-toc: top
+:page-moved-from: /midpoint/reference/roles-policies/rbac/radio-button-roles/
+
+_Radio button_ roles is a set of roles where only one role can be assigned to a user at any specific time.
+When a role from the set is assigned to a user then any other role that was assigned before is automatically unassigned.
+It works like an radio button: only one button from the set may be "pressed" at any moment.
+This is a very convenient configuration for application roles that work on the same single-value attribute or which represent conflicting configurations for the same feature.
+A typical example is a configuration of limits or quotas, let's say we have roles for 10GB quota, 100GB quota and 500GB quota.
+We want only one of them to be assigned at a time.
+
+This configuration is based on three midPoint mechanisms:
+
+. xref:/midpoint/reference/roles-policies/policies/policy-rules/[Policy Rules] that implement (almost) ordinary xref:/midpoint/reference/roles-policies/policies/segregation-of-duties/[role exclusion].
+
+. The "prune" policy action.
+
+. Clever use of xref:/midpoint/reference/roles-policies/policies/metaroles/gensync/[metarole] to define the radio button class.
+
+First step is to define exclusion for all the individual "button" roles.
+This is easy to do with policy rules.
+However, let's define it in a meta-role that will define the whole "radio button panel".
+Like this:
+
+[source,xml]
+----
+<role oid="0b759ce2-df29-11e6-a84c-9b213183a815" xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+      xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-3">
+    <name>Quota metarole</name>
+    <inducement>
+        <policyRule>
+            <policyConstraints>
+                <exclusion>
+                    <targetRef oid="eaa4ec3e-df28-11e6-9cca-336e0346d5cc" type="RoleType"/> <!-- Quota 10GB -->
+                </exclusion>
+            </policyConstraints>
+            <policyActions>
+                <prune/>
+            </policyActions>
+        </policyRule>
+    </inducement>
+    <inducement>
+        <policyRule>
+            <policyConstraints>
+                <exclusion>
+                    <targetRef oid="2fd9e8f4-df29-11e6-9605-cfcedd703b9e" type="RoleType"/> <!-- Quota 100GB -->
+                </exclusion>
+            </policyConstraints>
+            <policyActions>
+                <prune/>
+            </policyActions>
+        </policyRule>
+    </inducement>
+    <inducement>
+        <policyRule>
+            <policyConstraints>
+                <exclusion>
+                    <targetRef oid="553e8df2-df29-11e6-a7ca-cb7c1f38d89f" type="RoleType"/> <!-- Quota 500GB -->
+                </exclusion>
+            </policyConstraints>
+            <policyActions>
+                <prune/>
+            </policyActions>
+        </policyRule>
+    </inducement>
+</role>
+----
+
+Then define each individual "button" role like this:
+
+[source,xml]
+----
+<role oid="eaa4ec3e-df28-11e6-9cca-336e0346d5cc">
+    <name>Quota: 10GB</name>
+    <assignment>
+        <targetRef oid="0b759ce2-df29-11e6-a84c-9b213183a815" type="RoleType"/> <!-- Quota metarole -->
+    </assignment>
+    <inducement>
+        <construction>
+            <!-- construction to set appropriate attributes for 10GB quota on the resource -->
+        </construction>
+    </inducement>
+</role>
+----
+
+And that's it.
+This is how it works:
+
+The metarole has _inducements_ with policy rules.
+This means that every indivudual quota role (the "button") will receive these policy rules as if they were place in the assignments inside these quota roles.
+But the metarole allows us to keep this list in one place rather than copy it to all the roles.
+
+The policy rules exclude all the other quota roles (in fact it also exclude the role that contain the rule itself, but as it does not make sense for a role to exclude itself this rule is ignored).
+Therefore if any quota role is assigned to a user that already has any other quota role then there is a role exclusion conflict.
+However, the action specified to resolve that conflict is not _enforce_, therefore there is no error.
+The action is *_prune_*. This means that midPoint will automatically unassign all conflicting roles that the user has.
+And this is the very mechanism that "switches off" all the other "radio buttons".
+And at the end of the operation only one quota role remains assigned to the user.
+
+
+== See Also
+
+* xref:/midpoint/reference/roles-policies/policies/segregation-of-duties/[Segregation of Duties]
+
+* xref:/midpoint/reference/roles-policies/policies/policy-rules/[Policy Rules]
+
+* xref:/midpoint/reference/roles-policies/policies/metaroles/gensync/['Roles, Metaroles and Generic Synchronization']
