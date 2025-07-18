@@ -18,15 +18,14 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.NumericThresholdPolicyConstraintType;
 
-import org.checkerframework.checker.units.qual.C;
-
+// todo add localization keys to midpoint.properties
 public abstract class NumericConstraintEvaluator<C extends NumericThresholdPolicyConstraintType>
         implements ActivityPolicyConstraintEvaluator<C, NumericConstraintTrigger<C>> {
 
     private static final Trace LOGGER = TraceManager.getTrace(NumericConstraintEvaluator.class);
 
-    // todo improve messages [viliam]
-    // todo figure out how to merge this with DurationThresholdConstraintEvaluator [viliam]
+    private static final String DEFAULT_CONSTRAINT_EVALUATOR_NAME = "Numeric value";
+
     @Override
     public List<NumericConstraintTrigger<C>> evaluate(JAXBElement<C> element, ActivityPolicyRuleEvaluationContext context, OperationResult result) {
         C constraint = element.getValue();
@@ -38,7 +37,7 @@ public abstract class NumericConstraintEvaluator<C extends NumericThresholdPolic
             if (shouldTriggerOnNullValue(value)) {
                 LOGGER.trace("Triggering on empty value for constraint {}", constraint.getName());
 
-                LocalizableMessage message = new SingleLocalizableMessage("NumericConstraintEvaluator.emptyValue");
+                LocalizableMessage message = createEmptyMessage(null);
 
                 return List.of(createTrigger(constraint, message, message));
             }
@@ -51,18 +50,20 @@ public abstract class NumericConstraintEvaluator<C extends NumericThresholdPolic
         if (below != null && value < below) {
             LOGGER.trace("Numeric value {} is below the threshold of constraint {}, creating trigger", value, constraint.getName());
 
-            LocalizableMessage message = new SingleLocalizableMessage("NumericConstraintEvaluator.below");
+            LocalizableMessage message = createMessage(constraint.getName(), value, constraint.getBelow(), EvaluatorUtils.ThresholdType.BELOW);
+            LocalizableMessage shortMessage = createShortMessage(constraint.getName(), EvaluatorUtils.ThresholdType.BELOW);
 
-            return List.of(createTrigger(constraint, message, message));
+            return List.of(createTrigger(constraint, message, shortMessage));
         }
 
         Integer exceeds = constraint.getExceeds();
         if (exceeds != null && value > exceeds) {
             LOGGER.trace("Numeric value {} exceeds the threshold of constraint {}, creating trigger", value, constraint.getName());
 
-            LocalizableMessage message = new SingleLocalizableMessage("NumericConstraintEvaluator.exceeds");
+            LocalizableMessage message = createMessage(constraint.getName(), value, constraint.getExceeds(), EvaluatorUtils.ThresholdType.EXCEEDS);
+            LocalizableMessage shortMessage = createShortMessage(constraint.getName(), EvaluatorUtils.ThresholdType.EXCEEDS);
 
-            return List.of(createTrigger(constraint, message, message));
+            return List.of(createTrigger(constraint, message, shortMessage));
         }
 
         if (below == null && exceeds == null) {
@@ -71,7 +72,7 @@ public abstract class NumericConstraintEvaluator<C extends NumericThresholdPolic
             if (shouldTriggerOnEmptyConstraint(constraint, value)) {
                 LOGGER.trace("Triggering on empty constraint {}", constraint.getName());
 
-                LocalizableMessage message = new SingleLocalizableMessage("NumericConstraintEvaluator.empty");
+                LocalizableMessage message = createEmptyMessage(value);
 
                 return List.of(createTrigger(constraint, message, message));
             }
@@ -96,4 +97,55 @@ public abstract class NumericConstraintEvaluator<C extends NumericThresholdPolic
     }
 
     public abstract Integer getValue(ActivityPolicyRuleEvaluationContext context);
+
+    protected LocalizableMessage createEvaluatorName() {
+        return new SingleLocalizableMessage("DurationConstraintEvaluator.name", new String[0], "Measured duration");
+    }
+
+    private String createDefaultEvaluatorName() {
+        LocalizableMessage nameMsg = createEvaluatorName();
+        return nameMsg != null && nameMsg.getFallbackMessage() != null ?
+                nameMsg.getFallbackMessage() : DEFAULT_CONSTRAINT_EVALUATOR_NAME;
+    }
+
+    private LocalizableMessage createEmptyMessage(Integer realValue) {
+        Object value = realValue != null ? realValue : "";
+
+        LocalizableMessage evaluatorName = createEvaluatorName();
+        String evaluatorNameDefault = createDefaultEvaluatorName();
+
+        String defaultMessage = "%s unlimited constraint triggered with '%s'".formatted(evaluatorNameDefault, value);
+
+        return new SingleLocalizableMessage(
+                "NumericConstraintEvaluator.empty", new Object[] { evaluatorName, value }, defaultMessage);
+    }
+
+    protected LocalizableMessage createMessage(
+            String constraintName, int realValue, int threshold, EvaluatorUtils.ThresholdType type) {
+
+        String key = type == EvaluatorUtils.ThresholdType.EXCEEDS ?
+                "NumericConstraintEvaluator.exceedsMessage" :
+                "NumericConstraintEvaluator.belowMessage";
+
+        LocalizableMessage evaluatorName = createEvaluatorName();
+        String evaluatorNameDefault = createDefaultEvaluatorName();
+
+        String message = EvaluatorUtils.createDefaultMessage(
+                evaluatorNameDefault, constraintName, Integer.toString(realValue), Integer.toString(threshold), type);
+
+        return new SingleLocalizableMessage(key, new Object[] { evaluatorName, constraintName, realValue, threshold }, message);
+    }
+
+    protected LocalizableMessage createShortMessage(String constraintName, EvaluatorUtils.ThresholdType type) {
+        String key = type == EvaluatorUtils.ThresholdType.EXCEEDS ?
+                "NumericConstraintEvaluator.exceedsShortMessage" :
+                "NumericConstraintEvaluator.belowShortMessage";
+
+        LocalizableMessage evaluatorName = createEvaluatorName();
+        String evaluatorNameDefault = createDefaultEvaluatorName();
+
+        String message = EvaluatorUtils.createDefaultShortMessage(evaluatorNameDefault, constraintName, type);
+
+        return new SingleLocalizableMessage(key, new Object[] { evaluatorName, constraintName }, message);
+    }
 }

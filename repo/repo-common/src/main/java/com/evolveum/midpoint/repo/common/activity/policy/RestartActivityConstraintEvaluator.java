@@ -7,6 +7,9 @@
 
 package com.evolveum.midpoint.repo.common.activity.policy;
 
+import com.evolveum.midpoint.util.LocalizableMessage;
+import com.evolveum.midpoint.util.SingleLocalizableMessage;
+
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.repo.common.activity.run.AbstractActivityRun;
@@ -44,5 +47,10 @@ public class RestartActivityConstraintEvaluator
     @Override
     protected boolean shouldTriggerOnEmptyConstraint(NumericThresholdPolicyConstraintType constraint, Integer value) {
         return value != null && value > 1;
+    }
+
+    @Override
+    protected LocalizableMessage createEvaluatorName() {
+        return new SingleLocalizableMessage("RestartActivityConstraintEvaluator.name");
     }
 }

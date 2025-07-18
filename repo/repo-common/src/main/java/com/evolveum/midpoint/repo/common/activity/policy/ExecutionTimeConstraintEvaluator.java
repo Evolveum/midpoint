@@ -10,6 +10,10 @@ package com.evolveum.midpoint.repo.common.activity.policy;
 import java.util.List;
 import javax.xml.datatype.Duration;
 
+import com.evolveum.midpoint.util.LocalizableMessage;
+
+import com.evolveum.midpoint.util.SingleLocalizableMessage;
+
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
@@ -33,5 +37,10 @@ public class ExecutionTimeConstraintEvaluator
         WallClockTimeComputer computer = WallClockTimeComputer.create(runRecords);
 
         return XmlTypeConverter.createDuration(computer.getSummaryTime());
+    }
+
+    @Override
+    protected LocalizableMessage createEvaluatorName() {
+        return new SingleLocalizableMessage("ExecutionTimeConstraintEvaluator.name");
     }
 }
