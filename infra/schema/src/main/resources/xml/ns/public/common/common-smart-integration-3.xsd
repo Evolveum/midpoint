@@ -57,6 +57,76 @@
     <!--                              Complex types for the API of SmartIntegrationService                                  -->
     <!-- ================================================================================================================== -->
 
+    <!-- estimateObjectClassSize -->
+
+    <xsd:complexType name="ObjectClassSizeEstimationType">
+        <xsd:annotation>
+            <xsd:documentation>
+                How many objects of given object class are on the resource?
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:since>4.11</a:since>
+                <a:container>true</a:container>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="value" type="xsd:int" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        The estimated value. If missing, we cannot tell nothing.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="precision" type="tns:ObjectClassSizeEstimationPrecisionType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        How to interpret the value, regarding the precision/style of the estimation?
+                        No value means "no information", and should be used only if the "value" is missing as well.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+    <xsd:element name="objectClassSizeEstimation" type="tns:ObjectClassSizeEstimationType"/>
+
+    <xsd:simpleType name="ObjectClassSizeEstimationPrecisionType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Precision or style of the size estimation.
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="exactly">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <xsd:documentation>We know the value for sure, e.g. because we counted the objects.</xsd:documentation>
+                        <jaxb:typesafeEnumMember name="EXACTLY"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="approximately">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <xsd:documentation>The real value can be greater or lesser than the estimate.</xsd:documentation>
+                        <jaxb:typesafeEnumMember name="APPROXIMATELY"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="atLeast">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <xsd:documentation>
+                            The real value is at least the provided estimate. Usually this means that we were able to retrieve
+                            at least the specified number of objects. This means that the real value can be much larger than
+                            the provided estimate.
+                        </xsd:documentation>
+                        <jaxb:typesafeEnumMember name="AT_LEAST"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+        </xsd:restriction>
+    </xsd:simpleType>
+
     <!-- suggestObjectTypes method -->
 
     <xsd:complexType name="ObjectTypesSuggestionType">

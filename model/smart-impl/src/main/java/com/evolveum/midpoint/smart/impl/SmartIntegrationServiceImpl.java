@@ -9,11 +9,12 @@ package com.evolveum.midpoint.smart.impl;
 
 import java.util.Collection;
 import java.util.Objects;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Supplier;
 import javax.xml.datatype.Duration;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.smart.api.ServiceClient;
+import com.evolveum.midpoint.prism.PrismContext;
 
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.TestOnly;
@@ -28,12 +29,14 @@ import com.evolveum.midpoint.repo.common.SystemObjectCache;
 import com.evolveum.midpoint.repo.common.activity.TaskActivityManager;
 import com.evolveum.midpoint.repo.common.activity.run.CommonTaskBeans;
 import com.evolveum.midpoint.repo.common.activity.run.state.ActivityState;
+import com.evolveum.midpoint.schema.ResultHandler;
 import com.evolveum.midpoint.schema.processor.ResourceObjectTypeIdentification;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.Resource;
 import com.evolveum.midpoint.schema.util.SystemConfigurationTypeUtil;
 import com.evolveum.midpoint.schema.util.task.ActivityPath;
+import com.evolveum.midpoint.smart.api.ServiceClient;
 import com.evolveum.midpoint.smart.api.SmartIntegrationService;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
@@ -41,12 +44,15 @@ import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CountObjectsCapabilityType;
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CountObjectsSimulateType;
 
 @Service
 public class SmartIntegrationServiceImpl implements SmartIntegrationService {
 
     private static final Trace LOGGER = TraceManager.getTrace(SmartIntegrationServiceImpl.class);
 
+    private static final String OP_ESTIMATE_OBJECT_CLASS_SIZE = "estimateObjectClassSize";
     private static final String OP_SUGGEST_OBJECT_TYPES = "suggestObjectTypes";
     private static final String OP_SUBMIT_SUGGEST_OBJECT_TYPES_OPERATION = "suggestObjectTypesOperation";
     private static final String OP_GET_SUGGEST_OBJECT_TYPES_OPERATION_STATUS = "getSuggestObjectTypesOperationStatus";
@@ -67,6 +73,80 @@ public class SmartIntegrationServiceImpl implements SmartIntegrationService {
     @Autowired private ModelInteractionServiceImpl modelInteractionService;
     @Autowired private TaskManager taskManager;
     @Autowired private TaskActivityManager activityManager;
+
+    @Override
+    public ObjectClassSizeEstimationType estimateObjectClassSize(
+            String resourceOid, QName objectClassName, int maxSizeForEstimation, Task task, OperationResult parentResult)
+            throws SchemaException, ExpressionEvaluationException, SecurityViolationException, CommunicationException,
+            ConfigurationException, ObjectNotFoundException {
+        var result = parentResult.subresult(OP_ESTIMATE_OBJECT_CLASS_SIZE)
+                .addParam("resourceOid", resourceOid)
+                .addParam("objectClassName", objectClassName)
+                .build();
+        try {
+            var resourceObject = modelService.getObject(ResourceType.class, resourceOid, null, task, result);
+            var resource = Resource.of(resourceObject);
+            var query = resource.queryFor(objectClassName).build();
+            var objectClassSchema = resource.getCompleteSchemaRequired().findObjectClassDefinitionRequired(objectClassName);
+            // Most probably the capability is not present, as - currently - it can be only enabled manually.
+            // We can try to add automatic determination of the capability in the future.
+            var capability =
+                    objectClassSchema.getEnabledCapability(CountObjectsCapabilityType.class, resourceObject.asObjectable());
+            if (capability != null) {
+                var simulate = capability.getSimulate();
+                if (simulate == null || simulate == CountObjectsSimulateType.PAGED_SEARCH_ESTIMATE) {
+                    LOGGER.trace("Trying to estimate size of object class {} on {}; capability is present, simulate = {}",
+                            objectClassName, resourceObject, simulate);
+                    Integer count = null;
+                    try {
+                        count = modelService.countObjects(ShadowType.class, query, null, task, result);
+                    } catch (Exception e) {
+                        LOGGER.trace("Count of objects in object class {} on {} is not available: {}",
+                                objectClassName, resourceObject, e.getMessage(), e);
+                    }
+                    if (count != null) {
+                        LOGGER.trace("Approximate count of objects in object class {} on {}: {}",
+                                objectClassName, resourceObject, count);
+                        return new ObjectClassSizeEstimationType()
+                                .value(count)
+                                .precision(ObjectClassSizeEstimationPrecisionType.APPROXIMATELY);
+                    }
+                }
+            }
+
+            LOGGER.trace("Count is not available; trying to search for objects to estimate size");
+            query.setPaging( // TODO will this work without sorting? We should test it thoroughly.
+                    PrismContext.get().queryFactory().createPaging(0, maxSizeForEstimation));
+            AtomicInteger counter = new AtomicInteger();
+            ResultHandler<ShadowType> handler = (object, lResult) -> counter.incrementAndGet() < maxSizeForEstimation;
+            var metadata = modelService.searchObjectsIterative(ShadowType.class, query, handler, null, task, result);
+
+            int found = counter.get();
+            if (found < maxSizeForEstimation) {
+                LOGGER.trace("Found exactly {} object(s) of class {} on {}", found, objectClassName, resourceObject);
+                return new ObjectClassSizeEstimationType()
+                        .value(found)
+                        .precision(ObjectClassSizeEstimationPrecisionType.EXACTLY);
+            } else if (metadata != null
+                    && metadata.getApproxNumberOfAllResults() != null
+                    && metadata.getApproxNumberOfAllResults() > maxSizeForEstimation) {
+                LOGGER.trace("Estimating approximately {} object(s) of class {} on {}", found, objectClassName, resourceObject);
+                return new ObjectClassSizeEstimationType()
+                        .value(metadata.getApproxNumberOfAllResults())
+                        .precision(ObjectClassSizeEstimationPrecisionType.APPROXIMATELY);
+            } else {
+                LOGGER.trace("Found at least {} object(s) of class {} on {}", found, objectClassName, resourceObject);
+                return new ObjectClassSizeEstimationType()
+                        .value(found)
+                        .precision(ObjectClassSizeEstimationPrecisionType.AT_LEAST);
+            }
+        } catch (Throwable t) {
+            result.recordException(t);
+            throw t;
+        } finally {
+            result.close();
+        }
+    }
 
     @Override
     public String submitSuggestObjectTypesOperation(

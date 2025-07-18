@@ -26,6 +26,21 @@ import java.util.Collection;
  */
 public interface SmartIntegrationService {
 
+    /**
+     * Estimates the number of objects of the given class on the given resource.
+     *
+     * NOTE: Maybe this method could reside right in `ModelService`.
+     *
+     * @param resourceOid OID of the resource to estimate the size for
+     * @param objectClassName Name of the object class to estimate the size for
+     * @param maxSizeForEstimation When trying to estimate the size, the implementation may use a sample of objects - at most
+     * this many objects.
+     */
+    ObjectClassSizeEstimationType estimateObjectClassSize(
+            String resourceOid, QName objectClassName, int maxSizeForEstimation, Task task, OperationResult result)
+            throws SchemaException, ExpressionEvaluationException, SecurityViolationException, CommunicationException,
+            ConfigurationException, ObjectNotFoundException;
+
     /** Submits "suggest object types" request. Returns a token used to query the status. */
     String submitSuggestObjectTypesOperation(String resourceOid, QName objectClassName, Task task, OperationResult result)
             throws CommonException;

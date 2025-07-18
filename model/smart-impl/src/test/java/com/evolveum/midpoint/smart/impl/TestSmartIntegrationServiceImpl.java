@@ -7,6 +7,8 @@
 
 package com.evolveum.midpoint.smart.impl;
 
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectClassSizeEstimationPrecisionType.*;
+
 import static org.assertj.core.api.Assertions.assertThat;
 
 import static com.evolveum.midpoint.test.util.MidPointTestConstants.TEST_RESOURCES_DIR;
@@ -48,23 +50,33 @@ public class TestSmartIntegrationServiceImpl extends AbstractSmartIntegrationTes
     private static final File TEST_110_EXPECTED_OBJECT_TYPES = new File(TEST_DIR, "test-110-expected-object-types.xml");
     private static final File TEST_110_EXPECTED_REQUEST = new File(TEST_DIR, "test-110-expected-request.json");
 
-    private static DummyScenario dummyScenario;
+    private static DummyScenario dummyForObjectTypes;
 
+    private static final DummyTestResource RESOURCE_DUMMY_FOR_COUNTING_NO_PAGING = new DummyTestResource(
+            TEST_DIR, "resource-dummy-for-counting-no-paging.xml", "66b5be3a-5ea8-4d4d-ba11-89b190815da7",
+            "for-counting-no-paging",
+            c -> DummyScenario.on(c).initialize());
+    private static final DummyTestResource RESOURCE_DUMMY_FOR_COUNTING_WITH_PAGING = new DummyTestResource(
+            TEST_DIR, "resource-dummy-for-counting-with-paging.xml", "8032d4d4-bb93-4837-a35e-274407f00f36",
+            "for-counting-with-paging",
+            c -> DummyScenario.on(c).initialize());
     private static final DummyTestResource RESOURCE_DUMMY_FOR_SUGGEST_OBJECT_TYPES = new DummyTestResource(
             TEST_DIR, "resource-dummy-for-suggest-object-types.xml", "4e673bd5-661e-4037-9e19-557ea485238b",
             "for-suggest-object-types",
-            c -> dummyScenario = DummyScenario.on(c).initialize());
+            c -> dummyForObjectTypes = DummyScenario.on(c).initialize());
 
     @Override
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
         super.initSystem(initTask, initResult);
 
+        initAndTestDummyResource(RESOURCE_DUMMY_FOR_COUNTING_NO_PAGING, initTask, initResult);
+        initAndTestDummyResource(RESOURCE_DUMMY_FOR_COUNTING_WITH_PAGING, initTask, initResult);
         initAndTestDummyResource(RESOURCE_DUMMY_FOR_SUGGEST_OBJECT_TYPES, initTask, initResult);
         createDummyAccounts();
     }
 
     private void createDummyAccounts() throws Exception {
-        var c = dummyScenario.getController();
+        var c = dummyForObjectTypes.getController();
         c.addAccount("jack")
                 .addAttributeValues(DummyScenario.Account.AttributeNames.FULLNAME.local(), "Jack Sparrow")
                 .addAttributeValues(DummyScenario.Account.AttributeNames.PERSONAL_NUMBER.local(), "10104444")
@@ -85,6 +97,72 @@ public class TestSmartIntegrationServiceImpl extends AbstractSmartIntegrationTes
 
     private void addDummyAccountsExceedingHardLimit() throws Exception {
         // TODO
+    }
+
+    @Test
+    public void test050CountingAccountsNoPaging() throws Exception {
+        executeCountingTest(
+                RESOURCE_DUMMY_FOR_COUNTING_NO_PAGING,
+                new ObjectClassSizeEstimationType().value(0).precision(EXACTLY),
+                new ObjectClassSizeEstimationType().value(3).precision(EXACTLY),
+                new ObjectClassSizeEstimationType().value(5).precision(AT_LEAST));
+    }
+
+    @Test
+    public void test060CountingAccountsWithPaging() throws Exception {
+        executeCountingTest(
+                RESOURCE_DUMMY_FOR_COUNTING_WITH_PAGING,
+                new ObjectClassSizeEstimationType().value(0).precision(EXACTLY),
+                new ObjectClassSizeEstimationType().value(3).precision(EXACTLY),
+                new ObjectClassSizeEstimationType().value(33).precision(APPROXIMATELY));
+    }
+
+    private void executeCountingTest(
+            DummyTestResource resource,
+            ObjectClassSizeEstimationType expected0,
+            ObjectClassSizeEstimationType expected3,
+            ObjectClassSizeEstimationType expected33) throws Exception {
+        var task = getTestTask();
+        var result = task.getResult();
+
+        when("counting accounts on the resource");
+        var count0 = countAccounts(resource, task, result);
+
+        then("the count is correct");
+        displayDumpable("count", count0);
+        assertThat(count0).isEqualTo(expected0);
+
+        when("adding few accounts");
+        createDummyAccounts(resource, 1, 3);
+
+        when("counting accounts on the resource");
+        var count3 = countAccounts(resource, task, result);
+
+        then("the count is correct");
+        displayDumpable("count", count3);
+        assertThat(count3).isEqualTo(expected3);
+
+        when("adding many accounts");
+        createDummyAccounts(resource, 10, 30);
+
+        when("counting accounts on the resource");
+        var count33 = countAccounts(resource, task, result);
+
+        then("the count is correct");
+        displayDumpable("count", count33);
+        assertThat(count33).isEqualTo(expected33);
+    }
+
+    private void createDummyAccounts(DummyTestResource resource, int from, int count) throws Exception {
+        for (int i = from; i < from + count; i++) {
+            resource.addAccount("account-%04d".formatted(i));
+        }
+    }
+
+    private ObjectClassSizeEstimationType countAccounts(DummyTestResource resource, Task task, OperationResult result)
+            throws CommonException {
+        return smartIntegrationService.estimateObjectClassSize(
+                resource.oid, OC_ACCOUNT_QNAME, 5, task, result);
     }
 
     /** Calls the remote service directly. */
