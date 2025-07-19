@@ -186,6 +186,7 @@ This feature is experimental.
 
 In CLI, use `-Dmidpoint.taskManager.localNodeClusteringEnabled=true`.
 
+[[cache-invalidation]]
 == Communication in the Cluster Explained
 
 Cluster nodes primarily communicate with the central Quartz component.
@@ -193,7 +194,6 @@ This component is responsible for creating worker tasks, which are then picked u
 The data on which nodes operate are stored in the central database.
 However, there are occasions when the nodes need to communicate with each other directly.
 
-[[cache-invalidation]]
 One such occasion is *cache invalidation*.
 When a node changes data in the midPoint database, the node informs other nodes about the need to invalidate their cache.
 
