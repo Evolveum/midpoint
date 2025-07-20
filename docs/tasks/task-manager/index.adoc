@@ -25,7 +25,7 @@ Currently, the task manager is based on link:http://quartz-scheduler.org/[Quartz
 
 == What Is a Task
 
-A task is a logical unit of work or a thread of execution that takes non-negligible amount of time.
+A task is a logical unit of work or a thread of execution.
 A typical example is a modification of a user object with subsequent provisioning, optionally including approvals.
 
 === Synchronous and Asynchronous Tasks
