@@ -24,7 +24,7 @@ Policy rules, stored in xref:/midpoint/reference/schema/policy/[policy objects] 
 
 == See Also
 
-* xref:https://docs.evolveum.com/midpoint/compliance/[MidPoint Compliance]
+* xref:/midpoint/compliance/[MidPoint Compliance]
 
 * xref:/midpoint/reference/roles-policies/identity-governance-rules/[]
 
