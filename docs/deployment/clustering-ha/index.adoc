@@ -20,9 +20,9 @@ doc-type: config
 == Introduction
 
 To achieve a high availability deployment, se up a cluster of several midPoint nodes working with a common midPoint repository.
-You can combine the multi-node deployment with a load balancer to attain a reasonably even load across the deployed nodes.
+You can combine the multi-node deployment with a load balancer to achieve a balanced distribution of load on the GUI and REST API across the deployed nodes.
 
-=== Architecture of a MidPoint Cluster
+=== Architecture of MidPoint Cluster
 
 There can be two or more nodes in a cluster.
 Although there is no fixed limit to the number of nodes in a cluster, practical limits always exist;
@@ -30,19 +30,21 @@ it is up to you to determine the viable number of nodes experimentally based on 
 
 In the following schema, there are two midPoint nodes with a shared central repository and a load balancer.
 
+// TODO alt texts
 image::midpoint-HA-deployment-schema-two-nodes.svg[title="A midPoint deployment with two nodes, a shared repository, and a load balancer"]
 
 The nodes in the cluster share the load as follows:
 
 * MidPoint tasks, such as live synchronization, reconciliation, import, or workflow approvals, can run on whichever node.
-    The work scheduler tries to load the nodes evenly.
+    The nodes take the available worker tasks on the first-come-first-served basis which results in a reasonably even load distribution across the cluster.
+// TODO describe worker tasks somewhere
 * Users connecting to the graphical user interface (GUI) can work on any of the nodes.
 
 Here is an outline of technologies used and recommended for the work distribution:
 
 * For task load balancing, midPoint uses link:http://www.quartz-scheduler.org[Quartz scheduler].
     See xref:/midpoint/reference/tasks/task-manager/[] for architectural description and implementation details of the solution.
-* For load balancing the traffic to the GUI, we recommend using the standard link:http://tomcat.apache.org/tomcat-8.0-doc/balancer-howto.html[Apache Tomcat solution].
+* For load balancing the traffic to the GUI and REST API, we recommend using the standard link:http://tomcat.apache.org/tomcat-8.0-doc/balancer-howto.html[Apache Tomcat solution].
 * If you wish to fail over GUI sessions without load balancing, you can use a network-level setup with a virtual IP.
 
 == Configure Your MidPoint Cluster
@@ -91,7 +93,7 @@ Otherwise, unexpected behaviour may occur such as tasks restarting on different 
 
 === Node Identification and  Discovery Configuration
 
-Even though the nodes in your cluster mainly talk to the shared DB and the Quartz scheduler, at times, they need to communicate with each other as well. 
+Even though the nodes in your cluster mainly talk to the shared database repository, at times, they <<intra-cluster-communication,need to communicate with each other>> as well. 
 For this reason, you need to adjust their identification and discovery configuration.
 
 You can use the `config.xml` file to hold your configuration (see the Configuration parameter column in the table below).
@@ -144,15 +146,10 @@ If you want to run midPoint under a custom port, use xref:/midpoint/operations-m
 
 | `-Dmidpoint.url`
 | `url`
-| Overrides the intra-cluster URL information (see below).
+| Overrides the intra-cluster URL pattern (see below).
 , you do not need to specify this information.
 
 |===
-
-[NOTE]
-====
-Since midPoint 4.0, nodes communicate over HTTP instead of JMX among themselves.
-====
 
 === How Intra-Cluster URLs Are Determined
 
@@ -168,6 +165,25 @@ In order to minimize the configuration work needed while keeping the maximum lev
 . Computed based on the protocol scheme obtained dynamically from the Tomcat objects, host name, port, and servlet path as `scheme://host:port/path`.
 
 When troubleshooting these mechanisms, you can set logging to `DEBUG` for `com.evolveum.midpoint.task.quartzimpl.cluster.NodeRegistrar` (or the whole task manager module).
+
+=== Define URL pattern for inter-node communication
+
+Nodes use the HTTP URL pattern to communicate between themselves.
+The pattern is a URL prefix pointing to the root URL of the midPoint.
+Below is an example definition for the system configuration object:
+// NOTE: I'm intentionally using HTTP instead of HTTPS because the protocol is, per se, HTTP.
+//      Regardless of whether or not it is secured by a TLS or SSL, because those are separate technologies. @dakle 2025-07-09
+
+[source,xml]
+----
+<systemConfiguration>
+  ...
+  <infrastructure>
+    <intraClusterHttpUrlPattern>https://$host/midpoint</intraClusterHttpUrlPattern>
+  </infrastructure>
+  ...
+</systemConfiguration>
+----
 
 == Test Cluster Configuration on a Single Host
 
@@ -187,19 +203,52 @@ This feature is experimental.
 In CLI, use `-Dmidpoint.taskManager.localNodeClusteringEnabled=true`.
 
 [[cache-invalidation]]
-== Communication in the Cluster Explained
+[[intra-cluster-communication]]
+== Communication in Clusters Explained
 
-Cluster nodes primarily communicate with the central Quartz component.
-This component is responsible for creating worker tasks, which are then picked up by the nodes.
-The data on which nodes operate are stored in the central database.
-However, there are occasions when the nodes need to communicate with each other directly.
+// TODO (parts of) this may need to go rather to the Task Manager - /midpoint/reference/tasks/task-manager/
+// WiP
+Cluster nodes primarily communicate with the central shared database.
+Tasks for the nodes to process are stored in this database.
+The data on which nodes operate when processing the tasks are stored in the central database.
+Each task is split to bundles based on a key in the task definition.
+When the time for a task to be processed comes, worker tasks (also called child tasks) are created based on the bundles.
 
-One such occasion is *cache invalidation*.
+Each of the nodes runs its own Quartz Scheduler library which picks an available worker task from the repository and writes into the xref:/midpoint/reference/tasks/task-manager/configuration/#jdbc-scheduler-job-store[JDBC scheduler job store] in the repository that it has taken the worker.
+This ensures no two nodes process the same worker task.
+To summarize, *all communication regarding work distribution happens between the central database and the nodes*.
+
+However, there are *situations when nodes need to talk to each other* directly.
+A notable occasion requiring node-to-node communication is *cache invalidation*.
 When a node changes data in the midPoint database, the node informs other nodes about the need to invalidate their cache.
+See also <<technical-insight-into-cache,Technical Insight into Cache>>.
 
-.Technical insight into cache
+Another reason for nodes to communicate directly is user session handling.
+After an operation on one node changes a user attributes, such as assigned roles or permissions,
+the node propagates this information to other nodes to let them know
+they need to update their information on what the user can or cannot do.
+They may need to drop the session altogether if the user has been deactivated.
+
+These situations requiring direct node-to-node communication are the reason why you need to specify an HTTP URL pattern.
+It is used by midPoint nodes to communicate among themselves.
+
 [NOTE]
 ====
+Since midPoint 4.0, nodes communicate over HTTP instead of JMX among themselves.
+====
+
+=== You May Get Redirected Between Nodes
+
+To help you understand the intra-cluster communication further,
+here is an example of a situation when direct node-to-node communication does not happen, although you may expect it would.
+If a node runs a task to xref:/midpoint/features/current/reporting/[create a report], for example, the resulting report file is saved on the local file system of the node.
+If user sitting on a different node requests the report for download,
+the node on which the user is asks the central DB for the location of the report
+and then redirects the user to the node with the generated report.
+Hence, inter-node communication does not occurs in this case.
+
+== Technical Insight into Cache
+
 MidPoint uses two levels of cache: global and local.
 
 The local cache is per task thread.
@@ -210,34 +259,6 @@ The global cache is per node and holds objects that don't change often but are a
 These are, for example, system configuration, archetypes, object templates.
 These objects are cheap to keep because they don't change often, but saving them in cache saves a lot of resources.
 It doesn't save user objects because they change often, but are rarely needed.
-====
-
-Another case when nodes communicate directly is handling user sessions.
-For example, when a node changes roles for a user, it informs the other nodes about the new permission scope of the user.
-
-This is why midPoint needs to have an intra-cluster HTTP URL pattern specified.
-It is used by midPoint nodes to communicate among themselves.
-The pattern is a URL prefix pointing to the root URL of the application.
-Specify it in the system configuration object as in the example below:
-// NOTE: I'm intentionally using HTTP instead of HTTPS because the protocol is, per se, HTTP.
-//      Regardless of whether or not it is secured by a TLS or SSL, those being different technologies. @dakle 2025-07-09
-
-[source,xml]
-----
-<systemConfiguration>
-  ...
-  <infrastructure>
-    <intraClusterHttpUrlPattern>https://$host/midpoint</intraClusterHttpUrlPattern>
-  </infrastructure>
-  ...
-</systemConfiguration>
-----
-
-On the other hand, if a node runs a task to xref:/midpoint/features/current/reporting/[create a report], for example, the resulting report file is saved on the local file system of the node.
-If user sitting on a different node requests the report for download,
-the node on which the user is asks the central DB for the location of the report
-and then redirects the user to the node with the generated report.
-Hence, no inter-node communication occurs in such a case.
 
 == Common Issues and Fixes
 
@@ -276,11 +297,17 @@ The following aspects must be the same on all cluster nodes:
 * Version of
     ** MidPoint
     ** Connectors
-    ** Schema extension
-    ** Key store
+    ** Schema extension​footnote:[
+        Only when stored in an XSD configuration file.
+        Since midPoint 4.9, schema extensions are stored in the shared database. Refer to xref:/midpoint/reference/schema/custom-schema-extension/[] for details.]
+    ** Java key store and trust store
 * Network access to all configured resources
 * Access to file systems, including network file systems (e.g., for CSV resources)
 * Network configuration, including routing and DNS configuration
+// I decided not to capitalize Java key store and trust store
+// because the official docs on them uses all the possible spacing and capitalization options.
+// Hence, I went with my grammar gut.
+// https://docs.oracle.com/javase/6/docs/technotes/guides/security/jsse/JSSERefGuide.html
 
 == See Also
 
