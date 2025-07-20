@@ -30,7 +30,7 @@ it is up to you to determine the viable number of nodes experimentally based on 
 In the following schema, there are two midPoint nodes with a shared central repository and a load balancer.
 
 .A midPoint deployment with two nodes, a shared repository, and an optional load balancer
-image::midpoint-HA-deployment-schema-two-nodes.svg["Two-node midPoint deployment schema with two midPoint nodes and their shared repository in the center; lines showing access routes between individual components and user's computer. Optional load balancer is placed between midPoint and the computer"]
+image::midpoint-HA-deployment-schema-two-nodes.svg["A midPoint deployment schema with two midPoint nodes and their shared repository in the center; lines showing access routes between individual components and user's computer. Optional load balancer is placed between midPoint and the computer"]
 
 The nodes in the cluster share the load as follows:
 
@@ -69,14 +69,13 @@ Here is a bare-bones configuration to start with when using the default PostgreS
   <clustered>true</clustered> <1>
 </taskManager>
 ----
-<1> The `<clustered>` attribute signifies the installation uses clustered mode.
-Default is `false`.
-If you need clustering for high availability and failover, set it to `true`.
+<1> The `<clustered>` configuration element containing `true` signifies the installation uses clustered mode.
+The default is `false`.
 
 .Clustering needs to be enabled on all nodes
 [WARNING]
 ====
-All nodes sharing the same repository must have the attribute `clustered` set to `true`.
+All nodes sharing the same repository must have the `clustered` property set to `true`.
 If some are set up differently, tasks will not be scheduled and distributed correctly.
 MidPoint disables scheduling tasks on non-conformant nodes, i.e., on non-clustered nodes that are parts of the system.
 The best way how to avoid configuration discrepancy like this is to have common configuration file.
@@ -114,14 +113,14 @@ For clustered ones, either `nodeId` or `nodeIdSource` must be specified.
 
 | `‑Dmidpoint.nodeIdSource`
 | `nodeIdSource`
-| Source of the node identifier.
+a| Source of the node identifier.
 It is applied if `nodeId` is not defined explicitly.
 The source can be either:
 
 * `hostname`: The host name is used as the node identifier.
 * `random`: A random value for node ID is generated when the node starts.
 
-This attribute is obsolete.
+This configuration property is obsolete.
 You can still use it, though, if you manage nodes manually, need deterministic node IDs for testing, or you are migrating from an old midPoint version and need to preserve existing node IDs.
 
 | `‑Dmidpoint.hostName`
