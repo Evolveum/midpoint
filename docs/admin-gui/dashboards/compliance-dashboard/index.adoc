@@ -14,7 +14,7 @@ MidPoint contains a pre-configured dashboard, which provides overview of basic c
 
 image::compliance-dashboard-screenshot.png[Compliance dashboard screenshot]
 
-Compliance dashboard is a pre-configured object (a.k.a. xref:/midpoint/reference/support-4.9/deployment/ninja/command/initial-objects/[initial object]) in midPoint.
+Compliance dashboard is a pre-configured object (a.k.a. xref:/midpoint/reference/deployment/ninja/command/initial-objects/[initial object]) in midPoint.
 The dashboard can be further extended and customized as needed.
 
 == Mechanism
