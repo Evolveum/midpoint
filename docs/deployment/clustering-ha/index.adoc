@@ -19,7 +19,7 @@ doc-type: config
 
 == Introduction
 
-To achieve a high availability deployment, se up a cluster of several midPoint nodes working with a common midPoint repository.
+To achieve a high availability deployment, set up a cluster of several midPoint nodes working with a common midPoint repository.
 You can combine the multi-node deployment with a load balancer to achieve a balanced distribution of load on the GUI and REST API across the deployed nodes.
 
 === Architecture of MidPoint Cluster
