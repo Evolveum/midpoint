@@ -211,10 +211,11 @@ In CLI, use `-Dmidpoint.taskManager.localNodeClusteringEnabled=true`.
 Cluster nodes primarily communicate with the central shared database.
 Tasks for the nodes to process are stored in this database.
 The data on which nodes operate when processing the tasks are stored in the central database.
-Each task is split to bundles based on a key in the task definition.
-When the time for a task to be processed comes, worker tasks (also called child tasks) are created based on the bundles.
+Each task is split to xref:/midpoint/reference/tasks/activities/distribution/#buckets[buckets] based on a key in the task definition.
+When the time for a task to be processed comes, worker tasks (also called child tasks) are created and assigned the buckets.
 
-Each of the nodes runs its own Quartz Scheduler library which picks an available worker task from the repository and writes into the xref:/midpoint/reference/tasks/task-manager/configuration/#jdbc-scheduler-job-store[JDBC scheduler job store] in the repository that it has taken the worker.
+Each node runs its own Quartz Scheduler library.
+Quartz on one node picks an available worker task from the repository and writes that it has done so into the xref:/midpoint/reference/tasks/task-manager/configuration/#jdbc-scheduler-job-store[JDBC scheduler job store] in the repository.
 This ensures no two nodes process the same worker task.
 To summarize, *all communication regarding work distribution happens between the central database and the nodes*.
 
@@ -312,5 +313,7 @@ The following aspects must be the same on all cluster nodes:
 == See Also
 
 * xref:/midpoint/reference/tasks/task-manager/[]
+
+* xref:/midpoint/reference/tasks/activities/distribution/[]
 
 * xref:/midpoint/install/system-requirements/[]
