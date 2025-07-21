@@ -75,14 +75,14 @@ Policy rules are used to implement a wide variety of mechanisms, some of which m
 * xref:/midpoint/reference/roles-policies/roles/role-lifecycle/[Role lifecycle management]: policy rules may be used to enforce approvals of new roles before they are used in production.
 They may be used to approve changed role definitions, etc.
 
+* xref:/midpoint/reference/rules-policies/policies/segregation-of-duties/[Segregation of duties]: You can define exclusion constraints that ensure that conflicting roles (such as "Developer" and "Deployer") are not assigned to the same user.
+Violations can trigger logging, corrective actions, etc.
+
 * Compliance reporting: policy rules may be used to set feature:object-mark[marks] in the affected objects.
 Marks may be used in reports to identify objects that violate compliance rules, to report the percentage of compliant vs non-compliant objects and so on.
 
 * Access control based on user clearance: combined with _classifications_ and _clearances_, policy rules can restrict access to sensitive systems or applications unless a specific training, screening, or NDA conditions are met.
 This is especially useful in regulated environments (e.g. healthcare, finance, government).
-
-* Segregation of duties: You can define exclusion constraints that ensure that conflicting roles (such as "Developer" and "Deployer") are not assigned to the same user.
-Violations can trigger logging, corrective actions, etc.
 
 * Temporal conditions: Rules can enforce time-sensitive conditions, such as allowing assignments only during specific periods, or delaying notifications until after a grace period.
 For example, you may want to give contractors access to a system only for a 3-month period.
@@ -222,7 +222,7 @@ Policy rules can be defined:
 
 * <<global_pr,Globally>>
 * <<direct_pr,Directly>>
-* <<metarole_pr,On metaroles>>
+* <<metarole_pr,In policies and metaroles>>
 
 [[global_pr]]
 === Global Policy Rules
@@ -301,10 +301,10 @@ Therefore, this approach is not recommended for production use.
 The <<metarole_pr,metarole-base approach>> is recommended instead.
 
 [[metarole_pr]]
-=== Metarole-Based Rule Definition
+=== Rule Definitions in Policies and Metaroles
 
-Policy rules can be defined in assignments, which means they can be taken to the meta-level using the usual midPoint mechanism of xref:/midpoint/reference/roles-policies/policies/metaroles/policy/[metaroles].
-If all sensitive roles have the same metarole assigned, then the rule can be easily defined in the metarole as a xref:/midpoint/reference/roles-policies/policies/metaroles/gensync/[high-order inducement].
+Policy rules can be defined in assignments, which means they can be taken to the meta-level using the usual midPoint mechanism of policies (and xref:/midpoint/reference/roles-policies/policies/metaroles/policy/[metaroles] in general).
+If all sensitive roles have the same policy/metarole assigned, then the rule can be easily defined in the policy/metarole as a xref:/midpoint/reference/roles-policies/policies/metaroles/gensync/[high-order inducement].
 Like this:
 
 [source,xml]

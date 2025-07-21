@@ -254,7 +254,7 @@ Policy rules implementing such a policy can be placed into a dedicated xref:/mid
 
 NOTE: The _inducement_ in the `Require approver` policy object is order 2 inducement.
 Such inducement does not apply to the assignee object (`Business role` archetype), it rather applies to all objects that have `Business role` archetype assigned.
-See xref:/midpoint/reference/roles-policies/metaroles/[meta-role mechanism] for more details.
+See xref:/midpoint/reference/roles-policies/policies/metaroles/[meta-role mechanism] for more details.
 
 Such packaged policy can be applied to `Business role` archetype by assignment:
 

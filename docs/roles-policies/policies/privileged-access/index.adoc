@@ -4,6 +4,7 @@ doc-type: [ 'config' ]
 ---
 = Privileged Access
 :page-upkeep-status: yellow
+:page-moved-from: /midpoint/reference/roles-policies/
 
 == Introduction
 
@@ -16,7 +17,7 @@ Quite naturally, privileged access poses a significant risk for organizations, t
 MidPoint features allows tracking of privileged access, tracking (application) roles that provide privileged access, as well as users that have these roles.
 
 Privileged access tracking is built as a combination of several midPoint features.
-It starts with `Privileged access` xref:/midpoint/reference/roles-policies/classification/[classification].
+It starts with `Privileged access` xref:/midpoint/reference/roles-policies/policies/classification/[classification].
 The `Privileged access` classification is a pre-configured object (xref:/midpoint/reference/deployment/initial-objects/[initial objects]), provided in default midPoint configuration in a ready-to-use form.
 The `Privileged access` classification is meant to be _assigned_ to _application roles_ that provide privileged access to applications.
 Application roles corresponding to administrative and superuser entitlements are obvious candidates for `Privileged access` classification.
@@ -105,12 +106,12 @@ Current implementation of privileged access tracking assumes manual classificati
 
 == See Also
 
-* xref:/midpoint/reference/roles-policies/classification/[]
+* xref:/midpoint/reference/roles-policies/policies/classification/[]
 
-* xref:/midpoint/reference/roles-policies/identity-governance-rules/[]
+* xref:/midpoint/reference/roles-policies/policies/identity-governance-rules/[]
 
-* xref:/midpoint/reference/roles-policies/policy-rules/[]
+* xref:/midpoint/reference/roles-policies/policies/policy-rules/[]
 
-* xref:/midpoint/reference/roles-policies/object-governance/[]
+* xref:/midpoint/reference/roles-policies/policies/object-governance/[]
 
 * xref:/midpoint/reference/concepts/mark/[]

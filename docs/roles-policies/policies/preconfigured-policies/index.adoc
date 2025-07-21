@@ -5,6 +5,7 @@ doc-type: [ 'config' ]
 = Pre-configured Policies
 :page-keywords: [ 'governance', 'relationship', 'rules', 'policy' ]
 :page-upkeep-status: yellow
+:page-moved-from: /midpoint/reference/roles-policies/
 
 Default midPoint configuration includes pre-packaged polices, in a ready-to-use form.
 Following polices are included in midPoint xref:/midpoint/reference/deployment/initial-objects/[initial objects]:
@@ -20,7 +21,7 @@ Following polices are included in midPoint xref:/midpoint/reference/deployment/i
 | `Require classification`
 | Archetypes
 | Applies mark `No classification`
-| Requires that all archetyped objects have a xref:/midpoint/reference/roles-policies/classification/[classification].
+| Requires that all archetyped objects have a xref:/midpoint/reference/roles-policies/policies/classification/[classification].
 
 |===
 
@@ -37,10 +38,10 @@ This could be improved in future midPoint versions.
 
 == See Also
 
-* xref:/midpoint/reference/roles-policies/identity-governance-rules/[]
+* xref:/midpoint/reference/roles-policies/policies/identity-governance-rules/[]
 
-* xref:/midpoint/reference/roles-policies/policy-rules/[]
+* xref:/midpoint/reference/roles-policies/policies/policy-rules/[]
 
-* xref:/midpoint/reference/roles-policies/object-governance/[]
+* xref:/midpoint/reference/roles-policies/policies/object-governance/[]
 
 * xref:/midpoint/reference/concepts/mark/[]
