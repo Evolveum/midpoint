@@ -116,6 +116,8 @@ public class CheckBoxHeaderColumn<T extends Serializable> extends CheckBoxColumn
                 ((SelectableRow<?>) modelObject).setSelected(selected);
             } else if (modelObject instanceof SelectableObjectModel) {  //TODO is this needed?
                 ((SelectableObjectModel<?>) object).setSelected(selected);
+            } else if (modelObject instanceof Selectable<?>) {
+                ((Selectable<?>) modelObject).setSelected(selected);
             }
         }
 
