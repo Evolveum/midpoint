@@ -9,6 +9,8 @@ package com.evolveum.midpoint.smart.impl.activities;
 
 import java.util.Collection;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAttributeValueCountType;
+
 import org.jetbrains.annotations.VisibleForTesting;
 
 import com.evolveum.midpoint.prism.path.ItemName;
@@ -92,6 +94,28 @@ public class StatisticsComputer {
         }
     }
 
+    private void updateValueCount(String attrValue, ShadowAttributeStatisticsType attrStat) {
+        if (attrStat.getUniqueValueCount() >= MAX_VALUE_COUNT_UPPER_LIMIT) {
+            attrStat.setUniqueValueCount(-1);
+            // TO_DO: attrStat.resetValueCount();
+        }
+
+        if (attrStat.getUniqueValueCount() == -1) {
+            return;
+        }
+
+        for (var valueCountPair : attrStat.getValueCount()) {
+            if (valueCountPair.getValue().equals(attrValue)) {
+                valueCountPair.setCount(valueCountPair.getCount() + 1);
+                return;
+            }
+        }
+        attrStat.valueCount(new ShadowAttributeValueCountType()
+                .count(1)
+                .value(attrValue));
+        attrStat.setUniqueValueCount(attrStat.getUniqueValueCount() + 1);
+    }
+
     /**
      * Updates the value counts for the attributes in the shadow.
      * For each attribute, it counts the number of occurrences of each value.
@@ -99,7 +123,15 @@ public class StatisticsComputer {
      * statistics for that attribute will be removed, and will not be collected any further.
      */
     private void addValueCounts(ShadowType shadow) {
-        // TODO
+        for (var attrDef : attributeDefinitions) {
+            var attrName = attrDef.getItemName();
+            var attrValues = ShadowUtil.getAttributeValues(shadow, attrName);
+            ShadowAttributeStatisticsType attrStat = findOrCreateAttributeStatistics(attrName);
+
+            for (var attrValue : attrValues) {
+                updateValueCount((String) attrValue, attrStat);
+            }
+        }
     }
 
     /**
