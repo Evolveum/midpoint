@@ -122,7 +122,7 @@ This shows the following typical examples of how policies can be used:
 * <<scenario_example,Classification and Clearance Example>>
 * <<generic_policy_example,Generic Policy Example>>
 
-For more, see xref:/midpoint/reference/roles-policies/policies/policy-constraints-examples/[policy rule examples].
+For more, see xref:/midpoint/reference/roles-policies/policies/policy-rule-examples/[policy rule examples].
 
 [[regulatory_compliance_example]]
 === Regulatory Compliance Example
@@ -132,9 +132,10 @@ For more, see xref:/midpoint/reference/roles-policies/policies/policy-constraint
 [[scenario_example]]
 === Classification and Clearance Example
 
-This example shows how to implement policies for systems that have different security access requirements:
+This example shows how to implement policies for systems that have different security access requirements.
+The configuration is done in the following steps:
 
-* <<scenario,Scenario>>
+* <<scenario,Scenario Description>>
 * <<create_classification_schema,Create classification schema>>
 * <<assign_applications_to_categories,Assign applications to categories>>
 * <<define_clearances,Define clearances>>
@@ -142,9 +143,9 @@ This example shows how to implement policies for systems that have different sec
 * <<enforce_policy_rules,Enforce policy rules>>
 
 [[scenario]]
-==== Scenario
+==== Scenario Description
 
-For an example, we will use a simplified case of the Slovak transposition of the European NIS1 directive.
+For this example, we will use a simplified case of the Slovak transposition of the European NIS1 directive.
 This transposition specifies that all information systems operated by providers of essential services have to be classified into three categories:
 
 * Category I: Systems providing public information.

@@ -160,7 +160,135 @@ Such object collection can be easily used in xref:/midpoint/reference/admin-gui/
 
 image::dashboard-widget-orphaned-applications.png[Orphaned applications dashboard widget]
 
-// TODO: initial objects?
+
+== Custom Policy Rules
+
+Custom policy rules can be implemented in a similar fashion.
+There are several options.
+The simpler option is to include the rules directly in the archetype (or similar xref:/midpoint/architecture/concepts/abstract-role/[role-like object]).
+Following rule requires all business roles to have at least one approver.
+
+.Business role archetype
+[source,xml]
+----
+<archetype oid="00000000-0000-0000-0000-000000000329">
+    <name>Business role</name>
+    ...
+    <inducement>
+        <identifier>business-role-require-approver</identifier>
+        <policyRule>
+            <name>rule-require-approver</name>
+            <policyConstraints>
+                <minAssignees>
+                    <name>constraint-require-approver</name>
+                    <multiplicity>1</multiplicity>
+                    <relation>org:approver</relation>
+                </minAssignees>
+            </policyConstraints>
+            <markRef oid="aa44a866-6311-11f0-9896-57fdbf809a6a"/> <!-- "Broken process" mark -->
+            <policyActions>
+                <record>
+                    <description>Record the mark for use in dashboards and reports.</description>
+                </record>
+            </policyActions>
+            <evaluationTarget>object</evaluationTarget>
+        </policyRule>
+    </inducement>
+</archetype>
+----
+
+The rule has one `minAssignees` that requires at least one assignee with relation `approver` to be present for the affected object (application) at any time.
+In case that the rule is violated, object mark _Broken process_ will be applied to affected object.
+
+NOTE: The policy rule evaluation target must be set to `object` for this rule to work properly.
+Use `evaluationTarget` clause of the policy rule for this purpose.
+
+The rule is setting _Broken process_ mark to every effected object, which means it efficiently marks all business roles without approvers.
+However, such mark is not part of default midPoint configuration, therefore it has to be created first:
+
+.Broken process mark
+[source,xml]
+----
+<mark oid="aa44a866-6311-11f0-9896-57fdbf809a6a">
+    <name>Broken process</name>
+    <description>Mark for object that have process-related misconfigurations.</description>
+    <display>
+        <icon>
+            <cssClass>fa fa-user-xmark</cssClass>
+        </icon>
+    </display>
+    <assignment id="1">
+        <identifier>archetype</identifier>
+        <targetRef oid="00000000-0000-0000-0000-000000000701" type="ArchetypeType"/>
+    </assignment>
+</mark>
+----
+
+NOTE: MidPoint has a set of marks pre-configured as part of its xref:/midpoint/reference/deployment/initial-objects/[initial objects].
+Pre-configured object marks that are part of the initial objects can be re-used for custom policy rules.
+However, it is very likely that creation of new custom marks could be required.
+
+== Custom Packaged Policies
+
+The above method placed policy rule directly to the affected archetype.
+While this is completely feasible and correct approach, re-use of such policies is somehow limited.
+When it is expected that a certain policy could be re-used, there is a much better approach.
+Policy rules implementing such a policy can be placed into a dedicated xref:/midpoint/reference/schema/policy/[policy object], which "packages" the policy.
+
+.Require approver policy
+[source,xml]
+----
+<policy oid="36103ab2-6313-11f0-b5d6-cf6a2e7b791d">
+    <name>Require approver</name>
+    ...
+    <inducement>
+        <identifier>policy-require-approver</identifier>
+        <orderConstraint>
+            <order>2</order>
+        </orderConstraint>
+        <policyRule>
+            <name>rule-require-approver</name>
+            <policyConstraints>
+                <minAssignees>
+                    <name>constraint-require-approver</name>
+                    <multiplicity>1</multiplicity>
+                    <relation>org:approver</relation>
+                </minAssignees>
+            </policyConstraints>
+            <markRef oid="aa44a866-6311-11f0-9896-57fdbf809a6a"/> <!-- "Broken process" mark -->
+            <policyActions>
+                <record>
+                    <description>Record the mark for use in dashboards and reports.</description>
+                </record>
+            </policyActions>
+            <evaluationTarget>object</evaluationTarget>
+        </policyRule>
+    </inducement>
+</policy>
+----
+
+NOTE: The _inducement_ in the `Require approver` policy object is order 2 inducement.
+Such inducement does not apply to the assignee object (`Business role` archetype), it rather applies to all objects that have `Business role` archetype assigned.
+See xref:/midpoint/reference/roles-policies/policies/metaroles/[meta-role mechanism] for more details.
+
+Such packaged policy can be applied to `Business role` archetype by assignment:
+
+.Approver requirement policy applied to business role archetype
+[source,xml]
+----
+<archetype oid="00000000-0000-0000-0000-000000000321">
+    <name>Business role</name>
+    <assignment>
+        <targetRef oid="36103ab2-6313-11f0-b5d6-cf6a2e7b791d" type="PolicyType"/>
+    </assignment>
+</archetype>
+----
+
+The packaging of the policies is an advantage for reuse, but also for governance.
+All the related policy rules that implement certain policy can be neatly packaged inside one object.
+The resulting policy object encapsulates the policy.
+This makes policies easy to maintain and manage.
+E.g. the policy can be reviewed as one logical unit, it can have an owner, changes to the policy can be managed using approval process and so on.
 
 == See Also
 

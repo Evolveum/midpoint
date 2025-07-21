@@ -1,6 +1,6 @@
-= Policy Examples
+= Policy Rules Examples
 :page-toc: top
-:page-nav-title: Policy Examples
+:page-nav-title: Policy Rules Examples
 :page-since: "4.9"
 :page-upkeep-status: green
 

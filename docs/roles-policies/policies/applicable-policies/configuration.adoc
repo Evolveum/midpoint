@@ -18,7 +18,7 @@ This configuration is a prerequisite for xref:index.adoc[].
 == Configuration
 
 Applicable policies are defined as meta-roles.
-If a policy is applied (e.g. by xref:index.adoc#user_interface[selecting a check-box in the application interface]), the corresponding meta-role is assigned.
+If a policy is applied (e.g. by xref:index.adoc#user_interface[selecting a check-box in the application interface]), the corresponding policy is assigned.
 Policies are sorted into policy groups.
 Policy groups are, in fact, xref:/midpoint/architecture/archive/data-model/midpoint-common-schema/orgtype/[Orgs].
 Any meta-role which is a member of an org is considered to be a part of the policy group.
@@ -73,11 +73,11 @@ See examples of how you can implement such a configuration below.
 
 === Individual Policies
 
-.Meta role for manager approval
+.Policy for manager approval
 [source,xml]
 ----
 <policy oid="4798bd8e-23a3-11e8-a502-e32261e4ecff">
-    <name>meta-role-policy-approval-manager</name>
+    <name>policy-approval-manager</name>
     <displayName>Approval by manager</displayName>
     <assignment>
         <!-- Assignment so this meta-role is part of the policy group -->
@@ -88,11 +88,11 @@ See examples of how you can implement such a configuration below.
 ----
 
 
-.Meta role for owner approval
+.Policy for owner approval
 [source,xml]
 ----
 <policy oid="a38b7eec-23a3-11e8-9f81-f7fb91a9d52a">
-    <name>meta-role-policy-approval-role-owner</name>
+    <name>policy-approval-role-owner</name>
     <displayName>Approval by role owner</displayName>
     <assignment>
         <!-- Assignment so this meta-role is part of the policy group -->
@@ -102,11 +102,11 @@ See examples of how you can implement such a configuration below.
 </policy>
 ----
 
-.Meta role for SoD policy
+.Policy for SoD
 [source,xml]
 ----
 <policy oid="d5d76b9a-23a3-11e8-be88-bb290240045b">
-    <name>meta-role-policy-sod</name>
+    <name>policy-sod</name>
     <displayName>Segregation of Duties Policy</displayName>
     <assignment>
         <!-- Assignment so this meta-role is part of the policy group -->
