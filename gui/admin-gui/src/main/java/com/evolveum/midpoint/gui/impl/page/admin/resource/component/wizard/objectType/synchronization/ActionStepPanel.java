@@ -160,7 +160,7 @@ public class ActionStepPanel extends AbstractWizardStepPanel {
                 super.onInitialize();
                 Component parent = get(
                         createComponentPath(
-                                ID_VALUE_FORM,
+                                ID_MAIN_CONTAINER,
                                 ID_VALUE_CONTAINER,
                                 ID_INPUT,
                                 VerticalFormDefaultContainerablePanel.ID_PROPERTIES_LABEL,
@@ -168,7 +168,7 @@ public class ActionStepPanel extends AbstractWizardStepPanel {
                 if (parent != null) {
                     parent.add(AttributeAppender.replace("class", "pt-0 pb-3 px-3 mb-0"));
                 }
-                get(ID_VALUE_FORM).add(AttributeAppender.remove("class"));
+                get(ID_MAIN_CONTAINER).add(AttributeAppender.remove("class"));
             }
         };
         panel.setOutputMarkupId(true);

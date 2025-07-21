@@ -50,7 +50,7 @@ public class DatePanelFactory extends AbstractInputGuiComponentFactory<XMLGregor
     protected InputPanel getPanel(PrismPropertyPanelContext<XMLGregorianCalendar> panelCtx) {
         DateTimePickerPanel panel = DateTimePickerPanel.createByXMLGregorianCalendarModel(panelCtx.getComponentId(), panelCtx.getRealValueModel());
 
-        Form<?> form = Form.findForm(panelCtx.getForm());
+        Form<?> form = Form.findForm(panelCtx.getParentContainer());
         DateValidator validator;
         String validatorErrorMessageKey;
         if (ScheduleType.F_EARLIEST_START_TIME.equals(panelCtx.getDefinitionName()) || ScheduleType.F_LATEST_START_TIME.equals(panelCtx.getDefinitionName())) {

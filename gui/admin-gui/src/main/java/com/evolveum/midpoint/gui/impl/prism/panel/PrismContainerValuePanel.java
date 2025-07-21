@@ -264,7 +264,7 @@ public class PrismContainerValuePanel<C extends Containerable, CVW extends Prism
     }
 
     private ToggleIconButton<Void> getSortButton() {
-        return (ToggleIconButton) get(createComponentPath(ID_VALUE_FORM, ID_HEADER_CONTAINER, ID_SORT_PROPERTIES));
+        return (ToggleIconButton) get(createComponentPath(ID_MAIN_CONTAINER, ID_HEADER_CONTAINER, ID_SORT_PROPERTIES));
     }
 
     public void refreshPanel(AjaxRequestTarget target) {
