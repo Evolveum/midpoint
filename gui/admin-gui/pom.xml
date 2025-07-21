@@ -153,6 +153,11 @@
             <version>${project.version}</version>
         </dependency>
         <dependency>
+            <groupId>com.evolveum.midpoint.model</groupId>
+            <artifactId>smart-api</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
             <groupId>com.evolveum.midpoint.provisioning</groupId>
             <artifactId>provisioning-api</artifactId>
             <version>${project.version}</version>

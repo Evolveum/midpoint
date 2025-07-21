@@ -6,6 +6,7 @@
  */
 package com.evolveum.midpoint.web.page.admin.resources;
 
+import java.io.Serial;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -15,6 +16,7 @@ import com.evolveum.midpoint.gui.impl.component.data.column.AbstractItemWrapperC
 import com.evolveum.midpoint.gui.impl.component.data.column.LifecycleStateBadgeColumn;
 import com.evolveum.midpoint.gui.impl.component.data.column.LifecycleStateColumn;
 
+import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.smart.PageSmartIntegrationDefiningTypes;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
 
@@ -347,6 +349,28 @@ public class PageResources extends PageAdmin {
                         ProvisioningObjectsUtil.toggleResourceMaintenance(rowDto.getValue().asPrismContainer(),
                                 OPERATION_SET_MAINTENANCE, target, PageResources.this);
                         target.add(getResourceTable());
+                    }
+                };
+            }
+
+            @Override
+            public boolean isHeaderMenuItem() {
+                return false;
+            }
+        });
+
+        menuItems.add(new InlineMenuItem(createStringResource("pageResources.inlineMenuItem.smartIntegration")) {
+            @Serial private static final long serialVersionUID = 1L;
+
+            @Override
+            public InlineMenuItemAction initAction() {
+                return new ColumnMenuAction<SelectableBeanImpl<ResourceType>>() {
+                    @Serial private static final long serialVersionUID = 1L;
+
+                    @Override
+                    public void onClick(AjaxRequestTarget target) {
+                        PageSmartIntegrationDefiningTypes.navigateTo(
+                                PageResources.this, getRowModel().getObject().getValue().getOid());
                     }
                 };
             }

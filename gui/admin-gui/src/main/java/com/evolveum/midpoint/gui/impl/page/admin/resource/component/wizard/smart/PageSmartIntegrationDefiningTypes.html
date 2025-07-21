@@ -1,0 +1,49 @@
+<!--
+  ~ Copyright (C) 2010-2025 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<html xmlns="http://www.w3.org/1999/xhtml"
+        xmlns:wicket="http://wicket.apache.org">
+<body>
+<wicket:extend>
+    <form wicket:id="mainForm" class="form-horizontal">
+        <div class="d-flex flex-column">
+            <div class="d-flex gap-3 justify-content-start mr-auto align-items-center">
+                <a class="btn btn-outline-primary align-self-start" style="min-width: 400px;" wicket:id="defineTypes">
+                    <i class="fas fa-arrow-right mr-2"></i>
+                    <wicket:message key="PageSmartIntegrationDefiningTypes.button.defineObjectTypesForClass"/>
+                </a>
+                <input type="text" wicket:id="objectClassToDefineTypesFor" class="form-control"/>
+            </div>
+        </div>
+        <div class="d-flex flex-column">
+            <div class="d-flex gap-3 justify-content-start mr-auto">
+                <a class="btn btn-outline-primary align-self-start" style="min-width: 400px;" wicket:id="defineAssociations">
+                    <i class="fas fa-arrow-right mr-2"></i>
+                    <wicket:message key="PageSmartIntegrationDefiningTypes.button.defineAssociations"/>
+                </a>
+            </div>
+        </div>
+        <div class="card-body">
+            <textarea wicket:id="objectClasses"></textarea>
+        </div>
+        <div class="d-flex flex-column">
+            <div class="d-flex gap-3 justify-content-start mr-auto align-items-center">
+                <a class="btn btn-outline-primary align-self-start" style="min-width: 400px;" wicket:id="exploreObjectTypesSuggestion">
+                    <i class="fas fa-arrow-right mr-2"></i>
+                    <wicket:message key="PageSmartIntegrationDefiningTypes.button.exploreObjectTypesSuggestion"/>
+                </a>
+                <input type="text" wicket:id="objectTypesSuggestionToExplore" class="form-control"/>
+            </div>
+        </div>
+        <div class="card-body">
+            <h3>Suggestions of object types:</h3>
+            <textarea wicket:id="objectTypesSuggestions"></textarea>
+        </div>
+    </form>
+</wicket:extend>
+</body>
+</html>

@@ -34,6 +34,8 @@ import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.security.api.SecurityContextManager.ResultAwareCheckedProducer;
 import com.evolveum.midpoint.gui.impl.component.action.AbstractGuiAction;
 
+import com.evolveum.midpoint.smart.api.SmartIntegrationService;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
 import org.apache.wicket.Component;
@@ -182,6 +184,9 @@ public abstract class PageAdminLTE extends WebPage implements ModelServiceLocato
 
     @SpringBean(name = "modelInteractionService")
     private ModelInteractionService modelInteractionService;
+
+    @SpringBean(name = "smartIntegrationService")
+    private SmartIntegrationService smartIntegrationService;
 
     @SpringBean(name = "dashboardService")
     private DashboardService dashboardService;
@@ -563,6 +568,11 @@ public abstract class PageAdminLTE extends WebPage implements ModelServiceLocato
     @Override
     public ModelInteractionService getModelInteractionService() {
         return modelInteractionService;
+    }
+
+    @Override
+    public SmartIntegrationService getSmartIntegrationService() {
+        return smartIntegrationService;
     }
 
     @Override

@@ -27,6 +27,7 @@ import com.evolveum.midpoint.authentication.api.util.AuthUtil;
 
 import com.evolveum.midpoint.model.api.correlation.CorrelationService;
 import com.evolveum.midpoint.model.api.simulation.SimulationResultManager;
+import com.evolveum.midpoint.smart.api.SmartIntegrationService;
 import com.evolveum.midpoint.test.AbstractIntegrationTest;
 import com.evolveum.midpoint.web.util.validation.MidpointFormValidatorRegistry;
 
@@ -186,6 +187,11 @@ public abstract class AbstractGuiIntegrationTest extends AbstractModelIntegratio
             @Override
             public ModelInteractionService getModelInteractionService() {
                 return modelInteractionService;
+            }
+
+            @Override
+            public SmartIntegrationService getSmartIntegrationService() {
+                return smartIntegrationService;
             }
 
             @Override
