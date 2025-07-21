@@ -7,28 +7,28 @@
   -->
 
 <objectCollection xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-        xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
-        oid="00000000-0000-0000-0001-000000000357">
-    <name>Suspicious roles</name>
-    <documentation>(ISO27001/A.5.27,ISO27001/A.5.28,ISO27001/A.5.29,ISO27001/A.6.8)</documentation>
+                  xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+                  oid="8494d5a9-5ce9-4795-813b-0e424b9e4d42">
+    <name>Active roles</name>
     <type>RoleType</type>
     <filter>
-        <q:text>effectiveMarkRef matches ( oid = "00000000-0000-0000-0000-000000000830" )</q:text>
+        <q:text>activation/effectiveStatus = "enabled"</q:text>
     </filter>
     <domain>
+        <collectionRef oid="02c103d7-e178-4d34-b494-e367164f0fa7" type="ObjectCollectionType"/>
     </domain>
     <defaultView>
         <display>
             <label>
-                <orig>Suspicious role</orig>
+                <orig>Active role</orig>
                 <translation>
-                    <key>suspiciousRole.label</key>
+                    <key>activeRole.label</key>
                 </translation>
             </label>
             <pluralLabel>
-                <orig>Suspicious roles</orig>
+                <orig>Active roles</orig>
                 <translation>
-                    <key>suspiciousRole.pluralLabel</key>
+                    <key>activeRole.pluralLabel</key>
                 </translation>
             </pluralLabel>
         </display>
