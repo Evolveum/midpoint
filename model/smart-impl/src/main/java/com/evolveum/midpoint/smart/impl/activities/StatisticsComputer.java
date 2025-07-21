@@ -57,7 +57,7 @@ public class StatisticsComputer {
      *
      * TODO make this configurable (eventually).
      */
-    private static final float MAX_VALUE_COUNT_PERCENTAGE = 0.05f;
+    private static final float MAX_VALUE_COUNT_PERCENTAGE = 0.25f;
 
     /** Statistics being computed. */
     private final ShadowObjectClassStatisticsType statistics;
@@ -85,35 +85,12 @@ public class StatisticsComputer {
     }
 
     private void addMissingValueCounts(ShadowType shadow) {
-        for (var attrDef : attributeDefinitions) {
-            var attrName = attrDef.getItemName();
+        for (var attributeStatistics : statistics.getAttribute()) {
+            var attrName = attributeStatistics.getRef();
             if (ShadowUtil.getAttributeValues(shadow, attrName).isEmpty()) {
-                var attrStat = findOrCreateAttributeStatistics(attrName);
-                attrStat.setMissingValueCount(attrStat.getMissingValueCount() + 1);
+                attributeStatistics.setMissingValueCount(attributeStatistics.getMissingValueCount() + 1);
             }
         }
-    }
-
-    private void updateValueCount(String attrValue, ShadowAttributeStatisticsType attrStat) {
-        if (attrStat.getUniqueValueCount() >= MAX_VALUE_COUNT_UPPER_LIMIT) {
-            attrStat.setUniqueValueCount(-1);
-            // TO_DO: attrStat.resetValueCount();
-        }
-
-        if (attrStat.getUniqueValueCount() == -1) {
-            return;
-        }
-
-        for (var valueCountPair : attrStat.getValueCount()) {
-            if (valueCountPair.getValue().equals(attrValue)) {
-                valueCountPair.setCount(valueCountPair.getCount() + 1);
-                return;
-            }
-        }
-        attrStat.valueCount(new ShadowAttributeValueCountType()
-                .count(1)
-                .value(attrValue));
-        attrStat.setUniqueValueCount(attrStat.getUniqueValueCount() + 1);
     }
 
     /**
@@ -123,15 +100,25 @@ public class StatisticsComputer {
      * statistics for that attribute will be removed, and will not be collected any further.
      */
     private void addValueCounts(ShadowType shadow) {
-        for (var attrDef : attributeDefinitions) {
-            var attrName = attrDef.getItemName();
-            var attrValues = ShadowUtil.getAttributeValues(shadow, attrName);
-            ShadowAttributeStatisticsType attrStat = findOrCreateAttributeStatistics(attrName);
+        for (var attributeStatistics : statistics.getAttribute()) {
+            var attrValues = ShadowUtil.getAttributeValues(shadow, attributeStatistics.getRef());
 
+            attributeValuesLoop:
             for (var attrValue : attrValues) {
-                updateValueCount(String.valueOf(attrValue), attrStat);
+                for (var valueCountPair : attributeStatistics.getValueCount()) {
+                    if (valueCountPair.getValue().equals(attrValue)) {
+                        valueCountPair.setCount(valueCountPair.getCount() + 1);
+                        continue attributeValuesLoop;
+                    }
+                }
+                attributeStatistics.beginValueCount()
+                        .count(1)
+                        .value(String.valueOf(attrValue));
+                attributeStatistics.setUniqueValueCount(attributeStatistics.getUniqueValueCount() + 1);
             }
         }
+
+        statistics.getAttribute().removeIf(attr -> attr.getUniqueValueCount() > MAX_VALUE_COUNT_UPPER_LIMIT);
     }
 
     /**
@@ -139,7 +126,7 @@ public class StatisticsComputer {
      * we can remove the statistics for attributes that have too many values, as described in {@link #MAX_VALUE_COUNT_PERCENTAGE}.
      */
     private void removeLargeValueCounts() {
-        // TODO
+        statistics.getAttribute().removeIf(attr -> attr.getUniqueValueCount() > MAX_VALUE_COUNT_PERCENTAGE * statistics.getSize());
     }
 
     private ShadowAttributeStatisticsType findOrCreateAttributeStatistics(ItemName attrName) {
