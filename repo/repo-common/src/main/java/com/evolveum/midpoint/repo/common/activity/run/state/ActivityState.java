@@ -17,6 +17,7 @@ import java.util.*;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import org.apache.commons.lang3.BooleanUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -557,16 +558,57 @@ public abstract class ActivityState implements DebugDumpable {
                 .execute(result);
     }
 
-    // todo make nicer [viliam]
-    public void clearCounters(@NotNull ExecutionSupport.CountersGroup counterGroup, @NotNull OperationResult result)
+    public void markActivityRestarting(boolean restartCounters, @NotNull OperationResult result)
             throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException {
-        ItemPath counterGroupItemPath = stateItemPath.append(ActivityStateType.F_COUNTERS, counterGroup.getItemName());
+
+        String taskOid = getTask().getOid();
+
+        LOGGER.debug("Marking activity {}, state path '{}' as restarting (restartCounters={})", taskOid, stateItemPath, restartCounters);
+
+        ItemPath restartingPath = stateItemPath.append(ActivityStateType.F_RESTARTING);
+
+        ActivityRestartingStateType restartingState = new ActivityRestartingStateType();
+        restartingState.setRestartCounters(restartCounters ? true : null);
+
+        beans.plainRepositoryService.modifyObjectDynamically(
+                TaskType.class, taskOid, null,
+                task -> PrismContext.get().deltaFor(TaskType.class)
+                        .item(restartingPath).replace(restartingState)
+                        .asItemDeltas(), null, result);
+    }
+
+    public boolean isRestarting() {
+        return getRestartingState() != null;
+    }
+
+    private ActivityRestartingStateType getRestartingState() {
+        return getTask().getContainerRealValue(stateItemPath.append(ActivityStateType.F_RESTARTING), ActivityRestartingStateType.class);
+    }
+
+    public void clearBeforeRestart(OperationResult result)
+            throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException {
+
         beans.plainRepositoryService.modifyObjectDynamically(
                 TaskType.class, getTask().getOid(), null,
-                task -> PrismContext.get().deltaFor(TaskType.class)
-                        .item(counterGroupItemPath)
-                        .replace(List.of())
-                        .asItemDeltas(), null, result);
+                task -> {
+                    List<ItemDelta<?, ?>> deltas = PrismContext.get().deltaFor(TaskType.class)
+                            .item(stateItemPath.append(ActivityStateType.F_RESULT_STATUS)).replace()
+                            .item(stateItemPath.append(ActivityStateType.F_PROGRESS)).replace()
+                            .item(stateItemPath.append(ActivityStateType.F_STATISTICS)).replace()
+                            .item(stateItemPath.append(ActivityStateType.F_BUCKETING)).replace()
+                            .item(stateItemPath.append(ActivityStateType.F_RESTARTING)).replace()
+                            .item(stateItemPath.append(ActivityStateType.F_WORK_STATE)).replace()
+                            .asItemDeltas();
+
+                    ActivityRestartingStateType state = getRestartingState();
+                    if (BooleanUtils.isTrue(state.isRestartCounters())) {
+                        deltas.add(PrismContext.get().deltaFor(TaskType.class)
+                                .item(stateItemPath.append(ActivityStateType.F_COUNTERS)).replace()
+                                .asItemDelta());
+                    }
+
+                    return deltas;
+                }, null, result);
     }
     //endregion
 

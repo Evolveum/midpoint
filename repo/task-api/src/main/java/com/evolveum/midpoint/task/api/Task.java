@@ -451,6 +451,8 @@ public interface Task extends DebugDumpable, StatisticsCollector, ConnIdOperatio
         return (T) getPropertyRealValue(ItemPath.create(TaskType.F_EXTENSION, propertyName), Object.class);
     }
 
+    <T extends Containerable> T getContainerRealValue(ItemPath path, Class<T> expectedType);
+
     <T> T getPropertyRealValue(ItemPath path, Class<T> expectedType);
 
     <T> T getPropertyRealValueOrClone(ItemPath path, Class<T> expectedType);

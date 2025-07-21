@@ -3496,6 +3496,7 @@
             </xsd:element>
             <xsd:element name="taskRunIdentifier" type="xsd:string" minOccurs="0"/>
             <xsd:element name="executionAttempt" type="xsd:int" minOccurs="0"/>
+            <xsd:element name="restarting" type="tns:ActivityRestartingStateType" minOccurs="0"/>
             <xsd:element name="realizationState" type="tns:ActivityRealizationStateType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -3633,6 +3634,21 @@
             </xsd:element>
         </xsd:sequence>
         <xsd:attribute name="id" type="xsd:long"/>
+    </xsd:complexType>
+
+    <xsd:complexType name="ActivityRestartingStateType">
+        <xsd:annotation>
+            <xsd:documentation>
+
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container>true</a:container>
+                <a:since>4.10</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="restartCounters" type="xsd:boolean" minOccurs="0"/>
+        </xsd:sequence>
     </xsd:complexType>
 
     <xsd:complexType name="ActivityTreeStateType">

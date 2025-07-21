@@ -340,14 +340,16 @@ public abstract class AbstractActivityRun<
             RestartActivityPolicyActionType action =
                     PolicyViolationContext.getPolicyAction(runResult.createTaskRunResult(), RestartActivityPolicyActionType.class);
 
-            if (action != null && BooleanUtils.isTrue(action.isRestartCounters())) {
-                try {
-                    activityState.clearCounters(CountersGroup.ACTIVITY_POLICY_RULES, result);
-                } catch (SchemaException | ObjectNotFoundException | ObjectAlreadyExistsException e) {
-                    throw new ActivityRunException("Couldn't cleanup counters", FATAL_ERROR, PERMANENT_ERROR, e);
-                }
+            boolean restartCounters = action != null && BooleanUtils.isTrue(action.isRestartCounters());
+
+            // Marking activity as restarting and not clearing state right away because of two reasons:
+            // 1. We want to keep the state until the next run, so it can be used for user to see or debugging
+            // 2. Other threads, workers may flush the state later on during shutdown of the task (activity)
+            try {
+                activityState.markActivityRestarting(restartCounters, result);
+            } catch (SchemaException | ObjectNotFoundException | ObjectAlreadyExistsException e) {
+                throw new ActivityRunException("Couldn't mark activity as restarting", FATAL_ERROR, PERMANENT_ERROR, e);
             }
-            // todo cleanup of activity state?
         }
 
         try {

@@ -17,10 +17,7 @@ import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityRealizationStateType.COMPLETE;
 
 import java.util.Objects;
-
-import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
-
-import com.evolveum.midpoint.repo.common.activity.run.ActivityRunException;
+import javax.xml.datatype.XMLGregorianCalendar;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -28,9 +25,11 @@ import org.jetbrains.annotations.Nullable;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.repo.common.activity.Activity;
 import com.evolveum.midpoint.repo.common.activity.definition.ActivityReportingDefinition;
 import com.evolveum.midpoint.repo.common.activity.run.AbstractActivityRun;
+import com.evolveum.midpoint.repo.common.activity.run.ActivityRunException;
 import com.evolveum.midpoint.repo.common.activity.run.CommonTaskBeans;
 import com.evolveum.midpoint.repo.common.activity.run.reports.BucketsReport;
 import com.evolveum.midpoint.repo.common.activity.run.reports.ConnIdOperationsReport;
@@ -47,8 +46,6 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
-import javax.xml.datatype.XMLGregorianCalendar;
 
 /**
  * Activity state for the current activity run. Provides the full functionality, including creation of the work state
@@ -120,6 +117,12 @@ public class CurrentActivityState<WS extends AbstractActivityWorkStateType>
         }
         try {
             stateItemPath = findOrCreateActivityState(result);
+
+            if (isRestarting()) {
+                clearBeforeRestart(result);
+                getTask().refresh(result);
+            }
+
             updatePersistenceType(result);
             if (activityRun.shouldCreateWorkStateOnInitialization()) {
                 createWorkStateIfNeeded(result);

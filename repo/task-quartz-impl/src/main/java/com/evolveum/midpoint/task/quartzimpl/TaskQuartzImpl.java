@@ -1413,6 +1413,15 @@ public class TaskQuartzImpl implements Task {
     }
 
     // todo should return clone for running task?
+
+    @Override
+    public <T extends Containerable> T getContainerRealValue(ItemPath path, Class<T> expectedType) {
+        synchronized (prismAccess) {
+            PrismContainer<T> container = taskPrism.findContainer(path);
+            return container != null && !container.hasNoValues() ? container.getRealValue(expectedType) : null;
+        }
+    }
+
     @Override
     public <T> T getPropertyRealValue(ItemPath path, Class<T> expectedType) {
         synchronized (prismAccess) {

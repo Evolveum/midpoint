@@ -397,6 +397,11 @@ public class NullTaskImpl implements Task {
     }
 
     @Override
+    public <T extends Containerable> T getContainerRealValue(ItemPath path, Class<T> expectedType) {
+        return null;
+    }
+
+    @Override
     public <T> T getPropertyRealValue(ItemPath path, Class<T> expectedType) {
         return null;
     }

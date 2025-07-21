@@ -53,6 +53,9 @@ public class TestTaskActivityPolicies extends AbstractEmptyModelIntegrationTest 
     private static final TestObject<TaskType> TASK_LAST_SKIP =
             TestObject.file(TEST_DIR, "task-last-skip.xml", "4a2e5ca8-be35-48eb-a280-089afffb8526");
 
+    private static final TestObject<TaskType> TASK_RESTART =
+            TestObject.file(TEST_DIR, "task-restart.xml", "42b2e700-763b-4089-9eb5-092396766a51");
+
     private static final String DUMMY_NOTIFICATION_TRANSPORT = "activityPolicyRuleNotifier";
 
     @Override
@@ -141,6 +144,52 @@ public class TestTaskActivityPolicies extends AbstractEmptyModelIntegrationTest 
                 .assertComplete()
                     .assertFatalError()
                     .assertExecutionAttempts(1);
+        // @formatter:on
+    }
+
+    @Test
+    public void test190RestartMultipleTimes() throws Exception {
+        TaskAsserter<Void> asserter = submitTestTask(
+                TASK_RESTART,
+                () -> waitForTaskFinish(
+                        TASK_RESTART.oid,
+                        0,
+                        15000,
+                        true,
+                        300,
+                        builder -> builder.taskConsumer(t -> {
+                            if (t.isRunning() || t.isClosed()) {
+                                return;
+                            }
+
+                            TaskActivityStateType tas = t.getActivitiesStateOrClone();
+                            if (tas == null || tas.getActivity() == null) {
+                                // too soon
+                                return;
+                            }
+
+                            // asserting that during activity restarts, task runs are cleared,
+                            // otherwise activity execution time measurement would be wrong
+                            TaskAsserter<Void> ta = assertTask(t, "during run");
+                            // @formatter:off
+                            ta.assertExecutionState(TaskExecutionStateType.RUNNABLE)
+                                .activityState(ActivityPath.empty())
+                                .assertRestarting(true)
+                                .assertInProgressLocal()
+                                .itemProcessingStatistics()
+                                    .assertRuns(1);
+                            // @formatter:on
+                        })));
+
+        // @formatter:off
+        asserter.assertSuccess()
+                .activityState(ActivityPath.empty())
+                    .display()
+                    .assertComplete()
+                    .assertSuccess()
+                    .assertExecutionAttempts(3)
+                    .progress()
+                        .assertSuccessCount(0, 6);
         // @formatter:on
     }
 
@@ -276,7 +325,7 @@ public class TestTaskActivityPolicies extends AbstractEmptyModelIntegrationTest 
                         .end()
                     .assertInProgressLocal()
                     .progress()
-                        .assertSuccessCount(0,0)
+                        .assertSuccessCount(7,0)
                         .display()
                         .end()
                     .itemProcessingStatistics()

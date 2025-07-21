@@ -19,6 +19,7 @@ import com.evolveum.midpoint.test.asserter.prism.PrismContainerValueAsserter;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
+import org.apache.commons.lang3.BooleanUtils;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -32,6 +33,20 @@ public class ActivityStateAsserter<RA> extends AbstractAsserter<RA> {
     ActivityStateAsserter(ActivityStateType information, RA returnAsserter, String details) {
         super(returnAsserter, details);
         this.activityState = information;
+    }
+
+    public ActivityStateAsserter<RA> assertRestarting(boolean restartCounters) {
+        ActivityRestartingStateType restarting = activityState.getRestarting();
+
+        assertThat(restarting).isNotNull();
+
+        boolean real = BooleanUtils.isTrue(restarting.isRestartCounters());
+
+        assertThat(real)
+                .withFailMessage("restarting state is not restarting counters %s", restartCounters)
+                .isEqualTo(restartCounters);
+
+        return this;
     }
 
     public ActivityStateAsserter<RA> assertExecutionAttempts(Integer expected) {
