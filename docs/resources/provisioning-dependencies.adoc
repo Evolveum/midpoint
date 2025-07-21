@@ -79,4 +79,4 @@ It does not guarantee anything else.
 
 Note that dependency *does not imply assignment*. It means that if account on resource `xxxxx` will be assigned to the user is *does not* mean that also account on resource `yyyyy` is also assigned to the user.
 Dependencies are mechanism for ordering operations and do not duplicate policy mechanisms such as assignments and roles.
-If such automatic assignment is desired then we recommend using xref:/midpoint/reference/roles-policies/rbac/[roles] for this purpose.
+If such automatic assignment is desired then we recommend using xref:/midpoint/reference/roles-policies/roles/rbac/[roles] for this purpose.

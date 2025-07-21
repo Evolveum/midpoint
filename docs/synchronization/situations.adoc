@@ -97,7 +97,7 @@ E.g. new account is found on the resource and two or more users are returned.
 The situations deal only with existence or non-existence of resource object (account) and with ownership of the account.
 In other words it deals only with "links".
 It does *not* deal with the legality of the account (whether the user should have the account).
-See xref:/midpoint/reference/roles-policies/assignment/assigning-vs-linking/[Assigning vs Linking] page for a more detailed explanation.
+See xref:/midpoint/reference/roles-policies/roles/assignment/assigning-vs-linking/[Assigning vs Linking] page for a more detailed explanation.
 The situations also does *not* deal with change in account attributes.
 
 == The Algorithm
@@ -107,7 +107,7 @@ MidPoint is using the following algorithm to determine a situation:
 . If the resource object is deleted then the situation is *deleted*.
 
 . Resource object owner is looked up.
-The owner is an object that has a xref:/midpoint/reference/roles-policies/assignment/assigning-vs-linking/[link] to this resource object.
+The owner is an object that has a xref:/midpoint/reference/roles-policies/roles/assignment/assigning-vs-linking/[link] to this resource object.
 If an owner is found then the situation is *linked*.
 
 . xref:/midpoint/reference/synchronization/correlation-and-confirmation-expressions/[Correlation and confirmation expressions] are used to determine a potential owner for the resource object.

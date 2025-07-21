@@ -37,7 +37,11 @@ image::policy-rules-marks.png[Policy rules and marks]
 Requirement that every application should have an owner is present in almost every identity governance scenario.
 The ideal place for implementation of this governance rule is _Application_ archetype.
 _Application_ archetype is a pre-configured object (present in default xref:/midpoint/reference/deployment/initial-objects/[initial objects]) which is applied to all applications.
-Therefore, natural method of enforcing a policy rules is to place the rule inside an xref:/midpoint/reference/roles-policies/roles/assignment/assignment-vs-inducement/[inducement] in the _Application_ archetype.
+Therefore, natural method of enforcing the policy is to apply it at an archetype level.
+
+MidPoint comes with a couple of xref:/midpoint/reference/roles-policies/policies/preconfigured-policies/[pre-configured policies] that are ready-made to be applied.
+In case of ownership requirement, there is pre-configured policy `Require owner`.
+When this policy is applied to an archetype, all objects of that archetype are required to have at least one owner.
 As the xref:/midpoint/reference/schema/archetypes/[archetype] efficiently acts as a xref:/midpoint/reference/roles-policies/policies/metaroles/[meta-role], the policy rule in the inducement is applied to all applications.
 
 .Application archetype
@@ -69,33 +73,20 @@ As the xref:/midpoint/reference/schema/archetypes/[archetype] efficiently acts a
 </archetype>
 ----
 
-The rule has one `minAssignees` that requires at least one assignee with relation `owner` to be present for the affected object (application) at any time.
-In case that the rule is violated, object mark _Orphaned_ will be applied to affected object.
+Inducement in the `Require owner` policy contains a policy rule, that sets `Unowned` mark when the affected object does not have an owner.
+Applications that violate this policy are displayed on xref:/midpoint/reference/admin-gui/dashboards/compliance-dashboard/[compliance dashboard].
+When this policy is applied to applications for the first time, all applications need to be recomputed.
+Recomputation triggers evaluation of the policies, which sets or clears the marks as appropriate.
 
-NOTE: The policy rule evaluation target must be set to `object` for this rule to work properly.
-Use `evaluationTarget` clause of the policy rule for this purpose.
+TIP: The `Require owner` policy is implemented in the _inducement_ in the `Require owner` policy object.
+This is order 2 inducement, which means it does not apply to the assignee object (`Application` archetype).
+The inducement rather applies to all objects that have `Application` archetype assigned.
+This is the xref:/midpoint/reference/roles-policies/policies/metaroles/[meta-role mechanism] in action.
 
-The rule is setting _Orphaned_ mark to every effected object, which means it efficiently marks all applications without owners.
+== Dashboards and Reporting
 
-.Orphaned mark
-[source,xml]
-----
-<mark oid="5508aca4-2aef-47a6-ad50-892389823c91">
-    <name>Orphaned</name>
-    <description>Mark for object which does not have an owner.</description>
-    <display>
-        <icon>
-            <cssClass>fa fa-user-xmark</cssClass>
-        </icon>
-    </display>
-    <assignment id="1">
-        <identifier>archetype</identifier>
-        <targetRef oid="00000000-0000-0000-0000-000000000701" type="ArchetypeType"/>
-    </assignment>
-</mark>
-----
-
-Once the policy (archetype) is applied and the affected objects (applications) are recomputed, the violations are recorded in a form of object mark. The objects that violate the rule can be found by querying the _effective mark_ reference:
+Once the policy is applied and the archetype and the affected objects (applications) are recomputed, the violations are recorded in a form of object mark.
+The objects that violate the rule can be found by querying the _effective mark_ reference:
 
 .Orphaned mark query
 [source]
@@ -291,6 +282,8 @@ This makes policies easy to maintain and manage.
 E.g. the policy can be reviewed as one logical unit, it can have an owner, changes to the policy can be managed using approval process and so on.
 
 == See Also
+
+* xref:/midpoint/reference/roles-policies/policies/preconfigured-policies/[]
 
 * xref:/midpoint/reference/roles-policies/policies/policy-rules/[]
 

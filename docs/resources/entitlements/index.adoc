@@ -45,7 +45,7 @@ That's the reason for unified entitlement support in midPoint.
 MidPoint can manage all groups in a uniform way regardless of the grouping mechanism that the resource is using.
 All that is needed is a handful of configuration lines.
 And the nightmare is over.
-Especially when entitlements are combined with the power of xref:/midpoint/reference/roles-policies/assignment/[assignments] and xref:/midpoint/reference/synchronization/generic-synchronization/[generic synchronization].
+Especially when entitlements are combined with the power of xref:/midpoint/reference/roles-policies/roles/assignment/[assignments] and xref:/midpoint/reference/synchronization/generic-synchronization/[generic synchronization].
 ====
 
 
@@ -965,6 +965,6 @@ The simulated (or connector-native) references makes this very easy.
 
 * xref:/midpoint/reference/synchronization/generic-synchronization/[Generic Synchronization]
 
-* xref:/midpoint/reference/roles-policies/assignment/[Assignment]
+* xref:/midpoint/reference/roles-policies/roles/assignment/[Assignment]
 
 * xref:/midpoint/reference/resources/resource-configuration/schema-handling/[Resource Schema Handling]

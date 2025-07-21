@@ -120,7 +120,7 @@ We will do all the smart things in custom code.
 
 === Mapping
 
-Actual transformation of the data is implemented in a xref:/midpoint/reference/roles-policies/metaroles/gensync/[metarole]. All organizational units that contain specific transform tables are assigned to this metaroles.
+Actual transformation of the data is implemented in a xref:/midpoint/reference/roles-policies/policies/metaroles/gensync/[metarole]. All organizational units that contain specific transform tables are assigned to this metaroles.
 The transformation algorithm is the same for all the organizational units, just the transformation table is different.
 Therefore it makes sense to implement and configure the algorithm in just a single place.
 And a metarole is a perfect place to do that.

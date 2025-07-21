@@ -26,7 +26,7 @@ If activation mapping returns `true` then the resource object will exist (will b
 If it returns `false` the resource object will not exist (will not be created or will be deleted).
 
 The existence mapping usually uses the concept of _legality_.
-The legality is determined by evaluating xref:/midpoint/reference/roles-policies/assignment/[assignments] and the assignment enforcement mode.
+The legality is determined by evaluating xref:/midpoint/reference/roles-policies/roles/assignment/[assignments] and the assignment enforcement mode.
 The result of such evaluation is provided as `input` to the existence mapping.
 Therefore simple `asIs` expression is all that is usually needed:
 
@@ -64,7 +64,7 @@ E.g. in RELATIVE mode, a resource object may be legal even if it is not assigned
 | `input`
 | boolean
 | *legality*: set to `true` if the object is legal (based on assignment evaluation and enforcement mode).
-See xref:/midpoint/reference/roles-policies/assignment/[Assignment]
+See xref:/midpoint/reference/roles-policies/roles/assignment/[Assignment]
 
 
 | `assigned`
@@ -224,7 +224,7 @@ It is automatically changed into `disabled`.
 | `legal`
 | boolean
 | *legality*: set to `true` if the object is legal (based on assignment evaluation).
-See xref:/midpoint/reference/roles-policies/assignment/[Assignment]
+See xref:/midpoint/reference/roles-policies/roles/assignment/[Assignment]
 
 
 | `assigned`
@@ -684,6 +684,6 @@ The `asIs` `expression` is also optional and may be omitted, leading to:
 
 * xref:/midpoint/reference/concepts/activation/[Activation]
 
-* xref:/midpoint/reference/roles-policies/assignment/configuration/[Assignment Configuration]
+* xref:/midpoint/reference/roles-policies/roles/assignment/configuration/[Assignment Configuration]
 
 * xref:/midpoint/reference/resources/resource-configuration/schema-handling/[Resource Schema Handling]
