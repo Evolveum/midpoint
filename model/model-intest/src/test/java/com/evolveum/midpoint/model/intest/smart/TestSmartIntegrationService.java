@@ -17,6 +17,7 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.model.test.smart.MockServiceClientImpl;
 
+import com.evolveum.midpoint.smart.api.info.StatusInfo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
@@ -28,7 +29,6 @@ import com.evolveum.midpoint.model.test.CommonInitialObjects;
 import com.evolveum.midpoint.schema.processor.ResourceObjectTypeIdentification;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
-import com.evolveum.midpoint.smart.api.SmartIntegrationService;
 import com.evolveum.midpoint.smart.impl.DefaultServiceClientImpl;
 import com.evolveum.midpoint.smart.impl.SmartIntegrationServiceImpl;
 import com.evolveum.midpoint.task.api.Task;
@@ -116,12 +116,12 @@ public class TestSmartIntegrationService extends AbstractEmptyModelIntegrationTe
 
     @SuppressWarnings("SameParameterValue")
     private <T> T waitForFinish(
-            CheckedSupplier<SmartIntegrationService.StatusInformation<T>, CommonException> statusInformationSupplier,
+            CheckedSupplier<StatusInfo<T>, CommonException> statusInformationSupplier,
             long timeout) throws CommonException {
 
         var checker = new Checker() {
 
-            SmartIntegrationService.StatusInformation<T> lastStatusInformation;
+            StatusInfo<T> lastStatusInformation;
 
             @Override
             public boolean check() throws CommonException {

@@ -129,7 +129,7 @@ public class StatisticsComputer {
             ShadowAttributeStatisticsType attrStat = findOrCreateAttributeStatistics(attrName);
 
             for (var attrValue : attrValues) {
-                updateValueCount((String) attrValue, attrStat);
+                updateValueCount(String.valueOf(attrValue), attrStat);
             }
         }
     }

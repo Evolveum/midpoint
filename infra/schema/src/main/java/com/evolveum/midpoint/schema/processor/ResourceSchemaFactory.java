@@ -104,6 +104,12 @@ public class ResourceSchemaFactory {
         }
     }
 
+    /** Removes schemas that are attached to the particular prism object using user data. */
+    public static void deleteCachedSchemas(PrismObject<ResourceType> resource) {
+        resource.setUserData(USER_DATA_KEY_COMPLETE_SCHEMA, null);
+        resource.setUserData(USER_DATA_KEY_NATIVE_SCHEMA, null);
+    }
+
     private static CompleteResourceSchema getExistingCompleteSchema(PrismObject<ResourceType> resource) {
         Object userDataEntry = resource.getUserData(USER_DATA_KEY_COMPLETE_SCHEMA);
         if (userDataEntry != null) {

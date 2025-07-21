@@ -8,24 +8,19 @@
 package com.evolveum.midpoint.smart.impl.activities;
 
 import static com.evolveum.midpoint.prism.xml.XmlTypeConverter.toMillis;
-import static com.evolveum.midpoint.schema.constants.SchemaConstants.MODEL_EXTENSION_OBJECT_CLASS_LOCAL_NAME;
-import static com.evolveum.midpoint.schema.constants.SchemaConstants.MODEL_EXTENSION_RESOURCE_OID;
 import static com.evolveum.midpoint.schema.util.ShadowObjectClassStatisticsTypeUtil.createStatisticsObject;
 
-import java.util.Comparator;
+import com.evolveum.midpoint.smart.impl.SmartIntegrationBeans;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.repo.common.activity.run.*;
 import com.evolveum.midpoint.repo.common.activity.run.processing.ItemProcessingRequest;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.Resource;
-import com.evolveum.midpoint.schema.util.ShadowObjectClassStatisticsTypeUtil;
 import com.evolveum.midpoint.task.api.RunningTask;
 import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
@@ -33,7 +28,6 @@ import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.GenericObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectTypesSuggestionWorkStateType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
@@ -111,21 +105,9 @@ public class StatisticsComputationActivityRun
 
     private @Nullable String findLatestStatisticsObjectOid(OperationResult result) throws SchemaException {
         var workDef = getWorkDefinition();
-        var objects = beans.repositoryService.searchObjects(
-                GenericObjectType.class,
-                PrismContext.get().queryFor(GenericObjectType.class)
-                        .item(GenericObjectType.F_EXTENSION, MODEL_EXTENSION_RESOURCE_OID)
-                        .eq(workDef.getResourceOid())
-                        .and().item(GenericObjectType.F_EXTENSION, MODEL_EXTENSION_OBJECT_CLASS_LOCAL_NAME)
-                        .eq(workDef.getObjectClassName().getLocalPart())
-                        .build(),
-                null,
-                result);
-        return objects.stream()
-                .max(Comparator.comparing(
-                        o -> toMillis(ShadowObjectClassStatisticsTypeUtil.getStatisticsRequired(o).getTimestamp())))
-                .map(PrismObject::getOid)
-                .orElse(null);
+        var lastStatisticsObject = SmartIntegrationBeans.get().smartIntegrationService.getLatestStatistics(
+                workDef.getResourceOid(), workDef.getObjectClassName(), getRunningTask(), result);
+        return lastStatisticsObject != null ? lastStatisticsObject.getOid() : null;
     }
 
     @Override

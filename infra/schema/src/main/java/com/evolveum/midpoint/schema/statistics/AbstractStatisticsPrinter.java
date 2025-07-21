@@ -43,7 +43,7 @@ public abstract class AbstractStatisticsPrinter<T> {
     /**
      * Information that is to be formatted.
      */
-    @NotNull final T information;
+    @NotNull protected final T information;
 
     @NotNull final Options options;
 
@@ -62,7 +62,7 @@ public abstract class AbstractStatisticsPrinter<T> {
     /**
      * Data to be formatted.
      */
-    Data data;
+    protected Data data;
 
     /**
      * Formatting to be used.
@@ -76,7 +76,7 @@ public abstract class AbstractStatisticsPrinter<T> {
         this.seconds = seconds;
     }
 
-    void initData() {
+    protected void initData() {
         if (data == null) {
             data = new Data();
         } else {
@@ -84,7 +84,7 @@ public abstract class AbstractStatisticsPrinter<T> {
         }
     }
 
-    void initFormatting() {
+    protected void initFormatting() {
         if (formatting == null) {
             formatting = options.format.createFormatting();
         } else {
@@ -103,7 +103,7 @@ public abstract class AbstractStatisticsPrinter<T> {
         return formatting.apply(data);
     }
 
-    void addColumn(String label, Formatting.Alignment alignment, String format) {
+    protected void addColumn(String label, Formatting.Alignment alignment, String format) {
         formatting.addColumn(label, alignment, format);
     }
 
@@ -156,11 +156,11 @@ public abstract class AbstractStatisticsPrinter<T> {
         }
     }
 
-    String formatString() {
+    protected String formatString() {
         return "%s";
     }
 
-    String formatInt() {
+    protected String formatInt() {
         return formatting.isNiceNumbersFormatting() ? "%,d" : "%d";
     }
 

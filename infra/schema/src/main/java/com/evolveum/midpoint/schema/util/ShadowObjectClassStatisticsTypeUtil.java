@@ -26,6 +26,10 @@ import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.setExtensionPrope
  */
 public class ShadowObjectClassStatisticsTypeUtil {
 
+    public static ShadowObjectClassStatisticsType getStatisticsRequired(GenericObjectType holder) {
+        return getStatisticsRequired(holder.asPrismObject());
+    }
+
     public static ShadowObjectClassStatisticsType getStatisticsRequired(PrismObject<GenericObjectType> holder) {
         return MiscUtil.argNonNull(
                 getExtensionItemRealValue(holder.asObjectable().getExtension(), SchemaConstants.MODEL_EXTENSION_STATISTICS),

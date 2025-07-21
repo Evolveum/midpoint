@@ -40,7 +40,7 @@ public class Data {
                 .map(record -> record.values.toArray());
     }
 
-    static class Record {
+    public static class Record {
         private final List<Object> values = new ArrayList<>();
 
         public void add(Object value) {

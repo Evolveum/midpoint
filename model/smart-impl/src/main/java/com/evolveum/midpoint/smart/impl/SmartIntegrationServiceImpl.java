@@ -7,8 +7,7 @@
 
 package com.evolveum.midpoint.smart.impl;
 
-import java.util.Collection;
-import java.util.Objects;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Supplier;
 import javax.xml.datatype.Duration;
@@ -16,9 +15,20 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.PrismContext;
 
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.repo.api.RepositoryService;
+import com.evolveum.midpoint.schema.*;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.util.ShadowObjectClassStatisticsTypeUtil;
+import com.evolveum.midpoint.smart.api.info.StatusInfo;
+import com.evolveum.midpoint.util.LocalizableMessageBuilder;
+import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
+
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.TestOnly;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
 import com.evolveum.midpoint.model.api.ActivitySubmissionOptions;
@@ -29,7 +39,6 @@ import com.evolveum.midpoint.repo.common.SystemObjectCache;
 import com.evolveum.midpoint.repo.common.activity.TaskActivityManager;
 import com.evolveum.midpoint.repo.common.activity.run.CommonTaskBeans;
 import com.evolveum.midpoint.repo.common.activity.run.state.ActivityState;
-import com.evolveum.midpoint.schema.ResultHandler;
 import com.evolveum.midpoint.schema.processor.ResourceObjectTypeIdentification;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
@@ -47,15 +56,22 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CountObjectsCapabilityType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CountObjectsSimulateType;
 
-@Service
+import static com.evolveum.midpoint.prism.xml.XmlTypeConverter.toMillis;
+import static com.evolveum.midpoint.schema.constants.SchemaConstants.MODEL_EXTENSION_OBJECT_CLASS_LOCAL_NAME;
+import static com.evolveum.midpoint.schema.constants.SchemaConstants.MODEL_EXTENSION_RESOURCE_OID;
+
+@Service("smartIntegrationService")
 public class SmartIntegrationServiceImpl implements SmartIntegrationService {
 
     private static final Trace LOGGER = TraceManager.getTrace(SmartIntegrationServiceImpl.class);
 
+    private static final String OP_CREATE_NEW_RESOURCE = "createNewResource";
     private static final String OP_ESTIMATE_OBJECT_CLASS_SIZE = "estimateObjectClassSize";
+    private static final String OP_GET_LATEST_STATISTICS = "getLatestStatistics";
     private static final String OP_SUGGEST_OBJECT_TYPES = "suggestObjectTypes";
     private static final String OP_SUBMIT_SUGGEST_OBJECT_TYPES_OPERATION = "suggestObjectTypesOperation";
     private static final String OP_GET_SUGGEST_OBJECT_TYPES_OPERATION_STATUS = "getSuggestObjectTypesOperationStatus";
+    private static final String OP_LIST_SUGGEST_OBJECT_TYPES_OPERATION_STATUSES = "listSuggestObjectTypesOperationStatuses";
 
     private static final String OP_SUGGEST_FOCUS_TYPE = "suggestFocusType";
     private static final String OP_SUGGEST_MAPPINGS = "suggestMappings";
@@ -73,6 +89,39 @@ public class SmartIntegrationServiceImpl implements SmartIntegrationService {
     @Autowired private ModelInteractionServiceImpl modelInteractionService;
     @Autowired private TaskManager taskManager;
     @Autowired private TaskActivityManager activityManager;
+    @Autowired @Qualifier("cacheRepositoryService") private RepositoryService repositoryService;
+
+    @Override
+    public @Nullable String createNewResource(
+            PolyStringType name,
+            ObjectReferenceType connectorRef,
+            ConnectorConfigurationType connectorConfiguration,
+            Task task,
+            OperationResult parentResult) {
+
+        var result = parentResult.subresult(OP_CREATE_NEW_RESOURCE)
+                .addArbitraryObjectAsParam("name", name)
+                .build();
+        try {
+            var resource = new ResourceType()
+                    .name(name)
+                    .connectorRef(connectorRef)
+                    .connectorConfiguration(connectorConfiguration)
+                    .lifecycleState(SchemaConstants.LIFECYCLE_PROPOSED);
+
+            // TODO consider setting full caching here
+            var options = new ImportOptionsType()
+                    .fetchResourceSchema(true); // this will execute "test connection" operation
+            modelService.importObject(resource.asPrismObject(), options, task, result);
+
+            return resource.getOid();
+        } catch (Throwable t) {
+            result.recordException(t);
+            throw t;
+        } finally {
+            result.close();
+        }
+    }
 
     @Override
     public ObjectClassSizeEstimationType estimateObjectClassSize(
@@ -149,6 +198,37 @@ public class SmartIntegrationServiceImpl implements SmartIntegrationService {
     }
 
     @Override
+    public GenericObjectType getLatestStatistics(String resourceOid, QName objectClassName, Task task, OperationResult parentResult)
+            throws SchemaException {
+        var result = parentResult.subresult(OP_GET_LATEST_STATISTICS)
+                .addParam("resourceOid", resourceOid)
+                .addParam("objectClassName", objectClassName)
+                .build();
+        try {
+            var objects = repositoryService.searchObjects(
+                    GenericObjectType.class,
+                    PrismContext.get().queryFor(GenericObjectType.class)
+                            .item(GenericObjectType.F_EXTENSION, MODEL_EXTENSION_RESOURCE_OID)
+                            .eq(resourceOid)
+                            .and().item(GenericObjectType.F_EXTENSION, MODEL_EXTENSION_OBJECT_CLASS_LOCAL_NAME)
+                            .eq(objectClassName.getLocalPart())
+                            .build(),
+                    null,
+                    result);
+            return objects.stream()
+                    .max(Comparator.comparing(
+                            o -> toMillis(ShadowObjectClassStatisticsTypeUtil.getStatisticsRequired(o).getTimestamp())))
+                    .map(o -> o.asObjectable())
+                    .orElse(null);
+        } catch (Throwable t) {
+            result.recordException(t);
+            throw t;
+        } finally {
+            result.close();
+        }
+    }
+
+    @Override
     public String submitSuggestObjectTypesOperation(
             String resourceOid, QName objectClassName, Task task, OperationResult parentResult)
             throws CommonException {
@@ -179,40 +259,105 @@ public class SmartIntegrationServiceImpl implements SmartIntegrationService {
     }
 
     @Override
-    public StatusInformation<ObjectTypesSuggestionType> getSuggestObjectTypesOperationStatus(
-            String token, Task task, OperationResult parentResult)
-            throws SchemaException, ObjectNotFoundException, ConfigurationException {
-        var result = parentResult.subresult(OP_GET_SUGGEST_OBJECT_TYPES_OPERATION_STATUS)
-                .addParam("token", token)
+    public List<StatusInfo<ObjectTypesSuggestionType>> listSuggestObjectTypesOperationStatuses(
+            String resourceOid, Task task, OperationResult parentResult)
+            throws SchemaException, ConfigurationException, ObjectNotFoundException {
+        var result = parentResult.subresult(OP_LIST_SUGGEST_OBJECT_TYPES_OPERATION_STATUSES)
+                .addParam("resourceOid", resourceOid)
                 .build();
         try {
-            var bgTask = taskManager.getTaskPlain(token, result);
-            LOGGER.trace("Task:\n{}", bgTask.debugDump(1));
-
-            var taskStatus = Objects.requireNonNullElse(
-                    OperationResultStatus.parseStatusType(bgTask.getResultStatus()),
-                    OperationResultStatus.IN_PROGRESS);
-            if (taskStatus == OperationResultStatus.IN_PROGRESS) {
-                var activity = activityManager.getActivity(bgTask, ActivityPath.empty());
-                // TODO message
-                return new StatusInformation<>(taskStatus, null, null);
-            }
-            // We should have the state by now.
-            var state = ActivityState.getActivityStateDownwards(
-                    ActivityPath.empty(),
-                    bgTask,
-                    ObjectTypesSuggestionWorkStateType.COMPLEX_TYPE,
-                    CommonTaskBeans.get(),
+            var tasks = taskManager.searchObjects(
+                    TaskType.class,
+                    PrismContext.get().queryFor(TaskType.class)
+                            .item(TaskType.F_AFFECTED_OBJECTS, TaskAffectedObjectsType.F_ACTIVITY,
+                                    ActivityAffectedObjectsType.F_RESOURCE_OBJECTS, ResourceObjectSetType.F_RESOURCE_REF)
+                            .ref(resourceOid)
+                            .and()
+                            .item(TaskType.F_AFFECTED_OBJECTS, TaskAffectedObjectsType.F_ACTIVITY, ActivityAffectedObjectsType.F_ACTIVITY_TYPE)
+                            .eq(SchemaConstantsGenerated.C_OBJECT_TYPES_SUGGESTION)
+                            .build(),
+                    taskRetrievalOptions(),
                     result);
-            var suggestions = state.getWorkStateItemRealValueClone(
-                    ObjectTypesSuggestionWorkStateType.F_RESULT, ObjectTypesSuggestionType.class);
-            return new StatusInformation<>(taskStatus, null, suggestions);
+            var resultingList = new ArrayList<StatusInfo<ObjectTypesSuggestionType>>();
+            for (PrismObject<TaskType> t : tasks) {
+                resultingList.add(
+                        createStatusInformation(
+                                taskManager.createTaskInstance(t, result),
+                                result));
+            }
+            resultingList.sort(
+                    Comparator
+                            .comparing(
+                                    (StatusInfo<ObjectTypesSuggestionType> info) -> XmlTypeConverter.toMillisNullable(info.finished()),
+                                    Comparator.nullsFirst(Comparator.reverseOrder()))
+                            .thenComparing(
+                                    (StatusInfo<ObjectTypesSuggestionType> info) -> XmlTypeConverter.toMillisNullable(info.started()),
+                                    Comparator.reverseOrder()));
+            return resultingList;
         } catch (Throwable t) {
             result.recordException(t);
             throw t;
         } finally {
             result.close();
         }
+    }
+
+    private static @NotNull Collection<SelectorOptions<GetOperationOptions>> taskRetrievalOptions() {
+        return GetOperationOptionsBuilder.create()
+                .noFetch()
+                .item(TaskType.F_RESULT).retrieve()
+                .build();
+    }
+
+    @Override
+    public StatusInfo<ObjectTypesSuggestionType> getSuggestObjectTypesOperationStatus(
+            String token, Task task, OperationResult parentResult)
+            throws SchemaException, ObjectNotFoundException, ConfigurationException {
+        var result = parentResult.subresult(OP_GET_SUGGEST_OBJECT_TYPES_OPERATION_STATUS)
+                .addParam("token", token)
+                .build();
+        try {
+            var bgTask = taskManager.getTaskPlain(token, taskRetrievalOptions(), result);
+            return createStatusInformation(bgTask, result);
+        } catch (Throwable t) {
+            result.recordException(t);
+            throw t;
+        } finally {
+            result.close();
+        }
+    }
+
+    private StatusInfo<ObjectTypesSuggestionType> createStatusInformation(Task task, OperationResult result)
+            throws SchemaException, ConfigurationException, ObjectNotFoundException {
+        LOGGER.trace("Task:\n{}", task.debugDump(1));
+        var token = task.getOid();
+        var taskStatus = Objects.requireNonNullElse(
+                OperationResultStatus.parseStatusType(task.getResultStatus()),
+                OperationResultStatus.IN_PROGRESS);
+        var affectedResourceObjects = // FIXME implement more robustly
+                task.getRawTaskObjectClonedIfNecessary().asObjectable().getAffectedObjects()
+                        .getActivity().get(0).getResourceObjects();
+        var taskResult = task.getResult();
+        var message = taskResult != null ? taskResult.getMessage() : null;
+        var localizableMessage = message != null ? LocalizableMessageBuilder.buildFallbackMessage(message) : null;
+        var started = XmlTypeConverter.createXMLGregorianCalendar(task.getLastRunStartTimestamp());
+        var finished = XmlTypeConverter.createXMLGregorianCalendar(task.getLastRunFinishTimestamp());
+        if (taskStatus == OperationResultStatus.IN_PROGRESS) {
+            var activity = activityManager.getActivity(task, ActivityPath.empty());
+            return new StatusInfo<>(
+                    token, taskStatus, localizableMessage, affectedResourceObjects, started, finished, null);
+        }
+        // We should have the state by now.
+        var state = ActivityState.getActivityStateDownwards(
+                ActivityPath.empty(),
+                task,
+                ObjectTypesSuggestionWorkStateType.COMPLEX_TYPE,
+                CommonTaskBeans.get(),
+                result);
+        var suggestions = state.getWorkStateItemRealValueClone(
+                ObjectTypesSuggestionWorkStateType.F_RESULT, ObjectTypesSuggestionType.class);
+        return new StatusInfo<>(
+                token, taskStatus, localizableMessage, affectedResourceObjects, started, finished, suggestions);
     }
 
     /** Invokes the service client to suggest object types for the given resource and object class. */

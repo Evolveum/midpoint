@@ -51,6 +51,8 @@ public class DefaultServiceClientImpl implements ServiceClient {
     @Autowired private MidpointYamlProvider<?> yamlProvider;
 
     DefaultServiceClientImpl(@Nullable SmartIntegrationConfigurationType configurationBean) throws ConfigurationException {
+        // FIXME temporary hack to force CXF to use HTTP/1.1 (remove it eventually, because it influences all HTTP communication).
+        System.setProperty("org.apache.cxf.transport.http.forceVersion", "1.1");
         webClient = WebClient.create(
                 getServiceUrl(configurationBean),
                 Arrays.asList(xmlProvider, jsonProvider, yamlProvider),

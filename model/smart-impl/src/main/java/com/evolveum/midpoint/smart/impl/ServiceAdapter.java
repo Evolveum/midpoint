@@ -21,6 +21,8 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 
+import org.apache.commons.lang3.StringUtils;
+
 import javax.xml.namespace.QName;
 
 import static com.evolveum.midpoint.schema.constants.SchemaConstants.NS_RI;
@@ -70,7 +72,9 @@ class ServiceAdapter {
                     new ResourceObjectTypeDelineationType()
                             .objectClass(objectClassDef.getTypeName());
             for (String filterString : siObjectType.getFilter()) {
-                delineation.filter(parseAndSerializeFilter(filterString, shadowObjectDef));
+                if (StringUtils.isNotBlank(filterString)) { // TODO service should not return empty strings!
+                    delineation.filter(parseAndSerializeFilter(filterString, shadowObjectDef));
+                }
             }
 
             // TODO the service should not return empty strings!
@@ -105,13 +109,13 @@ class ServiceAdapter {
             String filterString, PrismObjectDefinition<ShadowType> shadowObjectDef)
             throws SchemaException {
         LOGGER.trace("Parsing filter: {}", filterString);
-        var parsedFilter = PrismContext.get().createQueryParser().parseFilter(shadowObjectDef, filterString);
         try {
+            var parsedFilter = PrismContext.get().createQueryParser().parseFilter(shadowObjectDef, filterString);
             return PrismContext.get().querySerializer().serialize(parsedFilter).toSearchFilterType();
-        } catch (PrismQuerySerialization.NotSupportedException e) {
-            throw SystemException.unexpected(
-                    e,
-                    "Cannot serialize filter: %s for shadow object definition: %s".formatted(filterString, shadowObjectDef));
+        } catch (Exception e) {
+            throw new SchemaException(
+                    "Cannot process suggested filter (%s): %s".formatted(filterString, e.getMessage()),
+                    e);
         }
     }
 
