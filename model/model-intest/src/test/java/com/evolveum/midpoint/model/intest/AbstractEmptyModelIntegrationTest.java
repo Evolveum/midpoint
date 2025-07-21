@@ -13,6 +13,7 @@ import static com.evolveum.midpoint.model.intest.CommonTasks.TASK_TRIGGER_SCANNE
 import java.io.File;
 import java.io.IOException;
 
+import com.evolveum.axiom.concepts.CheckedSupplier;
 import com.evolveum.midpoint.model.test.AbstractModelIntegrationTest;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
@@ -20,7 +21,11 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.provisioning.ucf.impl.builtin.ManualConnectorInstance;
 import com.evolveum.midpoint.schema.internals.InternalsConfig;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.result.OperationResultStatus;
+import com.evolveum.midpoint.smart.api.info.StatusInfo;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.test.Checker;
+import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.test.TestObject;
 import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.util.exception.*;
@@ -132,5 +137,33 @@ public abstract class AbstractEmptyModelIntegrationTest extends AbstractModelInt
 
         modifyObjectReplaceProperty(SystemConfigurationType.class, SystemObjectsType.SYSTEM_CONFIGURATION.value(),
                 path, task, result, enable);
+    }
+
+    @SuppressWarnings("SameParameterValue")
+    protected <T> T waitForFinish(
+            CheckedSupplier<StatusInfo<T>, CommonException> statusInformationSupplier,
+            long timeout) throws CommonException {
+
+        var checker = new Checker() {
+
+            StatusInfo<T> lastStatusInformation;
+
+            @Override
+            public boolean check() throws CommonException {
+                lastStatusInformation = statusInformationSupplier.get();
+                return lastStatusInformation.status() != OperationResultStatus.IN_PROGRESS;
+            }
+
+            @Override
+            public void timeout() {
+                fail("Timeout while waiting for the operation to finish. Last status: " + lastStatusInformation);
+            }
+        };
+
+        IntegrationTestTools.waitFor("Waiting for the operation to finish", checker, timeout, 500);
+        if (checker.lastStatusInformation.status() != OperationResultStatus.SUCCESS) {
+            fail("Operation did not finish successfully. Last status: " + checker.lastStatusInformation);
+        }
+        return checker.lastStatusInformation.result();
     }
 }

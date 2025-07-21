@@ -15,26 +15,20 @@ import static com.evolveum.midpoint.test.util.MidPointTestConstants.TEST_RESOURC
 import java.io.File;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.model.test.smart.MockServiceClientImpl;
-
-import com.evolveum.midpoint.smart.api.info.StatusInfo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Test;
 
-import com.evolveum.axiom.concepts.CheckedSupplier;
 import com.evolveum.midpoint.model.intest.AbstractEmptyModelIntegrationTest;
 import com.evolveum.midpoint.model.test.CommonInitialObjects;
+import com.evolveum.midpoint.model.test.smart.MockServiceClientImpl;
 import com.evolveum.midpoint.schema.processor.ResourceObjectTypeIdentification;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.smart.impl.DefaultServiceClientImpl;
 import com.evolveum.midpoint.smart.impl.SmartIntegrationServiceImpl;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.test.Checker;
 import com.evolveum.midpoint.test.DummyTestResource;
-import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SiSuggestFocusTypeResponseType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SiSuggestObjectTypesResponseType;
@@ -112,34 +106,6 @@ public class TestSmartIntegrationService extends AbstractEmptyModelIntegrationTe
         displayDumpable("response", response);
         assertThat(response).isNotNull();
         assertThat(response.getObjectType()).as("suggested object types collection").isNotEmpty();
-    }
-
-    @SuppressWarnings("SameParameterValue")
-    private <T> T waitForFinish(
-            CheckedSupplier<StatusInfo<T>, CommonException> statusInformationSupplier,
-            long timeout) throws CommonException {
-
-        var checker = new Checker() {
-
-            StatusInfo<T> lastStatusInformation;
-
-            @Override
-            public boolean check() throws CommonException {
-                lastStatusInformation = statusInformationSupplier.get();
-                return lastStatusInformation.status() != OperationResultStatus.IN_PROGRESS;
-            }
-
-            @Override
-            public void timeout() {
-                fail("Timeout while waiting for the operation to finish. Last status: " + lastStatusInformation);
-            }
-        };
-
-        IntegrationTestTools.waitFor("Waiting for the operation to finish", checker, timeout, 500);
-        if (checker.lastStatusInformation.status() != OperationResultStatus.SUCCESS) {
-            fail("Operation did not finish successfully. Last status: " + checker.lastStatusInformation);
-        }
-        return checker.lastStatusInformation.result();
     }
 
     /** Tests the "suggest focus type" method; currently, only the synchronous API is present. */
