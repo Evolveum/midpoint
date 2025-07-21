@@ -30,10 +30,10 @@
             <groupId>com.evolveum.commons</groupId>
             <artifactId>util</artifactId>
         </dependency>
-        <!--<dependency>-->
-        <!--    <groupId>com.evolveum.prism</groupId>-->
-        <!--    <artifactId>prism-api</artifactId>-->
-        <!--</dependency>-->
+        <dependency>
+            <groupId>com.evolveum.prism</groupId>
+            <artifactId>prism-api</artifactId>
+        </dependency>
 
         <dependency>
             <groupId>com.evolveum.midpoint.infra</groupId>
