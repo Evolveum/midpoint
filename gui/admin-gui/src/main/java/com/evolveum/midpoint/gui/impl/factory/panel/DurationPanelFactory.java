@@ -41,7 +41,7 @@ public class DurationPanelFactory extends TextPanelFactory<Duration> {
         if (panel instanceof TextPanel) {
             panel = new DurationPanel(panelCtx.getComponentId(), panelCtx.getRealValueModel());
         }
-        Form<?> form = Form.findForm(panelCtx.getForm());
+        Form<?> form = Form.findForm(panelCtx.getParentContainer());
         form.add(new DurationValidator(panel, panelCtx.getPageBase().getConverter(Duration.class)));
         return panel;
     }
