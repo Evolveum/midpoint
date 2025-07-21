@@ -21,7 +21,7 @@ Please see xref:/midpoint/reference/misc/persona/[Personas] page for an introduc
 == Persona Construction
 
 Personas are managed by using persona constructions.
-Persona construction is a mechanism that is very similar to xref:/midpoint/reference/roles-policies/assignment/configuration/[ordinary construction] used to manage resource objects.
+Persona construction is a mechanism that is very similar to xref:/midpoint/reference/roles-policies/roles/assignment/configuration/[ordinary construction] used to manage resource objects.
 The persona constructions can be placed in assignments/inducements in a way which is almost identical to ordinary constructions.
 However, the persona constructions control the way how personas are created.
 

@@ -33,7 +33,7 @@ Collections and views are two concepts that are very related, but still somehow 
 There is a special object type (ObjectCollectionType) that is used to define a collection.
 It is first-class midPoint object.
 Collection defines which objects belong to the collection.
-The plan is that collections can be used in the entire midPoint system, e.g. collections can be used in xref:/midpoint/reference/security/authorization/[authorizations], xref:/midpoint/reference/roles-policies/policy-rules/[policy rules] may be applied to them and so on.
+The plan is that collections can be used in the entire midPoint system, e.g. collections can be used in xref:/midpoint/reference/security/authorization/[authorizations], xref:/midpoint/reference/roles-policies/policies/policy-rules/[policy rules] may be applied to them and so on.
 Some midPoint objects can act as an implicit collections, especially xref:/midpoint/reference/schema/archetypes/[archetypes] and xref:/midpoint/reference/org/organizational-structure/[organizational units]. Object collections are designed to be solid and stable.
 Something that midPoint policies can rely on.
 
@@ -523,7 +523,7 @@ Therefore, *link:https://evolveum.com/services/professional-support/[midPoint Pl
 
 * xref:/midpoint/features/planned/object-collections-and-views/[Object Collections and Views Improvements]
 
-* xref:/midpoint/reference/roles-policies/policy-rules/[Policy Rules]
+* xref:/midpoint/reference/roles-policies/policies/policy-rules/[Policy Rules]
 
 * xref:/midpoint/reference/schema/archetypes/[Archetypes]
 

@@ -18,17 +18,17 @@ The model uses authorization statements that can be attached to roles.
 The authorization model can control which parts of GUI can a user access, what operations are allowed, on which objects they are allowed and for which attributes.
 The authorization is enforced on several levels allowing for an unprecedented flexibility while still keeping a clean and secure access control model.
 
-The authorization model is seamlessly integrated with the xref:/midpoint/reference/roles-policies/rbac/[RBAC mechanism]. Therefore it is easy to use even a complex authorization schemas in an IDM solution.
+The authorization model is seamlessly integrated with the xref:/midpoint/reference/roles-policies/roles/rbac/[RBAC mechanism]. Therefore it is easy to use even a complex authorization schemas in an IDM solution.
 As the authorization statements are integrated with RBAC roles then they can be hierarchical (nested), they can be subject to an approval process and so on.
 
 Authorization model of midPoint is based on the widely used subject-action-object authorization triple.
 However it would be quite difficult to maintain large set of authorization statements if they are maintained on just one place.
-Therefore we have decided to integrate midPoint authorization model with the xref:/midpoint/reference/roles-policies/rbac/[RBAC mechanism]. Authorization statements are placed inside RBAC roles.
+Therefore we have decided to integrate midPoint authorization model with the xref:/midpoint/reference/roles-policies/roles/rbac/[RBAC mechanism]. Authorization statements are placed inside RBAC roles.
 These roles are then assigned to a users.
 This allows very scalable and maintainable authorization set-up.
 
 The following diagram illustrates an example of practical use of authorization statement in midPoint.
-It combines authorization, xref:/midpoint/reference/roles-policies/rbac/[RBAC] and xref:/midpoint/reference/org/organizational-structure/[organizational structure] feature to create a delegated administration set-up.
+It combines authorization, xref:/midpoint/reference/roles-policies/roles/rbac/[RBAC] and xref:/midpoint/reference/org/organizational-structure/[organizational structure] feature to create a delegated administration set-up.
 There is `CC Operator` role for call center operators.
 This role contains an authorization statement which allows modification of password (action=modify, item=credentials/password).
 This statement applies only to operations for which the object of the operation is a member `Example Inc.` organization.
@@ -46,6 +46,6 @@ The xref:/midpoint/reference/security/authorization/configuration/[Authorization
 
 * xref:/midpoint/reference/security/authorization/configuration/[Authorization Configuration]
 
-* xref:/midpoint/reference/roles-policies/rbac/[]
+* xref:/midpoint/reference/roles-policies/roles/rbac/[]
 
 * xref:/midpoint/reference/org/organizational-structure/[Organizational Structure]

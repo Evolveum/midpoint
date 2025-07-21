@@ -75,7 +75,7 @@ Following object types may act as a focus:
 
 * xref:/midpoint/reference/misc/services/[Service]
 
-The common thing that all focal objects have are xref:/midpoint/reference/roles-policies/assignment/[assignments] and the ability to be owners of xref:/midpoint/reference/resources/shadow/[shadow objects] (they have an ability to xref:/midpoint/reference/roles-policies/assignment/assigning-vs-linking/[link]).
+The common thing that all focal objects have are xref:/midpoint/reference/roles-policies/roles/assignment/[assignments] and the ability to be owners of xref:/midpoint/reference/resources/shadow/[shadow objects] (they have an ability to xref:/midpoint/reference/roles-policies/roles/assignment/assigning-vs-linking/[link]).
 
 
 === Projections

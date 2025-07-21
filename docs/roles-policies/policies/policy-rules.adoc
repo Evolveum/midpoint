@@ -75,7 +75,7 @@ Policy rules are used to implement a wide variety of mechanisms, some of which m
 * xref:/midpoint/reference/roles-policies/roles/role-lifecycle/[Role lifecycle management]: policy rules may be used to enforce approvals of new roles before they are used in production.
 They may be used to approve changed role definitions, etc.
 
-* xref:/midpoint/reference/rules-policies/policies/segregation-of-duties/[Segregation of duties]: You can define exclusion constraints that ensure that conflicting roles (such as "Developer" and "Deployer") are not assigned to the same user.
+* xref:/midpoint/reference/roles-policies/policies/segregation-of-duties/[Segregation of duties]: You can define exclusion constraints that ensure that conflicting roles (such as "Developer" and "Deployer") are not assigned to the same user.
 Violations can trigger logging, corrective actions, etc.
 
 * Compliance reporting: policy rules may be used to set feature:object-mark[marks] in the affected objects.

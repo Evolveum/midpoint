@@ -7,7 +7,7 @@ Examples of such a mark are "Focus activated", "Focus renamed", "Projection enti
 Some marks are available as standard initial objects, so that they can be customized, supplemented by customer-defined ones, or even removed.
 
 Conceptually, they are related to xref:index.adoc[object marks], but the major difference is that while object marks are attached to individual _objects_ (currently, shadows), event marks are attached to _operations_ on objects (currently both focal objects and shadows).
-What is common is that both object and event marks are defined using xref:/midpoint/reference/roles-policies/policy-rules.adoc[policy rules].
+What is common is that both object and event marks are defined using xref:/midpoint/reference/roles-policies/policies/policy-rules.adoc[policy rules].
 
 == List of Standard Event Marks
 

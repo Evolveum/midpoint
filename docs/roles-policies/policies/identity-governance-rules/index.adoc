@@ -37,10 +37,10 @@ The ideal place for implementation of this governance rule is _Application_ arch
 _Application_ archetype is a pre-configured object (present in default xref:/midpoint/reference/deployment/initial-objects/[initial objects]) which is applied to all applications.
 Therefore, natural method of enforcing the policy is to apply it at an archetype level.
 
-MidPoint comes with a couple of xref:/midpoint/reference/roles-policies/preconfigured-policies/[pre-configured policies] that are ready-made to be applied.
+MidPoint comes with a couple of xref:/midpoint/reference/roles-policies/policies/preconfigured-policies/[pre-configured policies] that are ready-made to be applied.
 In case of ownership requirement, there is pre-configured policy `Require owner`.
 When this policy is applied to an archetype, all objects of that archetype are required to have at least one owner.
-As the xref:/midpoint/reference/schema/archetypes/[archetype] efficiently acts as a xref:/midpoint/reference/roles-policies/metaroles/[meta-role], the policy rule in the inducement is applied to all applications.
+As the xref:/midpoint/reference/schema/archetypes/[archetype] efficiently acts as a xref:/midpoint/reference/roles-policies/policies/metaroles/[meta-role], the policy rule in the inducement is applied to all applications.
 
 The policy can be applied by assigning the policy to the archetype:
 
@@ -72,7 +72,7 @@ Recomputation triggers evaluation of the policies, which sets or clears the mark
 TIP: The `Require owner` policy is implemented in the _inducement_ in the `Require owner` policy object.
 This is order 2 inducement, which means it does not apply to the assignee object (`Application` archetype).
 The inducement rather applies to all objects that have `Application` archetype assigned.
-This is the xref:/midpoint/reference/roles-policies/metaroles/[meta-role mechanism] in action.
+This is the xref:/midpoint/reference/roles-policies/policies/metaroles/[meta-role mechanism] in action.
 
 == Dashboards and Reporting
 
@@ -277,7 +277,7 @@ E.g. the policy can be reviewed as one logical unit, it can have an owner, chang
 
 == See Also
 
-* xref:/midpoint/reference/roles-policies/preconfigured-policies/[]
+* xref:/midpoint/reference/roles-policies/policies/preconfigured-policies/[]
 
 * xref:/midpoint/reference/roles-policies/policies/policy-rules/[]
 
