@@ -10,39 +10,42 @@ Identity governance is based on high-level business-oriented rules, that are mos
 
 == Mechanism Overview
 
-In midPoint environment, identity governance rules are implemented by use of xref:../policy-rules/[policy rules] and xref:/midpoint/reference/concepts/mark/[marks]:
+In midPoint environment, identity governance rules are implemented with xref:../policy-rules/[policy rules] and xref:/midpoint/reference/concepts/mark/[marks]:
 
-. Policy rules are checking whether governance rules are followed.
-E.g. policy rule could check whether an application has an owner.
+. Policy rules check whether governance rules are followed.
+E.g. a policy rule could check whether an application has an owner.
 
-. Policy rules sets appropriate xref:/midpoint/reference/concepts/mark/[marks] when it is violated.
-E.g. a policy rules sets _Orphaned_ mark in case that an application does not have an owner.
+. Policy rules set appropriate xref:/midpoint/reference/concepts/mark/[marks] when the defined rule is violated.
+E.g. a policy rules marks an application _Orphaned_ if it does not have an owner.
++
+[TIP]
+====
+Policy rules are placed into appropriate objects, such as xref:/midpoint/reference/schema/policy/[policies] and xref:/midpoint/reference/schema/archetypes/[archetypes].
+Policies and archetypes group policy rules, forming concepts with a business meaning, such as "behavior of business roles" or "Application containing sensitive data".
+These policies and archetypes are then applied to individual objects in the ordinary way (usually by using xref:/midpoint/reference/roles-policies/roles/assignment/[assignment]).
+====
 
-. Policy rules are placed into appropriate objects, such as xref:/midpoint/reference/schema/policy/[policies] and xref:/midpoint/reference/schema/archetypes/[archetypes].
-Policies and archetypes group policy rules, forming concepts with business meaning, such as "behavior of business roles" or "Application containing sensitive data".
-The policies and archetypes are applied to individual objects in the ordinary way (usually by using xref:/midpoint/reference/roles-policies/roles/assignment/[assignment]).
-
-. Marks are applied to the objects as specified by the rules.
+. Marks are applied to the objects specified by the rules.
 These are _effective_ marks: they are applied by the rules, but they are also removed by the rules as necessary.
 
-. Marks applied to individual objets can be used to display, report and address the violations using several mechanisms, such as dashboard, reports and reviews.
-The marks are also displayed during ordinary GUI interactions, thus attracting attention to policy violations.
+. Marks applied to individual objects can be used to display, report and address the violations using several mechanisms, such as dashboards, reports, and reviews.
+Marks are also displayed during ordinary GUI interactions, thus attracting attention to policy violations.
 
 image::policy-rules-marks.png[Policy rules and marks]
 
 == Enforcing Application Owners
 
-Requirement that every application should have an owner is present in almost every identity governance scenario.
-The ideal place for implementation of this governance rule is _Application_ archetype.
-_Application_ archetype is a pre-configured object (present in default xref:/midpoint/reference/deployment/initial-objects/[initial objects]) which is applied to all applications.
-Therefore, natural method of enforcing the policy is to apply it at an archetype level.
+Almost every identity governance scenario requires every application to have an owner.
+The ideal place for implementing this governance rule is the _Application_ archetype.
+_Application_ archetype is a pre-configured object (present in the default xref:/midpoint/reference/deployment/initial-objects/[initial objects]) which is applied to all applications.
+Therefore, the natural method of enforcing the policy is to apply it at the archetype level.
 
 MidPoint comes with a couple of xref:/midpoint/reference/roles-policies/policies/preconfigured-policies/[pre-configured policies] that are ready-made to be applied.
-In case of ownership requirement, there is pre-configured policy `Require owner`.
+To support the ownership requirement, there is the `Require owner` pre-configured policy.
 When this policy is applied to an archetype, all objects of that archetype are required to have at least one owner.
 As the xref:/midpoint/reference/schema/archetypes/[archetype] efficiently acts as a xref:/midpoint/reference/roles-policies/policies/metaroles/[meta-role], the policy rule in the inducement is applied to all applications.
 
-The policy can be applied by assigning the policy to the archetype:
+The policy can be applied by assigning the policy to an archetype:
 
 .Ownership requirement policy applied to application archetype
 [source,xml]
@@ -64,19 +67,19 @@ The policy can be applied by assigning the policy to the archetype:
 </policy>
 ----
 
-Inducement in the `Require owner` policy contains a policy rule, that sets `Unowned` mark when the affected object does not have an owner.
-Applications that violate this policy are displayed on xref:/midpoint/reference/admin-gui/dashboards/compliance-dashboard/[compliance dashboard].
+Inducement in the `Require owner` policy contains a policy rule, that sets the `Unowned` mark when the affected object does not have an owner.
+Applications that violate this policy are displayed on the xref:/midpoint/reference/admin-gui/dashboards/compliance-dashboard/[compliance dashboard].
 When this policy is applied to applications for the first time, all applications need to be recomputed.
-Recomputation triggers evaluation of the policies, which sets or clears the marks as appropriate.
+The recomputation triggers an evaluation of the policies that set or clear the marks as appropriate.
 
-TIP: The `Require owner` policy is implemented in the _inducement_ in the `Require owner` policy object.
+TIP: The `Require owner` policy is implemented in an _inducement_ in the `Require owner` policy object.
 This is order 2 inducement, which means it does not apply to the assignee object (`Application` archetype).
-The inducement rather applies to all objects that have `Application` archetype assigned.
+Instead, the inducement applies to all objects that have the `Application` archetype assigned.
 This is the xref:/midpoint/reference/roles-policies/policies/metaroles/[meta-role mechanism] in action.
 
 == Dashboards and Reporting
 
-Once the policy is applied and the archetype and the affected objects (applications) are recomputed, the violations are recorded in a form of object mark.
+Once the policy is applied, and the archetype and the affected objects (applications) are recomputed, violations are recorded in the form of an object mark.
 The objects that violate the rule can be found by querying the _effective mark_ reference:
 
 .Unowned mark query
@@ -85,8 +88,8 @@ The objects that violate the rule can be found by querying the _effective mark_ 
 effectiveMarkRef matches ( oid = "5508aca4-2aef-47a6-ad50-892389823c91" )
 ----
 
-This query can be used in midPoint user interface.
-However, it is much more practical to set up corresponding xref:/midpoint/reference/admin-gui/collections-views/[object collection], which can be later re-used:
+This query can be used in the midPoint user interface using the xref:/midpoint/reference/concepts/query/midpoint-query-language/index.adoc#gui[Advanced search].
+However, it is more practical to set up a corresponding xref:/midpoint/reference/admin-gui/collections-views/[object collection], which can be later re-used:
 
 .Unowned applications object collection
 [source,xml]
@@ -101,9 +104,9 @@ However, it is much more practical to set up corresponding xref:/midpoint/refere
 </objectCollection>
 ----
 
-TIP: The `Unowned` mark as well as `Unowned applications` object collections are part of default midPoint configuration (xref:/midpoint/reference/deployment/initial-objects/[initial objects]).
+TIP: The `Unowned` mark and the `Unowned applications` object collection are part of the default midPoint configuration (xref:/midpoint/reference/deployment/initial-objects/[initial objects]).
 
-Such object collection can be easily used in xref:/midpoint/reference/admin-gui/dashboards/[dashboard] widget:
+Such an object collection can be easily used in a xref:/midpoint/reference/admin-gui/dashboards/[dashboard] widget:
 
 .Unowned applications dashboard widget
 [source,xml]
@@ -150,8 +153,9 @@ image::dashboard-widget-orphaned-applications.png[Orphaned applications dashboar
 
 Custom policy rules can be implemented in a similar fashion.
 There are several options.
-The simpler option is to include the rules directly in the archetype (or similar xref:/midpoint/architecture/concepts/abstract-role/[role-like object]).
-Following rule requires all business roles to have at least one approver.
+The simpler option is to include the rules directly in the archetype (or a similar xref:/midpoint/architecture/concepts/abstract-role/[role-like object]).
+
+The following rule requires all business roles to have at least one approver.
 
 .Business role archetype
 [source,xml]
@@ -182,14 +186,22 @@ Following rule requires all business roles to have at least one approver.
 </archetype>
 ----
 
-The rule has one `minAssignees` that requires at least one assignee with relation `approver` to be present for the affected object (application) at any time.
-In case that the rule is violated, object mark _Broken process_ will be applied to affected object.
+The rule has one `minAssignees` that requires at least one assignee with the `approver` relation to be present for the affected object (application) at any time.
+In case the rule is violated, the _Broken process_ object mark will be applied to the affected object.
 
-NOTE: The policy rule evaluation target must be set to `object` for this rule to work properly.
-Use `evaluationTarget` clause of the policy rule for this purpose.
+[NOTE]
+====
+The policy rule evaluation target must be set to `object` for this rule to work properly, i.e. the rule will be applied to the whole object.
+Use the `evaluationTarget` clause of the policy rule for this purpose.
 
-The rule is setting _Broken process_ mark to every effected object, which means it efficiently marks all business roles without approvers.
-However, such mark is not part of default midPoint configuration, therefore it has to be created first:
+[source,xml]
+----
+<evaluationTarget>object</evaluationTarget>
+----
+====
+
+The rule is setting the _Broken process_ mark to every effected object, which means it efficiently marks all business roles without approvers.
+However, such mark is not part of the default midPoint configuration, therefore it has to be created first:
 
 .Broken process mark
 [source,xml]
@@ -211,13 +223,13 @@ However, such mark is not part of default midPoint configuration, therefore it h
 
 NOTE: MidPoint has a set of marks pre-configured as part of its xref:/midpoint/reference/deployment/initial-objects/[initial objects].
 Pre-configured object marks that are part of the initial objects can be re-used for custom policy rules.
-However, it is very likely that creation of new custom marks could be required.
+However, it is likely you will need to create your custom marks.
 
 == Custom Packaged Policies
 
-The above method placed policy rule directly to the affected archetype.
-While this is completely feasible and correct approach, re-use of such policies is somehow limited.
-When it is expected that a certain policy could be re-used, there is a much better approach.
+The method described in the previous section placed a policy rule directly into the affected archetype.
+While this approach is feasible and correct, re-using of such policies has limits.
+When it is expected that a certain policy could be re-used, there is a more convenient approach.
 Policy rules implementing such a policy can be placed into a dedicated xref:/midpoint/reference/schema/policy/[policy object], which "packages" the policy.
 
 .Require approver policy
@@ -252,11 +264,12 @@ Policy rules implementing such a policy can be placed into a dedicated xref:/mid
 </policy>
 ----
 
-NOTE: The _inducement_ in the `Require approver` policy object is order 2 inducement.
-Such inducement does not apply to the assignee object (`Business role` archetype), it rather applies to all objects that have `Business role` archetype assigned.
+NOTE: The _inducement_ in the `Require approver` policy object is an order 2 inducement.
+Such inducement does not apply to the assignee object (`Business role` archetype).
+Instead, it applies to all objects that have the `Business role` archetype assigned.
 See xref:/midpoint/reference/roles-policies/policies/metaroles/[meta-role mechanism] for more details.
 
-Such packaged policy can be applied to `Business role` archetype by assignment:
+Such packaged policy can be applied to the `Business role` archetype by assignment:
 
 .Approver requirement policy applied to business role archetype
 [source,xml]
@@ -269,11 +282,10 @@ Such packaged policy can be applied to `Business role` archetype by assignment:
 </archetype>
 ----
 
-The packaging of the policies is an advantage for reuse, but also for governance.
-All the related policy rules that implement certain policy can be neatly packaged inside one object.
-The resulting policy object encapsulates the policy.
-This makes policies easy to maintain and manage.
-E.g. the policy can be reviewed as one logical unit, it can have an owner, changes to the policy can be managed using approval process and so on.
+Packaging policies is not only advantageous for re-using policies but also for governance.
+All the related policy rules that implement a certain policy can be neatly packaged inside one object.
+The resulting policy object encapsulates the policy and it makes it easy to maintain and manage.
+E.g. a policy can be reviewed as one logical unit, it can have an owner, changes to the policy can be managed using an approval process and so on.
 
 == See Also
 

@@ -5,7 +5,7 @@
 :page-upkeep-status: green
 
 
-This page lists practical policy rule examples, and supplements the examples shown in xref:/midpoint/reference/roles-policies/policies/classification/index.adoc#examples.
+This page lists practical policy rule examples, and supplements the examples shown in xref:/midpoint/reference/roles-policies/policies/classification/index.adoc#examples[].
 
 
 == Recompute Users After Org Change
