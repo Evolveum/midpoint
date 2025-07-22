@@ -78,7 +78,7 @@ They may be used to approve changed role definitions, etc.
 * xref:/midpoint/reference/roles-policies/policies/segregation-of-duties/[Segregation of duties]: You can define exclusion constraints that ensure that conflicting roles (such as "Developer" and "Deployer") are not assigned to the same user.
 Violations can trigger logging, corrective actions, etc.
 
-* Compliance reporting: policy rules may be used to set feature:object-mark[marks] in the affected objects.
+* xref:/midpoint/reference/roles-policies/policies/identity-governance-rules/[Compliance reporting]: policy rules may be used to set feature:object-mark[marks] in the affected objects.
 Marks may be used in reports to identify objects that violate compliance rules, to report the percentage of compliant vs non-compliant objects and so on.
 
 * Access control based on user clearance: combined with _classifications_ and _clearances_, policy rules can restrict access to sensitive systems or applications unless a specific training, screening, or NDA conditions are met.
@@ -348,7 +348,6 @@ As long as an exception is stored there, the referenced policy rule is deactivat
 The rule will not be subject to re-approvals, it will not be raised as an issue in compliance reports and so on.
 The exceptions information can then also be used to report approved rule exceptions, to re-certify and so on.
 
-
 == See Also
 
 * xref:/midpoint/reference/roles-policies/roles/role-lifecycle/[Role Lifecycle]
@@ -356,6 +355,8 @@ The exceptions information can then also be used to report approved rule excepti
 * xref:/midpoint/reference/cases/approval/[Approval]
 
 * xref:/midpoint/reference/roles-policies/policies/segregation-of-duties/[Segregation of Duties]
+
+* xref:/midpoint/reference/roles-policies/policies/identity-governance-rules[]
 
 * xref:/midpoint/reference/roles-policies/roles/rbac/radio-button-roles/[Radio Button Roles]
 
