@@ -213,7 +213,6 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
     @Autowired protected TaskActivityManager activityManager;
     @Autowired protected ModelService modelService;
     @Autowired protected ModelInteractionService modelInteractionService;
-    @Autowired protected SmartIntegrationService smartIntegrationService;
     @Autowired protected ModelDiagnosticService modelDiagnosticService;
     @Autowired protected DashboardService dashboardService;
     @Autowired protected ModelAuditService modelAuditService;

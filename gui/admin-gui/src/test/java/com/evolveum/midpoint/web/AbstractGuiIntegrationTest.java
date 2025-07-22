@@ -130,6 +130,7 @@ public abstract class AbstractGuiIntegrationTest extends AbstractModelIntegratio
     @Autowired protected ExpressionFactory expressionFactory;
     @Autowired protected RelationRegistry relationRegistry;
     @Autowired protected GuiComponentRegistry registry;
+    @Autowired protected SmartIntegrationService smartIntegrationService;
 
     protected WicketTester tester;
 
