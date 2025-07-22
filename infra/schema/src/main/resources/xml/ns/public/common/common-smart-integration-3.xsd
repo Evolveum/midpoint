@@ -371,6 +371,41 @@
         </xsd:sequence>
     </xsd:complexType>
 
+    <!-- suggestCorrelation method -->
+
+    <xsd:complexType name="CorrelationSuggestionType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Suggestions of correlation rules.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:since>4.11</a:since>
+                <a:container>true</a:container>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="correlation" type="tns:CorrelationDefinitionType">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Suggested correlation definition. It includes the current state of the correlation definition, i.e., it
+                        is intended to replace it.
+                    </xsd:documentation>
+                    <!-- TODO reconsider this "absolute state" idea - what about race conditions? If someone changes
+                          the correlation definition while the smart integration service is running? -->
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="attributes" type="tns:ResourceAttributeDefinitionType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Suggested attribute(s) definition. Each of them must contain at least "ref", pointing to the attribute
+                        name. It should contain one inbound mapping definition. Other items should be left empty.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+    <xsd:element name="correlationSuggestion" type="tns:CorrelationSuggestionType"/>
+
     <!-- suggestMappings method -->
 
     <xsd:complexType name="MappingsSuggestionType">
@@ -632,7 +667,7 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
-            <xsd:element name="schema" type="tns:SiObjectClassSchemaType">
+            <xsd:element name="schema" type="tns:SiObjectSchemaType">
                 <xsd:annotation>
                     <xsd:documentation>
                         Schema of the object class for which we want to suggest object types.
@@ -723,35 +758,36 @@
             </xsd:element>
         </xsd:sequence>
     </xsd:complexType>
-    <xsd:complexType name="SiObjectClassSchemaType">
+    <xsd:complexType name="SiObjectSchemaType">
         <xsd:annotation>
             <xsd:documentation>
-                Description of a schema for given object class.
+                Description of a schema for given type of objects (resource object class or midPoint object type).
             </xsd:documentation>
+            <!-- TODO what about complex items, like "activation", "credentials", or custom ones? -->
             <xsd:appinfo>
                 <a:since>4.11</a:since>
                 <!-- intentionally not a container -->
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
-            <xsd:element name="name" type="xsd:string">
+            <xsd:element name="name" type="xsd:QName">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Local name of the object class, e.g., "inetOrgPerson".
+                        Name of the type, e.g., "ri:inetOrgPerson" or "c:UserType".
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="description" type="xsd:string" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Human-readable description of the object class.
+                        Human-readable description of the type.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="attribute" type="tns:SiAttributeDefinitionType" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Definitions of individual attributes for this object class.
+                        Definitions of individual attributes for this type.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
@@ -760,7 +796,7 @@
     <xsd:complexType name="SiAttributeDefinitionType">
         <xsd:annotation>
             <xsd:documentation>
-                Definition of a particular resource object attribute.
+                Definition of a particular resource object attribute or midPoint object property.
             </xsd:documentation>
             <xsd:appinfo>
                 <a:since>4.11</a:since>
@@ -771,7 +807,7 @@
             <xsd:element name="name" type="xsd:QName">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Name of the attribute. Includes a XML namespace prefix, typically "ri:" or "icfs:".
+                        Name of the attribute. May include a XML namespace prefix, typically "ri:", "icfs:", or "c:".
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
@@ -792,7 +828,7 @@
         </xsd:sequence>
     </xsd:complexType>
 
-    <!-- suggestFocusType method (new style) -->
+    <!-- suggestFocusType method -->
 
     <xsd:complexType name="SiSuggestFocusTypeRequestType">
         <xsd:annotation>
@@ -819,7 +855,7 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="schema" type="tns:SiObjectClassSchemaType">
+            <xsd:element name="schema" type="tns:SiObjectSchemaType">
                 <xsd:annotation>
                     <xsd:documentation>
                         Description of the schema of particular object type.
@@ -875,6 +911,85 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <!-- matchSchema method -->
+
+    <xsd:complexType name="SiMatchSchemaRequestType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Request for "matchSchema" method.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:since>4.11</a:since>
+                <!-- intentionally not a container -->
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="applicationSchema" type="tns:SiObjectSchemaType">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Description of the schema of particular resource object type (actually, the object class, like "inetOrgPerson").
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="midPointSchema" type="tns:SiObjectSchemaType">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Description of the schema of particular midPoint object type, like "UserType".
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+    <xsd:complexType name="SiMatchSchemaResponseType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Request for "matchSchema" method.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:since>4.11</a:since>
+                <!-- intentionally not a container -->
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="attributeMatch" type="tns:SiAttributeMatchSuggestionType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Suggested pairs of matching attributes.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+    <xsd:complexType name="SiAttributeMatchSuggestionType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Request for "matchSchema" method.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:since>4.11</a:since>
+                <!-- intentionally not a container -->
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="applicationAttribute" type="xsd:QName">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Name the of application-side attribute.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="midPointAttribute" type="xsd:QName">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Name the of midPoint-side attribute.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <!-- TODO inbound/outbound signalization -->
+            <!-- TODO outbound attributes with multiple sources? -->
         </xsd:sequence>
     </xsd:complexType>
 </xsd:schema>

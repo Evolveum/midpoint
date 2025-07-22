@@ -7,6 +7,7 @@
 
 package com.evolveum.midpoint.smart.impl;
 
+import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.query.PrismQuerySerialization;
@@ -26,8 +27,7 @@ import org.apache.commons.lang3.StringUtils;
 import javax.xml.namespace.QName;
 
 import static com.evolveum.midpoint.schema.constants.SchemaConstants.NS_RI;
-import static com.evolveum.midpoint.smart.api.ServiceClient.Method.SUGGEST_FOCUS_TYPE;
-import static com.evolveum.midpoint.smart.api.ServiceClient.Method.SUGGEST_OBJECT_TYPES;
+import static com.evolveum.midpoint.smart.api.ServiceClient.Method.*;
 import static com.evolveum.midpoint.util.MiscUtil.nullIfEmpty;
 import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
 
@@ -140,9 +140,9 @@ class ServiceAdapter {
                 MiscUtil.requireNonNull(typeName, "No returned type name from the service"));
     }
 
-    private SiObjectClassSchemaType serializeSchema(ResourceObjectClassDefinition objectClassDef) {
-        var schema = new SiObjectClassSchemaType()
-                .name(objectClassDef.getObjectClassLocalName())
+    private SiObjectSchemaType serializeSchema(ResourceObjectClassDefinition objectClassDef) {
+        var schema = new SiObjectSchemaType()
+                .name(objectClassDef.getObjectClassName())
                 .description(objectClassDef.getDescription()); // TODO change to native description
         for (ShadowAttributeDefinition<?, ?, ?, ?> attributeDefinition : objectClassDef.getAttributeDefinitions()) {
             schema.getAttribute().add(
@@ -151,6 +151,21 @@ class ServiceAdapter {
                             .type(attributeDefinition.getTypeName())
                             .description(attributeDefinition.getDescription())); // TODO change to native description
         }
+        return schema;
+    }
+
+    private SiObjectSchemaType serializeSchema(PrismObjectDefinition<?> objectDef) {
+        var schema = new SiObjectSchemaType()
+                .name(objectDef.getTypeName())
+                .description(objectDef.getDocumentation());
+        for (var itemDef : objectDef.getDefinitions()) {
+            schema.getAttribute().add(
+                    new SiAttributeDefinitionType()
+                            .name(itemDef.getItemName())
+                            .type(itemDef.getTypeName())
+                            .description(itemDef.getDocumentation()));
+        }
+        // TODO what about containers in deep
         return schema;
     }
 
@@ -171,5 +186,14 @@ class ServiceAdapter {
                 throw SystemException.unexpected(e, "Cannot serialize base context filter");
             }
         }
+    }
+
+    MappingsSuggestionType suggestMappings(
+            ResourceObjectTypeDefinition objectTypeDef, PrismObjectDefinition<Objectable> focusDef) throws SchemaException {
+        var request = new SiMatchSchemaRequestType()
+                .applicationSchema(serializeSchema(objectTypeDef.getObjectClassDefinition()))
+                .midPointSchema(serializeSchema(focusDef));
+        var response = serviceClient.invoke(MATCH_SCHEMA, request, SiMatchSchemaResponseType.class);
+        return new MappingsSuggestionType(); // TODO implement this method
     }
 }

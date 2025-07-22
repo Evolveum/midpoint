@@ -22,6 +22,7 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.util.ShadowObjectClassStatisticsTypeUtil;
 import com.evolveum.midpoint.smart.api.info.StatusInfo;
 import com.evolveum.midpoint.util.LocalizableMessageBuilder;
+import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 import org.jetbrains.annotations.NotNull;
@@ -73,9 +74,11 @@ public class SmartIntegrationServiceImpl implements SmartIntegrationService {
     private static final String OP_GET_SUGGEST_OBJECT_TYPES_OPERATION_STATUS = "getSuggestObjectTypesOperationStatus";
     private static final String OP_LIST_SUGGEST_OBJECT_TYPES_OPERATION_STATUSES = "listSuggestObjectTypesOperationStatuses";
 
-    private static final String OP_SUGGEST_FOCUS_TYPE = "suggestFocusType";
-    private static final String OP_SUGGEST_MAPPINGS = "suggestMappings";
-    private static final String OP_SUGGEST_ASSOCIATIONS = "suggestAssociations";
+    private static final String CLASS_DOT = SmartIntegrationService.class.getName() + ".";
+    private static final String OP_SUGGEST_FOCUS_TYPE = CLASS_DOT + "suggestFocusType";
+    private static final String OP_SUGGEST_MAPPINGS = CLASS_DOT + "suggestMappings";
+    private static final String OP_SUGGEST_CORRELATION = CLASS_DOT + "suggestCorrelation";
+    private static final String OP_SUGGEST_ASSOCIATIONS = CLASS_DOT + "suggestAssociations";
 
     /** Auto cleanup time for background tasks created by the service. Will be shorter, probably. */
     private static final Duration AUTO_CLEANUP_TIME = XmlTypeConverter.createDuration("P1D");
@@ -420,12 +423,39 @@ public class SmartIntegrationServiceImpl implements SmartIntegrationService {
     }
 
     @Override
+    public CorrelationSuggestionType suggestCorrelation(
+            String resourceOid,
+            ResourceObjectTypeIdentification typeIdentification,
+            QName focusTypeName,
+            @Nullable Object interactionMetadata,
+            Task task,
+            OperationResult parentResult)
+            throws SchemaException, ExpressionEvaluationException, SecurityViolationException, CommunicationException,
+            ConfigurationException, ObjectNotFoundException {
+        var result = parentResult.subresult(OP_SUGGEST_CORRELATION)
+                .addParam("resourceOid", resourceOid)
+                .addArbitraryObjectAsParam("typeIdentification", typeIdentification)
+                .addParam("focusTypeName", focusTypeName)
+                .build();
+        try {
+            var resource = modelService.getObject(ResourceType.class, resourceOid, null, task, result);
+            // ...
+            return new CorrelationSuggestionType(); // TODO replace with real implementation
+        } catch (Throwable t) {
+            result.recordException(t);
+            throw t;
+        } finally {
+            result.close();
+        }
+    }
+
+    @Override
     public MappingsSuggestionType suggestMappings(
             String resourceOid,
             ResourceObjectTypeIdentification typeIdentification,
             QName focusTypeName,
             @Nullable MappingsSuggestionFiltersType filters,
-            MappingsSuggestionInteractionMetadataType interactionMetadata,
+            @Nullable MappingsSuggestionInteractionMetadataType interactionMetadata,
             Task task,
             OperationResult parentResult)
             throws SchemaException, ExpressionEvaluationException, SecurityViolationException, CommunicationException,
@@ -436,9 +466,19 @@ public class SmartIntegrationServiceImpl implements SmartIntegrationService {
                 .addParam("focusTypeName", focusTypeName)
                 .build();
         try {
-            var resource = modelService.getObject(ResourceType.class, resourceOid, null, task, result);
-            // ...
-            return new MappingsSuggestionType(); // TODO replace with real implementation
+            LOGGER.debug("Suggesting mappings for resourceOid {}, typeIdentification {}", resourceOid, typeIdentification);
+            try (var serviceClient = getServiceClient(result)) {
+                var resource = modelService.getObject(ResourceType.class, resourceOid, null, task, result);
+                var resourceSchema = Resource.of(resource).getCompleteSchemaRequired();
+                var objectTypeDef = resourceSchema.getObjectTypeDefinitionRequired(typeIdentification);
+                var focusDef =
+                        MiscUtil.argNonNull(
+                                PrismContext.get().getSchemaRegistry().findObjectDefinitionByType(focusTypeName),
+                                "Focus type definition not found for %s", focusTypeName);
+                var mappings = ServiceAdapter.create(serviceClient).suggestMappings(objectTypeDef, focusDef);
+                LOGGER.debug("Suggested mappings:\n{}", mappings.debugDumpLazily(1));
+                return mappings;
+            }
         } catch (Throwable t) {
             result.recordException(t);
             throw t;

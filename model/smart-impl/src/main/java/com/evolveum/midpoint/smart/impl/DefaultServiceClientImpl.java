@@ -41,6 +41,7 @@ public class DefaultServiceClientImpl implements ServiceClient {
     private static final String URL_PREFIX = "/api/v1/";
     private static final String METHOD_SUGGEST_OBJECT_TYPES = "objectType/suggestObjectType"; // TODO This should be plural!
     private static final String METHOD_SUGGEST_FOCUS_TYPE = "focusType/suggestFocusType";
+    private static final String METHOD_MATCH_SCHEMA = "matching/matchSchema";
 
     /** The client used to access the remote service. */
     private final WebClient webClient;
@@ -112,6 +113,7 @@ public class DefaultServiceClientImpl implements ServiceClient {
         return switch (method) {
             case SUGGEST_OBJECT_TYPES -> URL_PREFIX + METHOD_SUGGEST_OBJECT_TYPES;
             case SUGGEST_FOCUS_TYPE -> URL_PREFIX + METHOD_SUGGEST_FOCUS_TYPE;
+            case MATCH_SCHEMA -> URL_PREFIX + METHOD_MATCH_SCHEMA;
         };
     }
 

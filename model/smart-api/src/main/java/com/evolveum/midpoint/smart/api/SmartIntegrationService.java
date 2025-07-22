@@ -83,24 +83,40 @@ public interface SmartIntegrationService {
             throws SchemaException, ExpressionEvaluationException, SecurityViolationException, CommunicationException,
             ConfigurationException, ObjectNotFoundException;
 
-    /** Suggests a correlations. TODO specify this method more precisely */
-    default Object suggestCorrelation(
+    /**
+     * Suggests correlation rules for the given resource object type and focus type.
+     * The method returns the correlation rules along with any missing mappings that are needed for the rules to work.
+     *
+     * The ability to find correlation rules is limited by the information available. In particular:
+     *
+     * . TODO
+     */
+    CorrelationSuggestionType suggestCorrelation(
             String resourceOid,
             ResourceObjectTypeIdentification typeIdentification,
             QName focusTypeName,
-            Object interactionMetadata)
+            @Nullable Object interactionMetadata,
+            Task task,
+            OperationResult result)
             throws SchemaException, ExpressionEvaluationException, SecurityViolationException, CommunicationException,
-            ConfigurationException, ObjectNotFoundException {
-        throw new UnsupportedOperationException();
-    }
+            ConfigurationException, ObjectNotFoundException;
 
-    /** Suggests inbound/outbound mappings for the given resource object type and focus type. */
+    /**
+     * Suggests inbound/outbound mappings for the given resource object type and focus type.
+     *
+     * The ability to find mappings is limited by the information available. In particular, if there are
+     * no correlated data (between resource and midPoint), it cannot suggest any mappings other than "as-is" ones.
+     *
+     * Hence, mappings and correlation suggestions should be created hand in hand. These two methods can be called
+     * in alternation, most probably in a loop, until the suggestions stabilize. User should review the suggestions
+     * during the process.
+     */
     MappingsSuggestionType suggestMappings(
             String resourceOid,
             ResourceObjectTypeIdentification typeIdentification,
             QName focusTypeName,
             @Nullable MappingsSuggestionFiltersType filters,
-            MappingsSuggestionInteractionMetadataType interactionMetadata,
+            @Nullable MappingsSuggestionInteractionMetadataType interactionMetadata,
             Task task,
             OperationResult result)
             throws SchemaException, ExpressionEvaluationException, SecurityViolationException, CommunicationException,
