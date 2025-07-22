@@ -41,6 +41,6 @@ public class ExecutionTimeConstraintEvaluator
 
     @Override
     protected LocalizableMessage createEvaluatorName() {
-        return new SingleLocalizableMessage("ExecutionTimeConstraintEvaluator.name");
+        return new SingleLocalizableMessage("ExecutionTimeConstraintEvaluator.name", new Object[0],"Execution time");
     }
 }

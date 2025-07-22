@@ -17,6 +17,7 @@ import org.jetbrains.annotations.NotNull;
 import com.evolveum.midpoint.repo.common.activity.run.AbstractActivityRun;
 import com.evolveum.midpoint.repo.common.activity.run.processing.ItemProcessingResult;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.task.ActivityPath;
 import com.evolveum.midpoint.task.api.ActivityThresholdPolicyViolationException;
 import com.evolveum.midpoint.task.api.TaskRunResult;
 import com.evolveum.midpoint.util.LocalizableMessage;
@@ -49,14 +50,16 @@ public class ActivityPolicyRulesProcessor {
     }
 
     public void collectRules() {
-        LOGGER.trace("Collecting activity policy rules for activity {} ({})",
-                activityRun.getActivity().getIdentifier(), activityRun.getActivityPath());
+        String identifier = activityRun.getActivity().getIdentifier();
+        ActivityPath activityPath = activityRun.getActivityPath();
+
+        LOGGER.trace("Collecting activity policy rules for activity {} ({})", identifier, activityPath);
 
         ActivityPoliciesType activityPolicy = activityRun.getActivity().getDefinition().getPoliciesDefinition().getPolicies();
         List<ActivityPolicyType> policies = activityPolicy.getPolicy();
 
         List<EvaluatedActivityPolicyRule> rules = policies.stream()
-                .map(ap -> new EvaluatedActivityPolicyRule(ap, activityRun.getActivityPath()))
+                .map(ap -> new EvaluatedActivityPolicyRule(ap, activityPath))
                 .sorted(
                         Comparator.comparing(
                                 EvaluatedActivityPolicyRule::getOrder,
@@ -66,6 +69,8 @@ public class ActivityPolicyRulesProcessor {
         ActivityPolicyRulesContext ctx = getPolicyRulesContext();
         ctx.clearPolicyRules();
         ctx.addPolicyRules(rules);
+
+        LOGGER.trace("Found {} activity policy rules for activity {} ({})", rules.size(), identifier, activityPath);
     }
 
     public void evaluateAndEnforceRules(ItemProcessingResult processingResult, @NotNull OperationResult result)

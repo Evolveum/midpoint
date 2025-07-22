@@ -8,6 +8,9 @@
 package com.evolveum.midpoint.repo.common.activity.run;
 
 import java.util.*;
+import java.util.stream.Collectors;
+
+import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
@@ -21,8 +24,6 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityPolicyStateType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
-
-import org.jetbrains.annotations.NotNull;
 
 public class UpdateActivityPoliciesOperation {
 
@@ -69,10 +70,16 @@ public class UpdateActivityPoliciesOperation {
     private @NotNull Collection<? extends ItemDelta<?, ?>> prepareModifications(TaskType task) throws SchemaException {
         updatedPolicies.clear();
 
-        // todo fix merging/storing activity policy states
         List<ItemDelta<?, ?>> deltas = new ArrayList<>();
         for (ActivityPolicyStateType policy : policies) {
-            ActivityPolicyStateType current = getCurrentPolicyState(task, policy.getIdentifier());
+            if (policy.getReaction().isEmpty()) {
+                // policy without reactions will not be stored
+                // (e.g., triggered constraint that updated counter, for example, but did not match any reaction)
+                continue;
+            }
+
+            ActivityPolicyStateType current = getCurrentPolicyState(task, policy);
+
             ItemDelta<?, ?> itemDelta;
 
             ActivityPolicyStateType updatedPolicy;
@@ -85,8 +92,7 @@ public class UpdateActivityPoliciesOperation {
                 deltas.add(itemDelta);
                 updatedPolicy = policy;
             } else {
-                // MID-10412 todo if policy state exists we probably don't want to update it??? (it should already contain triggers)
-                //  this looks shady
+                // we don't update "similar" policy (same identifier and set of reactions)
                 updatedPolicy = current;
             }
 
@@ -97,7 +103,7 @@ public class UpdateActivityPoliciesOperation {
         return deltas;
     }
 
-    private ActivityPolicyStateType getCurrentPolicyState(TaskType task, String identifier) {
+    private ActivityPolicyStateType getCurrentPolicyState(TaskType task, ActivityPolicyStateType policy) {
         //noinspection unchecked
         PrismContainer<ActivityPolicyStateType> policiesContainer =
                 (PrismContainer<ActivityPolicyStateType>) task.asPrismContainerValue().findItem(policiesItemPath);
@@ -106,12 +112,24 @@ public class UpdateActivityPoliciesOperation {
             return null;
         }
 
-        for (ActivityPolicyStateType policy : policiesContainer.getRealValues()) {
-            if (Objects.equals(identifier, policy.getIdentifier())) {
-                return policy;
+        for (ActivityPolicyStateType storedPolicy : policiesContainer.getRealValues()) {
+            // first, we match policy by identifier
+            if (!Objects.equals(storedPolicy.getIdentifier(), policy.getIdentifier())) {
+                continue;
+            }
+
+            // then, we check if the set of reactions is the same
+            if (computeReactionsRefs(policy).equals(computeReactionsRefs(storedPolicy))) {
+                return storedPolicy;
             }
         }
 
         return null;
+    }
+
+    private Set<String> computeReactionsRefs(ActivityPolicyStateType policy) {
+        return policy.getReaction().stream()
+                .map(r -> r.getRef())
+                .collect(Collectors.toSet());
     }
 }

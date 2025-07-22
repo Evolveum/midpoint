@@ -111,8 +111,8 @@ public class EvaluatedPolicyReaction implements DebugDumpable {
         EvaluatedActivityPolicyReactionType r = new EvaluatedActivityPolicyReactionType();
         r.setRef(getReactionIdentifier());
         r.setReactionName(reaction.getName());
-        r.setEnforced(enforced);
-        // todo reaction message if there's something...
+        r.setEnforced(enforced); // todo is enforced flag needed? [viliam]
+        // todo reaction message if there's something... [viliam]
 
         return r;
     }
