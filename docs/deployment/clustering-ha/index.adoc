@@ -15,7 +15,6 @@ doc-type: config
 :page-moved-from: /midpoint/reference/deployment/ha/
 :page-description: Use a cluster of multiple nodes to create scalable, robust, and highly available midPoint deployment
 :page-keywords: clustering, high availability, node configuration, load balancing
-// TODO redirects in the Reference don't work currently. @dakle 2025-07-14
 
 To achieve a high availability deployment, set up a cluster of several midPoint nodes working with a common midPoint repository.
 You can combine the multi-node deployment with a load balancer to evenly distribute the GUI and REST API traffic load across the nodes.
@@ -204,14 +203,13 @@ This feature is experimental.
 
 In CLI, use `-Dmidpoint.taskManager.localNodeClusteringEnabled=true`.
 
-[[intra-cluster-communication]]
-== Communication in Cluster Explained
-
+// Alternative anchor for the following section
 [[cache-invalidation]]
 {empty}
 
-// TODO (parts of) this may need to go rather to the Task Manager - /midpoint/reference/tasks/task-manager/
-// WiP
+[[intra-cluster-communication]]
+== Communication in Cluster Explained
+
 Cluster nodes primarily communicate with the central shared database.
 Tasks for the nodes to process are stored in this database.
 The data on which nodes operate when processing the tasks are stored in the database as well.
@@ -255,7 +253,7 @@ Hence, inter-node communication does not occur in this case.
 
 == Technical Insight into Cache
 
-// TODO: This article is not likely the most suitable place for this section but I don't know where else to put it. @dakle 2025-07-20
+// TODO: This article is not the most suitable place for this section but I found none better, neither did The Chat. @dakle 2025-07-22
 
 MidPoint uses two levels of cache: global and local.
 
