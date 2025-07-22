@@ -204,9 +204,11 @@ This feature is experimental.
 
 In CLI, use `-Dmidpoint.taskManager.localNodeClusteringEnabled=true`.
 
-[[cache-invalidation]]
 [[intra-cluster-communication]]
 == Communication in Cluster Explained
+
+[[cache-invalidation]]
+{empty}
 
 // TODO (parts of) this may need to go rather to the Task Manager - /midpoint/reference/tasks/task-manager/
 // WiP
