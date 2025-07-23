@@ -19,7 +19,7 @@ The dashboard can be further extended and customized as needed.
 
 == Mechanism
 
-Functionality of compliance dashboard is heavily based on feature:policy-concept[policies], feature:policy-rule[policy rules] and feature:object-mark[marks], as is described at xref:/midpoint/reference/roles-policies/policies/identity-governance-rules/[] page.
+Functionality of compliance dashboard is heavily based on feature:policy-concept[policies], feature:policy-rule[policy rules] and xref:/midpoint/reference/concepts/mark/[marks], as is described at xref:/midpoint/reference/roles-policies/policies/identity-governance-rules/[] page.
 Policy rules, stored in xref:/midpoint/reference/schema/policy/[policy objects] are setting the xref:/midpoint/reference/concepts/mark/[marks], which are used by compliance dashboard for compliance reporting.
 
 == See Also
