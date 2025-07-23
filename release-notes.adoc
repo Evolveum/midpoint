@@ -61,6 +61,7 @@ Overall, midPoint 4.9 is a major step from the past into the future.
 
 === Other Improvements
 
+* StartupConfiguration incorporates 'midpoint.' properties from Spring environment sources.
 * Implemented xrefv:/midpoint/reference/support-4.9/resources/attribute-caching/#_caching_passwords[shadow password caching], with the possibility of storing them in reversible encrypted form.
 * Improved handling of xrefv:/midpoint/reference/support-4.9/resources/resource-configuration/schema-handling/volatility/[volatile shadow attributes].
 * Update GUI views after changing of the archetype, that is used in the view. See bug:MID-9776[].
@@ -83,6 +84,7 @@ This can be used for approval of indirect role assignments and similar cases. Se
 
 === Other Bug Fixes
 
+* Fixed boolean column values for Quartz tables in Oracle 23 - "Quartz broken after DB upgrade". See bug:MID-10715[].
 * Fixed "Couldn't get assignments conflicts" error occurring during Request access. See bug:MID-10124[].
 * Fixed "No definition for item ... in outbound mapping for association" error. See bug:MID-10214[].
 * Fixed the issue with policy rules `minAssignees`/`maxAssignees` not being triggered. See bug:MID-9869[].
