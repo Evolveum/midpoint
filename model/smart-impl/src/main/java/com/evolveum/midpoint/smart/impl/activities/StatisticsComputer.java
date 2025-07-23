@@ -101,6 +101,9 @@ public class StatisticsComputer {
      */
     private void addValueCounts(ShadowType shadow) {
         for (var attributeStatistics : statistics.getAttribute()) {
+            if (attributeStatistics.getUniqueValueCount() == -1) {
+                continue;
+            }
             var attrValues = ShadowUtil.getAttributeValues(shadow, attributeStatistics.getRef());
 
             attributeValuesLoop:
@@ -116,9 +119,11 @@ public class StatisticsComputer {
                         .value(String.valueOf(attrValue));
                 attributeStatistics.setUniqueValueCount(attributeStatistics.getUniqueValueCount() + 1);
             }
+            if (attributeStatistics.getUniqueValueCount() > MAX_VALUE_COUNT_UPPER_LIMIT) {
+                attributeStatistics.getValueCount().removeAll(attributeStatistics.getValueCount());
+                attributeStatistics.setUniqueValueCount(-1);
+            }
         }
-
-        statistics.getAttribute().removeIf(attr -> attr.getUniqueValueCount() > MAX_VALUE_COUNT_UPPER_LIMIT);
     }
 
     /**
@@ -126,7 +131,14 @@ public class StatisticsComputer {
      * we can remove the statistics for attributes that have too many values, as described in {@link #MAX_VALUE_COUNT_PERCENTAGE}.
      */
     private void removeLargeValueCounts() {
-        statistics.getAttribute().removeIf(attr -> attr.getUniqueValueCount() > MAX_VALUE_COUNT_PERCENTAGE * statistics.getSize());
+        var percentageThreshold = statistics.getSize() * MAX_VALUE_COUNT_PERCENTAGE;
+        var threshold = percentageThreshold > MAX_VALUE_COUNT_LOWER_LIMIT ? percentageThreshold : MAX_VALUE_COUNT_LOWER_LIMIT;
+        for (var attributeStatistics : statistics.getAttribute()) {
+            if (attributeStatistics.getUniqueValueCount() > threshold) {
+                attributeStatistics.getValueCount().removeAll(attributeStatistics.getValueCount());
+                attributeStatistics.setUniqueValueCount(-1);
+            }
+        }
     }
 
     private ShadowAttributeStatisticsType findOrCreateAttributeStatistics(ItemName attrName) {
