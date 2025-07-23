@@ -9,6 +9,8 @@ package com.evolveum.midpoint.gui;
 import static org.testng.Assert.assertNotNull;
 
 import com.evolveum.midpoint.gui.impl.page.admin.org.PageOrg;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
 import com.evolveum.midpoint.web.page.admin.orgs.PageOrgs;
 
 import org.apache.wicket.util.tester.FormTester;
@@ -26,6 +28,8 @@ import com.evolveum.midpoint.web.AbstractInitializedGuiIntegrationTest;
 import com.evolveum.midpoint.web.page.admin.orgs.PageOrgTree;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
+
+import java.util.List;
 
 /**
  * @author skublik
@@ -77,10 +81,25 @@ public class TestPageOrg extends AbstractInitializedGuiIntegrationTest {
         logger.info("created org: {}", newOrg.debugDump());
     }
 
-    @Test(enabled = false) // #10770  needs rework
-    // fails after new org initial objects were added. The test seems to silently assume that orgstruct is empty, which is no longer true.
+    @Test(dependsOnMethods = {"test004testAddNewOrg"})
     public void test005testCreateChild() throws Exception {
         renderPage(PageOrgTree.class);
+
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+        ObjectQuery query = ObjectQueryUtil.createRootOrgQuery(prismContext);
+        List<PrismObject<OrgType>> rootOrgs = modelService.searchObjects(OrgType.class, query, null, task, result);
+        int x = 0;
+        for (int i = 0; i < rootOrgs.size(); i++) {
+            String title = tester.getComponentFromLastRenderedPage("orgPanel:tabs:tabs-container:tabs:" + i + ":link:title").getDefaultModelObjectAsString();
+            if (NEW_ORG_NAME.equals(title)) {
+                x = i;
+                break;
+            }
+        }
+        tester.clickLink("orgPanel:tabs:tabs-container:tabs:" + x + ":link");
+        tester.assertRenderedPage(PageOrgTree.class);
+
         tester.clickLink(
                 "orgPanel:tabs:panel:treePanel:treeContainer:tree:subtree:branches:1:node:content:menu:inlineMenuPanel:"
                         + "dropDownMenu:menuItem:8:menuItemBody:menuItemLink"
