@@ -80,7 +80,7 @@ As the task data only exist while the task runs, the user or the client applicat
 Both synchronous (foreground) and asynchronous (background, scheduled, etc.) tasks may use this approach.
 However, it is used almost exclusively for asynchronous tasks.footnote:[
 It is rare, but certain specific configuration or edge cases require persistent status even for short-lived simple tasks.
-An example of a task that uses the persistent status may be one with the execution mode set to _dry run_.
+For example, a task with the execution mode set to _dry run_ uses the persistent status.
 Even though it may perform a one-time short-lived operation, it requires persistence to track the progress and outcome or for audit purposes.
 ]
 
@@ -152,9 +152,9 @@ After it finishes, its status will change to _Closed_.
 .Mind the time zones
 [NOTE]
 ====
-Before scheduling tasks, verify which time zone your midPoint instance uses.
+Before scheduling tasks, verify the time zone your midPoint instance uses.
 By default, midPoint uses the system time of the server on which it runs.
-On Linux machines, that is UTC, even if the user may set an arbitrary time zone on the operating system user interface level.
+On Linux machines, this is UTC, even if the user may set an arbitrary time zone in the operating system user interface.
 ====
 
 === Recurring Tasks Can Be Tightly or Loosely Bound
@@ -201,10 +201,11 @@ For this discussion, we do not consider task failovers and node restarts.
 
 [NOTE]
 ====
-These are only preliminary terms open to discussion.
+These terms are open to discussion and possibly subject to change;
+they are not set in stone.
 ====
 
-=== Task Scheduling
+=== Options for Task Scheduling
 
 Task scheduling is governed by the `schedule` attribute, which has the following parts:
 
@@ -213,10 +214,10 @@ Used only for recurring tasks.
 
 . `cronLikePattern`: Cron-like pattern specifying time(s) when the task is to be run.
 Currently only loosely bound recurring tasks can use this feature.
-(In the future, xref:/midpoint/features/planned/scheduled-single-run-tasks/[scheduled single-run tasks] could use this feature to specify their first—and only—run start time.)
 
 . `earliestStartTime`: Earliest time when the task is allowed to start.
 Usable for any kind of task.
+This is parameter is particularly useful to <<how-to-schedule-a-single-run-task,postpone the start of a single-run task>>.
 
 . `latestStartTime`: Latest time when the task is allowed to start.
 Usable for any kind of task.
@@ -226,6 +227,7 @@ Usable for any kind of task.
     It is a responsibility of the task handler to finish working when this time comes.
     It is not enforced by the task manager.
 
+[[misfire-action]]
 ==== When a Task Fails to Start as Scheduled
 
 Besides the parameters above, there is also `misfireAction` that controls what is to be done when the task fails to start at its specified start time (e.g., because no node or thread are available to execute the task at that time).
@@ -237,24 +239,34 @@ There are the following possibilities:
 This can be used only for loosely bound recurring tasks.
 
 . `forget`: The task is not executed at all.
-This would be used only for xref:/midpoint/features/planned/scheduled-single-run-tasks/[scheduled single-run tasks].
+This would be used only for scheduled single-run tasks.
 Not yet implemented.
+// TODO: is it really not implemented yet? This deserves confirmation in the light of the discovery that we actually can schedule single-run tasks
+// Question tracked in https://support.evolveum.com/wp/10774
 
 [[threadstopaction]]
-== Resilient and Non-Resilient Tasks: ThreadStopAction
+== What Happens to Tasks When Their Node Goes Down
+
+This section covers two task types and their behavior when the node they run on shuts down before they finish, as well as your options to control the action they take.
+
+=== Task Resilience
 
 By default, all persistent tasks are resilient.
-It means that after a node is stopped (either regularly, e.g., by shutting down the application server, or irregularly, e.g., by a hardware malfunction), *persistent tasks continue to execute on another node* in the cluster.
+It means that after a node is stopped (either regularly, e.g., by shutting down the application server,
+or irregularly, e.g., by a hardware malfunction),
+*persistent tasks continue to execute on another node* in the cluster.
 If no suitable node is available at the time, they resume after an available node appears.
 
 However, there are situations when such a resilience is not desirable.
-For such cases, you can declare a task as non-resilient,
+For such cases, you can declare a task as non-resilient.
 *Non-resilient tasks do not resume on another node* after their node goes down.
 They are simply suspended or closed.
 The use case for non-resilient tasks may be a manual synchronization of resources.
 Something that is started by the system administrator with the expectation that it executes only until the node is down.
 
-This task behavior is controlled by *`threadStopAction` attribute*, which can have the following values:
+=== What Can Happen with Tasks When They Are Interrupted
+
+The task behavior is controlled by *`threadStopAction` attribute*, which can have the following values:
 
 . `restart`: The task will restart on the first node available (i.e., either immediately if there is a suitable node in the cluster, or later when a suitable node appears).
 
@@ -267,8 +279,16 @@ This task behavior is controlled by *`threadStopAction` attribute*, which can ha
 The restart and reschedule options are used to implement resilient task behavior, while the suspend and close options are for non-resilient tasks.
 
 For tasks with no threads allocated when their node goes down (loosely bound recurring tasks and scheduled single-run tasks), the `threadStopAction` attribute has no effect.
-These tasks are simply started when their next start time comes.
-We recommend using the suspend and close options only when there is a strong reason for it, e.g., when the administrator wants to manually review the task state after an interruption.
+These tasks simply start over when their next start time comes. See also <<misfire-action,misfire action>>.
+
+==== Should I Make Tasks Non-Resilient?
+
+If you set task as non-resilient using `threadStopAction`, it will suspend or close when its node shuts down.
+Persistent tasks are designed to survive node failures by default, meaning they restart or reschedule on an available node.
+Making tasks non-resilient overrides this behavior, which can lead to task termination or suspension instead of automatic recovery.
+This is undesirable in most clustered environments where high availability is expected.
+Although there are specific scenarios where halting the task on failure is intentional,
+you should avoid setting unless you have a strong reason for it (e.g., a manual synchronization task you want to inspect after an interruption).
 
 == Handler URI and Task Category
 
@@ -330,6 +350,7 @@ The information in Quartz job store can be erased at any time and recreated from
 The only damage that can occur is that some tasks may be executed one more or one less time.
 
 Because of this, the simplest installations, such as those serving a showcase purpose, can be run with *in-memory Quartz job store*: a store that is re-created on node startup.
+//TODO: Is it even possible to use in-memory job store still? Tracked in https://support.evolveum.com/wp/10775 @dakle 2025-07-23
 This approach has the following limitations:
 
 . Clustering (failover) feature is not available.
