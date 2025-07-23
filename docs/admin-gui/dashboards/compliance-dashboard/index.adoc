@@ -14,17 +14,17 @@ MidPoint contains a pre-configured dashboard, which provides overview of basic c
 
 image::compliance-dashboard-screenshot.png[Compliance dashboard screenshot]
 
-Compliance dashboard is a pre-configured object (a.k.a. xref:/midpoint/reference/support-4.9/deployment/ninja/command/initial-objects/[initial object]) in midPoint.
+Compliance dashboard is a pre-configured object (a.k.a. xref:/midpoint/reference/deployment/ninja/command/initial-objects/[initial object]) in midPoint.
 The dashboard can be further extended and customized as needed.
 
 == Mechanism
 
-Functionality of compliance dashboard is heavily based on feature:policy-concept[policies], feature:policy-rule[policy rules] and feature:mark[marks], as is described at xref:/midpoint/reference/roles-policies/policies/identity-governance-rules/[] page.
+Functionality of compliance dashboard is heavily based on feature:policy-concept[policies], feature:policy-rule[policy rules] and feature:object-mark[marks], as is described at xref:/midpoint/reference/roles-policies/policies/identity-governance-rules/[] page.
 Policy rules, stored in xref:/midpoint/reference/schema/policy/[policy objects] are setting the xref:/midpoint/reference/concepts/mark/[marks], which are used by compliance dashboard for compliance reporting.
 
 == See Also
 
-* xref:https://docs.evolveum.com/midpoint/compliance/[MidPoint Compliance]
+* xref:/midpoint/compliance/[MidPoint Compliance]
 
 * xref:/midpoint/reference/roles-policies/policies/identity-governance-rules/[]
 

@@ -79,7 +79,7 @@ The following policy rule limits the number of users of a licensed resource to 5
 [source,xml]
 ----
 <policyRule>
-    <name>Limit number of assigned licences</name>
+    <name>Limit number of assigned licenses</name>
     <policyConstraints>
         <maxAssignees>
             <multiplicity>5</multiplicity>
