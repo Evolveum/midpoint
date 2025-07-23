@@ -1,0 +1,13 @@
+<role xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+    oid="a728590a-be90-4ff4-80a0-608bbdb2d0e6">
+
+    <name>a</name>
+
+    <identifier>test</identifier>
+
+    <assignment>
+        <targetRef oid="e9f41864-5240-4d0f-b7ce-1f94fc9b4ad8" type="RoleType"/>
+    </assignment>
+
+    <locality>a</locality>
+</role>

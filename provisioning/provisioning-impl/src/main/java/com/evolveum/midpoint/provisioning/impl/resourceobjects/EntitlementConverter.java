@@ -953,38 +953,63 @@ class EntitlementConverter {
                 attributeDelta.setValuesToReplace(changedAssocAttr.getClonedValues());
             }
 
-            if (ResourceTypeUtil.isAvoidDuplicateValues(resource)) {
-                ShadowType currentObjectShadow = operations.getCurrentShadow();
-                if (currentObjectShadow == null) {
-                    LOGGER.trace("Fetching entitlement shadow {} to avoid value duplication (intent={})",
-                            entitlementIdentifiersFromAssociation, entitlementIntent);
-                    currentObjectShadow = asObjectable(
-                            resourceObjectReferenceResolver.fetchResourceObject(
-                                    entitlementCtx,
-                                    entitlementIdentifiersFromAssociation,
-                                    null,
-                                    null,
-                                    result));
-                    operations.setCurrentShadow(currentObjectShadow);
+            var minorSubresult = result.createMinorSubresult("modifyEntitlement");
+            try {
+                if (ResourceTypeUtil.isAvoidDuplicateValues(resource)) {
+                    ShadowType currentObjectShadow = operations.getCurrentShadow();
+                    if (currentObjectShadow == null) {
+                        LOGGER.trace("Fetching entitlement shadow {} to avoid value duplication (intent={})",
+                                entitlementIdentifiersFromAssociation, entitlementIntent);
+                        currentObjectShadow = asObjectable(
+                                resourceObjectReferenceResolver.fetchResourceObject(
+                                        entitlementCtx,
+                                        entitlementIdentifiersFromAssociation,
+                                        null,
+                                        null,
+                                        minorSubresult));
+                        operations.setCurrentShadow(currentObjectShadow);
+                    }
+                    // TODO It seems that duplicate values are checked twice: once here and the second time
+                    //  in ResourceObjectConverter.executeModify. Check that and fix if necessary.
+                    PropertyDelta<TA> attributeDeltaAfterNarrow = ProvisioningUtil.narrowPropertyDelta(
+                            attributeDelta, currentObjectShadow, associationDef.getMatchingRule(), matchingRuleRegistry);
+                    if (attributeDeltaAfterNarrow == null || attributeDeltaAfterNarrow.isEmpty()) {
+                        LOGGER.trace("Not collecting entitlement object operations ({}) association {}: "
+                                        + "attribute delta is empty after narrow, orig delta: {}",
+                                modificationType, associationName.getLocalPart(), attributeDelta);
+                    }
+                    attributeDelta = attributeDeltaAfterNarrow;
                 }
-                // TODO It seems that duplicate values are checked twice: once here and the second time
-                //  in ResourceObjectConverter.executeModify. Check that and fix if necessary.
-                PropertyDelta<TA> attributeDeltaAfterNarrow = ProvisioningUtil.narrowPropertyDelta(
-                        attributeDelta, currentObjectShadow, associationDef.getMatchingRule(), matchingRuleRegistry);
-                if (attributeDeltaAfterNarrow == null || attributeDeltaAfterNarrow.isEmpty()) {
-                    LOGGER.trace("Not collecting entitlement object operations ({}) association {}: "
-                                    + "attribute delta is empty after narrow, orig delta: {}",
-                            modificationType, associationName.getLocalPart(), attributeDelta);
-                }
-                attributeDelta = attributeDeltaAfterNarrow;
-            }
 
-            if (attributeDelta != null && !attributeDelta.isEmpty()) {
-                PropertyModificationOperation<?> attributeModification = new PropertyModificationOperation<>(attributeDelta);
-                attributeModification.setMatchingRuleQName(associationDef.getMatchingRule());
-                LOGGER.trace("Collecting entitlement object operations ({}) association {}: {}",
-                        modificationType, associationName.getLocalPart(), attributeModification);
-                operations.add(attributeModification);
+                if (attributeDelta != null && !attributeDelta.isEmpty()) {
+                    PropertyModificationOperation<?> attributeModification = new PropertyModificationOperation<>(attributeDelta);
+                    attributeModification.setMatchingRuleQName(associationDef.getMatchingRule());
+                    LOGGER.trace("Collecting entitlement object operations ({}) association {}: {}",
+                            modificationType, associationName.getLocalPart(), attributeModification);
+                    operations.add(attributeModification);
+                }
+
+                result.recordSuccess();
+            } catch (ObjectNotFoundException | CommunicationException | SchemaException | SecurityViolationException |
+                     ConfigurationException | ExpressionEvaluationException e) {
+                // We need to handle this specially.
+                // E.g. ObjectNotFoundException means that the entitlement object was not found,
+                // not that the subject was not found. It we throw ObjectNotFoundException here it may be
+                // interpreted by the consistency code to mean that the subject is missing. Which is not
+                // true. And that may cause really strange reactions. In fact we do not want to throw the
+                // exception at all, because the primary operation was obviously successful. So just
+                // properly record the operation in the result.
+                LOGGER.error("Error while modifying entitlement {}: {}", entitlementCtx, e.getMessage(), e);
+                minorSubresult.recordException(e);
+                roMap.remove(disc);
+
+                return subjectShadowBefore;
+            } catch (RuntimeException | Error e) {
+                LOGGER.error("Error while modifying entitlement {}: {}", entitlementCtx, e.getMessage(), e);
+                minorSubresult.recordException(e);
+                throw e;
+            } finally {
+                minorSubresult.close();
             }
         }
         return subjectShadowAfter;
