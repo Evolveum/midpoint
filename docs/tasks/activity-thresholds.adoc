@@ -4,7 +4,7 @@
 :page-upkeep-status: green
 
 Tasks are not xref:/midpoint/reference/schema/focus-and-projections[focus] object (like users, roles, etc.).
-This means we cannot use assignments to assign roles with policies like it's described xref:/midpoint/reference/roles-policies/policy-rules/[here].
+This means we cannot use assignments to assign roles with policies like it's described xref:/midpoint/reference/roles-policies/policies/policy-rules/[here].
 Activity policies allows us to set constraints and actions directly on task activities.
 
 == Constraints
@@ -92,7 +92,7 @@ Suspend task action will suspend the task.
 == See also
 
 * xref:/midpoint/reference/tasks/thresholds[]
-* xref:/midpoint/reference/roles-policies/policy-rules/[Policy Rules]
+* xref:/midpoint/reference/roles-policies/policies/policy-rules/[Policy Rules]
 * xref:/midpoint/architecture/concepts/task/[Task]
 * xref:/midpoint/devel/design/multi-node-partitioned-and-stateful-tasks/task-partitioning/[Task partitioning]
 

@@ -13,7 +13,7 @@
 
 MidPoint xref:/midpoint/reference/security/authorization/[authorizations] provide a very powerful mechanism for a fine-grained access control.
 This mechanism is quite simple in principle.
-But the configuration can get very complex especially if a sophisticated xref:/midpoint/reference/roles-policies/rbac/[RBAC] structure is in place.
+But the configuration can get very complex especially if a sophisticated xref:/midpoint/reference/roles-policies/roles/rbac/[RBAC] structure is in place.
 Setting the authorization up is not entirely easy task.
 It is often quite difficult to tell why the user is not authorized for a specific action or why the user can access more than he is supposed to.
 Therefore this page describes basic mechanisms how to troubleshoot authorizations.

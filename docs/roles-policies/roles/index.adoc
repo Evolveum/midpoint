@@ -1,0 +1,25 @@
+= Roles
+:page-nav-title: Roles
+:page-display-order: 310
+
+
+
+In midPoint, Roles are a fundamental concept used to organize and manage access rights and privileges within an identity governance and administration (IGA) system.
+A role represents a collection of permissions, entitlements, and other attributes that define what a user can do within the system, and through provisioning, also to targets.
+Roles are assigned to users, and when a user is assigned a role, they inherit all the rights and entitlements defined by that role.
+This mechanism simplifies access management by grouping related permissions into a single entity, reducing the administrative burden of managing individual permissions for each user.
+
+Roles in midPoint are defined using the xref:/midpoint/architecture/archive/data-model/midpoint-common-schema/roletype/[`RoleType`] data type, which is part of the midPoint schema.
+This data type includes various properties such as name, description, activation status, inducements, and assignments.
+Inducements can include other roles (creating a role hierarchy), entitlements, and account constructions.
+
+The role hierarchy allows for the creation of complex access control structures, where higher-level roles can inherit the permissions of lower-level roles. This hierarchical structure is essential for implementing advanced access control policies and for managing large and dynamic organizations.
+
+MidPoint supports a wide range of role-related features.
+For details, see the following articles:
+
+++++
+{% children %}
+++++
+
+include::../_reference-disclaimer.adoc[]

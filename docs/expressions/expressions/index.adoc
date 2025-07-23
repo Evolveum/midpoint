@@ -225,9 +225,9 @@ In case that you would like to change this behavior please specify the password 
 
 === Assignment Target Search
 
-Mappings and expressions are often used to create xref:/midpoint/reference/roles-policies/assignment/[assignments]. Therefore there is a special-purpose expression evaluator that simplifies the way how assignments are created.
+Mappings and expressions are often used to create xref:/midpoint/reference/roles-policies/roles/assignment/[assignments]. Therefore there is a special-purpose expression evaluator that simplifies the way how assignments are created.
 The evaluator is using a xref:/midpoint/reference/concepts/query/[query] to search for an target object in midPoint repository.
-When such object is found the evaluator creates an xref:/midpoint/reference/roles-policies/assignment/[assignment] for that target.
+When such object is found the evaluator creates an xref:/midpoint/reference/roles-policies/roles/assignment/[assignment] for that target.
 This expression is especially useful in xref:/midpoint/reference/expressions/object-template/[object templates.]
 
 Following configuration snippet provides an example of assignment evaluator that looks for an xref:/midpoint/architecture/archive/data-model/midpoint-common-schema/orgtype/[OrgType] target:
@@ -248,7 +248,7 @@ Following configuration snippet provides an example of assignment evaluator that
 This assignment target search expression will look for objects of type xref:/midpoint/architecture/archive/data-model/midpoint-common-schema/orgtype/[OrgType] in midPoint repository.
 It will look up the objects by `name` property.
 The name of the object should be the same as the value of `organizationalUnit` variable.
-If such an object is found than an appropriate xref:/midpoint/reference/roles-policies/assignment/[assignment] structure is created, the xref:/midpoint/devel/prism/concepts/object-identifier/[OID] of the org object is placed inside it.
+If such an object is found than an appropriate xref:/midpoint/reference/roles-policies/roles/assignment/[assignment] structure is created, the xref:/midpoint/devel/prism/concepts/object-identifier/[OID] of the org object is placed inside it.
 
 [TIP]
 .Search expression evaluators and includeNullInputs

@@ -1,0 +1,162 @@
+= Policy Rules Examples
+:page-toc: top
+:page-nav-title: Policy Rules Examples
+:page-since: "4.9"
+:page-upkeep-status: green
+
+
+This page lists practical policy rule examples, and supplements the examples shown in xref:/midpoint/reference/roles-policies/policies/classification/index.adoc#examples[].
+
+
+== Recompute Users After Org Change
+
+The following example triggers recomputation of all users in an org when there is a change in the org.
+
+[source, xml]
+----
+<policyRule>
+    <name>recompute-user-on-change-partner-status</name>
+    <policyConstraints>
+        <modification/>
+    </policyConstraints>
+    <policyActions>
+        <scriptExecution>
+            <object>
+                <linkSource>
+                    <type>UserType</type>
+                </linkSource>
+            </object>
+            <executeScript>
+                <s:recompute>
+                    <s:triggered>
+                        <safetyMargin>PT1M</safetyMargin>
+                        <fireAfter>PT5M</fireAfter>
+                    </s:triggered>
+                </s:recompute>
+            </executeScript>
+        </scriptExecution>
+    </policyActions>
+</policyRule>
+----
+
+
+== Recompute Users After User Change
+
+The following example triggers recomputation when a user is modified.
+
+[source, xml]
+----
+<policyRule>
+    <name>recompute-user-on-change</name>
+    <policyConstraints>
+        <modification>
+            <operation>modify</operation>
+        </modification>
+    </policyConstraints>
+    <policyActions>
+        <scriptExecution>
+            <object>
+                <currentObject/>
+            </object>
+            <executeScript>
+                <s:recompute>
+                    <s:triggered>
+                        <safetyMargin>PT1M</safetyMargin>
+                        <fireAfter>PT5M</fireAfter>
+                    </s:triggered>
+                </s:recompute>
+            </executeScript>
+        </scriptExecution>
+    </policyActions>
+</policyRule>
+----
+
+
+== Limiting the Number of Users
+
+The following policy rule limits the number of users of a licensed resource to 5:
+
+[source,xml]
+----
+<policyRule>
+    <name>Limit number of assigned licenses</name>
+    <policyConstraints>
+        <maxAssignees>
+            <multiplicity>5</multiplicity>
+        </maxAssignees>
+    </policyConstraints>
+    <policyActions>
+        <enforcement/>
+    </policyActions>
+</policyRule>
+----
+
+== Prevent Role Assignment
+
+In this example, we are preventing users from being assigned to a role if either of the following is true:
+
+* They already have a forwarding email address set, i.e. `forwardEmailAddress` is not null.
+* They are already assigned a role named `perm.m365license.all` or `perm.m365license.exchange`.
+
+This only applies to users who do not have the `4eb82ce9-cf90-4e8d-ab53-121bb676c756` archetype.
+
+If the policy is violated, the assignment is pruned (removed), and a message is shown for the exclusion case.
+
+[source, xml]
+----
+<assignment>
+    <policyRule>
+        <name>excluded-role</name>
+        <policyConstraints>
+            <name>excluded-role-constraint</name>
+            <or>
+                <objectState>
+                    <name>fwEmailValidation</name>
+                    <expression>
+                        <script>
+                            <code>
+                                boolean returnValue = false
+                                if (basic.getExtensionPropertyValue(user, "http://example.org/midpoint", "forwardEmailAddress") != null) {
+                                    returnValue = true
+                                }
+                                return returnValue
+                            </code>
+                        </script>
+                    </expression>
+                </objectState>
+                <exclusion>
+                    <targetRef type="RoleType">
+                        <filter>
+                            <q:text>name = 'perm.m365license.all' or name = 'perm.m365license.exchange'</q:text>
+                        </filter>
+                        <resolutionTime>run</resolutionTime>
+                    </targetRef>
+                    <presentation>
+                        <message>
+                            <fallbackMessage>Violation: perm.m365license roles are assigned for active users, could not be assigned for this user.</fallbackMessage>
+                        </message>
+                    </presentation>
+                </exclusion>
+            </or>
+        </policyConstraints>
+        <evaluationTarget>assignment</evaluationTarget>
+        <policyActions>
+            <prune/>
+        </policyActions>
+    </policyRule>
+    <condition>
+        <expression>
+            <script>
+                <code>
+                    boolean returnValue = false
+                    if(focus!=null){
+                        returnValue = !midpoint.hasArchetype(focus, "4eb82ce9-cf90-4e8d-ab53-121bb676c756")
+                    }
+                    return returnValue
+
+                </code>
+            </script>
+        </expression>
+    </condition>
+</assignment>
+----

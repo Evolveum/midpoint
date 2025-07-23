@@ -13,7 +13,7 @@ When the identity correlation in midPoint can't produce a 100%-certain match bet
 These correlation cases give you an option to analyze attributes, confirm ownership, or adjust xref:/midpoint/reference/expressions/mappings/[mappings] if need be.
 This process ensures accurate connections between resource shadow objects and their corresponding focus objects, which are already linked to other resource object shadows belonging to the same identity.
 
-While still evolving, this feature aligns with the broader case management capabilities for xref:/midpoint/reference/cases/approval/[approvals], xref:/midpoint/features/planned/remediation/[remediation], and xref:/midpoint/reference/roles-policies/certification/[access certification].
+While still evolving, this feature aligns with the broader case management capabilities for xref:/midpoint/reference/cases/approval/[approvals], xref:/midpoint/features/planned/remediation/[remediation], and xref:/midpoint/reference/roles-policies/policies/certification/[access certification].
 
 === Causes Behind Correlation Cases
 
