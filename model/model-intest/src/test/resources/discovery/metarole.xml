@@ -16,8 +16,6 @@
             <association>
                 <ref>ri:group</ref>
                 <outbound>
-                    <name>my_outbound</name>
-                    <trace>true</trace>
                     <strength>strong</strength>
                     <expression>
                         <associationTargetSearch>
@@ -34,13 +32,6 @@
                             <searchStrategy>onResourceIfNeeded</searchStrategy>
                         </associationTargetSearch>
                     </expression>
-                    <!--<condition>
-                        <script>
-                            <code>
-                                assignmentPath?.protoRole?.locality != null
-                            </code>
-                        </script>
-                    </condition>-->
                 </outbound>
             </association>
         </construction>
