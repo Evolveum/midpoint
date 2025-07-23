@@ -245,11 +245,9 @@ Not yet implemented.
 // Question tracked in https://support.evolveum.com/wp/10774
 
 [[threadstopaction]]
-== What Happens to Tasks When Their Node Goes Down
+== Task Resilience: What Happens to Interrupted Tasks
 
-This section covers two task types and their behavior when the node they run on shuts down before they finish, as well as your options to control the action they take.
-
-=== Task Resilience
+This section covers two task types and their behavior when the node on which they run shuts down before they finish, as well as your options to control the action they take.
 
 By default, all persistent tasks are resilient.
 It means that after a node is stopped (either regularly, e.g., by shutting down the application server,
@@ -264,9 +262,9 @@ They are simply suspended or closed.
 The use case for non-resilient tasks may be a manual synchronization of resources.
 Something that is started by the system administrator with the expectation that it executes only until the node is down.
 
-=== What Can Happen with Tasks When They Are Interrupted
+=== Available Actions After  Halt
 
-The task behavior is controlled by *`threadStopAction` attribute*, which can have the following values:
+The task behavior is controlled by the `threadStopAction` attribute which can have the following values:
 
 . `restart`: The task will restart on the first node available (i.e., either immediately if there is a suitable node in the cluster, or later when a suitable node appears).
 
@@ -283,16 +281,17 @@ These tasks simply start over when their next start time comes. See also <<misfi
 
 ==== Should I Make Tasks Non-Resilient?
 
-If you set task as non-resilient using `threadStopAction`, it will suspend or close when its node shuts down.
+If you set task as non-resilient using `threadStopAction` (options `suspend` and `close`), it will suspend or close when its node shuts down.
 Persistent tasks are designed to survive node failures by default, meaning they restart or reschedule on an available node.
-Making tasks non-resilient overrides this behavior, which can lead to task termination or suspension instead of automatic recovery.
+Making tasks non-resilient overrides this behavior.
+It leads to task termination or suspension instead of automatic recovery.
 This is undesirable in most clustered environments where high availability is expected.
 Although there are specific scenarios where halting the task on failure is intentional,
-you should avoid setting unless you have a strong reason for it (e.g., a manual synchronization task you want to inspect after an interruption).
+you should avoid this setting unless you have a strong reason for it (e.g., a manual synchronization task you want to inspect after an interruption).
 
 == Handler URI and Task Category
 
-Handler URI indirectly specifies which class (called handler, implementing TaskHandler interface) is responsible to handle the task.
+Handler URI indirectly specifies which class (called handler, implementing the link:https://github.com/Evolveum/midpoint/blob/master/repo/task-api/src/main/java/com/evolveum/midpoint/task/api/TaskHandler.java[TaskHandler interface]) is responsible to handle the task.
 The handler executes reactions to task lifecycle events, such as executing the task, task heartbeat, etc.
 
 Handler URI can be also understood as a specification of task _subtype_.
@@ -309,15 +308,17 @@ At that moment, the task is automatically closed.
 A task category denotes a user-recognizable type of task.
 For example: LiveSynchronization, Reconciliation, ImportingAccounts, ImportFromFile, UserRecomputation, Workflow, Demo.
 
-== Associated Object
+== Object Associated to Tasks
 
 Tasks may be associated with particular objects.
 For example, an "import from resource" task is associated with the resource definition object from which it imports.
 Synchronization and reconciliation tasks may have similar resource object associations.
 This is an optional property.
+// TODO: How can association to a resource object be optional for an import task, for instance? @dakle 2025-07-23
+// Or is it meant that it is optional for SOME tasks only? (which ones, except the simples ones like, e.g., "change user name" via GUI?)
 
 The associated object could be also specified using the usual extension mechanism.
-That would not be optimal, though, because it would be difficult to search for all the tasks that work on a particular object, be it a resource or something else.
+That would not be optimal, though, because it would be difficult to search for all the tasks that work on a particular object, be it a resource or anything else.
 
 == Task Owner
 
@@ -326,7 +327,7 @@ This attribute is used for auditing reasons, for instance.
 
 == Clustering and High Availability
 
-As <<tightly-and-loosely-bound-tasks,mentioned above>>, there can be multiple midPoint nodes working in a *cluster*.
+There can be multiple midPoint nodes working in a *cluster*.
 These nodes share the workload: when a task becomes ready to be executed, one of the nodes takes the task and executes it.
 This process is governed by the link:https://www.quartz-scheduler.org/[Quartz job scheduler].
 
@@ -341,16 +342,17 @@ This way, the high availability of the task execution is ensured.
 
 Refer to xref:/midpoint/reference/deployment/clustering-ha/[] for more information on deploying a high availability setup.
 
-== Task State in the midPoint Repository and Quartz Job Store
+== Task State in the midPoint Repository and Quartz JDBC Job Store
 
 The midPoint repository contains general task information, such as execution and business states,
-while the Quartz job store is responsible for maintaining information necessary for task scheduling (e.g., next planned start time).
+while the link:https://www.quartz-scheduler.org/documentation/quartz-2.1.7/configuration/ConfigJobStoreTX.html[*Quartz JDBC job store*] is responsible for maintaining information necessary for task scheduling (e.g., the next planned start time).
 
 The information in Quartz job store can be erased at any time and recreated from the midPoint repository on node startup with only minor consequences.
 The only damage that can occur is that some tasks may be executed one more or one less time.
 
 Because of this, the simplest installations, such as those serving a showcase purpose, can be run with *in-memory Quartz job store*: a store that is re-created on node startup.
-//TODO: Is it even possible to use in-memory job store still? Tracked in https://support.evolveum.com/wp/10775 @dakle 2025-07-23
+//TODO: Is it even possible to use in-memory job store still? Probably not, making this section mostly obsolete. @dakle 2025-07-23
+// Tracked in https://support.evolveum.com/wp/10775
 This approach has the following limitations:
 
 . Clustering (failover) feature is not available.
@@ -365,9 +367,11 @@ More advanced installations could use link:https://www.quartz-scheduler.org/docu
 
 == Task Manager Configuration and Administration
 
-Refer to xref:/midpoint/guides/admin-gui-user-guide/#task-manager-configuration[].
+Refer to xref:/midpoint/reference/tasks/task-manager/configuration/[].
 
 == Authorizing specific operations
+
+This section details the specific action URIs used to control different aspects of task execution, scheduling, and system-level operations.
 
 === Task-related operations
 
