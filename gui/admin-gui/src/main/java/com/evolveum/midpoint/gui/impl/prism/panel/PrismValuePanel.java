@@ -35,13 +35,12 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.component.form.MidpointForm;
 import com.evolveum.midpoint.web.component.message.FeedbackAlerts;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
-
+import java.io.Serial;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -49,7 +48,7 @@ public abstract class PrismValuePanel<T, IW extends ItemWrapper, VW extends Pris
 
     private static final Trace LOGGER = TraceManager.getTrace(PrismValuePanel.class);
 
-    protected static final String ID_VALUE_FORM = "valueForm";
+    protected static final String ID_MAIN_CONTAINER = "valueForm";
     private static final String ID_REMOVE_BUTTON = "removeButton";
 
     private static final String ID_FEEDBACK = "feedback";
@@ -79,15 +78,15 @@ public abstract class PrismValuePanel<T, IW extends ItemWrapper, VW extends Pris
     }
 
     private void initLayout() {
-        MidpointForm<VW> form = new MidpointForm<>(ID_VALUE_FORM);
-        form.setOutputMarkupId(true);
-        add(form);
+        WebMarkupContainer mainContainer = new WebMarkupContainer(ID_MAIN_CONTAINER);
+        mainContainer.setOutputMarkupId(true);
+        add(mainContainer);
 
-        form.add(createHeaderPanel());
+        mainContainer.add(createHeaderPanel());
 
-        createValuePanel(form);
+        createValuePanel(mainContainer);
 
-        createMetadataPanel(form);
+        createMetadataPanel(mainContainer);
     }
 
     protected WebMarkupContainer createHeaderPanel() {
@@ -100,7 +99,7 @@ public abstract class PrismValuePanel<T, IW extends ItemWrapper, VW extends Pris
         buttonContainer.add(statusMessage);
 
         AjaxLink<Void> removeButton = new AjaxLink<>(ID_REMOVE_BUTTON) {
-            private static final long serialVersionUID = 1L;
+            @Serial private static final long serialVersionUID = 1L;
 
             @Override
             public void onClick(AjaxRequestTarget target) {
@@ -119,7 +118,7 @@ public abstract class PrismValuePanel<T, IW extends ItemWrapper, VW extends Pris
         buttonContainer.add(removeButton);
 
         AjaxLink<Void> showMetadataButton = new AjaxLink<>(ID_SHOW_METADATA) {
-            private static final long serialVersionUID = 1L;
+            @Serial private static final long serialVersionUID = 1L;
 
             @Override
             public void onClick(AjaxRequestTarget target) {
@@ -140,7 +139,7 @@ public abstract class PrismValuePanel<T, IW extends ItemWrapper, VW extends Pris
 
     }
 
-    protected void createValuePanel(MidpointForm form) {
+    protected void createValuePanel(WebMarkupContainer mainContainer) {
 
         GuiComponentFactory factory = null;
         if (getModelObject() != null && getModelObject().getParent() != null) {
@@ -155,7 +154,7 @@ public abstract class PrismValuePanel<T, IW extends ItemWrapper, VW extends Pris
         WebMarkupContainer valueContainer = new WebMarkupContainer(ID_VALUE_CONTAINER);
         valueContainer.setOutputMarkupId(true);
         valueContainer.add(AttributeAppender.append("class", getCssClassForValueContainer()));
-        form.add(valueContainer);
+        mainContainer.add(valueContainer);
 
         // feedback
         FeedbackAlerts feedback = createFeedbackPanel(ID_FEEDBACK);
@@ -172,7 +171,7 @@ public abstract class PrismValuePanel<T, IW extends ItemWrapper, VW extends Pris
 
         ItemPanelContext<T, ItemWrapper<?, ?>> panelCtx = createPanelCtx(new PropertyModel<>(getModel(), "parent"));
         panelCtx.setComponentId(ID_INPUT);
-        panelCtx.setForm(getForm());
+        panelCtx.setParentContainer(getMainContainer());
         panelCtx.setRealValueModel(getModel());
         panelCtx.setParentComponent(this);
         panelCtx.setAjaxEventBehavior(createEventBehavior());
@@ -220,17 +219,17 @@ public abstract class PrismValuePanel<T, IW extends ItemWrapper, VW extends Pris
         return new FeedbackAlerts(idFeedback);
     }
 
-    protected void createMetadataPanel(MidpointForm form) {
+    protected void createMetadataPanel(WebMarkupContainer mainContainer) {
         PrismValueMetadataPanel metadataPanel = new PrismValueMetadataPanel(ID_METADATA, new PropertyModel<>(getModel(), "valueMetadata"));
         metadataPanel.add(new VisibleBehaviour(() -> getModelObject().isShowMetadata()));
         metadataPanel.setOutputMarkupId(true);
-        form.add(metadataPanel);
+        mainContainer.add(metadataPanel);
     }
 
     protected AjaxEventBehavior createEventBehavior() {
         return new AjaxFormComponentUpdatingBehavior("change") {
 
-            private static final long serialVersionUID = 1L;
+            @Serial private static final long serialVersionUID = 1L;
 
             @Override
             protected void onUpdate(AjaxRequestTarget target) {
@@ -252,21 +251,12 @@ public abstract class PrismValuePanel<T, IW extends ItemWrapper, VW extends Pris
     }
 
     private VisibleEnableBehaviour createVisibleEnableBehavior() {
-        return new VisibleEnableBehaviour() {
-
-            @Override
-            public boolean isVisible() {
-                return true;
+        return new VisibleEnableBehaviour(() -> true, () -> {
+            if (getEditabilityHandler() != null) {
+                return getEditabilityHandler().isEditable(getModelObject().getParent());
             }
-
-            @Override
-            public boolean isEnabled() {
-                if (getEditabilityHandler() != null) {
-                    return getEditabilityHandler().isEditable(getModelObject().getParent());
-                }
-                return super.isEnabled();
-            }
-        };
+            return super.isEnabled();
+        });
     }
 
     protected ItemPanelSettings getSettings() {
@@ -331,20 +321,20 @@ public abstract class PrismValuePanel<T, IW extends ItemWrapper, VW extends Pris
 
     }
 
-    protected MidpointForm<VW> getForm() {
-        return (MidpointForm) get(ID_VALUE_FORM);
+    protected WebMarkupContainer getMainContainer() {
+        return (WebMarkupContainer) get(ID_MAIN_CONTAINER);
     }
 
     protected FeedbackAlerts getFeedback() {
-        return (FeedbackAlerts) get(createComponentPath(ID_VALUE_FORM, ID_VALUE_CONTAINER, ID_FEEDBACK));
+        return (FeedbackAlerts) get(createComponentPath(ID_MAIN_CONTAINER, ID_VALUE_CONTAINER, ID_FEEDBACK));
     }
 
     protected Component getValuePanel() {
-        return get(createComponentPath(ID_VALUE_FORM, ID_VALUE_CONTAINER, ID_INPUT));
+        return get(createComponentPath(ID_MAIN_CONTAINER, ID_VALUE_CONTAINER, ID_INPUT));
     }
 
     protected Component getValueContainer() {
-        return (Component) get(createComponentPath(ID_VALUE_FORM, ID_VALUE_CONTAINER));
+        return get(createComponentPath(ID_MAIN_CONTAINER, ID_VALUE_CONTAINER));
     }
 
     private ValueMetadataWrapperImpl getValueMetadata() {
