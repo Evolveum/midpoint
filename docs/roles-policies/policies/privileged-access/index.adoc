@@ -4,7 +4,7 @@ doc-type: [ 'config' ]
 ---
 = Privileged Access
 :page-upkeep-status: yellow
-:page-moved-from: /midpoint/reference/roles-policies/
+:page-moved-from: /midpoint/reference/roles-policies/privileged-access/
 
 == Introduction
 

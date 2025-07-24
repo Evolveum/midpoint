@@ -3,7 +3,7 @@
 :page-nav-title: Role Mining
 :page-since: "4.8"
 :page-upkeep-status: green
-:page-moved-from: /midpoint/reference/roles-policies/mining/anonymous-data-export/
+:page-moved-from: /midpoint/reference/roles-policies/mining/
 
 Role mining is a process to "mine" business roles from the application roles.
 Mining process is analyzing application roles and their assignment to users, trying to detect data clusters and patterns, suggesting candidates for business roles.
