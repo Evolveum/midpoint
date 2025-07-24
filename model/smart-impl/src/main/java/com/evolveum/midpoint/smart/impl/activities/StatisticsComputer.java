@@ -7,7 +7,8 @@
 
 package com.evolveum.midpoint.smart.impl.activities;
 
-import java.util.Collection;
+import java.util.*;
+import java.util.stream.Collectors;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAttributeValueCountType;
 
@@ -29,134 +30,162 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 public class StatisticsComputer {
 
     /**
-     * Upper limit for the maximum allowed number of values in the statistics.
-     * This number will never be exceeded.
-     * See {@link #MAX_VALUE_COUNT_PERCENTAGE}.
-     *
-     * TODO make this configurable (eventually).
+     * Maximum number of value occurrences to be retained per attribute.
+     * TODO: Make this configurable.
      */
-    private static final int MAX_VALUE_COUNT_UPPER_LIMIT = 30;
+    private static final int TOP_N_LIMIT = 30;
 
     /**
-     * Lower limit for the maximum allowed number of values in the statistics.
-     * We always allow at least this number of values.
-     * See {@link #MAX_VALUE_COUNT_PERCENTAGE}.
-     *
-     * TODO make this configurable (eventually).
+     * Attribute value counts for each attribute (by attribute name).
      */
-    private static final int MAX_VALUE_COUNT_LOWER_LIMIT = 5;
+    private final Map<String, Map<String, Integer>> valueCounts = new HashMap<>();
 
     /**
-     * Limit for the number of values in the statistics, related to the total number of objects with non-null values.
-     * For example, if there are 200 such records in total, and this limit is set to 5% (0.05), we allow only 10 values.
-     *
-     * The effective limit is also bound by {@link #MAX_VALUE_COUNT_UPPER_LIMIT} and {@link #MAX_VALUE_COUNT_LOWER_LIMIT}:
-     *
-     * - If the computed limit is greater than {@link #MAX_VALUE_COUNT_UPPER_LIMIT}, we use that instead.
-     * - If the computed limit is lower than {@link #MAX_VALUE_COUNT_LOWER_LIMIT}, we use that instead.
-     *
-     * TODO make this configurable (eventually).
+     * JAXB statistics object being built.
      */
-    private static final float MAX_VALUE_COUNT_PERCENTAGE = 0.05f;
+    private final ShadowObjectClassStatisticsType statistics = new ShadowObjectClassStatisticsType();
 
-    /** Statistics being computed. */
-    private final ShadowObjectClassStatisticsType statistics;
-
-    /** Definitions of attributes that are expected to be present in the shadows. Ignoring auxiliary OCs for now. */
+    /**
+     * Attribute definitions for the relevant object class.
+     */
     private final Collection<? extends ShadowAttributeDefinition<?, ?, ?, ?>> attributeDefinitions;
 
+    /**
+     * Constructs a new statistics computer for the given object class definition.
+     *
+     * @param objectClassDef Resource object class definition.
+     */
     public StatisticsComputer(ResourceObjectClassDefinition objectClassDef) {
-        statistics = new ShadowObjectClassStatisticsType();
-        attributeDefinitions = objectClassDef.getAttributeDefinitions();
-        createAttributeStatistics();
+        this.attributeDefinitions = objectClassDef.getAttributeDefinitions();
+        initializeAttributeStatistics();
+        initializeValueCounts();
     }
 
-    private void createAttributeStatistics() {
-        for (var attributeDefinition : attributeDefinitions) {
-            findOrCreateAttributeStatistics(attributeDefinition.getItemName());
+    /**
+     * Initializes attribute statistics objects for each attribute definition.
+     */
+    private void initializeAttributeStatistics() {
+        for (ShadowAttributeDefinition<?, ?, ?, ?> attrDef : attributeDefinitions) {
+            getOrCreateAttributeStatistics(attrDef.getItemName());
         }
     }
 
-    /** Adds the shadow to the statistics. */
+    /**
+     * Initializes the value counts map for each attribute.
+     */
+    private void initializeValueCounts() {
+        for (ShadowAttributeDefinition<?, ?, ?, ?> attrDef : attributeDefinitions) {
+            valueCounts.put(attrDef.getItemName().toString(), new HashMap<>());
+        }
+    }
+
+    /**
+     * Processes the given shadow object, updating statistics.
+     *
+     * @param shadow Shadow object to process.
+     */
     public void process(ShadowType shadow) {
         statistics.setSize(statistics.getSize() + 1);
-        addMissingValueCounts(shadow);
-        addValueCounts(shadow);
-    }
-
-    private void addMissingValueCounts(ShadowType shadow) {
-        for (var attributeStatistics : statistics.getAttribute()) {
-            var attrName = attributeStatistics.getRef();
-            if (ShadowUtil.getAttributeValues(shadow, attrName).isEmpty()) {
-                attributeStatistics.setMissingValueCount(attributeStatistics.getMissingValueCount() + 1);
-            }
-        }
+        updateMissingValueCounts(shadow);
+        updateValueCounts(shadow);
     }
 
     /**
-     * Updates the value counts for the attributes in the shadow.
-     * For each attribute, it counts the number of occurrences of each value.
-     * If the number of distinct values exceeds the limit defined by {@link #MAX_VALUE_COUNT_UPPER_LIMIT},
-     * statistics for that attribute will be removed, and will not be collected any further.
+     * Performs post-processing: retains only the top N value counts and
+     * converts internal maps to JAXB-compatible structures.
      */
-    private void addValueCounts(ShadowType shadow) {
-        for (var attributeStatistics : statistics.getAttribute()) {
-            if (attributeStatistics.getUniqueValueCount() == -1) {
-                continue;
-            }
-            var attrValues = ShadowUtil.getAttributeValues(shadow, attributeStatistics.getRef());
-
-            attributeValuesLoop:
-            for (var attrValue : attrValues) {
-                for (var valueCountPair : attributeStatistics.getValueCount()) {
-                    if (valueCountPair.getValue().equals(attrValue)) {
-                        valueCountPair.setCount(valueCountPair.getCount() + 1);
-                        continue attributeValuesLoop;
-                    }
-                }
-                attributeStatistics.beginValueCount()
-                        .count(1)
-                        .value(String.valueOf(attrValue));
-                attributeStatistics.setUniqueValueCount(attributeStatistics.getUniqueValueCount() + 1);
-            }
-            if (attributeStatistics.getUniqueValueCount() > MAX_VALUE_COUNT_UPPER_LIMIT) {
-                attributeStatistics.getValueCount().removeAll(attributeStatistics.getValueCount());
-                attributeStatistics.setUniqueValueCount(-1);
-            }
-        }
-    }
-
-    /**
-     * Now, when we already know the number of objects with non-null values in the attributes statistics,
-     * we can remove the statistics for attributes that have too many values, as described in {@link #MAX_VALUE_COUNT_PERCENTAGE}.
-     */
-    private void removeLargeValueCounts() {
-        var percentageThreshold = statistics.getSize() * MAX_VALUE_COUNT_PERCENTAGE;
-        var threshold = percentageThreshold > MAX_VALUE_COUNT_LOWER_LIMIT ? percentageThreshold : MAX_VALUE_COUNT_LOWER_LIMIT;
-        for (var attributeStatistics : statistics.getAttribute()) {
-            if (attributeStatistics.getUniqueValueCount() > threshold) {
-                attributeStatistics.getValueCount().removeAll(attributeStatistics.getValueCount());
-                attributeStatistics.setUniqueValueCount(-1);
-            }
-        }
-    }
-
-    private ShadowAttributeStatisticsType findOrCreateAttributeStatistics(ItemName attrName) {
-        for (var attributeStatistics : statistics.getAttribute()) {
-            if (attrName.equals(attributeStatistics.getRef())) {
-                return attributeStatistics;
-            }
-        }
-        var newAttrStatistics = new ShadowAttributeStatisticsType().ref(attrName);
-        statistics.getAttribute().add(newAttrStatistics);
-        return newAttrStatistics;
-    }
-
     public void postProcessStatistics() {
-        removeLargeValueCounts();
+        retainTopNValueCounts();
+        populateJaxbAttributeStatistics();
     }
 
+    /**
+     * Returns the statistics object.
+     *
+     * @return Shadow object class statistics.
+     */
     public ShadowObjectClassStatisticsType getStatistics() {
         return statistics;
+    }
+
+    /**
+     * Gets or creates attribute statistics for the given attribute name.
+     *
+     * @param attrName Attribute item name.
+     * @return Attribute statistics object.
+     */
+    private ShadowAttributeStatisticsType getOrCreateAttributeStatistics(ItemName attrName) {
+        for (ShadowAttributeStatisticsType stats : statistics.getAttribute()) {
+            if (attrName.equals(stats.getRef())) {
+                return stats;
+            }
+        }
+        ShadowAttributeStatisticsType newStats = new ShadowAttributeStatisticsType().ref(attrName);
+        statistics.getAttribute().add(newStats);
+        return newStats;
+    }
+
+    /**
+     * Increments missing value counts for attributes not present in the shadow.
+     */
+    private void updateMissingValueCounts(ShadowType shadow) {
+        for (ShadowAttributeStatisticsType stats : statistics.getAttribute()) {
+            if (ShadowUtil.getAttributeValues(shadow, stats.getRef()).isEmpty()) {
+                stats.setMissingValueCount(stats.getMissingValueCount() + 1);
+            }
+        }
+    }
+
+    /**
+     * Updates value occurrence counts for each attribute in the shadow.
+     */
+    private void updateValueCounts(ShadowType shadow) {
+        for (ShadowAttributeStatisticsType stats : statistics.getAttribute()) {
+            Collection<?> values = ShadowUtil.getAttributeValues(shadow, stats.getRef());
+            String attrKey = stats.getRef().toString();
+            Map<String, Integer> attrValueCounts = valueCounts.get(attrKey);
+            for (Object value : values) {
+                attrValueCounts.merge(String.valueOf(value), 1, Integer::sum);
+            }
+        }
+    }
+
+    /**
+     * Retains only the top N most frequent values for each attribute.
+     */
+    private void retainTopNValueCounts() {
+        for (ShadowAttributeStatisticsType stats : statistics.getAttribute()) {
+            String attrKey = stats.getRef().toString();
+            Map<String, Integer> counts = valueCounts.get(attrKey);
+            Map<String, Integer> topN = counts.entrySet().stream()
+                    .sorted(Map.Entry.<String, Integer>comparingByValue(Comparator.reverseOrder()))
+                    .limit(TOP_N_LIMIT)
+                    .collect(Collectors.toMap(
+                            Map.Entry::getKey,
+                            Map.Entry::getValue,
+                            (a, b) -> a,
+                            LinkedHashMap::new
+                    ));
+            valueCounts.put(attrKey, topN);
+        }
+    }
+
+    /**
+     * Populates JAXB attribute statistics objects with value count data.
+     */
+    private void populateJaxbAttributeStatistics() {
+        for (ShadowAttributeStatisticsType stats : statistics.getAttribute()) {
+            String attrKey = stats.getRef().toString();
+            Map<String, Integer> counts = valueCounts.get(attrKey);
+            if (counts == null) {
+                continue;
+            }
+            for (Map.Entry<String, Integer> entry : counts.entrySet()) {
+                stats.beginValueCount()
+                        .value(entry.getKey())
+                        .count(entry.getValue());
+            }
+            stats.setUniqueValueCount(counts.size());
+        }
     }
 }

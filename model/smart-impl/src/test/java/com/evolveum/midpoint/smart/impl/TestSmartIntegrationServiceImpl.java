@@ -130,338 +130,8 @@ public class TestSmartIntegrationServiceImpl extends AbstractSmartIntegrationTes
 
     }
 
-    private void addDummyAccountsExceedingPercentageLimit() throws Exception {
-        int numberOfAccounts = 200;
+    private void addDummyAccountsExceedingTopNLimit() throws Exception {
         var c = dummyForObjectTypes.getController();
-        for (int i = 0; i < numberOfAccounts; i++) {
-            c.addAccount("user" + i)
-                    .addAttributeValues(DummyScenario.Account.AttributeNames.PERSONAL_NUMBER.local(), String.valueOf(10000000 + i%5))
-                    .addAttributeValues(DummyScenario.Account.AttributeNames.PHONE.local(), "+420600000" + String.format("%03d", i%10))
-                    .addAttributeValues(DummyScenario.Account.AttributeNames.DEPARTMENT.local(), "HR");
-        }
-    }
-
-    private void addDummyAccountsExceedingHardLimit() throws Exception {
-        var c = dummyForObjectTypes.getController();
-        c.addAccount("ada")
-                .addAttributeValues(DummyScenario.Account.AttributeNames.FULLNAME.local(), "Ada Lovelace")
-                .addAttributeValues(DummyScenario.Account.AttributeNames.DESCRIPTION.local(), "Mathematician and programmer")
-                .addAttributeValues(DummyScenario.Account.AttributeNames.PERSONAL_NUMBER.local(), "20010027")
-                .addAttributeValues(DummyScenario.Account.AttributeNames.EMAIL.local(), "ada@evolveum.com")
-                .addAttributeValues(DummyScenario.Account.AttributeNames.PHONE.local(), "+420601000027")
-                .addAttributeValues(DummyScenario.Account.AttributeNames.STATUS.local(), "active")
-                .addAttributeValues(DummyScenario.Account.AttributeNames.TYPE.local(), "employee")
-                .addAttributeValues(DummyScenario.Account.AttributeNames.DEPARTMENT.local(), "R&D")
-                .addAttributeValues(DummyScenario.Account.AttributeNames.CREATED.local(), Arrays.asList(ZonedDateTime.parse("2016-12-10T09:00:00Z")))
-                .addAttributeValues(DummyScenario.Account.AttributeNames.LAST_LOGIN.local(), Arrays.asList(ZonedDateTime.parse("2024-06-20T09:30:00Z")));
-
-        c.addAccount("brian")
-                .addAttributeValues(DummyScenario.Account.AttributeNames.FULLNAME.local(), "Brian Cox")
-                .addAttributeValues(DummyScenario.Account.AttributeNames.DESCRIPTION.local(), "Physicist")
-                .addAttributeValues(DummyScenario.Account.AttributeNames.PERSONAL_NUMBER.local(), "20010028")
-                .addAttributeValues(DummyScenario.Account.AttributeNames.EMAIL.local(), "brian@evolveum.com")
-                .addAttributeValues(DummyScenario.Account.AttributeNames.PHONE.local(), "+420601000028")
-                .addAttributeValues(DummyScenario.Account.AttributeNames.STATUS.local(), "inactive")
-                .addAttributeValues(DummyScenario.Account.AttributeNames.TYPE.local(), "contractor")
-                .addAttributeValues(DummyScenario.Account.AttributeNames.DEPARTMENT.local(), "Science")
-                .addAttributeValues(DummyScenario.Account.AttributeNames.CREATED.local(), Arrays.asList(ZonedDateTime.parse("2015-05-21T11:00:00Z")))
-                .addAttributeValues(DummyScenario.Account.AttributeNames.LAST_LOGIN.local(), Arrays.asList(ZonedDateTime.parse("2024-06-21T10:00:00Z")));
-
-        c.addAccount("clara")
-                .addAttributeValues(DummyScenario.Account.AttributeNames.FULLNAME.local(), "Clara Oswald")
-                .addAttributeValues(DummyScenario.Account.AttributeNames.DESCRIPTION.local(), "English teacher")
-                .addAttributeValues(DummyScenario.Account.AttributeNames.PERSONAL_NUMBER.local(), "20010029")
-                .addAttributeValues(DummyScenario.Account.AttributeNames.EMAIL.local(), "clara@evolveum.com")
-                .addAttributeValues(DummyScenario.Account.AttributeNames.PHONE.local(), "+420601000029")
-                .addAttributeValues(DummyScenario.Account.AttributeNames.STATUS.local(), "active")
-                .addAttributeValues(DummyScenario.Account.AttributeNames.TYPE.local(), "employee")
-                .addAttributeValues(DummyScenario.Account.AttributeNames.DEPARTMENT.local(), "Education")
-                .addAttributeValues(DummyScenario.Account.AttributeNames.CREATED.local(), Arrays.asList(ZonedDateTime.parse("2018-09-01T08:00:00Z")))
-                .addAttributeValues(DummyScenario.Account.AttributeNames.LAST_LOGIN.local(), Arrays.asList(ZonedDateTime.parse("2024-06-22T11:00:00Z")));
-
-        c.addAccount("diego")
-                .addAttributeValues(DummyScenario.Account.AttributeNames.FULLNAME.local(), "Diego Maradona")
-                .addAttributeValues(DummyScenario.Account.AttributeNames.DESCRIPTION.local(), "Football coach")
-                .addAttributeValues(DummyScenario.Account.AttributeNames.PERSONAL_NUMBER.local(), "20010030")
-                .addAttributeValues(DummyScenario.Account.AttributeNames.EMAIL.local(), "diego@evolveum.com")
-                .addAttributeValues(DummyScenario.Account.AttributeNames.PHONE.local(), "+420601000030")
-                .addAttributeValues(DummyScenario.Account.AttributeNames.STATUS.local(), "locked")
-                .addAttributeValues(DummyScenario.Account.AttributeNames.TYPE.local(), "employee")
-                .addAttributeValues(DummyScenario.Account.AttributeNames.DEPARTMENT.local(), "Sports")
-                .addAttributeValues(DummyScenario.Account.AttributeNames.CREATED.local(), Arrays.asList(ZonedDateTime.parse("2017-07-01T07:00:00Z")))
-                .addAttributeValues(DummyScenario.Account.AttributeNames.LAST_LOGIN.local(), Arrays.asList(ZonedDateTime.parse("2024-06-23T12:00:00Z")));
-
-        c.addAccount("elena")
-                .addAttributeValues(DummyScenario.Account.AttributeNames.FULLNAME.local(), "Elena Gilbert")
-                .addAttributeValues(DummyScenario.Account.AttributeNames.DESCRIPTION.local(), "Student")
-                .addAttributeValues(DummyScenario.Account.AttributeNames.PERSONAL_NUMBER.local(), "20010031")
-                .addAttributeValues(DummyScenario.Account.AttributeNames.EMAIL.local(), "elena@evolveum.com")
-                .addAttributeValues(DummyScenario.Account.AttributeNames.PHONE.local(), "+420601000031")
-                .addAttributeValues(DummyScenario.Account.AttributeNames.STATUS.local(), "active")
-                .addAttributeValues(DummyScenario.Account.AttributeNames.TYPE.local(), "employee")
-                .addAttributeValues(DummyScenario.Account.AttributeNames.DEPARTMENT.local(), "Student Affairs")
-                .addAttributeValues(DummyScenario.Account.AttributeNames.CREATED.local(), Arrays.asList(ZonedDateTime.parse("2021-01-01T10:00:00Z")))
-                .addAttributeValues(DummyScenario.Account.AttributeNames.LAST_LOGIN.local(), Arrays.asList(ZonedDateTime.parse("2024-06-24T13:00:00Z")));
-
-        c.addAccount("felix")
-                .addAttributeValues(DummyScenario.Account.AttributeNames.FULLNAME.local(), "Felix Leiter")
-                .addAttributeValues(DummyScenario.Account.AttributeNames.DESCRIPTION.local(), "CIA operative")
-                .addAttributeValues(DummyScenario.Account.AttributeNames.PERSONAL_NUMBER.local(), "20010032")
-                .addAttributeValues(DummyScenario.Account.AttributeNames.EMAIL.local(), "felix@evolveum.com")
-                .addAttributeValues(DummyScenario.Account.AttributeNames.PHONE.local(), "+420601000032")
-                .addAttributeValues(DummyScenario.Account.AttributeNames.STATUS.local(), "active")
-                .addAttributeValues(DummyScenario.Account.AttributeNames.TYPE.local(), "contractor")
-                .addAttributeValues(DummyScenario.Account.AttributeNames.DEPARTMENT.local(), "Intelligence")
-                .addAttributeValues(DummyScenario.Account.AttributeNames.CREATED.local(), Arrays.asList(ZonedDateTime.parse("2019-03-01T12:00:00Z")))
-                .addAttributeValues(DummyScenario.Account.AttributeNames.LAST_LOGIN.local(), Arrays.asList(ZonedDateTime.parse("2024-06-25T14:00:00Z")));
-
-        c.addAccount("greta")
-                .addAttributeValues(DummyScenario.Account.AttributeNames.FULLNAME.local(), "Greta Thunberg")
-                .addAttributeValues(DummyScenario.Account.AttributeNames.DESCRIPTION.local(), "Climate activist")
-                .addAttributeValues(DummyScenario.Account.AttributeNames.PERSONAL_NUMBER.local(), "20010033")
-                .addAttributeValues(DummyScenario.Account.AttributeNames.EMAIL.local(), "greta@evolveum.com")
-                .addAttributeValues(DummyScenario.Account.AttributeNames.PHONE.local(), "+420601000033")
-                .addAttributeValues(DummyScenario.Account.AttributeNames.STATUS.local(), "active")
-                .addAttributeValues(DummyScenario.Account.AttributeNames.TYPE.local(), "employee")
-                .addAttributeValues(DummyScenario.Account.AttributeNames.DEPARTMENT.local(), "Environment")
-                .addAttributeValues(DummyScenario.Account.AttributeNames.CREATED.local(), Arrays.asList(ZonedDateTime.parse("2020-02-01T13:00:00Z")))
-                .addAttributeValues(DummyScenario.Account.AttributeNames.LAST_LOGIN.local(), Arrays.asList(ZonedDateTime.parse("2024-06-26T15:00:00Z")));
-
-        c.addAccount("hank")
-                .addAttributeValues(DummyScenario.Account.AttributeNames.FULLNAME.local(), "Hank Schrader")
-                .addAttributeValues(DummyScenario.Account.AttributeNames.DESCRIPTION.local(), "DEA agent")
-                .addAttributeValues(DummyScenario.Account.AttributeNames.PERSONAL_NUMBER.local(), "20010034")
-                .addAttributeValues(DummyScenario.Account.AttributeNames.EMAIL.local(), "hank@evolveum.com")
-                .addAttributeValues(DummyScenario.Account.AttributeNames.PHONE.local(), "+420601000034")
-                .addAttributeValues(DummyScenario.Account.AttributeNames.STATUS.local(), "inactive")
-                .addAttributeValues(DummyScenario.Account.AttributeNames.TYPE.local(), "employee")
-                .addAttributeValues(DummyScenario.Account.AttributeNames.DEPARTMENT.local(), "Law Enforcement")
-                .addAttributeValues(DummyScenario.Account.AttributeNames.CREATED.local(), Arrays.asList(ZonedDateTime.parse("2015-11-01T14:00:00Z")))
-                .addAttributeValues(DummyScenario.Account.AttributeNames.LAST_LOGIN.local(), Arrays.asList(ZonedDateTime.parse("2024-06-27T16:00:00Z")));
-
-        c.addAccount("irene")
-                .addAttributeValues(DummyScenario.Account.AttributeNames.FULLNAME.local(), "Irene Adler")
-                .addAttributeValues(DummyScenario.Account.AttributeNames.DESCRIPTION.local(), "Consultant")
-                .addAttributeValues(DummyScenario.Account.AttributeNames.PERSONAL_NUMBER.local(), "20010035")
-                .addAttributeValues(DummyScenario.Account.AttributeNames.EMAIL.local(), "irene@evolveum.com")
-                .addAttributeValues(DummyScenario.Account.AttributeNames.PHONE.local(), "+420601000035")
-                .addAttributeValues(DummyScenario.Account.AttributeNames.STATUS.local(), "active")
-                .addAttributeValues(DummyScenario.Account.AttributeNames.TYPE.local(), "contractor")
-                .addAttributeValues(DummyScenario.Account.AttributeNames.DEPARTMENT.local(), "Consulting")
-                .addAttributeValues(DummyScenario.Account.AttributeNames.CREATED.local(), Arrays.asList(ZonedDateTime.parse("2018-04-01T15:00:00Z")))
-                .addAttributeValues(DummyScenario.Account.AttributeNames.LAST_LOGIN.local(), Arrays.asList(ZonedDateTime.parse("2024-06-28T17:00:00Z")));
-
-        c.addAccount("jon")
-                .addAttributeValues(DummyScenario.Account.AttributeNames.FULLNAME.local(), "Jon Snow")
-                .addAttributeValues(DummyScenario.Account.AttributeNames.DESCRIPTION.local(), "Lord Commander")
-                .addAttributeValues(DummyScenario.Account.AttributeNames.PERSONAL_NUMBER.local(), "20010036")
-                .addAttributeValues(DummyScenario.Account.AttributeNames.EMAIL.local(), "jon@evolveum.com")
-                .addAttributeValues(DummyScenario.Account.AttributeNames.PHONE.local(), "+420601000036")
-                .addAttributeValues(DummyScenario.Account.AttributeNames.STATUS.local(), "active")
-                .addAttributeValues(DummyScenario.Account.AttributeNames.TYPE.local(), "manager")
-                .addAttributeValues(DummyScenario.Account.AttributeNames.DEPARTMENT.local(), "Night Watch")
-                .addAttributeValues(DummyScenario.Account.AttributeNames.CREATED.local(), Arrays.asList(ZonedDateTime.parse("2017-10-01T16:00:00Z")))
-                .addAttributeValues(DummyScenario.Account.AttributeNames.LAST_LOGIN.local(), Arrays.asList(ZonedDateTime.parse("2024-06-29T18:00:00Z")));
-
-        c.addAccount("carol")
-                .addAttributeValues(DummyScenario.Account.AttributeNames.FULLNAME.local(), "Carol Danvers")
-                .addAttributeValues(DummyScenario.Account.AttributeNames.PERSONAL_NUMBER.local(), "10808888")
-                .addAttributeValues(DummyScenario.Account.AttributeNames.EMAIL.local(), "carol@evolveum.com")
-                .addAttributeValues(DummyScenario.Account.AttributeNames.PHONE.local(), "+421900555666")
-                .addAttributeValues(DummyScenario.Account.AttributeNames.STATUS.local(), "active")
-                .addAttributeValues(DummyScenario.Account.AttributeNames.TYPE.local(), "employee")
-                .addAttributeValues(DummyScenario.Account.AttributeNames.DEPARTMENT.local(), "Security")
-                .addAttributeValues(DummyScenario.Account.AttributeNames.DESCRIPTION.local(), "Security specialist")
-                .addAttributeValues(DummyScenario.Account.AttributeNames.CREATED.local(), Arrays.asList(ZonedDateTime.parse("2022-01-05T09:00:00Z")))
-                .addAttributeValues(DummyScenario.Account.AttributeNames.LAST_LOGIN.local(), Arrays.asList(ZonedDateTime.parse("2024-05-10T08:15:00Z")));
-
-        c.addAccount("dave")
-                .addAttributeValues(DummyScenario.Account.AttributeNames.FULLNAME.local(), "Dave Lister")
-                .addAttributeValues(DummyScenario.Account.AttributeNames.PERSONAL_NUMBER.local(), "11001111")
-                .addAttributeValues(DummyScenario.Account.AttributeNames.EMAIL.local(), "dave@evolveum.com")
-                .addAttributeValues(DummyScenario.Account.AttributeNames.STATUS.local(), "active")
-                .addAttributeValues(DummyScenario.Account.AttributeNames.TYPE.local(), "contractor")
-                .addAttributeValues(DummyScenario.Account.AttributeNames.CREATED.local(), Arrays.asList(ZonedDateTime.now().minusDays(10)))
-                .addAttributeValues(DummyScenario.Account.AttributeNames.LAST_LOGIN.local(), Arrays.asList(ZonedDateTime.now().minusDays(10)));
-        c.addAccount("leo")
-                .addAttributeValues(DummyScenario.Account.AttributeNames.FULLNAME.local(), "Leo Messi")
-                .addAttributeValues(DummyScenario.Account.AttributeNames.PERSONAL_NUMBER.local(), "20010012")
-                .addAttributeValues(DummyScenario.Account.AttributeNames.EMAIL.local(), "leo@evolveum.com")
-                .addAttributeValues(DummyScenario.Account.AttributeNames.PHONE.local(), "+420601000012")
-                .addAttributeValues(DummyScenario.Account.AttributeNames.STATUS.local(), "active")
-                .addAttributeValues(DummyScenario.Account.AttributeNames.TYPE.local(), "employee")
-                .addAttributeValues(DummyScenario.Account.AttributeNames.DEPARTMENT.local(), "Sports")
-                .addAttributeValues(DummyScenario.Account.AttributeNames.CREATED.local(), Arrays.asList(ZonedDateTime.parse("2022-06-01T12:00:00Z")))
-                .addAttributeValues(DummyScenario.Account.AttributeNames.LAST_LOGIN.local(), Arrays.asList(ZonedDateTime.parse("2024-06-06T14:00:00Z")))
-                .addAttributeValues(DummyScenario.Account.AttributeNames.DESCRIPTION.local(), "Athlete");
-
-        c.addAccount("mia")
-                .addAttributeValues(DummyScenario.Account.AttributeNames.FULLNAME.local(), "Mia Wallace")
-                .addAttributeValues(DummyScenario.Account.AttributeNames.PERSONAL_NUMBER.local(), "20010013")
-                .addAttributeValues(DummyScenario.Account.AttributeNames.EMAIL.local(), "mia@evolveum.com")
-                .addAttributeValues(DummyScenario.Account.AttributeNames.PHONE.local(), "+420601000013")
-                .addAttributeValues(DummyScenario.Account.AttributeNames.STATUS.local(), "inactive")
-                .addAttributeValues(DummyScenario.Account.AttributeNames.TYPE.local(), "employee")
-                .addAttributeValues(DummyScenario.Account.AttributeNames.DEPARTMENT.local(), "Legal")
-                .addAttributeValues(DummyScenario.Account.AttributeNames.CREATED.local(), Arrays.asList(ZonedDateTime.parse("2019-04-10T15:00:00Z")))
-                .addAttributeValues(DummyScenario.Account.AttributeNames.LAST_LOGIN.local(), Arrays.asList(ZonedDateTime.parse("2024-03-10T16:00:00Z")))
-                .addAttributeValues(DummyScenario.Account.AttributeNames.DESCRIPTION.local(), "Legal Advisor");
-
-        c.addAccount("nina")
-                .addAttributeValues(DummyScenario.Account.AttributeNames.FULLNAME.local(), "Nina Simone")
-                .addAttributeValues(DummyScenario.Account.AttributeNames.PERSONAL_NUMBER.local(), "20010014")
-                .addAttributeValues(DummyScenario.Account.AttributeNames.EMAIL.local(), "nina@evolveum.com")
-                .addAttributeValues(DummyScenario.Account.AttributeNames.PHONE.local(), "+420601000014")
-                .addAttributeValues(DummyScenario.Account.AttributeNames.STATUS.local(), "active")
-                .addAttributeValues(DummyScenario.Account.AttributeNames.TYPE.local(), "employee")
-                .addAttributeValues(DummyScenario.Account.AttributeNames.DEPARTMENT.local(), "Music")
-                .addAttributeValues(DummyScenario.Account.AttributeNames.CREATED.local(), Arrays.asList(ZonedDateTime.parse("2018-01-01T14:00:00Z")))
-                .addAttributeValues(DummyScenario.Account.AttributeNames.LAST_LOGIN.local(), Arrays.asList(ZonedDateTime.parse("2024-06-07T15:00:00Z")))
-                .addAttributeValues(DummyScenario.Account.AttributeNames.DESCRIPTION.local(), "Musician");
-
-        c.addAccount("oliver")
-                .addAttributeValues(DummyScenario.Account.AttributeNames.FULLNAME.local(), "Oliver Twist")
-                .addAttributeValues(DummyScenario.Account.AttributeNames.PERSONAL_NUMBER.local(), "20010015")
-                .addAttributeValues(DummyScenario.Account.AttributeNames.EMAIL.local(), "oliver@evolveum.com")
-                .addAttributeValues(DummyScenario.Account.AttributeNames.PHONE.local(), "+420601000015")
-                .addAttributeValues(DummyScenario.Account.AttributeNames.STATUS.local(), "active")
-                .addAttributeValues(DummyScenario.Account.AttributeNames.TYPE.local(), "employee")
-                .addAttributeValues(DummyScenario.Account.AttributeNames.DEPARTMENT.local(), "Operations")
-                .addAttributeValues(DummyScenario.Account.AttributeNames.CREATED.local(), Arrays.asList(ZonedDateTime.parse("2024-05-15T10:00:00Z")))
-                .addAttributeValues(DummyScenario.Account.AttributeNames.LAST_LOGIN.local(), Arrays.asList(ZonedDateTime.parse("2024-06-08T11:00:00Z")))
-                .addAttributeValues(DummyScenario.Account.AttributeNames.DESCRIPTION.local(), "Operations Intern");
-
-        c.addAccount("peter")
-                .addAttributeValues(DummyScenario.Account.AttributeNames.FULLNAME.local(), "Peter Parker")
-                .addAttributeValues(DummyScenario.Account.AttributeNames.PERSONAL_NUMBER.local(), "20010016")
-                .addAttributeValues(DummyScenario.Account.AttributeNames.EMAIL.local(), "peter@evolveum.com")
-                .addAttributeValues(DummyScenario.Account.AttributeNames.PHONE.local(), "+420601000016")
-                .addAttributeValues(DummyScenario.Account.AttributeNames.STATUS.local(), "active")
-                .addAttributeValues(DummyScenario.Account.AttributeNames.TYPE.local(), "employee")
-                .addAttributeValues(DummyScenario.Account.AttributeNames.DEPARTMENT.local(), "Photography")
-                .addAttributeValues(DummyScenario.Account.AttributeNames.CREATED.local(), Arrays.asList(ZonedDateTime.parse("2023-08-01T09:00:00Z")))
-                .addAttributeValues(DummyScenario.Account.AttributeNames.LAST_LOGIN.local(), Arrays.asList(ZonedDateTime.parse("2024-06-09T12:00:00Z")))
-                .addAttributeValues(DummyScenario.Account.AttributeNames.DESCRIPTION.local(), "Photographer");
-
-        c.addAccount("quinn")
-                .addAttributeValues(DummyScenario.Account.AttributeNames.FULLNAME.local(), "Quinn Fabray")
-                .addAttributeValues(DummyScenario.Account.AttributeNames.PERSONAL_NUMBER.local(), "20010017")
-                .addAttributeValues(DummyScenario.Account.AttributeNames.EMAIL.local(), "quinn@evolveum.com")
-                .addAttributeValues(DummyScenario.Account.AttributeNames.PHONE.local(), "+420601000017")
-                .addAttributeValues(DummyScenario.Account.AttributeNames.STATUS.local(), "active")
-                .addAttributeValues(DummyScenario.Account.AttributeNames.TYPE.local(), "employee")
-                .addAttributeValues(DummyScenario.Account.AttributeNames.DEPARTMENT.local(), "Music")
-                .addAttributeValues(DummyScenario.Account.AttributeNames.CREATED.local(), Arrays.asList(ZonedDateTime.parse("2021-09-01T10:00:00Z")))
-                .addAttributeValues(DummyScenario.Account.AttributeNames.LAST_LOGIN.local(), Arrays.asList(ZonedDateTime.parse("2024-06-10T13:00:00Z")))
-                .addAttributeValues(DummyScenario.Account.AttributeNames.DESCRIPTION.local(), "Singer");
-
-        c.addAccount("rachel")
-                .addAttributeValues(DummyScenario.Account.AttributeNames.FULLNAME.local(), "Rachel Green")
-                .addAttributeValues(DummyScenario.Account.AttributeNames.PERSONAL_NUMBER.local(), "20010018")
-                .addAttributeValues(DummyScenario.Account.AttributeNames.EMAIL.local(), "rachel@evolveum.com")
-                .addAttributeValues(DummyScenario.Account.AttributeNames.PHONE.local(), "+420601000018")
-                .addAttributeValues(DummyScenario.Account.AttributeNames.STATUS.local(), "active")
-                .addAttributeValues(DummyScenario.Account.AttributeNames.TYPE.local(), "manager")
-                .addAttributeValues(DummyScenario.Account.AttributeNames.DEPARTMENT.local(), "Fashion")
-                .addAttributeValues(DummyScenario.Account.AttributeNames.CREATED.local(), Arrays.asList(ZonedDateTime.parse("2022-04-01T11:00:00Z")))
-                .addAttributeValues(DummyScenario.Account.AttributeNames.LAST_LOGIN.local(), Arrays.asList(ZonedDateTime.parse("2024-06-11T14:00:00Z")))
-                .addAttributeValues(DummyScenario.Account.AttributeNames.DESCRIPTION.local(), "Fashion Manager");
-
-        c.addAccount("sam")
-                .addAttributeValues(DummyScenario.Account.AttributeNames.FULLNAME.local(), "Samwise Gamgee")
-                .addAttributeValues(DummyScenario.Account.AttributeNames.PERSONAL_NUMBER.local(), "20010019")
-                .addAttributeValues(DummyScenario.Account.AttributeNames.EMAIL.local(), "sam@evolveum.com")
-                .addAttributeValues(DummyScenario.Account.AttributeNames.PHONE.local(), "+420601000019")
-                .addAttributeValues(DummyScenario.Account.AttributeNames.STATUS.local(), "active")
-                .addAttributeValues(DummyScenario.Account.AttributeNames.TYPE.local(), "employee")
-                .addAttributeValues(DummyScenario.Account.AttributeNames.DEPARTMENT.local(), "Gardening")
-                .addAttributeValues(DummyScenario.Account.AttributeNames.CREATED.local(), Arrays.asList(ZonedDateTime.parse("2021-03-01T12:00:00Z")))
-                .addAttributeValues(DummyScenario.Account.AttributeNames.LAST_LOGIN.local(), Arrays.asList(ZonedDateTime.parse("2024-06-12T15:00:00Z")))
-                .addAttributeValues(DummyScenario.Account.AttributeNames.DESCRIPTION.local(), "Gardener");
-
-        c.addAccount("tom")
-                .addAttributeValues(DummyScenario.Account.AttributeNames.FULLNAME.local(), "Tom Riddle")
-                .addAttributeValues(DummyScenario.Account.AttributeNames.PERSONAL_NUMBER.local(), "20010020")
-                .addAttributeValues(DummyScenario.Account.AttributeNames.EMAIL.local(), "tom@evolveum.com")
-                .addAttributeValues(DummyScenario.Account.AttributeNames.PHONE.local(), "+420601000020")
-                .addAttributeValues(DummyScenario.Account.AttributeNames.STATUS.local(), "inactive")
-                .addAttributeValues(DummyScenario.Account.AttributeNames.TYPE.local(), "employee")
-                .addAttributeValues(DummyScenario.Account.AttributeNames.DEPARTMENT.local(), "Magic")
-                .addAttributeValues(DummyScenario.Account.AttributeNames.CREATED.local(), Arrays.asList(ZonedDateTime.parse("2020-08-01T13:00:00Z")))
-                .addAttributeValues(DummyScenario.Account.AttributeNames.LAST_LOGIN.local(), Arrays.asList(ZonedDateTime.parse("2024-06-13T16:00:00Z")))
-                .addAttributeValues(DummyScenario.Account.AttributeNames.DESCRIPTION.local(), "Wizard");
-
-        c.addAccount("ursula")
-                .addAttributeValues(DummyScenario.Account.AttributeNames.FULLNAME.local(), "Ursula K Le Guin")
-                .addAttributeValues(DummyScenario.Account.AttributeNames.PERSONAL_NUMBER.local(), "20010021")
-                .addAttributeValues(DummyScenario.Account.AttributeNames.EMAIL.local(), "ursula@evolveum.com")
-                .addAttributeValues(DummyScenario.Account.AttributeNames.PHONE.local(), "+420601000021")
-                .addAttributeValues(DummyScenario.Account.AttributeNames.STATUS.local(), "active")
-                .addAttributeValues(DummyScenario.Account.AttributeNames.TYPE.local(), "contractor")
-                .addAttributeValues(DummyScenario.Account.AttributeNames.DEPARTMENT.local(), "Writing")
-                .addAttributeValues(DummyScenario.Account.AttributeNames.CREATED.local(), Arrays.asList(ZonedDateTime.parse("2017-10-01T14:00:00Z")))
-                .addAttributeValues(DummyScenario.Account.AttributeNames.LAST_LOGIN.local(), Arrays.asList(ZonedDateTime.parse("2024-06-14T17:00:00Z")))
-                .addAttributeValues(DummyScenario.Account.AttributeNames.DESCRIPTION.local(), "Author");
-
-        c.addAccount("victor")
-                .addAttributeValues(DummyScenario.Account.AttributeNames.FULLNAME.local(), "Victor Frankenstein")
-                .addAttributeValues(DummyScenario.Account.AttributeNames.PERSONAL_NUMBER.local(), "20010022")
-                .addAttributeValues(DummyScenario.Account.AttributeNames.EMAIL.local(), "victor@evolveum.com")
-                .addAttributeValues(DummyScenario.Account.AttributeNames.PHONE.local(), "+420601000022")
-                .addAttributeValues(DummyScenario.Account.AttributeNames.STATUS.local(), "inactive")
-                .addAttributeValues(DummyScenario.Account.AttributeNames.TYPE.local(), "employee")
-                .addAttributeValues(DummyScenario.Account.AttributeNames.DEPARTMENT.local(), "Research")
-                .addAttributeValues(DummyScenario.Account.AttributeNames.CREATED.local(), Arrays.asList(ZonedDateTime.parse("2018-02-01T15:00:00Z")))
-                .addAttributeValues(DummyScenario.Account.AttributeNames.LAST_LOGIN.local(), Arrays.asList(ZonedDateTime.parse("2024-06-15T18:00:00Z")))
-                .addAttributeValues(DummyScenario.Account.AttributeNames.DESCRIPTION.local(), "Scientist");
-
-        c.addAccount("wendy")
-                .addAttributeValues(DummyScenario.Account.AttributeNames.FULLNAME.local(), "Wendy Darling")
-                .addAttributeValues(DummyScenario.Account.AttributeNames.PERSONAL_NUMBER.local(), "20010023")
-                .addAttributeValues(DummyScenario.Account.AttributeNames.EMAIL.local(), "wendy@evolveum.com")
-                .addAttributeValues(DummyScenario.Account.AttributeNames.PHONE.local(), "+420601000023")
-                .addAttributeValues(DummyScenario.Account.AttributeNames.STATUS.local(), "active")
-                .addAttributeValues(DummyScenario.Account.AttributeNames.TYPE.local(), "employee")
-                .addAttributeValues(DummyScenario.Account.AttributeNames.DEPARTMENT.local(), "Childcare")
-                .addAttributeValues(DummyScenario.Account.AttributeNames.CREATED.local(), Arrays.asList(ZonedDateTime.parse("2024-01-01T16:00:00Z")))
-                .addAttributeValues(DummyScenario.Account.AttributeNames.LAST_LOGIN.local(), Arrays.asList(ZonedDateTime.parse("2024-06-16T19:00:00Z")))
-                .addAttributeValues(DummyScenario.Account.AttributeNames.DESCRIPTION.local(), "Nanny");
-
-        c.addAccount("xander")
-                .addAttributeValues(DummyScenario.Account.AttributeNames.FULLNAME.local(), "Xander Harris")
-                .addAttributeValues(DummyScenario.Account.AttributeNames.PERSONAL_NUMBER.local(), "20010024")
-                .addAttributeValues(DummyScenario.Account.AttributeNames.EMAIL.local(), "xander@evolveum.com")
-                .addAttributeValues(DummyScenario.Account.AttributeNames.PHONE.local(), "+420601000024")
-                .addAttributeValues(DummyScenario.Account.AttributeNames.STATUS.local(), "active")
-                .addAttributeValues(DummyScenario.Account.AttributeNames.TYPE.local(), "employee")
-                .addAttributeValues(DummyScenario.Account.AttributeNames.DEPARTMENT.local(), "Maintenance")
-                .addAttributeValues(DummyScenario.Account.AttributeNames.CREATED.local(), Arrays.asList(ZonedDateTime.parse("2023-07-01T17:00:00Z")))
-                .addAttributeValues(DummyScenario.Account.AttributeNames.LAST_LOGIN.local(), Arrays.asList(ZonedDateTime.parse("2024-06-17T20:00:00Z")))
-                .addAttributeValues(DummyScenario.Account.AttributeNames.DESCRIPTION.local(), "Janitor");
-
-        c.addAccount("yara")
-                .addAttributeValues(DummyScenario.Account.AttributeNames.FULLNAME.local(), "Yara Greyjoy")
-                .addAttributeValues(DummyScenario.Account.AttributeNames.PERSONAL_NUMBER.local(), "20010025")
-                .addAttributeValues(DummyScenario.Account.AttributeNames.EMAIL.local(), "yara@evolveum.com")
-                .addAttributeValues(DummyScenario.Account.AttributeNames.PHONE.local(), "+420601000025")
-                .addAttributeValues(DummyScenario.Account.AttributeNames.STATUS.local(), "active")
-                .addAttributeValues(DummyScenario.Account.AttributeNames.TYPE.local(), "manager")
-                .addAttributeValues(DummyScenario.Account.AttributeNames.DEPARTMENT.local(), "Shipping")
-                .addAttributeValues(DummyScenario.Account.AttributeNames.CREATED.local(), Arrays.asList(ZonedDateTime.parse("2019-06-01T18:00:00Z")))
-                .addAttributeValues(DummyScenario.Account.AttributeNames.LAST_LOGIN.local(), Arrays.asList(ZonedDateTime.parse("2024-06-18T21:00:00Z")))
-                .addAttributeValues(DummyScenario.Account.AttributeNames.DESCRIPTION.local(), "Fleet Manager");
-
-        c.addAccount("zane")
-                .addAttributeValues(DummyScenario.Account.AttributeNames.FULLNAME.local(), "Zane Malik")
-                .addAttributeValues(DummyScenario.Account.AttributeNames.PERSONAL_NUMBER.local(), "20010026")
-                .addAttributeValues(DummyScenario.Account.AttributeNames.EMAIL.local(), "zane@evolveum.com")
-                .addAttributeValues(DummyScenario.Account.AttributeNames.PHONE.local(), "+420601000026")
-                .addAttributeValues(DummyScenario.Account.AttributeNames.STATUS.local(), "active")
-                .addAttributeValues(DummyScenario.Account.AttributeNames.TYPE.local(), "employee")
-                .addAttributeValues(DummyScenario.Account.AttributeNames.DEPARTMENT.local(), "Investigation")
-                .addAttributeValues(DummyScenario.Account.AttributeNames.CREATED.local(), Arrays.asList(ZonedDateTime.parse("2020-09-01T19:00:00Z")))
-                .addAttributeValues(DummyScenario.Account.AttributeNames.LAST_LOGIN.local(), Arrays.asList(ZonedDateTime.parse("2024-06-19T22:00:00Z")))
-                .addAttributeValues(DummyScenario.Account.AttributeNames.DESCRIPTION.local(), "Detective");
     }
 
     @Test
@@ -725,11 +395,15 @@ public class TestSmartIntegrationServiceImpl extends AbstractSmartIntegrationTes
                 assertThat(vc.getCount()).isEqualTo(1);
             }
         }
+        testStatusAttributeStatistics();
+        testDepartmentAttributeStatistics();
+        testPhoneAttributeStatistics();
+        testCreatedAttributeStatistics();
+        testTypeAttributeStatistics();
     }
 
     /** Tests status attribute statistics. */
-    @Test
-    public void test201StatusAttributeStatistics() throws CommonException {
+    public void testStatusAttributeStatistics() throws CommonException {
         var task = getTestTask();
         var result = task.getResult();
 
@@ -752,8 +426,7 @@ public class TestSmartIntegrationServiceImpl extends AbstractSmartIntegrationTes
     }
 
     /** Tests department attribute statistics. */
-    @Test
-    public void test202DepartmentAttributeStatistics() throws CommonException {
+    public void testDepartmentAttributeStatistics() throws CommonException {
         var task = getTestTask();
         var result = task.getResult();
 
@@ -772,8 +445,7 @@ public class TestSmartIntegrationServiceImpl extends AbstractSmartIntegrationTes
     }
 
     /** Tests phone attribute statistics. */
-    @Test
-    public void test203PhoneAttributeStatistics() throws CommonException {
+    public void testPhoneAttributeStatistics() throws CommonException {
         var task = getTestTask();
         var result = task.getResult();
 
@@ -793,8 +465,7 @@ public class TestSmartIntegrationServiceImpl extends AbstractSmartIntegrationTes
     }
 
     /** Tests created attribute statistics. */
-    @Test
-    public void test204CreatedAttributeStatistics() throws CommonException {
+    public void testCreatedAttributeStatistics() throws CommonException {
         var task = getTestTask();
         var result = task.getResult();
 
@@ -812,8 +483,7 @@ public class TestSmartIntegrationServiceImpl extends AbstractSmartIntegrationTes
     }
 
     /** Tests type attribute statistics. */
-    @Test
-    public void test205TypeAttributeStatistics() throws CommonException {
+    public void testTypeAttributeStatistics() throws CommonException {
         var task = getTestTask();
         var result = task.getResult();
 
@@ -834,12 +504,12 @@ public class TestSmartIntegrationServiceImpl extends AbstractSmartIntegrationTes
 
     /** Tests the accounts statistics computer after adding more accounts, exceeding percentage limit for some attributes. */
     @Test
-    public void test210ComputeAccountStatisticsExceedingPercentageLimit() throws Exception {
+    public void test210ComputeAccountStatisticsExceedingTopNLimit() throws Exception {
         var task = getTestTask();
         var result = task.getResult();
 
         when("additional accounts are created, exceeding the percentage limit for unique attribute values");
-        addDummyAccountsExceedingPercentageLimit();
+        addDummyAccountsExceedingTopNLimit();
 
         when("computing statistics for accounts");
         var statistics = computeStatistics(OC_ACCOUNT_QNAME, task, result);
@@ -848,80 +518,6 @@ public class TestSmartIntegrationServiceImpl extends AbstractSmartIntegrationTes
         displayValue("statistics", PrismContext.get().jsonSerializer().serializeRealValueContent(statistics));
         assertThat(statistics).isNotNull();
         assertThat(statistics.getAttribute()).isNotEmpty();
-
-        // Exceeding percentage limit 10.25, but not exceeding hard limit 30
-        var phoneAttribute = statistics.getAttribute().stream()
-                .filter(attr -> attr.getRef().toString().equals("phone"))
-                .findFirst().orElseThrow();
-        assertThat(phoneAttribute.getUniqueValueCount()).isEqualTo(-1);
-        assertThat(phoneAttribute.getValueCount()).isEmpty();
-
-        // Not exceedint percentage limit 10.25
-        var personalNumberAttribute = statistics.getAttribute().stream()
-                .filter(attr -> attr.getRef().toString().equals("personalNumber"))
-                .findFirst().orElseThrow();
-        assertThat(personalNumberAttribute.getUniqueValueCount()).isEqualTo(10);
-        assertThat(personalNumberAttribute.getValueCount()).isNotEmpty();
-
-        var departmentAttribute = statistics.getAttribute().stream()
-                .filter(attr -> attr.getRef().toString().equals("department"))
-                .findFirst().orElseThrow();
-        assertThat(departmentAttribute.getValueCount()).isNotEmpty();
-        assertThat(departmentAttribute.getUniqueValueCount()).isEqualTo(2);
-        Map<String, Integer> valueCounts = departmentAttribute.getValueCount().stream()
-                .collect(Collectors.toMap(vc -> vc.getValue().toString(), vc -> vc.getCount()));
-        assertThat(valueCounts).containsEntry("HR", 201);
-        assertThat(valueCounts).containsEntry("Engineering", 1);
-    }
-
-    /** Tests the accounts statistics computer after adding more accounts, exceeding hard limit for some attributes. */
-    @Test
-    public void test220ComputeAccountStatisticsExceedingHardLimit() throws Exception {
-        var task = getTestTask();
-        var result = task.getResult();
-
-        when("additional accounts are created, exceeding the hard limit for unique attribute values");
-        addDummyAccountsExceedingHardLimit();
-
-        when("computing statistics for accounts");
-        var statistics = computeStatistics(OC_ACCOUNT_QNAME, task, result);
-
-        then("the statistics are OK, value stats for particular attributes are eliminated");
-        displayValue("statistics", PrismContext.get().jsonSerializer().serializeRealValueContent(statistics));
-        assertThat(statistics).isNotNull();
-        assertThat(statistics.getAttribute()).isNotEmpty();
-
-        for (String attributeName : List.of("lastLogin", "uid", "phone", "created", "name", "description", "personalNumber", "fullname", "department", "email")) {
-            var attribute = statistics.getAttribute().stream()
-                    .filter(attr -> attr.getRef().toString().equals(attributeName))
-                    .findFirst().orElseThrow();
-            assertThat(attribute.getUniqueValueCount()).isEqualTo(-1);
-            assertThat(attribute.getValueCount()).isEmpty();
-        }
-
-        var typeAttribute = statistics.getAttribute().stream()
-                .filter(attr -> attr.getRef().toString().equals("type"))
-                .findFirst().orElseThrow();
-        assertThat(typeAttribute.getValueCount()).isNotEmpty();
-        assertThat(typeAttribute.getUniqueValueCount()).isEqualTo(3);
-        assertThat(typeAttribute.getMissingValueCount()).isEqualTo(201);
-        Map<String, Integer> typeValueCounts = typeAttribute.getValueCount().stream()
-                .collect(Collectors.toMap(vc -> vc.getValue().toString(), vc -> vc.getCount()));
-        assertThat(typeValueCounts).containsEntry("employee", 21);
-        assertThat(typeValueCounts).containsEntry("manager", 4);
-        assertThat(typeValueCounts).containsEntry("contractor", 6);
-
-        var statusAttribute = statistics.getAttribute().stream()
-                .filter(attr -> attr.getRef().toString().equals("status"))
-                .findFirst().orElseThrow();
-        assertThat(statusAttribute.getValueCount()).isNotEmpty();
-        assertThat(statusAttribute.getUniqueValueCount()).isEqualTo(3);
-        assertThat(statusAttribute.getMissingValueCount()).isEqualTo(200);
-        Map<String, Integer> statusValueCounts = statusAttribute.getValueCount().stream()
-                .collect(Collectors.toMap(vc -> vc.getValue().toString(), vc -> vc.getCount()));
-        assertThat(statusValueCounts).containsEntry("active", 23);
-        assertThat(statusValueCounts).containsEntry("inactive", 7);
-        assertThat(statusValueCounts).containsEntry("locked", 2);
     }
 
     @SuppressWarnings("SameParameterValue")
