@@ -192,7 +192,7 @@ public class TestSmartIntegrationServiceStory extends AbstractEmptyModelIntegrat
         smartIntegrationService.setServiceClientSupplier(
                 () -> new MockServiceClientImpl<>(
                         new SiSuggestFocusTypeResponseType()
-                                .focusTypeName(UserType.COMPLEX_TYPE.getLocalPart())));
+                                .focusTypeName(UserType.COMPLEX_TYPE)));
         var focusTypeForPerson = smartIntegrationService.suggestFocusType(RESOURCE_DUMMY_HR.oid, HR_PERSON, task, result);
 
         then("the focus type for person is correct");
@@ -204,7 +204,7 @@ public class TestSmartIntegrationServiceStory extends AbstractEmptyModelIntegrat
         smartIntegrationService.setServiceClientSupplier(
                 () -> new MockServiceClientImpl<>(
                         new SiSuggestFocusTypeResponseType()
-                                .focusTypeName(OrgType.COMPLEX_TYPE.getLocalPart())));
+                                .focusTypeName(OrgType.COMPLEX_TYPE)));
         var focusTypeForDepartment = smartIntegrationService.suggestFocusType(RESOURCE_DUMMY_HR.oid, HR_DEPARTMENT, task, result);
 
         then("the focus type for person is correct");

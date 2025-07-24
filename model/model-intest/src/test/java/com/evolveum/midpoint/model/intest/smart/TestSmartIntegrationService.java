@@ -117,7 +117,7 @@ public class TestSmartIntegrationService extends AbstractEmptyModelIntegrationTe
             smartIntegrationService.setServiceClientSupplier(
                     () -> new MockServiceClientImpl<>(
                             new SiSuggestFocusTypeResponseType()
-                                    .focusTypeName(UserType.COMPLEX_TYPE.getLocalPart())));
+                                    .focusTypeName(UserType.COMPLEX_TYPE)));
         }
 
         var task = getTestTask();
