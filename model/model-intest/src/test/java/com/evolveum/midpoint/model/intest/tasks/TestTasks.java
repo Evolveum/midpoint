@@ -12,7 +12,7 @@ import java.util.List;
 
 import com.evolveum.midpoint.repo.common.util.OperationExecutionWriter;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskRunHistoryType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskRunRecordType;
 
 import org.assertj.core.api.Assertions;
 import org.springframework.test.annotation.DirtiesContext;
@@ -135,12 +135,12 @@ public class TestTasks extends AbstractEmptyModelIntegrationTest {
         Assertions.assertThat(taskType)
                 .isNotNull();
 
-        List<TaskRunHistoryType> history = taskType.getTaskRunHistory();
+        List<TaskRunRecordType> history = taskType.getTaskRunRecord();
 
         Assertions.assertThat(history)
                 .hasSize(OperationExecutionWriter.DEFAUL_NUMBER_OF_RESULTS_TO_KEEP_PER_TASK);
 
-        for (TaskRunHistoryType item : history) {
+        for (TaskRunRecordType item : history) {
             Assertions.assertThat(item.getTaskRunIdentifier()).isNotEmpty();
             Assertions.assertThat(item.getRunStartTimestamp()).isNotNull();
             Assertions.assertThat(item.getRunEndTimestamp()).isNotNull();

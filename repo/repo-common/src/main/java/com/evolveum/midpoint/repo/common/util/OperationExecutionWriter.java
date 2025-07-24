@@ -285,8 +285,7 @@ public class OperationExecutionWriter implements SystemConfigurationChangeListen
             ActivityPathType activityPath) {
         return taskOid != null
                 && taskOid.equals(getTaskOid(execution))
-                && taskRunIdentifier != null
-                && taskRunIdentifier.equals(getTaskRunIdentifier(execution))
+                && Objects.equals(taskRunIdentifier, getTaskRunIdentifier(execution))
                 && Objects.equals(activityPath, execution.getActivityPath());
     }
 
