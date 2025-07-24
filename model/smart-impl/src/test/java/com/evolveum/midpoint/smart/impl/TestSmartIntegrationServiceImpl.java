@@ -21,10 +21,11 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 import com.evolveum.midpoint.model.test.smart.MockServiceClientImpl;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.smart.impl.DummyScenario.Account;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
+import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
@@ -594,11 +595,14 @@ public class TestSmartIntegrationServiceImpl extends AbstractSmartIntegrationTes
                 .isEqualTo(parseObjectTypesSuggestion(TEST_110_EXPECTED_OBJECT_TYPES));
 
         var realRequest = normalizeSiSuggestObjectTypesRequest(mockClient.getLastRequest());
+        var expectedRequest = normalizeSiSuggestObjectTypesRequest(
+                parseFile(TEST_110_EXPECTED_REQUEST, SiSuggestObjectTypesRequestType.class));
+
+        System.out.println(realRequest.equals(expectedRequest));
+
         assertThat(realRequest)
                 .as("request (normalized)")
-                .isEqualTo(
-                        normalizeSiSuggestObjectTypesRequest(
-                                parseFile(TEST_110_EXPECTED_REQUEST, SiSuggestObjectTypesRequestType.class)));
+                .isEqualTo(expectedRequest);
     }
 
     private SiSuggestObjectTypesRequestType normalizeSiSuggestObjectTypesRequest(Object rawData) {
@@ -608,9 +612,17 @@ public class TestSmartIntegrationServiceImpl extends AbstractSmartIntegrationTes
                         .thenComparing(qName -> qName.getLocalPart());
 
         var data = (SiSuggestObjectTypesRequestType) rawData;
-        data.getSchema().getAttribute().sort(Comparator.comparing(a -> a.getName(), qNameComparator));
+        for (var attrDef : data.getSchema().getAttribute()) {
+            attrDef.setName(normalizeItemPathType(attrDef.getName()));
+        }
+        data.getSchema().getAttribute().sort(Comparator.comparing(a -> a.getName().toString()));
         data.getStatistics().getAttribute().sort(Comparator.comparing(a -> a.getRef(), qNameComparator));
         return data;
+    }
+
+    private ItemPathType normalizeItemPathType(ItemPathType pathType) {
+        var string = PrismContext.get().itemPathSerializer().serializeStandalone(pathType.getItemPath());
+        return PrismContext.get().itemPathParser().asItemPathType(string);
     }
 
     /** What if the service returns an error in the filter? */
@@ -966,12 +978,37 @@ public class TestSmartIntegrationServiceImpl extends AbstractSmartIntegrationTes
         var suggestedMappings = smartIntegrationService.suggestMappings(
                 RESOURCE_DUMMY_FOR_SUGGEST_MAPPINGS_AND_CORRELATION.oid,
                 ACCOUNT_DEFAULT,
-                UserType.COMPLEX_TYPE,
                 null, null, task, result);
 
         then("suggestion is correct");
         displayValue("request",
                 prismContext.jsonSerializer().serializeRealValueContent(mockClient.getLastRequest()));
+        // TODO add assertions
+    }
+
+    @Test
+    public void test400SuggestCorrelationRules() throws CommonException {
+        skipIfRealService();
+
+        //noinspection resource
+        var mockClient = new MockServiceClientImpl<>(
+                new SiMatchSchemaResponseType()
+                        .attributeMatch(new SiAttributeMatchSuggestionType()
+                                .applicationAttribute(Account.AttributeNames.FULLNAME.q())
+                                .midPointAttribute(UserType.F_FULL_NAME)));
+        smartIntegrationService.setServiceClientSupplier(() -> mockClient);
+
+        var task = getTestTask();
+        var result = task.getResult();
+
+        when("suggesting correlation rules");
+        var suggestedCorrelation = smartIntegrationService.suggestCorrelation(
+                RESOURCE_DUMMY_FOR_SUGGEST_MAPPINGS_AND_CORRELATION.oid,
+                ACCOUNT_DEFAULT,
+                null, task, result);
+
+        then("suggestion is correct");
+        displayDumpable("suggested correlation", suggestedCorrelation);
         // TODO add assertions
     }
 }

@@ -372,18 +372,17 @@ public class SmartIntegrationServiceImpl implements SmartIntegrationService {
             OperationResult parentResult)
             throws SchemaException, ExpressionEvaluationException, SecurityViolationException, CommunicationException,
             ConfigurationException, ObjectNotFoundException {
+        LOGGER.debug("Suggesting object types for resourceOid {}, objectClassName {}", resourceOid, objectClassName);
         var result = parentResult.subresult(OP_SUGGEST_OBJECT_TYPES)
                 .addParam("resourceOid", resourceOid)
                 .addParam("objectClassName", objectClassName)
                 .build();
-        try {
-            LOGGER.debug("Suggesting object types for resourceOid {}, objectClassName {}", resourceOid, objectClassName);
-            var resource = modelService.getObject(ResourceType.class, resourceOid, null, task, result);
-            var resourceSchema = Resource.of(resource).getCompleteSchemaRequired();
-            var objectClassDef = resourceSchema.findObjectClassDefinitionRequired(objectClassName);
-            try (var serviceClient = getServiceClient(result)) {
-                return ServiceAdapter.create(serviceClient).suggestObjectTypes(objectClassDef, statistics, resourceSchema);
-            }
+        try (var serviceClient = getServiceClient(result)) {
+            var types = Operation
+                    .init(serviceClient, resourceOid, objectClassName, task, result)
+                    .suggestObjectTypes(statistics);
+            LOGGER.debug("Object types suggestion:\n{}", types.debugDump(1));
+            return types;
         } catch (Throwable t) {
             result.recordException(t);
             throw t;
@@ -397,20 +396,16 @@ public class SmartIntegrationServiceImpl implements SmartIntegrationService {
             String resourceOid, ResourceObjectTypeIdentification typeIdentification, Task task, OperationResult parentResult)
             throws SchemaException, ExpressionEvaluationException, SecurityViolationException, CommunicationException,
             ConfigurationException, ObjectNotFoundException {
-
+        LOGGER.debug("Suggesting focus type for resourceOid {}, typeIdentification {}", resourceOid, typeIdentification);
         var result = parentResult.subresult(OP_SUGGEST_FOCUS_TYPE)
                 .addParam("resourceOid", resourceOid)
                 .addArbitraryObjectAsParam("typeIdentification", typeIdentification)
                 .build();
         try {
-            LOGGER.debug("Suggesting focus type for resourceOid {}, typeIdentification {}", resourceOid, typeIdentification);
             try (var serviceClient = getServiceClient(result)) {
-                var resource = modelService.getObject(ResourceType.class, resourceOid, null, task, result);
-                var resourceSchema = Resource.of(resource).getCompleteSchemaRequired();
-                var objectTypeDef = resourceSchema.getObjectTypeDefinitionRequired(typeIdentification);
-                var objectClassDef = resourceSchema.findObjectClassDefinitionRequired(objectTypeDef.getObjectClassName());
-                var type = ServiceAdapter.create(serviceClient)
-                        .suggestFocusType(typeIdentification, objectClassDef, objectTypeDef.getDelineation());
+                var type = TypeOperation
+                        .init(serviceClient, resourceOid, typeIdentification, task, result)
+                        .suggestFocusType();
                 LOGGER.debug("Suggested focus type: {}", type);
                 return type;
             }
@@ -426,21 +421,22 @@ public class SmartIntegrationServiceImpl implements SmartIntegrationService {
     public CorrelationSuggestionType suggestCorrelation(
             String resourceOid,
             ResourceObjectTypeIdentification typeIdentification,
-            QName focusTypeName,
             @Nullable Object interactionMetadata,
             Task task,
             OperationResult parentResult)
             throws SchemaException, ExpressionEvaluationException, SecurityViolationException, CommunicationException,
             ConfigurationException, ObjectNotFoundException {
+        LOGGER.debug("Suggesting correlation for resourceOid {}, typeIdentification {}", resourceOid, typeIdentification);
         var result = parentResult.subresult(OP_SUGGEST_CORRELATION)
                 .addParam("resourceOid", resourceOid)
                 .addArbitraryObjectAsParam("typeIdentification", typeIdentification)
-                .addParam("focusTypeName", focusTypeName)
                 .build();
-        try {
-            var resource = modelService.getObject(ResourceType.class, resourceOid, null, task, result);
-            // ...
-            return new CorrelationSuggestionType(); // TODO replace with real implementation
+        try (var serviceClient = getServiceClient(result)) {
+            var correlation = TypeOperation
+                    .init(serviceClient, resourceOid, typeIdentification, task, result)
+                    .suggestCorrelation();
+            LOGGER.debug("Suggested correlation:\n{}", correlation.debugDump(1));
+            return correlation;
         } catch (Throwable t) {
             result.recordException(t);
             throw t;
@@ -453,32 +449,23 @@ public class SmartIntegrationServiceImpl implements SmartIntegrationService {
     public MappingsSuggestionType suggestMappings(
             String resourceOid,
             ResourceObjectTypeIdentification typeIdentification,
-            QName focusTypeName,
             @Nullable MappingsSuggestionFiltersType filters,
             @Nullable MappingsSuggestionInteractionMetadataType interactionMetadata,
             Task task,
             OperationResult parentResult)
             throws SchemaException, ExpressionEvaluationException, SecurityViolationException, CommunicationException,
             ConfigurationException, ObjectNotFoundException {
+        LOGGER.debug("Suggesting mappings for resourceOid {}, typeIdentification {}", resourceOid, typeIdentification);
         var result = parentResult.subresult(OP_SUGGEST_MAPPINGS)
                 .addParam("resourceOid", resourceOid)
                 .addArbitraryObjectAsParam("typeIdentification", typeIdentification)
-                .addParam("focusTypeName", focusTypeName)
                 .build();
-        try {
-            LOGGER.debug("Suggesting mappings for resourceOid {}, typeIdentification {}", resourceOid, typeIdentification);
-            try (var serviceClient = getServiceClient(result)) {
-                var resource = modelService.getObject(ResourceType.class, resourceOid, null, task, result);
-                var resourceSchema = Resource.of(resource).getCompleteSchemaRequired();
-                var objectTypeDef = resourceSchema.getObjectTypeDefinitionRequired(typeIdentification);
-                var focusDef =
-                        MiscUtil.argNonNull(
-                                PrismContext.get().getSchemaRegistry().findObjectDefinitionByType(focusTypeName),
-                                "Focus type definition not found for %s", focusTypeName);
-                var mappings = ServiceAdapter.create(serviceClient).suggestMappings(objectTypeDef, focusDef);
-                LOGGER.debug("Suggested mappings:\n{}", mappings.debugDumpLazily(1));
-                return mappings;
-            }
+        try (var serviceClient = getServiceClient(result)) {
+            var mappings = TypeOperation
+                    .init(serviceClient, resourceOid, typeIdentification, task, result)
+                    .suggestMappings();
+            LOGGER.debug("Suggested mappings:\n{}", mappings.debugDumpLazily(1));
+            return mappings;
         } catch (Throwable t) {
             result.recordException(t);
             throw t;

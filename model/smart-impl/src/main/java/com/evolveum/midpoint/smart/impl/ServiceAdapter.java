@@ -7,14 +7,11 @@
 
 package com.evolveum.midpoint.smart.impl;
 
-import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.query.PrismQuerySerialization;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.processor.*;
 import com.evolveum.midpoint.smart.api.ServiceClient;
-import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -55,7 +52,7 @@ class ServiceAdapter {
             ResourceSchema resourceSchema)
             throws SchemaException {
         var siRequest = new SiSuggestObjectTypesRequestType()
-                .schema(serializeSchema(objectClassDef))
+                .schema(ResourceObjectClassSchemaSerializer.serialize(objectClassDef))
                 .statistics(shadowObjectClassStatistics);
 
         var siResponse = serviceClient.invoke(SUGGEST_OBJECT_TYPES, siRequest, SiSuggestObjectTypesResponseType.class);
@@ -128,45 +125,13 @@ class ServiceAdapter {
         var request = new SiSuggestFocusTypeRequestType()
                 .kind(typeIdentification.getKind().value())
                 .intent(typeIdentification.getIntent())
-                .schema(serializeSchema(objectClassDef));
+                .schema(ResourceObjectClassSchemaSerializer.serialize(objectClassDef));
 
         setBaseContextFilter(request, objectClassDef, delineation);
 
-        var response = serviceClient.invoke(SUGGEST_FOCUS_TYPE, request, SiSuggestFocusTypeResponseType.class);
-        var typeName = response.getFocusTypeName();
-        LOGGER.trace("Type suggested by the service: {}", typeName);
-        return new QName(
-                SchemaConstants.NS_C,
-                MiscUtil.requireNonNull(typeName, "No returned type name from the service"));
-    }
-
-    private SiObjectSchemaType serializeSchema(ResourceObjectClassDefinition objectClassDef) {
-        var schema = new SiObjectSchemaType()
-                .name(objectClassDef.getObjectClassName())
-                .description(objectClassDef.getDescription()); // TODO change to native description
-        for (ShadowAttributeDefinition<?, ?, ?, ?> attributeDefinition : objectClassDef.getAttributeDefinitions()) {
-            schema.getAttribute().add(
-                    new SiAttributeDefinitionType()
-                            .name(attributeDefinition.getItemName())
-                            .type(attributeDefinition.getTypeName())
-                            .description(attributeDefinition.getDescription())); // TODO change to native description
-        }
-        return schema;
-    }
-
-    private SiObjectSchemaType serializeSchema(PrismObjectDefinition<?> objectDef) {
-        var schema = new SiObjectSchemaType()
-                .name(objectDef.getTypeName())
-                .description(objectDef.getDocumentation());
-        for (var itemDef : objectDef.getDefinitions()) {
-            schema.getAttribute().add(
-                    new SiAttributeDefinitionType()
-                            .name(itemDef.getItemName())
-                            .type(itemDef.getTypeName())
-                            .description(itemDef.getDocumentation()));
-        }
-        // TODO what about containers in deep
-        return schema;
+        return serviceClient
+                .invoke(SUGGEST_FOCUS_TYPE, request, SiSuggestFocusTypeResponseType.class)
+                .getFocusTypeName();
     }
 
     private static void setBaseContextFilter(
@@ -189,10 +154,10 @@ class ServiceAdapter {
     }
 
     MappingsSuggestionType suggestMappings(
-            ResourceObjectTypeDefinition objectTypeDef, PrismObjectDefinition<Objectable> focusDef) throws SchemaException {
+            ResourceObjectTypeDefinition objectTypeDef, PrismObjectDefinition<?> focusDef) throws SchemaException {
         var request = new SiMatchSchemaRequestType()
-                .applicationSchema(serializeSchema(objectTypeDef.getObjectClassDefinition()))
-                .midPointSchema(serializeSchema(focusDef));
+                .applicationSchema(ResourceObjectClassSchemaSerializer.serialize(objectTypeDef.getObjectClassDefinition()))
+                .midPointSchema(PrismComplexTypeDefinitionSerializer.serialize(focusDef));
         var response = serviceClient.invoke(MATCH_SCHEMA, request, SiMatchSchemaResponseType.class);
         return new MappingsSuggestionType(); // TODO implement this method
     }

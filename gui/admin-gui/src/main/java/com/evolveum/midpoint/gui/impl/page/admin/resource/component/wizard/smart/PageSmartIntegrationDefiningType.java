@@ -10,7 +10,6 @@ package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.smar
 import java.io.Serial;
 import java.util.List;
 import java.util.Objects;
-import javax.xml.namespace.QName;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -128,7 +127,7 @@ public class PageSmartIntegrationDefiningType extends PageAdminConfiguration {
                         .runVoid((task, result) -> {
                             saveResourceToRepositoryAndReload(task, result);
                             var suggestion = getSmartIntegrationService().suggestCorrelation(
-                                    getResourceOid(), typeIdentification, getFocusTypeName(), null,
+                                    getResourceOid(), typeIdentification, null,
                                     task, result);
                             updateSuggestionXmlModel(suggestion);
                             target.add(PageSmartIntegrationDefiningType.this);
@@ -143,7 +142,7 @@ public class PageSmartIntegrationDefiningType extends PageAdminConfiguration {
                         .runVoid((task, result) -> {
                             saveResourceToRepositoryAndReload(task, result);
                             var suggestion = getSmartIntegrationService().suggestMappings(
-                                    getResourceOid(), typeIdentification, getFocusTypeName(), null, null,
+                                    getResourceOid(), typeIdentification, null, null,
                                     task, result);
                             updateSuggestionXmlModel(suggestion);
                             target.add(PageSmartIntegrationDefiningType.this);
@@ -231,12 +230,5 @@ public class PageSmartIntegrationDefiningType extends PageAdminConfiguration {
         } catch (Exception e) {
             throw SystemException.unexpected(e);
         }
-    }
-
-    private QName getFocusTypeName() {
-        var definition = definedResource.findObjectTypeDefinitionBean(typeIdentification);
-        var focusDef = definition != null ? definition.getFocus() : null;
-        var focusTypeName = focusDef != null ? focusDef.getType() : null;
-        return Objects.requireNonNullElse(focusTypeName, FocusType.COMPLEX_TYPE);
     }
 }

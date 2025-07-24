@@ -804,10 +804,13 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
-            <xsd:element name="name" type="xsd:QName">
+            <xsd:element name="name" type="t:ItemPathType">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Name of the attribute. May include a XML namespace prefix, typically "ri:", "icfs:", or "c:".
+                        Path to the attribute. Although usually having a size of 1 (e.g., "icfs:name" or "c:givenName"),
+                        sometimes it contains multiple segments, like "c:activation/c:validFrom".
+
+                        Individual segments may include an XML namespace prefix, typically "ri:", "icfs:", or "c:".
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
@@ -903,11 +906,10 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
-            <xsd:element name="focusTypeName" type="xsd:string">
+            <xsd:element name="focusTypeName" type="xsd:QName">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Local part of the focus name, i.e., name without XML namespace prefix.
-                        An example: UserType.
+                        Name of the focus type, e.g., c:UserType.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>

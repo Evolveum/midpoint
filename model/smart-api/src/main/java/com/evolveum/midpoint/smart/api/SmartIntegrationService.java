@@ -94,7 +94,6 @@ public interface SmartIntegrationService {
     CorrelationSuggestionType suggestCorrelation(
             String resourceOid,
             ResourceObjectTypeIdentification typeIdentification,
-            QName focusTypeName,
             @Nullable Object interactionMetadata,
             Task task,
             OperationResult result)
@@ -114,7 +113,6 @@ public interface SmartIntegrationService {
     MappingsSuggestionType suggestMappings(
             String resourceOid,
             ResourceObjectTypeIdentification typeIdentification,
-            QName focusTypeName,
             @Nullable MappingsSuggestionFiltersType filters,
             @Nullable MappingsSuggestionInteractionMetadataType interactionMetadata,
             Task task,

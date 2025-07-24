@@ -7,6 +7,8 @@
 
 package com.evolveum.midpoint.smart.impl;
 
+import com.evolveum.midpoint.model.api.ModelService;
+
 import jakarta.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -23,6 +25,9 @@ public class SmartIntegrationBeans {
 
     private static SmartIntegrationBeans instance;
 
+    @Autowired public ModelService modelService;
+    @Autowired public SmartIntegrationServiceImpl smartIntegrationService;
+
     @PostConstruct
     public void init() {
         instance = this;
@@ -31,6 +36,4 @@ public class SmartIntegrationBeans {
     public static SmartIntegrationBeans get() {
         return instance;
     }
-
-    @Autowired public SmartIntegrationServiceImpl smartIntegrationService;
 }
