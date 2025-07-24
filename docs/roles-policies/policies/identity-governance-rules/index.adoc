@@ -5,6 +5,7 @@ doc-type: [ 'config' ]
 = Identity Governance Rules
 :page-keywords: [ 'governance', 'relationship', 'rules', 'ownership' ]
 :page-upkeep-status: green
+:page-moved-from: /midpoint/reference/roles-policies/identity-governance-rules/
 
 Identity governance is based on high-level business-oriented rules, that are mostly concerned with responsibilities.
 

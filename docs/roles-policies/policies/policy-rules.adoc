@@ -16,7 +16,7 @@ compliance:
 :page-toc: top
 :page-upkeep-status: yellow
 :page-upkeep-note: Some TODOs here
-:page-moved-from: /midpoint/reference/roles-policies/
+:page-moved-from: /midpoint/reference/roles-policies/policy-rules/
 
 
 == Introduction
