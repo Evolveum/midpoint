@@ -3,9 +3,9 @@ midpoint-feature: policy-concept
 doc-type: [ 'config' ]
 ---
 = Pre-configured Policies
-:page-keywords: [ 'governance', 'relationship', 'rules', 'policy' ]
+:page-keywords: governance, relationship, rules, policy
 :page-upkeep-status: yellow
-:page-moved-from: /midpoint/reference/roles-policies/
+:page-moved-from: /midpoint/reference/roles-policies/preconfigured-policies/
 
 Default midPoint configuration includes pre-packaged polices, in a ready-to-use form.
 Following polices are included in midPoint xref:/midpoint/reference/deployment/initial-objects/[initial objects]:
