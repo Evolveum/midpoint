@@ -130,7 +130,15 @@ public class TestSmartIntegrationServiceImpl extends AbstractSmartIntegrationTes
     }
 
     private void addDummyAccountsExceedingPercentageLimit() throws Exception {
-
+        int numberOfAccounts = 200;
+        var c = dummyForObjectTypes.getController();
+        for (int i = 0; i < numberOfAccounts; i++) {
+            c.addAccount("user" + i)
+                    .addAttributeValues(DummyScenario.Account.AttributeNames.FULLNAME.local(), "User " + i)
+                    .addAttributeValues(DummyScenario.Account.AttributeNames.PERSONAL_NUMBER.local(), String.valueOf(10000000 + i))
+                    .addAttributeValues(DummyScenario.Account.AttributeNames.PHONE.local(), "+420600000" + String.format("%03d", i))
+                    .addAttributeValues(DummyScenario.Account.AttributeNames.DEPARTMENT.local(), "HR");
+        }
     }
 
     private void addDummyAccountsExceedingHardLimit() throws Exception {
@@ -510,7 +518,24 @@ public class TestSmartIntegrationServiceImpl extends AbstractSmartIntegrationTes
         displayValue("statistics", PrismContext.get().jsonSerializer().serializeRealValueContent(statistics));
         assertThat(statistics).isNotNull();
         assertThat(statistics.getAttribute()).isNotEmpty();
-        // TODO add the assertions for the attributes
+
+        for (String attributeName : List.of("uid", "name", "fullname", "personalNumber", "phone")) {
+            var selectedAttribute = statistics.getAttribute().stream()
+                    .filter(attr -> attr.getRef().toString().equals(attributeName))
+                    .findFirst().orElseThrow();
+            assertThat(selectedAttribute.getUniqueValueCount()).isEqualTo(-1);
+            assertThat(selectedAttribute.getValueCount()).isEmpty();
+        }
+
+        var departmentAttribute = statistics.getAttribute().stream()
+                .filter(attr -> attr.getRef().toString().equals("department"))
+                .findFirst().orElseThrow();
+        assertThat(departmentAttribute.getValueCount()).isNotEmpty();
+        assertThat(departmentAttribute.getUniqueValueCount()).isEqualTo(2);
+        Map<String, Integer> valueCounts = departmentAttribute.getValueCount().stream()
+                .collect(Collectors.toMap(vc -> vc.getValue().toString(), vc -> vc.getCount()));
+        assertThat(valueCounts).containsEntry("HR", 201);
+        assertThat(valueCounts).containsEntry("Engineering", 1);
     }
 
     /** Tests the accounts statistics computer after adding more accounts, exceeding hard limit for some attributes. */
