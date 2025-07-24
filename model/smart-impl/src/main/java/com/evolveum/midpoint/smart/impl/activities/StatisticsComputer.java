@@ -57,7 +57,7 @@ public class StatisticsComputer {
      *
      * TODO make this configurable (eventually).
      */
-    private static final float MAX_VALUE_COUNT_PERCENTAGE = 0.25f;
+    private static final float MAX_VALUE_COUNT_PERCENTAGE = 0.05f;
 
     /** Statistics being computed. */
     private final ShadowObjectClassStatisticsType statistics;
