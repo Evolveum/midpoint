@@ -207,7 +207,7 @@ On Linux machines, this is UTC, even if the user may set an arbitrary time zone 
 [[misfire-action]]
 === When a Task Fails to Start as Scheduled
 
-Besides the parameters above, there is also `misfireAction` that controls what is to be done when the task fails to start at its specified start time (e.g., because no node or thread are available to execute the task at that time).
+The `misfireAction` attribute controls what is to be done when the task fails to start at its specified start time (e.g., because no node or thread are available to execute the task at that time).
 There are the following possibilities:
 
 . `executeImmediately`: The task is to be executed immediately when possible.
@@ -221,7 +221,7 @@ Not yet implemented.
 // TODO: is it really not implemented yet? This deserves confirmation in the light of the discovery that we actually can schedule single-run tasks
 // Question tracked in https://support.evolveum.com/wp/10774
 
-== Grasp Task Execution Terminology
+== Task Execution Terminology Basics
 
 *Task run* (or sometimes "task cycle run") denotes one execution of a task logic, provided by task handler or handlers, see below.
 *Task thread run* denotes one execution of a task thread.
