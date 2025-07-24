@@ -145,7 +145,7 @@ Currently only loosely bound recurring tasks can use this feature.
 
 . `earliestStartTime`: Earliest time when the task is allowed to start.
 Usable for any kind of task.
-This is parameter is particularly useful to <<how-to-schedule-a-single-run-task,postpone the start of a single-run task>>.
+This is parameter is particularly useful to <<schedule-single-run-tasks,postpone the start of a single-run task>>.
 
 . `latestStartTime`: Latest time when the task is allowed to start.
 Usable for any kind of task.
