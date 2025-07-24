@@ -15,12 +15,12 @@ doc-type: config
 
 There are several ways how accounts can be provisioned and managed:
 
-* Link accounts to users (xref:/midpoint/reference/roles-policies/assignment/assigning-vs-linking/[link])
+* Link accounts to users (xref:/midpoint/reference/roles-policies/roles/assignment/assigning-vs-linking/[link])
 
-* Assign accounts to user directly or using xref:/midpoint/reference/roles-policies/rbac/[roles]. (xref:/midpoint/reference/roles-policies/assignment/assigning-vs-linking/[assignment])
+* Assign accounts to user directly or using xref:/midpoint/reference/roles-policies/roles/rbac/[roles]. (xref:/midpoint/reference/roles-policies/roles/assignment/assigning-vs-linking/[assignment])
 
 There is a major difference between these two approaches from the policy point of view.
-The *links* describe actual situation (what _is_) while *assignments* describe the policy (what _should be_). This is discussed in detail in xref:/midpoint/reference/roles-policies/assignment/assigning-vs-linking/[Assigning vs Linking].
+The *links* describe actual situation (what _is_) while *assignments* describe the policy (what _should be_). This is discussed in detail in xref:/midpoint/reference/roles-policies/roles/assignment/assigning-vs-linking/[Assigning vs Linking].
 
 There are many ways how to resolve the difference between the policy (assignments) and reality.
 Assignment enforcement modes are used to control this part of midPoint behaviour.

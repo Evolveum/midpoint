@@ -112,7 +112,7 @@ See xref:/midpoint/reference/concepts/activation/[Activation] page for more deta
 
 == Assignment Lifecycle
 
-The same lifecycle property is also present in xref:/midpoint/reference/roles-policies/assignment/[assignment] and inducement.
+The same lifecycle property is also present in xref:/midpoint/reference/roles-policies/roles/assignment/[assignment] and inducement.
 The meaning of the lifecycle states is equivalent to object lifecycle:
 
 [%autowidth]
@@ -181,6 +181,6 @@ image::./task-configurations-and-lifecycle-states-relation.drawio.svg[title="Dia
 
 * xref:/midpoint/reference/concepts/activation/[Activation]
 
-* xref:/midpoint/reference/roles-policies/role-lifecycle/[Role Lifecycle]
+* xref:/midpoint/reference/roles-policies/roles/role-lifecycle/[Role Lifecycle]
 
 * xref:/midpoint/reference/concepts/configuration-item-lifecycle/[]

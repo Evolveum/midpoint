@@ -1,0 +1,231 @@
+---
+midpoint-feature: pdrbac
+doc-type: intro
+compliance:
+    iso27001:
+        '5.15':
+            description: 'Policy-driven RBAC as an access control mechanism that is based on roles and it includes dynamic policy elements'
+---
+= Policy-Driven Role-Based Access Control
+:page-nav-title: Policy-Driven RBAC
+:page-toc: top
+:page-upkeep-status: green
+:page-moved-from: /midpoint/reference/roles-policies/pdrbac/
+
+== Introduction
+
+xref:/iam/iga/rbac/[Role-based access control (RBAC)] methods have been known for several decades.
+However, the usual method that comes to a mind when "RBAC" acronym is used is static NIST-like RBAC method from early 2000s.
+Traditional RBAC is _static_. assignment of roles to users and _static_ set of privileges (entitlements) in each role.
+A role has a _fixed_ set privileges, specified by system administrator.
+Roles are assigned to users using _static_ assignments, a user is either assigned to a role or not assigned.
+Privileges and user assignments do not change by themselves, system administrator or a similar privileged entity has to change them if needed.
+This is no small effort, as there are usually a lot of roles to maintain.
+It is no exception that there are more roles than there are users, which somehow spoils the original idea of reducing system administration effort.
+
+image::rbac-overview.png[Static RBAC]
+
+Static RBAC models have numerous drawbacks, including xref:/iam/iga/rbac/role-explosion/[role explosion], huge role maintenance and access review effort, tendency for over-provisioning and so on.
+It is quite clear that _static_ RBAC methods are not suitable for current access control needs.
+However, it does not mean the RBAC _idea_ is wrong, or that the concept is completely useless.
+In fact, the whole role-based idea has many advantages, as we will see later.
+All that RBAC needs is more flexibility, it needs to be a bit more _dynamic_.
+That is exactly what xref:/midpoint/reference/roles-policies/roles/rbac/[midPoint dynamic RBAC] mechanism does.
+
+
+== Smart Roles
+
+MidPoint roles are _not_ static.
+Quite the contrary.
+Role definition can be dynamic in several dimensions:
+
+* *Role expressions* add logic to roles.
+Roles are no longer a simple list of privileges.
+Privileges can be determined by a dynamic xref:/midpoint/reference/expressions/expressions/[expression].
+Expression can do all kind of things, such as dynamically determine value of account attribute based on value of user's property, it can combine several sources, dynamically look up xref:/midpoint/reference/resources/entitlements/[entitlements] or do pretty much anything else.
+
+* *Role conditions* are a simpler form of expressions.
+Condition can dynamically determine whether a role is applied or not applied.
+Conditions can even go deeper, controlling individual role components.
+E.g. a condition can be used to inactivate some parts of business role based on user type, clearance or any other parameter.
+
+* *Relation* to a role can make a big difference.
+MidPoint assignments use a concept of xref:/midpoint/reference/concepts/relation/[relation].
+Relation determines whether user is a _member_ of a role, role _owner_, _approver_, _reviewer_ or anything else.
+Role usually provides very different privileges for different _relations_ users have to a role.
+
+* *Role parameters* can further refine behavior of a role.
+Role can be parametrized with specific organizational unit or a location.
+There is no need to create `Sales Assistant`, `Engineering Assistant` and `HR Assistant` any more, this can be handled by a single role.
+Similarly `London Supervisor`, `Paris Supervisor` and `New York Supervisor` are also a thing of the past.
+
+Both _relation_ and _role parameters_ are efficient method to reduce xref:/iam/iga/rbac/role-explosion/[role explosion].
+
+image::pdrbac-midpoint-overview.png[Policy-driven RBAC in midPoint]
+
+== Dynamic Assignments
+
+Traditional RBAC assumes that users are assigned to roles by some kind of higher authority.
+However, it is much better to use algorithmic, _policy-driven_ assignment of roles as much as possible.
+If we can specify a condition when a specific role can be assigned to specific user, it can be done automatically.
+Even better, we can reverse the condition.
+We can automatically _unassign_ the role when it is no longer needed.
+This is an efficient way to combat huge certification effort.
+
+There are several "layers" that can be used to dynamically manage role membership in midPoint:
+
+* *Birthright*. Users usually have some privileges just because they are who they are.
+_Employees_ have certain privileges just because they are employees, such an account in Active Directory and company e-mail address.
+It is very easy to manage birthright privileges with xref:/midpoint/reference/schema/archetypes/[archetypes].
+
+* *Organizational structure* is a natural source for automatic access management.
+Users may have certain privileges just because they are part of certain department, team or project.
+Such behaviour is very easy to achieve using midPoint flexible xref:/midpoint/reference/org/[organizational structure].
+
+* *Autoassignment expressions* are a generic tool that can handle pretty much any case.
+Each role may have an xref:/midpoint/reference/roles-policies/roles/role-autoassignment/[autoassignment expression] which specifies when a role is automatically assigned to user (and also automatically unassigned).
+Role can be automatically assigned for users is specific location, user that has specific combination of job codes and clearance levels, or using any arbitrary algorithm.
+Having such expression in the role itself makes role self-contained, easily delegating role administration.
+Naturally, there is also a method to automatically assign many roles using a single expression.
+Such role assignment expression may be placed in xref:/midpoint/reference/expressions/object-template/[object template].
+
+Dynamic assignment is a crucial mechanism which makes RBAC feasible.
+Manual management of user-role assignment is one of the most critical problems of static RBAC.
+Automatic management of this tedious task makes life much easier.
+
+The idea is to make most user-role assignments dynamic, automate all that can be automated.
+
+
+== Let There Be Policy
+
+Individual midPoint features are certainly attractive.
+However, it is only when they all come together to create very powerful mechanism.
+Role expressions, conditions, relation and parameters provide dynamic behavior of roles, making them smart.
+Archetypes, organizational structure and autoassignment expressions control dynamic role assignment.
+Then there are xref:/midpoint/reference/roles-policies/policies/policy-rules/[policy rules] that can be used for variety of purposes.
+On one hand they implement classic features, such as xref:/midpoint/reference/roles-policies/policies/segregation-of-duties/[segregation of duties].
+They can be used to implement advanced features, such as xref:/midpoint/reference/roles-policies/policies/certification/ad-hoc-certification/[micro-certifications].
+Moreover, policy rules can be used as a last-resort mechanism to implement almost any kind of policy constraint.
+
+Roles, archetypes, organizational structure, policy rules and other midPoint mechanism all together form a consistent policy to control access to your applications.
+
+== Universality
+
+In midPoint, we like universal mechanisms and approaches that can be applied to wide variety of cases.
+This passion lead to the creation of policy-driven RBAC in the first place.
+While designing our dynamic role-based mechanism, we have figured out that it has far wider applications that just RBAC roles.
+We have applied the same approach to xref:/midpoint/reference/org/[organizational structure] as well.
+Therefore, divisions, sections, teams, projects, cooperating organizations and business partners can act as roles.
+There is no need to set up a rule to apply `Marketing staff` role to every employee in the `Marketing` department.
+The department itself can act as a role, providing necessary privileges directly and automatically.
+Similarly, midPoint xref:/midpoint/reference/misc/services/[services] acts as role as well.
+Therefore, _applications_, microservices, mobile devices and "things" can automatically grant access to themselves when assigned to user.
+xref:/midpoint/reference/schema/archetypes/[Archetypes] also act as roles, providing direct and easily-manageable _birthright_ access to various types of objects.
+The same mechanisms that work for roles can also be applied to other midPoint concept, creating a very flexible and extremely powerful policy platform.
+
+
+== Benefits
+
+Benefits of dynamic, policy-driven RBAC over a traditional static RBAC are quite clear.
+However, policy-driven RBAC has significant advantages over other approaches as well, such as policy-based access control (PBAC) or attribute-based access control (ABAC).
+
+In policy-driven RBAC the overall *policy can be divided to manageable parts*.
+Each role is a self-contained policy statement.
+It contains expressions that govern privileges granted by the role.
+It also contains autoassignment rules, that control assignment of the role to users.
+
+policy-driven RBAC naturally divides the policy to roles - small objects that can be easily managed.
+Each role can have its own independent lifecycle, it can be updated as an atomic unit.
+Naturally, a role can be related to other roles, e.g. an application role can be part of business roles.
+This means that change in one role can have indirect effects.
+However, impact of a role change can be estimated, as the role hierarchy is known.
+Moreover, there is xref:/midpoint/reference/simulation/[simulation mechanism] in midPoint which can be used to analyze impact of role modification before it is applied.
+
+As they say: there is an exception to every rule.
+It is no surprise that there will be *exceptions to a policy* as well.
+Whether it is access privileges for CEO, emergency access required to resolve a security incident or a bunch of legacy applications that are being decommissioned, there will be access control aspects that do not easily conform to the policy.
+It is not desirable, yet it is necessary to keep business going smoothly.
+Other mechanism such as PBAC or ABAC provide no choice that to incorporate such exceptions into the policy itself.
+However, this effectively _legalizes_ the exceptions, removing incentives to ever sort them out.
+Moreover, it significantly complicates the policy.
+This is not a good approach.
+There is a better way to manage such exceptions in midPoint.
+Exception can take a form of a special-purpose role which is manually managed and assigned.
+The role can be clearly marked as being a policy exception, it can be reported, shown in dashboard, it can have assigned a person responsible for clearing it up, it can have an expiration date.
+It is not swept under the carpet by legalizing it.
+We clearly admit that there is a policy issue that has to be resolved.
+
+Perhaps the most significant benefit of policy-driven RBAC is its practicality.
+policy-driven RBAC is still an RBAC - it is *compatible with static RBAC*.
+Many organizations still use static RBAC.
+Such role structures can easily be represented in midPoint.
+Even organizations that do not use RBAC at all can automatically import static entitlements to midPoint in a form of _application roles_.
+This provides a nice starting point to build up a dynamic policy-driven system from the bottom up.
+Dynamic RBAC can co-exist with static RBAC in midPoint, providing a feasible evolutionary path.
+Policy-driven approach can be implemented using an *incremental approach*, without a need for disruptive big bang.
+
+Support for the *bottom-up approach* is much more important that it may seem.
+It is a public secret that in too many organizations nobody knows what access employees _should_ have.
+There is no single person that _knows_ the policy.
+The policy is amalgamation of many guidelines, processes, rule books, regulations and management decisions, many of which are not documented at all.
+Codification of such policy in exact, complete, understandable, up-to-date and machine-executable form is next to impossible.
+However, all hope is not lost.
+Even though it may not be feasible to determine the exact policy in its entirety, there are data that we can build on.
+We have current role assignment data.
+As long as our organization works properly, we can safely assume that majority of the roles were assigned according to policy.
+We can use this information to _mine_ the policy, to determine what the policy actually is.
+Of course, it is only approximate technique.
+Current access is most likely over-provisioned, the policy is not applied in a perfectly consistent way and so on.
+However, _mining_ can give us practical approximations to start from.
+Mined policy can be incrementally refined, reviewed and optimized.
+It is better to have a practical approximate approach than to rely on exact yet infeasible method.
+_Done_ is better than _perfect_.
+
+MidPoint 4.8 brings xref:/midpoint/reference/roles-policies/roles/mining/[role mining] mechanism.
+Role mining allows to _mine_ role definitions from existing entitlement data.
+Role definitions form first part of our policy-driven RBAC system.
+Later on, we plan to introduce _policy mining_, which will provide mechanism to add the second part: role assignment rules.
+We rely on _machine learning_ techniques to discover the policy in the dark pool of your identity, entitlement and role data.
+
+
+== Metaphysics
+
+MidPoint policy-driven RBAC mechanism may look impressive so far.
+Yet, midPoint goes one more step further.
+We have done quite an unprecedented thing.
+We have applied roles to roles, creating xref:/midpoint/reference/roles-policies/policies/metaroles/[meta-roles].
+The concept of meta-roles is used to implement midPoint xref:/midpoint/reference/schema/archetypes/[archetypes].
+Archetypes are used to distinguish various object types and subtypes in midPoint.
+Simply speaking, Archetypes give us ability to have _employees_, _students_ and _contractors_ in midPoint, giving each user type a distinctive behavior.
+In this case _archetypes_ are similar to roles, usually used to provide _birthright_ access to users.
+
+However, interesting thing happens when archetypes are applied to _roles_.
+It does not look entirely extraordinary at the first sight.
+There are the usual `Application role` and `Business role` archetypes, distinguishing individual role types.
+However, archetypes behave as roles themselves, which are now applied to other roles.
+We have got _meta-roles_, applying RBAC principles to RBAC itself.
+For example, `Application role` archetype can be used to automatically grant access to application catalog to any _owner_ of any application role in the system.
+This can be done with a single statement in `Application role` archetype.
+
+Similar method can be applied to organizational units.
+Archetypes are used to distinguish types of organizational units: _divisions_, _projects_, _workgroups_.
+Organizational units behave like roles in midPoint.
+Membership in a project can automatically grant necessary privileges for project members.
+We already know that.
+Now, how do we grant a specific privilege to all _managers_ of all projects?
+One way would be to copy and paste privilege grant to all the projects.
+However, we really do not like duplication of work in midPoint.
+We would rather specify that grant in `Project` archetype, which is automatically applied to all our projects.
+Now we can have the policy statement specified in one place, applied consistently to all the projects that we have.
+This is policy-based access control at its best, is it not?
+
+
+== See Also
+
+* xref:/iam/iga/rbac/[]
+
+* xref:/midpoint/reference/roles-policies/roles/rbac/[]
+
+* xref:/midpoint/reference/org/[]
+
+* xref:/midpoint/reference/schema/archetypes/[]

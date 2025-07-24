@@ -221,7 +221,7 @@ The actual value is determined by the iteration settings.
 | activation mappings
 |
 | Set to true if the processed projection is legal, i.e. when it should exist.
-The projection is usually legal if there is an xref:/midpoint/reference/roles-policies/assignment/[assignment] for it.
+The projection is usually legal if there is an xref:/midpoint/reference/roles-policies/roles/assignment/[assignment] for it.
 But the projection may also be legal without an assignment, e.g. if xref:/midpoint/reference/synchronization/projection-policy/[assignment policy enforcement] is set to NONE.
 
 
@@ -269,7 +269,7 @@ Used in the inbound script expression when there is a need to manage group membe
 
 In addition to these variables there are other special purpose variables.
 These are documented on a separate pages that document the mechanism.
-E.g. the variables specific to assignment processing are described in the xref:/midpoint/reference/roles-policies/assignment/configuration/[Assignment Configuration] page.
+E.g. the variables specific to assignment processing are described in the xref:/midpoint/reference/roles-policies/roles/assignment/configuration/[Assignment Configuration] page.
 
 == Alternative Variable Names and Missing Variables
 

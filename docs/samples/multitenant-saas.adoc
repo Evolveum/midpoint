@@ -443,7 +443,7 @@ We have processed first two mappings and we are going to process the rest of the
 .. The "Org mapping - organization manager" will assign the same Org as above, but this time with relationship flag "manager" and only if midPoint user has "customer-admin" value in the `employeeType` attribute.
 
 .. The "Basic Customer Admin role assignment" mapping in user template is processed.
-This just assigns the "Customer Admin Role" role `(role-customer-basic-admin.xml`) . This is a simple xref:/midpoint/reference/roles-policies/rbac/[RBAC] role that assigns an LDAP account to the user.
+This just assigns the "Customer Admin Role" role `(role-customer-basic-admin.xml`) . This is a simple xref:/midpoint/reference/roles-policies/roles/rbac/[RBAC] role that assigns an LDAP account to the user.
 The role is assigned to midPoint users with `employeeType` attribute value "customer-admin".
 
 .. The "Delegated Administration role assignment" mapping in user template is processed.
@@ -451,7 +451,7 @@ This just assigns the "Delegated Administration Role" role `(role-customer-authz
 The role is assigned to midPoint users with `employeeType` attribute value "customer-admin".
 
 .. The "Basic Customer User role assignment" mapping in user template is processed.
-This just assigns the "Customer User Role" role `(role-customer-basic-user.xml`) . This is a simple xref:/midpoint/reference/roles-policies/rbac/[RBAC] role that assigns an LDAP account to the user.
+This just assigns the "Customer User Role" role `(role-customer-basic-user.xml`) . This is a simple xref:/midpoint/reference/roles-policies/roles/rbac/[RBAC] role that assigns an LDAP account to the user.
 The role is assigned to midPoint users with `employeeType` attribute values "customer-user" or "customer-admin".
 
 .. User template processing finishes.
@@ -541,7 +541,7 @@ The `organizationalUnit` attribute was set automatically by assigning the organi
 .. The "Org mapping - organization manager" will assign the same Org as above, but this time with relationship flag "manager" and only if midPoint user has "customer-admin" value in the `employeeType` attribute.
 
 .. The "Basic Customer Admin role assignment" mapping in user template is processed.
-This just assigns the "Customer Admin Role" role `(role-customer-basic-admin.xml`) . This is a simple xref:/midpoint/reference/roles-policies/rbac/[RBAC] role that assigns an LDAP account to the user.
+This just assigns the "Customer Admin Role" role `(role-customer-basic-admin.xml`) . This is a simple xref:/midpoint/reference/roles-policies/roles/rbac/[RBAC] role that assigns an LDAP account to the user.
 The role is assigned to midPoint users with `employeeType` attribute value "customer-admin".
 
 .. The "Delegated Administration role assignment" mapping in user template is processed.
@@ -549,7 +549,7 @@ This just assigns the "Delegated Administration Role" role `(role-customer-authz
 The role is assigned to midPoint users with `employeeType` attribute value "customer-admin".
 
 .. The "Basic Customer User role assignment" mapping in user template is processed.
-This just assigns the "Customer User Role" role `(role-customer-basic-user.xml`) . This is a simple xref:/midpoint/reference/roles-policies/rbac/[RBAC] role that assigns an LDAP account to the user.
+This just assigns the "Customer User Role" role `(role-customer-basic-user.xml`) . This is a simple xref:/midpoint/reference/roles-policies/roles/rbac/[RBAC] role that assigns an LDAP account to the user.
 The role is assigned to midPoint users with `employeeType` attribute values "customer-user" or "customer-admin".
 
 .. User template processing finishes.
@@ -645,7 +645,7 @@ The `organizationalUnit` attribute was set automatically by assigning the organi
 .. The "Delegated Administration role assignment" mapping will not be applied, as the user has "customer-user" (and not "customer-admin") `employeeType` attribute.
 
 .. The "Basic Customer User role assignment" mapping in user template is processed.
-This just assigns the "Customer User Role" role `(role-customer-basic-user.xml`) . This is a simple xref:/midpoint/reference/roles-policies/rbac/[RBAC] role that assigns an LDAP account to the user.
+This just assigns the "Customer User Role" role `(role-customer-basic-user.xml`) . This is a simple xref:/midpoint/reference/roles-policies/roles/rbac/[RBAC] role that assigns an LDAP account to the user.
 The role is assigned to midPoint users with `employeeType` attribute values "customer-user" or "customer-admin".
 
 .. User template processing finishes.

@@ -183,7 +183,7 @@ Other event types may be added in the future (including custom event types).
 === Event Stages
 
 Operations in midPoint may be subject to quite complex processing before they get executed.
-This may include processing xref:/midpoint/reference/roles-policies/rbac/[RBAC], expressions, workflows or other "plugin" hooks.
+This may include processing xref:/midpoint/reference/roles-policies/roles/rbac/[RBAC], expressions, workflows or other "plugin" hooks.
 Therefore, the details of the operation may considerably differ at the beginning of the operation and at the end.
 Event stages are defined to denote this difference and to record events at various stages through the operation lifecycle.
 

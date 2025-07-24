@@ -65,11 +65,11 @@ Following table lists commonly-used archetypes and their mapping to primary midP
 == Birthrights
 
 Archetypes are the primary tool to define a glossref:birthright[birthright provisioning].
-Archetypes behave as xref:/midpoint/reference/roles-policies/rbac/[roles].
-Therefore, any privileges specified in archetype xref:/midpoint/reference/roles-policies/assignment/assignment-vs-inducement/[inducements] are automatically applied to all the objects that have the archetype.
+Archetypes behave as xref:/midpoint/reference/roles-policies/roles/rbac/[roles].
+Therefore, any privileges specified in archetype xref:/midpoint/reference/roles-policies/roles/assignment/assignment-vs-inducement/[inducements] are automatically applied to all the objects that have the archetype.
 This approach can be used to apply _birthright_ to the objects, e.g. it can specify baseline privileges for all employees or students.
 
-Moreover, archetypes may work as xref:/midpoint/reference/roles-policies/metaroles/policy/[metaroles], specifying common behavior for object types.
+Moreover, archetypes may work as xref:/midpoint/reference/roles-policies/policies/metaroles/policy/[metaroles], specifying common behavior for object types.
 For example, `Project` archetypes may specify common behavior for all projects, including baseline authorization for project members and managers.
 Overall, archetypes provide very flexible and powerful mechanism to specify _birthrights_.
 
@@ -85,14 +85,14 @@ But it can also be used for searching objects of a particular archetypes by the 
 [TIP]
 .Synergy
 ====
-Archetype functionality is a xref:/midpoint/features/synergy/[synergistic feature]. It is designed to fit together with existing midPoint features, such as xref:/midpoint/reference/roles-policies/rbac/[RBAC] and xref:/midpoint/reference/org/organizational-structure/[organizational structure].
+Archetype functionality is a xref:/midpoint/features/synergy/[synergistic feature]. It is designed to fit together with existing midPoint features, such as xref:/midpoint/reference/roles-policies/roles/rbac/[RBAC] and xref:/midpoint/reference/org/organizational-structure/[organizational structure].
 ====
 
 Archetype definition are xref:/midpoint/architecture/concepts/abstract-role/[abstract roles], which means they essentially work as a role.
 To apply an archetype to an object simply assign archetype to that object as you would normally assign a role.
 From that point on archetype applies to that object.
 Archetypes being abstract roles makes them really powerful.
-That means archetypes may work as xref:/midpoint/reference/roles-policies/metaroles/policy/[metaroles]. Or it may the other way around: archetypes may be assigned from ordinary roles or orgs.
+That means archetypes may work as xref:/midpoint/reference/roles-policies/policies/metaroles/policy/[metaroles]. Or it may the other way around: archetypes may be assigned from ordinary roles or orgs.
 
 Archetype definition is a first-class midPoint object, therefore it has all the usual advantages: it can be organized, delegated administration can be applied, it can be owned, it can have managed lifecycle, it can be localized withing a tenant and so on.
 
@@ -160,6 +160,6 @@ See xref:/midpoint/features/planned/archetypes/[Archetype Improvements (Planned 
 
 * xref:/midpoint/reference/org/organizational-structure/[Organizational Structure]
 
-* xref:/midpoint/reference/roles-policies/rbac/[Advanced Hybrid RBAC]
+* xref:/midpoint/reference/roles-policies/roles/rbac/[Advanced Hybrid RBAC]
 
 * xref:/midpoint/reference/misc/services/[Services]

@@ -40,7 +40,7 @@ This test includes following features and policies:
 
 * Replicate midPoint organizational structure to LDAP organizational structure (xref:/midpoint/reference/synchronization/generic-synchronization/[generic synchronization]).
 
-* xref:/midpoint/reference/roles-policies/assignment/[Assign] users to appropriate organizational units.
+* xref:/midpoint/reference/roles-policies/roles/assignment/[Assign] users to appropriate organizational units.
 
 * The assignment of users to organizational units is used to determine the LDAP organizationalUnit in which the user should be placed.
 
@@ -334,7 +334,7 @@ But now we are getting back to the user ...
 We have processed first two mappings and we are going to process the rest of them.
 
 .. The "basic role" mapping in user template is processed.
-This just assigns the "Basic User" role `(role-basic.xml`) . This is a simple xref:/midpoint/reference/roles-policies/rbac/[RBAC] role that assigns an LDAP account to the user.
+This just assigns the "Basic User" role `(role-basic.xml`) . This is a simple xref:/midpoint/reference/roles-policies/roles/rbac/[RBAC] role that assigns an LDAP account to the user.
 
 .. The last mapping is not used.
 User has no "responsibilities" in this case.
@@ -391,7 +391,7 @@ Note that `responsibilities` attribute from HR account is copied to custom multi
 .. The "Org mapping" is not used as there is no `orgpath` in this case.
 
 .. The "basic role" mapping in user template is processed.
-This just assigns the "Basic User" role `(role-basic.xml`) . This is a simple xref:/midpoint/reference/roles-policies/rbac/[RBAC] role that assigns an LDAP account to the user.
+This just assigns the "Basic User" role `(role-basic.xml`) . This is a simple xref:/midpoint/reference/roles-policies/roles/rbac/[RBAC] role that assigns an LDAP account to the user.
 
 .. The "responsibility role assignment" mapping is processed.
 

@@ -30,7 +30,7 @@ What should be the effect it user assigns them? What rules should be applied to 
 What about authorizations, auditing, lifecycle, governance, ...
 
 There is a better solution in midPoint.
-MidPoint has several built-in object types such as xref:/midpoint/reference/roles-policies/rbac/[roles], xref:/midpoint/reference/org/organizational-structure/[orgs], and xref:/midpoint/reference/misc/services/[services].
+MidPoint has several built-in object types such as xref:/midpoint/reference/roles-policies/roles/rbac/[roles], xref:/midpoint/reference/org/organizational-structure/[orgs], and xref:/midpoint/reference/misc/services/[services].
 Those data types are built to be extensible and in fact, they are quite generic.
 The role does not mean just "role in strict RBAC sense".
 In midPoint, the concept of "role" is much broader.
@@ -42,7 +42,7 @@ Orgs and services can be used in a similar way:
 | Object Type | Can be used to model
 
 | Role
-| xref:/midpoint/reference/roles-policies/rbac/[RBAC roles] +
+| xref:/midpoint/reference/roles-policies/roles/rbac/[RBAC roles] +
 xref:/midpoint/reference/security/authorization/roles/[Authorization roles] +
 job category, job titles/position, qualification, competency certification, achievement xref:/midpoint/features/planned/consent-management/[consent]metarole
 
@@ -52,7 +52,7 @@ job category, job titles/position, qualification, competency certification, achi
 project, workgroup, team, ad-hoc group, task force, job responsibility group +
 Tenant (in multi-tenant configurations) +
 Location (office, campus, city, country) +
-xref:/midpoint/reference/roles-policies/applicable-policies/[Policy category] +
+xref:/midpoint/reference/roles-policies/policies/applicable-policies/[Policy category] +
 xref:/midpoint/reference/admin-gui/request-access#role-catalog
 
 
@@ -71,7 +71,7 @@ Therefore there are many benefits:
 * Job categories, titles, qualifications and similar objects can directly include entitlements.
 Therefore if a user is assigned to a job, such user automatically gets all the entitlements needed for that job.
 
-* xref:/midpoint/reference/roles-policies/role-autoassignment/[Autoassignment] works as expected.
+* xref:/midpoint/reference/roles-policies/roles/role-autoassignment/[Autoassignment] works as expected.
 As do authorizations.
 xref:/midpoint/reference/cases/approval/[Approval] processes can be applied seamlessly.
 All midPoint concepts applicable to roles can be applied.
@@ -84,7 +84,7 @@ E.g. midPoint knows that user's personal data are provisioned to system X becaus
 Therefore midPoint can show which users currently hold particular job position or qualification.
 
 * Governance principles can also be applied.
-Job positions may have an owner and they may be subject to xref:/midpoint/reference/roles-policies/certification/[certification].
+Job positions may have an owner and they may be subject to xref:/midpoint/reference/roles-policies/policies/certification/[certification].
 
 In addition to that org-based types can form hierarchies:
 
@@ -114,7 +114,7 @@ But the definition of RoleType can be extended, even at run-time, by using xref:
 
 There is yet another drawback: RBAC roles, authorization roles, job titles - they all have the same object type.
 They are all `RoleType`. How to tell them apart? There is also a mechanism for that: xref:/midpoint/reference/schema/archetypes/[Archetypes]. Archetypes can be used to distinguish objects of the same type, customize its presentation and behavior.
-Archetypes are also xref:/midpoint/reference/roles-policies/metaroles/policy/[metaroles]. Metaroles are roles that are applied to other (abstract) roles.
+Archetypes are also xref:/midpoint/reference/roles-policies/policies/metaroles/policy/[metaroles]. Metaroles are roles that are applied to other (abstract) roles.
 Therefore archetypes can be used to assign common behavior for roles, orgs and services.
 And that is especially desirable when defining a new type of an object.
 It is quite a common case that all projects will have the same lifecycle: approval of new project creation, establishing project manager, decommissioning of a project and so on.
@@ -164,9 +164,9 @@ Simply speaking, midPoint does not really need the concept of special generic ob
 
 * xref:/midpoint/reference/admin-gui/collections-views/[Object Collections and Views]
 
-* xref:/midpoint/reference/roles-policies/metaroles/policy/[Using Metaroles for Policy Configuration]
+* xref:/midpoint/reference/roles-policies/policies/metaroles/policy/[Using Metaroles for Policy Configuration]
 
-* xref:/midpoint/reference/roles-policies/metaroles/gensync/['Roles, Metaroles and Generic Synchronization']
+* xref:/midpoint/reference/roles-policies/policies/metaroles/gensync/['Roles, Metaroles and Generic Synchronization']
 
 * xref:/midpoint/reference/synchronization/generic-synchronization/[Generic Synchronization]
 

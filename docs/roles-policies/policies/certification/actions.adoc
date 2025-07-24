@@ -1,0 +1,106 @@
+= GUI Action Configuration
+:page-nav-title: GUI Action Configuration
+:page-upkeep-status: yellow
+:page-moved-from: /midpoint/reference/roles-policies/certification/actions/
+
+== General Information
+
+The user of the midPoint meets with GUI actions all over the system.
+There can be the inline menu actions or toolbar actions in the object list tables, redirecting actions executed from different widgets (e.g. _View all_ action from the _My accesses_ widget on the _Dashboard_ page), etc.
+The goal is to have these actions configurable in the midPoint GUI.
+In this document, we'll have a look at the inline menu actions configuration.
+
+WARNING: This feature is still under development and the configuration may change in the future.
+For now, inline menu actions can be configured only for the certification items collection view.
+
+== Inline Menu Actions Configuration
+
+Action configuration is done within the _Object Collection View_ configuration.
+Action should contain the identifier.
+The identifier should match one of the list of the available actions which is provided further in this document.
+Some actions may require additional steps to be provided before the action can be executed.
+For example, the action may require a confirmation.
+Or the action may require filling in some parameters.
+In these cases the action configuration should contain the _panel_ section.
+
+Let's have a look at the example of the inline menu action configuration for the certification items collection view:
+
+[source,xml]
+----
+                <action>
+                    <identifier>certItemAccept</identifier>
+                    <panel>
+                        <display>
+                            <label>Do you really want to accept the item(s)?</label>
+                        </display>
+                        <container>
+                            <identifier>comment</identifier>
+                            <display>
+                                <label>Please, provide a comment (required)</label>
+                            </display>
+                            <item>
+                                <path>output/comment</path>
+                                <mandatory>true</mandatory>
+                            </item>
+                        </container>
+                        <type>AccessCertificationWorkItemType</type>
+                    </panel>
+                </action>
+
+----
+
+The configuration above defines Accept action for the certification items.
+The action requires a confirmation and a comment to be filled in.
+
+=== Available Actions
+
+As it was mentioned above, inline menu actions can be configured only for the certification items collection view for now.
+Therefore, the list of the available actions is limited to the certification items actions.
+
+[%autowidth]
+|===
+| Action | Identifier | Description | Panel configuration
+
+| Accept
+| certItemAccept
+| Accept the certification item(s)
+| Panel can be configured for confirmation and comment
+
+| Revoke
+| certItemRevoke
+| Revoke the certification item(s)
+| Panel can be configured for confirmation and comment
+
+| Reduce
+| certItemReduce
+| Reduce the certification item(s)
+| Panel can be configured for confirmation and comment
+
+| Not decided
+| certItemNotDecided
+| Certification item(s) cannot be decided by the reviewer. "Not decided" response is set as a result of the action
+| Panel can be configured for confirmation and comment
+
+| No response
+| certItemNoResponse
+|Setting the response of the certification item to the empty (null) value
+| Panel can be configured for confirmation and comment
+
+| Resolve action
+| certItemResolve
+| Resolve the certification item(s) by choosing the appropriate decision from the available list of decisions
+| Popup panel with the available set of decisions is displayed to the user by default (without additional panel configuration). Anyhow, panel can be configured for comment
+
+| Change decision
+| certItemChangeDecision
+| The same action as "Resolve action" with that difference that it will be visible only for the items with the decision already set
+| Popup panel with the available set of decisions is displayed to the user by default (without additional panel configuration). Anyhow, panel can be configured for comment
+
+| Check responses
+| certItemHistory
+| Provides the information about decisions over the certification item. Can be applied only to the separate certification item (not to the bulk of items)
+| No panel configuration can be applied
+
+|===
+
+

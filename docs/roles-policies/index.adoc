@@ -4,10 +4,25 @@
 :page-upkeep-status: green
 :page-liquid:
 
-Following pages describe midPoint mechanisms dealing with roles, policies, assignment, inducements and similar concepts.
+This section describes two different object types in midPoint: Roles, and Policies.
 
-++++
-{% children %}
-++++
+While Policies extend from Roles, they serve a distinct purpose, and are designed to address more advanced business and governance needs.
+Roles are ideal for defining _what_ access or entitlements a user should receive, while Policies control _how_, _when_, and under _which conditions_ that access is granted.
+
+* *Roles* grant access or responsibilities to users.
++
+They are applied to objects, mainly users, and they are typically used to represent job functions or access rights, such as "HR Manager" or "read access to Project XYZ".
+See xref:/midpoint/reference/roles-policies/roles/[].
+
+* *Policies* control how access is granted, reviewed or approved.
++
+They are applied to objects (typically roles and services) to which you want to apply some defined behavior, and they are used to enforce business logic and compliance.
++
+While some policies may be quite simple and may only "mark" objects with properties that indicate, for example, a passed training, others may be more complex and may contain policy rules that define more comprehensive conditions and behaviors based on how those conditions evaluate.
+See xref:/midpoint/reference/roles-policies/policies/[].
+
+In the application, these two concepts are represented by separate sections:
+
+image::roles_policies.webp[Roles and Policies in midPoint]
 
 include::../_reference-disclaimer.adoc[]
