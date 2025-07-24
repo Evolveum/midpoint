@@ -115,7 +115,7 @@ Some tasks need extra details to do their job. For example, a task that syncs da
 _Business states are to be covered in the Documentation in more detail._
 // TODO: cover business states @dakle 2025-07-13
 
-== Distinguish Between Single-Run and Recurring Tasks
+== Distinguish Single-Run and Recurring Tasks
 
 * Some tasks in midPoint are *single-run*.
     ** A usual example is the initial import of accounts from a resource.
@@ -133,7 +133,31 @@ _Business states are to be covered in the Documentation in more detail._
     ** Tasks scheduled to run, e.g., every Sunday at 16:00, do not run immediately after creation.
         They remain in the _Runnable_ state until the designated run time arrives.
 
-=== Ways to Schedule Recurring Tasks
+== Schedule Tasks
+
+Task scheduling is governed by the `schedule` attribute, which has the following parts:
+
+. `interval`: Denotes interval in seconds between task runs.
+Used only for recurring tasks.
+
+. `cronLikePattern`: Cron-like pattern specifying time(s) when the task is to be run.
+Currently only loosely bound recurring tasks can use this feature.
+
+. `earliestStartTime`: Earliest time when the task is allowed to start.
+Usable for any kind of task.
+This is parameter is particularly useful to <<how-to-schedule-a-single-run-task,postpone the start of a single-run task>>.
+
+. `latestStartTime`: Latest time when the task is allowed to start.
+Usable for any kind of task.
+
+. `latestFinishTime`: Latest time when the task is allowed to run.
+    A reason to specify this time may be because another task conflicting with this task is scheduled to start at this time, so the task for which you specify `latestFinishTime` must NOT run after that moment.
+    It is a responsibility of the task handler to finish working when this time comes.
+    It is not enforced by the task manager.
+
+In the following sections, we examine scheduling for both recurring and single-run tasks in more detail.
+
+=== Schedule Recurring Tasks
 
 MidPoint currently supports two styles of schedule definition for recurring tasks:
 
@@ -142,22 +166,7 @@ MidPoint currently supports two styles of schedule definition for recurring task
     ** For example, to schedule a task to run every Sunday at 03:45, you would use the following pattern: `45 03 * * 7` (minute: 45, hour: 3, day: any, month: any, week day: 7 (Sunday)).
     ** For more information on these expressions, see the link:https://www.quartz-scheduler.org/documentation/quartz-2.3.0/tutorials/crontrigger.html[Quartz documentation].
 
-=== How to Schedule a Single-Run Task
-
-To postpone start of a single-run task, such as an import task, use the *Earliest start time* attribute and set the *Recurrence* to _Single_ in the *Scheduling* section of task definition.
-Then, save the task using icon:save[] btn:[Save & Run].
-The task will be in the _Runnable_ state until its scheduled time comes.
-After it finishes, its status will change to _Closed_.
-
-.Mind the time zones
-[NOTE]
-====
-Before scheduling tasks, verify the time zone your midPoint instance uses.
-By default, midPoint uses the system time of the server on which it runs.
-On Linux machines, this is UTC, even if the user may set an arbitrary time zone in the operating system user interface.
-====
-
-=== Recurring Tasks Can Be Tightly or Loosely Bound
+==== Recurring Tasks Can Be Tightly or Loosely Bound
 
 A recurring task can be bound to a midPoint node either tightly or loosely.
 
@@ -180,7 +189,39 @@ When its execution finishes, the thread is released and the task waits for the n
 A loosely bound task may execute repeatedly on the same node or on different nodes, as determined by the Quartz scheduler algorithm (hence the name 'loosely bound').
 The link:https://www.quartz-scheduler.org/documentation/quartz-2.3.0/configuration/ConfigJDBCJobStoreClustering.html[Quartz documentation] states that "The load balancing mechanism is near-random for busy schedulers (lots of triggers) but favors the same node for non-busy schedulers (few triggers)."
 
-=== Task Execution Terminology
+=== Schedule Single-Run Tasks
+
+To postpone the start of a single-run task, such as an import task, use the *Earliest start time* attribute and set the *Recurrence* to _Single_ in the *Scheduling* section of task definition.
+Then, save the task using icon:save[] btn:[Save & Run].
+The task will be in the _Runnable_ state until its scheduled time comes.
+After it finishes, its status will change to _Closed_.
+
+.Mind the time zones
+[NOTE]
+====
+Before scheduling tasks, verify the time zone your midPoint instance uses.
+By default, midPoint uses the system time of the server on which it runs.
+On Linux machines, this is UTC, even if the user may set an arbitrary time zone in the operating system user interface.
+====
+
+[[misfire-action]]
+=== When a Task Fails to Start as Scheduled
+
+Besides the parameters above, there is also `misfireAction` that controls what is to be done when the task fails to start at its specified start time (e.g., because no node or thread are available to execute the task at that time).
+There are the following possibilities:
+
+. `executeImmediately`: The task is to be executed immediately when possible.
+
+. `reschedule`: The task is rescheduled according to its schedule.
+This can be used only for loosely bound recurring tasks.
+
+. `forget`: The task is not executed at all.
+This would be used only for scheduled single-run tasks.
+Not yet implemented.
+// TODO: is it really not implemented yet? This deserves confirmation in the light of the discovery that we actually can schedule single-run tasks
+// Question tracked in https://support.evolveum.com/wp/10774
+
+== Grasp Task Execution Terminology
 
 *Task run* (or sometimes "task cycle run") denotes one execution of a task logic, provided by task handler or handlers, see below.
 *Task thread run* denotes one execution of a task thread.
@@ -205,45 +246,6 @@ These terms are open to discussion and possibly subject to change;
 they are not set in stone.
 ====
 
-=== Options for Task Scheduling
-
-Task scheduling is governed by the `schedule` attribute, which has the following parts:
-
-. `interval`: Denotes interval in seconds between task runs.
-Used only for recurring tasks.
-
-. `cronLikePattern`: Cron-like pattern specifying time(s) when the task is to be run.
-Currently only loosely bound recurring tasks can use this feature.
-
-. `earliestStartTime`: Earliest time when the task is allowed to start.
-Usable for any kind of task.
-This is parameter is particularly useful to <<how-to-schedule-a-single-run-task,postpone the start of a single-run task>>.
-
-. `latestStartTime`: Latest time when the task is allowed to start.
-Usable for any kind of task.
-
-. `latestFinishTime`: Latest time when the task is allowed to run.
-    A reason to specify this time may be because another task conflicting with this task is scheduled to start at this time, so the task for which you specify `latestFinishTime` must NOT run after that moment.
-    It is a responsibility of the task handler to finish working when this time comes.
-    It is not enforced by the task manager.
-
-[[misfire-action]]
-==== When a Task Fails to Start as Scheduled
-
-Besides the parameters above, there is also `misfireAction` that controls what is to be done when the task fails to start at its specified start time (e.g., because no node or thread are available to execute the task at that time).
-There are the following possibilities:
-
-. `executeImmediately`: The task is to be executed immediately when possible.
-
-. `reschedule`: The task is rescheduled according to its schedule.
-This can be used only for loosely bound recurring tasks.
-
-. `forget`: The task is not executed at all.
-This would be used only for scheduled single-run tasks.
-Not yet implemented.
-// TODO: is it really not implemented yet? This deserves confirmation in the light of the discovery that we actually can schedule single-run tasks
-// Question tracked in https://support.evolveum.com/wp/10774
-
 [[threadstopaction]]
 == Task Resilience: What Happens to Interrupted Tasks
 
@@ -262,9 +264,11 @@ They are simply suspended or closed.
 The use case for non-resilient tasks may be a manual synchronization of resources.
 Something that is started by the system administrator with the expectation that it executes only until the node is down.
 
-=== Available Actions After  Halt
+=== Available Actions After Halt
 
-The task behavior is controlled by the `threadStopAction` attribute which can have the following values:
+The task behavior after node shutdown is controlled by the `threadStopAction` attribute which determines whether a task is resilient or non-resilient.
+
+The `threadStopAction` attribute can have the following values:
 
 . `restart`: The task will restart on the first node available (i.e., either immediately if there is a suitable node in the cluster, or later when a suitable node appears).
 
@@ -274,12 +278,12 @@ The task behavior is controlled by the `threadStopAction` attribute which can ha
 
 . `close`: The task will be closed.
 
-The restart and reschedule options are used to implement resilient task behavior, while the suspend and close options are for non-resilient tasks.
+The restart and reschedule options make the task resilient, the suspend and close options achieve non-resilient behavior.
 
 For tasks with no threads allocated when their node goes down (loosely bound recurring tasks and scheduled single-run tasks), the `threadStopAction` attribute has no effect.
-These tasks simply start over when their next start time comes. See also <<misfire-action,misfire action>>.
+These tasks simply wait until their next start time comes. See also <<misfire-action,misfire action>>.
 
-==== Should I Make Tasks Non-Resilient?
+=== Is It OK to Make Tasks Non-resilient?
 
 If you set task as non-resilient using `threadStopAction` (options `suspend` and `close`), it will suspend or close when its node shuts down.
 Persistent tasks are designed to survive node failures by default, meaning they restart or reschedule on an available node.
@@ -342,7 +346,7 @@ This way, the high availability of the task execution is ensured.
 
 Refer to xref:/midpoint/reference/deployment/clustering-ha/[] for more information on deploying a high availability setup.
 
-== Task State in the midPoint Repository and Quartz JDBC Job Store
+== Task State in MidPoint Repository and Quartz JDBC Job Store
 
 The midPoint repository contains general task information, such as execution and business states,
 while the link:https://www.quartz-scheduler.org/documentation/quartz-2.1.7/configuration/ConfigJobStoreTX.html[*Quartz JDBC job store*] is responsible for maintaining information necessary for task scheduling (e.g., the next planned start time).
@@ -369,11 +373,11 @@ More advanced installations could use link:https://www.quartz-scheduler.org/docu
 
 Refer to xref:/midpoint/reference/tasks/task-manager/configuration/[].
 
-== Authorizing specific operations
+== Authorize Specific Operations
 
 This section details the specific action URIs used to control different aspects of task execution, scheduling, and system-level operations.
 
-=== Task-related operations
+=== Task-Related Operations
 
 In order to authorize task-related operations, the following action URIs are defined.
 These are evaluated with respect to task objects, i.e., you define a filter that selects tasks to act upon.
@@ -403,7 +407,7 @@ These are evaluated with respect to task objects, i.e., you define a filter that
 Note that "suspend and delete a task" operation uses the `delete` action URI.
 That means, for both deleting a task and deleting a task after suspending it, you would use the same authorizations.
 
-=== Node-related operations
+=== Node-Related Operations
 
 For node-related operations, the following action URIs are defined.
 These are evaluated with respect to node objects, i.e., you define a filter that selects nodes to act upon (although we do not expect such a selection would be used in practice frequently).
@@ -422,7 +426,7 @@ These are evaluated with respect to node objects, i.e., you define a filter that
 
 |===
 
-=== Other operations
+=== Other Operations
 
 Finally, the following actions URIs are defined for operations that are not bound to specific task nor node:
 
