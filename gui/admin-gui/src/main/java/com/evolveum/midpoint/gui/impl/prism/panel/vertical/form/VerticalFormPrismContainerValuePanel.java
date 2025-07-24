@@ -9,18 +9,14 @@ package com.evolveum.midpoint.gui.impl.prism.panel.vertical.form;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.impl.prism.panel.PrismContainerValuePanel;
 
-import com.evolveum.midpoint.web.component.AjaxButton;
-import com.evolveum.midpoint.web.component.form.MidpointForm;
-
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 
-import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxEventBehavior;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
-import org.apache.wicket.feedback.ComponentFeedbackMessageFilter;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.model.IModel;
 
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
@@ -28,8 +24,6 @@ import com.evolveum.midpoint.gui.impl.prism.panel.ItemPanelSettings;
 import com.evolveum.midpoint.prism.Containerable;
 
 import org.apache.wicket.model.LoadableDetachableModel;
-import org.apache.wicket.util.visit.IVisit;
-import org.apache.wicket.util.visit.IVisitor;
 
 /**
  * @author lskublik
@@ -50,7 +44,7 @@ public class VerticalFormPrismContainerValuePanel<C extends Containerable, CVW e
     }
 
     @Override
-    protected void createValuePanel(MidpointForm form) {
+    protected void createValuePanel(Form form) {
         WebMarkupContainer valueContainer = new WebMarkupContainer(ID_VALUE_CONTAINER);
         valueContainer.setOutputMarkupId(true);
         form.add(valueContainer);

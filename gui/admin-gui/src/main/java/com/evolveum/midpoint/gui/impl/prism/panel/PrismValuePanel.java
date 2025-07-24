@@ -19,6 +19,7 @@ import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.feedback.ComponentFeedbackMessageFilter;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
@@ -79,7 +80,7 @@ public abstract class PrismValuePanel<T, IW extends ItemWrapper, VW extends Pris
     }
 
     private void initLayout() {
-        MidpointForm<VW> form = new MidpointForm<>(ID_VALUE_FORM);
+        Form<VW> form = new Form<>(ID_VALUE_FORM);
         form.setOutputMarkupId(true);
         add(form);
 
@@ -140,7 +141,7 @@ public abstract class PrismValuePanel<T, IW extends ItemWrapper, VW extends Pris
 
     }
 
-    protected void createValuePanel(MidpointForm form) {
+    protected void createValuePanel(Form form) {
 
         GuiComponentFactory factory = null;
         if (getModelObject() != null && getModelObject().getParent() != null) {
@@ -220,7 +221,7 @@ public abstract class PrismValuePanel<T, IW extends ItemWrapper, VW extends Pris
         return new FeedbackAlerts(idFeedback);
     }
 
-    protected void createMetadataPanel(MidpointForm form) {
+    protected void createMetadataPanel(Form form) {
         PrismValueMetadataPanel metadataPanel = new PrismValueMetadataPanel(ID_METADATA, new PropertyModel<>(getModel(), "valueMetadata"));
         metadataPanel.add(new VisibleBehaviour(() -> getModelObject().isShowMetadata()));
         metadataPanel.setOutputMarkupId(true);
@@ -331,8 +332,8 @@ public abstract class PrismValuePanel<T, IW extends ItemWrapper, VW extends Pris
 
     }
 
-    protected MidpointForm<VW> getForm() {
-        return (MidpointForm) get(ID_VALUE_FORM);
+    protected Form<VW> getForm() {
+        return (Form) get(ID_VALUE_FORM);
     }
 
     protected FeedbackAlerts getFeedback() {
