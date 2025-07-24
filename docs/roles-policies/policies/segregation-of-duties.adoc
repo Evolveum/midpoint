@@ -14,7 +14,7 @@ compliance:
 :page-wiki-metadata-modify-user: mederly
 :page-wiki-metadata-modify-date: 2021-03-02T23:37:12.075+01:00
 :page-upkeep-status: yellow
-:page-moved-from: /midpoint/reference/roles-policies/
+:page-moved-from: /midpoint/reference/roles-policies/segregation-of-duties/
 :page-toc: top
 
 
