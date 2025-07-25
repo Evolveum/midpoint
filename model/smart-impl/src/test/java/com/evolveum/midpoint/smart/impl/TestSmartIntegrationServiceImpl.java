@@ -18,6 +18,7 @@ import java.io.File;
 import java.io.IOException;
 import java.time.ZonedDateTime;
 import java.util.*;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import com.evolveum.midpoint.model.test.smart.MockServiceClientImpl;
@@ -90,7 +91,7 @@ public class TestSmartIntegrationServiceImpl extends AbstractSmartIntegrationTes
         var c = dummyForObjectTypes.getController();
         c.addAccount("jack")
                 .addAttributeValues(DummyScenario.Account.AttributeNames.FULLNAME.local(), "Jack Sparrow")
-                .addAttributeValues(DummyScenario.Account.AttributeNames.PERSONAL_NUMBER.local(), "10104444")
+                .addAttributeValues(DummyScenario.Account.AttributeNames.PERSONAL_NUMBER.local(), "admin")
                 .addAttributeValues(DummyScenario.Account.AttributeNames.EMAIL.local(), "jack@evolveum.com")
                 .addAttributeValues(DummyScenario.Account.AttributeNames.STATUS.local(), "active")
                 .addAttributeValues(DummyScenario.Account.AttributeNames.TYPE.local(), "employee")
@@ -98,13 +99,13 @@ public class TestSmartIntegrationServiceImpl extends AbstractSmartIntegrationTes
 
         c.addAccount("jim")
                 .addAttributeValues(DummyScenario.Account.AttributeNames.FULLNAME.local(), "Jim Hacker")
-                .addAttributeValues(DummyScenario.Account.AttributeNames.PERSONAL_NUMBER.local(), "10702222")
+                .addAttributeValues(DummyScenario.Account.AttributeNames.PERSONAL_NUMBER.local(), "admin")
                 .addAttributeValues(DummyScenario.Account.AttributeNames.EMAIL.local(), "jim@evolveum.com")
                 .addAttributeValues(DummyScenario.Account.AttributeNames.STATUS.local(), "inactive");
 
         c.addAccount("alice")
                 .addAttributeValues(DummyScenario.Account.AttributeNames.FULLNAME.local(), "Alice Wonderland")
-                .addAttributeValues(DummyScenario.Account.AttributeNames.PERSONAL_NUMBER.local(), "10505555")
+                .addAttributeValues(DummyScenario.Account.AttributeNames.PERSONAL_NUMBER.local(), "admin")
                 .addAttributeValues(DummyScenario.Account.AttributeNames.EMAIL.local(), "alice@evolveum.com")
                 .addAttributeValues(DummyScenario.Account.AttributeNames.PHONE.local(), "+421900111222")
                 .addAttributeValues(DummyScenario.Account.AttributeNames.STATUS.local(), "active")
@@ -113,7 +114,7 @@ public class TestSmartIntegrationServiceImpl extends AbstractSmartIntegrationTes
 
         c.addAccount("bob")
                 .addAttributeValues(DummyScenario.Account.AttributeNames.FULLNAME.local(), "Bob Builder")
-                .addAttributeValues(DummyScenario.Account.AttributeNames.PERSONAL_NUMBER.local(), "10909999")
+                .addAttributeValues(DummyScenario.Account.AttributeNames.PERSONAL_NUMBER.local(), "admin")
                 .addAttributeValues(DummyScenario.Account.AttributeNames.EMAIL.local(), "bob@evolveum.com")
                 .addAttributeValues(DummyScenario.Account.AttributeNames.PHONE.local(), "+421900333444")
                 .addAttributeValues(DummyScenario.Account.AttributeNames.STATUS.local(), "inactive")
@@ -122,7 +123,7 @@ public class TestSmartIntegrationServiceImpl extends AbstractSmartIntegrationTes
 
         c.addAccount("eve")
                 .addAttributeValues(DummyScenario.Account.AttributeNames.FULLNAME.local(), "Eve Adams")
-                .addAttributeValues(DummyScenario.Account.AttributeNames.PERSONAL_NUMBER.local(), "10303333")
+                .addAttributeValues(DummyScenario.Account.AttributeNames.PERSONAL_NUMBER.local(), "admin")
                 .addAttributeValues(DummyScenario.Account.AttributeNames.EMAIL.local(), "eve@evolveum.com")
                 .addAttributeValues(DummyScenario.Account.AttributeNames.STATUS.local(), "locked")
                 .addAttributeValues(DummyScenario.Account.AttributeNames.TYPE.local(), "employee")
@@ -130,8 +131,46 @@ public class TestSmartIntegrationServiceImpl extends AbstractSmartIntegrationTes
 
     }
 
+    private String pickWeightedRandom(String[] values, int[] weights, Random rand) {
+        int totalWeight = 0;
+        for (int w : weights) totalWeight += w;
+        int r = rand.nextInt(totalWeight);
+        int cumulative = 0;
+        for (int i = 0; i < values.length; i++) {
+            cumulative += weights[i];
+            if (r < cumulative) {
+                return values[i];
+            }
+        }
+        return values[values.length - 1];
+    }
+
     private void addDummyAccountsExceedingTopNLimit() throws Exception {
         var c = dummyForObjectTypes.getController();
+        String[] departments = {"HR", "Engineering", "Sales", "Marketing", "IT", "Finance", "Support"};
+        int[] departmentWeights = {1, 5, 3, 2, 4, 2, 1};
+
+        String[] types = {"employee", "manager", "contractor", "intern"};
+        int[] typeWeights = {7, 2, 3, 1};
+
+        String[] statuses = {"active", "inactive", "locked", "pending"};
+        int[] statusWeights = {8, 2, 1, 1};
+
+        Random rand = new Random();
+
+        for (int i = 1; i <= 100; i++) {
+            String username = "user" + i;
+            String personalNumber = String.format("%08d", 10000000 + i);
+            String department = pickWeightedRandom(departments, departmentWeights, rand);
+            String type = pickWeightedRandom(types, typeWeights, rand);
+            String status = pickWeightedRandom(statuses, statusWeights, rand);
+
+            c.addAccount(username)
+                    .addAttributeValues(DummyScenario.Account.AttributeNames.PERSONAL_NUMBER.local(), personalNumber)
+                    .addAttributeValues(DummyScenario.Account.AttributeNames.DEPARTMENT.local(), department)
+                    .addAttributeValues(DummyScenario.Account.AttributeNames.TYPE.local(), type)
+                    .addAttributeValues(DummyScenario.Account.AttributeNames.STATUS.local(), status);
+        }
     }
 
     @Test
@@ -384,7 +423,7 @@ public class TestSmartIntegrationServiceImpl extends AbstractSmartIntegrationTes
             assertThat(emptyAttribute.getValueCount()).isEmpty();
         }
 
-        for (String attributeName : List.of("uid", "name", "fullname", "email", "personalNumber")) {
+        for (String attributeName : List.of("uid", "name", "fullname", "email")) {
             var distinctAttribute = statistics.getAttribute().stream()
                     .filter(attr -> attr.getRef().toString().equals(attributeName))
                     .findFirst().orElseThrow();
@@ -395,6 +434,15 @@ public class TestSmartIntegrationServiceImpl extends AbstractSmartIntegrationTes
                 assertThat(vc.getCount()).isEqualTo(1);
             }
         }
+
+        var personalNumberAttribute = statistics.getAttribute().stream()
+                .filter(attr -> attr.getRef().toString().equals("personalNumber"))
+                .findFirst().orElseThrow();
+
+        assertThat(personalNumberAttribute.getMissingValueCount()).isEqualTo(0);
+        assertThat(personalNumberAttribute.getUniqueValueCount()).isEqualTo(1);
+        assertThat(personalNumberAttribute.getValueCount().size()).isEqualTo(1);
+
         testStatusAttributeStatistics();
         testDepartmentAttributeStatistics();
         testPhoneAttributeStatistics();
@@ -502,6 +550,18 @@ public class TestSmartIntegrationServiceImpl extends AbstractSmartIntegrationTes
         assertThat(valueCounts).containsEntry("contractor", 1);
     }
 
+    private static <T, R extends Comparable<? super R>> boolean isSortedDesc(List<T> list, Function<T, R> f) {
+        Comparator<T> comp = Comparator.comparing(f);
+        for (int i = 0; i < list.size() - 1; ++i) {
+            T left = list.get(i);
+            T right = list.get(i + 1);
+            if (comp.compare(left, right) < 0) {
+                return false;
+            }
+        }
+        return true;
+    }
+
     /** Tests the accounts statistics computer after adding more accounts, exceeding percentage limit for some attributes. */
     @Test
     public void test210ComputeAccountStatisticsExceedingTopNLimit() throws Exception {
@@ -518,6 +578,15 @@ public class TestSmartIntegrationServiceImpl extends AbstractSmartIntegrationTes
         displayValue("statistics", PrismContext.get().jsonSerializer().serializeRealValueContent(statistics));
         assertThat(statistics).isNotNull();
         assertThat(statistics.getAttribute()).isNotEmpty();
+        assertThat(statistics.getSize()).isEqualTo(105);
+        for (var attribute : statistics.getAttribute()) {
+            if (attribute.getMissingValueCount() < 105) {
+                assertThat(attribute.getValueCount()).isNotEmpty();
+                assertThat(attribute.getUniqueValueCount()).isGreaterThan(0);
+            }
+            assertThat(attribute.getValueCount().size()).isLessThanOrEqualTo(30);
+            assertThat(isSortedDesc(attribute.getValueCount(), ShadowAttributeValueCountType::getCount)).isTrue();
+        }
     }
 
     @SuppressWarnings("SameParameterValue")
