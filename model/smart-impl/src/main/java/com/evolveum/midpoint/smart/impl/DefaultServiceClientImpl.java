@@ -12,6 +12,7 @@ import java.util.Arrays;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import org.apache.cxf.jaxrs.client.WebClient;
+import org.apache.cxf.transports.http.configuration.HTTPClientPolicy;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.VisibleForTesting;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -46,6 +47,9 @@ public class DefaultServiceClientImpl implements ServiceClient {
     /** The client used to access the remote service. */
     private final WebClient webClient;
 
+    /** Timeout for receiving answer from the Python service. Later it will be configurable. */
+    private static final long RECEIVE_TIMEOUT = 300_000;
+
     // TODO decide if we use these providers or not.
     @Autowired private MidpointXmlProvider<?> xmlProvider;
     @Autowired private MidpointJsonProvider<?> jsonProvider;
@@ -58,6 +62,11 @@ public class DefaultServiceClientImpl implements ServiceClient {
                 getServiceUrl(configurationBean),
                 Arrays.asList(xmlProvider, jsonProvider, yamlProvider),
                 true);
+
+        var conduit = WebClient.getConfig(webClient).getHttpConduit();
+        var policy = new HTTPClientPolicy();
+        policy.setReceiveTimeout(RECEIVE_TIMEOUT);
+        conduit.setClient(policy);
     }
 
     private static String getServiceUrl(@Nullable SmartIntegrationConfigurationType configurationBean)
