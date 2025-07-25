@@ -185,8 +185,8 @@
         JVM args for testing plugins, can be used to add profiling, etc.
         Option add-exports is added because OpenDJ on JDK 17 uses some recently hidden API.
         -->
-        <surefire.args>-Xms1024m -Xmx4096m --add-exports java.management/sun.management=ALL-UNNAMED</surefire.args>
-        <failsafe.args>-Xms1024m -Xmx4096m -Duser.language=en --add-exports java.management/sun.management=ALL-UNNAMED</failsafe.args>
+        <surefire.args>-Xms1024m -Xmx6144m --add-exports java.management/sun.management=ALL-UNNAMED</surefire.args>
+        <failsafe.args>-Xms1024m -Xmx6144m -Duser.language=en --add-exports java.management/sun.management=ALL-UNNAMED</failsafe.args>
         <!-- surefire & failsafe argument line for integration with jacoco code coverage
              by default it is empty (no jacoco) but jacoco-maven-plugin) sets it to actual configuration in build.
              this argLine should be used as @{jacoco.argLine} to not replace it during POM reading for surefire and failsafe
@@ -206,7 +206,7 @@
 
         <!-- Dependencies global versions -->
         <httpclient.version>4.5.14</httpclient.version>
-        
+
         <!--
             Older version (given via spring boot 3.3.7) used to avoid issue of connections being non-valid
             and not closed in hikariCP pool when thread has interrupted=true flag.
