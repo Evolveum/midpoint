@@ -162,6 +162,13 @@ public final class DetailsPageUtil {
                         assignmentHolder.getParentOrgRef().add(ref.clone());
                     }
                 }
+                //todo: fix MID-10777; similar to the previous condition, archetypeRef is needed due to security issue
+                // MID-3234 takes place in this case as well
+                if (ref.getType() != null && ArchetypeType.COMPLEX_TYPE.equals(ref.getType())) {
+                    if (ref.getRelation() == null || RelationUtil.isDefaultRelation(ref.getRelation())) {
+                        assignmentHolder.getArchetypeRef().add(ref.clone());
+                    }
+                }
 
             });
         }
