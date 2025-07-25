@@ -13,16 +13,14 @@ import com.evolveum.midpoint.smart.api.ServiceClient;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.*;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.CorrelationSuggestionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingsSuggestionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /** An {@link Operation} executing on a specific object type. */
 class TypeOperation extends Operation {
 
-    final ResourceObjectTypeDefinition typeDefinition;
+    private final ResourceObjectTypeDefinition typeDefinition;
 
-    TypeOperation(
+    private TypeOperation(
             ResourceType resource,
             ResourceSchema resourceSchema,
             ResourceObjectTypeDefinition typeDefinition,
@@ -49,7 +47,7 @@ class TypeOperation extends Operation {
         return new TypeOperation(resource, resourceSchema, typeDefinition, serviceAdapter, task);
     }
 
-    public QName suggestFocusType() throws SchemaException {
+    QName suggestFocusType() throws SchemaException {
         return serviceAdapter.suggestFocusType(
                 typeDefinition.getTypeIdentification(),
                 typeDefinition.getObjectClassDefinition(),
@@ -59,9 +57,9 @@ class TypeOperation extends Operation {
     /**
      * Initial implementation of "suggest correlation" method:
      *
-     * . ask for schema matchings
-     * . see if any references known correlation-capable properties (like name, personalNumber, emailAddress, ...)
-     * . if so, suggest the correlation
+     * . identify correlation-capable properties (like name, personalNumber, emailAddress, ...)
+     * . ask for schema matchings for these properties
+     * . if there are any, suggest the correlation - for the first one, if there are multiple
      *
      * Future improvements:
      *
@@ -69,11 +67,25 @@ class TypeOperation extends Operation {
      * whether source attribute is unique or not
      *
      */
-    public CorrelationSuggestionType suggestCorrelation() {
-        return new CorrelationSuggestionType();
+    CorrelationSuggestionType suggestCorrelation() throws SchemaException {
+        var correlators = KnownCorrelator.getAllFor(getFocusTypeDefinition().getCompileTimeClass());
+        var attributeDefinitionsForCorrelators =
+                serviceAdapter.suggestCorrelationMappings(typeDefinition, getFocusTypeDefinition(), correlators);
+        var suggestion = new CorrelationSuggestionType();
+        if (!attributeDefinitionsForCorrelators.isEmpty()) {
+            var first = attributeDefinitionsForCorrelators.get(0);
+            suggestion.getAttributes().add(first.attributeDefinitionBean());
+            suggestion.setCorrelation(
+                    new CorrelationDefinitionType()
+                            .correlators(new CompositeCorrelatorType()
+                                    .items(new ItemsSubCorrelatorType()
+                                            .item(new CorrelationItemType()
+                                                    .ref(first.focusItemPath().toBean())))));
+        }
+        return suggestion;
     }
 
-    public MappingsSuggestionType suggestMappings() throws SchemaException {
+    MappingsSuggestionType suggestMappings() throws SchemaException {
         return serviceAdapter.suggestMappings(typeDefinition, getFocusTypeDefinition());
     }
 
@@ -87,6 +99,6 @@ class TypeOperation extends Operation {
     private QName getFocusTypeName() {
         return MiscUtil.argNonNull(
                 typeDefinition.getFocusTypeName(),
-                "Focus type not defined for %s",typeDefinition.getTypeIdentification());
+                "Focus type not defined for %s", typeDefinition.getTypeIdentification());
     }
 }

@@ -7,6 +7,7 @@
 
 package com.evolveum.midpoint.smart.impl;
 
+import static com.evolveum.midpoint.schema.constants.SchemaConstants.ICFS_NAME;
 import static com.evolveum.midpoint.schema.processor.ResourceObjectTypeIdentification.ACCOUNT_DEFAULT;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectClassSizeEstimationPrecisionType.*;
 
@@ -21,12 +22,15 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 import com.evolveum.midpoint.model.test.smart.MockServiceClientImpl;
+import com.evolveum.midpoint.prism.path.ItemName;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.smart.impl.DummyScenario.Account;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 
+import org.jetbrains.annotations.NotNull;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Test;
@@ -563,8 +567,11 @@ public class TestSmartIntegrationServiceImpl extends AbstractSmartIntegrationTes
         var mockClient = new MockServiceClientImpl<>(
                 new SiMatchSchemaResponseType()
                         .attributeMatch(new SiAttributeMatchSuggestionType()
-                                .applicationAttribute(Account.AttributeNames.FULLNAME.q())
-                                .midPointAttribute(UserType.F_FULL_NAME)));
+                                .applicationAttribute(Account.AttributeNames.FULLNAME.q().toBean())
+                                .midPointAttribute(UserType.F_FULL_NAME.toBean()))
+                        .attributeMatch(new SiAttributeMatchSuggestionType()
+                                .applicationAttribute(ICFS_NAME.toBean())
+                                .midPointAttribute(UserType.F_NAME.toBean())));
         smartIntegrationService.setServiceClientSupplier(() -> mockClient);
 
         var task = getTestTask();
@@ -577,9 +584,36 @@ public class TestSmartIntegrationServiceImpl extends AbstractSmartIntegrationTes
                 null, null, task, result);
 
         then("suggestion is correct");
-        displayValue("request",
-                prismContext.jsonSerializer().serializeRealValueContent(mockClient.getLastRequest()));
-        // TODO add assertions
+        displayValueAsXml("suggested mappings", suggestedMappings);
+        assertThat(suggestedMappings.getExtensionItem()).isEmpty(); // not implemented yet
+        var attrMappings = suggestedMappings.getAttributeMappings();
+        assertThat(attrMappings).as("attribute mappings").hasSize(2);
+        assertSuggestion(attrMappings, ICFS_NAME, UserType.F_NAME);
+        assertSuggestion(attrMappings, Account.AttributeNames.FULLNAME.q(), UserType.F_FULL_NAME);
+    }
+
+    private void assertSuggestion(List<AttributeMappingsSuggestionType> attrMappings, ItemName attrName, ItemName focusItemName) {
+        var def = findAttributeMappings(attrMappings, attrName).getDefinition();
+        assertThat(def.getInbound()).as("inbounds")
+                .hasSize(1)
+                .element(0)
+                .extracting(a -> a.getTarget().getPath().getItemPath())
+                .satisfies(p -> focusItemName.equivalent(p));
+        assertThat(def.getOutbound()).as("outbound")
+                .extracting(a -> a.getSource(), listAsserterFactory(VariableBindingDefinitionType.class))
+                .hasSize(1)
+                .element(0)
+                .extracting(v -> v.getPath().getItemPath())
+                .satisfies(p -> focusItemName.equivalent(p));
+    }
+
+    private @NotNull AttributeMappingsSuggestionType findAttributeMappings(
+            List<AttributeMappingsSuggestionType> suggestions, ItemPath path) {
+        return suggestions.stream()
+                .filter(s ->
+                        path.equivalent(s.getDefinition().getRef().getItemPath()))
+                .findFirst()
+                .orElseThrow(() -> new AssertionError("No suggestion found for " + path));
     }
 
     @Test
@@ -590,8 +624,14 @@ public class TestSmartIntegrationServiceImpl extends AbstractSmartIntegrationTes
         var mockClient = new MockServiceClientImpl<>(
                 new SiMatchSchemaResponseType()
                         .attributeMatch(new SiAttributeMatchSuggestionType()
-                                .applicationAttribute(Account.AttributeNames.FULLNAME.q())
-                                .midPointAttribute(UserType.F_FULL_NAME)));
+                                .applicationAttribute(Account.AttributeNames.FULLNAME.q().toBean())
+                                .midPointAttribute(UserType.F_FULL_NAME.toBean()))
+                        .attributeMatch(new SiAttributeMatchSuggestionType()
+                                .applicationAttribute(Account.AttributeNames.EMAIL.q().toBean())
+                                .midPointAttribute(UserType.F_EMAIL_ADDRESS.toBean())) // to confuse the test
+                        .attributeMatch(new SiAttributeMatchSuggestionType()
+                                .applicationAttribute(ICFS_NAME.toBean())
+                                .midPointAttribute(UserType.F_NAME.toBean())));
         smartIntegrationService.setServiceClientSupplier(() -> mockClient);
 
         var task = getTestTask();
@@ -604,7 +644,46 @@ public class TestSmartIntegrationServiceImpl extends AbstractSmartIntegrationTes
                 null, task, result);
 
         then("suggestion is correct");
-        displayDumpable("suggested correlation", suggestedCorrelation);
-        // TODO add assertions
+        displayValueAsXml("suggested correlation", suggestedCorrelation);
+        var attrMappings = suggestedCorrelation.getAttributes();
+        assertThat(attrMappings).as("attribute mappings").hasSize(1);
+        assertCorrAttrSuggestion(attrMappings, ICFS_NAME, UserType.F_NAME);
+
+        // There should be only one correlator, although there are two candidates (name and emailAddress).
+        var correlation = suggestedCorrelation.getCorrelation();
+        assertThat(correlation).as("correlation definition").isNotNull();
+        CompositeCorrelatorType correlators = correlation.getCorrelators();
+        assertThat(correlators).as("correlators").isNotNull();
+        assertThat(correlators.asPrismContainerValue().getItems()).as("correlators items").hasSize(1);
+        assertThat(correlators.getItems()).as("items correlators definitions").hasSize(1);
+        var itemsCorrelator = correlators.getItems().get(0);
+        assertThat(itemsCorrelator.getItem()).as("items correlators items").hasSize(1);
+        var itemCorrelatorRef = itemsCorrelator.getItem().get(0).getRef();
+        assertThat(itemCorrelatorRef).as("item correlators item ref").isNotNull();
+        assertThat(itemCorrelatorRef.getItemPath().asSingleName()).as("correlator item").isEqualTo(UserType.F_NAME);
+    }
+
+    private void assertCorrAttrSuggestion(
+            List<ResourceAttributeDefinitionType> definitions, ItemName attrName, ItemName focusItemName) {
+        var def = findAttributeDefinition(definitions, attrName);
+        var inbound = assertThat(def.getInbound()).as("inbounds")
+                .hasSize(1)
+                .element(0)
+                .actual();
+        assertThat(inbound.getUse())
+                .as("inbound mapping use")
+                .isEqualTo(InboundMappingUseType.CORRELATION);
+        assertThat(inbound.getTarget().getPath().getItemPath())
+                .as("target item path")
+                .satisfies(p -> focusItemName.equivalent(p));
+        assertThat(def.getOutbound()).as("outbound").isNull();
+    }
+
+    private @NotNull ResourceAttributeDefinitionType findAttributeDefinition(
+            List<ResourceAttributeDefinitionType> definitions, ItemPath path) {
+        return definitions.stream()
+                .filter(s -> path.equivalent(s.getRef().getItemPath()))
+                .findFirst()
+                .orElseThrow(() -> new AssertionError("No definition found for " + path));
     }
 }

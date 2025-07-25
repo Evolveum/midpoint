@@ -976,14 +976,14 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
-            <xsd:element name="applicationAttribute" type="xsd:QName">
+            <xsd:element name="applicationAttribute" type="t:ItemPathType">
                 <xsd:annotation>
                     <xsd:documentation>
                         Name the of application-side attribute.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="midPointAttribute" type="xsd:QName">
+            <xsd:element name="midPointAttribute" type="t:ItemPathType">
                 <xsd:annotation>
                     <xsd:documentation>
                         Name the of midPoint-side attribute.

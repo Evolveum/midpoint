@@ -7,8 +7,20 @@
 
 package com.evolveum.midpoint.smart.impl;
 
+import static com.evolveum.midpoint.schema.constants.SchemaConstants.NS_RI;
+import static com.evolveum.midpoint.smart.api.ServiceClient.Method.*;
+import static com.evolveum.midpoint.util.MiscUtil.nullIfEmpty;
+import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
+
+import java.util.ArrayList;
+import java.util.List;
+import javax.xml.namespace.QName;
+
+import org.apache.commons.lang3.StringUtils;
+
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.PrismQuerySerialization;
 import com.evolveum.midpoint.schema.processor.*;
 import com.evolveum.midpoint.smart.api.ServiceClient;
@@ -18,15 +30,6 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
-
-import org.apache.commons.lang3.StringUtils;
-
-import javax.xml.namespace.QName;
-
-import static com.evolveum.midpoint.schema.constants.SchemaConstants.NS_RI;
-import static com.evolveum.midpoint.smart.api.ServiceClient.Method.*;
-import static com.evolveum.midpoint.util.MiscUtil.nullIfEmpty;
-import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
 
 /**
  * Converts requests and responses between the Smart Integration Service and the microservice.
@@ -155,10 +158,62 @@ class ServiceAdapter {
 
     MappingsSuggestionType suggestMappings(
             ResourceObjectTypeDefinition objectTypeDef, PrismObjectDefinition<?> focusDef) throws SchemaException {
-        var request = new SiMatchSchemaRequestType()
+        var siResponse = matchSchema(objectTypeDef, focusDef);
+        var response = new MappingsSuggestionType();
+        for (var siAttributeMatch : siResponse.getAttributeMatch()) {
+            var resourceAttr = siAttributeMatch.getApplicationAttribute();
+            var focusItem = siAttributeMatch.getMidPointAttribute();
+            response.getAttributeMappings().add(
+                    new AttributeMappingsSuggestionType()
+                            .definition(new ResourceAttributeDefinitionType()
+                                    .ref(resourceAttr)
+                                    .outbound(new MappingType()
+                                            .source(new VariableBindingDefinitionType()
+                                                    .path(focusItem)))
+                                    .inbound(new InboundMappingType()
+                                            .target(new VariableBindingDefinitionType()
+                                                    .path(focusItem)))));
+        }
+        return response;
+    }
+
+    /** Returns suggestions for correlators - in the same order as the correlators are provided. */
+    List<CorrelatorSuggestion> suggestCorrelationMappings(
+            ResourceObjectTypeDefinition objectTypeDef, PrismObjectDefinition<?> focusDef, List<? extends ItemPath> correlators)
+            throws SchemaException {
+        var siResponse = matchSchema(objectTypeDef, focusDef);
+        var response = new ArrayList<CorrelatorSuggestion>();
+        for (ItemPath correlator : correlators) {
+            for (var siAttributeMatch : siResponse.getAttributeMatch()) {
+                var focusItemPathBean = siAttributeMatch.getMidPointAttribute();
+                var focusItemPath = focusItemPathBean.getItemPath();
+                if (correlator.equivalent(focusItemPath)) {
+                    var resourceAttrPathBean = siAttributeMatch.getApplicationAttribute();
+                    response.add(
+                            new CorrelatorSuggestion(
+                                    focusItemPath,
+                                    new ResourceAttributeDefinitionType()
+                                            .ref(resourceAttrPathBean)
+                                            .inbound(new InboundMappingType()
+                                                    .target(new VariableBindingDefinitionType()
+                                                            .path(focusItemPathBean))
+                                                    .use(InboundMappingUseType.CORRELATION))));
+                }
+            }
+        }
+        return response;
+    }
+
+    record CorrelatorSuggestion(
+            ItemPath focusItemPath,
+            ResourceAttributeDefinitionType attributeDefinitionBean) {
+    }
+
+    private SiMatchSchemaResponseType matchSchema(ResourceObjectTypeDefinition objectTypeDef, PrismObjectDefinition<?> focusDef)
+            throws SchemaException {
+        var siRequest = new SiMatchSchemaRequestType()
                 .applicationSchema(ResourceObjectClassSchemaSerializer.serialize(objectTypeDef.getObjectClassDefinition()))
                 .midPointSchema(PrismComplexTypeDefinitionSerializer.serialize(focusDef));
-        var response = serviceClient.invoke(MATCH_SCHEMA, request, SiMatchSchemaResponseType.class);
-        return new MappingsSuggestionType(); // TODO implement this method
+        return serviceClient.invoke(MATCH_SCHEMA, siRequest, SiMatchSchemaResponseType.class);
     }
 }
