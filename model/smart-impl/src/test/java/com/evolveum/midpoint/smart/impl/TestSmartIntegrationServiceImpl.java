@@ -57,8 +57,9 @@ public class TestSmartIntegrationServiceImpl extends AbstractSmartIntegrationTes
     private static final File TEST_DIR = new File(TEST_RESOURCES_DIR, "smart");
 
     private static final File TEST_100_STATISTICS = new File(TEST_DIR, "test-100-statistics.xml");
-    private static final File TEST_110_STATISTICS = new File(TEST_DIR, "test-110-statistics.xml");
+    private static final File TEST_1XX_STATISTICS = new File(TEST_DIR, "test-1xx-statistics.xml");
     private static final File TEST_110_EXPECTED_OBJECT_TYPES = new File(TEST_DIR, "test-110-expected-object-types.xml");
+    private static final File TEST_140_EXPECTED_OBJECT_TYPES = new File(TEST_DIR, "test-140-expected-object-types.xml");
     private static final File TEST_110_EXPECTED_REQUEST = new File(TEST_DIR, "test-110-expected-request.json");
 
     private static DummyScenario dummyForObjectTypes;
@@ -295,7 +296,7 @@ public class TestSmartIntegrationServiceImpl extends AbstractSmartIntegrationTes
         var task = getTestTask();
         var result = task.getResult();
 
-        var shadowObjectClassStatistics = parseStatistics(TEST_110_STATISTICS);
+        var shadowObjectClassStatistics = parseStatistics(TEST_1XX_STATISTICS);
 
         when("suggesting object types");
         var objectTypes = smartIntegrationService.suggestObjectTypes(
@@ -395,6 +396,50 @@ public class TestSmartIntegrationServiceImpl extends AbstractSmartIntegrationTes
             assertExpectedException(e)
                     .hasMessageContaining("unknownObjectClass not found");
         }
+    }
+
+    /** All features: both filters and base context, plus multiple object types. */
+    @Test
+    public void test140ConflictingObjectTypes() throws CommonException, IOException {
+        skipIfRealService();
+
+        //noinspection resource
+        var mockClient = new MockServiceClientImpl<>(
+                new SiSuggestObjectTypesResponseType()
+                        .objectType(new SiSuggestedObjectTypeType()
+                                .kind("account")
+                                .intent("employee")
+                                .filter("attributes/type = 'employee1'")
+                                .baseContextObjectClassName("organizationalUnit")
+                                .baseContextFilter("attributes/cn = 'evolveum'"))
+                        .objectType(new SiSuggestedObjectTypeType()
+                                .kind("account")
+                                .intent("employee") // the same as above
+                                .filter("attributes/type = 'employee2'")
+                                .baseContextObjectClassName("organizationalUnit")
+                                .baseContextFilter("attributes/cn = 'evolveum'"))
+                        .objectType(new SiSuggestedObjectTypeType()
+                                .kind("account")
+                                .intent("employee") // the same as above, but different base context
+                                .filter("attributes/type = 'employee3'")));
+        smartIntegrationService.setServiceClientSupplier(() -> mockClient);
+
+        var task = getTestTask();
+        var result = task.getResult();
+
+        var shadowObjectClassStatistics = parseStatistics(TEST_1XX_STATISTICS);
+
+        when("suggesting object types");
+        var objectTypes = smartIntegrationService.suggestObjectTypes(
+                RESOURCE_DUMMY_FOR_SUGGEST_OBJECT_TYPES.oid, OC_ACCOUNT_QNAME, shadowObjectClassStatistics, task, result);
+
+        then("suggested types are correct");
+        assertSuccess(result);
+        displayValueAsXml("suggested object types", objectTypes);
+        assertThat(objectTypes.getObjectType())
+                .as("suggested object types")
+                .containsExactlyInAnyOrderElementsOf(
+                        parseObjectTypesSuggestion(TEST_140_EXPECTED_OBJECT_TYPES).getObjectType());
     }
 
     /** Tests the accounts statistics computer. */
