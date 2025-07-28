@@ -7,28 +7,42 @@
 :page-wiki-metadata-modify-date: 2017-04-19T12:03:10.715+02:00
 :page-upkeep-status: yellow
 :page-moved-from: /midpoint/reference/roles-policies/certification/escalation/
+:page-description: This page describes how escalations can be used in certification campaigns.
+:page-keywords: escalation, certification campaign, escalate, timed action
+:page-toc: top
 
-After xref:/midpoint/reference/cases/escalation/[the escalation feature has been introduced for approvals], it is now available also for certification campaigns.
-The configuration is very similar: _timed actions_ are used.
+This page describes how escalations can be used in certification campaigns.
+
+Escalations were originally developed for xref:/midpoint/reference/cases/escalation/[approvals], and they are implemented through _timed actions_.
+
+== Timed actions
+
+While the implementation of escalations is similar in certification campaigns and in approvals, there are some differences.
+The main differences are captured in the following table:
+
+[cols="3*", options="header"]
+|===
+|  | Approvals | Certification campaigns
+
+| *Actions*
+| The following actions are supported: completion, notification, delegation, escalation.    
+| Only escalation is currently implemented.
+
+| *Deadline*
+| Optional, and potentially different for all work items created in a particular approval stage.
+It is usually changed in escalations. 
+| Obligatory, and identical for all work items for all active cases in a campaign stage, i.e. the certification work item deadline is fixed and it cannot be changed as part of an escalation timed action.
+
+| *Escalation configuration*    
+| Each level in an approval process can have a different escalation configuration. 
+| One configuration is shared by all work items for all active cases in a certification campaign stage.
+
+|===
 
 
-== Timed actions in certification campaigns
+== Example
 
-Main differences between timed actions in certification campaigns and the ones in approvals are:
-
-. There are four kinds of actions: completion, notification, delegation, escalation.
-For approval workflows, all of them are implemented.
-But for certification, only escalation action can be currently used.
-(Completion is meaningless, because certification campaigns do a kind of "auto-completion" - closing work items with the state of 'no answer'.
-Other actions will be implemented later.)
-
-. For approval work items, deadline is optional, and potentially different for all work items created at a particular approval stage.
-However, for certification work items, deadline is obligatory and it is the same for all the work items for all the active cases in the given certification campaign stage.This means that, at least in current implementation, the certification work item deadline is fixed.
-It cannot be changed as part of escalation timed action; contrary to what is usual in the case of approvals.
-
-. In a similar way, the escalation level is the same for all work items for all active cases in the given certification campaign stage.
-
-Here is a sample campaign definition containing automatic escalation:
+See a sample campaign definition containing an automatic escalation:
 
 .Certification campaign with escalations
 [source,xml]
@@ -87,10 +101,10 @@ Here is a sample campaign definition containing automatic escalation:
 </accessCertificationDefinition>
 ----
 
-The escalations themselves are defined on lines 25-50.
-As defined on line 27, seven days after campaign stage opening ("P7D") the first escalation takes place.
-The new escalation level is named "Level1", and its effect is that an reviewer of `018fe48d-4952-4f4b-8c0a-b8670ec1748e` (line 31) is added (`addAssignees` - line 32) to the current one.
+The actual escalations are defined on lines 25-50.
+As defined on line 27, seven days after the campaign stage opening (`P7D`) the first escalation takes place.
+The new escalation level is named `Level1`, and its effect is that a reviewer of `018fe48d-4952-4f4b-8c0a-b8670ec1748e` (line 31) is added (`addAssignees` - line 32) to the current certification work item.
 
-Then, as defined on line 39, ten days after campaign stage opening ("P10D"), i.e. three days after this escalation, another one takes place.
-It is named "Level2", and it replaces all existing reviewers (`replaceAssignees` - line 44) with the `42b48a07-e167-4fdc-baca-8eaa13d4eaad` (line 43).
-Exactly as in approvals, the chaining of escalation levels is done using constraining of timed actions to some levels using `escalationLevelFrom`/`escalationLevelTo` clauses (lines 48-49).
+Then, as defined on line 39, ten days after the campaign stage opening (`P10D`), i.e. three days after the first escalation, another escalation takes place.
+It is named `Level2`, and it replaces all existing reviewers (`replaceAssignees` - line 44) with `42b48a07-e167-4fdc-baca-8eaa13d4eaad` (line 43).
+Same as in xref:/midpoint/reference/cases/escalation/[approvals], the chaining of the escalation levels is done by constraining timed actions to levels using the `escalationLevelFrom`/`escalationLevelTo` clauses (lines 48-49).
