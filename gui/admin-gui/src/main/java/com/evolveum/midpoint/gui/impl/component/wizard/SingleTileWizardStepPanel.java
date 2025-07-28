@@ -74,6 +74,9 @@ public abstract class SingleTileWizardStepPanel<O extends ObjectType, ODM extend
                 try {
                     PrismContainerWrapper<V> container =
                             getDetailsModel().getObjectWrapper().findContainer(path);
+                    if (container == null) {
+                        return null;
+                    }
                     PrismContainerValue<V> newValue = createNewValue(container);
                     PrismContainerValueWrapper<V> valueWrapper = WebPrismUtil.createNewValueWrapper(
                             container, newValue, getPageBase(), getDetailsModel().createWrapperContext());
@@ -146,7 +149,10 @@ public abstract class SingleTileWizardStepPanel<O extends ObjectType, ODM extend
                     getValueModel().getObject());
         } else {
             try {
-                getValueModel().getObject().getParent().remove(getValueModel().getObject(), getPageBase());
+                if (getValueModel().getObject() != null
+                        && getValueModel().getObject().getParent() != null) {
+                    getValueModel().getObject().getParent().remove(getValueModel().getObject(), getPageBase());
+                }
                 getValueModel().detach();
             } catch (SchemaException e) {
                 LOGGER.error("Couldn't remove value from inducement container.");
