@@ -7,11 +7,26 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.smart;
 
+import static com.evolveum.midpoint.util.MiscUtil.stateNonNull;
+
 import java.io.Serial;
 import java.util.List;
 import java.util.Objects;
 
+import org.apache.commons.lang3.StringUtils;
+import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.markup.html.WebMarkupContainer;
+import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.Model;
+import org.jetbrains.annotations.Nullable;
+
+import com.evolveum.midpoint.authentication.api.authorization.AuthorizationAction;
+import com.evolveum.midpoint.authentication.api.authorization.PageDescriptor;
+import com.evolveum.midpoint.authentication.api.authorization.Url;
+import com.evolveum.midpoint.authentication.api.util.AuthConstants;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
+import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import com.evolveum.midpoint.schema.processor.ResourceObjectTypeIdentification;
@@ -19,31 +34,14 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
-import com.evolveum.midpoint.web.component.input.DropDownChoicePanel;
-
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
-import org.apache.commons.lang3.StringUtils;
-import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.Model;
-
-import com.evolveum.midpoint.authentication.api.authorization.AuthorizationAction;
-import com.evolveum.midpoint.authentication.api.authorization.PageDescriptor;
-import com.evolveum.midpoint.authentication.api.authorization.Url;
-import com.evolveum.midpoint.authentication.api.util.AuthConstants;
-import com.evolveum.midpoint.gui.api.page.PageBase;
-import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.AceEditor;
 import com.evolveum.midpoint.web.component.AjaxSubmitButton;
 import com.evolveum.midpoint.web.component.form.MidpointForm;
+import com.evolveum.midpoint.web.component.input.DropDownChoicePanel;
 import com.evolveum.midpoint.web.page.admin.configuration.PageAdminConfiguration;
-
-import org.jetbrains.annotations.Nullable;
-
-import static com.evolveum.midpoint.util.MiscUtil.stateNonNull;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 @PageDescriptor(
         urls = {
@@ -68,6 +66,7 @@ public class PageSmartIntegrationTypesSuggestion extends PageAdminConfiguration 
     private static final String ID_SAVE = "save";
     private static final String ID_RESET = "reset";
     private static final String ID_NEXT = "next";
+    private static final String ID_SUGGESTION = "suggestion";
     private static final String ID_SUGGESTION_XML = "suggestionXml";
     private static final String ID_DEFINITION_XML = "definitionXml";
 
@@ -137,7 +136,11 @@ public class PageSmartIntegrationTypesSuggestion extends PageAdminConfiguration 
         MidpointForm<?> mainForm = new MidpointForm<>(ID_MAIN_FORM);
         add(mainForm);
 
-        mainForm.add(new AjaxSubmitButton(ID_ACCEPT_SUGGESTION) {
+        var suggestion = new WebMarkupContainer(ID_SUGGESTION);
+        mainForm.add(suggestion);
+        suggestion.setVisible(!this.suggestion.getObjectType().isEmpty());
+
+        suggestion.add(new AjaxSubmitButton(ID_ACCEPT_SUGGESTION) {
             @Override
             public void onSubmit(AjaxRequestTarget target) {
                 var selectedTypeId = selectedSuggestionModel.getObject();
@@ -154,7 +157,14 @@ public class PageSmartIntegrationTypesSuggestion extends PageAdminConfiguration 
             }
         });
 
-        mainForm.add(new DropDownChoicePanel<>(
+        AceEditor suggestionEditor = new AceEditor(ID_SUGGESTION_XML, suggestionModel);
+        suggestionEditor.setModeForDataLanguage(PrismContext.LANG_XML);
+        suggestionEditor.setReadonly(true);
+        suggestionEditor.setHeight(400);
+        suggestionEditor.setResizeToMaxHeight(false);
+        suggestion.add(suggestionEditor);
+
+        suggestion.add(new DropDownChoicePanel<>(
                 ID_SELECTED_SUGGESTION,
                 selectedSuggestionModel,
                 Model.ofList(suggestedObjectTypes)));
@@ -238,13 +248,6 @@ public class PageSmartIntegrationTypesSuggestion extends PageAdminConfiguration 
                         });
             }
         });
-
-        AceEditor suggestionEditor = new AceEditor(ID_SUGGESTION_XML, suggestionModel);
-        suggestionEditor.setModeForDataLanguage(PrismContext.LANG_XML);
-        suggestionEditor.setReadonly(true);
-        suggestionEditor.setHeight(400);
-        suggestionEditor.setResizeToMaxHeight(false);
-        mainForm.add(suggestionEditor);
 
         AceEditor definitionEditor = new AceEditor(ID_DEFINITION_XML, definitionModel);
         definitionEditor.setModeForDataLanguage(PrismContext.LANG_XML);
