@@ -8,96 +8,119 @@
 :page-alias: { "parent" : "/midpoint/guides/" }
 :page-upkeep-status: green
 :page-moved-from: /midpoint/reference/roles-policies/certification/tutorial/
+:page-description: Learn how to work with certification campaigns in midPoint user interface.
+:page-keywords: certification campaign, create campaign, campaign definition, review campaign
+:experimental:
+:page-toc: top
 
-Assuming you're logged as administrator, you should see the Certification menu items in the main menu:
+This tutorial shows you how to work with certification campaigns in midPoint.
 
+== Add Campaign Definition
+
+By default, there are no campaign definitions in the repository.
+You have to add one.
+
+You can use the pre-defined _All user assignments_ campaign:
+
+. Download the https://github.com/Evolveum/midpoint-samples/blob/master/samples/certification/def-all-user-assignments.xml[All user assignments] campaign definition. +
+Alternatively, you can create your own definition, however for the purposes of this tutorial, we are going to use the _All user assignments_ definition.
+. Log into midPoint as administrator.
+. In the left side menu, go to icon:certificate[] btn:[Certification] > icon:plus-circle[] btn:[New campaign definition].
+. Add the downloaded definition and click icon:save[] btn:[Save].
++
 .Certification definitions table
 image::left-menu-cert-items.png[width=85%]
 
-By default, there are no campaign definitions in the repository.
-In order to have some definition, you can either import one (e.g. https://github.com/Evolveum/midpoint-samples/blob/master/samples/certification/def-all-user-assignments.xml[All user assignments]) or go through creating certification definition UI (by following *Certification -> New campaign definition* menu item).
+== Create and Start Campaign
 
-After certification definition was added to the system, you can create a campaign based on it.
-In order to create a campaign, click on the *"Create campaign"* button (or select menu item) for the appropriate definition.
-New campaign should be created, successful message should appear.
-To view the list of campaigns, click on the *"Show campaigns"* button (or select menu item) or navigate to *Certification -> Campaigns* page through the main menu.
+Once you have added a certification definition to the system, you can create a campaign based on it:
 
+. In the left side menu in midPoint, go to icon:certificate[] btn:[Certification] > icon:circle[] btn:[Campaign definitions].
+. Click the dropdown context menu button on the far right of the _All user assignments_ definition, and select _Create campaign_.
+. Once you get a confirmation message, you will be able to access your newly created campaign in icon:certificate[] btn:[Certification] > icon:circle[] btn:[Campaigns].
++
 .Campaigns page
 image::campaigns-page.png[width=85%]
++
+You can see that the newly created campaign in our example is named "All user assignments 1".
+As there can be (and probably will be) multiple campaigns for any given campaign type, midPoint names campaigns using the following convention: +
+<campaign definition> <number increment> +
+The created campaign has 1 stage because it was defined that way.
+It is in the *Created* state, i.e. no action has been done yet.
 
-The campaign is named "All user assignments 1", because there can be - and most probably, will be - more campaigns for a given campaign type.
-By default, they are named as <campaign definition> plus an increasing number.
-The campaign has 1 stage, because it was defined as such.
-It is in the *Created* state, meaning no action has been done yet.
+. Click the icon:play[] btn:[Start campaign] button. +
+A special task is created to process this action and a task progress bar is displayed right on the campaign tile panel.
+Clicking on this progress element will redirect you to the task page.
+The link to the task page is also displayed at the top of the page within the feedback panel right after the task is created.
 
-To start the campaign, click the appropriate *"Start campaign"* button.
-The special task is created to process this action.
-Task progress bar is displayed right on the campaign tile panel.
-Clicking on this progress element will lead you to the task page.
-The link to the task page is also displayed at the top of the page within the feedback panel right after the task was created.
-After the task is finished and the campaign is already started, let's see the campaign details by clicking *"Details"* link on the campaign tile panel.
+. Wait until the task finishes.
+At this point, the campaign has started.
 
+
+== Review Campaign
+
+To check the campaign details:
+
+. On the campaign tile, click btn:[Details].
++
 .Campaign details view
 image::campaign-details.png[width=85%]
-
-Left-side summary panel provides basic information about the campaign.
-We can see that the campaign is now in review stage 1 state.
-And the stage deadline is in 14 days.
++
+The left-side summary panel provides basic information about the campaign.
+You can see that the campaign is now in the review stage 1 state, and that the stage deadline is in 14 days.
 There are no decided items yet.
 
-To view certification items which should be reviewed, click on the *"Certification -> Active campaigns"*.
-Active campaigns are shown in the view of tile panels. To view certification items, click *"Show items"* link.
-
+. Go to the list of campaigns by clicking icon:certificate[] btn:[Certification] > icon:circle[] btn:[Active campaigns]. +
+Active campaigns are shown as tiles.
++
 .Active campaigns view
 image::active-campaigns.png[width=85%]
 
-On the certification items page, it is possible to make decision on the certification items with the help of the table menu items.
+. To view the certification items which should be reviewed, click btn:[Show items].
 
+. At the *Certification items* page, manage the individual certification items, e.g. accept or revoke them. +
++
 .Certification items view
 image::cert-items.png[width=85%]
++
+By default, the system has 2 available responses:
 
-By default, the system has 2 available responses.
-They are:
+    .. *Accept* - The state is accepted as is.
+    .. *Revoke* - The state is unacceptable and it should be fixed by removing the particular assignment.
 
-.. Accept - the state is accepted as it is.
++
+If needed, you can extend the responses with the following options (learn more about decision menu items configuration, as well as about other possible menu item actions, see xref:/midpoint/reference/roles-policies/policies/certification/actions/[GUI Action Configuration]):
 
-.. Revoke - the state is unacceptable, and it should be fixed by removing the particular assignment.
+    .. *Reduce* - The state is unacceptable but a simple assignment removal is not sufficient.
+    This is useful in scenarios when you need to discuss the case to reach a solution.
+    For example, you are considering assigning a role with fewer permissions.
+    .. *Not Decided* - The reviewer is not able or willing to decide.
+    .. *No Response* - The reviewer wants to undo their previous decision regarding a case. +
 
-If needded, responses can be extended with the following:
-
-.. Reduce - the state is unacceptable, but the simple assignment removal is not sufficient.
-Perhaps it has to be discussed and some solution (e.g. assignment of a less powerful role) has to be found.
-
-.. Not Decided - the reviewer states he/she is not able or willing to decide.
-
-.. No Response - the reviewer wants to "undone" his previous decisions regarding this case.
-
-To learn more about decision menu items configuration, as well as about other possible menu item actions, please follow to the xref:/midpoint/reference/roles-policies/policies/certification/actions/[GUI Action Configuration] page.
-
-After some decisions are made, it's possible to view the statistics of the responses and some other data on the campaign details view ("*Certification -> Campaigns*" and click on *"All user assignments 1"* campaign).
-
+. After some decisions have been made, view the responses statistics and some other data in the campaign details view by clicking icon:certificate[] btn:[Certification] > icon:circle[] btn:[Campaigns] > *All user assignments 1*.
++
 .Campaign details view - Responses panel
 image::campaign-responses-panel.png[width=85%]
 
-Also, you can view the progress of the reviewers and related tasks on the Statistics panel.
-
+. View the progress of the reviewers and related tasks on the Statistics panel.
++
 .Campaign details view - Responses panel
 image::campaign-statistics-panel.png[width=85%]
 
-The stage can be closed either automatically (after defined time, in this case, 14 days), or manually by the owner, at any time.
-Let's click on *"Close stage"* button.
-Campaign status is changed to *"Review stage done"*.
-As the number of the defined stages is 1, the campaign is after all available stages.
-Now there is a possibility to start the remediation, if needed.
-After *"Start remediation"* button is clicked, the special task is created to process this action.
+. Wait until the stage closes automatically (after a defined time, in this case, 14 days), or close it manually by clicking icon:circle-xmark[] btn:[Close stage]. +
+The status of the campaign changes to *Review stage done*. +
+As there is only one defined stage, the campaign ends.
 
+. Click btn:[Start remediation] to remove all assignments marked as "Revoke".
+This creates a special task to process this action.
++
 .Starting the remediation
 image::remediation-started.png[width=85%]
++
 
-Remediation process removes all assignments marked as "Revoke".
-After a few seconds, after refreshing the screen, you see that this campaign is over:
-
+. Wait a few moments for the remediation to end.
++
 .Closed campaign
 image::closed-campaign.png[width=85%]
 
-If needed, you can reiterate the campaign by clicking on the *"Reiterate campaign"* button.
+. Optionally, you can reiterate the campaign by clicking icon:rotate-right[] btn:[Reiterate campaign].
