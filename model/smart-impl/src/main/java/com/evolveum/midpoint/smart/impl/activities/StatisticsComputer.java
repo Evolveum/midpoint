@@ -145,7 +145,10 @@ public class StatisticsComputer {
             String attrKey = stats.getRef().toString();
             Map<String, Integer> attrValueCounts = valueCounts.get(attrKey);
             for (Object value : values) {
-                attrValueCounts.merge(String.valueOf(value), 1, Integer::sum);
+                var x = attrValueCounts.merge(String.valueOf(value), 1, Integer::sum);
+                if (x == 1) {
+                    stats.setUniqueValueCount(stats.getUniqueValueCount() + 1);
+                }
             }
         }
     }
@@ -185,7 +188,6 @@ public class StatisticsComputer {
                         .value(entry.getKey())
                         .count(entry.getValue());
             }
-            stats.setUniqueValueCount(counts.size());
         }
     }
 }

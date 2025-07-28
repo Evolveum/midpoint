@@ -636,6 +636,14 @@ public class TestSmartIntegrationServiceImpl extends AbstractSmartIntegrationTes
             assertThat(attribute.getValueCount().size()).isLessThanOrEqualTo(30);
             assertThat(isSortedDesc(attribute.getValueCount(), ShadowAttributeValueCountType::getCount)).isTrue();
         }
+        for (String attributeName : List.of("name", "uid")) {
+            var attribute = statistics.getAttribute().stream()
+                    .filter(attr -> attr.getRef().toString().equals(attributeName))
+                    .findFirst().orElseThrow();
+            assertThat(attribute.getUniqueValueCount()).isEqualTo(105);
+            assertThat(attribute.getValueCount()).isNotEmpty();
+            assertThat(attribute.getValueCount().size()).isLessThanOrEqualTo(30);
+        }
     }
 
     @SuppressWarnings("SameParameterValue")
