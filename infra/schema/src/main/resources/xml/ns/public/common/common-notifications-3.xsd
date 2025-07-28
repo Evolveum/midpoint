@@ -441,7 +441,7 @@
                     <xsd:documentation>
                         How to authenticate to the mail server.
 
-                        DEPRECATED: use new MailAuthenticationType instead.
+                        DEPRECATED: use new BasicAuthenticationType instead.
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:displayName>MailServerConfigurationType.username</a:displayName>
@@ -456,7 +456,7 @@
                     <xsd:documentation>
                         How to authenticate to the mail server.
 
-                        DEPRECATED: use new MailAuthenticationType instead.
+                        DEPRECATED: use new BasicAuthenticationType instead.
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:displayName>MailServerConfigurationType.password</a:displayName>
@@ -471,33 +471,18 @@
                     <xsd:documentation>
                         How to ensure transport-level security when sending the message.
 
-                        DEPRECATED: use new MailAuthenticationType instead.
+                        Defaults to none for basic auth, and tls for oauth2.
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:displayName>MailServerConfigurationType.transportSecurity</a:displayName>
-                        <a:deprecated>true</a:deprecated>
-                        <a:deprecatedSince>4.10</a:deprecatedSince>
-                        <a:plannedRemoval>5.0</a:plannedRemoval><!-- TODO: check version or remove -->
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="auth" type="tns:MailAuthenticationType" minOccurs="0"/>
+            <xsd:choice>
+                <xsd:element name="basicAuthentication" type="tns:BasicAuthenticationType"/>
+                <xsd:element name="oauth2Authentication" type="tns:OAuth2CredentialsType"/>
+            </xsd:choice>
         </xsd:sequence>
-    </xsd:complexType>
-
-    <xsd:complexType name="MailAuthenticationType">
-        <xsd:annotation>
-            <xsd:documentation>
-                Configuration of a particular mail server authentication.
-            </xsd:documentation>
-            <xsd:appinfo>
-                <a:displayName>MailAuthenticationType.details</a:displayName>
-            </xsd:appinfo>
-        </xsd:annotation>
-        <xsd:choice>
-            <xsd:element name="basic" type="tns:BasicAuthenticationType"/>
-            <xsd:element name="oauth2" type="tns:OAuth2CredentialsType"/>
-        </xsd:choice>
     </xsd:complexType>
 
     <xsd:complexType name="BasicAuthenticationType">
@@ -527,16 +512,6 @@
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:displayName>BasicAuthenticationType.password</a:displayName>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="transportSecurity" type="tns:MailTransportSecurityType" minOccurs="0">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        How to ensure transport-level security when sending the message.
-                    </xsd:documentation>
-                    <xsd:appinfo>
-                        <a:displayName>BasicAuthenticationType.transportSecurity</a:displayName>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
