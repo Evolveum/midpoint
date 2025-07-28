@@ -161,7 +161,7 @@ public class MailMessageTransport implements Transport<MailTransportConfiguratio
     }
 
     /**
-     * Tries to compose the email and send it via each server configuration until first success.
+     * Composes the email and tries to send it via each server configuration iteratively until first success.
      */
     private void sendViaMailServers(Message mailMessage, SendingContext ctx, OperationResult result) {
         Collection<String> actualTo = filterBlankMailRecipients(mailMessage.getTo(), "to", mailMessage.getSubject());
@@ -174,11 +174,10 @@ public class MailMessageTransport implements Transport<MailTransportConfiguratio
         for (MailServerConfigurationType mailServerConfigurationType : configuration.getServer()) {
             OperationResult resultForServer = result.createSubresult(DOT_CLASS + "send.forServer");
             final String host = mailServerConfigurationType.getHost();
-            MailAuthenticationType mailAuthenticationType = mailServerConfigurationType.getAuth();
-            final boolean isBasicAuth = mailAuthenticationType == null || mailAuthenticationType.getBasic() != null;
+            final boolean isOAuth = mailServerConfigurationType.getOauth2Authentication() != null;
             resultForServer.addContext("server", host);
             resultForServer.addContext("port", mailServerConfigurationType.getPort());
-            resultForServer.addContext("auth_type", isBasicAuth ? "basic" : "oauth2");
+            resultForServer.addContext("auth_type", isOAuth ? "oauth2" : "basic");
 
             Properties properties = System.getProperties();
             properties.setProperty("mail.smtp.host", host);
@@ -186,7 +185,7 @@ public class MailMessageTransport implements Transport<MailTransportConfiguratio
                 properties.setProperty("mail.smtp.port", String.valueOf(mailServerConfigurationType.getPort()));
             }
 
-            defineTransportSecurity(mailServerConfigurationType, properties, isBasicAuth);
+            defineTransportSecurity(mailServerConfigurationType, properties, isOAuth);
 
             if (Boolean.TRUE.equals(configuration.isDebug())) {
                 properties.put("mail.debug", "true");
@@ -209,10 +208,10 @@ public class MailMessageTransport implements Transport<MailTransportConfiguratio
                 }
 
                 try (jakarta.mail.Transport t = session.getTransport("smtp")) {
-                    if (isBasicAuth) {
-                        authenticateViaBasicAuth(mailServerConfigurationType, actualTo, host, resultForServer, t);
+                    if (isOAuth) {
+                        authenticateViaOauth(mailServerConfigurationType.getOauth2Authentication(), actualTo, host, resultForServer, t);
                     } else {
-                        authenticateViaOauth(mailAuthenticationType, actualTo, host, resultForServer, t);
+                        authenticateViaBasicAuth(mailServerConfigurationType, actualTo, host, resultForServer, t);
                     }
 
                     if (t.isConnected()) {
@@ -244,10 +243,10 @@ public class MailMessageTransport implements Transport<MailTransportConfiguratio
     }
 
     /**
-     * Either connects to the smtp server using the Oauth2 client credentials flow or logs reason for failure.
+     * Connects to the smtp server using the Oauth2 client credentials flow or logs reason for failure.
      */
-    private void authenticateViaOauth(MailAuthenticationType auth, Collection<String> actualTo, String host, OperationResult resultForServer, jakarta.mail.Transport t) throws MessagingException {
-        ProtectedStringType clientSecretProtected = auth.getOauth2().getClientSecret();
+    private void authenticateViaOauth(OAuth2CredentialsType oauth2, Collection<String> actualTo, String host, OperationResult resultForServer, jakarta.mail.Transport t) throws MessagingException {
+        ProtectedStringType clientSecretProtected = oauth2.getClientSecret();
         if (clientSecretProtected == null) {
             String msg = "Couldn't send mail message to " + actualTo + " via " + host + ", because the client secret is not set. Trying another mail server, if there is any.";
             LOGGER.error(msg);
@@ -267,13 +266,13 @@ public class MailMessageTransport implements Transport<MailTransportConfiguratio
 
         LOGGER.debug(
                 "Attempting OAuth2 authentication for user {} on endpoint {}",
-                auth.getOauth2().getUsername(),
-                auth.getOauth2().getTokenEndpoint()
+                oauth2.getUsername(),
+                oauth2.getTokenEndpoint()
         );
 
         String accessToken;
         try {
-            accessToken = OAuth2TokenService.getAccessToken(auth.getOauth2(), clientSecret);
+            accessToken = OAuth2TokenService.getAccessToken(oauth2, clientSecret);
         } catch (OAuth2TokenRetrievalException e) {
             String msg = "Couldn't send mail message to " + actualTo + " via " + host + ", because the server didn't return the access token. Trying another mail server, if there is any.";
             LoggingUtils.logException(LOGGER, msg, e);
@@ -283,18 +282,18 @@ public class MailMessageTransport implements Transport<MailTransportConfiguratio
 
         LOGGER.debug(
                 "OAuth2 authentication successful for user {} on endpoint {}",
-                auth.getOauth2().getUsername(),
-                auth.getOauth2().getTokenEndpoint()
+                oauth2.getUsername(),
+                oauth2.getTokenEndpoint()
         );
 
         t.connect(host, configuration.getDefaultFrom(), accessToken);
     }
 
     /**
-     * Either connects to the smtp server using the basic authentication or logs reason for failure.
+     * Connects to the smtp server using the basic authentication or logs reason for failure.
      */
     private void authenticateViaBasicAuth(MailServerConfigurationType mailServerConfigurationType, Collection<String> actualTo, String host, OperationResult resultForServer, jakarta.mail.Transport t) throws MessagingException {
-        BasicAuthenticationType basicAuth = mailServerConfigurationType.getAuth().getBasic();
+        BasicAuthenticationType basicAuth = mailServerConfigurationType.getBasicAuthentication();
         String username = (basicAuth != null) ? basicAuth.getUsername() : mailServerConfigurationType.getUsername();
         ProtectedStringType passwordProtected = (basicAuth != null) ? basicAuth.getPassword() : mailServerConfigurationType.getPassword();
 
@@ -319,37 +318,35 @@ public class MailMessageTransport implements Transport<MailTransportConfiguratio
     /**
      * Sets correct properties (http headers) for given authentication type.
      */
-    private void defineTransportSecurity(MailServerConfigurationType mailServerConfigurationType, Properties properties, boolean isBasicAuth) {
-        if (isBasicAuth) {
-            MailTransportSecurityType mailTransportSecurityType = mailServerConfigurationType.getTransportSecurity();
-
-            boolean sslEnabled = false, starttlsEnable = false, starttlsRequired = false;
-            if (mailTransportSecurityType != null) {
-                switch (mailTransportSecurityType) {
-                    case STARTTLS_ENABLED:
-                        starttlsEnable = true;
-                        break;
-                    case STARTTLS_REQUIRED:
-                        starttlsEnable = true;
-                        starttlsRequired = true;
-                        break;
-                    case SSL:
-                        sslEnabled = true;
-                        break;
-                }
+    private void defineTransportSecurity(MailServerConfigurationType mailServerConfigurationType, Properties properties, boolean isOAuth) {
+        MailTransportSecurityType mailTransportSecurityType = mailServerConfigurationType.getTransportSecurity();
+        boolean sslEnabled = false, starttlsEnable = isOAuth, starttlsRequired = isOAuth;
+        if (mailTransportSecurityType != null) {
+            switch (mailTransportSecurityType) {
+                case STARTTLS_ENABLED:
+                    starttlsEnable = true;
+                    break;
+                case STARTTLS_REQUIRED:
+                    starttlsEnable = true;
+                    starttlsRequired = true;
+                    break;
+                case SSL:
+                    sslEnabled = true;
+                    break;
             }
-            properties.put("mail.smtp.ssl.enable", String.valueOf(sslEnabled));
-            properties.put("mail.smtp.starttls.enable", String.valueOf(starttlsEnable));
-            properties.put("mail.smtp.starttls.required", String.valueOf(starttlsRequired));
-        } else {
+        }
+
+        if (isOAuth) {
             properties.put("mail.smtp.auth", "true");
             properties.put("mail.smtp.auth.mechanisms", "XOAUTH2");
-            properties.put("mail.smtp.starttls.enable", "true");
         }
+        properties.put("mail.smtp.ssl.enable", String.valueOf(sslEnabled));
+        properties.put("mail.smtp.starttls.enable", String.valueOf(starttlsEnable));
+        properties.put("mail.smtp.starttls.required", String.valueOf(starttlsRequired));
     }
 
     /**
-     * Either creates MimeMessage or logs reason for failure.
+     * Creates MimeMessage or logs reason for failure.
      *
      * @return null if an expected error occurs, MimeMessage otherwise
      */
