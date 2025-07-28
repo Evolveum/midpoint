@@ -26,19 +26,7 @@
                 </filter>
             </baseContext>
             <filter>
-                <q:text>attributes/type = 'employee1' or attributes/type = 'employee2'</q:text>
-            </filter>
-        </delineation>
-    </objectType>
-    <objectType>
-        <identification>
-            <kind>account</kind>
-            <intent>employee_2</intent>
-        </identification>
-        <delineation>
-            <objectClass>ri:account</objectClass>
-            <filter>
-                <q:text>attributes/type = 'employee3'</q:text>
+                <q:text>attributes/type = 'employee1'</q:text>
             </filter>
         </delineation>
     </objectType>
