@@ -42,8 +42,6 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 import com.evolveum.prism.xml.ns._public.types_3.RawType;
-import com.evolveum.midpoint.authentication.impl.OAuth2TokenRetrievalException;
-import com.evolveum.midpoint.authentication.impl.util.OAuth2TokenService;
 
 /**
  * Message transport sending mail messages.

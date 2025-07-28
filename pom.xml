@@ -1879,6 +1879,8 @@
                                 <ignoredNonTestScopedDependency>com.evolveum.prism:prism-impl</ignoredNonTestScopedDependency>
                                 <ignoredNonTestScopedDependency>com.evolveum.commons:concepts</ignoredNonTestScopedDependency>
                                 <ignoredNonTestScopedDependency>org.springframework:spring-beans</ignoredNonTestScopedDependency>
+                                <!-- Needed for oauth2 to mail servers in notifications-impl -->
+                                <ignoredNonTestScopedDependency>org.springframework.security:spring-security-core</ignoredNonTestScopedDependency>
 
                                 <!-- Testing dependencies are not troubling us from. -->
                                 <ignoredUsedUndeclaredDependency>org.testng:testng</ignoredUsedUndeclaredDependency>
