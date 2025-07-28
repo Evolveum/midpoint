@@ -1,16 +1,11 @@
-package com.evolveum.midpoint.authentication.impl.util;
+package com.evolveum.midpoint.transport.impl;
 
-import com.evolveum.midpoint.authentication.impl.OAuth2TokenRetrievalException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OAuth2CredentialsType;
-import org.springframework.security.oauth2.client.AuthorizedClientServiceOAuth2AuthorizedClientManager;
-import org.springframework.security.oauth2.client.OAuth2AuthorizedClient;
-import org.springframework.security.oauth2.client.OAuth2AuthorizedClientManager;
-import org.springframework.security.oauth2.client.OAuth2AuthorizeRequest;
+import org.springframework.security.oauth2.client.*;
 import org.springframework.security.oauth2.client.registration.ClientRegistration;
 import org.springframework.security.oauth2.client.registration.InMemoryClientRegistrationRepository;
-import org.springframework.security.oauth2.client.OAuth2AuthorizedClientService;
-import org.springframework.security.oauth2.client.InMemoryOAuth2AuthorizedClientService;
 import org.springframework.security.oauth2.core.AuthorizationGrantType;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.OAuth2CredentialsType;
 
 /**
  * Utility class for OAuth2 token retrieval using Spring Security's OAuth2 client infrastructure.
