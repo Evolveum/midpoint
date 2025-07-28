@@ -2103,7 +2103,7 @@
                 <plugin>
                     <groupId>io.github.pmckeown</groupId>
                     <artifactId>dependency-track-maven-plugin</artifactId>
-                    <version>1.7.0</version>
+                    <version>1.10.2</version>
                     <configuration>
                         <dependencyTrackBaseUrl>${env.DTRACK_URL}</dependencyTrackBaseUrl>
                         <apiKey>${env.DTRACK_TOKEN}</apiKey>
