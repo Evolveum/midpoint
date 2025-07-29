@@ -68,6 +68,8 @@ public abstract class TileTablePanel<T extends Tile, O extends Serializable> ext
 
     private UserProfileStorage.TableId tableId;
 
+    private WebMarkupContainer table;
+
     public TileTablePanel(String id) {
         this(id, null, null);
     }
@@ -133,7 +135,7 @@ public abstract class TileTablePanel<T extends Tile, O extends Serializable> ext
         WebMarkupContainer buttonToolbar = createTilesButtonToolbar(ID_BUTTON_TOOLBAR);
         footerContainer.add(buttonToolbar);
 
-        BoxedTablePanel table = createTablePanel(ID_TABLE, provider, tableId);
+        table = createTablePanel(ID_TABLE, provider, tableId);
         table.add(new VisibleBehaviour(this::isTableVisible));
         add(table);
     }
@@ -193,7 +195,7 @@ public abstract class TileTablePanel<T extends Tile, O extends Serializable> ext
         return tableId;
     }
 
-    protected BoxedTablePanel createTablePanel(String idTable, ISortableDataProvider<O, String> provider, UserProfileStorage.TableId tableId) {
+    protected WebMarkupContainer createTablePanel(String idTable, ISortableDataProvider<O, String> provider, UserProfileStorage.TableId tableId) {
         return new BoxedTablePanel(idTable, provider, createColumns(), tableId) {
 
             @Override
@@ -341,7 +343,7 @@ public abstract class TileTablePanel<T extends Tile, O extends Serializable> ext
         return searchModel;
     }
 
-    Fragment createHeaderFragment(String id) {
+    protected Fragment createHeaderFragment(String id) {
         Fragment fragment = new Fragment(id, ID_HEADER_FRAGMENT, TileTablePanel.this);
         fragment.setOutputMarkupId(true);
 
@@ -398,5 +400,9 @@ public abstract class TileTablePanel<T extends Tile, O extends Serializable> ext
     }
 
     protected  void togglePanelItemSelectPerformed(AjaxRequestTarget target, IModel<Toggle<ViewToggle>> item) {
+    }
+
+    public WebMarkupContainer getMainTable() {
+        return table;
     }
 }
