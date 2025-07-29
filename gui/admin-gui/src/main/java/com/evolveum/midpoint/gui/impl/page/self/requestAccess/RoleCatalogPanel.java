@@ -12,8 +12,6 @@ import java.util.*;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.gui.api.util.LocalizationUtil;
-
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -47,6 +45,7 @@ import com.evolveum.midpoint.gui.api.component.wizard.WizardStepPanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.GuiDisplayTypeUtil;
+import com.evolveum.midpoint.gui.api.util.LocalizationUtil;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.impl.component.data.provider.ObjectDataProvider;
@@ -125,6 +124,8 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> implements 
 
     private IModel<RoleCatalogQuery> queryModel;
 
+    private List<GuiObjectColumnType> columnsModel;
+
     public RoleCatalogPanel(IModel<RequestAccess> model, PageBase page) {
         super(model);
 
@@ -178,6 +179,26 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> implements 
             return List.of(new Badge("badge badge-info", text));
         };
     }
+
+//    private void loadColumnsModel() {
+//        RoleCatalogQueryItem item = menuModel.getObject().getActiveMenu().getValue();
+//        ObjectReferenceType collectionRef = item.collection().getCollectionRef();
+//        if (collectionRef != null) {
+//            PrismObject<ObjectCollectionType> objectCollection = WebModelServiceUtils.loadObject(collectionRef, page);
+//            if (objectCollection != null) {
+//                PrismObjectValue<?> value = objectCollection.getValue();
+//                if (value != null) {
+//                    ObjectCollectionType collection = (ObjectCollectionType) value.getValue();
+//                    if (collection != null) {
+//                        GuiObjectListViewType view = collection.getDefaultView();
+//                        if (view != null) {
+//                            columnsModel = view.getColumn();
+//                        }
+//                    }
+//                }
+//            }
+//        }
+//    }
 
     private boolean isRequestingForMyself() {
         String principalOid = SecurityUtil.getPrincipalOidIfAuthenticated();
@@ -1149,16 +1170,16 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> implements 
             protected void addPerformed(AjaxRequestTarget target, IModel<ObjectType> model) {
                 addItemsPerformed(target, List.of(model.getObject()));
 
-                page.getMainPopup().close(target);
+                getPageBase().getMainPopup().close(target);
             }
 
             @Override
             protected void closePerformed(AjaxRequestTarget target, IModel<ObjectType> model) {
-                page.getMainPopup().close(target);
+                getPageBase().getMainPopup().close(target);
             }
         };
 
-        page.showMainPopup(panel, target);
+        getPageBase().showMainPopup(panel, target);
     }
 
     private void addAllItemsPerformed(AjaxRequestTarget target) {
