@@ -994,4 +994,107 @@
             <!-- TODO outbound attributes with multiple sources? -->
         </xsd:sequence>
     </xsd:complexType>
+
+    <xsd:complexType name="SiSuggestMappingRequestType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Request for "suggestMapping" method.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:since>4.11</a:since>
+                <!-- intentionally not a container -->
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="applicationAttribute" type="t:ItemPathType">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Path of the item at the application side.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="applicationAttributeMultivalued" type="xsd:boolean">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Is the application attribute multivalued?
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="midPointAttribute" type="t:ItemPathType">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Path of the item at the midPoint side.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="midPointAttributeMultivalued" type="xsd:boolean">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Is the midPoint attribute multivalued?
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="inbound" type="xsd:boolean">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Is the mapping to be produced an inbound one?
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="example" type="tns:SiSuggestMappingExampleType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        A handful of (applicationValue → midpointValue) examples.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+    <xsd:complexType name="SiSuggestMappingExampleType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Example of input/output values pair for mapping suggestion.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:since>4.11</a:since>
+                <!-- intentionally not a container -->
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="applicationValue" type="xsd:anyType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Value(s) as they appears in the application (resource) object.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="midPointValue" type="xsd:anyType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Desired value(s) in the midPoint object.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+    <xsd:complexType name="SiSuggestMappingResponseType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Response for "suggestMapping" method.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:since>4.11</a:since>
+                <!-- intentionally not a container -->
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="transformationScript" type="xsd:string">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Suggested transformation script.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
 </xsd:schema>
