@@ -101,6 +101,28 @@ public interface SmartIntegrationService {
             ConfigurationException, ObjectNotFoundException;
 
     /**
+     * Submits "suggest correlation" request. Returns a token used to query the status.
+     *
+     * Interaction metadata will be added later.
+     */
+    String submitSuggestCorrelationOperation(
+            String resourceOid, ResourceObjectTypeIdentification typeIdentification, Task task, OperationResult result)
+            throws CommonException;
+
+    /**
+     * List statuses of all relevant "suggest correlation" requests (for given resource OID).
+     * They are sorted by finished time, then by started time.
+     */
+    List<StatusInfo<CorrelationSuggestionType>> listSuggestCorrelationOperationStatuses(
+            String resourceOid, Task task, OperationResult result)
+            throws SchemaException, ObjectNotFoundException, ConfigurationException;
+
+    /** Checks the status of the "suggest correlation" request. */
+    StatusInfo<CorrelationSuggestionType> getSuggestCorrelationOperationStatus(
+            String token, Task task, OperationResult result)
+            throws SchemaException, ObjectNotFoundException, ConfigurationException;
+
+    /**
      * Suggests inbound/outbound mappings for the given resource object type and focus type.
      *
      * The ability to find mappings is limited by the information available. In particular, if there are
@@ -119,6 +141,28 @@ public interface SmartIntegrationService {
             OperationResult result)
             throws SchemaException, ExpressionEvaluationException, SecurityViolationException, CommunicationException,
             ConfigurationException, ObjectNotFoundException;
+
+    /**
+     * Submits "suggest mappings" request. Returns a token used to query the status.
+     *
+     * Interaction metadata and filters will be added later.
+     */
+    String submitSuggestMappingsOperation(
+            String resourceOid, ResourceObjectTypeIdentification typeIdentification, Task task, OperationResult result)
+            throws CommonException;
+
+    /**
+     * List statuses of all relevant "suggest mappings" requests (for given resource OID).
+     * They are sorted by finished time, then by started time.
+     */
+    List<StatusInfo<MappingsSuggestionType>> listSuggestMappingsOperationStatuses(
+            String resourceOid, Task task, OperationResult result)
+            throws SchemaException, ObjectNotFoundException, ConfigurationException;
+
+    /** Checks the status of the "suggest mappings" request. */
+    StatusInfo<MappingsSuggestionType> getSuggestMappingsOperationStatus(
+            String token, Task task, OperationResult result)
+            throws SchemaException, ObjectNotFoundException, ConfigurationException;
 
     /**
      * Suggests association type definitions for the given resource. (Either for all object types, or with some restrictions.)

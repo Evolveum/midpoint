@@ -86,6 +86,7 @@ class TypeOperation extends Operation {
     }
 
     MappingsSuggestionType suggestMappings() throws SchemaException {
+        // TODO implement real suggestion of mappings, not only "as-is" ones
         return serviceAdapter.suggestMappings(typeDefinition, getFocusTypeDefinition());
     }
 

@@ -16,6 +16,8 @@ import com.evolveum.midpoint.test.ObjectClassName;
 
 import org.jetbrains.annotations.NotNull;
 
+import java.time.ZonedDateTime;
+
 import static com.evolveum.midpoint.test.ObjectClassName.custom;
 
 /**
@@ -48,21 +50,29 @@ public class DummyHrScenario extends AbstractDummyScenario {
         public static final ObjectClassName OBJECT_CLASS_NAME = custom("person");
 
         public static class AttributeNames {
-            public static final AttrName NUMBER = AttrName.ri("number");
             public static final AttrName FULLNAME = AttrName.ri(DummyAccount.ATTR_FULLNAME_NAME);
-            //public static final AttrName EMAIL = AttrName.ri("email");
-            //public static final AttrName PHONE = AttrName.ri("phone");
-            //public static final AttrName STATUS = AttrName.ri("status");
-            //public static final AttrName TYPE = AttrName.ri("type");
-            //public static final AttrName VALID_FROM = AttrName.ri("validFrom");
-            //public static final AttrName VALID_TO = AttrName.ri("validTo");
+            public static final AttrName FIRSTNAME = AttrName.ri("firstname");
+            public static final AttrName LASTNAME = AttrName.ri("lastname");
+            public static final AttrName EMAIL = AttrName.ri("email");
+            public static final AttrName PHONE = AttrName.ri("phone");
+            public static final AttrName STATUS = AttrName.ri("status");
+            public static final AttrName TYPE = AttrName.ri("type");
+            public static final AttrName VALID_FROM = AttrName.ri("validFrom");
+            public static final AttrName VALID_TO = AttrName.ri("validTo");
         }
 
         void initialize() {
             var oc = DummyObjectClass.standard();
             controller.getDummyResource().addStructuralObjectClass(OBJECT_CLASS_NAME.local(), oc);
-            controller.addAttrDef(oc, AttributeNames.NUMBER.local(), String.class, false, false);
             controller.addAttrDef(oc, AttributeNames.FULLNAME.local(), String.class, false, false);
+            controller.addAttrDef(oc, AttributeNames.FIRSTNAME.local(), String.class, false, false);
+            controller.addAttrDef(oc, AttributeNames.LASTNAME.local(), String.class, false, false);
+            controller.addAttrDef(oc, AttributeNames.EMAIL.local(), String.class, false, false);
+            controller.addAttrDef(oc, AttributeNames.PHONE.local(), String.class, false, false);
+            controller.addAttrDef(oc, AttributeNames.STATUS.local(), String.class, false, false);
+            controller.addAttrDef(oc, AttributeNames.TYPE.local(), String.class, false, false);
+            controller.addAttrDef(oc, AttributeNames.VALID_FROM.local(), ZonedDateTime.class, false, false);
+            controller.addAttrDef(oc, AttributeNames.VALID_TO.local(), ZonedDateTime.class, false, false);
         }
 
         @Override
@@ -76,14 +86,12 @@ public class DummyHrScenario extends AbstractDummyScenario {
         public static final ObjectClassName OBJECT_CLASS_NAME = custom("department");
 
         public static class AttributeNames {
-            public static final AttrName CODE = AttrName.ri("code");
             public static final AttrName NAME = AttrName.ri("name");
         }
 
         void initialize() {
             var oc = DummyObjectClass.standard();
             controller.getDummyResource().addStructuralObjectClass(OBJECT_CLASS_NAME.local(), oc);
-            controller.addAttrDef(oc, AttributeNames.CODE.local(), String.class, true, false);
             controller.addAttrDef(oc, AttributeNames.NAME.local(), String.class, false, false);
         }
 
