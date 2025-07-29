@@ -10,6 +10,8 @@ package com.evolveum.midpoint.smart.impl.activities;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAttributeTupleStatisticsType;
+
 import org.jetbrains.annotations.VisibleForTesting;
 
 import com.evolveum.midpoint.prism.path.ItemName;
@@ -315,15 +317,18 @@ public class StatisticsComputer {
                     }
                 }
 
-                for (Map.Entry<String, Map<String, Integer>> entry1 : pairCounts.entrySet()) {
-                    for (Map.Entry<String, Integer> entry2 : entry1.getValue().entrySet()) {
-                        statistics.beginAttributeTuple()
-                                .ref((QName) indices.get(x))
-                                .ref((QName) indices.get(y))
-                                .beginTupleCount()
-                                .value(entry1.getKey())
-                                .value(entry2.getKey())
-                                .count(entry2.getValue());
+                if (!pairCounts.isEmpty()) {
+                    ShadowAttributeTupleStatisticsType tuple = statistics.beginAttributeTuple()
+                            .ref((QName) indices.get(x))
+                            .ref((QName) indices.get(y));
+                    for (Map.Entry<String, Map<String, Integer>> entry1 : pairCounts.entrySet()) {
+                        for (Map.Entry<String, Integer> entry2 : entry1.getValue().entrySet()) {
+                            tuple
+                                    .beginTupleCount()
+                                    .value(entry1.getKey())
+                                    .value(entry2.getKey())
+                                    .count(entry2.getValue());
+                        }
                     }
                 }
             }
