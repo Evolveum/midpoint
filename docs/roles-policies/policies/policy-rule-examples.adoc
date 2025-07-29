@@ -100,7 +100,7 @@ In this example, we are preventing users from being assigned to a role if either
 
 This only applies to users who do not have the `4eb82ce9-cf90-4e8d-ab53-121bb676c756` archetype.
 
-If the policy is violated, the assignment is pruned (removed), and a message is shown for the exclusion case.
+If the policy is violated, the assignment is blocked, and a message is shown.
 
 [source, xml]
 ----
@@ -141,7 +141,7 @@ If the policy is violated, the assignment is pruned (removed), and a message is 
         </policyConstraints>
         <evaluationTarget>assignment</evaluationTarget>
         <policyActions>
-            <prune/>
+            <enforcement/>
         </policyActions>
     </policyRule>
     <condition>
@@ -159,4 +159,70 @@ If the policy is violated, the assignment is pruned (removed), and a message is 
         </expression>
     </condition>
 </assignment>
+----
+
+Example of global policy rule to exclude roles assigned to users based on forwardEmailAddress attribute null check.
+
+[source, xml]
+----
+<globalPolicyRule>
+    <name>Global policy rule for exclude roles</name>
+    <policyConstraints>
+        <and>
+            <hasAssignment>
+                <targetRef relation="org:default" type="c:RoleType">
+                    <filter>
+                        <q:text>name = 'accessRole1' or name = 'accessRole2'</q:text>
+                    </filter>
+                    <resolutionTime>run</resolutionTime>
+                </targetRef>
+            </hasAssignment>
+            <modification>
+                <operation>modify</operation>
+            </modification>
+        </and>
+    </policyConstraints>
+    <policyActions>
+        <scriptExecution>
+            <object>
+                <currentObject/>
+            </object>
+            <executeScript xmlns:s="http://midpoint.evolveum.com/xml/ns/public/model/scripting-3">
+                <s:unassign>
+                    <s:filter>
+                        <q:text>targetRef = ```
+                            import com.evolveum.midpoint.schema.util.ObjectTypeUtil
+                            import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType
+
+                            ObjectTypeUtil.createObjectRef(midpoint.searchObjectByName(RoleType,"accessRole1").getOid())
+                            ```
+                            or targetRef = ```
+                            import com.evolveum.midpoint.schema.util.ObjectTypeUtil
+                            import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType
+
+                            ObjectTypeUtil.createObjectRef(midpoint.searchObjectByName(RoleType,"accessRole2").getOid())
+                            ```
+                        </q:text>
+                    </s:filter>
+                </s:unassign>
+            </executeScript>
+        </scriptExecution>
+    </policyActions>
+    <focusSelector>
+        <type>UserType</type>
+        <archetypeRef oid="00000000-0000-0000-0000-000000000702" relation="org:default" type="c:ArchetypeType"/>
+    </focusSelector>
+    <condition>
+        <source>
+            <path>extension/myAttribute</path>
+        </source>
+        <expression>
+            <script>
+                <code>
+                    return myAttribute!=null
+                </code>
+            </script>
+        </expression>
+    </condition>
+<globalPolicyRule>
 ----
