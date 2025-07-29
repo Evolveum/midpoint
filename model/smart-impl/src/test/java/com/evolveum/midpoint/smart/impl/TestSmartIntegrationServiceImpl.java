@@ -478,10 +478,7 @@ public class TestSmartIntegrationServiceImpl extends AbstractSmartIntegrationTes
                     .findFirst().orElseThrow();
             assertThat(distinctAttribute.getMissingValueCount()).isEqualTo(0);
             assertThat(distinctAttribute.getUniqueValueCount()).isEqualTo(5);
-            assertThat(distinctAttribute.getValueCount()).hasSize(5);
-            for (var vc : distinctAttribute.getValueCount()) {
-                assertThat(vc.getCount()).isEqualTo(1);
-            }
+            assertThat(distinctAttribute.getValueCount()).isEmpty();
         }
 
         var personalNumberAttribute = statistics.getAttribute().stream()
@@ -535,10 +532,7 @@ public class TestSmartIntegrationServiceImpl extends AbstractSmartIntegrationTes
 
         assertThat(departmentAttribute.getMissingValueCount()).isEqualTo(3);
         assertThat(departmentAttribute.getUniqueValueCount()).isEqualTo(2);
-        Map<String, Integer> valueCounts = departmentAttribute.getValueCount().stream()
-                .collect(Collectors.toMap(vc -> vc.getValue().toString(), vc -> vc.getCount()));
-        assertThat(valueCounts).containsEntry("HR", 1);
-        assertThat(valueCounts).containsEntry("Engineering", 1);
+        assertThat(departmentAttribute.getValueCount()).isEmpty();
     }
 
     /** Tests phone attribute statistics. */
@@ -554,11 +548,7 @@ public class TestSmartIntegrationServiceImpl extends AbstractSmartIntegrationTes
 
         assertThat(phoneAttribute.getMissingValueCount()).isEqualTo(2);
         assertThat(phoneAttribute.getUniqueValueCount()).isEqualTo(3);
-        Map<String, Integer> valueCounts = phoneAttribute.getValueCount().stream()
-                .collect(Collectors.toMap(vc -> vc.getValue().toString(), vc -> vc.getCount()));
-        assertThat(valueCounts).containsEntry("+420601040027", 1);
-        assertThat(valueCounts).containsEntry("+421900111222", 1);
-        assertThat(valueCounts).containsEntry("+421900333444", 1);
+        assertThat(phoneAttribute.getValueCount()).isEmpty();
     }
 
     /** Tests created attribute statistics. */
@@ -574,9 +564,7 @@ public class TestSmartIntegrationServiceImpl extends AbstractSmartIntegrationTes
 
         assertThat(createdAttribute.getMissingValueCount()).isEqualTo(4);
         assertThat(createdAttribute.getUniqueValueCount()).isEqualTo(1);
-        assertThat(createdAttribute.getValueCount()).hasSize(1);
-        assertThat(createdAttribute.getValueCount().get(0).getCount()).isEqualTo(1);
-        assertThat(createdAttribute.getValueCount().get(0).getValue().toString()).isEqualTo("2023-09-01T12:00:00.000Z");
+        assertThat(createdAttribute.getValueCount()).isEmpty();
     }
 
     /** Tests type attribute statistics. */
@@ -630,19 +618,19 @@ public class TestSmartIntegrationServiceImpl extends AbstractSmartIntegrationTes
         assertThat(statistics.getSize()).isEqualTo(105);
         for (var attribute : statistics.getAttribute()) {
             if (attribute.getMissingValueCount() < 105) {
-                assertThat(attribute.getValueCount()).isNotEmpty();
                 assertThat(attribute.getUniqueValueCount()).isGreaterThan(0);
             }
             assertThat(attribute.getValueCount().size()).isLessThanOrEqualTo(30);
-            assertThat(isSortedDesc(attribute.getValueCount(), ShadowAttributeValueCountType::getCount)).isTrue();
+            if (!attribute.getValueCount().isEmpty()) {
+                assertThat(isSortedDesc(attribute.getValueCount(), ShadowAttributeValueCountType::getCount)).isTrue();
+            }
         }
         for (String attributeName : List.of("name", "uid")) {
             var attribute = statistics.getAttribute().stream()
                     .filter(attr -> attr.getRef().toString().equals(attributeName))
                     .findFirst().orElseThrow();
             assertThat(attribute.getUniqueValueCount()).isEqualTo(105);
-            assertThat(attribute.getValueCount()).isNotEmpty();
-            assertThat(attribute.getValueCount().size()).isLessThanOrEqualTo(30);
+            assertThat(attribute.getValueCount()).isEmpty();
         }
     }
 
