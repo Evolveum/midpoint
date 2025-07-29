@@ -500,7 +500,7 @@ public class TestSmartIntegrationServiceImpl extends AbstractSmartIntegrationTes
     }
 
     /** Tests status attribute statistics. */
-    public void testStatusAttributeStatistics() throws CommonException {
+    private void testStatusAttributeStatistics() throws CommonException {
         var task = getTestTask();
         var result = task.getResult();
 
@@ -523,7 +523,7 @@ public class TestSmartIntegrationServiceImpl extends AbstractSmartIntegrationTes
     }
 
     /** Tests department attribute statistics. */
-    public void testDepartmentAttributeStatistics() throws CommonException {
+    private void testDepartmentAttributeStatistics() throws CommonException {
         var task = getTestTask();
         var result = task.getResult();
 
@@ -542,7 +542,7 @@ public class TestSmartIntegrationServiceImpl extends AbstractSmartIntegrationTes
     }
 
     /** Tests phone attribute statistics. */
-    public void testPhoneAttributeStatistics() throws CommonException {
+    private void testPhoneAttributeStatistics() throws CommonException {
         var task = getTestTask();
         var result = task.getResult();
 
@@ -562,7 +562,7 @@ public class TestSmartIntegrationServiceImpl extends AbstractSmartIntegrationTes
     }
 
     /** Tests created attribute statistics. */
-    public void testCreatedAttributeStatistics() throws CommonException {
+    private void testCreatedAttributeStatistics() throws CommonException {
         var task = getTestTask();
         var result = task.getResult();
 
@@ -580,7 +580,7 @@ public class TestSmartIntegrationServiceImpl extends AbstractSmartIntegrationTes
     }
 
     /** Tests type attribute statistics. */
-    public void testTypeAttributeStatistics() throws CommonException {
+    private void testTypeAttributeStatistics() throws CommonException {
         var task = getTestTask();
         var result = task.getResult();
 
