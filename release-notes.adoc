@@ -57,6 +57,7 @@ Overall, midPoint 4.9 is a major step from the past into the future.
 * bug:MID-10412[] Implemented configurable thresholds for task activities.
 * bug:MID-10496[] Task doesn't start at next scheduled time.
 * bug:MID-10414[] Page size global configuration for object collection views.
+* bug:MID-10411[] Improved task run history errors search.
 * Compliance dashboard
 
 === Other Improvements
@@ -81,6 +82,7 @@ This can be used for approval of indirect role assignments and similar cases. Se
 * Built-in archetypes for organizational structures and locations.
 * xref:/midpoint/reference/roles-policies/identity-governance-rules/[Compliance-related] marks (no classification, unowned, privileged access), object collections and policies.
 * xref:/midpoint/reference/roles-policies/privileged-access/[`Privileged access` classification] automatically sets `Privileged access` mark for directly affected roles and users.
+* Updated various libraries, mainly: Spring Boot, Tomcat, Hibernate, PostgresSQL JDBC driver.
 
 === Other Bug Fixes
 
