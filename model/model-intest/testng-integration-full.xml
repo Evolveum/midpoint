@@ -123,6 +123,7 @@
             <class name="com.evolveum.midpoint.model.intest.sync.TestInboundReconTask"/>
             <class name="com.evolveum.midpoint.model.intest.sync.TestUuid"/>
             <class name="com.evolveum.midpoint.model.intest.sync.MiscSyncTest"/>
+            <class name="com.evolveum.midpoint.model.intest.sync.TestOpportunisticSynchronization"/>
         </classes>
     </test>
     <test name="Tasks" preserve-order="true" parallel="none" verbose="10">
