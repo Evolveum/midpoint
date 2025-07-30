@@ -1,0 +1,576 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (c) 2010-2025 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<dashboard xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+        oid="f941f3fc-dcef-4415-9e79-ae56b185a501">
+    <name>compliance-dashboard</name>
+    <documentation>(ISO27001/A.5.36)</documentation>
+    <display>
+        <label>
+            <orig>Compliance dashboard</orig>
+            <translation>
+                <key>complianceDashboard.label</key>
+            </translation>
+        </label>
+    </display>
+
+    <widget id="100">
+        <identifier>active-applications</identifier>
+        <description>Active applications</description>
+        <documentation>(ISO27001/A.5.1,ISO27001/A.5.16,ISO27001/A.5.36)</documentation>
+        <display>
+            <label>
+                <orig>Active applications</orig>
+                <translation>
+                    <key>activeApplication.pluralLabel</key>
+                </translation>
+            </label>
+            <icon>
+                <cssClass>fa fa-cloud</cssClass>
+            </icon>
+            <color>var(--lightblue)</color>
+        </display>
+        <displayOrder>100</displayOrder>
+        <data>
+            <sourceType>objectCollection</sourceType>
+            <collection>
+                <collectionRef oid="c4a07805-67c5-4b25-961e-e47b75a0b5a5" type="c:ObjectCollectionType"/>
+            </collection>
+        </data>
+        <presentation>
+            <dataField>
+                <fieldType>value</fieldType>
+                <expression>
+                    <proportional>
+                        <style>value-only</style>
+                    </proportional>
+                </expression>
+            </dataField>
+        </presentation>
+    </widget>
+
+    <widget id="110">
+        <identifier>unowned-applications</identifier>
+        <description>Unowned applications: applications without owner</description>
+        <documentation>(ISO27001/A.5.1,ISO27001/A.5.16,ISO27001/A.5.36)</documentation>
+        <display>
+            <label>
+                <orig>Applications without owner</orig>
+                <translation>
+                    <key>applicationsWithoutOwner.label</key>
+                </translation>
+            </label>
+            <icon>
+                <cssClass>fa fa-user-xmark</cssClass>
+            </icon>
+            <color>var(--success)</color>
+        </display>
+        <displayOrder>110</displayOrder>
+        <data>
+            <sourceType>objectCollection</sourceType>
+            <collection>
+                <collectionRef oid="cc8c1397-e5c4-456c-bd98-f07b3dca97ec" type="c:ObjectCollectionType"/>
+            </collection>
+        </data>
+        <presentation>
+            <dataField>
+                <fieldType>value</fieldType>
+                <expression>
+                    <proportional>
+                        <style>value-only</style>
+                    </proportional>
+                </expression>
+            </dataField>
+            <variation>
+                <condition>
+                    <script>
+                        <code>proportional.value &gt; 0 &amp;&amp; proportional.value &lt; 3</code>
+                    </script>
+                </condition>
+                <display>
+                    <color>var(--orange)</color>
+                </display>
+            </variation>
+            <variation>
+                <condition>
+                    <script>
+                        <code>proportional.value &gt;= 3</code>
+                    </script>
+                </condition>
+                <display>
+                    <color>var(--danger)</color>
+                </display>
+            </variation>
+        </presentation>
+    </widget>
+
+    <widget id="120">
+        <identifier>applications-without-classification</identifier>
+        <description>Applications without classifications</description>
+        <documentation>
+            (ISO27001/A.5.12,ISO27001/A.5.13)
+            This dashboard widget is named "without classification" rather than "Unclassified" to avoid confusion.
+            The term "unclassified" is commonly used to describe objects that are not classified for any secrecy class,
+            e.i. objects that are not restricted, secret or top secret.
+            This means that "unclassified" usually means "unrestricted" or "public".
+            However, this means that "unclassified" is a classification on its own.
+            Therefore, this mark and all other related configuration using term "no classification" rather than "unclassified".
+        </documentation>
+        <display>
+            <label>
+                <orig>Applications without classification</orig>
+                <translation>
+                    <key>applicationWithoutClassification.pluralLabel</key>
+                </translation>
+            </label>
+            <icon>
+                <cssClass>fa fa-times-circle</cssClass>
+            </icon>
+            <color>var(--success)</color>
+        </display>
+        <displayOrder>120</displayOrder>
+        <data>
+            <sourceType>objectCollection</sourceType>
+            <collection>
+                <collectionRef oid="d7887599-3f3a-4d51-80ae-ee8567cd51aa" type="c:ObjectCollectionType"/>
+            </collection>
+        </data>
+        <presentation>
+            <dataField>
+                <fieldType>value</fieldType>
+                <expression>
+                    <proportional>
+                        <style>value-only</style>
+                    </proportional>
+                </expression>
+            </dataField>
+            <variation>
+                <condition>
+                    <script>
+                        <code>proportional.value &gt; 0 &amp;&amp; proportional.value &lt; 3</code>
+                    </script>
+                </condition>
+                <display>
+                    <color>var(--orange)</color>
+                </display>
+            </variation>
+            <variation>
+                <condition>
+                    <script>
+                        <code>proportional.value &gt;= 3</code>
+                    </script>
+                </condition>
+                <display>
+                    <color>var(--danger)</color>
+                </display>
+            </variation>
+        </presentation>
+    </widget>
+
+    <widget id="130">
+        <identifier>suspicious-applications</identifier>
+        <description>Applications marked as "suspicious".</description>
+        <documentation>(ISO27001/A.5.1,ISO27001/A.5.16,ISO27001/A.5.36)</documentation>
+        <display>
+            <label>
+                <orig>Suspicious applications</orig>
+                <translation>
+                    <key>suspiciousApplication.pluralLabel</key>
+                </translation>
+            </label>
+            <icon>
+                <cssClass>fa fa-handcuffs</cssClass>
+            </icon>
+            <color>var(--success)</color>
+        </display>
+        <displayOrder>140</displayOrder>
+        <data>
+            <sourceType>objectCollection</sourceType>
+            <collection>
+                <collectionRef oid="89c49f7f-2b3e-4319-8b19-a8ed651394f4" type="c:ObjectCollectionType"/>
+            </collection>
+        </data>
+        <presentation>
+            <dataField>
+                <fieldType>value</fieldType>
+                <expression>
+                    <proportional>
+                        <style>value-only</style>
+                    </proportional>
+                </expression>
+            </dataField>
+            <variation>
+                <condition>
+                    <script>
+                        <code>proportional.value &gt; 0 &amp;&amp; proportional.value &lt; 3</code>
+                    </script>
+                </condition>
+                <display>
+                    <color>var(--orange)</color>
+                </display>
+            </variation>
+            <variation>
+                <condition>
+                    <script>
+                        <code>proportional.value &gt;= 3</code>
+                    </script>
+                </condition>
+                <display>
+                    <color>var(--danger)</color>
+                </display>
+            </variation>
+        </presentation>
+    </widget>
+
+
+    <widget id="200">
+        <identifier>active-roles</identifier>
+        <description>Active roles</description>
+        <documentation>(ISO27001/A.5.1,ISO27001/A.5.16,ISO27001/A.5.36)</documentation>
+        <display>
+            <label>
+                <orig>Active roles</orig>
+                <translation>
+                    <key>activeRole.pluralLabel</key>
+                </translation>
+            </label>
+            <icon>
+                <cssClass>fe fe-role</cssClass>
+            </icon>
+            <color>var(--lightblue)</color>
+        </display>
+        <displayOrder>200</displayOrder>
+        <data>
+            <sourceType>objectCollection</sourceType>
+            <collection>
+                <collectionRef oid="8494d5a9-5ce9-4795-813b-0e424b9e4d42" type="c:ObjectCollectionType"/>
+            </collection>
+        </data>
+        <presentation>
+            <dataField>
+                <fieldType>value</fieldType>
+                <expression>
+                    <proportional>
+                        <style>value-only</style>
+                    </proportional>
+                </expression>
+            </dataField>
+        </presentation>
+    </widget>
+
+    <widget id="210">
+        <identifier>unowned-roles</identifier>
+        <description>Unowned roles: roles without owner</description>
+        <documentation>(ISO27001/A.5.1,ISO27001/A.5.16,ISO27001/A.5.36)</documentation>
+        <display>
+            <label>
+                <orig>Roles without owner</orig>
+                <translation>
+                    <key>rolesWithoutOwner.label</key>
+                </translation>
+            </label>
+            <icon>
+                <cssClass>fa fa-user-xmark</cssClass>
+            </icon>
+            <color>var(--success)</color>
+        </display>
+        <displayOrder>210</displayOrder>
+        <data>
+            <sourceType>objectCollection</sourceType>
+            <collection>
+                <collectionRef oid="6d9d98f5-9182-4d2d-89e8-32ab23704199" type="c:ObjectCollectionType"/>
+            </collection>
+        </data>
+        <presentation>
+            <dataField>
+                <fieldType>value</fieldType>
+                <expression>
+                    <proportional>
+                        <style>value-only</style>
+                    </proportional>
+                </expression>
+            </dataField>
+            <variation>
+                <condition>
+                    <script>
+                        <code>proportional.value &gt; 0 &amp;&amp; proportional.value &lt; 3</code>
+                    </script>
+                </condition>
+                <display>
+                    <color>var(--orange)</color>
+                </display>
+            </variation>
+            <variation>
+                <condition>
+                    <script>
+                        <code>proportional.value &gt;= 3</code>
+                    </script>
+                </condition>
+                <display>
+                    <color>var(--danger)</color>
+                </display>
+            </variation>
+        </presentation>
+    </widget>
+
+    <widget id="220">
+        <identifier>privileged-roles</identifier>
+        <description>Roles with (direct) privileged access.</description>
+        <documentation>(ISO27001/A.5.15,ISO27001/A.5.18,ISO27001/A.8.2,ISO27001/A.8.9)</documentation>
+        <display>
+            <label>
+                <orig>Privileged roles</orig>
+                <translation>
+                    <key>privilegedRole.pluralLabel</key>
+                </translation>
+            </label>
+            <icon>
+                <cssClass>fa fa-circle-radiation</cssClass>
+            </icon>
+            <color>var(--lightblue)</color>
+        </display>
+        <displayOrder>220</displayOrder>
+        <data>
+            <sourceType>objectCollection</sourceType>
+            <collection>
+                <collectionRef oid="00000000-0000-0000-0001-000000000354" type="c:ObjectCollectionType"/>
+            </collection>
+        </data>
+        <presentation>
+            <dataField>
+                <fieldType>value</fieldType>
+                <expression>
+                    <proportional>
+                        <style>value-only</style>
+                    </proportional>
+                </expression>
+            </dataField>
+        </presentation>
+    </widget>
+
+    <widget id="230">
+        <identifier>suspicious-roles</identifier>
+        <description>Roles marked as "suspicious".</description>
+        <documentation>(ISO27001/A.5.27,ISO27001/A.5.28,ISO27001/A.5.29,ISO27001/A.6.8)</documentation>
+        <display>
+            <label>
+                <orig>Suspicious roles</orig>
+                <translation>
+                    <key>suspiciousRole.pluralLabel</key>
+                </translation>
+            </label>
+            <icon>
+                <cssClass>fa fa-handcuffs</cssClass>
+            </icon>
+            <color>var(--success)</color>
+        </display>
+        <displayOrder>230</displayOrder>
+        <data>
+            <sourceType>objectCollection</sourceType>
+            <collection>
+                <collectionRef oid="00000000-0000-0000-0001-000000000357" type="c:ObjectCollectionType"/>
+            </collection>
+        </data>
+        <presentation>
+            <dataField>
+                <fieldType>value</fieldType>
+                <expression>
+                    <proportional>
+                        <style>value-only</style>
+                    </proportional>
+                </expression>
+            </dataField>
+            <variation>
+                <condition>
+                    <script>
+                        <code>proportional.value &gt; 0 &amp;&amp; proportional.value &lt; 3</code>
+                    </script>
+                </condition>
+                <display>
+                    <color>var(--orange)</color>
+                </display>
+            </variation>
+            <variation>
+                <condition>
+                    <script>
+                        <code>proportional.value &gt;= 3</code>
+                    </script>
+                </condition>
+                <display>
+                    <color>var(--danger)</color>
+                </display>
+            </variation>
+        </presentation>
+    </widget>
+
+
+    <widget id="300">
+        <identifier>active-users</identifier>
+        <description>Active users</description>
+        <documentation>TODO</documentation>
+        <display>
+            <label>
+                <orig>Active users</orig>
+                <translation>
+                    <key>activeUser.pluralLabel</key>
+                </translation>
+            </label>
+            <icon>
+                <cssClass>fa fa-user</cssClass>
+            </icon>
+            <color>var(--lightblue)</color>
+        </display>
+        <displayOrder>300</displayOrder>
+        <data>
+            <sourceType>objectCollection</sourceType>
+            <collection>
+                <collectionRef oid="0de46df0-f2d9-437b-84ba-8e8d291ef0e1" type="c:ObjectCollectionType"/>
+            </collection>
+        </data>
+        <presentation>
+            <dataField>
+                <fieldType>value</fieldType>
+                <expression>
+                    <proportional>
+                        <style>value-only</style>
+                    </proportional>
+                </expression>
+            </dataField>
+        </presentation>
+    </widget>
+
+
+    <widget id="310">
+        <identifier>users-with-sod-violation</identifier>
+        <description>Users with SoD violation.</description>
+        <documentation>(ISO27001/A.5.3,ISO27001/A.5.36)</documentation>
+        <display>
+            <label>
+                <orig>Users with SoD violation</orig>
+                <translation>
+                    <key>userWithSodViolation.pluralLabel</key>
+                </translation>
+            </label>
+            <color>var(--success)</color>
+            <icon>
+                <cssClass>fa fa-people-arrows</cssClass>
+            </icon>
+        </display>
+        <displayOrder>310</displayOrder>
+        <data>
+            <sourceType>objectCollection</sourceType>
+            <collection>
+                <collectionRef oid="00000000-0000-0000-0001-000000000353" type="c:ObjectCollectionType"/>
+            </collection>
+        </data>
+        <presentation>
+            <dataField>
+                <fieldType>value</fieldType>
+                <expression>
+                    <proportional>
+                        <style>value-only</style>
+                    </proportional>
+                </expression>
+            </dataField>
+        </presentation>
+    </widget>
+
+    <widget id="320">
+        <identifier>privileged-users</identifier>
+        <description>Users with privileged access.</description>
+        <documentation>(ISO27001/A.5.15,ISO27001/A.5.18,ISO27001/A.8.2,ISO27001/A.8.9)</documentation>
+        <display>
+            <label>
+                <orig>Privileged users</orig>
+                <translation>
+                    <key>privilegedUser.pluralLabel</key>
+                </translation>
+            </label>
+            <icon>
+                <cssClass>fa fa-circle-radiation</cssClass>
+            </icon>
+            <color>var(--lightblue)</color>
+        </display>
+        <displayOrder>320</displayOrder>
+        <data>
+            <sourceType>objectCollection</sourceType>
+            <collection>
+                <collectionRef oid="f968f2ca-1c61-421c-b3d9-6925a8f31983" type="c:ObjectCollectionType"/>
+            </collection>
+        </data>
+        <presentation>
+            <dataField>
+                <fieldType>value</fieldType>
+                <expression>
+                    <proportional>
+                        <style>value-only</style>
+                    </proportional>
+                </expression>
+            </dataField>
+        </presentation>
+    </widget>
+
+    <widget id="330">
+        <identifier>suspicious-users</identifier>
+        <description>Users marked as "suspicious".</description>
+        <documentation>(ISO27001/A.5.27,ISO27001/A.5.28,ISO27001/A.5.29,ISO27001/A.6.8)</documentation>
+        <display>
+            <label>
+                <orig>Suspicious users</orig>
+                <translation>
+                    <key>suspiciousUser.pluralLabel</key>
+                </translation>
+            </label>
+            <icon>
+                <cssClass>fa fa-handcuffs</cssClass>
+            </icon>
+            <color>var(--success)</color>
+        </display>
+        <displayOrder>330</displayOrder>
+        <data>
+            <sourceType>objectCollection</sourceType>
+            <collection>
+                <collectionRef oid="00000000-0000-0000-0001-000000000358" type="c:ObjectCollectionType"/>
+            </collection>
+        </data>
+        <presentation>
+            <dataField>
+                <fieldType>value</fieldType>
+                <expression>
+                    <proportional>
+                        <style>value-only</style>
+                    </proportional>
+                </expression>
+            </dataField>
+            <variation>
+                <condition>
+                    <script>
+                        <code>proportional.value &gt; 0 &amp;&amp; proportional.value &lt; 3</code>
+                    </script>
+                </condition>
+                <display>
+                    <color>var(--orange)</color>
+                </display>
+            </variation>
+            <variation>
+                <condition>
+                    <script>
+                        <code>proportional.value &gt;= 3</code>
+                    </script>
+                </condition>
+                <display>
+                    <color>var(--danger)</color>
+                </display>
+            </variation>
+        </presentation>
+    </widget>
+
+
+</dashboard>

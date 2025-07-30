@@ -1,0 +1,44 @@
+<!--
+  ~ Copyright (c) 2025 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+<policy oid="4758b0a3-4b26-47fb-b69e-d54703c86ee2"
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-3">
+    <name>Require classification</name>
+    <description>Policy applied to archetypes, requiring archetyped objects to have classification.</description>
+    <documentation>
+        This policy is meant to be applied (assigned) to archetypes.
+        When applied, the archetyped objects are required to have a classification.
+        Objects with no classification are marked with "No classification" mark.
+
+        NOTE: This policy can only be applied to archetypes.
+        Support for application directly to affected objects (roles, applications) is likely to come later.
+
+        (ISO27001/A.5.1,ISO27001/A.5.2,ISO27001/A.5.9,ISO27001/A.5.36)
+    </documentation>
+    <inducement>
+        <identifier>policy-require-classification</identifier>
+        <documentation>(ISO27001/A.5.12,ISO27001/A.5.13,ISO27001/A.5.36)</documentation>
+        <orderConstraint>
+            <order>2</order>
+        </orderConstraint>
+        <policyRule>
+            <name>rule-require-classification</name>
+            <policyConstraints>
+                <hasNoAssignment>
+                    <name>constraint-require-classification</name>
+                    <targetArchetypeRef oid="00000000-0000-0000-0000-000000000330"/>
+                </hasNoAssignment>
+            </policyConstraints>
+            <markRef oid="2bb936a6-91b4-4439-82ac-1b3e89c2a26a"/>
+            <policyActions>
+                <record>
+                    <description>Record the mark for use in dashboards and reports.</description>
+                </record>
+            </policyActions>
+        </policyRule>
+    </inducement>
+</policy>
