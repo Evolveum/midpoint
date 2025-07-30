@@ -63,7 +63,7 @@
             </and>
         </policyConstraints>
         <policyActions>
-            <enforcement />
+            <enforcement/>
         </policyActions>
         <focusSelector>
             <type>UserType</type>
@@ -81,12 +81,10 @@
             <expression>
                 <script>
                     <code>
-						<![CDATA[
                         import com.evolveum.midpoint.schema.constants.SchemaConstants
 
                         return (midpoint.channel == SchemaConstants.CHANNEL_USER_LEGACY_URI || midpoint.channel == SchemaConstants.CHANNEL_USER_URI)
-                        ]]>
-					</code>
+                    </code>
                 </script>
             </expression>
         </condition>
