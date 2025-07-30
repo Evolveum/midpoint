@@ -1,0 +1,94 @@
+<?xml version="1.0"?>
+<!--
+  ~ Copyright (C) 2010-2025 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+<systemConfiguration
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-3"
+        xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3">
+
+    <globalPolicyRule>
+        <name>Forbid role "remove_policy_test" assignment</name>
+        <policyConstraints>
+            <and>
+                <assignment>
+                    <operation>add</operation>
+                    <operation>modify</operation>
+                    <operation>delete</operation>
+                    <relation>org:default</relation>
+                    <presentation>
+                        <message>
+                            <fallbackMessageExpression>
+                                <script>
+                                    <code><![CDATA[
+                                        messageTemplate = "Přiřazení role \"%s\" je řízeno automaticky. Roli tedy nelze ručně přiřadit ani její přiřazení odebrat či modifikovat."
+                                        targetDisplayName = (target?.displayName ? target?.displayName : target?.name)
+
+                                        return String.format(messageTemplate, targetDisplayName)
+                                        ]]></code>
+                                </script>
+                            </fallbackMessageExpression>
+                        </message>
+                    </presentation>
+                    <!--
+                        This is probably the solution you're looking for, if don't want to trigger policy rule (assignment changes)
+                        during add/delete of the object.
+                    -->
+                    <expression>
+                        <script>
+                            <code>
+                                var ctx = ruleEvaluationContext?.focusContext
+
+                                return ctx != null ? !ctx.isDelete() &amp;&amp; !ctx.isAdd() : true
+                            </code>
+                        </script>
+                    </expression>
+                </assignment>
+                <!--
+                    'modification' constraint will not work correctly, because we're mixing constraints for assignments and objects.
+                    'modification' constraint is not applicable to assignments, therefore, it will not trigger during
+                    assignment processing and `not` will make it always true (always trigger) in that assignment processing phase.
+                -->
+                <!--
+                <not>
+                    <modification>
+                        <operation>add</operation>
+                        <operation>delete</operation>
+                    </modification>
+                </not>
+                -->
+            </and>
+        </policyConstraints>
+        <policyActions>
+            <enforcement />
+        </policyActions>
+        <focusSelector>
+            <type>UserType</type>
+        </focusSelector>
+        <targetSelector>
+            <type>RoleType</type>
+            <filter>
+                <q:equal>
+                    <q:path>name</q:path>
+                    <q:value>remove_policy_test</q:value>
+                </q:equal>
+            </filter>
+        </targetSelector>
+        <condition>
+            <expression>
+                <script>
+                    <code>
+						<![CDATA[
+                        import com.evolveum.midpoint.schema.constants.SchemaConstants
+
+                        return (midpoint.channel == SchemaConstants.CHANNEL_USER_LEGACY_URI || midpoint.channel == SchemaConstants.CHANNEL_USER_URI)
+                        ]]>
+					</code>
+                </script>
+            </expression>
+        </condition>
+    </globalPolicyRule>
+</systemConfiguration>
