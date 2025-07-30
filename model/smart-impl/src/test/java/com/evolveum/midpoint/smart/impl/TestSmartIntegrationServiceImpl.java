@@ -115,7 +115,7 @@ public class TestSmartIntegrationServiceImpl extends AbstractSmartIntegrationTes
                 .addAttributeValues(DummyScenario.Account.AttributeNames.PHONE.local(), "+421900111222")
                 .addAttributeValues(DummyScenario.Account.AttributeNames.STATUS.local(), "active")
                 .addAttributeValues(DummyScenario.Account.AttributeNames.TYPE.local(), "manager")
-                .addAttributeValues(DummyScenario.Account.AttributeNames.DEPARTMENT.local(), "HR");
+                .addAttributeValues(DummyScenario.Account.AttributeNames.DEPARTMENT.local(), "Sales");
 
         c.addAccount("bob")
                 .addAttributeValues(DummyScenario.Account.AttributeNames.FULLNAME.local(), "Bob Builder")
@@ -130,7 +130,7 @@ public class TestSmartIntegrationServiceImpl extends AbstractSmartIntegrationTes
                 .addAttributeValues(DummyScenario.Account.AttributeNames.FULLNAME.local(), "Eve Adams")
                 .addAttributeValues(DummyScenario.Account.AttributeNames.PERSONAL_NUMBER.local(), "admin")
                 .addAttributeValues(DummyScenario.Account.AttributeNames.EMAIL.local(), "eve@evolveum.com")
-                .addAttributeValues(DummyScenario.Account.AttributeNames.STATUS.local(), "locked")
+                .addAttributeValues(DummyScenario.Account.AttributeNames.STATUS.local(), "inactive")
                 .addAttributeValues(DummyScenario.Account.AttributeNames.TYPE.local(), "employee")
                 .addAttributeValues(DummyScenario.Account.AttributeNames.CREATED.local(), Arrays.asList(ZonedDateTime.parse("2023-09-01T12:00:00Z")));
 
@@ -150,16 +150,16 @@ public class TestSmartIntegrationServiceImpl extends AbstractSmartIntegrationTes
         return values[values.length - 1];
     }
 
-    private void addDummyAccountsExceedingTopNLimit() throws Exception {
+    private void addDummyAccountsExceedingLimit() throws Exception {
         var c = dummyForObjectTypes.getController();
         String[] departments = {"HR", "Engineering", "Sales", "Marketing", "IT", "Finance", "Support"};
         int[] departmentWeights = {1, 5, 3, 2, 4, 2, 1};
 
         String[] types = {"employee", "manager", "contractor", "intern"};
-        int[] typeWeights = {7, 2, 3, 1};
+        int[] typeWeights = {7, 1, 3, 1};
 
-        String[] statuses = {"active", "inactive", "locked", "pending"};
-        int[] statusWeights = {8, 2, 1, 1};
+        String[] statuses = {"active", "inactive"};
+        int[] statusWeights = {8, 2};
 
         Random rand = new Random();
 
@@ -169,12 +169,22 @@ public class TestSmartIntegrationServiceImpl extends AbstractSmartIntegrationTes
             String department = pickWeightedRandom(departments, departmentWeights, rand);
             String type = pickWeightedRandom(types, typeWeights, rand);
             String status = pickWeightedRandom(statuses, statusWeights, rand);
+            String phone = String.format("+1555%07d", i);
+            String fullname = "User Fullname " + i;
+            String description = "Test user number " + i;
+            String email = username + "@example.com";
 
-            c.addAccount(username)
-                    .addAttributeValues(DummyScenario.Account.AttributeNames.PERSONAL_NUMBER.local(), personalNumber)
-                    .addAttributeValues(DummyScenario.Account.AttributeNames.DEPARTMENT.local(), department)
-                    .addAttributeValues(DummyScenario.Account.AttributeNames.TYPE.local(), type)
-                    .addAttributeValues(DummyScenario.Account.AttributeNames.STATUS.local(), status);
+            if (c.getDummyResource().getAccountByName(username)==null) {
+                c.addAccount(username)
+                        .addAttributeValues(DummyScenario.Account.AttributeNames.PERSONAL_NUMBER.local(), personalNumber)
+                        .addAttributeValues(DummyScenario.Account.AttributeNames.DEPARTMENT.local(), department)
+                        .addAttributeValues(DummyScenario.Account.AttributeNames.TYPE.local(), type)
+                        .addAttributeValues(DummyScenario.Account.AttributeNames.STATUS.local(), status)
+                        .addAttributeValues(DummyScenario.Account.AttributeNames.PHONE.local(), phone)
+                        .addAttributeValues(DummyScenario.Account.AttributeNames.DESCRIPTION.local(), description)
+                        .addAttributeValues(DummyScenario.Account.AttributeNames.FULLNAME.local(), fullname)
+                        .addAttributeValues(DummyScenario.Account.AttributeNames.EMAIL.local(), email);
+            }
         }
     }
 
@@ -508,15 +518,14 @@ public class TestSmartIntegrationServiceImpl extends AbstractSmartIntegrationTes
                 .findFirst().orElseThrow();
 
         assertThat(statusAttribute.getMissingValueCount()).isEqualTo(0);
-        assertThat(statusAttribute.getUniqueValueCount()).isEqualTo(3);
-        assertThat(statusAttribute.getValueCount().size()).isEqualTo(3);
+        assertThat(statusAttribute.getUniqueValueCount()).isEqualTo(2);
+        assertThat(statusAttribute.getValueCount().size()).isEqualTo(2);
 
         Map<String, Integer> valueCounts = statusAttribute.getValueCount().stream()
                 .collect(Collectors.toMap(vc -> vc.getValue().toString(), vc -> vc.getCount()));
 
         assertThat(valueCounts).containsEntry("active", 2);
-        assertThat(valueCounts).containsEntry("inactive", 2);
-        assertThat(valueCounts).containsEntry("locked", 1);
+        assertThat(valueCounts).containsEntry("inactive", 3);
     }
 
     /** Tests department attribute statistics. */
@@ -606,7 +615,7 @@ public class TestSmartIntegrationServiceImpl extends AbstractSmartIntegrationTes
         var result = task.getResult();
 
         when("additional accounts are created, exceeding the percentage limit for unique attribute values");
-        addDummyAccountsExceedingTopNLimit();
+        addDummyAccountsExceedingLimit();
 
         when("computing statistics for accounts");
         var statistics = computeStatistics(OC_ACCOUNT_QNAME, task, result);
@@ -632,6 +641,40 @@ public class TestSmartIntegrationServiceImpl extends AbstractSmartIntegrationTes
             assertThat(attribute.getUniqueValueCount()).isEqualTo(105);
             assertThat(attribute.getValueCount()).isEmpty();
         }
+    }
+
+    @Test
+    public void test220ComputeValueCountPairStatistics() throws Exception {
+        var task = getTestTask();
+        var result = task.getResult();
+
+        when("additional accounts are created, exceeding the percentage limit for unique attribute values");
+        addDummyAccountsExceedingLimit();
+
+        when("computing statistics for accounts");
+        var statistics = computeStatistics(OC_ACCOUNT_QNAME, task, result);
+
+        then("the statistics are OK, value stats for particular attributes are eliminated");
+        displayValue("statistics", PrismContext.get().jsonSerializer().serializeRealValueContent(statistics));
+        assertThat(statistics).isNotNull();
+        assertThat(statistics.getAttribute()).isNotEmpty();
+
+        Set<String> attributes = statistics.getAttributeTuple().stream()
+                .flatMap(attrTuple -> attrTuple.getRef().stream())
+                .map(String::valueOf)
+                .collect(Collectors.toSet());
+        Set<String> fields = Set.of("created", "type", "status");
+        assertThat(attributes).containsExactlyInAnyOrderElementsOf(fields);
+
+        for (ShadowAttributeTupleStatisticsType tuple : statistics.getAttributeTuple()) {
+            List<String> values = tuple.getRef().stream().map(QName::toString).collect(Collectors.toList());
+            assertThat(tuple.getTupleCount()).isNotEmpty();
+            for (ShadowAttributeTupleCountType tupleCount : tuple.getTupleCount()) {
+                assertThat(tupleCount.getValue()).isNotEmpty();
+                assertThat(tupleCount.getCount()).isGreaterThanOrEqualTo(1);
+            }
+        }
+
     }
 
     @SuppressWarnings("SameParameterValue")

@@ -221,9 +221,11 @@ public class StatisticsComputer {
     }
 
     /**
-     * Retains only the top N most frequent values for each attribute.
+     * Retains only the top N most frequent values for each attribute in {@code valueCounts}.
      *
-     * For each attribute, sorts the value counts by descending frequency and keeps only the top {@link #TOP_N_LIMIT}.
+     * For each attribute, if all values appear only once, clears its value counts.
+     * Otherwise, keeps only the top {@code TOP_N_LIMIT} values with the highest counts,
+     * discarding the rest.
      */
     private void retainTopNValueCounts() {
         for (ShadowAttributeStatisticsType stats : statistics.getAttribute()) {
