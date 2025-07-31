@@ -19,10 +19,10 @@ doc-type: intro
 
 == Introduction
 
-MidPoint provides the possibility to periodically review various settings, e.g. assignment of roles to users.
+MidPoint enables you to periodically review various settings, e.g. assignment of roles to users.
 This feature is called *Access certification*. It is implemented in the form of certification campaigns.
 
-A *certification campaign* is a review process that consists of identifying a set of certification cases, selecting reviewers for them, gathering decisions of these reviewers, and executing remediation process, if needed.
+A *certification campaign* is a review process that consists of identifying a set of certification cases, selecting reviewers for them, gathering decisions of these reviewers, and executing a remediation process, if needed.
 Reviewer selection and decision gathering can be done multiple times, in case of multi-stage campaigns.
 The remediation process can be automated or manual.
 It is assumed that certification campaigns will be run regularly, e.g. yearly, twice a year, monthly, and so on.
@@ -39,12 +39,14 @@ The default is that only cases which were not revoked/reduced are transferred.
 
 Finished (closed) campaigns can be *reiterated*.
 Reiteration re-starts campaigns, giving another chance to reviewers who, for example, have not provided their responses (decisions) in time.
-For more details on iterations, see xref:/midpoint/reference/roles-policies/policies/certification/iteration/[]
+For more details on iterations, see xref:/midpoint/reference/roles-policies/policies/certification/iteration/[].
 
 
 == Certification campaign
 
 Certification campaigns are created using templates that are called *certification campaign definitions*, or certification definitions for short.
+
+While you can configure certification campaign definitions in the user-friendly midPoint GUI by going to icon:certificate[] btn:[Certification] > icon:circle[] btn:[Campaign definitions], this page focuses on describing the concept and raw XML definition.
 
 Each definition contains the following elements:
 
@@ -57,7 +59,7 @@ Everything is certified by the administrator."
 Currently, there is one bundled handler named `http://midpoint.evolveum.com/xml/ns/public/certification/handlers-3#direct-assignment` that is able to handle certifications of many types of direct assignments, e.g. user-to-role, user-to-org, role-to-role, etc.
 However, you can create your own handlers.
 
-* *scopeDefinition* - wWile the handler provides basic character of the certification (e.g. "we'll be dealing with direct assignments"), the scope definition says more precisely which objects (in this case, assignments) are involved.
+* *scopeDefinition* - While the handler provides basic character of the certification (e.g. "we'll be dealing with direct assignments"), the scope definition says more precisely which objects (in this case, assignments) are involved.
 For example, the scope can be limited to user-to-role, only certain users, certain roles, etc.
 
 * *ownerRef* - Defines the owner of the definition and the related campaigns.
@@ -130,9 +132,11 @@ In the example above, the first notification is sent 48 hours and the second one
 * *reviewerSpecification* - Defines how reviewers are selected.
 In our example, everything will be reviewed by the administrator.
 
+For a complete list of options for stage definitions and a more detailed explanation, see xref:/midpoint/reference/roles-policies/policies/certification/stages/[].
+
 == Quick tutorial
 
-To see how certifications work, see the following xref:/midpoint/reference/roles-policies/policies/certification/tutorial/[very quick tutorial].
+To see how certifications work, see the following xref:/midpoint/reference/roles-policies/policies/certification/tutorial/[quick tutorial].
 
 == Campaign definition options
 
@@ -189,7 +193,7 @@ The bundled direct assignment handler provides the following properties:
     The value of q:any means "any relation".
     If no relation is present, org:default (i.e. null) is assumed.
 
-See an example of a more advanced scope definition that selects user-role assignments for users that belong to GovernorOffice and for roles with riskLevel = "critical":
+See an example of a more advanced scope definition that selects user-role assignments for users that belong to GovernorOffice and for roles with `riskLevel = "critical"`:
 
 [source,xml]
 ----
@@ -252,7 +256,7 @@ After importing tasks, campaigns are automatically scheduled at given times.
 
 You can check the current status of a campaign in icon:certificate[] btn:[Certifications] > icon:circle[] btn:[Campaigns scheduling].
 All certification-related tasks are shown.
-(Besides tasks for starting campaigns, there are also remediation tasks, but that will be eventually fixed.)
+(Besides tasks for starting campaigns, there are also remediation tasks, but that will eventually be fixed.)
 
 image::scheduling.jpg[75%]
 
@@ -361,13 +365,13 @@ To learn more about actions configuration, see xref:/midpoint/reference/roles-po
 To learn more about columns configuration, see xref:/midpoint/reference/roles-policies/policies/certification/columns-configuration/[Columns configuration].
 
 You can also define object collection view configuration within the access certification definition (_view_ element).
-This configuration will be merged with the global one and applied to all campaigns based on this definition.
+This configuration will be merged with the global configuration and applied to all campaigns based on this definition.
 
 [[dashboard_widget]]
 === Configure dashboard widget
 
 You can configure a certification dashboard widget to be displayed on the self-service dashboard page.
-The widget configuration is as a part of the system configuration initial object.
+The widget configuration is done as a part of the system configuration initial object.
 The configuration can be found in the _systemConfiguration -> adminGuiConfiguration -> homePage_ element.
 It is hidden in the `End user` initial object by default and can be adapted to meet the specific needs of your project (see xref:/midpoint/reference/admin-gui/admin-gui-config/#how-it-works[Admin GUI configuration merging mechanism]).
 

@@ -78,7 +78,8 @@ Note that the newly created campaign has `ownerRef` set to the currently logged-
 == GUI level
 
 At the GUI level, there are the following action URIs available.
-*<prefix>* is the standard prefix for GUI authorization actions, i.e. "*http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3"*.
+
+`<prefix>` is the standard prefix for GUI authorization actions, i.e. `http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3`.
 
 [%autowidth]
 |===
@@ -106,12 +107,12 @@ At the GUI level, there are the following action URIs available.
 
 | My cases to decide
 | `<prefix>#myCertificationDecisions`
-| Authorization is required for access to Certification items page which can be reached from icon:certificate[] btn:[Certification] > icon:circle[] btn:[My active campaigns] by clicking btn:[Show items] for a particular campaign.
+| Authorization is required access the Certification items page which can be reached from icon:certificate[] btn:[Certification] > icon:circle[] btn:[My active campaigns] by clicking btn:[Show items] for a particular campaign.
 In case the _accessCertification_ -> _allowCertificationItemsMenus_ option is enabled (i.e. set to `true`) in the system configuration object, this authorization is required to display the "_My certification items_" menu item.
 
 | All cases to decide
 | `<prefix>#certificationDecisions`
-| Authorization is required for access to Certification items page which can be reached from icon:certificate[] btn:[Certification] > icon:circle[] btn:[Active campaigns] by clicking btn:[Show items] for a particular campaign.
+| Authorization is required access the Certification items page which can be reached from icon:certificate[] btn:[Certification] > icon:circle[] btn:[Active campaigns] by clicking btn:[Show items] for a particular campaign.
 In case the _accessCertification_ -> _allowCertificationItemsMenus_ option is enabled (i.e. set to `true`) in the system configuration object, this authorization is required to display the "_Certification items_" menu item.
 
 | My active campaigns
@@ -142,7 +143,9 @@ Also, if users are authorized to view only some of the items (but not all of the
 This is to be fixed in later versions of midPoint.
 ====
 
-== Example 1: Reviewer role
+== Examples
+
+=== Reviewer role
 
 The reviewer role defined in the example below enables users to:
 
@@ -165,7 +168,7 @@ The reviewer role defined in the example below enables users to:
 ----
 
 
-== Example 2: Certification campaign owner
+=== Certification campaign owner
 
 This role defined in the example below enables users to:
 

@@ -8,12 +8,12 @@
 :page-alias: { "parent" : "/midpoint/guides/" }
 :page-upkeep-status: green
 :page-moved-from: /midpoint/reference/roles-policies/certification/tutorial/
-:page-description: Learn how to work with certification campaigns in midPoint user interface.
+:page-description: This pages gives you a quick overview of how you can use access certifications in midPoint, i.e. how to add a campaign definition, create and start a campaign, and how to review it.
 :page-keywords: certification campaign, create campaign, campaign definition, review campaign
 :experimental:
 :page-toc: top
 
-This tutorial shows you how to work with certification campaigns in midPoint.
+This pages gives you a quick overview of how you can use access certifications in midPoint, i.e. how to add a campaign definition, create and start a campaign, and how to review it.
 
 == Add Campaign Definition
 
@@ -49,7 +49,7 @@ The created campaign has 1 stage because it was defined that way.
 It is in the *Created* state, i.e. no action has been done yet.
 
 . Click the icon:play[] btn:[Start campaign] button. +
-A special task is created to process this action and a task progress bar is displayed right on the campaign tile panel.
+A special task is created to process this action and a task progress bar is displayed right on the campaign tile.
 Clicking on this progress element will redirect you to the task page.
 The link to the task page is also displayed at the top of the page within the feedback panel right after the task is created.
 
@@ -89,7 +89,7 @@ By default, the system has 2 available responses:
     .. *Revoke* - The state is unacceptable and it should be fixed by removing the particular assignment.
 
 +
-If needed, you can extend the responses with the following options (learn more about decision menu items configuration, as well as about other possible menu item actions, see xref:/midpoint/reference/roles-policies/policies/certification/actions/[GUI Action Configuration]):
+If needed, you can extend the responses with the following options (learn more about decision menu items configuration, as well as about other possible menu item actions in xref:/midpoint/reference/roles-policies/policies/certification/actions/[GUI Action Configuration]):
 
     .. *Reduce* - The state is unacceptable but a simple assignment removal is not sufficient.
     This is useful in scenarios when you need to discuss the case to reach a solution.

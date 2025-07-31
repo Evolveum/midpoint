@@ -13,14 +13,14 @@
 
 
 This page shows you how to create ad-hoc certification campaigns.
-This can be useful in more specific cases, such as when a new user is added to an organization, its manager should review and certify all of the user's assignments (roles, etc.).
+This can be useful in more specific cases, such as when a new user is added to an organization and its manager should review and certify all of the user's assignments (roles, etc.).
 
 == Define Ad-hoc Certification Campaigns
 
 To define an ad-hoc certification campaign:
 
 . Define a <<policy_rules,policy rule>> that triggers the creation of a new ad-hoc certification campaign.
-. Define the actual <<certification_campaign,ad-hoc certification campaign>>
+. Define the actual <<certification_campaign,ad-hoc certification campaign>>.
 
 [[policy_rules]]
 === Policy Rule
@@ -48,12 +48,12 @@ Such a rule looks like this:
 
 There are two interesting items here:
 
-. A policy constraint (lines 3-5) drives when the rule is triggered.
+. A policy constraint (lines 3-5) applies when the rule is triggered.
 In this case, it is when a new assignment to the holder of this policy rule is created.
 So, it is expected that this rule should be assigned to organizations for which we want to have ad-hoc certifications started for all newcomers.
 
 . Certification policy action (lines 8-10) that defines the certification campaign that should be started.
-More specifically, `definitionRef` points to the certification definition that specifies what the certification should look like; e.g. how many stages should it have, how to select reviewers for these stages, and so on.
+More specifically, `definitionRef` points to the certification definition that specifies what the certification should look like; e.g. how many stages it should have, how to select reviewers for those stages, and so on.
 
 [[certification_campaign]]
 === Certification Campaign
@@ -96,10 +96,6 @@ Filter-based definitions (evaluated at run time) are not supported.
 
 You can use ad-hoc certification campaigns in a multitude of scenarios.
 In this section, you can see examples of starting an ad-hoc certification campaign when object items are modified:
-
-* Both `employeeType` and organization are changed.
-* Either `employeeType` or organization, or both, are changed.
-
 
 .Ad-hoc certification when both employeeType and organization are changed
 [source,xml]
