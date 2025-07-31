@@ -7,13 +7,15 @@
 :page-wiki-metadata-modify-date: 2017-04-19T12:03:10.715+02:00
 :page-upkeep-status: yellow
 :page-moved-from: /midpoint/reference/roles-policies/certification/escalation/
-:page-description: This page describes how escalations can be used in certification campaigns.
+:page-description: This page describes how escalations can be used in certification campaigns. You can use escalations to avoid stalled certifications, to enforce accountability, or to ensure higher scrutiny for risky items.
 :page-keywords: escalation, certification campaign, escalate, timed action
 :page-toc: top
 
 This page describes how escalations can be used in certification campaigns.
 
-Escalations were originally developed for xref:/midpoint/reference/cases/escalation/[approvals], and they are implemented through _timed actions_.
+You can use escalations to avoid stalled certifications, to enforce accountability, or to ensure higher scrutiny for risky items.
+
+Escalations were originally developed for xref:/midpoint/reference/cases/escalation/[approvals], and they are implemented through *_timed actions_*.
 
 == Timed actions
 
@@ -42,7 +44,7 @@ It is usually changed in escalations.
 
 == Example
 
-See a sample campaign definition containing an automatic escalation:
+See a sample campaign definition with an automatic escalation:
 
 .Certification campaign with escalations
 [source,xml]
@@ -101,10 +103,10 @@ See a sample campaign definition containing an automatic escalation:
 </accessCertificationDefinition>
 ----
 
-The actual escalations are defined on lines 25-50.
-As defined on line 27, seven days after the campaign stage opening (`P7D`) the first escalation takes place.
+The actual escalations are defined on lines 25-50 (`<timedActions>...</timedActions>`).
+As defined on line 27, the first escalation takes place seven days after the campaign stage opening (`P7D`).
 The new escalation level is named `Level1`, and its effect is that a reviewer of `018fe48d-4952-4f4b-8c0a-b8670ec1748e` (line 31) is added (`addAssignees` - line 32) to the current certification work item.
 
 Then, as defined on line 39, ten days after the campaign stage opening (`P10D`), i.e. three days after the first escalation, another escalation takes place.
 It is named `Level2`, and it replaces all existing reviewers (`replaceAssignees` - line 44) with `42b48a07-e167-4fdc-baca-8eaa13d4eaad` (line 43).
-Same as in xref:/midpoint/reference/cases/escalation/[approvals], the chaining of the escalation levels is done by constraining timed actions to levels using the `escalationLevelFrom`/`escalationLevelTo` clauses (lines 48-49).
+Same as in xref:/midpoint/reference/cases/escalation/[approvals], chaining of escalation levels is done by constraining timed actions to levels using the `escalationLevelFrom`/`escalationLevelTo` clauses (lines 48-49).

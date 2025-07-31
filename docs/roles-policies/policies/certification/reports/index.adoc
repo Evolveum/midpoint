@@ -17,18 +17,18 @@
 This page describes the available access certification reports in midPoint and helps you understand how to use them effectively in compliance and governance workflows.
 
 Each of the provided reports provides a different level of detail, from high-level campaign overviews to individual reviewer decisions.
-Reports can be exported and used for auditing and tracking certification activities.
+You can export reports and use them for auditing and certification tracking.
 
 == Access Certification Reports
 
-There are currently the following pre-configured certification-related reports available in the midPoint distribution package:
+The following pre-configured certification-related reports are available in the midPoint distribution package:
 
 [%autowidth]
 |===
 | Report name | Content
 
 | Certification definitions report
-| All certification definitions with basic information on related campaigns (the number of campaigns, the date when a campaign of this type was last started and closed).
+| All certification definitions with basic information on related campaigns (the number of campaigns, the date when a campaign of a particular type was last started and closed).
 See <<certification_definitions_report,an example>>.
 
 
@@ -98,6 +98,8 @@ Depending on the xref:/midpoint/reference/roles-policies/policies/certification/
 * "Outcome" is a preliminarily computed result for the case for the whole campaign.
 
 * "Comments" are joined comments from all reviewers that have provided them.
+====
+
 
 [[certification_work_items_report]]
 === Certification work items report

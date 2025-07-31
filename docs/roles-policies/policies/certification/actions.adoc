@@ -12,7 +12,7 @@ You can use this information to better understand what each action does and how 
 == General Information
 
 Reviewers come across certification actions throughout the midPoint GUI.
-These actions drive what happens next in campaigns.
+These actions control what happens next in campaigns.
 There can be inline menu actions or toolbar actions in the object list tables, redirecting actions executed from different widgets (e.g. _View all_ action from the _My accesses_ widget on the _Dashboard_ page), etc.
 
 In this document, we'll have a look at the inline menu actions configuration.
@@ -26,7 +26,7 @@ Action configuration is done within the _Object Collection View_ configuration.
 
 Actions should have identifiers that match the <<available_actions,available actions>>.
 
-Some actions may require additional steps to be provided before the action can be executed.
+Some actions may require prerequisite steps before they can be executed.
 For example, actions may require confirmation, or parameters that need to be filled in.
 In these cases, the action configuration should contain the _panel_ section.
 
@@ -34,29 +34,29 @@ See an example of an inline menu action configuration for the certification item
 
 [source,xml]
 ----
-                <action>
-                    <identifier>certItemAccept</identifier>
-                    <panel>
-                        <display>
-                            <label>Do you really want to accept the item(s)?</label>
-                        </display>
-                        <container>
-                            <identifier>comment</identifier>
-                            <display>
-                                <label>Please, provide a comment (required).</label>
-                            </display>
-                            <item>
-                                <path>output/comment</path>
-                                <mandatory>true</mandatory>
-                            </item>
-                        </container>
-                        <type>AccessCertificationWorkItemType</type>
-                    </panel>
-                </action>
+<action>
+    <identifier>certItemAccept</identifier>
+    <panel>
+        <display>
+            <label>Do you really want to accept the item(s)?</label>
+        </display>
+        <container>
+            <identifier>comment</identifier>
+            <display>
+                <label>Please, provide a comment (required).</label>
+            </display>
+            <item>
+                <path>output/comment</path>
+                <mandatory>true</mandatory>
+            </item>
+        </container>
+        <type>AccessCertificationWorkItemType</type>
+    </panel>
+</action>
 
 ----
 
-The configuration above defines an Accept action for the certification items.
+The configuration above defines an Accept action for certification items.
 The action requires a confirmation and a comment to be filled in.
 
 [[available_actions]]
@@ -71,22 +71,22 @@ Therefore, the list of the available actions is limited to the certification ite
 
 | Accept
 | certItemAccept
-| Accept the certification item(s).
+| Accept the certification items.
 | Panel can be configured for confirmation and comment.
 
 | Revoke
 | certItemRevoke
-| Revoke the certification item(s).
+| Revoke the certification items.
 | Panel can be configured for confirmation and comment.
 
 | Reduce
 | certItemReduce
-| Reduce the certification item(s).
+| Reduce the certification items.
 | Panel can be configured for confirmation and comment.
 
 | Not decided
 | certItemNotDecided
-| Certification item(s) cannot be decided by the reviewer. A "Not decided" response is set as a result of the action.
+| Certification items cannot be decided by the reviewer. A "Not decided" response is set as a result of the action.
 | Panel can be configured for confirmation and comment.
 
 | No response
@@ -96,7 +96,7 @@ Therefore, the list of the available actions is limited to the certification ite
 
 | Resolve action
 | certItemResolve
-| Resolves the certification item(s) by choosing the appropriate decision from the list of available decisions.
+| Resolves the certification items by choosing the appropriate decision from the list of available decisions.
 | Popup panel with the available set of decisions is displayed to the user by default (without additional panel configuration). Panel can be configured for comment.
 
 | Change decision

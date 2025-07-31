@@ -8,36 +8,65 @@
 :page-wiki-metadata-modify-date: 2016-04-23T01:35:31.626+02:00
 :page-upkeep-status: yellow
 :page-moved-from: /midpoint/reference/roles-policies/certification/stages/
-
-Campaign consists of one or more review stages.
-For each stage, the following properties are configured:
-
-
-== Stage name and description
-
-It is advisable to provide these to give quick understanding of stage definition without the necessity to go through individual properties.
-
-An example:
-
-[%autowidth,cols="h,1"]
-|===
-| Name | Role's owner review
-
-| Description
-| In this stage, the role's owner has to review all of its inducements
+:page-description: This page describes how to configure individual stages within an access certification campaign. It covers the reviewer selection, deadlines, notification behavior, and timed escalation within each stage.
+:page-keywords: certification stage, certification campaign, stage duration, deadline notification, reviewer
+:page-toc: top
+:experimental:
 
 
-|===
+This page describes how to configure individual stages within an access certification campaign.
+It covers the reviewer selection, deadlines, notification behavior, and timed escalation within each stage.
 
+Also, it explains how midPoint determines and assigns reviewers based on properties such as role owner, approver, or organizational manager, and shows how these are defined in XML under `<stageDefinition>` elements.
 
-== Stage duration
+== Configure stages
 
-The duration is used to determine stage end time.
-The end time is computed as the moment of stage opening plus the duration, rounded up to 23:59:59 of the last day.
-So, for example, if the stage is started on Monday, April 25th on 13:45 and the duration is 7 days, the stage would end at Monday, May 2nd on 23:59:59.
+Campaigns consist of one or more review stages.
 
-The duration is specified in ISO 8601 format.
-Some examples:
+In GUI, you can configure individual stages in icon:certificate[] btn:[Certification] > icon:circle[] btn:[Campaign definitions] > your definition > btn:[Stages definition] tab.
+
+You can configure the following options for stages:
+
+* *Name* - The name of the stage.
+* *Description* - Description of the stage.
+* *Duration* - Duration of the stage which is used to determine the end of the stage.
+See <<duration,stage duration>> for details.
+* *Notify before deadline* - Defines how long before the stage end time a notification is sent. See <<deadline,deadline notifications>> for details.
+* *Notify only when no decision* - If selected, notifications are sent to reviewers only if they have cases waiting for their decision. 
+See <<notify_only_no_decision,no decision notifications>>.
+* *Reviewer specification name (optional)* - Identifies the reviewer-selection rules configured for the stage.
+* *Reviewer specification description (optional)* - Describes the reviewer-selection rules configured for the stage.
+* *Reviewers based on assignment target object* - Selects reviewers based on the target owner/approver of the assignment/inducement.
+For example, you can define that a role owner certifies all assignments of their role. 
+* *Reviewers based on the object being assigned to* - Selects reviewers based on objects to which something is assigned or induced.
+For example, you can define that a role owner certifies all inducements to their role.
+* *Reviewers based on the manager of object being assigned to* - Selects reviewers based on managers of object that have something assigned or induced.
+For example, you can have a manager certify all assignments to users in their organization.
+* *Default reviewer reference* - Defines the default reviewers that are used if the preceding configuration does not result in actual reviewers.
+For example, if you define that a user's manager is the reviewer for that user's assignments, and if that particular user has no managers, the default reviewers will be used to review the assignments of that user.
+* *Additional reviewer reference* - Defines additional reviewers that are used on top of the other reviewers defined in the preceding configuration.
+For example, you can specify that the company security manager should review each certification case in the given stage.
+* *Decision aggregation strategy in case of more than one reviewer* - If there is more than one reviewer, defines the strategy used to determine the stage-level outcome.
+See xref:/midpoint/reference/roles-policies/policies/certification/determining-case-outcome.adoc#stage-level[stage level strategies] for details.
+* *Outcome if there are no reviewers allocated* - Defines the outcome for cases if no reviewers are assigned, for example, if the target role owner is defined as the reviewer but that particular role has no owner.
+Note that this does not apply to cases when the assigned reviewers provide no responses.
+* *Stop review on* - Defines which outcomes prevent cases to be advanced to the next stage.
+Typically, if a case is marked as Revoke or Reduce, it does not proceed to the next stage.
+This is typically not needed, and can only be configured in the XML configuration.
+For more details, see xref:/midpoint/reference/roles-policies/policies/certification/determining-case-outcome/[].
+
+== Configuration details
+
+[[duration]]
+=== Stage duration
+
+The duration is used to determine the stage end time.
+The end time is computed as the moment of the stage opening plus the duration, rounded up to 23:59:59 of the last day.
+So, for example, if the stage is started on Monday, April 25th at 13:45, and the duration is 7 days, the stage would end on Monday, May 2nd at 23:59:59.
+
+The duration is specified in the ISO 8601 format.
+
+See the following examples:
 
 [%autowidth]
 |===
@@ -61,189 +90,146 @@ Some examples:
 
 |===
 
-
-== Deadline-approaching notifications
+[[deadline]]
+=== Deadline notifications
 
 There are two kinds of notifications that are sent when the stage end is approaching:
 
-* notifications for campaign owner,
+* Notifications for the campaign owner
+* Notifications for reviewers
 
-* notifications for reviewers.
+Both of these notifications are sent before the stage end time, in intervals defined by the `notifyBeforeDeadline` multi-valued property.
 
-Both are sent before the stage end time, in intervals defined by *notifyBeforeDeadline* multi-valued property.
+For example, if the `notifyBeforeDeadline` property is set to 48 and 12 hours, and the stage ends on Monday, May 2nd at 23:59:59:
 
-An example:
+* The first round of notifications (to campaign owner and individual reviewers) will be sent on Saturday, April 30th 23:59:59 (48 hours before the stage end).
 
-* let's say this property is set to 48 and 12 hours,
+* The second round of notifications (to campaign owner and individual reviewers) will be sent on Monday, May 2nd, 11:59:59 (12 hours before the stage end).
 
-* assume the stage ends on Monday, May 2nd, 23:59:59.
-
-So:
-
-* the first round of notifications (to campaign owner and individual reviewers) will be sent on Saturday, April 30th 23:59:59 (48 hours before stage end),
-
-* the second round of notifications (again, to campaign owner and individual reviewers) will be sent on Monday, May 2nd, 11:59:59 (12 hours before stage end).
-
-There's a related property, *notifyOnlyWhenNoDecision*. If set to true (the default), a the deadline-approaching notification is sent to a given reviewer only if he/she has some cases waiting for his/her decision.
-If set to false, reviewers always get their notifications - regardless of whether they have provided a decision or not.
-Note that notifications to the campaign owner about approaching stage end are sent always, regardless of this setting.
-
-More about certification-related notifications can be found xref:/midpoint/reference/roles-policies/policies/certification/notifications/[in this document].
+For more information, see xref:/midpoint/reference/roles-policies/policies/certification/notifications/[].
 
 
-== Reviewer selection
+[[notify_only_no_decision]]
+=== No decision notifications
+
+You can set up deadline notifications to be sent only when reviewers have cases they have not responded to yet.
+This is done by setting the `notifyOnlyWhenNoDecision` property to `true` (default).
+If you set the property to `false`, reviewers always get their notifications - regardless of whether they have provided a response or not.
+
+NOTE: Regardless of this setting, deadline notifications are always sent to the campaign owner.
+
+For more information, see xref:/midpoint/reference/roles-policies/policies/certification/notifications/[].
+
+
+=== Reviewer selection
 
 Each review stage starts with selecting reviewers for each certification case that enters that stage.
 
-When considering assignment-based certification, reviewers can be selected either according to assignment *target* properties, or according to assignment *object* properties.
-Let's have a look at both of them.
+When considering assignment-based certifications, reviewers can be selected either according to the:
+
+* <<assign_target,assignment target properties>>
+* <<assign_owner,assignment owner properties>>
 
 
-=== Assignment target properties
+[[assign_target]]
+==== Assignment target properties
 
-Imagine that we are going to certify assignment of role *Superuser* to user *jack*. Target of this assignment is the Superuser role.
+Imagine that we are going to certify the assignment of the *Superuser* role to user *jack*. The target of this assignment is the Superuser role.
 
-Currently midPoint supports two properties of a role (or an org or a service) that can be used to derive reviewers:
+MidPoint supports two properties of a role (or an org/service) that can be used to derive reviewers:
 
-* role/org/service/resource owner(s),
+* `useTargetOwner` - For role/org/service/resource owners.
 
-* role/org/service/resource approver(s).
+* `useTargetApprover` - For role/org/service/resource approvers.
 
-You can use either one (or both) as reviewers for assignments by setting *useTargetOwner* and/or *useTargetApprover* to true.
+You can use either one (or both) as reviewers for assignments by setting `useTargetOwner` and/or `useTargetApprover` to `true`.
 
+[[assign_owner]]
+==== Assignment owner properties
 
-=== Assignment owner properties
+The assignment owner is the object (usually a user) to which we are assigning another object.
+In the <<assign_target,example above>>, the owner of the assignment is the user *jack*.
 
-Assignment owner is the object (usually a user) to which we are assigning another object.
-In the example above, the owner of the assignment is the user *jack*.
-
-MidPoint allows the following properties of the assignment owner that can be used to find reviewers:
+MidPoint supports the following properties of the assignment owner that can be used to find reviewers:
 
 * role/org/service owner,
 
-* role/org/service approver(s),
+* role/org/service approvers,
 
-* user/role/org/service manager(s).
+* user/role/org/service <<managers,managers>>.
 
-The first two items are quite straightforward, but the last one deserves some explanation.
+[[managers]]
+===== Managers
+
 In midPoint, each object can belong to one or more organizations (orgs).
 Each org can have zero or more managers, and zero or more parent orgs.
-So it is quite natural to define the term "manager(s) of object X" as the manager(s) of org(s) that X belongs to.
+So it is quite natural to define the term "manager(s) of an object X" as the manager(s) of the org(s) that X belongs to.
 
 When determining managers for a given object, two parameters can be helpful:
 
-* limitation of org types that should be taken into account,
+* Limitation of org types that should be taken into account.
+* Flag that defines whether to allow users to act as their own managers.
 
-* flag whether to allow user to act as a manager of himself.
+To better understand these two parameters, let's have a look at the process of determining managers of an object X.
 
-To better understand them, let's have a look at the process of determining managers of an object X.
-
-In the first round, we take managers of all org units X belongs to.
+In the first round, we take managers of all org units that X belongs to.
 Optionally, we filter out the following:
 
-* if limitation of org types is set, we filter out all orgs that have an org type not equal to specified type,
+* If a limitation of org types is set, we filter out all orgs whose org type is _not_ equal to the specified type.
 
-* if the flag to allow user to act as his own manager is false (the default), we don't consider X to be a manager of X, even if he's a manager of the corresponding org unit.
+* If the flag that allows users to act as their own managers is `false` (default), we do not consider X to be the manager of X, even if X is the manager of the corresponding org unit.
 
 If we find at least one suitable manager, we are done.
-Otherwise, we continue the process, taking all found orgs (of suitable type, if specified), and continue by finding managers of their parents (again, of suitable type).
+Otherwise, we continue the process, taking all found orgs (of a suitable type, if specified), and continue by looking for managers of their parents (again, of suitable types).
 
-An example, taken from link:https://github.com/Evolveum/midpoint-samples/blob/master/samples/org/org-monkey-island-simple.xml[https://github.com/Evolveum/midpoint-samples/blob/master/samples/org/org-monkey-island-simple.xml]:
+====== Example
 
-We have functional and project structure:
+The following example is taken from the link:https://github.com/Evolveum/midpoint-samples/blob/master/samples/org/org-monkey-island-simple.xml[Monkey island midPoint sample]:
 
-. Functional one - root is Governor Office, managed by Elaine Marley:
+We have the following two structures:
 
-.. Ministry of Defense, having no manager,
+. Functional structure - The root is Governor Office, managed by Elaine Marley:
 
-.. Ministry of Offense, having no manager,
+.. Ministry of Defense, has no manager
 
-... Swashbuckler Section, having no manager,
+.. Ministry of Offense, has no manager
 
-... Scumm Bar, managed by Ignatius Cheese,
+... Swashbuckler Section, has no manager
 
-
-
-.. Ministry of Rum, managed by Guybrush Threepwood,
-
-... Scumm Bar, managed by Ignatius Cheese,
+... Scumm Bar, managed by Ignatius Cheese
 
 
 
+.. Ministry of Rum, managed by Guybrush Threepwood
+
+... Scumm Bar, managed by Ignatius Cheese
 
 
-. Project one - root is Projects: +
 
 
-.. Save Elaine, having no manager,
+
+. Project structure - The root is Projects: +
+
+
+.. Save Elaine, has no manager,
 
 .. Kidnap and marry Elaine, managed by Captain LeChuck.
 
 
 
-Now, let's find managers for user guybrush.
-He is a member of Scumm Bar and manager of Ministry of Rum (let's assume he as also a member of Ministry of Rum, although this is not part of the monkey island example).
-So, when finding his managers, two organizations are taken into account: Scumm Bar and Ministry of Rum.
-So managers are: Ignatius Cheese and himself (if "allowSelf" is set to true).
-If "allowSelf" is kept at the default value of false, the only manager of Guybrush is Ignatius Cheese.
-If we'd limit the org type to "project", Guybrush would have no managers.
+Now, let's find managers for the user _Guybrush_.
+He is a member of _Scumm Bar_ and manager of _Ministry of Rum_ (let's assume he is also a member of _Ministry of Rum_, although this is not part of the Monkey island example).
+So, when looking for his managers, two organizations are taken into account: _Scumm Bar_ and _Ministry of Rum_.
+This means that the managers are: _Ignatius Cheese_ and _Guybrush_ himself (if _allowSelf_ is set to _true_).
+If _allowSelf_ is kept at the default value of _false_, the only manager of _Guybrush_ is _Ignatius Cheese_.
+If we limited the org type to "project", _Guybrush_ would have no managers.
 
-As a second example, let's find managers of Carla the Swordmaster, member of Ministry of Defense, Ministry of Rum, and Save Elaine.
-Among these three orgs, only Ministry of Rum has direct manager.
-So Carla's manager is Guybrush Threepwood.
-If Carla would be a member of Ministry of Defense only, her manager would be Elaine Marley.
+As a second example, let's find managers of _Carla the Swordmaster_, a member of _Ministry of Defense_, _Ministry of Rum_, and _Save Elaine_.
+Among these three orgs, only _Ministry of Rum_ has a direct manager.
+So _Carla's_ manager is _Guybrush Threepwood_.
+If _Carla_ was only a member of Ministry of Defense, her manager would be _Elaine Marley_.
 
-Finally, let's find managers for user bob, who is a member of Kidnap and marry Elaine project.
-In the default setting, his manager is Captain LeChuck.
-If we would restrict org types to functional only, bob would have no managers.
+Finally, let's find managers for _Bob_, who is a member of the _Kidnap and marry Elaine_ project.
+In the default setting, his manager is _Captain LeChuck_.
+If we restricted org types to functional only, _Bob_ would have no managers.
 
-
-=== Additional options
-
-There are the following options:
-
-[%autowidth]
-|===
-| Property | Meaning
-
-| default reviewers
-| These reviewers will be used if the above condition would lead to no reviewer.
-So, for example, if you define that user's manager is a reviewer for user's assignments, and if a particular user has no managers, the default reviewers will be used to review assignments of that user.
-
-
-| additional reviewers
-| These reviewers will be used in addition to any reviewers selected by the above mentioned options.
-So, for example, you can specify that the company security manager will be used as a reviewer for each certification case in the given stage.
-
-
-|===
-
-In the future, there will be possible also to use arbitrary expression to provide the reviewers.
-
-Also, you can provide a name and a description for your reviewer-selecting configuration.
-(Usually you probably won't need to, however.)
-
-
-== Decision aggregation strategy if more reviewers are present
-
-It is possible that the above options would lead to more than one reviewer for a certification case in particular campaign stage.
-The question is then how to combine responses of these reviewers into stage-level outcome for that certification case? For example, is it sufficient if one of the reviewers accepts the case? What if one reviewer accepts and some of the other rejects? And so on.
-MidPoint provides a couple of predefined strategies, with the possibility of creating a custom one (in the future).
-
-
-== Outcome if no reviewers are assigned
-
-The other extreme is possible as well: there could be situations that no reviewers for a certification case in particular campaign stage are found.
-For example, if user's manager is to be selected as a reviewer, and particular user has no managers defined.
-Although the default behavior is to treat such situation as "no response" by default, you can configure any response (accept, revoke, reduce, etc.) for such situations.
-
-Please note that this setting does *not* apply in situations when there are reviewers assigned, but they provide no response.
-
-
-== Stop review on
-
-In most situations, if a case is marked as Revoke or Reduce in stage N, it does not proceed to next stage (N+1).
-However, this behavior can be configured: you can list stage outcomes that would prevent (or, in contrary, cause) the case to advance to the next stage.
-However, for most situations it suffices to use default values.
-
-More information about determining stage-level outcome based on responses of individual reviewers can be found xref:/midpoint/reference/roles-policies/policies/certification/determining-case-outcome/[in this document].
