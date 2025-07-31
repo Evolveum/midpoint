@@ -682,8 +682,13 @@ public class SmartIntegrationServiceImpl implements SmartIntegrationService {
             var resource = modelService.getObject(ResourceType.class, resourceOid, null, task, result);
             var resourceSchema = Resource.of(resource).getCompleteSchemaRequired();
             var nativeSchema = resourceSchema.getNativeSchema();
-            // ...
-            return new AssociationsSuggestionType(); // TODO replace with real implementation
+
+            LOGGER.trace("Suggesting associations for resourceOid {}, subjectTypeIdentifications {}, objectTypeIdentifications {}",
+                    resourceOid, subjectTypeIdentifications, objectTypeIdentifications);
+
+
+            return new SmartAssociationImpl().suggestSmartAssociation(resource.asObjectable(),
+                    subjectTypeIdentifications, objectTypeIdentifications,false);
         } catch (Throwable t) {
             result.recordException(t);
             throw t;
