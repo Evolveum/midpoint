@@ -161,7 +161,7 @@ If the policy is violated, the assignment is blocked, and a message is shown.
 </assignment>
 ----
 
-Example of global policy rule to exclude roles assigned to users based on forwardEmailAddress attribute null check.
+The following example shows a global policy rule that excludes roles assigned to users based on the `forwardEmailAddress` attribute null check.
 
 [source, xml]
 ----
