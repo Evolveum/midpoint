@@ -50,11 +50,9 @@ public abstract class CasesTablePanel extends MainObjectListPanel<CaseType> {
     @Override
     protected ISelectableDataProvider<SelectableBean<CaseType>> createProvider() {
         SelectableBeanObjectDataProvider<CaseType> provider =
-                createSelectableBeanObjectDataProvider(() -> getCustomizeContentQuery(),
+                createSelectableBeanObjectDataProvider(this::getCustomizeContentQuery,
                 (sortParam) -> WebComponentUtil.createMetadataOrdering(sortParam, "createTimestamp", getPrismContext()),
                         createOperationOptions());
-        provider.setSort(MetadataType.F_CREATE_TIMESTAMP.getLocalPart(), SortOrder.DESCENDING);
-
         return provider;
     }
 
@@ -93,6 +91,14 @@ public abstract class CasesTablePanel extends MainObjectListPanel<CaseType> {
 
     protected ObjectFilter getCasesFilter(){
         return null;
+    }
+
+    protected String getDefaultSortParam() {
+        return MetadataType.F_CREATE_TIMESTAMP.getLocalPart();
+    }
+
+    protected SortOrder getDefaultSortOrder() {
+        return SortOrder.DESCENDING;
     }
 
 }
