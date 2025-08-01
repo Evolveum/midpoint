@@ -7,19 +7,29 @@
 :page-wiki-metadata-modify-date: 2017-06-16T12:23:59.558+02:00
 :page-upkeep-status: yellow
 :page-moved-from: /midpoint/reference/roles-policies/certification/ad-hoc-certifications/
+:page-description: This instructs on how to create ad-hoc certifications in midPoint.
+:page-keywords: ad-hoc certification, policy rule, certification campaign
+:page-toc: top
 
-Sometimes it is necessary to implement something like this: "When a user appears in an organization, the new manager should certify all his assignments." Since midPoint 3.6 this kind of requirements can be met.
 
-Two mechanisms are to be employed:
+This page shows you how to create ad-hoc certification campaigns.
+This can be useful in more specific cases, such as when a new user is added to an organization and its manager should review and certify all of the user's assignments (roles, etc.).
 
-. policy rules,
+== Define Ad-hoc Certification Campaigns
 
-. certification campaign definitions.
+To define an ad-hoc certification campaign:
 
-Policy rules can be configured to trigger creation of a new certification campaign (called _ad-hoc certification campaign_, to distinguish it from standard multi-object scheduled campaigns).
+. Define a <<policy_rules,policy rule>> that triggers the creation of a new ad-hoc certification campaign.
+. Define the actual <<certification_campaign,ad-hoc certification campaign>>.
+
+[[policy_rules]]
+=== Policy Rule
+
+Policy rules can be configured to trigger a creation of a new _ad-hoc certification campaign_ (not to be confused with the standard multi-object scheduled campaigns).
+
 Such a rule looks like this:
 
-.Policy rule action triggering ad-hoc certification
+.Policy rule action triggering an ad-hoc certification
 [source,xml]
 ----
 <policyRule>
@@ -38,14 +48,17 @@ Such a rule looks like this:
 
 There are two interesting items here:
 
-. A policy constraint (lines 3-5) drives when the rule is triggered.
+. A policy constraint (lines 3-5) applies when the rule is triggered.
 In this case, it is when a new assignment to the holder of this policy rule is created.
-So, it is expected that this rule should be assigned to organization(s) for which we want to have ad-hoc certifications be started for all newcomers.
+So, it is expected that this rule should be assigned to organizations for which we want to have ad-hoc certifications started for all newcomers.
 
-. Certification policy action (lines 8-10) that tells about the certification campaign that should be started.
-More specifically, "definitionRef" points to the certification definition that prescribes how the certification should look like; e.g. how many stages should it have, how to select reviewers for these stages, and so on.
+. Certification policy action (lines 8-10) that defines the certification campaign that should be started.
+More specifically, `definitionRef` points to the certification definition that specifies what the certification should look like; e.g. how many stages it should have, how to select reviewers for those stages, and so on.
 
-An example of such definition:
+[[certification_campaign]]
+=== Certification Campaign
+
+See an example of an ad-hoc certification campaign below:
 
 .Ad-hoc certification campaign definition
 [source,xml]
@@ -67,23 +80,22 @@ An example of such definition:
 </accessCertificationDefinition>
 ----
 
-Note that this definition has no `scopeDefinition`. It is not necessary, because the scope is defined as a single-object one, containing the object to which particular certification policy action was triggered.
-But it can be present, if needed.
-In such case, `objectType` and `searchFilter` parts of it are replaced by the type of current object, and single-object OID-based filter, respectively.
+Note that this definition has no `scopeDefinition`.
+In this case, it is not necessary because the scope is specified as a single-object definition, containing the object on which a particular certification policy action was triggered.
+As `scopeDefinition` is not defined, its `objectType` and `searchFilter` are replaced by the type of the current object, and a single-object OID-based filter, respectively.
 
-There can be more certification policy actions, and each can contain more certification definition references to be started.
-The current implementation is such that each of these campaigns is started independently.
-In the future we may implement some composition mechanism, similar to the one used for approval policy actions.
+There can be more certification policy actions, and each can contain multiple certification definition references to be started.
+Campaigns in midPoint are currently started independently.
+In the future, we may implement a composition mechanism, similar to the one used for approval policy actions.
 
-Note: The definition reference must be OID-based.
-Filter-based ones (evaluated at run time) are not supported now.
+NOTE: The definition reference must be OID-based.
+Filter-based definitions (evaluated at run time) are not supported.
 
 
-== Starting certification after property change
+== Start certification after property change
 
-This feature is not limited to situations where an assignment is created.
-A policy rule can be triggered also when one or more object items are modified.
-The following two examples describe starting ad-hoc campaign when (a) both employeeType and organization are changed, (b) either employeeType or organization (or both) are changed.
+You can use ad-hoc certification campaigns in a multitude of scenarios.
+In this section, you can see examples of starting an ad-hoc certification campaign when object items are modified:
 
 .Ad-hoc certification when both employeeType and organization are changed
 [source,xml]

@@ -36,4 +36,3 @@ Also see how the following concepts are implemented:
 * xref:/midpoint/reference/roles-policies/policies/segregation-of-duties/[]
 
 
-include::../_reference-disclaimer.adoc[]
