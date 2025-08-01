@@ -12,6 +12,8 @@ import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.security.api.*;
+
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
@@ -42,10 +44,6 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.FocusTypeUtil;
 import com.evolveum.midpoint.schema.util.LocalizationUtil;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
-import com.evolveum.midpoint.security.api.Authorization;
-import com.evolveum.midpoint.security.api.AuthorizationTransformer;
-import com.evolveum.midpoint.security.api.MidPointPrincipal;
-import com.evolveum.midpoint.security.api.ProfileCompilerOptions;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.*;
@@ -174,10 +172,13 @@ public class GuiProfileCompiler {
         MidpointAuthentication auth = AuthUtil.getMidpointAuthenticationNotRequired();
         AuthenticationChannel channel = auth != null ? auth.getAuthenticationChannel() : null;
 
+        List<Authorization> collectedAuthorizationList = new ArrayList<>();
+        Map<PrismObject<? extends AssignmentHolderType>, OtherPrivilegesLimitations.Limitation> delegationTargetMap = new HashMap<>();
+
         if (!options.isRunAsRunner() && channel != null) {
             @Nullable Authorization additionalAuth = channel.getAdditionalAuthority();
             if (additionalAuth != null) {
-                addAuthorizationToPrincipal(principal, additionalAuth, authorizationTransformer);
+                collectedAuthorizationList.add(additionalAuth);
             }
         }
 
@@ -189,20 +190,31 @@ public class GuiProfileCompiler {
                 }
 
                 if (options.isCollectAuthorization()) {
-                    addAuthorizations(principal, channel, assignment.getAuthorizations(), authorizationTransformer, options);
+                    collectedAuthorizationList.addAll(collectAuthorizations(channel, assignment.getAuthorizations(), options));
                 }
                 if (options.isCompileGuiAdminConfiguration()) {
                     adminGuiConfigurations.addAll(assignment.getAdminGuiConfigurations());
                 }
             }
+
+
             for (EvaluatedAssignmentTarget target : assignment.getRoles().getNonNegativeValues()) { // TODO see MID-6403
                 if (target.isValid() && target.getAssignmentPath().containsDelegation()) {
-                    principal.addDelegationTarget(
-                            target.getTarget(),
+                    delegationTargetMap.put(target.getTarget(),
                             target.getAssignmentPath().getOtherPrivilegesLimitation());
                 }
             }
         }
+        //giving here the code to clear the authorizations and other privileges limitations due to the ticket #10781
+        //not fixing the core of the problem but trying to improve the situation by decreasing the time period when
+        //authorizations are already cleared but not filled in yet
+        principal.clearAuthorizations();
+        collectedAuthorizationList
+                .forEach(authToAdd -> addAuthorizationToPrincipal(principal, authToAdd, authorizationTransformer));
+
+        principal.clearOtherPrivilegesLimitations();
+        delegationTargetMap.forEach(principal::addDelegationTarget);
+        //end of code restructuring due to #10781
 
         if (!options.isCompileGuiAdminConfiguration()) {
             return;
@@ -216,11 +228,11 @@ public class GuiProfileCompiler {
         }
     }
 
-    private void addAuthorizations(
-            @NotNull MidPointPrincipal principal,
+    private List<Authorization> collectAuthorizations(
             @Nullable AuthenticationChannel channel,
             @NotNull Collection<Authorization> sourceCollection,
-            @Nullable AuthorizationTransformer authorizationTransformer, ProfileCompilerOptions options) {
+            ProfileCompilerOptions options) {
+        List<Authorization> collectedAssignments = new ArrayList<>();
         for (Authorization autz : sourceCollection) {
             Authorization resolvedAutz = autz;
 
@@ -230,8 +242,9 @@ public class GuiProfileCompiler {
                     continue;
                 }
             }
-            addAuthorizationToPrincipal(principal, resolvedAutz, authorizationTransformer);
+            collectedAssignments.add(autz);
         }
+        return collectedAssignments;
     }
 
     private void addAuthorizationToPrincipal(
