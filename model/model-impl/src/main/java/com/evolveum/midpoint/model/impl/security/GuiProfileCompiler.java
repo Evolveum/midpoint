@@ -181,6 +181,8 @@ public class GuiProfileCompiler {
             }
         }
 
+        principal.clearAuthorizations();
+        principal.clearOtherPrivilegesLimitations();
         for (EvaluatedAssignment assignment : evaluatedAssignments) {
             if (assignment.isValid()) {
                 if (options.isCompileGuiAdminConfiguration()) {
