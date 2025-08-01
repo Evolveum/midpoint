@@ -1,3 +1,4 @@
 This is a part of the xref:/midpoint/reference/[MidPoint Configuration Reference] which focuses on providing detailed information rather than seamless readability.
+New midPoint users may find this information harder to follow.
 
 If you are new to midPoint, we recommend starting with the xref:/book/[MidPoint Book] or https://www.youtube.com/channel/UCSDs8qBlv7MgRKRLu1rU_FQ[video tutorials on the Evolveum YouTube channel].
