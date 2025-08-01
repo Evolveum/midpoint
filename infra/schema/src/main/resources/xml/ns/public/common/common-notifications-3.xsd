@@ -440,9 +440,68 @@
                 <xsd:annotation>
                     <xsd:documentation>
                         How to authenticate to the mail server.
+
+                        DEPRECATED: use new BasicAuthenticationType instead.
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:displayName>MailServerConfigurationType.username</a:displayName>
+                        <a:deprecated>true</a:deprecated>
+                        <a:deprecatedSince>4.10</a:deprecatedSince>
+                        <a:plannedRemoval>5.0</a:plannedRemoval><!-- TODO: check version or remove -->
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="password" type="t:ProtectedStringType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        How to authenticate to the mail server.
+
+                        DEPRECATED: use new BasicAuthenticationType instead.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>MailServerConfigurationType.password</a:displayName>
+                        <a:deprecated>true</a:deprecated>
+                        <a:deprecatedSince>4.10</a:deprecatedSince>
+                        <a:plannedRemoval>5.0</a:plannedRemoval><!-- TODO: check version or remove -->
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="transportSecurity" type="tns:MailTransportSecurityType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        How to ensure transport-level security when sending the message.
+
+                        Defaults to none for basic auth, and tls for oauth2.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>MailServerConfigurationType.transportSecurity</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:choice>
+                <xsd:element name="basicAuthentication" type="tns:BasicAuthenticationType"/>
+                <xsd:element name="oauth2Authentication" type="tns:OAuth2CredentialsType"/>
+            </xsd:choice>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="BasicAuthenticationType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Configuration of a username/password based authentication.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:displayName>BasicAuthenticationType.details</a:displayName>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="username" type="xsd:string" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        How to authenticate to the mail server.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>BasicAuthenticationType.username</a:displayName>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -452,17 +511,72 @@
                         How to authenticate to the mail server.
                     </xsd:documentation>
                     <xsd:appinfo>
-                        <a:displayName>MailServerConfigurationType.password</a:displayName>
+                        <a:displayName>BasicAuthenticationType.password</a:displayName>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="transportSecurity" type="tns:MailTransportSecurityType" minOccurs="0">
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="OAuth2CredentialsType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Configuration of OAuth 2.0 authentication.
+
+                EXPERIMENTAL, tested for O365.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:displayName>OAuth2CredentialsType.details</a:displayName>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="username" type="xsd:string">
                 <xsd:annotation>
                     <xsd:documentation>
-                        How to ensure transport-level security when sending the message.
+                        User on the authentication server.
                     </xsd:documentation>
                     <xsd:appinfo>
-                        <a:displayName>MailServerConfigurationType.transportSecurity</a:displayName>
+                        <a:displayName>OAuth2CredentialsType.username</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="clientId" type="xsd:string">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Client ID from the authentication server.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>OAuth2CredentialsType.clientId</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="clientSecret" type="t:ProtectedStringType">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Client secret from the authentication server.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>OAuth2CredentialsType.clientSecret</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="tokenEndpoint" type="xsd:anyURI">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        URL where midpoint can obtain access tokens.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>OAuth2CredentialsType.tokenEndpoint</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="scope" type="xsd:string">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Scope to be requested, for example "https://outlook.office365.com/.default" for o365.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>OAuth2CredentialsType.scope</a:displayName>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -2334,7 +2448,7 @@
                     <xsd:element name="server" type="tns:MailServerConfigurationType" minOccurs="0" maxOccurs="unbounded">
                         <xsd:annotation>
                             <xsd:documentation>
-                                Configuration of a particular mail server host. If there are more of them, they are tried
+                                Configuration of a particular smtp server host. If there are more of them, they are tried
                                 one after another. If there is none, mail messages are not sent.
                             </xsd:documentation>
                             <xsd:appinfo>

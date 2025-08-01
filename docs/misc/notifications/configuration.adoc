@@ -26,7 +26,9 @@ containers inside xref:/midpoint/reference/concepts/system-configuration-object/
 Currently, there are a couple of transports available: *mail, sms*, *customTransport* and *file*.
 
 They have to be configured to work properly.
-For the time being, here we show a sample configuration, hopefully self-explanatory enough:
+For the time being, here we show a few sample configurations, hopefully self-explanatory enough:
+
+=== "Mail" transport
 
 [source,xml]
 ----
@@ -35,28 +37,45 @@ For the time being, here we show a sample configuration, hopefully self-explanat
         <name>main</name>
         <!-- There can be more servers if necessary; they are tried in the specified order. -->
         <server>
-            <host>smtp.gmail.com</host>
+            <host>smtp.outlook.com</host>
             <!--
             Specify port: 25, 587 (e.g. MS Exchange and TLS) or other based on your mail server.
             You can skip the port definition altogether to use default (25).
             -->
             <port>587</port>
-            <username>abc@gmail.com</username>
-            <password>
-                <clearValue>abcdef</clearValue>
-            </password>
-            <!-- Other transportSecurity options: none, starttlsEnabled, starttlsRequired -->
+            <!--
+            Specify transport security: none, starttlsEnabled, starttlsRequired
+            If undeclared, defaults to (none) for basic auth and (starttlsRequired) for oauth2.
+            -->
             <transportSecurity>starttlsRequired</transportSecurity>
+            <oauth2Authentication>
+                <username>abc@myorg.onmicrosoft.com</username>
+                <clientId>client-uuid</clientId>
+                <clientSecret>
+                    <clearValue>abcdef</clearValue>
+                </clientSecret>
+                <tokenEndpoint>https://login.microsoftonline.com/tenant-uuid/oauth2/v2.0/token</tokenEndpoint>
+                <scope>https://outlook.office365.com/.default</scope>
+            </oauth2Authentication>
         </server>
 
-        <server> <!-- Second server -->
-           . . .
+        <server> <!-- Second server using basic auth -->
+            <host>smtp.gmail.com</host>
+            <port>587</port>
+            <transportSecurity>starttlsRequired</transportSecurity>
+            <basicAuthentication>
+                <username>abc@gmail.com</username>
+                <password>
+                    <clearValue>abcdef</clearValue>
+                </password>
+            </basicAuthentication>
         </server>
         <server> <!-- Third server -->
            . . .
         </server>
 
-        <defaultFrom>abc@gmail.com</defaultFrom>
+        <!-- the mailbox used to send emails from -->
+        <defaultFrom>abc@myorg.com</defaultFrom>
         <!-- standard javax.mail debugging; it is going to stdout (midpoint.out)! -->
         <debug>true</debug>
         <!--
@@ -71,6 +90,8 @@ For the time being, here we show a sample configuration, hopefully self-explanat
 *Ensure your SMTP server will accept multiple connection (message rate limit)* as midPoint notifications are being sent as the objects are created, e.g. one user can have 15 accounts or one organization 40 entitlements created at the same time.
 This is especially important for Microsoft Exchange, where the default limit seems to be very low (5 connections per minute).
 
+Please note that although the OAuth 2 configuration should work with all smtp providers that have support for client credentials flow, it has been tested only on Microsoft.
+
 Also please note that SSL-related settings for mail messaging are currently experimental (e.g. there is no support for setting certificate validation-related properties; default behavior of `javax.mail` implementation is used).
 You may also need to store the mail server self-signed SSL certificate in your Java "cacerts" keystore.
 
@@ -81,7 +102,7 @@ All root and intermediate CA certificates in chain for mailserver certificate mu
 
 [TIP]
 ====
-For Microsoft Exchange, we've successfully tested the configuration with port=587, transportSecurity=starttlsRequired and a valid username/password combination.
+For Microsoft Exchange, we've successfully tested the configuration with port=587 and OAuth2 as described in link:https://learn.microsoft.com/en-us/exchange/client-developer/legacy-protocols/how-to-authenticate-an-imap-pop-smtp-application-by-using-oauth[Microsoft's tutorial].
 ====
 
 [NOTE]
