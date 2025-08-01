@@ -22,4 +22,3 @@ For details, see the following articles:
 {% children %}
 ++++
 
-include::../_reference-disclaimer.adoc[]

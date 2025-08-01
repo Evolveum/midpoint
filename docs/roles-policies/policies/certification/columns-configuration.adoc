@@ -2,16 +2,24 @@
 :page-nav-title: Predefined Columns Configuration
 :page-upkeep-status: yellow
 :page-moved-from: /midpoint/reference/roles-policies/certification/columns-configuration/
+:page-description: This page shows how you can configure columns for your certification items collection view.
+:page-keywords: columns configuration, predefined columns, accessCertification, certification
+:page-toc: top
+
+This page shows how you can configure columns for your certification items collection view.
+It shows you how to configure column visibility, labels, and ordering by using column identifiers and custom path/expression settings.
 
 == General Information
 
-MidPoint already provides a configuration for the columns within object collection view configuration.
-This configuration is based on the _path_ element value or the _export -> expression_ element value.
-A sample of such columns configuration can be found by the xref:/midpoint/reference/admin-gui/admin-gui-config/admin-gui-config-examples/#custom-columns-configuration[link].
-Starting with midPoint-4.9, the predefined columns configuration is introduced.
-Predefined columns are default (buf not only default) view columns which are already implemented in the code.
-To apply a configuration to a such predefined column, the identifier (column name in this case) is used.
-This document is dedicated to the predefined columns configuration.
+MidPoint enables you to configure columns within the object collection view configuration.
+This configuration is based on the _path_ element, or the _export -> expression_ element value.
+See xref:/midpoint/reference/admin-gui/admin-gui-config/admin-gui-config-examples/#custom-columns-configuration[a sample] of such a configuration.
+
+Starting with midPoint-4.9, a predefined columns configuration is introduced.
+
+Predefined columns are the default view columns which are already implemented in the code.
+To apply a configuration to a predefined column, the identifier (column name in this case) is used.
+This page shows you how to customize the predefined columns configuration.
 
 WARNING: This feature is still under development and the configuration may change in the future.
 For now, predefined columns configuration can be defined only for the certification items collection view.
@@ -19,10 +27,11 @@ For now, predefined columns configuration can be defined only for the certificat
 == Predefined Columns Configuration
 
 Predefined columns configuration is done within the _Object Collection View_ configuration.
-A column should contain the identifier (_name_ element within column configuration).
-The identifier should match one of the list of the available predefined columns which is provided further in this document.
 
-Let's have a look at the example of the certification items collection view which can be located within system configuration object.
+A column should contain an identifier (a _name_ element within the column configuration).
+The identifier should match one of the <<available_predefined_columns,available predefined columns>>.
+
+See an example of the certification items collection view which can be located within the system configuration object:
 
 .Certification items default collection view configuration with predefined columns
 [source,xml]
@@ -49,10 +58,13 @@ Let's have a look at the example of the certification items collection view whic
     </accessCertification>
 ----
 
-In the configuration above _Object_ column's title is set to a custom value ("Cert. item object"), target object _Display name_ column is hidden and editable _Comment_ column is added.
-Columns configuration can be merged by theirs identifiers (_name_ element) within different collection view configurations (e.g. default collection view configuration in system configuration object and view configuration in the certification definition object).
+In the configuration above, the _Object_ column title is set to a custom value ("Cert. item object"), the target object _Display name_ column is hidden and an editable _Comment_ column is added.
 
-Identifier based columns configuration can be combined with the path/expression based columns configuration.
+Individual column configuration options can be defined in different places.
+They will still be recognized as parts of the same column definition if you use the same identifier, i.e. the `name` element.
+For example, you can define some column aspects in the default collection view configuration in the system configuration object, and others in the view configuration in the certification definition object.
+
+The identifier based columns configuration can be combined with a path/expression based columns configuration.
 For example:
 
 .Combined columns configuration
@@ -84,9 +96,10 @@ For example:
     </accessCertification>
 ----
 
-=== Available Predefined Columns
+[[available_predefined_columns]]
+== Available Predefined Columns
 
-As it was mentioned above, predefined columns can be configured only for the certification items collection view for now.
+As mentioned above, predefined columns can be configured only for the certification items collection view.
 Therefore, the list of the available predefined columns is limited to the certification items columns.
 
 [%autowidth]
@@ -94,49 +107,50 @@ Therefore, the list of the available predefined columns is limited to the certif
 | Column | Identifier | Default | Description
 
 | Object
-| certItemObject
+| `certItemObject`
 | Yes
-| Linked column for the certification item object
+| Linked column for the certification item object.
 
 | Display name (for object)
-| certItemObjectDisplayName
+| `certItemObjectDisplayName`
 | Yes
-| Display name of the certification item object
+| Display name of the certification item object.
 
 | Target
-| certItemTarget
+| `certItemTarget`
 | Yes
-| Linked column for the certification item target
+| Linked column for the certification item target.
 
 | Display name (for target)
-| certItemTargetDisplayName
+| `certItemTargetDisplayName`
 | Yes
-| Display name of the certification item target
+| Display name of the certification item target.
 
 | Reviewers
-| certItemReviewers
+| `certItemReviewers`
 | Yes
-| Linked reviewers column
+| Linked reviewers column.
 
 | Response
-| certItemResponse
+| `certItemResponse`
 | Yes
-| Displays the value of the certification item response if any exists
+| Displays the value of the certification item response if any exists.
 
 | Comment icon
-| certItemCommentIcon
+| `certItemCommentIcon`
 | Yes
-| Displays icon in case certification item has a comment. The icon's tooltip shows the comment itself.
+| Displays icon in the case certification item has a comment.
+The comment is displayed in the icon tooltip.
 
 | Editable comment
-| certItemEditableComment
+| `certItemEditableComment`
 | No
-| Contains editable input field for commenting the certification item.
+| Contains an editable input field for commenting the certification item.
 
 | View details link column
-| certItemDetailsLink
+| `certItemDetailsLink`
 | No
-| Column with a "View details" link to display the popup with certification item object and target information, responses information and decision buttons.
+| Column with a "View details" link to display the popup with the certification item object and target information, response information and decision buttons.
 
 |===
 
