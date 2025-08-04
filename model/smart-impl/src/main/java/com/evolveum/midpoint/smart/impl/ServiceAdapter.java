@@ -18,6 +18,7 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.QNameUtil;
 
+import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 import org.apache.commons.lang3.StringUtils;
@@ -197,20 +198,27 @@ class ServiceAdapter {
             ItemPath focusPropPath,
             PrismPropertyDefinition<?> propertyDef,
             Collection<ValuesPair> valuesPairs) throws SchemaException {
-        var fixedAttrTypeName = getTypeName(attrDef);
-        var fixedFocusPropTypeName = getTypeName(propertyDef);
+        var applicationAttrDefBean = new SiAttributeDefinitionType()
+                .name(shadowAttrName.toBean())
+                .type(getTypeName(attrDef))
+                .minOccurs(attrDef.getMinOccurs())
+                .maxOccurs(attrDef.getMaxOccurs());
+        var midPointPropertyDefBean = new SiAttributeDefinitionType()
+                .name(focusPropPath.toBean())
+                .type(getTypeName(propertyDef))
+                .minOccurs(propertyDef.getMinOccurs())
+                .maxOccurs(propertyDef.getMaxOccurs());
         var siRequest = new SiSuggestMappingRequestType()
-                .applicationAttribute(shadowAttrName.toBean())
-                .applicationAttributeType(fixedAttrTypeName)
-                .applicationAttributeMultivalued(attrDef.isMultiValue())
-                .midPointAttribute(focusPropPath.toBean())
-                .midPointAttributeType(fixedFocusPropTypeName)
-                .midPointAttributeMultivalued(propertyDef.isMultiValue())
+                .applicationAttribute(applicationAttrDefBean)
+                .midPointAttribute(midPointPropertyDefBean)
                 .inbound(true);
-        valuesPairs.forEach(pair -> siRequest.getExample().add(pair.toSiExample()));
+        valuesPairs.forEach(pair ->
+                siRequest.getExample().add(
+                        pair.toSiExample(
+                                applicationAttrDefBean.getName(), midPointPropertyDefBean.getName())));
         var siResponse = serviceClient.invoke(SUGGEST_MAPPING, siRequest, SiSuggestMappingResponseType.class);
         var transformationScript = siResponse.getTransformationScript();
-        ExpressionType expression = StringUtils.isNotBlank(transformationScript) ?
+        ExpressionType expression = StringUtils.isNotBlank(transformationScript) && !transformationScript.equals("input") ?
                 new ExpressionType()
                         .expressionEvaluator(
                                 new ObjectFactory().createScript(
@@ -280,10 +288,16 @@ class ServiceAdapter {
     }
 
     record ValuesPair(Collection<?> shadowValues, Collection<?> focusValues) {
-        private SiSuggestMappingExampleType toSiExample() {
-            var example = new SiSuggestMappingExampleType();
-            example.getApplicationValue().addAll(stringify(shadowValues));
-            example.getMidPointValue().addAll(stringify(focusValues));
+        private SiSuggestMappingExampleType toSiExample(
+                ItemPathType applicationAttrNameBean, ItemPathType midPointPropertyNameBean) {
+            return new SiSuggestMappingExampleType()
+                    .application(toSiAttributeExample(applicationAttrNameBean, shadowValues))
+                    .midPoint(toSiAttributeExample(midPointPropertyNameBean, focusValues));
+        }
+
+        private @NotNull SiAttributeExampleType toSiAttributeExample(ItemPathType pathBean, Collection<?> values) {
+            var example = new SiAttributeExampleType().name(pathBean);
+            example.getValue().addAll(stringify(values));
             return example;
         }
 

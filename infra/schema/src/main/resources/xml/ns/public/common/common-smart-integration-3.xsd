@@ -828,6 +828,21 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element name="minOccurs" type="xsd:int">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Minimal number of value occurrences. Usually 0 or 1. Zero means that the value is optional.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="maxOccurs" type="xsd:int">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Maximal number of value occurrences. Usually 1 or -1.
+                        Minus one means that the number of values is unlimited.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
         </xsd:sequence>
     </xsd:complexType>
 
@@ -1006,45 +1021,18 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
-            <xsd:element name="applicationAttribute" type="t:ItemPathType">
+            <xsd:element name="applicationAttribute" type="tns:SiAttributeDefinitionType">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Path of the item at the application side.
+                        Definition of the attribute at the application side.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="applicationAttributeType" type="xsd:QName">
+            <xsd:element name="midPointAttribute" type="tns:SiAttributeDefinitionType" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Type of the application attribute.
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="applicationAttributeMultivalued" type="xsd:boolean">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Is the application attribute multivalued?
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="midPointAttribute" type="t:ItemPathType">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Path of the item at the midPoint side.
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="midPointAttributeType" type="xsd:QName">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Type of the midPoint attribute.
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="midPointAttributeMultivalued" type="xsd:boolean">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Is the midPoint attribute multivalued?
+                        Definition of the attribute(s) at the midPoint side.
+                        There can be zero or multiple ones when dealing with outbound mappings.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
@@ -1075,22 +1063,51 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
-            <xsd:element name="applicationValue" type="xsd:string" minOccurs="0" maxOccurs="unbounded">
+            <xsd:element name="application" type="tns:SiAttributeExampleType">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Value(s) as they appears in the application (resource) object.
+                        Attribute name and values at the application's side.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="midPointValue" type="xsd:string" minOccurs="0" maxOccurs="unbounded">
+            <xsd:element name="midPoint" type="tns:SiAttributeExampleType" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Desired value(s) in the midPoint object.
+                        Attribute name and values at the midPoint side. For inbound mappings, there should be exactly one
+                        object (name + values) here. For outbound mappings, there could be zero, one, or more objects here.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
         </xsd:sequence>
     </xsd:complexType>
+    <xsd:complexType name="SiAttributeExampleType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Example of values (input or output) for a given attribute.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:since>4.11</a:since>
+                <!-- intentionally not a container -->
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="name" type="t:ItemPathType">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Attribute name (or, more precisely, path).
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="value" type="xsd:string" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        The value or values.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+
     <xsd:complexType name="SiSuggestMappingResponseType">
         <xsd:annotation>
             <xsd:documentation>
