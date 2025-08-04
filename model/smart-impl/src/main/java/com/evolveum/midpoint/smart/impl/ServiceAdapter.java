@@ -197,8 +197,8 @@ class ServiceAdapter {
             ItemPath focusPropPath,
             PrismPropertyDefinition<?> propertyDef,
             Collection<ValuesPair> valuesPairs) throws SchemaException {
-        var fixedAttrTypeName = fixTypeName(attrDef.getTypeName());
-        var fixedFocusPropTypeName = fixTypeName(propertyDef.getTypeName());
+        var fixedAttrTypeName = getTypeName(attrDef);
+        var fixedFocusPropTypeName = getTypeName(propertyDef);
         var siRequest = new SiSuggestMappingRequestType()
                 .applicationAttribute(shadowAttrName.toBean())
                 .applicationAttributeType(fixedAttrTypeName)
@@ -225,7 +225,13 @@ class ServiceAdapter {
                                 .expression(expression)));
     }
 
-    private QName fixTypeName(@NotNull QName typeName) {
+    private QName getTypeName(@NotNull PrismPropertyDefinition<?> propertyDefinition) {
+        if (propertyDefinition.isEnum()) {
+            // We don't want to bother Python microservice with enums; maybe later.
+            // It should work with the values as with simple strings.
+            return DOMUtil.XSD_STRING;
+        }
+        var typeName = propertyDefinition.getTypeName();
         if (QNameUtil.match(PolyStringType.COMPLEX_TYPE, typeName)) {
             return DOMUtil.XSD_STRING; // We don't want to bother Python microservice with polystrings.
         } else {

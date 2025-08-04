@@ -112,11 +112,17 @@ class TypeOperation extends Operation {
         for (var attributeMatch : match.getAttributeMatch()) {
             var shadowAttrName = attributeMatch.getApplicationAttribute().getItemPath().asSingleNameOrFail();
             var shadowAttrPath = ShadowType.F_ATTRIBUTES.append(shadowAttrName);
-            var shadowAttrDef = typeDefinition.findSimpleAttributeDefinitionRequired(shadowAttrName);
+            var shadowAttrDef = typeDefinition.findSimpleAttributeDefinition(shadowAttrName);
+            if (shadowAttrDef == null) {
+                LOGGER.warn("No shadow attribute definition found for {}. Skipping mapping suggestion.", shadowAttrName);
+                continue;
+            }
             var focusPropPath = attributeMatch.getMidPointAttribute().getItemPath();
-            var focusPropDef = MiscUtil.stateNonNull(
-                    focusTypeDefinition.findPropertyDefinition(focusPropPath),
-                    "No property '%s' in %s", focusPropPath, focusTypeDefinition);
+            var focusPropDef = focusTypeDefinition.findPropertyDefinition(focusPropPath);
+            if (focusPropDef == null) {
+                LOGGER.warn("No focus property definition found for {}. Skipping mapping suggestion.", focusPropPath);
+                continue;
+            }
             suggestion.getAttributeMappings().add(
                     serviceAdapter.suggestMapping(
                             shadowAttrName, shadowAttrDef, focusPropPath, focusPropDef,
