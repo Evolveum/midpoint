@@ -15,7 +15,7 @@ import com.evolveum.midpoint.util.MiscUtil;
 
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxEventBehavior;
-import org.apache.wicket.markup.html.form.Form;
+import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.model.IModel;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
@@ -38,7 +38,7 @@ public abstract class ItemPanelContext<T, IW extends ItemWrapper<?, ?>> implemen
     private IModel<? extends PrismValueWrapper<T>> valueWrapperModel;
 //    private ItemRealValueModel<T> realValueModel;
 
-    private Form<?> form;
+    private WebMarkupContainer parentContainer;
     private AjaxEventBehavior ajaxEventBehavior;
     private ItemMandatoryHandler mandatoryHandler;
     private ItemEditabilityHandler editabilityHandler;
@@ -166,17 +166,17 @@ public abstract class ItemPanelContext<T, IW extends ItemWrapper<?, ?>> implemen
     }
 
     /**
-     * @return the form
+     * @return the parentContainer
      */
-    public Form<?> getForm() {
-        return form;
+    public WebMarkupContainer getParentContainer() {
+        return parentContainer;
     }
 
     /**
-     * @param form the form to set
+     * @param parentContainer the parentContainer to set
      */
-    public void setForm(Form<?> form) {
-        this.form = form;
+    public void setParentContainer(WebMarkupContainer parentContainer) {
+        this.parentContainer = parentContainer;
     }
 
     public FormPanelType getFormType() {

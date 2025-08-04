@@ -26,6 +26,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType
 import com.querydsl.core.Tuple;
 import com.querydsl.core.types.Order;
 import com.querydsl.core.types.OrderSpecifier;
+import com.querydsl.sql.SQLServerTemplates;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.repo.sqale.SqaleRepoContext;
@@ -173,13 +174,20 @@ public class QOperationExecutionMapping<OR extends MObject>
                     //  and define what to load for referenced/owner object?
                     QObject<?> o = QObjectMapping.getObjectMapping().defaultAlias();
                     List<Tuple> result = jdbcSession.newQuery()
-                            .select(o.oid, o.fullObject)
+                            .select(o.oid, o.fullObject, entityPath.fullObject)
                             .from(o)
+                            .leftJoin(entityPath).on(entityPath.ownerOid.eq(o.oid))
                             .where(o.oid.in(ownerOids))
                             .fetch();
                     for (Tuple row : result) {
                         UUID oid = Objects.requireNonNull(row.get(o.oid));
-                        ObjectType owner = QObjectMapping.getObjectMapping().parseSchemaObject(row.get(o.fullObject), oid.toString(), ObjectType.class);
+                        ObjectType owner = QObjectMapping.getObjectMapping()
+                                .parseSchemaObject(row.get(o.fullObject), oid.toString(), ObjectType.class);
+                        if (owner.getOperationExecution() == null) {
+                            owner.beginOperationExecution();
+                        }
+                        owner.getOperationExecution()
+                                .add(parseSchemaObject(row.get(entityPath.fullObject), oid.toString()));
                         owners.put(oid, owner);
                     }
                 }

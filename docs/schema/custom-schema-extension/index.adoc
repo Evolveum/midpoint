@@ -25,6 +25,8 @@ and can be dynamically changed when the system is running.
 
 When MidPoint starts and after each SchemaType is saved, all schemas of all SchemaTypes are loaded.
 
+TIP: Besides using the XSD format, you can also configure schemas through the user-friendly xref:/midpoint/reference/schema/custom-schema-extension/changing-schema-extension-via-GUI/[midPoint GUI panels].
+
 == Example
 
 The following example shows a schema extension for user that adds two new attributes.

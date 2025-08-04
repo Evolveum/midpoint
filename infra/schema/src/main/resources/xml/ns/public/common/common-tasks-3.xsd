@@ -97,7 +97,7 @@
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
-                    <xsd:element name="taskRunHistory" type="tns:TaskRunHistoryType" minOccurs="0" maxOccurs="unbounded"/>
+                    <xsd:element name="taskRunRecord" type="tns:TaskRunRecordType" minOccurs="0" maxOccurs="unbounded"/>
                     <xsd:element name="ownerRef" type="tns:ObjectReferenceType" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>
@@ -662,7 +662,7 @@
     </xsd:complexType>
     <xsd:element name="task" type="tns:TaskType" substitutionGroup="c:object"/>
 
-    <xsd:complexType name="TaskRunHistoryType">
+    <xsd:complexType name="TaskRunRecordType">
         <xsd:annotation>
             <xsd:documentation>
                 Information about a single task run.

@@ -112,6 +112,9 @@ public class InternalsCachePanel extends BasePanel<Void>{
         CachesStateInformationType state = MidPointApplication.get().getCacheRegistry().getStateInformation();
         List<KeyValueTreeNode<String, SizeInformation>> trees = new ArrayList<>();
         for (SingleCacheStateInformationType entry : state.getEntry()) {
+            if (isEmptyCacheStateInformationEntry(entry)) {
+                continue;
+            }
             KeyValueTreeNode<String, SizeInformation> root = new KeyValueTreeNode<>(entry.getName(), new SizeInformation(entry));
             trees.add(root);
             addComponents(root, entry.getComponent());
@@ -184,5 +187,9 @@ public class InternalsCachePanel extends BasePanel<Void>{
             KeyValueTreeNode<String, SizeInformation> child = node.createChild(component.getName(), new SizeInformation(component));
             addComponents(child, component.getComponent());
         }
+    }
+
+    private boolean isEmptyCacheStateInformationEntry(SingleCacheStateInformationType entry) {
+        return entry == null || entry.getName() == null && entry.getSize() == null && entry.getSecondarySize() == null;
     }
 }

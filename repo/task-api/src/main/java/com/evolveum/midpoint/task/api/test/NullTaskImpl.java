@@ -787,7 +787,7 @@ public class NullTaskImpl implements Task {
     }
 
     @Override
-    public List<TaskRunHistoryType> getTaskRunHistory() {
+    public List<TaskRunRecordType> getTaskRunRecords() {
         return List.of();
     }
 }

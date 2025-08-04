@@ -1671,9 +1671,17 @@ public abstract class ContainerableListPanel<C extends Serializable, PO extends 
                 if (getObjectCollectionView().getPaging().getOrderBy() != null) {
                     orderPathString = getPrismContext().itemPathSerializer()
                             .serializeStandalone(paging.getOrderBy().getItemPath());
+                    if (StringUtils.isNotEmpty(orderPathString)) {
+                        //if there is some custom configuration in object collection, we need to apply it
+                        //noinspection unchecked
+                        ((SortableDataProvider<PO, String>) provider).setSort(new SortParam<>(orderPathString, ascending));
+                        return;
+                    }
                 }
             }
-            if (StringUtils.isEmpty(orderPathString) && columns != null) {
+
+            if (columns != null
+                    && (isCustomColumnsListConfigured() || ((SortableDataProvider<PO, String>) provider).getSort() == null)) {
                 for (IColumn<PO, String> column : columns) {
                     if (column instanceof AbstractExportableColumn) {
                         AbstractExportableColumn<PO, String> exportableColumn = (AbstractExportableColumn<PO, String>) column;

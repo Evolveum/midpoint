@@ -1,0 +1,57 @@
+<!--
+  ~ Copyright (C) 2010-2025 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<archetype xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+    oid="fefefefe-2223-4e2d-975a-bce0fc69b305">
+
+    <name>service archetype</name>
+
+    <assignment>
+        <identifier>holderType</identifier>
+        <assignmentRelation>
+            <holderType>ServiceType</holderType>
+        </assignmentRelation>
+    </assignment>
+
+    <inducement>
+        <focusMappings>
+            <mapping>
+                <name>description mapping</name>
+                <strength>strong</strength>
+                <expression>
+                    <script>
+                        <code>
+                            import com.evolveum.midpoint.prism.query.ObjectQuery
+                            import com.evolveum.midpoint.schema.constants.SchemaConstants
+                            import com.evolveum.midpoint.xml.ns._public.common.common_3.ServiceType
+                            import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType
+
+                            ObjectQuery query =
+                                    basic.prismContext.queryFor(UserType.class)
+                                            .item(UserType.F_ROLE_MEMBERSHIP_REF)
+                                            .ref(immediateRole.oid, ServiceType.COMPLEX_TYPE, SchemaConstants.ORG_OWNER)
+                                            .build()
+
+                            var list = midpoint.searchObjects(UserType.class, query)
+
+                            log.info(">>>>>>> " + list.size() + " users found")
+
+                            if (list.size() == 1) {
+                                return list.get(0).name.orig
+                            }
+
+                            return null
+                        </code>
+                    </script>
+                </expression>
+                <target>
+                    <path>description</path>
+                </target>
+            </mapping>
+        </focusMappings>
+    </inducement>
+</archetype>
