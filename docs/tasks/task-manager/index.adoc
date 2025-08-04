@@ -293,35 +293,22 @@ This is undesirable in most clustered environments where high availability is ex
 Although there are specific scenarios where halting the task on failure is intentional,
 you should avoid this setting unless you have a strong reason for it (e.g., a manual synchronization task you want to inspect after an interruption).
 
-== Handler URI and Task Category
+== Configure Task Using Activities
 
-Handler URI indirectly specifies which class (called handler, implementing the link:https://github.com/Evolveum/midpoint/blob/master/repo/task-api/src/main/java/com/evolveum/midpoint/task/api/TaskHandler.java[TaskHandler interface]) is responsible to handle the task.
-The handler executes reactions to task lifecycle events, such as executing the task, task heartbeat, etc.
+An activity describes the real work that a task is to carry out.
+Refer to xref:/midpoint/reference/tasks/activities/[] for introduction to the concept of activities as well as details on how to configure them.
+See xref:/midpoint/reference/tasks/activities/migration/[] on dealing with legacy task configuration that uses handler URIs.
 
-Handler URI can be also understood as a specification of task _subtype_.
-Refer to xref:/midpoint/reference/tasks/custom-task-java/[] for implementation details.
+=== Object Associated to Tasks
 
-The task handlers register themselves with an appropriate URI on midPoint initialization.
-The URI is used instead of a direct class name to provide additional robustness during system upgrades.
-
-A single-run task can have a list of handler URIs.
-After first handler finishes its execution, it is removed from the list of handlers and second handler starts.
-The process continues until the list of handlers is empty.
-At that moment, the task is automatically closed.
-
-A task category denotes a user-recognizable type of task.
-For example: LiveSynchronization, Reconciliation, ImportingAccounts, ImportFromFile, UserRecomputation, Workflow, Demo.
-
-== Object Associated to Tasks
-
-Tasks may be associated with particular objects.
+Tasks (or rather their activities) may be associated with particular objects.
 For example, an "import from resource" task is associated with the resource definition object from which it imports.
 Synchronization and reconciliation tasks may have similar resource object associations.
 This is an optional property.
 // TODO: How can association to a resource object be optional for an import task, for instance? @dakle 2025-07-23
-// Or is it meant that it is optional for SOME tasks only? (which ones, except the simples ones like, e.g., "change user name" via GUI?)
+// Or is it meant that it is optional for SOME tasks only? (which ones, except the simplest ones like, e.g., "change user name" via GUI?)
 
-The associated object could be also specified using the usual extension mechanism.
+The associated object could be also specified using the extension mechanism.
 That would not be optimal, though, because it would be difficult to search for all the tasks that work on a particular object, be it a resource or anything else.
 
 == Task Owner
