@@ -12,6 +12,14 @@ import java.util.*;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.api.component.data.provider.ISelectableDataProvider;
+import com.evolveum.midpoint.gui.impl.component.ContainerableListPanel;
+import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
+
+import com.evolveum.midpoint.prism.PrismObjectValue;
+
+import com.evolveum.midpoint.web.component.data.BoxedTablePanel;
+
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -21,6 +29,7 @@ import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
+import org.apache.wicket.extensions.markup.html.repeater.data.sort.ISortState;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.ISortableDataProvider;
@@ -124,8 +133,6 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> implements 
 
     private IModel<RoleCatalogQuery> queryModel;
 
-    private List<GuiObjectColumnType> columnsModel;
-
     public RoleCatalogPanel(IModel<RequestAccess> model, PageBase page) {
         super(model);
 
@@ -180,25 +187,29 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> implements 
         };
     }
 
-//    private void loadColumnsModel() {
-//        RoleCatalogQueryItem item = menuModel.getObject().getActiveMenu().getValue();
-//        ObjectReferenceType collectionRef = item.collection().getCollectionRef();
-//        if (collectionRef != null) {
-//            PrismObject<ObjectCollectionType> objectCollection = WebModelServiceUtils.loadObject(collectionRef, page);
-//            if (objectCollection != null) {
-//                PrismObjectValue<?> value = objectCollection.getValue();
-//                if (value != null) {
-//                    ObjectCollectionType collection = (ObjectCollectionType) value.getValue();
-//                    if (collection != null) {
-//                        GuiObjectListViewType view = collection.getDefaultView();
-//                        if (view != null) {
-//                            columnsModel = view.getColumn();
-//                        }
-//                    }
-//                }
-//            }
-//        }
-//    }
+    private GuiObjectListViewType getCollectionRefView() {
+        RoleCatalogQueryItem item = menuModel.getObject().getActiveMenu().getValue();
+        ObjectReferenceType collectionRef = item.collection().getCollectionRef();
+        if (collectionRef != null) {
+            PrismObject<ObjectCollectionType> objectCollection = WebModelServiceUtils.loadObject(collectionRef, page);
+            if (objectCollection != null) {
+                PrismObjectValue<?> value = objectCollection.getValue();
+                if (value != null) {
+                    ObjectCollectionType collection = (ObjectCollectionType) value.getValue();
+                    if (collection != null) {
+                       return collection.getDefaultView();
+                    }
+                }
+            }
+        }
+        return null;
+    }
+
+    private boolean isPreferCollectionView() {
+        RoleCatalogQueryItem item = menuModel.getObject().getActiveMenu().getValue();
+        Boolean prefer = item.collection().getPreferCollectionView();
+        return Boolean.TRUE.equals(prefer);
+    }
 
     private boolean isRequestingForMyself() {
         String principalOid = SecurityUtil.getPrincipalOidIfAuthenticated();
@@ -473,10 +484,129 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> implements 
 
         TileTablePanel<CatalogTile<SelectableBean<ObjectType>>, SelectableBean<ObjectType>> tilesTable =
                 new TileTablePanel<>(ID_TILES, createViewToggleModel(), UserProfileStorage.TableId.PAGE_REQUEST_ACCESS_ROLE_CATALOG) {
+                    @Override
+                    protected WebMarkupContainer createTablePanel(String idTable, ISortableDataProvider<SelectableBean<ObjectType>, String> provider, UserProfileStorage.TableId tableId) {
+                        return new ContainerableListPanel(idTable, RoleType.class) {
+
+                            @Override
+                            protected IColumn<SelectableBean<ObjectReferenceType>, String> createNameColumn(IModel displayModel, GuiObjectColumnType customColumn, ExpressionType expression) {
+                                if (getCollectionRefView() != null || RoleCatalogPanel.this.getRoleCatalogConfiguration().getViewConfiguration() != null) {
+                                    return createCustomExportableColumn(displayModel, customColumn, expression);
+                                }
+                                return null;
+                            }
+
+                            @Override
+                            protected UserProfileStorage.TableId getTableId() {
+                                return tableId;
+                            }
+
+                            @Override
+                            protected Component createHeader(String headerId) {
+                                return createHeaderFragment(headerId);
+                            }
+
+                            @Override
+                            protected IColumn<SelectableBean<ObjectType>, String> createCheckboxColumn() {
+                                return new CheckBoxHeaderColumn<>() {
+                                    @Serial private static final long serialVersionUID = 1L;
+
+                                    @Override
+                                    protected IModel<Boolean> getEnabled(IModel<SelectableBean<ObjectType>> model) {
+                                        if (model == null || model.getObject() == null || model.getObject().getValue() == null) {
+                                            return Model.of(true);
+                                        }
+                                        RequestAccess ra = RoleCatalogPanel.this.getModelObject();
+                                        boolean isAssignedToAll = ra.isAssignedToAll(model.getObject().getValue().getOid());
+                                        return Model.of(!isAssignedToAll);
+                                    }
+                                };
+                            }
+
+                            @Override
+                            protected IColumn<SelectableBean<ObjectType>, String> createIconColumn() {
+                                return new RoundedIconColumn<>(null) {
+
+                                    @Override
+                                    protected IModel<IResource> createPreferredImage(IModel<SelectableBean<ObjectType>> model) {
+                                        return RoleCatalogPanel.this.createImage(() -> model.getObject().getValue());
+                                    }
+
+                                    @Override
+                                    protected DisplayType createDisplayType(IModel<SelectableBean<ObjectType>> model) {
+                                        OperationResult result = new OperationResult("getIcon");
+                                        return GuiDisplayTypeUtil.getDisplayTypeForObject(model.getObject().getValue(), result, getPageBase());
+                                    }
+
+                                    @Override
+                                    protected String getAlternativeTextForImage(IModel<SelectableBean<ObjectType>> model) {
+                                        return LocalizationUtil.translate(
+                                                "RoleCatalogPanel.image.alt",
+                                                new Object[] { WebComponentUtil.getDisplayNameOrName(model.getObject().getValue().asPrismObject()) });
+                                    }
+                                };
+                            }
+
+                            @Override
+                            public List getSelectedRealObjects() {
+                                return List.of();
+                            }
+
+                            @Override
+                            protected List<IColumn<SelectableBean<ObjectType>, String> > createDefaultColumns() {
+                                return RoleCatalogPanel.this.createColumns();
+                            }
+
+                            @Override
+                            protected ISelectableDataProvider<SelectableBean<ObjectType>> createProvider() {
+                                return new SelectableDataProviderWrapper(provider);
+                            }
+
+                            @Override
+                            protected WebMarkupContainer createTableButtonToolbar(String id) {
+                                Fragment fragment = new Fragment(id, ID_TABLE_FOOTER_FRAGMENT, RoleCatalogPanel.this);
+                                fragment.add(new AjaxLink<>(ID_ADD_SELECTED) {
+
+                                    @Override
+                                    public void onClick(AjaxRequestTarget target) {
+                                        List<SelectableBean<ObjectType>> selected = TableUtil.getSelectedModels(getTable().getDataTable());
+                                        List<ObjectType> selectedObjects = selected.stream()
+                                                .map(SelectableBean::getValue)
+                                                .toList();
+                                        RoleCatalogPanel.this.addItemsPerformed(target, selectedObjects);
+                                    }
+                                });
+
+                                fragment.add(new AjaxLink<>(ID_ADD_ALL) {
+
+                                    @Override
+                                    public void onClick(AjaxRequestTarget target) {
+                                        addAllItemsPerformed(target);
+                                    }
+                                });
+
+                                return fragment;
+                            }
+
+                            @Override
+                            public CompiledObjectCollectionView getObjectCollectionView() {
+                                GuiObjectListViewType refView = getCollectionRefView();
+                                if (refView != null && isPreferCollectionView()) {
+                                    return WebComponentUtil.getCompiledObjectCollectionView(refView, null, RoleCatalogPanel.this.getPageBase());
+                                }
+
+                                RoleCatalogType config = RoleCatalogPanel.this.getRoleCatalogConfiguration();
+                                GuiObjectListViewType view = config.getViewConfiguration();
+                                return WebComponentUtil.getCompiledObjectCollectionView(
+                                        view != null ? view : refView, null, RoleCatalogPanel.this.getPageBase()
+                                );
+                            }
+                        };
+                    }
 
                     @Override
-                    protected List<IColumn<SelectableBean<ObjectType>, String>> createColumns() {
-                        return RoleCatalogPanel.this.createColumns();
+                    public BoxedTablePanel getTable() {
+                        return ((ContainerableListPanel) getMainTable()).getTable();
                     }
 
                     @Override
@@ -488,32 +618,6 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> implements 
                         }
 
                         return header;
-                    }
-
-                    @Override
-                    protected WebMarkupContainer createTableButtonToolbar(String id) {
-                        Fragment fragment = new Fragment(id, ID_TABLE_FOOTER_FRAGMENT, RoleCatalogPanel.this);
-                        fragment.add(new AjaxLink<>(ID_ADD_SELECTED) {
-
-                            @Override
-                            public void onClick(AjaxRequestTarget target) {
-                                List<SelectableBean<ObjectType>> selected = TableUtil.getSelectedModels(getTable().getDataTable());
-                                List<ObjectType> selectedObjects = selected.stream()
-                                        .map(SelectableBean::getValue)
-                                        .toList();
-                                addItemsPerformed(target, selectedObjects);
-                            }
-                        });
-
-                        fragment.add(new AjaxLink<>(ID_ADD_ALL) {
-
-                            @Override
-                            public void onClick(AjaxRequestTarget target) {
-                                addAllItemsPerformed(target);
-                            }
-                        });
-
-                        return fragment;
                     }
 
                     @Override
@@ -1063,40 +1167,6 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> implements 
 
     private List<IColumn<SelectableBean<ObjectType>, String>> createColumns() {
         List<IColumn<SelectableBean<ObjectType>, String>> columns = new ArrayList<>();
-
-        columns.add(new CheckBoxHeaderColumn<>() {
-            @Serial private static final long serialVersionUID = 1L;
-
-            @Override
-            protected IModel<Boolean> getEnabled(IModel<SelectableBean<ObjectType>> model) {
-                if (model == null || model.getObject() == null || model.getObject().getValue() == null) {
-                    return Model.of(true);
-                }
-                RequestAccess ra = getModelObject();
-                boolean isAssignedToAll = ra.isAssignedToAll(model.getObject().getValue().getOid());
-                return Model.of(!isAssignedToAll);
-            }
-        });
-        columns.add(new RoundedIconColumn<>(null) {
-
-            @Override
-            protected IModel<IResource> createPreferredImage(IModel<SelectableBean<ObjectType>> model) {
-                return RoleCatalogPanel.this.createImage(() -> model.getObject().getValue());
-            }
-
-            @Override
-            protected DisplayType createDisplayType(IModel<SelectableBean<ObjectType>> model) {
-                OperationResult result = new OperationResult("getIcon");
-                return GuiDisplayTypeUtil.getDisplayTypeForObject(model.getObject().getValue(), result, getPageBase());
-            }
-
-            @Override
-            protected String getAlternativeTextForImage(IModel<SelectableBean<ObjectType>> model) {
-                return LocalizationUtil.translate(
-                        "RoleCatalogPanel.image.alt",
-                        new Object[]{WebComponentUtil.getDisplayNameOrName(model.getObject().getValue().asPrismObject())});
-            }
-        });
         columns.add(new AbstractColumn<>(createStringResource("ObjectType.name")) {
             @Override
             public void populateItem(Item<ICellPopulator<SelectableBean<ObjectType>>> item, String id, IModel<SelectableBean<ObjectType>> row) {
@@ -1263,5 +1333,48 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> implements 
         }
 
         public abstract void saveType();
+    }
+
+    class SelectableDataProviderWrapper implements ISelectableDataProvider<SelectableBean<ObjectType>> {
+        private final ISortableDataProvider<SelectableBean<ObjectType>, String> delegate;
+        private ObjectQuery query;
+
+        public SelectableDataProviderWrapper(ISortableDataProvider<SelectableBean<ObjectType>, String> delegate) {
+            this.delegate = delegate;
+        }
+
+        @Override
+        public void setQuery(ObjectQuery query) {
+            this.query = query;
+        }
+
+        public ObjectQuery getQuery() {
+            return query;
+        }
+
+        @Override
+        public Iterator<? extends SelectableBean<ObjectType>> iterator(long first, long count) {
+            return delegate.iterator(first, count);
+        }
+
+        @Override
+        public long size() {
+            return delegate.size();
+        }
+
+        @Override
+        public IModel<SelectableBean<ObjectType>> model(SelectableBean<ObjectType> object) {
+            return delegate.model(object);
+        }
+
+        @Override
+        public void detach() {
+            delegate.detach();
+        }
+
+        @Override
+        public ISortState<String> getSortState() {
+            return delegate.getSortState();
+        }
     }
 }

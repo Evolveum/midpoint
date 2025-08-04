@@ -9,27 +9,19 @@ package com.evolveum.midpoint.gui.impl.component.tile;
 
 import java.io.Serializable;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 
 import com.evolveum.midpoint.gui.api.component.Toggle;
 import com.evolveum.midpoint.gui.api.component.TogglePanel;
-import com.evolveum.midpoint.gui.api.component.data.provider.ISelectableDataProvider;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.util.LocalizationUtil;
-import com.evolveum.midpoint.gui.impl.component.ContainerableListPanel;
-import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
-
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
-import org.apache.wicket.extensions.markup.html.repeater.data.sort.ISortState;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.ISortableDataProvider;
 import org.apache.wicket.markup.html.WebMarkupContainer;
@@ -203,40 +195,11 @@ public abstract class TileTablePanel<T extends Tile, O extends Serializable> ext
         return tableId;
     }
 
-//    protected WebMarkupContainer createTablePanel(String idTable, ISortableDataProvider<O, String> provider, UserProfileStorage.TableId tableId) {
-//        return new BoxedTablePanel(idTable, provider, createColumns(), tableId) {
-//
-//            @Override
-//            protected WebMarkupContainer createButtonToolbar(String id) {
-//                return TileTablePanel.this.createTableButtonToolbar(id);
-//            }
-//
-//            @Override
-//            protected Component createHeader(String headerId) {
-//                return createHeaderFragment(headerId);
-//            }
-//
-//            @Override
-//            protected String getPaginationCssClass() {
-//                return null;
-//            }
-//
-//            @Override
-//            public String getAdditionalBoxCssClasses() {
-//                String additionalBoxCssClasses = TileTablePanel.this.getAdditionalBoxCssClasses();
-//                if (additionalBoxCssClasses != null) {
-//                    return additionalBoxCssClasses;
-//                }
-//                return super.getAdditionalBoxCssClasses();
-//            }
-//        };
-//    }
-
     protected WebMarkupContainer createTablePanel(String idTable, ISortableDataProvider<O, String> provider, UserProfileStorage.TableId tableId) {
-        return new ContainerableListPanel(idTable, RoleCatalogType.class) {
+        return new BoxedTablePanel(idTable, provider, createColumns(), tableId) {
 
             @Override
-            protected WebMarkupContainer createTableButtonToolbar(String id) {
+            protected WebMarkupContainer createButtonToolbar(String id) {
                 return TileTablePanel.this.createTableButtonToolbar(id);
             }
 
@@ -246,33 +209,8 @@ public abstract class TileTablePanel<T extends Tile, O extends Serializable> ext
             }
 
             @Override
-            protected IColumn<SelectableBean<ObjectReferenceType>, String> createCheckboxColumn() {
+            protected String getPaginationCssClass() {
                 return null;
-            }
-
-            @Override
-            protected List<IColumn<O, String>> createDefaultColumns() {
-                return TileTablePanel.this.createColumns();
-            }
-
-            @Override
-            protected UserProfileStorage.TableId getTableId() {
-                return tableId;
-            }
-
-            @Override
-            protected IColumn createIconColumn() {
-                return null;
-            }
-
-            @Override
-            protected ISelectableDataProvider createProvider() {
-                return createSelectableProvider();
-            }
-
-            @Override
-            public List getSelectedRealObjects() {
-                return List.of();
             }
 
             @Override
@@ -341,10 +279,6 @@ public abstract class TileTablePanel<T extends Tile, O extends Serializable> ext
 
     protected abstract ISortableDataProvider createProvider();
 
-    protected ISelectableDataProvider createSelectableProvider() {
-        return new SelectableDataProviderWrapper(createProvider());
-    }
-
     protected String getTilesHeaderCssClasses() {
         return "";
     }
@@ -394,9 +328,6 @@ public abstract class TileTablePanel<T extends Tile, O extends Serializable> ext
     }
 
     public BoxedTablePanel getTable() {
-        if (table instanceof ContainerableListPanel<?,?>) {
-            return ((ContainerableListPanel<?, ?>) table).getTable();
-        }
         return (BoxedTablePanel) get(ID_TABLE);
     }
 
@@ -412,7 +343,7 @@ public abstract class TileTablePanel<T extends Tile, O extends Serializable> ext
         return searchModel;
     }
 
-    Fragment createHeaderFragment(String id) {
+    protected Fragment createHeaderFragment(String id) {
         Fragment fragment = new Fragment(id, ID_HEADER_FRAGMENT, TileTablePanel.this);
         fragment.setOutputMarkupId(true);
 
@@ -471,48 +402,7 @@ public abstract class TileTablePanel<T extends Tile, O extends Serializable> ext
     protected  void togglePanelItemSelectPerformed(AjaxRequestTarget target, IModel<Toggle<ViewToggle>> item) {
     }
 
-    class SelectableDataProviderWrapper<SO> implements ISelectableDataProvider<O> {
-        private final ISortableDataProvider<O, String> delegate;
-        private ObjectQuery query;
-
-        public SelectableDataProviderWrapper(ISortableDataProvider<O, String> delegate) {
-            this.delegate = delegate;
-        }
-
-        @Override
-        public void setQuery(ObjectQuery query) {
-            this.query = query;
-        }
-
-        public ObjectQuery getQuery() {
-            return query;
-        }
-
-        @Override
-        public Iterator<? extends O> iterator(long first, long count) {
-            return delegate.iterator(first, count);
-        }
-
-        @Override
-        public long size() {
-            return delegate.size();
-        }
-
-        @Override
-        public IModel<O> model(O object) {
-            return delegate.model(object);
-        }
-
-        @Override
-        public void detach() {
-            delegate.detach();
-        }
-
-        @Override
-        public ISortState<String> getSortState() {
-            return delegate.getSortState();
-        }
+    protected WebMarkupContainer getMainTable() {
+        return table;
     }
-
-
 }
