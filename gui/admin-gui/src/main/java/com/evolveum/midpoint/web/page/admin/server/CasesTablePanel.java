@@ -11,6 +11,8 @@ import java.util.List;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ContainerPanelConfigurationType;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+
 import org.apache.wicket.extensions.markup.html.repeater.data.sort.SortOrder;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 
@@ -94,7 +96,7 @@ public abstract class CasesTablePanel extends MainObjectListPanel<CaseType> {
     }
 
     protected String getDefaultSortParam() {
-        return MetadataType.F_CREATE_TIMESTAMP.getLocalPart();
+        return ObjectType.F_METADATA.getLocalPart() + "/" + MetadataType.F_CREATE_TIMESTAMP.getLocalPart();
     }
 
     protected SortOrder getDefaultSortOrder() {
