@@ -86,7 +86,7 @@ public class TestSmartIntegrationService extends AbstractEmptyModelIntegrationTe
             // We'll go with the real service client. Hence, this test will not check the actual response; only in rough contours.
         } else {
             smartIntegrationService.setServiceClientSupplier(
-                    () -> new MockServiceClientImpl<>(
+                    () -> new MockServiceClientImpl(
                             new SiSuggestObjectTypesResponseType()
                                     .objectType(new SiSuggestedObjectTypeType()
                                             .kind("account")
@@ -121,7 +121,7 @@ public class TestSmartIntegrationService extends AbstractEmptyModelIntegrationTe
             // We'll go with the real service client. Hence, this test will not check the actual response; only in rough contours.
         } else {
             smartIntegrationService.setServiceClientSupplier(
-                    () -> new MockServiceClientImpl<>(
+                    () -> new MockServiceClientImpl(
                             new SiSuggestFocusTypeResponseType()
                                     .focusTypeName(UserType.COMPLEX_TYPE)));
         }
@@ -147,7 +147,7 @@ public class TestSmartIntegrationService extends AbstractEmptyModelIntegrationTe
             // We'll go with the real service client. Hence, this test will not check the actual response; only in rough contours.
         } else {
             smartIntegrationService.setServiceClientSupplier(
-                    () -> new MockServiceClientImpl<>(
+                    () -> new MockServiceClientImpl(
                             new SiMatchSchemaResponseType()
                                     .attributeMatch(new SiAttributeMatchSuggestionType()
                                             .applicationAttribute(ICFS_NAME.toBean())
@@ -186,7 +186,7 @@ public class TestSmartIntegrationService extends AbstractEmptyModelIntegrationTe
             // We'll go with the real service client. Hence, this test will not check the actual response; only in rough contours.
         } else {
             smartIntegrationService.setServiceClientSupplier(
-                    () -> new MockServiceClientImpl<>(
+                    () -> new MockServiceClientImpl(
                             new SiMatchSchemaResponseType()
                                     .attributeMatch(new SiAttributeMatchSuggestionType()
                                             .applicationAttribute(ICFS_NAME.toBean())

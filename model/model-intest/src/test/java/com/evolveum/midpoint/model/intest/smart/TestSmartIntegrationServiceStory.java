@@ -150,7 +150,7 @@ public class TestSmartIntegrationServiceStory extends AbstractEmptyModelIntegrat
     @Test
     public void test100SuggestObjectTypesForHrPerson() throws CommonException {
         smartIntegrationService.setServiceClientSupplier(
-                () -> new MockServiceClientImpl<>(
+                () -> new MockServiceClientImpl(
                         new SiSuggestObjectTypesResponseType()
                                 .objectType(new SiSuggestedObjectTypeType()
                                         .kind(HR_PERSON.getKind().value())
@@ -190,7 +190,7 @@ public class TestSmartIntegrationServiceStory extends AbstractEmptyModelIntegrat
     @Test
     public void test110SuggestObjectTypesForHrDepartments() throws CommonException {
         smartIntegrationService.setServiceClientSupplier(
-                () -> new MockServiceClientImpl<>(
+                () -> new MockServiceClientImpl(
                         new SiSuggestObjectTypesResponseType()
                                 .objectType(new SiSuggestedObjectTypeType()
                                         .kind(HR_DEPARTMENT.getKind().value())
@@ -256,7 +256,7 @@ public class TestSmartIntegrationServiceStory extends AbstractEmptyModelIntegrat
 
         when("suggesting focus type for HR person object type");
         smartIntegrationService.setServiceClientSupplier(
-                () -> new MockServiceClientImpl<>(
+                () -> new MockServiceClientImpl(
                         new SiSuggestFocusTypeResponseType()
                                 .focusTypeName(UserType.COMPLEX_TYPE)));
         var focusTypeForPerson = smartIntegrationService.suggestFocusType(RESOURCE_DUMMY_HR.oid, HR_PERSON, task, result);
@@ -268,7 +268,7 @@ public class TestSmartIntegrationServiceStory extends AbstractEmptyModelIntegrat
 
         when("suggesting focus type for HR department object type");
         smartIntegrationService.setServiceClientSupplier(
-                () -> new MockServiceClientImpl<>(
+                () -> new MockServiceClientImpl(
                         new SiSuggestFocusTypeResponseType()
                                 .focusTypeName(OrgType.COMPLEX_TYPE)));
         var focusTypeForDepartment = smartIntegrationService.suggestFocusType(RESOURCE_DUMMY_HR.oid, HR_DEPARTMENT, task, result);

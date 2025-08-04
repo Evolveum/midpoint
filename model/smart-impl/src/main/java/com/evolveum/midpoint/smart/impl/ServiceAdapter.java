@@ -12,15 +12,20 @@ import static com.evolveum.midpoint.smart.api.ServiceClient.Method.*;
 import static com.evolveum.midpoint.util.MiscUtil.nullIfEmpty;
 import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
+import java.util.*;
 import javax.xml.namespace.QName;
+
+import com.evolveum.midpoint.util.DOMUtil;
+import com.evolveum.midpoint.util.QNameUtil;
+
+import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 import org.apache.commons.lang3.StringUtils;
 
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
+import com.evolveum.midpoint.prism.PrismPropertyDefinition;
+import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.PrismQuerySerialization;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
@@ -31,7 +36,10 @@ import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectFactory;
 import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
+
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Converts requests and responses between the Smart Integration Service and the microservice.
@@ -183,25 +191,46 @@ class ServiceAdapter {
         }
     }
 
-    MappingsSuggestionType suggestMappings(
-            ResourceObjectTypeDefinition objectTypeDef, PrismObjectDefinition<?> focusDef) throws SchemaException {
-        var siResponse = matchSchema(objectTypeDef, focusDef);
-        var response = new MappingsSuggestionType();
-        for (var siAttributeMatch : siResponse.getAttributeMatch()) {
-            var resourceAttr = siAttributeMatch.getApplicationAttribute();
-            var focusItem = siAttributeMatch.getMidPointAttribute();
-            response.getAttributeMappings().add(
-                    new AttributeMappingsSuggestionType()
-                            .definition(new ResourceAttributeDefinitionType()
-                                    .ref(resourceAttr)
-                                    .outbound(new MappingType()
-                                            .source(new VariableBindingDefinitionType()
-                                                    .path(focusItem)))
-                                    .inbound(new InboundMappingType()
-                                            .target(new VariableBindingDefinitionType()
-                                                    .path(focusItem)))));
+    AttributeMappingsSuggestionType suggestMapping(
+            ItemName shadowAttrName,
+            ShadowSimpleAttributeDefinition<?> attrDef,
+            ItemPath focusPropPath,
+            PrismPropertyDefinition<?> propertyDef,
+            Collection<ValuesPair> valuesPairs) throws SchemaException {
+        var fixedAttrTypeName = fixTypeName(attrDef.getTypeName());
+        var fixedFocusPropTypeName = fixTypeName(propertyDef.getTypeName());
+        var siRequest = new SiSuggestMappingRequestType()
+                .applicationAttribute(shadowAttrName.toBean())
+                .applicationAttributeType(fixedAttrTypeName)
+                .applicationAttributeMultivalued(attrDef.isMultiValue())
+                .midPointAttribute(focusPropPath.toBean())
+                .midPointAttributeType(fixedFocusPropTypeName)
+                .midPointAttributeMultivalued(propertyDef.isMultiValue())
+                .inbound(true);
+        valuesPairs.forEach(pair -> siRequest.getExample().add(pair.toSiExample()));
+        var siResponse = serviceClient.invoke(SUGGEST_MAPPING, siRequest, SiSuggestMappingResponseType.class);
+        var transformationScript = siResponse.getTransformationScript();
+        ExpressionType expression = StringUtils.isNotBlank(transformationScript) ?
+                new ExpressionType()
+                        .expressionEvaluator(
+                                new ObjectFactory().createScript(
+                                        new ScriptExpressionEvaluatorType().code(transformationScript))) :
+                null;
+        return new AttributeMappingsSuggestionType()
+                .definition(new ResourceAttributeDefinitionType()
+                        .ref(shadowAttrName.toBean())
+                        .inbound(new InboundMappingType()
+                                .target(new VariableBindingDefinitionType()
+                                        .path(focusPropPath.toBean()))
+                                .expression(expression)));
+    }
+
+    private QName fixTypeName(@NotNull QName typeName) {
+        if (QNameUtil.match(PolyStringType.COMPLEX_TYPE, typeName)) {
+            return DOMUtil.XSD_STRING; // We don't want to bother Python microservice with polystrings.
+        } else {
+            return typeName;
         }
-        return response;
     }
 
     /** Returns suggestions for correlators - in the same order as the correlators are provided. */
@@ -236,11 +265,27 @@ class ServiceAdapter {
             ResourceAttributeDefinitionType attributeDefinitionBean) {
     }
 
-    private SiMatchSchemaResponseType matchSchema(ResourceObjectTypeDefinition objectTypeDef, PrismObjectDefinition<?> focusDef)
+    SiMatchSchemaResponseType matchSchema(ResourceObjectTypeDefinition objectTypeDef, PrismObjectDefinition<?> focusDef)
             throws SchemaException {
         var siRequest = new SiMatchSchemaRequestType()
                 .applicationSchema(ResourceObjectClassSchemaSerializer.serialize(objectTypeDef.getObjectClassDefinition()))
                 .midPointSchema(PrismComplexTypeDefinitionSerializer.serialize(focusDef));
         return serviceClient.invoke(MATCH_SCHEMA, siRequest, SiMatchSchemaResponseType.class);
+    }
+
+    record ValuesPair(Collection<?> shadowValues, Collection<?> focusValues) {
+        private SiSuggestMappingExampleType toSiExample() {
+            var example = new SiSuggestMappingExampleType();
+            example.getApplicationValue().addAll(stringify(shadowValues));
+            example.getMidPointValue().addAll(stringify(focusValues));
+            return example;
+        }
+
+        private Collection<String> stringify(Collection<?> values) {
+            return values.stream()
+                    .filter(Objects::nonNull)
+                    .map(Object::toString)
+                    .toList();
+        }
     }
 }

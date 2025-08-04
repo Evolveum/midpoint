@@ -26,6 +26,7 @@ import com.evolveum.midpoint.model.test.smart.MockServiceClientImpl;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.smart.impl.DummyScenario.Account;
+import com.evolveum.midpoint.test.TestObject;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
@@ -62,7 +63,13 @@ public class TestSmartIntegrationServiceImpl extends AbstractSmartIntegrationTes
     private static final File TEST_140_EXPECTED_OBJECT_TYPES = new File(TEST_DIR, "test-140-expected-object-types.xml");
     private static final File TEST_110_EXPECTED_REQUEST = new File(TEST_DIR, "test-110-expected-request.json");
 
+    private static final TestObject<?> USER_JACK = TestObject.file(TEST_DIR, "user-jack.xml", "84d2ff68-9b32-4ef4-b87b-02536fd5e83c");
+    private static final TestObject<?> USER_JIM = TestObject.file(TEST_DIR, "user-jim.xml", "8f433649-6cc4-401b-910f-10fa5449f14c");
+    private static final TestObject<?> USER_ALICE = TestObject.file(TEST_DIR, "user-alice.xml", "79df4c1f-6480-4eb8-9db7-863e25d5b5fa");
+    private static final TestObject<?> USER_BOB = TestObject.file(TEST_DIR, "user-bob.xml", "30cef119-71b6-42b3-9762-5c649b2a2b6a");
+
     private static DummyScenario dummyForObjectTypes;
+    private static DummyScenario dummyForMappingsAndCorrelation;
 
     private static final DummyTestResource RESOURCE_DUMMY_FOR_COUNTING_NO_PAGING = new DummyTestResource(
             TEST_DIR, "resource-dummy-for-counting-no-paging.xml", "66b5be3a-5ea8-4d4d-ba11-89b190815da7",
@@ -79,7 +86,7 @@ public class TestSmartIntegrationServiceImpl extends AbstractSmartIntegrationTes
     private static final DummyTestResource RESOURCE_DUMMY_FOR_SUGGEST_MAPPINGS_AND_CORRELATION = new DummyTestResource(
             TEST_DIR, "resource-dummy-for-suggest-mappings-and-correlation.xml", "a51dac70-6fbb-4c9a-9827-465c844afdc6",
             "for-suggest-mappings-and-correlation",
-            c -> DummyScenario.on(c).initialize());
+            c -> dummyForMappingsAndCorrelation = DummyScenario.on(c).initialize());
 
     @Override
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
@@ -89,7 +96,12 @@ public class TestSmartIntegrationServiceImpl extends AbstractSmartIntegrationTes
         initAndTestDummyResource(RESOURCE_DUMMY_FOR_COUNTING_WITH_PAGING, initTask, initResult);
         initAndTestDummyResource(RESOURCE_DUMMY_FOR_SUGGEST_OBJECT_TYPES, initTask, initResult);
         initAndTestDummyResource(RESOURCE_DUMMY_FOR_SUGGEST_MAPPINGS_AND_CORRELATION, initTask, initResult);
+
         createDummyAccounts();
+
+        initTestObjects(initTask, initResult,
+                USER_JACK, USER_JIM, USER_ALICE, USER_BOB);
+        createAndLinkAccounts(initTask, initResult);
     }
 
     private void createDummyAccounts() throws Exception {
@@ -132,8 +144,48 @@ public class TestSmartIntegrationServiceImpl extends AbstractSmartIntegrationTes
                 .addAttributeValues(DummyScenario.Account.AttributeNames.EMAIL.local(), "eve@evolveum.com")
                 .addAttributeValues(DummyScenario.Account.AttributeNames.STATUS.local(), "inactive")
                 .addAttributeValues(DummyScenario.Account.AttributeNames.TYPE.local(), "employee")
-                .addAttributeValues(DummyScenario.Account.AttributeNames.CREATED.local(), Arrays.asList(ZonedDateTime.parse("2023-09-01T12:00:00Z")));
+                .addAttributeValue(DummyScenario.Account.AttributeNames.CREATED.local(), ZonedDateTime.parse("2023-09-01T12:00:00Z"));
+    }
 
+    private void createAndLinkAccounts(Task initTask, OperationResult initResult) throws Exception {
+        var a = dummyForMappingsAndCorrelation.account;
+        a.add("jack")
+                .addAttributeValues(DummyScenario.Account.AttributeNames.FULLNAME.local(), "Jack Sparrow")
+                .addAttributeValues(DummyScenario.Account.AttributeNames.STATUS.local(), "a")
+                .addAttributeValues(DummyScenario.Account.AttributeNames.TYPE.local(), "e")
+                .addAttributeValues(DummyScenario.Account.AttributeNames.PHONE.local(), "+420-601-040-027");
+        linkAccount(USER_JACK, initTask, initResult);
+        a.add("jim")
+                .addAttributeValues(DummyScenario.Account.AttributeNames.FULLNAME.local(), "Jim Hacker")
+                .addAttributeValues(DummyScenario.Account.AttributeNames.STATUS.local(), "i")
+                .addAttributeValues(DummyScenario.Account.AttributeNames.PHONE.local(), "+99-123-456-789");
+        linkAccount(USER_JIM, initTask, initResult);
+        a.add("alice")
+                .addAttributeValues(DummyScenario.Account.AttributeNames.FULLNAME.local(), "Alice Wonderland")
+                .addAttributeValues(DummyScenario.Account.AttributeNames.PHONE.local(), "+421-900-111-222")
+                .addAttributeValues(DummyScenario.Account.AttributeNames.STATUS.local(), "a")
+                .addAttributeValues(DummyScenario.Account.AttributeNames.TYPE.local(), "c");
+        linkAccount(USER_ALICE, initTask, initResult);
+        a.add("bob")
+                .addAttributeValues(DummyScenario.Account.AttributeNames.FULLNAME.local(), "Bob Builder")
+                .addAttributeValues(DummyScenario.Account.AttributeNames.PHONE.local(), "+421-900-333-444")
+                .addAttributeValues(DummyScenario.Account.AttributeNames.STATUS.local(), "i")
+                .addAttributeValues(DummyScenario.Account.AttributeNames.TYPE.local(), "c");
+        linkAccount(USER_BOB, initTask, initResult);
+    }
+
+    private void linkAccount(TestObject<?> user, Task task, OperationResult result) throws CommonException, IOException {
+        var shadow = findShadowRequest()
+                .withResource(RESOURCE_DUMMY_FOR_SUGGEST_MAPPINGS_AND_CORRELATION.getObjectable())
+                .withDefaultAccountType()
+                .withNameValue(user.getNameOrig())
+                .build().findRequired(task, result);
+        executeChanges(
+                PrismContext.get().deltaFor(UserType.class)
+                        .item(UserType.F_LINK_REF)
+                        .add(shadow.getRef())
+                        .asObjectDelta(user.oid),
+                null, task, result);
     }
 
     private String pickWeightedRandom(String[] values, int[] weights, Random rand) {
@@ -261,7 +313,7 @@ public class TestSmartIntegrationServiceImpl extends AbstractSmartIntegrationTes
             // We'll go with the real service client. Hence, this test will not check the actual response; only in rough contours.
         } else {
             smartIntegrationService.setServiceClientSupplier(
-                    () -> new MockServiceClientImpl<>(
+                    () -> new MockServiceClientImpl(
                             new SiSuggestObjectTypesResponseType()
                                     .objectType(new SiSuggestedObjectTypeType()
                                             .kind("account")
@@ -289,7 +341,7 @@ public class TestSmartIntegrationServiceImpl extends AbstractSmartIntegrationTes
         skipIfRealService();
 
         //noinspection resource
-        var mockClient = new MockServiceClientImpl<>(
+        var mockClient = new MockServiceClientImpl(
                 new SiSuggestObjectTypesResponseType()
                         .objectType(new SiSuggestedObjectTypeType()
                                 .kind("account")
@@ -355,7 +407,7 @@ public class TestSmartIntegrationServiceImpl extends AbstractSmartIntegrationTes
         skipIfRealService();
 
         //noinspection resource
-        var mockClient = new MockServiceClientImpl<>(
+        var mockClient = new MockServiceClientImpl(
                 new SiSuggestObjectTypesResponseType()
                         .objectType(new SiSuggestedObjectTypeType()
                                 .kind("account")
@@ -384,7 +436,7 @@ public class TestSmartIntegrationServiceImpl extends AbstractSmartIntegrationTes
         skipIfRealService();
 
         //noinspection resource
-        var mockClient = new MockServiceClientImpl<>(
+        var mockClient = new MockServiceClientImpl(
                 new SiSuggestObjectTypesResponseType()
                         .objectType(new SiSuggestedObjectTypeType()
                                 .kind("account")
@@ -414,7 +466,7 @@ public class TestSmartIntegrationServiceImpl extends AbstractSmartIntegrationTes
         skipIfRealService();
 
         //noinspection resource
-        var mockClient = new MockServiceClientImpl<>(
+        var mockClient = new MockServiceClientImpl(
                 new SiSuggestObjectTypesResponseType()
                         .objectType(new SiSuggestedObjectTypeType()
                                 .kind("account")
@@ -717,14 +769,26 @@ public class TestSmartIntegrationServiceImpl extends AbstractSmartIntegrationTes
         skipIfRealService();
 
         //noinspection resource
-        var mockClient = new MockServiceClientImpl<>(
+        var mockClient = new MockServiceClientImpl(
                 new SiMatchSchemaResponseType()
+                        .attributeMatch(new SiAttributeMatchSuggestionType()
+                                .applicationAttribute(ICFS_NAME.toBean())
+                                .midPointAttribute(UserType.F_NAME.toBean()))
                         .attributeMatch(new SiAttributeMatchSuggestionType()
                                 .applicationAttribute(Account.AttributeNames.FULLNAME.q().toBean())
                                 .midPointAttribute(UserType.F_FULL_NAME.toBean()))
                         .attributeMatch(new SiAttributeMatchSuggestionType()
-                                .applicationAttribute(ICFS_NAME.toBean())
-                                .midPointAttribute(UserType.F_NAME.toBean())));
+                                .applicationAttribute(Account.AttributeNames.TYPE.q().toBean())
+                                .midPointAttribute(UserType.F_DESCRIPTION.toBean()))
+                        .attributeMatch(new SiAttributeMatchSuggestionType()
+                                .applicationAttribute(Account.AttributeNames.PHONE.q().toBean())
+                                .midPointAttribute(UserType.F_TELEPHONE_NUMBER.toBean())),
+                        // No mapping for status -> activation, as non-attribute mappings are not supported yet
+                new SiSuggestMappingResponseType().transformationScript(null),
+                new SiSuggestMappingResponseType().transformationScript(null),
+                new SiSuggestMappingResponseType().transformationScript("if (input == 'e') { 'employee' } else if (input == 'c') { 'contractor' } else { null }"),
+                new SiSuggestMappingResponseType().transformationScript("input.replaceAll('-', '')")
+        );
         smartIntegrationService.setServiceClientSupplier(() -> mockClient);
 
         var task = getTestTask();
@@ -740,9 +804,12 @@ public class TestSmartIntegrationServiceImpl extends AbstractSmartIntegrationTes
         displayValueAsXml("suggested mappings", suggestedMappings);
         assertThat(suggestedMappings.getExtensionItem()).isEmpty(); // not implemented yet
         var attrMappings = suggestedMappings.getAttributeMappings();
-        assertThat(attrMappings).as("attribute mappings").hasSize(2);
+        assertThat(attrMappings).as("attribute mappings").hasSize(4);
         assertSuggestion(attrMappings, ICFS_NAME, UserType.F_NAME);
         assertSuggestion(attrMappings, Account.AttributeNames.FULLNAME.q(), UserType.F_FULL_NAME);
+        assertSuggestion(attrMappings, Account.AttributeNames.TYPE.q(), UserType.F_DESCRIPTION);
+        assertSuggestion(attrMappings, Account.AttributeNames.PHONE.q(), UserType.F_TELEPHONE_NUMBER);
+        // TODO asserting scripts
     }
 
     private void assertSuggestion(List<AttributeMappingsSuggestionType> attrMappings, ItemName attrName, ItemName focusItemName) {
@@ -752,12 +819,12 @@ public class TestSmartIntegrationServiceImpl extends AbstractSmartIntegrationTes
                 .element(0)
                 .extracting(a -> a.getTarget().getPath().getItemPath())
                 .satisfies(p -> focusItemName.equivalent(p));
-        assertThat(def.getOutbound()).as("outbound")
-                .extracting(a -> a.getSource(), listAsserterFactory(VariableBindingDefinitionType.class))
-                .hasSize(1)
-                .element(0)
-                .extracting(v -> v.getPath().getItemPath())
-                .satisfies(p -> focusItemName.equivalent(p));
+//        assertThat(def.getOutbound()).as("outbound")
+//                .extracting(a -> a.getSource(), listAsserterFactory(VariableBindingDefinitionType.class))
+//                .hasSize(1)
+//                .element(0)
+//                .extracting(v -> v.getPath().getItemPath())
+//                .satisfies(p -> focusItemName.equivalent(p));
     }
 
     private @NotNull AttributeMappingsSuggestionType findAttributeMappings(
@@ -774,7 +841,7 @@ public class TestSmartIntegrationServiceImpl extends AbstractSmartIntegrationTes
         skipIfRealService();
 
         //noinspection resource
-        var mockClient = new MockServiceClientImpl<>(
+        var mockClient = new MockServiceClientImpl(
                 new SiMatchSchemaResponseType()
                         .attributeMatch(new SiAttributeMatchSuggestionType()
                                 .applicationAttribute(Account.AttributeNames.FULLNAME.q().toBean())

@@ -1013,6 +1013,13 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element name="applicationAttributeType" type="xsd:QName">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Type of the application attribute.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
             <xsd:element name="applicationAttributeMultivalued" type="xsd:boolean">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -1024,6 +1031,13 @@
                 <xsd:annotation>
                     <xsd:documentation>
                         Path of the item at the midPoint side.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="midPointAttributeType" type="xsd:QName">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Type of the midPoint attribute.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
@@ -1061,14 +1075,14 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
-            <xsd:element name="applicationValue" type="xsd:anyType" minOccurs="0" maxOccurs="unbounded">
+            <xsd:element name="applicationValue" type="xsd:string" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
                     <xsd:documentation>
                         Value(s) as they appears in the application (resource) object.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="midPointValue" type="xsd:anyType" minOccurs="0" maxOccurs="unbounded">
+            <xsd:element name="midPointValue" type="xsd:string" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
                     <xsd:documentation>
                         Desired value(s) in the midPoint object.

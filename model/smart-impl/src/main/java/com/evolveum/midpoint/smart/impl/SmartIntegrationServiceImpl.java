@@ -460,7 +460,7 @@ public class SmartIntegrationServiceImpl implements SmartIntegrationService {
         try (var serviceClient = getServiceClient(result)) {
             var mappings = TypeOperation
                     .init(serviceClient, resourceOid, typeIdentification, task, result)
-                    .suggestMappings();
+                    .suggestMappings(result);
             LOGGER.debug("Suggested mappings:\n{}", mappings.debugDumpLazily(1));
             return mappings;
         } catch (Throwable t) {

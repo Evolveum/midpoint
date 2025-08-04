@@ -43,6 +43,7 @@ public class DefaultServiceClientImpl implements ServiceClient {
     private static final String METHOD_SUGGEST_OBJECT_TYPES = "objectType/suggestObjectType"; // TODO This should be plural!
     private static final String METHOD_SUGGEST_FOCUS_TYPE = "focusType/suggestFocusType";
     private static final String METHOD_MATCH_SCHEMA = "matching/matchSchema";
+    private static final String METHOD_SUGGEST_MAPPING = "mapping/suggestMapping";
 
     /** The client used to access the remote service. */
     private final WebClient webClient;
@@ -99,6 +100,7 @@ public class DefaultServiceClientImpl implements ServiceClient {
         var requestText = PrismContext.get().jsonSerializer().serializeRealValueContent(request);
         // TEMPORARILY "info" logging for request and response
         LOGGER.info("Calling {} with request (class: {}):\n{}", method, request.getClass().getName(), requestText);
+        webClient.reset();
         webClient.type(MediaType.APPLICATION_JSON);
         webClient.accept(MediaType.APPLICATION_JSON);
         webClient.path(getPath(method));
@@ -124,6 +126,7 @@ public class DefaultServiceClientImpl implements ServiceClient {
             case SUGGEST_OBJECT_TYPES -> URL_PREFIX + METHOD_SUGGEST_OBJECT_TYPES;
             case SUGGEST_FOCUS_TYPE -> URL_PREFIX + METHOD_SUGGEST_FOCUS_TYPE;
             case MATCH_SCHEMA -> URL_PREFIX + METHOD_MATCH_SCHEMA;
+            case SUGGEST_MAPPING -> URL_PREFIX + METHOD_SUGGEST_MAPPING;
         };
     }
 

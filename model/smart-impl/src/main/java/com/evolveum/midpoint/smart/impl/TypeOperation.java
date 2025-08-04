@@ -1,9 +1,13 @@
 package com.evolveum.midpoint.smart.impl;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.processor.ResourceObjectTypeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceObjectTypeIdentification;
 import com.evolveum.midpoint.schema.processor.ResourceSchema;
@@ -13,10 +17,17 @@ import com.evolveum.midpoint.smart.api.ServiceClient;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.*;
+import com.evolveum.midpoint.util.logging.LoggingUtils;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /** An {@link Operation} executing on a specific object type. */
 class TypeOperation extends Operation {
+
+    private static final Trace LOGGER = TraceManager.getTrace(TypeOperation.class);
+
+    private static final int ATTRIBUTE_MAPPING_EXAMPLES = 20;
 
     private final ResourceObjectTypeDefinition typeDefinition;
 
@@ -85,9 +96,74 @@ class TypeOperation extends Operation {
         return suggestion;
     }
 
-    MappingsSuggestionType suggestMappings() throws SchemaException {
-        // TODO implement real suggestion of mappings, not only "as-is" ones
-        return serviceAdapter.suggestMappings(typeDefinition, getFocusTypeDefinition());
+    MappingsSuggestionType suggestMappings(OperationResult result)
+            throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
+            ConfigurationException, ObjectNotFoundException {
+        var focusTypeDefinition = getFocusTypeDefinition();
+        var match = serviceAdapter.matchSchema(typeDefinition, focusTypeDefinition);
+        if (match.getAttributeMatch().isEmpty()) {
+            LOGGER.warn("No schema match found for {}. Returning empty suggestion.", this);
+            return new MappingsSuggestionType();
+        }
+
+        var ownedShadows = fetchOwnedShadows(result);
+
+        var suggestion = new MappingsSuggestionType();
+        for (var attributeMatch : match.getAttributeMatch()) {
+            var shadowAttrName = attributeMatch.getApplicationAttribute().getItemPath().asSingleNameOrFail();
+            var shadowAttrPath = ShadowType.F_ATTRIBUTES.append(shadowAttrName);
+            var shadowAttrDef = typeDefinition.findSimpleAttributeDefinitionRequired(shadowAttrName);
+            var focusPropPath = attributeMatch.getMidPointAttribute().getItemPath();
+            var focusPropDef = MiscUtil.stateNonNull(
+                    focusTypeDefinition.findPropertyDefinition(focusPropPath),
+                    "No property '%s' in %s", focusPropPath, focusTypeDefinition);
+            suggestion.getAttributeMappings().add(
+                    serviceAdapter.suggestMapping(
+                            shadowAttrName, shadowAttrDef, focusPropPath, focusPropDef,
+                            extractPairs(ownedShadows, shadowAttrPath, focusPropPath)));
+        }
+        return suggestion;
+    }
+
+    private Collection<ServiceAdapter.ValuesPair> extractPairs(
+            Collection<OwnedShadow> ownedShadows, ItemPath shadowAttrPath, ItemPath focusPropPath) {
+        return ownedShadows.stream()
+                .map(ownedShadow -> new ServiceAdapter.ValuesPair(
+                        getItemRealValues(ownedShadow.shadow, shadowAttrPath),
+                        getItemRealValues(ownedShadow.owner, focusPropPath)))
+                .toList();
+    }
+
+    private Collection<?> getItemRealValues(ObjectType objectable, ItemPath itemPath) {
+        var item = objectable.asPrismObject().findItem(itemPath);
+        return item != null ? item.getRealValues() : List.of();
+    }
+
+    private Collection<OwnedShadow> fetchOwnedShadows(OperationResult result)
+            throws SchemaException, ConfigurationException, ExpressionEvaluationException, CommunicationException,
+            SecurityViolationException, ObjectNotFoundException {
+        var ownedShadows = new ArrayList<OwnedShadow>(ATTRIBUTE_MAPPING_EXAMPLES);
+        b.modelService.searchObjectsIterative(
+                ShadowType.class,
+                Resource.of(resource)
+                        .queryFor(typeDefinition.getTypeIdentification())
+                        .build(),
+                (object, lResult) -> {
+                    try {
+                        var owner = b.modelService.searchShadowOwner(object.getOid(), null, task, lResult);
+                        if (owner != null) {
+                            ownedShadows.add(new OwnedShadow(object.asObjectable(), owner.asObjectable()));
+                        }
+                    } catch (Exception e) {
+                        LoggingUtils.logException(LOGGER, "Couldn't fetch owner for {}", e, object);
+                    }
+                    return ownedShadows.size() < ATTRIBUTE_MAPPING_EXAMPLES;
+                },
+                null, task, result);
+        return ownedShadows;
+    }
+
+    private record OwnedShadow(ShadowType shadow, FocusType owner) {
     }
 
     private PrismObjectDefinition<?> getFocusTypeDefinition() {
@@ -101,5 +177,10 @@ class TypeOperation extends Operation {
         return MiscUtil.argNonNull(
                 typeDefinition.getFocusTypeName(),
                 "Focus type not defined for %s", typeDefinition.getTypeIdentification());
+    }
+
+    @Override
+    public String toString() {
+        return typeDefinition.getTypeIdentification() + " on " + resource;
     }
 }
