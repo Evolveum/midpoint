@@ -1,22 +1,57 @@
-= Clustering / high availability setup
+---
+midpoint-feature: ha
+doc-type: config
+---
+= Achieve High Availability of MidPoint with Clustering
+:page-nav-title: High Availability with Clustering
 :page-wiki-name: Clustering / high availability setup
 :page-wiki-id: 11075783
 :page-wiki-metadata-create-user: mederly
 :page-wiki-metadata-create-date: 2013-06-28T10:24:03.273+02:00
 :page-wiki-metadata-modify-user: mederly
 :page-wiki-metadata-modify-date: 2020-09-23T16:15:32.817+02:00
-:page-upkeep-status: yellow
+:page-upkeep-status: green
 :page-toc: top
+:page-moved-from: /midpoint/reference/deployment/ha/
+:page-description: Use a cluster of multiple nodes to create scalable, robust, and highly available midPoint deployment
+:page-keywords: clustering, high availability, node configuration, load balancing
 
-== Introduction
+To achieve a high availability deployment, set up a cluster of several midPoint nodes working with a common midPoint repository.
+You can combine the multi-node deployment with a load balancer to evenly distribute the GUI and REST API traffic load across the nodes.
 
-xref:/midpoint/reference/tasks/task-manager/[Clustering / high availability] can be achieved by setting up several midPoint nodes working against common midPoint repository.
 
-image::failover.png[]
+== Architecture of MidPoint Cluster
 
-In order to do this, it is necessary to set a couple of parameters in midPoint configuration.
+There can be two or more nodes in a cluster.
+Although there is no fixed limit to the number of nodes in a cluster, practical limits always exist;
+it is up to you to determine the viable number of nodes experimentally based on your needs.
 
-An example, when using PostgreSQL database:
+In the following schema, there are two midPoint nodes with a shared central repository and a load balancer.
+
+.A midPoint deployment with two nodes, a shared repository, and a load balancer
+image::midpoint-HA-deployment-schema-two-nodes.svg["A midPoint deployment schema with two midPoint nodes and their shared repository in the center; lines showing access routes between individual components and user's computer. A load balancer is placed between midPoint and the computer"]
+
+The nodes in the cluster share the load as follows:
+
+* MidPoint tasks, such as live synchronization, reconciliation, import, or workflow approvals, can run on whichever node.
+    The nodes take the available worker tasks on the first-come-first-served basis which results in a reasonably even load distribution across the cluster.
+* Users connecting to the graphical user interface (GUI) can work on any node.
+
+Here is an outline of technologies used and recommended for the work distribution:
+
+* For task scheduling and distribution, midPoint uses link:http://www.quartz-scheduler.org[Quartz scheduler].
+    See xref:/midpoint/reference/tasks/task-manager/[] and <<intra-cluster-communication,Communication in Clusters Explained>> for architectural description and implementation details of the solution.
+* For load balancing the traffic to the GUI and REST API, we recommend using the standard link:http://tomcat.apache.org/tomcat-8.0-doc/balancer-howto.html[Apache Tomcat solution].
+* If you wish to fail over GUI sessions without load balancing, you can use a network-level setup with a virtual IP.
+
+== Configure Your MidPoint Cluster
+
+In order to deploy midPoint in a cluster, you need to adjust a couple of parameters in the midPoint configuration.
+This section covers the all the required settings you need to get you started.
+
+=== Basic Setup
+
+Here is a bare-bones configuration to start with when using the default PostgreSQL database:
 
 [source,xml]
 ----
@@ -30,218 +65,115 @@ An example, when using PostgreSQL database:
   <missingSchemaAction>create</missingSchemaAction>
 </repository>
 <taskManager>
-  <clustered>true</clustered>
+  <clustered>true</clustered> <1>
 </taskManager>
 ----
+<1> The `<clustered>` configuration element containing `true` signifies the installation uses clustered mode.
+The default is `false`.
 
-Typically you set the following configuration parameter only:
+.Clustering needs to be enabled on all nodes
+[WARNING]
+====
+All nodes sharing the same repository must have the `clustered` property set to `true`.
+If some are set up differently, tasks will not be scheduled and distributed correctly.
+MidPoint disables scheduling tasks on non-conformant nodes, i.e., on non-clustered nodes that are parts of the system.
+The best way how to avoid configuration discrepancy like this is to have common configuration file.
+If that is not possible or practical, make sure that all nodes use the same settings.
+====
 
+In some circumstances, the Quartz component in task manager needs to use a separate database.
+If that's the case, a proper configuration is needed.
+
+When deploying clustered nodes, ensure your *system time is synchronized* across all nodes (using link:https://en.wikipedia.org/wiki/Network_Time_Protocol[NTP] or similar service).
+Otherwise, unexpected behaviour may occur, such as tasks restarting on different nodes.
+
+=== Node Identification and  Discovery Configuration
+
+Even though the nodes in your cluster mainly talk to the shared database repository, at times, they <<intra-cluster-communication,need to communicate with each other>> as well.
+For this reason, you need to adjust their identification and discovery configuration.
+
+You can use the xref:/midpoint/reference/repository/configuration/[repository configuration in the `config.xml` file] for your node configuration (see the _Repository configuration_ column in the table below).
+In this case, place the configuration keys directly into the `<midpoint>` element.
+
+Alternatively, you can specify the configuration via the link:https://en.wikipedia.org/wiki/Command-line_interface[command line interface] (CLI) parameters in the form of `-Dkey=value`.
+See the _CLI_ column in the table below.
+Refer to xref:/midpoint/reference/deployment/midpoint-home-directory/overriding-config-xml-parameters/[] for details.
+
+.Parameters specifying node identification and discovery options in a clustered midPoint deployment
 [%autowidth]
 |===
-| Parameter | Description
+| CLI | Repository configuration | Description
 
-| clustered
-| Determines if the installation is running in clustered (failover) mode.
-Default is false.
-If you need clustering/failover, set this to true.
-
-
-|===
-
-In some circumstances the Quartz component in task manager needs to use separate database (usually only if you want to run it on H2).
-Then you need to configure that properly; see the section on H2 use below.
-
-*Important:* if there are more nodes sharing a repository, all of them must have parameter `clustered` set to `true`. Otherwise, tasks will not be scheduled correctly.
-(midPoint will disable scheduling tasks on non-conformant nodes, i.e. on non-clustered nodes that are parts of such a system.) The best way how to ensure this is to have common config file.
-But if that's not possible or practical, make sure that all nodes have the same settings.
-
-Also, ensure your *system time is synchronized* across all node members (using NTP or similar service), otherwise strange behaviour may occur such as tasks restart on different nodes.
-
-== Other cluster configuration items (midPoint 4.0 and above)
-
-The main difference between 4.0 and previous versions is that since midPoint 4.0 the main mechanism for clusterwide task management is REST instead of JMX.
-
-You can use `config.xml` configuration parameters placed directly under the `<midpoint>` element (*Configuration parameter* in the table below).
-Alternatively, you can use the xref:/midpoint/reference/deployment/midpoint-home-directory/overriding-config-xml-parameters.adoc[command line options] `-Dkey=value` to set these parameters (*Command-line parameter* in the table below).
-
-Configuration items are:
-
-[%autowidth]
-|===
-| Command-line parameter | Configuration parameter | Description
-
-| `-Dmidpoint.nodeId`
+| `‑Dmidpoint.nodeId`
 | `nodeId`
 | The node identifier.
 The default is `DefaultNode` for non-clustered deployments.
-For clustered ones, either `nodeId` or `nodeIdSource` must be used.
+For clustered ones, either `nodeId` or `nodeIdSource` must be specified.
 
-| `-Dmidpoint.nodeIdSource`
+| `‑Dmidpoint.nodeIdSource`
 | `nodeIdSource`
-| Source of the node identifier.
-It is applied if explicit node ID is not defined.
-The source can be either `hostname` meaning that the host name is used as the node identifier or `random` meaning that the random value for node ID is generated when the node is started.
+a| Source of the node identifier.
+It is applied if `nodeId` is not defined explicitly.
+The source can be either:
 
-| `-Dmidpoint.hostName`
+* `hostname`: The host name is used as the node identifier.
+* `random`: A random value for node ID is generated when the node starts.
+
+This configuration property is obsolete.
+You can still use it, though, if you manage nodes manually, need deterministic node IDs for testing, or you are migrating from an old midPoint version and need to preserve existing node IDs.
+
+| `‑Dmidpoint.hostName`
 | `hostName`
 | Overrides the local host name information.
-If not specified, the operatig system is used to determine the host name.
+If not specified, the operating system is used to determine the host name.
 
-Normally you do not need to specify this information.
+Normally, you do not need to specify this information.
 
 
-| `-Dmidpoint.httpPort`
+| `‑Dmidpoint.httpPort`
 | `httpPort`
 | Overrides the local HTTP port information.
-If not specified, Tomcat/Catalina JMX objects are queried to determine the HTTP port information.
-This information is used only to construct URL address used for intra-cluster communication (see below).
-
-Normally you do not need to specify this information.
-
-Use `-Dserver.port=xxx` instead to start midPoint using the right port.
+If not specified, Tomcat/Catalina is queried to determine the HTTP port information.
+This information is used only to construct URL address for <<intra-cluster-communication,intra-cluster communication>>.
 
 
-| `-Dmidpoint.url`
+If you run a node behind a reverse proxy or link:https://en.wikipedia.org/wiki/Network_address_translation[NAT], for instance, you need to specify the port based on the network configuration.
+In such a case, you always need to specify the port number under which other nodes can see the particular node from their point of view.
+Normally, you do not need to specify this information.
+
+If you want to run midPoint under a custom port, use xref:/midpoint/operations-manual/#changing-the-midpoint-embedded-tomcat-configuration[`‑Dserver.port=xxx`] instead.
+
+
+| `‑Dmidpoint.url`
 | `url`
-| Overrides the intra-cluster URL information (see below).
-
-Normally you do not need to specify this information.
-
-|===
-
-=== How intra-cluster URL is determined
-
-In order to minimize the configuration work needed while keeping the maximum level of flexibility, the node URL used for intra-cluster communication (e.g. link:https://node1.acme.org:8080/midpoint)[https://node1.acme.org:8080/midpoint)] is derived from the following items - in this order:
-
-. `*<urlOverride>*` property in the Node object in the repository
-
-. `*-Dmidpoint.url*` / `*<url>*` information in command line or `config.xml` file
-
-. computed based on information in `*infrastructure/intraClusterHttpUrlPattern*` property, if defined; that property can use the following macros:
-
-.. `*$host*` for host name (obtained dynamically from OS or overridden via `-Dmidpoint.hostname` or `<hostname>` config property)
-
-.. `*$port*` for HTTP port (obtained dynamically from Tomcat JMX objects or overridden via `-Dmidpoint.httpPort` config property)
-
-.. `*$path*` for midPoint URL path (obtained dynamically from the servlet container)
-
-. computed based on protocol scheme (obtained dynamically from Tomcat JMX objects), host name, port, and servlet path, as `scheme://host:port/path`.
-
-When troubleshooting these mechanisms you can set logging for `com.evolveum.midpoint.task.quartzimpl.cluster.NodeRegistrar` (or the whole task manager module) to `DEBUG`.
-
-== Testing cluster on a single node
-
-If you want to test the cluster on a single node (running on different ports, of course) you need to set the following *experimental* configuration parameter to the value of `true`:
-
-[%autowidth]
-|===
-| Command-line parameter | Configuration parameter | Meaning
-
-| -Dmidpoint.taskManager.localNodeClusteringEnabled
-| <localNodeClusteringEnabled> in <taskManager> section
-| Allows more nodes to use a single IP address.
-(So that cluster containing mode nodes on a single host can be formed.) Experimental.
-
+| Overrides the <<how-intra-cluster-urls-are-determined,intra-cluster URL pattern>>.
+Normally, you do not need to specify this information.
 
 |===
 
-It is supported since midPoint 3.9. See also link:https://github.com/Evolveum/midpoint/commit/17f7c259061e815284233d45f8d1f4820c587f3a[https://github.com/Evolveum/midpoint/commit/17f7c259061e815284233d45f8d1f4820c587f3a].
+=== How Intra-Cluster URLs Are Determined
 
-== Configuring the cluster before midPoint 4.0
+In order to minimize the configuration work needed while keeping the maximum level of flexibility,
+the node URLs used for intra-cluster communication (e.g., `https://node1.acme.org:8080/midpoint`) are derived from the following items in the order listed here:
 
-Mainly because of JMX limitations, some parameters have to be set up via Java system properties.
-In the following we expect the Oracle JRE is used.
+. `*<urlOverride>*` property in the node object in the repository.
+. `*-Dmidpoint.url*` / `*<url>*` information (CLI parameter or `config.xml` file).
+. Computed based on the information in the `*infrastructure/intraClusterHttpUrlPattern*` property, if defined. +
+    This property can use the following macros:
+    ** `*$host*` for host name: obtained dynamically from the OS or overridden by the `-Dmidpoint.hostname` or `<hostname>` config properties.
+    ** `*$port*` for HTTP port: obtained dynamically from Tomcat objects or overridden by `-Dmidpoint.httpPort` or `<httpPort>` config properties.
+    ** `*$path*` for midPoint URL path: obtained dynamically from the servlet container.
+. Computed based on the protocol scheme obtained dynamically from the Tomcat objects, host name, port, and servlet path as `scheme://host:port/path`.
 
-[%autowidth]
-|===
-| Parameter | Meaning
+When troubleshooting these mechanisms, you can set logging to `DEBUG` for `com.evolveum.midpoint.task.quartzimpl.cluster.NodeRegistrar` (or the whole task manager module).
 
-| midpoint.nodeId
-| This is an identifier of the local node.
-It is not part of the midPoint configuration, because we assume that this configuration file will be shared among cluster members.
-The default value is: DefaultNode.
-However, when running in clustered mode, there is no default, and this property *must be* explicitly specified.
+=== Define URL pattern for inter-node communication
 
-
-| midpoint.jmxHostName
-| Host name on which this node wants to be contacted (via JMX) by other nodes in cluster.
-(It will be announced to other nodes via Node record in repository.) Usually not necessary to specify, as the default is the current host IP address.
-
-
-| com.sun.management.jmxremote.port
-| This is the port on which JMX agent will listen.
-It *must be specified* for clustered mode, because JMX is used to query status of individual nodes and to manage them (start/stop scheduler, stop tasks on that node).
-And, if you test a clustering/failover configuration (more midPoint nodes) on a single machine, be sure to set this parameter to *different* values for individual midPoint nodes.
-Otherwise, you will get "link:http://java.net[java.net].BindException: Address already in use: JVM_Bind" exception on tomcat startup.
-
-
-| com.sun.management.jmxremote.ssl
-| Whether SSL will be used for JMX communication.
-For sample installations it can be set to `false`, however, *for production use we recommend setting it to*`true` (alongside other SSL-related JMX properties, see link:http://docs.oracle.com/javase/1.5.0/docs/guide/management/agent.html#remote[http://docs.oracle.com/javase/1.5.0/docs/guide/management/agent.html#remote].
-
-
-| com.sun.management.jmxremote.password.file and com.sun.management.jmxremote.access.file
-| Names of the password and access files for JMX authentication and authorization.
-E.g. d:\midpoint\config\jmxremote.password, d:\midpoint\config\jmxremote.access.
-Examples of these files are in the `samples/jmx` directory in SVN.Beware, the jmxremote.password file must be readable only to its owner (i.e. user who starts the tomcat), otherwise the JVM refuses to start. In Windows, you typically have to stop inheriting permissions to this file, and manually remove all entries that grant access to persons other than the owner.
-
-
-|===
-
-Also, the following configuration items in `<taskManager>` section of `config.xml` have to be set:
-
-[%autowidth]
-|===
-| Parameter | Meaning
-
-| jmxUsername, jmxPassword
-| Credentials used for JMX communication among cluster nodes.
-Default values are `midpoint` and `secret` respectively, but we strongly recommend changing at least the JMX password.
-Currently, all nodes should be accessible using the same credentials.
-
-
-|===
-
-*An example*
-
-[.underline]#NodeA (in catalina.bat)#
-
-[source,bash]
-----
-SET CATALINA_OPTS=-Dmidpoint.nodeId=NodeA \
-                  -Dmidpoint.home=d:\midpoint\home \
-                  -Dcom.sun.management.jmxremote=true \
-                  -Dcom.sun.management.jmxremote.port=20001 \
-                  -Dcom.sun.management.jmxremote.ssl=false \
-                  -Dcom.sun.management.jmxremote.password.file=d:\midpoint\home\jmxremote.password \
-                  -Dcom.sun.management.jmxremote.access.file=d:\midpoint\home\jmxremote.access
-----
-
-[.underline]#NodeB (in catalina.bat)#
-
-[source,bash]
-----
-SET CATALINA_OPTS=-Dmidpoint.nodeId=NodeB \
-                  -Dmidpoint.home=d:\midpoint\home \
-                  -Dcom.sun.management.jmxremote=true \
-                  -Dcom.sun.management.jmxremote.port=20002 \
-                  -Dcom.sun.management.jmxremote.ssl=false \
-                  -Dcom.sun.management.jmxremote.password.file=d:\midpoint\home\jmxremote.password \
-                  -Dcom.sun.management.jmxremote.access.file=d:\midpoint\home\jmxremote.access
-----
-
-(Note: the jmx port is set to 20002 just to allow running both nodes on a single machine.
-If you are sure they will not be run on a single machine, we recommend setting the port to the same value, just for simplicity.)
-
-(Note: when you have firewall, please also set com.sun.management.jmxremote._[.underline]#rmi#_.port to the same port as com.sun.management.jmxremote.port)
-
-=== Cluster infrastructure configuration
-
-Even if 3.9 and below there are some types of information (e.g. reports) that are accessed using REST calls.
-So, midpoint needs to have an intra-cluster HTTP URL pattern specified.
-This should be the HTTP/HTTPS pattern which is used by midpoint nodes to communicate with each others.
-The pattern is in fact an URL prefix pointing to the root URL of the application.
-The pattern is specified in the system configuration object as present in the example below.
+Nodes use the HTTP URL pattern to communicate between themselves.
+The pattern is a URL prefix pointing to the root URL of midPoint.
+Below is an example definition for the system configuration object:
+// NOTE: I'm intentionally using HTTP instead of HTTPS because the protocol is, per se, HTTP.
+//      Regardless of whether or not it is secured by a TLS or SSL, because those are separate technologies. @dakle 2025-07-09
 
 [source,xml]
 ----
@@ -254,117 +186,139 @@ The pattern is specified in the system configuration object as present in the ex
 </systemConfiguration>
 ----
 
-=== Troubleshooting JMX
+== Test Cluster Configuration on a Single Host
 
-The following message(s) may appear in idm.log if there is a problem with JMX password:
-
-[source]
-----
-2014-03-04 14:05:31,692 [TASKMANAGER] [http-bio-8080-exec-3] TRACE (com.evolveum.midpoint.task.quartzimpl.execution.ExecutionManager): Getting node and task info from the current node (Tomcat7_Node1)
-2014-03-04 14:05:31,693 [TASKMANAGER] [http-bio-8080-exec-3] DEBUG (com.evolveum.midpoint.task.quartzimpl.execution.ExecutionManager): Getting running task info from remote node (Tomcat7_Node2, 127.0.1.1)
-2014-03-04 14:05:31,700 [MODEL] [http-bio-8080-exec-3] ERROR (com.evolveum.midpoint.model.controller.ModelController): Couldn't search objects in task manager, reason: Authentication failed! Invalid username or password
-2014-03-04 14:05:31,701 [] [http-bio-8080-exec-3] ERROR (com.evolveum.midpoint.web.page.admin.server.dto.NodeDtoProvider): Unhandled exception when listing nodes, reason: Subresult com.evolveum.midpoint.task.api.TaskManager..searchObjects of operation com.evolveum.midpoint.model.controller.ModelController.searchObjects is still UNKNOWN during cleanup; during handling of exception java.lang.SecurityException: Authentication failed! Invalid username or password
-----
-
-In that case, double-check your JMX passwords (in config.xml and in jmx.remote.password files) in all instances.
-
-The following message(s) may appear in idm.log if there is problem with firewall between IDM nodes:
-
-[source]
-----
-2014-05-26 09:07:38,438 [TASKMANAGER] [http-bio-8181-exec-1] ERROR (com.evolveum.midpoint.task.quartzimpl.execution.RemoteNodesManager): Cannot connect to the remote node node02 at 10.1.1.2:8123, reason: Failed to retrieve RMIServer stub: javax.naming.CommunicationException [Root exception is java.rmi.ConnectIOException: Exception creating connection to: 10.1.1.2; nested exception is:  java.net.NoRouteToHostException: No route to host]
-----
-
-Please note that it seems that JMX communication needs more than the JMX port specified in Tomcat startup configuration (in this fragment, 8123)! I resolved the problem by simply allowing all TCP communication between the nodes.
-I will update this solution after I find a better one ☺
-
-The following message may appear if your clock is not synchronized between midPoint nodes:
-
-[source]
-----
-2014-05-26 00:45:32,818 [TASKMANAGER] [QuartzScheduler_midPointScheduler-node02_ClusterManager] WARN (org.quartz.impl.jdbcjobstore.JobStoreTX): This scheduler instance (node02) is still active but was recovered by another instance in the cluster.  This may cause inconsistent behavior.
-----
-
-== Using H2 when clustered
-
-Using H2 in clustered mode is *not* recommended because of needless complexity.
-First, it needs to be specified to run in standalone process.
-And second, Quartz and midPoint need to use separate MVCC-related settings.
-
-An example:
+To test a cluster configuration on a single host (with nodes running on different ports),
+use the configuration below.
+This configuration allows more nodes to use a single IP address,
+so that cluster containing nodes on a single host can be formed.
+This feature is experimental.
 
 [source,xml]
 ----
-<repository>
-  <repositoryServiceFactoryClass>com.evolveum.midpoint.repo.sql.SqlRepositoryFactory</repositoryServiceFactoryClass>
-  <baseDir>${midpoint.home}</baseDir>
-  <embedded>false</embedded>
-  <asServer>true</asServer>
-  <driverClassName>org.h2.Driver</driverClassName>
-  <jdbcUsername>sa</jdbcUsername>
-  <jdbcPassword></jdbcPassword>
-  <jdbcUrl>jdbc:h2:tcp://localhost:6000/~/midpoint;LOCK_MODE=1;DB_CLOSE_ON_EXIT=FALSE;LOCK_TIMEOUT=10000</jdbcUrl>
-  <hibernateDialect>org.hibernate.dialect.H2Dialect</hibernateDialect>
-  <hibernateHbm2ddl>update</hibernateHbm2ddl>
-</repository>
 <taskManager>
-  <clustered>true</clustered>
-  <jdbcUrl>jdbc:h2:tcp://localhost:6000/~/midpoint-quartz;MVCC=TRUE;DB_CLOSE_ON_EXIT=FALSE</jdbcUrl>
-  <jmxUsername>midpoint</jmxUsername>
-  <jmxPassword>secret</jmxPassword>
+  <localNodeClusteringEnabled>true</localNodeClusteringEnabled>
 </taskManager>
 ----
 
-The following task manager settings are relevant in this context:
+In CLI, use `-Dmidpoint.taskManager.localNodeClusteringEnabled=true`.
 
-[%autowidth]
-|===
-| Parameter | Meaning
+// Alternative anchor for the following section
+[[cache-invalidation]]
+{empty}
 
-| jdbcUrl
-| If you are using H2, you have to set up use different database parameters from those used by midPoint repository.
-And, because link:http://www.h2database.com/html/advanced.html#mvcc[MVCC mode] is to be enabled, task manager has to use a database instance different from the one used by the repository.(If you are using database other than H2, you may skip setting special jdbcUrl in the <taskManager> configuration.
-The jdbcUrl from repository config will be used.
-As a result, Quartz tables will be stored in the same database instance as midPoint tables.)
+[[intra-cluster-communication]]
+== Communication in Cluster Explained
 
+Cluster nodes primarily communicate with the central shared database.
+Tasks for the nodes to process are stored in this database.
+The data on which nodes operate when processing the tasks are stored in the database as well.
+Each task is split to xref:/midpoint/reference/tasks/activities/distribution/#buckets[buckets] based on a key in the task definition.
+When the time to start a task comes, worker tasks (also called child tasks) are created.
+When picked by a node, the worker task selects an available bucket and processes it on the node.
 
-// TODO remove when 4.4 support ends
-| dataSource
-| Uses specified data source to obtain DB connections.
-(See xref:/midpoint/reference/repository/configuration/[Repository Configuration]).
+Each node runs its own Quartz Scheduler library.
+The Quartz library is responsible for the node to pick up available worker tasks and buckets, as well as to prevent any processing collisions with other nodes by storing the runtime information in the xref:/midpoint/reference/tasks/task-manager/configuration/#jdbc-scheduler-job-store[JDBC scheduler job store] in the repository.
+To summarize, *all communication regarding work distribution happens between the central database and the nodes*.
 
+However, there are *situations when nodes need to talk to each other* directly.
+A notable occasion requiring node-to-node communication is *cache invalidation*.
+When a node changes data in the midPoint database, the node informs other nodes about the need to invalidate their cache.
+See also <<technical-insight-into-cache,Technical Insight into Cache>>.
 
-|===
+Another reason for nodes to communicate directly is user session handling.
+After an operation on one node changes user attributes, such as assigned roles or permissions,
+the node propagates this information to other nodes to let them know
+they need to update their information on what the user can or cannot do.
+They may need to drop the session altogether if the user has been deactivated.
 
-Other task manager database settings (e.g. jdbc username and password, driver class name, hibernate dialect) are taken by default from <repository> configuration, but, of course, they may be overridden in task manager configuration.
+These situations requiring direct node-to-node communication are the reason why you need to specify an HTTP URL pattern.
+It is used by midPoint nodes to communicate among themselves.
 
-H2 then has to be started independently of both nodes.
-In this case, it is expected to listen on port 6000.
-To do that, you can use e.g. this command line:
+[NOTE]
+====
+Since midPoint 4.0, nodes communicate over HTTP instead of JMX.
+====
 
-[source,bash]
-----
-java -jar h2-1.3.171.jar -tcp -tcpPort 6000 -tcpAllowOthers
-----
+=== You May Get Redirected Between Nodes
+
+To help you understand the intra-cluster communication further,
+here is an example of a situation when direct node-to-node communication does not happen, although you may expect it would.
+
+If a node runs a task to feature:reporting[create a report], for example, the resulting report file is saved on the local file system of the node.
+If user sitting on a different node requests the report for download,
+the node on which the user is asks the central DB for the location of the report
+and then redirects the user to the node with the generated report.
+Hence, inter-node communication does not occur in this case.
+
+== Technical Insight into Cache
+
+// TODO: This article is not the most suitable place for this section but I found none better, neither did The Chat. @dakle 2025-07-22
+
+MidPoint uses two levels of cache: global and local.
+
+The local cache is per task thread.
+It holds query objects with results, all touched objects, and version cache, which consists of all versions of modified objects.
+(Every time an object is modified, a new version of it is created.)
+
+The global cache is per node and holds objects that don't change often but are accessed very often.
+These are, for example, system configuration, archetypes, or object templates.
+These objects are cheap to cache because they don't change often, but saving them in cache saves a lot of resources.
+User objects are not cached because they change often, but are rarely needed.
+
+== Common Issues and Fixes
+
+These are the critical criteria your configuration must meet:
+
+* Use a shared repository.
+    All nodes must connect to the same repository.
+* Define node URLs using the `<midpoint><url>...</url></midpoint>` or `intraClusterHttpUrlPattern` configuration options in the system configuration to ensure nodes can discover each other.
+* Clustering in production requires an link:https://evolveum.com/services/support-subscriptions/[active subscription] (log error: _Clustering is not supported in production mode without a subscription_).
+
+Here are a few common issues, their possible causes, and tips on how to resolve them:
+
+. *Unauthorized errors (401)*
+    ** Cause: Missing or invalid subscription ID or misconfigured REST authentication.
+    ** Fix: Set a valid subscription ID in System > System Configuration > Deployment Information > Subscriptions Identifier. Ensure nodes can authenticate via REST (e.g., shared secrets or OAuth2 if configured).
+. *Node discovery failures*
+    ** Cause: Incorrect `intraClusterHttpUrlPattern` setting or firewall rules blocking HTTP(S) traffic.
+    ** Fix: Check your deployment configuration and all possibly related network settings. Test connectivity between nodes using `curl` or a similar tool.
+. *Sticky sessions*
+    ** Cause: Load balancer is not using sticky sessions (e.g., `ip_hash` in NGINX).
+    ** Fix: Configure the load balancer to maintain session affinity (e.g., by using link:https://en.wikipedia.org/wiki/Load_balancing_(computing)#Persistence[sticky cookie] or source IP).
+. *Database locks or task scheduling issues*
+    ** Cause: Inconsistent `clustered=true` setting across nodes.
+    ** Fix: Ensure all nodes have the consistently set `clustered=true`.
+
 
 == Limitations
 
-* Clustering functionality assumes *homogeneous* cluster environment.
-I.e. each cluster node must have the same environment, configuration, connectivity (e.g. to load balancers), connectors and so on.
-Clustering implementation assumes that a task can be executed at any cluster node, always giving correct results.
+Clustering functionality assumes *homogeneous* cluster environment.
+That means each cluster node must have the same environment, configuration, connectivity (e.g., to load balancer), connectors and so on.
+Clustering implementation assumes that a task can be executed on any cluster node, giving the same result regardless.
 Any configuration differences between cluster nodes are likely to cause operational issues.
-Following aspects must be the same on all cluster nodes:
 
-** MidPoint software, same version on all nodes
+The following aspects must be the same on all cluster nodes:
 
-** Connectors, same version on all nodes
+* Versions of
+    ** MidPoint
+    ** Connectors
+    ** Schema extension​footnote:[
+        Only when stored in an XSD configuration file.
+        Since midPoint 4.9, schema extensions can be stored in the shared database. Refer to xref:/midpoint/reference/schema/custom-schema-extension/[] for details.]
+    ** Java key store and trust store
+* Network access to all configured resources
+* Access to file systems, including network file systems (e.g., for CSV resources)
+* Network configuration, including routing and DNS configuration
+// I decided not to capitalize Java key store and trust store
+// because the official docs on them uses all the possible spacing and capitalization options.
+// Hence, I went with my grammar gut.
+// https://docs.oracle.com/javase/6/docs/technotes/guides/security/jsse/JSSERefGuide.html
 
-** Schema extension, same version on all nodes
+== See Also
 
-** Keystore, same version on all nodes
+* xref:/midpoint/reference/tasks/task-manager/[]
 
-** Network access to all configured resources
+* xref:/midpoint/reference/tasks/activities/distribution/[]
 
-** Access to filesystems, including network filesystems (e.g. for CSV resoruces)
-
-** Network configuration, including routing and DNS configuration
+* xref:/midpoint/install/system-requirements/[]
