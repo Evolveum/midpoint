@@ -77,6 +77,26 @@ public interface SmartIntegrationService {
             String token, Task task, OperationResult result)
             throws SchemaException, ObjectNotFoundException, ConfigurationException;
 
+    /**
+     * Submits "suggest focus type" request. Returns a token used to query the status.
+     */
+    String submitSuggestFocusTypeOperation(
+            String resourceOid, ResourceObjectTypeIdentification typeIdentification, Task task, OperationResult result)
+            throws CommonException;
+
+    /**
+     * List statuses of all relevant "suggest focus type" requests (for given resource OID).
+     * They are sorted by finished time, then by started time.
+     */
+    List<StatusInfo<QName>> listSuggestFocusTypeOperationStatuses(
+            String resourceOid, Task task, OperationResult result)
+            throws SchemaException, ObjectNotFoundException, ConfigurationException;
+
+    /** Checks the status of the "suggest focus type" request. */
+    StatusInfo<QName> getSuggestFocusTypeOperationStatus(
+            String token, Task task, OperationResult result)
+            throws SchemaException, ObjectNotFoundException, ConfigurationException;
+
     /** Suggests a discrete focus type for the application (resource) object type. */
     QName suggestFocusType(
             String resourceOid, ResourceObjectTypeIdentification typeIdentification, Task task, OperationResult result)

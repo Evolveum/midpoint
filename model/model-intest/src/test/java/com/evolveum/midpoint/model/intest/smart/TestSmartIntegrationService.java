@@ -114,7 +114,7 @@ public class TestSmartIntegrationService extends AbstractEmptyModelIntegrationTe
         assertThat(response.getObjectType()).as("suggested object types collection").isNotEmpty();
     }
 
-    /** Tests the "suggest focus type" method; currently, only the synchronous API is present. */
+    /** Tests the "suggest focus type" method. */
     @Test
     public void test150SuggestFocusType() throws CommonException {
         if (DefaultServiceClientImpl.hasServiceUrlOverride()) {
@@ -129,15 +129,22 @@ public class TestSmartIntegrationService extends AbstractEmptyModelIntegrationTe
         var task = getTestTask();
         var result = task.getResult();
 
-        when("suggesting focus type");
-        var focusType = smartIntegrationService.suggestFocusType(
+        when("submitting 'suggest focus type' operation request");
+        var token = smartIntegrationService.submitSuggestFocusTypeOperation(
                 RESOURCE_DUMMY_FOR_SUGGEST_FOCUS_TYPE.oid, ACCOUNT_DEFAULT, task, result);
 
-        then("the focus type is correct");
-        assertSuccess(result);
-        assertThat(focusType)
-                .as("Focus type")
-                .isEqualTo(UserType.COMPLEX_TYPE);
+        then("returned token is not null");
+        assertThat(token).isNotNull();
+
+        when("waiting for the operation to finish successfully");
+        var response = waitForFinish(
+                () -> smartIntegrationService.getSuggestFocusTypeOperationStatus(token, task, result),
+                TIMEOUT);
+
+        then("there is a suggested focus type (we don't care about the actual type here)");
+        display(response.toString());
+        assertThat(response).isNotNull();
+        assertThat(response).as("suggested focus type").isNotNull();
     }
 
     /** Tests the "suggest correlation" operation (in an asynchronous way). */
