@@ -74,6 +74,9 @@ public class SmartIntegrationServiceImpl implements SmartIntegrationService {
     private static final String OP_SUBMIT_SUGGEST_OBJECT_TYPES_OPERATION = "suggestObjectTypesOperation";
     private static final String OP_GET_SUGGEST_OBJECT_TYPES_OPERATION_STATUS = "getSuggestObjectTypesOperationStatus";
     private static final String OP_LIST_SUGGEST_OBJECT_TYPES_OPERATION_STATUSES = "listSuggestObjectTypesOperationStatuses";
+    private static final String OP_SUBMIT_SUGGEST_FOCUS_TYPE_OPERATION = "submitSuggestFocusTypeOperation";
+    private static final String OP_GET_SUGGEST_FOCUS_TYPE_OPERATION_STATUS = "getSuggestFocusTypeOperationStatus";
+    private static final String OP_LIST_SUGGEST_FOCUS_TYPE_OPERATION_STATUSES = "listSuggestFocusTypeOperationStatuses";
 
     private static final String CLASS_DOT = SmartIntegrationService.class.getName() + ".";
     private static final String OP_SUGGEST_FOCUS_TYPE = CLASS_DOT + "suggestFocusType";
@@ -323,6 +326,95 @@ public class SmartIntegrationServiceImpl implements SmartIntegrationService {
                     ObjectTypesSuggestionWorkStateType.COMPLEX_TYPE,
                     ObjectTypesSuggestionWorkStateType.F_RESULT,
                     ObjectTypesSuggestionType.class);
+        } catch (Throwable t) {
+            result.recordException(t);
+            throw t;
+        } finally {
+            result.close();
+        }
+    }
+
+    @Override
+    public String submitSuggestFocusTypeOperation(
+            String resourceOid,
+            ResourceObjectTypeIdentification typeIdentification,
+            Task task,
+            OperationResult parentResult) throws CommonException {
+        var result = parentResult.subresult(OP_SUBMIT_SUGGEST_FOCUS_TYPE_OPERATION)
+                .addParam("resourceOid", resourceOid)
+                .addParam("typeIdentification", typeIdentification)
+                .build();
+        try {
+            var oid = modelInteractionService.submit(
+                    new ActivityDefinitionType()
+                            .work(new WorkDefinitionsType()
+                                    .focusTypeSuggestion(new FocusTypeSuggestionWorkDefinitionType()
+                                            .resourceRef(resourceOid, ResourceType.COMPLEX_TYPE)
+                                            .kind(typeIdentification.getKind())
+                                            .intent(typeIdentification.getIntent()))),
+                    ActivitySubmissionOptions.create().withTaskTemplate(new TaskType()
+                            .name("Suggest focus type for " + typeIdentification + " on " + resourceOid)
+                            .cleanupAfterCompletion(AUTO_CLEANUP_TIME)),
+                    task, result);
+            LOGGER.debug("Submitted suggest focus type operation for resourceOid {}, typeIdentification {}: {}",
+                    resourceOid, typeIdentification, oid);
+            return oid;
+        } catch (Throwable t) {
+            result.recordException(t);
+            throw t;
+        } finally {
+            result.close();
+        }
+    }
+
+    @Override
+    public List<StatusInfo<QName>> listSuggestFocusTypeOperationStatuses(
+            String resourceOid, Task task, OperationResult parentResult)
+            throws SchemaException, ConfigurationException, ObjectNotFoundException {
+        var result = parentResult.subresult(OP_LIST_SUGGEST_FOCUS_TYPE_OPERATION_STATUSES)
+                .addParam("resourceOid", resourceOid)
+                .build();
+        try {
+            var tasks = taskManager.searchObjects(
+                    TaskType.class,
+                    queryForActivityType(resourceOid, WorkDefinitionsType.F_FOCUS_TYPE_SUGGESTION),
+                    taskRetrievalOptions(),
+                    result);
+            var resultingList = new ArrayList<StatusInfo<QName>>();
+            for (PrismObject<TaskType> t : tasks) {
+                resultingList.add(
+                        createStatusInformation(
+                                taskManager.createTaskInstance(t, result),
+                                result,
+                                FocusTypeSuggestionWorkStateType.COMPLEX_TYPE,
+                                FocusTypeSuggestionWorkStateType.F_RESULT,
+                                QName.class));
+            }
+            sortByFinishAndStartTime(resultingList);
+            return resultingList;
+        } catch (Throwable t) {
+            result.recordException(t);
+            throw t;
+        } finally {
+            result.close();
+        }
+    }
+
+    @Override
+    public StatusInfo<QName> getSuggestFocusTypeOperationStatus(
+            String token, Task task, OperationResult parentResult)
+            throws SchemaException, ObjectNotFoundException, ConfigurationException {
+        var result = parentResult.subresult(OP_GET_SUGGEST_FOCUS_TYPE_OPERATION_STATUS)
+                .addParam("token", token)
+                .build();
+        try {
+            var bgTask = taskManager.getTaskPlain(token, taskRetrievalOptions(), result);
+            return createStatusInformation(
+                    bgTask,
+                    result,
+                    FocusTypeSuggestionWorkStateType.COMPLEX_TYPE,
+                    FocusTypeSuggestionWorkStateType.F_RESULT,
+                    QName.class);
         } catch (Throwable t) {
             result.recordException(t);
             throw t;
