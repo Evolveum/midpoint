@@ -489,9 +489,9 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> implements 
                         return new ContainerableListPanel(idTable, RoleType.class) {
 
                             @Override
-                            protected IColumn<SelectableBean<ObjectReferenceType>, String> createNameColumn(IModel displayModel, GuiObjectColumnType customColumn, ExpressionType expression) {
+                            protected IColumn<SelectableBean<ObjectType>, String> createNameColumn(IModel displayModel, GuiObjectColumnType customColumn, ExpressionType expression) {
                                 if (getCollectionRefView() != null || RoleCatalogPanel.this.getRoleCatalogConfiguration().getViewConfiguration() != null) {
-                                    return createCustomExportableColumn(displayModel, customColumn, expression);
+                                    return RoleCatalogPanel.this.createNameColumn(customColumn.getDisplay());
                                 }
                                 return null;
                             }
@@ -600,6 +600,23 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> implements 
                                 return WebComponentUtil.getCompiledObjectCollectionView(
                                         view != null ? view : refView, null, RoleCatalogPanel.this.getPageBase()
                                 );
+                            }
+
+                            @Override
+                            protected IColumn<SelectableBean<ObjectType>, String> createActionsColumn() {
+                                return new AbstractColumn<>(null) {
+
+                                    @Override
+                                    public void populateItem(Item<ICellPopulator<SelectableBean<ObjectType>>> item, String id, IModel<SelectableBean<ObjectType>> model) {
+                                        item.add(new AjaxLinkPanel(id, createStringResource("RoleCatalogPanel.details")) {
+
+                                            @Override
+                                            public void onClick(AjaxRequestTarget target) {
+                                                itemDetailsPerformed(target, model.getObject().getValue());
+                                            }
+                                        });
+                                    }
+                                };
                             }
                         };
                     }
@@ -1167,33 +1184,35 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> implements 
 
     private List<IColumn<SelectableBean<ObjectType>, String>> createColumns() {
         List<IColumn<SelectableBean<ObjectType>, String>> columns = new ArrayList<>();
-        columns.add(new AbstractColumn<>(createStringResource("ObjectType.name")) {
+        columns.add(createNameColumn(null));
+        columns.add(new PropertyColumn<>(createStringResource("ObjectType.description"), "value.description"));
+        return columns;
+    }
+
+    private AbstractColumn<SelectableBean<ObjectType>, String> createNameColumn(DisplayType display) {
+        return new AbstractColumn<>(createStringResource("ObjectType.name")) {
             @Override
             public void populateItem(Item<ICellPopulator<SelectableBean<ObjectType>>> item, String id, IModel<SelectableBean<ObjectType>> row) {
-                item.add(AttributeAppender.append("class", "align-middle name-min-width"));
+                if (display != null) {
+                    String cssStyle = display.getCssStyle();
+                    if (cssStyle != null && !cssStyle.isBlank()) {
+                        item.add(AttributeAppender.append("style", cssStyle));
+                    }
+
+                    String cssClass = display.getCssClass();
+                    if (cssClass != null && !cssClass.isBlank()) {
+                        item.add(AttributeAppender.append("class", cssClass));
+                    }
+                }
+                else {
+                    item.add(AttributeAppender.append("class", "align-middle name-min-width"));
+                }
                 item.add(new LabelWithCheck(id,
                         () -> WebComponentUtil.getDisplayNameOrName(row.getObject().getValue().asPrismObject()),
                         () -> computeCheckState(row.getObject().getValue().getOid()),
                         () -> computeCheckTitle(row.getObject().getValue().getOid())));
             }
-        });
-        columns.add(new PropertyColumn(createStringResource("ObjectType.description"), "value.description"));
-
-        columns.add(new AbstractColumn<>(null) {
-
-            @Override
-            public void populateItem(Item<ICellPopulator<SelectableBean<ObjectType>>> item, String id, IModel<SelectableBean<ObjectType>> model) {
-                item.add(new AjaxLinkPanel(id, createStringResource("RoleCatalogPanel.details")) {
-
-                    @Override
-                    public void onClick(AjaxRequestTarget target) {
-                        itemDetailsPerformed(target, model.getObject().getValue());
-                    }
-                });
-            }
-        });
-
-        return columns;
+        };
     }
 
     private ContainerPanelConfigurationType createDefaultContainerPanelConfiguration(QName type) {
