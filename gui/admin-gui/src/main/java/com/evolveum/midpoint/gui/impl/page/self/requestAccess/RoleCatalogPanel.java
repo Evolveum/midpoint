@@ -38,6 +38,7 @@ import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.panel.Fragment;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.LoadableDetachableModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.request.resource.IResource;
@@ -128,6 +129,7 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> implements 
     private SearchModel searchModel;
 
     private IModel<ListGroupMenu<RoleCatalogQueryItem>> menuModel;
+    private LoadableDetachableModel<CompiledObjectCollectionView> collectionViewModel;
 
     private IModel<ObjectReferenceType> teammateModel;
 
@@ -444,6 +446,22 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> implements 
                 return menu;
             }
         };
+
+        collectionViewModel = new LoadableDetachableModel<CompiledObjectCollectionView>() {
+            @Override
+            protected CompiledObjectCollectionView load() {
+                GuiObjectListViewType refView = getCollectionRefView();
+                if (refView != null && isPreferCollectionView()) {
+                    return WebComponentUtil.getCompiledObjectCollectionView(refView, null, RoleCatalogPanel.this.getPageBase());
+                }
+
+                RoleCatalogType config = RoleCatalogPanel.this.getRoleCatalogConfiguration();
+                GuiObjectListViewType view = config.getViewConfiguration();
+                return WebComponentUtil.getCompiledObjectCollectionView(
+                        view != null ? view : refView, null, RoleCatalogPanel.this.getPageBase()
+                );
+            }
+        };
     }
 
     private void initLayout() {
@@ -590,16 +608,7 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> implements 
 
                             @Override
                             public CompiledObjectCollectionView getObjectCollectionView() {
-                                GuiObjectListViewType refView = getCollectionRefView();
-                                if (refView != null && isPreferCollectionView()) {
-                                    return WebComponentUtil.getCompiledObjectCollectionView(refView, null, RoleCatalogPanel.this.getPageBase());
-                                }
-
-                                RoleCatalogType config = RoleCatalogPanel.this.getRoleCatalogConfiguration();
-                                GuiObjectListViewType view = config.getViewConfiguration();
-                                return WebComponentUtil.getCompiledObjectCollectionView(
-                                        view != null ? view : refView, null, RoleCatalogPanel.this.getPageBase()
-                                );
+                                return collectionViewModel.getObject();
                             }
                         };
                     }
@@ -880,6 +889,8 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> implements 
 
         TileTablePanel<?, ?> tilesTable = getTileTable();
 //        tilesTable.initHeaderFragment();
+
+        collectionViewModel.detach();
 
         target.add(tilesTable);
         target.add(get(ID_MENU));
