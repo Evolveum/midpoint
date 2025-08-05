@@ -402,7 +402,7 @@ public abstract class TileTablePanel<T extends Tile, O extends Serializable> ext
     protected  void togglePanelItemSelectPerformed(AjaxRequestTarget target, IModel<Toggle<ViewToggle>> item) {
     }
 
-    protected WebMarkupContainer getMainTable() {
+    public WebMarkupContainer getMainTable() {
         return table;
     }
 }
