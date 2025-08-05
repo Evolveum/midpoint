@@ -12,6 +12,8 @@ import java.util.stream.Collectors;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAttributeTupleStatisticsType;
 
+import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
+
 import org.jetbrains.annotations.VisibleForTesting;
 
 import com.evolveum.midpoint.prism.path.ItemName;
@@ -57,14 +59,14 @@ public class StatisticsComputer {
     /**
      * Attribute value counts for each attribute (by attribute name).
      */
-    private final Map<String, Map<String, Integer>> valueCounts = new HashMap<>();
+    private final Map<QName, Map<String, Integer>> valueCounts = new HashMap<>();
 
     /**
      * Stores attribute values for each shadow, for use in cross-table (pairwise) statistics.
      *
      * Maps attribute QName to a list of observed values (one per processed shadow).
      */
-    Map<QName, LinkedList<Object>> shadowStorage = new HashMap<>();
+    private final Map<QName, LinkedList<Object>> shadowStorage = new HashMap<>();
 
     /**
      * JAXB statistics object being built.
@@ -93,7 +95,7 @@ public class StatisticsComputer {
      */
     private void initializeAttributeStatistics() {
         for (ShadowAttributeDefinition<?, ?, ?, ?> attrDef : attributeDefinitions) {
-            getOrCreateAttributeStatistics(attrDef.getItemName());
+            createAttributeStatisticsIfNeeded(attrDef.getItemName());
         }
     }
 
@@ -102,13 +104,13 @@ public class StatisticsComputer {
      */
     private void initializeValueCounts() {
         for (ShadowAttributeDefinition<?, ?, ?, ?> attrDef : attributeDefinitions) {
-            valueCounts.put(attrDef.getItemName().toString(), new HashMap<>());
+            valueCounts.put(attrDef.getItemName(), new HashMap<>());
         }
     }
 
     private void initializeShadowStorage() {
         for (ShadowAttributeDefinition<?, ?, ?, ?> attrDef : attributeDefinitions) {
-            shadowStorage.put(attrDef.getItemName(), new LinkedList<Object>());
+            shadowStorage.put(attrDef.getItemName(), new LinkedList<>());
         }
     }
 
@@ -132,7 +134,7 @@ public class StatisticsComputer {
         retainTopNValueCounts();
         populateJaxbAttributeStatistics();
         removeAttributesWithLargeCardinalityFromShadowStorage();
-        computeValueCountsofValuePairs();
+        computeValueCountsOfValuePairs();
     }
 
     /**
@@ -145,20 +147,28 @@ public class StatisticsComputer {
     }
 
     /**
-     * Gets or creates attribute statistics for the given attribute name.
+     * Creates attribute statistics for the given attribute name.
      *
      * @param attrName Attribute item name.
-     * @return Attribute statistics object.
      */
-    private ShadowAttributeStatisticsType getOrCreateAttributeStatistics(ItemName attrName) {
+    private void createAttributeStatisticsIfNeeded(ItemName attrName) {
         for (ShadowAttributeStatisticsType stats : statistics.getAttribute()) {
-            if (attrName.equals(stats.getRef())) {
-                return stats;
+            if (attrName.equals(fromAttributeRef(stats.getRef()))) {
+                return;
             }
         }
-        ShadowAttributeStatisticsType newStats = new ShadowAttributeStatisticsType().ref(attrName);
+        ShadowAttributeStatisticsType newStats = new ShadowAttributeStatisticsType().ref(toAttributeRef(attrName));
         statistics.getAttribute().add(newStats);
-        return newStats;
+    }
+
+    /** Converts plain attribute name to an {@link ItemPathType} used in statistics beans. */
+    private ItemPathType toAttributeRef(QName attrName) {
+        return ShadowType.F_ATTRIBUTES.append(attrName).toBean();
+    }
+
+    /** Converts {@link ItemPathType} (assuming it's `attributes/xyz`) to a single attribute name. */
+    private QName fromAttributeRef(ItemPathType attrRef) {
+        return attrRef.getItemPath().rest().asSingleNameOrFail();
     }
 
     /**
@@ -166,7 +176,8 @@ public class StatisticsComputer {
      */
     private void updateMissingValueCounts(ShadowType shadow) {
         for (ShadowAttributeStatisticsType stats : statistics.getAttribute()) {
-            if (ShadowUtil.getAttributeValues(shadow, stats.getRef()).isEmpty()) {
+            var attrName = fromAttributeRef(stats.getRef());
+            if (ShadowUtil.getAttributeValues(shadow, attrName).isEmpty()) {
                 stats.setMissingValueCount(stats.getMissingValueCount() + 1);
             }
         }
@@ -182,14 +193,14 @@ public class StatisticsComputer {
      */
     private void updateValueCounts(ShadowType shadow) {
         for (ShadowAttributeStatisticsType stats : statistics.getAttribute()) {
-            List<?> attributeValues = ShadowUtil.getAttributeValues(shadow, stats.getRef());
+            var attrName = fromAttributeRef(stats.getRef());
+            List<?> attributeValues = ShadowUtil.getAttributeValues(shadow, attrName);
 
             if (attributeValues.size() != 1) {
                 continue;
             }
 
-            String attributeKey = stats.getRef().toString();
-            Map<String, Integer> attributeValueCounts = valueCounts.get(attributeKey);
+            Map<String, Integer> attributeValueCounts = valueCounts.get(attrName);
 
             String valueKey = String.valueOf(attributeValues.get(0));
             int newCount = attributeValueCounts.merge(valueKey, 1, Integer::sum);
@@ -214,7 +225,7 @@ public class StatisticsComputer {
 
             List<?> values = ShadowUtil.getAttributeValues(shadow, key);
             list.add(values.size() != 1 ? null : values.get(0));
-            if (valueCounts.get(key.toString()).size() > VALUE_COUNT_PAIR_HARD_LIMIT) {
+            if (valueCounts.get(key).size() > VALUE_COUNT_PAIR_HARD_LIMIT) {
                 iter.remove();
             }
         }
@@ -229,7 +240,7 @@ public class StatisticsComputer {
      */
     private void retainTopNValueCounts() {
         for (ShadowAttributeStatisticsType stats : statistics.getAttribute()) {
-            String attrKey = stats.getRef().toString();
+            QName attrKey = fromAttributeRef(stats.getRef());
             Map<String, Integer> counts = valueCounts.get(attrKey);
 
             int maxCount = counts.values().stream().max(Integer::compareTo).orElse(0);
@@ -238,7 +249,7 @@ public class StatisticsComputer {
                 valueCounts.put(attrKey, new LinkedHashMap<>());
             } else {
                 Map<String, Integer> topN = counts.entrySet().stream()
-                        .sorted(Map.Entry.<String, Integer>comparingByValue(Comparator.reverseOrder()))
+                        .sorted(Map.Entry.comparingByValue(Comparator.reverseOrder()))
                         .limit(TOP_N_LIMIT)
                         .collect(Collectors.toMap(
                                 Map.Entry::getKey,
@@ -259,7 +270,7 @@ public class StatisticsComputer {
      */
     private void populateJaxbAttributeStatistics() {
         for (ShadowAttributeStatisticsType stats : statistics.getAttribute()) {
-            String attrKey = stats.getRef().toString();
+            QName attrKey = fromAttributeRef(stats.getRef());
             Map<String, Integer> counts = valueCounts.get(attrKey);
             if (counts == null) {
                 continue;
@@ -285,7 +296,7 @@ public class StatisticsComputer {
         double cardinalityThreshold = statisticsSize * VALUE_COUNT_PAIR_PERCENTAGE_LIMIT;
 
         for (ShadowAttributeStatisticsType attribute : statistics.getAttribute()) {
-            Object ref = attribute.getRef();
+            QName ref = fromAttributeRef(attribute.getRef());
 
             if (shadowStorage.containsKey(ref) && attribute.getUniqueValueCount() > cardinalityThreshold) {
                 shadowStorage.remove(ref);
@@ -300,8 +311,8 @@ public class StatisticsComputer {
      * lists in parallel, counts how often each pair of non-null values appears
      * at the same position, and records these statistics using the {@code statistics} object.
      */
-    private void computeValueCountsofValuePairs() {
-        List<Object> indices = new ArrayList<>(shadowStorage.keySet());
+    private void computeValueCountsOfValuePairs() {
+        List<QName> indices = new ArrayList<>(shadowStorage.keySet());
 
         for (int x = 0; x < indices.size() - 1; x++) {
             for (int y = x + 1; y < indices.size(); y++) {
@@ -321,8 +332,8 @@ public class StatisticsComputer {
 
                 if (!pairCounts.isEmpty()) {
                     ShadowAttributeTupleStatisticsType tuple = statistics.beginAttributeTuple()
-                            .ref((QName) indices.get(x))
-                            .ref((QName) indices.get(y));
+                            .ref(toAttributeRef(indices.get(x)))
+                            .ref(toAttributeRef(indices.get(y)));
                     for (Map.Entry<String, Map<String, Integer>> entry1 : pairCounts.entrySet()) {
                         for (Map.Entry<String, Integer> entry2 : entry1.getValue().entrySet()) {
                             tuple

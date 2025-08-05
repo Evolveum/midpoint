@@ -241,10 +241,10 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
-            <xsd:element name="ref" type="xsd:QName">
+            <xsd:element name="ref" type="t:ItemPathType">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Attribute name (or later, path). Exact format is to be decided.
+                        Attribute path, like "c:attributes/ri:login" or "c:activation/c:administrativeStatus".
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
@@ -325,10 +325,10 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
-            <xsd:element name="ref" type="xsd:QName" minOccurs="2" maxOccurs="unbounded">
+            <xsd:element name="ref" type="t:ItemPathType" minOccurs="2" maxOccurs="unbounded">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Attributes names (or paths). Exact format is to be decided.
+                        Attribute paths, like "c:attributes/ri:login" or "c:activation/c:administrativeStatus".
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
@@ -807,8 +807,12 @@
             <xsd:element name="name" type="t:ItemPathType">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Path to the attribute. Although usually having a size of 1 (e.g., "icfs:name" or "c:givenName"),
-                        sometimes it contains multiple segments, like "c:activation/c:validFrom".
+                        Path to the attribute (item). Examples:
+
+                        - c:givenName
+                        - c:attributes/icfs:name
+                        - c:attributes/ri:login
+                        - c:activation/c:validFrom
 
                         Individual segments may include an XML namespace prefix, typically "ri:", "icfs:", or "c:".
                     </xsd:documentation>
@@ -994,14 +998,14 @@
             <xsd:element name="applicationAttribute" type="t:ItemPathType">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Name the of application-side attribute.
+                        Path the of application-side attribute, like "c:attributes/ri:login".
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="midPointAttribute" type="t:ItemPathType">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Name the of midPoint-side attribute.
+                        Path the of midPoint-side attribute, like "c:name".
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
@@ -1021,10 +1025,11 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
-            <xsd:element name="applicationAttribute" type="tns:SiAttributeDefinitionType">
+            <xsd:element name="applicationAttribute" type="tns:SiAttributeDefinitionType" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Definition of the attribute at the application side.
+                        Definition of the attribute(s) at the application side.
+                        There must be exactly one for outbound mappings.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
@@ -1032,7 +1037,7 @@
                 <xsd:annotation>
                     <xsd:documentation>
                         Definition of the attribute(s) at the midPoint side.
-                        There can be zero or multiple ones when dealing with outbound mappings.
+                        There must be exactly one for inbound mappings.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
@@ -1063,18 +1068,19 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
-            <xsd:element name="application" type="tns:SiAttributeExampleType">
+            <xsd:element name="application" type="tns:SiAttributeExampleType" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
                     <xsd:documentation>
                         Attribute name and values at the application's side.
+                        For outbound mappings, there should be exactly one object (name + values) here.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="midPoint" type="tns:SiAttributeExampleType" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Attribute name and values at the midPoint side. For inbound mappings, there should be exactly one
-                        object (name + values) here. For outbound mappings, there could be zero, one, or more objects here.
+                        Attribute name and values at the midPoint side.
+                        For inbound mappings, there should be exactly one object (name + values) here.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
@@ -1094,7 +1100,7 @@
             <xsd:element name="name" type="t:ItemPathType">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Attribute name (or, more precisely, path).
+                        Attribute path, like "c:attributes/ri:login" or "c:activation/c:administrativeStatus".
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>

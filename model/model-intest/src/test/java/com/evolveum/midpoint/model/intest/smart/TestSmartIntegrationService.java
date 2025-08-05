@@ -7,13 +7,11 @@
 
 package com.evolveum.midpoint.model.intest.smart;
 
-import static com.evolveum.midpoint.schema.constants.SchemaConstants.ICFS_NAME;
-
+import static com.evolveum.midpoint.schema.constants.SchemaConstants.*;
 import static com.evolveum.midpoint.schema.processor.ResourceObjectTypeIdentification.ACCOUNT_DEFAULT;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import static com.evolveum.midpoint.schema.constants.SchemaConstants.NS_RI;
 import static com.evolveum.midpoint.test.util.MidPointTestConstants.TEST_RESOURCES_PATH;
 
 import java.io.File;
@@ -189,10 +187,10 @@ public class TestSmartIntegrationService extends AbstractEmptyModelIntegrationTe
                     () -> new MockServiceClientImpl(
                             new SiMatchSchemaResponseType()
                                     .attributeMatch(new SiAttributeMatchSuggestionType()
-                                            .applicationAttribute(ICFS_NAME.toBean())
+                                            .applicationAttribute(ICFS_NAME_PATH.toBean())
                                             .midPointAttribute(UserType.F_NAME.toBean()))
                                     .attributeMatch(new SiAttributeMatchSuggestionType()
-                                            .applicationAttribute(DummyBasicScenario.Account.AttributeNames.PERSONAL_NUMBER.q().toBean())
+                                            .applicationAttribute(DummyBasicScenario.Account.AttributeNames.PERSONAL_NUMBER.path().toBean())
                                             .midPointAttribute(UserType.F_PERSONAL_NUMBER.toBean())))); // TODO other matches
         }
 

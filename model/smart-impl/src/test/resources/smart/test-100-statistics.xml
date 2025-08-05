@@ -7,11 +7,12 @@
 
 <statistics
         xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
         xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         xsi:type="ShadowObjectClassStatisticsType">
     <attribute>
-        <ref>icfs:name</ref>
+        <ref>c:attributes/icfs:name</ref>
         <missingValueCount>10</missingValueCount>
     </attribute>
     <size>1000</size>

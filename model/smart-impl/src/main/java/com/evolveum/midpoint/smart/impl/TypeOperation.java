@@ -62,7 +62,8 @@ class TypeOperation extends Operation {
         return serviceAdapter.suggestFocusType(
                 typeDefinition.getTypeIdentification(),
                 typeDefinition.getObjectClassDefinition(),
-                typeDefinition.getDelineation());
+                typeDefinition.getDelineation(),
+                resource);
     }
 
     /**
@@ -81,7 +82,7 @@ class TypeOperation extends Operation {
     CorrelationSuggestionType suggestCorrelation() throws SchemaException {
         var correlators = KnownCorrelator.getAllFor(getFocusTypeDefinition().getCompileTimeClass());
         var attributeDefinitionsForCorrelators =
-                serviceAdapter.suggestCorrelationMappings(typeDefinition, getFocusTypeDefinition(), correlators);
+                serviceAdapter.suggestCorrelationMappings(typeDefinition, getFocusTypeDefinition(), correlators, resource);
         var suggestion = new CorrelationSuggestionType();
         if (!attributeDefinitionsForCorrelators.isEmpty()) {
             var first = attributeDefinitionsForCorrelators.get(0);
@@ -100,7 +101,7 @@ class TypeOperation extends Operation {
             throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
             ConfigurationException, ObjectNotFoundException {
         var focusTypeDefinition = getFocusTypeDefinition();
-        var match = serviceAdapter.matchSchema(typeDefinition, focusTypeDefinition);
+        var match = serviceAdapter.matchSchema(typeDefinition, focusTypeDefinition, resource);
         if (match.getAttributeMatch().isEmpty()) {
             LOGGER.warn("No schema match found for {}. Returning empty suggestion.", this);
             return new MappingsSuggestionType();
@@ -110,8 +111,12 @@ class TypeOperation extends Operation {
 
         var suggestion = new MappingsSuggestionType();
         for (var attributeMatch : match.getAttributeMatch()) {
-            var shadowAttrName = attributeMatch.getApplicationAttribute().getItemPath().asSingleNameOrFail();
-            var shadowAttrPath = ShadowType.F_ATTRIBUTES.append(shadowAttrName);
+            var shadowAttrPath = attributeMatch.getApplicationAttribute().getItemPath();
+            if (shadowAttrPath.size() != 2 || !shadowAttrPath.startsWith(ShadowType.F_ATTRIBUTES)) {
+                LOGGER.warn("Ignoring attribute {}. It is not a traditional attribute.", shadowAttrPath);
+                continue; // TODO implement support for activation etc
+            }
+            var shadowAttrName = shadowAttrPath.rest().asSingleNameOrFail();
             var shadowAttrDef = typeDefinition.findSimpleAttributeDefinition(shadowAttrName);
             if (shadowAttrDef == null) {
                 LOGGER.warn("No shadow attribute definition found for {}. Skipping mapping suggestion.", shadowAttrName);
@@ -125,7 +130,7 @@ class TypeOperation extends Operation {
             }
             suggestion.getAttributeMappings().add(
                     serviceAdapter.suggestMapping(
-                            shadowAttrName, shadowAttrDef, focusPropPath, focusPropDef,
+                            shadowAttrPath, shadowAttrDef, focusPropPath, focusPropDef,
                             extractPairs(ownedShadows, shadowAttrPath, focusPropPath)));
         }
         return suggestion;
