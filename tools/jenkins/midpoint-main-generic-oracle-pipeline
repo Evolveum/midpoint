@@ -129,6 +129,10 @@ spec:
           value: 'AL32UTF8'
         - name: ORACLE_PWD
           value: Heslo123
+        - name: ENABLE_ARCHIVELOG
+          value: 'false'
+        - name: ENABLE_FORCE_LOGGING
+          value: 'false'
       volumeMounts:
         - name: pvc
           mountPath: /opt/oracle/oradata
@@ -143,8 +147,9 @@ EOF
 
 echo
 # 10 => 10Gi space, 5 is not enough for our tests and causes errors:
+# ORA-00257: Archiver error. Connect AS SYSDBA only until resolved. (Oracle 23ai)
 # ORA-01691: unable to extend lob segment MIDPOINT.SYS_LOB... by 1024 in tablespace USERS
-createPVC jenkins test-db-${JOB_NAME}-${BUILD_NUMBER} 15 | tee ../logs-${JOB_NAME}-${BUILD_NUMBER}/dbpvc
+createPVC jenkins test-db-${JOB_NAME}-${BUILD_NUMBER} 10 | tee ../logs-${JOB_NAME}-${BUILD_NUMBER}/dbpvc
 createDBPod jenkins test-db ${JOB_NAME}-${BUILD_NUMBER} test-db-${JOB_NAME}-${BUILD_NUMBER} |
     tee ../logs-${JOB_NAME}-${BUILD_NUMBER}/dbpod
 pvcdbname="\$(cat ../logs-${JOB_NAME}-${BUILD_NUMBER}/dbpvc)"
