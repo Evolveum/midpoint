@@ -18,10 +18,6 @@
         <identifier>archetype</identifier>
         <targetRef oid="00000000-0000-0000-0000-000000000330" type="ArchetypeType"/>
     </assignment>
-    <assignment id="2">
-        <identifier>org-ad-hoc-classifications</identifier>
-        <targetRef oid="f9259e1c-30af-4f69-b1f1-a2dd66234316" type="OrgType"/>
-    </assignment>
     <inducement id="3">
         <identifier>mark-focus</identifier>
         <documentation>
