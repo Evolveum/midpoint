@@ -210,6 +210,9 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> implements 
 
     private boolean isPreferCollectionView() {
         RoleCatalogQueryItem item = menuModel.getObject().getActiveMenu().getValue();
+        if (item == null || item.collection() == null) {
+            return false;
+        }
         Boolean prefer = item.collection().getPreferCollectionView();
         return Boolean.TRUE.equals(prefer);
     }
