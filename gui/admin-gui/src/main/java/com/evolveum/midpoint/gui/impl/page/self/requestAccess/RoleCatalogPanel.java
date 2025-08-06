@@ -190,20 +190,22 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> implements 
 
     private GuiObjectListViewType getCollectionRefView() {
         RoleCatalogQueryItem item = menuModel.getObject().getActiveMenu().getValue();
-        ObjectReferenceType collectionRef = item.collection().getCollectionRef();
-        if (collectionRef != null) {
-            PrismObject<ObjectCollectionType> objectCollection = WebModelServiceUtils.loadObject(collectionRef, page);
-            if (objectCollection != null) {
-                PrismObjectValue<?> value = objectCollection.getValue();
-                if (value != null) {
-                    ObjectCollectionType collection = (ObjectCollectionType) value.getValue();
-                    if (collection != null) {
-                       return collection.getDefaultView();
-                    }
-                }
-            }
+        if (item == null || item.collection() == null) {
+            return null;
         }
-        return null;
+
+        ObjectReferenceType collectionRef = item.collection().getCollectionRef();
+        if (collectionRef == null) {
+            return null;
+        }
+
+        PrismObject<ObjectCollectionType> objectCollection = WebModelServiceUtils.loadObject(collectionRef, page);
+        if (objectCollection == null) {
+            return null;
+        }
+
+        ObjectCollectionType collection = objectCollection.asObjectable();
+        return collection.getDefaultView();
     }
 
     private boolean isPreferCollectionView() {
@@ -897,7 +899,7 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> implements 
         updateQueryModelSearchAndParameters(item);
 
         TileTablePanel<?, ?> tilesTable = getTileTable();
-        ((ContainerableListPanel)tilesTable.getMainTable()).resetTable(target);
+        ((ContainerableListPanel) tilesTable.getMainTable()).resetTable(target);
 
         target.add(tilesTable);
         target.add(get(ID_MENU));
