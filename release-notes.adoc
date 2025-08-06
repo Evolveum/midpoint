@@ -80,8 +80,8 @@ This can be used for approval of indirect role assignments and similar cases. Se
 * There are two new functions in midPoint function library for access to "governance" users (approvers/owners): `getRoleMemberUsers`, `getServiceMemberUsers`.
 * Use delta's "visualizer" used by GUI also in notifications and other improvements in notifications. See bug:MID-6112[], bug:MID-10633[], bug:MID-10632[], bug:MID-10635[], bug:MID-10372[], bug:MID-10634[], bug:MID-10636[].
 * Built-in archetypes for organizational structures and locations.
-* xref:/midpoint/reference/roles-policies/identity-governance-rules/[Compliance-related] marks (no classification, unowned, privileged access), object collections and policies.
-* xref:/midpoint/reference/roles-policies/privileged-access/[`Privileged access` classification] automatically sets `Privileged access` mark for directly affected roles and users.
+* xrefv:/midpoint/reference/master/roles-policies/identity-governance-rules/[Compliance-related] marks (no classification, unowned, privileged access), object collections and policies.
+* xrefv:/midpoint/reference/master/roles-policies/privileged-access/[`Privileged access` classification] automatically sets `Privileged access` mark for directly affected roles and users.
 * Updated various libraries, mainly: Spring Boot, Tomcat, Hibernate, PostgresSQL JDBC driver.
 * Add OAuth 2 credential flow to mail servers notification configuration
 
