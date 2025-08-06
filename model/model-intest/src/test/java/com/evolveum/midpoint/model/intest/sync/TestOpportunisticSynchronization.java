@@ -76,7 +76,7 @@ public class TestOpportunisticSynchronization extends AbstractEmptyModelIntegrat
     /**
      * Test to cover MID-10729
      */
-    @Test(enabled = false)
+    @Test
     public void testOpportunisticSynchronization() throws Exception {
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -131,7 +131,6 @@ public class TestOpportunisticSynchronization extends AbstractEmptyModelIntegrat
 
         LOGGER.info("Importing shadow {} again", sourceShadow);
 
-        // todo this import is failing
         modelService.importFromResource(sourceShadow.getOid(), task, result);
 
         user = searchObjectByName(UserType.class, "jdoe", task, result);
