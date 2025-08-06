@@ -367,6 +367,8 @@ public class DefaultColumnUtils {
             propertiesToGet.add(TaskType.F_SUBTASK_REF);
         } else if (ResourceType.class.isAssignableFrom(type)) {
             propertiesToGet.add(ResourceType.F_CONNECTOR_REF);
+        } else if (AccessCertificationCampaignType.class.isAssignableFrom(type)) {
+            propertiesToGet.add(AccessCertificationCampaignType.F_OWNER_REF);
         }
 //        } else if (ShadowType.class.isAssignableFrom(type)) {
 //            getOperationOptionsBuilder = getOperationOptionsBuilder.raw();
