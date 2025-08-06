@@ -38,6 +38,12 @@
             </focus>
             <attribute>
                 <ref>icfs:name</ref>
+                <inbound>
+                    <target>
+                        <path>name</path>
+                    </target>
+                    <use>correlation</use>
+                </inbound>
                 <outbound>
                     <source>
                         <path>name</path>
