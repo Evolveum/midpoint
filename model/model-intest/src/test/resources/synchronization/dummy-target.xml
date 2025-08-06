@@ -39,6 +39,13 @@
             <attribute>
                 <ref>icfs:name</ref>
                 <inbound>
+                    <expression>
+                        <script>
+                            <code>
+                                input != null ? input.replaceFirst("target-", "") : null
+                            </code>
+                        </script>
+                    </expression>
                     <target>
                         <path>name</path>
                     </target>
