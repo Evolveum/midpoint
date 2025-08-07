@@ -74,42 +74,15 @@ public class StatisticsComputer {
     private final ShadowObjectClassStatisticsType statistics = new ShadowObjectClassStatisticsType();
 
     /**
-     * Attribute definitions for the relevant object class.
-     */
-    private final Collection<? extends ShadowAttributeDefinition<?, ?, ?, ?>> attributeDefinitions;
-
-    /**
      * Constructs a new statistics computer for the given object class definition.
      *
      * @param objectClassDef Resource object class definition.
      */
     public StatisticsComputer(ResourceObjectClassDefinition objectClassDef) {
-        this.attributeDefinitions = objectClassDef.getAttributeDefinitions();
-        initializeAttributeStatistics();
-        initializeValueCounts();
-        initializeShadowStorage();
-    }
-
-    /**
-     * Initializes attribute statistics objects for each attribute definition.
-     */
-    private void initializeAttributeStatistics() {
+        List<? extends ShadowAttributeDefinition<?, ?, ?, ?>> attributeDefinitions = objectClassDef.getAttributeDefinitions();
         for (ShadowAttributeDefinition<?, ?, ?, ?> attrDef : attributeDefinitions) {
             createAttributeStatisticsIfNeeded(attrDef.getItemName());
-        }
-    }
-
-    /**
-     * Initializes the value counts map for each attribute.
-     */
-    private void initializeValueCounts() {
-        for (ShadowAttributeDefinition<?, ?, ?, ?> attrDef : attributeDefinitions) {
             valueCounts.put(attrDef.getItemName(), new HashMap<>());
-        }
-    }
-
-    private void initializeShadowStorage() {
-        for (ShadowAttributeDefinition<?, ?, ?, ?> attrDef : attributeDefinitions) {
             shadowStorage.put(attrDef.getItemName(), new LinkedList<>());
         }
     }
@@ -131,9 +104,11 @@ public class StatisticsComputer {
      * converts internal maps to JAXB-compatible structures.
      */
     public void postProcessStatistics() {
+        // Value counts
         retainTopNValueCounts();
         populateJaxbAttributeStatistics();
-        removeAttributesWithLargeCardinalityFromShadowStorage();
+
+        // Cross-table value counts
         computeValueCountsOfValuePairs();
     }
 
@@ -188,23 +163,17 @@ public class StatisticsComputer {
      *
      * For each attribute with exactly one value, increments the occurrence count for that value,
      * and updates the unique value count if this is the first occurrence.
-     *
-     * @param shadow Shadow object to analyze.
      */
     private void updateValueCounts(ShadowType shadow) {
         for (ShadowAttributeStatisticsType stats : statistics.getAttribute()) {
-            var attrName = fromAttributeRef(stats.getRef());
-            List<?> attributeValues = ShadowUtil.getAttributeValues(shadow, attrName);
+            var attributeName = fromAttributeRef(stats.getRef());
+            List<?> attributeValues = ShadowUtil.getAttributeValues(shadow, attributeName);
 
             if (attributeValues.size() != 1) {
                 continue;
             }
 
-            Map<String, Integer> attributeValueCounts = valueCounts.get(attrName);
-
-            String valueKey = String.valueOf(attributeValues.get(0));
-            int newCount = attributeValueCounts.merge(valueKey, 1, Integer::sum);
-
+            int newCount = valueCounts.get(attributeName).merge(String.valueOf(attributeValues.get(0)), 1, Integer::sum);
             if (newCount == 1) {
                 stats.setUniqueValueCount(stats.getUniqueValueCount() + 1);
             }
@@ -217,17 +186,9 @@ public class StatisticsComputer {
      * the entry is removed from the storage.
      */
     private void updateShadowStorage(ShadowType shadow) {
-        Iterator<Map.Entry<QName, LinkedList<Object>>> iter = shadowStorage.entrySet().iterator();
-        while (iter.hasNext()) {
-            Map.Entry<QName, LinkedList<Object>> entry = iter.next();
-            QName key = entry.getKey();
-            LinkedList<Object> list = entry.getValue();
-
-            List<?> values = ShadowUtil.getAttributeValues(shadow, key);
-            list.add(values.size() != 1 ? null : values.get(0));
-            if (valueCounts.get(key).size() > VALUE_COUNT_PAIR_HARD_LIMIT) {
-                iter.remove();
-            }
+        for (Map.Entry<QName, LinkedList<Object>> entry : shadowStorage.entrySet()) {
+            List<?> values = ShadowUtil.getAttributeValues(shadow, entry.getKey());
+            entry.getValue().add(values.size() == 1 ? values.get(0) : null);
         }
     }
 
@@ -284,24 +245,22 @@ public class StatisticsComputer {
     }
 
     /**
-     * Removes entries from {@code shadowStorage} for attributes whose unique value count
-     * exceeds a specified percentage threshold of the total statistics size.
+     * Returns a list of attribute QNames that are eligible for cross-table value count analysis.
      *
-     * The threshold is calculated as {@code statisticsSize * VALUE_COUNT_PAIR_PERCENTAGE_LIMIT}.
-     * Any attribute in {@code statistics} with a unique value count above this threshold
-     * will have its corresponding entry (by reference) removed from {@code shadowStorage}.
+     * An attribute is included if its unique value count does not exceed a dynamically calculated threshold,
+     * which is the lesser of a percentage of the total statistics size and a hard limit.
      */
-    private void removeAttributesWithLargeCardinalityFromShadowStorage() {
-        int statisticsSize = statistics.getSize();
-        double cardinalityThreshold = statisticsSize * VALUE_COUNT_PAIR_PERCENTAGE_LIMIT;
+    private List<QName> getAttributesForCrossTableValueCounts() {
+        List<QName> indices = new LinkedList<>();
+        double percentageThreshold = statistics.getSize() * VALUE_COUNT_PAIR_PERCENTAGE_LIMIT;
 
         for (ShadowAttributeStatisticsType attribute : statistics.getAttribute()) {
-            QName ref = fromAttributeRef(attribute.getRef());
-
-            if (shadowStorage.containsKey(ref) && attribute.getUniqueValueCount() > cardinalityThreshold) {
-                shadowStorage.remove(ref);
+            if (attribute.getUniqueValueCount() <= VALUE_COUNT_PAIR_HARD_LIMIT &&
+                    attribute.getUniqueValueCount() <= percentageThreshold) {
+                indices.add(fromAttributeRef(attribute.getRef()));
             }
         }
+        return indices;
     }
 
     /**
@@ -312,7 +271,7 @@ public class StatisticsComputer {
      * at the same position, and records these statistics using the {@code statistics} object.
      */
     private void computeValueCountsOfValuePairs() {
-        List<QName> indices = new ArrayList<>(shadowStorage.keySet());
+        List<QName> indices = getAttributesForCrossTableValueCounts();
 
         for (int x = 0; x < indices.size() - 1; x++) {
             for (int y = x + 1; y < indices.size(); y++) {
