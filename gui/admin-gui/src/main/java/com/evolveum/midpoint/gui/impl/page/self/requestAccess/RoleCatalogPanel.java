@@ -101,7 +101,7 @@ import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
  */
 public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> implements AccessRequestMixin {
 
-    private static final long serialVersionUID = 1L;
+    @Serial private static final long serialVersionUID = 1L;
 
     public static final String STEP_ID = "catalog";
 
@@ -188,6 +188,7 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> implements 
         };
     }
 
+    //returns view configuration for an active role catalog menu item if configured
     private GuiObjectListViewType getCollectionRefView() {
         RoleCatalogQueryItem item = menuModel.getObject().getActiveMenu().getValue();
         if (item == null || item.collection() == null) {
@@ -436,6 +437,8 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> implements 
 
         menuModel = new LoadableModel<>(false) {
 
+            @Serial private static final long serialVersionUID = 1L;
+
             @Override
             protected ListGroupMenu<RoleCatalogQueryItem> load() {
                 ListGroupMenu<RoleCatalogQueryItem> menu = loadRoleCatalogMenu();
@@ -456,6 +459,8 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> implements 
         setOutputMarkupId(true);
 
         ObjectDataProvider provider = new ObjectDataProvider(this, searchModel) {
+
+            @Serial private static final long serialVersionUID = 1L;
 
             @Override
             protected ObjectQuery getCustomizeContentQuery() {
@@ -490,16 +495,21 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> implements 
 
         TileTablePanel<CatalogTile<SelectableBean<ObjectType>>, SelectableBean<ObjectType>> tilesTable =
                 new TileTablePanel<>(ID_TILES, createViewToggleModel(), UserProfileStorage.TableId.PAGE_REQUEST_ACCESS_ROLE_CATALOG) {
+
+                    @Serial private static final long serialVersionUID = 1L;
+
                     @Override
                     protected WebMarkupContainer createTablePanel(String idTable, ISortableDataProvider<SelectableBean<ObjectType>, String> provider, UserProfileStorage.TableId tableId) {
                         return new ContainerableListPanel(idTable, RoleType.class) {
 
+                            @Serial private static final long serialVersionUID = 1L;
+
                             @Override
                             protected IColumn<SelectableBean<ObjectType>, String> createNameColumn(IModel displayModel, GuiObjectColumnType customColumn, ExpressionType expression) {
-                                if (getCollectionRefView() != null || RoleCatalogPanel.this.getRoleCatalogConfiguration().getViewConfiguration() != null) {
-                                    return RoleCatalogPanel.this.createNameColumn(customColumn.getDisplay());
-                                }
-                                return null;
+//                                if (isCollectionViewConfigured()) {
+                                    return RoleCatalogPanel.this.createNameColumn(displayModel, customColumn);
+//                                }
+//                                return null;
                             }
 
                             @Override
@@ -596,16 +606,7 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> implements 
 
                             @Override
                             public CompiledObjectCollectionView getObjectCollectionView() {
-                                GuiObjectListViewType refView = getCollectionRefView();
-                                if (refView != null && isPreferCollectionView()) {
-                                    return WebComponentUtil.getCompiledObjectCollectionView(refView, null, RoleCatalogPanel.this.getPageBase());
-                                }
-
-                                RoleCatalogType config = RoleCatalogPanel.this.getRoleCatalogConfiguration();
-                                GuiObjectListViewType view = config.getViewConfiguration();
-                                return WebComponentUtil.getCompiledObjectCollectionView(
-                                        view != null ? view : refView, null, RoleCatalogPanel.this.getPageBase()
-                                );
+                                return RoleCatalogPanel.this.getObjectCollectionView();
                             }
 
                             @Override
@@ -628,8 +629,8 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> implements 
                     }
 
                     @Override
-                    public BoxedTablePanel getTable() {
-                        return ((ContainerableListPanel) getMainTable()).getTable();
+                    public BoxedTablePanel getBoxedTablePanelComponent() {
+                        return ((ContainerableListPanel) get(ID_TABLE)).getTable();
                     }
 
                     @Override
@@ -665,6 +666,8 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> implements 
                     @Override
                     protected Component createTile(String id, IModel<CatalogTile<SelectableBean<ObjectType>>> model) {
                         return new CatalogTilePanel<>(id, model) {
+
+                            @Serial private static final long serialVersionUID = 1L;
 
                             @Override
                             protected void onAdd(AjaxRequestTarget target) {
@@ -780,7 +783,7 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> implements 
                 super.itemSelected(target, item);
 
                 tilesTable.getViewToggleModel().setObject(item.getObject().getValue());
-                tilesTable.getTable().refreshSearch();
+                tilesTable.getBoxedTablePanelComponent().refreshSearch();
                 target.add(RoleCatalogPanel.this);
             }
         };
@@ -802,6 +805,23 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> implements 
             }
         };
         add(menu);
+    }
+
+    private boolean isCollectionViewConfigured() {
+        return getCollectionRefView() != null || getRoleCatalogConfiguration().getViewConfiguration() != null;
+    }
+
+    private CompiledObjectCollectionView getObjectCollectionView() {
+        GuiObjectListViewType refView = getCollectionRefView();
+        if (refView != null && isPreferCollectionView()) {
+            return WebComponentUtil.getCompiledObjectCollectionView(refView, null, RoleCatalogPanel.this.getPageBase());
+        }
+
+        RoleCatalogType config = RoleCatalogPanel.this.getRoleCatalogConfiguration();
+        GuiObjectListViewType view = config.getViewConfiguration();
+        return WebComponentUtil.getCompiledObjectCollectionView(
+                view != null ? view : refView, null, RoleCatalogPanel.this.getPageBase()
+        );
     }
 
     private void updateQueryModelSearchAndParameters(ListGroupMenuItem<RoleCatalogQueryItem> item) {
@@ -902,7 +922,7 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> implements 
         updateQueryModelSearchAndParameters(item);
 
         TileTablePanel<?, ?> tilesTable = getTileTable();
-        ((ContainerableListPanel) tilesTable.getMainTable()).resetTable(target);
+        ((ContainerableListPanel) tilesTable.getTileTableComponent()).resetTable(target);
 
         target.add(tilesTable);
         target.add(get(ID_MENU));
@@ -1190,13 +1210,18 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> implements 
 
     private List<IColumn<SelectableBean<ObjectType>, String>> createColumns() {
         List<IColumn<SelectableBean<ObjectType>, String>> columns = new ArrayList<>();
-        columns.add(createNameColumn(null));
+//        columns.add(createNameColumn(null));
         columns.add(new PropertyColumn<>(createStringResource("ObjectType.description"), "value.description"));
         return columns;
     }
 
-    private AbstractColumn<SelectableBean<ObjectType>, String> createNameColumn(DisplayType display) {
-        return new AbstractColumn<>(createStringResource("ObjectType.name")) {
+    private AbstractColumn<SelectableBean<ObjectType>, String> createNameColumn(IModel<String> columnNameModel, GuiObjectColumnType customColumn) {
+        DisplayType display = customColumn != null ? customColumn.getDisplay() : null;
+
+        return new AbstractColumn<>(columnNameModel == null ? createStringResource("ObjectType.name") : columnNameModel) {
+
+            @Serial private static final long serialVersionUID = 1L;
+
             @Override
             public void populateItem(Item<ICellPopulator<SelectableBean<ObjectType>>> item, String id, IModel<SelectableBean<ObjectType>> row) {
                 if (display != null) {
