@@ -2244,7 +2244,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 
     @Override
     public List<? extends Serializable> searchObjectsFromCollection(
-            CollectionRefSpecificationType collectionConfig, QName typeForFilter,
+            CollectionRefSpecificationType collectionConfig, CompiledObjectCollectionView compiledCollection, QName typeForFilter,
             Collection<SelectorOptions<GetOperationOptions>> defaultOptions, ObjectPaging usedPaging,
             VariablesMap variables, Task task, OperationResult result)
             throws SchemaException, ObjectNotFoundException, SecurityViolationException,
@@ -2258,7 +2258,6 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
         if (typeForFilter != null) {
             type = prismContext.getSchemaRegistry().determineClassForType(typeForFilter);
         }
-        CompiledObjectCollectionView compiledCollection = compileObjectCollectionView(collectionConfig, type, task, task.getResult());
         ObjectQuery query = parseFilterFromCollection(compiledCollection, variables, usedPaging, task, result);
         type = determineTypeForSearch(compiledCollection, typeForFilter);
         Collection<SelectorOptions<GetOperationOptions>> options = determineOptionsForSearch(compiledCollection, defaultOptions);
@@ -2280,9 +2279,12 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
     }
 
     @Override
-    public Integer countObjectsFromCollection(CollectionRefSpecificationType collectionConfig, QName typeForFilter,
-            Collection<SelectorOptions<GetOperationOptions>> defaultOptions, ObjectPaging usedPaging, VariablesMap variables, Task task, OperationResult result)
-            throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+    public Integer countObjectsFromCollection(CollectionRefSpecificationType collectionConfig,
+            CompiledObjectCollectionView compiledCollection, QName typeForFilter,
+            Collection<SelectorOptions<GetOperationOptions>> defaultOptions, ObjectPaging usedPaging, VariablesMap variables,
+            Task task, OperationResult result)
+            throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException,
+            ConfigurationException, ExpressionEvaluationException {
         Class<? extends Containerable> type = null;
 
         if (collectionConfig.getCollectionRef() != null && collectionConfig.getCollectionRef().getOid() != null && collectionConfig.getFilter() != null) {
@@ -2292,7 +2294,6 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
         if (typeForFilter != null) {
             type = prismContext.getSchemaRegistry().determineClassForType(typeForFilter);
         }
-        CompiledObjectCollectionView compiledCollection = compileObjectCollectionView(collectionConfig, type, task, task.getResult());
         ObjectQuery query = parseFilterFromCollection(compiledCollection, variables, null, task, result);
         type = determineTypeForSearch(compiledCollection, typeForFilter);
         Collection<SelectorOptions<GetOperationOptions>> options = determineOptionsForSearch(compiledCollection, defaultOptions);

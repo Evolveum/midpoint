@@ -88,4 +88,4 @@ with `preciseTokenValue` = `true`, i.e. that it assigns sync tokens to individua
 
 The default behavior of Live synchronization activity is to _stop_ when an error is encountered.
 This is to ensure that no information is lost in such cases. This behavior can be changed via
-custom xref:/midpoint/reference/tasks/task-error-handling/[error handling specification].
+custom xref:/midpoint/reference/tasks/activities/error-handling/[error handling specification].

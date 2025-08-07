@@ -10,6 +10,7 @@ import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.web.util.ExpressionValidator;
 
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxEventBehavior;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -114,6 +115,15 @@ public abstract class PrismValuePanel<T, IW extends ItemWrapper, VW extends Pris
                 }
             }
         };
+        removeButton.add(new VisibleBehaviour(this::isRemoveButtonVisible));
+        removeButton.add(AttributeModifier.replace("title", () -> {
+            if (isRemoveButtonVisible()) {
+                String value = this.getModelObject().getParent().getDisplayName();
+                return getString("PrismValuePanel.button.deleteDetailed", value);
+            }
+            return getString("PrismValuePanel.button.delete");
+        }));
+
         removeButton.add(new VisibleBehaviour(this::isRemoveButtonVisible));
         buttonContainer.add(removeButton);
 
