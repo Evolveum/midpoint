@@ -53,6 +53,7 @@ Also, increased the size of the http request header size to cope with big header
 *Important*: be aware of overriding total request size (e.g. header size or multipart parts) in your environment in case of using custom settings (e.g. in custom application.yml or through JVM arguments).
 The recommended values are: max-part-header-size: 768; max-part-count: 100.
 See bug:MID-10748[].
+* Fixed the possibility to modify the filter in the marking rule. See bug:MID-10405[].
 
 == Changes with Respect To Version 4.9.2
 
