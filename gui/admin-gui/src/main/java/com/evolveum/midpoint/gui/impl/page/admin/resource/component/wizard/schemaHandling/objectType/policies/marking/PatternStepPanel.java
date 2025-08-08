@@ -49,7 +49,11 @@ public class PatternStepPanel extends AbstractFormWizardStepPanel<ResourceDetail
 
     @Override
     protected IModel<? extends PrismContainerWrapper> getContainerFormModel() {
-        return PrismContainerWrapperModel.fromContainerValueWrapper(valueModel, ShadowMarkingConfigurationType.F_PATTERN);
+        IModel<? extends PrismContainerWrapper> containerModel
+                = PrismContainerWrapperModel.fromContainerValueWrapper(valueModel, ShadowMarkingConfigurationType.F_PATTERN);
+        containerModel.getObject().setShowEmpty(true, true);
+        containerModel.getObject().setExpanded(true);
+        return containerModel;
     }
 
     @Override
@@ -103,6 +107,15 @@ public class PatternStepPanel extends AbstractFormWizardStepPanel<ResourceDetail
 
     @Override
     protected boolean checkMandatory(ItemWrapper itemWrapper) {
+        return false;
+    }
+
+    @Override
+    protected boolean isExpandedButtonVisible() {
+        //there is a condition in the VerticalFormContainerHeaderPanel.initLayout which avoids adding
+        // a header button click action in case of multivalue containers.
+        //not sure about a purpose of that condition, therefore not changing it
+        //but as pattern container is multivalue, it's not clickable so no sense to show it
         return false;
     }
 }

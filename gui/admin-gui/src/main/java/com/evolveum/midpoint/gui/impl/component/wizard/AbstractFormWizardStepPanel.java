@@ -73,12 +73,21 @@ public abstract class AbstractFormWizardStepPanel<ODM extends ObjectDetailsModel
                 return AbstractFormWizardStepPanel.this.isShowEmptyButtonVisible();
             }
 
+            @Override
+            protected boolean isExpandedButtonVisible() {
+                return AbstractFormWizardStepPanel.this.isExpandedButtonVisible();
+            }
+
         };
         panel.setOutputMarkupId(true);
         add(panel);
     }
 
     protected boolean isShowEmptyButtonVisible() {
+        return true;
+    }
+
+    protected boolean isExpandedButtonVisible() {
         return true;
     }
 
