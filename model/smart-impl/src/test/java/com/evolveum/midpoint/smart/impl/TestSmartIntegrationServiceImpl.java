@@ -240,6 +240,105 @@ public class TestSmartIntegrationServiceImpl extends AbstractSmartIntegrationTes
         }
     }
 
+    private void addDummyAccountsWithAffixes() throws Exception {
+        var c = dummyForObjectTypes.getController();
+        c.addAccount("carol")
+                .addAttributeValues(DummyScenario.Account.AttributeNames.FULLNAME.local(), "Carol Danvers")
+                .addAttributeValues(DummyScenario.Account.AttributeNames.PERSONAL_NUMBER.local(), "adm_123")
+                .addAttributeValues(DummyScenario.Account.AttributeNames.EMAIL.local(), "carol.prod@evolveum.com")
+                .addAttributeValues(DummyScenario.Account.AttributeNames.STATUS.local(), "active")
+                .addAttributeValues(DummyScenario.Account.AttributeNames.TYPE.local(), "employee")
+                .addAttributeValues(DummyScenario.Account.AttributeNames.DEPARTMENT.local(), "IT");
+
+        c.addAccount("dave")
+                .addAttributeValues(DummyScenario.Account.AttributeNames.FULLNAME.local(), "Dave Grohl")
+                .addAttributeValues(DummyScenario.Account.AttributeNames.PERSONAL_NUMBER.local(), "adm_456")
+                .addAttributeValues(DummyScenario.Account.AttributeNames.EMAIL.local(), "dave.priv@evolveum.com")
+                .addAttributeValues(DummyScenario.Account.AttributeNames.STATUS.local(), "inactive")
+                .addAttributeValues(DummyScenario.Account.AttributeNames.TYPE.local(), "manager")
+                .addAttributeValues(DummyScenario.Account.AttributeNames.DEPARTMENT.local(), "Finance");
+
+        c.addAccount("susan")
+                .addAttributeValues(DummyScenario.Account.AttributeNames.FULLNAME.local(), "Susan Calvin")
+                .addAttributeValues(DummyScenario.Account.AttributeNames.PERSONAL_NUMBER.local(), "adm789")
+                .addAttributeValues(DummyScenario.Account.AttributeNames.EMAIL.local(), "susan.adm@evolveum.com")
+                .addAttributeValues(DummyScenario.Account.AttributeNames.STATUS.local(), "active")
+                .addAttributeValues(DummyScenario.Account.AttributeNames.TYPE.local(), "contractor")
+                .addAttributeValues(DummyScenario.Account.AttributeNames.DEPARTMENT.local(), "Engineering");
+
+        c.addAccount("tom")
+                .addAttributeValues(DummyScenario.Account.AttributeNames.FULLNAME.local(), "Tom Sawyer")
+                .addAttributeValues(DummyScenario.Account.AttributeNames.PERSONAL_NUMBER.local(), "usr_321")
+                .addAttributeValues(DummyScenario.Account.AttributeNames.EMAIL.local(), "tom.usr@evolveum.com")
+                .addAttributeValues(DummyScenario.Account.AttributeNames.STATUS.local(), "inactive")
+                .addAttributeValues(DummyScenario.Account.AttributeNames.TYPE.local(), "intern")
+                .addAttributeValues(DummyScenario.Account.AttributeNames.DEPARTMENT.local(), "Marketing");
+
+        c.addAccount("greg")
+                .addAttributeValues(DummyScenario.Account.AttributeNames.FULLNAME.local(), "Greg House")
+                .addAttributeValues(DummyScenario.Account.AttributeNames.PERSONAL_NUMBER.local(), "adm_654")
+                .addAttributeValues(DummyScenario.Account.AttributeNames.EMAIL.local(), "greg.user@evolveum.com")
+                .addAttributeValues(DummyScenario.Account.AttributeNames.STATUS.local(), "active")
+                .addAttributeValues(DummyScenario.Account.AttributeNames.TYPE.local(), "employee")
+                .addAttributeValues(DummyScenario.Account.AttributeNames.DEPARTMENT.local(), "Support");
+
+        c.addAccount("lisa")
+                .addAttributeValues(DummyScenario.Account.AttributeNames.FULLNAME.local(), "Lisa Simpson")
+                .addAttributeValues(DummyScenario.Account.AttributeNames.PERSONAL_NUMBER.local(), "adm_987")
+                .addAttributeValues(DummyScenario.Account.AttributeNames.EMAIL.local(), "lisa.eng@evolveum.com")
+                .addAttributeValues(DummyScenario.Account.AttributeNames.STATUS.local(), "active")
+                .addAttributeValues(DummyScenario.Account.AttributeNames.TYPE.local(), "manager")
+                .addAttributeValues(DummyScenario.Account.AttributeNames.DEPARTMENT.local(), "Engineering");
+
+        c.addAccount("mark")
+                .addAttributeValues(DummyScenario.Account.AttributeNames.FULLNAME.local(), "Mark Watney")
+                .addAttributeValues(DummyScenario.Account.AttributeNames.PERSONAL_NUMBER.local(), "int-741")
+                .addAttributeValues(DummyScenario.Account.AttributeNames.EMAIL.local(), "mark.ops@evolveum.com")
+                .addAttributeValues(DummyScenario.Account.AttributeNames.STATUS.local(), "inactive")
+                .addAttributeValues(DummyScenario.Account.AttributeNames.TYPE.local(), "contractor")
+                .addAttributeValues(DummyScenario.Account.AttributeNames.DEPARTMENT.local(), "IT");
+
+        c.addAccount("nina")
+                .addAttributeValues(DummyScenario.Account.AttributeNames.FULLNAME.local(), "Nina Sharp")
+                .addAttributeValues(DummyScenario.Account.AttributeNames.PERSONAL_NUMBER.local(), "svc_852.int")
+                .addAttributeValues(DummyScenario.Account.AttributeNames.EMAIL.local(), "nina.svc@evolveum.com")
+                .addAttributeValues(DummyScenario.Account.AttributeNames.STATUS.local(), "active")
+                .addAttributeValues(DummyScenario.Account.AttributeNames.TYPE.local(), "intern")
+                .addAttributeValues(DummyScenario.Account.AttributeNames.DEPARTMENT.local(), "HR");
+
+        c.addAccount("oliver")
+                .addAttributeValues(DummyScenario.Account.AttributeNames.FULLNAME.local(), "Oliver Queen")
+                .addAttributeValues(DummyScenario.Account.AttributeNames.PERSONAL_NUMBER.local(), "int.963_int")
+                .addAttributeValues(DummyScenario.Account.AttributeNames.EMAIL.local(), "oliver.int@evolveum.com")
+                .addAttributeValues(DummyScenario.Account.AttributeNames.STATUS.local(), "inactive")
+                .addAttributeValues(DummyScenario.Account.AttributeNames.TYPE.local(), "employee")
+                .addAttributeValues(DummyScenario.Account.AttributeNames.DEPARTMENT.local(), "Sales");
+
+        c.addAccount("peter")
+                .addAttributeValues(DummyScenario.Account.AttributeNames.FULLNAME.local(), "Peter Parker")
+                .addAttributeValues(DummyScenario.Account.AttributeNames.PERSONAL_NUMBER.local(), "int_159")
+                .addAttributeValues(DummyScenario.Account.AttributeNames.EMAIL.local(), "peter.ext@evolveum.com")
+                .addAttributeValues(DummyScenario.Account.AttributeNames.STATUS.local(), "active")
+                .addAttributeValues(DummyScenario.Account.AttributeNames.TYPE.local(), "manager")
+                .addAttributeValues(DummyScenario.Account.AttributeNames.DEPARTMENT.local(), "Marketing");
+
+        c.addAccount("quinn")
+                .addAttributeValues(DummyScenario.Account.AttributeNames.FULLNAME.local(), "Quinn Fabray")
+                .addAttributeValues(DummyScenario.Account.AttributeNames.PERSONAL_NUMBER.local(), "int.753")
+                .addAttributeValues(DummyScenario.Account.AttributeNames.EMAIL.local(), "quinn.ro@evolveum.com")
+                .addAttributeValues(DummyScenario.Account.AttributeNames.STATUS.local(), "inactive")
+                .addAttributeValues(DummyScenario.Account.AttributeNames.TYPE.local(), "intern")
+                .addAttributeValues(DummyScenario.Account.AttributeNames.DEPARTMENT.local(), "Finance");
+
+        c.addAccount("rachel")
+                .addAttributeValues(DummyScenario.Account.AttributeNames.FULLNAME.local(), "Rachel Green")
+                .addAttributeValues(DummyScenario.Account.AttributeNames.PERSONAL_NUMBER.local(), "int-357")
+                .addAttributeValues(DummyScenario.Account.AttributeNames.EMAIL.local(), "rachel.rw@evolveum.com")
+                .addAttributeValues(DummyScenario.Account.AttributeNames.STATUS.local(), "active")
+                .addAttributeValues(DummyScenario.Account.AttributeNames.TYPE.local(), "employee")
+                .addAttributeValues(DummyScenario.Account.AttributeNames.DEPARTMENT.local(), "HR");
+    }
+
     @Test
     public void test050CountingAccountsNoPaging() throws Exception {
         executeCountingTest(
@@ -739,6 +838,25 @@ public class TestSmartIntegrationServiceImpl extends AbstractSmartIntegrationTes
             }
         }
     }
+
+    @Test
+    public void test230ComputeAffixesStatistics() throws Exception {
+        var task = getTestTask();
+        var result = task.getResult();
+
+        when("additional accounts are created, exceeding the percentage limit for unique attribute values");
+        addDummyAccountsWithAffixes();
+
+        when("computing statistics for accounts");
+        var statistics = computeStatistics(OC_ACCOUNT_QNAME, task, result);
+
+        then("the statistics are OK, value stats for particular attributes are eliminated");
+        displayValue("statistics", PrismContext.get().jsonSerializer().serializeRealValueContent(statistics));
+        assertThat(statistics).isNotNull();
+        assertThat(statistics.getAttribute()).isNotEmpty();
+
+    }
+
 
     @SuppressWarnings("SameParameterValue")
     private ShadowObjectClassStatisticsType computeStatistics(QName objectClassName, Task task, OperationResult result)

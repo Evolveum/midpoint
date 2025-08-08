@@ -9,6 +9,7 @@ package com.evolveum.midpoint.smart.impl.activities;
 
 import java.util.*;
 import java.util.function.Function;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAttributeTupleStatisticsType;
@@ -42,7 +43,7 @@ public class StatisticsComputer {
 
     /**
      * Cardinality limit for cross-table (pairwise attribute) statistics.
-     *
+     * <p>
      * If the number of unique value pairs for a particular attribute exceeds this limit,
      * the attribute is excluded from pairwise statistics.
      * TODO: Make this configurable.
@@ -58,8 +59,27 @@ public class StatisticsComputer {
     private static final double VALUE_COUNT_PAIR_PERCENTAGE_LIMIT = 0.05;
 
     /**
+     * Set of common affixes to match in attribute values.
+     */
+    private static final Set<String> AFFIXES = new HashSet<>(Arrays.asList(
+            "prod", "priv", "adm", "usr", "user", "eng", "ops", "svc", "int", "ext", "ro", "rw"
+    ));
+
+    /**
+     * List of delimiters used to separate affixes in strings.
+     */
+    private static final List<String> DELIMITERS = Arrays.asList(
+            ".", "-", "_"
+    );
+
+    /**
+     * Mapping from affix to compiled regex {@link Pattern} to match affix at string boundaries.
+     */
+    private static Map<String, Pattern> AFFIX_PATTERNS;
+
+    /**
      * Stores attribute values for each shadow, for use in cross-table (pairwise) statistics.
-     *
+     * <p>
      * Maps attribute QName to a list of observed values (one per processed shadow).
      */
     private final Map<QName, LinkedList<List<?>>> shadowStorage = new HashMap<>();
@@ -71,7 +91,7 @@ public class StatisticsComputer {
 
     /**
      * Constructs a new statistics computer for the given object class definition.
-     *
+     * <p>
      * @param objectClassDef Resource object class definition.
      */
     public StatisticsComputer(ResourceObjectClassDefinition objectClassDef) {
@@ -80,6 +100,25 @@ public class StatisticsComputer {
             createAttributeStatisticsIfNeeded(attrDef.getItemName());
             shadowStorage.put(attrDef.getItemName(), new LinkedList<>());
         }
+        initAffixPatterns();
+    }
+
+    /**
+     * Initializes {@link #AFFIX_PATTERNS} by constructing regex patterns for each affix
+     * using the defined delimiters. Patterns match affixes at the start or end of a string.
+     */
+    private void initAffixPatterns() {
+        String delimiterRegex = "[" + DELIMITERS.stream().map(Pattern::quote).collect(Collectors.joining()) + "]";
+
+        AFFIX_PATTERNS = AFFIXES.stream().collect(Collectors.toMap(
+                affix -> affix,
+                affix -> Pattern.compile(
+                        String.format("(^%s%s)|(%s%s$)",
+                                Pattern.quote(affix), delimiterRegex,
+                                delimiterRegex, Pattern.quote(affix)
+                        )
+                )
+        ));
     }
 
     /**
@@ -102,9 +141,10 @@ public class StatisticsComputer {
         // Value counts
         setMissingValueCountStatistics();
         setValueCountStatistics();
-
         // Cross-table value counts
         computeValueCountsOfValuePairs();
+        // Affixes statistics
+        setAffixesStatistics();
     }
 
     /**
@@ -187,7 +227,7 @@ public class StatisticsComputer {
     /**
      * Returns a map of the top N most frequent values from the provided value count map,
      * only if the highest count is greater than 1. The result is ordered by descending count.
-     *
+     * <p>
      * @param valueCounts a map of values and their occurrence counts
      * @return a LinkedHashMap of the top N most frequent values and their counts, or an empty map if all counts are 1
      */
@@ -198,7 +238,7 @@ public class StatisticsComputer {
 
         if (maxCount > 1) {
             return valueCounts.entrySet().stream()
-                    .sorted(Map.Entry.<String, Integer>comparingByValue(Comparator.reverseOrder()))
+                    .sorted(Map.Entry.comparingByValue(Comparator.reverseOrder()))
                     .limit(TOP_N_LIMIT)
                     .collect(Collectors.toMap(
                             Map.Entry::getKey,
@@ -234,7 +274,7 @@ public class StatisticsComputer {
 
     /**
      * Returns a list of attribute QNames that are eligible for cross-table value count analysis.
-     *
+     * <p>
      * An attribute is included if its unique value count does not exceed a dynamically calculated threshold,
      * which is the lesser of a percentage of the total statistics size and a hard limit.
      */
@@ -292,6 +332,42 @@ public class StatisticsComputer {
                         }
                     }
                 }
+            }
+        }
+    }
+
+    /**
+     * Computes the count of attribute values containing each affix for the given attribute key.
+     *
+     * @param attrKey the attribute key to analyze
+     * @return map from affix to the number of occurrences in the attribute's values
+     */
+    private Map<String, Integer> getAffixesValueCounts(QName attrKey) {
+        return shadowStorage.get(attrKey).stream()
+                .filter(inner -> inner.size() == 1)
+                .map(inner -> inner.get(0).toString())
+                .flatMap(str -> AFFIX_PATTERNS.entrySet().stream()
+                        .filter(e -> e.getValue().matcher(str).find())
+                        .map(Map.Entry::getKey)
+                )
+                .collect(Collectors.groupingBy(
+                        Function.identity(),
+                        Collectors.summingInt(e -> 1)
+                ));
+    }
+
+    /**
+     * Calculates and sets the statistics for affix occurrences in all shadow attribute values.
+     * Updates the statistics structure with the count of each affix found.
+     */
+    private void setAffixesStatistics() {
+        for (ShadowAttributeStatisticsType attribute : statistics.getAttribute()) {
+            QName attrKey = fromAttributeRef(attribute.getRef());
+            Map<String, Integer> affixCounts = getAffixesValueCounts(attrKey);
+            for (Map.Entry<String, Integer> entry : affixCounts.entrySet()) {
+                attribute.beginValuePatternCount()
+                        .value(entry.getKey())
+                        .count(entry.getValue());
             }
         }
     }
