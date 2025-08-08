@@ -32,6 +32,7 @@ class PrismComplexTypeDefinitionSerializer {
         var serializer = new PrismComplexTypeDefinitionSerializer(
                 objectDef.getComplexTypeDefinition(),
                 PathSet.of(
+                        FocusType.F_EXTENSION, // FIXME temporary hack, to avoid serializing custom namespaces (this breaks the simplistic JSON format used)
                         FocusType.F_ASSIGNMENT,
                         FocusType.F_IDENTITIES,
                         FocusType.F_LENS_CONTEXT,
