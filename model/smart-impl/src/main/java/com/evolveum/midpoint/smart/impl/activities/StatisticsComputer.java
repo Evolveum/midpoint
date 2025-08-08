@@ -8,6 +8,7 @@
 package com.evolveum.midpoint.smart.impl.activities;
 
 import java.util.*;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAttributeTupleStatisticsType;
@@ -57,16 +58,11 @@ public class StatisticsComputer {
     private static final double VALUE_COUNT_PAIR_PERCENTAGE_LIMIT = 0.05;
 
     /**
-     * Attribute value counts for each attribute (by attribute name).
-     */
-    private final Map<QName, Map<String, Integer>> valueCounts = new HashMap<>();
-
-    /**
      * Stores attribute values for each shadow, for use in cross-table (pairwise) statistics.
      *
      * Maps attribute QName to a list of observed values (one per processed shadow).
      */
-    private final Map<QName, LinkedList<Object>> shadowStorage = new HashMap<>();
+    private final Map<QName, LinkedList<List<?>>> shadowStorage = new HashMap<>();
 
     /**
      * JAXB statistics object being built.
@@ -82,7 +78,6 @@ public class StatisticsComputer {
         List<? extends ShadowAttributeDefinition<?, ?, ?, ?>> attributeDefinitions = objectClassDef.getAttributeDefinitions();
         for (ShadowAttributeDefinition<?, ?, ?, ?> attrDef : attributeDefinitions) {
             createAttributeStatisticsIfNeeded(attrDef.getItemName());
-            valueCounts.put(attrDef.getItemName(), new HashMap<>());
             shadowStorage.put(attrDef.getItemName(), new LinkedList<>());
         }
     }
@@ -94,8 +89,6 @@ public class StatisticsComputer {
      */
     public void process(ShadowType shadow) {
         statistics.setSize(statistics.getSize() + 1);
-        updateMissingValueCounts(shadow);
-        updateValueCounts(shadow);
         updateShadowStorage(shadow);
     }
 
@@ -104,9 +97,11 @@ public class StatisticsComputer {
      * converts internal maps to JAXB-compatible structures.
      */
     public void postProcessStatistics() {
+        assert shadowStorage.values().stream().map(List::size).distinct().count() <= 1;
+
         // Value counts
-        retainTopNValueCounts();
-        populateJaxbAttributeStatistics();
+        setMissingValueCountStatistics();
+        setValueCountStatistics();
 
         // Cross-table value counts
         computeValueCountsOfValuePairs();
@@ -147,96 +142,89 @@ public class StatisticsComputer {
     }
 
     /**
-     * Increments missing value counts for attributes not present in the shadow.
-     */
-    private void updateMissingValueCounts(ShadowType shadow) {
-        for (ShadowAttributeStatisticsType stats : statistics.getAttribute()) {
-            var attrName = fromAttributeRef(stats.getRef());
-            if (ShadowUtil.getAttributeValues(shadow, attrName).isEmpty()) {
-                stats.setMissingValueCount(stats.getMissingValueCount() + 1);
-            }
-        }
-    }
-
-    /**
-     * Updates value occurrence counts for each attribute in the given shadow.
-     *
-     * For each attribute with exactly one value, increments the occurrence count for that value,
-     * and updates the unique value count if this is the first occurrence.
-     */
-    private void updateValueCounts(ShadowType shadow) {
-        for (ShadowAttributeStatisticsType stats : statistics.getAttribute()) {
-            var attributeName = fromAttributeRef(stats.getRef());
-            List<?> attributeValues = ShadowUtil.getAttributeValues(shadow, attributeName);
-
-            if (attributeValues.size() != 1) {
-                continue;
-            }
-
-            int newCount = valueCounts.get(attributeName).merge(String.valueOf(attributeValues.get(0)), 1, Integer::sum);
-            if (newCount == 1) {
-                stats.setUniqueValueCount(stats.getUniqueValueCount() + 1);
-            }
-        }
-    }
-
-    /**
      * Updates the shadow storage with attribute values from the provided shadow object.
      * If the number of value-count pairs for a particular key exceeds the allowed limit,
      * the entry is removed from the storage.
      */
     private void updateShadowStorage(ShadowType shadow) {
-        for (Map.Entry<QName, LinkedList<Object>> entry : shadowStorage.entrySet()) {
-            List<?> values = ShadowUtil.getAttributeValues(shadow, entry.getKey());
-            entry.getValue().add(values.size() == 1 ? values.get(0) : null);
+        for (Map.Entry<QName, LinkedList<List<?>>> entry : shadowStorage.entrySet()) {
+            entry.getValue().add(ShadowUtil.getAttributeValues(shadow, entry.getKey()));
         }
     }
 
     /**
-     * Retains only the top N most frequent values for each attribute in {@code valueCounts}.
-     *
-     * For each attribute, if all values appear only once, clears its value counts.
-     * Otherwise, keeps only the top {@code TOP_N_LIMIT} values with the highest counts,
-     * discarding the rest.
+     * Calculates and sets the count of missing (null or empty) values for each attribute
+     * in the statistics object, updating the corresponding statistics entry.
      */
-    private void retainTopNValueCounts() {
+    private void setMissingValueCountStatistics() {
         for (ShadowAttributeStatisticsType stats : statistics.getAttribute()) {
             QName attrKey = fromAttributeRef(stats.getRef());
-            Map<String, Integer> counts = valueCounts.get(attrKey);
+            int emptyCount = (int) shadowStorage.get(attrKey).stream()
+                    .filter(list -> list == null || list.isEmpty())
+                    .count();
 
-            int maxCount = counts.values().stream().max(Integer::compareTo).orElse(0);
-
-            if (maxCount == 1) {
-                valueCounts.put(attrKey, new LinkedHashMap<>());
-            } else {
-                Map<String, Integer> topN = counts.entrySet().stream()
-                        .sorted(Map.Entry.comparingByValue(Comparator.reverseOrder()))
-                        .limit(TOP_N_LIMIT)
-                        .collect(Collectors.toMap(
-                                Map.Entry::getKey,
-                                Map.Entry::getValue,
-                                (a, b) -> a,
-                                LinkedHashMap::new
-                        ));
-                valueCounts.put(attrKey, topN);
-            }
+            stats.setMissingValueCount(emptyCount);
         }
     }
 
     /**
-     * Populates JAXB attribute statistics objects with value count data.
+     * Returns a map counting the occurrences of each unique single (size == 1) value
+     * for the specified attribute key within the shadow storage.
      *
-     * For each attribute, adds value/count pairs to the corresponding
-     * {@link ShadowAttributeStatisticsType} in the statistics object.
+     * @param attrKey the QName key of the attribute to analyze
+     * @return a map where keys are string representations of values and values are their counts
      */
-    private void populateJaxbAttributeStatistics() {
+    private Map<String, Integer> getValueCounts(QName attrKey) {
+        return shadowStorage.get(attrKey).stream()
+                .filter(list -> list.size() == 1)
+                .map(list -> String.valueOf(list.get(0)))
+                .collect(Collectors.groupingBy(
+                        Function.identity(),
+                        Collectors.summingInt(e -> 1)
+                ));
+    }
+
+    /**
+     * Returns a map of the top N most frequent values from the provided value count map,
+     * only if the highest count is greater than 1. The result is ordered by descending count.
+     *
+     * @param valueCounts a map of values and their occurrence counts
+     * @return a LinkedHashMap of the top N most frequent values and their counts, or an empty map if all counts are 1
+     */
+    private Map<String, Integer> getTopNValueCounts(Map<String, Integer> valueCounts) {
+        int maxCount = valueCounts.values().stream()
+                .max(Integer::compareTo)
+                .orElse(0);
+
+        if (maxCount > 1) {
+            return valueCounts.entrySet().stream()
+                    .sorted(Map.Entry.<String, Integer>comparingByValue(Comparator.reverseOrder()))
+                    .limit(TOP_N_LIMIT)
+                    .collect(Collectors.toMap(
+                            Map.Entry::getKey,
+                            Map.Entry::getValue,
+                            (a, b) -> a,
+                            LinkedHashMap::new)
+                    );
+        } else {
+            return new LinkedHashMap<>();
+        }
+    }
+
+    /**
+     * Calculates and sets unique value counts and top N value frequencies for each attribute
+     * in the statistics object, updating the corresponding statistics entry.
+     */
+    private void setValueCountStatistics() {
         for (ShadowAttributeStatisticsType stats : statistics.getAttribute()) {
             QName attrKey = fromAttributeRef(stats.getRef());
-            Map<String, Integer> counts = valueCounts.get(attrKey);
-            if (counts == null) {
-                continue;
-            }
-            for (Map.Entry<String, Integer> entry : counts.entrySet()) {
+            Map<String, Integer> valueCounts = getValueCounts(attrKey);
+
+            stats.setUniqueValueCount(valueCounts.size());
+
+            valueCounts = getTopNValueCounts(valueCounts);
+
+            for (Map.Entry<String, Integer> entry : valueCounts.entrySet()) {
                 stats.beginValueCount()
                         .value(entry.getKey())
                         .count(entry.getValue());
@@ -275,17 +263,18 @@ public class StatisticsComputer {
 
         for (int x = 0; x < indices.size() - 1; x++) {
             for (int y = x + 1; y < indices.size(); y++) {
-                List<Object> list1 = shadowStorage.get(indices.get(x));
-                List<Object> list2 = shadowStorage.get(indices.get(y));
-                Map<String, Map<String, Integer>> pairCounts = new HashMap<>();
+                LinkedList<List<?>> list1 = shadowStorage.get(indices.get(x));
+                LinkedList<List<?>> list2 = shadowStorage.get(indices.get(y));
+                assert list1.size() == list2.size();
 
-                int minSize = Math.min(list1.size(), list2.size());
-                for (int i = 0; i < minSize; i++) {
-                    Object s1 = list1.get(i);
-                    Object s2 = list2.get(i);
-                    if (s1 != null && s2 != null) {
-                        pairCounts.computeIfAbsent(s1.toString(), k -> new HashMap<>())
-                                .merge(s2.toString(), 1, Integer::sum);
+                Map<String, Map<String, Integer>> pairCounts = new HashMap<>();
+                for (int i = 0; i < list1.size(); i++) {
+                    List<?> s1 = list1.get(i);
+                    List<?> s2 = list2.get(i);
+                    if (s1 != null && s1.size() == 1
+                            && s2 != null && s2.size() == 1) {
+                        pairCounts.computeIfAbsent(s1.get(0).toString(), k -> new HashMap<>())
+                                .merge(s2.get(0).toString(), 1, Integer::sum);
                     }
                 }
 
