@@ -75,7 +75,7 @@ public class StatisticsComputer {
     /**
      * Mapping from affix to compiled regex {@link Pattern} to match affix at string boundaries.
      */
-    private static Map<String, Pattern> AFFIX_PATTERNS;
+    private static final Map<String, Pattern> AFFIX_PATTERNS = initAffixPatterns();
 
     /**
      * Stores attribute values for each shadow, for use in cross-table (pairwise) statistics.
@@ -107,10 +107,10 @@ public class StatisticsComputer {
      * Initializes {@link #AFFIX_PATTERNS} by constructing regex patterns for each affix
      * using the defined delimiters. Patterns match affixes at the start or end of a string.
      */
-    private void initAffixPatterns() {
+    private static Map<String, Pattern> initAffixPatterns() {
         String delimiterRegex = "[" + DELIMITERS.stream().map(Pattern::quote).collect(Collectors.joining()) + "]";
 
-        AFFIX_PATTERNS = AFFIXES.stream().collect(Collectors.toMap(
+        return AFFIXES.stream().collect(Collectors.toMap(
                 affix -> affix,
                 affix -> Pattern.compile(
                         String.format("(^%s%s)|(%s%s$)",
