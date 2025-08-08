@@ -188,6 +188,8 @@ See bug:MID-9737[] and bug:MID-9986[].
 * Refactored container properties panel (e.g. object details page) not to wrap each property value field into a form.
 This reduced the number of the csrf fields which is sent by request after the form submitting.
 Also, increased the size of the http request header size to cope with big headers.
+*Important*: be aware of overriding total request size (e.g. header size or multipart parts) in your environment in case of using custom settings (e.g. in custom application.yml or through JVM arguments).
+The recommended values are: max-part-header-size: 768; max-part-count: 100.
 See bug:MID-10748[].
 * Fixed "Select all" functionality in the assignment restriction popup while creating a delegation. See bug:MID-10757[].
 * Fixed loading and displaying the data on the Errors panel of the Task page. See bug:MID-10682[].
