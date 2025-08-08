@@ -43,8 +43,8 @@ public abstract class AssociationTypeTableWizardPanel extends SchemaHandlingType
     }
 
     @Override
-    protected void initTable(String tableId) {
-        AssociationTypesPanel table = new AssociationTypesPanel(tableId, getAssignmentHolderDetailsModel(), getConfiguration()) {
+    protected void initPanel(String panelId) {
+        AssociationTypesPanel panel = new AssociationTypesPanel(panelId, getAssignmentHolderDetailsModel(), getConfiguration()) {
             @Override
             protected void onEditValue(IModel<PrismContainerValueWrapper<ShadowAssociationTypeDefinitionType>> valueModel, AjaxRequestTarget target) {
                 AssociationTypeTableWizardPanel.this.onEditValue(valueModel, target);
@@ -55,8 +55,8 @@ public abstract class AssociationTypeTableWizardPanel extends SchemaHandlingType
                 AssociationTypeTableWizardPanel.this.onNewValue(value, containerModel, getObjectDetailsModels().createWrapperContext(), target, isDuplicate);
             }
         };
-        table.setOutputMarkupId(true);
-        add(table);
+        panel.setOutputMarkupId(true);
+        add(panel);
     }
 
     @Override

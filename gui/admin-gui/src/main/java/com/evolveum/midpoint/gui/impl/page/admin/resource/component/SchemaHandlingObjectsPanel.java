@@ -6,8 +6,10 @@
  */
 package com.evolveum.midpoint.gui.impl.page.admin.resource.component;
 
+import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.component.MultivalueContainerListPanel;
 import com.evolveum.midpoint.gui.impl.component.data.column.AbstractItemWrapperColumn;
@@ -20,6 +22,7 @@ import com.evolveum.midpoint.model.api.AssignmentObjectRelation;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.web.component.AjaxIconButton;
 import com.evolveum.midpoint.web.component.data.column.ColumnMenuAction;
 import com.evolveum.midpoint.web.component.form.MidpointForm;
@@ -35,13 +38,19 @@ import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.Model;
+import org.apache.wicket.model.StringResourceModel;
+import org.jetbrains.annotations.NotNull;
 
+import java.util.ArrayList;
 import java.util.List;
 
+import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.NoResourceObjectDto.*;
 
 public abstract class SchemaHandlingObjectsPanel<C extends Containerable> extends AbstractObjectMainPanel<ResourceType, ResourceDetailsModel> {
 
     private static final String ID_TABLE = "table";
+
     private static final String ID_FORM = "form";
 
     public SchemaHandlingObjectsPanel(String id, ResourceDetailsModel model, ContainerPanelConfigurationType config) {
@@ -52,7 +61,21 @@ public abstract class SchemaHandlingObjectsPanel<C extends Containerable> extend
         MidpointForm<?> form = new MidpointForm<>(ID_FORM);
         add(form);
 
-        MultivalueContainerListPanel<C> objectTypesPanel = new MultivalueContainerListPanel<C>(ID_TABLE, getSchemaHandlingObjectsType()) {
+        if (allowNoValuePanel() && hasNoValues()) {
+            form.add(createPanelForNoValue());
+            return;
+        }
+
+        WebMarkupContainer objectTypesPanel = createMultiValueListPanel();
+        form.add(objectTypesPanel);
+    }
+
+    public <C extends Containerable> IModel<PrismContainerWrapper<C>> createContainerModel() {
+        return PrismContainerWrapperModel.fromContainerWrapper(getObjectWrapperModel(), getTypesContainerPath());
+    }
+
+    private @NotNull MultivalueContainerListPanel<C> createMultiValueListPanel() {
+        return new MultivalueContainerListPanel<C>(ID_TABLE, getSchemaHandlingObjectsType()) {
             @Override
             protected boolean isCreateNewObjectVisible() {
                 return SchemaHandlingObjectsPanel.this.isCreateNewObjectVisible();
@@ -60,7 +83,7 @@ public abstract class SchemaHandlingObjectsPanel<C extends Containerable> extend
 
             @Override
             protected IModel<PrismContainerWrapper<C>> getContainerModel() {
-                return PrismContainerWrapperModel.fromContainerWrapper(getObjectWrapperModel(), getTypesContainerPath());
+                return createContainerModel();
             }
 
             @Override
@@ -152,7 +175,6 @@ public abstract class SchemaHandlingObjectsPanel<C extends Containerable> extend
                 onNewValue(value, getContainerModel(), target, isDuplicate);
             }
         };
-        form.add(objectTypesPanel);
     }
 
     private InlineMenuItem createShowLifecycleStatesInlineMenu() {
@@ -213,13 +235,121 @@ public abstract class SchemaHandlingObjectsPanel<C extends Containerable> extend
     protected abstract void onNewValue(
             PrismContainerValue<C> value, IModel<PrismContainerWrapper<C>> newWrapperModel, AjaxRequestTarget target, boolean isDuplicate);
 
+    protected abstract void onSuggestValue(
+            PrismContainerValue<C> value, IModel<PrismContainerWrapper<C>> newWrapperModel, AjaxRequestTarget target);
+
     protected abstract void onEditValue(IModel<PrismContainerValueWrapper<C>> valueModel, AjaxRequestTarget target);
 
     protected boolean isCreateNewObjectVisible() {
         return true;
     }
 
+    @SuppressWarnings("rawtypes")
     public MultivalueContainerListPanel getTable() {
-        return (MultivalueContainerListPanel) get(getPageBase().createComponentPath(ID_FORM, ID_TABLE));
+        Component component = get(getPageBase().createComponentPath(ID_FORM, ID_TABLE));
+        if (component instanceof MultivalueContainerListPanel) {
+            return (MultivalueContainerListPanel) component;
+        } else {
+            return null;
+        }
+    }
+
+    /**
+     * Creates a fallback UI panel to be displayed when the container model has no values.
+     * <p>
+     * This method constructs a {@link NoResourceObjectsTypePanel} that visually indicates the
+     * absence of configured resource object types and provides a set of actionable toolbar buttons
+     * (e.g., create new or suggest type).
+     * </p>
+     * @return A {@link Component} instance to be used as the panel when no values are present.
+     */
+    protected Component createPanelForNoValue() {
+        List<ToolbarButtonDto> toolbarButtons = new ArrayList<>();
+
+        ToolbarButtonDto createButtonDto = new ToolbarButtonDto(
+                createStringResource(getKeyOfTitleForCreateObjectButton()),
+                Model.of(getIconForCreateObjectButton()),
+                "btn btn-primary", true) {
+
+            @Override
+            public void action(AjaxRequestTarget ajaxRequestTarget) {
+                onNewValue(null, createContainerModel(), ajaxRequestTarget, false);
+            }
+        };
+        toolbarButtons.add(createButtonDto);
+
+        ToolbarButtonDto suggestButtonDto = new ToolbarButtonDto(
+                createStringResource(getKeyOfTitleForSuggestObjectButton()),
+                Model.of(getIconForSuggestObjectButton()),
+                "btn btn-default", true) {
+
+            @Override
+            public void action(AjaxRequestTarget ajaxRequestTarget) {
+                showSuggestConfirmDialog(getPageBase(),
+                        createStringResource(getKeyOfTitleForSuggestObjectButton()), ajaxRequestTarget);
+            }
+        };
+        toolbarButtons.add(suggestButtonDto);
+
+        return new NoResourceObjectsTypePanel(SchemaHandlingObjectsPanel.ID_TABLE, () -> new NoResourceObjectDto(
+                getTypesContainerPath(),
+                () -> getObjectDetailsModels(),
+                toolbarButtons));
+    }
+
+    /**
+     * Determines whether the panel should display a special UI component
+     * (e.g. {@link NoResourceObjectsTypePanel}) when there are no values
+     * present in the container.
+     */
+    protected boolean allowNoValuePanel() {
+        return false;
+    }
+
+    /**
+     * Checks whether the container at the specified path has any values.
+     * <p>
+     * This method inspects the {@link PrismObjectWrapper} associated with the current resource
+     * and attempts to retrieve the {@link PrismContainerWrapper} at the path defined by
+     * {@link #getTypesContainerPath()}. If the container does not exist or contains no values,
+     * the method returns {@code true}.
+     * </p>
+     *
+     * <p>This is typically used to decide whether to display the "no values" fallback panel.</p>
+     *
+     * @return {@code true} if the container is null or contains no values; {@code false} otherwise.
+     * @throws IllegalStateException if the container cannot be found due to schema issues.
+     */
+    protected boolean hasNoValues() {
+        PrismObjectWrapper<ResourceType> object = getObjectWrapperModel().getObject();
+        if (object == null) {
+            return true;
+        }
+
+        PrismContainerWrapper<C> typesContainer;
+        try {
+            typesContainer = object.findContainer(getTypesContainerPath());
+        } catch (SchemaException e) {
+            throw new IllegalStateException("Cannot find container for path: " + getTypesContainerPath(), e);
+        }
+        if (typesContainer == null) {
+            return true;
+        }
+
+        return typesContainer.getValues() == null || typesContainer.getValues().isEmpty();
+    }
+
+    protected void showSuggestConfirmDialog(
+            @NotNull PageBase pageBase,
+            StringResourceModel confirmModel, AjaxRequestTarget target) {
+        SmartSuggestConfirmationPanel dialog = new SmartSuggestConfirmationPanel(pageBase.getMainPopupBodyId(), confirmModel) {
+
+            @Override
+            public void yesPerformed(AjaxRequestTarget target) {
+                onSuggestValue(
+                        null, createContainerModel(), target);
+            }
+        };
+        pageBase.showMainPopup(dialog, target);
     }
 }

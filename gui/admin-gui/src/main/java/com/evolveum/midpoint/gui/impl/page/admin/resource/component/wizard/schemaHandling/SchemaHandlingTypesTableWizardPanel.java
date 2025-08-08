@@ -14,7 +14,6 @@ import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
 import com.evolveum.midpoint.gui.impl.component.MultivalueContainerListPanel;
 import com.evolveum.midpoint.gui.impl.component.wizard.AbstractWizardBasicPanel;
-import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.PageAssignmentHolderDetails;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.SchemaHandlingObjectsPanel;
 import com.evolveum.midpoint.prism.Containerable;
@@ -23,10 +22,11 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.component.dialog.ConfirmationPanel;
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ContainerPanelConfigurationType;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 
@@ -37,7 +37,8 @@ public abstract class SchemaHandlingTypesTableWizardPanel<C extends Containerabl
 
     private static final Trace LOGGER = TraceManager.getTrace(SchemaHandlingTypesTableWizardPanel.class);
 
-    private static final String ID_TABLE = "table";
+    private static final String ID_CARD_HEADER = "cardHeader";
+    private static final String ID_PANEL = "panel";
 
     public SchemaHandlingTypesTableWizardPanel(String id, ResourceDetailsModel model) {
         super(id, model);
@@ -46,16 +47,29 @@ public abstract class SchemaHandlingTypesTableWizardPanel<C extends Containerabl
     @Override
     protected void onBeforeRender() {
         super.onBeforeRender();
-        getTable().getTable().setShowAsCard(false);
+        applyShowAsCard();
+    }
+
+    private void applyShowAsCard() {
+        if(getPanel() != null) {
+            getPanel().getTable().setShowAsCard(false);
+        }
     }
 
     @Override
     protected void onInitialize() {
         super.onInitialize();
-        initTable(ID_TABLE);
+
+        WebMarkupContainer cardHeader = new WebMarkupContainer(ID_CARD_HEADER);
+        cardHeader.setOutputMarkupId(true);
+        cardHeader.add(new VisibleBehaviour(() -> getPanel() != null));
+        add(cardHeader);
+
+        initPanel(ID_PANEL);
+
     }
 
-    protected abstract void initTable(String tableId);
+    protected abstract void initPanel(String panelId);
 
     protected final void onNewValue(
             PrismContainerValue<C> value,
@@ -81,8 +95,10 @@ public abstract class SchemaHandlingTypesTableWizardPanel<C extends Containerabl
         onCreateValue(model, target, isDeprecate);
     }
 
-    public MultivalueContainerListPanel getTable() {
-        return ((SchemaHandlingObjectsPanel) get(ID_TABLE)).getTable();
+
+    @SuppressWarnings("rawtypes")
+    public MultivalueContainerListPanel getPanel() {
+        return ((SchemaHandlingObjectsPanel) get(ID_PANEL)).getTable();
     }
 
     protected final ContainerPanelConfigurationType getConfiguration(){
@@ -108,7 +124,10 @@ public abstract class SchemaHandlingTypesTableWizardPanel<C extends Containerabl
     }
 
     protected boolean isValid(AjaxRequestTarget target) {
-        return getTable().isValidFormComponents(target);
+        if (getPanel() == null) {
+            return true; // no table, no validation
+        }
+        return getPanel().isValidFormComponents(target);
     }
 
     @Override

@@ -12,7 +12,6 @@ import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.impl.component.data.column.AbstractItemWrapperColumn;
 import com.evolveum.midpoint.gui.impl.component.data.column.PrismPropertyWrapperColumn;
 import com.evolveum.midpoint.gui.impl.component.data.column.LifecycleStateColumn;
-import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.component.AssignmentHolderAssignmentPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
 import com.evolveum.midpoint.prism.ComplexTypeDefinition;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
@@ -108,7 +107,14 @@ public class ResourceObjectTypesPanel extends SchemaHandlingObjectsPanel<Resourc
     @Override
     protected void onNewValue(
             PrismContainerValue<ResourceObjectTypeDefinitionType> value, IModel<PrismContainerWrapper<ResourceObjectTypeDefinitionType>> newWrapperModel, AjaxRequestTarget target, boolean isDuplicate) {
-        getObjectDetailsModels().getPageResource().showObjectTypeWizard(value, target, newWrapperModel.getObject().getPath());
+        ResourceDetailsModel objectDetailsModels = getObjectDetailsModels();
+        objectDetailsModels.getPageResource().showObjectTypeWizard(value, target, newWrapperModel.getObject().getPath());
+    }
+
+    @Override
+    protected void onSuggestValue(PrismContainerValue<ResourceObjectTypeDefinitionType> value, IModel<PrismContainerWrapper<ResourceObjectTypeDefinitionType>> newWrapperModel, AjaxRequestTarget target) {
+        ResourceDetailsModel objectDetailsModels = getObjectDetailsModels();
+        objectDetailsModels.getPageResource().showSuggestObjectTypeWizard(target, createContainerModel().getObject().getPath());
     }
 
     @Override
@@ -118,5 +124,10 @@ public class ResourceObjectTypesPanel extends SchemaHandlingObjectsPanel<Resourc
                     target,
                     valueModel.getObject().getPath());
         }
+    }
+
+    @Override
+    protected boolean allowNoValuePanel() {
+        return true;
     }
 }
