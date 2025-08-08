@@ -35,6 +35,29 @@ The {release-version} release brings security, stability and miscellaneous bugfi
 * Security update for Apache Tomcat (CVE-2025-48988) and Apache Commons FileUpload2 (CVE-2025-48976)
 * bug:MID-9899[] Fixed issue with entitlement provisioning, situation when entitlement doesn't exist caused delete of the object that should get the entitlement.
 * Add OAuth 2 credential flow to mail servers notification configuration
+* Fixed manual unlock of the user. See bug:MID-9856[].
+* Improved the message on the mail nonce module panel during Reset password flow. See bug:MID-10679[].
+* Fixed schema fetch error. See bug:MID-10665[].
+* Fixed case details page displaying. See bug:MID-10690[].
+* Connid version was upgraded to 1.6.0.0. See bug:MID-10552[].
+* Fixed intent dropdown on Accounts/Entitlements page to persist after navigation . See bug:MID-10697[].
+* Fixed the search with upper case letters on the Projections panel. See bug:MID-10713[].
+* Fixed the reflexion of the custom system name on different pages. See bug:MID-10696[].
+* Fixed the initialization process of resource connector capabilities. See bug:MID-10644[], bug:MID-10676[].
+* Fixed "Select all" functionality in the assignment restriction popup while creating a delegation. See bug:MID-10757[].
+* Refactored container properties panel (e.g. object details page) not to wrap each property value field into a form.
+This reduced the number of the csrf fields which is sent by request after the form submitting.
+Also, increased the size of the http request header size to cope with big headers.
+*Important*: be aware of overriding total request size (e.g. header size or multipart parts) in your environment in case of using custom settings (e.g. in custom application.yml or through JVM arguments).
+The recommended values are: max-part-header-size: 1024; max-part-count: 300.
+See bug:MID-10748[], bug:MID-10744[].
+* Fixed 500 error while creating an application role with a lack of permission. See bug:MID-10778[].
+* Fixed default sort property for "My requests" widget on Self Dashboard page. See bug:MID-10772[].
+* Fixed authorization re-initialization during CompiledGuiProfile refresh functionality.
+Made a restructuring of the code.
+The goal is to decrease the time period between clearing the authorizations (and other privileges limitations) and filling them in.
+See bug:MID-10781[].
+* Fixed inconsistent type of input variable after passing ObjectTemplate validation. See bug:MID-10773[].
 
 == Changes with Respect To Version 4.8.7
 
