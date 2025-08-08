@@ -190,12 +190,19 @@ This reduced the number of the csrf fields which is sent by request after the fo
 Also, increased the size of the http request header size to cope with big headers.
 *Important*: be aware of overriding total request size (e.g. header size or multipart parts) in your environment in case of using custom settings (e.g. in custom application.yml or through JVM arguments).
 The recommended values are: max-part-header-size: 768; max-part-count: 100.
-See bug:MID-10748[].
+See bug:MID-10748[], .
 * Fixed "Select all" functionality in the assignment restriction popup while creating a delegation. See bug:MID-10757[].
 * Fixed loading and displaying the data on the Errors panel of the Task page. See bug:MID-10682[].
 * Fixed NPE on the Internals configuration page. See bug:MID-10749[].
 * Fixed "Matching rule" dropdown in Attribute override settings. See bug:MID-10710[].
 * Fixed 500 error while creating an application role with a lack of permission. See bug:MID-10778[].
+* Fixed intent dropdown on Accounts/Entitlements page to persist after navigation . See bug:MID-10697[].
+* Fixed default sort property for "My requests" widget on Self Dashboard page. See bug:MID-10772[].
+* Fixed authorization re-initialization during CompiledGuiProfile refresh functionality.
+Made a restructuring of the code.
+The goal is to decrease the time period between clearing the authorizations (and other privileges limitations) and filling them in.
+See bug:MID-10781[].
+* Fixed inconsistent type of input variable after passing ObjectTemplate validation. See bug:MID-10773[].
 
 === Releases Of Other Components
 
