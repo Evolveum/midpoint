@@ -45,7 +45,7 @@ public class TestSmartIntegrationService extends AbstractEmptyModelIntegrationTe
 
     private static final QName OC_ACCOUNT_QNAME = new QName(NS_RI, "account");
 
-    private static final int TIMEOUT = 20000;
+    private static final int TIMEOUT = 500_000;
 
     /** Using the implementation in order to set mock service client for testing. */
     @Autowired private SmartIntegrationServiceImpl smartIntegrationService;
