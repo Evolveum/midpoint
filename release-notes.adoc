@@ -35,6 +35,25 @@ Overall, midPoint 4.9 is a major step from the past into the future.
 {% include release-dedication.html content=dedicationContent %}
 ++++
 
+== Changes with Respect To Version 4.9.3
+
+* bug:MID-10739[] Use SecureRandom instead of Random.
+* Security update for Apache Tomcat (CVE-2025-48988) and Apache Commons FileUpload2 (CVE-2025-48976)
+* Add OAuth 2 credential flow to mail servers notification configuration
+* Fixed manual unlock of the user. See bug:MID-9856[].
+* Connid version was upgraded to 1.6.0.0. See bug:MID-10552[].
+* Fixed the error during saving the extension schema if there is ObjectReferenceType item. See bug:MID-10693[].
+* Improved the message on the mail nonce module panel during Reset password flow. See bug:MID-10679[].
+* Fixed the initialization process of resource connector capabilities. See bug:MID-10644[], bug:MID-10676[].
+* Fixed "Select all" functionality in the assignment restriction popup while creating a delegation. See bug:MID-10757[].
+* Fixed NPE on the Internals configuration page. See bug:MID-10749[].
+* Refactored container properties panel (e.g. object details page) not to wrap each property value field into a form.
+This reduced the number of the csrf fields which is sent by request after the form submitting.
+Also, increased the size of the http request header size to cope with big headers.
+*Important*: be aware of overriding total request size (e.g. header size or multipart parts) in your environment in case of using custom settings (e.g. in custom application.yml or through JVM arguments).
+The recommended values are: max-part-header-size: 768; max-part-count: 100.
+See bug:MID-10748[].
+
 == Changes with Respect To Version 4.9.2
 
 * Improved the mechanism for association deltas processing. See bug:MID-10588[].
@@ -54,10 +73,6 @@ Within the audit schema, you can simply run the following SQL command to add the
 For more information, please, refer to the bug:[MID-10437].
 
     ALTER TYPE ObjectType ADD VALUE IF NOT EXISTS 'SCHEMA' AFTER 'ROLE_ANALYSIS_OUTLIER';
-
-* bug:MID-10739[] Use SecureRandom instead of Random.
-* Security update for Apache Tomcat (CVE-2025-48988) and Apache Commons FileUpload2 (CVE-2025-48976)
-* Add OAuth 2 credential flow to mail servers notification configuration
 
 == Changes with Respect To Version 4.9.1
 
