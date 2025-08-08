@@ -18,6 +18,7 @@ import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schem
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.associationType.subject.mappingContainer.outbound.AssociationOutboundEvaluatorWizardPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.associationType.subject.mappingContainer.outbound.AssociationOutboundMappingContainerWizardPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.policies.PoliciesObjectTypeWizardPanel;
+import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartSuggestionWizardPanel;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 
@@ -211,6 +212,10 @@ public class PageResource extends PageAssignmentHolderDetails<ResourceType, Reso
 
     public void showSynchronizationWizard(AjaxRequestTarget target, ItemPath pathToValue) {
         showContainerWizardForObjectType(target, pathToValue.append(ResourceObjectTypeDefinitionType.F_SYNCHRONIZATION), SynchronizationWizardPanel.class);
+    }
+
+    public void showSuggestObjectTypeWizard(AjaxRequestTarget target, ItemPath pathToValue) {
+        showContainerWizardForObjectType(target, pathToValue, SmartSuggestionWizardPanel.class);
     }
 
     public void showAttributeMappingWizard(AjaxRequestTarget target, ItemPath pathToValue) {

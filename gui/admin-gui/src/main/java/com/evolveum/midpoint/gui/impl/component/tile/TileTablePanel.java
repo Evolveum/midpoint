@@ -160,7 +160,7 @@ public abstract class TileTablePanel<T extends Tile, O extends Serializable> ext
         return tilesFragment;
     }
 
-    protected PageableListView createTilesPanel(
+    protected PageableListView<T, O> createTilesPanel(
             String tilesId, ISortableDataProvider<O, String> provider) {
         return new PageableListView<T, O>(tilesId, provider, getTableId()) {
 
@@ -295,7 +295,7 @@ public abstract class TileTablePanel<T extends Tile, O extends Serializable> ext
         return view.getProvider();
     }
 
-    private PageableListView getTiles() {
+    protected PageableListView getTiles() {
         return (PageableListView) get(ID_TILE_VIEW).get(ID_TILES_CONTAINER).get(ID_TILES);
     }
 

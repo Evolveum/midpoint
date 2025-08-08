@@ -171,6 +171,12 @@ public class AssociationTypesPanel extends SchemaHandlingObjectsPanel<ShadowAsso
         }
     }
 
+
+    @Override
+    protected void onSuggestValue(PrismContainerValue<ShadowAssociationTypeDefinitionType> value, IModel<PrismContainerWrapper<ShadowAssociationTypeDefinitionType>> newWrapperModel, AjaxRequestTarget target) {
+        //TODO: implement suggest value for association types
+    }
+
     @Override
     protected void onEditValue(IModel<PrismContainerValueWrapper<ShadowAssociationTypeDefinitionType>> valueModel, AjaxRequestTarget target) {
         if (valueModel != null) {
@@ -178,5 +184,10 @@ public class AssociationTypesPanel extends SchemaHandlingObjectsPanel<ShadowAsso
                     target,
                     valueModel.getObject().getPath());
         }
+    }
+
+    @Override
+    protected boolean allowNoValuePanel() {
+        return true;
     }
 }

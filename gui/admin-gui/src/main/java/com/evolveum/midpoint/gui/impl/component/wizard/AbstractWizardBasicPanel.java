@@ -17,6 +17,7 @@ import com.evolveum.midpoint.web.component.message.FeedbackAlerts;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.WebMarkupContainer;
@@ -27,14 +28,16 @@ import org.apache.wicket.markup.repeater.RepeatingView;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
 public abstract class AbstractWizardBasicPanel<AHD extends AssignmentHolderDetailsModel> extends BasePanel {
 
-
     private static final String ID_BREADCRUMB = "breadcrumb";
+    private static final String ID_BC_ICON = "bcIcon";
     private static final String ID_BC_NAME = "bcName";
+    private static final String ID_TITLE_ICON = "titleIcon";
     private static final String ID_TEXT = "text";
     private static final String ID_SUBTEXT = "subText";
     private static final String ID_FEEDBACK_CONTAINER = "feedbackContainer";
@@ -43,6 +46,7 @@ public abstract class AbstractWizardBasicPanel<AHD extends AssignmentHolderDetai
     private static final String ID_BUTTONS_CONTAINER = "buttonsContainer";
 
     private final AHD detailsModel;
+
     public AbstractWizardBasicPanel(String id, AHD detailsModel) {
         super(id);
         this.detailsModel = detailsModel;
@@ -62,25 +66,32 @@ public abstract class AbstractWizardBasicPanel<AHD extends AssignmentHolderDetai
     private void addBreadcrumb() {
         List<Breadcrumb> breadcrumbs = getBreadcrumb();
         IModel<String> breadcrumbLabelModel = getBreadcrumbLabel();
+        IModel<String> breadcrumbIcon = getBreadcrumbIcon();
         String breadcrumbLabel = breadcrumbLabelModel.getObject();
         if (StringUtils.isEmpty(breadcrumbLabel)) {
             return;
         }
 
         if (breadcrumbs.isEmpty() && StringUtils.isNotEmpty(breadcrumbLabel)) {
-            breadcrumbs.add(new Breadcrumb(breadcrumbLabelModel));
-        return;
+            breadcrumbs.add(new Breadcrumb(breadcrumbLabelModel, breadcrumbIcon));
+            return;
         }
 
         String lastBreadcrumbLabel = breadcrumbs.get(breadcrumbs.size() - 1).getLabel().getObject();
         if (StringUtils.isNotEmpty(lastBreadcrumbLabel)
                 && StringUtils.isNotEmpty(breadcrumbLabel)
                 && !lastBreadcrumbLabel.equals(breadcrumbLabel)) {
-            breadcrumbs.add(new Breadcrumb(breadcrumbLabelModel));
+            breadcrumbs.add(new Breadcrumb(breadcrumbLabelModel, breadcrumbIcon));
         }
     }
 
-    @NotNull protected abstract IModel<String> getBreadcrumbLabel();
+    @NotNull
+    protected abstract IModel<String> getBreadcrumbLabel();
+
+    @Nullable
+    protected IModel<String> getBreadcrumbIcon() {
+        return null;
+    }
 
     protected void removeLastBreadcrumb() {
         if (!getBreadcrumb().isEmpty()) {
@@ -103,6 +114,11 @@ public abstract class AbstractWizardBasicPanel<AHD extends AssignmentHolderDetai
                     item.add(AttributeAppender.append("class", "text-primary"));
                 }
 
+                WebMarkupContainer bcIcon = new WebMarkupContainer(ID_BC_ICON);
+                bcIcon.add(new VisibleBehaviour(() -> item.getModelObject().getIcon() != null && item.getModelObject().getIcon().getObject() != null));
+                bcIcon.add(AttributeModifier.replace("class", item.getModelObject().getIcon()));
+                item.add(bcIcon);
+
                 Label bcName = new Label(ID_BC_NAME, item.getModelObject().getLabel());
                 item.add(bcName);
 
@@ -111,6 +127,11 @@ public abstract class AbstractWizardBasicPanel<AHD extends AssignmentHolderDetai
         };
         add(breadcrumbs);
         breadcrumbs.add(new VisibleBehaviour(() -> getBreadcrumb().size() > 1));
+
+        WebMarkupContainer titleIcon = new WebMarkupContainer(ID_TITLE_ICON);
+        titleIcon.add(new VisibleBehaviour(() -> getTitleIconModel() != null && getTitleIconModel().getObject() != null));
+        titleIcon.add(AttributeModifier.replace("class", getTitleIconModel()));
+        add(titleIcon);
 
         Label mainText = new Label(ID_TEXT, getTextModel());
         mainText.add(new VisibleBehaviour(() -> getTextModel() != null && getTextModel().getObject() != null));
@@ -123,6 +144,7 @@ public abstract class AbstractWizardBasicPanel<AHD extends AssignmentHolderDetai
         WebMarkupContainer feedbackContainer = new WebMarkupContainer(ID_FEEDBACK_CONTAINER);
         feedbackContainer.setOutputMarkupId(true);
         feedbackContainer.setOutputMarkupPlaceholderTag(true);
+        feedbackContainer.add(new VisibleBehaviour(this::isFeedbackContainerVisible));
         add(feedbackContainer);
         feedbackContainer.add(AttributeAppender.append("class", getCssForWidthOfFeedbackPanel()));
 
@@ -217,7 +239,7 @@ public abstract class AbstractWizardBasicPanel<AHD extends AssignmentHolderDetai
     private List<Breadcrumb> getBreadcrumb() {
         PageBase page = getPageBase();
         if (page instanceof PageAssignmentHolderDetails) {
-            return ((PageAssignmentHolderDetails)page).getWizardBreadcrumbs();
+            return ((PageAssignmentHolderDetails) page).getWizardBreadcrumbs();
         }
         return List.of();
     }
@@ -242,12 +264,20 @@ public abstract class AbstractWizardBasicPanel<AHD extends AssignmentHolderDetai
     protected void addCustomButtons(RepeatingView buttons) {
     }
 
-    protected IModel<String> getSubTextModel(){
+    protected IModel<String> getSubTextModel() {
         return getPageBase().createStringResource(getClass().getSimpleName() + ".text");
-    };
+    }
 
-    protected IModel<String> getTextModel(){
+    protected IModel<String> getTextModel() {
         return getPageBase().createStringResource(getClass().getSimpleName() + ".subText");
+    }
+
+    protected IModel<String> getTitleIconModel() {
+        return null;
+    }
+
+    protected boolean isFeedbackContainerVisible() {
+        return true;
     }
 
     protected WebMarkupContainer getFeedback() {

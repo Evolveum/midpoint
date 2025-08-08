@@ -1,0 +1,38 @@
+<!--
+  ~ Copyright (c) 2010-2025 Evolveum
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+<!DOCTYPE html>
+<html xmlns:wicket="http://wicket.apache.org">
+<wicket:panel>
+
+    <div class="h-100">
+        <div class="card-body">
+
+            <div class="form-check d-flex align-items-center mb-2">
+                <input type="radio" class="form-check-input mt-0" style="transform: scale(1.5);" wicket:id="selectCheckbox"/>
+                <h5 class=" form-check-label card-title mb-0 fw-bold" wicket:id="name"></h5>
+            </div>
+
+            <p class="text-muted mb-2" wicket:id="description">
+            </p>
+
+            <div class="d-flex justify-content-between pt-2 mt-2">
+                <span class="text-muted" wicket:id="countTitle"></span>
+                <span class="text-dark" wicket:id="count"></span>
+            </div>
+        </div>
+
+        <hr class="mt-1 mx-3">
+
+        <div class="card-footer bg-transparent border-0 pt-0">
+            <a href="#" class="text-primary text-decoration-none d-inline-flex align-items-center" wicket:id="viewSchemaLink">
+                <i class="fa fa-eye me-1"></i>
+            </a>
+        </div>
+    </div>
+
+</wicket:panel>
+</html>

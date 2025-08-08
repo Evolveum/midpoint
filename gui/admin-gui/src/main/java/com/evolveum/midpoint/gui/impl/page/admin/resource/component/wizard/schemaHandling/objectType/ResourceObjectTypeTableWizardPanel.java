@@ -49,8 +49,8 @@ public abstract class ResourceObjectTypeTableWizardPanel extends SchemaHandlingT
     }
 
     @Override
-    protected void initTable(String tableId) {
-        ResourceObjectTypesPanel table = new ResourceObjectTypesPanel(tableId, getAssignmentHolderDetailsModel(), getConfiguration()) {
+    protected void initPanel(String panelId) {
+        ResourceObjectTypesPanel panel = new ResourceObjectTypesPanel(panelId, getAssignmentHolderDetailsModel(), getConfiguration()) {
             @Override
             protected void onEditValue(IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> valueModel, AjaxRequestTarget target) {
                 ResourceObjectTypeTableWizardPanel.this.onEditValue(valueModel, target);
@@ -61,8 +61,8 @@ public abstract class ResourceObjectTypeTableWizardPanel extends SchemaHandlingT
                 ResourceObjectTypeTableWizardPanel.this.onNewValue(value, containerModel, getObjectDetailsModels().createWrapperContext(), target, isDuplicate);
             }
         };
-        table.setOutputMarkupId(true);
-        add(table);
+        panel.setOutputMarkupId(true);
+        add(panel);
     }
 
     protected abstract void onEditValue(IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> value, AjaxRequestTarget target);
