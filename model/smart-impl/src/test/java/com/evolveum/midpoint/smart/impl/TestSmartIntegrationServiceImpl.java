@@ -7,7 +7,7 @@
 
 package com.evolveum.midpoint.smart.impl;
 
-import static com.evolveum.midpoint.schema.constants.SchemaConstants.ICFS_NAME;
+import static com.evolveum.midpoint.schema.constants.SchemaConstants.*;
 import static com.evolveum.midpoint.schema.processor.ResourceObjectTypeIdentification.ACCOUNT_DEFAULT;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectClassSizeEstimationPrecisionType.*;
 
@@ -374,25 +374,22 @@ public class TestSmartIntegrationServiceImpl extends AbstractSmartIntegrationTes
         var expectedRequest = normalizeSiSuggestObjectTypesRequest(
                 parseFile(TEST_110_EXPECTED_REQUEST, SiSuggestObjectTypesRequestType.class));
 
-        System.out.println(realRequest.equals(expectedRequest));
+        // Comparing ItemPathType is not straightforward, so let's compare the JSON serialization.
+        var realRequestJson = PrismContext.get().jsonSerializer().serializeRealValueContent(realRequest);
+        var expectedRequestJson = PrismContext.get().jsonSerializer().serializeRealValueContent(expectedRequest);
 
-        assertThat(realRequest)
+        assertThat(realRequestJson)
                 .as("request (normalized)")
-                .isEqualTo(expectedRequest);
+                .isEqualTo(expectedRequestJson);
     }
 
     private SiSuggestObjectTypesRequestType normalizeSiSuggestObjectTypesRequest(Object rawData) {
-        var qNameComparator =
-                Comparator
-                        .comparing((QName qName) -> qName.getNamespaceURI())
-                        .thenComparing(qName -> qName.getLocalPart());
-
         var data = (SiSuggestObjectTypesRequestType) rawData;
         for (var attrDef : data.getSchema().getAttribute()) {
             attrDef.setName(normalizeItemPathType(attrDef.getName()));
         }
         data.getSchema().getAttribute().sort(Comparator.comparing(a -> a.getName().toString()));
-        data.getStatistics().getAttribute().sort(Comparator.comparing(a -> a.getRef(), qNameComparator));
+        data.getStatistics().getAttribute().sort(Comparator.comparing(a -> a.getRef().toString()));
         return data;
     }
 
@@ -522,21 +519,32 @@ public class TestSmartIntegrationServiceImpl extends AbstractSmartIntegrationTes
                 .map(attr -> attr.getRef().toString())
                 .collect(Collectors.toSet());
         assertThat(attributeNames).contains(
-                "lastLogin", "uid", "phone", "created", "name", "description", "personalNumber", "fullname", "department", "type", "email", "status"
+                s(ICFS_NAME),
+                s(ICFS_UID),
+                s(Account.AttributeNames.LAST_LOGIN.q()),
+                s(Account.AttributeNames.PHONE.q()),
+                s(Account.AttributeNames.CREATED.q()),
+                s(Account.AttributeNames.DESCRIPTION.q()),
+                s(Account.AttributeNames.PERSONAL_NUMBER.q()),
+                s(Account.AttributeNames.FULLNAME.q()),
+                s(Account.AttributeNames.DEPARTMENT.q()),
+                s(Account.AttributeNames.TYPE.q()),
+                s(Account.AttributeNames.EMAIL.q()),
+                s(Account.AttributeNames.STATUS.q())
         );
 
-        for (String attributeName : List.of("lastLogin", "description")) {
+        for (QName attributeName : List.of(Account.AttributeNames.LAST_LOGIN.q(), Account.AttributeNames.DESCRIPTION.q())) {
             var emptyAttribute = statistics.getAttribute().stream()
-                    .filter(attr -> attr.getRef().toString().equals(attributeName))
+                    .filter(attr -> attr.getRef().toString().equals(s(attributeName)))
                     .findFirst().orElseThrow();
             assertThat(emptyAttribute.getMissingValueCount()).isEqualTo(5);
             assertThat(emptyAttribute.getUniqueValueCount()).isEqualTo(0);
             assertThat(emptyAttribute.getValueCount()).isEmpty();
         }
 
-        for (String attributeName : List.of("uid", "name", "fullname", "email")) {
+        for (QName attributeName : List.of(ICFS_UID, ICFS_NAME, Account.AttributeNames.FULLNAME.q(), Account.AttributeNames.EMAIL.q())) {
             var distinctAttribute = statistics.getAttribute().stream()
-                    .filter(attr -> attr.getRef().toString().equals(attributeName))
+                    .filter(attr -> attr.getRef().toString().equals(s(attributeName)))
                     .findFirst().orElseThrow();
             assertThat(distinctAttribute.getMissingValueCount()).isEqualTo(0);
             assertThat(distinctAttribute.getUniqueValueCount()).isEqualTo(5);
@@ -544,7 +552,7 @@ public class TestSmartIntegrationServiceImpl extends AbstractSmartIntegrationTes
         }
 
         var personalNumberAttribute = statistics.getAttribute().stream()
-                .filter(attr -> attr.getRef().toString().equals("personalNumber"))
+                .filter(attr -> attr.getRef().toString().equals(s(Account.AttributeNames.PERSONAL_NUMBER.q())))
                 .findFirst().orElseThrow();
 
         assertThat(personalNumberAttribute.getMissingValueCount()).isEqualTo(0);
@@ -558,6 +566,11 @@ public class TestSmartIntegrationServiceImpl extends AbstractSmartIntegrationTes
         testTypeAttributeStatistics();
     }
 
+    /** Returns the string representation of the attribute name. To be used */
+    private String s(QName attrName) {
+        return ShadowType.F_ATTRIBUTES.append(attrName).toBean().toString();
+    }
+
     /** Tests status attribute statistics. */
     private void testStatusAttributeStatistics() throws CommonException {
         var task = getTestTask();
@@ -566,7 +579,7 @@ public class TestSmartIntegrationServiceImpl extends AbstractSmartIntegrationTes
         var statistics = computeStatistics(OC_ACCOUNT_QNAME, task, result);
 
         var statusAttribute = statistics.getAttribute().stream()
-                .filter(attr -> attr.getRef().toString().equals("status"))
+                .filter(attr -> attr.getRef().toString().equals(s(Account.AttributeNames.STATUS.q())))
                 .findFirst().orElseThrow();
 
         assertThat(statusAttribute.getMissingValueCount()).isEqualTo(0);
@@ -574,7 +587,7 @@ public class TestSmartIntegrationServiceImpl extends AbstractSmartIntegrationTes
         assertThat(statusAttribute.getValueCount().size()).isEqualTo(2);
 
         Map<String, Integer> valueCounts = statusAttribute.getValueCount().stream()
-                .collect(Collectors.toMap(vc -> vc.getValue().toString(), vc -> vc.getCount()));
+                .collect(Collectors.toMap(vc -> vc.getValue(), vc -> vc.getCount()));
 
         assertThat(valueCounts).containsEntry("active", 2);
         assertThat(valueCounts).containsEntry("inactive", 3);
@@ -588,7 +601,7 @@ public class TestSmartIntegrationServiceImpl extends AbstractSmartIntegrationTes
         var statistics = computeStatistics(OC_ACCOUNT_QNAME, task, result);
 
         var departmentAttribute = statistics.getAttribute().stream()
-                .filter(attr -> attr.getRef().toString().equals("department"))
+                .filter(attr -> attr.getRef().toString().equals(s(Account.AttributeNames.DEPARTMENT.q())))
                 .findFirst().orElseThrow();
 
         assertThat(departmentAttribute.getMissingValueCount()).isEqualTo(3);
@@ -604,7 +617,7 @@ public class TestSmartIntegrationServiceImpl extends AbstractSmartIntegrationTes
         var statistics = computeStatistics(OC_ACCOUNT_QNAME, task, result);
 
         var phoneAttribute = statistics.getAttribute().stream()
-                .filter(attr -> attr.getRef().toString().equals("phone"))
+                .filter(attr -> attr.getRef().toString().equals(s(Account.AttributeNames.PHONE.q())))
                 .findFirst().orElseThrow();
 
         assertThat(phoneAttribute.getMissingValueCount()).isEqualTo(2);
@@ -620,7 +633,7 @@ public class TestSmartIntegrationServiceImpl extends AbstractSmartIntegrationTes
         var statistics = computeStatistics(OC_ACCOUNT_QNAME, task, result);
 
         var createdAttribute = statistics.getAttribute().stream()
-                .filter(attr -> attr.getRef().toString().equals("created"))
+                .filter(attr -> attr.getRef().toString().equals(s(Account.AttributeNames.CREATED.q())))
                 .findFirst().orElseThrow();
 
         assertThat(createdAttribute.getMissingValueCount()).isEqualTo(4);
@@ -636,13 +649,13 @@ public class TestSmartIntegrationServiceImpl extends AbstractSmartIntegrationTes
         var statistics = computeStatistics(OC_ACCOUNT_QNAME, task, result);
 
         var typeAttribute = statistics.getAttribute().stream()
-                .filter(attr -> attr.getRef().toString().equals("type"))
+                .filter(attr -> attr.getRef().toString().equals(s(Account.AttributeNames.TYPE.q())))
                 .findFirst().orElseThrow();
 
         assertThat(typeAttribute.getMissingValueCount()).isEqualTo(1);
         assertThat(typeAttribute.getUniqueValueCount()).isEqualTo(3);
         Map<String, Integer> valueCounts = typeAttribute.getValueCount().stream()
-                .collect(Collectors.toMap(vc -> vc.getValue().toString(), vc -> vc.getCount()));
+                .collect(Collectors.toMap(vc -> vc.getValue(), vc -> vc.getCount()));
         assertThat(valueCounts).containsEntry("employee", 2);
         assertThat(valueCounts).containsEntry("manager", 1);
         assertThat(valueCounts).containsEntry("contractor", 1);
@@ -686,9 +699,9 @@ public class TestSmartIntegrationServiceImpl extends AbstractSmartIntegrationTes
                 assertThat(isSortedDesc(attribute.getValueCount(), ShadowAttributeValueCountType::getCount)).isTrue();
             }
         }
-        for (String attributeName : List.of("name", "uid")) {
+        for (QName attributeName : List.of(ICFS_NAME, ICFS_UID)) {
             var attribute = statistics.getAttribute().stream()
-                    .filter(attr -> attr.getRef().toString().equals(attributeName))
+                    .filter(attr -> attr.getRef().toString().equals(s(attributeName)))
                     .findFirst().orElseThrow();
             assertThat(attribute.getUniqueValueCount()).isEqualTo(105);
             assertThat(attribute.getValueCount()).isEmpty();
@@ -711,22 +724,20 @@ public class TestSmartIntegrationServiceImpl extends AbstractSmartIntegrationTes
         assertThat(statistics).isNotNull();
         assertThat(statistics.getAttribute()).isNotEmpty();
 
-        Set<String> attributes = statistics.getAttributeTuple().stream()
+        Set<QName> attributes = statistics.getAttributeTuple().stream()
                 .flatMap(attrTuple -> attrTuple.getRef().stream())
-                .map(String::valueOf)
+                .map(t -> t.getItemPath().rest().asSingleNameOrFail())
                 .collect(Collectors.toSet());
-        Set<String> fields = Set.of("created", "type", "status");
+        Set<QName> fields = Set.of(Account.AttributeNames.CREATED.q(), Account.AttributeNames.TYPE.q(), Account.AttributeNames.STATUS.q());
         assertThat(attributes).containsExactlyInAnyOrderElementsOf(fields);
 
         for (ShadowAttributeTupleStatisticsType tuple : statistics.getAttributeTuple()) {
-            List<String> values = tuple.getRef().stream().map(QName::toString).collect(Collectors.toList());
             assertThat(tuple.getTupleCount()).isNotEmpty();
             for (ShadowAttributeTupleCountType tupleCount : tuple.getTupleCount()) {
                 assertThat(tupleCount.getValue()).isNotEmpty();
                 assertThat(tupleCount.getCount()).isGreaterThanOrEqualTo(1);
             }
         }
-
     }
 
     @SuppressWarnings("SameParameterValue")
@@ -772,16 +783,16 @@ public class TestSmartIntegrationServiceImpl extends AbstractSmartIntegrationTes
         var mockClient = new MockServiceClientImpl(
                 new SiMatchSchemaResponseType()
                         .attributeMatch(new SiAttributeMatchSuggestionType()
-                                .applicationAttribute(ICFS_NAME.toBean())
+                                .applicationAttribute(ICFS_NAME_PATH.toBean())
                                 .midPointAttribute(UserType.F_NAME.toBean()))
                         .attributeMatch(new SiAttributeMatchSuggestionType()
-                                .applicationAttribute(Account.AttributeNames.FULLNAME.q().toBean())
+                                .applicationAttribute(Account.AttributeNames.FULLNAME.path().toBean())
                                 .midPointAttribute(UserType.F_FULL_NAME.toBean()))
                         .attributeMatch(new SiAttributeMatchSuggestionType()
-                                .applicationAttribute(Account.AttributeNames.TYPE.q().toBean())
+                                .applicationAttribute(Account.AttributeNames.TYPE.path().toBean())
                                 .midPointAttribute(UserType.F_DESCRIPTION.toBean()))
                         .attributeMatch(new SiAttributeMatchSuggestionType()
-                                .applicationAttribute(Account.AttributeNames.PHONE.q().toBean())
+                                .applicationAttribute(Account.AttributeNames.PHONE.path().toBean())
                                 .midPointAttribute(UserType.F_TELEPHONE_NUMBER.toBean())),
                         // No mapping for status -> activation, as non-attribute mappings are not supported yet
                 new SiSuggestMappingResponseType().transformationScript(null),

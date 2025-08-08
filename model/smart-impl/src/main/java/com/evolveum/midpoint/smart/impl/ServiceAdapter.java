@@ -72,10 +72,11 @@ class ServiceAdapter {
     ObjectTypesSuggestionType suggestObjectTypes(
             ResourceObjectClassDefinition objectClassDef,
             ShadowObjectClassStatisticsType shadowObjectClassStatistics,
-            ResourceSchema resourceSchema)
+            ResourceSchema resourceSchema,
+            ResourceType resource)
             throws SchemaException {
         var siRequest = new SiSuggestObjectTypesRequestType()
-                .schema(ResourceObjectClassSchemaSerializer.serialize(objectClassDef))
+                .schema(ResourceObjectClassSchemaSerializer.serialize(objectClassDef, resource))
                 .statistics(shadowObjectClassStatistics);
 
         var siResponse = serviceClient.invoke(SUGGEST_OBJECT_TYPES, siRequest, SiSuggestObjectTypesResponseType.class);
@@ -159,12 +160,13 @@ class ServiceAdapter {
     QName suggestFocusType(
             ResourceObjectTypeIdentification typeIdentification,
             ResourceObjectClassDefinition objectClassDef,
-            ResourceObjectTypeDelineation delineation)
+            ResourceObjectTypeDelineation delineation,
+            ResourceType resource)
             throws SchemaException {
         var request = new SiSuggestFocusTypeRequestType()
                 .kind(typeIdentification.getKind().value())
                 .intent(typeIdentification.getIntent())
-                .schema(ResourceObjectClassSchemaSerializer.serialize(objectClassDef));
+                .schema(ResourceObjectClassSchemaSerializer.serialize(objectClassDef, resource));
 
         setBaseContextFilter(request, objectClassDef, delineation);
 
@@ -193,31 +195,37 @@ class ServiceAdapter {
     }
 
     AttributeMappingsSuggestionType suggestMapping(
-            ItemName shadowAttrName,
+            ItemPath shadowAttrPath,
             ShadowSimpleAttributeDefinition<?> attrDef,
             ItemPath focusPropPath,
             PrismPropertyDefinition<?> propertyDef,
             Collection<ValuesPair> valuesPairs) throws SchemaException {
-        var applicationAttrDefBean = new SiAttributeDefinitionType()
-                .name(shadowAttrName.toBean())
-                .type(getTypeName(attrDef))
-                .minOccurs(attrDef.getMinOccurs())
-                .maxOccurs(attrDef.getMaxOccurs());
-        var midPointPropertyDefBean = new SiAttributeDefinitionType()
-                .name(focusPropPath.toBean())
-                .type(getTypeName(propertyDef))
-                .minOccurs(propertyDef.getMinOccurs())
-                .maxOccurs(propertyDef.getMaxOccurs());
-        var siRequest = new SiSuggestMappingRequestType()
-                .applicationAttribute(applicationAttrDefBean)
-                .midPointAttribute(midPointPropertyDefBean)
-                .inbound(true);
-        valuesPairs.forEach(pair ->
-                siRequest.getExample().add(
-                        pair.toSiExample(
-                                applicationAttrDefBean.getName(), midPointPropertyDefBean.getName())));
-        var siResponse = serviceClient.invoke(SUGGEST_MAPPING, siRequest, SiSuggestMappingResponseType.class);
-        var transformationScript = siResponse.getTransformationScript();
+
+        String transformationScript;
+        if (!valuesPairs.isEmpty()) {
+            var applicationAttrDefBean = new SiAttributeDefinitionType()
+                    .name(shadowAttrPath.toBean())
+                    .type(getTypeName(attrDef))
+                    .minOccurs(attrDef.getMinOccurs())
+                    .maxOccurs(attrDef.getMaxOccurs());
+            var midPointPropertyDefBean = new SiAttributeDefinitionType()
+                    .name(focusPropPath.toBean())
+                    .type(getTypeName(propertyDef))
+                    .minOccurs(propertyDef.getMinOccurs())
+                    .maxOccurs(propertyDef.getMaxOccurs());
+            var siRequest = new SiSuggestMappingRequestType()
+                    .applicationAttribute(applicationAttrDefBean)
+                    .midPointAttribute(midPointPropertyDefBean)
+                    .inbound(true);
+            valuesPairs.forEach(pair ->
+                    siRequest.getExample().add(
+                            pair.toSiExample(
+                                    applicationAttrDefBean.getName(), midPointPropertyDefBean.getName())));
+            var siResponse = serviceClient.invoke(SUGGEST_MAPPING, siRequest, SiSuggestMappingResponseType.class);
+            transformationScript = siResponse.getTransformationScript();
+        } else {
+            transformationScript = null; // no pairs, no transformation script
+        }
         ExpressionType expression = StringUtils.isNotBlank(transformationScript) && !transformationScript.equals("input") ?
                 new ExpressionType()
                         .expressionEvaluator(
@@ -226,7 +234,7 @@ class ServiceAdapter {
                 null;
         return new AttributeMappingsSuggestionType()
                 .definition(new ResourceAttributeDefinitionType()
-                        .ref(shadowAttrName.toBean())
+                        .ref(shadowAttrPath.rest().toBean()) // FIXME! what about activation, credentials, etc?
                         .inbound(new InboundMappingType()
                                 .target(new VariableBindingDefinitionType()
                                         .path(focusPropPath.toBean()))
@@ -249,9 +257,12 @@ class ServiceAdapter {
 
     /** Returns suggestions for correlators - in the same order as the correlators are provided. */
     List<CorrelatorSuggestion> suggestCorrelationMappings(
-            ResourceObjectTypeDefinition objectTypeDef, PrismObjectDefinition<?> focusDef, List<? extends ItemPath> correlators)
+            ResourceObjectTypeDefinition objectTypeDef,
+            PrismObjectDefinition<?> focusDef,
+            List<? extends ItemPath> correlators,
+            ResourceType resource)
             throws SchemaException {
-        var siResponse = matchSchema(objectTypeDef, focusDef);
+        var siResponse = matchSchema(objectTypeDef, focusDef, resource);
         var response = new ArrayList<CorrelatorSuggestion>();
         for (ItemPath correlator : correlators) {
             for (var siAttributeMatch : siResponse.getAttributeMatch()) {
@@ -279,10 +290,12 @@ class ServiceAdapter {
             ResourceAttributeDefinitionType attributeDefinitionBean) {
     }
 
-    SiMatchSchemaResponseType matchSchema(ResourceObjectTypeDefinition objectTypeDef, PrismObjectDefinition<?> focusDef)
+    SiMatchSchemaResponseType matchSchema(
+            ResourceObjectTypeDefinition objectTypeDef, PrismObjectDefinition<?> focusDef, ResourceType resource)
             throws SchemaException {
         var siRequest = new SiMatchSchemaRequestType()
-                .applicationSchema(ResourceObjectClassSchemaSerializer.serialize(objectTypeDef.getObjectClassDefinition()))
+                .applicationSchema(
+                        ResourceObjectClassSchemaSerializer.serialize(objectTypeDef.getObjectClassDefinition(), resource))
                 .midPointSchema(PrismComplexTypeDefinitionSerializer.serialize(focusDef));
         return serviceClient.invoke(MATCH_SCHEMA, siRequest, SiMatchSchemaResponseType.class);
     }

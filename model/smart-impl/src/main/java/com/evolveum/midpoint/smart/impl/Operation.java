@@ -54,6 +54,6 @@ class Operation {
     }
 
     ObjectTypesSuggestionType suggestObjectTypes(ShadowObjectClassStatisticsType statistics) throws SchemaException {
-        return serviceAdapter.suggestObjectTypes(objectClassDefinition, statistics, resourceSchema);
+        return serviceAdapter.suggestObjectTypes(objectClassDefinition, statistics, resourceSchema, resource);
     }
 }

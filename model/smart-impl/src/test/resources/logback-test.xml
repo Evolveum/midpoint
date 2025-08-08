@@ -17,10 +17,9 @@
     <logger name="org.hibernate.engine.jdbc.spi.SqlExceptionHelper" level="OFF"/>
     <logger name="java.sql.DatabaseMetaData" level="WARN"/>
     <logger name="com.evolveum.midpoint.prism.util.PrismTestUtil" level="TRACE"/>
-    <logger name="com.evolveum.midpoint.report" level="TRACE"/>
     <logger name="com.evolveum.midpoint.repo.common.expression" level="TRACE"/>
     <logger name="com.evolveum.midpoint.model.common.expression" level="TRACE"/>
-    <logger name="com.evolveum.midpoint.security" level="TRACE"/>
+    <logger name="com.evolveum.midpoint.security" level="DEBUG"/>
     <logger name="PROFILING" level="OFF" />
 
     <logger name="com.evolveum.midpoint.smart" level="TRACE"/>
