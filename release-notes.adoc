@@ -203,6 +203,7 @@ Made a restructuring of the code.
 The goal is to decrease the time period between clearing the authorizations (and other privileges limitations) and filling them in.
 See bug:MID-10781[].
 * Fixed inconsistent type of input variable after passing ObjectTemplate validation. See bug:MID-10773[].
+* Fixed the possibility to modify the filter in the marking rule. See bug:MID-10405[].
 
 === Releases Of Other Components
 
