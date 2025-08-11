@@ -15,6 +15,8 @@ For filtering in midPoint, the following components are required:
 * <<object_type_definition,Object type definition>>
 
 Optionally, you can also include paging (for result size and offset), and sorting (for ordering results).
+However, note that paging and sorting are not always useful.
+For example, there is no use for paging in correlations.
 
 In GUI, object type is defined by the context, i.e. the current page, while paging and sorting are controlled in the results table.
 
@@ -44,6 +46,10 @@ For details, refer to xref:/midpoint/reference/concepts/item-path/[Item path].
 [[filter_name]]
 ==== Filter Name
 The filter name, or its alias, specifies a filtering condition that should be used.
+It defines _how_ the item path is compared with the value that you provide.
+
+You can think of the filter name as of the "verb" in your search condition.
+It can mean, for example, equals (`=`), greater than (`>`), begins with a substring (`startsWith`), etc.
 
 [[value]]
 ==== Value
@@ -140,7 +146,7 @@ See the configuration snippet below in which the query selects `User` with the n
 === Comparison Filters
 
 Comparison filters are used to compare attribute or property values against specified criteria.
-These filters operate on simple data types like strings, numbers, or dates, and are commonly used to match objects where a property equals a certain value, contains, or falls within a range.
+These filters operate on simple data types like strings, numbers, or dates, and are commonly used to match objects where a property equals a certain value, contains a value, or falls within a range.
 
 While the path is commonly referenced on the left, and a value or pattern on the right side, comparison filters also support item paths on the right side.
 For example, `activation/validFrom > activation/validTo` should return all objects with incorrectly set activations, i.e. objects for which the activation starts after it ends.
@@ -174,26 +180,9 @@ Less filter, searches for all users that will not be valid after 2021.
 
 [TIP]
 ====
-In Equal (`=`) and notEqual (`!=`) filters, you can enclose multiple values within brackets on the right side of the query.
+In Equal (`=`) and notEqual (`!=`) filters, you can enclose multiple values within parentheses on the right side of the query.
 The query `name = ("adam","john")` provides the same results as `name = "adam" or name = "john"` . +
 ====
-
-
-[#_matching_rules]
-==== Matching Rules
-Matching rules filters are a specialized subset of comparison filters designed to perform more flexible, rule-based comparisons of attribute values.
-They are useful when strict equality is too limiting and when a domain-specific matching logic is required.
-They are typically used when you want to be more tolerant, for example to disregard varying casing in usernames, or to tolerate the use of whitespaces in various values.
-
-The syntax of a matching rule in a query is: `filter[matchingRuleName]`
-
-For a list of all matching rules, refer to the xref:../../matching-rules.adoc[] page.
-
-.Example usage
-`givenName =[origIgnoreCase] "Adam"`::
-Query matches all cases of "Adam" in givenName with various casings, such as 'Adam', 'adam', or 'ADAM'.
-`emailAddress endsWith[stringIgnoreCase] "@test.com"`::
-Query matches users with email addresses that end with the "test.com" domain.
 
 [[string_filters]]
 === String Filters
@@ -216,14 +205,31 @@ In addition to common filters, such as equal or notEqual, the following filters 
 |====
 
 
+[#_matching_rules]
+=== Matching Rules
+Matching rules filters are a specialized subset of filters designed to perform more flexible, rule-based comparisons of attribute values.
+They are useful when strict equality is too limiting and when a domain-specific matching logic is required.
+They are typically used when you want to be more tolerant, for example to disregard varying casing in usernames, or to tolerate the use of whitespaces in various values.
+
+The syntax of a matching rule in a query is: `filter[matchingRuleName]`
+
+For a list of all matching rules, refer to the xref:../../matching-rules.adoc[] page.
+
+.Example usage
+`givenName =[origIgnoreCase] "Adam"`::
+Query matches all cases of "Adam" in givenName with various casings, such as 'Adam', 'adam', or 'ADAM'.
+`emailAddress endsWith[stringIgnoreCase] "@test.com"`::
+Query matches users with email addresses that end with the "test.com" domain.
+
+
 [[logical_filters]]
 === Logical Filters
 
 Logical filters combine several subfilters into one filter using logical operators.
 They enable you to search for objects, such as users, that meet multiple criteria simultaneously, or to exclude certain matches.
 
-In more complex filters, you can use brackets to group logical statements for better readability.
-If you do not use brackets, midPoint will evaluate the filter following this logic:
+In more complex filters, you can use parentheses to group logical statements for better readability.
+If you do not use parentheses, midPoint will evaluate the filter following this logic:
 
 * `not` is evaluated first as it changes the meaning of the filter.
 * `and` is evaluated next.
@@ -319,7 +325,7 @@ The second filter with match users who have an assignment which starts in 2022 a
 Unlike path-based filters, inOid filters are used to match objects whose object identifiers (OID) are included directly in a specified list.
 This is used when you already have a list of known object identifiers and want to retrieve or process the corresponding objects.
 
-An inOid query is a triplet consisting of an object representation, an `inOid` filter, and a list of OID values enclosed in brackets.
+An inOid query is a triplet consisting of an object representation, an `inOid` filter, and a list of OID values enclosed in parentheses.
 
 An example of querying one specific object by its OID:
 
@@ -467,7 +473,7 @@ The properties of ownedBy filter are:
 The filter is an explicit element in XML/YAML/JSON.
 In midPoint queries, any filter that is not a special property of ownedBy is automatically treated as a nested filter.
 
-.The following example looks for all inducements:
+.The following example looks for all inducements in role-like objects:
 ----
 . ownedBy ( @type = AbstractRoleType and @path = inducement)
 ----
@@ -513,7 +519,7 @@ Matches all objects that are members of the specified organization and all its s
 If you only need to match users in a specified organization, use the ONE_LEVEL matching rule.
 
 `. isRoot`::
-Matches all roles and organization units that are organization tree roots.
+Matches organization units that are organization tree roots.
 
 [#_similarity_filters]
 === Similarity Filters
@@ -528,7 +534,7 @@ MQL provides the following fuzzy filters:
 * `levenshtein` 
 * `similarity`
 
-Contrary to other filters, the right side of the query consists of a triplet of parameters enclosed in brackets.
+Contrary to other filters, the right side of the query consists of a triplet of parameters enclosed in parentheses.
 Their meaning is explained in following table:
 
 [options="header",cols="10,10,30,30",width=90]
@@ -538,7 +544,7 @@ Their meaning is explained in following table:
 | (value, threshold, inclusive)
 | Matches objects for which the queried attribute has the Levenshtein distance *lower than* (or equal to, depending on the inclusive parameter value) the specified threshold.
 a| * Value (string): A string value that is compared with the queried attribute.
-* Threshold (integer): The compared distance value. The result must be less than (or equal to) the threshold.
+* Threshold (integer): The compared distance value. The result must be smaller than (or equal to) the threshold.
 * Inclusive (boolean): Defines if objects with the threshold value should be included in the result (_true_) or not (_false_).
 
 | similarity
