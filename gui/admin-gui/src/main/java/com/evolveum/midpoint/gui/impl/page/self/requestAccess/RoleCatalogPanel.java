@@ -16,8 +16,6 @@ import com.evolveum.midpoint.gui.api.component.data.provider.ISelectableDataProv
 import com.evolveum.midpoint.gui.impl.component.ContainerableListPanel;
 import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
 
-import com.evolveum.midpoint.prism.PrismObjectValue;
-
 import com.evolveum.midpoint.web.component.data.BoxedTablePanel;
 
 import org.apache.commons.collections4.CollectionUtils;
@@ -38,7 +36,6 @@ import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.panel.Fragment;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.LoadableDetachableModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.request.resource.IResource;
@@ -506,10 +503,7 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> implements 
 
                             @Override
                             protected IColumn<SelectableBean<ObjectType>, String> createNameColumn(IModel displayModel, GuiObjectColumnType customColumn, ExpressionType expression) {
-//                                if (isCollectionViewConfigured()) {
-                                    return RoleCatalogPanel.this.createNameColumn(displayModel, customColumn);
-//                                }
-//                                return null;
+                                return RoleCatalogPanel.this.createNameColumn(displayModel, customColumn);
                             }
 
                             @Override
@@ -805,10 +799,6 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> implements 
             }
         };
         add(menu);
-    }
-
-    private boolean isCollectionViewConfigured() {
-        return getCollectionRefView() != null || getRoleCatalogConfiguration().getViewConfiguration() != null;
     }
 
     private CompiledObjectCollectionView getObjectCollectionView() {
@@ -1210,7 +1200,6 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> implements 
 
     private List<IColumn<SelectableBean<ObjectType>, String>> createColumns() {
         List<IColumn<SelectableBean<ObjectType>, String>> columns = new ArrayList<>();
-//        columns.add(createNameColumn(null));
         columns.add(new PropertyColumn<>(createStringResource("ObjectType.description"), "value.description"));
         return columns;
     }
@@ -1385,7 +1374,7 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> implements 
         public abstract void saveType();
     }
 
-    class SelectableDataProviderWrapper implements ISelectableDataProvider<SelectableBean<ObjectType>> {
+    static class SelectableDataProviderWrapper implements ISelectableDataProvider<SelectableBean<ObjectType>> {
         private final ISortableDataProvider<SelectableBean<ObjectType>, String> delegate;
         private ObjectQuery query;
 
