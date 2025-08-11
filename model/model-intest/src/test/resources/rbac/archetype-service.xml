@@ -33,7 +33,7 @@
                             ObjectQuery query =
                                     basic.prismContext.queryFor(UserType.class)
                                             .item(UserType.F_ROLE_MEMBERSHIP_REF)
-                                            .ref(immediateRole.oid, ServiceType.COMPLEX_TYPE, SchemaConstants.ORG_OWNER)
+                                            .ref(immediateRole.oid, ServiceType.COMPLEX_TYPE)
                                             .build()
 
                             var list = midpoint.searchObjects(UserType.class, query)

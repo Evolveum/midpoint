@@ -18,18 +18,6 @@
         </policyConstraints>
         <policyActions>
             <scriptExecution>
-                <executeScript>
-                    <s:execute>
-                        <s:script>
-                            <code>
-                                println("AAAAAAAAAAA")
-                                log.info("AAAAAAAAAAAA")
-                            </code>
-                        </s:script>
-                    </s:execute>
-                </executeScript>
-            </scriptExecution>
-            <scriptExecution>
                 <object>
                     <linkTarget>
                         <archetypeRef oid="fefefefe-2223-4e2d-975a-bce0fc69b305" type="ArchetypeType"/>
