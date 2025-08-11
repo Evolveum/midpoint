@@ -62,7 +62,7 @@ public class StatisticsComputer {
      * Set of common affixes to match in attribute values.
      */
     private static final Set<String> AFFIXES = new HashSet<>(Arrays.asList(
-            "prod", "priv", "adm", "usr", "user", "eng", "ops", "svc", "int", "ext", "ro", "rw"
+            "prod", "priv", "adm", "admin", "usr", "user", "ops", "svc", "int", "ext"
     ));
 
     /**
@@ -75,7 +75,7 @@ public class StatisticsComputer {
     /**
      * Mapping from affix to compiled regex {@link Pattern} to match affix at string boundaries.
      */
-    private static Map<String, Pattern> AFFIX_PATTERNS;
+    private static final Map<String, Pattern> AFFIX_PATTERNS = initAffixPatterns();
 
     /**
      * Stores attribute values for each shadow, for use in cross-table (pairwise) statistics.
@@ -100,17 +100,16 @@ public class StatisticsComputer {
             createAttributeStatisticsIfNeeded(attrDef.getItemName());
             shadowStorage.put(attrDef.getItemName(), new LinkedList<>());
         }
-        initAffixPatterns();
     }
 
     /**
      * Initializes {@link #AFFIX_PATTERNS} by constructing regex patterns for each affix
      * using the defined delimiters. Patterns match affixes at the start or end of a string.
      */
-    private void initAffixPatterns() {
+    private static Map<String, Pattern> initAffixPatterns() {
         String delimiterRegex = "[" + DELIMITERS.stream().map(Pattern::quote).collect(Collectors.joining()) + "]";
 
-        AFFIX_PATTERNS = AFFIXES.stream().collect(Collectors.toMap(
+        return AFFIXES.stream().collect(Collectors.toMap(
                 affix -> affix,
                 affix -> Pattern.compile(
                         String.format("(^%s%s)|(%s%s$)",
