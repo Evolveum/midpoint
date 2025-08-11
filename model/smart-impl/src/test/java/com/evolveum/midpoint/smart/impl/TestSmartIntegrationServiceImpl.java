@@ -854,7 +854,19 @@ public class TestSmartIntegrationServiceImpl extends AbstractSmartIntegrationTes
         displayValue("statistics", PrismContext.get().jsonSerializer().serializeRealValueContent(statistics));
         assertThat(statistics).isNotNull();
         assertThat(statistics.getAttribute()).isNotEmpty();
-
+        for (var attribute : statistics.getAttribute()) {
+            if (attribute.getRef().toString().equals(s(Account.AttributeNames.PERSONAL_NUMBER.q()))) {
+                assertThat(attribute.getValuePatternCount()).isNotEmpty();
+                Map<String, Integer> valueCounts = attribute.getValuePatternCount().stream()
+                        .collect(Collectors.toMap(vc -> vc.getValue(), vc -> vc.getCount()));
+                assertThat(valueCounts).containsEntry("svc", 1);
+                assertThat(valueCounts).containsEntry("usr", 1);
+                assertThat(valueCounts).containsEntry("adm", 4);
+                assertThat(valueCounts).containsEntry("int", 6);
+            } else {
+                assertThat(attribute.getValuePatternCount()).isEmpty();
+            }
+        }
     }
 
 
