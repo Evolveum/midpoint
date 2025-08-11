@@ -253,7 +253,7 @@
 
         <xmlsec.version>2.2.6</xmlsec.version>
         <!-- NOTE: also update the version number in TestConnectorManager -->
-        <connid.version>1.6.0.0</connid.version>
+        <connid.version>1.7.0.0-SNAPSHOT</connid.version>
 
         <poi.version>5.2.3</poi.version>
         <!-- Version for classgraph must the one declared in Prism -->
