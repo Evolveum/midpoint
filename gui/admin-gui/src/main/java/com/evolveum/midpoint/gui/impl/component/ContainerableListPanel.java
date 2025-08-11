@@ -386,11 +386,7 @@ public abstract class ContainerableListPanel<C extends Serializable, PO extends 
 
             @Override
             protected WebMarkupContainer createButtonToolbar(String id) {
-                if (isPreview()) {
-                    return new ButtonBar<>(id, ID_BUTTON_BAR, ContainerableListPanel.this,
-                            (PreviewContainerPanelConfigurationType) config, getNavigationParametersModel());
-                }
-                return new ButtonBar<>(id, ID_BUTTON_BAR, ContainerableListPanel.this, createToolbarButtonsList(ID_BUTTON));
+                return createTableButtonToolbar(id);
             }
 
             @Override
@@ -461,6 +457,14 @@ public abstract class ContainerableListPanel<C extends Serializable, PO extends 
         itemTable.setShowAsCard(showTableAsCard());
 
         return itemTable;
+    }
+
+    protected WebMarkupContainer createTableButtonToolbar(String id) {
+        if (isPreview()) {
+            return new ButtonBar<>(id, ID_BUTTON_BAR, ContainerableListPanel.this,
+                    (PreviewContainerPanelConfigurationType) config, getNavigationParametersModel());
+        }
+        return new ButtonBar<>(id, ID_BUTTON_BAR, ContainerableListPanel.this, createToolbarButtonsList(ID_BUTTON));
     }
 
     private void onPagingChanged(ObjectPaging paging) {
