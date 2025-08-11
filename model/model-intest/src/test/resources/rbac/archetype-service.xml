@@ -33,6 +33,9 @@
                             ObjectQuery query =
                                     basic.prismContext.queryFor(UserType.class)
                                             .item(UserType.F_ROLE_MEMBERSHIP_REF)
+                                            .ref(immediateRole.oid, ServiceType.COMPLEX_TYPE, SchemaConstants.ORG_OWNER)
+                                            .or()
+                                            .item(UserType.F_ROLE_MEMBERSHIP_REF)
                                             .ref(immediateRole.oid, ServiceType.COMPLEX_TYPE)
                                             .build()
 

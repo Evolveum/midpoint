@@ -179,7 +179,7 @@ public class TestGlobalPolicyActivation extends AbstractInitializedModelIntegrat
 
         // service should have no description
         service = getObject(ServiceType.class, serviceOid).asObjectable();
-        Assertions.assertThat(service.getDescription()).isNull();
+        Assertions.assertThat(service.getDescription()).isNull(); // todo fix
     }
 
     private void replaceGlobalPolicyRuleWithRelation(QName relation, Task task, OperationResult result) throws Exception {

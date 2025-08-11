@@ -148,11 +148,15 @@ class PolicyRulesCollector<O extends ObjectType> {
             for (EvaluatedAssignmentImpl<?> evaluatedAssignment : evaluatedAssignmentTriple.getAllValues()) {
                 PrismObject<?> targetObject = evaluatedAssignment.getTarget();
                 Collection<EvaluatedAssignmentTargetImpl> nonNegativeTargets = evaluatedAssignment.getRoles().getNonNegativeValues();
-                boolean nonNegativeTarget = evaluatedAssignment.getTarget() != null
-                     && !nonNegativeTargets.stream().anyMatch(t -> t.getTarget().equals(targetObject));
+                boolean nonNegativeTarget =
+                        evaluatedAssignment.getTarget() != null
+                                && !nonNegativeTargets.stream().anyMatch(t -> t.getTarget().equals(targetObject));
 
                 // MID-10779
-//                if (!nonNegativeTarget) {
+//                if (!context.getModelBeans().schemaService.relationRegistry().isMember(evaluatedAssignment.getRelation())
+//                        && !nonNegativeTarget
+//                        && isRuleConditionTrue(ruleWithId, focus, evaluatedAssignment, result)) {
+//
 //                    // This is a special case. When the target not null and it is not in negative values
 //                    // This is specific for non-member relation assignments
 //
