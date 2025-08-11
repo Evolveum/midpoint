@@ -1,0 +1,15 @@
+<role xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-3"
+        oid="20000000-1000-0000-0000-000000000003">
+    <name>role-high2</name>
+    <requestable>true</requestable>
+    <riskLevel>high</riskLevel>
+    <assignment>
+        <targetRef oid="8f2bd344-a46c-4c0b-aa34-db08b7d7f7f2" relation="org:default" type="c:OrgType" />
+    </assignment>
+    <roleMembershipRef oid="8f2bd344-a46c-4c0b-aa34-db08b7d7f7f2" relation="org:default" type="c:OrgType">
+    </roleMembershipRef>
+    <parentOrgRef oid="8f2bd344-a46c-4c0b-aa34-db08b7d7f7f2" relation="org:default" type="c:OrgType">
+    </parentOrgRef>
+</role>

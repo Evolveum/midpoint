@@ -17,6 +17,11 @@ import javax.xml.datatype.XMLGregorianCalendar;
 
 import com.evolveum.midpoint.model.api.ActivityCustomization;
 
+import com.evolveum.midpoint.model.api.RoleSelectionSpecification;
+import com.evolveum.midpoint.prism.query.OrgFilter;
+
+import com.evolveum.midpoint.schema.constants.RelationTypes;
+
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
@@ -123,6 +128,8 @@ public class TestSecurityAdvanced extends AbstractInitializedSecurityTest {
 
     private static final File ROLE_READ_RESOURCE_OPERATIONAL_STATE_FILE = new File(TEST_DIR, "role-read-resource-operational-state.xml");
     private static final String ROLE_READ_RESOURCE_OPERATIONAL_STATE_OID = "18f17721-63e1-42cf-abaf-8a50a04e639f";
+    private static final File ROLE_REQUESTABLE_HIGH_RISK_FILE = new File(TEST_DIR, "role-requestable-high-risk.xml");
+    private static final File ROLE_REQUESTER_FILE = new File(TEST_DIR, "role-requester.xml");
 
     private static final TestObject<RoleType> ROLE_READ_TASK_STATUS = TestObject.file(TEST_DIR, "role-read-task-status.xml", "bc2d0900-ac17-40c1-acf8-eb5466995aae");
     private static final TestObject<TaskType> TASK_DUMMY = TestObject.file(TEST_DIR, "task-dummy.xml", "89bf08ec-c5b8-4641-95ca-37559c1f3896");
@@ -157,6 +164,8 @@ public class TestSecurityAdvanced extends AbstractInitializedSecurityTest {
         repoAddObjectFromFile(ROLE_READ_ROLE_MEMBERS_NONE_FILE, initResult);
         repoAddObjectFromFile(ROLE_READ_ORG_EXEC_FILE, initResult);
         repoAddObjectFromFile(ROLE_READ_RESOURCE_OPERATIONAL_STATE_FILE, initResult);
+        repoAddObjectFromFile(ROLE_REQUESTER_FILE, initResult);
+        repoAddObjectFromFile(ROLE_REQUESTABLE_HIGH_RISK_FILE, initResult);
         repoAdd(ROLE_READ_TASK_STATUS, initResult);
         repoAdd(TASK_DUMMY, initResult);
         repoAdd(ROLE_MANY_SHADOW_OWNER_AUTZ, initResult);
@@ -3352,6 +3361,33 @@ public class TestSecurityAdvanced extends AbstractInitializedSecurityTest {
         then("the task successfully finishes");
         waitForTaskFinish(taskOid); // assert success as well
     }
+
+    // covers #10206 use case from the comment from 01/14/2025
+    @Test
+    public void test390AutzJackCannotFilterUnpermittedItems() throws Exception {
+        // GIVEN
+        cleanupAutzTest(USER_JACK_OID);
+        assignRole(USER_JACK_OID, "40000000-1000-0000-0000-000000000000");
+
+        login(USER_JACK_USERNAME);
+
+        // WHEN
+        when("Search for role type objects by non-permitted items (requestable, riskLevel)");
+        RoleSelectionSpecification spec = getAssignableRoleSpecification(getUser(USER_JACK_OID));
+        ObjectFilter filter = spec.getRelationMap().get(RelationTypes.MEMBER.getRelation());
+        ObjectQuery query = queryFor(AbstractRoleType.class)
+                .isInScopeOf(ORG_REQUESTABLE.oid, OrgFilter.Scope.ONE_LEVEL)
+                .build();
+        query.addFilter(filter);
+        assertSearch(
+                RoleType.class,
+                query);
+
+        assertSearch(
+                AbstractRoleType.class,
+                query);
+    }
+
 
     @SuppressWarnings("SameParameterValue")
     private ObjectQuery createOrgSubtreeAndNameQuery(String orgOid, String name) {
