@@ -152,22 +152,22 @@ class PolicyRulesCollector<O extends ObjectType> {
                      && !nonNegativeTargets.stream().anyMatch(t -> t.getTarget().equals(targetObject));
 
                 // MID-10779
-                if (!nonNegativeTarget) {
-                    // This is a special case. When the target not null and it is not in negative values
-                    // This is specific for non-member relation assignments
-
-                    LOGGER.trace("Collecting global policy rule '{}' in {}, considering target false (applies directly)",
-                            ruleCI.getName(), evaluatedAssignment);
-                    evaluatedAssignment.addTargetPolicyRule(
-                            new EvaluatedPolicyRuleImpl(
-                                    ruleCI.clone(),
-                                    ruleWithId.ruleId(),
-                                    new AssignmentPathImpl(), //is this OK?
-                                    evaluatedAssignment,
-                                    DIRECT_ASSIGNMENT_TARGET));
-                    globalRulesInstantiated++;
-                    continue;
-                }
+//                if (!nonNegativeTarget) {
+//                    // This is a special case. When the target not null and it is not in negative values
+//                    // This is specific for non-member relation assignments
+//
+//                    LOGGER.trace("Collecting global policy rule '{}' in {}, considering target false (applies directly)",
+//                            ruleCI.getName(), evaluatedAssignment);
+//                    evaluatedAssignment.addTargetPolicyRule(
+//                            new EvaluatedPolicyRuleImpl(
+//                                    ruleCI.clone(),
+//                                    ruleWithId.ruleId(),
+//                                    new AssignmentPathImpl(), //is this OK?
+//                                    evaluatedAssignment,
+//                                    DIRECT_ASSIGNMENT_TARGET));
+//                    globalRulesInstantiated++;
+//                    continue;
+//                }
 
                 for (EvaluatedAssignmentTargetImpl target : nonNegativeTargets) { // MID-6403
                     boolean appliesDirectlyToTarget = target.isDirectlyAssigned();
