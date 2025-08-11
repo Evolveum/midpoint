@@ -1766,7 +1766,7 @@ public abstract class ContainerableListPanel<C extends Serializable, PO extends 
      * (e.g. {@link NoValuePanel}) when there are no values
      * present in the container.
      */
-    protected boolean displayNoValuePanel() {
+    public boolean displayNoValuePanel() {
         return false;
     }
 

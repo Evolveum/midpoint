@@ -113,7 +113,7 @@ public abstract class SchemaHandlingObjectsPanel<C extends Containerable> extend
             }
 
             @Override
-            protected boolean displayNoValuePanel() {
+            public boolean displayNoValuePanel() {
                 return allowNoValuePanel() && hasNoValues();
             }
 

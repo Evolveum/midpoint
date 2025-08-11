@@ -51,7 +51,7 @@ public abstract class SchemaHandlingTypesTableWizardPanel<C extends Containerabl
     }
 
     private void applyShowAsCard() {
-        if(getPanel() != null) {
+        if (getPanel() != null) {
             getPanel().getTable().setShowAsCard(false);
         }
     }
@@ -62,7 +62,7 @@ public abstract class SchemaHandlingTypesTableWizardPanel<C extends Containerabl
 
         WebMarkupContainer cardHeader = new WebMarkupContainer(ID_CARD_HEADER);
         cardHeader.setOutputMarkupId(true);
-        cardHeader.add(new VisibleBehaviour(() -> getPanel() != null));
+        cardHeader.add(new VisibleBehaviour(() -> getPanel() != null && !getPanel().displayNoValuePanel()));
         add(cardHeader);
 
         initPanel(ID_PANEL);
@@ -95,13 +95,12 @@ public abstract class SchemaHandlingTypesTableWizardPanel<C extends Containerabl
         onCreateValue(model, target, isDeprecate);
     }
 
-
     @SuppressWarnings("rawtypes")
     public MultivalueContainerListPanel getPanel() {
         return ((SchemaHandlingObjectsPanel) get(ID_PANEL)).getTable();
     }
 
-    protected final ContainerPanelConfigurationType getConfiguration(){
+    protected final ContainerPanelConfigurationType getConfiguration() {
         return WebComponentUtil.getContainerConfiguration(
                 getAssignmentHolderDetailsModel().getObjectDetailsPageConfiguration().getObject(),
                 getPanelType());
