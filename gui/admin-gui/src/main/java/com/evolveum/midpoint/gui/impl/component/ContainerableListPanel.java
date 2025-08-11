@@ -14,6 +14,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import com.evolveum.midpoint.gui.impl.page.admin.AbstractPageObjectDetails;
 import com.evolveum.midpoint.gui.impl.page.admin.certification.column.AbstractGuiColumn;
 
+import com.evolveum.midpoint.gui.impl.page.admin.resource.component.*;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
 
 import org.apache.commons.collections4.CollectionUtils;
@@ -33,10 +34,7 @@ import org.apache.wicket.extensions.markup.html.repeater.util.SortableDataProvid
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.form.FormComponent;
 import org.apache.wicket.markup.repeater.Item;
-import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.LoadableDetachableModel;
-import org.apache.wicket.model.PropertyModel;
-import org.apache.wicket.model.StringResourceModel;
+import org.apache.wicket.model.*;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.util.string.StringValue;
 import org.apache.wicket.util.visit.IVisitor;
@@ -119,6 +117,8 @@ public abstract class ContainerableListPanel<C extends Serializable, PO extends 
     @Serial private static final long serialVersionUID = 1L;
 
     private static final Trace LOGGER = TraceManager.getTrace(ContainerableListPanel.class);
+
+    private static final String ID_NO_VALUE_PANEL = "noValuePanel";
 
     private static final String ID_ITEMS_TABLE = "itemsTable";
     private static final String ID_BUTTON_BAR = "buttonBar";
@@ -303,6 +303,10 @@ public abstract class ContainerableListPanel<C extends Serializable, PO extends 
     }
 
     private void initLayout() {
+
+        Component panelForNoValue = createPanelForNoValue();
+        add(panelForNoValue);
+
         Component table;
 
         if (isCollapsableTable()) {
@@ -313,9 +317,12 @@ public abstract class ContainerableListPanel<C extends Serializable, PO extends 
 
         table.setOutputMarkupId(true);
         table.setOutputMarkupPlaceholderTag(true);
+
         add(table);
 
-        table.add(new VisibleBehaviour(this::isListPanelVisible));
+        table.add(new VisibleBehaviour(() ->
+                !displayNoValuePanel() && isListPanelVisible()));
+
         setOutputMarkupId(true);
     }
 
@@ -1754,4 +1761,35 @@ public abstract class ContainerableListPanel<C extends Serializable, PO extends 
         return findParent(AbstractPageObjectDetails.class) != null;
     }
 
+    /**
+     * Determines whether the panel should display a special UI component
+     * (e.g. {@link NoValuePanel}) when there are no values
+     * present in the container.
+     */
+    protected boolean displayNoValuePanel() {
+        return false;
+    }
+
+    /**
+     * Creates a fallback UI panel to be displayed when the container model has no values.
+     * <p>
+     * This method constructs a {@link NoValuePanel} that visually indicates the
+     * absence of configured resource object types and provides a set of actionable toolbar buttons
+     * (e.g., create new or suggest type).
+     * </p>
+     *
+     * @return A {@link Component} instance to be used as the panel when no values are present.
+     */
+    protected Component createPanelForNoValue() {
+        NoValuePanel components = new NoValuePanel(ID_NO_VALUE_PANEL, () -> new NoValuePanelDto(
+                defaultType)) {
+            @Override
+            protected List<Component> createToolbarButtons(String buttonsId) {
+                return createToolbarButtonsList(ID_BUTTON);
+            }
+        };
+        components.setOutputMarkupId(true);
+        components.add(new VisibleBehaviour(() -> displayNoValuePanel()));
+        return components;
+    }
 }

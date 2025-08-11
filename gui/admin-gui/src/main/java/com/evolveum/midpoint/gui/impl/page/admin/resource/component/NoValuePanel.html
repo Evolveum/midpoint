@@ -12,9 +12,13 @@
         <div class="h5 text-secondary" wicket:id="title"></div>
         <p class="text-muted" wicket:id="subtitle"></p>
 
-        <div wicket:id="toolbar" class="d-flex justify-content-center gap-2">
-            <button wicket:id="toolbar-button" class="btn"></button>
-        </div>
+        <div class="d-flex justify-content-center gap-2" wicket:id="buttonToolbar"></div>
     </div>
+
+    <wicket:fragment wicket:id="buttonBar" id="buttonBar">
+        <div class="btn-group" wicket:id="buttonsRepeater">
+            <a wicket:id="button"></a>
+        </div>
+    </wicket:fragment>
 </wicket:panel>
 </html>

@@ -6,6 +6,7 @@
  */
 package com.evolveum.midpoint.gui.impl.page.admin.resource.component;
 
+import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
@@ -28,6 +29,7 @@ import com.evolveum.midpoint.web.component.data.column.ColumnMenuAction;
 import com.evolveum.midpoint.web.component.form.MidpointForm;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.model.PrismContainerWrapperModel;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -42,10 +44,9 @@ import org.apache.wicket.model.Model;
 import org.apache.wicket.model.StringResourceModel;
 import org.jetbrains.annotations.NotNull;
 
+import java.io.Serial;
 import java.util.ArrayList;
 import java.util.List;
-
-import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.NoResourceObjectDto.*;
 
 public abstract class SchemaHandlingObjectsPanel<C extends Containerable> extends AbstractObjectMainPanel<ResourceType, ResourceDetailsModel> {
 
@@ -60,11 +61,6 @@ public abstract class SchemaHandlingObjectsPanel<C extends Containerable> extend
     protected void initLayout() {
         MidpointForm<?> form = new MidpointForm<>(ID_FORM);
         add(form);
-
-        if (allowNoValuePanel() && hasNoValues()) {
-            form.add(createPanelForNoValue());
-            return;
-        }
 
         WebMarkupContainer objectTypesPanel = createMultiValueListPanel();
         form.add(objectTypesPanel);
@@ -110,14 +106,52 @@ public abstract class SchemaHandlingObjectsPanel<C extends Containerable> extend
 
             @Override
             protected List<Component> createToolbarButtonsList(String idButton) {
-                List<Component> buttons = super.createToolbarButtonsList(idButton);
-                buttons.stream()
-                        .filter(component -> component instanceof AjaxIconButton)
-                        .forEach(button -> {
-                            ((AjaxIconButton) button).showTitleAsLabel(true);
-                            button.add(AttributeAppender.replace("class", "btn btn-primary btn-sm"));
-                        });
-                return buttons;
+                List<Component> bar = new ArrayList<>();
+                createNewObjectPerformButton(idButton, bar);
+                createSuggestObjectButton(idButton, bar);
+                return bar;
+            }
+
+            @Override
+            protected boolean displayNoValuePanel() {
+                return allowNoValuePanel() && hasNoValues();
+            }
+
+            private void createSuggestObjectButton(String idButton, @NotNull List<Component> bar) {
+                AjaxIconButton suggestObjectButton = new AjaxIconButton(idButton,
+                        Model.of(GuiStyleConstants.CLASS_ICON_WIZARD),
+                        createStringResource("SchemaHandlingObjectsPanel.suggestNew")) {
+
+                    @Serial private static final long serialVersionUID = 1L;
+
+                    @Override
+                    public void onClick(AjaxRequestTarget target) {
+                        showSuggestConfirmDialog(getPageBase(),
+                                createStringResource("SchemaHandlingObjectsPanel.suggestNew"), target);
+                    }
+                };
+                suggestObjectButton.showTitleAsLabel(true);
+                suggestObjectButton.add(AttributeAppender.replace("class", "ml-2 btn btn-default btn-sm"));
+                suggestObjectButton.add(new VisibleBehaviour(() -> isSuggestButtonVisible()));
+                bar.add(suggestObjectButton);
+            }
+
+            private void createNewObjectPerformButton(String idButton, @NotNull List<Component> bar) {
+                AjaxIconButton newObjectButton = new AjaxIconButton(idButton,
+                        new Model<>(getIconForNewObjectButton()),
+                        createStringResource(getKeyOfTitleForNewObjectButton())) {
+
+                    private static final long serialVersionUID = 1L;
+
+                    @Override
+                    public void onClick(AjaxRequestTarget target) {
+                        newItemPerformed(target, null);
+                    }
+                };
+                newObjectButton.showTitleAsLabel(true);
+                newObjectButton.add(AttributeAppender.replace("class", "btn btn-primary btn-sm"));
+                newObjectButton.add(new VisibleBehaviour(() -> isCreateNewObjectVisible()));
+                bar.add(newObjectButton);
             }
 
             @Override
@@ -255,51 +289,8 @@ public abstract class SchemaHandlingObjectsPanel<C extends Containerable> extend
     }
 
     /**
-     * Creates a fallback UI panel to be displayed when the container model has no values.
-     * <p>
-     * This method constructs a {@link NoResourceObjectsTypePanel} that visually indicates the
-     * absence of configured resource object types and provides a set of actionable toolbar buttons
-     * (e.g., create new or suggest type).
-     * </p>
-     * @return A {@link Component} instance to be used as the panel when no values are present.
-     */
-    protected Component createPanelForNoValue() {
-        List<ToolbarButtonDto> toolbarButtons = new ArrayList<>();
-
-        ToolbarButtonDto createButtonDto = new ToolbarButtonDto(
-                createStringResource(getKeyOfTitleForCreateObjectButton()),
-                Model.of(getIconForCreateObjectButton()),
-                "btn btn-primary", true) {
-
-            @Override
-            public void action(AjaxRequestTarget ajaxRequestTarget) {
-                onNewValue(null, createContainerModel(), ajaxRequestTarget, false);
-            }
-        };
-        toolbarButtons.add(createButtonDto);
-
-        ToolbarButtonDto suggestButtonDto = new ToolbarButtonDto(
-                createStringResource(getKeyOfTitleForSuggestObjectButton()),
-                Model.of(getIconForSuggestObjectButton()),
-                "btn btn-default", true) {
-
-            @Override
-            public void action(AjaxRequestTarget ajaxRequestTarget) {
-                showSuggestConfirmDialog(getPageBase(),
-                        createStringResource(getKeyOfTitleForSuggestObjectButton()), ajaxRequestTarget);
-            }
-        };
-        toolbarButtons.add(suggestButtonDto);
-
-        return new NoResourceObjectsTypePanel(SchemaHandlingObjectsPanel.ID_TABLE, () -> new NoResourceObjectDto(
-                getTypesContainerPath(),
-                () -> getObjectDetailsModels(),
-                toolbarButtons));
-    }
-
-    /**
      * Determines whether the panel should display a special UI component
-     * (e.g. {@link NoResourceObjectsTypePanel}) when there are no values
+     * (e.g. {@link NoValuePanel}) when there are no values
      * present in the container.
      */
     protected boolean allowNoValuePanel() {
@@ -351,5 +342,9 @@ public abstract class SchemaHandlingObjectsPanel<C extends Containerable> extend
             }
         };
         pageBase.showMainPopup(dialog, target);
+    }
+
+    protected boolean isSuggestButtonVisible() {
+        return true;
     }
 }

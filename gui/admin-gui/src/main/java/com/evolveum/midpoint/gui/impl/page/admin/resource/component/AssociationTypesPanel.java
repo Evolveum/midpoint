@@ -186,8 +186,14 @@ public class AssociationTypesPanel extends SchemaHandlingObjectsPanel<ShadowAsso
         }
     }
 
+    //TODO: set to true when smart association has been implemented
     @Override
     protected boolean allowNoValuePanel() {
-        return true;
+        return false;
+    }
+
+    @Override
+    protected boolean isSuggestButtonVisible() {
+        return false;
     }
 }
