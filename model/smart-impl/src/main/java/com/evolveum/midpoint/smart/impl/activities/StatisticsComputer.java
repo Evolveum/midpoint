@@ -214,13 +214,14 @@ public class StatisticsComputer {
      * @return a map where keys are string representations of values and values are their counts
      */
     private Map<String, Integer> getValueCounts(QName attrKey) {
-        return shadowStorage.get(attrKey).stream()
-                .filter(list -> list.size() == 1)
-                .map(list -> String.valueOf(list.get(0)))
-                .collect(Collectors.groupingBy(
-                        Function.identity(),
-                        Collectors.summingInt(e -> 1)
-                ));
+        Map<String, Integer> result = new HashMap<>();
+        for (List<?> list : shadowStorage.get(attrKey)) {
+            if (list.size() == 1) {
+                String value = String.valueOf(list.get(0));
+                result.merge(value, 1, Integer::sum);
+            }
+        }
+        return result;
     }
 
     /**
@@ -231,23 +232,33 @@ public class StatisticsComputer {
      * @return a LinkedHashMap of the top N most frequent values and their counts, or an empty map if all counts are 1
      */
     private Map<String, Integer> getTopNValueCounts(Map<String, Integer> valueCounts) {
-        int maxCount = valueCounts.values().stream()
-                .max(Integer::compareTo)
-                .orElse(0);
-
-        if (maxCount > 1) {
-            return valueCounts.entrySet().stream()
-                    .sorted(Map.Entry.comparingByValue(Comparator.reverseOrder()))
-                    .limit(TOP_N_LIMIT)
-                    .collect(Collectors.toMap(
-                            Map.Entry::getKey,
-                            Map.Entry::getValue,
-                            (a, b) -> a,
-                            LinkedHashMap::new)
-                    );
-        } else {
-            return new LinkedHashMap<>();
+        int maxCount = 0;
+        for (int count : valueCounts.values()) {
+            if (count > maxCount) maxCount = count;
         }
+        if (maxCount <= 1) return new LinkedHashMap<>();
+
+        PriorityQueue<Map.Entry<String, Integer>> queue =
+                new PriorityQueue<>(Comparator.comparingInt(Map.Entry::getValue));
+
+        for (Map.Entry<String, Integer> entry : valueCounts.entrySet()) {
+            if (queue.size() < TOP_N_LIMIT) {
+                queue.offer(entry);
+            } else if (entry.getValue() > queue.peek().getValue()) {
+                queue.poll();
+                queue.offer(entry);
+            }
+        }
+
+        // Collect to a LinkedHashMap in descending order
+        List<Map.Entry<String, Integer>> topList = new ArrayList<>(queue);
+        topList.sort((e1, e2) -> Integer.compare(e2.getValue(), e1.getValue()));
+
+        Map<String, Integer> result = new LinkedHashMap<>();
+        for (Map.Entry<String, Integer> entry : topList) {
+            result.put(entry.getKey(), entry.getValue());
+        }
+        return result;
     }
 
     /**
@@ -342,17 +353,25 @@ public class StatisticsComputer {
      * @return map from affix to the number of occurrences in the attribute's values
      */
     private Map<String, Integer> getAffixesValueCounts(QName attrKey) {
-        return shadowStorage.get(attrKey).stream()
-                .filter(inner -> inner.size() == 1)
-                .map(inner -> inner.get(0).toString())
-                .flatMap(str -> AFFIX_PATTERNS.entrySet().stream()
-                        .filter(e -> e.getValue().matcher(str).find())
-                        .map(Map.Entry::getKey)
-                )
-                .collect(Collectors.groupingBy(
-                        Function.identity(),
-                        Collectors.summingInt(e -> 1)
-                ));
+        // Result map
+        Map<String, Integer> result = new HashMap<>();
+        // Pre-pull patterns to avoid repeatedly accessing entrySet()
+        List<Map.Entry<String, Pattern>> patterns = new ArrayList<>(AFFIX_PATTERNS.entrySet());
+        // Get the data up front, handle null
+        LinkedList<List<?>> elements = shadowStorage.get(attrKey);
+        if (elements == null) {
+            return result;
+        }
+        for (List<?> inner : elements) {
+            if (inner.size() != 1) continue;
+            String str = inner.get(0).toString();
+            for (Map.Entry<String, Pattern> e : patterns) {
+                if (e.getValue().matcher(str).find()) {
+                    result.merge(e.getKey(), 1, Integer::sum);
+                }
+            }
+        }
+        return result;
     }
 
     /**
