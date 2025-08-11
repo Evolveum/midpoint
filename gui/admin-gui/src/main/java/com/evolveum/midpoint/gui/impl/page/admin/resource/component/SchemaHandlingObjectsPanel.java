@@ -131,7 +131,7 @@ public abstract class SchemaHandlingObjectsPanel<C extends Containerable> extend
                     }
                 };
                 suggestObjectButton.showTitleAsLabel(true);
-                suggestObjectButton.add(AttributeAppender.replace("class", "ml-2 btn btn-default btn-sm"));
+                suggestObjectButton.add(AttributeAppender.replace("class", "btn btn-default btn-sm mr-2"));
                 suggestObjectButton.add(new VisibleBehaviour(() -> isSuggestButtonVisible()));
                 bar.add(suggestObjectButton);
             }
@@ -149,7 +149,7 @@ public abstract class SchemaHandlingObjectsPanel<C extends Containerable> extend
                     }
                 };
                 newObjectButton.showTitleAsLabel(true);
-                newObjectButton.add(AttributeAppender.replace("class", "btn btn-primary btn-sm"));
+                newObjectButton.add(AttributeAppender.replace("class", "btn btn-primary btn-sm mr-2"));
                 newObjectButton.add(new VisibleBehaviour(() -> isCreateNewObjectVisible()));
                 bar.add(newObjectButton);
             }
