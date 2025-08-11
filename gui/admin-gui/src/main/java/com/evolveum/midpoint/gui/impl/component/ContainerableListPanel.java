@@ -318,10 +318,7 @@ public abstract class ContainerableListPanel<C extends Serializable, PO extends 
 
             @Override
             protected WebMarkupContainer createButtonToolbar(String id) {
-                if (isPreview()) {
-                    return new ButtonBar<>(id, ID_BUTTON_BAR, ContainerableListPanel.this, (PreviewContainerPanelConfigurationType) config);
-                }
-                return new ButtonBar<>(id, ID_BUTTON_BAR, ContainerableListPanel.this, createToolbarButtonsList(ID_BUTTON));
+                return createTableButtonToolbar(id);
             }
 
             @Override
@@ -508,28 +505,37 @@ public abstract class ContainerableListPanel<C extends Serializable, PO extends 
         List<IColumn<PO, String>> columns = collectColumns();
 
         if (!isPreview()) {
-            List<InlineMenuItem> menuItems = createInlineMenu();
-            if (menuItems == null) {
-                menuItems = new ArrayList<>();
-            }
-            addCustomActions(menuItems, this::getSelectedRealObjects);
-
-            if (!menuItems.isEmpty()) {
-                InlineMenuButtonColumn<PO> actionsColumn = new InlineMenuButtonColumn<>(menuItems, getPageBase()) {
-                    @Override
-                    public String getCssClass() {
-                        return getInlineMenuCssClass();
-                    }
-
-                    @Override
-                    protected boolean isButtonMenuItemEnabled(IModel<PO> rowModel) {
-                        return isMenuItemVisible(rowModel);
-                    }
-                };
+            IColumn<PO, String> actionsColumn = createActionsColumn();
+            if (actionsColumn != null) {
                 columns.add(actionsColumn);
             }
         }
         return columns;
+    }
+
+    protected IColumn<PO, String> createActionsColumn() {
+        List<InlineMenuItem> allItems = new ArrayList<>();
+        List<InlineMenuItem> menuItems = createInlineMenu();
+        if (menuItems != null) {
+            allItems.addAll(menuItems);
+        }
+        addCustomActions(allItems, this::getSelectedRealObjects);
+
+        if (!allItems.isEmpty()) {
+            InlineMenuButtonColumn<PO> actionsColumn = new InlineMenuButtonColumn<>(allItems, getPageBase()) {
+                @Override
+                public String getCssClass() {
+                    return getInlineMenuCssClass();
+                }
+
+                @Override
+                protected boolean isButtonMenuItemEnabled(IModel<PO> rowModel) {
+                    return isMenuItemVisible(rowModel);
+                }
+            };
+            return actionsColumn;
+        }
+        return null;
     }
 
     protected String getInlineMenuCssClass() {
@@ -1306,5 +1312,12 @@ public abstract class ContainerableListPanel<C extends Serializable, PO extends 
 
     public boolean isValidFormComponents() {
         return isValidFormComponents(null);
+    }
+
+    protected WebMarkupContainer createTableButtonToolbar(String id) {
+        if (isPreview()) {
+            return new ButtonBar<>(id, ID_BUTTON_BAR, ContainerableListPanel.this, (PreviewContainerPanelConfigurationType) config);
+        }
+        return new ButtonBar<>(id, ID_BUTTON_BAR, ContainerableListPanel.this, createToolbarButtonsList(ID_BUTTON));
     }
 }

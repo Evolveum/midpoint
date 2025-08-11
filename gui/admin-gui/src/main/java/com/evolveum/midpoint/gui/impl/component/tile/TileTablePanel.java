@@ -53,7 +53,7 @@ public abstract class TileTablePanel<T extends Tile, O extends Serializable> ext
     private static final String ID_PANEL_HEADER = "panelHeader";
 
     protected static final String ID_TILE = "tile";
-    private static final String ID_TABLE = "table";
+    protected static final String ID_TABLE = "table";
 
     static final String ID_FOOTER_CONTAINER = "footerContainer";
     private static final String ID_BUTTON_TOOLBAR = "buttonToolbar";
@@ -123,7 +123,7 @@ public abstract class TileTablePanel<T extends Tile, O extends Serializable> ext
         WebMarkupContainer buttonToolbar = createTilesButtonToolbar(ID_BUTTON_TOOLBAR);
         footerContainer.add(buttonToolbar);
 
-        BoxedTablePanel table = createTablePanel(ID_TABLE, provider, tableId);
+        WebMarkupContainer table = createTablePanel(ID_TABLE, provider, tableId);
         table.add(new VisibleBehaviour(() -> viewToggleModel.getObject() == ViewToggle.TABLE));
         add(table);
     }
@@ -173,7 +173,7 @@ public abstract class TileTablePanel<T extends Tile, O extends Serializable> ext
         return tableId;
     }
 
-    protected BoxedTablePanel createTablePanel(String idTable, ISortableDataProvider<O, String> provider, UserProfileStorage.TableId tableId) {
+    protected WebMarkupContainer createTablePanel(String idTable, ISortableDataProvider<O, String> provider, UserProfileStorage.TableId tableId) {
         return new BoxedTablePanel(idTable, provider, createColumns(), tableId) {
 
             @Override
@@ -284,7 +284,7 @@ public abstract class TileTablePanel<T extends Tile, O extends Serializable> ext
         }
     }
 
-    public BoxedTablePanel getTable() {
+    public BoxedTablePanel getBoxedTablePanelComponent() {
         return (BoxedTablePanel) get(ID_TABLE);
     }
 
@@ -300,7 +300,7 @@ public abstract class TileTablePanel<T extends Tile, O extends Serializable> ext
         return searchModel;
     }
 
-    Fragment createHeaderFragment(String id) {
+    protected Fragment createHeaderFragment(String id) {
         Fragment fragment = new Fragment(id, ID_HEADER_FRAGMENT, TileTablePanel.this);
 
         Component header = createHeader(ID_PANEL_HEADER);
@@ -336,5 +336,9 @@ public abstract class TileTablePanel<T extends Tile, O extends Serializable> ext
 
     private void onSearchPerformed(AjaxRequestTarget target) {
         refresh(target);
+    }
+
+    public WebMarkupContainer getTileTableComponent() {
+        return (WebMarkupContainer) get(ID_TABLE);
     }
 }
