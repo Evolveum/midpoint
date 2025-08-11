@@ -14,27 +14,24 @@ import java.util.List;
 
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
-import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
-import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
 import com.evolveum.midpoint.gui.impl.component.data.provider.ObjectClassDataProvider;
 import com.evolveum.midpoint.gui.impl.component.tile.RadioTileTablePanel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.basic.ObjectClassWrapper;
 
+import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.component.CardWithTablePanel;
+import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.page.ResourceGeneratingSuggestionObjectClassWizardPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.schema.component.PrismItemDefinitionsTable;
-import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.processor.ResourceObjectClassDefinition;
-import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.security.MidPointAuthWebSession;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectClassSizeEstimationType;
 import com.evolveum.midpoint.xml.ns._public.prism_schema_3.ComplexTypeDefinitionType;
-
-import com.evolveum.midpoint.xml.ns._public.prism_schema_3.DefinitionType;
-import com.evolveum.midpoint.xml.ns._public.prism_schema_3.PrismSchemaType;
 
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
@@ -66,7 +63,13 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.DisplayType;
 
 import org.jetbrains.annotations.Nullable;
 
-public class SuggestTileTable extends BasePanel<ResourceDetailsModel> {
+import javax.xml.namespace.QName;
+
+import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationUtils.*;
+
+public class SmartObjectClassRadioTileTable extends BasePanel<ResourceDetailsModel> {
+
+    private static final String OP_DETERMINE_STATUS = ResourceGeneratingSuggestionObjectClassWizardPanel.class.getName() + ".determineStatus";
 
     private static final String ID_DATATABLE = "datatable";
     private final PageBase pageBase;
@@ -76,57 +79,27 @@ public class SuggestTileTable extends BasePanel<ResourceDetailsModel> {
 
     IModel<SelectableBean<ObjectClassWrapper>> selectedTileModel;
 
-    public SuggestTileTable(@NotNull String id, @NotNull PageBase pageBase, @NotNull IModel<ResourceDetailsModel> resourceDetailsModel) {
+    public SmartObjectClassRadioTileTable(
+            @NotNull String id,
+            @NotNull PageBase pageBase,
+            @NotNull IModel<ResourceDetailsModel> resourceDetailsModel,
+            IModel<SelectableBean<ObjectClassWrapper>> selectedModel) {
         super(id, resourceDetailsModel);
         this.pageBase = pageBase;
 
-        selectedTileModel = new LoadableModel<>(false) {
-            @Override
-            protected SelectableBean<ObjectClassWrapper> load() {
-                return null;
-            }
-        };
+        selectedTileModel = selectedModel;
 
-        this.items = new LoadableModel<>(false) {
-            @Override
-            protected @NotNull List<Toggle<ViewToggle>> load() {
-                List<Toggle<ViewToggle>> list = new ArrayList<>();
-
-                ViewToggle currentView = getTable().getViewToggleModel().getObject();
-
-                Toggle<ViewToggle> asList = new Toggle<>("fa-solid fa-table-list", null);
-                asList.setValue(ViewToggle.TABLE);
-                asList.setActive(currentView == ViewToggle.TABLE);
-                list.add(asList);
-
-                Toggle<ViewToggle> asTile = new Toggle<>("fa-solid fa-table-cells", null);
-                asTile.setValue(ViewToggle.TILE);
-                asTile.setActive(currentView == ViewToggle.TILE);
-                list.add(asTile);
-
-                return list;
-            }
-        };
+        items = getListToggleView(getTable());
 
         add(initTable());
         setDefaultPagingSize();
     }
 
-    @Contract(" -> new")
-    private @NotNull ObjectClassDataProvider createProvider() {
-        List<ObjectClassWrapper> objectClassWrappers = getObjectClassWrappers();
-        return new ObjectClassDataProvider(this, () -> objectClassWrappers) {
-            @Override
-            protected SelectableBean<ObjectClassWrapper> createObjectWrapper(ObjectClassWrapper object) {
-                return super.createObjectWrapper(object);
-            }
-        };
-    }
-
     private @NotNull List<ObjectClassWrapper> getObjectClassWrappers() {
         Collection<ResourceObjectClassDefinition> objectClassDefinitions;
         try {
-            objectClassDefinitions = SuggestTileTable.this.getModelObject().getRefinedSchema().getObjectClassDefinitions();
+            objectClassDefinitions = SmartObjectClassRadioTileTable.this.getModelObject().getRefinedSchema()
+                    .getObjectClassDefinitions();
         } catch (SchemaException | ConfigurationException e) {
             throw new RuntimeException("Error while fetching object class definitions", e);
         }
@@ -142,13 +115,16 @@ public class SuggestTileTable extends BasePanel<ResourceDetailsModel> {
     protected void setDefaultPagingSize() {
         MidPointAuthWebSession session = getSession();
         UserProfileStorage userProfile = session.getSessionStorage().getUserProfile();
-        userProfile.setPagingSize(UserProfileStorage.TableId.PANEL_RESOURCE_OBJECT_CLASSES, SuggestTileTable.MAX_TILE_COUNT);
+        userProfile.setPagingSize(
+                UserProfileStorage.TableId.PANEL_RESOURCE_OBJECT_CLASSES,
+                SmartObjectClassRadioTileTable.MAX_TILE_COUNT);
     }
 
-    public RadioTileTablePanel<SuggestTileModel<SelectableBean<ObjectClassWrapper>>, SelectableBean<ObjectClassWrapper>> initTable() {
+    public RadioTileTablePanel<SmartObjectClassTileModel<SelectableBean<ObjectClassWrapper>>, SelectableBean<ObjectClassWrapper>> initTable() {
         return new RadioTileTablePanel<>(
                 ID_DATATABLE,
                 Model.of(ViewToggle.TILE),
+                selectedTileModel,
                 UserProfileStorage.TableId.PANEL_RESOURCE_OBJECT_CLASSES) {
 
             @Override
@@ -183,17 +159,12 @@ public class SuggestTileTable extends BasePanel<ResourceDetailsModel> {
 
             @Override
             protected List<IColumn<SelectableBean<ObjectClassWrapper>, String>> createColumns() {
-                return SuggestTileTable.this.initColumns();
-            }
-
-            @Override
-            protected IModel<SelectableBean<ObjectClassWrapper>> getSelectedTileModel() {
-                return selectedTileModel;
+                return SmartObjectClassRadioTileTable.this.initColumns();
             }
 
             @Override
             protected WebMarkupContainer createTableButtonToolbar(String id) {
-                Fragment fragment = new Fragment(id, "tableFooterFragment", SuggestTileTable.this);
+                Fragment fragment = new Fragment(id, "tableFooterFragment", SmartObjectClassRadioTileTable.this);
 
                 AjaxIconButton refreshTable = new AjaxIconButton("refreshTable",
                         Model.of("fa fa-refresh"), Model.of()) {
@@ -213,7 +184,7 @@ public class SuggestTileTable extends BasePanel<ResourceDetailsModel> {
                     protected void itemSelected(AjaxRequestTarget target, IModel<Toggle<ViewToggle>> item) {
                         getViewToggleModel().setObject(item.getObject().getValue());
                         target.add(this);
-                        target.add(SuggestTileTable.this);
+                        target.add(SmartObjectClassRadioTileTable.this);
                     }
                 };
                 viewToggle.add(AttributeModifier.replace("title", createStringResource("Change view")));
@@ -226,7 +197,7 @@ public class SuggestTileTable extends BasePanel<ResourceDetailsModel> {
 
             @Override
             protected WebMarkupContainer createTilesButtonToolbar(String id) {
-                Fragment fragment = new Fragment(id, "tableFooterFragment", SuggestTileTable.this);
+                Fragment fragment = new Fragment(id, "tableFooterFragment", SmartObjectClassRadioTileTable.this);
 
                 AjaxIconButton refreshTable = new AjaxIconButton("refreshTable",
                         Model.of("fa fa-refresh"), Model.of()) {
@@ -245,7 +216,7 @@ public class SuggestTileTable extends BasePanel<ResourceDetailsModel> {
                     protected void itemSelected(@NotNull AjaxRequestTarget target, @NotNull IModel<Toggle<ViewToggle>> item) {
                         getViewToggleModel().setObject(item.getObject().getValue());
                         getTable().refreshSearch();
-                        target.add(SuggestTileTable.this);
+                        target.add(SmartObjectClassRadioTileTable.this);
                     }
                 };
 
@@ -257,17 +228,41 @@ public class SuggestTileTable extends BasePanel<ResourceDetailsModel> {
 
             @Override
             protected ISortableDataProvider<?, ?> createProvider() {
-                return SuggestTileTable.this.createProvider();
+                List<ObjectClassWrapper> objectClassWrappers = getObjectClassWrappers();
+                return new ObjectClassDataProvider(this, () -> objectClassWrappers) {
+                    @Override
+                    protected SelectableBean<ObjectClassWrapper> createObjectWrapper(ObjectClassWrapper object) {
+                        return super.createObjectWrapper(object);
+                    }
+                };
             }
 
             @Override
-            protected SuggestTileModel<SelectableBean<ObjectClassWrapper>> createTileObject(SelectableBean<ObjectClassWrapper> objectClassWrapper) {
-                return new SuggestTileModel<>(objectClassWrapper);
+            protected SmartObjectClassTileModel<SelectableBean<ObjectClassWrapper>> createTileObject(
+                    SelectableBean<ObjectClassWrapper> objectClassWrapper) {
+                String oid = SmartObjectClassRadioTileTable.this.getModelObject().getObjectType().getOid();
+                QName objectClassName = objectClassWrapper.getValue().getObjectClassName();
+                Task task = getPageBase().createSimpleTask(OP_DETERMINE_STATUS);
+                OperationResult result = task.getResult();
+
+                ObjectClassSizeEstimationType sizeEstimation = computeObjectClassSizeEstimationType(
+                        getPageBase(),
+                        oid,
+                        objectClassName,
+                        task,
+                        result);
+
+                result.computeStatusIfUnknown();
+                if (!result.isSuccess()) {
+                    getPageBase().showResult(result);
+                }
+
+                return new SmartObjectClassTileModel<>(objectClassWrapper, sizeEstimation);
             }
 
             @Override
-            protected Component createTile(String id, IModel<SuggestTileModel<SelectableBean<ObjectClassWrapper>>> model) {
-                return new SuggestTilePanel<>(id, model, selectedTileModel) {
+            protected Component createTile(String id, IModel<SmartObjectClassTileModel<SelectableBean<ObjectClassWrapper>>> model) {
+                return new SmartObjectClassTilePanel<>(id, model, selectedTileModel) {
                     @Override
                     protected void onViewSchema(AjaxRequestTarget target) {
                         displaySchemaViewTablePopup(target, getModelObject());
@@ -278,17 +273,21 @@ public class SuggestTileTable extends BasePanel<ResourceDetailsModel> {
         };
     }
 
-    private void displaySchemaViewTablePopup(@NotNull AjaxRequestTarget target,
-            SuggestTileModel<SelectableBean<ObjectClassWrapper>> tileModel) {
+    private void displaySchemaViewTablePopup(
+            @NotNull AjaxRequestTarget target,
+            @NotNull SmartObjectClassTileModel<SelectableBean<ObjectClassWrapper>> tileModel) {
+        ObjectClassWrapper objectClassWrapper = tileModel.getValue().getValue();
+        ResourceDetailsModel resourceDetailsModel = getModelObject();
         IModel<PrismContainerValueWrapper<ComplexTypeDefinitionType>> complexTypeValueModel = getComplexTypeValueModel(
-                tileModel.getValue().getValue());
+                objectClassWrapper, resourceDetailsModel);
 
         CardWithTablePanel<PrismContainerValueWrapper<ComplexTypeDefinitionType>> cardWithTablePanel =
                 new CardWithTablePanel<>(getPageBase().getMainPopupBodyId(), complexTypeValueModel) {
 
                     @Override
                     protected @NotNull WebMarkupContainer createComponent(String id) {
-                        PrismItemDefinitionsTable schemaViewTable = new PrismItemDefinitionsTable(id, complexTypeValueModel, null) {
+                        PrismItemDefinitionsTable schemaViewTable = new PrismItemDefinitionsTable(id,
+                                complexTypeValueModel, null) {
                             @Override
                             protected boolean showTableAsCard() {
                                 return false;
@@ -319,39 +318,6 @@ public class SuggestTileTable extends BasePanel<ResourceDetailsModel> {
         getPageBase().showMainPopup(cardWithTablePanel, target);
     }
 
-    private @NotNull IModel<PrismContainerValueWrapper<ComplexTypeDefinitionType>> getComplexTypeValueModel(
-            ObjectClassWrapper selectedItemModel) {
-
-        PrismContainerValueWrapper<? extends DefinitionType> valueDefinition;
-
-        ItemPath containerPath = ItemPath.create(ResourceType.F_SCHEMA, WebPrismUtil.PRISM_SCHEMA, PrismSchemaType.F_COMPLEX_TYPE);
-        PrismContainerWrapper<ComplexTypeDefinitionType> complexContainerWrapper;
-
-        try {
-            complexContainerWrapper = SuggestTileTable.this.getModelObject()
-                    .getObjectWrapper()
-                    .findContainer(containerPath);
-        } catch (SchemaException e) {
-            throw new RuntimeException("Error while finding complex type definition", e);
-        }
-
-        if (complexContainerWrapper == null) {
-            return Model.of();
-        }
-        List<PrismContainerValueWrapper<ComplexTypeDefinitionType>> values = complexContainerWrapper.getValues();
-        valueDefinition = values.stream()
-                .filter(value -> value.getRealValue().getName() != null &&
-                        value.getRealValue().getName().equals(selectedItemModel.getObjectClassName()))
-                .findFirst()
-                .orElse(null);
-
-        if (valueDefinition == null) {
-            return Model.of();
-        }
-
-        return () -> (PrismContainerValueWrapper<ComplexTypeDefinitionType>) valueDefinition;
-    }
-
     protected CompiledObjectCollectionView getObjectCollectionView() {
         return null;
     }
@@ -372,8 +338,8 @@ public class SuggestTileTable extends BasePanel<ResourceDetailsModel> {
     }
 
     @SuppressWarnings("unchecked")
-    private TileTablePanel<SuggestTileModel<SelectableBean<ObjectClassWrapper>>, SelectableBean<ObjectClassWrapper>> getTable() {
-        return (TileTablePanel<SuggestTileModel<SelectableBean<ObjectClassWrapper>>, SelectableBean<ObjectClassWrapper>>)
+    private TileTablePanel<SmartObjectClassTileModel<SelectableBean<ObjectClassWrapper>>, SelectableBean<ObjectClassWrapper>> getTable() {
+        return (TileTablePanel<SmartObjectClassTileModel<SelectableBean<ObjectClassWrapper>>, SelectableBean<ObjectClassWrapper>>)
                 get(createComponentPath(ID_DATATABLE));
     }
 

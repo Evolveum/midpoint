@@ -18,7 +18,7 @@ import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.form.RadioGroup;
 import org.apache.wicket.markup.html.panel.Fragment;
 import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.Model;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.Serializable;
 
@@ -37,9 +37,10 @@ public abstract class RadioTileTablePanel<T extends Tile<?>, O extends Serializa
     public RadioTileTablePanel(
             String id,
             IModel<ViewToggle> viewToggle,
+            IModel<O> selectedTileModel,
             UserProfileStorage.TableId tableId) {
         super(id, viewToggle, tableId);
-        this.selectedTileModel = Model.of();
+        this.selectedTileModel = selectedTileModel;
     }
 
     @SuppressWarnings("unchecked")
@@ -55,6 +56,15 @@ public abstract class RadioTileTablePanel<T extends Tile<?>, O extends Serializa
         Fragment tilesFragment = new Fragment(idTilesContainer, ID_TILES_RADIO_FRAGMENT, this);
         tilesFragment.add(AttributeModifier.replace("class", getTileContainerCssClass()));
 
+        if (selectedTileModel.getObject() == null) {
+            IModel<O> def = getDefaultSelectedTileModel();
+            if (def != null && def.getObject() != null) {
+                selectedTileModel.setObject(def.getObject());
+            } else {
+                provider.iterator(0, 1).forEachRemaining(first -> selectedTileModel.setObject(first));
+            }
+        }
+
         PageableListView<T, O> tiles = createTilesPanel(ID_TILES, provider);
         tiles.setOutputMarkupId(true);
 
@@ -62,7 +72,7 @@ public abstract class RadioTileTablePanel<T extends Tile<?>, O extends Serializa
         radioGroup.add(new AjaxFormChoiceComponentUpdatingBehavior() {
             @Override
             protected void onUpdate(AjaxRequestTarget ajaxRequestTarget) {
-                onRadioTileSelected(selectedTileModel, ajaxRequestTarget);
+                onRadioTileSelected(getSelectedTileModel(), ajaxRequestTarget);
                 ajaxRequestTarget.add(RadioTileTablePanel.this);
             }
         });
@@ -77,15 +87,15 @@ public abstract class RadioTileTablePanel<T extends Tile<?>, O extends Serializa
         return tilesFragment;
     }
 
-    protected IModel<O> getSelectedTileModel() {
+    private IModel<O> getSelectedTileModel() {
         return selectedTileModel;
     }
 
-    ;
+    protected @Nullable IModel<O> getDefaultSelectedTileModel() {
+        return null;
+    }
 
     protected void onRadioTileSelected(IModel<O> selectedTileModel, AjaxRequestTarget target) {
 
     }
-
-    ;
 }

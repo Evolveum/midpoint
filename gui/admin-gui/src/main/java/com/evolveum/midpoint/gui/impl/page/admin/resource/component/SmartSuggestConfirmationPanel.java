@@ -36,10 +36,6 @@ public class SmartSuggestConfirmationPanel extends ConfirmationPanel {
     private static final String ID_LEARN_MORE = "learnMore";
     private static final String ID_INFO_MESSAGE = "infoMessage";
 
-    public SmartSuggestConfirmationPanel(String id) {
-        this(id, null);
-    }
-
     public SmartSuggestConfirmationPanel(String id, IModel<String> message) {
         super(id, message);
     }
@@ -83,7 +79,7 @@ public class SmartSuggestConfirmationPanel extends ConfirmationPanel {
 
     private void initLearnMoreLink(@NotNull WebMarkupContainer panel) {
         ExternalLink learnMoreButton = new ExternalLink(ID_LEARN_MORE,
-                "https://docs.evolveum.com/");
+                getUrlLink());
         learnMoreButton.add(AttributeModifier.append("target", "_blank"));
         learnMoreButton.setBody(getLearnMoreButtonModel());
         learnMoreButton.setOutputMarkupId(true);
@@ -150,6 +146,10 @@ public class SmartSuggestConfirmationPanel extends ConfirmationPanel {
 
     private StringResourceModel getAllowAndContinueModel() {
         return createStringResource("SmartSuggestConfirmationPanel.allowAndContinue", this, null);
+    }
+
+    protected String getUrlLink() {
+        return "https://docs.evolveum.com/";
     }
 
     @Override

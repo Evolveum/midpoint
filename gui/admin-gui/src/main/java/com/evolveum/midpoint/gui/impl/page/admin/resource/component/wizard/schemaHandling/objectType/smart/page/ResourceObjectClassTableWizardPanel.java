@@ -11,7 +11,7 @@ import com.evolveum.midpoint.gui.impl.component.wizard.WizardPanelHelper;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.AbstractResourceWizardBasicPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.basic.ObjectClassWrapper;
-import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.table.SuggestTileTable;
+import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.table.SmartObjectClassRadioTileTable;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.web.application.PanelDisplay;
 import com.evolveum.midpoint.web.application.PanelInstance;
@@ -36,7 +36,7 @@ public abstract class ResourceObjectClassTableWizardPanel<C extends ResourceObje
 
     private static final String ID_PANEL = "panel";
 
-    IModel<SelectableBean<ObjectClassWrapper>> selectedModel;
+    IModel<SelectableBean<ObjectClassWrapper>> selectedModel = Model.of();
 
     public ResourceObjectClassTableWizardPanel(String id, WizardPanelHelper<P, ResourceDetailsModel> superHelper) {
         super(id, superHelper);
@@ -50,27 +50,21 @@ public abstract class ResourceObjectClassTableWizardPanel<C extends ResourceObje
 
     private void initLayout() {
 
-        SuggestTileTable table = new SuggestTileTable(ID_PANEL, getPageBase(), () -> getAssignmentHolderDetailsModel()) {
-            @Override
-            protected void onSelectionPerformed(IModel<SelectableBean<ObjectClassWrapper>> selectedTileModel, AjaxRequestTarget target) {
-                selectedModel = selectedTileModel;
-            }
-        };
+        SmartObjectClassRadioTileTable table = new SmartObjectClassRadioTileTable(ID_PANEL,
+                getPageBase(), this::getAssignmentHolderDetailsModel, selectedModel);
 
         table.setOutputMarkupId(true);
         add(table);
     }
 
-    private SuggestTileTable getTable() {
-        return (SuggestTileTable) get(ID_PANEL);
+    private SmartObjectClassRadioTileTable getTable() {
+        return (SmartObjectClassRadioTileTable) get(ID_PANEL);
     }
-
 
     @Override
     protected void onSubmitPerformed(AjaxRequestTarget target) {
         onContinueWithSelected(selectedModel, target);
     }
-
 
     @Override
     protected String getSaveLabelKey() {

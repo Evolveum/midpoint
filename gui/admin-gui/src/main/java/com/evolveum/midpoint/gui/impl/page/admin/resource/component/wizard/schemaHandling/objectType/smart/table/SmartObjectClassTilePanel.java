@@ -28,7 +28,7 @@ import org.apache.wicket.model.Model;
 import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.RoleAnalysisWebUtils.CLASS_CSS;
 import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.RoleAnalysisWebUtils.STYLE_CSS;
 
-public class SuggestTilePanel<T extends Serializable> extends BasePanel<SuggestTileModel<T>> {
+public class SmartObjectClassTilePanel<T extends Serializable> extends BasePanel<SmartObjectClassTileModel<T>> {
 
     @Serial private static final long serialVersionUID = 1L;
     private static final String ID_NAME = "name";
@@ -40,7 +40,10 @@ public class SuggestTilePanel<T extends Serializable> extends BasePanel<SuggestT
 
     IModel<SelectableBean<ObjectClassWrapper>> selectedTileModel;
 
-    public SuggestTilePanel(String id, IModel<SuggestTileModel<T>> model, IModel<SelectableBean<ObjectClassWrapper>> selectedTileModel) {
+    public SmartObjectClassTilePanel(
+            String id,
+            IModel<SmartObjectClassTileModel<T>> model,
+            IModel<SelectableBean<ObjectClassWrapper>> selectedTileModel) {
         super(id, model);
         this.selectedTileModel = selectedTileModel;
         initLayout();
@@ -154,6 +157,11 @@ public class SuggestTilePanel<T extends Serializable> extends BasePanel<SuggestT
         // This method can be overridden to handle the view schema action
     }
 
+    /**
+     * Selects the tile if no other tile is currently selected.
+     * This is useful for ensuring that at least one tile is selected
+     * when the user interacts with the UI.
+     */
     private void selectIfNoneSelected() {
         SelectableBean<ObjectClassWrapper> currentSelection = selectedTileModel.getObject();
         SelectableBean<ObjectClassWrapper> thisTile = getModelObject().getValue();

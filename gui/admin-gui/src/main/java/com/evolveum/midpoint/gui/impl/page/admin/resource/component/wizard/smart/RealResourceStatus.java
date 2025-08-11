@@ -37,7 +37,7 @@ public class RealResourceStatus implements ResourceStatus {
     private final Map<QName, ObjectClassInfo> objectClassInfoMap = new HashMap<>();
     private final List<StatusInfo<ObjectTypesSuggestionType>> statuses = new ArrayList<>();
 
-    RealResourceStatus(PrismObject<ResourceType> resource) {
+    public RealResourceStatus(PrismObject<ResourceType> resource) {
         this.resource = resource;
     }
 
@@ -84,6 +84,7 @@ public class RealResourceStatus implements ResourceStatus {
                 .print();
     }
 
+
     @Override
     public ObjectClassInfo getSuggestedObjectClassInfo() {
         return getClassesSortedByRelevance().stream()
@@ -118,15 +119,42 @@ public class RealResourceStatus implements ResourceStatus {
         return null;
     }
 
-    private List<StatusInfo<ObjectTypesSuggestionType>> getSuccessfulStatuses() {
+    public List<StatusInfo<ObjectTypesSuggestionType>> getSuccessfulStatuses() {
         return statuses.stream()
                 .filter(s -> s.status() == OperationResultStatus.SUCCESS)
+                .toList();
+    }
+
+    public List<StatusInfo<ObjectTypesSuggestionType>> getSuccessfulStatusesForObjectClass(QName objectClassName) {
+        return statuses.stream()
+                .filter(s -> s.status() == OperationResultStatus.SUCCESS && s.getObjectClassName() != null
+                        && s.getObjectClassName().equals(objectClassName))
+                .toList();
+    }
+
+    public List<StatusInfo<ObjectTypesSuggestionType>> getFailedStatusesForObjectClass(QName objectClassName) {
+        return statuses.stream()
+                .filter(s -> s.status() == OperationResultStatus.FATAL_ERROR && s.getObjectClassName() != null
+                        && s.getObjectClassName().equals(objectClassName))
+                .toList();
+    }
+
+    public List<StatusInfo<ObjectTypesSuggestionType>> getInProgressStatusesForObjectClass(QName objectClassName) {
+        return statuses.stream()
+                .filter(s -> s.status() == OperationResultStatus.IN_PROGRESS && s.getObjectClassName() != null
+                        && s.getObjectClassName().equals(objectClassName))
                 .toList();
     }
 
     @Override
     public List<StatusInfo<ObjectTypesSuggestionType>> getObjectTypesSuggestions() {
         return getSuccessfulStatuses();
+    }
+
+    public List<StatusInfo<ObjectTypesSuggestionType>> getObjectTypesSuggestions(QName objectClassName) {
+        return statuses.stream()
+                .filter(s -> s.getObjectClassName() != null && s.getObjectClassName().equals(objectClassName))
+                .toList();
     }
 
     @Override
