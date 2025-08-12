@@ -54,6 +54,7 @@ Also, increased the size of the http request header size to cope with big header
 The recommended values are: max-part-header-size: 768; max-part-count: 100.
 See bug:MID-10748[].
 * Fixed the possibility to modify the filter in the marking rule. See bug:MID-10405[].
+* Fixed global policy evaluation for assignments with non-membership relation. See bug:MID-10779[].
 
 == Changes with Respect To Version 4.9.2
 
