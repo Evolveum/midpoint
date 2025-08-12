@@ -11,6 +11,7 @@ import java.util.List;
 
 import com.evolveum.midpoint.gui.api.page.PageAdminLTE;
 
+import com.evolveum.midpoint.gui.api.util.GuiDisplayTypeUtil;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 
 import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
@@ -35,7 +36,6 @@ import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
 import com.evolveum.midpoint.gui.impl.prism.panel.PrismPropertyPanel;
 import com.evolveum.midpoint.gui.impl.util.GuiImplUtil;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.util.PolyStringUtils;
 import com.evolveum.midpoint.prism.xml.XsdTypeMapper;
 import com.evolveum.midpoint.schema.util.FormTypeUtil;
 import com.evolveum.midpoint.util.Holder;
@@ -157,11 +157,13 @@ public class DynamicFieldGroupPanel<O extends ObjectType> extends BasePanel<Pris
         }
 
         ItemDefinition.ItemDefinitionMutator itemDefMutator = itemWrapper.mutator();
-        if (PolyStringUtils.isNotEmpty(displayType.getLabel())) {
-            itemDefMutator.setDisplayName(displayType.getLabel().getOrig());
+        String labelValue = GuiDisplayTypeUtil.getTranslatedLabel(displayType);
+        if (StringUtils.isNotEmpty(labelValue)) {
+            itemDefMutator.setDisplayName(labelValue);
         }
-        if (PolyStringUtils.isNotEmpty(displayType.getHelp())) {
-            itemDefMutator.setHelp(displayType.getHelp().getOrig());
+        String helpValue = GuiDisplayTypeUtil.getHelp(displayType);
+        if (StringUtils.isNotEmpty(helpValue)) {
+            itemDefMutator.setHelp(helpValue);
         }
         if (StringUtils.isNotEmpty(displayType.getMaxOccurs())) {
             itemDefMutator.setMaxOccurs(XsdTypeMapper.multiplicityToInteger(displayType.getMaxOccurs()));
