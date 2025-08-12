@@ -1061,7 +1061,7 @@ public class TestSmartIntegrationServiceImpl extends AbstractSmartIntegrationTes
         var suggestedMappings = smartIntegrationService.suggestMappings(
                 RESOURCE_DUMMY_FOR_SUGGEST_MAPPINGS_AND_CORRELATION.oid,
                 ACCOUNT_DEFAULT,
-                null, null, task, result);
+                null, null, null, task, result);
 
         then("suggestion is correct");
         displayValueAsXml("suggested mappings", suggestedMappings);

@@ -22,6 +22,12 @@ import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 
 import com.evolveum.midpoint.repo.common.activity.run.ActivityRunException;
 
+import com.evolveum.midpoint.schema.util.LocalizationUtil;
+import com.evolveum.midpoint.util.LocalizableMessage;
+import com.evolveum.midpoint.util.annotation.Experimental;
+
+import com.evolveum.midpoint.util.exception.CommonException;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -89,19 +95,22 @@ public class CurrentActivityState<WS extends AbstractActivityWorkStateType>
     private boolean initialized;
 
     public CurrentActivityState(@NotNull AbstractActivityRun<?, ?, WS> activityRun) {
-        super(activityRun.getBeans());
         this.activityRun = activityRun;
         this.activityStateDefinition = activityRun.getActivityStateDefinition();
         this.workStateComplexTypeDefinition = determineWorkStateDefinition(activityStateDefinition.getWorkStateTypeName());
         this.liveProgress = new ActivityProgress(this);
         this.liveStatistics = new ActivityStatistics(this);
 
-        ActivityReportingDefinition reportingDef = activityRun.getActivity().getReportingDefinition();
+        ActivityReportingDefinition reportingDef = getReportingDefinition();
         this.bucketsReport = new BucketsReport(reportingDef.getBucketsReportDefinition(), this,
                 activityRun.isBucketAnalysis() ? ANALYSIS : EXECUTION);
         this.itemsReport = new ItemsReport(reportingDef.getItemsReportDefinition(), this);
         this.connIdOperationsReport = new ConnIdOperationsReport(reportingDef.getConnIdOperationsReportDefinition(), this);
         this.internalOperationsReport = new InternalOperationsReport(reportingDef.getInternalOperationsReportDefinition(), this);
+    }
+
+    @NotNull ActivityReportingDefinition getReportingDefinition() {
+        return activityRun.getActivity().getReportingDefinition();
     }
 
     //region Initialization and closing
@@ -121,7 +130,7 @@ public class CurrentActivityState<WS extends AbstractActivityWorkStateType>
         try {
             stateItemPath = findOrCreateActivityState(result);
             updatePersistenceType(result);
-            if (activityRun.shouldCreateWorkStateOnInitialization()) {
+            if (shouldCreateWorkStateOnInitialization()) {
                 createWorkStateIfNeeded(result);
             }
             liveProgress.initialize(getStoredProgress());
@@ -134,11 +143,16 @@ public class CurrentActivityState<WS extends AbstractActivityWorkStateType>
         }
     }
 
+    boolean shouldCreateWorkStateOnInitialization() {
+        return activityRun.shouldCreateWorkStateOnInitialization();
+    }
+
     /**
      * Creates a work state compartment for this activity and returns its path (related to the execution task).
+     *
+     * Overridden for {@link VirtualActivityState} with a simpler implementation.
      */
-    @NotNull
-    private ItemPath findOrCreateActivityState(OperationResult result)
+    @NotNull ItemPath findOrCreateActivityState(OperationResult result)
             throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException {
         LOGGER.trace("findOrCreateActivityWorkState starting in activity with path '{}' in {}",
                 activityRun.getActivityPath(), getTask());
@@ -163,8 +177,7 @@ public class CurrentActivityState<WS extends AbstractActivityWorkStateType>
         }
     }
 
-    @NotNull
-    private ItemPath findOrCreateChildActivityState(ItemPath parentWorkStatePath, String identifier, OperationResult result)
+    @NotNull ItemPath findOrCreateChildActivityState(ItemPath parentWorkStatePath, String identifier, OperationResult result)
             throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException {
         Task task = getTask();
         ItemPath childPath = findChildState(task, parentWorkStatePath, identifier);
@@ -307,6 +320,29 @@ public class CurrentActivityState<WS extends AbstractActivityWorkStateType>
     public void setResultStatus(@NotNull OperationResultStatus status) throws ActivityRunException {
         setItemRealValues(ActivityStateType.F_RESULT_STATUS, createStatusType(status));
     }
+
+    public void setMessage(String message) throws ActivityRunException {
+        setItemRealValues(ActivityStateType.F_MESSAGE, new SingleLocalizableMessageType().fallbackMessage(message));
+    }
+
+    public void setMessage(LocalizableMessage message) throws ActivityRunException {
+        if (message == null) {
+            setItemRealValues(ActivityStateType.F_MESSAGE);
+        } else {
+            setItemRealValues(
+                    ActivityStateType.F_MESSAGE,
+                    LocalizationUtil.createLocalizableMessageType(message));
+        }
+    }
+
+    public void recordException(@NotNull Throwable t) throws ActivityRunException {
+        setResultStatus(FATAL_ERROR);
+        if (t instanceof CommonException commonException && commonException.getUserFriendlyMessage() != null) {
+            setMessage(commonException.getUserFriendlyMessage());
+        } else {
+            setMessage(t.getMessage());
+        }
+    }
     //endregion
 
     //region Misc
@@ -343,6 +379,18 @@ public class CurrentActivityState<WS extends AbstractActivityWorkStateType>
     public @NotNull ComplexTypeDefinition getWorkStateComplexTypeDefinition() {
         return workStateComplexTypeDefinition;
     }
+
+    /**
+     * Creates or finds a state for a virtual child activity.
+     *
+     * May flush the task modifications, if the state does not exist yet.
+     *
+     * EXPERIMENTAL! Do not use in production code.
+     */
+    @Experimental
+    public @NotNull VirtualActivityState<WS> createOrFindVirtualChildActivityState(@NotNull String childIdentifier) {
+        return new VirtualActivityState<>(activityRun, stateItemPath, childIdentifier);
+    }
     //endregion
 
     //region Progress & statistics
@@ -378,6 +426,10 @@ public class CurrentActivityState<WS extends AbstractActivityWorkStateType>
         if (activityRun.areStatisticsSupported()) {
             liveStatistics.writeToTaskAsPendingModifications();
         }
+    }
+
+    boolean areRunRecordsSupported() {
+        return activityRun.areRunRecordsSupported();
     }
     //endregion
 

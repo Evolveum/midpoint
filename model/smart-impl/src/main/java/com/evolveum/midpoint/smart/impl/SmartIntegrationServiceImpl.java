@@ -19,11 +19,11 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.repo.api.RepositoryService;
+import com.evolveum.midpoint.repo.common.activity.run.state.CurrentActivityState;
 import com.evolveum.midpoint.schema.*;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.util.ShadowObjectClassStatisticsTypeUtil;
 import com.evolveum.midpoint.smart.api.info.StatusInfo;
-import com.evolveum.midpoint.util.LocalizableMessageBuilder;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 import org.jetbrains.annotations.NotNull;
@@ -38,15 +38,10 @@ import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.model.impl.controller.ModelInteractionServiceImpl;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.repo.common.SystemObjectCache;
-import com.evolveum.midpoint.repo.common.activity.TaskActivityManager;
-import com.evolveum.midpoint.repo.common.activity.run.CommonTaskBeans;
-import com.evolveum.midpoint.repo.common.activity.run.state.ActivityState;
 import com.evolveum.midpoint.schema.processor.ResourceObjectTypeIdentification;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.Resource;
 import com.evolveum.midpoint.schema.util.SystemConfigurationTypeUtil;
-import com.evolveum.midpoint.schema.util.task.ActivityPath;
 import com.evolveum.midpoint.smart.api.ServiceClient;
 import com.evolveum.midpoint.smart.api.SmartIntegrationService;
 import com.evolveum.midpoint.task.api.Task;
@@ -101,7 +96,6 @@ public class SmartIntegrationServiceImpl implements SmartIntegrationService {
     @Autowired private ModelService modelService;
     @Autowired private ModelInteractionServiceImpl modelInteractionService;
     @Autowired private TaskManager taskManager;
-    @Autowired private TaskActivityManager activityManager;
     @Autowired @Qualifier("cacheRepositoryService") private RepositoryService repositoryService;
 
     @Override
@@ -274,7 +268,7 @@ public class SmartIntegrationServiceImpl implements SmartIntegrationService {
     @Override
     public List<StatusInfo<ObjectTypesSuggestionType>> listSuggestObjectTypesOperationStatuses(
             String resourceOid, Task task, OperationResult parentResult)
-            throws SchemaException, ConfigurationException, ObjectNotFoundException {
+            throws SchemaException {
         var result = parentResult.subresult(OP_LIST_SUGGEST_OBJECT_TYPES_OPERATION_STATUSES)
                 .addParam("resourceOid", resourceOid)
                 .build();
@@ -287,10 +281,8 @@ public class SmartIntegrationServiceImpl implements SmartIntegrationService {
             var resultingList = new ArrayList<StatusInfo<ObjectTypesSuggestionType>>();
             for (PrismObject<TaskType> t : tasks) {
                 resultingList.add(
-                        createStatusInformation(
-                                taskManager.createTaskInstance(t, result),
-                                result,
-                                ObjectTypesSuggestionWorkStateType.COMPLEX_TYPE,
+                        new StatusInfoImpl<>(
+                                t.asObjectable(),
                                 ObjectTypesSuggestionWorkStateType.F_RESULT,
                                 ObjectTypesSuggestionType.class));
             }
@@ -314,16 +306,13 @@ public class SmartIntegrationServiceImpl implements SmartIntegrationService {
     @Override
     public StatusInfo<ObjectTypesSuggestionType> getSuggestObjectTypesOperationStatus(
             String token, Task task, OperationResult parentResult)
-            throws SchemaException, ObjectNotFoundException, ConfigurationException {
+            throws SchemaException, ObjectNotFoundException {
         var result = parentResult.subresult(OP_GET_SUGGEST_OBJECT_TYPES_OPERATION_STATUS)
                 .addParam("token", token)
                 .build();
         try {
-            var bgTask = taskManager.getTaskPlain(token, taskRetrievalOptions(), result);
-            return createStatusInformation(
-                    bgTask,
-                    result,
-                    ObjectTypesSuggestionWorkStateType.COMPLEX_TYPE,
+            return new StatusInfoImpl<>(
+                    getTask(token, result),
                     ObjectTypesSuggestionWorkStateType.F_RESULT,
                     ObjectTypesSuggestionType.class);
         } catch (Throwable t) {
@@ -332,6 +321,12 @@ public class SmartIntegrationServiceImpl implements SmartIntegrationService {
         } finally {
             result.close();
         }
+    }
+
+    private @NotNull TaskType getTask(String oid, OperationResult result) throws ObjectNotFoundException, SchemaException {
+        return taskManager
+                .getObject(TaskType.class, oid, taskRetrievalOptions(), result)
+                .asObjectable();
     }
 
     @Override
@@ -370,7 +365,7 @@ public class SmartIntegrationServiceImpl implements SmartIntegrationService {
     @Override
     public List<StatusInfo<QName>> listSuggestFocusTypeOperationStatuses(
             String resourceOid, Task task, OperationResult parentResult)
-            throws SchemaException, ConfigurationException, ObjectNotFoundException {
+            throws SchemaException {
         var result = parentResult.subresult(OP_LIST_SUGGEST_FOCUS_TYPE_OPERATION_STATUSES)
                 .addParam("resourceOid", resourceOid)
                 .build();
@@ -383,10 +378,8 @@ public class SmartIntegrationServiceImpl implements SmartIntegrationService {
             var resultingList = new ArrayList<StatusInfo<QName>>();
             for (PrismObject<TaskType> t : tasks) {
                 resultingList.add(
-                        createStatusInformation(
-                                taskManager.createTaskInstance(t, result),
-                                result,
-                                FocusTypeSuggestionWorkStateType.COMPLEX_TYPE,
+                        new StatusInfoImpl<>(
+                                t.asObjectable(),
                                 FocusTypeSuggestionWorkStateType.F_RESULT,
                                 QName.class));
             }
@@ -403,16 +396,13 @@ public class SmartIntegrationServiceImpl implements SmartIntegrationService {
     @Override
     public StatusInfo<QName> getSuggestFocusTypeOperationStatus(
             String token, Task task, OperationResult parentResult)
-            throws SchemaException, ObjectNotFoundException, ConfigurationException {
+            throws SchemaException, ObjectNotFoundException {
         var result = parentResult.subresult(OP_GET_SUGGEST_FOCUS_TYPE_OPERATION_STATUS)
                 .addParam("token", token)
                 .build();
         try {
-            var bgTask = taskManager.getTaskPlain(token, taskRetrievalOptions(), result);
-            return createStatusInformation(
-                    bgTask,
-                    result,
-                    FocusTypeSuggestionWorkStateType.COMPLEX_TYPE,
+            return new StatusInfoImpl<>(
+                    getTask(token, result),
                     FocusTypeSuggestionWorkStateType.F_RESULT,
                     QName.class);
         } catch (Throwable t) {
@@ -421,35 +411,6 @@ public class SmartIntegrationServiceImpl implements SmartIntegrationService {
         } finally {
             result.close();
         }
-    }
-
-    private <T> StatusInfo<T> createStatusInformation(
-            Task task, OperationResult result, QName stateTypeName, ItemName resultItem, Class<T> resultClass)
-            throws SchemaException, ConfigurationException, ObjectNotFoundException {
-        LOGGER.trace("Task:\n{}", task.debugDump(1));
-        var token = task.getOid();
-        var taskStatus = Objects.requireNonNullElse(
-                OperationResultStatus.parseStatusType(task.getResultStatus()),
-                OperationResultStatus.IN_PROGRESS);
-        var affectedResourceObjects = // FIXME implement more robustly
-                task.getRawTaskObjectClonedIfNecessary().asObjectable().getAffectedObjects()
-                        .getActivity().get(0).getResourceObjects();
-        var taskResult = task.getResult();
-        var message = taskResult != null ? taskResult.getMessage() : null;
-        var localizableMessage = message != null ? LocalizableMessageBuilder.buildFallbackMessage(message) : null;
-        var started = XmlTypeConverter.createXMLGregorianCalendar(task.getLastRunStartTimestamp());
-        var finished = XmlTypeConverter.createXMLGregorianCalendar(task.getLastRunFinishTimestamp());
-        if (taskStatus == OperationResultStatus.IN_PROGRESS) {
-            var activity = activityManager.getActivity(task, ActivityPath.empty());
-            return new StatusInfo<>(
-                    token, taskStatus, localizableMessage, affectedResourceObjects, started, finished, null);
-        }
-        // We should have the state by now.
-        var state = ActivityState.getActivityStateDownwards(
-                ActivityPath.empty(), task, stateTypeName, CommonTaskBeans.get(), result);
-        var activityResult = state.getWorkStateItemRealValueClone(resultItem, resultClass);
-        return new StatusInfo<>(
-                token, taskStatus, localizableMessage, affectedResourceObjects, started, finished, activityResult);
     }
 
     /** Invokes the service client to suggest object types for the given resource and object class. */
@@ -493,7 +454,7 @@ public class SmartIntegrationServiceImpl implements SmartIntegrationService {
         try {
             try (var serviceClient = getServiceClient(result)) {
                 var type = TypeOperation
-                        .init(serviceClient, resourceOid, typeIdentification, task, result)
+                        .init(serviceClient, resourceOid, typeIdentification, null, task, result)
                         .suggestFocusType();
                 LOGGER.debug("Suggested focus type: {}", type);
                 return type;
@@ -522,7 +483,7 @@ public class SmartIntegrationServiceImpl implements SmartIntegrationService {
                 .build();
         try (var serviceClient = getServiceClient(result)) {
             var correlation = TypeOperation
-                    .init(serviceClient, resourceOid, typeIdentification, task, result)
+                    .init(serviceClient, resourceOid, typeIdentification, null, task, result)
                     .suggestCorrelation();
             LOGGER.debug("Suggested correlation:\n{}", correlation.debugDump(1));
             return correlation;
@@ -540,10 +501,11 @@ public class SmartIntegrationServiceImpl implements SmartIntegrationService {
             ResourceObjectTypeIdentification typeIdentification,
             @Nullable MappingsSuggestionFiltersType filters,
             @Nullable MappingsSuggestionInteractionMetadataType interactionMetadata,
+            @Nullable CurrentActivityState<?> activityState,
             Task task,
             OperationResult parentResult)
             throws SchemaException, ExpressionEvaluationException, SecurityViolationException, CommunicationException,
-            ConfigurationException, ObjectNotFoundException {
+            ConfigurationException, ObjectNotFoundException, ObjectAlreadyExistsException {
         LOGGER.debug("Suggesting mappings for resourceOid {}, typeIdentification {}", resourceOid, typeIdentification);
         var result = parentResult.subresult(OP_SUGGEST_MAPPINGS)
                 .addParam("resourceOid", resourceOid)
@@ -551,7 +513,7 @@ public class SmartIntegrationServiceImpl implements SmartIntegrationService {
                 .build();
         try (var serviceClient = getServiceClient(result)) {
             var mappings = TypeOperation
-                    .init(serviceClient, resourceOid, typeIdentification, task, result)
+                    .init(serviceClient, resourceOid, typeIdentification, activityState, task, result)
                     .suggestMappings(result);
             LOGGER.debug("Suggested mappings:\n{}", mappings.debugDumpLazily(1));
             return mappings;
@@ -596,7 +558,7 @@ public class SmartIntegrationServiceImpl implements SmartIntegrationService {
     @Override
     public List<StatusInfo<CorrelationSuggestionType>> listSuggestCorrelationOperationStatuses(
             String resourceOid, Task task, OperationResult parentResult)
-            throws SchemaException, ConfigurationException, ObjectNotFoundException {
+            throws SchemaException {
         var result = parentResult.subresult(OP_LIST_SUGGEST_CORRELATION_OPERATION_STATUSES)
                 .addParam("resourceOid", resourceOid)
                 .build();
@@ -609,10 +571,8 @@ public class SmartIntegrationServiceImpl implements SmartIntegrationService {
             var resultingList = new ArrayList<StatusInfo<CorrelationSuggestionType>>();
             for (PrismObject<TaskType> t : tasks) {
                 resultingList.add(
-                        createStatusInformation(
-                                taskManager.createTaskInstance(t, result),
-                                result,
-                                CorrelationSuggestionWorkStateType.COMPLEX_TYPE,
+                        new StatusInfoImpl<>(
+                                t.asObjectable(),
                                 CorrelationSuggestionWorkStateType.F_RESULT,
                                 CorrelationSuggestionType.class));
             }
@@ -628,16 +588,13 @@ public class SmartIntegrationServiceImpl implements SmartIntegrationService {
 
     @Override
     public StatusInfo<CorrelationSuggestionType> getSuggestCorrelationOperationStatus(
-            String token, Task task, OperationResult parentResult) throws SchemaException, ObjectNotFoundException, ConfigurationException {
+            String token, Task task, OperationResult parentResult) throws SchemaException, ObjectNotFoundException {
         var result = parentResult.subresult(OP_GET_SUGGEST_CORRELATION_OPERATION_STATUS)
                 .addParam("token", token)
                 .build();
         try {
-            var bgTask = taskManager.getTaskPlain(token, taskRetrievalOptions(), result);
-            return createStatusInformation(
-                    bgTask,
-                    result,
-                    CorrelationSuggestionWorkStateType.COMPLEX_TYPE,
+            return new StatusInfoImpl<>(
+                    getTask(token, result),
                     CorrelationSuggestionWorkStateType.F_RESULT,
                     CorrelationSuggestionType.class);
         } catch (Throwable t) {
@@ -681,7 +638,7 @@ public class SmartIntegrationServiceImpl implements SmartIntegrationService {
     @Override
     public List<StatusInfo<MappingsSuggestionType>> listSuggestMappingsOperationStatuses(
             String resourceOid, Task task, OperationResult parentResult)
-            throws SchemaException, ConfigurationException, ObjectNotFoundException {
+            throws SchemaException {
         var result = parentResult.subresult(OP_LIST_SUGGEST_MAPPINGS_OPERATION_STATUSES)
                 .addParam("resourceOid", resourceOid)
                 .build();
@@ -694,10 +651,8 @@ public class SmartIntegrationServiceImpl implements SmartIntegrationService {
             var resultingList = new ArrayList<StatusInfo<MappingsSuggestionType>>();
             for (PrismObject<TaskType> t : tasks) {
                 resultingList.add(
-                        createStatusInformation(
-                                taskManager.createTaskInstance(t, result),
-                                result,
-                                MappingsSuggestionWorkStateType.COMPLEX_TYPE,
+                        new StatusInfoImpl<>(
+                                t.asObjectable(),
                                 MappingsSuggestionWorkStateType.F_RESULT,
                                 MappingsSuggestionType.class));
             }
@@ -714,16 +669,13 @@ public class SmartIntegrationServiceImpl implements SmartIntegrationService {
     @Override
     public StatusInfo<MappingsSuggestionType> getSuggestMappingsOperationStatus(
             String token, Task task, OperationResult parentResult)
-            throws SchemaException, ObjectNotFoundException, ConfigurationException {
+            throws SchemaException, ObjectNotFoundException {
         var result = parentResult.subresult(OP_GET_SUGGEST_MAPPINGS_OPERATION_STATUS)
                 .addParam("token", token)
                 .build();
         try {
-            var bgTask = taskManager.getTaskPlain(token, taskRetrievalOptions(), result);
-            return createStatusInformation(
-                    bgTask,
-                    result,
-                    MappingsSuggestionWorkStateType.COMPLEX_TYPE,
+            return new StatusInfoImpl<>(
+                    getTask(token, result),
                     MappingsSuggestionWorkStateType.F_RESULT,
                     MappingsSuggestionType.class);
         } catch (Throwable t) {
@@ -738,10 +690,10 @@ public class SmartIntegrationServiceImpl implements SmartIntegrationService {
         resultingList.sort(
                 Comparator
                         .comparing(
-                                (StatusInfo<?> info) -> XmlTypeConverter.toMillisNullable(info.finished()),
+                                (StatusInfo<?> info) -> XmlTypeConverter.toMillisNullable(info.getRealizationEndTimestamp()),
                                 Comparator.nullsFirst(Comparator.reverseOrder()))
                         .thenComparing(
-                                (StatusInfo<?> info) -> XmlTypeConverter.toMillisNullable(info.started()),
+                                (StatusInfo<?> info) -> XmlTypeConverter.toMillisNullable(info.getRealizationStartTimestamp()),
                                 Comparator.reverseOrder()));
     }
 

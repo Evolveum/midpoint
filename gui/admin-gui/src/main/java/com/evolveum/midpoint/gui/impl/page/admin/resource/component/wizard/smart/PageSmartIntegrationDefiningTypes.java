@@ -167,7 +167,7 @@ public class PageSmartIntegrationDefiningTypes extends PageAdminConfiguration {
                     PageSmartIntegrationTypesSuggestion.navigateTo(
                             PageSmartIntegrationDefiningTypes.this,
                             realStatus.getResource(),
-                            suggestion != null ? suggestion.result() : null);
+                            suggestion != null ? suggestion.getResult() : null);
                 }
             }
         });
@@ -178,14 +178,14 @@ public class PageSmartIntegrationDefiningTypes extends PageAdminConfiguration {
                 objectTypesSuggestionsModel,
                 info -> {
                     var sb = new StringBuilder();
-                    sb.append(info.token())
+                    sb.append(info.getToken())
                             .append(" [")
-                            .append(info.result() != null ? info.result().getObjectType().size() : 0)
+                            .append(info.getResult() != null ? info.getResult().getObjectType().size() : 0)
                             .append(" type(s) suggested]");
-                    if (info.finished() != null) {
+                    if (info.getRealizationEndTimestamp() != null) {
                         sb.append("; finished ");
                         sb.append(DurationFormatUtils.formatDurationWords(
-                                System.currentTimeMillis() - XmlTypeConverter.toMillisNullable(info.finished()),
+                                System.currentTimeMillis() - XmlTypeConverter.toMillisNullable(info.getRealizationEndTimestamp()),
                                 true, true));
                         sb.append(" ago");
                     }

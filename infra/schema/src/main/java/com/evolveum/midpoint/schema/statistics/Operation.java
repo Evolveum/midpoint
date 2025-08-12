@@ -37,7 +37,7 @@ public interface Operation {
 
     default void done(ItemProcessingOutcomeType outcome, Throwable exception) {
         QualifiedItemProcessingOutcomeType qualifiedOutcome =
-                new QualifiedItemProcessingOutcomeType(PrismContext.get())
+                new QualifiedItemProcessingOutcomeType()
                         .outcome(outcome);
         done(qualifiedOutcome, exception);
     }

@@ -27,6 +27,7 @@ import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectTypesSuggestionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 
 public class RealResourceStatus implements ResourceStatus {
@@ -120,7 +121,7 @@ public class RealResourceStatus implements ResourceStatus {
 
     private List<StatusInfo<ObjectTypesSuggestionType>> getSuccessfulStatuses() {
         return statuses.stream()
-                .filter(s -> s.status() == OperationResultStatus.SUCCESS)
+                .filter(s -> s.getStatus() == OperationResultStatusType.SUCCESS)
                 .toList();
     }
 
@@ -140,8 +141,8 @@ public class RealResourceStatus implements ResourceStatus {
 
     ObjectTypesSuggestionType getObjectTypesSuggestion(String token) {
         return statuses.stream()
-                .filter(s -> s.token().equals(token))
-                .map(i -> i.result())
+                .filter(s -> s.getToken().equals(token))
+                .map(i -> i.getResult())
                 .filter(Objects::nonNull)
                 .findFirst()
                 .orElseThrow(() -> new IllegalArgumentException("No suggestion with token " + token));

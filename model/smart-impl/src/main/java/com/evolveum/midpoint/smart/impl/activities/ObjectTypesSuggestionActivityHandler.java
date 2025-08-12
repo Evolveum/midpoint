@@ -30,6 +30,9 @@ public class ObjectTypesSuggestionActivityHandler
 
     private static final String ARCHETYPE_OID = SystemObjectsType.ARCHETYPE_UTILITY_TASK.value();
 
+    private static final String ID_STATISTICS_COMPUTATION = "statisticsComputation";
+    private static final String ID_OBJECT_TYPES_SUGGESTION = "objectTypesSuggestion";
+
     @PostConstruct
     public void register() {
         handlerRegistry.register(
@@ -66,14 +69,14 @@ public class ObjectTypesSuggestionActivityHandler
                 parentActivity.getDefinition().cloneWithoutId(),
                 (context, result) -> new StatisticsComputationActivityRun(context, "Statistics computation"),
                 null,
-                (i) -> "statistics-computation",
+                (i) -> ID_STATISTICS_COMPUTATION,
                 ActivityStateDefinition.normal(),
                 parentActivity));
         children.add(EmbeddedActivity.create(
                 parentActivity.getDefinition().cloneWithoutId(),
                 (context, result) -> new RemoteServiceCallActivityRun(context),
                 null,
-                (i) -> "remote-service-call",
+                (i) -> ID_OBJECT_TYPES_SUGGESTION,
                 ActivityStateDefinition.normal(),
                 parentActivity));
         return children;

@@ -214,17 +214,29 @@ public class ActivityBasedTaskInformation extends TaskInformation {
         if (isTrivial()) {
             return localRootActivityState.getRunStartTimestamp();
         } else {
-            return localRootActivityState.getRealizationStartTimestamp();
+            return getRealizationStartTimestamp();
         }
+    }
+
+    public XMLGregorianCalendar getRealizationStartTimestamp() {
+        return localRootActivityState.getRealizationStartTimestamp();
     }
 
     @Override
     public XMLGregorianCalendar getEndTimestamp() {
         if (isTrivial()) {
-            return localRootActivityState.getRunEndTimestamp();
+            return getRunEndTimestamp();
         } else {
-            return localRootActivityState.getRealizationEndTimestamp();
+            return getRealizationEndTimestamp();
         }
+    }
+
+    public XMLGregorianCalendar getRunEndTimestamp() {
+        return localRootActivityState.getRunEndTimestamp();
+    }
+
+    public XMLGregorianCalendar getRealizationEndTimestamp() {
+        return localRootActivityState.getRealizationEndTimestamp();
     }
 
     /**
@@ -268,16 +280,12 @@ public class ActivityBasedTaskInformation extends TaskInformation {
 
     @Override
     public @Nullable ActivityStatePersistenceType getRootActivityStatePersistence() {
-        if (localRootActivityState == null) {
-            return null;
-        }
-
         return localRootActivityState.getPersistence();
     }
 
     @Override
     public TaskResultStatus getTaskUserFriendlyStatus() {
-        if (overallStatus == null || overallStatus == OperationResultStatusType.UNKNOWN) {
+        if (overallStatus == OperationResultStatusType.UNKNOWN) {
             return TaskResultStatus.UNKNOWN;
         }
 
@@ -298,5 +306,15 @@ public class ActivityBasedTaskInformation extends TaskInformation {
         }
 
         return TaskResultStatus.SUCCESS;
+    }
+
+    @Override
+    public String toString() {
+        return "ActivityBasedTaskInformation{" +
+                "task=" + task +
+                ", overallStatus=" + overallStatus +
+                ", progressInformation=" + progressInformation +
+                ", workersInformation=" + workersInformation +
+                '}';
     }
 }

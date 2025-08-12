@@ -9,6 +9,7 @@ package com.evolveum.midpoint.smart.api;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.repo.common.activity.run.state.CurrentActivityState;
 import com.evolveum.midpoint.schema.processor.ResourceObjectTypeIdentification;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.smart.api.info.StatusInfo;
@@ -151,16 +152,19 @@ public interface SmartIntegrationService {
      * Hence, mappings and correlation suggestions should be created hand in hand. These two methods can be called
      * in alternation, most probably in a loop, until the suggestions stabilize. User should review the suggestions
      * during the process.
+     *
+     * @param activityState State of the current activity, if running within a task. It is used for progress reporting.
      */
     MappingsSuggestionType suggestMappings(
             String resourceOid,
             ResourceObjectTypeIdentification typeIdentification,
             @Nullable MappingsSuggestionFiltersType filters,
             @Nullable MappingsSuggestionInteractionMetadataType interactionMetadata,
+            @Nullable CurrentActivityState<?> activityState,
             Task task,
             OperationResult result)
             throws SchemaException, ExpressionEvaluationException, SecurityViolationException, CommunicationException,
-            ConfigurationException, ObjectNotFoundException;
+            ConfigurationException, ObjectNotFoundException, ObjectAlreadyExistsException;
 
     /**
      * Submits "suggest mappings" request. Returns a token used to query the status.

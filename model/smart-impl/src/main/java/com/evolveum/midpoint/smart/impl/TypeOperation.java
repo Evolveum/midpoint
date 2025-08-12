@@ -5,12 +5,17 @@ import java.util.Collection;
 import java.util.List;
 import javax.xml.namespace.QName;
 
+import org.jetbrains.annotations.Nullable;
+
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
+import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.repo.common.activity.run.state.CurrentActivityState;
 import com.evolveum.midpoint.schema.processor.ResourceObjectTypeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceObjectTypeIdentification;
 import com.evolveum.midpoint.schema.processor.ResourceSchema;
+import com.evolveum.midpoint.schema.processor.ShadowSimpleAttributeDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.Resource;
 import com.evolveum.midpoint.smart.api.ServiceClient;
@@ -29,6 +34,10 @@ class TypeOperation extends Operation {
 
     private static final int ATTRIBUTE_MAPPING_EXAMPLES = 20;
 
+    private static final String ID_SCHEMA_MATCHING = "schemaMatching";
+    private static final String ID_SHADOWS_COLLECTION = "shadowsCollection";
+    private static final String ID_MAPPINGS_SUGGESTION = "mappingsSuggestion";
+
     private final ResourceObjectTypeDefinition typeDefinition;
 
     private TypeOperation(
@@ -36,8 +45,9 @@ class TypeOperation extends Operation {
             ResourceSchema resourceSchema,
             ResourceObjectTypeDefinition typeDefinition,
             ServiceAdapter serviceAdapter,
+            @Nullable CurrentActivityState<?> activityState,
             Task task) {
-        super(resource, resourceSchema, typeDefinition.getObjectClassDefinition(), serviceAdapter, task);
+        super(resource, resourceSchema, typeDefinition.getObjectClassDefinition(), serviceAdapter, activityState, task);
         this.typeDefinition = typeDefinition;
     }
 
@@ -45,6 +55,7 @@ class TypeOperation extends Operation {
             ServiceClient serviceClient,
             String resourceOid,
             ResourceObjectTypeIdentification typeIdentification,
+            @Nullable CurrentActivityState<?> activityState,
             Task task,
             OperationResult result)
             throws SchemaException, ExpressionEvaluationException, SecurityViolationException, CommunicationException,
@@ -55,7 +66,7 @@ class TypeOperation extends Operation {
                 .asObjectable();
         var resourceSchema = Resource.of(resource).getCompleteSchemaRequired();
         var typeDefinition = resourceSchema.getObjectTypeDefinitionRequired(typeIdentification);
-        return new TypeOperation(resource, resourceSchema, typeDefinition, serviceAdapter, task);
+        return new TypeOperation(resource, resourceSchema, typeDefinition, serviceAdapter, activityState, task);
     }
 
     QName suggestFocusType() throws SchemaException {
@@ -99,17 +110,22 @@ class TypeOperation extends Operation {
 
     MappingsSuggestionType suggestMappings(OperationResult result)
             throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
-            ConfigurationException, ObjectNotFoundException {
+            ConfigurationException, ObjectNotFoundException, ObjectAlreadyExistsException {
         var focusTypeDefinition = getFocusTypeDefinition();
-        var match = serviceAdapter.matchSchema(typeDefinition, focusTypeDefinition, resource);
-        if (match.getAttributeMatch().isEmpty()) {
-            LOGGER.warn("No schema match found for {}. Returning empty suggestion.", this);
-            return new MappingsSuggestionType();
+
+        var schemaMatchingState = stateHolderFactory.create(ID_SCHEMA_MATCHING, result);
+        schemaMatchingState.flush(result);
+        SiMatchSchemaResponseType match;
+        try {
+            match = serviceAdapter.matchSchema(typeDefinition, focusTypeDefinition, resource);
+        } catch (Throwable t) {
+            schemaMatchingState.recordException(t);
+            throw t;
+        } finally {
+            schemaMatchingState.close(result);
         }
 
-        var ownedShadows = fetchOwnedShadows(result);
-
-        var suggestion = new MappingsSuggestionType();
+        var attributeMatchToMapCollection = new ArrayList<AttributeMatchToMap>(match.getAttributeMatch().size());
         for (var attributeMatch : match.getAttributeMatch()) {
             var shadowAttrPath = attributeMatch.getApplicationAttribute().getItemPath();
             if (shadowAttrPath.size() != 2 || !shadowAttrPath.startsWith(ShadowType.F_ATTRIBUTES)) {
@@ -128,12 +144,55 @@ class TypeOperation extends Operation {
                 LOGGER.warn("No focus property definition found for {}. Skipping mapping suggestion.", focusPropPath);
                 continue;
             }
-            suggestion.getAttributeMappings().add(
-                    serviceAdapter.suggestMapping(
-                            shadowAttrPath, shadowAttrDef, focusPropPath, focusPropDef,
-                            extractPairs(ownedShadows, shadowAttrPath, focusPropPath)));
+            attributeMatchToMapCollection.add(
+                    new AttributeMatchToMap(shadowAttrPath, shadowAttrDef, focusPropPath, focusPropDef));
         }
-        return suggestion;
+
+        if (attributeMatchToMapCollection.isEmpty()) {
+            LOGGER.warn("No schema match found for {}. Returning empty suggestion.", this);
+            return new MappingsSuggestionType();
+        }
+
+        var shadowsCollectionState = stateHolderFactory.create(ID_SHADOWS_COLLECTION, result);
+        shadowsCollectionState.setExpectedProgress(ATTRIBUTE_MAPPING_EXAMPLES);
+        shadowsCollectionState.flush(result); // because finding an owned shadow can take a while
+        Collection<OwnedShadow> ownedShadows;
+        try {
+            ownedShadows = fetchOwnedShadows(shadowsCollectionState, result);
+        }  catch (Throwable t) {
+            shadowsCollectionState.recordException(t);
+            throw t;
+        } finally {
+            shadowsCollectionState.close(result);
+        }
+
+        var mappingsSuggestionState = stateHolderFactory.create(ID_MAPPINGS_SUGGESTION, result);
+        mappingsSuggestionState.setExpectedProgress(attributeMatchToMapCollection.size());
+        try {
+            var suggestion = new MappingsSuggestionType();
+            for (AttributeMatchToMap m : attributeMatchToMapCollection) {
+                var op = mappingsSuggestionState.recordProcessingStart(m.shadowAttrPath.toString());
+                mappingsSuggestionState.flush(result);
+                suggestion.getAttributeMappings().add(
+                        serviceAdapter.suggestMapping(
+                                m.shadowAttrPath, m.shadowAttrDef, m.focusPropPath, m.focusPropDef,
+                                extractPairs(ownedShadows, m.shadowAttrPath, m.focusPropPath)));
+                mappingsSuggestionState.recordProcessingEnd(op);
+            }
+            return suggestion;
+        } catch (Throwable t) {
+            mappingsSuggestionState.recordException(t);
+            throw t;
+        } finally {
+            mappingsSuggestionState.close(result);
+        }
+    }
+
+    private record AttributeMatchToMap(
+            ItemPath shadowAttrPath,
+            ShadowSimpleAttributeDefinition<?> shadowAttrDef,
+            ItemPath focusPropPath,
+            PrismPropertyDefinition<?> focusPropDef) {
     }
 
     private Collection<ServiceAdapter.ValuesPair> extractPairs(
@@ -150,9 +209,12 @@ class TypeOperation extends Operation {
         return item != null ? item.getRealValues() : List.of();
     }
 
-    private Collection<OwnedShadow> fetchOwnedShadows(OperationResult result)
+    private Collection<OwnedShadow> fetchOwnedShadows(StateHolder state, OperationResult result)
             throws SchemaException, ConfigurationException, ExpressionEvaluationException, CommunicationException,
             SecurityViolationException, ObjectNotFoundException {
+        // Maybe we should search the repository instead. The argument for going to the resource is to get some data even
+        // if they are not in the repository yet. But this is not a good argument, because if we get an account from the resource,
+        // it won't have the owner anyway.
         var ownedShadows = new ArrayList<OwnedShadow>(ATTRIBUTE_MAPPING_EXAMPLES);
         b.modelService.searchObjectsIterative(
                 ShadowType.class,
@@ -164,6 +226,7 @@ class TypeOperation extends Operation {
                         var owner = b.modelService.searchShadowOwner(object.getOid(), null, task, lResult);
                         if (owner != null) {
                             ownedShadows.add(new OwnedShadow(object.asObjectable(), owner.asObjectable()));
+                            state.incrementProgress(result);
                         }
                     } catch (Exception e) {
                         LoggingUtils.logException(LOGGER, "Couldn't fetch owner for {}", e, object);
