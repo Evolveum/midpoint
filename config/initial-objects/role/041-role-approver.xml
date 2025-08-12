@@ -67,6 +67,7 @@
         <item>stageNumber</item>
         <item>approvalContext</item>
         <item>modelContext</item>
+        <item>manualProvisioningContext</item>
     </authorization>
     <authorization id="5">
         <name>users-read</name>
