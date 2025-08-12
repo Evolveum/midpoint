@@ -8,7 +8,6 @@
 package com.evolveum.midpoint.smart.impl.activities;
 
 import java.util.*;
-import java.util.function.Function;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
@@ -144,6 +143,8 @@ public class StatisticsComputer {
         computeValueCountsOfValuePairs();
         // Affixes statistics
         setAffixesStatistics();
+        // Dn parsing statistics
+        setOUAttributeStatistics();
     }
 
     /**
@@ -353,11 +354,8 @@ public class StatisticsComputer {
      * @return map from affix to the number of occurrences in the attribute's values
      */
     private Map<String, Integer> getAffixesValueCounts(QName attrKey) {
-        // Result map
         Map<String, Integer> result = new HashMap<>();
-        // Pre-pull patterns to avoid repeatedly accessing entrySet()
         List<Map.Entry<String, Pattern>> patterns = new ArrayList<>(AFFIX_PATTERNS.entrySet());
-        // Get the data up front, handle null
         LinkedList<List<?>> elements = shadowStorage.get(attrKey);
         if (elements == null) {
             return result;
@@ -381,11 +379,69 @@ public class StatisticsComputer {
     private void setAffixesStatistics() {
         for (ShadowAttributeStatisticsType attribute : statistics.getAttribute()) {
             QName attrKey = fromAttributeRef(attribute.getRef());
-            Map<String, Integer> affixCounts = getAffixesValueCounts(attrKey);
+            Map<String, Integer> affixCounts = getAffixesValueCounts(attrKey).entrySet().stream()
+                    .sorted(Map.Entry.<String, Integer>comparingByValue().reversed())
+                    .collect(Collectors.toMap(
+                            Map.Entry::getKey,
+                            Map.Entry::getValue,
+                            (e1, e2) -> e1,
+                            LinkedHashMap::new
+                    ));;
             for (Map.Entry<String, Integer> entry : affixCounts.entrySet()) {
                 attribute.beginValuePatternCount()
                         .value(entry.getKey())
                         .count(entry.getValue());
+            }
+        }
+    }
+
+    private List<String> parseDNString(String dn) {
+        List<String> ous = new ArrayList<>();
+        for (String part : dn.split(",")) {
+            String trimmed = part.trim();
+            if (trimmed.startsWith("OU=")) {
+                ous.add(trimmed.substring(3));
+            }
+        }
+        return ous;
+    }
+
+    private Map<String, Integer> getOUValueCounts(QName attrKey) {
+        Map<String, Integer> result = new HashMap<>();
+        LinkedList<List<?>> elements = shadowStorage.get(attrKey);
+        if (elements == null) {
+            return result;
+        }
+        for (List<?> inner : elements) {
+            if (inner.size() != 1) continue;
+            List<String> ous = parseDNString(inner.get(0).toString());
+            for (String ou : ous) {
+                result.merge(ou, 1, Integer::sum);
+            }
+        }
+        return result;
+    }
+
+    private void setOUAttributeStatistics() {
+        for (ShadowAttributeStatisticsType attribute : statistics.getAttribute()) {
+            QName attrKey = fromAttributeRef(attribute.getRef());
+            if (attrKey.toString().equalsIgnoreCase("dn") ||
+                    attrKey.toString().equalsIgnoreCase("distinguishedName")) {
+                Map<String, Integer> ouCounts = getOUValueCounts(attrKey).entrySet().stream()
+                        .sorted(Map.Entry.<String, Integer>comparingByValue().reversed())
+                        .collect(Collectors.toMap(
+                                Map.Entry::getKey,
+                                Map.Entry::getValue,
+                                (e1, e2) -> e1,
+                                LinkedHashMap::new
+                        ));
+                for (Map.Entry<String, Integer> entry : ouCounts.entrySet()) {
+                    attribute.beginValueCount()
+                            .value(entry.getKey())
+                            .count(entry.getValue());
+                }
+                attribute.setUniqueValueCount(ouCounts.size());
+                return;
             }
         }
     }
