@@ -53,6 +53,9 @@
                 </expression>
                 <target>
                     <path>description</path>
+                    <set>
+                        <predefined>all</predefined>
+                    </set>
                 </target>
             </mapping>
         </focusMappings>

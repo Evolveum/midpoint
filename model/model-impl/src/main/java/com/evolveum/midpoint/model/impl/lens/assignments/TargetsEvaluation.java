@@ -16,6 +16,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
+import com.evolveum.midpoint.model.impl.lens.projector.AssignmentOrigin;
 import com.evolveum.midpoint.util.QNameUtil;
 
 import org.jetbrains.annotations.NotNull;
@@ -95,8 +96,13 @@ class TargetsEvaluation<AH extends AssignmentHolderType> extends AbstractEvaluat
             return;
         }
 
+        AssignmentOrigin origin = ctx.evalAssignment.getOrigin();
         if (!ctx.ae.loginMode
-                && !isChanged(ctx.primaryAssignmentMode)
+                // MID-10779 assignments with non default relationship (owner) not being evaluated when needed
+                // todo switch for ctx.evalAssignment.isBeingAdded(), o however it currently fails in some cases
+                //  with NPE where origin.isNew() can't be decided if origin is not frozen
+                && !(origin.isInDeltaAdd() || origin.isCurrent() && !origin.isInDeltaDelete())
+                && !ctx.evalAssignment.isBeingDeleted()
                 && !ctx.ae.relationRegistry.isProcessedOnRecompute(segment.relation)
                 && !shouldEvaluateAllAssignmentRelationsOnRecompute()) {
             LOGGER.debug("Skipping processing of assignment target for {} because relation {} is configured for "

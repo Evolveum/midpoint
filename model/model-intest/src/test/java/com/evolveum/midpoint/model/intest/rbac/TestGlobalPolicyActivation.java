@@ -94,7 +94,7 @@ public class TestGlobalPolicyActivation extends AbstractInitializedModelIntegrat
     /**
      * Test for MID-10779
      */
-    @Test(enabled = false)
+    @Test
     public void test200AssignmentRelationGlobalPolicyActivationOwner() throws Exception {
         test200AssignmentRelationGlobalPolicyActivation(SchemaConstants.ORG_OWNER);
     }
@@ -102,7 +102,7 @@ public class TestGlobalPolicyActivation extends AbstractInitializedModelIntegrat
     /**
      * Test for MID-10779
      */
-    @Test(enabled = false)
+    @Test
     public void test200AssignmentRelationGlobalPolicyActivationDefault() throws Exception {
         test200AssignmentRelationGlobalPolicyActivation(SchemaConstants.ORG_DEFAULT);
     }
@@ -139,7 +139,7 @@ public class TestGlobalPolicyActivation extends AbstractInitializedModelIntegrat
                                         .targetRef(serviceOid, ServiceType.COMPLEX_TYPE, relation))
                         .asObjectDelta(userOid);
 
-        traced(() -> executeChanges(addDelta, null, task, result));
+        executeChanges(addDelta, null, task, result);
 
         then("Check that the user has the owner assignment to the service");
 
@@ -168,7 +168,7 @@ public class TestGlobalPolicyActivation extends AbstractInitializedModelIntegrat
                 .item(UserType.F_ASSIGNMENT).delete(user.getAssignment().get(0).clone())
                 .asObjectDelta(userOid);
 
-        traced(() -> executeChanges(deleteDelta, null, task, result));
+        executeChanges(deleteDelta, null, task, result);
 
         then("Check that the user has no owner assignment to the service");
 
@@ -179,7 +179,7 @@ public class TestGlobalPolicyActivation extends AbstractInitializedModelIntegrat
 
         // service should have no description
         service = getObject(ServiceType.class, serviceOid).asObjectable();
-        Assertions.assertThat(service.getDescription()).isNull(); // todo fix
+        Assertions.assertThat(service.getDescription()).isNull();
     }
 
     private void replaceGlobalPolicyRuleWithRelation(QName relation, Task task, OperationResult result) throws Exception {
