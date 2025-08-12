@@ -349,6 +349,11 @@ public class Visualizer {
                 }
             } else if (item instanceof PrismContainer) {
                 PrismContainer<?> pc = (PrismContainer<?>) item;
+                if (jumpIntoContainerWithSingleContainerableItem(pc)) {
+                    visualizeItems(visualization, pc.getValue().getItems(), descriptive, context, task, result);
+                    return;
+                }
+
                 PrismContainerDefinition<?> def = pc.getDefinition();
                 boolean separate = isContainerSingleValued(def, pc) ? context.isSeparateSinglevaluedContainers() : context.isSeparateMultivaluedContainers();
                 VisualizationImpl currentVisualization = visualization;
@@ -525,6 +530,13 @@ public class Visualizer {
 
     private <C extends Containerable> void visualizeContainerDeltaValue(PrismContainerValue<C> value, ChangeType changeType,
             ContainerDelta<C> containerDelta, VisualizationImpl parentVisualization, VisualizationContext context, Task task, OperationResult result) {
+        if (jumpIntoContainerWithSingleContainerableItem(value)) {
+            List<Item<?, ?>> containerItems = new ArrayList<>(value.getItems());
+            //this should be safe as it has been already checked in jumpIntoContainerWithSingleContainerableItem
+            PrismContainer<C> pcChild = (PrismContainer<C>) containerItems.get(0);
+            visualizeContainerDeltaValue(pcChild.getValue(), changeType, containerDelta, parentVisualization, context, task, result);
+            return;
+        }
         VisualizationImpl visualization = createContainerVisualization(changeType, containerDelta.getPath(), parentVisualization);
         if (value.getId() != null) {
             visualization.getName().setId(String.valueOf(value.getId()));
@@ -546,6 +558,35 @@ public class Visualizer {
         parentVisualization.addPartialVisualization(visualization);
 
         evaluateDescriptionHandlers(visualization, parentVisualization, task, result);
+    }
+
+    private <C extends Containerable> boolean jumpIntoContainerWithSingleContainerableItem(PrismContainerValue<C> value) {
+        if (value.getDefinition() != null && !value.getDefinition().isSingleValue()) {
+            return false;
+        }
+        if (value.getItems().size() != 1) {
+            return false;
+        }
+        List<Item<?, ?>> containerItems = new ArrayList<>(value.getItems());
+        if (containerItems.get(0) instanceof PrismContainer<?> pc) {
+            PrismContainerDefinition<?> def = pc.getDefinition();
+            return isContainerSingleValued(def, pc);
+        }
+        return false;
+    }
+
+    private <C extends Containerable> boolean jumpIntoContainerWithSingleContainerableItem(PrismContainer<?> pc) {
+        PrismContainerDefinition<?> def = pc.getDefinition();
+        if (isContainerSingleValued(def, pc)) {
+            PrismContainerValue pcv = pc.getValue();
+            if (pcv.getItems().size() == 1) {
+                List<Item<?, ?>> containerItems = new ArrayList<>(pcv.getItems());
+                if (containerItems.get(0) instanceof PrismContainer) {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 
     private void evaluateDescriptionHandlers(
