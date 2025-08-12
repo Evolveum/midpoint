@@ -34,7 +34,7 @@ The {release-version} release brings security, stability and miscellaneous bugfi
 * bug:MID-10739[] Use SecureRandom instead of Random.
 * Security update for Apache Tomcat (CVE-2025-48988) and Apache Commons FileUpload2 (CVE-2025-48976)
 * bug:MID-9899[] Fixed issue with entitlement provisioning, situation when entitlement doesn't exist caused delete of the object that should get the entitlement.
-* Add OAuth 2 credential flow to mail servers notification configuration
+* Add OAuth 2 credential flow to mail servers notification configuration.
 * Fixed manual unlock of the user. See bug:MID-9856[].
 * Improved the message on the mail nonce module panel during Reset password flow. See bug:MID-10679[].
 * Fixed schema fetch error. See bug:MID-10665[].
@@ -58,6 +58,8 @@ Made a restructuring of the code.
 The goal is to decrease the time period between clearing the authorizations (and other privileges limitations) and filling them in.
 See bug:MID-10781[].
 * Fixed inconsistent type of input variable after passing ObjectTemplate validation. See bug:MID-10773[].
+* Fixed oppportunistic synchronization, see bug:MID-10729[].
+* Upgraded multiple libraries, including spring boot, spring security, commons-lang3, json-smart, postgresql driver and others.
 
 == Changes with Respect To Version 4.8.7
 
