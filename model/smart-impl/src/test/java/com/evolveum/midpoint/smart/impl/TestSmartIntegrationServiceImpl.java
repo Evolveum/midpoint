@@ -686,7 +686,7 @@ public class TestSmartIntegrationServiceImpl extends AbstractSmartIntegrationTes
         assertThat(statusAttribute.getValueCount().size()).isEqualTo(2);
 
         Map<String, Integer> valueCounts = statusAttribute.getValueCount().stream()
-                .collect(Collectors.toMap(vc -> vc.getValue(), vc -> vc.getCount()));
+                .collect(Collectors.toMap(ShadowAttributeValueCountType::getValue, ShadowAttributeValueCountType::getCount));
 
         assertThat(valueCounts).containsEntry("active", 2);
         assertThat(valueCounts).containsEntry("inactive", 3);
@@ -754,7 +754,7 @@ public class TestSmartIntegrationServiceImpl extends AbstractSmartIntegrationTes
         assertThat(typeAttribute.getMissingValueCount()).isEqualTo(1);
         assertThat(typeAttribute.getUniqueValueCount()).isEqualTo(3);
         Map<String, Integer> valueCounts = typeAttribute.getValueCount().stream()
-                .collect(Collectors.toMap(vc -> vc.getValue(), vc -> vc.getCount()));
+                .collect(Collectors.toMap(ShadowAttributeValueCountType::getValue, ShadowAttributeValueCountType::getCount));
         assertThat(valueCounts).containsEntry("employee", 2);
         assertThat(valueCounts).containsEntry("manager", 1);
         assertThat(valueCounts).containsEntry("contractor", 1);
@@ -858,7 +858,7 @@ public class TestSmartIntegrationServiceImpl extends AbstractSmartIntegrationTes
             if (attribute.getRef().toString().equals(s(Account.AttributeNames.PERSONAL_NUMBER.q()))) {
                 assertThat(attribute.getValuePatternCount()).isNotEmpty();
                 Map<String, Integer> valueCounts = attribute.getValuePatternCount().stream()
-                        .collect(Collectors.toMap(vc -> vc.getValue(), vc -> vc.getCount()));
+                        .collect(Collectors.toMap(ShadowAttributeValueCountType::getValue, ShadowAttributeValueCountType::getCount));
                 assertThat(valueCounts).containsEntry("svc", 1);
                 assertThat(valueCounts).containsEntry("usr", 1);
                 assertThat(valueCounts).containsEntry("adm", 4);
