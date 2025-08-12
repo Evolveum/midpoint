@@ -9,6 +9,7 @@ package com.evolveum.midpoint.smart.api;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.repo.common.activity.ActivityInterruptedException;
 import com.evolveum.midpoint.repo.common.activity.run.state.CurrentActivityState;
 import com.evolveum.midpoint.schema.processor.ResourceObjectTypeIdentification;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -164,7 +165,7 @@ public interface SmartIntegrationService {
             Task task,
             OperationResult result)
             throws SchemaException, ExpressionEvaluationException, SecurityViolationException, CommunicationException,
-            ConfigurationException, ObjectNotFoundException, ObjectAlreadyExistsException;
+            ConfigurationException, ObjectNotFoundException, ObjectAlreadyExistsException, ActivityInterruptedException;
 
     /**
      * Submits "suggest mappings" request. Returns a token used to query the status.

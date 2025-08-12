@@ -5,6 +5,8 @@ import java.util.Collection;
 import java.util.List;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.repo.common.activity.ActivityInterruptedException;
+
 import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.prism.PrismContext;
@@ -110,7 +112,7 @@ class TypeOperation extends Operation {
 
     MappingsSuggestionType suggestMappings(OperationResult result)
             throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
-            ConfigurationException, ObjectNotFoundException, ObjectAlreadyExistsException {
+            ConfigurationException, ObjectNotFoundException, ObjectAlreadyExistsException, ActivityInterruptedException {
         var focusTypeDefinition = getFocusTypeDefinition();
 
         var schemaMatchingState = stateHolderFactory.create(ID_SCHEMA_MATCHING, result);
@@ -124,6 +126,8 @@ class TypeOperation extends Operation {
         } finally {
             schemaMatchingState.close(result);
         }
+
+        checkIfCanRun();
 
         var attributeMatchToMapCollection = new ArrayList<AttributeMatchToMap>(match.getAttributeMatch().size());
         for (var attributeMatch : match.getAttributeMatch()) {
@@ -166,6 +170,8 @@ class TypeOperation extends Operation {
             shadowsCollectionState.close(result);
         }
 
+        checkIfCanRun();
+
         var mappingsSuggestionState = stateHolderFactory.create(ID_MAPPINGS_SUGGESTION, result);
         mappingsSuggestionState.setExpectedProgress(attributeMatchToMapCollection.size());
         try {
@@ -178,6 +184,7 @@ class TypeOperation extends Operation {
                                 m.shadowAttrPath, m.shadowAttrDef, m.focusPropPath, m.focusPropDef,
                                 extractPairs(ownedShadows, m.shadowAttrPath, m.focusPropPath)));
                 mappingsSuggestionState.recordProcessingEnd(op);
+                checkIfCanRun();
             }
             return suggestion;
         } catch (Throwable t) {
@@ -231,7 +238,7 @@ class TypeOperation extends Operation {
                     } catch (Exception e) {
                         LoggingUtils.logException(LOGGER, "Couldn't fetch owner for {}", e, object);
                     }
-                    return ownedShadows.size() < ATTRIBUTE_MAPPING_EXAMPLES;
+                    return canRun() && ownedShadows.size() < ATTRIBUTE_MAPPING_EXAMPLES;
                 },
                 null, task, result);
         return ownedShadows;

@@ -1,5 +1,6 @@
 package com.evolveum.midpoint.smart.impl;
 
+import com.evolveum.midpoint.repo.common.activity.ActivityInterruptedException;
 import com.evolveum.midpoint.repo.common.activity.run.ActivityRunException;
 import com.evolveum.midpoint.repo.common.activity.run.state.ActivityProgress;
 import com.evolveum.midpoint.repo.common.activity.run.state.CurrentActivityState;
@@ -12,6 +13,7 @@ import com.evolveum.midpoint.schema.statistics.IterationItemInformation;
 import com.evolveum.midpoint.schema.statistics.IterativeOperationStartInfo;
 import com.evolveum.midpoint.schema.util.Resource;
 import com.evolveum.midpoint.smart.api.ServiceClient;
+import com.evolveum.midpoint.task.api.RunningTask;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -69,6 +71,16 @@ class Operation {
 
     ObjectTypesSuggestionType suggestObjectTypes(ShadowObjectClassStatisticsType statistics) throws SchemaException {
         return serviceAdapter.suggestObjectTypes(objectClassDefinition, statistics, resourceSchema, resource);
+    }
+
+    void checkIfCanRun() throws ActivityInterruptedException {
+        if (!canRun()) {
+            throw new ActivityInterruptedException();
+        }
+    }
+
+    boolean canRun() {
+        return !(task instanceof RunningTask runningTask) || runningTask.canRun();
     }
 
     /** Creates new {@link StateHolder} for the virtual child activity that is an externally-visible part of this operation. */

@@ -11,6 +11,8 @@ import java.io.Serial;
 import java.util.List;
 import java.util.Objects;
 
+import com.evolveum.midpoint.repo.common.activity.ActivityInterruptedException;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.model.IModel;
@@ -141,9 +143,14 @@ public class PageSmartIntegrationDefiningType extends PageAdminConfiguration {
                 taskAwareExecutor(target, OP_SUGGEST_MAPPINGS)
                         .runVoid((task, result) -> {
                             saveResourceToRepositoryAndReload(task, result);
-                            var suggestion = getSmartIntegrationService().suggestMappings(
-                                    getResourceOid(), typeIdentification, null, null, null,
-                                    task, result);
+                            MappingsSuggestionType suggestion;
+                            try {
+                                suggestion = getSmartIntegrationService().suggestMappings(
+                                        getResourceOid(), typeIdentification, null, null, null,
+                                        task, result);
+                            } catch (ActivityInterruptedException e) {
+                                throw new SystemException(e); // This is temporary code anyway; the call should execute asynchronously.
+                            }
                             updateSuggestionXmlModel(suggestion);
                             target.add(PageSmartIntegrationDefiningType.this);
                         });

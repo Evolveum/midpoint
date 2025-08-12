@@ -25,6 +25,7 @@ import java.util.stream.Collectors;
 import com.evolveum.midpoint.model.test.smart.MockServiceClientImpl;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.repo.common.activity.ActivityInterruptedException;
 import com.evolveum.midpoint.smart.impl.DummyScenario.Account;
 import com.evolveum.midpoint.test.TestObject;
 import com.evolveum.midpoint.util.exception.*;
@@ -1028,7 +1029,7 @@ public class TestSmartIntegrationServiceImpl extends AbstractSmartIntegrationTes
     }
 
     @Test
-    public void test300SuggestMappings() throws CommonException {
+    public void test300SuggestMappings() throws CommonException, ActivityInterruptedException {
         skipIfRealService();
 
         //noinspection resource
