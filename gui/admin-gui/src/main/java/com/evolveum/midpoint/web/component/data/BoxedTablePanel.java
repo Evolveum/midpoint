@@ -11,6 +11,8 @@ import static com.evolveum.midpoint.gui.api.util.WebComponentUtil.safeLongToInte
 
 import java.util.List;
 
+import com.evolveum.midpoint.prism.PrismContext;
+
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
@@ -198,7 +200,7 @@ public class BoxedTablePanel<T> extends BasePanel<T> implements Table {
         Integer o = safeLongToInteger(page);
         Integer size = safeLongToInteger(itemsPerPage);
 
-        return getPrismContext().queryFactory().createPaging(o * size, size);
+        return PrismContext.get().queryFactory().createPaging(o * size, size);
     }
 
     public int getAutoRefreshInterval() {

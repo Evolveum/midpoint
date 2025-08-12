@@ -34,6 +34,9 @@
                                     basic.prismContext.queryFor(UserType.class)
                                             .item(UserType.F_ROLE_MEMBERSHIP_REF)
                                             .ref(immediateRole.oid, ServiceType.COMPLEX_TYPE, SchemaConstants.ORG_OWNER)
+                                            .or()
+                                            .item(UserType.F_ROLE_MEMBERSHIP_REF)
+                                            .ref(immediateRole.oid, ServiceType.COMPLEX_TYPE)
                                             .build()
 
                             var list = midpoint.searchObjects(UserType.class, query)
@@ -50,6 +53,9 @@
                 </expression>
                 <target>
                     <path>description</path>
+                    <set>
+                        <predefined>all</predefined>
+                    </set>
                 </target>
             </mapping>
         </focusMappings>
