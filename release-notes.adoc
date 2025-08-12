@@ -59,7 +59,8 @@ The goal is to decrease the time period between clearing the authorizations (and
 See bug:MID-10781[].
 * Fixed inconsistent type of input variable after passing ObjectTemplate validation. See bug:MID-10773[].
 * Fixed oppportunistic synchronization, see bug:MID-10729[].
-* Upgraded multiple libraries, including spring boot, spring security, commons-lang3, json-smart, postgresql driver and others.
+* Upgraded multiple libraries, including spring boot, spring security, hibernate, commons-lang3, json-smart, postgresql driver and others.
+* Fix for delete of the wrong object when entitlement doesn't exist. See bug:MID-9866[].
 
 == Changes with Respect To Version 4.8.7
 
