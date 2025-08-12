@@ -20,7 +20,6 @@ import com.evolveum.midpoint.model.impl.lens.EvaluatedPolicyRuleImpl;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.model.impl.lens.LensFocusContext;
 import com.evolveum.midpoint.model.impl.lens.LensUtil;
-import com.evolveum.midpoint.model.impl.lens.assignments.AssignmentPathImpl;
 import com.evolveum.midpoint.model.impl.lens.assignments.EvaluatedAssignmentImpl;
 import com.evolveum.midpoint.model.impl.lens.assignments.EvaluatedAssignmentTargetImpl;
 import com.evolveum.midpoint.prism.*;
@@ -144,36 +143,8 @@ class PolicyRulesCollector<O extends ObjectType> {
             SelectorMatcher selectorMatcher =
                     SelectorMatcher.forSelector(targetSelector)
                             .withLogging(LOGGER, "Global policy rule " + ruleName + " target selector: ");
-
             for (EvaluatedAssignmentImpl<?> evaluatedAssignment : evaluatedAssignmentTriple.getAllValues()) {
-                PrismObject<?> targetObject = evaluatedAssignment.getTarget();
-                Collection<EvaluatedAssignmentTargetImpl> nonNegativeTargets = evaluatedAssignment.getRoles().getNonNegativeValues();
-                boolean nonNegativeTarget =
-                        evaluatedAssignment.getTarget() != null
-                                && !nonNegativeTargets.stream().anyMatch(t -> t.getTarget().equals(targetObject));
-
-                // MID-10779
-//                if (!context.getModelBeans().schemaService.relationRegistry().isMember(evaluatedAssignment.getRelation())
-//                        && !nonNegativeTarget
-//                        && isRuleConditionTrue(ruleWithId, focus, evaluatedAssignment, result)) {
-//
-//                    // This is a special case. When the target not null and it is not in negative values
-//                    // This is specific for non-member relation assignments
-//
-//                    LOGGER.trace("Collecting global policy rule '{}' in {}, considering target false (applies directly)",
-//                            ruleCI.getName(), evaluatedAssignment);
-//                    evaluatedAssignment.addTargetPolicyRule(
-//                            new EvaluatedPolicyRuleImpl(
-//                                    ruleCI.clone(),
-//                                    ruleWithId.ruleId(),
-//                                    new AssignmentPathImpl(), //is this OK?
-//                                    evaluatedAssignment,
-//                                    DIRECT_ASSIGNMENT_TARGET));
-//                    globalRulesInstantiated++;
-//                    continue;
-//                }
-
-                for (EvaluatedAssignmentTargetImpl target : nonNegativeTargets) { // MID-6403
+                for (EvaluatedAssignmentTargetImpl target : evaluatedAssignment.getRoles().getNonNegativeValues()) { // MID-6403
                     boolean appliesDirectlyToTarget = target.isDirectlyAssigned();
                     if (!appliesDirectlyToTarget && !target.getAssignmentPath().last().isMatchingOrder()) {
                         // This is to be thought out well. It is of no use to include global policy rules
