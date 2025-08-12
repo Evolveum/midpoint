@@ -386,7 +386,7 @@ public class StatisticsComputer {
                             Map.Entry::getValue,
                             (e1, e2) -> e1,
                             LinkedHashMap::new
-                    ));;
+                    ));
             for (Map.Entry<String, Integer> entry : affixCounts.entrySet()) {
                 attribute.beginValuePatternCount()
                         .value(entry.getKey())
@@ -395,6 +395,12 @@ public class StatisticsComputer {
         }
     }
 
+    /**
+     * Parses a distinguished name (DN) string and extracts all organizational unit (OU) values.
+     *
+     * @param dn the distinguished name string to parse (e.g., "CN=John Doe,OU=Sales,OU=EMEA,DC=example,DC=com")
+     * @return a list of OU values found in the DN, in the order they appear
+     */
     private List<String> parseDNString(String dn) {
         List<String> ous = new ArrayList<>();
         for (String part : dn.split(",")) {
@@ -406,6 +412,13 @@ public class StatisticsComputer {
         return ous;
     }
 
+    /**
+     * Retrieves a mapping of organizational unit (OU) values to their occurrence counts for a given attribute key.
+     * The method processes all DN values stored under the specified attribute key and counts each OU found.
+     *
+     * @param attrKey the QName key representing the attribute (typically for a DN attribute)
+     * @return a map where the key is the OU value and the value is the number of occurrences
+     */
     private Map<String, Integer> getOUValueCounts(QName attrKey) {
         Map<String, Integer> result = new HashMap<>();
         LinkedList<List<?>> elements = shadowStorage.get(attrKey);
@@ -422,6 +435,11 @@ public class StatisticsComputer {
         return result;
     }
 
+    /**
+     * Calculates and sets statistics for organizational unit (OU) values found in DN attributes.
+     * For each DN or distinguishedName attribute, it counts occurrences of each OU value, sorts them by frequency,
+     * and updates the statistics object with the counts and the number of unique OUs.
+     */
     private void setOUAttributeStatistics() {
         for (ShadowAttributeStatisticsType attribute : statistics.getAttribute()) {
             QName attrKey = fromAttributeRef(attribute.getRef());
