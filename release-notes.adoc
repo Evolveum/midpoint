@@ -56,6 +56,7 @@ See bug:MID-10748[].
 * Fixed the possibility to modify the filter in the marking rule. See bug:MID-10405[].
 * Fixed global policy evaluation for assignments with non-membership relation. See bug:MID-10779[].
 * Fixed missing search mapping for credentials/password/@metadata. See bug:MID-10402[].
+* Upgraded multiple libraries, including spring boot, spring security, hibernate, commons-lang3, json-smart, postgresql driver and others.
 
 == Changes with Respect To Version 4.9.2
 
