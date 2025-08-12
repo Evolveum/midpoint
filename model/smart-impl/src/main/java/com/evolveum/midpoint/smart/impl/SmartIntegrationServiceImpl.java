@@ -13,6 +13,7 @@ import java.util.function.Supplier;
 import javax.xml.datatype.Duration;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.model.api.TaskService;
 import com.evolveum.midpoint.prism.PrismContext;
 
 import com.evolveum.midpoint.prism.PrismObject;
@@ -94,6 +95,7 @@ public class SmartIntegrationServiceImpl implements SmartIntegrationService {
 
     @Autowired private SystemObjectCache systemObjectCache;
     @Autowired private ModelService modelService;
+    @Autowired private TaskService taskService;
     @Autowired private ModelInteractionServiceImpl modelInteractionService;
     @Autowired private TaskManager taskManager;
     @Autowired @Qualifier("cacheRepositoryService") private RepositoryService repositoryService;
@@ -753,5 +755,12 @@ public class SmartIntegrationServiceImpl implements SmartIntegrationService {
 
     public void setServiceClientSupplier(@Nullable Supplier<ServiceClient> serviceClientSupplier) {
         this.serviceClientSupplier = serviceClientSupplier;
+    }
+
+    @Override
+    public boolean cancelRequest(String token, long timeToWait, Task task, OperationResult result)
+            throws SchemaException, ObjectNotFoundException, ConfigurationException, ExpressionEvaluationException,
+            SecurityViolationException, CommunicationException {
+        return taskService.suspendTask(token, timeToWait, task, result);
     }
 }
