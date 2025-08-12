@@ -38,8 +38,6 @@ This could be improved in future midPoint versions.
 
 == See Also
 
-* xref:/midpoint/reference/roles-policies/policies/identity-governance-rules/[]
-
 * xref:/midpoint/reference/roles-policies/policies/policy-rules/[]
 
 * xref:/midpoint/reference/roles-policies/policies/object-governance/[]
