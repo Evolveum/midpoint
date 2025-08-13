@@ -7,11 +7,9 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.table;
 
-import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
-import com.evolveum.midpoint.web.component.AceEditor;
+import com.evolveum.midpoint.gui.impl.prism.panel.PrismPropertyValuePanel;
 import com.evolveum.midpoint.web.component.AjaxIconButton;
-
 import com.evolveum.midpoint.web.component.data.column.AjaxLinkPanel;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectTypeSuggestionType;
@@ -23,17 +21,21 @@ import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.Radio;
 import org.apache.wicket.markup.repeater.RepeatingView;
 import org.apache.wicket.model.IModel;
+
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
+import com.evolveum.midpoint.gui.impl.component.tile.TemplateTilePanel;
+
 import org.apache.wicket.model.Model;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.Serial;
-import java.io.Serializable;
 import java.util.List;
 
 import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.RoleAnalysisWebUtils.CLASS_CSS;
 import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.RoleAnalysisWebUtils.STYLE_CSS;
 
-public class SmartSuggestObjectTypeTilePanel<T extends Serializable> extends BasePanel<SmartSuggestObjectTypeTileModel<T>> {
+public class SmartObjectTypeSuggestionPanel<C extends PrismContainerValueWrapper<ObjectTypeSuggestionType>>
+        extends TemplateTilePanel<C, SmartObjectTypeSuggestionTileModel<C>> {
 
     @Serial private static final long serialVersionUID = 1L;
 
@@ -46,17 +48,16 @@ public class SmartSuggestObjectTypeTilePanel<T extends Serializable> extends Bas
     private static final String ID_FILTER_CTN = "filterContainer";
     private static final String ID_ACE = "aceEditorFilter";
     private static final String ID_MORE_ACTIONS = "moreActions";
-    private static final String ID_TOGGLE_LABEL = "toggleLabel";
+
     private static final String ID_TOGGLE_ICON = "toggleIcon";
 
-    IModel<ObjectTypeSuggestionType> selectedTileModel;
+    IModel<PrismContainerValueWrapper<ObjectTypeSuggestionType>> selectedTileModel;
 
     boolean isFilterVisible = false;
 
-    public SmartSuggestObjectTypeTilePanel(
-            String id,
-            IModel<SmartSuggestObjectTypeTileModel<T>> model,
-            IModel<ObjectTypeSuggestionType> selectedTileModel) {
+    public SmartObjectTypeSuggestionPanel(@NotNull String id,
+                                          @NotNull IModel<SmartObjectTypeSuggestionTileModel<C>> model,
+                                          @NotNull IModel<PrismContainerValueWrapper<ObjectTypeSuggestionType>> selectedTileModel) {
         super(id, model);
         this.selectedTileModel = selectedTileModel;
     }
@@ -64,7 +65,12 @@ public class SmartSuggestObjectTypeTilePanel<T extends Serializable> extends Bas
     @Override
     protected void onInitialize() {
         super.onInitialize();
-        initLayout();
+        buildPanel();
+    }
+
+    @Override
+    protected void initLayout() {
+        // No additional layout initialization needed
     }
 
     @Override
@@ -78,7 +84,7 @@ public class SmartSuggestObjectTypeTilePanel<T extends Serializable> extends Bas
         applySelectionStyling();
     }
 
-    protected void initLayout() {
+    protected void buildPanel() {
         initDefaultCssStyle();
 
         initTitle();
@@ -115,14 +121,13 @@ public class SmartSuggestObjectTypeTilePanel<T extends Serializable> extends Bas
         filterCtn.add(new VisibleBehaviour(() -> isFilterVisible));
         add(filterCtn);
 
-//        new PrismPropertyValuePanel<>()
-        AceEditor ace = new AceEditor(ID_ACE, Model.of(getModelObject().getFilter()));
-        ace.setMinHeight(20);
-        ace.setResizeToMaxHeight(false);
-        ace.setEnabled(false);
-        filterCtn.add(ace);
+        PrismPropertyValuePanel<?> valuePanel = new PrismPropertyValuePanel<>(ID_ACE,
+                () -> getModelObject().getFilterPropertyValueWrapper(), null);
+        valuePanel.setOutputMarkupId(true);
+        valuePanel.setEnabled(false);
+        filterCtn.add(valuePanel);
 
-        AjaxLinkPanel togglePanel = new AjaxLinkPanel(ID_TOGGLE, ()-> isFilterVisible
+        AjaxLinkPanel togglePanel = new AjaxLinkPanel(ID_TOGGLE, () -> isFilterVisible
                 ? createStringResource("SmartSuggestObjectTypeTilePanel.hide.filter").getString()
                 : createStringResource("SmartSuggestObjectTypeTilePanel.show.filter").getString()) {
             @Serial private static final long serialVersionUID = 1L;
@@ -145,7 +150,7 @@ public class SmartSuggestObjectTypeTilePanel<T extends Serializable> extends Bas
     }
 
     private void initSelectRadio() {
-        Radio<ObjectTypeSuggestionType> radio = new Radio<>(ID_RADIO, Model.of(getModelObject().getValue()));
+        Radio<C> radio = new Radio<>(ID_RADIO, Model.of(getModelObject().getValue()));
         radio.setOutputMarkupId(true);
         add(radio);
     }
@@ -173,8 +178,8 @@ public class SmartSuggestObjectTypeTilePanel<T extends Serializable> extends Bas
     }
 
     private void applySelectionStyling() {
-        ObjectTypeSuggestionType selectedValue = selectedTileModel.getObject();
-        ObjectTypeSuggestionType tileValue = getModelObject().getValue();
+        PrismContainerValueWrapper<ObjectTypeSuggestionType> selectedValue = selectedTileModel.getObject();
+        PrismContainerValueWrapper<ObjectTypeSuggestionType> tileValue = getModelObject().getValue();
 
         if (selectedValue == null || tileValue == null) {
             return;
@@ -186,8 +191,8 @@ public class SmartSuggestObjectTypeTilePanel<T extends Serializable> extends Bas
     }
 
     private void selectIfNoneSelected() {
-        ObjectTypeSuggestionType currentSelection = selectedTileModel.getObject();
-        ObjectTypeSuggestionType thisTile = getModelObject().getValue();
+        PrismContainerValueWrapper<ObjectTypeSuggestionType> currentSelection = selectedTileModel.getObject();
+        PrismContainerValueWrapper<ObjectTypeSuggestionType> thisTile = getModelObject().getValue();
 
         if (currentSelection == null && thisTile != null) {
             selectedTileModel.setObject(thisTile);
@@ -211,4 +216,5 @@ public class SmartSuggestObjectTypeTilePanel<T extends Serializable> extends Bas
     public PageBase getPageBase() {
         return super.getPageBase();
     }
+
 }

@@ -1,0 +1,44 @@
+<!--
+  ~ Copyright (c) 2010-2017 Evolveum
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+<!DOCTYPE html>
+<html xmlns:wicket="http://wicket.apache.org">
+
+<wicket:panel>
+    <div class="d-flex flex-column flex-grow-1" wicket:id="tileView">
+        <div wicket:id="header"></div>
+        <div class="d-flex flex-wrap justify-content-left pt-3" wicket:id="tilesContainer"></div>
+        <div class="d-flex" wicket:id="footerContainer">
+            <div class="d-flex">
+                <div wicket:id="buttonToolbar"/>
+            </div>
+            <div class="ml-auto align-self-end" wicket:id="tilesPaging"></div>
+        </div>
+    </div>
+
+    <div wicket:id="table"/>
+
+
+    <wicket:fragment wicket:id="headerFragment">
+        <div class="d-flex">
+            <div class="mr-auto pr-4">
+                <div wicket:id="viewToggle"></div>
+            </div>
+            <div class="ml-auto flex-grow-1" wicket:id="panelHeader"></div>
+        </div>
+    </wicket:fragment>
+
+    <wicket:fragment wicket:id="tilesRadioFragment">
+        <form wicket:id="tileForm">
+            <div wicket:id="radioGroup" class="d-flex flex-wrap justify-content-left pt-3">
+                <div wicket:id="tiles">
+                    <div wicket:id="tile"></div>
+                </div>
+            </div>
+        </form>
+    </wicket:fragment>
+</wicket:panel>
+</html>

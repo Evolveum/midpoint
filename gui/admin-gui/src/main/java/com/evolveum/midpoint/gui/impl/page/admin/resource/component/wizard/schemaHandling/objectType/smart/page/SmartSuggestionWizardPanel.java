@@ -6,16 +6,16 @@
  */
 package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.page;
 
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.impl.component.wizard.AbstractWizardPanel;
 import com.evolveum.midpoint.gui.impl.component.wizard.WizardPanelHelper;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
-import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.basic.ObjectClassWrapper;
-import com.evolveum.midpoint.prism.Containerable;
-import com.evolveum.midpoint.prism.PrismContainerValue;
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
+import com.evolveum.midpoint.xml.ns._public.prism_schema_3.ComplexTypeDefinitionType;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.model.IModel;
@@ -44,8 +44,11 @@ public class SmartSuggestionWizardPanel<C extends ResourceObjectTypeDefinitionTy
         return new ResourceObjectClassTableWizardPanel<>(idOfChoicePanel, getHelper()) {
 
             @Override
-            protected void onContinueWithSelected(IModel<SelectableBean<ObjectClassWrapper>> model, AjaxRequestTarget target) {
-                QName objectClassName = model.getObject().getValue().getObjectClassName();
+            protected void onContinueWithSelected(IModel<PrismContainerValueWrapper<ComplexTypeDefinitionType>> model, AjaxRequestTarget target) {
+                PrismContainerValueWrapper<ComplexTypeDefinitionType> object = model.getObject();
+                ComplexTypeDefinitionType realValue = object.getRealValue();
+
+                QName objectClassName = realValue.getName();
                 var resourceOid = getAssignmentHolderModel().getObjectType().getOid();
 
                 Task task = getPageBase().createSimpleTask(OP_DETERMINE_STATUS);
@@ -91,7 +94,7 @@ public class SmartSuggestionWizardPanel<C extends ResourceObjectTypeDefinitionTy
 
             @Override
             protected void onContinueWithSelected(
-                    @NotNull IModel<ObjectTypeSuggestionType> model,
+                    IModel<PrismContainerValueWrapper<ObjectTypeSuggestionType>> model,
                     @NotNull PrismContainerValue<ResourceObjectTypeDefinitionType> newValue,
                     @NotNull IModel<PrismContainerWrapper<ResourceObjectTypeDefinitionType>> containerModel,
                     @NotNull AjaxRequestTarget target) {

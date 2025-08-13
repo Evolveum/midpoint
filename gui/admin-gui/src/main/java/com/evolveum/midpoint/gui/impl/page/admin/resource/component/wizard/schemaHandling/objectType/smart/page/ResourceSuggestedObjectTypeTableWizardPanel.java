@@ -6,14 +6,23 @@
  */
 package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.page;
 
+import com.evolveum.midpoint.gui.api.factory.wrapper.WrapperContext;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
+import com.evolveum.midpoint.gui.api.prism.ItemStatus;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
-import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.table.SmartSuggestedObjectTypeRadioTileTable;
 
+import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.table.SmartObjectTypeSuggestionTable;
+import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.smart.api.info.StatusInfo;
+import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.web.model.PrismContainerWrapperModel;
+import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.cxf.common.util.StringUtils;
@@ -27,13 +36,15 @@ import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.impl.component.wizard.WizardPanelHelper;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.AbstractResourceWizardBasicPanel;
-import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.table.SmartObjectClassRadioTileTable;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.web.application.PanelDisplay;
 import com.evolveum.midpoint.web.application.PanelInstance;
 import com.evolveum.midpoint.web.application.PanelType;
 
 import javax.xml.namespace.QName;
+import java.util.List;
+
+import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationUtils.loadObjectClassSuggestions;
 
 @PanelType(name = "rw-suggested-object-type")
 @PanelInstance(identifier = "w-suggested-object-type",
@@ -44,7 +55,10 @@ public abstract class ResourceSuggestedObjectTypeTableWizardPanel<C extends Reso
 
     private static final String ID_PANEL = "panel";
 
-    IModel<ObjectTypeSuggestionType> selectedModel = Model.of();
+    private static final String OP_DETERMINE_STATUS =
+            ResourceSuggestedObjectTypeTableWizardPanel.class.getName() + ".determineStatus";
+
+    IModel<PrismContainerValueWrapper<ObjectTypeSuggestionType>> selectedModel = Model.of();
     QName selectedObjectClassName;
 
     public ResourceSuggestedObjectTypeTableWizardPanel(
@@ -62,30 +76,72 @@ public abstract class ResourceSuggestedObjectTypeTableWizardPanel<C extends Reso
     }
 
     private void initLayout() {
-
-        SmartSuggestedObjectTypeRadioTileTable table = new SmartSuggestedObjectTypeRadioTileTable(ID_PANEL,
-                getPageBase(), this::getAssignmentHolderDetailsModel, selectedObjectClassName, selectedModel) {
-        };
-
-        table.setOutputMarkupId(true);
-        add(table);
+        LoadableModel<List<PrismContainerValueWrapper<ObjectTypeSuggestionType>>> suggestionModel = createPrismContainerValueWrapperModel();
+        SmartObjectTypeSuggestionTable<PrismContainerValueWrapper<ObjectTypeSuggestionType>> smartObjectTypeSuggestionTable = new SmartObjectTypeSuggestionTable<>(
+                ID_PANEL,
+                UserProfileStorage.TableId.PANEL_RESOURCE_OBJECT_TYPES_SUGGESTIONS,
+                suggestionModel,
+                selectedModel);
+        smartObjectTypeSuggestionTable.setOutputMarkupId(true);
+        add(smartObjectTypeSuggestionTable);
     }
 
-    private SmartObjectClassRadioTileTable getTable() {
-        return (SmartObjectClassRadioTileTable) get(ID_PANEL);
+    private @NotNull LoadableModel<List<PrismContainerValueWrapper<ObjectTypeSuggestionType>>> createPrismContainerValueWrapperModel() {
+        return new LoadableModel<>() {
+            @Override
+            protected List<PrismContainerValueWrapper<ObjectTypeSuggestionType>> load() {
+                Task task = getPageBase().createSimpleTask(OP_DETERMINE_STATUS);
+                OperationResult result = task.getResult();
+
+                ResourceType resource = getAssignmentHolderDetailsModel().getObjectType();
+
+                StatusInfo<ObjectTypesSuggestionType> statusInfo = loadObjectClassSuggestions(getPageBase(),
+                        resource.getOid(),
+                        selectedObjectClassName,
+                        task,
+                        result);
+
+                if (statusInfo == null
+                        || statusInfo.getResult() == null) {
+                    return List.of();
+                }
+
+                ObjectTypesSuggestionType objectTypeSuggestionResult = statusInfo.getResult();
+
+                if (objectTypeSuggestionResult.getObjectType() == null
+                        || objectTypeSuggestionResult.getObjectType().isEmpty()) {
+                    return List.of();
+                }
+
+                PrismContainerWrapper<ObjectTypeSuggestionType> itemWrapper;
+                try {
+                    @SuppressWarnings("unchecked")
+                    PrismContainerValue<ObjectTypeSuggestionType> prismContainerValue = objectTypeSuggestionResult
+                            .asPrismContainerValue();
+
+                    PrismContainer<ObjectTypeSuggestionType> container = prismContainerValue
+                            .findContainer(ObjectTypesSuggestionType.F_OBJECT_TYPE);
+                    itemWrapper = getPageBase().createItemWrapper(
+                            container, ItemStatus.NOT_CHANGED, new WrapperContext(task, result));
+                } catch (SchemaException e) {
+                    throw new RuntimeException("Error wrapping object type suggestions", e);
+                }
+                return itemWrapper.getValues();
+            }
+        };
     }
 
     @Override
     protected void onSubmitPerformed(AjaxRequestTarget target) {
-
-        if (selectedModel.getObject() == null || selectedModel.getObject().getIdentification() == null) {
+        PrismContainerValueWrapper<ObjectTypeSuggestionType> selected = selectedModel.getObject();
+        if (selected == null || selected.getRealValue() == null || selected.getRealValue().getIdentification() == null) {
             getPageBase().warn(getPageBase().createStringResource("Smart.suggestion.noSelection")
                     .getString());
             target.add(getPageBase().getFeedbackPanel());
             return;
         }
 
-        var suggestion = selectedModel.getObject();
+        var suggestion = selected.getRealValue();
         var id = suggestion.getIdentification();
         var kind = id.getKind();
         var intent = id.getIntent();
@@ -133,7 +189,7 @@ public abstract class ResourceSuggestedObjectTypeTableWizardPanel<C extends Reso
     }
 
     protected abstract void onContinueWithSelected(
-            @NotNull IModel<ObjectTypeSuggestionType> model,
+            IModel<PrismContainerValueWrapper<ObjectTypeSuggestionType>> model,
             @NotNull PrismContainerValue<ResourceObjectTypeDefinitionType> newValue,
             @NotNull IModel<PrismContainerWrapper<ResourceObjectTypeDefinitionType>> containerModel,
             @NotNull AjaxRequestTarget target);

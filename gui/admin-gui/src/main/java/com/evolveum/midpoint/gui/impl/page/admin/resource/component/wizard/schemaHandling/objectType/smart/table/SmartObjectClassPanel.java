@@ -7,30 +7,30 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.table;
 
-import java.io.Serial;
-import java.io.Serializable;
-
-import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.basic.ObjectClassWrapper;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
+import com.evolveum.midpoint.gui.impl.component.tile.TemplateTilePanel;
 import com.evolveum.midpoint.web.component.data.column.AjaxLinkPanel;
 
-import com.evolveum.midpoint.web.component.util.SelectableBean;
+import com.evolveum.midpoint.xml.ns._public.prism_schema_3.ComplexTypeDefinitionType;
 
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.Radio;
 import org.apache.wicket.model.IModel;
-
-import com.evolveum.midpoint.gui.api.component.BasePanel;
-
 import org.apache.wicket.model.Model;
+import org.jetbrains.annotations.NotNull;
+
+import java.io.Serial;
 
 import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.RoleAnalysisWebUtils.CLASS_CSS;
 import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.RoleAnalysisWebUtils.STYLE_CSS;
 
-public class SmartObjectClassTilePanel<T extends Serializable> extends BasePanel<SmartObjectClassTileModel<T>> {
+public class SmartObjectClassPanel<C extends PrismContainerValueWrapper<ComplexTypeDefinitionType>>
+        extends TemplateTilePanel<C, SmartObjectClassTileModel<C>> {
 
     @Serial private static final long serialVersionUID = 1L;
+
     private static final String ID_NAME = "name";
     private static final String IDD_DESCRIPTION = "description";
     private static final String ID_COUNT_TITLE = "countTitle";
@@ -38,15 +38,24 @@ public class SmartObjectClassTilePanel<T extends Serializable> extends BasePanel
     private static final String ID_VIEW_SCHEMA_LINK = "viewSchemaLink";
     private static final String ID_SELECT_CHECKBOX = "selectCheckbox";
 
-    IModel<SelectableBean<ObjectClassWrapper>> selectedTileModel;
+    IModel<PrismContainerValueWrapper<ComplexTypeDefinitionType>> selectedTileModel;
 
-    public SmartObjectClassTilePanel(
-            String id,
-            IModel<SmartObjectClassTileModel<T>> model,
-            IModel<SelectableBean<ObjectClassWrapper>> selectedTileModel) {
+    public SmartObjectClassPanel(@NotNull String id,
+                                 @NotNull IModel<SmartObjectClassTileModel<C>> model,
+                                 @NotNull IModel<PrismContainerValueWrapper<ComplexTypeDefinitionType>> selectedTileModel) {
         super(id, model);
         this.selectedTileModel = selectedTileModel;
-        initLayout();
+    }
+
+    @Override
+    protected void onInitialize() {
+        super.onInitialize();
+        buildPanel();
+    }
+
+    @Override
+    protected void initLayout() {
+        // No additional layout initialization needed
     }
 
     @Override
@@ -60,7 +69,7 @@ public class SmartObjectClassTilePanel<T extends Serializable> extends BasePanel
         applySelectionStyling();
     }
 
-    protected void initLayout() {
+    protected void buildPanel() {
         initDefaultCssStyle();
 
         initName();
@@ -72,7 +81,7 @@ public class SmartObjectClassTilePanel<T extends Serializable> extends BasePanel
     }
 
     private void initSelectRadio() {
-        Radio<SelectableBean<ObjectClassWrapper>> radio = new Radio<>(ID_SELECT_CHECKBOX, Model.of(getModelObject().getValue()));
+        Radio<C> radio = new Radio<>(ID_SELECT_CHECKBOX, Model.of(getModelObject().getValue()));
         radio.setOutputMarkupId(true);
         add(radio);
     }
@@ -125,15 +134,8 @@ public class SmartObjectClassTilePanel<T extends Serializable> extends BasePanel
     }
 
     private void applySelectionStyling() {
-        SelectableBean<ObjectClassWrapper> currentSelectionValue = selectedTileModel.getObject();
-        SelectableBean<ObjectClassWrapper> thisTileValue = getModelObject().getValue();
-
-        if (currentSelectionValue == null || thisTileValue == null) {
-            return;
-        }
-
-        ObjectClassWrapper selectedValue = currentSelectionValue.getValue();
-        ObjectClassWrapper tileValue = thisTileValue.getValue();
+        PrismContainerValueWrapper<ComplexTypeDefinitionType> selectedValue = selectedTileModel.getObject();
+        PrismContainerValueWrapper<ComplexTypeDefinitionType> tileValue = getModelObject().getValue();
 
         if (selectedValue == null || tileValue == null) {
             return;
@@ -163,8 +165,8 @@ public class SmartObjectClassTilePanel<T extends Serializable> extends BasePanel
      * when the user interacts with the UI.
      */
     private void selectIfNoneSelected() {
-        SelectableBean<ObjectClassWrapper> currentSelection = selectedTileModel.getObject();
-        SelectableBean<ObjectClassWrapper> thisTile = getModelObject().getValue();
+        PrismContainerValueWrapper<ComplexTypeDefinitionType> currentSelection = selectedTileModel.getObject();
+        PrismContainerValueWrapper<ComplexTypeDefinitionType> thisTile = getModelObject().getValue();
 
         if (currentSelection == null && thisTile != null) {
             selectedTileModel.setObject(thisTile);

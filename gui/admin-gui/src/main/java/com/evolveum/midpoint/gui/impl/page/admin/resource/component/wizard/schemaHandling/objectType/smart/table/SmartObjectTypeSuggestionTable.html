@@ -1,13 +1,13 @@
 <!--
-  ~ Copyright (c) 2010-2015 Evolveum
+  ~ Copyright (c) 2010-2025 Evolveum
   ~
   ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
 <!DOCTYPE html>
 <html xmlns:wicket="http://wicket.apache.org">
-<wicket:panel>
 
+<wicket:panel>
     <div class="d-flex flex-column flex-grow-1" wicket:id="tileView">
         <div wicket:id="header"/>
         <div class="d-flex flex-wrap justify-content-left pt-3" wicket:id="tilesContainer"/>
@@ -21,13 +21,12 @@
 
     <div wicket:id="table"/>
 
+
     <wicket:fragment wicket:id="headerFragment">
         <div class="d-flex">
-            <wicket:enclosure child="viewToggle">
-                <div class="mr-auto pr-4">
-                    <div wicket:id="viewToggle"/>
-                </div>
-            </wicket:enclosure>
+            <div class="mr-auto pr-4">
+                <div wicket:id="viewToggle"/>
+            </div>
             <div class="ml-auto flex-grow-1" wicket:id="panelHeader"/>
         </div>
     </wicket:fragment>
@@ -41,6 +40,5 @@
             </div>
         </form>
     </wicket:fragment>
-
 </wicket:panel>
 </html>

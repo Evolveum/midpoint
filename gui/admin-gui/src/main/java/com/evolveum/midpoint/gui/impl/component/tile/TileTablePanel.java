@@ -154,7 +154,7 @@ public abstract class TileTablePanel<T extends Tile, O extends Serializable> ext
         Fragment tilesFragment = new Fragment(idTilesContainer, ID_TILES_FRAGMENT, TileTablePanel.this);
         tilesFragment.add(AttributeAppender.replace("class", getTileContainerCssClass()));
 
-        PageableListView tiles = createTilesPanel(ID_TILES, provider);
+        PageableListView<T, O> tiles = createTilesPanel(ID_TILES, provider);
         tilesFragment.add(tiles);
 
         return tilesFragment;

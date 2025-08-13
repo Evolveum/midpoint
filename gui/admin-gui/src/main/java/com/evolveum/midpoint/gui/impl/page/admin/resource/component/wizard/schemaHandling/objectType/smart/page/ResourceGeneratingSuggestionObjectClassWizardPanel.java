@@ -8,7 +8,7 @@ package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.sche
 
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.page.PageBase;
-import com.evolveum.midpoint.gui.api.util.LocalizationUtil;
+import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.impl.component.wizard.WizardPanelHelper;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.AbstractResourceWizardBasicPanel;
@@ -16,15 +16,15 @@ import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schem
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.component.SmartGeneratingPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.dto.SmartGeneratingDto;
 import com.evolveum.midpoint.prism.Containerable;
-import com.evolveum.midpoint.schema.result.OperationResultStatus;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.task.ActivityProgressInformation;
 import com.evolveum.midpoint.smart.api.info.StatusInfo;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.web.application.PanelDisplay;
 import com.evolveum.midpoint.web.application.PanelInstance;
 import com.evolveum.midpoint.web.application.PanelType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectTypesSuggestionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationTypeType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectTypeDefinitionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -35,7 +35,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.xml.namespace.QName;
-import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -80,46 +79,49 @@ public abstract class ResourceGeneratingSuggestionObjectClassWizardPanel<C exten
     /** Creates the generating panel with pre-filled data. */
     protected Component createPanelComponent(String id) {
         return new SmartGeneratingPanel(id, () -> {
+            Task task = getPageBase().createSimpleTask(OP_DETERMINE_STATUS);
+            OperationResult result = task.getResult();
             StatusInfo<ObjectTypesSuggestionType> latest = loadObjectClassSuggestions();
             if (latest == null) {
-                return new SmartGeneratingDto(() -> "N/A", Collections::emptyList, () -> OperationResultStatus.NOT_APPLICABLE);
+                return new SmartGeneratingDto(() -> "N/A", Collections::emptyList,
+                        () -> null, () -> null);
             }
 
-            OperationResultStatus operationResultStatus = latest.status();
             List<SmartGeneratingDto.StatusRow> rows = buildStatusRows(latest);
             String elapsed = formatElapsedTime(latest);
-            return new SmartGeneratingDto(() -> elapsed, () -> rows, () -> operationResultStatus);
-        }) {
-            @Override
-            protected Duration getRefreshInterval() {
-                return Duration.ofSeconds(1);
-            }
-        };
+            String token = latest.getToken();
+            PrismObject<TaskType> taskTypePrismObject = WebModelServiceUtils.loadObject(TaskType.class, token, getPageBase(), task, result);
+            return new SmartGeneratingDto(() -> elapsed, () -> rows, () -> latest, () -> taskTypePrismObject);
+        });
     }
-
-    //TODO (dummy data already present)  change this to use real data from the resource status after implementation
 
     /** Builds display rows depending on the suggestion status. */
     private @NotNull List<SmartGeneratingDto.StatusRow> buildStatusRows(StatusInfo<ObjectTypesSuggestionType> suggestion) {
         List<SmartGeneratingDto.StatusRow> rows = new ArrayList<>();
-        if (suggestion == null) {
-            rows.add(new SmartGeneratingDto.StatusRow("No suggestions available", false));
+        if (suggestion == null
+                || suggestion.getProgressInformation() == null
+                || suggestion.getProgressInformation().getChildren().isEmpty()) {
+            rows.add(new SmartGeneratingDto.StatusRow(createStringResource(
+                    "SmartGeneratingDto.no.suggestion"),
+                    ActivityProgressInformation.RealizationState.UNKNOWN,
+                    suggestion));
             return rows;
         }
 
-        switch (suggestion.status()) {
-            case IN_PROGRESS -> rows.add(new SmartGeneratingDto.StatusRow("Generating suggestions", false));
-            case SUCCESS -> {
-                rows.add(new SmartGeneratingDto.StatusRow("Generating suggestions", true));
-                rows.add(new SmartGeneratingDto.StatusRow("Patterns identified", true));
-            }
-            case FATAL_ERROR -> {
-                rows.add(new SmartGeneratingDto.StatusRow("Error: "
-                        + LocalizationUtil.translateMessage(suggestion.message()), true));
-            }
-            default -> rows.add(new SmartGeneratingDto.StatusRow("Unknown status: " + suggestion.status(), false));
+        ActivityProgressInformation progressInformation = suggestion.getProgressInformation();
+
+
+        List<ActivityProgressInformation> children = progressInformation.getChildren();
+        for (ActivityProgressInformation child : children) {
+            String activityIdentifier = child.getActivityIdentifier();
+            ActivityProgressInformation.RealizationState realizationState = child.getRealizationState();
+            rows.add(new SmartGeneratingDto.StatusRow(buildProgressMessageModel(activityIdentifier), realizationState, suggestion));
         }
         return rows;
+    }
+
+    protected IModel<String> buildProgressMessageModel(String operationKey) {
+        return createStringResource("Activity.explanation." + operationKey);
     }
 
     /** Loads the current resource status. */
@@ -139,7 +141,12 @@ public abstract class ResourceGeneratingSuggestionObjectClassWizardPanel<C exten
 
     @Override
     protected String getSaveLabelKey() {
-        return "ResourceObjectClassTableWizardPanel.saveButton";
+        return "ResourceGeneratingSuggestionObjectClassWizardPanel.continue";
+    }
+
+    @Override
+    protected boolean isSubmitButtonVisible() {
+        return super.isSubmitButtonVisible();
     }
 
     protected abstract void onContinueWithSelected(AjaxRequestTarget target);

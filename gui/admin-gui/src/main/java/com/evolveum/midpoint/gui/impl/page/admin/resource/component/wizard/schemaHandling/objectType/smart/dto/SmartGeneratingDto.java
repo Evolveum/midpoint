@@ -6,9 +6,18 @@
  */
 package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.dto;
 
-import com.evolveum.midpoint.schema.result.OperationResultStatus;
+import com.evolveum.midpoint.gui.api.GuiStyleConstants;
+import com.evolveum.midpoint.prism.PrismObject;
+
+import com.evolveum.midpoint.schema.util.task.ActivityProgressInformation;
+import com.evolveum.midpoint.smart.api.info.StatusInfo;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultStatusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskExecutionStateType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 
 import org.apache.wicket.model.IModel;
+import org.jetbrains.annotations.Contract;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.Serial;
 import java.io.Serializable;
@@ -24,15 +33,18 @@ public class SmartGeneratingDto implements Serializable {
 
     private final IModel<String> elapsedTimeModel;
     private final IModel<List<StatusRow>> statusRowsModel;
-    private final IModel<OperationResultStatus> operationResultStatusModel;
+    private final IModel<StatusInfo<?>> statusInfo;
+    private final IModel<PrismObject<TaskType>> taskModel;
 
     public SmartGeneratingDto(
             IModel<String> elapsedTimeModel,
             IModel<List<StatusRow>> statusRows,
-            IModel<OperationResultStatus> operationResultStatusModel) {
+            IModel<StatusInfo<?>> statusInfo,
+            IModel<PrismObject<TaskType>> taskModel) {
         this.elapsedTimeModel = elapsedTimeModel;
         this.statusRowsModel = statusRows;
-        this.operationResultStatusModel = operationResultStatusModel;
+        this.statusInfo = statusInfo;
+        this.taskModel = taskModel;
     }
 
     /**
@@ -55,18 +67,57 @@ public class SmartGeneratingDto implements Serializable {
     /**
      * Simple inner DTO for rendering one status line.
      */
-    public record StatusRow(String text, boolean done) implements Serializable {
-    }
+    public record StatusRow(IModel<String> text, ActivityProgressInformation.RealizationState done,
+                            StatusInfo<?> status) implements Serializable {
 
-    public OperationResultStatus getOperationResultStatus() {
-        return operationResultStatusModel.getObject();
+        @Contract(pure = true)
+        public @NotNull String getIconCss() {
+            OperationResultStatusType statusResult = status.getStatus();
+            boolean isFatalError = statusResult == OperationResultStatusType.FATAL_ERROR;
+            boolean executing = status.isExecuting();
+
+            if (done == null || done == ActivityProgressInformation.RealizationState.UNKNOWN) {
+                return "fa fa-question-circle";
+            } else if (done == ActivityProgressInformation.RealizationState.COMPLETE) {
+                return "fa fa-check text-success";
+            } else {
+                assert done == ActivityProgressInformation.RealizationState.IN_PROGRESS;
+                if (executing) {
+                    return "fa fa-spinner fa-spin";
+                } else if (isFatalError) {
+                    return "fa fa-exclamation-triangle text-danger";
+                } else {
+                    return GuiStyleConstants.CLASS_TASK_SUSPENDED_ICON + " text-info";
+                }
+            }
+        }
     }
 
     public boolean isFinished() {
-        if (getOperationResultStatus() == null) {
+        if (statusInfo == null || statusInfo.getObject() == null) {
             return false;
         }
-        return getOperationResultStatus() == OperationResultStatus.SUCCESS
-                || getOperationResultStatus() == OperationResultStatus.FATAL_ERROR;
+
+        return statusInfo.getObject().isComplete();
+    }
+
+    public boolean isFailed() {
+        if (statusInfo == null || statusInfo.getObject() == null) {
+            return false;
+        }
+
+        return statusInfo.getObject().getStatus() == OperationResultStatusType.FATAL_ERROR;
+    }
+
+    public TaskType getTaskObject() {
+        if (taskModel == null || taskModel.getObject() == null) {
+            return null;
+        }
+        return taskModel.getObject().asObjectable();
+    }
+
+    public TaskExecutionStateType getTaskExecutionState() {
+        TaskType task = getTaskObject();
+        return task != null ? task.getExecutionState() : null;
     }
 }

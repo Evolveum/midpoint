@@ -18,6 +18,8 @@ import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.basic.ObjectClassWrapper;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.smart.RealResourceStatus;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.smart.ResourceStatus;
+import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.smart.api.info.StatusInfo;
@@ -27,11 +29,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectClassSizeEstimationType;
-
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectTypeSuggestionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectTypesSuggestionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import com.evolveum.midpoint.xml.ns._public.prism_schema_3.ComplexTypeDefinitionType;
 import com.evolveum.midpoint.xml.ns._public.prism_schema_3.PrismSchemaType;
@@ -149,7 +147,7 @@ public class SmartIntegrationUtils {
             @NotNull List<StatusInfo<ObjectTypesSuggestionType>> suggestions) {
         return suggestions.stream()
                 .max(Comparator.comparing(
-                        StatusInfo::started,
+                        StatusInfo::getRealizationStartTimestamp,
                         Comparator.nullsLast(XMLGregorianCalendar::compare)))
                 .orElse(null);
     }
@@ -161,8 +159,8 @@ public class SmartIntegrationUtils {
     public static @NotNull List<ObjectTypeSuggestionType> extractObjectTypesFromStatusInfo(
             @Nullable StatusInfo<ObjectTypesSuggestionType> objectTypesSuggestionTypeStatusInfo) {
         List<ObjectTypeSuggestionType> suggestedObjectTypes = new ArrayList<>();
-        if (objectTypesSuggestionTypeStatusInfo != null && objectTypesSuggestionTypeStatusInfo.result() != null) {
-            ObjectTypesSuggestionType objectTypesSuggestionResult = objectTypesSuggestionTypeStatusInfo.result();
+        if (objectTypesSuggestionTypeStatusInfo != null && objectTypesSuggestionTypeStatusInfo.getResult() != null) {
+            ObjectTypesSuggestionType objectTypesSuggestionResult = objectTypesSuggestionTypeStatusInfo.getResult();
 
             List<ObjectTypeSuggestionType> objectType = objectTypesSuggestionResult.getObjectType();
             if (objectType != null) {
@@ -177,13 +175,13 @@ public class SmartIntegrationUtils {
      * into a human-readable string with days, hours, minutes, seconds, and milliseconds.
      */
     public static @NotNull String formatElapsedTime(StatusInfo<ObjectTypesSuggestionType> s) {
-        if (s == null || s.started() == null) {
+        if (s == null || s.getRealizationStartTimestamp() == null) {
             return "Elapsed time: N/A";
         }
 
-        long startMillis = s.started().toGregorianCalendar().getTimeInMillis();
-        long endMillis = (s.finished() != null
-                ? s.finished().toGregorianCalendar().getTimeInMillis()
+        long startMillis = s.getRealizationStartTimestamp().toGregorianCalendar().getTimeInMillis();
+        long endMillis = (s.getRealizationEndTimestamp() != null
+                ? s.getRealizationEndTimestamp().toGregorianCalendar().getTimeInMillis()
                 : System.currentTimeMillis());
 
         long elapsedMillis = endMillis - startMillis;
@@ -306,6 +304,41 @@ public class SmartIntegrationUtils {
                 return list;
             }
         };
+    }
+
+    //TODO this is for temporary use only, remove when ai-metadata flag is implemented in the schema
+    public static void addAiGeneratedMarkMetadataValue(@NotNull ValueMetadata valueMetadata) {
+        ExtensionType ext = new ExtensionType();
+        try {
+            addExtensionValue(ext, "name", "ai-generated");
+            valueMetadata.addMetadataValue(new ValueMetadataType()
+                    .extension(ext).asPrismContainerValue());
+        } catch (SchemaException e) {
+            throw new IllegalStateException("Couldn't mark value as AI-generated", e);
+        }
+
+    }
+
+    @SuppressWarnings("unchecked")
+    @SafeVarargs
+    private static <V> void addExtensionValue(
+            @NotNull Containerable extContainer, String itemName, V... values) throws SchemaException {
+        PrismContainerValue<?> pcv = extContainer.asPrismContainerValue();
+        ItemDefinition<?> itemDefinition =
+                pcv.getDefinition().findItemDefinition(new ItemName(itemName));
+        if (itemDefinition instanceof PrismReferenceDefinition) {
+            PrismReference ref = (PrismReference) itemDefinition.instantiate();
+            for (V value : values) {
+                ref.add(value instanceof PrismReferenceValue
+                        ? (PrismReferenceValue) value
+                        : ((Referencable) value).asReferenceValue());
+            }
+            pcv.add(ref);
+        } else {
+            PrismProperty<V> property = (PrismProperty<V>) itemDefinition.instantiate();
+            property.setRealValues(values);
+            pcv.add(property);
+        }
     }
 
 }

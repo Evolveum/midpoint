@@ -8,9 +8,12 @@ package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.sche
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.dto.SmartGeneratingDto;
-import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.web.component.AjaxIconButton;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
+
+import com.evolveum.midpoint.web.util.TaskOperationUtils;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskExecutionStateType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AbstractAjaxTimerBehavior;
@@ -83,9 +86,7 @@ public class SmartGeneratingPanel extends BasePanel<SmartGeneratingDto> {
             @Override
             protected void onTimer(AjaxRequestTarget target) {
                 final SmartGeneratingDto dto = getModelObject();
-                final boolean finished = dto.getOperationResultStatus() == OperationResultStatus.SUCCESS
-                        || dto.getOperationResultStatus() == OperationResultStatus.FATAL_ERROR;
-                if (finished) {
+                if (dto.isFinished() || dto.isFailed()) {
                     stop(target);
                 }
                 target.add(container);
@@ -103,9 +104,7 @@ public class SmartGeneratingPanel extends BasePanel<SmartGeneratingDto> {
 
                 WebMarkupContainer icon = new WebMarkupContainer(ID_LIST_ITEM_ICON);
                 icon.setOutputMarkupId(true);
-                String iconCss = row.done()
-                        ? "fa fa-check text-success"
-                        : "spinner-border spinner-border-sm text-muted";
+                String iconCss = row.getIconCss();
                 icon.add(AttributeModifier.replace("class", iconCss));
                 item.add(icon);
 
@@ -129,35 +128,77 @@ public class SmartGeneratingPanel extends BasePanel<SmartGeneratingDto> {
      * Override this method to create custom buttons.
      * The default implementation creates a close button that does nothing.
      */
+    //TODO: we dont wanna access task in gui (need to be moved to service layer)
     protected void createButtons(@NotNull RepeatingView buttonsView) {
+
         AjaxIconButton actionButton = new AjaxIconButton(
                 buttonsView.newChildId(),
                 () -> {
                     SmartGeneratingDto dto = getModelObject();
-                    boolean finished = dto.isFinished();
-                    return finished ? "fa fa-check text-success" : "fa fa-stop";
+                    TaskExecutionStateType executionState = dto.getTaskExecutionState();
+
+                    switch (executionState) {
+                        case RUNNING, RUNNABLE, WAITING -> {
+                            return "fa fa-pause";
+                        }
+                        case SUSPENDED -> {
+                            return "fa fa-play";
+                        }
+                        case CLOSED -> {
+                            return "fa fa-check";
+                        }
+                        default -> {
+                            return "fa fa-question text-muted";
+                        }
+                    }
                 },
                 () -> {
                     SmartGeneratingDto dto = getModelObject();
-                    return dto.isFinished()
-                            ? getString("SmartGeneratingPanel.finished")
-                            : getString("SmartGeneratingPanel.stop");
+                    TaskExecutionStateType executionState = dto.getTaskExecutionState();
+                    switch (executionState) {
+                        case RUNNING, RUNNABLE, WAITING -> {
+                            return "suspend";
+                        }
+                        case SUSPENDED -> {
+                            return "resume";
+                        }
+                        case CLOSED -> {
+                            return "Already finished";
+                        }
+                        default -> {
+                            return "unknown";
+                        }
+                    }
                 }) {
 
             @Serial private static final long serialVersionUID = 1L;
 
             @Override
             public void onClick(AjaxRequestTarget target) {
-//                TaskOperationUtils.suspendTasks()
+                TaskType taskObject = SmartGeneratingPanel.this.getModelObject().getTaskObject();
+                if (taskObject == null) {
+                    return;
+                }
+
+                TaskExecutionStateType executionState = taskObject.getExecutionState();
+                switch (executionState) {
+                    case RUNNING, RUNNABLE, WAITING ->
+                            TaskOperationUtils.suspendTasks(Collections.singletonList(taskObject), getPageBase());
+                    case SUSPENDED ->
+                            TaskOperationUtils.resumeTasks(Collections.singletonList(taskObject), getPageBase());
+                    default -> {
+                        return;
+                    }
+                }
+
+                target.add(SmartGeneratingPanel.this);
                 //TODO: implement the action for the button
             }
 
             @Override
             protected void onConfigure() {
                 super.onConfigure();
-                SmartGeneratingDto dto = SmartGeneratingPanel.this.getModelObject();
-                boolean finished = dto.isFinished();
-                setEnabled(!finished);
+
             }
         };
 

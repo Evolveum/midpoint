@@ -8,34 +8,29 @@
 package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.table;
 
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
-import com.evolveum.midpoint.gui.impl.component.tile.Tile;
-import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.basic.ObjectClassWrapper;
-
-import com.evolveum.midpoint.web.component.util.SelectableBean;
-
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
+import com.evolveum.midpoint.gui.impl.page.admin.resource.component.TemplateTile;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectClassSizeEstimationType;
+import com.evolveum.midpoint.xml.ns._public.prism_schema_3.ComplexTypeDefinitionType;
 
 import org.apache.cxf.common.util.StringUtils;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
-public class SmartObjectClassTileModel<S> extends Tile<SelectableBean<ObjectClassWrapper>> {
+import javax.xml.namespace.QName;
+
+public class SmartObjectClassTileModel<T extends PrismContainerValueWrapper<ComplexTypeDefinitionType>> extends TemplateTile<T> {
 
     String icon;
     String name;
     String description;
     String count;
 
-    public SmartObjectClassTileModel(String icon, String title) {
-        super(icon, title);
-    }
+    public SmartObjectClassTileModel(T valueWrapper, ObjectClassSizeEstimationType sizeEstimation) {
+        super(valueWrapper);
 
-    public SmartObjectClassTileModel(
-            @NotNull SelectableBean<ObjectClassWrapper> objectClassWrapper,
-            @Nullable ObjectClassSizeEstimationType sizeEstimation) {
-        setValue(objectClassWrapper);
+        setValue(valueWrapper);
         this.icon = GuiStyleConstants.CLASS_ICON_OUTLIER;
-        this.name = extractName(objectClassWrapper);
+        this.name = extractName(valueWrapper.getRealValue());
         this.description = "Description for this object class is not ready yet, but it will be available soon."; // TODO
 
         if (sizeEstimation == null || sizeEstimation.getValue() == null) {
@@ -45,9 +40,9 @@ public class SmartObjectClassTileModel<S> extends Tile<SelectableBean<ObjectClas
         }
     }
 
-    private String extractName(@NotNull SelectableBean<ObjectClassWrapper> wrapper) {
-        String rawName = wrapper.getValue().getObjectClassNameAsString();
-        return StringUtils.capitalize(rawName);
+    private String extractName(@NotNull ComplexTypeDefinitionType definition) {
+        QName rawName = definition.getName();
+        return StringUtils.capitalize(rawName.getLocalPart());
     }
 
     @Override
