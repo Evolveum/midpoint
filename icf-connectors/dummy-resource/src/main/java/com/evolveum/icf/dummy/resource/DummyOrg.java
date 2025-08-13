@@ -15,6 +15,8 @@ import org.jetbrains.annotations.NotNull;
 public class DummyOrg extends DummyObject {
 
     public static final String OBJECT_CLASS_NAME = "org";
+    public static final String OBJECT_CLASS_DESCRIPTION = "Structural entity which represents a collection of accounts, groups"
+            + "or other organizations";
 
     public DummyOrg() {
         super();

@@ -58,7 +58,6 @@ import com.evolveum.midpoint.prism.xnode.MapXNode;
 import com.evolveum.midpoint.prism.xnode.PrimitiveXNode;
 import com.evolveum.midpoint.provisioning.impl.ProvisioningContext;
 import com.evolveum.midpoint.provisioning.impl.resources.ConnectorManager;
-import com.evolveum.midpoint.provisioning.ucf.api.ShadowItemsToReturn;
 import com.evolveum.midpoint.provisioning.ucf.api.ConnectorInstance;
 import com.evolveum.midpoint.schema.*;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
@@ -736,7 +735,6 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
         assertNotNull("No naming attribute in account", accountDef.getNamingAttribute());
         assertFalse("No nativeObjectClass in account",
                 StringUtils.isEmpty(accountDef.getObjectClassDefinition().getNativeObjectClassName()));
-
         ResourceObjectTypeDefinition accountTypeDef = accountDef.getTypeDefinition();
         assertNotNull("Account type definition is missing", accountTypeDef);
         assertEquals("Unexpected kind in account definition", ShadowKindType.ACCOUNT, accountTypeDef.getKind());
@@ -745,7 +743,8 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
         assertFalse("Account definition is deprecated", accountDef.isDeprecated());
         assertFalse("Account definition in auxiliary",
                 accountDef.getObjectClassDefinition().isAuxiliary());
-
+        assertNotNull("Account object class definition is missing the description parameter value.",
+                accountDef.getNativeObjectClassDefinition().getDescription());
         ShadowSimpleAttributeDefinition<?> uidDef = accountDef.findSimpleAttributeDefinitionRequired(SchemaConstants.ICFS_UID);
         assertEquals(1, uidDef.getMaxOccurs());
         assertEquals(0, uidDef.getMinOccurs());
@@ -773,6 +772,8 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
         assertTrue("No fullname create", fullnameDef.canAdd());
         assertTrue("No fullname update", fullnameDef.canModify());
         assertTrue("No fullname read", fullnameDef.canRead());
+        assertNotNull("Account definitions fullname attribute is missing the description parameter value",
+                fullnameDef.getNativeDescription());
         // MID-3144
         if (fullnameDef.getDisplayOrder() == null || fullnameDef.getDisplayOrder() < 100 || fullnameDef.getDisplayOrder() > 400) {
             AssertJUnit.fail("Wrong fullname displayOrder: " + fullnameDef.getDisplayOrder());

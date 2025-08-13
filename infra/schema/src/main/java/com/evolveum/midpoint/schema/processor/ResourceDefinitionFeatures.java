@@ -127,6 +127,16 @@ class ResourceDefinitionFeatures {
                         NativeComplexTypeDefinitionImpl.class,
                         NativeComplexTypeDefinitionImpl::isResourceObjectClass,
                         XsdSerializers.aBoolean(MidPointConstants.RA_RESOURCE_OBJECT));
+
+        static final DefinitionFeature<String, NativeObjectClassDefinitionBuilder, Object, ?> DF_DESCRIPTION_NAME =
+                DefinitionFeature.of(
+                        String.class,
+                        NativeObjectClassDefinitionBuilder.class,
+                        NativeObjectClassDefinitionBuilder::setDescription,
+                        XsomParsers.string(MidPointConstants.RA_DESCRIPTION),
+                        NativeObjectClassUcfDefinition.class,
+                        NativeObjectClassUcfDefinition::getDescription,
+                        XsdSerializers.string(MidPointConstants.RA_DESCRIPTION));
     }
 
     static class ForItem {
@@ -180,5 +190,15 @@ class ResourceDefinitionFeatures {
                         NativeShadowAttributeDefinition.class,
                         NativeShadowAttributeDefinition::getReferencedObjectClassName,
                         XsdSerializers.qName(MidPointConstants.RA_REFERENCED_OBJECT_CLASS_NAME));
+
+        static final DefinitionFeature<String, NativeShadowAttributeDefinitionBuilder, Object, ?> DF_DESCRIPTION_NAME =
+                DefinitionFeature.of(
+                        String.class,
+                        NativeShadowAttributeDefinitionBuilder.class,
+                        NativeShadowAttributeDefinitionBuilder::setNativeDescription,
+                        XsomParsers.string(MidPointConstants.RA_DESCRIPTION),
+                        NativeShadowAttributeDefinition.class,
+                        NativeShadowAttributeDefinition::getNativeDescription,
+                        XsdSerializers.string(MidPointConstants.RA_DESCRIPTION));
     }
 }
