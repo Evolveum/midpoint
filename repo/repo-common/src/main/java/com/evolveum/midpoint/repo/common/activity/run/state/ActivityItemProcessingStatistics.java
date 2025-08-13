@@ -92,7 +92,7 @@ public class ActivityItemProcessingStatistics extends Initializable {
      * As the easiest solution (for 4.3) is to simply stop collecting this information for such tasks.
      */
     private boolean areRunRecordsSupported() {
-        return activityState.getActivityRun().areRunRecordsSupported();
+        return activityState.areRunRecordsSupported();
     }
 
     public void initialize(ActivityItemProcessingStatisticsType initialValue) {

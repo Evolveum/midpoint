@@ -7,11 +7,13 @@
 
 package com.evolveum.midpoint.smart.impl;
 
-import com.evolveum.midpoint.model.api.ModelService;
-
 import jakarta.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+
+import com.evolveum.midpoint.common.Clock;
+import com.evolveum.midpoint.common.LocalizationService;
+import com.evolveum.midpoint.model.api.ModelService;
 
 /**
  * Commonly-used beans for smart-impl module.
@@ -27,6 +29,8 @@ public class SmartIntegrationBeans {
 
     @Autowired public ModelService modelService;
     @Autowired public SmartIntegrationServiceImpl smartIntegrationService;
+    @Autowired public Clock clock;
+    @Autowired public LocalizationService localizationService;
 
     @PostConstruct
     public void init() {

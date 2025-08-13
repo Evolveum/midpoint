@@ -101,8 +101,6 @@ public abstract class TaskInformation implements DebugDumpable, Serializable {
             // We have not started. We know nothing. (Maybe we should return null?)
             return OperationResultStatusType.UNKNOWN;
         } else if (workers.getWorkersExecuting() > 0) {
-            // Some of the workers are executing. We report either IN_PROGRESS
-            // (if everything goes well), or PARTIAL_ERROR (if there are some errors).
             return OperationResultStatusType.IN_PROGRESS;
         } else {
             return notNull(stateOverview.getResultStatus());
@@ -217,4 +215,21 @@ public abstract class TaskInformation implements DebugDumpable, Serializable {
     public abstract @Nullable ActivityStatePersistenceType getRootActivityStatePersistence();
 
     public abstract TaskResultStatus getTaskUserFriendlyStatus();
+
+    /**
+     * Returns true if the operation is currently executing. This means the activity is not completed yet and there is at least
+     * one task executing the activity.
+     */
+    public boolean isExecuting() {
+        return !isComplete() && workersInformation.getWorkersExecuting() > 0;
+    }
+
+    @Override
+    public String toString() {
+        return "TaskInformation{" +
+                "task=" + task +
+                ", workersInformation=" + workersInformation +
+                ", overallStatus=" + overallStatus +
+                '}';
+    }
 }

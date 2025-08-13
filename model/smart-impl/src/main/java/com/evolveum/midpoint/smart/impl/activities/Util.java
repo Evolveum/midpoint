@@ -8,7 +8,6 @@
 package com.evolveum.midpoint.smart.impl.activities;
 
 import com.evolveum.midpoint.repo.common.activity.run.AbstractActivityRun;
-import com.evolveum.midpoint.repo.common.activity.run.CommonTaskBeans;
 import com.evolveum.midpoint.repo.common.activity.run.state.ActivityState;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
@@ -23,7 +22,6 @@ class Util {
                 run.getActivity().getPath().allExceptLast(),
                 run.getRunningTask(),
                 ObjectTypesSuggestionWorkStateType.COMPLEX_TYPE,
-                CommonTaskBeans.get(),
                 result);
     }
 }

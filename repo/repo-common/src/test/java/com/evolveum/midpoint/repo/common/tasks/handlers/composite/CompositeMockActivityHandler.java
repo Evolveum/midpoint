@@ -104,7 +104,6 @@ public class CompositeMockActivityHandler
                         activity.getPath().allExceptLast(),
                         runningTask,
                         AbstractActivityWorkStateType.COMPLEX_TYPE,
-                        commonTaskBeans,
                         result);
         getMockHelper().setLastMessage(
                 parentActivityState,

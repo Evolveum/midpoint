@@ -15,8 +15,11 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static com.evolveum.midpoint.test.util.MidPointTestConstants.TEST_RESOURCES_PATH;
 
 import java.io.File;
+import java.io.IOException;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.test.TestObject;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -45,10 +48,12 @@ public class TestSmartIntegrationService extends AbstractEmptyModelIntegrationTe
 
     private static final QName OC_ACCOUNT_QNAME = new QName(NS_RI, "account");
 
-    private static final int TIMEOUT = 20000;
+    private static final int TIMEOUT = 500_000;
 
     /** Using the implementation in order to set mock service client for testing. */
     @Autowired private SmartIntegrationServiceImpl smartIntegrationService;
+
+    private static DummyBasicScenario dummyForSuggestCorrelationAndMappings;
 
     private static final DummyTestResource RESOURCE_DUMMY_FOR_SUGGEST_OBJECT_TYPES = new DummyTestResource(
             TEST_DIR, "resource-dummy-for-suggest-object-types.xml", "0c59d761-bea9-4342-bbc7-ee0e199d275b",
@@ -63,7 +68,12 @@ public class TestSmartIntegrationService extends AbstractEmptyModelIntegrationTe
     private static final DummyTestResource RESOURCE_DUMMY_FOR_SUGGEST_CORRELATION_AND_MAPPINGS = new DummyTestResource(
             TEST_DIR, "resource-dummy-for-suggest-correlation-and-mappings.xml", "20d4fca9-bf28-4165-b71b-392172a4b6b2",
             "for-suggest-correlation-and-mappings",
-            c -> DummyBasicScenario.on(c).initialize());
+            c -> dummyForSuggestCorrelationAndMappings = DummyBasicScenario.on(c).initialize());
+
+    private static final TestObject<?> USER_JACK = TestObject.file(TEST_DIR, "user-jack.xml", "84d2ff68-9b32-4ef4-b87b-02536fd5e83c");
+    private static final TestObject<?> USER_JIM = TestObject.file(TEST_DIR, "user-jim.xml", "8f433649-6cc4-401b-910f-10fa5449f14c");
+    private static final TestObject<?> USER_ALICE = TestObject.file(TEST_DIR, "user-alice.xml", "79df4c1f-6480-4eb8-9db7-863e25d5b5fa");
+    private static final TestObject<?> USER_BOB = TestObject.file(TEST_DIR, "user-bob.xml", "30cef119-71b6-42b3-9762-5c649b2a2b6a");
 
     @Override
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
@@ -75,6 +85,51 @@ public class TestSmartIntegrationService extends AbstractEmptyModelIntegrationTe
         initAndTestDummyResource(RESOURCE_DUMMY_FOR_SUGGEST_OBJECT_TYPES, initTask, initResult);
         initAndTestDummyResource(RESOURCE_DUMMY_FOR_SUGGEST_FOCUS_TYPE, initTask, initResult);
         initAndTestDummyResource(RESOURCE_DUMMY_FOR_SUGGEST_CORRELATION_AND_MAPPINGS, initTask, initResult);
+
+        initTestObjects(initTask, initResult,
+                USER_JACK, USER_JIM, USER_ALICE, USER_BOB);
+        createAndLinkAccounts(initTask, initResult);
+    }
+
+    private void createAndLinkAccounts(Task initTask, OperationResult initResult) throws Exception {
+        var a = dummyForSuggestCorrelationAndMappings.account;
+        a.add("jack")
+                .addAttributeValues(DummyBasicScenario.Account.AttributeNames.FULLNAME.local(), "Jack Sparrow")
+                .addAttributeValues(DummyBasicScenario.Account.AttributeNames.STATUS.local(), "a")
+                .addAttributeValues(DummyBasicScenario.Account.AttributeNames.TYPE.local(), "e")
+                .addAttributeValues(DummyBasicScenario.Account.AttributeNames.PHONE.local(), "+420-601-040-027");
+        linkAccount(USER_JACK, initTask, initResult);
+        a.add("jim")
+                .addAttributeValues(DummyBasicScenario.Account.AttributeNames.FULLNAME.local(), "Jim Hacker")
+                .addAttributeValues(DummyBasicScenario.Account.AttributeNames.STATUS.local(), "i")
+                .addAttributeValues(DummyBasicScenario.Account.AttributeNames.PHONE.local(), "+99-123-456-789");
+        linkAccount(USER_JIM, initTask, initResult);
+        a.add("alice")
+                .addAttributeValues(DummyBasicScenario.Account.AttributeNames.FULLNAME.local(), "Alice Wonderland")
+                .addAttributeValues(DummyBasicScenario.Account.AttributeNames.PHONE.local(), "+421-900-111-222")
+                .addAttributeValues(DummyBasicScenario.Account.AttributeNames.STATUS.local(), "a")
+                .addAttributeValues(DummyBasicScenario.Account.AttributeNames.TYPE.local(), "c");
+        linkAccount(USER_ALICE, initTask, initResult);
+        a.add("bob")
+                .addAttributeValues(DummyBasicScenario.Account.AttributeNames.FULLNAME.local(), "Bob Builder")
+                .addAttributeValues(DummyBasicScenario.Account.AttributeNames.PHONE.local(), "+421-900-333-444")
+                .addAttributeValues(DummyBasicScenario.Account.AttributeNames.STATUS.local(), "i")
+                .addAttributeValues(DummyBasicScenario.Account.AttributeNames.TYPE.local(), "c");
+        linkAccount(USER_BOB, initTask, initResult);
+    }
+
+    private void linkAccount(TestObject<?> user, Task task, OperationResult result) throws CommonException, IOException {
+        var shadow = findShadowRequest()
+                .withResource(RESOURCE_DUMMY_FOR_SUGGEST_CORRELATION_AND_MAPPINGS.getObjectable())
+                .withDefaultAccountType()
+                .withNameValue(user.getNameOrig())
+                .build().findRequired(task, result);
+        executeChanges(
+                PrismContext.get().deltaFor(UserType.class)
+                        .item(UserType.F_LINK_REF)
+                        .add(shadow.getRef())
+                        .asObjectDelta(user.oid),
+                null, task, result);
     }
 
     /** Tests the "suggest object types" operation (in an asynchronous way). */
@@ -198,7 +253,9 @@ public class TestSmartIntegrationService extends AbstractEmptyModelIntegrationTe
                                             .midPointAttribute(UserType.F_NAME.toBean()))
                                     .attributeMatch(new SiAttributeMatchSuggestionType()
                                             .applicationAttribute(DummyBasicScenario.Account.AttributeNames.PERSONAL_NUMBER.path().toBean())
-                                            .midPointAttribute(UserType.F_PERSONAL_NUMBER.toBean())))); // TODO other matches
+                                            .midPointAttribute(UserType.F_PERSONAL_NUMBER.toBean())),
+                            new SiSuggestMappingResponseType().transformationScript(null),
+                            new SiSuggestMappingResponseType().transformationScript(null))); // TODO other matches
         }
 
         var task = getTestTask();

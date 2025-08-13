@@ -32,7 +32,6 @@ public abstract class TestThresholdsStoryLiveSync extends TestThresholdsStory {
                         ActivityPath.empty(),
                         task,
                         AbstractActivityWorkStateType.COMPLEX_TYPE,
-                        commonTaskBeans,
                         result));
     }
 

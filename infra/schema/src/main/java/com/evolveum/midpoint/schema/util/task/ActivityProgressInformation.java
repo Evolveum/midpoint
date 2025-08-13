@@ -9,7 +9,11 @@ package com.evolveum.midpoint.schema.util.task;
 
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
+import java.util.stream.Collectors;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ProcessedItemType;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -19,6 +23,8 @@ import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityRealizationStateType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivitySimplifiedRealizationStateType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
+
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Summarized representation of a progress of an activity and its sub-activities.
@@ -31,21 +37,28 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
  * TODO optimize task reading: avoid doing that for completed subtasks
  *
  * TODO i8n
+ *
+ * NOTE: User-oriented information on the activity can be obtained by resolving the following keys (for example):
+ *
+ * - Activity.name.shadows-collection="Shadows collection"
+ * - Activity.explanation.shadows-collection="Collecting correlated shadows"
+ *
+ * The first one is used as the traditional activity name (with wording like "User recomputation", "Resource reconciliation", ...)
+ * while the second one is used to display the activity in the task progress panel - what is the task doing at the moment.
  */
 public class ActivityProgressInformation implements DebugDumpable, Serializable {
 
-    /**
-     * Activity identifier.
-     */
-    private final String activityIdentifier;
+    /** Activity identifier. */
+    @Nullable private final String activityIdentifier;
 
-    /** Activity path. */
+    /** Activity path. Provided here for quick orientation. Consider removing it. */
     @NotNull private final ActivityPath activityPath;
 
-    /**
-     * Is this activity complete?
-     */
-    private final RealizationState realizationState;
+    /** Display order of the activity among its siblings. */
+    @Nullable private final Integer displayOrder;
+
+    /** Mainly to know if the activity is complete. Null means "not started yet". */
+    @Nullable private final RealizationState realizationState;
 
     /**
      * Progress in the language of buckets.
@@ -62,20 +75,32 @@ public class ActivityProgressInformation implements DebugDumpable, Serializable 
      */
     private final ItemsProgressInformation itemsProgress;
 
+    /** Item or items being currently processed, if any. Null means "we don't know". */
+    @Nullable private final Collection<ProcessedItemType> itemsBeingProcessed;
+
     @NotNull final List<ActivityProgressInformation> children = new ArrayList<>();
 
-    ActivityProgressInformation(String activityIdentifier, @NotNull ActivityPath activityPath,
-            RealizationState realizationState, BucketsProgressInformation bucketsProgress,
-            ItemsProgressInformation itemsProgress) {
+    ActivityProgressInformation(
+            @Nullable String activityIdentifier,
+            @NotNull ActivityPath activityPath,
+            @Nullable Integer displayOrder,
+            @Nullable RealizationState realizationState,
+            BucketsProgressInformation bucketsProgress,
+            ItemsProgressInformation itemsProgress,
+            @Nullable Collection<ProcessedItemType> itemsBeingProcessed) {
         this.activityIdentifier = activityIdentifier;
         this.activityPath = activityPath;
+        this.displayOrder = displayOrder;
         this.realizationState = realizationState;
         this.bucketsProgress = bucketsProgress;
         this.itemsProgress = itemsProgress;
+        this.itemsBeingProcessed = itemsBeingProcessed;
     }
 
     static @NotNull ActivityProgressInformation unknown(String activityIdentifier, ActivityPath activityPath) {
-        return new ActivityProgressInformation(activityIdentifier, activityPath, RealizationState.UNKNOWN, null, null);
+        return new ActivityProgressInformation(
+                activityIdentifier, activityPath, null, RealizationState.UNKNOWN,
+                null, null, null);
     }
 
     /** Identifier is estimated from the path. Use only if it needs not be precise. */
@@ -102,7 +127,7 @@ public class ActivityProgressInformation implements DebugDumpable, Serializable 
         return ActivityProgressInformationBuilder.fromTask(task, ActivityPath.empty(), resolver, source);
     }
 
-    public String getActivityIdentifier() {
+    public @Nullable String getActivityIdentifier() {
         return activityIdentifier;
     }
 
@@ -110,7 +135,7 @@ public class ActivityProgressInformation implements DebugDumpable, Serializable 
         return activityPath;
     }
 
-    public RealizationState getRealizationState() {
+    public @Nullable RealizationState getRealizationState() {
         return realizationState;
     }
 
@@ -131,11 +156,23 @@ public class ActivityProgressInformation implements DebugDumpable, Serializable 
         return getClass().getSimpleName() + "{" +
                 "identifier=" + activityIdentifier +
                 ", path=" + activityPath +
+                ", displayOrder=" + displayOrder +
                 ", state=" + realizationState +
                 ", bucketsProgress=" + bucketsProgress +
                 ", totalItemsProgress=" + itemsProgress +
+                ", itemsBeingProcessed=" + getItemsBeingProcessedAsString() +
                 ", children: " + children.size() +
                 '}';
+    }
+
+    private String getItemsBeingProcessedAsString() {
+        if (itemsBeingProcessed == null) {
+            return null;
+        } else {
+            return itemsBeingProcessed.stream()
+                    .map(i -> i.getName())
+                    .collect(Collectors.joining(", ", "[", "]"));
+        }
     }
 
     @Override
@@ -144,6 +181,7 @@ public class ActivityProgressInformation implements DebugDumpable, Serializable 
                 activityIdentifier, toHumanReadableString(false));
         StringBuilder sb = DebugUtil.createTitleStringBuilder(title, indent);
         sb.append("\n");
+        DebugUtil.debugDumpWithLabelLn(sb, "Display order", displayOrder, indent + 1);
         DebugUtil.debugDumpWithLabelLn(sb, "Human readable string (long)", toHumanReadableString(true), indent + 1);
         DebugUtil.debugDumpWithLabel(sb, "Realization state", realizationState, indent + 1);
         if (bucketsProgress != null) {
@@ -153,6 +191,13 @@ public class ActivityProgressInformation implements DebugDumpable, Serializable 
         if (itemsProgress != null) {
             sb.append("\n");
             DebugUtil.debugDumpWithLabel(sb, "Total items progress", itemsProgress, indent + 1);
+        }
+        if (itemsBeingProcessed != null) {
+            sb.append("\n");
+            DebugUtil.debugDumpWithLabel(sb, "Item(s) being processed", itemsBeingProcessed, indent + 1);
+        } else {
+            sb.append("\n");
+            DebugUtil.debugDumpWithLabel(sb, "Item(s) being processed", "unknown", indent + 1);
         }
         if (!children.isEmpty()) {
             sb.append("\n");
@@ -251,7 +296,7 @@ public class ActivityProgressInformation implements DebugDumpable, Serializable 
                 : String.format("in %d/%d", i + 1, children.size());
     }
 
-    private boolean isInProgress() {
+    public boolean isInProgress() {
         return realizationState == RealizationState.IN_PROGRESS;
     }
 
@@ -274,6 +319,10 @@ public class ActivityProgressInformation implements DebugDumpable, Serializable 
         if (itemsProgress != null) {
             itemsProgress.checkConsistence();
         }
+    }
+
+    public @Nullable Integer getDisplayOrder() {
+        return displayOrder;
     }
 
     public ActivityProgressInformation getChild(String identifier) {
@@ -318,6 +367,7 @@ public class ActivityProgressInformation implements DebugDumpable, Serializable 
 
         /**
          * The state and progress of the activity is unknown. For example, the task it was delegated to is no longer available.
+         * Or, the activity is not started yet.
          */
         UNKNOWN;
 
@@ -325,14 +375,10 @@ public class ActivityProgressInformation implements DebugDumpable, Serializable 
             if (state == null) {
                 return null;
             }
-            switch (state) {
-                case IN_PROGRESS:
-                    return IN_PROGRESS;
-                case COMPLETE:
-                    return COMPLETE;
-                default:
-                    throw new AssertionError(state);
-            }
+            return switch (state) {
+                case IN_PROGRESS -> IN_PROGRESS;
+                case COMPLETE -> COMPLETE;
+            };
         }
 
         static RealizationState fromFullState(ActivityRealizationStateType state) {

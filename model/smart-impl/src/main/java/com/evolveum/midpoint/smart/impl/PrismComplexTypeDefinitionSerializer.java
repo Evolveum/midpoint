@@ -13,7 +13,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 
 /** Serializes {@link PrismObjectDefinition} into {@link SiObjectSchemaType}. */
-class PrismComplexTypeDefinitionSerializer {
+class PrismComplexTypeDefinitionSerializer extends SchemaSerializer {
 
     private final ComplexTypeDefinition complexTypeDefinition;
     private final PathSet ignoredPaths;
@@ -32,6 +32,7 @@ class PrismComplexTypeDefinitionSerializer {
         var serializer = new PrismComplexTypeDefinitionSerializer(
                 objectDef.getComplexTypeDefinition(),
                 PathSet.of(
+                        FocusType.F_EXTENSION, // FIXME temporary hack, to avoid serializing custom namespaces (this breaks the simplistic JSON format used)
                         FocusType.F_ASSIGNMENT,
                         FocusType.F_IDENTITIES,
                         FocusType.F_LENS_CONTEXT,
@@ -78,7 +79,7 @@ class PrismComplexTypeDefinitionSerializer {
             schema.getAttribute().add(
                     new SiAttributeDefinitionType()
                             .name(new ItemPathType(itemPath))
-                            .type(itemDef.getTypeName())
+                            .type(fixTypeName(itemDef.getTypeName()))
                             .description(itemDef.getDocumentation()));
             if (itemDef instanceof PrismContainerDefinition<?> pcd) {
                 ComplexTypeDefinition ctd = pcd.getComplexTypeDefinition();

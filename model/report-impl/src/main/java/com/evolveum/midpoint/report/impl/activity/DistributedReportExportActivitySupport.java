@@ -16,7 +16,6 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.ReportExportW
 import com.evolveum.midpoint.repo.common.activity.EmbeddedActivity;
 import com.evolveum.midpoint.repo.common.activity.run.AbstractActivityRun;
 
-import com.evolveum.midpoint.repo.common.activity.run.CommonTaskBeans;
 import com.evolveum.midpoint.schema.util.task.ActivityPath;
 import com.evolveum.midpoint.task.api.RunningTask;
 
@@ -96,7 +95,6 @@ class DistributedReportExportActivitySupport extends ExportActivitySupport {
                 wholeActivityPath,
                 runningTask,
                 ReportExportWorkStateType.COMPLEX_TYPE,
-                CommonTaskBeans.get(),
                 result);
     }
 }

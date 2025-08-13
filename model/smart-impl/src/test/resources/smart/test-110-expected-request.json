@@ -5,7 +5,7 @@
       "name" : "ri:account",
       "attribute" : [ {
         "name" : "c:activation/c:administrativeStatus",
-        "type" : "c:ActivationStatusType",
+        "type" : "xsd:string",
         "minOccurs" : 0,
         "maxOccurs" : 1
       }, {
@@ -20,6 +20,11 @@
         "maxOccurs" : 1
       }, {
         "name" : "c:attributes/ri:description",
+        "type" : "xsd:string",
+        "minOccurs" : 0,
+        "maxOccurs" : 1
+      }, {
+        "name" : "c:attributes/ri:distinguishedName",
         "type" : "xsd:string",
         "minOccurs" : 0,
         "maxOccurs" : 1
@@ -70,7 +75,7 @@
         "maxOccurs" : 1
       }, {
         "name" : "c:credentials/c:password/c:value",
-        "type" : "t:ProtectedStringType",
+        "type" : "xsd:string",
         "minOccurs" : 0,
         "maxOccurs" : 1
       } ]
