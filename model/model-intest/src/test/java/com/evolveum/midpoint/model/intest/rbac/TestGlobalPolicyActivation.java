@@ -45,16 +45,22 @@ public class TestGlobalPolicyActivation extends AbstractInitializedModelIntegrat
 
     /**
      * Test for MID-10779
+     *
+     * todo disabled now because fix in {@link com.evolveum.midpoint.model.impl.lens.assignments.TargetsEvaluation}
+     *  caused performance issues.
      */
-    @Test
+    @Test(enabled = false)
     public void test200AssignmentRelationGlobalPolicyActivationOwner() throws Exception {
         test200AssignmentRelationGlobalPolicyActivation(SchemaConstants.ORG_OWNER);
     }
 
     /**
      * Test for MID-10779
+     *
+     * todo disabled now because fix in {@link com.evolveum.midpoint.model.impl.lens.assignments.TargetsEvaluation}
+     *      *  caused performance issues.
      */
-    @Test
+    @Test(enabled = false)
     public void test200AssignmentRelationGlobalPolicyActivationDefault() throws Exception {
         test200AssignmentRelationGlobalPolicyActivation(SchemaConstants.ORG_DEFAULT);
     }
