@@ -6,8 +6,6 @@
  */
 package com.evolveum.midpoint.gui.impl.factory.panel.qname;
 
-import java.util.Collections;
-import java.util.Comparator;
 import java.util.List;
 
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismValueWrapper;
@@ -22,12 +20,8 @@ import jakarta.annotation.PostConstruct;
 
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
-import org.apache.commons.collections4.ListUtils;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.springframework.stereotype.Component;
 
