@@ -7,6 +7,7 @@
 
 package com.evolveum.midpoint.schema.util.task;
 
+import com.evolveum.midpoint.schema.statistics.ActivityStatisticsUtil;
 import com.evolveum.midpoint.schema.util.task.ActivityProgressInformation.RealizationState;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -117,18 +118,12 @@ public class ActivityProgressInformationBuilder {
     }
 
     private ChildrenContinuation buildCurrentWithContinuation() {
-        switch (informationSource) {
-            case TREE_OVERVIEW_ONLY:
-                return continuationFromOverview();
-            case TREE_OVERVIEW_PREFERRED:
-                return hasProgressInOverview() ? continuationFromOverview() : continuationFromFullState();
-            case FULL_STATE_PREFERRED:
-                return hasProgressInFullState() ? continuationFromFullState() : continuationFromOverview();
-            case FULL_STATE_ONLY:
-                return continuationFromFullState();
-            default:
-                throw new AssertionError(informationSource);
-        }
+        return switch (informationSource) {
+            case TREE_OVERVIEW_ONLY -> continuationFromOverview();
+            case TREE_OVERVIEW_PREFERRED -> hasProgressInOverview() ? continuationFromOverview() : continuationFromFullState();
+            case FULL_STATE_PREFERRED -> hasProgressInFullState() ? continuationFromFullState() : continuationFromOverview();
+            case FULL_STATE_ONLY -> continuationFromFullState();
+        };
     }
 
     private boolean hasProgressInOverview() {
@@ -209,9 +204,7 @@ public class ActivityProgressInformationBuilder {
     }
 
     private static ObjectReferenceType getDelegatedTaskRef(ActivityStateType state) {
-        AbstractActivityWorkStateType workState = state.getWorkState();
-        return workState instanceof DelegationWorkStateType ?
-                ((DelegationWorkStateType) workState).getTaskRef() : null;
+        return state.getWorkState() instanceof DelegationWorkStateType delegationState ? delegationState.getTaskRef() : null;
     }
 
     @NotNull
@@ -221,9 +214,11 @@ public class ActivityProgressInformationBuilder {
         return new ActivityProgressInformation(
                 fullActivityState.getIdentifier(),
                 activityPath,
+                fullActivityState.getDisplayOrder(),
                 RealizationState.fromFullState(fullActivityState.getRealizationState()),
                 BucketsProgressInformation.fromFullState(fullActivityState),
-                ItemsProgressInformation.fromFullState(fullActivityState, activityPath, task, resolver));
+                ItemsProgressInformation.fromFullState(fullActivityState, activityPath, task, resolver),
+                ActivityStatisticsUtil.getItemsBeingProcessed(fullActivityState));
     }
 
     private @NotNull ChildrenContinuation continuationFromOverview() {
@@ -234,9 +229,11 @@ public class ActivityProgressInformationBuilder {
             current = new ActivityProgressInformation(
                     activityStateOverview.getIdentifier(),
                     activityPath,
+                    null,
                     RealizationState.fromOverview(activityStateOverview.getRealizationState()),
                     BucketsProgressInformation.fromOverview(activityStateOverview),
-                    ItemsProgressInformation.fromOverview(activityStateOverview));
+                    ItemsProgressInformation.fromOverview(activityStateOverview),
+                    null);
         }
         return continuation(current);
     }
@@ -254,22 +251,12 @@ public class ActivityProgressInformationBuilder {
     }
 
     private List<Child> getChildren() {
-        switch (informationSource) {
-            case TREE_OVERVIEW_ONLY:
-                return childrenFromOverview();
-            case TREE_OVERVIEW_PREFERRED:
-                return merge(
-                        childrenFromOverview(),
-                        childrenFromFullState());
-            case FULL_STATE_PREFERRED:
-                return merge(
-                        childrenFromFullState(),
-                        childrenFromOverview());
-            case FULL_STATE_ONLY:
-                return childrenFromFullState();
-            default:
-                throw new AssertionError(informationSource);
-        }
+        return switch (informationSource) {
+            case TREE_OVERVIEW_ONLY -> childrenFromOverview();
+            case TREE_OVERVIEW_PREFERRED -> merge(childrenFromOverview(), childrenFromFullState());
+            case FULL_STATE_PREFERRED -> merge(childrenFromFullState(), childrenFromOverview());
+            case FULL_STATE_ONLY -> childrenFromFullState();
+        };
     }
 
     private List<Child> childrenFromFullState() {

@@ -23,7 +23,7 @@ public class ActivitySynchronizationStatistics extends Initializable {
     @NotNull private final ActivitySynchronizationStatisticsType value;
 
     public ActivitySynchronizationStatistics() {
-        value = new ActivitySynchronizationStatisticsType(PrismContext.get());
+        value = new ActivitySynchronizationStatisticsType();
     }
 
     public synchronized void initialize(ActivitySynchronizationStatisticsType initialValue) {

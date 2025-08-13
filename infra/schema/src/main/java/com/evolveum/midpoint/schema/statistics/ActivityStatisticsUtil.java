@@ -20,6 +20,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -224,5 +225,11 @@ public class ActivityStatisticsUtil {
                     .append("\n");
         }
         return sb.toString();
+    }
+
+    public static @NotNull Collection<ProcessedItemType> getItemsBeingProcessed(@NotNull ActivityStateType activityState) {
+        var statistics = activityState.getStatistics();
+        var itemProcessing = statistics != null ? statistics.getItemProcessing() : null;
+        return itemProcessing != null ? itemProcessing.getCurrent() : List.of();
     }
 }

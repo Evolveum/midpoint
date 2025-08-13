@@ -51,10 +51,10 @@ public class ActivityWorkersInformation implements DebugDumpable, Serializable {
     @Nullable private XMLGregorianCalendar completelyStalledSince;
 
     /** Error/warning messages from task execution in localizable format */
-    @NotNull private List<LocalizableMessage> userFriendlyHealthMessages = new ArrayList<>();
+    @NotNull private final List<LocalizableMessage> userFriendlyHealthMessages = new ArrayList<>();
 
     /** Error/warning messages from task execution, technical */
-    @NotNull private List<String> healthMessages = new ArrayList<>();
+    @NotNull private final List<String> healthMessages = new ArrayList<>();
 
     static @NotNull ActivityWorkersInformation fromActivityStateOverview(
             @NotNull ActivityStateOverviewType stateOverview) {
@@ -199,8 +199,10 @@ public class ActivityWorkersInformation implements DebugDumpable, Serializable {
     @Override
     public String debugDump(int indent) {
         StringBuilder sb = DebugUtil.createTitleStringBuilderLn(getClass(), indent);
-        DebugUtil.debugDumpWithLabel(sb, "workers map", workersCountersPerNode, indent + 1);
-        DebugUtil.debugDumpWithLabel(sb, "stalled since", String.valueOf(completelyStalledSince), indent + 1);
+        DebugUtil.debugDumpWithLabelLn(sb, "workers map", workersCountersPerNode, indent + 1);
+        DebugUtil.debugDumpWithLabelLn(sb, "stalled since", String.valueOf(completelyStalledSince), indent + 1);
+        DebugUtil.debugDumpWithLabelLn(sb, "user-friendly health messages", userFriendlyHealthMessages, indent + 1);
+        DebugUtil.debugDumpWithLabel(sb, "health messages", healthMessages, indent + 1);
         return sb.toString();
     }
 
@@ -209,6 +211,13 @@ public class ActivityWorkersInformation implements DebugDumpable, Serializable {
                 .filter(e -> e.getValue().workersExecuting > 0)
                 .map(e -> e.getKey() + " (" + e.getValue().workersExecuting + ")")
                 .collect(Collectors.joining(", "));
+    }
+
+    @Override
+    public String toString() {
+        return "ActivityWorkersInformation{" +
+                "workersCountersPerNode=" + workersCountersPerNode +
+                '}';
     }
 
     static class WorkerCounters implements Serializable {

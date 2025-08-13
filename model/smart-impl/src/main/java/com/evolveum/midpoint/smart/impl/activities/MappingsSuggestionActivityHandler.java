@@ -6,6 +6,7 @@
  */
 package com.evolveum.midpoint.smart.impl.activities;
 
+import com.evolveum.midpoint.repo.common.activity.ActivityInterruptedException;
 import com.evolveum.midpoint.repo.common.activity.definition.WorkDefinitionFactory;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 
@@ -95,15 +96,16 @@ public class MappingsSuggestionActivityHandler
         }
 
         @Override
-        protected @NotNull ActivityRunResult runLocally(OperationResult result) throws CommonException {
+        protected @NotNull ActivityRunResult runLocally(OperationResult result)
+                throws CommonException, ActivityInterruptedException {
             var task = getRunningTask();
             var resourceOid = getWorkDefinition().getResourceOid();
             var typeIdentification = getWorkDefinition().getTypeIdentification();
+            var state = getActivityState();
 
             var suggestedMappings = SmartIntegrationBeans.get().smartIntegrationService.suggestMappings(
-                    resourceOid, typeIdentification, null, null, task, result);
+                    resourceOid, typeIdentification, null, null, state, task, result);
 
-            var state = getActivityState();
             state.setWorkStateItemRealValues(MappingsSuggestionWorkStateType.F_RESULT, suggestedMappings);
             state.flushPendingTaskModifications(result);
             LOGGER.debug("Suggestions written to the work state:\n{}", suggestedMappings.debugDump(1));

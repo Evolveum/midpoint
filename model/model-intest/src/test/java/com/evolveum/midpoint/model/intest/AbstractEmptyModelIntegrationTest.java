@@ -21,7 +21,6 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.provisioning.ucf.impl.builtin.ManualConnectorInstance;
 import com.evolveum.midpoint.schema.internals.InternalsConfig;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.smart.api.info.StatusInfo;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.Checker;
@@ -151,7 +150,8 @@ public abstract class AbstractEmptyModelIntegrationTest extends AbstractModelInt
             @Override
             public boolean check() throws CommonException {
                 lastStatusInformation = statusInformationSupplier.get();
-                return lastStatusInformation.status() != OperationResultStatus.IN_PROGRESS;
+                displayDumpable("status information", lastStatusInformation);
+                return lastStatusInformation.wasStarted() && !lastStatusInformation.isExecuting();
             }
 
             @Override
@@ -161,9 +161,9 @@ public abstract class AbstractEmptyModelIntegrationTest extends AbstractModelInt
         };
 
         IntegrationTestTools.waitFor("Waiting for the operation to finish", checker, timeout, 500);
-        if (checker.lastStatusInformation.status() != OperationResultStatus.SUCCESS) {
+        if (checker.lastStatusInformation.getStatus() != OperationResultStatusType.SUCCESS) {
             fail("Operation did not finish successfully. Last status: " + checker.lastStatusInformation);
         }
-        return checker.lastStatusInformation.result();
+        return checker.lastStatusInformation.getResult();
     }
 }

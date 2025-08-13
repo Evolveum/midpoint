@@ -8,7 +8,6 @@
 package com.evolveum.midpoint.smart.impl.activities;
 
 import java.util.*;
-import java.util.function.Function;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
@@ -62,7 +61,7 @@ public class StatisticsComputer {
      * Set of common affixes to match in attribute values.
      */
     private static final Set<String> AFFIXES = new HashSet<>(Arrays.asList(
-            "prod", "priv", "adm", "usr", "user", "eng", "ops", "svc", "int", "ext", "ro", "rw"
+            "prod", "priv", "adm", "admin", "usr", "user", "ops", "svc", "int", "ext"
     ));
 
     /**
@@ -100,7 +99,6 @@ public class StatisticsComputer {
             createAttributeStatisticsIfNeeded(attrDef.getItemName());
             shadowStorage.put(attrDef.getItemName(), new LinkedList<>());
         }
-        initAffixPatterns();
     }
 
     /**
@@ -145,6 +143,8 @@ public class StatisticsComputer {
         computeValueCountsOfValuePairs();
         // Affixes statistics
         setAffixesStatistics();
+        // Dn parsing statistics
+        setOUAttributeStatistics();
     }
 
     /**
@@ -215,13 +215,14 @@ public class StatisticsComputer {
      * @return a map where keys are string representations of values and values are their counts
      */
     private Map<String, Integer> getValueCounts(QName attrKey) {
-        return shadowStorage.get(attrKey).stream()
-                .filter(list -> list.size() == 1)
-                .map(list -> String.valueOf(list.get(0)))
-                .collect(Collectors.groupingBy(
-                        Function.identity(),
-                        Collectors.summingInt(e -> 1)
-                ));
+        Map<String, Integer> result = new HashMap<>();
+        for (List<?> list : shadowStorage.get(attrKey)) {
+            if (list.size() == 1) {
+                String value = String.valueOf(list.get(0));
+                result.merge(value, 1, Integer::sum);
+            }
+        }
+        return result;
     }
 
     /**
@@ -232,23 +233,33 @@ public class StatisticsComputer {
      * @return a LinkedHashMap of the top N most frequent values and their counts, or an empty map if all counts are 1
      */
     private Map<String, Integer> getTopNValueCounts(Map<String, Integer> valueCounts) {
-        int maxCount = valueCounts.values().stream()
-                .max(Integer::compareTo)
-                .orElse(0);
-
-        if (maxCount > 1) {
-            return valueCounts.entrySet().stream()
-                    .sorted(Map.Entry.comparingByValue(Comparator.reverseOrder()))
-                    .limit(TOP_N_LIMIT)
-                    .collect(Collectors.toMap(
-                            Map.Entry::getKey,
-                            Map.Entry::getValue,
-                            (a, b) -> a,
-                            LinkedHashMap::new)
-                    );
-        } else {
-            return new LinkedHashMap<>();
+        int maxCount = 0;
+        for (int count : valueCounts.values()) {
+            if (count > maxCount) maxCount = count;
         }
+        if (maxCount <= 1) return new LinkedHashMap<>();
+
+        PriorityQueue<Map.Entry<String, Integer>> queue =
+                new PriorityQueue<>(Comparator.comparingInt(Map.Entry::getValue));
+
+        for (Map.Entry<String, Integer> entry : valueCounts.entrySet()) {
+            if (queue.size() < TOP_N_LIMIT) {
+                queue.offer(entry);
+            } else if (entry.getValue() > queue.peek().getValue()) {
+                queue.poll();
+                queue.offer(entry);
+            }
+        }
+
+        // Collect to a LinkedHashMap in descending order
+        List<Map.Entry<String, Integer>> topList = new ArrayList<>(queue);
+        topList.sort((e1, e2) -> Integer.compare(e2.getValue(), e1.getValue()));
+
+        Map<String, Integer> result = new LinkedHashMap<>();
+        for (Map.Entry<String, Integer> entry : topList) {
+            result.put(entry.getKey(), entry.getValue());
+        }
+        return result;
     }
 
     /**
@@ -343,17 +354,22 @@ public class StatisticsComputer {
      * @return map from affix to the number of occurrences in the attribute's values
      */
     private Map<String, Integer> getAffixesValueCounts(QName attrKey) {
-        return shadowStorage.get(attrKey).stream()
-                .filter(inner -> inner.size() == 1)
-                .map(inner -> inner.get(0).toString())
-                .flatMap(str -> AFFIX_PATTERNS.entrySet().stream()
-                        .filter(e -> e.getValue().matcher(str).find())
-                        .map(Map.Entry::getKey)
-                )
-                .collect(Collectors.groupingBy(
-                        Function.identity(),
-                        Collectors.summingInt(e -> 1)
-                ));
+        Map<String, Integer> result = new HashMap<>();
+        List<Map.Entry<String, Pattern>> patterns = new ArrayList<>(AFFIX_PATTERNS.entrySet());
+        LinkedList<List<?>> elements = shadowStorage.get(attrKey);
+        if (elements == null) {
+            return result;
+        }
+        for (List<?> inner : elements) {
+            if (inner.size() != 1) continue;
+            String str = inner.get(0).toString();
+            for (Map.Entry<String, Pattern> e : patterns) {
+                if (e.getValue().matcher(str).find()) {
+                    result.merge(e.getKey(), 1, Integer::sum);
+                }
+            }
+        }
+        return result;
     }
 
     /**
@@ -363,11 +379,87 @@ public class StatisticsComputer {
     private void setAffixesStatistics() {
         for (ShadowAttributeStatisticsType attribute : statistics.getAttribute()) {
             QName attrKey = fromAttributeRef(attribute.getRef());
-            Map<String, Integer> affixCounts = getAffixesValueCounts(attrKey);
+            Map<String, Integer> affixCounts = getAffixesValueCounts(attrKey).entrySet().stream()
+                    .sorted(Map.Entry.<String, Integer>comparingByValue().reversed())
+                    .collect(Collectors.toMap(
+                            Map.Entry::getKey,
+                            Map.Entry::getValue,
+                            (e1, e2) -> e1,
+                            LinkedHashMap::new
+                    ));
             for (Map.Entry<String, Integer> entry : affixCounts.entrySet()) {
                 attribute.beginValuePatternCount()
                         .value(entry.getKey())
                         .count(entry.getValue());
+            }
+        }
+    }
+
+    /**
+     * Parses a distinguished name (DN) string and extracts all organizational unit (OU) values.
+     *
+     * @param dn the distinguished name string to parse (e.g., "CN=John Doe,OU=Sales,OU=EMEA,DC=example,DC=com")
+     * @return a list of OU values found in the DN, in the order they appear
+     */
+    private List<String> parseDNString(String dn) {
+        List<String> ous = new ArrayList<>();
+        for (String part : dn.split(",")) {
+            String trimmed = part.trim();
+            if (trimmed.startsWith("OU=")) {
+                ous.add(trimmed.substring(3));
+            }
+        }
+        return ous;
+    }
+
+    /**
+     * Retrieves a mapping of organizational unit (OU) values to their occurrence counts for a given attribute key.
+     * The method processes all DN values stored under the specified attribute key and counts each OU found.
+     *
+     * @param attrKey the QName key representing the attribute (typically for a DN attribute)
+     * @return a map where the key is the OU value and the value is the number of occurrences
+     */
+    private Map<String, Integer> getOUValueCounts(QName attrKey) {
+        Map<String, Integer> result = new HashMap<>();
+        LinkedList<List<?>> elements = shadowStorage.get(attrKey);
+        if (elements == null) {
+            return result;
+        }
+        for (List<?> inner : elements) {
+            if (inner.size() != 1) continue;
+            List<String> ous = parseDNString(inner.get(0).toString());
+            for (String ou : ous) {
+                result.merge(ou, 1, Integer::sum);
+            }
+        }
+        return result;
+    }
+
+    /**
+     * Calculates and sets statistics for organizational unit (OU) values found in DN attributes.
+     * For each DN or distinguishedName attribute, it counts occurrences of each OU value, sorts them by frequency,
+     * and updates the statistics object with the counts and the number of unique OUs.
+     */
+    private void setOUAttributeStatistics() {
+        for (ShadowAttributeStatisticsType attribute : statistics.getAttribute()) {
+            QName attrKey = fromAttributeRef(attribute.getRef());
+            if (attrKey.toString().equalsIgnoreCase("dn") ||
+                    attrKey.toString().equalsIgnoreCase("distinguishedName")) {
+                Map<String, Integer> ouCounts = getOUValueCounts(attrKey).entrySet().stream()
+                        .sorted(Map.Entry.<String, Integer>comparingByValue().reversed())
+                        .collect(Collectors.toMap(
+                                Map.Entry::getKey,
+                                Map.Entry::getValue,
+                                (e1, e2) -> e1,
+                                LinkedHashMap::new
+                        ));
+                for (Map.Entry<String, Integer> entry : ouCounts.entrySet()) {
+                    attribute.beginValueCount()
+                            .value(entry.getKey())
+                            .count(entry.getValue());
+                }
+                attribute.setUniqueValueCount(ouCounts.size());
+                return;
             }
         }
     }

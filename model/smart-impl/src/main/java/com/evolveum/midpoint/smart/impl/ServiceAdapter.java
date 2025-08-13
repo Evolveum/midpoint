@@ -21,12 +21,13 @@ import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
+import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
+
 import org.apache.commons.lang3.StringUtils;
 
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
-import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.PrismQuerySerialization;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
@@ -250,6 +251,8 @@ class ServiceAdapter {
         var typeName = propertyDefinition.getTypeName();
         if (QNameUtil.match(PolyStringType.COMPLEX_TYPE, typeName)) {
             return DOMUtil.XSD_STRING; // We don't want to bother Python microservice with polystrings.
+        } else if (QNameUtil.match(ProtectedStringType.COMPLEX_TYPE, typeName)) {
+            return DOMUtil.XSD_STRING; // the same
         } else {
             return typeName;
         }

@@ -9,6 +9,8 @@ package com.evolveum.midpoint.smart.api;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.repo.common.activity.ActivityInterruptedException;
+import com.evolveum.midpoint.repo.common.activity.run.state.CurrentActivityState;
 import com.evolveum.midpoint.schema.processor.ResourceObjectTypeIdentification;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.smart.api.info.StatusInfo;
@@ -151,16 +153,19 @@ public interface SmartIntegrationService {
      * Hence, mappings and correlation suggestions should be created hand in hand. These two methods can be called
      * in alternation, most probably in a loop, until the suggestions stabilize. User should review the suggestions
      * during the process.
+     *
+     * @param activityState State of the current activity, if running within a task. It is used for progress reporting.
      */
     MappingsSuggestionType suggestMappings(
             String resourceOid,
             ResourceObjectTypeIdentification typeIdentification,
             @Nullable MappingsSuggestionFiltersType filters,
             @Nullable MappingsSuggestionInteractionMetadataType interactionMetadata,
+            @Nullable CurrentActivityState<?> activityState,
             Task task,
             OperationResult result)
             throws SchemaException, ExpressionEvaluationException, SecurityViolationException, CommunicationException,
-            ConfigurationException, ObjectNotFoundException;
+            ConfigurationException, ObjectNotFoundException, ObjectAlreadyExistsException, ActivityInterruptedException;
 
     /**
      * Submits "suggest mappings" request. Returns a token used to query the status.
@@ -198,4 +203,18 @@ public interface SmartIntegrationService {
             throws SchemaException, ExpressionEvaluationException, SecurityViolationException, CommunicationException,
             ConfigurationException, ObjectNotFoundException;
 
+    /**
+     * Cancels the request with the given token.
+     *
+     * Currently it is implemented by suspending the task that is executing the request. The user must have the authorization
+     * to suspend the task.
+     *
+     * @param token Token of the request to cancel
+     * @param timeToWait How long to wait for the task to suspend. If the time is exceeded, the method returns (a value of false)
+     * and the task will stop eventually.
+     * @return true if the request was successfully cancelled, false if it was not possible to cancel it in the time given.
+     */
+    boolean cancelRequest(String token, long timeToWait, Task task, OperationResult result)
+            throws SchemaException, ObjectNotFoundException, ConfigurationException, ExpressionEvaluationException,
+            SecurityViolationException, CommunicationException;
 }

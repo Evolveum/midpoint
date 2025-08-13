@@ -12,7 +12,7 @@ import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 import static com.evolveum.midpoint.schema.constants.SchemaConstants.*;
 
 /** Serializes {@link ResourceObjectClassDefinition} into {@link SiObjectSchemaType}. */
-class ResourceObjectClassSchemaSerializer {
+class ResourceObjectClassSchemaSerializer extends SchemaSerializer {
 
     private final ResourceObjectClassDefinition objectClassDef;
     private final ResourceType resource;
@@ -35,7 +35,7 @@ class ResourceObjectClassSchemaSerializer {
             schema.getAttribute().add(
                     new SiAttributeDefinitionType()
                             .name(attributeDefinition.getStandardPath().toBean())
-                            .type(attributeDefinition.getTypeName())
+                            .type(fixTypeName(attributeDefinition.getTypeName()))
                             .description(attributeDefinition.getDescription()) // TODO change to native description
                             .minOccurs(attributeDefinition.getMinOccurs())
                             .maxOccurs(attributeDefinition.getMaxOccurs()));
@@ -45,7 +45,7 @@ class ResourceObjectClassSchemaSerializer {
             schema.getAttribute().add(
                     new SiAttributeDefinitionType()
                             .name(PATH_CREDENTIALS_PASSWORD_VALUE.toBean())
-                            .type(ProtectedStringType.COMPLEX_TYPE)
+                            .type(fixTypeName(ProtectedStringType.COMPLEX_TYPE))
                             .minOccurs(0)
                             .maxOccurs(1));
         }
@@ -55,7 +55,7 @@ class ResourceObjectClassSchemaSerializer {
                 schema.getAttribute().add(
                         new SiAttributeDefinitionType()
                                 .name(PATH_ACTIVATION_ADMINISTRATIVE_STATUS.toBean())
-                                .type(C_ACTIVATION_STATUS_TYPE)
+                                .type(fixTypeName(C_ACTIVATION_STATUS_TYPE))
                                 .minOccurs(0)
                                 .maxOccurs(1));
             }
@@ -63,7 +63,7 @@ class ResourceObjectClassSchemaSerializer {
                 schema.getAttribute().add(
                         new SiAttributeDefinitionType()
                                 .name(PATH_ACTIVATION_VALID_FROM.toBean())
-                                .type(DOMUtil.XSD_DATETIME)
+                                .type(fixTypeName(DOMUtil.XSD_DATETIME))
                                 .minOccurs(0)
                                 .maxOccurs(1));
             }
@@ -71,7 +71,7 @@ class ResourceObjectClassSchemaSerializer {
                 schema.getAttribute().add(
                         new SiAttributeDefinitionType()
                                 .name(PATH_ACTIVATION_VALID_TO.toBean())
-                                .type(DOMUtil.XSD_DATETIME)
+                                .type(fixTypeName(DOMUtil.XSD_DATETIME))
                                 .minOccurs(0)
                                 .maxOccurs(1));
             }
