@@ -58,6 +58,7 @@ See bug:MID-10748[].
 * Fixed missing search mapping for credentials/password/@metadata. See bug:MID-10402[].
 * Upgraded multiple libraries, including spring boot, spring security, hibernate, commons-lang3, json-smart, postgresql driver and others.
 * Fixed boolean column values for Quartz tables in Oracle 23 - "Quartz broken after DB upgrade". See bug:MID-10715[].
+* Fixed the title for the edit button on the reference autocomplete panel. See bug:MID-10807[].
 
 == Changes with Respect To Version 4.9.2
 

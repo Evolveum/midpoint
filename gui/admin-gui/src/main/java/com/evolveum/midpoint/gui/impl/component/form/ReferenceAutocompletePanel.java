@@ -70,7 +70,7 @@ public class ReferenceAutocompletePanel<R extends Referencable> extends ValueCho
         label.add(new VisibleBehaviour(this::isButtonLabelVisible));
         getEditButton().add(AttributeAppender.append("title", () -> {
             if (!isButtonLabelVisible()) {
-                return LocalizationUtil.translate("ReferenceAutocompletePanel.button.select");
+                return LocalizationUtil.translate("ReferenceAutocompletePanel.button.select", new Object[]{getTypeTranslation()});
             }
             return null;
         }));
