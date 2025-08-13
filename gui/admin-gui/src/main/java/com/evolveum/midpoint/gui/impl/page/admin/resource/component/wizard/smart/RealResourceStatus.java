@@ -13,7 +13,6 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.statistics.AbstractStatisticsPrinter;
 import com.evolveum.midpoint.schema.util.Resource;
 import com.evolveum.midpoint.schema.util.ShadowObjectClassStatisticsTypeUtil;
@@ -85,7 +84,6 @@ public class RealResourceStatus implements ResourceStatus {
                 .print();
     }
 
-
     @Override
     public ObjectClassInfo getSuggestedObjectClassInfo() {
         return getClassesSortedByRelevance().stream()
@@ -123,27 +121,6 @@ public class RealResourceStatus implements ResourceStatus {
     public List<StatusInfo<ObjectTypesSuggestionType>> getSuccessfulStatuses() {
         return statuses.stream()
                 .filter(s -> s.getStatus() == OperationResultStatusType.SUCCESS)
-                .toList();
-    }
-
-    public List<StatusInfo<ObjectTypesSuggestionType>> getSuccessfulStatusesForObjectClass(QName objectClassName) {
-        return statuses.stream()
-                .filter(s -> s.status() == OperationResultStatus.SUCCESS && s.getObjectClassName() != null
-                        && s.getObjectClassName().equals(objectClassName))
-                .toList();
-    }
-
-    public List<StatusInfo<ObjectTypesSuggestionType>> getFailedStatusesForObjectClass(QName objectClassName) {
-        return statuses.stream()
-                .filter(s -> s.status() == OperationResultStatus.FATAL_ERROR && s.getObjectClassName() != null
-                        && s.getObjectClassName().equals(objectClassName))
-                .toList();
-    }
-
-    public List<StatusInfo<ObjectTypesSuggestionType>> getInProgressStatusesForObjectClass(QName objectClassName) {
-        return statuses.stream()
-                .filter(s -> s.status() == OperationResultStatus.IN_PROGRESS && s.getObjectClassName() != null
-                        && s.getObjectClassName().equals(objectClassName))
                 .toList();
     }
 
