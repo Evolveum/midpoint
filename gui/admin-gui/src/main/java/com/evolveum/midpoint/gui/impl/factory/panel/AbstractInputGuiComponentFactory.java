@@ -6,22 +6,19 @@
  */
 package com.evolveum.midpoint.gui.impl.factory.panel;
 
-import java.io.Serial;
 import java.util.List;
 import java.util.Map;
 
 import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
-import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
-import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
 import com.evolveum.midpoint.gui.impl.validator.ChoiceRequiredValidator;
 import com.evolveum.midpoint.prism.Containerable;
-import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.path.ItemName;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.web.component.input.validator.NotNullValidator;
 
 import com.evolveum.midpoint.web.util.ExpressionValidator;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.NotificationMessageAttachmentType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
@@ -31,6 +28,7 @@ import org.apache.wicket.markup.html.form.FormComponent;
 import org.apache.wicket.markup.html.form.TextField;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.LambdaModel;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import com.evolveum.midpoint.gui.api.factory.GuiComponentFactory;
@@ -46,6 +44,8 @@ import static java.util.Map.entry;
  * @param <T>
  */
 public abstract class AbstractInputGuiComponentFactory<T> implements GuiComponentFactory<PrismPropertyPanelContext<T>> {
+
+    private final static String IS_AI_FLAG_FIELD_CLASS = "is-ai-flag";
 
     @Autowired private GuiComponentRegistry componentRegistry;
 
@@ -75,6 +75,9 @@ public abstract class AbstractInputGuiComponentFactory<T> implements GuiComponen
             IModel<String> label = LambdaModel.of(propertyWrapper::getDisplayName);
             formComponent.setLabel(label);
 
+            //TODO it should be done using value metadata (required ai flag metadata implementation)
+            markIfAiGeneratedValue(formComponent, propertyWrapper);
+
             Class<? extends Containerable> parentClass = getChoicesParentClass(panelCtx);
             if (parentClass != null) {
                 panel.getValidatableComponent().add(
@@ -103,6 +106,58 @@ public abstract class AbstractInputGuiComponentFactory<T> implements GuiComponen
         }
         panelCtx.getFeedback().setFilter(new ComponentFeedbackMessageFilter(panel.getValidatableComponent()));
 
+    }
+
+    private static <T> void markIfAiGeneratedValue(
+            @NotNull FormComponent<T> formComponent,
+            @NotNull PrismPropertyWrapper<T> propertyWrapper) {
+        ItemPath path = propertyWrapper.getPath().namedSegmentsOnly();
+
+        ItemPath itemPathFocusType = ItemPath.create(
+                ResourceType.F_SCHEMA_HANDLING,
+                SchemaHandlingType.F_OBJECT_TYPE,
+                ResourceObjectTypeDefinitionType.F_FOCUS,
+                ResourceObjectFocusSpecificationType.F_TYPE);
+
+        ItemPath itemPathKind = ItemPath.create(
+                ResourceType.F_SCHEMA_HANDLING,
+                SchemaHandlingType.F_OBJECT_TYPE,
+                ResourceObjectTypeDefinitionType.F_KIND);
+
+        ItemPath itemPathIntent = ItemPath.create(
+                ResourceType.F_SCHEMA_HANDLING,
+                SchemaHandlingType.F_OBJECT_TYPE,
+                ResourceObjectTypeDefinitionType.F_INTENT);
+
+        ItemPath itemPathName = ItemPath.create(
+                ResourceType.F_SCHEMA_HANDLING,
+                SchemaHandlingType.F_OBJECT_TYPE,
+                ResourceObjectTypeDefinitionType.F_DISPLAY_NAME);
+
+        ItemPath itemPathDescription = ItemPath.create(
+                ResourceType.F_SCHEMA_HANDLING,
+                SchemaHandlingType.F_OBJECT_TYPE,
+                ResourceObjectTypeDefinitionType.F_DESCRIPTION);
+
+        ItemPath itemPathDelineationObjectClass = ItemPath.create(
+                ResourceType.F_SCHEMA_HANDLING,
+                SchemaHandlingType.F_OBJECT_TYPE,
+                ResourceObjectTypeDefinitionType.F_DELINEATION,
+                ResourceObjectTypeDelineationType.F_OBJECT_CLASS);
+
+        ItemPath itemPathDelineationObjectFilter = ItemPath.create(
+                ResourceType.F_SCHEMA_HANDLING,
+                SchemaHandlingType.F_OBJECT_TYPE,
+                ResourceObjectTypeDefinitionType.F_DELINEATION,
+                ResourceObjectTypeDelineationType.F_FILTER);
+
+        List<ItemPath> itemPaths = List.of(
+                itemPathFocusType, itemPathKind, itemPathIntent, itemPathName, itemPathDescription,
+                itemPathDelineationObjectClass, itemPathDelineationObjectFilter);
+
+        if (itemPaths.stream().anyMatch(path::equivalent)) {
+            formComponent.add(AttributeModifier.append("class", IS_AI_FLAG_FIELD_CLASS));
+        }
     }
 
     private Class<? extends Containerable> getChoicesParentClass(PrismPropertyPanelContext<T> panelCtx) {
