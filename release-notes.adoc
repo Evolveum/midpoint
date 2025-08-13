@@ -59,6 +59,7 @@ See bug:MID-10748[].
 * Upgraded multiple libraries, including spring boot, spring security, hibernate, commons-lang3, json-smart, postgresql driver and others.
 * Fixed boolean column values for Quartz tables in Oracle 23 - "Quartz broken after DB upgrade". See bug:MID-10715[].
 * Fixed the title for the edit button on the reference autocomplete panel. See bug:MID-10807[].
+* Fixed the visibility of the Edit(Select) button on the reference search item panel in case reference search item is displayed in popup panel. See bug:MID-10810[].
 
 == Changes with Respect To Version 4.9.2
 
