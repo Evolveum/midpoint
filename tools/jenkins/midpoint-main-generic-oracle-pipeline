@@ -110,6 +110,7 @@ metadata:
     k8s-ttl-controller.twin.sh/ttl: "24h"
 spec:
   securityContext:
+    # oinstall group, this should avoid Cannot create directory "/opt/oracle/oradata/FREE"
     fsGroup: 54321
   volumes:
     - name: pvc
