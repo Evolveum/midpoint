@@ -54,7 +54,6 @@ Also, increased the size of the http request header size to cope with big header
 The recommended values are: max-part-header-size: 768; max-part-count: 100.
 See bug:MID-10748[].
 * Fixed the possibility to modify the filter in the marking rule. See bug:MID-10405[].
-* Fixed global policy evaluation for assignments with non-membership relation. See bug:MID-10779[].
 * Fixed missing search mapping for credentials/password/@metadata. See bug:MID-10402[].
 * Upgraded multiple libraries, including spring boot, spring security, hibernate, commons-lang3, json-smart, postgresql driver and others.
 * Fixed boolean column values for Quartz tables in Oracle 23 - "Quartz broken after DB upgrade". See bug:MID-10715[].
