@@ -44,14 +44,14 @@ public class ObjectTypesSuggestionStatusInfoPrinter extends AbstractStatisticsPr
     private void createData(List<StatusInfo<ObjectTypesSuggestionType>> infos) {
         for (var info : infos) {
             Data.Record record = data.createRecord();
-            record.add(info.token());
+            record.add(info.getToken());
             record.add(info.getObjectClassNameLocalPart());
-            record.add(info.status());
-            record.add(info.started());
-            record.add(info.finished());
-            var suggestionsBean = info.result();
+            record.add(info.getStatus());
+            record.add(info.getRealizationStartTimestamp());
+            record.add(info.getRealizationEndTimestamp());
+            var suggestionsBean = info.getResult();
             record.add(suggestionsBean != null ? suggestionsBean.getObjectType().size() : null);
-            record.add(info.message() != null ? info.message().getFallbackMessage() : null); // FIXME this hack with fallback
+            record.add(info.getLocalizedMessage());
         }
     }
 

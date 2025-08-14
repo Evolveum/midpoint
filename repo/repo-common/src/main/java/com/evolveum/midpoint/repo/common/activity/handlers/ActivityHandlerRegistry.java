@@ -54,6 +54,8 @@ public class ActivityHandlerRegistry {
 
     /**
      * Registers both the work definition factory and the activity handler.
+     *
+     * The definition class must be unique for each activity handler!
      */
     public void register(
             @NotNull QName typeName,

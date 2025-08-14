@@ -2,48 +2,87 @@
   "value" : {
     "@type" : "c:SiSuggestObjectTypesRequestType",
     "schema" : {
-      "name" : "account",
+      "name" : "ri:account",
       "attribute" : [ {
-        "name" : "ri:phone",
-        "type" : "xsd:string"
+        "name" : "c:activation/c:administrativeStatus",
+        "type" : "xsd:string",
+        "minOccurs" : 0,
+        "maxOccurs" : 1
       }, {
-        "name" : "ri:personalNumber",
-        "type" : "xsd:string"
+        "name" : "c:attributes/ri:created",
+        "type" : "xsd:dateTime",
+        "minOccurs" : 0,
+        "maxOccurs" : 1
       }, {
-        "name" : "ri:department",
-        "type" : "xsd:string"
+        "name" : "c:attributes/ri:department",
+        "type" : "xsd:string",
+        "minOccurs" : 0,
+        "maxOccurs" : 1
       }, {
-        "name" : "ri:email",
-        "type" : "xsd:string"
+        "name" : "c:attributes/ri:description",
+        "type" : "xsd:string",
+        "minOccurs" : 0,
+        "maxOccurs" : 1
       }, {
-        "name" : "ri:created",
-        "type" : "xsd:dateTime"
+        "name" : "c:attributes/ri:distinguishedName",
+        "type" : "xsd:string",
+        "minOccurs" : 0,
+        "maxOccurs" : 1
       }, {
-        "name" : "ri:status",
-        "type" : "xsd:string"
+        "name" : "c:attributes/ri:email",
+        "type" : "xsd:string",
+        "minOccurs" : 1,
+        "maxOccurs" : 1
       }, {
-        "name" : "ri:description",
-        "type" : "xsd:string"
+        "name" : "c:attributes/ri:fullname",
+        "type" : "xsd:string",
+        "minOccurs" : 1,
+        "maxOccurs" : 1
       }, {
-        "name" : "icfs:name",
-        "type" : "xsd:string"
+        "name" : "c:attributes/ri:lastLogin",
+        "type" : "xsd:dateTime",
+        "minOccurs" : 0,
+        "maxOccurs" : 1
       }, {
-        "name" : "ri:type",
-        "type" : "xsd:string"
+        "name" : "c:attributes/icfs:name",
+        "type" : "xsd:string",
+        "minOccurs" : 1,
+        "maxOccurs" : 1
       }, {
-        "name" : "ri:fullname",
-        "type" : "xsd:string"
+        "name" : "c:attributes/ri:personalNumber",
+        "type" : "xsd:string",
+        "minOccurs" : 0,
+        "maxOccurs" : 1
       }, {
-        "name" : "ri:lastLogin",
-        "type" : "xsd:dateTime"
+        "name" : "c:attributes/ri:phone",
+        "type" : "xsd:string",
+        "minOccurs" : 0,
+        "maxOccurs" : 1
       }, {
-        "name" : "icfs:uid",
-        "type" : "xsd:string"
+        "name" : "c:attributes/ri:status",
+        "type" : "xsd:string",
+        "minOccurs" : 0,
+        "maxOccurs" : 1
+      }, {
+        "name" : "c:attributes/ri:type",
+        "type" : "xsd:string",
+        "minOccurs" : 0,
+        "maxOccurs" : 1
+      }, {
+        "name" : "c:attributes/icfs:uid",
+        "type" : "xsd:string",
+        "minOccurs" : 0,
+        "maxOccurs" : 1
+      }, {
+        "name" : "c:credentials/c:password/c:value",
+        "type" : "xsd:string",
+        "minOccurs" : 0,
+        "maxOccurs" : 1
       } ]
     },
     "statistics" : {
       "attribute" : [ {
-        "ref" : "icfs:name",
+        "ref" : "c:attributes/icfs:name",
         "uniqueValueCount" : 0,
         "missingValueCount" : 10
       } ],

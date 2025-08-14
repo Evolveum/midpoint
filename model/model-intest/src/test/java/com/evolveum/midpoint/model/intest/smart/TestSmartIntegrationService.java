@@ -7,13 +7,20 @@
 
 package com.evolveum.midpoint.model.intest.smart;
 
+import static com.evolveum.midpoint.schema.constants.SchemaConstants.*;
+import static com.evolveum.midpoint.schema.processor.ResourceObjectTypeIdentification.ACCOUNT_DEFAULT;
+
 import static org.assertj.core.api.Assertions.assertThat;
 
-import static com.evolveum.midpoint.schema.constants.SchemaConstants.NS_RI;
 import static com.evolveum.midpoint.test.util.MidPointTestConstants.TEST_RESOURCES_PATH;
 
 import java.io.File;
+import java.io.IOException;
 import javax.xml.namespace.QName;
+
+import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.test.TestObject;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
@@ -23,17 +30,12 @@ import org.testng.annotations.Test;
 import com.evolveum.midpoint.model.intest.AbstractEmptyModelIntegrationTest;
 import com.evolveum.midpoint.model.test.CommonInitialObjects;
 import com.evolveum.midpoint.model.test.smart.MockServiceClientImpl;
-import com.evolveum.midpoint.schema.processor.ResourceObjectTypeIdentification;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.smart.impl.DefaultServiceClientImpl;
 import com.evolveum.midpoint.smart.impl.SmartIntegrationServiceImpl;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.DummyTestResource;
 import com.evolveum.midpoint.util.exception.CommonException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SiSuggestFocusTypeResponseType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SiSuggestObjectTypesResponseType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SiSuggestedObjectTypeType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 /**
  * Integration tests for the Smart Integration Service implementation.
@@ -46,10 +48,12 @@ public class TestSmartIntegrationService extends AbstractEmptyModelIntegrationTe
 
     private static final QName OC_ACCOUNT_QNAME = new QName(NS_RI, "account");
 
-    private static final int TIMEOUT = 20000;
+    private static final int TIMEOUT = 500_000;
 
     /** Using the implementation in order to set mock service client for testing. */
     @Autowired private SmartIntegrationServiceImpl smartIntegrationService;
+
+    private static DummyBasicScenario dummyForSuggestCorrelationAndMappings;
 
     private static final DummyTestResource RESOURCE_DUMMY_FOR_SUGGEST_OBJECT_TYPES = new DummyTestResource(
             TEST_DIR, "resource-dummy-for-suggest-object-types.xml", "0c59d761-bea9-4342-bbc7-ee0e199d275b",
@@ -61,6 +65,16 @@ public class TestSmartIntegrationService extends AbstractEmptyModelIntegrationTe
             "for-suggest-focus-type",
             c -> DummyBasicScenario.on(c).initialize());
 
+    private static final DummyTestResource RESOURCE_DUMMY_FOR_SUGGEST_CORRELATION_AND_MAPPINGS = new DummyTestResource(
+            TEST_DIR, "resource-dummy-for-suggest-correlation-and-mappings.xml", "20d4fca9-bf28-4165-b71b-392172a4b6b2",
+            "for-suggest-correlation-and-mappings",
+            c -> dummyForSuggestCorrelationAndMappings = DummyBasicScenario.on(c).initialize());
+
+    private static final TestObject<?> USER_JACK = TestObject.file(TEST_DIR, "user-jack.xml", "84d2ff68-9b32-4ef4-b87b-02536fd5e83c");
+    private static final TestObject<?> USER_JIM = TestObject.file(TEST_DIR, "user-jim.xml", "8f433649-6cc4-401b-910f-10fa5449f14c");
+    private static final TestObject<?> USER_ALICE = TestObject.file(TEST_DIR, "user-alice.xml", "79df4c1f-6480-4eb8-9db7-863e25d5b5fa");
+    private static final TestObject<?> USER_BOB = TestObject.file(TEST_DIR, "user-bob.xml", "30cef119-71b6-42b3-9762-5c649b2a2b6a");
+
     @Override
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
         super.initSystem(initTask, initResult);
@@ -70,6 +84,52 @@ public class TestSmartIntegrationService extends AbstractEmptyModelIntegrationTe
 
         initAndTestDummyResource(RESOURCE_DUMMY_FOR_SUGGEST_OBJECT_TYPES, initTask, initResult);
         initAndTestDummyResource(RESOURCE_DUMMY_FOR_SUGGEST_FOCUS_TYPE, initTask, initResult);
+        initAndTestDummyResource(RESOURCE_DUMMY_FOR_SUGGEST_CORRELATION_AND_MAPPINGS, initTask, initResult);
+
+        initTestObjects(initTask, initResult,
+                USER_JACK, USER_JIM, USER_ALICE, USER_BOB);
+        createAndLinkAccounts(initTask, initResult);
+    }
+
+    private void createAndLinkAccounts(Task initTask, OperationResult initResult) throws Exception {
+        var a = dummyForSuggestCorrelationAndMappings.account;
+        a.add("jack")
+                .addAttributeValues(DummyBasicScenario.Account.AttributeNames.FULLNAME.local(), "Jack Sparrow")
+                .addAttributeValues(DummyBasicScenario.Account.AttributeNames.STATUS.local(), "a")
+                .addAttributeValues(DummyBasicScenario.Account.AttributeNames.TYPE.local(), "e")
+                .addAttributeValues(DummyBasicScenario.Account.AttributeNames.PHONE.local(), "+420-601-040-027");
+        linkAccount(USER_JACK, initTask, initResult);
+        a.add("jim")
+                .addAttributeValues(DummyBasicScenario.Account.AttributeNames.FULLNAME.local(), "Jim Hacker")
+                .addAttributeValues(DummyBasicScenario.Account.AttributeNames.STATUS.local(), "i")
+                .addAttributeValues(DummyBasicScenario.Account.AttributeNames.PHONE.local(), "+99-123-456-789");
+        linkAccount(USER_JIM, initTask, initResult);
+        a.add("alice")
+                .addAttributeValues(DummyBasicScenario.Account.AttributeNames.FULLNAME.local(), "Alice Wonderland")
+                .addAttributeValues(DummyBasicScenario.Account.AttributeNames.PHONE.local(), "+421-900-111-222")
+                .addAttributeValues(DummyBasicScenario.Account.AttributeNames.STATUS.local(), "a")
+                .addAttributeValues(DummyBasicScenario.Account.AttributeNames.TYPE.local(), "c");
+        linkAccount(USER_ALICE, initTask, initResult);
+        a.add("bob")
+                .addAttributeValues(DummyBasicScenario.Account.AttributeNames.FULLNAME.local(), "Bob Builder")
+                .addAttributeValues(DummyBasicScenario.Account.AttributeNames.PHONE.local(), "+421-900-333-444")
+                .addAttributeValues(DummyBasicScenario.Account.AttributeNames.STATUS.local(), "i")
+                .addAttributeValues(DummyBasicScenario.Account.AttributeNames.TYPE.local(), "c");
+        linkAccount(USER_BOB, initTask, initResult);
+    }
+
+    private void linkAccount(TestObject<?> user, Task task, OperationResult result) throws CommonException, IOException {
+        var shadow = findShadowRequest()
+                .withResource(RESOURCE_DUMMY_FOR_SUGGEST_CORRELATION_AND_MAPPINGS.getObjectable())
+                .withDefaultAccountType()
+                .withNameValue(user.getNameOrig())
+                .build().findRequired(task, result);
+        executeChanges(
+                PrismContext.get().deltaFor(UserType.class)
+                        .item(UserType.F_LINK_REF)
+                        .add(shadow.getRef())
+                        .asObjectDelta(user.oid),
+                null, task, result);
     }
 
     /** Tests the "suggest object types" operation (in an asynchronous way). */
@@ -79,14 +139,13 @@ public class TestSmartIntegrationService extends AbstractEmptyModelIntegrationTe
             // We'll go with the real service client. Hence, this test will not check the actual response; only in rough contours.
         } else {
             smartIntegrationService.setServiceClientSupplier(
-                    () -> new MockServiceClientImpl<>(
+                    () -> new MockServiceClientImpl(
                             new SiSuggestObjectTypesResponseType()
                                     .objectType(new SiSuggestedObjectTypeType()
                                             .kind("account")
                                             .intent("default"))));
         }
 
-        when("submitting 'suggest object types' operation request");
         var task = getTestTask();
         var result = task.getResult();
 
@@ -108,29 +167,115 @@ public class TestSmartIntegrationService extends AbstractEmptyModelIntegrationTe
         assertThat(response.getObjectType()).as("suggested object types collection").isNotEmpty();
     }
 
-    /** Tests the "suggest focus type" method; currently, only the synchronous API is present. */
+    /** Tests the "suggest focus type" method. */
     @Test
     public void test150SuggestFocusType() throws CommonException {
         if (DefaultServiceClientImpl.hasServiceUrlOverride()) {
             // We'll go with the real service client. Hence, this test will not check the actual response; only in rough contours.
         } else {
             smartIntegrationService.setServiceClientSupplier(
-                    () -> new MockServiceClientImpl<>(
+                    () -> new MockServiceClientImpl(
                             new SiSuggestFocusTypeResponseType()
-                                    .focusTypeName(UserType.COMPLEX_TYPE.getLocalPart())));
+                                    .focusTypeName(UserType.COMPLEX_TYPE)));
         }
 
         var task = getTestTask();
         var result = task.getResult();
 
-        when("suggesting focus type");
-        var focusType = smartIntegrationService.suggestFocusType(
-                RESOURCE_DUMMY_FOR_SUGGEST_FOCUS_TYPE.oid, ResourceObjectTypeIdentification.ACCOUNT_DEFAULT, task, result);
+        when("submitting 'suggest focus type' operation request");
+        var token = smartIntegrationService.submitSuggestFocusTypeOperation(
+                RESOURCE_DUMMY_FOR_SUGGEST_FOCUS_TYPE.oid, ACCOUNT_DEFAULT, task, result);
 
-        then("the focus type is correct");
-        assertSuccess(result);
-        assertThat(focusType)
-                .as("Focus type")
-                .isEqualTo(UserType.COMPLEX_TYPE);
+        then("returned token is not null");
+        assertThat(token).isNotNull();
+
+        when("waiting for the operation to finish successfully");
+        var response = waitForFinish(
+                () -> smartIntegrationService.getSuggestFocusTypeOperationStatus(token, task, result),
+                TIMEOUT);
+
+        then("there is a suggested focus type (we don't care about the actual type here)");
+        display(response.toString());
+        assertThat(response).isNotNull();
+        assertThat(response).as("suggested focus type").isNotNull();
+    }
+
+    /** Tests the "suggest correlation" operation (in an asynchronous way). */
+    @Test
+    public void test200SuggestCorrelation() throws CommonException {
+        if (DefaultServiceClientImpl.hasServiceUrlOverride()) {
+            // We'll go with the real service client. Hence, this test will not check the actual response; only in rough contours.
+        } else {
+            smartIntegrationService.setServiceClientSupplier(
+                    () -> new MockServiceClientImpl(
+                            new SiMatchSchemaResponseType()
+                                    .attributeMatch(new SiAttributeMatchSuggestionType()
+                                            .applicationAttribute(ICFS_NAME.toBean())
+                                            .midPointAttribute(UserType.F_NAME.toBean()))
+                                    .attributeMatch(new SiAttributeMatchSuggestionType()
+                                            .applicationAttribute(DummyBasicScenario.Account.AttributeNames.PERSONAL_NUMBER.q().toBean())
+                                            .midPointAttribute(UserType.F_PERSONAL_NUMBER.toBean())))); // TODO other matches
+        }
+
+        var task = getTestTask();
+        var result = task.getResult();
+
+        when("submitting 'suggest correlation' operation request");
+        var token = smartIntegrationService.submitSuggestCorrelationOperation(
+                RESOURCE_DUMMY_FOR_SUGGEST_CORRELATION_AND_MAPPINGS.oid, ACCOUNT_DEFAULT, task, result);
+
+        then("returned token is not null");
+        assertThat(token).isNotNull();
+
+        when("waiting for the operation to finish successfully");
+        var response = waitForFinish(
+                () -> smartIntegrationService.getSuggestCorrelationOperationStatus(token, task, result),
+                TIMEOUT);
+
+        then("there is a suggested correlation and an attribute match");
+        displayDumpable("response", response);
+        assertThat(response).isNotNull();
+        assertThat(response.getCorrelation()).as("suggested correlation").isNotNull();
+        assertThat(response.getAttributes()).as("suggested attributes").hasSize(1);
+    }
+
+    /** Tests the "suggest mappings" operation (in an asynchronous way). */
+    @Test
+    public void test300SuggestMappings() throws CommonException {
+        if (DefaultServiceClientImpl.hasServiceUrlOverride()) {
+            // We'll go with the real service client. Hence, this test will not check the actual response; only in rough contours.
+        } else {
+            smartIntegrationService.setServiceClientSupplier(
+                    () -> new MockServiceClientImpl(
+                            new SiMatchSchemaResponseType()
+                                    .attributeMatch(new SiAttributeMatchSuggestionType()
+                                            .applicationAttribute(ICFS_NAME_PATH.toBean())
+                                            .midPointAttribute(UserType.F_NAME.toBean()))
+                                    .attributeMatch(new SiAttributeMatchSuggestionType()
+                                            .applicationAttribute(DummyBasicScenario.Account.AttributeNames.PERSONAL_NUMBER.path().toBean())
+                                            .midPointAttribute(UserType.F_PERSONAL_NUMBER.toBean())),
+                            new SiSuggestMappingResponseType().transformationScript(null),
+                            new SiSuggestMappingResponseType().transformationScript(null))); // TODO other matches
+        }
+
+        var task = getTestTask();
+        var result = task.getResult();
+
+        when("submitting 'suggest mappings' operation request");
+        var token = smartIntegrationService.submitSuggestMappingsOperation(
+                RESOURCE_DUMMY_FOR_SUGGEST_CORRELATION_AND_MAPPINGS.oid, ACCOUNT_DEFAULT, task, result);
+
+        then("returned token is not null");
+        assertThat(token).isNotNull();
+
+        when("waiting for the operation to finish successfully");
+        var response = waitForFinish(
+                () -> smartIntegrationService.getSuggestMappingsOperationStatus(token, task, result),
+                TIMEOUT);
+
+        then("there are suggested mappings");
+        displayDumpable("response", response);
+        assertThat(response).isNotNull();
+        assertThat(response.getAttributeMappings()).as("suggested attribute mappings").isNotEmpty();
     }
 }

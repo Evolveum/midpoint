@@ -260,7 +260,8 @@ public class NativeComplexTypeDefinitionImpl
                 ResourceDefinitionFeatures.ForClass.DF_DISPLAY_NAME_ATTRIBUTE_NAME,
                 ResourceDefinitionFeatures.ForClass.DF_DESCRIPTION_ATTRIBUTE_NAME,
                 ResourceDefinitionFeatures.ForClass.DF_PRIMARY_IDENTIFIER_NAME,
-                ResourceDefinitionFeatures.ForClass.DF_SECONDARY_IDENTIFIER_NAME);
+                ResourceDefinitionFeatures.ForClass.DF_SECONDARY_IDENTIFIER_NAME,
+                ResourceDefinitionFeatures.ForClass.DF_DESCRIPTION_NAME);
     }
 
     @Override

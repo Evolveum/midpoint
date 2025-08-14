@@ -29,13 +29,21 @@ public class ObjectStore<O extends DummyObject> implements DebugDumpable {
 
     @NotNull private final DummyObjectClass objectClass;
 
+    private final String description;
+
     /** Objects, indexed by the normalized name (if enforcing unique names), or by {@link DummyObject#id} (otherwise). */
     @NotNull private final Map<String, O> objectMap = Collections.synchronizedMap(new LinkedHashMap<>());
 
     ObjectStore(@NotNull Class<O> objectJavaType, @NotNull String objectClassName, @NotNull DummyObjectClass objectClass) {
+        this(objectJavaType, objectClassName, objectClass, null);
+    }
+
+    ObjectStore(@NotNull Class<O> objectJavaType, @NotNull String objectClassName, @NotNull DummyObjectClass objectClass,
+            String description) {
         this.objectJavaType = objectJavaType;
         this.objectClassName = objectClassName;
         this.objectClass = objectClass;
+        this.description = description;
     }
 
     public @NotNull String getObjectClassName() {
@@ -48,6 +56,10 @@ public class ObjectStore<O extends DummyObject> implements DebugDumpable {
 
     public @NotNull Collection<O> getObjects() {
         return Collections.unmodifiableCollection(objectMap.values());
+    }
+
+    public String getDescription() {
+        return description;
     }
 
     public void clear() {

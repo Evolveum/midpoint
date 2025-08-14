@@ -10,23 +10,26 @@ package com.evolveum.midpoint.model.test.smart;
 import com.evolveum.midpoint.smart.api.ServiceClient;
 import com.evolveum.midpoint.util.exception.SchemaException;
 
+import java.util.Iterator;
+import java.util.List;
+
 /**
  * Smart integration service client to be used when there is no real service available.
  */
-public class MockServiceClientImpl<R> implements ServiceClient {
+public class MockServiceClientImpl implements ServiceClient {
 
     private Object lastRequest;
-    private final R response;
+    private final Iterator<Object> responses;
 
-    public MockServiceClientImpl(R response) {
-        this.response = response;
+    public MockServiceClientImpl(Object... responses) {
+        this.responses = List.of(responses).iterator();
     }
 
     @Override
     public <REQ, RESP> RESP invoke(Method method, REQ request, Class<RESP> responseClass) throws SchemaException {
         lastRequest = request;
         //noinspection unchecked
-        return (RESP) response;
+        return (RESP) responses.next();
     }
 
     public Object getLastRequest() {

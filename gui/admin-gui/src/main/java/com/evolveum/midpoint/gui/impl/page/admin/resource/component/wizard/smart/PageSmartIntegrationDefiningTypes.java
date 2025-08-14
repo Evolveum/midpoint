@@ -8,10 +8,15 @@
 package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.smart;
 
 import java.io.Serial;
+import java.util.List;
 
-import org.apache.commons.lang3.StringUtils;
+import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
+import com.evolveum.midpoint.smart.api.info.StatusInfo;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectTypesSuggestionType;
+
+import org.apache.commons.lang3.time.DurationFormatUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.markup.html.form.TextField;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
@@ -23,6 +28,7 @@ import com.evolveum.midpoint.authentication.api.authorization.Url;
 import com.evolveum.midpoint.authentication.api.util.AuthConstants;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.smart.api.info.ObjectClassInfo;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -30,12 +36,9 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.AceEditor;
 import com.evolveum.midpoint.web.component.AjaxSubmitButton;
 import com.evolveum.midpoint.web.component.form.MidpointForm;
+import com.evolveum.midpoint.web.component.input.DropDownChoicePanel;
 import com.evolveum.midpoint.web.page.admin.configuration.PageAdminConfiguration;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
-
-import javax.xml.namespace.QName;
-
-import static com.evolveum.midpoint.schema.constants.SchemaConstants.NS_RI;
 
 @PageDescriptor(
         urls = {
@@ -67,10 +70,14 @@ public class PageSmartIntegrationDefiningTypes extends PageAdminConfiguration {
     private static final String OP_DETERMINE_STATUS = CLASS_DOT + "determineStatus";
 
     private final IModel<ResourceStatus> statusModel = LoadableModel.create(() -> loadStatus(), true);
-    private final IModel<String> objectClassToDefineTypesForModel =
-            LoadableModel.create(() -> statusModel.getObject().getSuggestedObjectClassName(), true);
-    private final IModel<String> objectTypesSuggestionToExploreModel =
+    private final IModel<ObjectClassInfo> objectClassToDefineTypesForModel =
+            LoadableModel.create(() -> statusModel.getObject().getSuggestedObjectClassInfo(), true);
+    private final IModel<List<ObjectClassInfo>> objectClassesModel =
+            LoadableModel.create(() -> statusModel.getObject().getObjectClassInfos(), true);
+    private final IModel<StatusInfo<ObjectTypesSuggestionType>> objectTypesSuggestionToExploreModel =
             LoadableModel.create(() -> statusModel.getObject().getObjectTypesSuggestionToExplore(), true);
+    private final IModel<List<StatusInfo<ObjectTypesSuggestionType>>> objectTypesSuggestionsModel =
+            LoadableModel.create(() -> statusModel.getObject().getObjectTypesSuggestions(), true);
 
     private @NotNull ResourceStatus loadStatus() {
         var task = createSimpleTask(OP_DETERMINE_STATUS);
@@ -136,24 +143,55 @@ public class PageSmartIntegrationDefiningTypes extends PageAdminConfiguration {
             }
         });
 
-        mainForm.add(new TextField<>(ID_OBJECT_CLASS_TO_DEFINE_TYPES_FOR, objectClassToDefineTypesForModel));
+        mainForm.add(new DropDownChoicePanel<>(
+                ID_OBJECT_CLASS_TO_DEFINE_TYPES_FOR,
+                objectClassToDefineTypesForModel,
+                objectClassesModel,
+                info -> {
+                    var sb = new StringBuilder();
+                    sb.append(info.getObjectClassName().getLocalPart());
+                    if (!info.objectTypes().isEmpty()) {
+                        sb.append(" (");
+                        sb.append(info.objectTypes().size());
+                        sb.append(" type(s) defined)");
+                    }
+                    return sb.toString();
+                }));
 
         mainForm.add(new AjaxSubmitButton(ID_EXPLORE_OBJECT_TYPES_SUGGESTION) {
             @Override
             public void onSubmit(AjaxRequestTarget target) {
                 var status = statusModel.getObject();
-                var suggestionToken = objectTypesSuggestionToExploreModel.getObject();
+                var suggestion = objectTypesSuggestionToExploreModel.getObject();
                 if (status instanceof RealResourceStatus realStatus) {
                     PageSmartIntegrationTypesSuggestion.navigateTo(
                             PageSmartIntegrationDefiningTypes.this,
                             realStatus.getResource(),
-                            suggestionToken != null ?
-                                    realStatus.getObjectTypesSuggestion(suggestionToken) : null);
+                            suggestion != null ? suggestion.getResult() : null);
                 }
             }
         });
 
-        mainForm.add(new TextField<>(ID_OBJECT_TYPES_SUGGESTION_TO_EXPLORE, objectTypesSuggestionToExploreModel));
+        mainForm.add(new DropDownChoicePanel<>(
+                ID_OBJECT_TYPES_SUGGESTION_TO_EXPLORE,
+                objectTypesSuggestionToExploreModel,
+                objectTypesSuggestionsModel,
+                info -> {
+                    var sb = new StringBuilder();
+                    sb.append(info.getToken())
+                            .append(" [")
+                            .append(info.getResult() != null ? info.getResult().getObjectType().size() : 0)
+                            .append(" type(s) suggested]");
+                    if (info.getRealizationEndTimestamp() != null) {
+                        sb.append("; finished ");
+                        sb.append(DurationFormatUtils.formatDurationWords(
+                                System.currentTimeMillis() - XmlTypeConverter.toMillisNullable(info.getRealizationEndTimestamp()),
+                                true, true));
+                        sb.append(" ago");
+                    }
+                    return sb;
+                },
+                true));
 
         mainForm.add(new AjaxSubmitButton(ID_DEFINE_ASSOCIATIONS) {
             @Override
@@ -167,15 +205,12 @@ public class PageSmartIntegrationDefiningTypes extends PageAdminConfiguration {
     private void onDefineTypesPerformed(AjaxRequestTarget target) {
         taskAwareExecutor(target, OP_DEFINE_TYPES)
                 .runVoid((task, result) -> {
-                    var status = statusModel.getObject();
-                    var objectClassLocalName = objectClassToDefineTypesForModel.getObject();
-                    if (StringUtils.isBlank(objectClassLocalName)) {
-                        throw new IllegalArgumentException("Object class name cannot be blank");
+                    var objectClassInfo = objectClassToDefineTypesForModel.getObject();
+                    if (objectClassInfo == null) {
+                        return;
                     }
-                    var objectClassName = new QName(NS_RI, objectClassLocalName);
-                    status.checkObjectClassName(objectClassName);
                     var oid = getSmartIntegrationService().submitSuggestObjectTypesOperation(
-                            getResourceOid(), objectClassName, task, result);
+                            getResourceOid(), objectClassInfo.getObjectClassName(), task, result);
                     result.setBackgroundTaskOid(oid);
                 });
     }

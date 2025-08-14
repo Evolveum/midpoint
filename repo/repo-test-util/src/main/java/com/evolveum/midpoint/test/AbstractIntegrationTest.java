@@ -2477,6 +2477,12 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
                         prismContext.jsonSerializer().serializeRealValue(value, SchemaConstants.C_VALUE) : null);
     }
 
+    public void displayValueContentAsJson(String title, Object value) throws SchemaException {
+        displayValue(title,
+                value != null ?
+                        prismContext.jsonSerializer().serializeRealValueContent(value) : null);
+    }
+
     @Override
     public void displayValue(String title, Object value) {
         PrismTestUtil.display(title, value);

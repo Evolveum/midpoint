@@ -12,6 +12,7 @@ import java.util.Arrays;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import org.apache.cxf.jaxrs.client.WebClient;
+import org.apache.cxf.transports.http.configuration.HTTPClientPolicy;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.VisibleForTesting;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -41,9 +42,14 @@ public class DefaultServiceClientImpl implements ServiceClient {
     private static final String URL_PREFIX = "/api/v1/";
     private static final String METHOD_SUGGEST_OBJECT_TYPES = "objectType/suggestObjectType"; // TODO This should be plural!
     private static final String METHOD_SUGGEST_FOCUS_TYPE = "focusType/suggestFocusType";
+    private static final String METHOD_MATCH_SCHEMA = "matching/matchSchema";
+    private static final String METHOD_SUGGEST_MAPPING = "mapping/suggestMapping";
 
     /** The client used to access the remote service. */
     private final WebClient webClient;
+
+    /** Timeout for receiving answer from the Python service. Later it will be configurable. */
+    private static final long RECEIVE_TIMEOUT = 300_000;
 
     // TODO decide if we use these providers or not.
     @Autowired private MidpointXmlProvider<?> xmlProvider;
@@ -57,6 +63,11 @@ public class DefaultServiceClientImpl implements ServiceClient {
                 getServiceUrl(configurationBean),
                 Arrays.asList(xmlProvider, jsonProvider, yamlProvider),
                 true);
+
+        var conduit = WebClient.getConfig(webClient).getHttpConduit();
+        var policy = new HTTPClientPolicy();
+        policy.setReceiveTimeout(RECEIVE_TIMEOUT);
+        conduit.setClient(policy);
     }
 
     private static String getServiceUrl(@Nullable SmartIntegrationConfigurationType configurationBean)
@@ -87,14 +98,16 @@ public class DefaultServiceClientImpl implements ServiceClient {
         // FIXME this is a temporary hack to work around limitations of our JSON serializer/deserializer.
         //  So we serialize/deserialize the data ourselves.
         var requestText = PrismContext.get().jsonSerializer().serializeRealValueContent(request);
-        LOGGER.trace("Calling {} with request (class: {}):\n{}", method, request.getClass().getName(), requestText);
+        // TEMPORARILY "info" logging for request and response
+        LOGGER.info("Calling {} with request (class: {}):\n{}", method, request.getClass().getName(), requestText);
+        webClient.reset();
         webClient.type(MediaType.APPLICATION_JSON);
         webClient.accept(MediaType.APPLICATION_JSON);
         webClient.path(getPath(method));
         try (var response = webClient.post(requestText)) {
             var statusType = response.getStatusInfo();
             var responseText = response.readEntity(String.class);
-            LOGGER.trace("Response (status: {}, expected class: {}):\n{}",
+            LOGGER.info("Response (status: {}, expected class: {}):\n{}",
                     statusType.getStatusCode(), responseClass, responseText);
             if (statusType.getFamily() == Response.Status.Family.SUCCESSFUL) {
                 // Another hack: we don't have "parseRealValueContent" method that would parse the response.
@@ -112,6 +125,8 @@ public class DefaultServiceClientImpl implements ServiceClient {
         return switch (method) {
             case SUGGEST_OBJECT_TYPES -> URL_PREFIX + METHOD_SUGGEST_OBJECT_TYPES;
             case SUGGEST_FOCUS_TYPE -> URL_PREFIX + METHOD_SUGGEST_FOCUS_TYPE;
+            case MATCH_SCHEMA -> URL_PREFIX + METHOD_MATCH_SCHEMA;
+            case SUGGEST_MAPPING -> URL_PREFIX + METHOD_SUGGEST_MAPPING;
         };
     }
 

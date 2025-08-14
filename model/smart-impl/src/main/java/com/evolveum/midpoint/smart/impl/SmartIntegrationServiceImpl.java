@@ -13,15 +13,19 @@ import java.util.function.Supplier;
 import javax.xml.datatype.Duration;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.model.api.TaskService;
 import com.evolveum.midpoint.prism.PrismContext;
 
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.path.ItemName;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.repo.api.RepositoryService;
+import com.evolveum.midpoint.repo.common.activity.run.state.CurrentActivityState;
 import com.evolveum.midpoint.schema.*;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.util.ShadowObjectClassStatisticsTypeUtil;
 import com.evolveum.midpoint.smart.api.info.StatusInfo;
-import com.evolveum.midpoint.util.LocalizableMessageBuilder;
+import com.evolveum.midpoint.repo.common.activity.ActivityInterruptedException;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 import org.jetbrains.annotations.NotNull;
@@ -36,15 +40,10 @@ import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.model.impl.controller.ModelInteractionServiceImpl;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.repo.common.SystemObjectCache;
-import com.evolveum.midpoint.repo.common.activity.TaskActivityManager;
-import com.evolveum.midpoint.repo.common.activity.run.CommonTaskBeans;
-import com.evolveum.midpoint.repo.common.activity.run.state.ActivityState;
 import com.evolveum.midpoint.schema.processor.ResourceObjectTypeIdentification;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.Resource;
 import com.evolveum.midpoint.schema.util.SystemConfigurationTypeUtil;
-import com.evolveum.midpoint.schema.util.task.ActivityPath;
 import com.evolveum.midpoint.smart.api.ServiceClient;
 import com.evolveum.midpoint.smart.api.SmartIntegrationService;
 import com.evolveum.midpoint.task.api.Task;
@@ -72,10 +71,21 @@ public class SmartIntegrationServiceImpl implements SmartIntegrationService {
     private static final String OP_SUBMIT_SUGGEST_OBJECT_TYPES_OPERATION = "suggestObjectTypesOperation";
     private static final String OP_GET_SUGGEST_OBJECT_TYPES_OPERATION_STATUS = "getSuggestObjectTypesOperationStatus";
     private static final String OP_LIST_SUGGEST_OBJECT_TYPES_OPERATION_STATUSES = "listSuggestObjectTypesOperationStatuses";
+    private static final String OP_SUBMIT_SUGGEST_FOCUS_TYPE_OPERATION = "submitSuggestFocusTypeOperation";
+    private static final String OP_GET_SUGGEST_FOCUS_TYPE_OPERATION_STATUS = "getSuggestFocusTypeOperationStatus";
+    private static final String OP_LIST_SUGGEST_FOCUS_TYPE_OPERATION_STATUSES = "listSuggestFocusTypeOperationStatuses";
 
-    private static final String OP_SUGGEST_FOCUS_TYPE = "suggestFocusType";
-    private static final String OP_SUGGEST_MAPPINGS = "suggestMappings";
-    private static final String OP_SUGGEST_ASSOCIATIONS = "suggestAssociations";
+    private static final String CLASS_DOT = SmartIntegrationService.class.getName() + ".";
+    private static final String OP_SUGGEST_FOCUS_TYPE = CLASS_DOT + "suggestFocusType";
+    private static final String OP_SUGGEST_MAPPINGS = CLASS_DOT + "suggestMappings";
+    private static final String OP_SUBMIT_SUGGEST_MAPPINGS_OPERATION = "suggestMappingsOperation";
+    private static final String OP_GET_SUGGEST_MAPPINGS_OPERATION_STATUS = "getSuggestMappingsOperationStatus";
+    private static final String OP_LIST_SUGGEST_MAPPINGS_OPERATION_STATUSES = "listSuggestMappingsOperationStatuses";
+    private static final String OP_SUGGEST_CORRELATION = CLASS_DOT + "suggestCorrelation";
+    private static final String OP_SUBMIT_SUGGEST_CORRELATION_OPERATION = "suggestCorrelationOperation";
+    private static final String OP_GET_SUGGEST_CORRELATION_OPERATION_STATUS = "getSuggestCorrelationOperationStatus";
+    private static final String OP_LIST_SUGGEST_CORRELATION_OPERATION_STATUSES = "listSuggestCorrelationOperationStatuses";
+    private static final String OP_SUGGEST_ASSOCIATIONS = CLASS_DOT + "suggestAssociations";
 
     /** Auto cleanup time for background tasks created by the service. Will be shorter, probably. */
     private static final Duration AUTO_CLEANUP_TIME = XmlTypeConverter.createDuration("P1D");
@@ -86,9 +96,9 @@ public class SmartIntegrationServiceImpl implements SmartIntegrationService {
 
     @Autowired private SystemObjectCache systemObjectCache;
     @Autowired private ModelService modelService;
+    @Autowired private TaskService taskService;
     @Autowired private ModelInteractionServiceImpl modelInteractionService;
     @Autowired private TaskManager taskManager;
-    @Autowired private TaskActivityManager activityManager;
     @Autowired @Qualifier("cacheRepositoryService") private RepositoryService repositoryService;
 
     @Override
@@ -261,38 +271,25 @@ public class SmartIntegrationServiceImpl implements SmartIntegrationService {
     @Override
     public List<StatusInfo<ObjectTypesSuggestionType>> listSuggestObjectTypesOperationStatuses(
             String resourceOid, Task task, OperationResult parentResult)
-            throws SchemaException, ConfigurationException, ObjectNotFoundException {
+            throws SchemaException {
         var result = parentResult.subresult(OP_LIST_SUGGEST_OBJECT_TYPES_OPERATION_STATUSES)
                 .addParam("resourceOid", resourceOid)
                 .build();
         try {
             var tasks = taskManager.searchObjects(
                     TaskType.class,
-                    PrismContext.get().queryFor(TaskType.class)
-                            .item(TaskType.F_AFFECTED_OBJECTS, TaskAffectedObjectsType.F_ACTIVITY,
-                                    ActivityAffectedObjectsType.F_RESOURCE_OBJECTS, ResourceObjectSetType.F_RESOURCE_REF)
-                            .ref(resourceOid)
-                            .and()
-                            .item(TaskType.F_AFFECTED_OBJECTS, TaskAffectedObjectsType.F_ACTIVITY, ActivityAffectedObjectsType.F_ACTIVITY_TYPE)
-                            .eq(SchemaConstantsGenerated.C_OBJECT_TYPES_SUGGESTION)
-                            .build(),
+                    queryForActivityType(resourceOid, SchemaConstantsGenerated.C_OBJECT_TYPES_SUGGESTION),
                     taskRetrievalOptions(),
                     result);
             var resultingList = new ArrayList<StatusInfo<ObjectTypesSuggestionType>>();
             for (PrismObject<TaskType> t : tasks) {
                 resultingList.add(
-                        createStatusInformation(
-                                taskManager.createTaskInstance(t, result),
-                                result));
+                        new StatusInfoImpl<>(
+                                t.asObjectable(),
+                                ObjectTypesSuggestionWorkStateType.F_RESULT,
+                                ObjectTypesSuggestionType.class));
             }
-            resultingList.sort(
-                    Comparator
-                            .comparing(
-                                    (StatusInfo<ObjectTypesSuggestionType> info) -> XmlTypeConverter.toMillisNullable(info.finished()),
-                                    Comparator.nullsFirst(Comparator.reverseOrder()))
-                            .thenComparing(
-                                    (StatusInfo<ObjectTypesSuggestionType> info) -> XmlTypeConverter.toMillisNullable(info.started()),
-                                    Comparator.reverseOrder()));
+            sortByFinishAndStartTime(resultingList);
             return resultingList;
         } catch (Throwable t) {
             result.recordException(t);
@@ -312,13 +309,15 @@ public class SmartIntegrationServiceImpl implements SmartIntegrationService {
     @Override
     public StatusInfo<ObjectTypesSuggestionType> getSuggestObjectTypesOperationStatus(
             String token, Task task, OperationResult parentResult)
-            throws SchemaException, ObjectNotFoundException, ConfigurationException {
+            throws SchemaException, ObjectNotFoundException {
         var result = parentResult.subresult(OP_GET_SUGGEST_OBJECT_TYPES_OPERATION_STATUS)
                 .addParam("token", token)
                 .build();
         try {
-            var bgTask = taskManager.getTaskPlain(token, taskRetrievalOptions(), result);
-            return createStatusInformation(bgTask, result);
+            return new StatusInfoImpl<>(
+                    getTask(token, result),
+                    ObjectTypesSuggestionWorkStateType.F_RESULT,
+                    ObjectTypesSuggestionType.class);
         } catch (Throwable t) {
             result.recordException(t);
             throw t;
@@ -327,37 +326,94 @@ public class SmartIntegrationServiceImpl implements SmartIntegrationService {
         }
     }
 
-    private StatusInfo<ObjectTypesSuggestionType> createStatusInformation(Task task, OperationResult result)
-            throws SchemaException, ConfigurationException, ObjectNotFoundException {
-        LOGGER.trace("Task:\n{}", task.debugDump(1));
-        var token = task.getOid();
-        var taskStatus = Objects.requireNonNullElse(
-                OperationResultStatus.parseStatusType(task.getResultStatus()),
-                OperationResultStatus.IN_PROGRESS);
-        var affectedResourceObjects = // FIXME implement more robustly
-                task.getRawTaskObjectClonedIfNecessary().asObjectable().getAffectedObjects()
-                        .getActivity().get(0).getResourceObjects();
-        var taskResult = task.getResult();
-        var message = taskResult != null ? taskResult.getMessage() : null;
-        var localizableMessage = message != null ? LocalizableMessageBuilder.buildFallbackMessage(message) : null;
-        var started = XmlTypeConverter.createXMLGregorianCalendar(task.getLastRunStartTimestamp());
-        var finished = XmlTypeConverter.createXMLGregorianCalendar(task.getLastRunFinishTimestamp());
-        if (taskStatus == OperationResultStatus.IN_PROGRESS) {
-            var activity = activityManager.getActivity(task, ActivityPath.empty());
-            return new StatusInfo<>(
-                    token, taskStatus, localizableMessage, affectedResourceObjects, started, finished, null);
+    private @NotNull TaskType getTask(String oid, OperationResult result) throws ObjectNotFoundException, SchemaException {
+        return taskManager
+                .getObject(TaskType.class, oid, taskRetrievalOptions(), result)
+                .asObjectable();
+    }
+
+    @Override
+    public String submitSuggestFocusTypeOperation(
+            String resourceOid,
+            ResourceObjectTypeIdentification typeIdentification,
+            Task task,
+            OperationResult parentResult) throws CommonException {
+        var result = parentResult.subresult(OP_SUBMIT_SUGGEST_FOCUS_TYPE_OPERATION)
+                .addParam("resourceOid", resourceOid)
+                .addParam("typeIdentification", typeIdentification)
+                .build();
+        try {
+            var oid = modelInteractionService.submit(
+                    new ActivityDefinitionType()
+                            .work(new WorkDefinitionsType()
+                                    .focusTypeSuggestion(new FocusTypeSuggestionWorkDefinitionType()
+                                            .resourceRef(resourceOid, ResourceType.COMPLEX_TYPE)
+                                            .kind(typeIdentification.getKind())
+                                            .intent(typeIdentification.getIntent()))),
+                    ActivitySubmissionOptions.create().withTaskTemplate(new TaskType()
+                            .name("Suggest focus type for " + typeIdentification + " on " + resourceOid)
+                            .cleanupAfterCompletion(AUTO_CLEANUP_TIME)),
+                    task, result);
+            LOGGER.debug("Submitted suggest focus type operation for resourceOid {}, typeIdentification {}: {}",
+                    resourceOid, typeIdentification, oid);
+            return oid;
+        } catch (Throwable t) {
+            result.recordException(t);
+            throw t;
+        } finally {
+            result.close();
         }
-        // We should have the state by now.
-        var state = ActivityState.getActivityStateDownwards(
-                ActivityPath.empty(),
-                task,
-                ObjectTypesSuggestionWorkStateType.COMPLEX_TYPE,
-                CommonTaskBeans.get(),
-                result);
-        var suggestions = state.getWorkStateItemRealValueClone(
-                ObjectTypesSuggestionWorkStateType.F_RESULT, ObjectTypesSuggestionType.class);
-        return new StatusInfo<>(
-                token, taskStatus, localizableMessage, affectedResourceObjects, started, finished, suggestions);
+    }
+
+    @Override
+    public List<StatusInfo<QName>> listSuggestFocusTypeOperationStatuses(
+            String resourceOid, Task task, OperationResult parentResult)
+            throws SchemaException {
+        var result = parentResult.subresult(OP_LIST_SUGGEST_FOCUS_TYPE_OPERATION_STATUSES)
+                .addParam("resourceOid", resourceOid)
+                .build();
+        try {
+            var tasks = taskManager.searchObjects(
+                    TaskType.class,
+                    queryForActivityType(resourceOid, WorkDefinitionsType.F_FOCUS_TYPE_SUGGESTION),
+                    taskRetrievalOptions(),
+                    result);
+            var resultingList = new ArrayList<StatusInfo<QName>>();
+            for (PrismObject<TaskType> t : tasks) {
+                resultingList.add(
+                        new StatusInfoImpl<>(
+                                t.asObjectable(),
+                                FocusTypeSuggestionWorkStateType.F_RESULT,
+                                QName.class));
+            }
+            sortByFinishAndStartTime(resultingList);
+            return resultingList;
+        } catch (Throwable t) {
+            result.recordException(t);
+            throw t;
+        } finally {
+            result.close();
+        }
+    }
+
+    @Override
+    public StatusInfo<QName> getSuggestFocusTypeOperationStatus(
+            String token, Task task, OperationResult parentResult)
+            throws SchemaException, ObjectNotFoundException {
+        var result = parentResult.subresult(OP_GET_SUGGEST_FOCUS_TYPE_OPERATION_STATUS)
+                .addParam("token", token)
+                .build();
+        try {
+            return new StatusInfoImpl<>(
+                    getTask(token, result),
+                    FocusTypeSuggestionWorkStateType.F_RESULT,
+                    QName.class);
+        } catch (Throwable t) {
+            result.recordException(t);
+            throw t;
+        } finally {
+            result.close();
+        }
     }
 
     /** Invokes the service client to suggest object types for the given resource and object class. */
@@ -369,18 +425,17 @@ public class SmartIntegrationServiceImpl implements SmartIntegrationService {
             OperationResult parentResult)
             throws SchemaException, ExpressionEvaluationException, SecurityViolationException, CommunicationException,
             ConfigurationException, ObjectNotFoundException {
+        LOGGER.debug("Suggesting object types for resourceOid {}, objectClassName {}", resourceOid, objectClassName);
         var result = parentResult.subresult(OP_SUGGEST_OBJECT_TYPES)
                 .addParam("resourceOid", resourceOid)
                 .addParam("objectClassName", objectClassName)
                 .build();
-        try {
-            LOGGER.debug("Suggesting object types for resourceOid {}, objectClassName {}", resourceOid, objectClassName);
-            var resource = modelService.getObject(ResourceType.class, resourceOid, null, task, result);
-            var resourceSchema = Resource.of(resource).getCompleteSchemaRequired();
-            var objectClassDef = resourceSchema.findObjectClassDefinitionRequired(objectClassName);
-            try (var serviceClient = getServiceClient(result)) {
-                return ServiceAdapter.create(serviceClient).suggestObjectTypes(objectClassDef, statistics, resourceSchema);
-            }
+        try (var serviceClient = getServiceClient(result)) {
+            var types = Operation
+                    .init(serviceClient, resourceOid, objectClassName, task, result)
+                    .suggestObjectTypes(statistics);
+            LOGGER.debug("Object types suggestion:\n{}", types.debugDump(1));
+            return types;
         } catch (Throwable t) {
             result.recordException(t);
             throw t;
@@ -394,20 +449,16 @@ public class SmartIntegrationServiceImpl implements SmartIntegrationService {
             String resourceOid, ResourceObjectTypeIdentification typeIdentification, Task task, OperationResult parentResult)
             throws SchemaException, ExpressionEvaluationException, SecurityViolationException, CommunicationException,
             ConfigurationException, ObjectNotFoundException {
-
+        LOGGER.debug("Suggesting focus type for resourceOid {}, typeIdentification {}", resourceOid, typeIdentification);
         var result = parentResult.subresult(OP_SUGGEST_FOCUS_TYPE)
                 .addParam("resourceOid", resourceOid)
                 .addArbitraryObjectAsParam("typeIdentification", typeIdentification)
                 .build();
         try {
-            LOGGER.debug("Suggesting focus type for resourceOid {}, typeIdentification {}", resourceOid, typeIdentification);
             try (var serviceClient = getServiceClient(result)) {
-                var resource = modelService.getObject(ResourceType.class, resourceOid, null, task, result);
-                var resourceSchema = Resource.of(resource).getCompleteSchemaRequired();
-                var objectTypeDef = resourceSchema.getObjectTypeDefinitionRequired(typeIdentification);
-                var objectClassDef = resourceSchema.findObjectClassDefinitionRequired(objectTypeDef.getObjectClassName());
-                var type = ServiceAdapter.create(serviceClient)
-                        .suggestFocusType(typeIdentification, objectClassDef, objectTypeDef.getDelineation());
+                var type = TypeOperation
+                        .init(serviceClient, resourceOid, typeIdentification, null, task, result)
+                        .suggestFocusType();
                 LOGGER.debug("Suggested focus type: {}", type);
                 return type;
             }
@@ -420,31 +471,244 @@ public class SmartIntegrationServiceImpl implements SmartIntegrationService {
     }
 
     @Override
-    public MappingsSuggestionType suggestMappings(
+    public CorrelationSuggestionType suggestCorrelation(
             String resourceOid,
             ResourceObjectTypeIdentification typeIdentification,
-            QName focusTypeName,
-            @Nullable MappingsSuggestionFiltersType filters,
-            MappingsSuggestionInteractionMetadataType interactionMetadata,
+            @Nullable Object interactionMetadata,
             Task task,
             OperationResult parentResult)
             throws SchemaException, ExpressionEvaluationException, SecurityViolationException, CommunicationException,
             ConfigurationException, ObjectNotFoundException {
-        var result = parentResult.subresult(OP_SUGGEST_MAPPINGS)
+        LOGGER.debug("Suggesting correlation for resourceOid {}, typeIdentification {}", resourceOid, typeIdentification);
+        var result = parentResult.subresult(OP_SUGGEST_CORRELATION)
                 .addParam("resourceOid", resourceOid)
                 .addArbitraryObjectAsParam("typeIdentification", typeIdentification)
-                .addParam("focusTypeName", focusTypeName)
                 .build();
-        try {
-            var resource = modelService.getObject(ResourceType.class, resourceOid, null, task, result);
-            // ...
-            return new MappingsSuggestionType(); // TODO replace with real implementation
+        try (var serviceClient = getServiceClient(result)) {
+            var correlation = TypeOperation
+                    .init(serviceClient, resourceOid, typeIdentification, null, task, result)
+                    .suggestCorrelation();
+            LOGGER.debug("Suggested correlation:\n{}", correlation.debugDump(1));
+            return correlation;
         } catch (Throwable t) {
             result.recordException(t);
             throw t;
         } finally {
             result.close();
         }
+    }
+
+    @Override
+    public MappingsSuggestionType suggestMappings(
+            String resourceOid,
+            ResourceObjectTypeIdentification typeIdentification,
+            @Nullable MappingsSuggestionFiltersType filters,
+            @Nullable MappingsSuggestionInteractionMetadataType interactionMetadata,
+            @Nullable CurrentActivityState<?> activityState,
+            Task task,
+            OperationResult parentResult)
+            throws SchemaException, ExpressionEvaluationException, SecurityViolationException, CommunicationException,
+            ConfigurationException, ObjectNotFoundException, ObjectAlreadyExistsException, ActivityInterruptedException {
+        LOGGER.debug("Suggesting mappings for resourceOid {}, typeIdentification {}", resourceOid, typeIdentification);
+        var result = parentResult.subresult(OP_SUGGEST_MAPPINGS)
+                .addParam("resourceOid", resourceOid)
+                .addArbitraryObjectAsParam("typeIdentification", typeIdentification)
+                .build();
+        try (var serviceClient = getServiceClient(result)) {
+            var mappings = TypeOperation
+                    .init(serviceClient, resourceOid, typeIdentification, activityState, task, result)
+                    .suggestMappings(result);
+            LOGGER.debug("Suggested mappings:\n{}", mappings.debugDumpLazily(1));
+            return mappings;
+        } catch (Throwable t) {
+            result.recordException(t);
+            throw t;
+        } finally {
+            result.close();
+        }
+    }
+
+    @Override
+    public String submitSuggestCorrelationOperation(
+            String resourceOid, ResourceObjectTypeIdentification typeIdentification, Task task, OperationResult parentResult)
+            throws CommonException {
+        var result = parentResult.subresult(OP_SUBMIT_SUGGEST_CORRELATION_OPERATION)
+                .addParam("resourceOid", resourceOid)
+                .addParam("typeIdentification", typeIdentification)
+                .build();
+        try {
+            var oid = modelInteractionService.submit(
+                    new ActivityDefinitionType()
+                            .work(new WorkDefinitionsType()
+                                    .correlationSuggestion(new CorrelationSuggestionWorkDefinitionType()
+                                            .resourceRef(resourceOid, ResourceType.COMPLEX_TYPE)
+                                            .objectType(typeIdentification.asBean()))),
+                    ActivitySubmissionOptions.create().withTaskTemplate(new TaskType()
+                            .name("Suggest correlation for " + typeIdentification + " on " + resourceOid)
+                            .cleanupAfterCompletion(AUTO_CLEANUP_TIME)),
+                    task, result);
+            LOGGER.debug("Submitted suggest correlation operation for resourceOid {}, object type {}: {}",
+                    resourceOid, typeIdentification, oid);
+            return oid;
+        } catch (Throwable t) {
+            result.recordException(t);
+            throw t;
+        } finally {
+            result.close();
+        }
+    }
+
+    @Override
+    public List<StatusInfo<CorrelationSuggestionType>> listSuggestCorrelationOperationStatuses(
+            String resourceOid, Task task, OperationResult parentResult)
+            throws SchemaException {
+        var result = parentResult.subresult(OP_LIST_SUGGEST_CORRELATION_OPERATION_STATUSES)
+                .addParam("resourceOid", resourceOid)
+                .build();
+        try {
+            var tasks = taskManager.searchObjects(
+                    TaskType.class,
+                    queryForActivityType(resourceOid, SchemaConstantsGenerated.C_CORRELATION_SUGGESTION),
+                    taskRetrievalOptions(),
+                    result);
+            var resultingList = new ArrayList<StatusInfo<CorrelationSuggestionType>>();
+            for (PrismObject<TaskType> t : tasks) {
+                resultingList.add(
+                        new StatusInfoImpl<>(
+                                t.asObjectable(),
+                                CorrelationSuggestionWorkStateType.F_RESULT,
+                                CorrelationSuggestionType.class));
+            }
+            sortByFinishAndStartTime(resultingList);
+            return resultingList;
+        } catch (Throwable t) {
+            result.recordException(t);
+            throw t;
+        } finally {
+            result.close();
+        }
+    }
+
+    @Override
+    public StatusInfo<CorrelationSuggestionType> getSuggestCorrelationOperationStatus(
+            String token, Task task, OperationResult parentResult) throws SchemaException, ObjectNotFoundException {
+        var result = parentResult.subresult(OP_GET_SUGGEST_CORRELATION_OPERATION_STATUS)
+                .addParam("token", token)
+                .build();
+        try {
+            return new StatusInfoImpl<>(
+                    getTask(token, result),
+                    CorrelationSuggestionWorkStateType.F_RESULT,
+                    CorrelationSuggestionType.class);
+        } catch (Throwable t) {
+            result.recordException(t);
+            throw t;
+        } finally {
+            result.close();
+        }
+    }
+
+    @Override
+    public String submitSuggestMappingsOperation(
+            String resourceOid, ResourceObjectTypeIdentification typeIdentification, Task task, OperationResult parentResult)
+            throws CommonException {
+        var result = parentResult.subresult(OP_SUBMIT_SUGGEST_MAPPINGS_OPERATION)
+                .addParam("resourceOid", resourceOid)
+                .addParam("typeIdentification", typeIdentification)
+                .build();
+        try {
+            var oid = modelInteractionService.submit(
+                    new ActivityDefinitionType()
+                            .work(new WorkDefinitionsType()
+                                    .mappingsSuggestion(new MappingsSuggestionWorkDefinitionType()
+                                            .resourceRef(resourceOid, ResourceType.COMPLEX_TYPE)
+                                            .objectType(typeIdentification.asBean()))),
+                    ActivitySubmissionOptions.create().withTaskTemplate(new TaskType()
+                            .name("Suggest mappings for " + typeIdentification + " on " + resourceOid)
+                            .cleanupAfterCompletion(AUTO_CLEANUP_TIME)),
+                    task, result);
+            LOGGER.debug("Submitted suggest mappings operation for resourceOid {}, object type {}: {}",
+                    resourceOid, typeIdentification, oid);
+            return oid;
+        } catch (Throwable t) {
+            result.recordException(t);
+            throw t;
+        } finally {
+            result.close();
+        }
+    }
+
+    @Override
+    public List<StatusInfo<MappingsSuggestionType>> listSuggestMappingsOperationStatuses(
+            String resourceOid, Task task, OperationResult parentResult)
+            throws SchemaException {
+        var result = parentResult.subresult(OP_LIST_SUGGEST_MAPPINGS_OPERATION_STATUSES)
+                .addParam("resourceOid", resourceOid)
+                .build();
+        try {
+            var tasks = taskManager.searchObjects(
+                    TaskType.class,
+                    queryForActivityType(resourceOid, SchemaConstantsGenerated.C_MAPPINGS_SUGGESTION),
+                    taskRetrievalOptions(),
+                    result);
+            var resultingList = new ArrayList<StatusInfo<MappingsSuggestionType>>();
+            for (PrismObject<TaskType> t : tasks) {
+                resultingList.add(
+                        new StatusInfoImpl<>(
+                                t.asObjectable(),
+                                MappingsSuggestionWorkStateType.F_RESULT,
+                                MappingsSuggestionType.class));
+            }
+            sortByFinishAndStartTime(resultingList);
+            return resultingList;
+        } catch (Throwable t) {
+            result.recordException(t);
+            throw t;
+        } finally {
+            result.close();
+        }
+    }
+
+    @Override
+    public StatusInfo<MappingsSuggestionType> getSuggestMappingsOperationStatus(
+            String token, Task task, OperationResult parentResult)
+            throws SchemaException, ObjectNotFoundException {
+        var result = parentResult.subresult(OP_GET_SUGGEST_MAPPINGS_OPERATION_STATUS)
+                .addParam("token", token)
+                .build();
+        try {
+            return new StatusInfoImpl<>(
+                    getTask(token, result),
+                    MappingsSuggestionWorkStateType.F_RESULT,
+                    MappingsSuggestionType.class);
+        } catch (Throwable t) {
+            result.recordException(t);
+            throw t;
+        } finally {
+            result.close();
+        }
+    }
+
+    private static void sortByFinishAndStartTime(List<? extends StatusInfo<?>> resultingList) {
+        resultingList.sort(
+                Comparator
+                        .comparing(
+                                (StatusInfo<?> info) -> XmlTypeConverter.toMillisNullable(info.getRealizationEndTimestamp()),
+                                Comparator.nullsFirst(Comparator.reverseOrder()))
+                        .thenComparing(
+                                (StatusInfo<?> info) -> XmlTypeConverter.toMillisNullable(info.getRealizationStartTimestamp()),
+                                Comparator.reverseOrder()));
+    }
+
+    private static ObjectQuery queryForActivityType(String resourceOid, ItemName activityType) {
+        return PrismContext.get().queryFor(TaskType.class)
+                .item(TaskType.F_AFFECTED_OBJECTS, TaskAffectedObjectsType.F_ACTIVITY,
+                        ActivityAffectedObjectsType.F_RESOURCE_OBJECTS, ResourceObjectSetType.F_RESOURCE_REF)
+                .ref(resourceOid)
+                .and()
+                .item(TaskType.F_AFFECTED_OBJECTS, TaskAffectedObjectsType.F_ACTIVITY, ActivityAffectedObjectsType.F_ACTIVITY_TYPE)
+                .eq(activityType)
+                .build();
     }
 
     @Override
@@ -465,8 +729,13 @@ public class SmartIntegrationServiceImpl implements SmartIntegrationService {
             var resource = modelService.getObject(ResourceType.class, resourceOid, null, task, result);
             var resourceSchema = Resource.of(resource).getCompleteSchemaRequired();
             var nativeSchema = resourceSchema.getNativeSchema();
-            // ...
-            return new AssociationsSuggestionType(); // TODO replace with real implementation
+
+            LOGGER.trace("Suggesting associations for resourceOid {}, subjectTypeIdentifications {}, objectTypeIdentifications {}",
+                    resourceOid, subjectTypeIdentifications, objectTypeIdentifications);
+
+
+            return new SmartAssociationImpl().suggestSmartAssociation(resource.asObjectable(),
+                    subjectTypeIdentifications, objectTypeIdentifications,false);
         } catch (Throwable t) {
             result.recordException(t);
             throw t;
@@ -487,5 +756,12 @@ public class SmartIntegrationServiceImpl implements SmartIntegrationService {
 
     public void setServiceClientSupplier(@Nullable Supplier<ServiceClient> serviceClientSupplier) {
         this.serviceClientSupplier = serviceClientSupplier;
+    }
+
+    @Override
+    public boolean cancelRequest(String token, long timeToWait, Task task, OperationResult result)
+            throws SchemaException, ObjectNotFoundException, ConfigurationException, ExpressionEvaluationException,
+            SecurityViolationException, CommunicationException {
+        return taskService.suspendTask(token, timeToWait, task, result);
     }
 }

@@ -2515,6 +2515,18 @@
                         </xsd:appinfo>
                     </xsd:annotation>
                 </xsd:element>
+                <xsd:element name="focusTypeSuggestion" type="tns:FocusTypeSuggestionWorkDefinitionType"
+                        minOccurs="0">
+                    <xsd:annotation>
+                        <xsd:documentation>
+                            Suggests focus type for a resource object type (smart integration).
+                        </xsd:documentation>
+                        <xsd:appinfo>
+                            <a:since>4.11</a:since>
+                            <a:displayName>WorkDefinitionsType.focusTypeSuggestion</a:displayName>
+                        </xsd:appinfo>
+                    </xsd:annotation>
+                </xsd:element>
                 <xsd:element name="objectTypesSuggestion" type="tns:ObjectTypesSuggestionWorkDefinitionType"
                         minOccurs="0">
                     <xsd:annotation>
@@ -2524,6 +2536,30 @@
                         <xsd:appinfo>
                             <a:since>4.11</a:since>
                             <a:displayName>WorkDefinitionsType.objectTypesSuggestion</a:displayName>
+                        </xsd:appinfo>
+                    </xsd:annotation>
+                </xsd:element>
+                <xsd:element name="correlationSuggestion" type="tns:CorrelationSuggestionWorkDefinitionType"
+                        minOccurs="0">
+                    <xsd:annotation>
+                        <xsd:documentation>
+                            Suggests correlation rules for an object type (smart integration).
+                        </xsd:documentation>
+                        <xsd:appinfo>
+                            <a:since>4.11</a:since>
+                            <a:displayName>WorkDefinitionsType.correlationSuggestion</a:displayName>
+                        </xsd:appinfo>
+                    </xsd:annotation>
+                </xsd:element>
+                <xsd:element name="mappingsSuggestion" type="tns:MappingsSuggestionWorkDefinitionType"
+                        minOccurs="0">
+                    <xsd:annotation>
+                        <xsd:documentation>
+                            Suggests mappings for an object class (smart integration).
+                        </xsd:documentation>
+                        <xsd:appinfo>
+                            <a:since>4.11</a:since>
+                            <a:displayName>WorkDefinitionsType.mappingsSuggestion</a:displayName>
                         </xsd:appinfo>
                     </xsd:annotation>
                 </xsd:element>
@@ -3320,6 +3356,16 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element name="displayOrder" type="xsd:int" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Display order of the activity. Optional.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:since>4.11</a:since>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
             <xsd:element name="realizationState" type="tns:ActivityRealizationStateType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -3332,6 +3378,18 @@
                     <xsd:documentation>
                         Operation result status of this activity.
                     </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="message" type="tns:LocalizableMessageType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Explanation of the status, especially if it indicates an error. Optional.
+                        Avoid use for distributed activities.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:since>4.11</a:since>
+                        <a:experimental>true</a:experimental>
+                    </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="realizationStartTimestamp" type="xsd:dateTime" minOccurs="0">
@@ -10035,6 +10093,50 @@
     </xsd:complexType>
     <xsd:element name="certificationReiterateCampaignWorkDefinition" type="tns:CertificationReiterateCampaignWorkDefinitionType"/>
 
+    <xsd:complexType name="FocusTypeSuggestionWorkDefinitionType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Work definition for "suggest focus type for a resource object type" activity (smart integration).
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container>true</a:container>
+                <a:since>4.11</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:AbstractWorkDefinitionType">
+                <xsd:sequence>
+                    <xsd:element name="resourceRef" type="tns:ObjectReferenceType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Resource against which we want to execute the activity.
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:displayName>ResourceObjectSetType.resourceRef</a:displayName>
+                                <a:objectReferenceTargetType>c:ResourceType</a:objectReferenceTargetType>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="kind" type="tns:ShadowKindType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Denotes the kind of the resource object to be processed by the activity.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="intent" type="xsd:string" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Denotes the intent of the resource object to be processed by the activity.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+    <xsd:element name="focusTypeSuggestionWorkDefinition" type="tns:FocusTypeSuggestionWorkDefinitionType"/>
+
     <xsd:complexType name="ObjectTypesSuggestionWorkDefinitionType">
         <xsd:annotation>
             <xsd:documentation>
@@ -10083,6 +10185,101 @@
     </xsd:complexType>
     <xsd:element name="objectTypesSuggestionWorkDefinition" type="tns:ObjectTypesSuggestionWorkDefinitionType"/>
 
+    <xsd:complexType name="ObjectTypeRelatedSuggestionWorkDefinitionType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Work definition for "suggest correlation" and "suggest mappings" activity (smart integration).
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container>true</a:container>
+                <a:since>4.11</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:AbstractWorkDefinitionType">
+                <xsd:sequence>
+                    <xsd:element name="resourceRef" type="tns:ObjectReferenceType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Resource against which we want to execute the activity.
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:displayName>ResourceObjectSetType.resourceRef</a:displayName>
+                                <a:objectReferenceTargetType>c:ResourceType</a:objectReferenceTargetType>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="objectType" type="tns:ResourceObjectTypeIdentificationType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Object type for which to define the mappings.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+    <xsd:element name="objectTypeRelatedSuggestionWorkDefinition" type="tns:ObjectTypeRelatedSuggestionWorkDefinitionType"/>
+
+    <xsd:complexType name="CorrelationSuggestionWorkDefinitionType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Work definition for "suggest correlation" activity (smart integration).
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container>true</a:container>
+                <a:since>4.11</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:ObjectTypeRelatedSuggestionWorkDefinitionType"/>
+        </xsd:complexContent>
+    </xsd:complexType>
+    <xsd:element name="correlationSuggestionWorkDefinition" type="tns:CorrelationSuggestionWorkDefinitionType"/>
+
+    <xsd:complexType name="MappingsSuggestionWorkDefinitionType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Work definition for "suggest mappings" activity (smart integration).
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container>true</a:container>
+                <a:since>4.11</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:ObjectTypeRelatedSuggestionWorkDefinitionType"/>
+        </xsd:complexContent>
+    </xsd:complexType>
+    <xsd:element name="mappingsSuggestionWorkDefinition" type="tns:MappingsSuggestionWorkDefinitionType"/>
+
+    <xsd:complexType name="FocusTypeSuggestionWorkStateType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Work state for "suggest focus type for a resource object type" activity (smart integration).
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container>true</a:container>
+                <a:since>4.11</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:AbstractActivityWorkStateType">
+                <xsd:sequence>
+                    <xsd:element name="result" type="xsd:QName" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Result of the operation: suggested focus type.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+    <xsd:element name="focusTypeSuggestionWorkState" type="tns:FocusTypeSuggestionWorkStateType" />
+
     <xsd:complexType name="ObjectTypesSuggestionWorkStateType">
         <xsd:annotation>
             <xsd:documentation>
@@ -10119,4 +10316,56 @@
         </xsd:complexContent>
     </xsd:complexType>
     <xsd:element name="objectTypesSuggestionWorkState" type="tns:ObjectTypesSuggestionWorkStateType" />
+
+    <xsd:complexType name="CorrelationSuggestionWorkStateType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Work state for "suggest correlation" activity (smart integration).
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container>true</a:container>
+                <a:since>4.11</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:AbstractActivityWorkStateType">
+                <xsd:sequence>
+                    <xsd:element name="result" type="tns:CorrelationSuggestionType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Result of the operation: suggested correlation rules.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+    <xsd:element name="correlationSuggestionWorkState" type="tns:CorrelationSuggestionWorkStateType" />
+
+    <xsd:complexType name="MappingsSuggestionWorkStateType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Work state for "suggest mappings" activity (smart integration).
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container>true</a:container>
+                <a:since>4.11</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:AbstractActivityWorkStateType">
+                <xsd:sequence>
+                    <xsd:element name="result" type="tns:MappingsSuggestionType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Result of the operation: suggested mappings.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+    <xsd:element name="mappingsSuggestionWorkState" type="tns:MappingsSuggestionWorkStateType" />
 </xsd:schema>

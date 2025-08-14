@@ -11,6 +11,7 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.schema.processor.ResourceObjectTypeIdentification;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationKindType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultImportanceType;
@@ -48,6 +49,8 @@ public interface OperationResultBuilder {
     OperationResultBuilder addParam(String name, QName value);
 
     OperationResultBuilder addParam(String name, PolyString value);
+
+    OperationResultBuilder addParam(String name, ResourceObjectTypeIdentification value);
 
     OperationResultBuilder addParam(String name, ObjectQuery value);
 

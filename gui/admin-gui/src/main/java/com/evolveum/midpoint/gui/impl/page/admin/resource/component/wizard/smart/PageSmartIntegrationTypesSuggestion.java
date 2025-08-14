@@ -7,53 +7,46 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.smart;
 
+import static com.evolveum.midpoint.util.MiscUtil.stateNonNull;
+
 import java.io.Serial;
 import java.util.List;
 import java.util.Objects;
 
-import com.evolveum.midpoint.gui.api.model.LoadableModel;
-import com.evolveum.midpoint.prism.Containerable;
-import com.evolveum.midpoint.prism.path.ItemName;
-import com.evolveum.midpoint.prism.util.CloneUtil;
-import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
-import com.evolveum.midpoint.schema.processor.ResourceObjectTypeIdentification;
-import com.evolveum.midpoint.schema.processor.ResourceSchemaFactory;
-import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.Resource;
-import com.evolveum.midpoint.schema.util.ResourceObjectTypeDefinitionTypeUtil;
-import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SystemException;
-import com.evolveum.midpoint.web.component.input.DropDownChoicePanel;
-
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
+import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.authentication.api.authorization.AuthorizationAction;
 import com.evolveum.midpoint.authentication.api.authorization.PageDescriptor;
 import com.evolveum.midpoint.authentication.api.authorization.Url;
 import com.evolveum.midpoint.authentication.api.util.AuthConstants;
+import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.util.CloneUtil;
+import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
+import com.evolveum.midpoint.schema.processor.ResourceObjectTypeIdentification;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.AceEditor;
 import com.evolveum.midpoint.web.component.AjaxSubmitButton;
 import com.evolveum.midpoint.web.component.form.MidpointForm;
+import com.evolveum.midpoint.web.component.input.DropDownChoicePanel;
 import com.evolveum.midpoint.web.page.admin.configuration.PageAdminConfiguration;
-
-import org.jetbrains.annotations.Nullable;
-
-import static com.evolveum.midpoint.util.MiscUtil.stateNonNull;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 @PageDescriptor(
         urls = {
-                @Url(mountUrl = "/admin/config/smartIntegrationDefiningType",
-                        matchUrlForSecurity = "/admin/config/smartIntegrationDefiningType")
+                @Url(mountUrl = "/admin/config/smartIntegrationTypesSuggestion",
+                        matchUrlForSecurity = "/admin/config/smartIntegrationTypesSuggestion")
         },
         action = {
                 @AuthorizationAction(actionUri = AuthConstants.AUTH_CONFIGURATION_ALL,
@@ -73,6 +66,7 @@ public class PageSmartIntegrationTypesSuggestion extends PageAdminConfiguration 
     private static final String ID_SAVE = "save";
     private static final String ID_RESET = "reset";
     private static final String ID_NEXT = "next";
+    private static final String ID_SUGGESTION = "suggestion";
     private static final String ID_SUGGESTION_XML = "suggestionXml";
     private static final String ID_DEFINITION_XML = "definitionXml";
 
@@ -81,7 +75,7 @@ public class PageSmartIntegrationTypesSuggestion extends PageAdminConfiguration 
     private static final String OP_SUGGEST_FOCUS_TYPE = CLASS_DOT + "suggestFocusType";
     private static final String OP_SAVE_RESOURCE = CLASS_DOT + "saveResource";
 
-    private ResourceType resource;
+    private final DefinedResource definedResource;
     private final ObjectTypesSuggestionType suggestion;
 
     private final List<? extends ResourceObjectTypeIdentification> suggestedObjectTypes;
@@ -93,18 +87,18 @@ public class PageSmartIntegrationTypesSuggestion extends PageAdminConfiguration 
     private final IModel<String> definitionModel = Model.of();
 
     private PageSmartIntegrationTypesSuggestion(ResourceType resource, @Nullable ObjectTypesSuggestionType suggestion) {
-        this.resource = resource;
+        this.definedResource = new DefinedResource(resource);
         this.suggestion = Objects.requireNonNullElseGet(suggestion, ObjectTypesSuggestionType::new);
         this.suggestedObjectTypes = this.suggestion.getObjectType().stream()
                 .map(t -> ResourceObjectTypeIdentification.of(t.getIdentification()))
                 .toList();
-        this.suggestionModel = Model.of(serializeRealValue(this.suggestion, SchemaConstantsGenerated.C_OBJECT_TYPES_SUGGESTION));
+        this.suggestionModel = Model.of(Util.serializeRealValue(this.suggestion, SchemaConstantsGenerated.C_OBJECT_TYPES_SUGGESTION));
         updateDefinitionModel();
 
         definedObjectTypesModel = LoadableModel.create(
                 () -> {
                     try {
-                        return Resource.of(this.resource.asPrismObject())
+                        return definedResource.getResource()
                                 .getCompleteSchemaRequired()
                                 .getObjectTypeDefinitions()
                                 .stream()
@@ -116,18 +110,10 @@ public class PageSmartIntegrationTypesSuggestion extends PageAdminConfiguration 
                 }, true);
     }
 
-    private static String serializeRealValue(Containerable suggestion, ItemName root) {
-        try {
-            return PrismContext.get().xmlSerializer().serializeRealValue(suggestion, root);
-        } catch (SchemaException e) {
-            return "Error serializing value: " + e.getMessage();
-        }
-    }
-
     private void updateDefinitionModel() {
-        var schemaHandling = resource.getSchemaHandling();
+        var schemaHandling = definedResource.getSchemaHandling();
         if (schemaHandling != null) {
-            definitionModel.setObject(serializeRealValue(schemaHandling, ResourceType.F_SCHEMA_HANDLING));
+            definitionModel.setObject(Util.serializeRealValue(schemaHandling, ResourceType.F_SCHEMA_HANDLING));
         } else {
             definitionModel.setObject(null);
         }
@@ -150,7 +136,11 @@ public class PageSmartIntegrationTypesSuggestion extends PageAdminConfiguration 
         MidpointForm<?> mainForm = new MidpointForm<>(ID_MAIN_FORM);
         add(mainForm);
 
-        mainForm.add(new AjaxSubmitButton(ID_ACCEPT_SUGGESTION) {
+        var suggestion = new WebMarkupContainer(ID_SUGGESTION);
+        mainForm.add(suggestion);
+        suggestion.setVisible(!this.suggestion.getObjectType().isEmpty());
+
+        suggestion.add(new AjaxSubmitButton(ID_ACCEPT_SUGGESTION) {
             @Override
             public void onSubmit(AjaxRequestTarget target) {
                 var selectedTypeId = selectedSuggestionModel.getObject();
@@ -167,7 +157,14 @@ public class PageSmartIntegrationTypesSuggestion extends PageAdminConfiguration 
             }
         });
 
-        mainForm.add(new DropDownChoicePanel<>(
+        AceEditor suggestionEditor = new AceEditor(ID_SUGGESTION_XML, suggestionModel);
+        suggestionEditor.setModeForDataLanguage(PrismContext.LANG_XML);
+        suggestionEditor.setReadonly(true);
+        suggestionEditor.setHeight(400);
+        suggestionEditor.setResizeToMaxHeight(false);
+        suggestion.add(suggestionEditor);
+
+        suggestion.add(new DropDownChoicePanel<>(
                 ID_SELECTED_SUGGESTION,
                 selectedSuggestionModel,
                 Model.ofList(suggestedObjectTypes)));
@@ -185,7 +182,7 @@ public class PageSmartIntegrationTypesSuggestion extends PageAdminConfiguration 
                             var suggestedFocusType = getSmartIntegrationService().suggestFocusType(
                                     getResourceOid(), selectedTypeId, task, result);
                             var bean = stateNonNull(
-                                    findObjectTypeDefinitionBean(selectedTypeId),
+                                    definedResource.findObjectTypeDefinitionBean(selectedTypeId),
                                     "No bean found for type: %s", selectedTypeId);
                             var focus = bean.getFocus();
                             if (focus == null) {
@@ -237,20 +234,20 @@ public class PageSmartIntegrationTypesSuggestion extends PageAdminConfiguration 
         mainForm.add(new AjaxSubmitButton(ID_NEXT) {
             @Override
             public void onSubmit(AjaxRequestTarget target) {
+                var selectedTypeId = selectedObjectTypeModel.getObject();
+                if (selectedTypeId == null) {
+                    return;
+                }
                 taskAwareExecutor(target, OP_SAVE_RESOURCE)
                         .runVoid((task, result) -> {
                             saveResourceToRepositoryAndReload(task, result);
-                            target.add(PageSmartIntegrationTypesSuggestion.this);
+                            PageSmartIntegrationDefiningType.navigateTo(
+                                    PageSmartIntegrationTypesSuggestion.this,
+                                    definedResource.getResourceBean(),
+                                    selectedTypeId);
                         });
             }
         });
-
-        AceEditor suggestionEditor = new AceEditor(ID_SUGGESTION_XML, suggestionModel);
-        suggestionEditor.setModeForDataLanguage(PrismContext.LANG_XML);
-        suggestionEditor.setReadonly(true);
-        suggestionEditor.setHeight(400);
-        suggestionEditor.setResizeToMaxHeight(false);
-        mainForm.add(suggestionEditor);
 
         AceEditor definitionEditor = new AceEditor(ID_DEFINITION_XML, definitionModel);
         definitionEditor.setModeForDataLanguage(PrismContext.LANG_XML);
@@ -260,33 +257,26 @@ public class PageSmartIntegrationTypesSuggestion extends PageAdminConfiguration 
     }
 
     private void replaceObjectTypeDefinitionBySuggestedOne(ResourceObjectTypeIdentification selectedTypeId) {
-        var bean = findObjectTypeDefinitionBean(selectedTypeId);
-        if (bean != null) {
-            resource.getSchemaHandling().getObjectType().remove(bean);
-        }
-        if (resource.getSchemaHandling() == null) {
-            resource.setSchemaHandling(new SchemaHandlingType());
-        }
         var selectedTypeSuggestion = findObjectTypeSuggestion(selectedTypeId);
-        resource.getSchemaHandling().getObjectType().add(new ResourceObjectTypeDefinitionType()
+        var newDefinition = new ResourceObjectTypeDefinitionType()
                 .kind(selectedTypeSuggestion.getIdentification().getKind())
                 .intent(selectedTypeSuggestion.getIdentification().getIntent())
-                .delineation(selectedTypeSuggestion.getDelineation().clone()));
+                .delineation(selectedTypeSuggestion.getDelineation().clone());
+        definedResource.replaceObjectTypeDefinition(selectedTypeId, newDefinition);
         afterResourceChanged();
     }
 
-    /** To be called after {@link #resource} has been changed. */
+    /** To be called after {@link #definedResource} has been changed. */
     private void afterResourceChanged() {
-        ResourceSchemaFactory.deleteCachedSchemas(resource.asPrismObject());
         updateDefinitionModel();
         definedObjectTypesModel.reset();
     }
 
     private void reloadResourceFromRepository(Task task, OperationResult result) {
         try {
-            resource = getModelService()
-                    .getObject(ResourceType.class, getResourceOid(), null, task, result)
-                    .asObjectable();
+            definedResource.replace(
+                    getModelService()
+                            .getObject(ResourceType.class, getResourceOid(), null, task, result));
             afterResourceChanged();
         } catch (Exception e) {
             throw SystemException.unexpected(e);
@@ -300,7 +290,7 @@ public class PageSmartIntegrationTypesSuggestion extends PageAdminConfiguration 
                     List.of(
                             PrismContext.get().deltaFor(ResourceType.class)
                                     .item(ResourceType.F_SCHEMA_HANDLING)
-                                    .replace(CloneUtil.clone(resource.getSchemaHandling()))
+                                    .replace(CloneUtil.clone(definedResource.getSchemaHandling()))
                                     .asObjectDelta(getResourceOid())),
                     null, task, result);
             reloadResourceFromRepository(task, result);
@@ -320,28 +310,14 @@ public class PageSmartIntegrationTypesSuggestion extends PageAdminConfiguration 
         } else {
             schemaHandling = null;
         }
-        if (!Objects.equals(resource.getSchemaHandling(), schemaHandling)) {
-            resource.setSchemaHandling(schemaHandling);
+        if (!Objects.equals(definedResource.getSchemaHandling(), schemaHandling)) {
+            definedResource.setSchemaHandling(schemaHandling);
             afterResourceChanged();
         }
     }
 
-    /** Returns live (i.e. directly updatable) bean. */
-    private @Nullable ResourceObjectTypeDefinitionType findObjectTypeDefinitionBean(ResourceObjectTypeIdentification typeId) {
-        var schemaHandling = resource.getSchemaHandling();
-        if (schemaHandling == null) {
-            return null;
-        }
-        for (ResourceObjectTypeDefinitionType definitionBean : schemaHandling.getObjectType()) {
-            if (ResourceObjectTypeDefinitionTypeUtil.matches(definitionBean, typeId.getKind(), typeId.getIntent())) {
-                return definitionBean;
-            }
-        }
-        return null;
-    }
-
     private String getResourceOid() {
-        return resource.getOid();
+        return definedResource.getOid();
     }
 
     /**

@@ -15,11 +15,11 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.statistics.AbstractStatisticsPrinter;
-import com.evolveum.midpoint.smart.api.info.ObjectClassInfoPrinter;
-import com.evolveum.midpoint.smart.api.info.ObjectClassInfo;
 import com.evolveum.midpoint.schema.util.Resource;
 import com.evolveum.midpoint.schema.util.ShadowObjectClassStatisticsTypeUtil;
 import com.evolveum.midpoint.smart.api.SmartIntegrationService;
+import com.evolveum.midpoint.smart.api.info.ObjectClassInfo;
+import com.evolveum.midpoint.smart.api.info.ObjectClassInfoPrinter;
 import com.evolveum.midpoint.smart.api.info.ObjectTypesSuggestionStatusInfoPrinter;
 import com.evolveum.midpoint.smart.api.info.StatusInfo;
 import com.evolveum.midpoint.task.api.Task;
@@ -27,6 +27,7 @@ import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectTypesSuggestionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 
 public class RealResourceStatus implements ResourceStatus {
@@ -85,14 +86,16 @@ public class RealResourceStatus implements ResourceStatus {
     }
 
     @Override
-    public String getSuggestedObjectClassName() {
-        for (ObjectClassInfo objectClassInfo : getClassesSortedByRelevance()) {
-            if (!objectClassInfo.objectTypes().isEmpty()) {
-                continue; // not suggesting those that are already defined
-            }
-            return objectClassInfo.getObjectClassName().getLocalPart();
-        }
-        return "";
+    public ObjectClassInfo getSuggestedObjectClassInfo() {
+        return getClassesSortedByRelevance().stream()
+                .filter(i -> i.objectTypes().isEmpty()) // we want to suggest a class that has no types defined yet
+                .findFirst()
+                .orElse(null);
+    }
+
+    @Override
+    public List<ObjectClassInfo> getObjectClassInfos() {
+        return getClassesSortedByRelevance();
     }
 
     @Override
@@ -104,20 +107,27 @@ public class RealResourceStatus implements ResourceStatus {
     }
 
     @Override
-    public String getObjectTypesSuggestionToExplore() {
-        for (var status : statuses) {
-            if (status.status() != OperationResultStatus.SUCCESS) {
-                continue; // not suggesting those that are not successful
-            }
+    public StatusInfo<ObjectTypesSuggestionType> getObjectTypesSuggestionToExplore() {
+        for (var status : getSuccessfulStatuses()) {
             var objectClass = status.getObjectClassName();
-            if (objectClass != null) { // should always be non-null, but just in case
-                if (!objectClassInfoMap.get(objectClass).objectTypes().isEmpty()) {
-                    continue; // not suggesting those that are already defined
-                }
+            if (objectClass == null || objectClassInfoMap.get(objectClass).objectTypes().isEmpty()) {
+                return status;
+            } else {
+                // not suggesting those that are already defined
             }
-            return status.token();
         }
-        return "";
+        return null;
+    }
+
+    private List<StatusInfo<ObjectTypesSuggestionType>> getSuccessfulStatuses() {
+        return statuses.stream()
+                .filter(s -> s.getStatus() == OperationResultStatusType.SUCCESS)
+                .toList();
+    }
+
+    @Override
+    public List<StatusInfo<ObjectTypesSuggestionType>> getObjectTypesSuggestions() {
+        return getSuccessfulStatuses();
     }
 
     @Override
@@ -131,8 +141,8 @@ public class RealResourceStatus implements ResourceStatus {
 
     ObjectTypesSuggestionType getObjectTypesSuggestion(String token) {
         return statuses.stream()
-                .filter(s -> s.token().equals(token))
-                .map(i -> i.result())
+                .filter(s -> s.getToken().equals(token))
+                .map(i -> i.getResult())
                 .filter(Objects::nonNull)
                 .findFirst()
                 .orElseThrow(() -> new IllegalArgumentException("No suggestion with token " + token));

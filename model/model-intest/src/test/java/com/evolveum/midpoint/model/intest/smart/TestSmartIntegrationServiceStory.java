@@ -12,6 +12,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static com.evolveum.midpoint.test.util.MidPointTestConstants.TEST_RESOURCES_PATH;
 
 import java.io.File;
+import java.time.ZonedDateTime;
 import java.util.List;
 import javax.xml.namespace.QName;
 
@@ -59,10 +60,12 @@ public class TestSmartIntegrationServiceStory extends AbstractEmptyModelIntegrat
     private static final ResourceObjectTypeIdentification HR_DEPARTMENT =
             ResourceObjectTypeIdentification.of(ShadowKindType.GENERIC, "department");
 
+    private static DummyHrScenario hrScenario;
+
     private static final DummyTestResource RESOURCE_DUMMY_HR = new DummyTestResource(
             TEST_DIR, "resource-dummy-hr.xml", "8185c3f1-032e-400b-ac3e-ece3ee801326",
             "hr",
-            c -> DummyHrScenario.on(c).initialize());
+            c -> hrScenario = DummyHrScenario.on(c).initialize());
 
     private static final DummyTestResource RESOURCE_DUMMY_DIRECTORY = new DummyTestResource(
             TEST_DIR, "resource-dummy-directory.xml", "c7c97e57-4485-41b7-a23d-c441bbb0c395",
@@ -78,13 +81,76 @@ public class TestSmartIntegrationServiceStory extends AbstractEmptyModelIntegrat
 
         initAndTestDummyResource(RESOURCE_DUMMY_HR, initTask, initResult);
         initAndTestDummyResource(RESOURCE_DUMMY_DIRECTORY, initTask, initResult);
+
+        createHrAccounts();
+        createHrDepartments();
+    }
+
+    private void createHrAccounts() throws Exception {
+        hrScenario.person.add("10000001")
+                .addAttributeValues(DummyHrScenario.Person.AttributeNames.FULLNAME.local(), "Jack Sparrow")
+                .addAttributeValues(DummyHrScenario.Person.AttributeNames.FIRSTNAME.local(), "Jack")
+                .addAttributeValues(DummyHrScenario.Person.AttributeNames.LASTNAME.local(), "Sparrow")
+                .addAttributeValues(DummyHrScenario.Person.AttributeNames.EMAIL.local(), "jack@evolveum.com")
+                .addAttributeValues(DummyHrScenario.Person.AttributeNames.STATUS.local(), "active")
+                .addAttributeValues(DummyHrScenario.Person.AttributeNames.TYPE.local(), "e") // e = employee
+                .addAttributeValues(DummyHrScenario.Person.AttributeNames.PHONE.local(), "+420601040027");
+
+        hrScenario.person.add("10000002")
+                .addAttributeValues(DummyHrScenario.Person.AttributeNames.FULLNAME.local(), "Jim Hacker")
+                .addAttributeValues(DummyHrScenario.Person.AttributeNames.FIRSTNAME.local(), "Jim")
+                .addAttributeValues(DummyHrScenario.Person.AttributeNames.LASTNAME.local(), "Hacker")
+                .addAttributeValues(DummyHrScenario.Person.AttributeNames.EMAIL.local(), "jim@evolveum.com")
+                .addAttributeValues(DummyHrScenario.Person.AttributeNames.STATUS.local(), "inactive");
+
+        hrScenario.person.add("10000003")
+                .addAttributeValues(DummyHrScenario.Person.AttributeNames.FULLNAME.local(), "Alice Wonderland")
+                .addAttributeValues(DummyHrScenario.Person.AttributeNames.FIRSTNAME.local(), "Alice")
+                .addAttributeValues(DummyHrScenario.Person.AttributeNames.LASTNAME.local(), "Wonderland")
+                .addAttributeValues(DummyHrScenario.Person.AttributeNames.EMAIL.local(), "alice@evolveum.com")
+                .addAttributeValues(DummyHrScenario.Person.AttributeNames.PHONE.local(), "+421900111222")
+                .addAttributeValues(DummyHrScenario.Person.AttributeNames.STATUS.local(), "active")
+                .addAttributeValues(DummyHrScenario.Person.AttributeNames.TYPE.local(), "e");
+                //.addAttributeValues(DummyHrScenario.Person.AttributeNames.DEPARTMENT.local(), "HR");
+
+        hrScenario.person.add("10000004")
+                .addAttributeValues(DummyHrScenario.Person.AttributeNames.FULLNAME.local(), "Bob Builder")
+                .addAttributeValues(DummyHrScenario.Person.AttributeNames.FIRSTNAME.local(), "Bob")
+                .addAttributeValues(DummyHrScenario.Person.AttributeNames.LASTNAME.local(), "Builder")
+                .addAttributeValues(DummyHrScenario.Person.AttributeNames.EMAIL.local(), "bob@evolveum.com")
+                .addAttributeValues(DummyHrScenario.Person.AttributeNames.PHONE.local(), "+421900333444")
+                .addAttributeValues(DummyHrScenario.Person.AttributeNames.STATUS.local(), "inactive")
+                .addAttributeValues(DummyHrScenario.Person.AttributeNames.TYPE.local(), "c"); // c = contractor
+                //.addAttributeValues(DummyHrScenario.Person.AttributeNames.DEPARTMENT.local(), "Engineering");
+
+        hrScenario.person.add("10000005")
+                .addAttributeValues(DummyHrScenario.Person.AttributeNames.FULLNAME.local(), "Eve Adams")
+                .addAttributeValues(DummyHrScenario.Person.AttributeNames.FIRSTNAME.local(), "Eve")
+                .addAttributeValues(DummyHrScenario.Person.AttributeNames.LASTNAME.local(), "Adams")
+                .addAttributeValues(DummyHrScenario.Person.AttributeNames.EMAIL.local(), "eve@evolveum.com")
+                .addAttributeValues(DummyHrScenario.Person.AttributeNames.STATUS.local(), "locked")
+                .addAttributeValues(DummyHrScenario.Person.AttributeNames.TYPE.local(), "e")
+                .addAttributeValue(DummyHrScenario.Person.AttributeNames.VALID_FROM.local(), ZonedDateTime.parse("2023-09-01T12:00:00Z"));
+    }
+
+    private void createHrDepartments() throws Exception {
+        hrScenario.department.add("1001")
+                .addAttributeValue(DummyHrScenario.Department.AttributeNames.NAME.local(), "Engineering");
+        hrScenario.department.add("1002")
+                .addAttributeValue(DummyHrScenario.Department.AttributeNames.NAME.local(), "Marketing");
+        hrScenario.department.add("1003")
+                .addAttributeValue(DummyHrScenario.Department.AttributeNames.NAME.local(), "Sales");
+        hrScenario.department.add("1004")
+                .addAttributeValue(DummyHrScenario.Department.AttributeNames.NAME.local(), "Manufacturing");
+        hrScenario.department.add("9999")
+                .addAttributeValue(DummyHrScenario.Department.AttributeNames.NAME.local(), "HQ");
     }
 
     /** Obtains suggestions for object types for HR persons. */
     @Test
     public void test100SuggestObjectTypesForHrPerson() throws CommonException {
         smartIntegrationService.setServiceClientSupplier(
-                () -> new MockServiceClientImpl<>(
+                () -> new MockServiceClientImpl(
                         new SiSuggestObjectTypesResponseType()
                                 .objectType(new SiSuggestedObjectTypeType()
                                         .kind(HR_PERSON.getKind().value())
@@ -124,7 +190,7 @@ public class TestSmartIntegrationServiceStory extends AbstractEmptyModelIntegrat
     @Test
     public void test110SuggestObjectTypesForHrDepartments() throws CommonException {
         smartIntegrationService.setServiceClientSupplier(
-                () -> new MockServiceClientImpl<>(
+                () -> new MockServiceClientImpl(
                         new SiSuggestObjectTypesResponseType()
                                 .objectType(new SiSuggestedObjectTypeType()
                                         .kind(HR_DEPARTMENT.getKind().value())
@@ -190,9 +256,9 @@ public class TestSmartIntegrationServiceStory extends AbstractEmptyModelIntegrat
 
         when("suggesting focus type for HR person object type");
         smartIntegrationService.setServiceClientSupplier(
-                () -> new MockServiceClientImpl<>(
+                () -> new MockServiceClientImpl(
                         new SiSuggestFocusTypeResponseType()
-                                .focusTypeName(UserType.COMPLEX_TYPE.getLocalPart())));
+                                .focusTypeName(UserType.COMPLEX_TYPE)));
         var focusTypeForPerson = smartIntegrationService.suggestFocusType(RESOURCE_DUMMY_HR.oid, HR_PERSON, task, result);
 
         then("the focus type for person is correct");
@@ -202,9 +268,9 @@ public class TestSmartIntegrationServiceStory extends AbstractEmptyModelIntegrat
 
         when("suggesting focus type for HR department object type");
         smartIntegrationService.setServiceClientSupplier(
-                () -> new MockServiceClientImpl<>(
+                () -> new MockServiceClientImpl(
                         new SiSuggestFocusTypeResponseType()
-                                .focusTypeName(OrgType.COMPLEX_TYPE.getLocalPart())));
+                                .focusTypeName(OrgType.COMPLEX_TYPE)));
         var focusTypeForDepartment = smartIntegrationService.suggestFocusType(RESOURCE_DUMMY_HR.oid, HR_DEPARTMENT, task, result);
 
         then("the focus type for person is correct");

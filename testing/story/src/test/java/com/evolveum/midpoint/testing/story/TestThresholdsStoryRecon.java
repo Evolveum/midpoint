@@ -48,7 +48,6 @@ public abstract class TestThresholdsStoryRecon extends TestThresholdsStory {
                             path,
                             task,
                             AbstractActivityWorkStateType.COMPLEX_TYPE,
-                            commonTaskBeans,
                             result));
         } catch (Exception e) {
             return List.of();

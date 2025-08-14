@@ -8,6 +8,7 @@
 package com.evolveum.midpoint.repo.common.activity.run;
 
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
+import com.evolveum.midpoint.repo.common.activity.ActivityInterruptedException;
 import com.evolveum.midpoint.repo.common.activity.definition.WorkDefinition;
 import com.evolveum.midpoint.repo.common.activity.handlers.ActivityHandler;
 import com.evolveum.midpoint.repo.common.activity.run.state.ActivityState;
@@ -23,7 +24,6 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractActivityWorkStateType;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ExecutionModeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultStatusType;
 
@@ -97,6 +97,9 @@ public abstract class LocalActivityRun<
             runningTask.setExcludedFromStalenessChecking(isExcludedFromStalenessChecking());
             runningTask.setExecutionMode(getTaskExecutionMode());
             runResult = runLocally(localResult);
+        } catch (ActivityInterruptedException e) {
+            localResult.recordException(e); // TODO reconsider if it's ok to write WARNING as status?
+            runResult = ActivityRunResult.interrupted();
         } catch (Exception e) {
             runResult = ActivityRunResult.handleException(e, localResult, this); // sets the local result status
         } finally {
@@ -191,7 +194,7 @@ public abstract class LocalActivityRun<
     }
 
     protected abstract @NotNull ActivityRunResult runLocally(OperationResult result)
-            throws ActivityRunException, CommonException;
+            throws ActivityRunException, CommonException, ActivityInterruptedException;
 
     /**
      * Fails if running within a worker task. (Currently this mode is not supported e.g. for composite activities.)
@@ -227,16 +230,11 @@ public abstract class LocalActivityRun<
 
     public boolean shouldUpdateProgressInStateOverview() {
         var mode = getActivity().getReportingDefinition().getStateOverviewProgressUpdateMode();
-        switch (mode) {
-            case ALWAYS:
-                return true;
-            case NEVER:
-                return false;
-            case FOR_NON_LOCAL_ACTIVITIES:
-                return !getRunningTask().isRoot();
-            default:
-                throw new AssertionError(mode);
-        }
+        return switch (mode) {
+            case ALWAYS -> true;
+            case NEVER -> false;
+            case FOR_NON_LOCAL_ACTIVITIES -> !getRunningTask().isRoot();
+        };
     }
 
     /**

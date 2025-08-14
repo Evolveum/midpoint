@@ -298,6 +298,11 @@ public class ResourceAttributeWrapperImpl<T> extends PrismPropertyWrapperImpl<T>
     }
 
     @Override
+    public String getNativeDescription() {
+        return getRefinedAttributeDefinition().getNativeDescription();
+    }
+
+    @Override
     public String getNativeAttributeName() {
         return getRefinedAttributeDefinition().getNativeAttributeName();
     }
