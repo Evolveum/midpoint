@@ -15,7 +15,7 @@ import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.impl.component.action.AbstractGuiAction;
 import com.evolveum.midpoint.gui.impl.component.action.ActionsPanel;
-import com.evolveum.midpoint.gui.impl.component.data.column.CompositedIconWithLabelPanel;
+import com.evolveum.midpoint.gui.impl.component.data.column.icon.CompositedIconWithLabelPanel;
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIcon;
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
 import com.evolveum.midpoint.gui.impl.component.icon.IconCssStyle;
@@ -41,7 +41,6 @@ import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.request.resource.IResource;
-import org.checkerframework.checker.units.qual.C;
 
 import java.io.Serial;
 import java.util.ArrayList;

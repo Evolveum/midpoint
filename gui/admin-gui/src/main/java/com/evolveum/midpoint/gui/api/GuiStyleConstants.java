@@ -95,6 +95,9 @@ public class GuiStyleConstants {
 
     public static final String CLASS_REPORT_ICON = "fa fa-chart-pie";
 
+    public static final String CLASS_OBJECT_APPLICATION_ICON = "fa fa-desktop";
+    public static final String CLASS_OBJECT_APPLICATION_ICON_COLORED = CLASS_OBJECT_APPLICATION_ICON + " object-application-color";
+
     public static final String CLASS_ICON_STYLE = "icon-style-";  //some icon styles start with this string
     public static final String CLASS_ICON_STYLE_NORMAL = "icon-style-normal";
     public static final String CLASS_ICON_STYLE_DISABLED = "icon-style-disabled";

@@ -10,6 +10,8 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.impl.page.admin.application.PageApplication;
+import com.evolveum.midpoint.gui.impl.page.admin.application.PageApplications;
 import com.evolveum.midpoint.gui.impl.page.admin.archetype.PageArchetype;
 import com.evolveum.midpoint.gui.impl.page.admin.messagetemplate.PageMessageTemplate;
 import com.evolveum.midpoint.gui.impl.page.admin.messagetemplate.PageMessageTemplates;
@@ -66,7 +68,8 @@ public enum PageTypes {
     MARK("marks", GuiStyleConstants.CLASS_MARK, PageMarks.class, PageMark.class, MarkType.COMPLEX_TYPE),
     SCHEMA("schemas", GuiStyleConstants.CLASS_ICON_RESOURCE_SCHEMA, PageSchemas.class, PageSchema.class, SchemaType.COMPLEX_TYPE),
     ACCESS_CERT_ITEM_TYPE("certItems", GuiStyleConstants.CLASS_OBJECT_CERT_CAMPAIGN_ICON, PageCertDecisions.class, null, AccessCertificationWorkItemType.COMPLEX_TYPE),
-    ANALYTICS("analytics", GuiStyleConstants.CLASS_SIMULATION_RESULT, PageRoleAnalysis.class, PageRoleAnalysis.class, RoleAnalysisSessionType.COMPLEX_TYPE);
+    ANALYTICS("analytics", GuiStyleConstants.CLASS_SIMULATION_RESULT, PageRoleAnalysis.class, PageRoleAnalysis.class, RoleAnalysisSessionType.COMPLEX_TYPE),
+    APPLICATION("applications", GuiStyleConstants.CLASS_OBJECT_APPLICATION_ICON, PageApplications.class, PageApplication.class, ApplicationType.COMPLEX_TYPE);
 
 
     private String identifier;

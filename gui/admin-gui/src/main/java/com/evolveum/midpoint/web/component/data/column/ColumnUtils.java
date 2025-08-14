@@ -24,7 +24,8 @@ import com.evolveum.midpoint.gui.api.model.ReadOnlyModel;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.api.util.*;
 import com.evolveum.midpoint.gui.impl.component.data.column.*;
-import com.evolveum.midpoint.gui.impl.page.admin.certification.PageCertCampaign;
+import com.evolveum.midpoint.gui.impl.component.data.column.icon.CompositedIconColumn;
+import com.evolveum.midpoint.gui.impl.component.data.column.icon.CompositedIconWithLabelColumn;
 import com.evolveum.midpoint.gui.impl.page.admin.certification.PageMyCertItems;
 import com.evolveum.midpoint.gui.impl.page.admin.certification.component.CampaignActionButton;
 import com.evolveum.midpoint.gui.impl.util.DetailsPageUtil;
@@ -215,6 +216,8 @@ public class ColumnUtils {
             return IconAndStylesUtil.createDefaultIcon(object.asPrismObject());
         } else if (type.equals(UserType.class)) {
             return IconAndStylesUtil.createUserIcon(object.asPrismContainer());
+        } else if (ApplicationType.class.equals(type)) {
+            return IconAndStylesUtil.createApplicationIcon();
         } else if (RoleType.class.equals(type)) {
             return IconAndStylesUtil.createRoleIcon(object.asPrismContainer());
         } else if (OrgType.class.equals(type)) {

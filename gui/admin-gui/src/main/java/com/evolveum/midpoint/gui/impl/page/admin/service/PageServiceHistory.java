@@ -6,6 +6,8 @@
  */
 package com.evolveum.midpoint.gui.impl.page.admin.service;
 
+import com.evolveum.midpoint.gui.impl.page.admin.abstractrole.AbstractRoleDetailsModel;
+
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 
@@ -55,8 +57,8 @@ public class PageServiceHistory extends PageService {
     }
 
     @Override
-    protected FocusDetailsModels<ServiceType> createObjectDetailsModels(PrismObject<ServiceType> object) {
-        return new FocusDetailsModels<>(createPrismObjectModel(getReconstructedObject()),true, this);
+    protected AbstractRoleDetailsModel<ServiceType> createObjectDetailsModels(PrismObject<ServiceType> object) {
+        return new AbstractRoleDetailsModel<>(createPrismObjectModel(getReconstructedObject()),true, this);
     }
 
     @Override

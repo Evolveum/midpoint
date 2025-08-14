@@ -14,6 +14,8 @@ import java.util.List;
 import java.util.Map;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.impl.page.admin.application.PageApplication;
+import com.evolveum.midpoint.gui.impl.page.admin.application.PageApplications;
 import com.evolveum.midpoint.gui.impl.page.admin.policy.PagePolicies;
 import com.evolveum.midpoint.gui.impl.page.admin.policy.PagePolicy;
 import com.evolveum.midpoint.gui.impl.page.admin.policy.PagePolicyHistory;
@@ -88,6 +90,7 @@ public final class DetailsPageUtil {
     static {
         OBJECT_DETAILS_PAGE_MAP = new HashMap<>();
         DetailsPageUtil.OBJECT_DETAILS_PAGE_MAP.put(UserType.class, PageUser.class);
+        DetailsPageUtil.OBJECT_DETAILS_PAGE_MAP.put(ApplicationType.class, PageApplication.class);
         DetailsPageUtil.OBJECT_DETAILS_PAGE_MAP.put(OrgType.class, PageOrg.class);
         DetailsPageUtil.OBJECT_DETAILS_PAGE_MAP.put(RoleType.class, PageRole.class);
         DetailsPageUtil.OBJECT_DETAILS_PAGE_MAP.put(ServiceType.class, PageService.class);
@@ -121,6 +124,7 @@ public final class DetailsPageUtil {
         DetailsPageUtil.OBJECT_LIST_PAGE_MAP.put(RoleType.class, PageRoles.class);
         DetailsPageUtil.OBJECT_LIST_PAGE_MAP.put(ServiceType.class, PageServices.class);
         DetailsPageUtil.OBJECT_LIST_PAGE_MAP.put(PolicyType.class, PagePolicies.class);
+        DetailsPageUtil.OBJECT_LIST_PAGE_MAP.put(ApplicationType.class, PageApplications.class);
         DetailsPageUtil.OBJECT_LIST_PAGE_MAP.put(ResourceType.class, PageResources.class);
         DetailsPageUtil.OBJECT_LIST_PAGE_MAP.put(TaskType.class, PageTasks.class);
         DetailsPageUtil.OBJECT_LIST_PAGE_MAP.put(PageMessageTemplate.class, PageMessageTemplates.class);

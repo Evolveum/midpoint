@@ -100,11 +100,6 @@ public class PageRole extends PageAbstractRole<RoleType, AbstractRoleDetailsMode
     }
 
     @Override
-    protected AbstractRoleDetailsModel<RoleType> createObjectDetailsModels(PrismObject<RoleType> object) {
-        return new AbstractRoleDetailsModel<>(createPrismObjectModel(object), this);
-    }
-
-    @Override
     protected void postProcessModel(AbstractRoleDetailsModel<RoleType> objectDetailsModels) {
         if (patternDeltas != null && !patternDeltas.getUserMembers().isEmpty()) {
             objectDetailsModels.setPatternDeltas(patternDeltas);

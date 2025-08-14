@@ -133,6 +133,10 @@ public enum ObjectTypes {
             SchemaType.COMPLEX_TYPE, SchemaConstantsGenerated.C_SCHEMA, SchemaType.class,
             ObjectManager.MODEL, "schemas"),
 
+    APPLICATION(
+            ApplicationType.COMPLEX_TYPE, SchemaConstantsGenerated.C_APPLICATION, ApplicationType.class,
+            ObjectManager.MODEL, "applications"),
+
     // this should be at end, because otherwise it presents itself as entry for all subtypes of ObjectType
     OBJECT(SchemaConstants.C_OBJECT_TYPE, SchemaConstants.C_OBJECT, ObjectType.class, ObjectManager.MODEL, "objects");
 

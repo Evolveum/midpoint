@@ -187,15 +187,7 @@ public class BusinessRoleWizardPanel extends AbstractWizardPanel<RoleType, Abstr
         });
     }
 
-    private void onFinishBasicWizardPerformed(AjaxRequestTarget target) {
-        OperationResult result = onSavePerformed(target);
-        if (!result.isError()) {
-//            WebComponentUtil.createToastForCreateObject(target, RoleType.COMPLEX_TYPE);
-            exitToPreview(target);
-        }
-    }
-
-    private void exitToPreview(AjaxRequestTarget target) {
+    protected void exitToPreview(AjaxRequestTarget target) {
         showChoiceFragment(
                 target,
                 new RoleWizardChoicePanel<>(getIdOfChoicePanel(), getHelper().getDetailsModel(), PreviewTileType.class) {

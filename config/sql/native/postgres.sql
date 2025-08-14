@@ -62,6 +62,7 @@ CREATE TYPE ObjectType AS ENUM (
     'ABSTRACT_ROLE',
     'ACCESS_CERTIFICATION_CAMPAIGN',
     'ACCESS_CERTIFICATION_DEFINITION',
+    'APPLICATION',
     'ARCHETYPE',
     'ASSIGNMENT_HOLDER',
     'CASE',
@@ -727,7 +728,7 @@ CREATE INDEX m_role_createTimestamp_idx ON m_role (createTimestamp);
 CREATE INDEX m_role_modifyTimestamp_idx ON m_role (modifyTimestamp);
 
 
--- Represents PolicyType, see https://docs.evolveum.com/midpoint/architecture/archive/data-model/midpoint-common-schema/policytype/
+-- Represents PolicyType
 CREATE TABLE m_policy (
     oid UUID NOT NULL PRIMARY KEY REFERENCES m_object_oid(oid),
     objectType ObjectType GENERATED ALWAYS AS ('POLICY') STORED
@@ -751,6 +752,32 @@ CREATE INDEX m_policy_validTo_idx ON m_policy (validTo);
 CREATE INDEX m_policy_fullTextInfo_idx ON m_policy USING gin(fullTextInfo gin_trgm_ops);
 CREATE INDEX m_policy_createTimestamp_idx ON m_policy (createTimestamp);
 CREATE INDEX m_policy_modifyTimestamp_idx ON m_policy (modifyTimestamp);
+
+
+-- Represents ApplicationType
+CREATE TABLE m_application (
+    oid UUID NOT NULL PRIMARY KEY REFERENCES m_object_oid(oid),
+    objectType ObjectType GENERATED ALWAYS AS ('APPLICATION') STORED
+        CHECK (objectType = 'APPLICATION')
+)
+    INHERITS (m_abstract_role);
+
+CREATE TRIGGER m_application_oid_insert_tr BEFORE INSERT ON m_application
+    FOR EACH ROW EXECUTE FUNCTION insert_object_oid();
+CREATE TRIGGER m_application_update_tr BEFORE UPDATE ON m_application
+    FOR EACH ROW EXECUTE FUNCTION before_update_object();
+CREATE TRIGGER m_application_oid_delete_tr AFTER DELETE ON m_application
+    FOR EACH ROW EXECUTE FUNCTION delete_object_oid();
+
+CREATE INDEX m_application_nameOrig_idx ON m_application (nameOrig);
+CREATE UNIQUE INDEX m_application_nameNorm_key ON m_application (nameNorm);
+CREATE INDEX m_application_subtypes_idx ON m_application USING gin(subtypes);
+CREATE INDEX m_application_identifier_idx ON m_application (identifier);
+CREATE INDEX m_application_validFrom_idx ON m_application (validFrom);
+CREATE INDEX m_application_validTo_idx ON m_application (validTo);
+CREATE INDEX m_application_fullTextInfo_idx ON m_application USING gin(fullTextInfo gin_trgm_ops);
+CREATE INDEX m_application_createTimestamp_idx ON m_application (createTimestamp);
+CREATE INDEX m_application_modifyTimestamp_idx ON m_application (modifyTimestamp);
 
 
 
@@ -2645,4 +2672,4 @@ END $$;
 -- This is important to avoid applying any change more than once.
 -- Also update SqaleUtils.CURRENT_SCHEMA_CHANGE_NUMBER
 -- repo/repo-sqale/src/main/java/com/evolveum/midpoint/repo/sqale/SqaleUtils.java
-call apply_change(51, $$ SELECT 1 $$, true);
+call apply_change(53, $$ SELECT 1 $$, true);

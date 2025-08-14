@@ -66,14 +66,14 @@ public class ApplicationRoleWizardPanel extends AbstractWizardPanel<RoleType, Fo
         return steps;
     }
 
-    private void onFinishBasicWizardPerformed(AjaxRequestTarget target) {
+    protected void onFinishBasicWizardPerformed(AjaxRequestTarget target) {
         OperationResult result = onSavePerformed(target);
         if (!result.isError()) {
             exitToPreview(target);
         }
     }
 
-    private void exitToPreview(AjaxRequestTarget target) {
+    protected void exitToPreview(AjaxRequestTarget target) {
         getPageBase().getPageParameters().remove(WizardModel.PARAM_STEP);
         showChoiceFragment(
                 target,

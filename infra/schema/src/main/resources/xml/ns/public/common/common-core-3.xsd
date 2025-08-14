@@ -3967,6 +3967,19 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>
+            <xsd:enumeration value="application">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Application, which is a new object in midPoint,
+                        representing an integrated/used application in the environment
+                        with configured business attributes such as application owner,
+                        level of approval, etc.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="APPLICATION"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
             <xsd:enumeration value="policyThreshold">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -8998,6 +9011,29 @@
         </xsd:complexContent>
     </xsd:complexType>
     <xsd:element name="role" type="tns:RoleType" substitutionGroup="tns:object"/>
+
+    <xsd:complexType name="ApplicationType">
+        <xsd:annotation>
+            <xsd:documentation>
+                <p>
+                    Application, which is a new object in midPoint,
+                    representing an integrated/used application in the environment
+                    with configured business attributes such as application owner,
+                    level of approval, etc.
+                </p>
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:since>4.11</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:AbstractRoleType">
+                <xsd:sequence>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+    <xsd:element name="application" type="tns:ApplicationType" substitutionGroup="tns:object"/>
 
     <xsd:complexType name="PolicyType">
         <xsd:annotation>

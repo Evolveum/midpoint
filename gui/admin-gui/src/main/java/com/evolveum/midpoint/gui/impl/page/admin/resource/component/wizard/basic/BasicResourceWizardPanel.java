@@ -88,7 +88,7 @@ public class BasicResourceWizardPanel extends AbstractWizardPanel<ResourceType, 
 
     private List<WizardStep> createBasicSteps() {
         List<WizardStep> steps = new ArrayList<>();
-        steps.add(new BasicInformationStepPanel(getAssignmentHolderModel()) {
+        steps.add(new BasicInformationResourceStepPanel(getAssignmentHolderModel()) {
 
             @Override
             public boolean onBackPerformed(AjaxRequestTarget target) {

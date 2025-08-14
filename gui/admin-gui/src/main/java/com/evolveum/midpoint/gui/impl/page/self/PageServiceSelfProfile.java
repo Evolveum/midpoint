@@ -6,6 +6,7 @@
  */
 package com.evolveum.midpoint.gui.impl.page.self;
 
+import com.evolveum.midpoint.gui.impl.page.admin.abstractrole.AbstractRoleDetailsModel;
 import com.evolveum.midpoint.gui.impl.page.admin.focus.FocusDetailsModels;
 import com.evolveum.midpoint.gui.impl.page.admin.service.PageService;
 
@@ -54,8 +55,8 @@ public class PageServiceSelfProfile extends PageService {
     }
 
     @Override
-    protected FocusDetailsModels<ServiceType> createObjectDetailsModels(PrismObject<ServiceType> object) {
-        FocusDetailsModels<ServiceType> serviceDetailsModel = super.createObjectDetailsModels(object);
+    protected AbstractRoleDetailsModel<ServiceType> createObjectDetailsModels(PrismObject<ServiceType> object) {
+        AbstractRoleDetailsModel<ServiceType> serviceDetailsModel = super.createObjectDetailsModels(object);
         serviceDetailsModel.setSelfProfile(true);
         return serviceDetailsModel;
     }
