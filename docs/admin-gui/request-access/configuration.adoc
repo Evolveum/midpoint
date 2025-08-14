@@ -114,6 +114,18 @@ Up to 3 levels of org. structure will be shown as menus/submenus.
 |
 |Role collection view defines structure that should be shown in request access UI wizard - in role catalog step.
 It will represent new menu item with list of roles defined by collectionRef or collection identifier (e.g. allOrgs, allServices).
+
+|viewConfiguration
+|GuiObjectListViewType
+|
+|Specification of an object collection that will be used for data presentation in the role catalog
+(for all available collection views including Roles of teammate and Role catalog organization tree).
+Role catalog has several sources of the object collection configuration (e.g.
+`collectionRef` or `viewConfiguration`), it's possible to
+prioritize the configuration of the current collection (taken from Object collection object
+referenced in `collectionRef`) by setting `preferCollectionView` to true. If it is not specified,
+the default false value is used, which means that `viewConfiguration` configuration will
+be used if it is defined.
 |===
 
 == Shopping cart
@@ -232,7 +244,27 @@ It will represent new menu item with list of roles defined by collectionRef or c
         <collection>
             <identifier>mid roles</identifier>
             <collectionRef oid="5c12258a-7f1d-43bc-8f40-9993df476bb5" type="c:ObjectCollectionType"/>
+            <preferCollectionView>true</preferCollectionView>
         </collection>
+        <viewConfiguration xsi:type="GuiObjectListViewType">
+            <identifier>role-catalog-view</identifier>
+            <column>
+                <name>nameColumn</name>
+                <c:path>name</c:path>
+                <display>
+                    <label>My Custom Name</label>
+                    <cssStyle>min-width:350px;</cssStyle>
+                </display>
+            </column>
+            <column>
+                <name>descriptionColumn</name>
+                <c:path>description</c:path>
+                <display>
+                    <label>My Custom Description</label>
+                    <cssStyle>min-width:550px;</cssStyle>
+                </display>
+            </column>
+        </viewConfiguration>
     </roleCatalog>
     <checkout>
         <!-- custom validity duration was created -->
