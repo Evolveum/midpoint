@@ -116,7 +116,7 @@ public class SmartIntegrationUtils {
      * Retrieves the latest available object types suggestion for a given object class.
      * Returns {@code null} if there are no suggestions.
      */
-    public static @Nullable StatusInfo<ObjectTypesSuggestionType> loadObjectClassSuggestions(
+    public static @Nullable StatusInfo<ObjectTypesSuggestionType> loadObjectClassObjectTypeSuggestions(
             @NotNull PageBase pageBase,
             @NotNull String resourceOid,
             @NotNull QName objectClassName,
@@ -128,7 +128,6 @@ public class SmartIntegrationUtils {
             result.recordWarning("Unexpected resource status type: " + rs.getClass().getSimpleName());
             return null;
         }
-
         List<StatusInfo<ObjectTypesSuggestionType>> suggestions = real.getObjectTypesSuggestions(objectClassName);
         if (suggestions == null || suggestions.isEmpty()) {
             // Nothing yet for this object class
@@ -137,6 +136,24 @@ public class SmartIntegrationUtils {
 
         // Pick the entry with the most recent 'started' timestamp (handles nulls).
         return findLatestSuggestion(suggestions);
+    }
+
+    public static @Nullable List<StatusInfo<ObjectTypesSuggestionType>> loadObjectTypeSuggestions(
+            @NotNull PageBase pageBase,
+            @NotNull String resourceOid,
+            @NotNull Task task,
+            @NotNull OperationResult result) {
+
+        ResourceStatus rs = loadStatus(pageBase, resourceOid, task);
+        if (!(rs instanceof RealResourceStatus real)) {
+            result.recordWarning("Unexpected resource status type: " + rs.getClass().getSimpleName());
+            return null;
+        }
+        List<StatusInfo<ObjectTypesSuggestionType>> suggestions = real.getObjectTypesSuggestions();
+        if (suggestions == null || suggestions.isEmpty()) {
+            return null;
+        }
+        return suggestions;
     }
 
     /**
@@ -226,7 +243,7 @@ public class SmartIntegrationUtils {
             @NotNull String operationName,
             @NotNull Task task) {
         OperationResult opResult = task.getResult();
-        StatusInfo<ObjectTypesSuggestionType> suggestions = loadObjectClassSuggestions(
+        StatusInfo<ObjectTypesSuggestionType> suggestions = loadObjectClassObjectTypeSuggestions(
                 pageBase, resourceOid, objectClassName, task, opResult);
 
         boolean executeTaskAction = suggestions == null;

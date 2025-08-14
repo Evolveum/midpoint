@@ -24,6 +24,7 @@ import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.markup.repeater.RepeatingView;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.Model;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.Serial;
@@ -89,6 +90,10 @@ public class SmartGeneratingPanel extends BasePanel<SmartGeneratingDto> {
                 if (dto.isFinished() || dto.isFailed()) {
                     stop(target);
                 }
+
+                if (dto.isFinished() && !dto.isFailed()) {
+                    onFinishActionPerform(target);
+                }
                 target.add(container);
             }
         });
@@ -131,6 +136,31 @@ public class SmartGeneratingPanel extends BasePanel<SmartGeneratingDto> {
     //TODO: we dont wanna access task in gui (need to be moved to service layer)
     protected void createButtons(@NotNull RepeatingView buttonsView) {
 
+        initRunInBackgroundButton(buttonsView);
+        initActionButton(buttonsView);
+    }
+
+    private void initRunInBackgroundButton(@NotNull RepeatingView buttonsView) {
+        AjaxIconButton runInBackgroundButton = new AjaxIconButton(
+                buttonsView.newChildId(),
+                Model.of("fa fa-gears"),
+                getRunInBackgroundButtonLabel()) {
+
+            @Serial private static final long serialVersionUID = 1L;
+
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                onRunInBackgroundPerform(target);
+            }
+        };
+
+        runInBackgroundButton.setOutputMarkupId(true);
+        runInBackgroundButton.showTitleAsLabel(true);
+        runInBackgroundButton.add(AttributeModifier.append("class", "btn btn-default"));
+        buttonsView.add(runInBackgroundButton);
+    }
+
+    private void initActionButton(@NotNull RepeatingView buttonsView) {
         AjaxIconButton actionButton = new AjaxIconButton(
                 buttonsView.newChildId(),
                 () -> {
@@ -157,16 +187,16 @@ public class SmartGeneratingPanel extends BasePanel<SmartGeneratingDto> {
                     TaskExecutionStateType executionState = dto.getTaskExecutionState();
                     switch (executionState) {
                         case RUNNING, RUNNABLE, WAITING -> {
-                            return "suspend";
+                            return createStringResource("SmartGeneratingPanel.button.suspend").getString();
                         }
                         case SUSPENDED -> {
-                            return "resume";
+                            return createStringResource("SmartGeneratingPanel.button.resume").getString();
                         }
                         case CLOSED -> {
-                            return "Already finished";
+                            return createStringResource("SmartGeneratingPanel.button.closed").getString();
                         }
                         default -> {
-                            return "unknown";
+                            return createStringResource("SmartGeneratingPanel.button.unknown").getString();
                         }
                     }
                 }) {
@@ -184,8 +214,7 @@ public class SmartGeneratingPanel extends BasePanel<SmartGeneratingDto> {
                 switch (executionState) {
                     case RUNNING, RUNNABLE, WAITING ->
                             TaskOperationUtils.suspendTasks(Collections.singletonList(taskObject), getPageBase());
-                    case SUSPENDED ->
-                            TaskOperationUtils.resumeTasks(Collections.singletonList(taskObject), getPageBase());
+                    case SUSPENDED -> TaskOperationUtils.resumeTasks(Collections.singletonList(taskObject), getPageBase());
                     default -> {
                         return;
                     }
@@ -204,7 +233,20 @@ public class SmartGeneratingPanel extends BasePanel<SmartGeneratingDto> {
 
         actionButton.setOutputMarkupId(true);
         actionButton.showTitleAsLabel(true);
+        actionButton.add(AttributeModifier.append("class", "btn btn-link"));
         buttonsView.add(actionButton);
     }
 
+    protected void onFinishActionPerform(AjaxRequestTarget target) {
+        // Override this method to perform an action when the generation succeeds.
+    }
+
+    protected void onRunInBackgroundPerform(AjaxRequestTarget target) {
+        // Override this method to perform an action when the back button is clicked.
+        // The default implementation does nothing.
+    }
+
+    protected IModel<String> getRunInBackgroundButtonLabel() {
+        return createStringResource("SmartGeneratingPanel.button.runInBackground");
+    }
 }

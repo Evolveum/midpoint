@@ -92,7 +92,18 @@ public abstract class ResourceGeneratingSuggestionObjectClassWizardPanel<C exten
             String token = latest.getToken();
             PrismObject<TaskType> taskTypePrismObject = WebModelServiceUtils.loadObject(TaskType.class, token, getPageBase(), task, result);
             return new SmartGeneratingDto(() -> elapsed, () -> rows, () -> latest, () -> taskTypePrismObject);
-        });
+        }) {
+            @Override
+            protected void onFinishActionPerform(AjaxRequestTarget target) {
+                onSubmitPerformed(target);
+            }
+
+            @Override
+            protected void onRunInBackgroundPerform(AjaxRequestTarget target) {
+                onExitPerformed(target);
+            }
+
+        };
     }
 
     /** Builds display rows depending on the suggestion status. */
@@ -109,7 +120,6 @@ public abstract class ResourceGeneratingSuggestionObjectClassWizardPanel<C exten
         }
 
         ActivityProgressInformation progressInformation = suggestion.getProgressInformation();
-
 
         List<ActivityProgressInformation> children = progressInformation.getChildren();
         for (ActivityProgressInformation child : children) {
@@ -131,7 +141,7 @@ public abstract class ResourceGeneratingSuggestionObjectClassWizardPanel<C exten
         var result = task.getResult();
         var resourceOid = getAssignmentHolderDetailsModel().getObjectType().getOid();
 
-        return SmartIntegrationUtils.loadObjectClassSuggestions(pageBase, resourceOid, objectClassName, task, result);
+        return SmartIntegrationUtils.loadObjectClassObjectTypeSuggestions(pageBase, resourceOid, objectClassName, task, result);
     }
 
     @Override
@@ -140,13 +150,13 @@ public abstract class ResourceGeneratingSuggestionObjectClassWizardPanel<C exten
     }
 
     @Override
-    protected String getSaveLabelKey() {
-        return "ResourceGeneratingSuggestionObjectClassWizardPanel.continue";
+    protected boolean isSubmitButtonVisible() {
+        return false;
     }
 
     @Override
-    protected boolean isSubmitButtonVisible() {
-        return super.isSubmitButtonVisible();
+    protected boolean isExitButtonVisible() {
+        return false;
     }
 
     protected abstract void onContinueWithSelected(AjaxRequestTarget target);

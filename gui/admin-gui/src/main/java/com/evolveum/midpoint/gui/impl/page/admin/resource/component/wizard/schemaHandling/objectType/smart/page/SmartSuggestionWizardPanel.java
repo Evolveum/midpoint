@@ -12,6 +12,8 @@ import com.evolveum.midpoint.gui.impl.component.wizard.AbstractWizardPanel;
 import com.evolveum.midpoint.gui.impl.component.wizard.WizardPanelHelper;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
 import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.smart.api.info.StatusInfo;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
@@ -24,6 +26,7 @@ import org.jetbrains.annotations.NotNull;
 
 import javax.xml.namespace.QName;
 
+import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationUtils.loadObjectClassObjectTypeSuggestions;
 import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationUtils.runSuggestionAction;
 
 public class SmartSuggestionWizardPanel<C extends ResourceObjectTypeDefinitionType, P extends Containerable> extends AbstractWizardPanel<P, ResourceDetailsModel> {
@@ -43,6 +46,7 @@ public class SmartSuggestionWizardPanel<C extends ResourceObjectTypeDefinitionTy
     protected ResourceObjectClassTableWizardPanel<ResourceObjectTypeDefinitionType, P> createTablePanel(String idOfChoicePanel) {
         return new ResourceObjectClassTableWizardPanel<>(idOfChoicePanel, getHelper()) {
 
+
             @Override
             protected void onContinueWithSelected(IModel<PrismContainerValueWrapper<ComplexTypeDefinitionType>> model, AjaxRequestTarget target) {
                 PrismContainerValueWrapper<ComplexTypeDefinitionType> object = model.getObject();
@@ -52,22 +56,27 @@ public class SmartSuggestionWizardPanel<C extends ResourceObjectTypeDefinitionTy
                 var resourceOid = getAssignmentHolderModel().getObjectType().getOid();
 
                 Task task = getPageBase().createSimpleTask(OP_DETERMINE_STATUS);
-                boolean executed = runSuggestionAction(getPageBase(), resourceOid, objectClassName, target, OP_DEFINE_TYPES, task);
+                OperationResult result = task.getResult();
+                StatusInfo<ObjectTypesSuggestionType> suggestions = loadObjectClassObjectTypeSuggestions(
+                        getPageBase(), resourceOid, objectClassName, task, result);
 
-                showChoiceFragment(target, buildGeneratingWizardPanel(getIdOfChoicePanel(), objectClassName));
+                if (suggestions != null && suggestions.getStatus() == OperationResultStatusType.SUCCESS) {
+                    showChoiceFragment(target, buildSelectSuggestedObjectTypeWizardPanel(getIdOfChoicePanel(), objectClassName));
+                } else {
+                    boolean executed = runSuggestionAction(getPageBase(), resourceOid, objectClassName, target, OP_DEFINE_TYPES, task);
+                    showChoiceFragment(target, buildGeneratingWizardPanel(getIdOfChoicePanel(), objectClassName));
+                }
             }
 
         };
     }
 
+
+
     @Contract("_, _ -> new")
     private @NotNull ResourceGeneratingSuggestionObjectClassWizardPanel<ResourceObjectTypeDefinitionType, P> buildGeneratingWizardPanel(
             @NotNull String idOfChoicePanel, QName objectClassName) {
         return new ResourceGeneratingSuggestionObjectClassWizardPanel<>(idOfChoicePanel, getHelper(), objectClassName) {
-            @Override
-            protected boolean isBackButtonVisible() {
-                return true;
-            }
 
             @Override
             protected IModel<String> getBackLabel() {
