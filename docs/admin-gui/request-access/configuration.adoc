@@ -75,6 +75,7 @@ Relations are computed as combination of predefined ones (`#default`, `#member`,
 
 == Role catalog
 
+.Role catalog type description
 [options="header", cols=4]
 |===
 |Element
@@ -126,6 +127,45 @@ prioritize the configuration of the current collection (taken from Object collec
 referenced in `collectionRef`) by setting `preferCollectionView` to true. If it is not specified,
 the default false value is used, which means that `viewConfiguration` configuration will
 be used if it is defined.
+|===
+
+.Role collection view type description
+[options="header", cols=4]
+|===
+|Element
+|Type
+|Default value
+|Description
+
+|identifier
+|String
+|
+|The local identifier of the collection.
+
+|default
+|boolean
+|false
+|If set to true, the collection (the appropriate menu item on the Role catalog panel) will be selected as a default one.
+
+|collectionIdentifier
+|String
+|
+|The identifier of the collection which points to a specific collection which will be displayed on the Role catalog panel (e.g. "allRoles", "allServices", "allOrgs").
+
+|collectionRef
+|ObjectReferenceType
+|
+|Reference to the Object Collection object which contains additional configuration for the Role catalog collection (e.g. filter or defaultView are taken from Object collection object to be applied to the Role catalog collection).
+
+|preferCollectionView
+|boolean
+|false
+|If set to true, then the configuration of the defaultView taken from Object collection referenced object is prioritized towards viewConfiguration from RoleCatalogType.
+
+|details
+|ContainerPanelConfigurationType
+|
+|Configuration to be applied to the role catalog item details panel
 |===
 
 == Shopping cart
