@@ -24,6 +24,8 @@ import com.evolveum.midpoint.prism.PrismContainerValue;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
+import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.panel.Panel;
@@ -59,6 +61,8 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.breadcrumbs.Breadcrumb;
 import com.evolveum.midpoint.web.page.admin.resources.ResourceSummaryPanel;
+
+import org.jetbrains.annotations.NotNull;
 
 @PageDescriptor(
         urls = {
@@ -166,7 +170,6 @@ public class PageResource extends PageAssignmentHolderDetails<ResourceType, Reso
                                 ResourceObjectTypeDefinitionType.F_MARKING,
                                 ShadowMarkingConfigurationType.F_MARK_REF)).resolve();
 
-
         if (useNoFetchOption()) {
             builder.noFetch();
         }
@@ -215,7 +218,7 @@ public class PageResource extends PageAssignmentHolderDetails<ResourceType, Reso
     }
 
     public void showSuggestObjectTypeWizard(AjaxRequestTarget target, ItemPath pathToValue) {
-        showContainerWizardForObjectType(target, pathToValue, SmartSuggestionWizardPanel.class);
+        showContainerWizardForObjectTypeSuggestion(target, pathToValue, SmartSuggestionWizardPanel.class);
     }
 
     public void showAttributeMappingWizard(AjaxRequestTarget target, ItemPath pathToValue) {
@@ -274,27 +277,43 @@ public class PageResource extends PageAssignmentHolderDetails<ResourceType, Reso
     private <P extends AbstractWizardPanel> P showContainerWizardForObjectType(
             AjaxRequestTarget target, ItemPath pathToValue, Class<P> wizardClass) {
         P wizardPanel = (P) showWizard(target, pathToValue, wizardClass);
-        addWizardBreadcrumbsForObjectType(wizardPanel);
+        addWizardBreadcrumbsForObjectType(wizardPanel, 0);
+        return wizardPanel;
+    }
+
+    private <P extends AbstractWizardPanel> P showContainerWizardForObjectTypeSuggestion(
+            AjaxRequestTarget target, ItemPath pathToValue, Class<P> wizardClass) {
+        P wizardPanel = (P) showWizard(target, pathToValue, wizardClass);
+        addWizardBreadcrumbsForObjectTypeSuggestion(wizardPanel);
         return wizardPanel;
     }
 
     private <C extends Containerable> void addWizardBreadcrumbsForObjectType(
-            AbstractWizardPanel<C, ResourceDetailsModel> wizardPanel) {
+            @NotNull AbstractWizardPanel<C, ResourceDetailsModel> wizardPanel, int index) {
         List<Breadcrumb> breadcrumbs = getWizardBreadcrumbs();
         Containerable containerable = wizardPanel.getValueModel().getObject().getRealValue();
         String displayName = "";
-        if (containerable instanceof ResourceObjectTypeDefinitionType) {
-            ResourceObjectTypeDefinitionType objectType = (ResourceObjectTypeDefinitionType) containerable;
+        if (containerable instanceof ResourceObjectTypeDefinitionType objectType) {
             displayName = GuiDisplayNameUtil.getDisplayName(objectType);
-            IModel<String> breadcrumbLabelModel = Model.of(displayName);
 
-            breadcrumbs.add(0, new Breadcrumb(breadcrumbLabelModel));
         } else if (containerable != null) {
-            displayName = GuiDisplayNameUtil.getDisplayName(containerable.asPrismContainerValue());
+            PrismContainerValue<?> prismContainerValue = containerable.asPrismContainerValue();
+            displayName = GuiDisplayNameUtil.getDisplayName(prismContainerValue);
         }
-        IModel<String> breadcrumbLabelModel = Model.of(displayName);
 
-        breadcrumbs.add(0, new Breadcrumb(breadcrumbLabelModel));
+        IModel<String> breadcrumbLabelModel = Model.of(displayName);
+        breadcrumbs.add(index, new Breadcrumb(breadcrumbLabelModel));
+    }
+
+    private <C extends Containerable> void addWizardBreadcrumbsForObjectTypeSuggestion(
+            @NotNull AbstractWizardPanel<C, ResourceDetailsModel> wizardPanel) {
+        List<Breadcrumb> breadcrumbs = getWizardBreadcrumbs();
+        PolyStringType resourceName = wizardPanel.getAssignmentHolderModel().getObjectType().getName();
+        IModel<String> breadcrumbLabel = resourceName != null
+                ? Model.of(resourceName.getOrig())
+                : createStringResource("PageResource.resource.breadcrumb");
+        breadcrumbs.add(0, new Breadcrumb(breadcrumbLabel));
+        addWizardBreadcrumbsForObjectType(wizardPanel, 1);
     }
 
     private void addWizardBreadcrumbsForAssociationType(ShadowAssociationTypeDefinitionType association, String mappingDirection) {
