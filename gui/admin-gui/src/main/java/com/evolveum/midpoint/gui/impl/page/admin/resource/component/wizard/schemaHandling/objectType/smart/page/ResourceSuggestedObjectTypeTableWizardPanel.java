@@ -44,7 +44,7 @@ import com.evolveum.midpoint.web.application.PanelType;
 import javax.xml.namespace.QName;
 import java.util.List;
 
-import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationUtils.loadObjectClassSuggestions;
+import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationUtils.loadObjectClassObjectTypeSuggestions;
 
 @PanelType(name = "rw-suggested-object-type")
 @PanelInstance(identifier = "w-suggested-object-type",
@@ -95,7 +95,7 @@ public abstract class ResourceSuggestedObjectTypeTableWizardPanel<C extends Reso
 
                 ResourceType resource = getAssignmentHolderDetailsModel().getObjectType();
 
-                StatusInfo<ObjectTypesSuggestionType> statusInfo = loadObjectClassSuggestions(getPageBase(),
+                StatusInfo<ObjectTypesSuggestionType> statusInfo = loadObjectClassObjectTypeSuggestions(getPageBase(),
                         resource.getOid(),
                         selectedObjectClassName,
                         task,
