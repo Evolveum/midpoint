@@ -180,9 +180,12 @@ public abstract class SingleSelectTileTablePanel<O extends SelectableRow, T exte
 
     void onSelectTableRow(IModel<O> model, AjaxRequestTarget target) {
         boolean oldState = model.getObject().isSelected();
-        ((SelectableBeanDataProvider) getProvider()).clearSelectedObjects();
 
-        model.getObject().setSelected(!oldState);
+        if (getProvider() instanceof SelectableBeanDataProvider<?>) {
+            ((SelectableBeanDataProvider<?>) getProvider()).clearSelectedObjects();
+            model.getObject().setSelected(!oldState);
+        }
+
         refresh(target);
     }
 
