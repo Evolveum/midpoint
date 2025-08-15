@@ -58,7 +58,7 @@ public abstract class ResourceSuggestedObjectTypeTableWizardPanel<C extends Reso
     private static final String OP_DETERMINE_STATUS =
             ResourceSuggestedObjectTypeTableWizardPanel.class.getName() + ".determineStatus";
 
-    IModel<PrismContainerValueWrapper<ObjectTypeSuggestionType>> selectedModel = Model.of();
+    IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> selectedModel = Model.of();
     QName selectedObjectClassName;
 
     public ResourceSuggestedObjectTypeTableWizardPanel(
@@ -76,8 +76,8 @@ public abstract class ResourceSuggestedObjectTypeTableWizardPanel<C extends Reso
     }
 
     private void initLayout() {
-        LoadableModel<List<PrismContainerValueWrapper<ObjectTypeSuggestionType>>> suggestionModel = createPrismContainerValueWrapperModel();
-        SmartObjectTypeSuggestionTable<PrismContainerValueWrapper<ObjectTypeSuggestionType>> smartObjectTypeSuggestionTable = new SmartObjectTypeSuggestionTable<>(
+        LoadableModel<List<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>>> suggestionModel = createPrismContainerValueWrapperModel();
+        SmartObjectTypeSuggestionTable<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> smartObjectTypeSuggestionTable = new SmartObjectTypeSuggestionTable<>(
                 ID_PANEL,
                 UserProfileStorage.TableId.PANEL_RESOURCE_OBJECT_TYPES_SUGGESTIONS,
                 suggestionModel,
@@ -86,10 +86,10 @@ public abstract class ResourceSuggestedObjectTypeTableWizardPanel<C extends Reso
         add(smartObjectTypeSuggestionTable);
     }
 
-    private @NotNull LoadableModel<List<PrismContainerValueWrapper<ObjectTypeSuggestionType>>> createPrismContainerValueWrapperModel() {
+    private @NotNull LoadableModel<List<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>>> createPrismContainerValueWrapperModel() {
         return new LoadableModel<>() {
             @Override
-            protected List<PrismContainerValueWrapper<ObjectTypeSuggestionType>> load() {
+            protected List<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> load() {
                 Task task = getPageBase().createSimpleTask(OP_DETERMINE_STATUS);
                 OperationResult result = task.getResult();
 
@@ -113,13 +113,13 @@ public abstract class ResourceSuggestedObjectTypeTableWizardPanel<C extends Reso
                     return List.of();
                 }
 
-                PrismContainerWrapper<ObjectTypeSuggestionType> itemWrapper;
+                PrismContainerWrapper<ResourceObjectTypeDefinitionType> itemWrapper;
                 try {
                     @SuppressWarnings("unchecked")
-                    PrismContainerValue<ObjectTypeSuggestionType> prismContainerValue = objectTypeSuggestionResult
+                    PrismContainerValue<ResourceObjectTypeDefinitionType> prismContainerValue = objectTypeSuggestionResult
                             .asPrismContainerValue();
 
-                    PrismContainer<ObjectTypeSuggestionType> container = prismContainerValue
+                    PrismContainer<ResourceObjectTypeDefinitionType> container = prismContainerValue
                             .findContainer(ObjectTypesSuggestionType.F_OBJECT_TYPE);
                     itemWrapper = getPageBase().createItemWrapper(
                             container, ItemStatus.NOT_CHANGED, new WrapperContext(task, result));
@@ -133,8 +133,8 @@ public abstract class ResourceSuggestedObjectTypeTableWizardPanel<C extends Reso
 
     @Override
     protected void onSubmitPerformed(AjaxRequestTarget target) {
-        PrismContainerValueWrapper<ObjectTypeSuggestionType> selected = selectedModel.getObject();
-        if (selected == null || selected.getRealValue() == null || selected.getRealValue().getIdentification() == null) {
+        PrismContainerValueWrapper<ResourceObjectTypeDefinitionType> selected = selectedModel.getObject();
+        if (selected == null || selected.getRealValue() == null) {
             getPageBase().warn(getPageBase().createStringResource("Smart.suggestion.noSelection")
                     .getString());
             target.add(getPageBase().getFeedbackPanel());
@@ -142,9 +142,8 @@ public abstract class ResourceSuggestedObjectTypeTableWizardPanel<C extends Reso
         }
 
         var suggestion = selected.getRealValue();
-        var id = suggestion.getIdentification();
-        var kind = id.getKind();
-        var intent = id.getIntent();
+        var kind = suggestion.getKind();
+        var intent = suggestion.getIntent();
         ResourceObjectTypeDelineationType delineation = suggestion.getDelineation();
 
         if (kind == null || intent == null || intent.isBlank()) {
@@ -189,7 +188,7 @@ public abstract class ResourceSuggestedObjectTypeTableWizardPanel<C extends Reso
     }
 
     protected abstract void onContinueWithSelected(
-            IModel<PrismContainerValueWrapper<ObjectTypeSuggestionType>> model,
+            IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> model,
             @NotNull PrismContainerValue<ResourceObjectTypeDefinitionType> newValue,
             @NotNull IModel<PrismContainerWrapper<ResourceObjectTypeDefinitionType>> containerModel,
             @NotNull AjaxRequestTarget target);

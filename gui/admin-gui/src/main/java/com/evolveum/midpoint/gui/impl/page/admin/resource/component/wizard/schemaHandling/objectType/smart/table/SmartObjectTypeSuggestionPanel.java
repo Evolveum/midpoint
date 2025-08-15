@@ -12,7 +12,8 @@ import com.evolveum.midpoint.gui.impl.prism.panel.PrismPropertyValuePanel;
 import com.evolveum.midpoint.web.component.AjaxIconButton;
 import com.evolveum.midpoint.web.component.data.column.AjaxLinkPanel;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectTypeSuggestionType;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectTypeDefinitionType;
 
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -34,7 +35,7 @@ import java.util.List;
 import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.RoleAnalysisWebUtils.CLASS_CSS;
 import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.RoleAnalysisWebUtils.STYLE_CSS;
 
-public class SmartObjectTypeSuggestionPanel<C extends PrismContainerValueWrapper<ObjectTypeSuggestionType>>
+public class SmartObjectTypeSuggestionPanel<C extends PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>>
         extends TemplateTilePanel<C, SmartObjectTypeSuggestionTileModel<C>> {
 
     @Serial private static final long serialVersionUID = 1L;
@@ -51,13 +52,13 @@ public class SmartObjectTypeSuggestionPanel<C extends PrismContainerValueWrapper
 
     private static final String ID_TOGGLE_ICON = "toggleIcon";
 
-    IModel<PrismContainerValueWrapper<ObjectTypeSuggestionType>> selectedTileModel;
+    IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> selectedTileModel;
 
     boolean isFilterVisible = false;
 
     public SmartObjectTypeSuggestionPanel(@NotNull String id,
-                                          @NotNull IModel<SmartObjectTypeSuggestionTileModel<C>> model,
-                                          @NotNull IModel<PrismContainerValueWrapper<ObjectTypeSuggestionType>> selectedTileModel) {
+            @NotNull IModel<SmartObjectTypeSuggestionTileModel<C>> model,
+            @NotNull IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> selectedTileModel) {
         super(id, model);
         this.selectedTileModel = selectedTileModel;
     }
@@ -178,8 +179,8 @@ public class SmartObjectTypeSuggestionPanel<C extends PrismContainerValueWrapper
     }
 
     private void applySelectionStyling() {
-        PrismContainerValueWrapper<ObjectTypeSuggestionType> selectedValue = selectedTileModel.getObject();
-        PrismContainerValueWrapper<ObjectTypeSuggestionType> tileValue = getModelObject().getValue();
+        PrismContainerValueWrapper<ResourceObjectTypeDefinitionType> selectedValue = selectedTileModel.getObject();
+        PrismContainerValueWrapper<ResourceObjectTypeDefinitionType> tileValue = getModelObject().getValue();
 
         if (selectedValue == null || tileValue == null) {
             return;
@@ -191,8 +192,8 @@ public class SmartObjectTypeSuggestionPanel<C extends PrismContainerValueWrapper
     }
 
     private void selectIfNoneSelected() {
-        PrismContainerValueWrapper<ObjectTypeSuggestionType> currentSelection = selectedTileModel.getObject();
-        PrismContainerValueWrapper<ObjectTypeSuggestionType> thisTile = getModelObject().getValue();
+        PrismContainerValueWrapper<ResourceObjectTypeDefinitionType> currentSelection = selectedTileModel.getObject();
+        PrismContainerValueWrapper<ResourceObjectTypeDefinitionType> thisTile = getModelObject().getValue();
 
         if (currentSelection == null && thisTile != null) {
             selectedTileModel.setObject(thisTile);

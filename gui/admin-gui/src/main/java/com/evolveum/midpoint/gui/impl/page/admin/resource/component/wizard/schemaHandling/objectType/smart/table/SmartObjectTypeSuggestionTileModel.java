@@ -17,9 +17,8 @@ import com.evolveum.midpoint.gui.impl.prism.wrapper.PrismPropertyValueWrapper;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectTypeSuggestionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectTypeDefinitionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectTypeDelineationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectTypeIdentificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
 import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 
@@ -33,7 +32,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
-public class SmartObjectTypeSuggestionTileModel<T extends PrismContainerValueWrapper<ObjectTypeSuggestionType>> extends TemplateTile<T> {
+public class SmartObjectTypeSuggestionTileModel<T extends PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> extends TemplateTile<T> {
 
     private String icon;
     private String name;
@@ -47,7 +46,7 @@ public class SmartObjectTypeSuggestionTileModel<T extends PrismContainerValueWra
         super(valueWrapper);
 
         setValue(valueWrapper);
-        ObjectTypeSuggestionType suggestion = valueWrapper.getRealValue();
+        ResourceObjectTypeDefinitionType suggestion = valueWrapper.getRealValue();
 
         this.icon = GuiStyleConstants.CLASS_ICON_OUTLIER;
         this.description = "TODO: e.g. account for services and applications"; //TODO replace when you have real copy
@@ -57,8 +56,8 @@ public class SmartObjectTypeSuggestionTileModel<T extends PrismContainerValueWra
         SearchFilterType searchFilterType = filter1.get(0);
 
         this.filter = buildFilterString(suggestion.getDelineation());
-        this.kind = suggestion.getIdentification() != null ? suggestion.getIdentification().getKind().value() : null;
-        this.intent = suggestion.getIdentification() != null ? suggestion.getIdentification().getIntent() : null;
+        this.kind = suggestion.getKind().value();
+        this.intent = suggestion.getIntent();
         this.name = deriveTitle();
     }
 
@@ -81,21 +80,18 @@ public class SmartObjectTypeSuggestionTileModel<T extends PrismContainerValueWra
     }
 
     protected List<IModel<String>> buildChipsData(PageBase pageBase) {
-        ObjectTypeSuggestionType value = getValue().getRealValue();
+        ResourceObjectTypeDefinitionType value = getValue().getRealValue();
         if (value == null) {
             return Collections.emptyList();
         }
 
         var chips = new ArrayList<IModel<String>>();
 
-        ResourceObjectTypeIdentificationType id = value.getIdentification();
-        if (id != null) {
-            ShadowKindType kind = id.getKind();
-            if (kind != null) {
-                addChip(pageBase, chips, SmartObjectTypeSuggestionTileModel.Keys.KIND, kind.value());
-            }
-            addChip(pageBase, chips, SmartObjectTypeSuggestionTileModel.Keys.INTENT, id.getIntent());
+        ShadowKindType kind = value.getKind();
+        if (kind != null) {
+            addChip(pageBase, chips, Keys.KIND, kind.value());
         }
+        addChip(pageBase, chips, Keys.INTENT, value.getIntent());
 
         ResourceObjectTypeDelineationType del = value.getDelineation();
         if (del != null && del.getObjectClass() != null) {
@@ -179,15 +175,14 @@ public class SmartObjectTypeSuggestionTileModel<T extends PrismContainerValueWra
         this.kind = kind;
     }
 
-    public ObjectTypeSuggestionType getObjectTypeSuggestion() {
+    public ResourceObjectTypeDefinitionType getObjectTypeSuggestion() {
         return getValue().getRealValue();
     }
-
 
     public PrismPropertyValueWrapper<Object> getFilterPropertyValueWrapper() {
         try {
             PrismContainerValueWrapper<Containerable> containerValue =
-                    getValue().findContainerValue(ObjectTypeSuggestionType.F_DELINEATION);
+                    getValue().findContainerValue(ResourceObjectTypeDefinitionType.F_DELINEATION);
             if (containerValue == null) {
                 return null;
             }

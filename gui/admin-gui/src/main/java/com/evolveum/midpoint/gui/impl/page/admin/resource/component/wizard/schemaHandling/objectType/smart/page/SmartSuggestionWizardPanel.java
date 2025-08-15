@@ -103,7 +103,7 @@ public class SmartSuggestionWizardPanel<C extends ResourceObjectTypeDefinitionTy
 
             @Override
             protected void onContinueWithSelected(
-                    IModel<PrismContainerValueWrapper<ObjectTypeSuggestionType>> model,
+                    IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> model,
                     @NotNull PrismContainerValue<ResourceObjectTypeDefinitionType> newValue,
                     @NotNull IModel<PrismContainerWrapper<ResourceObjectTypeDefinitionType>> containerModel,
                     @NotNull AjaxRequestTarget target) {

@@ -113,10 +113,10 @@ public class ResourceObjectTypesPanel extends SchemaHandlingObjectsPanel<Resourc
                 objectTypeSuggestionResult = statusInfo.getResult();
             }
 
-            List<ObjectTypeSuggestionType> suggestedObjectType = objectTypeSuggestionResult.getObjectType();
+            List<ResourceObjectTypeDefinitionType> suggestedObjectType = objectTypeSuggestionResult.getObjectType();
 
             if (suggestedObjectType.isEmpty()) {
-                suggestedObjectType.add(new ObjectTypeSuggestionType());
+                suggestedObjectType.add(new ResourceObjectTypeDefinitionType());
             }
 
             PrismContainerWrapper<ResourceObjectTypeDefinitionType> itemWrapper;

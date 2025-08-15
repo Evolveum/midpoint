@@ -15,7 +15,8 @@ import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.security.MidPointAuthWebSession;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectTypeSuggestionType;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectTypeDefinitionType;
 
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
@@ -35,7 +36,7 @@ import java.io.Serial;
 import java.util.Iterator;
 import java.util.List;
 
-public class SmartObjectTypeSuggestionTable<O extends PrismContainerValueWrapper<ObjectTypeSuggestionType>> extends SingleSelectContainerTileTablePanel<ObjectTypeSuggestionType> {
+public class SmartObjectTypeSuggestionTable<O extends PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> extends SingleSelectContainerTileTablePanel<ResourceObjectTypeDefinitionType> {
 
     protected static final String ID_TILES_RADIO_FRAGMENT = "tilesRadioFragment";
     protected static final String ID_TILES_RADIO_FORM = "tileForm";
@@ -46,13 +47,13 @@ public class SmartObjectTypeSuggestionTable<O extends PrismContainerValueWrapper
 
     private static final int MAX_TILE_COUNT = 6;
 
-    IModel<PrismContainerValueWrapper<ObjectTypeSuggestionType>> selectedTileModel;
+    IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> selectedTileModel;
 
     public SmartObjectTypeSuggestionTable(
             @NotNull String id,
             @NotNull UserProfileStorage.TableId tableId,
-            @NotNull IModel<List<PrismContainerValueWrapper<ObjectTypeSuggestionType>>> model,
-            @NotNull IModel<PrismContainerValueWrapper<ObjectTypeSuggestionType>> selectedModel) {
+            @NotNull IModel<List<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>>> model,
+            @NotNull IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> selectedModel) {
         super(id, tableId, model);
         this.selectedTileModel = selectedModel;
         setDefaultPagingSize(tableId);
@@ -61,18 +62,18 @@ public class SmartObjectTypeSuggestionTable<O extends PrismContainerValueWrapper
     @Override
     protected WebMarkupContainer createTilesContainer(
             String idTilesContainer,
-            ISortableDataProvider<PrismContainerValueWrapper<ObjectTypeSuggestionType>, String> provider,
+            ISortableDataProvider<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>, String> provider,
             UserProfileStorage.TableId tableId) {
         Fragment tilesFragment = new Fragment(idTilesContainer, ID_TILES_RADIO_FRAGMENT, this);
         tilesFragment.add(AttributeModifier.replace("class", getTileContainerCssClass()));
 
         initializeSelectedTile(provider);
 
-        PageableListView<TemplateTile<PrismContainerValueWrapper<ObjectTypeSuggestionType>>,
-                PrismContainerValueWrapper<ObjectTypeSuggestionType>> tiles = createTilesPanel(ID_TILES, provider);
+        PageableListView<TemplateTile<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>>,
+                PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> tiles = createTilesPanel(ID_TILES, provider);
         tiles.setOutputMarkupId(true);
 
-        RadioGroup<PrismContainerValueWrapper<ObjectTypeSuggestionType>> radioGroup = new RadioGroup<>(
+        RadioGroup<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> radioGroup = new RadioGroup<>(
                 ID_TILES_RADIO, getSelectedTileModel());
         radioGroup.add(new AjaxFormChoiceComponentUpdatingBehavior() {
             @Override
@@ -93,7 +94,7 @@ public class SmartObjectTypeSuggestionTable<O extends PrismContainerValueWrapper
     }
 
     private void initializeSelectedTile(
-            @NotNull ISortableDataProvider<PrismContainerValueWrapper<ObjectTypeSuggestionType>, String> provider) {
+            @NotNull ISortableDataProvider<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>, String> provider) {
         if (selectedTileModel.getObject() != null) {
             return;
         }
@@ -101,7 +102,7 @@ public class SmartObjectTypeSuggestionTable<O extends PrismContainerValueWrapper
         if (def != null && def.getObject() != null) {
             selectedTileModel.setObject(def.getObject());
         } else {
-            Iterator<? extends PrismContainerValueWrapper<ObjectTypeSuggestionType>> it = provider.iterator(0, 1);
+            Iterator<? extends PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> it = provider.iterator(0, 1);
             if (it.hasNext()) {
                 selectedTileModel.setObject(it.next());
             }
@@ -110,18 +111,18 @@ public class SmartObjectTypeSuggestionTable<O extends PrismContainerValueWrapper
 
     @Override
     protected Class<? extends Containerable> getType() {
-        return ObjectTypeSuggestionType.class;
+        return ResourceObjectTypeDefinitionType.class;
     }
 
     @Override
-    protected TemplateTile<PrismContainerValueWrapper<ObjectTypeSuggestionType>> createTileObject(
-            PrismContainerValueWrapper<ObjectTypeSuggestionType> object) {
+    protected TemplateTile<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> createTileObject(
+            PrismContainerValueWrapper<ResourceObjectTypeDefinitionType> object) {
         return new SmartObjectTypeSuggestionTileModel<>(object);
     }
 
     @SuppressWarnings({ "rawtypes", "unchecked" })
     @Override
-    protected Component createTile(String id, IModel<TemplateTile<PrismContainerValueWrapper<ObjectTypeSuggestionType>>> model) {
+    protected Component createTile(String id, IModel<TemplateTile<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>>> model) {
         return new SmartObjectTypeSuggestionPanel(id, model, selectedTileModel) {
             @Serial private static final long serialVersionUID = 1L;
 
@@ -146,7 +147,7 @@ public class SmartObjectTypeSuggestionTable<O extends PrismContainerValueWrapper
         return header;
     }
 
-    private IModel<PrismContainerValueWrapper<ObjectTypeSuggestionType>> getSelectedTileModel() {
+    private IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> getSelectedTileModel() {
         return selectedTileModel;
     }
 
@@ -155,16 +156,16 @@ public class SmartObjectTypeSuggestionTable<O extends PrismContainerValueWrapper
     }
 
     protected void onRadioTileSelected(
-            IModel<PrismContainerValueWrapper<ObjectTypeSuggestionType>> selectedTileModel,
+            IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> selectedTileModel,
             AjaxRequestTarget target) {
 
     }
 
     @SuppressWarnings("unchecked")
     @Override
-    protected PageableListView<ObjectTypeSuggestionType, PrismContainerValueWrapper<ObjectTypeSuggestionType>> getTiles() {
+    protected PageableListView<ResourceObjectTypeDefinitionType, PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> getTiles() {
         WebMarkupContainer container = (WebMarkupContainer) get(ID_TILE_VIEW).get(ID_TILES_CONTAINER);
-        return (PageableListView<ObjectTypeSuggestionType, PrismContainerValueWrapper<ObjectTypeSuggestionType>>) container
+        return (PageableListView<ResourceObjectTypeDefinitionType, PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>>) container
                 .get(ID_TILES_RADIO_FORM).get(ID_TILES_RADIO).get(ID_TILES);
     }
 

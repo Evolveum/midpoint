@@ -170,16 +170,16 @@ public class SmartIntegrationUtils {
     }
 
     /**
-     * Extracts all {@link ObjectTypeSuggestionType} instances from the given status info entry.
+     * Extracts all {@link ResourceObjectTypeDefinitionType} instances from the given status info entry.
      * Returns an empty list if no object types are present.
      */
-    public static @NotNull List<ObjectTypeSuggestionType> extractObjectTypesFromStatusInfo(
+    public static @NotNull List<ResourceObjectTypeDefinitionType> extractObjectTypesFromStatusInfo(
             @Nullable StatusInfo<ObjectTypesSuggestionType> objectTypesSuggestionTypeStatusInfo) {
-        List<ObjectTypeSuggestionType> suggestedObjectTypes = new ArrayList<>();
+        List<ResourceObjectTypeDefinitionType> suggestedObjectTypes = new ArrayList<>();
         if (objectTypesSuggestionTypeStatusInfo != null && objectTypesSuggestionTypeStatusInfo.getResult() != null) {
             ObjectTypesSuggestionType objectTypesSuggestionResult = objectTypesSuggestionTypeStatusInfo.getResult();
 
-            List<ObjectTypeSuggestionType> objectType = objectTypesSuggestionResult.getObjectType();
+            List<ResourceObjectTypeDefinitionType> objectType = objectTypesSuggestionResult.getObjectType();
             if (objectType != null) {
                 suggestedObjectTypes.addAll(objectType);
             }
