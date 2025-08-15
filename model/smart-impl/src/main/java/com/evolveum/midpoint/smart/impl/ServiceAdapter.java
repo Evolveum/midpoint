@@ -121,10 +121,9 @@ class ServiceAdapter {
                                 siObjectType, SiSuggestObjectTypesResponseType.F_OBJECT_TYPE));
                 continue;
             }
-            var objectType = new ObjectTypeSuggestionType()
-                    .identification(new ResourceObjectTypeIdentificationType()
-                            .kind(typeId.getKind())
-                            .intent(typeId.getIntent()))
+            var objectType = new ResourceObjectTypeDefinitionType()
+                    .kind(typeId.getKind())
+                    .intent(typeId.getIntent())
                     .delineation(delineation);
             response.getObjectType().add(objectType);
         }

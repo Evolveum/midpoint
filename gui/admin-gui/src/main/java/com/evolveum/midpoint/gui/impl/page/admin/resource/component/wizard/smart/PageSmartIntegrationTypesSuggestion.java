@@ -90,7 +90,7 @@ public class PageSmartIntegrationTypesSuggestion extends PageAdminConfiguration 
         this.definedResource = new DefinedResource(resource);
         this.suggestion = Objects.requireNonNullElseGet(suggestion, ObjectTypesSuggestionType::new);
         this.suggestedObjectTypes = this.suggestion.getObjectType().stream()
-                .map(t -> ResourceObjectTypeIdentification.of(t.getIdentification()))
+                .map(t -> ResourceObjectTypeIdentification.of(t))
                 .toList();
         this.suggestionModel = Model.of(Util.serializeRealValue(this.suggestion, SchemaConstantsGenerated.C_OBJECT_TYPES_SUGGESTION));
         updateDefinitionModel();
@@ -258,11 +258,7 @@ public class PageSmartIntegrationTypesSuggestion extends PageAdminConfiguration 
 
     private void replaceObjectTypeDefinitionBySuggestedOne(ResourceObjectTypeIdentification selectedTypeId) {
         var selectedTypeSuggestion = findObjectTypeSuggestion(selectedTypeId);
-        var newDefinition = new ResourceObjectTypeDefinitionType()
-                .kind(selectedTypeSuggestion.getIdentification().getKind())
-                .intent(selectedTypeSuggestion.getIdentification().getIntent())
-                .delineation(selectedTypeSuggestion.getDelineation().clone());
-        definedResource.replaceObjectTypeDefinition(selectedTypeId, newDefinition);
+        definedResource.replaceObjectTypeDefinition(selectedTypeId, selectedTypeSuggestion.clone());
         afterResourceChanged();
     }
 
@@ -324,9 +320,9 @@ public class PageSmartIntegrationTypesSuggestion extends PageAdminConfiguration 
      * Finds the {@link ObjectTypeSuggestionType} in the suggestion list ({@link #suggestion}) that matches the provided type ID.
      * The type ID was derived from the suggestion list, so it should match one of the suggestions.
      */
-    private ObjectTypeSuggestionType findObjectTypeSuggestion(ResourceObjectTypeIdentification typeId) {
+    private ResourceObjectTypeDefinitionType findObjectTypeSuggestion(ResourceObjectTypeIdentification typeId) {
         return suggestion.getObjectType().stream()
-                .filter(t -> ResourceObjectTypeIdentification.of(t.getIdentification()).equals(typeId))
+                .filter(t -> ResourceObjectTypeIdentification.of(t).equals(typeId))
                 .findFirst()
                 .orElseThrow(() ->
                         new SystemException("Selected suggestion not found in the list of suggestions: " + typeId));

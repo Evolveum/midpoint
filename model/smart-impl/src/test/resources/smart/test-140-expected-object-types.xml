@@ -13,10 +13,8 @@
         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         xsi:type="c:ObjectTypesSuggestionType">
     <objectType>
-        <identification>
-            <kind>account</kind>
-            <intent>employee</intent>
-        </identification>
+        <kind>account</kind>
+        <intent>employee</intent>
         <delineation>
             <objectClass>ri:account</objectClass>
             <baseContext>
