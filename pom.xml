@@ -109,7 +109,7 @@
 
     <groupId>com.evolveum.midpoint</groupId>
     <artifactId>midpoint</artifactId>
-    <version>4.9.4</version>
+    <version>4.9.5-SNAPSHOT</version>
     <packaging>pom</packaging>
 
     <name>midPoint Project</name>

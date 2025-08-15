@@ -13,7 +13,7 @@
     <parent>
         <artifactId>repo</artifactId>
         <groupId>com.evolveum.midpoint.repo</groupId>
-        <version>4.9.4</version>
+        <version>4.9.5-SNAPSHOT</version>
     </parent>
 
     <artifactId>repo-api</artifactId>

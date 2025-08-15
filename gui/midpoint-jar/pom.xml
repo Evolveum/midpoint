@@ -13,7 +13,7 @@
     <parent>
         <artifactId>gui</artifactId>
         <groupId>com.evolveum.midpoint.gui</groupId>
-        <version>4.9.4</version>
+        <version>4.9.5-SNAPSHOT</version>
     </parent>
 
     <artifactId>midpoint-jar</artifactId>
