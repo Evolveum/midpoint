@@ -13,7 +13,7 @@
     <parent>
         <artifactId>model</artifactId>
         <groupId>com.evolveum.midpoint.model</groupId>
-        <version>4.9.4-SNAPSHOT</version>
+        <version>4.9.4</version>
     </parent>
 
     <artifactId>rest-impl</artifactId>
