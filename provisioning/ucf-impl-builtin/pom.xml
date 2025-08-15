@@ -13,7 +13,7 @@
     <parent>
         <artifactId>provisioning</artifactId>
         <groupId>com.evolveum.midpoint.provisioning</groupId>
-        <version>4.8.9-SNAPSHOT</version>
+        <version>4.8.9</version>
     </parent>
 
     <artifactId>ucf-impl-builtin</artifactId>

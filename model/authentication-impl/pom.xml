@@ -13,7 +13,7 @@
     <parent>
         <artifactId>model</artifactId>
         <groupId>com.evolveum.midpoint.model</groupId>
-        <version>4.8.9-SNAPSHOT</version>
+        <version>4.8.9</version>
     </parent>
 
     <artifactId>authentication-impl</artifactId>

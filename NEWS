@@ -1,12 +1,12 @@
-MidPoint 4.8 "Curie" Update 8
+MidPoint 4.8 "Curie" Update 9
 -------------------------------
 
-Release 4.8.8 is a sixty-sixth midPoint release code-named Curie.
-The 4.8.8 release brings security, stability and miscellaneous bugfixes.
+Release 4.8.9 is a sixty-eighth midPoint release code-named Curie.
+The 4.8.9 release brings security, stability and miscellaneous bugfixes.
 
-Release date: 30th April 2025
+Release date: 15th August 2025
 Release type: Long-term support release (LTS)
 End of support: 17th October 2028
 
 Please see the release notes for detailed list of changes:
-https://docs.evolveum.com/midpoint/release/4.8.8/
+https://docs.evolveum.com/midpoint/release/4.8.9/
