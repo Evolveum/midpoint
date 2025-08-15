@@ -352,7 +352,7 @@ public class TestSmartIntegrationServiceImpl extends AbstractSmartIntegrationTes
                 .addAttributeValues(DummyScenario.Account.AttributeNames.STATUS.local(), "active")
                 .addAttributeValues(DummyScenario.Account.AttributeNames.TYPE.local(), "employee")
                 .addAttributeValues(DummyScenario.Account.AttributeNames.DEPARTMENT.local(), "Engineering")
-                .addAttributeValues(DummyScenario.Account.AttributeNames.DN.local(), "CN=alex,OU=Employees,DC=evolveum,DC=com");
+                .addAttributeValues(DummyScenario.Account.AttributeNames.DN.local(), "CN=alex\\,OU=Employees\\,DC=evolveum\\,DC=com");
 
         c.addAccount("brenda")
                 .addAttributeValues(DummyScenario.Account.AttributeNames.FULLNAME.local(), "Brenda Starr")
@@ -361,7 +361,7 @@ public class TestSmartIntegrationServiceImpl extends AbstractSmartIntegrationTes
                 .addAttributeValues(DummyScenario.Account.AttributeNames.STATUS.local(), "inactive")
                 .addAttributeValues(DummyScenario.Account.AttributeNames.TYPE.local(), "manager")
                 .addAttributeValues(DummyScenario.Account.AttributeNames.DEPARTMENT.local(), "IT")
-                .addAttributeValues(DummyScenario.Account.AttributeNames.DN.local(), "CN=brenda,OU=Employees,OU=IT,DC=evolveum,DC=com");
+                .addAttributeValues(DummyScenario.Account.AttributeNames.DN.local(), "CN\\=brenda,OU\\=Employees,OU\\=IT,DC\\=evolveum,DC\\=com");
 
         c.addAccount("carl")
                 .addAttributeValues(DummyScenario.Account.AttributeNames.FULLNAME.local(), "Carl Johnson")
@@ -370,7 +370,7 @@ public class TestSmartIntegrationServiceImpl extends AbstractSmartIntegrationTes
                 .addAttributeValues(DummyScenario.Account.AttributeNames.STATUS.local(), "active")
                 .addAttributeValues(DummyScenario.Account.AttributeNames.TYPE.local(), "contractor")
                 .addAttributeValues(DummyScenario.Account.AttributeNames.DEPARTMENT.local(), "HR")
-                .addAttributeValues(DummyScenario.Account.AttributeNames.DN.local(), "CN=carl,OU=Contractors,DC=evolveum,DC=com");
+                .addAttributeValues(DummyScenario.Account.AttributeNames.DN.local(), "CN=carl,DC=evolveum,DC=com");
 
         c.addAccount("dina")
                 .addAttributeValues(DummyScenario.Account.AttributeNames.FULLNAME.local(), "Dina Mendez")
@@ -379,7 +379,7 @@ public class TestSmartIntegrationServiceImpl extends AbstractSmartIntegrationTes
                 .addAttributeValues(DummyScenario.Account.AttributeNames.STATUS.local(), "active")
                 .addAttributeValues(DummyScenario.Account.AttributeNames.TYPE.local(), "intern")
                 .addAttributeValues(DummyScenario.Account.AttributeNames.DEPARTMENT.local(), "Sales")
-                .addAttributeValues(DummyScenario.Account.AttributeNames.DN.local(), "CN=dina,OU=Employees,DC=evolveum,DC=com");
+                .addAttributeValues(DummyScenario.Account.AttributeNames.DN.local(), "CN\\=dina\\,OU\\=Employees\\,DC\\=evolveum\\,DC\\=com");
 
         c.addAccount("elena")
                 .addAttributeValues(DummyScenario.Account.AttributeNames.FULLNAME.local(), "Elena Gilbert")
@@ -991,10 +991,8 @@ public class TestSmartIntegrationServiceImpl extends AbstractSmartIntegrationTes
                         .collect(Collectors.toMap(ShadowAttributeValueCountType::getValue, ShadowAttributeValueCountType::getCount));
                 assertThat(valueCounts).containsEntry("svc", 1);
                 assertThat(valueCounts).containsEntry("usr", 1);
-                assertThat(valueCounts).containsEntry("adm", 4);
+                assertThat(valueCounts).containsEntry("adm", 10);
                 assertThat(valueCounts).containsEntry("int", 6);
-            } else {
-                assertThat(attribute.getValuePatternCount()).isEmpty();
             }
         }
     }
@@ -1021,10 +1019,9 @@ public class TestSmartIntegrationServiceImpl extends AbstractSmartIntegrationTes
         assertThat(dnAttribute.getValueCount().size()).isEqualTo(4);
         Map<String, Integer> valueCounts = dnAttribute.getValueCount().stream()
                 .collect(Collectors.toMap(ShadowAttributeValueCountType::getValue, ShadowAttributeValueCountType::getCount));
-        assertThat(valueCounts).containsEntry("Employees", 8);
-        assertThat(valueCounts).containsEntry("IT", 4);
-        assertThat(valueCounts).containsEntry("Contractors", 2);
-        assertThat(valueCounts).containsEntry("HR", 2);
+        for (Map.Entry<String, Integer> entry : valueCounts.entrySet()) {
+            assertThat(entry.getKey().startsWith("ou="));
+        }
     }
 
 

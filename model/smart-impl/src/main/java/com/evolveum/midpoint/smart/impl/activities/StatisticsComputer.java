@@ -25,6 +25,9 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAttributeStati
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowObjectClassStatisticsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
+import javax.naming.InvalidNameException;
+import javax.naming.ldap.LdapName;
+import javax.naming.ldap.Rdn;
 import javax.xml.namespace.QName;
 
 /**
@@ -58,23 +61,44 @@ public class StatisticsComputer {
     private static final double VALUE_COUNT_PAIR_PERCENTAGE_LIMIT = 0.05;
 
     /**
+     * The maximum percentage (as a fraction) of affix patterns allowed
+     * when calculating affix statistics for attribute values.
+     * * TODO: Make this configurable.
+     */
+    private static final double AFFIX_PERCENTAGE_LIMIT = 0.05;
+
+    /**
      * Set of common affixes to match in attribute values.
      */
     private static final Set<String> AFFIXES = new HashSet<>(Arrays.asList(
-            "prod", "priv", "adm", "admin", "usr", "user", "ops", "svc", "int", "ext"
+            "prod", "priv", "adm", "usr", "user", "ops", "svc", "int", "ext"
     ));
 
     /**
-     * List of delimiters used to separate affixes in strings.
+     * Regular expression pattern for matching URLs.
+     * Matches strings that start with "http://", "https://", or "www.", followed by non-whitespace characters.
      */
-    private static final List<String> DELIMITERS = Arrays.asList(
-            ".", "-", "_"
+    private static final Pattern URL_PATTERN = Pattern.compile(
+            "^(https?://|www\\.)\\S+$",
+            Pattern.CASE_INSENSITIVE
     );
 
     /**
-     * Mapping from affix to compiled regex {@link Pattern} to match affix at string boundaries.
+     * Regular expression pattern for matching email addresses.
+     * Matches simple email addresses of the form localpart@domain.
      */
-    private static final Map<String, Pattern> AFFIX_PATTERNS = initAffixPatterns();
+    private static final Pattern EMAIL_PATTERN = Pattern.compile(
+            "^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+$"
+    );
+
+    /**
+     * Regular expression pattern for matching phone numbers.
+     * Matches phone numbers with optional leading '+', containing digits, spaces, dashes, or parentheses,
+     * and with a length between 7 and 20 characters.
+     */
+    private static final Pattern PHONE_PATTERN = Pattern.compile(
+            "^\\+?[\\d\\s\\-()]{7,20}$"
+    );
 
     /**
      * Stores attribute values for each shadow, for use in cross-table (pairwise) statistics.
@@ -102,24 +126,6 @@ public class StatisticsComputer {
     }
 
     /**
-     * Initializes {@link #AFFIX_PATTERNS} by constructing regex patterns for each affix
-     * using the defined delimiters. Patterns match affixes at the start or end of a string.
-     */
-    private static Map<String, Pattern> initAffixPatterns() {
-        String delimiterRegex = "[" + DELIMITERS.stream().map(Pattern::quote).collect(Collectors.joining()) + "]";
-
-        return AFFIXES.stream().collect(Collectors.toMap(
-                affix -> affix,
-                affix -> Pattern.compile(
-                        String.format("(^%s%s)|(%s%s$)",
-                                Pattern.quote(affix), delimiterRegex,
-                                delimiterRegex, Pattern.quote(affix)
-                        )
-                )
-        ));
-    }
-
-    /**
      * Processes the given shadow object, updating statistics.
      *
      * @param shadow Shadow object to process.
@@ -142,7 +148,7 @@ public class StatisticsComputer {
         // Cross-table value counts
         computeValueCountsOfValuePairs();
         // Affixes statistics
-        setAffixesStatistics();
+        setAffixStatistics();
         // Dn parsing statistics
         setOUAttributeStatistics();
     }
@@ -270,11 +276,9 @@ public class StatisticsComputer {
         for (ShadowAttributeStatisticsType stats : statistics.getAttribute()) {
             QName attrKey = fromAttributeRef(stats.getRef());
             Map<String, Integer> valueCounts = getValueCounts(attrKey);
-
             stats.setUniqueValueCount(valueCounts.size());
 
             valueCounts = getTopNValueCounts(valueCounts);
-
             for (Map.Entry<String, Integer> entry : valueCounts.entrySet()) {
                 stats.beginValueCount()
                         .value(entry.getKey())
@@ -322,8 +326,7 @@ public class StatisticsComputer {
                 for (int i = 0; i < list1.size(); i++) {
                     List<?> s1 = list1.get(i);
                     List<?> s2 = list2.get(i);
-                    if (s1 != null && s1.size() == 1
-                            && s2 != null && s2.size() == 1) {
+                    if (s1 != null && s1.size() == 1 && s2 != null && s2.size() == 1) {
                         pairCounts.computeIfAbsent(s1.get(0).toString(), k -> new HashMap<>())
                                 .merge(s2.get(0).toString(), 1, Integer::sum);
                     }
@@ -348,76 +351,143 @@ public class StatisticsComputer {
     }
 
     /**
-     * Computes the count of attribute values containing each affix for the given attribute key.
-     *
-     * @param attrKey the attribute key to analyze
-     * @return map from affix to the number of occurrences in the attribute's values
+     * Counts the occurrences of predefined affixes that either start or end the provided value.
+     * Updates the {@code affixCounts} map with the counts for each affix found.
      */
-    private Map<String, Integer> getAffixesValueCounts(QName attrKey) {
-        Map<String, Integer> result = new HashMap<>();
-        List<Map.Entry<String, Pattern>> patterns = new ArrayList<>(AFFIX_PATTERNS.entrySet());
-        LinkedList<List<?>> elements = shadowStorage.get(attrKey);
-        if (elements == null) {
-            return result;
-        }
-        for (List<?> inner : elements) {
-            if (inner.size() != 1) continue;
-            String str = inner.get(0).toString();
-            for (Map.Entry<String, Pattern> e : patterns) {
-                if (e.getValue().matcher(str).find()) {
-                    result.merge(e.getKey(), 1, Integer::sum);
-                }
+    private void incrementVocabularyAffixCounts(String value, Map<String, Integer> affixCounts) {
+        for (String affix : AFFIXES) {
+            if (value.startsWith(affix) || value.endsWith(affix)) {
+                affixCounts.merge(affix, 1, Integer::sum);
             }
         }
-        return result;
+    }
+
+    /**
+     * Counts the first and last alphanumeric tokens in the provided value, if they are not empty and not in {@code AFFIXES}.
+     * Updates the {@code affixCounts} map with the counts for each token found.
+     */
+    private void incrementFirstAndLastAffixCounts(String value, Map<String, Integer> affixCounts) {
+        String[] tokens = value.split("[^a-zA-Z0-9]+");
+        if (tokens.length < 2) {
+            return;
+        }
+        String firstToken = tokens[0];
+        String lastToken = tokens[tokens.length - 1];
+        if (!firstToken.isEmpty() && !AFFIXES.contains(firstToken)) {
+            affixCounts.merge(firstToken, 1, Integer::sum);
+        }
+        if (!lastToken.isEmpty() && !AFFIXES.contains(lastToken)) {
+            affixCounts.merge(lastToken, 1, Integer::sum);
+        }
+    }
+
+    /**
+     * Checks whether the given string matches the URL pattern.
+     */
+    private boolean isUrl(String str) {
+        return str != null && URL_PATTERN.matcher(str).matches();
+    }
+
+    /**
+     * Checks whether the given string matches the email address pattern.
+     */
+    private boolean isEmail(String str) {
+        return str != null && EMAIL_PATTERN.matcher(str).matches();
+    }
+
+    /**
+     * Checks whether the given string matches the phone number pattern.
+     */
+    private boolean isPhoneNumber(String str) {
+        return str != null && PHONE_PATTERN.matcher(str).matches();
+    }
+
+    /**
+     * Computes the counts of affix values for the given attribute key by analyzing string values
+     * stored in {@code shadowStorage}. Ignores values that are detected as URLs, emails, or phone numbers.
+     * Counts both vocabulary affixes and the first/last tokens of each value.
+     */
+    private void getAffixValueCounts(QName attrKey, Map<String, Integer> vocabCounts, Map<String, Integer> splitCounts) {
+        List<List<?>> elements = shadowStorage.get(attrKey);
+        if (elements == null) {
+            return;
+        }
+        for (List<?> group : elements) {
+            if (group == null || group.size() != 1) {
+                continue;
+            }
+            Object item = group.get(0);
+            if (!(item instanceof String)) {
+                return;
+            }
+            String value = ((String) item).trim();
+            if (isUrl(value) || isEmail(value) || isPhoneNumber(value)) {
+                continue;
+            }
+            incrementVocabularyAffixCounts(value, vocabCounts);
+            incrementFirstAndLastAffixCounts(value, splitCounts);
+        }
     }
 
     /**
      * Calculates and sets the statistics for affix occurrences in all shadow attribute values.
      * Updates the statistics structure with the count of each affix found.
      */
-    private void setAffixesStatistics() {
+    private void setAffixStatistics() {
         for (ShadowAttributeStatisticsType attribute : statistics.getAttribute()) {
             QName attrKey = fromAttributeRef(attribute.getRef());
-            Map<String, Integer> affixCounts = getAffixesValueCounts(attrKey).entrySet().stream()
-                    .sorted(Map.Entry.<String, Integer>comparingByValue().reversed())
-                    .collect(Collectors.toMap(
-                            Map.Entry::getKey,
-                            Map.Entry::getValue,
-                            (e1, e2) -> e1,
-                            LinkedHashMap::new
-                    ));
-            for (Map.Entry<String, Integer> entry : affixCounts.entrySet()) {
+            Map<String, Integer> vocabCounts = new HashMap<>();
+            Map<String, Integer> splitCounts = new HashMap<>();
+            getAffixValueCounts(attrKey, vocabCounts, splitCounts);
+            for (Map.Entry<String, Integer> entry : vocabCounts.entrySet()) {
                 attribute.beginValuePatternCount()
                         .value(entry.getKey())
                         .count(entry.getValue());
             }
-        }
-    }
-
-    /**
-     * Parses a distinguished name (DN) string and extracts all organizational unit (OU) values.
-     *
-     * @param dn the distinguished name string to parse (e.g., "CN=John Doe,OU=Sales,OU=EMEA,DC=example,DC=com")
-     * @return a list of OU values found in the DN, in the order they appear
-     */
-    private List<String> parseDNString(String dn) {
-        List<String> ous = new ArrayList<>();
-        for (String part : dn.split(",")) {
-            String trimmed = part.trim();
-            if (trimmed.startsWith("OU=")) {
-                ous.add(trimmed.substring(3));
+            if (splitCounts.size() < AFFIX_PERCENTAGE_LIMIT * statistics.getSize()) {
+                for (Map.Entry<String, Integer> entry : splitCounts.entrySet()) {
+                    attribute.beginValuePatternCount()
+                            .value(entry.getKey())
+                            .count(entry.getValue());
+                }
             }
         }
-        return ous;
     }
 
     /**
-     * Retrieves a mapping of organizational unit (OU) values to their occurrence counts for a given attribute key.
-     * The method processes all DN values stored under the specified attribute key and counts each OU found.
-     *
-     * @param attrKey the QName key representing the attribute (typically for a DN attribute)
-     * @return a map where the key is the OU value and the value is the number of occurrences
+     * Parses the given distinguished name (DN) string to extract the suffix starting with the first "OU" (organizational unit) RDN.
+     * <p>
+     * For example, for the DN {@code "CN=John Doe,OU=Users,DC=example,DC=com"}, this method will return
+     * {@code "OU=Users,DC=example,DC=com"}.
+     */
+    private String parseOUSuffix(String dn) {
+        try {
+            LdapName ldapName = new LdapName(dn);
+            List<Rdn> rdns = ldapName.getRdns();
+            int ouIndex = -1;
+            for (int i = rdns.size() - 1; i >= 0; i--) {
+                Rdn rdn = rdns.get(i);
+                if (rdn.getType().equalsIgnoreCase("OU")) {
+                    ouIndex = i;
+                    break;
+                }
+            }
+            if (ouIndex == -1) {
+                return null;
+            }
+            List<Rdn> suffixRdns = rdns.subList(0, ouIndex+1);
+            LdapName suffixName = new LdapName(suffixRdns);
+            return suffixName.toString();
+        } catch (InvalidNameException e) {
+            return null;
+        }
+    }
+
+    /**
+     * Counts the occurrences of organizational unit (OU) suffixes for the elements associated with the specified attribute key.
+     * <p>
+     * The method uses {@link #parseOUSuffix(String)} to extract the OU suffix from each DN,
+     * then counts the occurrences of each unique OU suffix.
      */
     private Map<String, Integer> getOUValueCounts(QName attrKey) {
         Map<String, Integer> result = new HashMap<>();
@@ -427,9 +497,9 @@ public class StatisticsComputer {
         }
         for (List<?> inner : elements) {
             if (inner.size() != 1) continue;
-            List<String> ous = parseDNString(inner.get(0).toString());
-            for (String ou : ous) {
-                result.merge(ou, 1, Integer::sum);
+            String ouSuffix = parseOUSuffix(inner.get(0).toString());
+            if (ouSuffix != null) {
+                result.merge(ouSuffix, 1, Integer::sum);
             }
         }
         return result;
@@ -445,14 +515,7 @@ public class StatisticsComputer {
             QName attrKey = fromAttributeRef(attribute.getRef());
             if (attrKey.toString().equalsIgnoreCase("dn") ||
                     attrKey.toString().equalsIgnoreCase("distinguishedName")) {
-                Map<String, Integer> ouCounts = getOUValueCounts(attrKey).entrySet().stream()
-                        .sorted(Map.Entry.<String, Integer>comparingByValue().reversed())
-                        .collect(Collectors.toMap(
-                                Map.Entry::getKey,
-                                Map.Entry::getValue,
-                                (e1, e2) -> e1,
-                                LinkedHashMap::new
-                        ));
+                Map<String, Integer> ouCounts = getOUValueCounts(attrKey);
                 for (Map.Entry<String, Integer> entry : ouCounts.entrySet()) {
                     attribute.beginValueCount()
                             .value(entry.getKey())
