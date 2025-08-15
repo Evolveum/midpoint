@@ -15,6 +15,7 @@ import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
 import java.util.*;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.schema.util.AiUtil;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.QNameUtil;
 
@@ -96,6 +97,7 @@ class ServiceAdapter {
             for (String filterString : siObjectType.getFilter()) {
                 delineation.filter(parseAndSerializeFilter(filterString, shadowObjectDef));
             }
+            AiUtil.markAsAiProvided(delineation, ResourceObjectTypeDelineationType.F_FILTER);
 
             var siBaseContextClassLocalName = siObjectType.getBaseContextObjectClassName();
             var siBaseContextFilter = siObjectType.getBaseContextFilter();
@@ -109,6 +111,7 @@ class ServiceAdapter {
                 delineation.baseContext(new ResourceObjectReferenceType()
                         .objectClass(baseContextClassQName)
                         .filter(parseAndSerializeFilter(siBaseContextFilter, baseContextObjectDef.getPrismObjectDefinition())));
+                AiUtil.markAsAiProvided(delineation, ResourceObjectTypeDefinitionType.F_BASE_CONTEXT);
             }
 
             var typeId = ResourceObjectTypeIdentification.of(
@@ -125,6 +128,8 @@ class ServiceAdapter {
                     .kind(typeId.getKind())
                     .intent(typeId.getIntent())
                     .delineation(delineation);
+            AiUtil.markAsAiProvided(
+                    objectType, ResourceObjectTypeDefinitionType.F_KIND, ResourceObjectTypeDefinitionType.F_INTENT);
             response.getObjectType().add(objectType);
         }
 
@@ -157,7 +162,7 @@ class ServiceAdapter {
     }
 
     /** Calls the `suggestFocusType` method on the remote service. */
-    QName suggestFocusType(
+    FocusTypeSuggestionType suggestFocusType(
             ResourceObjectTypeIdentification typeIdentification,
             ResourceObjectClassDefinition objectClassDef,
             ResourceObjectTypeDelineation delineation,
@@ -170,9 +175,11 @@ class ServiceAdapter {
 
         setBaseContextFilter(request, objectClassDef, delineation);
 
-        return serviceClient
+        var focusTypeName = serviceClient
                 .invoke(SUGGEST_FOCUS_TYPE, request, SiSuggestFocusTypeResponseType.class)
                 .getFocusTypeName();
+        var suggestion = new FocusTypeSuggestionType().focusType(focusTypeName);
+        return AiUtil.markAsAiProvided(suggestion, FocusTypeSuggestionType.F_FOCUS_TYPE);
     }
 
     private static void setBaseContextFilter(
@@ -232,13 +239,15 @@ class ServiceAdapter {
                                 new ObjectFactory().createScript(
                                         new ScriptExpressionEvaluatorType().code(transformationScript))) :
                 null;
-        return new AttributeMappingsSuggestionType()
+        var suggestion = new AttributeMappingsSuggestionType()
                 .definition(new ResourceAttributeDefinitionType()
                         .ref(shadowAttrPath.rest().toBean()) // FIXME! what about activation, credentials, etc?
                         .inbound(new InboundMappingType()
                                 .target(new VariableBindingDefinitionType()
                                         .path(focusPropPath.toBean()))
                                 .expression(expression)));
+        AiUtil.markAsAiProvided(suggestion); // everything is AI-provided now
+        return suggestion;
     }
 
     private QName getTypeName(@NotNull PrismPropertyDefinition<?> propertyDefinition) {
@@ -272,15 +281,18 @@ class ServiceAdapter {
                 var focusItemPath = focusItemPathBean.getItemPath();
                 if (correlator.equivalent(focusItemPath)) {
                     var resourceAttrPathBean = siAttributeMatch.getApplicationAttribute();
+                    var inbound = new InboundMappingType()
+                            .target(new VariableBindingDefinitionType()
+                                    .path(focusItemPathBean))
+                            .use(InboundMappingUseType.CORRELATION);
+                    var attrDefBean = new ResourceAttributeDefinitionType()
+                            .ref(resourceAttrPathBean)
+                            .inbound(inbound);
+                    AiUtil.markAsAiProvided(attrDefBean, ResourceAttributeDefinitionType.F_REF);
+                    AiUtil.markAsAiProvided(inbound, InboundMappingType.F_TARGET);
+                    // Use is not provided by AI, it is set to CORRELATION by default.
                     response.add(
-                            new CorrelatorSuggestion(
-                                    focusItemPath,
-                                    new ResourceAttributeDefinitionType()
-                                            .ref(resourceAttrPathBean)
-                                            .inbound(new InboundMappingType()
-                                                    .target(new VariableBindingDefinitionType()
-                                                            .path(focusItemPathBean))
-                                                    .use(InboundMappingUseType.CORRELATION))));
+                            new CorrelatorSuggestion(focusItemPath, attrDefBean));
                 }
             }
         }

@@ -342,6 +342,31 @@
         </xsd:sequence>
     </xsd:complexType>
 
+    <!-- suggestFocusType method -->
+
+    <xsd:complexType name="FocusTypeSuggestionType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Suggestion of a focus type: the output of "suggestFocusType" smart integration service API method.
+                It's a container mainly to be able to flag it as provided by AI.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:since>4.11</a:since>
+                <a:container>true</a:container>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="focusType" type="xsd:QName">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Focus type name (required).
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+    <xsd:element name="focusTypeSuggestion" type="tns:FocusTypeSuggestionType"/>
+
     <!-- suggestCorrelation method -->
 
     <xsd:complexType name="CorrelationSuggestionType">

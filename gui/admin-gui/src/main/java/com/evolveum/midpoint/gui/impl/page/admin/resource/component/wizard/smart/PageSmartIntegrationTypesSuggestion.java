@@ -179,7 +179,7 @@ public class PageSmartIntegrationTypesSuggestion extends PageAdminConfiguration 
                 taskAwareExecutor(target, OP_SUGGEST_FOCUS_TYPE)
                         .runVoid((task, result) -> {
                             saveResourceToRepositoryAndReload(task, result);
-                            var suggestedFocusType = getSmartIntegrationService().suggestFocusType(
+                            var focusTypeSuggestion = getSmartIntegrationService().suggestFocusType(
                                     getResourceOid(), selectedTypeId, task, result);
                             var bean = stateNonNull(
                                     definedResource.findObjectTypeDefinitionBean(selectedTypeId),
@@ -188,7 +188,7 @@ public class PageSmartIntegrationTypesSuggestion extends PageAdminConfiguration 
                             if (focus == null) {
                                 bean.setFocus(new ResourceObjectFocusSpecificationType());
                             }
-                            bean.getFocus().setType(suggestedFocusType);
+                            bean.getFocus().setType(focusTypeSuggestion.getFocusType());
                             afterResourceChanged();
                             target.add(PageSmartIntegrationTypesSuggestion.this);
                         });

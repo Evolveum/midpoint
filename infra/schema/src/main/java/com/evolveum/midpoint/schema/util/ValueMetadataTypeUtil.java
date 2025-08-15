@@ -57,7 +57,7 @@ public class ValueMetadataTypeUtil {
     public static @NotNull StorageMetadataType getOrCreateStorageMetadata(
             @NotNull Containerable holder, @NotNull ProvenanceMetadataType provenance) {
         return getOrCreateStorageMetadata(
-                getOrCreateMetadata(holder, provenance));
+                getOrCreateMetadata(holder.asPrismContainerValue(), provenance));
     }
 
     public static @NotNull StorageMetadataType getOrCreateStorageMetadata(@NotNull ValueMetadataType metadata) {
@@ -150,8 +150,8 @@ public class ValueMetadataTypeUtil {
     }
 
     public static @NotNull ValueMetadataType getOrCreateMetadata(
-            @NotNull Containerable holder, @NotNull ProvenanceMetadataType provenance) {
-        ValueMetadata valueMetadata = holder.asPrismContainerValue().getValueMetadata();
+            @NotNull PrismValue holder, @NotNull ProvenanceMetadataType provenance) {
+        ValueMetadata valueMetadata = holder.getValueMetadata();
         return Objects.requireNonNullElseGet(
                 findMatchingValue(valueMetadata, provenance),
                 () -> ((ValueMetadataType) Objects.requireNonNull(valueMetadata.createNewValue().getRealValue()))
@@ -177,8 +177,12 @@ public class ValueMetadataTypeUtil {
     }
 
     public static @Nullable ValueMetadataType getMetadata(Containerable holder, ProvenanceMetadataType provenance) {
+        return getMetadata(holder.asPrismContainerValue(), provenance);
+    }
+
+    public static @Nullable ValueMetadataType getMetadata(PrismValue holder, ProvenanceMetadataType provenance) {
         return findMatchingValue(
-                holder.asPrismContainerValue().getValueMetadata(),
+                holder.getValueMetadata(),
                 provenance);
     }
 

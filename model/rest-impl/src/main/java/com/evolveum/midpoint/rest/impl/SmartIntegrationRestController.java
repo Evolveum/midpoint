@@ -77,7 +77,7 @@ public class SmartIntegrationRestController extends AbstractRestController {
         try {
             var typeIdentification = ResourceObjectTypeIdentification.of(ShadowKindType.fromValue(kind), intent);
             var focusTypeName = smartIntegrationService.suggestFocusType(resourceOid, typeIdentification, task, result);
-            return createResponse(HttpStatus.OK, focusTypeName.getLocalPart(), result);
+            return createResponse(HttpStatus.OK, focusTypeName.getFocusType().getLocalPart(), result);
         } catch (Throwable t) {
             return handleException(result, t);
         } finally {

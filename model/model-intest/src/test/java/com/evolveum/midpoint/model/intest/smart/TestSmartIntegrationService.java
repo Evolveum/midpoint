@@ -165,6 +165,17 @@ public class TestSmartIntegrationService extends AbstractEmptyModelIntegrationTe
         displayDumpable("response", response);
         assertThat(response).isNotNull();
         assertThat(response.getObjectType()).as("suggested object types collection").isNotEmpty();
+
+        and("response is properly marked regarding AI");
+        response.getObjectType().forEach(
+                o -> {
+                    assertAiProvidedMarkPresent(o,
+                            ResourceObjectTypeDefinitionType.F_KIND,
+                            ResourceObjectTypeDefinitionType.F_INTENT,
+                            ResourceObjectTypeDefinitionType.F_DELINEATION.append(ResourceObjectTypeDelineationType.F_FILTER));
+                    assertAiProvidedMarkAbsent(o,
+                            ResourceObjectTypeDefinitionType.F_DELINEATION.append(ResourceObjectTypeDelineationType.F_OBJECT_CLASS));
+                });
     }
 
     /** Tests the "suggest focus type" method. */
@@ -198,6 +209,8 @@ public class TestSmartIntegrationService extends AbstractEmptyModelIntegrationTe
         display(response.toString());
         assertThat(response).isNotNull();
         assertThat(response).as("suggested focus type").isNotNull();
+
+        assertAiProvidedMarkPresent(response, FocusTypeSuggestionType.F_FOCUS_TYPE);
     }
 
     /** Tests the "suggest correlation" operation (in an asynchronous way). */

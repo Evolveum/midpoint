@@ -86,12 +86,11 @@ public class FocusTypeSuggestionActivityHandler
             var resourceOid = getWorkDefinition().getResourceOid();
             var typeIdentification = getWorkDefinition().getTypeIdentification();
 
-            QName suggestedFocusType = SmartIntegrationBeans.get().smartIntegrationService.suggestFocusType(
-                    resourceOid, typeIdentification, task, result
-            );
+            var focusTypeSuggestion = SmartIntegrationBeans.get().smartIntegrationService.suggestFocusType(
+                    resourceOid, typeIdentification, task, result);
 
             var state = getActivityState();
-            state.setWorkStateItemRealValues(FocusTypeSuggestionWorkStateType.F_RESULT, suggestedFocusType);
+            state.setWorkStateItemRealValues(FocusTypeSuggestionWorkStateType.F_RESULT, focusTypeSuggestion);
             state.flushPendingTaskModifications(result);
 
             return ActivityRunResult.success();

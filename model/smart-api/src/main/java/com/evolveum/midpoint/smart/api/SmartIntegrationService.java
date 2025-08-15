@@ -90,17 +90,17 @@ public interface SmartIntegrationService {
      * List statuses of all relevant "suggest focus type" requests (for given resource OID).
      * They are sorted by finished time, then by started time.
      */
-    List<StatusInfo<QName>> listSuggestFocusTypeOperationStatuses(
+    List<StatusInfo<FocusTypeSuggestionType>> listSuggestFocusTypeOperationStatuses(
             String resourceOid, Task task, OperationResult result)
             throws SchemaException, ObjectNotFoundException, ConfigurationException;
 
     /** Checks the status of the "suggest focus type" request. */
-    StatusInfo<QName> getSuggestFocusTypeOperationStatus(
+    StatusInfo<FocusTypeSuggestionType> getSuggestFocusTypeOperationStatus(
             String token, Task task, OperationResult result)
             throws SchemaException, ObjectNotFoundException, ConfigurationException;
 
     /** Suggests a discrete focus type for the application (resource) object type. */
-    QName suggestFocusType(
+    FocusTypeSuggestionType suggestFocusType(
             String resourceOid, ResourceObjectTypeIdentification typeIdentification, Task task, OperationResult result)
             throws SchemaException, ExpressionEvaluationException, SecurityViolationException, CommunicationException,
             ConfigurationException, ObjectNotFoundException;

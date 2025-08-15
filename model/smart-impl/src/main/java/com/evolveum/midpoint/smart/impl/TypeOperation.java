@@ -7,6 +7,8 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.repo.common.activity.ActivityInterruptedException;
 
+import com.evolveum.midpoint.schema.util.AiUtil;
+
 import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.prism.PrismContext;
@@ -71,7 +73,7 @@ class TypeOperation extends Operation {
         return new TypeOperation(resource, resourceSchema, typeDefinition, serviceAdapter, activityState, task);
     }
 
-    QName suggestFocusType() throws SchemaException {
+    FocusTypeSuggestionType suggestFocusType() throws SchemaException {
         return serviceAdapter.suggestFocusType(
                 typeDefinition.getTypeIdentification(),
                 typeDefinition.getObjectClassDefinition(),
@@ -98,14 +100,15 @@ class TypeOperation extends Operation {
                 serviceAdapter.suggestCorrelationMappings(typeDefinition, getFocusTypeDefinition(), correlators, resource);
         var suggestion = new CorrelationSuggestionType();
         if (!attributeDefinitionsForCorrelators.isEmpty()) {
-            var first = attributeDefinitionsForCorrelators.get(0);
+            var first = attributeDefinitionsForCorrelators.get(0); // already marked as AI-provided
             suggestion.getAttributes().add(first.attributeDefinitionBean());
-            suggestion.setCorrelation(
-                    new CorrelationDefinitionType()
-                            .correlators(new CompositeCorrelatorType()
-                                    .items(new ItemsSubCorrelatorType()
-                                            .item(new CorrelationItemType()
-                                                    .ref(first.focusItemPath().toBean())))));
+            var correlationDefinition = new CorrelationDefinitionType()
+                    .correlators(new CompositeCorrelatorType()
+                            .items(new ItemsSubCorrelatorType()
+                                    .item(new CorrelationItemType()
+                                            .ref(first.focusItemPath().toBean()))));
+            AiUtil.markAsAiProvided(correlationDefinition);
+            suggestion.setCorrelation(correlationDefinition);
         }
         return suggestion;
     }
