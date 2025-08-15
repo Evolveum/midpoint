@@ -68,7 +68,6 @@ class ServiceAdapter {
      * * resolving conflicts in object type identification (multiple rules for the same kind and intent)
      * ** if the base context is the same, filters are merged by OR-ing them together
      * ** if the base context is different, conflicting intents are renamed by appending a number
-     *
      */
     ObjectTypesSuggestionType suggestObjectTypes(
             ResourceObjectClassDefinition objectClassDef,
@@ -121,9 +120,15 @@ class ServiceAdapter {
                                 siObjectType, SiSuggestObjectTypesResponseType.F_OBJECT_TYPE));
                 continue;
             }
+
+            ShadowKindType kind = typeId.getKind();
+            String intent = typeId.getIntent();
+            String displayName = StringUtils.capitalize(kind.value()) + " " + StringUtils.capitalize(intent);
+
             var objectType = new ResourceObjectTypeDefinitionType()
-                    .kind(typeId.getKind())
-                    .intent(typeId.getIntent())
+                    .displayName(displayName) //TODO this is only for GUI development purposes, implementation of displayName is not yet defined
+                    .kind(kind)
+                    .intent(intent)
                     .delineation(delineation);
             response.getObjectType().add(objectType);
         }
