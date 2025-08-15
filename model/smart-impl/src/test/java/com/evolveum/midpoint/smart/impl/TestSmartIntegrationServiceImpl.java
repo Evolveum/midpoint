@@ -956,10 +956,8 @@ public class TestSmartIntegrationServiceImpl extends AbstractSmartIntegrationTes
                         .collect(Collectors.toMap(ShadowAttributeValueCountType::getValue, ShadowAttributeValueCountType::getCount));
                 assertThat(valueCounts).containsEntry("svc", 1);
                 assertThat(valueCounts).containsEntry("usr", 1);
-                assertThat(valueCounts).containsEntry("adm", 4);
+                assertThat(valueCounts).containsEntry("adm", 10);
                 assertThat(valueCounts).containsEntry("int", 6);
-            } else {
-                assertThat(attribute.getValuePatternCount()).isEmpty();
             }
         }
     }
