@@ -351,6 +351,14 @@ public abstract class AbstractObjectDummyConnector
 
     private ObjectClassInfoBuilder createCommonObjectClassBuilder(
             String typeName, DummyObjectClass dummyAccountObjectClass, boolean supportsActivation, boolean supportsLastLoginDate) {
+
+        return createCommonObjectClassBuilder(typeName, dummyAccountObjectClass, supportsActivation, supportsLastLoginDate, null);
+    }
+
+    private ObjectClassInfoBuilder createCommonObjectClassBuilder(
+            String typeName, DummyObjectClass dummyAccountObjectClass, boolean supportsActivation, boolean supportsLastLoginDate,
+            String description) {
+
         ObjectClassInfoBuilder objClassBuilder = new ObjectClassInfoBuilder();
         if (typeName != null) {
             objClassBuilder.setType(typeName);
@@ -391,6 +399,10 @@ public abstract class AbstractObjectDummyConnector
                             .build());
         }
 
+        if (description != null) {
+            objClassBuilder.setDescription(description);
+        }
+
         // __NAME__ will be added by default
         return objClassBuilder;
     }
@@ -400,7 +412,7 @@ public abstract class AbstractObjectDummyConnector
         var objClassBuilder =
                 createCommonObjectClassBuilder(
                         getAccountObjectClassName(), resource.getAccountObjectClass(), configuration.getSupportActivation(),
-                        configuration.getSupportLastLoginDate());
+                        configuration.getSupportLastLoginDate(), DummyAccount.OBJECT_CLASS_DESCRIPTION);
 
         // __PASSWORD__ attribute
         AttributeInfo passwordAttrInfo;
@@ -448,7 +460,7 @@ public abstract class AbstractObjectDummyConnector
     private ObjectClassInfo createGroupObjectClass() {
         return createCommonObjectClassBuilder(
                 getGroupObjectClassName(), resource.getGroupObjectClass(), configuration.getSupportActivation(),
-                configuration.getSupportLastLoginDate())
+                configuration.getSupportLastLoginDate(), DummyGroup.OBJECT_CLASS_DESCRIPTION)
                 .build();
     }
 
@@ -462,6 +474,7 @@ public abstract class AbstractObjectDummyConnector
             attrBuilder.setMultiValued(dummyAttrDef.isMulti());
             attrBuilder.setRequired(dummyAttrDef.isRequired());
             attrBuilder.setReturnedByDefault(dummyAttrDef.isReturnedByDefault());
+            attrBuilder.setDescription(dummyAttrDef.getDescription());
             classBuilder.addAttributeInfo(attrBuilder.build());
         }
     }

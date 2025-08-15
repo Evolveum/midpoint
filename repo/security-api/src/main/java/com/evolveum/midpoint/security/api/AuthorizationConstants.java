@@ -186,6 +186,24 @@ public class AuthorizationConstants {
     public static final QName AUTZ_UI_ARCHETYPE_QNAME = new QName(NS_AUTHORIZATION_UI, "archetype");
     public static final String AUTZ_UI_ARCHETYPE_URL = NS_AUTHORIZATION_UI + "#archetype";
 
+    //application
+    public static final QName AUTZ_UI_APPLICATIONS_ALL_QNAME = new QName(NS_AUTHORIZATION_UI, "applicationsAll");
+    public static final String AUTZ_UI_APPLICATIONS_ALL_URL = NS_AUTHORIZATION_UI + "#applicationsAll";
+
+    public static final QName AUTZ_UI_APPLICATIONS_QNAME = new QName(NS_AUTHORIZATION_UI, "applications");
+    public static final String AUTZ_UI_APPLICATIONS_URL = NS_AUTHORIZATION_UI + "#applications";
+
+    // Application XML editor
+    public static final QName AUTZ_UI_APPLICATION_QNAME = new QName(NS_AUTHORIZATION_UI, "application");
+    public static final String AUTZ_UI_APPLICATION_URL = NS_AUTHORIZATION_UI + "#application";
+
+    public static final QName AUTZ_UI_APPLICATION_DETAILS_QNAME = new QName(NS_AUTHORIZATION_UI, "applicationDetails");
+    public static final String AUTZ_UI_APPLICATION_DETAILS_URL = NS_AUTHORIZATION_UI + "#applicationDetails";
+
+    // Also applies to application wizard
+    public static final QName AUTZ_UI_APPLICATION_EDIT_QNAME = new QName(NS_AUTHORIZATION_UI, "applicationEdit");
+    public static final String AUTZ_UI_APPLICATION_EDIT_URL = NS_AUTHORIZATION_UI + "#applicationEdit";
+
     public static final QName AUTZ_UI_MESSAGE_TEMPLATE_QNAME = new QName(NS_AUTHORIZATION_UI, "messageTemplate");
     public static final String AUTZ_UI_MESSAGE_TEMPLATE_URL = NS_AUTHORIZATION_UI + "#messageTemplate";
 
@@ -575,6 +593,9 @@ public class AuthorizationConstants {
 
     public static final QName AUTZ_UI_POLICIES_VIEW_QNAME = new QName(NS_AUTHORIZATION_UI, "policiesView");
     public static final String AUTZ_UI_POLICIES_VIEW_URL = NS_AUTHORIZATION_UI + "#policiesView";
+
+    public static final QName AUTZ_UI_APPLICATION_VIEW_QNAME = new QName(NS_AUTHORIZATION_UI, "applicationsView");
+    public static final String AUTZ_UI_APPLICATION_VIEW_URL = NS_AUTHORIZATION_UI + "#applicationsView";
 
     public static final QName AUTZ_UI_ORGS_VIEW_QNAME = new QName(NS_AUTHORIZATION_UI, "orgsView");
     public static final String AUTZ_UI_ORGS_VIEW_URL = NS_AUTHORIZATION_UI + "#orgsView";

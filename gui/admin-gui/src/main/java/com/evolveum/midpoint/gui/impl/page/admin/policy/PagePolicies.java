@@ -73,7 +73,7 @@ public class PagePolicies extends PageAdmin {
 
             @Override
             protected UserProfileStorage.TableId getTableId() {
-                return UserProfileStorage.TableId.TABLE_SERVICES;
+                return UserProfileStorage.TableId.TABLE_POLICIES;
             }
 
             @Override

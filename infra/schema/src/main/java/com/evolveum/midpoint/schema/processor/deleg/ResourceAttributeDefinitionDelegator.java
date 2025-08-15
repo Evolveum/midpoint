@@ -275,4 +275,9 @@ public interface ResourceAttributeDefinitionDelegator<T>
     default <T extends ItemDefinition<?>> T findItemDefinition(@NotNull ItemPath path, @NotNull Class<T> clazz) {
         return delegate().findItemDefinition(path, clazz);
     }
+
+    @Override
+    default String getNativeDescription() {
+        return delegate().getNativeDescription();
+    }
 }

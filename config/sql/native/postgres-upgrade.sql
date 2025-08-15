@@ -1101,6 +1101,41 @@ LANGUAGE plpgsql;
 
 $aa$);
 
+--- MIDPILOT CHANGES
+
+--- Schema Type
+
+call apply_change(52, $aa$
+   ALTER TYPE ObjectType ADD VALUE IF NOT EXISTS 'APPLICATION' AFTER 'ACCESS_CERTIFICATION_DEFINITION';
+$aa$);
+
+call apply_change(53, $aa$
+CREATE TABLE m_application (
+    oid UUID NOT NULL PRIMARY KEY REFERENCES m_object_oid(oid),
+    objectType ObjectType GENERATED ALWAYS AS ('APPLICATION') STORED
+        CHECK (objectType = 'APPLICATION')
+)
+    INHERITS (m_abstract_role);
+
+CREATE TRIGGER m_application_oid_insert_tr BEFORE INSERT ON m_application
+    FOR EACH ROW EXECUTE FUNCTION insert_object_oid();
+CREATE TRIGGER m_application_update_tr BEFORE UPDATE ON m_application
+    FOR EACH ROW EXECUTE FUNCTION before_update_object();
+CREATE TRIGGER m_application_oid_delete_tr AFTER DELETE ON m_application
+    FOR EACH ROW EXECUTE FUNCTION delete_object_oid();
+
+CREATE INDEX m_application_nameOrig_idx ON m_application (nameOrig);
+CREATE UNIQUE INDEX m_application_nameNorm_key ON m_application (nameNorm);
+CREATE INDEX m_application_subtypes_idx ON m_application USING gin(subtypes);
+CREATE INDEX m_application_identifier_idx ON m_application (identifier);
+CREATE INDEX m_application_validFrom_idx ON m_application (validFrom);
+CREATE INDEX m_application_validTo_idx ON m_application (validTo);
+CREATE INDEX m_application_fullTextInfo_idx ON m_application USING gin(fullTextInfo gin_trgm_ops);
+CREATE INDEX m_application_createTimestamp_idx ON m_application (createTimestamp);
+CREATE INDEX m_application_modifyTimestamp_idx ON m_application (modifyTimestamp);
+
+$aa$);
+
 ---
 -- WRITE CHANGES ABOVE ^^
 -- IMPORTANT: update apply_change number at the end of postgres-new.sql

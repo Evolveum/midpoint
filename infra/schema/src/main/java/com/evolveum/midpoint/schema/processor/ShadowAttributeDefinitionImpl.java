@@ -315,7 +315,9 @@ public abstract class ShadowAttributeDefinitionImpl<
 
     @Override
     public String getDescription() {
-        return customizationBean.getDescription();
+        return MiscUtil.orElseGet(
+                customizationBean.getDescription(),
+                nativeDefinition::getNativeDescription);
     }
 
     @Override
@@ -336,6 +338,11 @@ public abstract class ShadowAttributeDefinitionImpl<
     @Override
     public String getNativeAttributeName() {
         return nativeDefinition.getNativeAttributeName();
+    }
+
+    @Override
+    public String getNativeDescription() {
+        return nativeDefinition.getNativeDescription();
     }
 
     @Override
@@ -520,7 +527,7 @@ public abstract class ShadowAttributeDefinitionImpl<
         if (getDisplayName() != null) {
             sb.append(",Disp");
         }
-        if (getDescription() != null) {
+        if (getNativeDescription() != null) {
             sb.append(",Desc");
         }
         if (hasOutboundMapping()) {

@@ -14,6 +14,8 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.gui.api.util.LocalizationUtil;
 
+import com.evolveum.midpoint.gui.impl.component.data.column.icon.RoundedImageObjectColumn;
+
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -78,7 +80,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.data.column.AjaxLinkPanel;
 import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
-import com.evolveum.midpoint.web.component.data.column.RoundedIconColumn;
+import com.evolveum.midpoint.gui.impl.component.data.column.icon.RoundedIconColumn;
 import com.evolveum.midpoint.web.component.util.EnableBehaviour;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.component.util.SerializableBiConsumer;
@@ -1056,24 +1058,15 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> implements 
                 return Model.of(!isAssignedToAll);
             }
         });
-        columns.add(new RoundedIconColumn<>(null) {
+        columns.add(new RoundedImageObjectColumn(null, getPageBase()) {
 
             @Override
-            protected IModel<IResource> createPreferredImage(IModel<SelectableBean<ObjectType>> model) {
-                return RoleCatalogPanel.this.createImage(() -> model.getObject().getValue());
-            }
-
-            @Override
-            protected DisplayType createDisplayType(IModel<SelectableBean<ObjectType>> model) {
-                OperationResult result = new OperationResult("getIcon");
-                return GuiDisplayTypeUtil.getDisplayTypeForObject(model.getObject().getValue(), result, getPageBase());
-            }
-
-            @Override
-            protected String getAlternativeTextForImage(IModel<SelectableBean<ObjectType>> model) {
+            protected String getAlternativeTextForImage(IModel model) {
                 return LocalizationUtil.translate(
                         "RoleCatalogPanel.image.alt",
-                        new Object[]{WebComponentUtil.getDisplayNameOrName(model.getObject().getValue().asPrismObject())});
+                        new Object[]{
+                                WebComponentUtil.getDisplayNameOrName(
+                                        ((SelectableBean<ObjectType>)model.getObject()).getValue().asPrismObject())});
             }
         });
         columns.add(new AbstractColumn<>(createStringResource("ObjectType.name")) {

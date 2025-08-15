@@ -33,6 +33,8 @@ public class IconAndStylesUtil {
         Class<T> type = object.getCompileTimeClass();
         if (type.equals(UserType.class)) {
             return createUserIcon((PrismObject<UserType>) object);
+        } else if (type.equals(ApplicationType.class)) {
+            return createApplicationIcon();
         } else if (RoleType.class.equals(type)) {
             return createRoleIcon((PrismObject<RoleType>) object);
         } else if (OrgType.class.equals(type)) {
@@ -139,7 +141,9 @@ public class IconAndStylesUtil {
             return "";
         } else if (QNameUtil.match(UserType.COMPLEX_TYPE, objectType) || QNameUtil.match(PersonaConstructionType.COMPLEX_TYPE, objectType)) {
             return GuiStyleConstants.CLASS_OBJECT_USER_ICON;
-        } else if (QNameUtil.match(RoleType.COMPLEX_TYPE, objectType)) {
+        } else if (QNameUtil.match(ApplicationType.COMPLEX_TYPE, objectType)) {
+            return GuiStyleConstants.CLASS_OBJECT_APPLICATION_ICON;
+        }else if (QNameUtil.match(RoleType.COMPLEX_TYPE, objectType)) {
             return GuiStyleConstants.CLASS_OBJECT_ROLE_ICON;
         } else if (QNameUtil.match(OrgType.COMPLEX_TYPE, objectType)) {
             return GuiStyleConstants.CLASS_OBJECT_ORG_ICON;
@@ -282,6 +286,10 @@ public class IconAndStylesUtil {
         }
 
         return getObjectNormalIconStyle(GuiStyleConstants.CLASS_OBJECT_ROLE_ICON);
+    }
+
+    public static String createApplicationIcon() {
+        return getObjectNormalIconStyle(GuiStyleConstants.CLASS_OBJECT_APPLICATION_ICON);
     }
 
     public static String createOrgIcon() {

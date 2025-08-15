@@ -64,7 +64,7 @@ import com.evolveum.midpoint.repo.sqale.qmodel.system.QValuePolicyMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.tag.QMarkMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.task.QAffectedObjectsMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.task.QTaskMapping;
-import com.evolveum.midpoint.repo.sqale.schema.QSchemaMapping;
+import com.evolveum.midpoint.repo.sqale.qmodel.schema.QSchemaMapping;
 import com.evolveum.midpoint.repo.sqlbase.DataSourceFactory;
 import com.evolveum.midpoint.repo.sqlbase.SystemConfigurationChangeDispatcherImpl;
 import com.evolveum.midpoint.repo.sqlbase.mapping.QueryModelMappingRegistry;
@@ -206,6 +206,7 @@ public class SqaleRepositoryBeanConfig {
                 .register(RoleAnalysisOutlierPartitionType.COMPLEX_TYPE, QOutlierPartitionMapping.initMapping(repositoryContext))
                 .register(RoleAnalysisDetectionPatternType.COMPLEX_TYPE, QClusterDetectedPatternMapping.initMapping(repositoryContext))
                 .register(PolicyType.COMPLEX_TYPE, QPolicyMapping.init(repositoryContext))
+                .register(ApplicationType.COMPLEX_TYPE, QApplicationMapping.init(repositoryContext))
                 .seal();
 
         return repositoryContext;

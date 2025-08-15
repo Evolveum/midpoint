@@ -6,6 +6,7 @@
  */
 package com.evolveum.midpoint.gui.impl.page.admin.org;
 
+import com.evolveum.midpoint.gui.impl.page.admin.abstractrole.AbstractRoleDetailsModel;
 import com.evolveum.midpoint.gui.impl.page.admin.focus.FocusDetailsModels;
 
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -58,8 +59,8 @@ public class PageOrgHistory extends PageOrg {
     }
 
     @Override
-    protected FocusDetailsModels<OrgType> createObjectDetailsModels(PrismObject<OrgType> object) {
-        return new FocusDetailsModels<>(createPrismObjectModel(getReconstructedObject()), true, this);
+    protected AbstractRoleDetailsModel<OrgType> createObjectDetailsModels(PrismObject<OrgType> object) {
+        return new AbstractRoleDetailsModel<>(createPrismObjectModel(getReconstructedObject()), true, this);
     }
 
     @Override

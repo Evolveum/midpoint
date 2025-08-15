@@ -162,4 +162,16 @@ public abstract class AbstractWizardPanel<C extends Containerable, AHD extends A
             }
         }
     }
+
+    protected void onFinishBasicWizardPerformed(AjaxRequestTarget target) {
+        OperationResult result = getHelper().onSaveObjectPerformed(target);
+        if (!result.isError()) {
+            exitToPreview(target);
+        }
+    }
+
+    protected void exitToPreview(AjaxRequestTarget target) {
+        getHelper().onExitPerformed(target);
+    }
+
 }

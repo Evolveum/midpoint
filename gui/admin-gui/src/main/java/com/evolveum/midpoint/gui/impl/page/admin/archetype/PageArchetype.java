@@ -6,6 +6,7 @@
  */
 package com.evolveum.midpoint.gui.impl.page.admin.archetype;
 
+import com.evolveum.midpoint.gui.impl.page.admin.abstractrole.AbstractRoleDetailsModel;
 import com.evolveum.midpoint.util.exception.CommonException;
 
 import org.apache.wicket.markup.html.panel.Panel;
@@ -46,7 +47,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ArchetypeType;
                         label = "PageArchetype.auth.user.label",
                         description = "PageArchetype.auth.archetype.description")
         })
-public class PageArchetype extends PageAbstractRole<ArchetypeType, FocusDetailsModels<ArchetypeType>> {
+public class PageArchetype extends PageAbstractRole<ArchetypeType, AbstractRoleDetailsModel<ArchetypeType>> {
 
     private static final Trace LOGGER = TraceManager.getTrace(PageArchetype.class);
 

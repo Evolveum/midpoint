@@ -415,6 +415,10 @@ public class NativeShadowAttributeDefinitionImpl<T>
         this.referencedObjectClassName = value;
     }
 
+    public void setNativeDescription(String value) {
+        ucfData.setNativeDescription(value);
+    }
+
     @Override
     public void shortDump(StringBuilder sb) {
         sb.append(this);
@@ -427,7 +431,8 @@ public class NativeShadowAttributeDefinitionImpl<T>
                 ResourceDefinitionFeatures.ForItem.DF_FRAMEWORK_ATTRIBUTE_NAME,
                 ResourceDefinitionFeatures.ForItem.DF_RETURNED_BY_DEFAULT,
                 ResourceDefinitionFeatures.ForItem.DF_ROLE_IN_REFERENCE,
-                ResourceDefinitionFeatures.ForItem.DF_REFERENCED_OBJECT_CLASS_NAME);
+                ResourceDefinitionFeatures.ForItem.DF_REFERENCED_OBJECT_CLASS_NAME,
+                ResourceDefinitionFeatures.ForItem.DF_DESCRIPTION_NAME);
     }
 
     @Override

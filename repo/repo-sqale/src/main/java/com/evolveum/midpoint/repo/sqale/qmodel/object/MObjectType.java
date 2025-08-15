@@ -9,7 +9,6 @@ package com.evolveum.midpoint.repo.sqale.qmodel.object;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
-import java.util.function.Function;
 import java.util.function.Supplier;
 import javax.xml.namespace.QName;
 
@@ -18,7 +17,7 @@ import com.evolveum.midpoint.repo.sqale.qmodel.mining.outlier.QOutlier;
 import com.evolveum.midpoint.repo.sqale.qmodel.mining.session.QSessionData;
 import com.evolveum.midpoint.repo.sqale.qmodel.role.*;
 
-import com.evolveum.midpoint.repo.sqale.schema.QSchema;
+import com.evolveum.midpoint.repo.sqale.qmodel.schema.QSchema;
 
 import com.google.common.base.Preconditions;
 import org.jetbrains.annotations.NotNull;
@@ -61,6 +60,7 @@ public enum MObjectType {
     ABSTRACT_ROLE(QAbstractRole.CLASS, AbstractRoleType.class, null),
     ACCESS_CERTIFICATION_CAMPAIGN(QAccessCertificationCampaign.class, AccessCertificationCampaignType.class, AccessCertificationCampaignType::new),
     ACCESS_CERTIFICATION_DEFINITION(QAccessCertificationDefinition.class, AccessCertificationDefinitionType.class, AccessCertificationDefinitionType::new),
+    APPLICATION(QApplication.class, ApplicationType.class, ApplicationType::new),
     ARCHETYPE(QArchetype.class, ArchetypeType.class, ArchetypeType::new),
     ASSIGNMENT_HOLDER(QAssignmentHolder.CLASS, AssignmentHolderType.class, null),
     CASE(QCase.class, CaseType.class, CaseType::new),

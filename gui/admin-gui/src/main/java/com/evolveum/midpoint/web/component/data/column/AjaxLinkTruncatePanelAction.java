@@ -24,7 +24,7 @@ import org.apache.wicket.model.PropertyModel;
 import com.evolveum.midpoint.common.mining.utils.values.RoleAnalysisOperationMode;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
-import com.evolveum.midpoint.gui.impl.component.data.column.CompositedIconPanel;
+import com.evolveum.midpoint.gui.impl.component.data.column.icon.CompositedIconPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.DetailsFragment;
 import com.evolveum.midpoint.web.component.util.EnableBehaviour;
 

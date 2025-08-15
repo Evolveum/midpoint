@@ -511,6 +511,8 @@ public final class WebComponentUtil {
             return AuthorizationConstants.AUTZ_UI_SERVICE_URL;
         } else if (ResourceType.class.equals(targetClass)) {
             return AuthorizationConstants.AUTZ_UI_RESOURCE_URL;
+        } else if (ApplicationType.class.equals(targetClass)) {
+            return AuthorizationConstants.AUTZ_UI_APPLICATION_URL;
         } else {
             return null;
         }

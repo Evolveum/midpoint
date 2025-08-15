@@ -7,7 +7,7 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.simulation.todo;
 
-import com.evolveum.midpoint.web.component.data.column.RoundedImagePanel;
+import com.evolveum.midpoint.gui.impl.component.data.column.icon.RoundedImagePanel;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.DisplayType;
 

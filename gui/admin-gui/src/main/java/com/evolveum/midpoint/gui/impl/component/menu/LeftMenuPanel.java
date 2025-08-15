@@ -307,6 +307,7 @@ public class LeftMenuPanel extends BasePanel<Void> {
         SideBarMenuItem menu = new SideBarMenuItem("PageAdmin.menu.mainNavigation", experimentalFeaturesEnabled);
         menu.addMainMenuItem(createHomeItems());
         menu.addMainMenuItem(createUsersItems());
+        menu.addMainMenuItem(createApplicationsItems());
         menu.addMainMenuItem(createOrganizationsMenu());
         menu.addMainMenuItem(createRolesMenu());
         menu.addMainMenuItem(createServicesItems());
@@ -381,6 +382,12 @@ public class LeftMenuPanel extends BasePanel<Void> {
         MainMenuItem userMenu = createMainMenuItem("PageAdmin.menu.top.users", GuiStyleConstants.CLASS_OBJECT_USER_ICON_COLORED);
         createBasicAssignmentHolderMenuItems(userMenu, PageTypes.USER);
         return userMenu;
+    }
+
+    private MainMenuItem createApplicationsItems() {
+        MainMenuItem applicationMenu = createMainMenuItem("PageAdmin.menu.top.applications", GuiStyleConstants.CLASS_OBJECT_APPLICATION_ICON_COLORED);
+        createBasicAssignmentHolderMenuItems(applicationMenu, PageTypes.APPLICATION);
+        return applicationMenu;
     }
 
     //TODO AuthorizationConstants.AUTZ_UI_ORG_STRUCT_URL

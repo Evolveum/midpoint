@@ -182,7 +182,7 @@ public interface ShadowAttributeDefinition<
     void setOverrideCanModify(Boolean value);
 
     /**
-     * Gets the (configured) attribute description.
+     * Gets the (native or configured) attribute description.
      *
      * @see ResourceAttributeDefinitionType#getDescription()
      */
