@@ -25,6 +25,9 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAttributeStati
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowObjectClassStatisticsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
+import javax.naming.InvalidNameException;
+import javax.naming.ldap.LdapName;
+import javax.naming.ldap.Rdn;
 import javax.xml.namespace.QName;
 
 /**
@@ -273,11 +276,9 @@ public class StatisticsComputer {
         for (ShadowAttributeStatisticsType stats : statistics.getAttribute()) {
             QName attrKey = fromAttributeRef(stats.getRef());
             Map<String, Integer> valueCounts = getValueCounts(attrKey);
-
             stats.setUniqueValueCount(valueCounts.size());
 
             valueCounts = getTopNValueCounts(valueCounts);
-
             for (Map.Entry<String, Integer> entry : valueCounts.entrySet()) {
                 stats.beginValueCount()
                         .value(entry.getKey())
@@ -454,28 +455,39 @@ public class StatisticsComputer {
     }
 
     /**
-     * Parses a distinguished name (DN) string and extracts all organizational unit (OU) values.
-     *
-     * @param dn the distinguished name string to parse (e.g., "CN=John Doe,OU=Sales,OU=EMEA,DC=example,DC=com")
-     * @return a list of OU values found in the DN, in the order they appear
+     * Parses the given distinguished name (DN) string to extract the suffix starting with the first "OU" (organizational unit) RDN.
+     * <p>
+     * For example, for the DN {@code "CN=John Doe,OU=Users,DC=example,DC=com"}, this method will return
+     * {@code "OU=Users,DC=example,DC=com"}.
      */
-    private List<String> parseDNString(String dn) {
-        List<String> ous = new ArrayList<>();
-        for (String part : dn.split(",")) {
-            String trimmed = part.trim();
-            if (trimmed.startsWith("OU=")) {
-                ous.add(trimmed.substring(3));
+    private String parseOUSuffix(String dn) {
+        try {
+            LdapName ldapName = new LdapName(dn);
+            List<Rdn> rdns = ldapName.getRdns();
+            int ouIndex = -1;
+            for (int i = rdns.size() - 1; i >= 0; i--) {
+                Rdn rdn = rdns.get(i);
+                if (rdn.getType().equalsIgnoreCase("OU")) {
+                    ouIndex = i;
+                    break;
+                }
             }
+            if (ouIndex == -1) {
+                return null;
+            }
+            List<Rdn> suffixRdns = rdns.subList(0, ouIndex+1);
+            LdapName suffixName = new LdapName(suffixRdns);
+            return suffixName.toString();
+        } catch (InvalidNameException e) {
+            return null;
         }
-        return ous;
     }
 
     /**
-     * Retrieves a mapping of organizational unit (OU) values to their occurrence counts for a given attribute key.
-     * The method processes all DN values stored under the specified attribute key and counts each OU found.
-     *
-     * @param attrKey the QName key representing the attribute (typically for a DN attribute)
-     * @return a map where the key is the OU value and the value is the number of occurrences
+     * Counts the occurrences of organizational unit (OU) suffixes for the elements associated with the specified attribute key.
+     * <p>
+     * The method uses {@link #parseOUSuffix(String)} to extract the OU suffix from each DN,
+     * then counts the occurrences of each unique OU suffix.
      */
     private Map<String, Integer> getOUValueCounts(QName attrKey) {
         Map<String, Integer> result = new HashMap<>();
@@ -485,9 +497,9 @@ public class StatisticsComputer {
         }
         for (List<?> inner : elements) {
             if (inner.size() != 1) continue;
-            List<String> ous = parseDNString(inner.get(0).toString());
-            for (String ou : ous) {
-                result.merge(ou, 1, Integer::sum);
+            String ouSuffix = parseOUSuffix(inner.get(0).toString());
+            if (ouSuffix != null) {
+                result.merge(ouSuffix, 1, Integer::sum);
             }
         }
         return result;
@@ -503,14 +515,7 @@ public class StatisticsComputer {
             QName attrKey = fromAttributeRef(attribute.getRef());
             if (attrKey.toString().equalsIgnoreCase("dn") ||
                     attrKey.toString().equalsIgnoreCase("distinguishedName")) {
-                Map<String, Integer> ouCounts = getOUValueCounts(attrKey).entrySet().stream()
-                        .sorted(Map.Entry.<String, Integer>comparingByValue().reversed())
-                        .collect(Collectors.toMap(
-                                Map.Entry::getKey,
-                                Map.Entry::getValue,
-                                (e1, e2) -> e1,
-                                LinkedHashMap::new
-                        ));
+                Map<String, Integer> ouCounts = getOUValueCounts(attrKey);
                 for (Map.Entry<String, Integer> entry : ouCounts.entrySet()) {
                     attribute.beginValueCount()
                             .value(entry.getKey())
