@@ -384,7 +384,7 @@ public abstract class ContainerableListPanel<C extends Serializable, PO extends 
             }
 
             @Override
-            protected org.apache.wicket.markup.repeater.Item<PO> customizeNewRowItem(org.apache.wicket.markup.repeater.Item<PO> item, IModel<PO> model) {
+            protected Item<PO> customizeNewRowItem(Item<PO> item, IModel<PO> model) {
                 item.add(AttributeModifier.append("class", () -> GuiImplUtil.getObjectStatus(model.getObject())));
 
                 customProcessNewRowItem(item, model);

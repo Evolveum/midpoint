@@ -28,6 +28,7 @@ import com.evolveum.midpoint.web.model.PrismContainerWrapperModel;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
+import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
@@ -36,6 +37,7 @@ import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.LoadableDetachableModel;
 import org.apache.wicket.model.Model;
+import org.jetbrains.annotations.NotNull;
 
 import javax.xml.namespace.QName;
 import java.util.ArrayList;
@@ -160,6 +162,20 @@ public class ResourceObjectTypesPanel extends SchemaHandlingObjectsPanel<Resourc
 //        return super.onNameColumnPopulateItem(cellItem, componentId, rowModel);
 //
 //    }
+
+    @Override
+    protected void customizeNewRowItem(
+            Item<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> item,
+            @NotNull IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> model) {
+        PrismContainerValueWrapper<ResourceObjectTypeDefinitionType> object = model.getObject();
+        StatusInfo<ObjectTypesSuggestionType> objectTypesSuggestionTypeStatusInfo = suggestionMap.get(object);
+
+        if (objectTypesSuggestionTypeStatusInfo != null) {
+            item.add(AttributeModifier.append("class", "bg-light-purple"));
+        } else {
+            super.customizeNewRowItem(item, model);
+        }
+    }
 
     @Override
     protected List<IColumn<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>, String>> createColumns() {

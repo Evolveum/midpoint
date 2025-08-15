@@ -81,6 +81,12 @@ public abstract class SchemaHandlingObjectsPanel<C extends Containerable> extend
             }
 
             @Override
+            protected void customProcessNewRowItem(Item<PrismContainerValueWrapper<C>> item, IModel<PrismContainerValueWrapper<C>> model) {
+                super.customProcessNewRowItem(item, model);
+                customizeNewRowItem(item, model);
+            }
+
+            @Override
             protected IModel<PrismContainerWrapper<C>> getContainerModel() {
                 return createContainerModel();
             }
@@ -223,9 +229,14 @@ public abstract class SchemaHandlingObjectsPanel<C extends Containerable> extend
             protected void newItemPerformed(PrismContainerValue<C> value, AjaxRequestTarget target, AssignmentObjectRelation relationSpec, boolean isDuplicate) {
                 onNewValue(value, getContainerModel(), target, isDuplicate);
             }
+
         };
     }
 
+    protected void customizeNewRowItem(
+            Item<PrismContainerValueWrapper<C>> item, IModel<PrismContainerValueWrapper<C>> model) {
+        // Default implementation does nothing. Override if needed.
+    }
     /**
      * This method is called when the name column is populated.
      * It allows for custom behavior or additional components to be added
