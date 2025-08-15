@@ -170,6 +170,11 @@ public abstract class SingleSelectTileTablePanel<O extends SelectableRow, T exte
                 });
                 return item;
             }
+
+            @Override
+            public String getAdditionalBoxCssClasses() {
+                return SingleSelectTileTablePanel.this.getAdditionalTableCssClasses();
+            }
         };
         table.setShowAsCard(false);
         return table;

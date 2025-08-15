@@ -38,6 +38,8 @@ import com.evolveum.midpoint.web.component.data.BoxedTablePanel;
 import com.evolveum.midpoint.web.component.data.paging.NavigatorPanel;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 
+import org.jetbrains.annotations.NotNull;
+
 /**
  * Created by Viliam Repan (lazyman).
  */
@@ -56,7 +58,7 @@ public abstract class TileTablePanel<T extends Tile, O extends Serializable> ext
     private static final String ID_PANEL_HEADER = "panelHeader";
 
     protected static final String ID_TILE = "tile";
-    static final String ID_TABLE = "table";
+    protected static final String ID_TABLE = "table";
 
     static final String ID_FOOTER_CONTAINER = "footerContainer";
     private static final String ID_BUTTON_TOOLBAR = "buttonToolbar";
@@ -133,8 +135,12 @@ public abstract class TileTablePanel<T extends Tile, O extends Serializable> ext
         WebMarkupContainer buttonToolbar = createTilesButtonToolbar(ID_BUTTON_TOOLBAR);
         footerContainer.add(buttonToolbar);
 
-        BoxedTablePanel table = createTablePanel(ID_TABLE, provider, tableId);
+        BoxedTablePanel<?> table = createTablePanel(ID_TABLE, provider, tableId);
         table.add(new VisibleBehaviour(this::isTableVisible));
+        initTable(table);
+    }
+
+    protected void initTable(@NotNull BoxedTablePanel<?> table) {
         add(table);
     }
 
@@ -219,10 +225,19 @@ public abstract class TileTablePanel<T extends Tile, O extends Serializable> ext
                 }
                 return super.getAdditionalBoxCssClasses();
             }
+
+            @Override
+            public String getTableAdditionalCssClasses() {
+                return TileTablePanel.this.getAdditionalTableCssClasses();
+            }
         };
     }
 
     protected String getAdditionalBoxCssClasses() {
+        return null;
+    }
+
+    protected String getAdditionalTableCssClasses(){
         return null;
     }
 
@@ -319,14 +334,14 @@ public abstract class TileTablePanel<T extends Tile, O extends Serializable> ext
         target.add(getPageBase().getFeedbackPanel());
 
         if (viewToggleModel.getObject() == ViewToggle.TABLE) {
-            target.add(get(ID_TABLE));
+            target.add(getTable());
         } else {
             target.add(get(ID_TILE_VIEW));
         }
     }
 
-    public BoxedTablePanel getTable() {
-        return (BoxedTablePanel) get(ID_TABLE);
+    public BoxedTablePanel<?> getTable() {
+        return (BoxedTablePanel<?>) get(ID_TABLE);
     }
 
     protected NavigatorPanel getTilesNavigation() {

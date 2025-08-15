@@ -133,6 +133,7 @@ public class BoxedTablePanel<T> extends BasePanel<T> implements Table {
             }
         };
         table.setOutputMarkupId(true);
+        table.add(AttributeAppender.append("class", this::getTableAdditionalCssClasses));
         table.add(new VisibleBehaviour(this::isDataTableVisible));
         tableContainer.add(table);
         add(tableContainer);
@@ -199,6 +200,10 @@ public class BoxedTablePanel<T> extends BasePanel<T> implements Table {
         Integer size = safeLongToInteger(itemsPerPage);
 
         return getPrismContext().queryFactory().createPaging(o * size, size);
+    }
+
+    public String getTableAdditionalCssClasses() {
+        return null;
     }
 
     public int getAutoRefreshInterval() {
