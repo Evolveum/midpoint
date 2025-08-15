@@ -37,12 +37,15 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
+import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.markup.html.WebMarkupContainer;
+import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.StringResourceModel;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.Serial;
 import java.util.ArrayList;
@@ -174,6 +177,18 @@ public abstract class SchemaHandlingObjectsPanel<C extends Containerable> extend
                 return new PrismPropertyWrapperColumn<>(getContainerModel(), getPathForDisplayName(), AbstractItemWrapperColumn.ColumnType.LINK, getPageBase()) {
 
                     @Override
+                    public void populateItem(Item<ICellPopulator<PrismContainerValueWrapper<C>>> cellItem, String componentId, IModel<PrismContainerValueWrapper<C>> rowModel) {
+
+                        Component component = onNameColumnPopulateItem(cellItem, componentId, rowModel);
+                        if (component != null) {
+                            cellItem.add(component);
+                            return;
+                        }
+
+                        super.populateItem(cellItem, componentId, rowModel);
+                    }
+
+                    @Override
                     protected void onClick(AjaxRequestTarget target, IModel<PrismContainerValueWrapper<C>> model) {
                         editItemPerformed(target, model, null);
                     }
@@ -209,6 +224,22 @@ public abstract class SchemaHandlingObjectsPanel<C extends Containerable> extend
                 onNewValue(value, getContainerModel(), target, isDuplicate);
             }
         };
+    }
+
+    /**
+     * This method is called when the name column is populated.
+     * It allows for custom behavior or additional components to be added
+     * to the name column item.
+     *
+     * @param cellItem The item being populated.
+     * @param componentId The ID of the component being populated.
+     * @param rowModel The model for the row being populated.
+     * @return A component to be added to the cell, or null if no custom component is needed.
+     */
+    protected @Nullable Component onNameColumnPopulateItem(
+            Item<ICellPopulator<PrismContainerValueWrapper<C>>> cellItem, String componentId, IModel<PrismContainerValueWrapper<C>> rowModel) {
+        // Default implementation does nothing. Override if needed.
+        return null;
     }
 
     private InlineMenuItem createShowLifecycleStatesInlineMenu() {

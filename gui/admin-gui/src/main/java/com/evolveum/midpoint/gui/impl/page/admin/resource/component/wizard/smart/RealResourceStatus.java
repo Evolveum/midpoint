@@ -124,6 +124,10 @@ public class RealResourceStatus implements ResourceStatus {
                 .toList();
     }
 
+    public List<StatusInfo<ObjectTypesSuggestionType>> getAllSuggestionsStatuses() {
+        return statuses;
+    }
+
     @Override
     public List<StatusInfo<ObjectTypesSuggestionType>> getObjectTypesSuggestions() {
         return getSuccessfulStatuses();

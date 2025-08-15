@@ -149,7 +149,7 @@ public class SmartIntegrationUtils {
             result.recordWarning("Unexpected resource status type: " + rs.getClass().getSimpleName());
             return null;
         }
-        List<StatusInfo<ObjectTypesSuggestionType>> suggestions = real.getObjectTypesSuggestions();
+        List<StatusInfo<ObjectTypesSuggestionType>> suggestions = real.getAllSuggestionsStatuses();
         if (suggestions == null || suggestions.isEmpty()) {
             return null;
         }
