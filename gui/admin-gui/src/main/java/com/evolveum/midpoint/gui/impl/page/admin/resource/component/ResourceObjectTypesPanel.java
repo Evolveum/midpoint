@@ -7,13 +7,16 @@
 package com.evolveum.midpoint.gui.impl.page.admin.resource.component;
 
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
+import com.evolveum.midpoint.gui.api.component.data.provider.ISelectableDataProvider;
 import com.evolveum.midpoint.gui.api.factory.wrapper.WrapperContext;
+import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.prism.ItemStatus;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.impl.component.data.column.AbstractItemWrapperColumn;
 import com.evolveum.midpoint.gui.impl.component.data.column.PrismPropertyWrapperColumn;
 import com.evolveum.midpoint.gui.impl.component.data.column.LifecycleStateColumn;
+import com.evolveum.midpoint.gui.impl.component.data.provider.MultivalueContainerListDataProvider;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -29,6 +32,7 @@ import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.wicket.AttributeModifier;
+import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
@@ -39,11 +43,7 @@ import org.apache.wicket.model.LoadableDetachableModel;
 import org.apache.wicket.model.Model;
 import org.jetbrains.annotations.NotNull;
 
-import javax.xml.namespace.QName;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.smart.SmartIntegrationUtils.loadObjectTypeSuggestions;
 
@@ -52,6 +52,9 @@ import static com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizar
         childOf = SchemaHandlingPanel.class,
         display = @PanelDisplay(label = "PageResource.tab.objectTypes", icon = GuiStyleConstants.CLASS_RECONCILE_MENU_ITEM, order = 10))
 public class ResourceObjectTypesPanel extends SchemaHandlingObjectsPanel<ResourceObjectTypeDefinitionType> {
+
+    private static final String OP_DETERMINE_STATUSES =
+            ResourceObjectTypesPanel.class.getName() + ".determineStatuses";
 
     public ResourceObjectTypesPanel(String id, ResourceDetailsModel model, ContainerPanelConfigurationType config) {
         super(id, model, config);
@@ -72,109 +75,134 @@ public class ResourceObjectTypesPanel extends SchemaHandlingObjectsPanel<Resourc
         return "ResourceSchemaHandlingPanel.newObject";
     }
 
+    // Holds the "why" for each rendered wrapper.
+    private final Map<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>,
+            StatusInfo<ObjectTypesSuggestionType>> suggestionByWrapper = new HashMap<>();
+
+    /** Loads object-type suggestions for the current resource. */
     public List<StatusInfo<ObjectTypesSuggestionType>> getSuggestions() {
-        Task task = getPageBase().createSimpleTask("Loading object type suggestions");
-        OperationResult result = task.getResult();
-        ResourceType resource = getObjectDetailsModels().getObjectType();
+        final Task task = getPageBase().createSimpleTask("Load object type suggestions");
+        final OperationResult result = task.getResult();
 
-        return loadObjectTypeSuggestions(
-                getPageBase(), resource.getOid(), task, result);
-    }
-
-    private void addSuggestedObjectTypesValueWrappers(PrismContainerWrapperModel<ResourceType, ResourceObjectTypeDefinitionType> resourceTypeCPrismContainerWrapperModel) {
-        List<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> prismContainerValueWrappers = loadObjectTypesSuggestionValueWrappers();
-
-        for (PrismContainerValueWrapper<ResourceObjectTypeDefinitionType> prismContainerValueWrapper : prismContainerValueWrappers) {
-            resourceTypeCPrismContainerWrapperModel.getObject().getValues().add(prismContainerValueWrapper);
+        final ResourceType resource = getObjectDetailsModels().getObjectType();
+        if (resource == null || resource.getOid() == null) {
+            return Collections.emptyList();
         }
+
+        return loadObjectTypeSuggestions(getPageBase(), resource.getOid(), task, result);
     }
 
-    Map<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>, StatusInfo<ObjectTypesSuggestionType>> suggestionMap = new HashMap<>();
-
-    protected List<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> loadObjectTypesSuggestionValueWrappers() {
-        List<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> values = new ArrayList<>();
-
-        Task task = getPageBase().createSimpleTask("Loading object type suggestions");
-        OperationResult result = task.getResult();
-
-        List<StatusInfo<ObjectTypesSuggestionType>> suggestions = getSuggestions();
-
+    /** Creates value wrappers for each suggested object type. */
+    protected List<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> loadSuggestionWrappers() {
+        final List<StatusInfo<ObjectTypesSuggestionType>> suggestions = getSuggestions();
         if (suggestions == null || suggestions.isEmpty()) {
-            return values;
+            return Collections.emptyList();
         }
-        for (StatusInfo<ObjectTypesSuggestionType> statusInfo : suggestions) {
 
-            if (statusInfo == null) {
-                continue;
+        final Task task = getPageBase().createSimpleTask(OP_DETERMINE_STATUSES);
+        final OperationResult result = task.getResult();
+
+        final List<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> out = new ArrayList<>();
+
+        for (StatusInfo<ObjectTypesSuggestionType> si : suggestions) {
+            if (si == null) {
+                continue; // defensive
             }
 
-            ObjectTypesSuggestionType objectTypeSuggestionResult = new ObjectTypesSuggestionType();
-            if (statusInfo.getResult() != null) {
-                objectTypeSuggestionResult = statusInfo.getResult();
+            // Ensure a non-null suggestion object.
+            ObjectTypesSuggestionType suggestion =
+                    si.getResult() != null ? si.getResult() : new ObjectTypesSuggestionType();
+
+            // Guarantee at least one object type entry exists so we can wrap it.
+            List<ResourceObjectTypeDefinitionType> objectTypes = suggestion.getObjectType();
+            if (objectTypes.isEmpty()) {
+                objectTypes.add(new ResourceObjectTypeDefinitionType());
             }
 
-            List<ResourceObjectTypeDefinitionType> suggestedObjectType = objectTypeSuggestionResult.getObjectType();
-
-            if (suggestedObjectType.isEmpty()) {
-                suggestedObjectType.add(new ResourceObjectTypeDefinitionType());
-            }
-
-            PrismContainerWrapper<ResourceObjectTypeDefinitionType> itemWrapper;
             try {
                 @SuppressWarnings("unchecked")
-                PrismContainerValue<ResourceObjectTypeDefinitionType> prismContainerValue = objectTypeSuggestionResult
-                        .asPrismContainerValue();
+                PrismContainerValue<ObjectTypesSuggestionType> suggestionPcv =
+                        suggestion.asPrismContainerValue();
 
-                PrismContainer<ResourceObjectTypeDefinitionType> container = prismContainerValue
-                        .findContainer(ObjectTypesSuggestionType.F_OBJECT_TYPE);
-                itemWrapper = getPageBase().createItemWrapper(
-                        container, ItemStatus.NOT_CHANGED, new WrapperContext(task, result));
-                List<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> valueWrapper = itemWrapper.getValues();
+                PrismContainer<ResourceObjectTypeDefinitionType> container =
+                        suggestionPcv.findContainer(ObjectTypesSuggestionType.F_OBJECT_TYPE);
 
-                for (PrismContainerValueWrapper<ResourceObjectTypeDefinitionType> cPrismContainerValueWrapper : valueWrapper) {
-                    suggestionMap.put(cPrismContainerValueWrapper, statusInfo);
-                    values.add(cPrismContainerValueWrapper);
+                PrismContainerWrapper<ResourceObjectTypeDefinitionType> wrapper =
+                        getPageBase().createItemWrapper(
+                                container, ItemStatus.NOT_CHANGED, new WrapperContext(task, result));
+
+                for (PrismContainerValueWrapper<ResourceObjectTypeDefinitionType> v : wrapper.getValues()) {
+                    suggestionByWrapper.put(v, si);
+                    out.add(v);
                 }
-
             } catch (SchemaException e) {
-                throw new RuntimeException("Error wrapping object type suggestions", e);
+                throw new IllegalStateException("Failed to wrap object type suggestions", e);
             }
         }
 
-        return values;
+        return out;
     }
 
-//    @Override
-//    protected Component onNameColumnPopulateItem(
-//            Item<ICellPopulator<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>>> cellItem,
-//            String componentId,
-//            @NotNull IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> rowModel) {
-//        PrismContainerValueWrapper<ResourceObjectTypeDefinitionType> object = rowModel.getObject();
-//        StatusInfo<ObjectTypesSuggestionType> suggestionTypeStatusInfo = suggestionMap.get(object);
+    @Override
+    protected Component onNameColumnPopulateItem(
+            Item<ICellPopulator<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>>> cellItem,
+            String componentId,
+            @NotNull IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> rowModel) {
+        PrismContainerValueWrapper<ResourceObjectTypeDefinitionType> object = rowModel.getObject();
+        StatusInfo<ObjectTypesSuggestionType> suggestionTypeStatusInfo = suggestionByWrapper.get(object);
 //        if (suggestionTypeStatusInfo != null) {
-//            ResourceObjectTypeDefinitionType objectRealValue = object.getRealValue();
 //
-//            String displayName = objectRealValue.getDisplayName();
-//            Label label = new Label(componentId, Model.of(displayName != null ? displayName : ""));
-//            label.setOutputMarkupId(true);
-//            return label;
 //        }
-//        return super.onNameColumnPopulateItem(cellItem, componentId, rowModel);
-//
-//    }
+        return super.onNameColumnPopulateItem(cellItem, componentId, rowModel);
+
+    }
 
     @Override
     protected void customizeNewRowItem(
             Item<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> item,
             @NotNull IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> model) {
         PrismContainerValueWrapper<ResourceObjectTypeDefinitionType> object = model.getObject();
-        StatusInfo<ObjectTypesSuggestionType> objectTypesSuggestionTypeStatusInfo = suggestionMap.get(object);
+        StatusInfo<ObjectTypesSuggestionType> objectTypesSuggestionTypeStatusInfo = suggestionByWrapper.get(object);
 
         if (objectTypesSuggestionTypeStatusInfo != null) {
-            item.add(AttributeModifier.append("class", "bg-light-purple"));
+            OperationResultStatusType status = objectTypesSuggestionTypeStatusInfo.getStatus();
+            switch (status) {
+                case FATAL_ERROR -> item.add(AttributeModifier.append("class", "bg-light-danger"));
+                case IN_PROGRESS -> item.add(AttributeModifier.append("class", "bg-light-info"));
+                default -> item.add(AttributeModifier.append("class", "bg-light-purple"));
+            }
         } else {
             super.customizeNewRowItem(item, model);
         }
+    }
+
+    @Override
+    protected ISelectableDataProvider<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> createProvider() {
+        PrismContainerWrapperModel<ResourceType, ResourceObjectTypeDefinitionType> resourceDefWrapper = PrismContainerWrapperModel
+                .fromContainerWrapper(getObjectWrapperModel(), getTypesContainerPath());
+
+        LoadableModel<List<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>>> containerModel = new LoadableModel<>() {
+            @Override
+            protected @NotNull List<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> load() {
+                List<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> valueContainer = new ArrayList<>();
+
+                List<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> suggestionWrappers = loadSuggestionWrappers();
+                List<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> resourceObjectTypesWrapper = resourceDefWrapper
+                        .getObject().getValues();
+
+                if (suggestionWrappers != null) {
+                    valueContainer.addAll(suggestionWrappers);
+                }
+
+                if (resourceObjectTypesWrapper != null) {
+                    valueContainer.addAll(resourceObjectTypesWrapper);
+                }
+
+                return valueContainer;
+            }
+        };
+
+        return new MultivalueContainerListDataProvider<>(ResourceObjectTypesPanel.this, Model.of(), containerModel);
     }
 
     @Override
@@ -183,36 +211,18 @@ public class ResourceObjectTypesPanel extends SchemaHandlingObjectsPanel<Resourc
         LoadableDetachableModel<PrismContainerDefinition<ResourceObjectTypeDefinitionType>> defModel = new LoadableDetachableModel<>() {
             @Override
             protected PrismContainerDefinition<ResourceObjectTypeDefinitionType> load() {
-                PrismContainerWrapperModel<ResourceType, ResourceObjectTypeDefinitionType> resourceTypeCPrismContainerWrapperModel = PrismContainerWrapperModel.fromContainerWrapper(getObjectWrapperModel(), getTypesContainerPath());
-
-                //add suggested object types
-                addSuggestedObjectTypesValueWrappers(resourceTypeCPrismContainerWrapperModel);
-
-                return resourceTypeCPrismContainerWrapperModel.getObject();
+                ComplexTypeDefinition resourceDef =
+                        PrismContext.get().getSchemaRegistry().findComplexTypeDefinitionByCompileTimeClass(ResourceType.class);
+                return resourceDef.findContainerDefinition(
+                        ItemPath.create(ResourceType.F_SCHEMA_HANDLING, SchemaHandlingType.F_OBJECT_TYPE));
             }
         };
 
         columns.add(new PrismPropertyWrapperColumn<>(
                 defModel,
-                ResourceObjectTypeDefinitionType.F_OBJECT_CLASS,
+                ItemPath.create(ResourceObjectTypeDefinitionType.F_DELINEATION, ResourceObjectTypeDelineationType.F_OBJECT_CLASS),
                 AbstractItemWrapperColumn.ColumnType.STRING,
-                getPageBase()) {
-            @Override
-            public void populateItem(Item<ICellPopulator<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>>> cellItem, String componentId, IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> rowModel) {
-                PrismContainerValueWrapper<ResourceObjectTypeDefinitionType> object = rowModel.getObject();
-                StatusInfo<ObjectTypesSuggestionType> suggestionTypeStatusInfo = suggestionMap.get(object);
-
-                if (suggestionTypeStatusInfo == null) {
-                    super.populateItem(cellItem, componentId, rowModel);
-                    return;
-                }
-                QName objectClassName = suggestionTypeStatusInfo.getObjectClassName();
-                Label label = new Label(componentId, Model.of(objectClassName != null ? objectClassName.getLocalPart() : ""));
-                label.setOutputMarkupId(true);
-                cellItem.add(label);
-
-            }
-        });
+                getPageBase()));
 
         columns.add(new PrismPropertyWrapperColumn<>(
                 defModel,
@@ -249,7 +259,7 @@ public class ResourceObjectTypesPanel extends SchemaHandlingObjectsPanel<Resourc
                     String componentId,
                     IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> rowModel) {
                 PrismContainerValueWrapper<ResourceObjectTypeDefinitionType> object = rowModel.getObject();
-                StatusInfo<ObjectTypesSuggestionType> suggestionTypeStatusInfo = suggestionMap.get(object);
+                StatusInfo<ObjectTypesSuggestionType> suggestionTypeStatusInfo = suggestionByWrapper.get(object);
 
                 if (suggestionTypeStatusInfo == null) {
                     super.populateItem(cellItem, componentId, rowModel);

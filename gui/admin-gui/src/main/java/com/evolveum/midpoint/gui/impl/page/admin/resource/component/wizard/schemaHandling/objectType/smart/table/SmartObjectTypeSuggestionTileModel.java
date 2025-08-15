@@ -37,8 +37,7 @@ public class SmartObjectTypeSuggestionTileModel<T extends PrismContainerValueWra
     private String icon;
     private String name;
     private String description;
-    private String count;
-    private String filter;
+    private final String filter;
     private String kind;
     private String intent;
 
@@ -50,21 +49,10 @@ public class SmartObjectTypeSuggestionTileModel<T extends PrismContainerValueWra
 
         this.icon = GuiStyleConstants.CLASS_ICON_OUTLIER;
         this.description = "TODO: e.g. account for services and applications"; //TODO replace when you have real copy
-        this.count = null; // set when available
-        ResourceObjectTypeDelineationType delineation = suggestion.getDelineation();
-        List<SearchFilterType> filter1 = delineation.getFilter();
-        SearchFilterType searchFilterType = filter1.get(0);
-
         this.filter = buildFilterString(suggestion.getDelineation());
         this.kind = suggestion.getKind().value();
         this.intent = suggestion.getIntent();
-        this.name = deriveTitle();
-    }
-
-    private @NotNull String deriveTitle() {
-        String prefix = kind != null ? kind : "N/A";
-        String suffix = intent != null ? intent : "N/A";
-        return StringUtils.capitalize(prefix) + " " + StringUtils.capitalize(suffix);
+        this.name = suggestion.getDisplayName();
     }
 
     private static String buildFilterString(ResourceObjectTypeDelineationType delineation) {
@@ -159,20 +147,20 @@ public class SmartObjectTypeSuggestionTileModel<T extends PrismContainerValueWra
         this.description = description;
     }
 
-    public String getCount() {
-        return count;
-    }
-
-    public void setCount(String count) {
-        this.count = count;
-    }
-
     public String getKind() {
         return kind;
     }
 
     public void setKind(String kind) {
         this.kind = kind;
+    }
+
+    public String getIntent() {
+        return intent;
+    }
+
+    public void setIntent(String intent) {
+        this.intent = intent;
     }
 
     public ResourceObjectTypeDefinitionType getObjectTypeSuggestion() {

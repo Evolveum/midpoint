@@ -7,6 +7,7 @@
 package com.evolveum.midpoint.gui.impl.page.admin.resource.component;
 
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
+import com.evolveum.midpoint.gui.api.component.data.provider.ISelectableDataProvider;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
@@ -78,6 +79,14 @@ public abstract class SchemaHandlingObjectsPanel<C extends Containerable> extend
             @Override
             protected boolean isCreateNewObjectVisible() {
                 return SchemaHandlingObjectsPanel.this.isCreateNewObjectVisible();
+            }
+
+            @Override
+            protected ISelectableDataProvider<PrismContainerValueWrapper<C>> createProvider() {
+                if( SchemaHandlingObjectsPanel.this.createProvider() != null) {
+                    return SchemaHandlingObjectsPanel.this.createProvider();
+                }
+                return super.createProvider();
             }
 
             @Override
@@ -233,10 +242,15 @@ public abstract class SchemaHandlingObjectsPanel<C extends Containerable> extend
         };
     }
 
+    protected ISelectableDataProvider<PrismContainerValueWrapper<C>> createProvider() {
+        return null;
+    }
+
     protected void customizeNewRowItem(
             Item<PrismContainerValueWrapper<C>> item, IModel<PrismContainerValueWrapper<C>> model) {
         // Default implementation does nothing. Override if needed.
     }
+
     /**
      * This method is called when the name column is populated.
      * It allows for custom behavior or additional components to be added

@@ -144,6 +144,7 @@ public abstract class ResourceSuggestedObjectTypeTableWizardPanel<C extends Reso
         var suggestion = selected.getRealValue();
         var kind = suggestion.getKind();
         var intent = suggestion.getIntent();
+        var displayName = suggestion.getDisplayName();
         ResourceObjectTypeDelineationType delineation = suggestion.getDelineation();
 
         if (kind == null || intent == null || intent.isBlank()) {
@@ -154,23 +155,20 @@ public abstract class ResourceSuggestedObjectTypeTableWizardPanel<C extends Reso
         }
 
         IModel<PrismContainerWrapper<ResourceObjectTypeDefinitionType>> containerModel = createContainerModel();
-        var newValue = createNewValue(containerModel, kind, intent, delineation);
+        var newValue = createNewValue(containerModel, displayName, kind, intent, delineation);
 
         onContinueWithSelected(selectedModel, newValue, containerModel, target);
     }
 
-    private @NotNull PrismContainerValue<ResourceObjectTypeDefinitionType> createNewValue(IModel<PrismContainerWrapper<ResourceObjectTypeDefinitionType>> containerModel, @NotNull ShadowKindType kind, String intent, ResourceObjectTypeDelineationType delineation) {
+    private @NotNull PrismContainerValue<ResourceObjectTypeDefinitionType> createNewValue(@NotNull IModel<PrismContainerWrapper<ResourceObjectTypeDefinitionType>> containerModel, String displayName, @NotNull ShadowKindType kind, String intent, ResourceObjectTypeDelineationType delineation) {
         PrismContainerWrapper<ResourceObjectTypeDefinitionType> containerWrapper = containerModel.getObject();
 
         var newValue = containerWrapper.getItem().createNewValue();
         var bean = newValue.asContainerable();
 
-        String displayName = StringUtils.capitalize(kind.value()) + " " + StringUtils.capitalize(intent);
-
         bean.setDisplayName(displayName);
         bean.setKind(kind);
         bean.setIntent(intent);
-        bean.setObjectClass(selectedObjectClassName);
         bean.setDelineation(delineation);
 
         return newValue;
