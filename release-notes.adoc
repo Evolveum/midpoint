@@ -1,9 +1,11 @@
 ---
 layout: release
-release-version: '4.8.9'
+release-version: '4.8.10'
+visibility: hidden
 ---
-= MidPoint 4.8 "Curie" - Update 9
-:release-version: 4.8.9
+= MidPoint 4.8 "Curie" - Update 10
+:release-version: 4.8.10
+:page-visibility: hidden
 :page-liquid:
 :page-toc: top
 
@@ -25,6 +27,9 @@ The {release-version} release brings security, stability and miscellaneous bugfi
 {% endcapture %}
 {% include release-dedication.html content=dedicationContent %}
 ++++
+
+== Changes with Respect To Version 4.8.9
+
 
 == Changes with Respect To Version 4.8.8
 
