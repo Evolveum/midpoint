@@ -16,6 +16,8 @@ import java.time.ZonedDateTime;
 import java.util.List;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.util.CloneUtil;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
@@ -169,15 +171,15 @@ public class TestSmartIntegrationServiceStory extends AbstractEmptyModelIntegrat
 
         then("there is the correct suggested object type");
         assertThat(response).isNotNull();
-        var typeSuggestionAsserter = assertThat(response.getObjectType())
+        var typeSuggestion = assertThat(response.getObjectType())
                 .as("suggested object types collection")
                 .hasSize(1)
                 .element(0)
-                .as("object type suggestion");
-        var identification = typeSuggestionAsserter.actual().getIdentification();
-        assertThat(identification.getKind()).isEqualTo(HR_PERSON.getKind());
-        assertThat(identification.getIntent()).isEqualTo(HR_PERSON.getIntent());
-        var delineation = typeSuggestionAsserter.actual().getDelineation();
+                .as("object type suggestion")
+                .actual();
+        assertThat(typeSuggestion.getKind()).isEqualTo(HR_PERSON.getKind());
+        assertThat(typeSuggestion.getIntent()).isEqualTo(HR_PERSON.getIntent());
+        var delineation = typeSuggestion.getDelineation();
         assertThat(delineation.getObjectClass()).isEqualTo(personOcName);
         assertThat(delineation.getAuxiliaryObjectClass()).isEmpty();
         assertThat(delineation.getFilter()).isEmpty();
@@ -209,15 +211,15 @@ public class TestSmartIntegrationServiceStory extends AbstractEmptyModelIntegrat
 
         then("there is the correct suggested object type");
         assertThat(response).isNotNull();
-        var typeSuggestionAsserter = assertThat(response.getObjectType())
+        var typeSuggestion = assertThat(response.getObjectType())
                 .as("suggested object types collection")
                 .hasSize(1)
                 .element(0)
-                .as("object type suggestion");
-        var identification = typeSuggestionAsserter.actual().getIdentification();
-        assertThat(identification.getKind()).isEqualTo(HR_DEPARTMENT.getKind());
-        assertThat(identification.getIntent()).isEqualTo(HR_DEPARTMENT.getIntent());
-        var delineation = typeSuggestionAsserter.actual().getDelineation();
+                .as("object type suggestion")
+                .actual();
+        assertThat(typeSuggestion.getKind()).isEqualTo(HR_DEPARTMENT.getKind());
+        assertThat(typeSuggestion.getIntent()).isEqualTo(HR_DEPARTMENT.getIntent());
+        var delineation = typeSuggestion.getDelineation();
         assertThat(delineation.getObjectClass()).isEqualTo(ocName);
         assertThat(delineation.getAuxiliaryObjectClass()).isEmpty();
         assertThat(delineation.getFilter()).isEmpty();
@@ -227,24 +229,17 @@ public class TestSmartIntegrationServiceStory extends AbstractEmptyModelIntegrat
     }
 
     private void applyObjectTypeSuggestions(
-            DummyTestResource resource, List<ObjectTypeSuggestionType> suggestions, Task task, OperationResult result)
+            DummyTestResource resource, List<ResourceObjectTypeDefinitionType> suggestions, Task task, OperationResult result)
             throws CommonException {
         executeChanges(convertTypeSuggestionsToDelta(resource.oid, suggestions), null, task, result);
     }
 
     /** Assuming the types do not exist yet. */
     private ObjectDelta<ResourceType> convertTypeSuggestionsToDelta(
-            String oid, List<ObjectTypeSuggestionType> suggestions) throws SchemaException {
-        var typeDefinitions = suggestions.stream()
-                .map(s ->
-                        new ResourceObjectTypeDefinitionType()
-                                .kind(s.getIdentification().getKind())
-                                .intent(s.getIdentification().getIntent())
-                                .delineation(s.getDelineation().clone()))
-                .toList();
+            String oid, List<ResourceObjectTypeDefinitionType> suggestions) throws SchemaException {
         return PrismContext.get().deltaFor(ResourceType.class)
                 .item(ResourceType.F_SCHEMA_HANDLING, SchemaHandlingType.F_OBJECT_TYPE)
-                .addRealValues(typeDefinitions)
+                .addRealValues(CloneUtil.cloneCollectionMembers(suggestions))
                 .asObjectDelta(oid);
     }
 

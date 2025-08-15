@@ -141,45 +141,16 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
-            <xsd:element name="objectType" type="tns:ObjectTypeSuggestionType" minOccurs="0" maxOccurs="unbounded">
+            <xsd:element name="objectType" type="tns:ResourceObjectTypeDefinitionType" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Collection of suggestions.
+                        Collection of suggested object type definitions.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
         </xsd:sequence>
     </xsd:complexType>
     <xsd:element name="objectTypesSuggestion" type="tns:ObjectTypesSuggestionType"/>
-
-    <xsd:complexType name="ObjectTypeSuggestionType">
-        <xsd:annotation>
-            <xsd:documentation>
-                A suggestion for a single object type and its delineation.
-            </xsd:documentation>
-            <xsd:appinfo>
-                <a:since>4.11</a:since>
-                <a:container>true</a:container>
-            </xsd:appinfo>
-        </xsd:annotation>
-        <xsd:sequence>
-            <xsd:element name="identification" type="tns:ResourceObjectTypeIdentificationType">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Identification of a suggested type (kind and intent).
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="delineation" type="tns:ResourceObjectTypeDelineationType">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Suggested delineation.
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
-        </xsd:sequence>
-    </xsd:complexType>
-    <xsd:element name="objectTypeSuggestion" type="tns:ObjectTypeSuggestionType"/>
 
     <xsd:complexType name="ShadowObjectClassStatisticsType">
         <xsd:annotation>

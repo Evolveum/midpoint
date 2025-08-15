@@ -12,6 +12,8 @@ import static com.evolveum.midpoint.util.MiscUtil.argCheck;
 import java.io.Serial;
 import javax.xml.datatype.XMLGregorianCalendar;
 
+import com.evolveum.midpoint.prism.*;
+
 import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.prism.path.ItemName;
@@ -170,7 +172,24 @@ public class StatusInfoImpl<T> implements StatusInfo<T> {
                         TaskActivityStateType.F_ACTIVITY,
                         ActivityStateType.F_WORK_STATE,
                         resultItemName));
-        return resultItem != null ? resultItem.getRealValue(resultClass) : null;
+        if (resultItem == null) {
+            return null;
+        }
+        removePcvIds(resultItem);
+        return resultItem.getRealValue(resultClass);
+    }
+
+    /**
+     * The PCV IDs are irrelevant, and can be even harmful, if the client wants to use the result value e.g. by
+     * putting it into a new context.
+     */
+    private static void removePcvIds(Item<?, ?> item) {
+        if (item instanceof PrismContainer<?> container) {
+            for (PrismContainerValue<?> pcv : container.getValues()) {
+                pcv.setId(null);
+                pcv.getItems().forEach(child -> removePcvIds(child));
+            }
+        }
     }
 
     @Override
