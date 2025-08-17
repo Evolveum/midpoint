@@ -1,0 +1,450 @@
+= Axiom Overview
+
+A Axiom model defines data objects and their nested data item hierarchies.
+This allows a complete human and machine-readable description of the data.
+
+Axiom models data structures using _items_ and _values_ that are combined to specify _data types_.
+Axiom provides clear and concise descriptions of the items, as well as relations between those items and their composition in data types.
+
+Axiom definitions are grouped into models.
+A model can import definitions from other external models.
+Models can be extended, allowing one model to add items to the extension point defined in another model.
+
+Axiom data models can describe constraints to be applied to the data.
+
+Axiom defines a set of built-in types and has a type mechanism through which additional types may be defined.
+Derived types can restrict their base type's set of valid values using mechanisms like range or pattern restrictions and extend their base type by addition of additional items in case of structured types.
+
+Axiom is a self-descriptive language.
+Axiom modeling language could be also modeled using Axiom.
+
+== Models
+
+Axiom definitions are grouped into models.
+A model contains collection of related definitions that form a consistent group of data types for a specific use.
+
+Models are defined using `model` statement.
+Each model needs a name and namespace declaration.
+
+[source,axiom]
+----
+model my-model {
+    namespace "https://schema.example.com/ns/my-model";
+    ...
+}
+----
+
+Model is identified by its namespace.
+Namespace is a globally-unique identifier in URI form.
+
+Model name is a short string that is used mostly for diagnostic reasons.
+Model name can be displayed in error messages, diagnostic output and it can be used for similar purposes.
+
+There is no strict requirement for model name to be unique.
+However, there is a benefit in making the name unique with reasonable probability.
+Model name is used as a default prefix for the model namespace, therefore it is recommended to keep model name short.
+It is recommended to use _kebab-case_ for model names.
+
+== Types, Items and Values
+
+Axiom defines basic concepts for data modeling - items, values and data types.
+
+
+=== Item
+
+Item is named collection of values. There are three basic types of items in Axiom:
+
+Identifier-less item:: Item which does not have value identifiers specified.
+Map item:: Item which has value identifiers specified, and values could be retrieved by their identifier.
+Substitution item:: Item with different name and different value type which subsitutes other less-specific item.
+
+NOTE: Value ordering is not defined for item. Use explicitly modeled ordering (eg. order item) for values, which requires order.
+
+==== Item Name
+
+Each item (in actual data or in model) has name. This name can be local (to the value type)
+or fully qualified name (if item is augmented into type).
+
+
+
+Item names (local) by conventions use lower camel case (as is common for elements in XML or keys in JSON/YAML).
+
+
+==== Item Defitions
+
+Axiom models defines structure, behaviour and restrictions imposed on items by item definitions.
+Item definitions are part of type definitions for nested data, or as root item definitions for models.
+
+Item definitions in types could be:
+
+ * declared in type - <<Item Declaration>>
+ * inherited from supertype - <<Item Inheritance>>
+ * overriden by subtype - <<Item Override>>
+ * added by augmentation - <<Augmentation>>
+ * substituted by more specialized item - <<Substitution>>
+
+
+=== Type
+
+Type is specification of value structure (for structured types) or possible set of values (for simple types).
+
+==== Simple type
+A type, which has simple value (eg. integer, string) and does not have nested items.
+
+Simple type must be subtyped from one of built-in types.
+
+An instance of simple type is simple unstructured value.
+
+An simple type may be:
+
+ * derived from super type <<Simple Type Subtyping>>
+ ** restricting possible value set
+ ** expanding possible value set
+ ** adding semantic information
+
+==== Structured type
+
+Type, which has structured value - does allows nested items and contains their definition.
+An instance of structured type is structured value, which consists of items.
+
+A structured type could be:
+* derived - type is derived from other structured type by <<Structured Type Subtyping>>
+* augmented - type definition is expanded by external model <<Augmentation>>
+
+=== Value
+
+Actual data value, which has its type and represents instance of that type.
+Value must conform to definition of the type.
+
+
+
+=== Structured Value
+
+Instance of structured type. Consists of items and their values, which conforms to item definitions present in its type definition.
+
+NOTE:: Item ordering is undefined and may not be preserved.
+
+
+== Built-in Simple Types
+
+NOTE: This list represents set of current built-in types, in following versions of draft
+additional base types will be introduced.
+
+Axiom provides following built-in *simple types*:
+
+String::
+  Character sequence. Equivalent XSD type is `string`
+Boolean::
+  Boolean value. Equivalent XSD type is `boolean`
+Uri::
+  An URI (IRI).
+Number::
+  Number. This type is abstract and is supertype for all number types.
+Integer::
+  Whole number. Equivalent type is `integer`.
+Binary::
+  Variable length binary data. In text format data are serialized using Base64 encoding.
+  Equivalent XSD type is
+DateTime::
+  Time-zone qualified date time. Type is serialized as ISO8601 date time with
+  time zone offset. Equivalent XSD type is `dateTimeStamp`.
+QName::
+  Namespace qualified name - an URI identifying Axiom concept such as item or type.
+  This type adds semantic meaning to URI and allows for additional serialization
+  format as _prefixed name_.
+
+
+== Model Imports
+
+One model can be referenced from another model for reuse or extension.
+Models can be references by `import` statement:
+
+[source,axiom]
+----
+model base {
+    namespace "https://schema.example.com/ns/base";
+    type Foo { ... }
+    ...
+}
+
+model extended {
+    namespace "https://schema.example.com/ns/extended";
+    import {
+        namespace "https://schema.example.com/ns/base";
+        prefix "base";
+    }
+    ...
+}
+----
+
+Import statement prepares the `base` model for use in `extended` model.
+The statement also sets prefix for the `base` model.
+Types and items from the `base` model may be referenced by using `base:` prefix.
+For example, type `Foo` from the `base` model can be used in the `extended` model by referring to it as `base:Foo`.
+
+Model name will be used as a default prefix when model is imported.
+Therefore the `import` statement above can be shortened as:
+
+[source,axiom]
+----
+model extended {
+    namespace "https://schema.example.com/ns/extended";
+    import "https://schema.example.com/ns/base";
+    ...
+}
+----
+
+Import of a model creates a dependency on that model.
+Consequences of that dependency depend on specifics of reuse.
+For example, subtyping creates a strong dependency, while augmentation creates a weak one.
+But import and reuse always create a dependency - at the very least a dependency that the imported model exists.
+
+Model imports may be circular.
+However, great care must be taken when working with circular dependencies.
+As a rule of thumb it is strongly recommended to avoid circular dependencies whenever possible.
+
+== Subtyping
+
+Axiom allows subtyping (type derivation) for both simple and structured types.
+Derived simple type may limit possible value set by imposing restrictions.
+Derived structured type may introduce additional items (properties, container, object references).
+
+=== Simple Type Subtyping
+
+New simple types could be created by using <<Built-in Simple Types,built-in types>> as super type.
+
+.Adding semantic simple type
+[source, axiom]
+----
+type TypeName {
+  supertype Uri;
+  documentation """
+    An URI representing type name qualified by model URI and type local name.
+  """;
+}
+----
+
+Simple type subtyping is useful for adding additional semantic layer to types and
+to modifying possible value set by restricting or extending it.
+
+NOTE: Current value restriction / extension concepts are still work-in-progress and will de defined in later revision of draft.
+
+.Extending value set
+----
+// Note This is proposed syntax only
+type OccurenceLimit {
+  union Integer;
+  union Enum {
+    enum unbounded;
+  }
+}
+----
+
+=== Structured Type Subtyping
+
+Structured type subtyping is extending the set of items that are defined for the type:
+
+[source, axiom]
+----
+type IdentifiableObject {
+  item oid {
+    type uuid;
+  }
+}
+
+type User {
+  supertype IdentifiableObject;
+  item username {
+    type string;
+  }
+}
+----
+
+Subtyping creates new data type in a smooth and natural way.
+For example, the new data type will use the same namespace for all the items, even if the supertype is defined in a different model.
+The purpose of subtyping is to facilitate reuse of data structures and hence support reuse of code in the data processing implementations.
+
+.YAML
+[source,yaml]
+----
+user:
+    oid: 96df17b4-ab26-11ea-859b-cf5a21832c98
+    username: foo
+----
+
+==== Subtyping and inheritance
+
+Subtyping is often confused with inheritance.
+Axiom is a data modeling language and not a programming language.
+Therefore it is quite obvious that Axiom is focusing on subtyping instead of inheritance.
+However, there is also a bit of inheritance involved in structured type subtyping.
+Subtype automatically "inherits" definitions of all items of a supertype.
+This is a natural thing to do, as subtype has to satisfy the contract of the supertype and the common method how to do that is to reuse supertype items.
+However, this is only a default behavior.
+Subtype is free to provide its own definition of the supertype items - as long as it still satisfies the supertype contract.
+
+However, there is also a downside to subtyping.
+The subtype has a very tight binding to the supertype.
+Whenever supertype changes, the changes may affect subtype in a very severe way.
+The use of subtyping is recommended only in cases that there is a strong coordination of evolution of supertype and subtype, ideally when they are part of the same model.
+
+CAUTION: Simple type subtyping is planned for the future, but it is not supported yet.
+
+== Mixins
+
+Mixin is a data structure designed to be included in other data structures.
+Use of mixins is similar to inheritance used in subtyping, but it is not bound to subtyping and therefore it does not need to follow type hierarchy.
+
+[source,axiom]
+----
+model example {
+    mixin Documented {
+        item documentation {
+            type string
+        }
+    }
+
+    type Object {
+        item name { ... }
+        include Documented;
+        ...
+    }
+}
+----
+
+The mixin is seamlessly integrated into the data type:
+
+.YAML
+[source,yaml]
+----
+object:
+    name: foo
+    documentation: This is really useless object.
+----
+
+Mixins are used when a set of items is repeated in may data types.
+It would be possible to just copy definitions of such items.
+But that would not be really readable and maintainable, especially if the items have structured type definitions, documentation or other annotations.
+Mixins make it all easier, bundling all the complexity in a single definition and then allowing its reuse.
+There is also a benefit for platforms that are generating code from the models, as mixins can be translated to native programming language concepts (e.g. Java interfaces).
+
+However, all of that does not change the basic fact that mixin use is just a simple inclusion of items into the data structure.
+Therefore there are downsides.
+Data type that is using a mixin is tightly bound to the mixin definition, similarly to subtyping.
+Therefore great care must be taken when using mixins from different models.
+
+== Augmentation
+
+Augmentation is a method how to extend capabilities of an existing data type without definition of a new data type.
+
+----
+model midpoint {
+    namespace "https://schema.evolveum.com/ns/midpoint";
+    type User {
+        item fullName { ... }
+        ...
+    }
+}
+
+model custom {
+    namespace "https://schema.example.com/ns/custom";
+
+    import "https://schema.evolveum.com/ns/midpoint";
+
+    augmentation ExampleUser {
+        target midpoint:User;
+        item personIdentifier { ... }
+    }
+}
+----
+
+Example model augments midPoint `User` type with custom property `personIdentifier`.
+Whenever the `User` data structure is used, the `personIdentifier` property may be used with it.
+
+However, the `personIdentifier` property needs to be fully qualified with namespace information to distinguish it from any other properties that the midPoint model can have in the future.
+
+.YAML
+----
+@context: "https://schema.evolveum.com/ns/midpoint"
+user:
+    fullName: James Bond
+    "https://schema.example.com/ns/custom#personIdentifier": "007"
+----
+
+.XML
+----
+<user xmlns="https://schema.evolveum.com/ns/midpoint">
+    <fullName>James Bond</fullName>
+    <custom:personIdentifier>007</custom:personIdentifier>
+</user>
+----
+
+Augmentation is usually used to extend capabilities of a different model, a model that we do not control.
+Therefore it is an ideal tool for customization of data models.
+For example, midPoint is a product with a fixed data model set when the product was released.
+But there is often a need to customize and extend the data model at "deployment time", long after the software was released.
+Augmentation is an ideal mechanism for that.
+A customer data model can augment fixed data structures of midPoint with custom items.
+
+Augmentation is designed to be _safe_ with respect to data model evolution.
+As long as the original data model evolves in an compatible way, the augmentation will still work.
+Both the original data model and the augmentation may evolve independently.
+The models will not get into conflict.
+But there is a price to pay.
+Augmentation data always have to use full namespaces to make the augmentation safe.
+
+TIP: Augmentation is a mechanism that realizes the link:https://en.wikipedia.org/wiki/Open%E2%80%93closed_principle[open-closed principle].
+The original data model is fixed, it is _closed_ to modification.
+But still the data are _open_ to extension by the means of data model augmentation.
+
+== Data Model Documentation
+
+Axiom provides a means for a documentation integrated into the data model specification:
+
+[source,axiom]
+----
+model my-model {
+    namespace "https://schema.example.com/ns/my-model";
+    documentation """
+        Example data model.
+        This model should be used for *demonstration* pruposes only.
+    """;
+
+    type Foo {
+        documentation "Foo type, just to have something here.";
+    }
+}
+----
+
+Axiom documentation is formatted in AsciiDoc.
+Only basic asciidoc formatting should be used, formatting that one would use inside of a simple section.
+Such as character formatting (bold, italics, monospace), paragraphs, bullet lists and so on.
+Headings and similar "outline" formatting should not be used.
+Axiom processors will take care of generating document outline, headers and similar document infrastructure.
+
+== Metadata, Completeness And Other Underlying Concepts
+
+Unlike most other languages, Axiom goes wider and deeper, working with concepts that are _beyond_ and the data and _under_ the data.
+Axiom supports concept of _metadata_, that are data about data.
+Metadata can be attached to every data value, describing data origin, transformation and so on.
+Axiom also supports concepts of partial, incomplete or unknown data values.
+
+All of that is allowed by a concept of _inframodel_, which is model _under_ the data.
+Inframodel deals with data items and values.
+E.g. metadata are implemented by extending the _inframodel_ of Axiom value, which allows to attach metadata structures to every value of the data.
+
+Dealing with inframodel is quite an advanced abstraction.
+However, the inframodel is usually hidden from most Axiom users.
+
+None of the usual representation formats have sufficient support for such abstract "meta" and "infra" concepts.
+This is, in fact, quite understandable.
+Such formats originated in different times and they were built for different purposes.
+The need to support inframodel was not there when XML was created and when JavaScript object notation was (ab)used for general-purpose data representation.
+Therefore transition to inframodel is usually denoted by use of special characters in representation formats.
+Whenever you see at character (`@`) in JSON or element starting with underscore (`_`) in XML it is most likely an inframodel concept.
+
+Please see xref:../concepts/[Axiom concepts explanation] for more details about such advanced topics.
+
+== Axiom in Axiom
+
+Axiom is a self-descriptive language in a way that Axiom language can be described by Axiom language.

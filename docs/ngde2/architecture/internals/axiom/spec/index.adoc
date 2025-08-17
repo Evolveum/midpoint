@@ -1,0 +1,45 @@
+= Axiom Specification 0.2 DRAFT
+// NGDe2 redirect
+:page-moved-from: /midpoint/devel/axiom/spec/
+:version: 0.2-DRAFT
+:page-toc: top
+
+WARNING: This is draft specification, only a part of described functionality is available.
+This is all *experimental*.
+The language design and concepts are still subject to change.
+
+Axiom is data modeling language used to model data (and metadata) in an abstract, representation-independent way.
+
+This document describes the syntax and semantics of version {version} of Axiom language.
+This document will also describe how a data model defined in Axiom model is
+encoded in XML, JSON, YAML and Axiom language.
+
+== Introduction
+
+Axiom is representation-independent data modeling language.
+Axiom can be used to model data in their abstract form.
+Unlike other modeling languages, Axiom is not bound to specific data representation from such as JSON or XML.
+Data modeled in Axiom can be represented (serialized and parsed) in many representation formats.
+Simply speaking, the same data can be expressed in XML, JSON, YAML and possibly also in other formats, including Axiom itself.
+
+:leveloffset: +1
+
+include::_terminology.adoc[]
+
+include::_design-principles.adoc[]
+
+include::_overview.adoc[]
+
+include::_syntax.adoc[]
+
+include::_namespaces.adoc[]
+
+include::_item-path.adoc[]
+
+include::_completeness.adoc[]
+
+include::_metadata.adoc[]
+
+include::_versioning.adoc[]
+
+include::_background.adoc[]

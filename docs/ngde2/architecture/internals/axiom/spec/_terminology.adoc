@@ -1,0 +1,33 @@
+= Terminology
+
+The following terms are used in Axiom:
+
+model:: Axiom model defines set of type, item, value and metadata definitions.
+Model is a basic "packaging" mechanism for Axiom definitions.
+
+schema:: Set of one or several models that are used together.
+Schema is usually set of models that are loaded and active in an application.
+Schema is a "soft" concept, it is not formally defined anywhere in Axiom definitions.
+
+item:: Data item which can have one or more values. It is identified by item name.
+
+item name:: Name of data item. Item name can be local (if item is native to the data type) or fully qualified name (if item is external/ augmented to the data type).
+
+type:: Represents a type of value. It can be _simple type_ or _structured type_, and may its instance (value) may have _value metadata_ attached.
+
+simple type:: A type, which has simple value (eg. integer, string), does not have nested items.
+
+structured type:: A type, which has structured value - value consisting of multiple named items.
+
+value:: Represents concrete instance of type. The value is instance of _type_ and may have _value metadata_ attached.
+
+metadata:: Data about data. Metadata may describe origin of the data, trustworthiness and so on.
+
+value metadata:: Represents metadata attached to value.
+Each individual value of an item may have different metadata.
+
+augmentation:: Mechanism for declaring additional items to already defined objects.
+
+representation format:: (also _serialization format_)
+Specific data format used to store the data.
+JSON, XML and YAML are examples of representation formats.

@@ -1,0 +1,94 @@
+= Metadata
+
+_Metadata_ are data about data.
+Metadata often describe how we learned about the data, e.i. metadata describe origin of data.
+But metadata may also describe trustworthiness of the data (e.g. "level of assurance"), data confidentiality, metadata may record transformation history of data and so on.
+Metadata are often created automatically by systems that process and transfer the data.
+
+Metadata are often as flexible as the data.
+As Axiom is used to create a model of the data, it can also be used to create a model of metadata: _metadata model_.
+Metadata model is using the very same mechanisms that the data model is using: data types, items, values, subtyping, etc.
+The only difference is that metadata are not included in the data structures directly.
+Metadata are automatically attached to every applicable value.
+
+== Metadata Specification
+
+Metadata structures are specified using a special `metadata` keyword:
+
+[source,axiom]
+----
+model example {
+    namespace "https://schema.example.com/ns/metasample";
+    metadata StorageMetadata {
+        itemName: storage;
+        item createTimestamp { ... }
+        item modificationTimestamp { ... }
+    }
+}
+----
+
+This statement defines a new data type `StorageMetadata` with items `createTimestamp` and `modificationTimestamp`.
+The data type will be registered as _value metadata_ with item name `storage`.
+The metadata will appear mixed into the data:
+
+.JSON representation of user object without metadata
+[source,json]
+----
+{
+    "user" : {
+      "name" : "foo",
+      "fullName" : "Foo Bar"
+    }
+}
+----
+
+.JSON representation of user object with metadata
+[source,json]
+----
+{
+    "user" : {
+      "name" : {
+        "@value" : "foo",
+        "@metadata" : {
+          "https://schema.example.com/ns/metasample#storage" : {
+            "createTimestamp" : "2020-06-10T14:26:42Z",
+            "modificationTimestamp" : "2020-06-12T18:14:05Z"
+          }
+        }
+      },
+      "fullName" : {
+        "@value" : "Foo Bar",
+        "@metadata" : {
+          "https://schema.example.com/ns/metasample#storage" : {
+            "createTimestamp" : "2020-06-10T14:26:42Z",
+            "modificationTimestamp" : "2020-06-22T09:30:16Z"
+          }
+        }
+      }
+    }
+}
+----
+
+== Metadata Of Empty Values
+
+Metadata can be attached even to items without a value.
+
+.JSON
+[source,json]
+----
+  ...
+  "criminalCharges" : {
+    "@metadata" : {
+        "https://...#loa" : {
+          "levelOfAssurance" : "high",
+          ...
+      }
+    }
+  }
+----
+
+== No Metametadata
+
+It would be theoretically possible to have data about metadata, thus creating metametadata.
+However, Axiom does not have ambitions for this, at least not in its early versions.
+Axiom assumes just one "meta" level and it does not apply metadata definitions to the metadata.

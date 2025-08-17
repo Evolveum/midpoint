@@ -1,0 +1,28 @@
+= Prism Schema
+// NGDe2 redirect
+:page-moved-from: /midpoint/devel/prism/schema/
+:page-nav-title: Schema
+:page-wiki-name: Prism Schema
+:page-wiki-id: 655391
+:page-wiki-metadata-create-user: semancik
+:page-wiki-metadata-create-date: 2011-04-29T12:00:06.211+02:00
+:page-wiki-metadata-modify-user: semancik
+:page-wiki-metadata-modify-date: 2020-11-24T16:29:19.954+01:00
+
+WARNING: This page is a stub, it is a work in progress.
+
+Prism is a completely schema-based system.
+It is supposed to know definition of every data item it works with.
+Prism knows whether the item is string, whether it is a structured container, what data items it contains, whether it is single-value of multi-valued and so on.
+
+== Static and Dynamic Schema
+
+Prism is built on an assumption that the basic part of the data model (schema) is available during compile time.
+This _static schema_ is used to generate the code for the "bean" Java classes, used to access Prism data structures.
+However, Prism can also work with dynamic schemas that are available at run-time.
+This method is usually used to extend the basic data model with custom data items (_schema extension_).
+However, Prism can work with a schema that is dynamically discovered at run-time.
+
+== See Also
+
+* link:basic-definitions/[Basic Prism Schema Definitions]

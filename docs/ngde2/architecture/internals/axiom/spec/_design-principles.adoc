@@ -1,0 +1,87 @@
+= Design Principles
+
+Axiom design is based on several principles, requirements and early design decisions.
+
+The goal of Axiom is modeling of data in extensible, web-friendly applications.
+Axiom can be used to create a data model of a particular application, usually a reusable software product.
+Axiom is designed for reuse of existing data model components inside an application.
+Axiom data models can be made extensible by third parties, allowing customization of the data model by application users.
+Axiom is designed for use in applications that are completely _schema-aware_,
+applications that can iterate over the data, interpret them dynamically while being aware of data types and definition of all the items.
+Axiom is designed quite specifically for application developers.
+It is not meant to be yet another universal "schema language" for the web.
+
+Axiom is used to model (abstract) data structures.
+Axiom is *format-independent*.
+Data modeled by Axiom can be represented in several data languages, such as JSON or XML.
+But Axiom is not bound to any such language.
+
+Data modeled in Axiom can be expressed in several representation languages.
+But this does *not* work both ways.
+There is no ambition to be able to model any arbitrary JSON data in Axiom.
+There is no ambition to parse any arbitrary XML file.
+Only "Axiom-compliant" data structures can be processed.
+
+Axiom is *web-friendly*, it is designed with World Wide Web in mind.
+That means, Axiom should be easy to use for data on the web such as RESTful interfaces, semantic web and linked data.
+Axiom is using namespaces identified by URIs.
+Axiom is using qualified names (QName) for data types and items, providing mapping of QNames to URIs.
+Overall, Axiom is trying to reuse existing web concepts as much as possible to fit into the WWW environment.
+
+Axiom is built to be *human-friendly* - to a reasonable degree.
+Axiom should be easy to read, write and understand by humans, at least those humans that have spent some time learning Axiom.
+Axiom tries to limit the boilerplate and ceremony to necessary minimum.
+Of course, the primary goal for Axiom is to be machine-processable.
+Therefore it must be unambiguous, as close to minimalism as possible and so on.
+But humans are going to read and write Axiom models and data.
+Therefore the language should also be pleasant, readable and elegant.
+Axiom should consider human aspects of data modeling, e.g. support for integrated documentation.
+We have no ambition to make Axiom super efficient for binary processing, we do not optimize the language for parsing speed and so on.
+We create Axiom for human users.
+
+Axiom natively support concepts of *data model evolution*.
+Data models are not static.
+They evolve, change in time.
+Some changes are compatible, other are not.
+Axiom is built to allow for such evolution.
+
+Axiom is designed to create *cross-domain schemas*.
+Which means that Axiom schemas can be composed of models that originated in different domains, authored by different organizations.
+Axiom supports reuse and extension of schemas that are created by others.
+
+However, Axiom is not designed for applications that adopt an _open world_ paradigm.
+I.e. applications that work with data models that can be extended in any way, at any time, without requiring human intervention.
+Semantic web applications are a prime example of such approach.
+Axiom design trade-offs are made in favor of extensible applications,
+e.g. the ability to generate code from data model is much more important than smooth support for _open world_.
+We hope that Axiom could still be used in _open world_ systems or at least for interaction with such systems.
+But such use may not be entirely easy or comfortable.
+
+Axiom is a data language.
+However, it is designed to support generation of type-safe code.
+For example, it should be possible to express Axiom data types using Java classes.
+The generated code should look reasonably natural in wide range of programming languages, but the primary focus are statically-typed object-oriented languages.
+
+Axiom is designed to support *metadata* and other cross-cutting concerns in data modeling.
+For example Axiom supports annotations for incomplete or unknown data.
+
+Axiom is designed to be *extensible language*.
+Frameworks can extend the language capabilities to introduce their own data modeling concepts, add annotations and so on.
+
+Axiom assumes that all models for all data will be available _eventually_.
+But that does not mean that all the models are available at the time when data are parsed.
+Some parts of the data are _dynamic_, they may be parsed without knowledge of the model.
+The model may be determined at runtime using complex algorithms based on parsed data and environment.
+The models may also be retrieved on demand.
+Therefore Axiom processors should be able to parse data partially (or as _raw data_ as we call it) and apply model definitions later.
+However, Axiom assumes that such _raw data_ will not be used until appropriate model is applied.
+All that Axiom can do with _raw data_ is parsing them and storing them in their original form (without any modification).
+Full model is needed to use the data, interpret them and modify them.
+
+Axiom is developed in an incremental fashion.
+The focus is on practical use and overall usefulness of Axiom.
+We are paying a lot of attention to make sure that the basic principles of Axiom are correct and consistent and that Axiom can evolve in the future.
+However, first versions of Axiom are not going to be perfect.
+It will be limited and there may be mistakes that need to be corrected in the future.
+However, Axiom can be validated only by practical use of the language in prototypes and real-world implementations.
+Therefore the primary goal of Axiom effort is to allow for such implementations to allow Axiom to continually improve.

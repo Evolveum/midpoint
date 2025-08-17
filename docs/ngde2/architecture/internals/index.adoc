@@ -1,0 +1,9 @@
+= MidPoint Internals Architecture
+:page-nav-title: Internals Architecture
+:page-liquid:
+
+These are internal tools MidPoint uses to search for objects and handle data structures.
+
+++++
+{% children %}
+++++

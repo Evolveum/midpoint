@@ -1,0 +1,161 @@
+= Model Versioning
+
+Axiom is using https://semver.org/[semantic versioning] principles.
+As Axiom deals with data and not the code, the semantic versioning is slightly modified to suit the needs of data compatibility.
+
+Each axiom data model has a version:
+
+[source,axiom]
+----
+model example {
+    namespace "https://schema.example.com/ns/example";
+    version "3.5";
+}
+----
+
+== Semantic Version Numbers
+
+Recommended format for version number is:
+
+----
+MAJOR.MINOR.PATCH
+----
+
+All three parts are usually numeric, e.g. `4.2.1`. The parts of version number have specific meaning:
+
+* *Major* version number indicates compatibility.
+Data models with the same major number must be compatible (with the exceptions specified below).
+Changing major version number indicates that the data model may no longer be compatible with its previous versions.
+Data created for a model with lower major version number may require significant modification or ever complete rewrite to fit the model with higher major version number.
+Models with major version number of zero (e.g. `0.1`) are considered to be experimental (see below).
+
+* *Minor* version number indicate (compatible) revisions of the model.
+Axiom assumes _backward_ compatibility (see below).
+Changing minor version number indicates that the data model has evolved in a compatible way.
+E.g. the model may be extended with new optional items.
+Data created for a model with lower minor version number should be directly usable in processors built for model with higher minor version number.
+However, the data may still need some modifications, e.g. removal or rewrite of deprecated or experimental items.
+
+* *Patch* version number indicate corrections.
+Changing patch version number indicates that the data model was updated, but there was no significant change in structure or meaning of the data.
+Data created for a model with lower patch version number must be directly usable in processors built for model with higher patch version number.
+The data must not require any modifications, with the exception of experimental items and corrections of previous incorrect behavior.
+
+Version number that are zeros are optional. Therefore version `1.2` is to be considered the same as version `1.2.0`.
+Minor and major version numbers must be numeric.
+It is strongly recommended for patch version number to be numeric too.
+However, it is allowed for it not to be numeric to account for hotfixes and other out-of-sequence patches.
+
+In addition to that, version number may have optional suffix:
+
+----
+MAJOR.MINOR.PATCH-SUFFIX
+----
+
+The suffix indicates that the model version is _before_ or _lower_ than the specified version.
+E.g. `1.2-SNAPSHOT` means that this is a model that is just before version `1.2`.
+Therefore it is considered to be _after_ any `1.1` version, including `1.1.2` and `1.1.98761`, but not yet reaching version `1.2`.
+The suffix is usually used for development, milestone or pre-release versions.
+Ordering of the suffixes is not specified.
+Therefore it is not specified whether `1.2-M3` is _before_ or _after_ `1.2-RC2`.
+
+== Backward Compatibility
+
+Axiom requires data compatibility between minor versions of data model.
+This means that data created for earlier version of the model must be comprehensible for models of later versions.
+No data migration or transformation should be necessary.
+
+However, there are few exceptions:
+
+* *Experimental* items:
+There is absolutely no compatibility or stability guarantees for experimental items.
+They can change in any way at any time.
+Including minor or patch versions.
+
+* *Deprecated* items:
+Deprecated items may be removed in a version that follows the version in which the item was deprecated.
+It is not yet decided whether deprecated items may be removed only in major versions or they can be removed in minor versions as well.
+
+* *Bugfixes*:
+Bugfixes in the code may require changes in the data model.
+It is recommended to make these changes compatible if it is possible and practical.
+However, Axiom does *not* mandate "compatible bugs" policy.
+That means that bugs may be fixed in minor and patch versions even if it means that compatibility (in a strict sense) is not maintained.
+The rationale is that if there is a bug in earlier version, that particular part of the data model was not working properly anyway.
+The data will need modification to fix the problem anyway.
+Therefore it is better to correct the model as soon as possible.
+
+== Versioned Dependencies
+
+This has to be decided in later versions of Axiom.
+
+TODO: use of version in import
+
+== Data Versioning
+
+This has to be decided in later versions of Axiom.
+
+TODO: specification of model version in the data
+
+
+== Data Model Evolution
+
+Axiom is designed to support evolution of data models.
+There are special tools that support data model versioning and version-aware documentation.
+
+Following markers can be applied to any modeling concept (type, item, etc.)
+
+|===
+| | Description
+
+| `since`
+| Version where the specified concept was first introduced.
+
+| `deprecated`
+| Marked concept is deprecated.
+It still works, but it should not be used any more.
+Do not use it for any new configuration or data.
+Migrate all existing data to avoid use of deprecated concepts.
+
+| `deprecatedSince`
+| Version where the specified item became deprecated.
+
+| `experimental`
+| Marked concept is experimental.
+It is still being developed and it is unstable.
+It can change any time in any way, even in minor or patch versions.
+Experimental concepts usually evolve into ordinary concepts eventually.
+Experimental concepts may be removed at any time if they prove to be wrong or undesirable.
+
+| `plannedRemoval`
+| Version where it is planned to remove the concept.
+
+| `plannedChange`
+| Version where it is planned to change the concept in a non-compatible way.
+
+|===
+
+== Deprecation and Removal
+
+This has to be decided in later versions of Axiom.
+
+TODO: removal of deprecated elements
+
+TODO: deprecation "contract" vs compatibility: when we can remove deprecated items? minor or major version?
+
+== Experimental Elements
+
+Experimental concepts of the model can change in any way at any time.
+Such concepts are being developed.
+They are unstable.
+People that are using experimental parts of the model must be prepared to adapt the data after every change of the model, including minor and patch versions of the model.
+
+Experimental concepts usually evolve into ordinary concepts eventually.
+But that may take several versions.
+
+Experimental concepts may even be removed at any time if they prove to be wrong or undesirable.
+The developers are not required to provide any replacement functionality for removed experimental concepts.
+
+Models with major version of zero (`0`) are considered to be completely experimental.
+Every concepts of such model should be considered experimental.
+There are no compatibility guarantees for models with zero major version number.

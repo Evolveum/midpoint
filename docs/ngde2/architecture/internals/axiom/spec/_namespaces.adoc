@@ -1,0 +1,272 @@
+= Namespaces
+
+Namespace is one of Axiom fundamental mechanisms.
+Namespaces identify models and provide model isolation.
+Namespaces are instrumental in supporting evolution of data models.
+
+Technically, namespaces are Uniform Resource Identifiers (URIs).
+The namespace should be chosen to be globally unique, therefore URIs are a natural choice.
+
+== Model Identification
+
+Namespace is a globally-unique identifier of a model.
+Each namespace specifies exactly one model.
+Whenever a data file needs to specify the data model that was used to create it, namespace is used to identify that model.
+Whenever a data model refers to a concepts of another model, namespace of the model is used.
+Whenever there is may be an ambiguity about appropriate interpretation of an item, namespace is used to resolve the ambiguity by pointing to the correct model.
+
+== Isolation of Models to Support Evolution
+
+All data models evolve.
+They change to implement new features, adapt to changes environment or fix mistakes of the past.
+Axiom is designed to combine, reuse and extend data models.
+Each model has its own namespace, therefore it may look like each model can evolve independently.
+However, there are practical limitations.
+
+Some models are tightly interweaved.
+They depend on one another and if one of them changes the other has to adapt.
+This is usually caused by type inheritance.
+The problem is, that even if the "parent" model evolves in an compatible way, the "child" (dependent) model may still be affected and it may be forced to change in non-compatible way.
+The bad news is that there is not much that we can about this unless we want to make data structures quite complicated, big and difficult to use.
+But the good news is that we usually do not need to do anything.
+Development of models that are such a tight relationship are usually well coordinated.
+Therefore such conflicts can usually be avoided or resolved by "out of band" means.
+
+Then there are models that need to evolve independently and they are prepared to pay the cost.
+There are two "safe" methods to use: _composition_ and _augmentation_.
+Composition is a mechanism to use data type from a foreign schema in my own data structures.
+Composition easy to use, it does not complicate the data and it is overall a recommended mechanism.
+Augmentation is a mechanism to extend data type from foreign schema with custom items.
+Augmentation ensures safe evolution of the models.
+But it is using explicit specification of namespaces in the data, therefore it makes the data larger and more complex.
+
+See xref:/midpoint/projects/midprivacy/phases/01-data-provenance-prototype/axiom/cross-model-usecases/[Cross-model use cases] for more details.
+
+== QNames and URIs
+
+Axiom, similarly to other languages and platforms is using a concept of _qualified name_.
+Known as _QName_, qualified name is a combination of a _local name_ with the namespace.
+E.g. an item `foo` specified in model identified by namespace `http://schema.example.com/ns/bar` will have a QName that is a combination of these two values.
+QNames are used to create globally-unique identifiers for all elements of data models, making sure that they will not be confused.
+
+WWW architecture that states that QNames should be considered equivalent to URIs.
+But we have gone one step further in Axiom and we consider QNames to by just a special case of URIs.
+We define a mapping between QNames and URIs, which means that all QNames can be represented in URI form.
+
+The QNames are mapped to URIs by concatenating namespace URI and a local name.
+If URI does not end with slash (`/`) or hash (`+#+`) character, hash (`+#+`) is concatenated to the URI before adding the local name.
+The URI-QName mapping is the reverse process.
+Local names must not contain hash or slash characters.
+
+The recommendation is that model namespace name should *not* end with hash (`+#+`) or slash (`/`) character, so the hash (`+#+`) is assumed at the end.
+All the QNames used in a single model are related and part of one consistent group.
+We want to be perform a single fetch of the model specification to get definition of all the elements in the model.
+
+Axiom QNames and URIs are almost the same thing.
+This means that URI can be used anywhere where QName is expected -- as long as the URI is well-formed and QName can be derived from it.
+There is no special format for QName in Axiom.
+We do not need that.
+We are using URI format instead.
+
+Axiom is reusing the concept of QName that is also used in other languages, such as XML.
+However, QNames can be quite a strange animal, especially when used in XML ecosystem.
+We are not promising that Axiom could deal with all the possible uses of QNames in the XML world, semantic web or in various JSON extensions.
+That is not our goal as that would complicate the system to the point where it may not be maintainable any more.
+Our goal is the other way around: QNames and concepts specified in Axiom should be usable in other ecosystems, as long as the ecosystem supports all the necessary concepts.
+E.g. It should be able to, theoretically, translate Axiom data models into XSD or JSON Schema and used them in XML or JSON worlds.
+However, if you use the concept of metadata, you are probably out of luck with XML or JSON, as those do not support metadata concepts at all.
+
+== Namespace Aliases
+
+Each model should be identified by exactly one namespace.
+Namespaces are URIs and not URLs, therefore they do not need to change.
+That is the theory.
+But in practice the namespaces do change.
+Even URIs are usually based on domain names that change.
+URI structure may change in time.
+Company names change, product names change, people make mistakes that need to be fixed and so on.
+Therefore namespaces change too.
+
+Axiom models are identified by exactly one _primary_ namespace.
+This namespace is used for all the usual purposes, especially when data are stored and serialized to representation formats.
+However, when we read the data, we tolerate other namespaces as well.
+Those are namespace aliases.
+Those may be data stored with a namespace before it was changed.
+We want to be able to read them and process them.
+But whenever we present or store the data, we will always use primary namespaces.
+
+Namespace aliases are also a nice way how to solve the `http` vs `https` confusion.
+
+== Namespace Prefixes
+
+Namespace URIs are usually quite long and it may be quite cumbersome to use them in representation data formats.
+Therefore Axiom has a concept of _namespace prefix_.
+Prefix is a short string that identifies the namespace.
+For example the Axiom model namespace `https://schema.evolveum.com/ns/axiom/model` is usually using `axiom-model` prefix.
+Prefix can be used at appropriate places instead of full namespace URI.
+Therefore, given the `axiom-model` prefix above, the following two notations are usually equivalent:
+
+----
+https://schema.evolveum.com/ns/axiom/model#foo
+axiom-model:foo
+----
+
+Namespace prefixes are usually specified in the model.
+Model name is used as a namespace prefix by default.
+
+Specific syntax of the prefixes, rules about where prefixes can be used or cannot be used and other details depend on specific representation format.
+
+Axiom namespace prefixes are similar to namespace prefixes in other languages (XML, XPath), but there are subtle and important differences.
+The most notable difference is that *prefixes are semantically significant*.
+Which means that if prefix is changed, meaning of the items and values may change as well.
+This is a critical difference with respect to the XML world.
+Unlike XML, prefix are usually defined in the model (schema), not in the document.
+The document may provide prefix declaration, but those are often redundant and may be omitted.
+The processor may refuse to process a file where prefix declaration is in conflict with the prefixes specified in the model.
+It is expected that processors will make some effort to process data with conflicting prefixes and try to "fix" them.
+However, this may not be possible under some circumstances, therefore processors are allowed to refuse such data.
+
+Namespace prefixes are given by the model and they are considered to be *immutable*.
+Change of namespace prefix is considered to be an incompatible change.
+Prefix change is very likely to require data migration process.
+
+Of course, making prefixes significant and immutable results in requirement that prefixes have to be *unique*.
+However, Axiom do not require global uniqueness of the prefixes.
+Prefixes need to be unique only in a particular data set.
+Axiom assumes that a models for all the data in the system are (eventually) known.
+As prefixes are controlled by the models, it is feasible to make prefixes unique in the entire schema.
+Which also makes prefixes unique in the entire data set.
+
+However, prefix names have to be chosen wisely to allow evolution of data models.
+It is not difficult to make sure that the prefixes are not in the conflict today.
+But we also need to make sure that the prefixes will not conflict in the future when data models evolve and new models are introduced into the schema.
+Prefixes of Axiom models start with `axiom-`, which should be considered to be a reserved segment of prefix namespace.
+Models built on Axiom should adopt a similar convention to avoid future prefix conflicts.
+Use of project name in the prefix is a recommended practice.
+E.g. Prism model prefixes start with `prism-` and midpoint prefixes start with `midpoint-`.
+It is usually not a big issue to choose a longer prefix for primary model namespace, as that prefix is almost never used in the data.
+The data that are given by the primary model are almost always written without any namespace at all, as the namespace can be determined from the model.
+The prefixes are significant for metadata models or "extension" models that extend primary data model by using augmentation.
+
+Names that are using the prefix notations are often used in the same place where URIs can be used in the representation formats.
+Therefore there is slight chance that prefix can be confused with URI scheme.
+For example, specifying prefixes such as `http`, `https` and especially `urn` are not a good idea.
+URIs usually have more complex internal structure than simple "qualified" names that use prefixes, therefore a chance to confuse prefix and URI are minimal.
+But there is still non-zero chance of conflict.
+Therefore, specifying namespace prefix that matches any of currently used URI schemes is strongly discouraged.
+Prefixes are specified in the models, as are namespace URI.
+Therefore model authors can make sure that prefixes and URIs are conflict-free.
+For data compatibility reasons, in case that a prefix conflicts with URI scheme, the prefix takes precedence.
+
+Prefixes are completely optional.
+Axiom can be used without prefixes at all, if needed.
+It will be less efficient and perhaps less elegant, but everything will be strict, correct and fully-qualified.
+Such representations of Axiom data are called _portable formats_.
+Axiom is designed to work inside a single application, processing data for that application only.
+Portable data extend this notion, as they can be safely passed from one system to another.
+Portable formats make sure that every value or every item can be unambiguously interpreted in a different system that has the same primary data model, but that may have a different set of additional data models in its schema.
+
+Use of prefixes may be problematic in applications that adopt an _open world_ view.
+Use of prefixes in such applications that is not recommended.
+
+.Motivation
+NOTE: The decision to make prefixes significant and immutable is based on a decade-long battle with XML and XSD, where the prefixes caused annoying problems.
+Axiom assumes that all models for all data will be available _eventually_.
+But that does not mean that all the models are available at the time when data are parsed.
+If an model is not available, it is impossible to determine whether `foo:val` is a simple string, or whether it is _qualified name_ with `foo` as namespace prefix and `val` as a local name.
+Reading the data as string and storing them as string is the best we can do if the model is not available.
+But doing so may destroy the data in case that namespace prefix `foo` is renamed to `bar`.
+If this is a _qualified name_ we have to store `bar:val`.
+But if it is a simple string, we have to store `foo:val`.
+The point is that we do not know what it is, therefore we do not know how to store it.
+Axiom avoids this situation by admitting that prefixes are semantically significant and making prefixes *immutable*.
+If prefix cannot change, we can always store `foo:val` and we can be sure that we have not ruined the data.
+
+== Namespace URI Recommendations
+
+Choosing a namespace URI is am important decision.
+Even though there are namespace aliases and Axiom can tolerate namespace changes, frequent namespace changes are confusing and they should be generally avoided.
+It is recommended to choose a good namespace URI from the beginning and then stick to it for years or even decades.
+Following paragraphs provide recommendations for choosing good namespace URI.
+
+Generally, it is recommended to use HTTPS uri based on the DNS domain that you control.
+We recommend following format:
+
+----
+https://schema.example.com/ns/my-cool-project
+----
+
+The best strategy is to keep the namespace URI short.
+Long namespace URIs are an obstacle for readability.
+Also, namespace URIs need to be stored together with the data under some circumstances therefore long URIs are increasing storage size of the data.
+
+Strictly speaking, those are URIs, therefore there is no requirement for them to be resolvable URLs.
+However, we strongly recommend to choose URIs that can be made resolvable in the future.
+There may be great benefit in simply issuing an HTTPS request to the namespace URI to retrieve an definition or to use that URI as an endpoint for model-related services.
+Using a dedicated host part of the URI (e.g. `schema.example.com`) is a good strategy.
+Such host can be implemented as DNS alias to point to an appropriate server that hosts actual definitions or API.
+
+Due to the possibility of future resolvability of the namespaces it is recommended to use `https` URI scheme instead of `http`.
+
+Do *not* end your namespace URIs with slash (`/`) unless you have very good reasons to do so.
+Ending the namespaces with a slash will affect the way how QNames are created from the namespace.
+Do *not* end your namespace URIs with hash (`#`) either.
+Hash character will be automatically used when composing QNames if the URI does not end with a slash.
+Therefore appending hash character to your URI is redundant.
+It also makes your URI look strange and confusing.
+
+Do *not* include model version in your URI.
+Axiom has a separate versioning mechanism and it does not rely on version numbers in namespaces.
+On the contrary, version numbers in namespace URI are likely to be an obstacle for organic evolution of your data models.
+
+In case that you need to maintain several models in your project, it is recommended to create a component hierarchy in the namespaces, such as:
+
+----
+https://schema.example.com/ns/my-cool-project/common
+https://schema.example.com/ns/my-cool-project/model-extensions
+----
+
+== Common Namespaces
+
+Following namespaces are used for definition of fundamental Axiom concepts:
+
+
+[cols="10%,10%,30%,50%"]
+|===
+| Purpose | Name/prefix | Namespace URI | Description
+
+| Axiom model
+| axiom-model
+| `https://schema.evolveum.com/ns/axiom/model`
+| Definition of Axiom modeling language.
+Contains definition of all the basic "statements" of the language such as `model`, `import` and `type`.
+
+This is the namespace that pure Axiom models are using as their "root" namespace (namespace of the root item).
+However, this namespace is seldom imported, reused or extended.
+It needs to be used only for models that build on top of Axiom modeling language (such as Prism).
+
+| Axiom data types
+| axiom-types
+| `https://schema.evolveum.com/ns/axiom/types`
+| Defnition of basic data types that are used in almost all Axiom models.
+Definition of `String` and `Integer` is located in this namespace.
+
+This is the default namespace when specifying data types.
+Therefore built-in Axiom types can be used without explicit namespace or prefix.
+
+| Axiom data
+| axiom-data
+| `https://schema.evolveum.com/ns/axiom/data`
+| Definition of Axiom data language.
+Concepts such as _item_ or _value_ are defined here.
+|===
+
+== Related Concepts
+
+The concept of Axiom namespaces is similar to namespace concepts in other ecosystems.
+Namespaces used by XML, semantic web and JSON-LD are quite similar to Axiom namespaces.
+This similarity is part of Axiom design, as we hope to be compatible with concepts and data from other ecosystems.
+However, Axiom namespaces are used in quite a different way.
+Unlike JSON, the namespaces are integral part of the design.
+And unlike XML, namespaces are used just where they are needed.
+We hope that this approach helps Axiom to be both reliable and user-friendly platform.

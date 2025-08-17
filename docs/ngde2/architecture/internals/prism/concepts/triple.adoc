@@ -1,0 +1,32 @@
+= Triple
+// NGDe2 redirect
+:page-moved-from: /midpoint/devel/prism/concepts/triple/
+:page-wiki-name: Triple
+:page-wiki-id: 23166996
+:page-wiki-metadata-create-user: semancik
+:page-wiki-metadata-create-date: 2016-08-08T14:47:25.157+02:00
+:page-wiki-metadata-modify-user: semancik
+:page-wiki-metadata-modify-date: 2016-08-08T14:47:25.157+02:00
+
+Also known as "value triple" or sometimes (not entirely correctly) "delta triple" or simply "triple".
+The triple is a collection of three value sets: minus set, zero set and plus set:
+
+* *Minus* set is a collection of values that are to be removed.
+This is often taken from the _delete_ part of modification delta.
+
+* *Zero* set is collection of values that are not changed.
+These values are not added nor deleted by a specific delta.
+
+* *Plus* set is a collection of values that are added.
+These are new values that were not previously in the property, but these may also be values that are added to the second time.
+
+Triples are usually intermediate results of computation with the xref:/midpoint/devel/prism/concepts/deltas/[deltas]. It is not easy to directly merge a lot of deltas, especially if some of them are transformed by xref:/midpoint/reference/expressions/mappings/[mappings], originate in various templates and roles and so on.
+Therefore midPoint works with triples instead of deltas.
+Triples are much easier to merge and they are generally better to work with.
+
+
+== See Also
+
+* xref:/midpoint/devel/prism/concepts/deltas/[Deltas]
+
+* xref:/midpoint/reference/expressions/mappings/[Mapping]

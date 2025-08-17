@@ -1,0 +1,359 @@
+= JSON Representation Format For Axiom
+// NGDe2 redirect
+:page-moved-from: /midpoint/devel/axiom/representation-formats/json/
+
+== Minimal And Dangerous
+
+This example is the very minimal JSON file.
+It assumes that the processor knows the namespace of the model, model version is irrelevant (latest) and so on.
+
+[source,json]
+----
+{
+  "@root": "user",
+  "givenName" : "John",
+  "familyName" : "Doe",
+  "path" : "user/myIdentifier",
+  "activation" : {
+    "administrativeStatus" : "enabled"
+  },
+  "myIdentifier" : "123",
+  "employmentStatus" : "full"
+}
+----
+
+There is considerable risk taken by avoiding all namespaces and prefixes.
+E.g. `myIdentifier` is an item introduced by augmentation and it belongs to custom namespace.
+However, there is no indication of namespaces here, therefore there is a danger of naming conflict.
+
+== Comfortable And Safe With URIs
+
+This is an example of JSON file with reasonable identification of the model.
+Full URIs are used to make this unambiguous.
+
+[source,json]
+----
+{
+  "@root": "user",
+  "@context" : "https://schema.evolveum.com/midpoint/common",
+  "@version": "4.4",
+  "givenName" : "John",
+  "familyName" : "Doe",
+  "path" : "user/(https://schema.example.com/custom#myIdentifier)",
+  "activation" : {
+    "administrativeStatus" : "enabled"
+  },
+  "https://schema.example.com/custom#myIdentifier" : "123",
+  "https://schema.example.com/custom#employmentStatus" : "full"
+}
+----
+
+This example is unambiguous, the data are written in reliable way, there are no naming conflicts.
+Primary model and version is precisely identified, including model version.
+However, the custom augmentation model is identified only by namespace, the version is not indicated.
+
+TODO: how to specify model version? Is that `@version` OK? How about Prism version?
+
+Alternative namespace format:
+
+[source,json]
+----
+{
+  "@root": "user",
+  "@context" : "https://schema.evolveum.com/midpoint/common",
+  "@version": "4.4",
+  "givenName" : "John",
+  "familyName" : "Doe",
+  "path" : "user/(https://schema.example.com/custom#myIdentifier)",
+  "activation" : {
+    "administrativeStatus" : "enabled"
+  },
+  "https://schema.example.com/custom" : {
+    "myIdentifier" : "123",
+    "employmentStatus" : "full"
+  }
+}
+----
+
+
+== Comfortable And Safe With Prefixes
+
+This is an example of JSON file with reasonable identification of the model.
+Namespace prefixes are used to make this unambiguous.
+
+[source,json]
+----
+{
+  "@root": "user",
+  "@context" : "https://schema.evolveum.com/midpoint/common",
+  "@version": "4.4",
+  "@ns:example-custom" : "https://schema.example.com/custom",
+  "givenName" : "John",
+  "familyName" : "Doe",
+  "path" : "user/example-custom:myIdentifier",
+  "activation" : {
+    "administrativeStatus" : "enabled"
+  },
+  "example-custom:myIdentifier" : "123",
+  "example-custom:employmentStatus" : "full"
+}
+----
+
+This example is unambiguous, the data are written in reliable way, there are no naming conflicts.
+Primary model and version is precisely identified, including model version.
+However, the custom augmentation model is identified only by namespace, the version is not indicated.
+
+TODO: how to specify model version? Is that `@version` OK? How about Prism version?
+
+
+== Undeclared Prefixes
+
+Use of XML prefixes without a need to declare them.
+Mapping of prefixes to namespace URLs is taken from model definitions.
+Model namespace and version is assumed.
+
+[source,json]
+----
+{
+  "@root": "user",
+  "givenName" : "John",
+  "familyName" : "Doe",
+  "path" : "user/example-custom:myIdentifier",
+  "activation" : {
+    "administrativeStatus" : "enabled"
+  },
+  "example-custom:myIdentifier" : "123",
+  "example-custom:employmentStatus" : "full"
+}
+----
+
+This is a terse format suitable for example for database storage.
+Model namespace could be hardcoded, model version is likely to be same for the entire database, therefore it can stored in one place.
+We still want to use prefixes to be able to reliably distinguish augmentations.
+But we want to avoid repetitive declaration of the prefixes.
+
+== Full Regalia With URIs - Portable Format
+
+This is an example of JSON with complete and strict data about model, strict namespace declarations and so on.
+
+[source,json]
+----
+{
+  "@root": "user",
+  "@context" : "https://schema.evolveum.com/midpoint/common",
+  "@version": "4.4",
+  "givenName" : "John",
+  "familyName" : "Doe",
+  "path" : "user/(https://schema.example.com/custom#myIdentifier)",
+  "activation" : {
+    "administrativeStatus" : "enabled"
+  },
+  "https://schema.example.com/custom#myIdentifier" : "123"
+}
+----
+
+TODO: how to identify custom model version?
+
+== Full Regalia With Prefixes - Portable Format
+
+This is an example of JSON with complete and strict data about model, strict namespace declarations and so on.
+
+[source,json]
+----
+{
+  "@root": "user",
+  "@context" : "https://schema.evolveum.com/midpoint/common",
+  "@version": "4.4",
+  "@ns:example-custom" : "https://schema.example.com/custom",
+  "givenName" : "John",
+  "familyName" : "Doe",
+  "path" : "user/example-custom:myIdentifier",
+  "activation" : {
+    "administrativeStatus" : "enabled"
+  },
+  "example-custom:myIdentifier" : "123",
+  "example-custom:employmentStatus" : "full"
+}
+----
+
+TODO: how to identify custom model version?
+
+== Root item
+
+Canonical way how to specify a root item is to use `@root` clause:
+
+[source,json]
+----
+{
+  "@root": "user",
+  "givenName" : "John",
+  "familyName" : "Doe",
+  "path" : "user/myIdentifier",
+  "activation" : {
+    "administrativeStatus" : "enabled"
+  },
+  "myIdentifier" : "123",
+  "employmentStatus" : "full"
+}
+----
+
+Alternatively, the document may be formed as a single-key object (map):
+
+[source,json]
+----
+{
+  "user" : {
+      "givenName" : "John",
+      "familyName" : "Doe",
+      "path" : "user/myIdentifier",
+      "activation" : {
+        "administrativeStatus" : "enabled"
+      },
+      "myIdentifier" : "123",
+      "employmentStatus" : "full"
+  }
+}
+----
+
+
+== Compatibility
+
+This is an example of format variation that were used in the past, but we still want to be able to parse them.
+
+There is an old namespace for the `midpoint` model, which is configured as an namespace alias for the model.
+
+=== Extension Element
+
+Augmentation items are placed in dedicated `extension` key.
+This key is explicitly specified in the midpoint or prism object definition to be used for compatibility purposes.
+
+[source,json]
+----
+{
+  "@root": "user",
+  "@context" : "https://schema.evolveum.com/midpoint/common",
+  "@version": "4.4",
+  "@ns:example-custom" : "https://schema.example.com/custom",
+  "givenName" : "John",
+  "familyName" : "Doe",
+  "path" : "user/example-custom:myIdentifier",
+  "activation" : {
+    "administrativeStatus" : "enabled"
+  },
+  "extension" : {
+      "example-custom:myIdentifier" : "123",
+      "example-custom:employmentStatus" : "full"
+  }
+}
+----
+
+Even though there is additional element `extension`, the item path is still expressed without that element.
+E.g the path for employmentStatus should be:
+
+[source,axiom-path]
+----
+example-custom:employmentStatus
+----
+
+Axiom data processors can still accept paths with `extension` element for compatibility reasons, such as:
+
+[source,axiom-path]
+----
+extension/example-custom:employmentStatus
+----
+
+However, such path is not considered to be canonical.
+The path should be transformed to a form without the `extension` element whenever possible.
+
+=== Namespaces With @ns
+
+Namespace for all keys within an object (map) can be set by special `@ns` keyword:
+
+[source,json]
+----
+{
+  "@ns" : "https://schema.evolveum.com/midpoint/common",
+  "user" : {
+      "givenName" : "John",
+      "familyName" : "Doe",
+      "path" : "user/myIdentifier",
+      "activation" : {
+        "administrativeStatus" : "enabled"
+      },
+      "extension" : {
+          "@ns" : "https://schema.example.com/custom",
+          "myIdentifier" : "123",
+          "employmentStatus" : "full"
+      }
+  }
+}
+----
+
+== Metadata
+
+Metadata for simple string item (`givenName`) and for structured item (`actiavtion`).
+
+[source,json]
+----
+{
+  "@root": "user",
+  "@context" : "https://schema.evolveum.com/midpoint/common",
+  "givenName" : {
+    "@value" : "John",
+    "@metadata" : {
+      "storage" : {
+        "creation" : {
+          "timestamp" : "2020-06-12T18:14:05Z"
+        }
+      },
+      "https://schema.example.com/custom#verification" : {
+        "level" : "verified",
+        "verifier" : "jack"
+      }
+    }
+  },
+  "activation" : {
+    "@value" : {
+      "administrativeStatus" : {
+        "@value" : "enabled",
+        "@metadata" : {
+          "storage" : { ... }
+        }
+      }
+    },
+    "@metadata" : {
+      "storage" : { ... }
+    }
+  },
+  ...
+}
+----
+
+Storage metadata are specified in midPoint model, therefore `storage` item does not need to be namespace-qualified.
+
+Multivalue string item with metadata:
+
+[source,json]
+----
+{
+  "@root": "user",
+  "@context" : "https://schema.evolveum.com/midpoint/common",
+  ...
+  "foo" :
+    [
+      {
+        "@value" : "One",
+        "@metadata" : { ... }
+      },
+      {
+        "@value" : "Two",
+        "@metadata" : { ... }
+      },
+      {
+        "@value" : "Three",
+        "@metadata" : { ... }
+      }
+    ]
+  ...
+}
+----

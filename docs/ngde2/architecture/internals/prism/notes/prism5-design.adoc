@@ -1,0 +1,232 @@
+= Prism 5 Design
+// NGDe2 redirect
+:page-moved-from: /midpoint/devel/prism/notes/prism5-design/
+
+Design notes for Prism 5 (Prism included in xref:/midpoint/devel/design/midpoint-5-vision/[MidPoint 5]).
+
+== Empty, NonExistent and Null
+
+=== No Item and No Values
+
+Item may not exist at all:
+
+[source,xml]
+----
+<user>
+    <!-- no assignment here -->
+</user>
+----
+
+... in JSON ...
+
+[source,json]
+----
+{
+    "@root" : "user"
+}
+----
+
+... which would be the same as empty list:
+
+[source,json]
+----
+{
+    "@root" : "user",
+    "assignment" : [ ]
+}
+----
+
+The right way how to express this in Prism is not to include the item in prism structures:
+
+----
+PrismObject(user)
+    PrismObjectValue
+        // no PrismContainer here
+----
+
+However, this may be complicated by metadata or incompleteness.
+E.g. the "we are sure that Jack has no criminal records":
+
+[source,json]
+----
+{
+    "@root" : "user",
+    "name" : "jack",
+    "criminalRecord" : {
+        "@value" : [ ],
+        "@metadata" : {
+            "loa" : "high"
+        }
+    }
+}
+----
+
+In that case there will be an item (container) in Prism, but it will have no value:
+
+----
+PrismObject(user)
+    PrismObjectValue
+        PrismContainer(criminalRecord) + metadata
+            // no PrismContainerValue here
+----
+
+
+The "no item" case and the "item with no values" case are logically equivalent.
+They should result in the same behavior.
+
+The canonical way is the "no item" case, e.g.:
+
+[source,json]
+----
+{
+    "@root" : "user"
+}
+----
+
+Prism should avoid creating empty items unless there is a very good reason to do so (e.g. item metadata).
+
+=== Empty Value
+
+We need to have "empty elements", such as `<mapping/>` or `<asIs/>`.
+We thought about the world where we would not need such elements, but there seem to be no elegant way how to express "mapping with all default values".
+
+Let's have a case of empty assignment:
+
+[source,xml]
+----
+<user>
+    <assignment/>
+</user>
+----
+
+[source,json]
+----
+{
+    "@root" : "user",
+    "assignment" : [ {} ]
+}
+----
+
+This will be reflected in Prism as an item with empty value:
+
+----
+PrismObject(user)
+    PrismObjectValue
+        PrismContainer(assignment)
+            PrismContainerValue
+                (no items here)
+----
+
+Item with empty value is different than non-existent item (no item at all).
+E.g. no mapping item means that there is no mapping, the value should not be mapped from user to account.
+Empty mapping means that there is a mapping, the values should be mapped from user to account, using the default setting.
+
+This makes a difference in the query language as well.
+The "no item" case will match NOT EXISTS filters.
+The "empty item" case will match EXISTS filter and MATCH EMPTY filter.
+
+=== Empty Strings
+
+We want to allow empty strings as legal property values:
+
+[source,xml]
+----
+<user>
+    <fullName></fullName>
+</user>
+----
+
+[source,xml]
+----
+<user>
+    <fullName/>
+</user>
+----
+
+[source,json]
+----
+{
+    "@root" : "user",
+    "fullName" : ""
+}
+----
+
+This will be represented in Prism:
+
+----
+PrismObject(user)
+    PrismObjectValue
+        PrismProperty(fullName)
+            PrismPropertyValue: realValue=""
+----
+
+There may be apparent confusion in XML with empty containers, e.g.:
+
+[source,xml]
+----
+<user>
+    <fullName/>
+    <assignment/>
+</user>
+----
+
+But there is no problem here, both items have a value:
+The `fullName` is an ordinary property with string value (even though the string is empty).
+The `assignment` is a container with ordinary value, just the value has no subitems.
+
+
+=== Illegal Cases
+
+These cases are not allowed:
+
+* ItemValue with `null` as real value.
+E.g.
++
+----
+PrismObject(user)
+    PrismObjectValue
+        PrismProperty(fullName)
+            PrismPropertyValue: realValue=null
+----
+
+== Matching Rules
+
+Matching rules should apply to primitive values only - mostly strings, but some binary data may need matching rules as well (e.g. binary representation of IP address).
+
+Use of matching rules for structured items will be deprecated, e.g. a use to match orig/norm part of PolyString.
+
+== Container values, their equivalence and identity
+Larger set of issues references container id or their equivalence as a source
+
+* {issue}/MID-5065[MID-5065: Prism Delta validation] - This issue describes delta with delete id=1 and add id=1, which should fail, issues implies IDs should not be reused.
+* {issue}/MID-1296[MID-1296: Conflicting IDs in swallow] - Delta shouldn't swallow containers with same ids
+* {issue}/MID-3828 Decide on equality of Prism Containers
+* {issue}/MID-4480[MID-4480 Container id problem] - It is possible to have same ID assigned to two different values, delete by ID may delete incorrect one, suggest delete by value. This issue also implies ID reuse is acceptable.
+* {issue}/MID-6686[MID-6686 Consolidation of PCVs with IDs does not work] - this issue suggests that we should not consider PCVs with same ID and different content equal
+
+Possible solutions to container ID conflicts:
+
+* Never reuse container IDs inside object - current definition of id as long gives us up to 9,223,372,036,854,775,807 possible containers (adds/removals) inside object without overflowing
+* Use UUID as container ID - this would require 22 bytes per container in worst case (serialized as base64 UUID), instead of 1..11 bytes for `long` (larger numbers serialized using base64)
+* Cluster-wide singleton registry for assignment of container IDs for new objects - in order to prevent assignment of same container ID to two different processes
+* Natural identifiers - support for natural identifiers for containers eg.
+  ** containers with maxOccurs=1 - do not need identifier
+  ** container definition may specify which properties determines its identity
+  *** two containers represents same value only and only-if all properties are equal (semantically, not lexically)
+
+
+== Delta Semantics
+
+* bug:MID-2232[] Coliding deltas
+* bug:MID-4464[] add + delete delta
+* bug:MID-4689[]
+
+
+== Schema
+
+- Container presence - does presence of container is only for structural reasons (grouping of related attributes)
+  or signifies behaviour
+
+== See Also
+
+* xref:/midpoint/devel/design/midpoint-5-vision/[MidPoint 5 Vision]

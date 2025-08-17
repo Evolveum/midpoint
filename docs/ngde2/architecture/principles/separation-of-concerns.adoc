@@ -1,0 +1,71 @@
+= Separation of Concerns
+// NGDe2 redirect
+:page-moved-from: /midpoint/architecture/principles/separation-of-concerns/
+:page-wiki-name: Separation of Concerns
+:page-wiki-id: 655387
+:page-wiki-metadata-create-user: semancik
+:page-wiki-metadata-create-date: 2011-04-29T11:58:17.554+02:00
+:page-wiki-metadata-modify-user: peterkortvel@gmail.com
+:page-wiki-metadata-modify-date: 2016-02-20T15:41:40.040+01:00
+
+The system is designed with many requirements in mind, some of them slightly conflicting:
+
+* We need *user interface* that quickly adapts to the needs of specific customer.
+The user interface should support all the nuances of business logic (e.g. specific edit forms).
+
+* We need *custom business logic* that will quickly adapt to customer's business processes and identity management logic.
+E.g. we need special-purpose services used by custom applications
+
+* We need stable *model* that will enforce the rules of the system, such as consistency of data mappings and access control policies (RBAC).
+
+* We need re-usable *provisioning connectors* that will connect to the external systems (as source, target or both).
+We do *not* want to adapt these modules to specific business logic and we want them to be developed independently from the rest of the system.
+
+* We want object *repository* that can store data in a variety of storage systems.
+We want a data model that is reasonably stable, as we want other models to take advantage of that.
+
+Therefore we design the system in a form of layers, subsystems and components.
+The layers depend on the lower layers, but we expect that each layer will be developed with a different dynamics and will address a different concern.
+
+[%autowidth]
+|===
+| Subsystems | Responsibility | Dynamics | Description
+
+| User Interface
+| Presentation Logic
+| Changing quickly, easy to change
+| Interaction with system administrator, support for engineers configuring the system, services to end users.
+
+
+| Custom Business Logic
+| Unexpected functionality
+| Moderate changes, easy to adapt
+| Special-purpose services, custom logic.
+
+
+| IDM Model
+| Identity management and governance logic, policy enforcement
+| Slow to change, open-closed principle
+| Enforcement of a policy structure and data consistency.
+Some form of automation (e.g. roles), but quite rigid to change outside of the constraints of the model.
+
+
+| Provisioning
+| Integration Logic
+| Moderate changes, quickly connecting new systems
+| Connectors to manage users/groups on target systems, connectors to pull source information.
+Need to add and replace connectors quickly, sharing connectors with other systems
+
+
+| Repository
+| Data Storage
+| Very stable but moderately easy to extend
+| Storing data of the basic data model and also other (unexpected) data.
+Basic data model must be very stable (other layers depend on it), but it should be easy to extend.
+
+|===
+
+
+== See Also
+
+* xref:/midpoint/architecture/[]

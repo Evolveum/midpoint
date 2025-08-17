@@ -1,0 +1,51 @@
+model "prism-types" {
+  namespace https://ns.evolveum.com/ns/axiom/prism-types;
+  version 4.0;
+
+  type PolyString {
+    documentation """
+      Polymorphic string.
+      String that may have more than one representation at
+      the same time. The primary representation is the original version that is
+      composed of the full Unicode character set. The other versions may be
+      normalized to trim it, normalize character case, normalize spaces,
+      remove national characters or even transliterate the string.
+
+      There is an alternative syntactic short-cut representation of PolyString. If no
+      child element is present then the text entire text content of this element is
+      considered as if it was present in the 'orig' element. That's the reason for making
+      this type 'mixed'.
+
+      This is considered to be primitive built-in type for prism objects.
+      """
+
+    argument orig; // Allows PolyString to be specified as normal string
+
+    property orig {
+      type string;
+    }
+    property norm {
+      type string;
+      documentation """
+        Normalized value of the string.
+        The values is processed by the default normalization algorithm defined
+        in the system.""";
+    }
+    container translation {
+      type PolyStringTranslation;
+      documentation """
+        Definition of string value by using localization key and parameters.
+        """
+      since 4.0;
+    }
+    container lang {
+      type PolyStringLang;
+    }
+  }
+  type PolyStringLang {
+    item lang {
+      type string;
+      documentation "Language code";
+    }
+  }
+}

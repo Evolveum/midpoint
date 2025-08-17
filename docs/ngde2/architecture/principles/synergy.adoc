@@ -1,0 +1,109 @@
+= Feature Synergy
+// NGDe2 redirect
+:page-moved-from: /midpoint/features/synergy/
+:page-nav-title: Feature Synergy
+:page-wiki-name: Synergistic Features
+:page-wiki-id: 26411525
+:page-wiki-metadata-create-user: semancik
+:page-wiki-metadata-create-date: 2018-09-03T18:56:15.444+02:00
+:page-wiki-metadata-modify-user: semancik
+:page-wiki-metadata-modify-date: 2018-09-03T19:42:36.476+02:00
+:page-keywords: [ 'synergy', 'synergistic', 'feature' ]
+:page-display-order: 600
+
+MidPoint is a very comprehensive system with surprisingly large number of xref:/midpoint/features/current/[features]. But it is not just the number of features that makes midPoint unique.
+Those features are designed for a very specific purpose: *synergy*. MidPoint features are meant to work together.
+They are no lone wanderers in the identity space.
+The features are designed as a strong and efficient team.
+One feature supports the other.
+There is an old saying that the whole is much more than just sum of its parts.
+And midPoint is a designed to be just that: a whole, integrated and efficient solution for identity management and governance.
+
+
+== Examples of Synergistic Features
+
+It would be best to explain this design principle using few examples.
+
+
+=== Organizational Structure, Roles and Authorizations
+
+MidPoint has good support for xref:/midpoint/reference/org/organizational-structure/[organizational structures]. While good organizational structure support is still not entirely common sight in identity management field, this single feature in itself won't make midPoint really unique.
+What makes midPoint unique is the way how organizational structure works with other objects.
+Organizational structure support in a traditional identity management is all about divisions, sections and users.
+While midPoint can do all of that, we went a tiny bit beyond the tradition here.
+In fact it is quite a big bit.
+Organizational units (a.k.a. "orgs") in midPoint can hold broad variety of objects.
+Of course, there are users and other organizational units.
+But roles and xref:/midpoint/reference/misc/services/[services] can be placed into the organizational structure as well.
+This may seem a simple idea, but it is very powerful.
+Firstly, midPoint can have more than one organizational tree.
+And in fact it does not need to be a tree at all, any acyclic oriented graph will do.
+This makes ideal condition for organizational structure to support use-cases such as xref:/midpoint/reference/admin-gui/request-access#role-catalog. And the story does not end here.
+Role catalogs are often organized by applications.
+Applications have their owners.
+MidPoint organizational units in fact behave almost like a roles themselves, therefore they may have owners.
+Now it is simple to model catalog catagories as applications, each application having its owner.
+And all of this can be combined with xref:/midpoint/reference/security/authorization/[authorizations] to create a delegated administration configuration: application owners can create new roles for their applications.
+Organizational structure, roles and authorizations working seamlessly together.
+
+
+=== Policy Rules, Roles and Metaroles
+
+MidPoint has a very powerful mechanism of xref:/midpoint/reference/roles-policies/policy-rules/[policy rules]. Policy rules can be applied to a lot of aspects related to identity management and governance: approval processes, object lifecycle, organizational management, xref:/midpoint/features/planned/compliance/[compliance] - to just name a few.
+However, each policy rule is small and relatively simple statement.
+It is combination of policy rules that makes all of this really powerful.
+But how do we combine policy rules together? If there only was a nice and elegant way how to combine privileges together to form something like roles.
+Oh wait, there xref:/midpoint/reference/roles-policies/rbac/[is a way]! What if we combine policy rules to actual roles.
+It worked so well for authorizations.
+And no surprise that it also works for policy rules.
+But wait a minute! We have policy rules that apply to roles.
+For example policy rules that define role lifecycle, approval policies and so on.
+Therefore let's group those policy rules to a role and apply that role to other roles.
+Hey, look! We have xref:/midpoint/reference/roles-policies/metaroles/policy/[metaroles]. They have just appeared out of thin air.
+And how useful they are! And now, as metaroles are just roles, what if we apply policy rules to metaroles, so now we have metametaroles ... and there are turtles all the way down.
+
+
+=== More, More and Even More
+
+There is myriads of synergy examples in midPoint:
+
+* Authorizations are part of roles, the same roles that are used for provisioning.
+Therefore the same approval, ownership and lifecycle mechanism can be used to govern provisioning as well as internal midPoint policies.
+
+* Data protection features are an extension of xref:/midpoint/reference/roles-policies/rbac/[midPoint RBAC model] seasoned with a pinch of policy rules and lifecycle management.
+
+* Concept of xref:/midpoint/reference/roles-policies/assignment/[assignment] is reused may times, e.g. as an inducement to create hierarchical roles, it allows creation of meta-roles, it is used for xref:/midpoint/reference/misc/deputy/[deputy delegation], it influences approval processes.
+Simply speaking it is almost everywhere.
+This is our version of "identity relationship", designed long before the term "relationship" was cool.
+
+* xref:/midpoint/reference/concepts/activation/[Activation] concepts are applied to users, roles, services, organizational units, and even to xref:/midpoint/reference/roles-policies/assignment/[assignments].
+
+* and many, many more ...
+
+
+== Synergistic Design
+
+Synergy was one of important goals in early midPoint design.
+MidPoint authors kept that in mind when architectural foundation of young midPoint was laid out.
+That is the reason organizational structure was designed in such a flexible way - which was very uncommon among identity management systems of early 2010s when midPoint was born.
+But there was a good reason for that.
+And almost all midPoint features were designed with extensibility, future improvements and evolution in midPoint.
+It is perhaps quite obvious where the name _Evolveum_ comes from.
+
+However, the depth midPoint feature synergy came as a surprise even to midPoint designers.
+We haven't expected that individual features will work together that well.
+And then there are completely unexpected synergies.
+xref:/midpoint/reference/roles-policies/metaroles/gensync/[Metaroles] are one noteworthy example.
+We haven't designed metaroles at all.
+We haven't foreseen that.
+Metaroles came as a consequence of a design of a generalized role-based structure.
+This came as a big surprise, unexpected feature.
+But we have immediately recognized its potential and xref:/midpoint/reference/roles-policies/metaroles/gensync/[put it into good use]. Later on the metaroles xref:/midpoint/reference/roles-policies/metaroles/policy/[became even more synergistic]. And now metaroles are solid building block in midPoint platform.
+This is the true power of evolution: there may be unexpected impulses.
+But even unexpected ideas are integrated and put into a good use.
+The synergistic architecture of midPoint and our complete commitment to evolvability makes that possible.
+
+
+== See Also
+
+* xref:/midpoint/reference/org/organizational-structure/[Organizational Structure]

@@ -1,0 +1,22 @@
+= Form Follows Purpose
+// NGDe2 redirect
+:page-moved-from: /midpoint/architecture/principles/form-follows-purpose/
+:page-wiki-name: Form Follows Purpose
+:page-wiki-id: 655409
+:page-wiki-metadata-create-user: semancik
+:page-wiki-metadata-create-date: 2011-04-29T12:10:04.680+02:00
+:page-wiki-metadata-modify-user: semancik
+:page-wiki-metadata-modify-date: 2011-04-29T12:10:05.680+02:00
+
+The design and architecture of the midPoint system is always a work in progress.
+No reasonable architecture should be created without interaction with reality, and we definitely do not try to follow the "big design upfront" pattern.
+The architecture is created only to guide our efforts as we develop the system.
+It is expected to change if it is difficult to implement, hard to use or if it is not suitable for the needs.
+
+We follow *pragmatic* principles.
+It is reality that matters.
+It is the concrete product, not the abstract idea, that midPoint users need.
+The result is our primary focus, out highest priority, and we look only at that.
+We try to avoid hypes and false promises.
+We try to test and validate as soon as possible.
+Our architecture, design and implementation ("form") must adapt to what the users need ("purpose"), not the other way around.

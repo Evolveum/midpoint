@@ -1,0 +1,16 @@
+= Axiom in midPoint: From Queries to Resource Schemas
+// NGDe2 redirect
+:page-moved-from: /midpoint/devel/axiom/
+:page-moved-from: /midpoint/axiom/*
+:page-nav-title: Axiom
+
+Axiom is data modeling language used to model data (and metadata) in an abstract, representation-independent way.
+
+== Important Documents
+
+* xref:spec/[Axiom Specification]
+* xref:concepts/[Axiom Concepts]
+
+== History
+
+Initial version of Axiom was developed in scope of xref:/midpoint/projects/midprivacy/phases/01-data-provenance-prototype/[midPrivacy: Data Provenance Prototype] project.

@@ -1,0 +1,193 @@
+= Prism Motivation
+// NGDe2 redirect
+:page-moved-from: /midpoint/devel/prism/motivation/
+:page-toc: top
+
+== What Is Prism?
+
+Prism is working with _data_ in their abstract form, with an aim to re-use the data model for many _representations_.
+In other words, Prism is used to describe the _data_ using universal concepts, not bound to specific data representation languages such as JSON or XML.
+
+Data processed by Prism can be used for multitude of purposes, from the obvious one to quite unexpected.
+Obviously, the data can be read or stored using well-known data representation languages such as JSON, YAML or XML.
+The interesting aspect is that any of the languages can be used to represent the data, even combing all of them at the same time.
+However, there are more substantial uses for Prism, such as representation of the data in efficient form, such as binary formats (Protocol Buffers, BSON, CBOR/RFC8949).
+Special-purposes formats and semantic variations can be supported to, such as JSON-LD (as opposed to plain JSON), or XML variants with and without namespaces.
+As Prism works on a higher abstract level, it can easily translate the languages.
+Prism can be used to receive data in one form, store it in another form and transmit them in yet another form, simplifying data integrations.
+
+However, Prism is not limited to text or binary files.
+Prism data can be mapped to relational database structures, no-SQL database structures or any other reasonable form of data organization.
+
+However, Prism data models can be used for purposes that might be quite surprising.
+Prism can be used to generate code to work with the data structures, making development and maintenance of applications much easier.
+It can be used to automatically render user interface, displaying the data in meaningful form without a need for bespoke user interface code.
+Forms for entering data can be automatically created, data can be validated, collated in lists and tables.
+The data can even be queried, as Prism includes universal query language as well.
+
+Prism is a universal mechanism to describe and process _data_ in any form.
+
+== Prism Features
+
+Prism has many features:
+
+* Prism data model is *object-based*.
+Prism data are modeled as objects, containers and references.
+This form is very natural for use in application development programming languages.
+However, the form is also suitable for databases and other data processing systems.
+The format is also web-friendly, it is easy to be used in RESTful APIs or published in a form of linked-data.
+
+* Support for *representation data formats*, such as JSON, YAML or XML.
+Any data format can be used to parse or serialize Prism data.
+
+* Prism is completely *schema-aware* system, from the bottom to the top.
+Information about data types, multiplicities and all other data modeling information is bound to the data as they travel through the system.
+Such information can be used by low-level database code to store the data efficiently.
+It can be also used by high-level user interface code to present the data to user using nice user interface widgets.
+
+* Data model *extensibility*, allowing to specify new data elements by the user, after the application is developed.
+This is a crucial feature for customization of applications.
+Namespacing mechanisms is used to allow several extensions to co-exist in one data model.
+
+* *Dynamic* (runtime) schemas can be discovered by the application and incorporated into static data models.
+Applications can adapt to data models that are available only in run-time, obtained over the network or dynamically discovered.
+
+* Data models may include *versioning* information, e.g. which version of the application introduced certain data items, in which version the items were removed.
+Versioning information is used for data validation, migration and upgrades.
+
+* *Meta-data* are natively supported.
+Every value of every data item may include meta-data (a.k.a. "value meta-data").
+Structure of meta-data can be described using the same mechanisms as structure of data is described.
+
+* Data are described using a *data modeling language*.
+XML Schema Definition (XSD) with a lot of custom extension is used now as a data modeling language.
+However, work is underway on a more appropriate and powerful data modeling language dubbed _Axiom_, which natively supports all Prism features.
+
+* Prism includes data structures that describe data modifications, known as *deltas*.
+Each _delta_ describes modification of data item or items.
+Deltas can be merged, applied to objects, stored for short-term processing or long-term recording (audit trail).
+_Deltas_ provide an ability to implement even a very complex data modification and transformation algorithms quite easily.
+
+* Abstract *query language* allows querying of objects stored in databases.
+As the query language is independent of data representation format, it does not matter whether data are stored in JSON, XML or relational database tables, the same query language can be used.
+
+* Prism data models contain integrated *documentation* (a.k.a. "schemadoc").
+Each data item can be documented right at the point of its definition.
+User-friendly documentation can be automatically generated from the model.
+
+* Prism has a *reference implementation* for *Java* platform, which is currently a module of midPoint.
+Of course, link:https://github.com/Evolveum/prism[Prism reference implementation] is open source software.
+
+* *Code generator* is part of Prism reference implementation, generating Java classes (a.k.a. "beans") for easy access to data by Java code.
+Use of generated code is very useful for long-term maintenance of application code, as most data incompatibilities are discovered during compilation of the code, at which time they can be easily addressed.
+
+
+== Does It Work?
+
+Of course, it does.
+Prism is used in xref:/midpoint/[midPoint], a powerful Identity Governance and Administration (IGA) platform.
+In fact, Prism was developed as part of midPoint, reflecting to data management needs of IGA platform, which were quite extreme.
+Identity management is all about data acquisition, transformation, storage and integration.
+It has to work with data structures that are only known in runtime, that are dynamically discovered using identity connectors.
+Data can be extended by the users, customized, policies are to be applied on top of the data, the data has to be queried and analyzed.
+Meta-data has to be maintained for each value, to record origin of each piece of data.
+Complex user interface is automatically generated for the data.
+Record of all changes in data has to be maintained in a form of audit trail.
+Prism is used to support evolution of data models (versioning), which is crucial for seamless upgrades.
+All of that formed the evolution of Prism.
+
+Prism is now substantial module, formed by more than a decade of design, development and testing, proven in many real-world deployments of midPoint all around the world.
+It _works_.
+
+== Current State
+
+link:https://github.com/Evolveum/prism[Prism Java implementation] is stable and working code.
+
+* XML, JSON and YAML representation data formats are supported.
+Binary data formats are not supported yet.
+
+* Schema is defined using XDS format with many extensions (a.k.a. "annotations").
+xref:/midpoint/projects/midprivacy/phases/01-data-provenance-prototype/axiom/[Axiom modeling language] is currently in a form of prototype.
+
+* Extensibility is fully supported, using XSD files with schema extensions.
+New extensibility mechanism is being developed (Prism/midPoint 4.9).
+
+* Dynamic (runtime) schemas are fully supported.
+This mechanism is used by midPoint connector schemas.
+
+* xref:/midpoint/reference/concepts/query/midpoint-query-language/[Axiom query language] is fully supported for querying Prism data.
+
+* Meta-data are supported.
+
+* Schemadoc (integral schema docuemention) is supported, although it needs improvements.
+
+* Java code generator is available to generate code for static schemas.
+
+link:https://github.com/Evolveum/prism[Prism] is now a module of link:https://github.com/Evolveum/midpoint[midPoint].
+Its development and release cycle is the same as development cycle of midPoint.
+
+== Plan
+
+Prism is proven and stable.
+However, the evolution never really ends.
+Even a proven and stable system needs improvements.
+This is the plan:
+
+. Make Prism a *stand-alone library*, to be *re-used* in other applications.
+Currently, Prism is a midPoint module.
+Except for midPoint, it is also used in midPoint Studio and midPoint client library, which are also part of midPoint ecosystem.
+Our plan is to make Prism independent of midPoint, making it available for re-use in other applications.
+We would like other applications to reap the fruits of Prism, to enjoy the benefits that made midPoint such a powerful platform.
+
+. We have to finish development of xref:/midpoint/projects/midprivacy/phases/01-data-provenance-prototype/axiom/[Axiom modeling language] and move away from legacy XSD.
+All the xref:/midpoint/projects/midprivacy/phases/01-data-provenance-prototype/axiom/existing-languages-analysis/[current data modeling languages] such as XSD and JSON Schema were not designed to model data, they were designed to describe data representation formats.
+We have tried to use them, we have struggled, we have found out that there has to be a better way.
+We know what we have to do now, we just need to finish it.
+
+. We have to improve _schemadoc_, integral data model documentation mechanisms.
+Data model documentation is as important as the model itself.
+
+. We need support for more data representation languages, especially for *binary data representation*.
+This is necessary for efficient parsing, serialization and storage of data.
+
+. We have to improve *versioning* capabilities of prism data models.
+Versioning is used especially to make system upgrades easier.
+
+== Frequently Asked Questions
+
+* Why all the trouble? Why not just use JSON?
+
+Twenty years ago _everything_ was written in XML.
+And then it was not.
+Now, _everything_ is in JSON.
+Except for configuration files, which are in YAML.
+And fast remote procedure calls, which use binary formats.
+And databases, which are a mix of SQL and proprietary interfaces.
+JSON will get you only so far.
+
+JSON is not a data format.
+It is data _representation_ (or _serialization_) format.
+JSON is just one of millions of ways to represent data.
+When you hard-code your application for JSON, you are ruling out many other data representations.
+
+As XML failed and faded, JSON can fade as well.
+It can get out of fashion, replaced by something more fashionable.
+It is better to be prepared for the future.
+
+* Why Axiom? Why a new language? Why not use JSON Schema or XSD?
+
+All the xref:/midpoint/projects/midprivacy/phases/01-data-provenance-prototype/axiom/existing-languages-analysis/[current data modeling languages] such as XSD and JSON Schema were not designed to model data, they were designed to describe data representation formats.
+They can describe how JSON or XML file should look like.
+However, they are not good to describe the _data_ that were used to create these files.
+We have tried to use XSD for more than a decade.
+We had to extend it with many "annotations", twisting and abusing it to support new concepts such as meta-data, going to the very edge of its capabilities.
+We have struggled.
+JSON Schema would not be any better, as it is essentially just XSD wheel re-invented to fit JSON.
+It is not a sustainable way ahead.
+We need something better.
+We need a language to model _data_.
+
+== See Also
+
+* xref:..[Prism Introduction]
+* xref:/midpoint/devel/axiom/[Axiom] data modeling language

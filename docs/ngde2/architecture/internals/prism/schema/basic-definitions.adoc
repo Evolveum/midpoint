@@ -1,0 +1,345 @@
+= Basic Prism Schema Definitions
+// NGDe2 redirect
+:page-moved-from: /midpoint/devel/prism/schema/basic-definitions/
+:page-nav-title: Basic Definitions
+:page-toc: top
+
+This page describes the basic structures of xref:../index.adoc[Prism schema].
+The concepts described on this page are the basic building blocks of data structures build on top of Prism framework.
+
+== Basic Prism Schema Concepts
+
+Prism schema is based on several fundamental concepts.
+
+=== Object
+
+Prism data are structured in objects.
+Objects are supposed to be stand-alone meaningful sets of prism data.
+Each object has its unique identifier called simple _object identifier_ or xref:/midpoint/devel/prism/concepts/object-identifier/[OID] for short.
+
+Data type `Object` is an abstract superclass for all prism objects.
+It contains the basic structure that the object must have to be passed between system components and stored in the repository.
+It defines four basic _properties_, while two of them are somehow special:
+
+[cols="h,1,1"]
+|===
+|  Property  |  Type  |  Description
+
+|  `oid`
+|  string +
+(immutable)
+|  System-wide immutable primary identifier of an object.
+It may be quite long and not human-readable, it usually takes UUID form.
+This identifier is not supposed to be displayed to user.
+This identifier must be unique in the entire system.
+OID is *immutable*.
+It cannot be changed.
+
+|  `version`
+|  string  +
+(read-only)
+|  Repository version of an object.
+This property contains a version in which this object was read from the repository, fetched from the resource, etc.
+It is maintained by the repository system, usually used for optimistic locking purposes.
+The version is meant for internal use by the system.
+It is usually not displayed to the user at all.
+It is not meant to be user-friendly semantic version of an object.
+
+
+|  `name`
+|  PolyString
+|  Human-readable, mutable name of the object.
+It may be used as an user-friendly identifier (login name, group name), but there is no requirement to do so.
+The name should be unique in the respective context of interpretation (with very vague definition of "context of interpretation").
+E.g. the name of the `User` objects should be unique in the entire system, active as a username.
+The name of the `Shadow` (account) subtype should be unique in the provisioning resource (target system) that it belongs to.
+Name may not be human-readable in a sense that it is displayable to a common end-user.
+It is indented to be displayed to IDM system administrator.
+Therefore it may contain quite an "ugly" structures such as LDAP DN or URL.
+
+
+|  `description`
+|  string
+|  Free-form textual description of the object.
+It is meant to be displayed to system administrators and advanced users.
+
+|===
+
+In XML form, the `oid` and `versions` should be represented as XML attributes, all the other object items should be represented as XML elements:
+
+[source,xml]
+----
+<object oid="c04a1e20-2e5f-11eb-a9bb-47bb95f13972" version="123">
+    <name>Foo Bar</name>
+    <description>This is just a random object</description>
+</object>
+----
+
+In JSON and YAML forms, all the properties are JSON keys:
+
+[source,json]
+----
+{
+    "object" : {
+        "oid" : "c04a1e20-2e5f-11eb-a9bb-47bb95f13972",
+        "version" : "123",
+        "name" : "Foo Bar",
+        "description" : "This is just a random object"
+    }
+}
+----
+
+[source,yaml]
+----
+object:
+    oid: "c04a1e20-2e5f-11eb-a9bb-47bb95f13972"
+    version: "123"
+    name: "Foo Bar"
+    description: "This is just a random object"
+----
+
+Objects contain other items, such as _properties_, _containers_ and _references_.
+In XML representation the properties are usually the first-level elements in Object XML body, in JSON representatiotion they are usually keys of the top-level hashmap and so on.
+
+=== Property
+
+Property is a specific data characteristic of an object.
+It may be considered to be object "attribute" or "field".
+For example `User` has `fullName` property that contains string value of user's full name.
+
+* Properties may be single-valued or multi-valued.
+
+* Properties are usually of a primitive type, such as string or integer.
+However, in some cases, the properties may be structured (a.k.a "complex types").
+
+* Property values are unordered.
+The implementation does not guarantee ordering of values.
+Prism framework, data stores or any other component may reorder the values if needed.
+
+* Duplicate values are not allowed.
+Duplicate values of properties are usually silently removed by implementations.
+However, clients must be able to tolerate presence of duplicate values.
+
+Operations that modify the objects work with the granularity of properties.
+They add/remove/replace the values of properties, but cannot "reach" inside the properties when modifying them.
+The xref:/midpoint/devel/prism/concepts/deltas/[deltas] do not "see" inside the property.
+
+=== Container
+
+Containers group properties into logical blocks, creating a hierarchical data structure.
+The reason for grouping may be as simple as better understandability of data structure.
+Because containers can, just like properties, be single-valued or multi-valued, it is important
+to distinguish between _container_ and _container **value**_, although in speach this distinction is
+often lost.
+
+_Container value_ contains a set of (potentially multi-valued) properties.
+The order of properties in a container is not significant (not even in XML representation).
+
+Following examples demonstrate the use of single-value `activation` container,
+which contains a single `administrativeStatus` property:
+
+[source,xml]
+----
+<object oid="c04a1e20-2e5f-11eb-a9bb-47bb95f13972">
+    <name>Foo Bar</name>
+    <activation>
+        <administrativeStatus>enabled</administrativeStatus>
+    </activation>
+</object>
+----
+
+[source,json]
+----
+{
+    "object" : {
+        "oid" : "c04a1e20-2e5f-11eb-a9bb-47bb95f13972",
+        "name" : "Foo Bar",
+        "activation" : {
+            "administrativeStatus" : "enabled"
+        }
+    }
+}
+----
+
+[source,yaml]
+----
+object:
+    oid: "c04a1e20-2e5f-11eb-a9bb-47bb95f13972"
+    name: "Foo Bar"
+    activation:
+        administrativeStatus: "enabled"
+----
+
+==== Multi-value containers
+
+Single-value containers are easy - the value is there or not.
+With Multi-value containers we often need to point at specific value from many.
+It is possible to use some equivalence strategy, see https://github.com/Evolveum/prism/blob/master/infra/prism-api/src/main/java/com/evolveum/midpoint/prism/equivalence/EquivalenceStrategy.java[EquivalenceStrategy] and
+xref:/midpoint/projects/midprivacy/phases/01-data-provenance-prototype/processing/model/comparing-values/index.adoc[notes about comparing values].
+
+But sometimes we need to identify one specific container value even when it changes - we want it to
+have an identifier.
+And each Prism container indeed has an integer identifier.
+This way we can identify one concrete container value, e.g. assignment with the item path like `assignment/4`.
+
+[NOTE]
+Container identifier is always used in the context of the container so technically it would suffice
+if it was unique inside the container only.
+Current repository implementations however use object-wide unique identifier and also avoid reusing
+previously used containers (except when replacing values in a single operation).
+Generally, this should not bother users except when they try to assign container identifiers when
+importing object - which is not recommended anyway.
+See also further notes in xref:/midpoint/devel/prism/concepts/deltas/#object-modifyadd-delta['Prism Deltas, ADD modification'].
+
+=== Object Reference
+
+`Object Reference` is an item which describes a reference from one object to another object.
+Reference is used to represent an association between objects, for example, a reference from a `User` object to `Role` object that the user has assigned.
+The reference is a simple uni-directional link that uses an OID as an identifier.
+
+[source,xml]
+----
+<object oid="c04a1e20-2e5f-11eb-a9bb-47bb95f13972">
+    <name>Foo Bar</name>
+    <linkRef oid="fb3739a4-2e65-11eb-a925-93f2d815be4a" type="ShadowType"/>
+</object>
+----
+
+[source,json]
+----
+{
+    "object" : {
+        "oid" : "c04a1e20-2e5f-11eb-a9bb-47bb95f13972",
+        "name" : "Foo Bar",
+        "likRef" : {
+            "oid" : "fb3739a4-2e65-11eb-a925-93f2d815be4a",
+            "type" : "ShadowType"
+        }
+    }
+}
+----
+
+[source,yaml]
+----
+object:
+    oid: "c04a1e20-2e5f-11eb-a9bb-47bb95f13972"
+    name: "Foo Bar"
+    linkRef:
+        oid: "fb3739a4-2e65-11eb-a925-93f2d815be4a"
+        type: "ShadowType"
+----
+
+The reference has several attributes:
+
+[cols="h,1,1"]
+|===
+|  Attribute  |  Type  |  Description
+
+|  `oid`
+|  string
+|  Target object OID.
+OID of the object that this reference refers to.
+
+|  `type`
+|  QName +
+(optional)
+|  Target object type.
+Data type of the object that this reference refers to.
+It must be used for references where target object type is not specified in the schema.
+If the type is specified in the schema, use of `type` attribute in the reference is optional.
+
+|===
+
+
+== Extensibility
+
+Prism objects have an extensibility mechanism.
+The objects can be enriched by custom data items.
+
+The objects have special `extension` element where custom data items can be placed.
+
+[source,xml]
+----
+<object oid="c04a1e20-2e5f-11eb-a9bb-47bb95f13972">
+    <name>Foo Bar</name>
+    <extension>
+        <foo>bar</foo>
+    </activation>
+</object>
+----
+
+[source,json]
+----
+{
+    "object" : {
+        "oid" : "c04a1e20-2e5f-11eb-a9bb-47bb95f13972",
+        "name" : "Foo Bar",
+        "extension" : {
+            "foo" : "bar"
+        }
+    }
+}
+----
+
+[source,yaml]
+----
+object:
+    oid: "c04a1e20-2e5f-11eb-a9bb-47bb95f13972"
+    name: "Foo Bar"
+    extension:
+        foo: "bar"
+----
+
+TODO: sample of extension schema definition
+
+NOTE: Historically, the extensible part was "quarantined" into the `extension` element to avoid problems with XSD unique particle attribution (UPA) rule.
+The `extension` element is still used, mostly to avoid conflicts of custom items with static schema items.
+However, the `extension` is likely to be optional in future versions of Prism framework.
+
+
+
+== Prism Schema Definition
+
+Prism schema is traditionally specified in a form of XML Schema Definition (XSD) language.
+However, the capabilities of XSD are quite limited and extension of XSD with custom annotations has its limits.
+Therefore, there is an ongoing effort to migrate Prism to xref:/midpoint/devel/axiom/[Axiom], a new modeling language for abstract data structures.
+
+=== XSD Schema Annotations
+
+Currently, the Prism schema is specified in XSD format.
+However, prism schema is richer than the stock XSD format can describe.
+Therefore the Prism schema definition is using a lot of XSD annotations.
+Some of the annotatiotions are described in following sections.
+
+==== container
+
+Annotation that specifies that the data item or data type is _prism container_.
+
+=== object
+
+Annotation that the data item or data type is _prism object_.
+
+=== displayName
+
+Specifies the printable name of the object class or attribute.
+It must contain a printable string.
+
+This is supposed to be an annotation of a _container_ or _property_ definitions.
+
+=== help
+
+Specifies the help text, or a key to catalog file for a help text.
+The help text may be displayed in any suitable way by the GUI.
+It should explain the meaning of a definition.
+Usually applies to a property, but may also apply to other definitions.
+
+
+=== targetType
+
+The target type of an object reference.
+This annotation may appear in object reference type definitions and specify a valid XSD object types whose may be the targets of the reference.
+
+== See Also
+
+* xref:../index.adoc[Prism Introduction]
+* xref:/midpoint/devel/axiom/[Axiom]

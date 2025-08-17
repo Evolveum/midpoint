@@ -1,0 +1,16 @@
+= Prism Concepts
+// NGDe2 redirect
+:page-moved-from: /midpoint/devel/prism/concepts/
+:page-nav-title: Concepts
+:page-wiki-name: Using Prism Objects
+:page-wiki-id: 13074639
+:page-wiki-metadata-create-user: semancik
+:page-wiki-metadata-create-date: 2013-11-07T10:02:58.310+01:00
+:page-wiki-metadata-modify-user: semancik
+:page-wiki-metadata-modify-date: 2020-11-24T16:34:10.227+01:00
+:page-liquid:
+
+
+++++
+{% children %}
+++++

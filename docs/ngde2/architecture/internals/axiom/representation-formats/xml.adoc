@@ -1,0 +1,286 @@
+= XML Representation Format For Axiom
+// NGDe2 redirect
+:page-moved-from: /midpoint/devel/axiom/representation-formats/xml/
+
+== Minimal And Dangerous
+
+This example is the very minimal XML file.
+It assumes that the processor knows the namespace of the model, model version is irrelevant (latest) and so on.
+
+[source,xml]
+----
+<user>
+    <givenName>John</givenName>
+    <familyName>Doe</familyName>
+    <path>user/myIdentifier</path>
+    <activation>
+        <administrativeStatus>enabled</administrativeStatus>
+    </activation>
+    <myIdentifier>123</myIdentifier>
+    <employmentStatus>full</employmentStatus>
+</user>
+----
+
+There is considerable risk taken by avoiding all namespaces and prefixes.
+E.g. `myIdentifier` and `employmentStatus` are items introduced by augmentation and they belong to custom namespace.
+However, there is no indication of namespaces here, therefore there is a danger of naming conflict.
+
+== Comfortable And Safe
+
+This is an example of XML file with reasonable identification of the model.
+
+[source,xml]
+----
+<user _version="4.4"
+        xmlns="https://schema.evolveum.com/midpoint/common"
+        xmlns:example-custom="https://schema.example.com/custom">
+    <givenName>John</givenName>
+    <familyName>Doe</familyName>
+    <path>user/example-custom:myIdentifier</path>
+    <activation>
+        <administrativeStatus>enabled</administrativeStatus>
+    </activation>
+    <example-custom:myIdentifier>123</example-custom:myIdentifier>
+    <example-custom:employmentStatus>full</example-custom:employmentStatus>
+</user>
+----
+
+This example is unambiguous, the data are written in reliable way, there are no naming conflicts.
+Primary model and version is precisely identified, including model version.
+However, the custom augmentation model is identified only by namespace, the version is not indicated.
+
+TODO: how to specify model version? Is that `_version` OK?
+
+== Undeclared Prefixes
+
+Use of XML prefixes without a need to declare them.
+Mapping of prefixes to namespace URLs is taken from model definitions.
+Model namespace and version is assumed.
+
+[source,xml]
+----
+<user>
+    <givenName>John</givenName>
+    <familyName>Doe</familyName>
+    <path>user/example-custom:myIdentifier</path>
+    <activation>
+        <administrativeStatus>enabled</administrativeStatus>
+    </activation>
+    <example-custom:myIdentifier>123</example-custom:myIdentifier>
+    <example-custom:employmentStatus>full</example-custom:employmentStatus>
+</user>
+----
+
+This is a terse format suitable for example for database storage.
+Model namespace could be hardcoded, model version is likely to be same for the entire database, therefore it can stored in one place.
+We still want to use prefixes to be able to reliably distinguish augmentations.
+But we want to avoid repetitive declaration of the prefixes.
+
+== Full Regalia
+
+This is an example of XML with complete and strict data about model, strict namespace declarations and so on.
+
+[source,xml]
+----
+<midpoint:user axiom-model:version="4.4"
+        xmlns:midpoint="https://schema.evolveum.com/midpoint/common"
+        xmlns:axiom-model="https://schema.evolveum.com/axiom/model"
+        xmlns:example-custom="https://schema.example.com/custom">
+    <midpoint:givenName>John</midpoint:givenName>
+    <midpoint:familyName>Doe</midpoint:familyName>
+    <midpoint:path>midpoint:user/example-custom:myIdentifier</midpoint:path>
+    <midpoint:activation>
+        <midpoint:administrativeStatus>enabled</midpoint:administrativeStatus>
+    </midpoint:activation>
+    <example-custom:myIdentifier>123</example-custom:myIdentifier>
+    <example-custom:employmentStatus>full</example-custom:employmentStatus>
+</user>
+----
+
+TODO: how to identify custom model version? example-custom:version=""?
+
+Or this:
+[source,xml]
+----
+<midpoint:user axiom-model:version="4.4"
+        xmlns:midpoint="https://schema.evolveum.com/midpoint/common"
+        xmlns:axiom-model="https://schema.evolveum.com/axiom/model"
+        xmlns:example-custom="https://schema.example.com/custom">
+    <axiom-model:modelReference>
+        <axiom-model:namespace>https://schema.example.com/custom</axiom-model:namespace>
+        <axiom-model:version>1.0</axiom-model:version>
+    </axiom-model:modelReference>
+    <midpoint:givenName>John</midpoint:givenName>
+    <midpoint:familyName>Doe</midpoint:familyName>
+    <midpoint:path>midpoint:user/example-custom:myIdentifier</midpoint:path>
+    <midpoint:activation>
+        <midpoint:administrativeStatus>enabled</midpoint:administrativeStatus>
+    </midpoint:activation>
+    <example-custom:myIdentifier>123</example-custom:myIdentifier>
+    <example-custom:employmentStatus>full</example-custom:employmentStatus>
+</user>
+----
+
+
+== Compatibility
+
+This is an example of format variation that were used in the past, but we still want to be able to parse them.
+
+There is an old namespace for the `midpoint` model, which is configured as an namespace alias for the model.
+
+=== Extension Element
+
+Augmentation items are placed in dedicated `extension` element.
+This element is explicitly specified in the midpoint or prism object definition to be used for compatibility purposes.
+
+[source,xml]
+----
+<user
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:example-custom="https://schema.example.com/custom">
+    <givenName>John</givenName>
+    <familyName>Doe</familyName>
+    <path>user/example-custom:myIdentifier</path>
+    <activation>
+        <administrativeStatus>enabled</administrativeStatus>
+    </activation>
+    <extension>
+        <example-custom:myIdentifier>123</example-custom:myIdentifier>
+        <example-custom:employmentStatus>full</example-custom:employmentStatus>
+    </extension>
+</user>
+----
+
+Even though there is additional element `extension`, the item path is still expressed without that element.
+E.g the path for employmentStatus should be:
+
+[source,axiom-path]
+----
+example-custom:employmentStatus
+----
+
+Axiom data processors can still accept paths with `extension` element for compatibility reasons, such as:
+
+[source,axiom-path]
+----
+extension/example-custom:employmentStatus
+----
+
+However, such path is not considered to be canonical.
+The path should be transformed to a form without the `extension` element whenever possible.
+
+== Metadata, Underscore Notation
+
+Metadata for simple string item (`givenName`) and for structured item (`actiavtion`).
+
+This example is using the underscore notation to indicate transition to inframodel.
+
+[source,xml]
+----
+<user
+        xmlns="https://schema.evolveum.com/midpoint/common"
+        xmlns:example-custom="https://schema.example.com/custom">
+    <givenName>
+        <_value>John</_value>
+        <_metadata>
+            <storage>
+                <creation>
+                    <timestamp>2020-06-12T18:14:05Z</timestamp>
+                </creation>
+            </storage>
+            <example-custom:verification>
+                <level>verified</level>
+                <verifier>jack</verifier>
+            </example-custom:verification>
+        </_metadata>
+    </givenName>
+    <activation>
+        <_value>
+            <administrativeStatus>
+                <_value>enabled</_value>
+                <_metadata>
+                    <storage>...</storage>
+                </_metadata>
+            </administrativeStatus>
+        </_value>
+        <_metadata>
+            <storage>...</storage>
+        </_metadata>
+    </activation>
+</user>
+----
+
+
+Storage metadata are specified in midPoint model, therefore `storage` item does not need to be namespace-qualified.
+
+This example also assumes that child elements do not need to be namespace-qualified.
+Alternative notation of `verification` metadata could be:
+
+[source,xml]
+----
+            ...
+            <example-custom:verification>
+                <example-custom:level>verified</example-custom:level>
+                <example-custom:verifier>jack</example-custom:verifier>
+            </example-custom:verification>
+            ...
+----
+
+Yet another alternative is to omit namespaces entirely.
+This can work as long as `verification` metadata item is unique in the schema.
+However, this notation is not "future-proof".
+
+[source,xml]
+----
+            ...
+            <verification>
+                <level>verified</level>
+                <verifier>jack</verifier>
+            </verification>
+            ...
+----
+
+
+== Metadata, Namespace Notation
+
+Metadata for simple string item (`givenName`) and for structured item (`actiavtion`).
+
+This example is using explicit namespace qualification to indicate transition to inframodel.
+
+[source,xml]
+----
+<user
+        xmlns="https://schema.evolveum.com/midpoint/common"
+        xmlns:axiom-data="https://schema.evolveum.com/axiom/data"
+        xmlns:example-custom="https://schema.example.com/custom">
+    <givenName>
+        <axiom-data:value>John</axiom-data:value>
+        <axiom-data:metadata>
+            <storage>
+                <creation>
+                    <timestamp>2020-06-12T18:14:05Z</timestamp>
+                </creation>
+            </storage>
+            <example-custom:verification>
+                <level>verified</level>
+                <verifier>jack</verifier>
+            </example-custom:verification>
+        </axiom-data:metadata>
+    </givenName>
+    <activation>
+        <axiom-data:value>
+            <administrativeStatus>
+                <axiom-data:value>enabled</axiom-data:value>
+                <axiom-data:metadata>
+                    <storage>...</storage>
+                </axiom-data:metadata>
+            </administrativeStatus>
+        </axiom-data:value>
+        <axiom-data:metadata>
+            <storage>...</storage>
+        </axiom-data:metadata>
+    </activation>
+</user>
+----
+
+Storage metadata are specified in midPoint model, therefore `storage` item does not need to be namespace-qualified.

@@ -1,0 +1,160 @@
+= Item Path
+
+Item path identifies particular item or value in Axiom data structures.
+For example, item path can be used to reference specific data item to be modified.
+
+Item patch is composed from segments separated by slash (`/`) character:
+
+[source,axiom-path]
+----
+segment/segment/segment/...
+----
+
+Item names are usually used in path segments:
+
+[source,axiom-path]
+----
+activation/administrativeStatus
+----
+
+The path refers to item or value in hierarchical Axiom data.
+Each segment refers to one level in the hierarchy.
+The path above points to the `administrativeStatus` item in following data:
+
+.JSON
+[source,json]
+----
+{
+  "givenName" : "John",
+  "familyName" : "Doe",
+  "activation" : {
+    "administrativeStatus" : "enabled"
+  }
+}
+----
+
+.XML
+[source,xml]
+----
+<user>
+    <givenName>John</givenName>
+    <familyName>Doe</familyName>
+    <activation>
+        <administrativeStatus>enabled</administrativeStatus>
+    </activation>
+</user>
+----
+
+== Namespaces In Item Path
+
+Item path fully supports concept of namespaces.
+There are two ways how to specify namespaces: using full URIs and using namespace prefixes.
+
+URIs in the item path must be enclosed in parenthesis:
+
+.Namespace using full URIs
+[source,axiom-path]
+----
+assignment/(https://schema.example.com/custom#purpose)
+----
+
+Namespace prefixes can be used in item path instead of URIs:
+
+.Namespace using prefixes
+[source,axiom-path]
+----
+assignment/example-custom:purpose
+----
+
+The `example-custom` prefix above represents namespace `https://schema.example.com/custom`.
+
+== Value Keys
+
+Axiom is designed to seamlessly support multi-value data.
+However, referring to items in hierarchical data structures where multiple values are possible is not entirely straightforward.
+Let's consider following data structure:
+
+.JSON
+[source,json]
+----
+{
+  "assignment" : [
+    {
+      "name" : "a1",
+      "description" : "first",
+      "target" : "t1"
+    },
+    {
+      "name" : "a2",
+      "description" : "seqond",
+      "target" : "t2"
+    }
+  ]
+}
+----
+
+.XML
+[source,xml]
+----
+<user>
+    <assignment>
+        <name>a1</name>
+        <description>first</description>
+        <target>t1</target>
+    </assignment>
+    <assignment>
+        <name>a2</name>
+        <description>seqond</description>
+        <target>t2</target>
+    </assignment>
+</user>
+----
+
+There is a typo in the description of the second assignment.
+We want to refer to that specific value to have it fixed (e.g. by using a _delta_-based modify operation).
+However, the path `assignment/description` is ambiguous, as it does not specify which values of `assignment` it refers to.
+
+Therefore path segments may contain optional identifier:
+
+[source,axiom-path]
+----
+assignment[a2]/description
+----
+
+The way how the identifier is interpreted may be slightly different for every item or data type.
+The details are specified in the model.
+
+== Item Path Root
+
+Item paths are usually _relative_.
+The root of the path resolution is usually implicit.
+For example the `activation/administrativeStatus` is usually relative to the top of the object.
+
+Root of the path resolution can be specified explicitly by using the dollar sign (`$`):
+
+[source,axiom-path]
+----
+$focus/activation/administrativeStatus
+----
+
+This path is an absolute path, its root is specified by symbol `focus`.
+Meaning of `focus` is implementation-specific.
+It may be identifier of an object, it may be name of the variable or it may be anything else.
+The root symbol is considered to be _qualified name_, therefore it may even be an URI or URL of a network service:
+
+[source,axiom-path]
+----
+$(https://example.com/users/12345678)/activation/administrativeStatus
+----
+
+== Use Of Item Path
+
+There are two principal uses of item path:
+
+* Referencing items and values in the data.
+The path points to the data structure, result of path resolution is an item or value.
+
+* Referencing item definitions in model.
+The path points to types in the model.
+Result of path resolution is item definition.
+Data identifiers in square brackets cannot be used in this case as there are no data to perform resolution on.

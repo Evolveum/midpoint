@@ -1,0 +1,62 @@
+= IDM Means Integration
+// NGDe2 redirect
+:page-moved-from: /midpoint/architecture/principles/idm-means-integration/
+:page-wiki-name: IDM Means Integration
+:page-wiki-id: 655411
+:page-wiki-metadata-create-user: semancik
+:page-wiki-metadata-create-date: 2011-04-29T12:11:03.152+02:00
+:page-wiki-metadata-modify-user: semancik
+:page-wiki-metadata-modify-date: 2012-06-18T10:11:06.625+02:00
+
+Identity management is in the very principle a special application of integration techniques.
+It is naive to expect that the identity management will get deployed in a green-field environment without any applications that do _real_ work.
+Identity management is just a supporting technology, not a "core business" technology.
+Therefore identity management must deal with several existing data stores.
+Such data stores may be inconsistent.
+Or more exactly, as the practice clearly shows, such stores _are_ inconsistent in vast majority of cases.
+While in theory it is possible to choose a single source of truth, in practice it is seldom possible.
+Also there are concerns about systems that just cannot follow the https://en.wikipedia.org/wiki/Single_source_of_truth[single source of truth principle] from operational, performance or entirely non-technological reasons (e.g. warranties).
+For more details see http://storm.alert.sk/work/papers/files/2006-infosecon-contribution-final.pdf[this paper].
+
+Therefore integration is a necessary part of overwhelming majority of non-trivial identity management solutions.
+The identity management system cannot rely on a single source of information.
+Quite the contrary.
+Primary responsibility of the identity management system is management of identities.
+And as identities relate to a non-formal real world ("realspace"), they just cannot be easily formalized in the IT world ("cyberspace"). The responsibility of the identity management system is to manage the resulting situation, which usually mean managing the _chaos_.
+
+The midPoint system is in principle an integration system.
+It has some domain-specific knowledge about identity management (see below), but in general it deals with inconsistencies of data stored in various location with a different lifetimes and dynamics.
+The goal of midPoint is to provide infrastructure for a *practical solution*. We are looking for a solution that can resolve an existing problem, not for a problem that will match a "nice" solution.
+For that we need to know where the primary problem is.
+
+
+== Common Schema Approach
+
+Mapping attributes to User object provides the semantic aspect of the integration.
+However, such mapping is in almost all cases deployment-specific.
+Therefore midPoint cannot provide much to assist with such integration - perhaps except rule engines, expression languages, etc.
+The semantic part is the value that a deployment engineer creates.
+On the other hand, midPoint is focusing on syntactic integration.
+That's something that can be quite easily automated.
+The syntactic integration is handled by creating a common xref:/midpoint/reference/schema/[data model] that suits an overwhelming majority of IDM deployments.
+
+See xref:/midpoint/reference/schema/common-data-model/[Common Data Model]
+
+
+== Deployment
+
+Business first.
+That's the basic rule of working in enterprise environment.
+The enterprise is there to carry on its usual business, not to deal with identity management.
+Therefore it must be the IDM solution that adapts, not all the other existing systems.
+
+IDM solution must be very flexible, flexible almost to the extreme.
+It must also be as non-intrusive as possible.
+Therefore midPoint prefers an agent-less way of connecting to the resources and also very flexible synchronization and provisioning rules.
+
+
+== See Also
+
+* xref:/midpoint/reference/schema/common-data-model/[Common Data Model]
+
+* xref:/midpoint/reference/schema/[Data Model]

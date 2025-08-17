@@ -1,0 +1,131 @@
+= Axiom Syntax
+
+Axiom syntax closely emulates basic Axiom concepts of item & value.
+
+NOTE: Language syntax was inspired by YANG modeling language from IETF,
+which tries to strike balance between readability and authoring.
+(https://tools.ietf.org/html/rfc7950#section-6.3[YANG 1.1: 6.3 Statements])
+
+.Basic ABNF
+----
+item = itemName value;
+infra = "@" itemName value;
+value = [argument] (";" / "{" *(item|infra) "}");
+----
+
+`item`::
+  Normal data item
+`value`::
+  Value of item. In case of simple type values, argument represents value.
+  In case of complex values, argument represent value of item based on `argument`
+  in type definition.
+
+`itemName`::
+  Name of item, expected value is prefixed name (also without prefix).
+
+`infra`::
+  Infra data item - used to specify inframodel specific data.
+
+`argument`::
+  value of item in case of simple type item, nested value
+  could be prefixed name, number or string.
+
+
+
+This provides basic simple structure for language and allows for
+simpler parser (See ANTLR4 syntax below.)
+
+The *omission of actual item names* from grammar allows for addition of keywords
+and language extensions without need to change grammar definition (and lexer code).
+Sharing of same concepts with data model also allows Axiom to be used for
+data serialization / authoring.
+
+// NOTE: Experience during development and refactor of YANG Parser in OpenDaylight showed
+// that this simplified form is more flexible and allows for cleaner parsing code
+// and more user-friendly error reporting.
+
+.Syntax example (model and data)
+[cols="a,a"]
+|===
+|.Simple model syntax example
+[source,axiom]
+----
+model simple-user {
+  namespace "https://example.org/simple-user";
+  import "https://example.org/storage" {
+    prefix storage;
+  }
+  root user { // <1>
+    type User;
+    description "user is root item."; // <3>
+  }
+  type User { // <2>
+    description """
+      Represents simple user.
+       of the system.
+    """; // <4>
+    argument username; <5>
+    item username { <6>
+      type string;
+    }
+    item note {
+      type string;
+      storage:indexed fulltext; // <7>
+    }
+  }
+}
+----
+<1> Item `root` with argument `user`
+<2> Item `type` with argument `User`. This is declaration of type `User`
+<3> Statement `description` with single-line string argument
+<4> Statement `description` with multi-line string argument
+<5> Item `argument` with value `username` (value type is item name)
+<6> Item `item` with name `username`, This is declaration of item `username`, which
+    is also target of `argument`
+<7> Item `indexed` from model `https://example.org/storage` (added via augmentation)
+
+|.Data written in Axiom
+[source, axiom]
+----
+  user {  //<1>
+    name "administrator"; //<2>
+    note """ //<3>
+      Administrator of system.
+      Do NOT remove
+    """;
+  }
+----
+<1> Root item `user` (of type `User`, based on simple-user model)
+<2> Item `name` with value `administrator`
+<3> Item `note` with multi-line string value
+
+.Same data in Axiom using arguments
+[source, axiom]
+----
+user admin { //<1>
+  note """
+    Administrator of system.
+    Do NOT remove
+  """;
+}
+----
+<1> Item `user`, child item `name` has value `administrator` (via argument, based on simple-user model).
+
+.Same data  in YAML
+[source, yaml]
+----
+user:
+  name: administrator
+  note: >
+    Administrator of system.
+    Do NOT remove
+----
+
+|===
+
+== Examples
+
+[source,axiom]
+----
+include::../examples/polystring.axiom[]
+----
