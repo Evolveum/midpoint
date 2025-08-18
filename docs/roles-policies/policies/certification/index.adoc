@@ -12,68 +12,73 @@ doc-type: intro
 :page-toc: top
 :page-upkeep-status: orange
 :page-moved-from: /midpoint/reference/roles-policies/certification/
+:experimental:
+:page-description: This introduces certification campaigns and explains how they work.
+:page-keywords: certification campaign, campaign definition, campaign configuration, campaign dashboard widget
 
 
 == Introduction
 
-MidPoint provides the possibility to periodically review various settings, e.g. assignment of roles to users.
+MidPoint enables you to periodically review various settings, e.g. assignment of roles to users.
 This feature is called *Access certification*. It is implemented in the form of certification campaigns.
 
-A *certification campaign* is a review process that consists of identifying a set of certification cases, selecting reviewers for them, gathering decisions of these reviewers, and executing remediation process, if needed.
+A *certification campaign* is a review process that consists of identifying a set of certification cases, selecting reviewers for them, gathering decisions of these reviewers, and executing a remediation process, if needed.
 Reviewer selection and decision gathering can be done multiple times, in case of multi-stage campaigns.
-Remediation process can be automated or manual.
+The remediation process can be automated or manual.
 It is assumed that certification campaigns will be run regularly, e.g. yearly, twice a year, monthly, and so on.
 
-A *certification case* is a particular "access" item which could be assessed by a reviewer.
-For example, it could be a particular role assigned to a particular user.
-Reviewer can decide if such access should be accepted or revoked (what decisions will be available to reviewer depends on configuration).
+A *certification case* is a particular "access" item which can be assessed by a reviewer.
+For example, it can be a particular role assigned to a particular user.
+The reviewer can decide if such access should be accepted or revoked (what decisions will be available to the reviewer depends on the configuration).
 
-Certification campaign consists from one or more *stages*.
-Campaign stages allow, for example, to divide the certification process between different groups of reviewers.
-First campaign stage is assessed by one group of reviewers, while second stage could be assessed by different group of reviewers.
-What cases are "transferred" between stages depends on the campaign definition.
+Certification campaigns consist of one or more *stages*.
+Campaign stages enable you, for example, to divide the certification process between separate groups of reviewers.
+The first campaign stage is assessed by one group of reviewers, while the second stage could be assessed by a different group of reviewers.
+Which cases are "transferred" between stages depends on the campaign definition.
 The default is that only cases which were not revoked/reduced are transferred.
 
-Finished (closed) campaign can be *reiterated*.
-Reiteration starts the campaign over, giving another chance to reviewers who, for example, have not provided their responses (decisions) in time.
-More details on iterations can be found on xref:/midpoint/reference/roles-policies/policies/certification/iteration/[this page]
+Finished (closed) campaigns can be *reiterated*.
+Reiteration re-starts campaigns, giving another chance to reviewers who, for example, have not provided their responses (decisions) in time.
+For more details on iterations, see xref:/midpoint/reference/roles-policies/policies/certification/iteration/[].
 
-In the following we'll see how a campaign looks like.
-Then we'll go through a very quick tutorial.
-And after that we'll have a look at various possibilities connected to defining certification campaigns.
 
 == Certification campaign
 
 Certification campaigns are created using templates that are called *certification campaign definitions*, or certification definitions for short.
+
+While you can configure certification campaign definitions in the user-friendly midPoint GUI by going to icon:certificate[] btn:[Certification] > icon:circle[] btn:[Campaign definitions], this page focuses on describing the concept and raw XML definition.
+
 Each definition contains the following elements:
 
-. *name* - the name of the certification campaign definition, e.g. "All user assignments"
+* *name* - The name of the certification campaign definition, e.g. "All user assignments".
 
-. *description* - more verbose description of the definition, e.g. "Certifies all users' assignments.
+* *description* - A more verbose description of the definition, e.g. "Certifies assignments for all users.
 Everything is certified by the administrator."
 
-. *handlerUri* - defines the software element (handler) that implements all the processing required by the certification campaigns of the given type.
-There are handlers that come bundled with midPoint, while others can be customer-written.
-Currently, there is one handler named [.underline]#http://midpoint.evolveum.com/xml/ns/public/certification/handlers-3#direct-assignment#, that is able to handle certification of many types of direct assignments, e.g. user-to-role, user-to-org, role-to-role, etc.
+* *handlerUri* - Defines the software element (handler) that implements all the processing required by the certification campaigns of the given type. +
+Currently, there is one bundled handler named `http://midpoint.evolveum.com/xml/ns/public/certification/handlers-3#direct-assignment` that is able to handle certifications of many types of direct assignments, e.g. user-to-role, user-to-org, role-to-role, etc.
+However, you can create your own handlers.
 
-. *scopeDefinition* - while the handler provides basic character of the certification (e.g. "we'll be dealing with direct assignments"), the scope definition says more precisely which objects (in this case, assignments) are involved.
-E.g. only user-to-role? And which users? Which roles? And so on.
-More on this below.
+* *scopeDefinition* - While the handler provides basic character of the certification (e.g. "we'll be dealing with direct assignments"), the scope definition says more precisely which objects (in this case, assignments) are involved.
+For example, the scope can be limited to user-to-role, only certain users, certain roles, etc.
 
-. *ownerRef* - who owns the definition and related campaigns? Campaign owner may be different from the owner of the campaign definition.
+* *ownerRef* - Defines the owner of the definition and the related campaigns.
+Campaign owner may be different from the owner of the campaign definition.
 
-. *remediationDefinition* - how will the remediation phase look like, e.g. will it be automated or manual?
+* *remediationDefinition* - Defines the remediation phase, for example, if it is automated or manual.
 
-. *reiterationDefinition* - should the iteration start automatically (by default is manual)? how many iterations are allowed?
+* *reiterationDefinition* - Defines the iteration part.
+For example, if it starts automatically (manual by default), or how many iterations are allowed.
 
-. *stageDefinition*(s) - how will the individual review stages look like, e.g. how long should a given stage take? how will the reviewers be selected? More on this below.
+* *stageDefinition*(s) - Defines the individual review stages.
+For example, defines the duration of stages, the reviewer selection process, etc.
 
-. *reviewStrategy* - defines a strategy which is used to compute review outcome for a given case.
+* *reviewStrategy* - Defines the strategy used to compute the review outcome for a given case.
 
-. *view* - specifies a view for a presentation of the certification items collections which are created on the basis of the current certification definition.
+* *view* - Specifies a view for the presentation of the certification items collections which are created on the basis of the current certification definition.
 This means that every certification campaign created on the basis of this definition will use this view while displaying certification items collection.
 
-An example of a campaign definition (taken from link:https://github.com/Evolveum/midpoint-samples/blob/master/samples/certification/def-all-user-assignments.xml[samples/certification/def-all-user-assignments.xml] file):
+See an example of a campaign definition (taken from the link:https://github.com/Evolveum/midpoint-samples/blob/master/samples/certification/def-all-user-assignments.xml[samples/certification/def-all-user-assignments.xml] file):
 
 [source,xml]
 ----
@@ -105,81 +110,90 @@ An example of a campaign definition (taken from link:https://github.com/Evolveum
 </accessCertificationDefinition>
 ----
 
-In this case, scope definition is missing.
-It means that default values are used: all assignments of all users are taken into account.
+In this case, the scope definition is missing.
+It means that the default values are used, i.e. all assignments of all users are taken into account.
 
-There is one stage.
-Stage definition consists of the following:
+There is only one stage.
+The stage definition consists of the following:
 
-. *number* - because in midPoint data structures, lists are generally unordered, each stage has a number that specifies in which order it will be executed.
+* *number* - As lists are generally not ordered in midPoint data structures, each stage has a number that specifies in which order it will be executed.
 Numbers have to start at 1 and increase consecutively.
 
-. *name* and *description*,
+* *name* and *description*
 
-. duration, specified as *duration* property - this influences notifications and automated closure of the stage,
+* *duration* - This property defines the duration of the stage and influences notifications and automated closure of the stage.
 
-. *notifyBeforeDeadline* - how long before deadline (given by the stage duration) will notifications be sent.
-This is a multivalued property, so it is possible to specify more than one notification.
-In the above example, first notification is sent 48 hours before deadline, and the second one 12 hours before.
+* *notifyBeforeDeadline* - Defines how long before the deadline (given by the stage duration) notifications are to be sent.
+This is a multi-valued property, so it is possible to specify more than one notification.
+In the example above, the first notification is sent 48 hours and the second one 12 hours before the deadline.
 
-. *notifyOnlyWhenNoDecision* - if set to true (the default), notifications are sent only to reviewers that have not decided yet.
+* *notifyOnlyWhenNoDecision* - If set to `true` (the default), notifications are sent only to reviewers that have not decided yet.
 
-. *reviewerSpecification* - how the reviewers will be selected? In this simplistic case, everything will be reviewed by the administrator.
-More on reviewer specification below.
+* *reviewerSpecification* - Defines how reviewers are selected.
+In our example, everything will be reviewed by the administrator.
 
-== Very quick tutorial
+For a complete list of options for stage definitions and a more detailed explanation, see xref:/midpoint/reference/roles-policies/policies/certification/stages/[].
 
-It is advisable to go through a xref:/midpoint/reference/roles-policies/policies/certification/tutorial/[very quick tutorial] at this point in order to see how certification works.
+== Quick tutorial
+
+To see how certifications work, see the following xref:/midpoint/reference/roles-policies/policies/certification/tutorial/[quick tutorial].
 
 == Campaign definition options
 
-Scope definition and reviewer definition are powerful mechanisms allowing to customize certification campaign a lot.
-Let us have look at the details.
+The following powerful mechanisms enable you to significantly customize your certification campaigns:
+
+* <<scope_definition,Scope definition>>
+* <<stage_definitions,Stage definitions>>
+* <<automated_scheduling_of_campaigns,Automated scheduling of campaigns>>
+* <<access_certification,Access certification configuration in system configuration>>
+* <<config_collection_views,Configuring collection views for certification items>>
+* <<dashboard_widget,Dashboard widget configuration>>
 
 
+[[scope_definition]]
 === Scope definition
 
 Scope definition controls the set of certification cases that are created when the certification campaign is started.
 You can configure the following:
 
-. *objectType* - what kind of objects we are dealing with? The default is UserType.
-But you can specify also RoleType, OrgType, ServiceType, FocusType or AbstractRoleType here.
+* *objectType* - Defines the type of objects that we are working with.
+The default is `UserType`, however, you can also specify `RoleType`, `OrgType`, `ServiceType`, `FocusType` or `AbstractRoleType` here.
 
-. *searchFilter* - what objects of a given type should be selected? This is a standard midPoint filter.
-The default is "all objects of a given type".
+* *searchFilter* - Defines which objects of the given type should be selected.
+This is a standard midPoint filter.
+The default is "all objects of the given type".
 
-. *itemSelectionExpression* - expression that selects items that are to be included in the certification.
-Exact use of this expression depends on the certification handler.
+* *itemSelectionExpression* - An expression that selects items that are to be included in the certification.
+The exact use of this expression depends on the certification handler.
 The direct assignment handler calls this expression individually with each assignment to determine which assignments should be included and which should not.
 
-. *caseGenerationExpression* - in the future, it will be possible to define an expression that produces certification cases.
+* *caseGenerationExpression* - (not yet implemented) Defines an expression that produces certification cases.
 This can be any expression, whose input is an object that has passed the search filter specified above, and its output is a list of certification cases.
-However, this is not implemented yet.
 
-. Handler-specific properties.
-For example, direct assignment handler provides the following ones:
+* Handler-specific properties.
+The bundled direct assignment handler provides the following properties:
 
-.. *includeAssignments* - should assignments be included in the certification? (default = true)
+    ** *includeAssignments* - Defines if assignments are to be included in the certification (default = `true`).
 
-.. *includeInducements* - should inducements be included in the certification? (default = true)
+    ** *includeInducements* - Defines if inducements are to be included in the certification (default = `true`).
 
-.. *includeRoles* - should assignments/inducements of roles be included in the certification? (default = true)
+    ** *includeRoles* - Defines if assignments/inducements of roles are to be included in the certification (default = `true`).
 
-.. *includeOrgs* - should assignments/inducements of orgs be included in the certification? (default = true)
+    ** *includeOrgs* - Defines if assignments/inducements of orgs are to be included in the certification (default = `true`).
 
-.. *includeResources* - should assignments/inducements of resources be included in the certification? (default = true)
+    ** *includeResources* - Defines if assignments/inducements of resources are to be included in the certification (default = `true`).
 
-.. *includeServices* - should assignments/inducements of services be included in the certification? (default = true)
+    ** *includeServices* - Defines if assignments/inducements of services are to be included in the certification (default = `true`).
 
-.. *includeUsers* - should assignments/inducements of users (e.g. deputy relations) be included in the certification? (default = true)
+    ** *includeUsers* - Defines if assignments/inducements of users (e.g. deputy relations) are to be included in the certification (default = `true`).
 
-.. *enabledItemsOnly* - should we approve only assignments/inducements that are currently enabled? (I.e. with administrativeStatus either null or ENABLED) (default = true)
+    ** *enabledItemsOnly* - Defines if only the currently enabled assignments/inducements, i.e. with `administrativeStatus` either null or ENABLED, are to be included (default = `true`).
 
-.. *relation* - relation(s) which are to be considered.
-Value of q:any means "any relation".
-If no relation is present, org:default (i.e. null) is assumed.
+    ** *relation* - Defines relations which are to be considered.
+    The value of q:any means "any relation".
+    If no relation is present, org:default (i.e. null) is assumed.
 
-An example of more advanced scope definition:
+See an example of a more advanced scope definition that selects user-role assignments for users that belong to GovernorOffice and for roles with `riskLevel = "critical"`:
 
 [source,xml]
 ----
@@ -202,16 +216,17 @@ An example of more advanced scope definition:
 </scopeDefinition>
 ----
 
-This selects user-role assignments for users that belong under GovernorOffice and for roles with riskLevel = "critical".
 
+[[stage_definitions]]
 === Stage definitions
 
-This is described in xref:/midpoint/reference/roles-policies/policies/certification/stages/[a separate document].
+This is described in a separate document - xref:/midpoint/reference/roles-policies/policies/certification/stages/[].
 
-=== Automated scheduling of campaigns
+[[automated_scheduling_of_campaigns]]
+=== Automate campaign scheduling
 
 Campaigns can be automatically started by using tasks.
-So, for example, to auto-start campaigns in samples/certification directory, please import the `start-*.xml` files.
+So, for example, to auto-start campaigns in the `samples/certification` directory, import the `start-*.xml` files in the icon:upload[] btn:[Import object] section of the midPoint user interface.
 
 The task looks like this:
 
@@ -237,42 +252,50 @@ The task looks like this:
 
 ----
 
-After importing the task(s), campaigns are automatically scheduled at given times.
+After importing tasks, campaigns are automatically scheduled at given times.
 
-Current status of a campaign can be seen when clicking on "Campaigns scheduling" under "Certifications" menu.
+You can check the current status of a campaign in icon:certificate[] btn:[Certifications] > icon:circle[] btn:[Campaigns scheduling].
 All certification-related tasks are shown.
-(Besides tasks for starting campaigns there are also remediation tasks, but that will be eventually fixed.)
+(Besides tasks for starting campaigns, there are also remediation tasks, but that will eventually be fixed.)
 
 image::scheduling.jpg[75%]
 
-=== Access certification configuration in system configuration
+[[access_certification]]
+=== Configure access certification in system configuration
 
 Access certification configuration can be defined as a part of the system configuration.
 This configuration is used globally in the system and applied to all campaigns.
 
 You can define the following items within the _accessCertification_ element:
 
-. *availableResponse* - what responses are available to reviewers? Empty list means all responses.
+* *allowCertificationItemsMenus* - Defines if the certification menu items should be added to the left menu so that the "Certification items" and "My certification items" pages can be reached directly from the main menu.
+If not defined, or set to `false` (default), the certification items pages can be reached only from the active campaigns panel.
+This configuration option was added to support the old behavior where the certification items pages had their own menu items.
 
+* *multiselect* - Defines if multiple items can be selected in the certification items collection view table.
+The available values are:
+    ** _selectAll_ - All items can be selected at once.
+    ** _selectIndividualItems_ - Only individual items can be selected.
+    ** _noSelect_ - No items can be selected.
+
+* *defaultView* - Defines the default view for a presentation of the certification items collection.
+
+* *availableResponse* - Defines which responses are available to reviewers.
+An empty list means all responses.
++
 WARNING: This element is deprecated.
-It is advised to use the configuration of the actions for certification items collection view.
+Use the configuration of actions for certification items collection view instead.
 
+==== Configure decision options for certification items
 
-. *allowCertificationItemsMenus* - defines if the certification items menu items should be added to the left menu so that "Certification items" and "My certification items" pages can be reached directly from the main menu.
-If not defined (or set to false), the certification items pages can be reached only from the active campaigns panel.
-This configuration option was added to support old behavior where the certification items pages had their own menu items.
-The default value is false.
-By default, the user sees "Active campaigns" and "My active campaigns" menu items going through which certification items page can be reached.
+It is possible to configure the available set of responses to be used while making a decision on certification items.
 
-. *multiselect* - defines the possibility to select multiple items in the certification items collection view table (possible values are: _selectAll_ - gives the possibility to select all items at once, _selectIndividualItems_ - gives the possibility to select individual items without possibility to select all at once, _noSelect_ - no possibility to select any items).
+By default, there are 2 available responses in the system: 
 
-. *defaultView* - defines a default view for a presentation of the certification items collection.
+* accept
+* revoke
 
-==== Configuring decision options for certification items
-
-It is possible to configure the available set of responses to be used while making a decision on a certification item(s).
-By default, there are 2 available responses in the system: accept and revoke.
-You can configure _availableResponse_ items in the _accessCertification_ element straight in the system configuration.
+You can configure _availableResponse_ items in the _accessCertification_ element directly in the system configuration.
 
 [source,xml]
 ----
@@ -283,14 +306,16 @@ You can configure _availableResponse_ items in the _accessCertification_ element
 </accessCertification>
 ----
 
-WARNING: Be aware that _availableResponse_ element is deprecated therefore it's advised to use the configuration of the actions for certification items collection view.
+WARNING: The _availableResponse_ element is deprecated.
+It is recommended to use the configuration of actions for the certification items collection view.
 
-=== Configuring collection views for certification items
+[[config_collection_views]]
+=== Configure collection views for certification items
 
 Certification items collection view brings more extended configuration options.
-Default certification items collection view can be configured in the _systemConfiguration -> accessCertification -> defaultView_.
-Collection view configuration should define identifier and type.
-Collection view can also contain columns and actions configuration.
+The default certification items collection view can be configured in _systemConfiguration -> accessCertification -> defaultView_.
+The collection view configuration should define the identifier and type.
+Collection views can also contain columns and actions configuration.
 
 [source,xml]
 ----
@@ -323,7 +348,7 @@ Collection view can also contain columns and actions configuration.
                         <container>
                             <identifier>comment</identifier>
                             <display>
-                                <label>Please, provide a comment (required)</label>
+                                <label>Please, provide a comment (required).</label>
                             </display>
                             <item>
                                 <path>output/comment</path>
@@ -336,18 +361,19 @@ Collection view can also contain columns and actions configuration.
             </defaultView>
 ----
 
-To learn more about actions configuration, please follow to xref:/midpoint/reference/roles-policies/policies/certification/actions/[GUI Actions] page.
-To learn more about columns configuration, please follow to xref:/midpoint/reference/roles-policies/policies/certification/columns-configuration/[Columns configuration] page.
+To learn more about actions configuration, see xref:/midpoint/reference/roles-policies/policies/certification/actions/[GUI Actions].
+To learn more about columns configuration, see xref:/midpoint/reference/roles-policies/policies/certification/columns-configuration/[Columns configuration].
 
-Object collection view configuration can be also defined within access certification definition (_view_ element).
-This configuration will be merged with the global one and applied to all campaigns created on the base of this definition.
+You can also define object collection view configuration within the access certification definition (_view_ element).
+This configuration will be merged with the global configuration and applied to all campaigns based on this definition.
 
-=== Dashboard widget configuration
+[[dashboard_widget]]
+=== Configure dashboard widget
 
-Certification dashboard widget can be configured to be shown on the self-service dashboard page.
-The widget configuration is as a part of the system configuration initial object.
+You can configure a certification dashboard widget to be displayed on the self-service dashboard page.
+The widget configuration is done as a part of the system configuration initial object.
 The configuration can be found in the _systemConfiguration -> adminGuiConfiguration -> homePage_ element.
-It is hidden in the `End user` initial object by default and can be adopted to the specific needs of the project (please, see xref:/midpoint/reference/admin-gui/admin-gui-config/#how-it-works[Admin GUI configuration merging mechanism]).
+It is hidden in the `End user` initial object by default and can be adapted to meet the specific needs of your project (see xref:/midpoint/reference/admin-gui/admin-gui-config/#how-it-works[Admin GUI configuration merging mechanism]).
 
 [source,xml]
 ----
@@ -393,15 +419,21 @@ It is hidden in the `End user` initial object by default and can be adopted to t
 
 == Reporting
 
-There are four types of reports available: certification definitions, campaigns, campaign cases and campaign decisions.
-They are described on xref:/midpoint/reference/roles-policies/policies/certification/reports/[Access Certification Reports] page.
+There are four types of reports available:
+
+* Certification definitions
+* Campaigns
+* Campaign cases 
+* Campaign decisions
+
+For details, see xref:/midpoint/reference/roles-policies/policies/certification/reports/[Access Certification Reports].
 
 == Notifications
 
-Certification module provides notifications for certification campaign owner as well as for individual reviewers.
-More information can be found on xref:/midpoint/reference/roles-policies/policies/certification/notifications/[Access Certification Notifications] page.
+The certification module provides notifications for the certification campaign owner, as well as for individual reviewers.
+For more information, see xref:/midpoint/reference/roles-policies/policies/certification/notifications/[Access Certification Notifications].
 
 == Security
 
 Individual operations are authorized in a specific way.
-For detailed information, please see xref:/midpoint/reference/roles-policies/policies/certification/authorization/[Access Certification Security] page.
+For details, see xref:/midpoint/reference/roles-policies/policies/certification/authorization/[Access Certification Security].
