@@ -53,6 +53,7 @@ Notes:
     <system systemId="http://midpoint.evolveum.com/xml/ns/public/common/common-simulations-3" uri="../xml/ns/public/common/common-simulations-3.xsd" />
     <system systemId="http://midpoint.evolveum.com/xml/ns/public/common/common-mining-3" uri="../xml/ns/public/common/common-mining-3.xsd" />
     <system systemId="http://midpoint.evolveum.com/xml/ns/public/common/common-smart-integration-3" uri="../xml/ns/public/common/common-smart-integration-3.xsd" />
+    <system systemId="http://midpoint.evolveum.com/xml/ns/public/common/common-connector-dev-3" uri="../xml/ns/public/common/common-connector-dev-3.xsd" />
 
 
     <!-- WSDLs -->

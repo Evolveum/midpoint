@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--
+  ~ Copyright (c) 2010-2025 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<xsd:schema targetNamespace="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+            xmlns:tns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+            xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+            xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-3"
+            xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+            xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
+            xmlns:jaxb="https://jakarta.ee/xml/ns/jaxb"
+            elementFormDefault="qualified"
+            xmlns:xjc="http://java.sun.com/xml/ns/jaxb/xjc"
+            jaxb:extensionBindingPrefixes="xjc"
+            jaxb:version="3.0">
+
+    <xsd:annotation>
+        <xsd:documentation>
+            Parts related to the smart integration (midPilot).
+        </xsd:documentation>
+    </xsd:annotation>
+
+    <!-- Don't provide schemaLocation here, as it causes xjc to really contact the URIs (!) -->
+    <xsd:import namespace="http://prism.evolveum.com/xml/ns/public/annotation-3"/>
+    <xsd:import namespace="http://prism.evolveum.com/xml/ns/public/types-3"/>
+
+    <xsd:include schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-core-3" />
+
+    <xsd:complexType name="ConnectorDevelopmentType">
+        <xsd:annotation>
+            <xsd:appinfo>
+
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:ObjectType">
+                <xsd:sequence>
+                    <xsd:element name="application" type="c:ApplicationInformationType" />
+                    <xsd:element name="documentationSources" type="c:DocumentationSourceType" />
+                    <xsd:element name="processedDocumentation" type="c:ProcessedDocumentationType"/>
+                    <xsd:element name="scripts" type="c:ConnectorDevelopmentScriptType"/>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+
+    <xsd:complexType name="ApplicationInformationType">
+        <xsd:annotation>
+            <xsd:appinfo>
+                <a:container />
+            </xsd:appinfo>
+        </xsd:annotation>
+                <xsd:sequence>
+                    <xsd:element name="applicationName" type="t:PolyStringType" />
+                    <xsd:element name="description" type="t:PolyStringType" />
+                    <xsd:element name="version" type="xsd:string" />
+                </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="DocumentationSourceType">
+        <xsd:annotation>
+            <xsd:appinfo>
+                <a:container />
+            </xsd:appinfo>
+        </xsd:annotation>
+            <xsd:sequence>
+                <xsd:element name="applicationName" type="t:PolyStringType" />
+                <xsd:element name="description" type="t:PolyStringType" />
+                <xsd:element name="version" type="xsd:string" />
+            </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="ProcessedDocumentationType">
+        <xsd:annotation>
+            <xsd:appinfo>
+                <a:container />
+            </xsd:appinfo>
+        </xsd:annotation>
+            <xsd:sequence>
+                <xsd:element name="name" type="xsd:string" />
+                <xsd:element name="contentType" type="xsd:string" />
+                <xsd:element name="content" type="xsd:string" />
+            </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="ConnectorDevelopmentScriptType">
+        <xsd:annotation>
+            <xsd:appinfo>
+                <a:container />
+            </xsd:appinfo>
+        </xsd:annotation>
+            <xsd:sequence>
+                <xsd:element name="name" type="xsd:string" />
+                <xsd:element name="contentType" type="xsd:string" />
+                <xsd:element name="content" type="xsd:string" />
+            </xsd:sequence>
+    </xsd:complexType>
+</xsd:schema>
