@@ -11,6 +11,8 @@ import static org.testng.AssertJUnit.*;
 
 import java.util.Collection;
 
+import com.evolveum.midpoint.util.exception.SchemaException;
+
 import org.apache.commons.lang3.ArrayUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -78,6 +80,29 @@ public class ShadowReferenceAttributeAsserter<R> extends AbstractAsserter<R> {
         for (var value : values) {
             if (shadowOid.equals(value.asObjectReferenceType().getOid())) {
                 return value;
+            }
+        }
+        return null;
+    }
+
+    public @NotNull ShadowReferenceAttributeValueAsserter<ShadowReferenceAttributeAsserter<R>> forPrimaryIdentifierValue(
+            @NotNull String value) {
+        var refAttrValue = findByPrimaryIdentifierValue(value);
+        assertThat(refAttrValue).as("reference attribute value with primary ID value " + value).isNotNull();
+        ShadowReferenceAttributeValueAsserter<ShadowReferenceAttributeAsserter<R>> asserter =
+                new ShadowReferenceAttributeValueAsserter<>(refAttrValue, this, "ref attr value in "+desc());
+        copySetupTo(asserter);
+        return asserter;
+    }
+
+    private @Nullable ShadowReferenceAttributeValue findByPrimaryIdentifierValue(@NotNull String uid) {
+        for (var value : values) {
+            try {
+                if (uid.equals(value.getShadowRequired().getPrimaryIdentifierValueFromAttributes())) {
+                    return value;
+                }
+            } catch (SchemaException e) {
+                throw new AssertionError(e);
             }
         }
         return null;

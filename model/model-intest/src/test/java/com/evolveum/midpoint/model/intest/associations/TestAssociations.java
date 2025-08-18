@@ -14,6 +14,7 @@ import java.util.Map;
 
 import com.evolveum.icf.dummy.resource.DummyObject;
 import com.evolveum.midpoint.model.intest.TestEntitlements;
+import com.evolveum.midpoint.model.intest.complexAttributes.TestComplexAttributes;
 import com.evolveum.midpoint.model.intest.dummys.DummyAdTrivialScenario;
 import com.evolveum.midpoint.model.intest.dummys.DummyAdTrivialScenario.Group;
 import com.evolveum.midpoint.model.intest.dummys.DummyDmsScenario;
@@ -65,6 +66,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  *
  * @see TestEntitlements
  * @see TestAssociationInbound
+ * @see TestComplexAttributes
  */
 @ContextConfiguration(locations = { "classpath:ctx-model-intest-test-main.xml" })
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)

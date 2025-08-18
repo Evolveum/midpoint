@@ -1,0 +1,184 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (c) 2010-2018 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<resource oid="a485e266-60c6-49f5-a71c-0b6d00eea2b5"
+          xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+          xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+          xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
+          xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">
+    <name>address-book</name>
+    <connectorRef type="ConnectorType">
+        <filter>
+            <q:text>connectorType = "com.evolveum.icf.dummy.connector.DummyConnector" and connectorVersion = "2.0"</q:text>
+        </filter>
+    </connectorRef>
+    <connectorConfiguration xmlns:icfi="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.icf.dummy/com.evolveum.icf.dummy.connector.DummyConnector"
+                   xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3">
+        <icfc:configurationProperties>
+            <icfi:instanceId>address-book</icfi:instanceId>
+            <icfi:useLegacySchema>false</icfi:useLegacySchema>
+        </icfc:configurationProperties>
+    </connectorConfiguration>
+    <schemaHandling>
+        <objectType>
+            <kind>account</kind>
+            <intent>person</intent>
+            <delineation>
+                <objectClass>ri:person</objectClass>
+            </delineation>
+            <focus>
+                <type>UserType</type>
+                <archetypeRef oid="15b006c5-ad64-40ee-90d8-ab21816a2c6f"/>
+            </focus>
+            <attribute>
+                <ref>icfs:name</ref>
+                <correlator/>
+                <inbound>
+                    <strength>strong</strength>
+                    <target>
+                        <path>name</path>
+                    </target>
+                </inbound>
+            </attribute>
+            <attribute>
+                <ref>ri:email</ref> <!-- complex -->
+                <inbound>
+                    <expression>
+                        <complexAttributeSynchronization/>
+                    </expression>
+                    <target>
+                        <path>email</path> <!-- complex -->
+                    </target>
+                </inbound>
+            </attribute>
+            <attribute>
+                <ref>ri:address</ref> <!-- complex -->
+                <inbound>
+                    <expression>
+                        <complexAttributeSynchronization/>
+                    </expression>
+                    <target>
+                        <path>physicalAddress</path> <!-- complex -->
+                    </target>
+                </inbound>
+            </attribute>
+            <synchronization>
+                <reaction>
+                    <situation>unmatched</situation>
+                    <actions>
+                        <addFocus/>
+                    </actions>
+                </reaction>
+                <reaction>
+                    <situation>unlinked</situation>
+                    <actions>
+                        <link/>
+                    </actions>
+                </reaction>
+                <reaction>
+                    <situation>linked</situation>
+                    <actions>
+                        <synchronize/>
+                    </actions>
+                </reaction>
+            </synchronization>
+        </objectType>
+        <objectType> <!-- temporary hack -->
+            <kind>association</kind>
+            <intent>address</intent>
+            <delineation>
+                <objectClass>ri:address</objectClass>
+            </delineation>
+            <focus>
+                <type>PhysicalMailingAddressType</type>
+            </focus>
+            <attribute>
+                <ref>ri:type</ref>
+                <inbound>
+                    <target>
+                        <path>type</path>
+                    </target>
+                </inbound>
+            </attribute>
+            <attribute>
+                <ref>ri:primary</ref>
+                <inbound>
+                    <target>
+                        <path>primary</path>
+                    </target>
+                </inbound>
+            </attribute>
+            <attribute>
+                <ref>ri:street</ref>
+                <inbound>
+                    <target>
+                        <path>streetAddress</path>
+                    </target>
+                </inbound>
+            </attribute>
+            <attribute>
+                <ref>ri:city</ref>
+                <inbound>
+                    <target>
+                        <path>locality</path>
+                    </target>
+                </inbound>
+            </attribute>
+            <attribute>
+                <ref>ri:zip</ref>
+                <inbound>
+                    <target>
+                        <path>postalCode</path>
+                    </target>
+                </inbound>
+            </attribute>
+            <attribute>
+                <ref>ri:country</ref>
+                <inbound>
+                    <target>
+                        <path>country</path>
+                    </target>
+                </inbound>
+            </attribute>
+        </objectType>
+        <objectType> <!-- temporary hack -->
+            <kind>association</kind>
+            <intent>email</intent>
+            <delineation>
+                <objectClass>ri:email</objectClass>
+            </delineation>
+            <focus>
+                <type>EmailAddressType</type>
+            </focus>
+            <attribute>
+                <ref>ri:type</ref>
+                <inbound>
+                    <target>
+                        <path>type</path>
+                    </target>
+                </inbound>
+            </attribute>
+            <attribute>
+                <ref>ri:primary</ref>
+                <inbound>
+                    <target>
+                        <path>primary</path>
+                    </target>
+                </inbound>
+            </attribute>
+            <attribute>
+                <ref>ri:value</ref>
+                <inbound>
+                    <target>
+                        <path>value</path>
+                    </target>
+                </inbound>
+            </attribute>
+        </objectType>
+    </schemaHandling>
+</resource>

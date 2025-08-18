@@ -603,6 +603,16 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element name="complexAttributeType" type="tns:ComplexAttributeTypeDefinitionType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        TODO
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:since>4.11</a:since>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
         </xsd:sequence>
         <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
@@ -7607,4 +7617,95 @@
         <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
 
+    <xsd:complexType name="ComplexAttributeTypeDefinitionType">
+        <xsd:annotation>
+            <xsd:documentation>
+                <p>TODO</p>
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+                <a:since>4.11</a:since>
+                <a:naturalKey>tns:name</a:naturalKey>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="name" type="xsd:QName">
+                <xsd:annotation>
+                    <xsd:documentation> <!-- TODO what about using xsd:string here? -->
+                        The name of the association type. It must be either unqualified, or in the "ri" namespace.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element ref="tns:displayName" minOccurs="0"/>
+            <xsd:element ref="tns:description" minOccurs="0"/>
+            <xsd:element ref="tns:documentation" minOccurs="0"/>
+            <xsd:element ref="tns:lifecycleState" minOccurs="0"/>
+            <xsd:element name="delineation" type="tns:ComplexAttributeTypeDelineationType">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        TODO
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="attribute" minOccurs="0" maxOccurs="unbounded" type="tns:ResourceAttributeDefinitionType">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Specification of handling of attributes of this complex type.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
+    </xsd:complexType>
+    <xsd:element name="complexAttributeTypeDefinition" type="tns:ComplexAttributeTypeDefinitionType"/>
+
+    <xsd:complexType name="ComplexAttributeTypeDelineationType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Delineates the boundary of a complex attribute type (i.e. objects that belong to that type).
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+                <a:since>4.11</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="objectClass" type="xsd:QName" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Object class (e.g., "ri:address") for this complex attribute type.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayHint>emphasized</a:displayHint>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <!-- later: filter, classificationCondition, classificationOrder, maybe owned attribute -->
+        </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
+    </xsd:complexType>
+    <xsd:element name="complexAttributeTypeDelineation" type="tns:ComplexAttributeTypeDelineationType"/>
+
+    <xsd:complexType name="ComplexAttributeSynchronizationExpressionEvaluatorType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Synchronizes complex attribute values by correlating and mapping them to values of respective focus item.
+                TEMPORARY/EXPERIMENTAL. Should not be needed in the configuration.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container>true</a:container>
+                <a:since>4.11</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+        </xsd:sequence>
+    </xsd:complexType>
+    <xsd:element name="complexAttributeSynchronization" type="tns:ComplexAttributeSynchronizationExpressionEvaluatorType"
+            substitutionGroup="tns:expressionEvaluator">
+        <xsd:annotation>
+            <xsd:appinfo>
+                <a:displayName>ExpressionType.complexAttributeSynchronization</a:displayName>
+            </xsd:appinfo>
+        </xsd:annotation>
+    </xsd:element>
 </xsd:schema>
