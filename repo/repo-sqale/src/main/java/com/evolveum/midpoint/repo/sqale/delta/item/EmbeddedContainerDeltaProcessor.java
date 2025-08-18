@@ -12,6 +12,7 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.PrismContainerValue;
+import com.evolveum.midpoint.prism.path.InfraItemName;
 import com.evolveum.midpoint.repo.sqale.delta.ItemDeltaValueProcessor;
 import com.evolveum.midpoint.repo.sqale.mapping.SqaleItemSqlMapper;
 import com.evolveum.midpoint.repo.sqale.mapping.SqaleNestedMapping;
@@ -19,6 +20,7 @@ import com.evolveum.midpoint.repo.sqale.update.SqaleUpdateContext;
 import com.evolveum.midpoint.repo.sqlbase.mapping.ItemSqlMapper;
 import com.evolveum.midpoint.repo.sqlbase.querydsl.FlexibleRelationalPathBase;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 /**
  * Delta processor for whole embedded single-value containers.
@@ -66,7 +68,21 @@ public class EmbeddedContainerDeltaProcessor<T extends Containerable>
             // while the embedded container is single-value, its items may be multi-value
             processor.setRealValues(item.getRealValues());
         }
+        var metadataMapper = mappers.get(InfraItemName.METADATA);
+        if (metadataMapper != null) {
+            // We do not want remove legacy metadata and value metadata, since we are updating
+            // them
+            mappers.remove(InfraItemName.METADATA);
+            mappers.remove(ObjectType.F_METADATA);
+            var metadata = pcv.getValueMetadataAsContainer();
+            if (!metadata.isEmpty()) {
+                var metadataProcessor = createItemDeltaProcessor(metadataMapper);
+                metadataProcessor.setRealValues(metadata.getRealValues());
 
+
+            }
+
+        }
         // clear the rest of the values
         mappers.values().forEach(this::deleteUsing);
     }

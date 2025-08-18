@@ -16,6 +16,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
+import com.evolveum.midpoint.model.impl.lens.projector.AssignmentOrigin;
 import com.evolveum.midpoint.util.QNameUtil;
 
 import org.jetbrains.annotations.NotNull;
@@ -95,7 +96,21 @@ class TargetsEvaluation<AH extends AssignmentHolderType> extends AbstractEvaluat
             return;
         }
 
+        AssignmentOrigin origin = ctx.evalAssignment.getOrigin();
         if (!ctx.ae.loginMode
+                // MID-10779 assignments with non default relationship (owner) not being evaluated when needed
+                // todo switch for ctx.evalAssignment.isBeingAdded(), o however it currently fails in some cases
+                //  with NPE where origin.isNew() can't be decided if origin is not frozen
+
+                // todo this had to be reverted as it caused performance issues - too many assignments were evaluated (all
+                //  previous optimizations would be useless). It would also raise repository reads.
+
+                // The proper solution will probably be storing evaluated (triggered) policy rules in lens context - from
+                // all clicks, currently they are being stored only during one click.
+
+//                && !(origin.isInDeltaAdd() || origin.isCurrent() && !origin.isInDeltaDelete())
+//                && !ctx.evalAssignment.isBeingDeleted()
+
                 && !isChanged(ctx.primaryAssignmentMode)
                 && !ctx.ae.relationRegistry.isProcessedOnRecompute(segment.relation)
                 && !shouldEvaluateAllAssignmentRelationsOnRecompute()) {

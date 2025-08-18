@@ -12,6 +12,10 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType.*;
 
 import java.util.*;
 
+import com.evolveum.midpoint.prism.path.InfraItemName;
+
+import com.evolveum.midpoint.schema.util.ValueMetadataTypeUtil;
+
 import com.querydsl.core.Tuple;
 import com.querydsl.core.types.Path;
 import org.jetbrains.annotations.NotNull;
@@ -84,13 +88,22 @@ public class QFocusMapping<S extends FocusType, Q extends QFocus<R>, R extends M
         addItemMapping(F_TIMEZONE, stringMapper(q -> q.timezone));
         addItemMapping(F_TELEPHONE_NUMBER, stringMapper(q -> q.telephoneNumber));
         // passwordModify/CreateTimestamps are just a bit deeper
-        addNestedMapping(F_CREDENTIALS, CredentialsType.class)
-                .addNestedMapping(CredentialsType.F_PASSWORD, PasswordType.class)
-                .addNestedMapping(PasswordType.F_METADATA, MetadataType.class)
+        var passwordMapping = addNestedMapping(F_CREDENTIALS, CredentialsType.class)
+                .addNestedMapping(CredentialsType.F_PASSWORD, PasswordType.class);
+
+        passwordMapping.addNestedMapping(PasswordType.F_METADATA, MetadataType.class)
                 .addItemMapping(MetadataType.F_CREATE_TIMESTAMP,
                         timestampMapper(q -> q.passwordCreateTimestamp))
                 .addItemMapping(MetadataType.F_MODIFY_TIMESTAMP,
                         timestampMapper(q -> q.passwordModifyTimestamp));
+
+        passwordMapping.addNestedMapping(InfraItemName.METADATA, ValueMetadataType.class)
+                .addNestedMapping(ValueMetadataType.F_STORAGE, StorageMetadataType.class)
+                .addItemMapping(StorageMetadataType.F_CREATE_TIMESTAMP,
+                        timestampMapper(q -> q.passwordCreateTimestamp))
+                .addItemMapping(StorageMetadataType.F_MODIFY_TIMESTAMP,
+                        timestampMapper(q -> q.passwordModifyTimestamp));
+
         addNestedMapping(F_ACTIVATION, ActivationType.class)
                 .addItemMapping(ActivationType.F_ADMINISTRATIVE_STATUS,
                         enumMapper(q -> q.administrativeStatus))
@@ -182,7 +195,17 @@ public class QFocusMapping<S extends FocusType, Q extends QFocus<R>, R extends M
             PasswordType password = credentials.getPassword();
             if (password != null) {
                 MetadataType passwordMetadata = password.getMetadata();
-                if (passwordMetadata != null) {
+                var valueMetadata = password.asPrismContainerValue().<ValueMetadataType>getValueMetadataAsContainer();
+                if (!valueMetadata.isEmpty()) {
+                    var metadata = valueMetadata.getRealValue();
+                    var storage = metadata.getStorage();
+                    if (storage != null) {
+                        row.passwordCreateTimestamp =
+                                MiscUtil.asInstant(storage.getCreateTimestamp());
+                        row.passwordModifyTimestamp =
+                                MiscUtil.asInstant(storage.getModifyTimestamp());
+                    }
+                } else if (passwordMetadata != null) {
                     row.passwordCreateTimestamp =
                             MiscUtil.asInstant(passwordMetadata.getCreateTimestamp());
                     row.passwordModifyTimestamp =
@@ -236,6 +259,19 @@ public class QFocusMapping<S extends FocusType, Q extends QFocus<R>, R extends M
         }
         if (SelectorOptions.hasToFetchPathNotRetrievedByDefault(PATH_FOCUS_IDENTITY, options)) {
             loadFocusIdentities(focus, jdbcSession);
+        }
+        var credentials = focus.getCredentials();
+        // Credentials may contain legacy metadata, we need to upgrade them to value metadta.
+        if (credentials != null) {
+            var password = credentials.getPassword();
+            if (password != null) {
+                var reindexNeeded = upgradeLegacyMetadataToValueMetadata(password, password.getMetadata());
+                if (reindexNeeded) {
+                    // Metadata were updated during read, object requires reindex.
+                    password.setMetadata(null);
+                    focus.asPrismObject().setUserData(SqaleUtils.REINDEX_NEEDED, true);
+                }
+            }
         }
 
         return focus;
