@@ -34,7 +34,7 @@ By leveraging existing tools and integrating it with midPoint it is possible to 
 MidPoint service object is designed to represent logical or physical services or devices such as virtual machines, mobile devices, servers, printers, network devices, application containers ... and essentially almost anything else.
 
 Services in midPoint can be expressed using midPoints `ServiceType` objects.
-The usage and the structure for the ServiceType object is almost the same as xref:/midpoint/reference/roles-policies/rbac/[midPoint roles] (xref:/midpoint/architecture/archive/data-model/midpoint-common-schema/roletype/[RoleType]). It means, you can define rules for provisioning, you can assign roles, xref:/midpoint/reference/roles-policies/metaroles/gensync/['meta-roles, meta-meta-roles'] to them etc.
+The usage and the structure for the ServiceType object is almost the same as xref:/midpoint/reference/roles-policies/roles/rbac/[midPoint roles] (xref:/midpoint/architecture/archive/data-model/midpoint-common-schema/roletype/[RoleType]). It means, you can define rules for provisioning, you can assign roles, xref:/midpoint/reference/roles-policies/policies/metaroles/gensync/['meta-roles, meta-meta-roles'] to them etc.
 The one difference is that using services in addition will provide also automatic creation of resource definition (in midPoint terminology it means the target systems, where the users are provisioned).
 It can be said that working with services is divided into two parts:
 
@@ -88,12 +88,12 @@ For example, let the
 
 * services to represent different things like mobile devices, printers, applications which the users can use.
 
-The brief comparison which object type to use in which situation can be also find xref:/midpoint/reference/roles-policies/roles-services-and-orgs/[here].
+The brief comparison which object type to use in which situation can be also find xref:/midpoint/reference/roles-policies/roles/roles-services-and-orgs/[here].
 
 == See also
 
-* xref:/midpoint/reference/roles-policies/rbac/[Advanced Hybrid RBAC]
+* xref:/midpoint/reference/roles-policies/roles/rbac/[Advanced Hybrid RBAC]
 
 * xref:/midpoint/reference/org/organizational-structure/[Organizational Structure]
 
-* xref:/midpoint/reference/roles-policies/roles-services-and-orgs/['Roles, Services and Orgs']
+* xref:/midpoint/reference/roles-policies/roles/roles-services-and-orgs/['Roles, Services and Orgs']

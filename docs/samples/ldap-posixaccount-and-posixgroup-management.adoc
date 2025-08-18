@@ -73,7 +73,7 @@ Creating midPoint role with "LDAP Unix Group Metarole" assigned will create new 
 In both cases, the name of the group (cn) will be set to the value of "identifier" role attribute.
 This means that "name" of the role can be anything, only "identifier" will be used for provisioning the group.
 
-The metaroles contain also xref:/midpoint/reference/roles-policies/metaroles/gensync/[higher order inducements] so that assigning the newly created roles to the users will create LDAP account and put it to the corresponding group.
+The metaroles contain also xref:/midpoint/reference/roles-policies/policies/metaroles/gensync/[higher order inducements] so that assigning the newly created roles to the users will create LDAP account and put it to the corresponding group.
 The "LDAP Unix Group Metarole" will additionally extend the LDAP account with "posixAccount" auxiliary object class (and its mandatory attributes).
 This means that we can have either standard LDAP accounts with standard group memberships, or extend the standard LDAP accounts with auxiliary objectClass "posixAccount" just by assigning a midPoint role which has "LDAP Unix Group Metarole" assigned! We can also reverse the operation and remove the auxiliary objectClass "posixAccount" (and all its attributes) from the account by unassigning the midPoint role which has "LDAP Unix Group Metarole" assigned.
 At any time, midPoint user has only one projection - LDAP account; just the objectClass and the attributes differ.

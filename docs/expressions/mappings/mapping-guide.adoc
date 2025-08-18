@@ -7,7 +7,7 @@ NOTE: WORK IN PROGRESS
 
 _Mapping_ is a mechanism that is used at many places through midPoint to map value of a source property (or properties) to a target property.
 It is a very flexible mechanism that allows to use expressions (including scripting), direct variable references, value generators and other _evaluators_ for the value.
-It is used for example in xref:/midpoint/reference/expressions/mappings/outbound-mapping/[outbound mapping], xref:/midpoint/reference/expressions/mappings/inbound-mapping/[inbound mapping], xref:/midpoint/reference/roles-policies/assignment/[assignments], xref:/midpoint/reference/roles-policies/rbac/[roles] and so on.
+It is used for example in xref:/midpoint/reference/expressions/mappings/outbound-mapping/[outbound mapping], xref:/midpoint/reference/expressions/mappings/inbound-mapping/[inbound mapping], xref:/midpoint/reference/roles-policies/roles/assignment/[assignments], xref:/midpoint/reference/roles-policies/roles/rbac/[roles] and so on.
 
 
 === The Basics

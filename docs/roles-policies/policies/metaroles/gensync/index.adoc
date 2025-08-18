@@ -1,0 +1,272 @@
+---
+midpoint-feature: meta-role
+doc-type: intro
+compliance:
+    iso27001:
+        '5.15':
+            description: 'Use of meta-roles for access control.'
+---
+= Higher-Order Inducements
+:page-wiki-name: Higher-Order Inducements
+:page-wiki-id: 15859878
+:page-wiki-metadata-create-user: semancik
+:page-wiki-metadata-create-date: 2014-07-23T12:09:36.668+02:00
+:page-wiki-metadata-modify-user: semancik
+:page-wiki-metadata-modify-date: 2017-10-30T15:00:01.326+01:00
+:page-upkeep-status: yellow
+:page-liquid:
+:page-toc: top
+:page-moved-from: /midpoint/reference/roles-policies/metaroles/gensync/
+
+== Introduction
+
+xref:/midpoint/reference/synchronization/generic-synchronization/[Generic synchronization] is a powerful feature that distinguished midPoint from many traditional IDM systems.
+Even though the generic synchronization itself is an interesting feature, what makes it incredibly powerful is the combination of generic synchronization with other midPoint features.
+This is especially true for a combination of generic synchronization with xref:/midpoint/reference/roles-policies/roles/rbac/[midPoint RBAC system]. This page describes how these two features work together to create simple and very powerful configuration schemes.
+
+
+== Usual RBAC
+
+MidPoint xref:/midpoint/reference/roles-policies/roles/rbac/[RBAC mechanism] has all that you can expect from a provisioning RBAC structure.
+The most frequently used feature is perhaps xref:/midpoint/reference/roles-policies/roles/roles-and-policies-configuration/index.adoc#role_hierarchy[role hierarchy].
+The following diagrams provides an example of a role hierarchy.
+
+image::rbac-meta-1.png[]
+
+All the _construction_ definitions placed inside inducements are applied to the user almost as if they are directly assigned.
+Therefore the user will efficiently have _constructions_ for four accounts which in turn means that four accounts will be created for this particular user.
+
+What is important here is xref:/midpoint/reference/roles-policies/roles/assignment/assignment-vs-inducement/[the difference between assignment and inducement]: the _inducements_ are not applied directly.
+All the _inducements_ from the entire role hierarchy are applied to the object that contains _assignment_. Which is a user.
+
+
+== Metarole
+
+The xref:/midpoint/reference/roles-policies/roles/assignment/assignment-vs-inducement/[difference between assignment and inducement] may seem like an unnecessary complication.
+But it is not.
+The true power of this mechanism becomes obvious only when it is used together with xref:/midpoint/reference/synchronization/generic-synchronization/[generic synchronization]. Generic synchronization enables you to synchronize almost all midPoint objects to resources.
+One typical use of generic synchronization is to synchronize midPoint roles with groups on a resource.
+For example, we want to create LDAP groups for some midPoint roles.
+Because xref:/midpoint/reference/roles-policies/roles/assignment/[assignment] is a generic concept that applies to roles and orgs equally as it applies to users, there is a simple way how to do this: we add an assignment with an appropriate _group construction_ statement to every role that want to synchronize to LDAP.
+But there is a drawback: this needs to be specified in every role.
+This is simple to do if there is just a single group type with simple static mappings.
+But that is rarely the case.
+Also, this configuration would be very difficult to maintain in a long run.
+
+MidPoint has a much better mechanism for this.
+And the idea is incredibly simple: let's apply the RBAC mechanism to the roles themselves.
+This is how the concept of _metaroles_ is born.
+A metarole is a role that is applied to another (regular) midPoint role.
+One such example is shown in the following diagram.
+The `Group Metarole` is applied to other roles, in this case to the `Pirate Captain` role.
+
+image::rbac-meta-2.png[]
+
+The regular `Pirate Lord`, `Pirate Captain`, `Captain`, and `Pirate` roles form a role hierarchy.
+They are all connected by _inducements_. This means that everything that is specified in the entire hierarchy will be applied to the _user_ who is at the end of the hierarchy.
+
+The `Group Metarole` is different.
+It is connected to the `Pirate Captain` role by an _assignment_, not an inducement.
+This assignment breaks the role hierarchy at that very point.
+It means that the statements of `Group Metarole` will *not* be applied to a user.
+Remember: all inducements are applied to the object which contains an assignment.
+But this is the `Pirate Captain` role in this case.
+Therefore all the inducements from the `Group Metarole` will be applied to the `Pirate Captain` role.
+`Group Metarole` is a role that is _applied_ to another role.
+`Group Metarole` does *not* describe what a user should look like.
+It describes what another role should look like.
+
+Therefore you can simply assign the `Group Metarole` to any role that you want to synchronize as a group to the resource.
+All the mappings and configurations are in the metarole.
+The regular role contains just a simple assignment.
+Therefore if you want to adjust the configuration you just need to change the metarole and the change is applied to all the affected regular roles using a normal RBAC mechanisms.
+
+This is a very powerful feature.
+You can create roles that are applied to other roles or orgs.
+This can be used to define a multitude of synchronization schemes for synchronization of roles to groups and privileges to the resources, for synchronization of parts of organizational structures to many resources in a very flexible way and so on.
+And all of that configuration is cleanly organized into a couple of metaroles in a proper RBAC fashion.
+And metaroles are still just roles.
+Therefore their assignment is properly audited, it is a subject to authorizations, it may be subject to approvals and so on.
+
+
+== Higher-Order Inducements
+
+In addition to creating LDAP groups from roles, you may also want to add accounts to these groups.
+This is done through a mechanism that we call _high-order inducements_ in the following steps:
+
+. Create an empty group object.
+. Modify users to add their accounts to the group.
+
+Normal (first-order) inducements work as described above, i.e. all _inducements_ are applied to the first object that has an _assignment_.
+Therefore the inducements of `Group Metarole` were applied to the `Pirate Captain` role because that is the _first_ object in the chain that has an _assignment_.
+However this behavior can be changed by specifying an _order_ of an inducement.
+The order allows to apply an inducement to deeper levels of the chain than they would normally apply to.
+A second-order inducement will apply to the _second_ assignment in the chain, a third-order inducement will apply to the _third_ assignment in the chain, etc.
+
+Therefore it is now very easy for a metarole to contain inducements that will apply both to the role and to the user.
+This is illustrated in the following diagram.
+// Can we have a real life scenario for an example here?
+
+image::rbac-meta-3.png[]
+
+The first inducement in the `Group Metarole` is a regular first-order inducement.
+This will be applied to the `Pirate Captain` role and it will cause that an empty group object will be created on the resource.
+The other inducement is a second-order inducement.
+This will be applied to the user because the user is the second object in the chain which has an assignment.
+This inducement will cause that a new account will be created for a user.
+But there is still one piece missing.
+The account is not yet a member of the group.
+The set-up which does this is illustrated in the following diagram.
+
+image::rbac-meta-4.png[]
+
+The `associationFromLink` expression is used to create an association between the account and the xref:/midpoint/reference/resources/entitlements/[entitlement] (group) which creates a group membership.
+As this is placed in a second-order inducement, it will be applied to a user and therefore it will be the appropriate user account which will be added to the group.
+
+A complete configuration of the metarole looks like this:
+
+.Metarole
+[source,xml]
+----
+<role>
+    <name>Group Metarole</name>
+
+    <inducement>
+        <construction>
+            <!-- Resource X -->
+            <resourceRef oid="10000000-0000-0000-0000-000000000003" type="c:ResourceType"/>
+            <kind>entitlement</kind>
+            <intent>group</intent>
+        </construction>
+    </inducement>
+
+    <inducement>
+        <construction>
+            <!-- Resource X -->
+            <resourceRef oid="10000000-0000-0000-0000-000000000003" type="c:ResourceType"/>
+            <kind>account</kind>
+            <intent>default</intent>
+            <association>
+                <ref>ri:group</ref>
+                <outbound>
+                    <expression>
+                        <associationFromLink>
+                            <projectionDiscriminator>
+                                <kind>entitlement</kind>
+                                <intent>group</intent>
+                            </projectionDiscriminator>
+                        </associationFromLink>
+                    </expression>
+                </outbound>
+            </association>
+        </construction>
+        <order>2</order>
+    </inducement>
+
+</role>
+----
+
+
+== Order Constraints
+
+A simple integer definition of order may not be sufficient for all use cases.
+There are numerous xref:/midpoint/reference/concepts/relation/[relations] that define how objects relate to each other.
+For example, you may need to define different privileges to organization managers and to common organization members.
+This is done using complex order constraints that may define requirements for specific relations, order ranges, etc.
+
+Constraints look like this:
+
+[source,xml]
+----
+<org>
+    ...
+    <inducement>
+        ...
+        <orderConstraint>
+            <order>1</order>
+            <relation>manager</relation>
+        </orderConstraint>
+  </inducement>
+</org>
+----
+
+The constraint above will limit the application of the inducement only to focal objects that have exactly one assignment on the path that has `relation=manager`.
+In other words, this inducement will be applied to the managers of this organization.
+But it will *not* be applied to ordinary members.
+
+The order constraints can also specify the order range.
+For example, the following inducement will be applied to all situations where the order is higher than two:
+
+[source,xml]
+----
+<org>
+    ...
+    <inducement>
+        ...
+        <orderConstraint>
+            <orderMin>2</orderMin>
+            <orderMax>unbounded</orderMax>
+        </orderConstraint>
+  </inducement>
+</org>
+----
+
+
+== Delegations (Deputy)
+
+There are special kinds of assignments that are used to define xref:/midpoint/reference/misc/deputy/[deputies].
+These assignments delegate privileges by setting xref:/midpoint/reference/concepts/relation/[relation] to `deputy`.
+Therefore they are not considered a part of the normal order when evaluating metaroles.
+This means that what was originally order 2 will become order 3, etc.
+See the xref:/midpoint/reference/misc/deputy/[Deputy] page for details.
+
+// nemáme k tomu nějaké schéma, které to ukáže? Nebo aspoň příklad kódu?
+
+== Meta-MetaRoles
+
+Meta roles may be assigned to other roles.
+This is how meta-metaroles are created.
+
+Their usage may not be entirely straightforward in some cases.
+For example, the `associationFromLink` expression needs one object to get links from.
+However, in the meta-meta-meta scenarios, there are many objects to choose from.
+There is a way to choose the object explicitly using the `assignmentPathIndex` property of the `associationFromLink` expression.
+This index points to the object that should be used as a source from which a link is gotten.
+Index 0 is the focal object, index 1 is the first (plain) role, index 2 is a metarole, index 3 is a meta-metarole, and so on.
+Negative index can also be used.
+In such a case, the order is reversed: index -1 is the last meta-meta-meta-...-role, index -2 is the last but one, etc.
+
+[source,xml]
+----
+    <inducement>
+        <construction>
+            <resourceRef oid="10000000-0000-0000-0000-000000000004"/>
+            <kind>account</kind>
+            <intent>default</intent>
+            <association>
+                <ref>ri:group</ref>
+                <outbound>
+                    <expression>
+                        <associationFromLink>
+                            <projectionDiscriminator>
+                                <kind>entitlement</kind>
+                                <intent>group</intent>
+                            </projectionDiscriminator>
+                            <assignmentPathIndex>1</assignmentPathIndex>
+                        </associationFromLink>
+                    </expression>
+                </outbound>
+            </association>
+        </construction>
+        <order>3</order>
+    </inducement>
+----
+
+
+== See Also
+
+* xref:/midpoint/reference/roles-policies/roles/rbac/[Advanced Hybrid RBAC]
+
+* xref:/midpoint/reference/roles-policies/roles/roles-and-policies-configuration/[Roles and Policies Configuration]
+
+* xref:/midpoint/reference/roles-policies/roles/assignment/assignment-vs-inducement/[Assignment vs Inducement]

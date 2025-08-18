@@ -216,7 +216,7 @@ The references are internally backed by indexing structures that make it very ef
 But there is price to pay for this efficiency.
 The `parentOrgRef` references are very simple and quite static.
 There is no (direct) way how to specify conditional or temporary membership in an org just by using `parentOrgRef`. Doing so would complicate the system to the point that it would no longer be efficient or maintainable.
-But conditional and temporary membership is something for which xref:/midpoint/reference/roles-policies/assignment/[assignments] were designed.
+But conditional and temporary membership is something for which xref:/midpoint/reference/roles-policies/roles/assignment/[assignments] were designed.
 Therefore the plain organizational structure is combined with assignments to get the benefits of both mechanisms.
 
 image::org-5.png[]
@@ -271,6 +271,6 @@ If a user is assigned to such org the org behaves as a role and automatically co
 
 == See Also
 
-* xref:/midpoint/reference/roles-policies/assignment/[Assignment]
+* xref:/midpoint/reference/roles-policies/roles/assignment/[Assignment]
 
-* xref:/midpoint/reference/roles-policies/rbac/[Advanced Hybrid RBAC]
+* xref:/midpoint/reference/roles-policies/roles/rbac/[Advanced Hybrid RBAC]

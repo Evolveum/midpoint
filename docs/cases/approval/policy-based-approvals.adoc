@@ -20,7 +20,7 @@ It was difficult to set up and maintain the processes.
 Therefore, midPoint slowly drifted away from the use of workflow engine until it was replaced by declarative policy in midPoint 4.0.
 
 Current mechanism to drive approvals is based on policies rather than processes.
-There are xref:/midpoint/reference/roles-policies/policy-rules/[policy rules] that specify individual aspects of an approvals.
+There are xref:/midpoint/reference/roles-policies/policies/policy-rules/[policy rules] that specify individual aspects of an approvals.
 For example the rules may look like:
 
 * Some roles are assigned automatically based on organizational structure membership.
@@ -32,7 +32,7 @@ Assignment of those roles is not approved.
 
 * Assignment of sensitive roles must be approved by security office.
 
-* Assignment of controlling roles must comply with xref:/midpoint/reference/roles-policies/segregation-of-duties/[segregation of duties] (SoD) policy.
+* Assignment of controlling roles must comply with xref:/midpoint/reference/roles-policies/policies/segregation-of-duties/[segregation of duties] (SoD) policy.
 Exceptions are not possible.
 
 * Some business roles are subject to a different SoD policy.
@@ -61,4 +61,4 @@ MidPoint does all of that under the hood.
 
 == See Also
 
-* xref:/midpoint/reference/roles-policies/policy-rules/[Policy Rules]
+* xref:/midpoint/reference/roles-policies/policies/policy-rules/[Policy Rules]
