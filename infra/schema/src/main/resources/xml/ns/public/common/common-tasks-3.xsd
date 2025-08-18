@@ -10267,7 +10267,7 @@
         <xsd:complexContent>
             <xsd:extension base="tns:AbstractActivityWorkStateType">
                 <xsd:sequence>
-                    <xsd:element name="result" type="xsd:QName" minOccurs="0">
+                    <xsd:element name="result" type="tns:FocusTypeSuggestionType" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>
                                 Result of the operation: suggested focus type.

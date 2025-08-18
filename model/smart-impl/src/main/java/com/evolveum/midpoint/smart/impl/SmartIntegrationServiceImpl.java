@@ -366,7 +366,7 @@ public class SmartIntegrationServiceImpl implements SmartIntegrationService {
     }
 
     @Override
-    public List<StatusInfo<QName>> listSuggestFocusTypeOperationStatuses(
+    public List<StatusInfo<FocusTypeSuggestionType>> listSuggestFocusTypeOperationStatuses(
             String resourceOid, Task task, OperationResult parentResult)
             throws SchemaException {
         var result = parentResult.subresult(OP_LIST_SUGGEST_FOCUS_TYPE_OPERATION_STATUSES)
@@ -378,13 +378,13 @@ public class SmartIntegrationServiceImpl implements SmartIntegrationService {
                     queryForActivityType(resourceOid, WorkDefinitionsType.F_FOCUS_TYPE_SUGGESTION),
                     taskRetrievalOptions(),
                     result);
-            var resultingList = new ArrayList<StatusInfo<QName>>();
+            var resultingList = new ArrayList<StatusInfo<FocusTypeSuggestionType>>();
             for (PrismObject<TaskType> t : tasks) {
                 resultingList.add(
                         new StatusInfoImpl<>(
                                 t.asObjectable(),
                                 FocusTypeSuggestionWorkStateType.F_RESULT,
-                                QName.class));
+                                FocusTypeSuggestionType.class));
             }
             sortByFinishAndStartTime(resultingList);
             return resultingList;
@@ -397,7 +397,7 @@ public class SmartIntegrationServiceImpl implements SmartIntegrationService {
     }
 
     @Override
-    public StatusInfo<QName> getSuggestFocusTypeOperationStatus(
+    public StatusInfo<FocusTypeSuggestionType> getSuggestFocusTypeOperationStatus(
             String token, Task task, OperationResult parentResult)
             throws SchemaException, ObjectNotFoundException {
         var result = parentResult.subresult(OP_GET_SUGGEST_FOCUS_TYPE_OPERATION_STATUS)
@@ -407,7 +407,7 @@ public class SmartIntegrationServiceImpl implements SmartIntegrationService {
             return new StatusInfoImpl<>(
                     getTask(token, result),
                     FocusTypeSuggestionWorkStateType.F_RESULT,
-                    QName.class);
+                    FocusTypeSuggestionType.class);
         } catch (Throwable t) {
             result.recordException(t);
             throw t;
@@ -445,7 +445,7 @@ public class SmartIntegrationServiceImpl implements SmartIntegrationService {
     }
 
     @Override
-    public QName suggestFocusType(
+    public FocusTypeSuggestionType suggestFocusType(
             String resourceOid, ResourceObjectTypeIdentification typeIdentification, Task task, OperationResult parentResult)
             throws SchemaException, ExpressionEvaluationException, SecurityViolationException, CommunicationException,
             ConfigurationException, ObjectNotFoundException {
@@ -456,11 +456,11 @@ public class SmartIntegrationServiceImpl implements SmartIntegrationService {
                 .build();
         try {
             try (var serviceClient = getServiceClient(result)) {
-                var type = TypeOperation
+                var suggestion = TypeOperation
                         .init(serviceClient, resourceOid, typeIdentification, null, task, result)
                         .suggestFocusType();
-                LOGGER.debug("Suggested focus type: {}", type);
-                return type;
+                LOGGER.debug("Suggested focus type: {}", suggestion.getFocusType());
+                return suggestion;
             }
         } catch (Throwable t) {
             result.recordException(t);

@@ -4843,4 +4843,50 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
             unsetGlobalTracingOverride();
         }
     }
+
+    protected static void assertAiProvidedMarkPresent(Containerable c, ItemPath... paths) {
+        assertAiProvidedMarkValue(c, true, false, paths);
+    }
+
+    protected static void assertAiProvidedMarkPresentRequired(Containerable c, ItemPath... paths) {
+        assertAiProvidedMarkValue(c, true, true, paths);
+    }
+
+    protected static void assertAiProvidedMarkAbsent(Containerable c, ItemPath... paths) {
+        assertAiProvidedMarkValue(c, false, false, paths);
+    }
+
+    protected static void assertAiProvidedMarkAbsentRequired(Containerable c, ItemPath... paths) {
+        assertAiProvidedMarkValue(c, false, true, paths);
+    }
+
+    protected static void assertAiProvidedMarkValue(Containerable c, boolean expected, boolean required, ItemPath... paths) {
+        if (paths.length == 0) {
+            assertAiProvidedMarkValue(c.asPrismContainerValue(), expected);
+        } else {
+            for (ItemPath path : paths) {
+                Item<?, ?> item = c.asPrismContainerValue().findItem(path);
+                if (required) {
+                    assertThat(item).as("'%s' item", path).isNotNull();
+                    assertThat(item.getValues()).as("'%s' values", path).isNotEmpty();
+                }
+                if (item != null) {
+                    for (var value : item.getValues()) {
+                        assertThat(AiUtil.isMarkedAsAiProvided(value))
+                                .withFailMessage(
+                                        "Expected 'provided by AI' flag to be %s, but it was not; on '%s' in: %s",
+                                        expected, path, c)
+                                .isEqualTo(expected);
+                    }
+                }
+            }
+        }
+    }
+
+    protected static void assertAiProvidedMarkValue(@NotNull PrismValue value, boolean expected) {
+        assertThat(AiUtil.isMarkedAsAiProvided(value))
+                .withFailMessage(
+                        "Expected 'provided by AI' flag to be %s, but it was not; on: %s", expected, value)
+                .isEqualTo(expected);
+    }
 }
