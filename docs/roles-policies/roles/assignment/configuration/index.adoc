@@ -182,14 +182,14 @@ Do not overuse the ability of assignments to enforce attribute values.
 Assignments usually specify exceptions to the policies.
 The lower is the number of exceptions the more consistent the policies are.
 Consistent policies are easier to maintain.
-Care should be taken even if this ability is used in a form of xref:/midpoint/reference/roles-policies/rbac/[role inducements].
+Care should be taken even if this ability is used in a form of xref:/midpoint/reference/roles-policies/roles/rbac/[role inducements].
 Some legacy IDM systems had no other way how to define a policy for attribute values than roles.
 Therefore some IDM engineers have tendency to abuse RBAC mechanisms to define global policies.
 This is *not* the case with midPoint.
 MidPoint has a clean and elegant mechanism for specifying resource-global policies: xref:/midpoint/reference/expressions/mappings/outbound-mapping/[outbound mappings].
 
 *Rule of the thumb:* xref:/midpoint/reference/expressions/mappings/outbound-mapping/[Outbound mappings] should be used to set attribute values if possible.
-If not then xref:/midpoint/reference/roles-policies/rbac/[role inducements] should be used.
+If not then xref:/midpoint/reference/roles-policies/roles/rbac/[role inducements] should be used.
 Specifying attribute values in assignments should be used only if no other mechanisms is sufficient to implement the policy.
 
 ====
