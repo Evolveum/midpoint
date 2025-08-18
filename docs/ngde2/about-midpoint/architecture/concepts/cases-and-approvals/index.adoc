@@ -1,4 +1,6 @@
 = MidPoint Case Management and Approvals
+// NGDe2 redirect
+:page-moved-from: /midpoint/reference/cases/
 :page-nav-title: Cases and Approvals
 :page-upkeep-status: green
 :page-liquid:

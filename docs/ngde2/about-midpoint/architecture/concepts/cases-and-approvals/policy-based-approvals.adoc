@@ -3,6 +3,8 @@ midpoint-feature: approval-process
 doc-type: intro
 ---
 = Policy-based approvals
+// NGDe2 redirect
+:page-moved-from: /midpoint/reference/cases/approval/policy-based-approvals/
 :page-wiki-name: Policy-based approvals
 :page-wiki-id: 36569442
 :page-wiki-metadata-create-user: semancik

@@ -1,0 +1,45 @@
+= Lightweight Identifier
+// NGDe2 redirect
+:page-moved-from: /midpoint/architecture/concepts/lightweight-identifier/
+:page-wiki-name: Lightweight Identifier
+:page-wiki-id: 3571799
+:page-wiki-metadata-create-user: semancik
+:page-wiki-metadata-create-date: 2012-01-26T10:54:56.915+01:00
+:page-wiki-metadata-modify-user: peterkortvel@gmail.com
+:page-wiki-metadata-modify-date: 2016-02-20T15:40:06.360+01:00
+
+Lightweight identifier is a "reasonable unique" identifier that is very cheap to create.
+While objects have xref:/midpoint/devel/prism/concepts/object-identifier/[OID], creating a unique OID means communication with the repository.
+This quite expensive and therefore it is unsuitable for more purposes, such as creating identifiers for tasks or audit records.
+Lightweight identifiers are used instead.
+
+
+== Uniqueness
+
+Lightweight identifiers are unique in the midPoint "system".
+That usually means a machine if midPoint is a single-machine installation.
+In a multi-node installation the identifier is unique in the entire cluster.
+It is *not* guaranteed that the identifier is globally unique or that it is transferable to other installations.
+
+
+== Use
+
+Lightweight identifiers are mostly used to identify short-lived objects in midPoint, such as (transient) tasks and audit events.
+
+
+== Mechanism
+
+Current implementation of Lightweight identifier generator is combining current system time, host identifier and sequence number.
+The sequence number is used to support uniqueness in case that more than one identifier is requested in a specific time quantum.
+The sequence is not coordinated across midPoint nodes, each node maintains its own sequence number.
+Uniqueness is provided by inclusion of the host identifier.
+The sequence is reset in every time quantum.
+
+Lightweight identifier may be the same as OID for persistent objects (e.g. persistent tasks).
+
+
+== External links
+
+* What is link:https://evolveum.com/midpoint/[midPoint Open Source Identity & Access Management]
+
+* link:https://evolveum.com/[Evolveum] - Team of IAM professionals who developed midPoint

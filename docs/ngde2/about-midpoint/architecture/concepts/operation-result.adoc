@@ -1,0 +1,102 @@
+= Operation Result
+// NGDe2 redirect
+:page-moved-from: /midpoint/architecture/concepts/operation-result/
+:page-wiki-name: OperationResult
+:page-wiki-id: 2654336
+:page-wiki-metadata-create-user: semancik
+:page-wiki-metadata-create-date: 2011-07-07T16:31:00.347+02:00
+:page-wiki-metadata-modify-user: peterkortvel@gmail.com
+:page-wiki-metadata-modify-date: 2016-02-20T15:41:26.005+01:00
+
+
+== The Purpose of Operation Result
+
+Operation Result is a rich data structure that describe useful information about the whole operation and its sub-operations.
+It describes what parts of the operation failed and provides a rich diagnostics information to display to user.
+The purpose of Operation Result is twofold:
+
+* Indicate machine-processable result of sub-operations.
+E.g. it may indicate which specific parts have failed during _test connection_ operation.
+It may also indicate which accounts were provisioned and which have failed, indicating a partial success of the operation.
+Clients that understand such results may re-try only the parts of the operation that have failed and may also provide better information about the process state to the user.
+
+* Provide rich human-readable diagnostics information to the user.
+The intent is to remove the need of a system administrators to wade through system logs and parse kilometers-long Java exceptions to understand what is the problem.
+Operation Result displays the information in a quite convenient and (possible) interactive way, showing the details and context of the operation.
+The operation result may contain even the exceptions that describe the problem in details, but the focus is on a short error messages that can display reasonable information to the user.
+
+`OperationResult` data structure is designed to allow a sophisticated error handling.
+E.g. if a user is modified by invocation of xref:/midpoint/reference/interfaces/model-java/[IDM Model Interface] the modification can be reflected to several accounts using xref:/midpoint/reference/expressions/mappings/[mappings]. Some of account modification may succeed and other modification may fail.
+In such a case an exception is *not* thrown.
+The operation returns as in it would after a successful operation.
+After the return the operation result structure will be filled with details of every significant sub-operation.
+The overall status will indicate _partial error_ and one of the sub-operations will be set to _fatal error_. As this structure is intended for human readability and machine processability it can be used for variety of purposes.
+It can be used to display detailed error information to the user, to automatically react to certain situation or for any similar purpose.
+
+== Example Usage in the Implementation
+
+[source,java]
+----
+public class Foo {
+	private ResourceWhatever resource;
+
+	// We are getting parentResult here. It is the result that "belongs" to the caller.
+	public void bar(String param1,OperationResult parentResult)) {
+
+		// Create "result" for this operation from the parentResult.
+		// The "result" will be automatically added as subresult of parentResult
+		// Operation name is a full name of class with method name (by convention)
+		OperationResult result = parentResult.createSubresult(Foo.class.getName()+ ".bar");
+
+		// Add parameters and "context" to the result. This helps in diagnosing the problems.
+		result.addParam("param1", param1);
+		result.addContext("resource", resource);
+
+		try {
+			// Do something. Use my result as a parent result for the invoked method
+
+			resource.doSomething("some","params",result);
+
+			// If we have got here the operation was obviously successful. Therefore set the result status to success.
+			result.recordSuccess();
+
+			// that's all we have do to. The result is already attached to parentResult. So just let the method return.
+
+		} catch (NonCriticalException ex) {
+			// This expression indicates that something was done and the invocation is not a complete failure.
+			// In other words: we can somehow ignore this error.
+			// Therefore set result status to a partial failure and return as usual (this will continue execution).
+			result.recordPartialError(ex);
+			// Do NOT re-throw the exception
+
+		} catch (CriticalException ex) {
+			// This is critical. The operation is a complete failure and there is no point in continuing.
+			// Therefore record fatal error and re-throw the exception (this will "break" the execution).
+			result.recordFatalError("Bar has failed. All the rum is gone.",ex);
+			throw ex;
+		}
+}
+
+----
+
+
+== Notes
+
+. Data items that are part of OperationResult (parameters, context, return values) should be serializable - ideally primitive types or prisms.
+
+. As stated above, the information in OperationResult should be meaningful to the administrator.
+So you should not duplicate whole call stack here (i.e. by adding "createSubResult" at the beginning of each of your method).
+Instead, focus on the most important parts of execution.
+(Subresult creation is obligatory only on component interfaces.)
+
+. OR can be used by the client to detect whether the operation was successful.
+However, they are not meant as a replacement of exceptions.
+In case of fatal errors, when there is an expectation that the client could not meaningfully continue its operation (e.g. when getObject couldn't find the requested object in repository), it is necessary to throw an exception *and* set the OperationResult as well.
+
+. The difference between parameters and context is that parameters denote real parameters passed to the method called, whereas context somehow describes the current state of world the method acts upon.
+E.g. the method task.refresh(), which by itself has no parameters except for OperationResult, can put the OID of the task into the context.
+Another example of an item put into context is the name of class implementing the called method.
+
+== See Also
+
+* xref:/midpoint/architecture/concepts/task/[Task]

@@ -3,6 +3,8 @@ midpoint-feature: approval-process
 doc-type: config
 ---
 = Approval
+// NGDe2 redirect
+:page-moved-from: /midpoint/reference/cases/approval/
 :page-wiki-name: Approval
 :page-wiki-id: 24084555
 :page-wiki-metadata-create-user: semancik

@@ -1,0 +1,115 @@
+= Relaxed Referential Integrity
+// NGDe2 redirect
+:page-moved-from: /midpoint/architecture/concepts/relaxed-referential-integrity/
+:page-wiki-name: Relaxed Referential Integrity
+:page-wiki-id: 30245304
+:page-wiki-metadata-create-user: semancik
+:page-wiki-metadata-create-date: 2019-04-03T08:32:22.384+02:00
+:page-wiki-metadata-modify-user: semancik
+:page-wiki-metadata-modify-date: 2019-04-03T09:14:39.913+02:00
+
+
+== Introduction
+
+MidPoint xref:/midpoint/reference/schema/[data model] contains a lot of xref:/midpoint/reference/schema/object-references/[object references]. Object references are inherently uni-directional.
+A "holder" object points to "target" object.
+But the target object has no idea that it is a target of a reference.
+Therefore is the target is deleted, there may be a "dangling" reference pointing to it.
+MidPoint allows this situation.
+While such situations are not entirely normal and they should not normally appear in a well-maintained running system, midPoint is designed to handle such situations gracefully.
+MidPoint should not end up with an error if there is such a "dangling" reference.
+Such reference should be ignored, there may be a warning or such a reference is automatically cleaned up by a system when discovered.
+But there should not be any hard error.
+This is what we call _relaxed referential integrity_.
+
+
+== Motivation
+
+Relaxed referential integrity is a conscious design decision of midPoint (and also underlying "prism") data model.
+There are many reasons for this decision:
+
+* Relaxed integrity allows to import objects in any order.
+Import may process "holder" object before "target" process is present.
+This is not a problem with relaxed referential integrity.
+The reference is "dangling" for a brief moment during the import, but everything clicks into place few moments later when target object is imported.
+As objects are referenced by using xref:/midpoint/devel/prism/concepts/object-identifier/[OIDs], this mechanism is very reliable.
+If we chose strict referential integrity instead, then we will need to make sure import batches are properly ordered.
+And that may be a huge problem - especially in parallel, multi-threaded imports of huge data sets.
+And such ordering may not even be possible due to circular references.
+E.g. organizational structures or role hierarchies may be quite complex.
+And in addition to that there are archetypes, role ownership, approval and other relations between objects.
+While there must not be a circular reference in any individual part of these, combining all references may form a circular reference.
+This may completely prohibit ordered import of data with strict referential integrity.
+Therefore the decision was to go for relaxed referential integrity.
+
+* Relaxed integrity is more robust in case of administration mistakes.
+For example if a role is deleted by mistake.
+All the references to such role remain.
+Therefore is the role is added again (with the same OID) then almost no harm is done.
+In case of strict referential integrity we will need to remove all the references to a role when deleting the role.
+The role may be re-added later, but the references will be gone.
+This is not what we want.
+Therefore we have decided to go with relaxed referential integrity.
+
+* Relaxed integrity makes midPoint more efficient in a common case.
+The situations when we really need to check for referential integrity are extremely rare.
+Common case is that it is quite unlikely that a deleted object was a target of a reference - or at least a _meaningful_ reference.
+But even if it is a target, such reference won't work after the target is deleted.
+Therefore there is actually a very little sense to check for references every time an object is deleted.
+And not checking for references makes midPoint faster.
+And for the rare case when we really want to check for references the check may be implemented by xref:/midpoint/reference/roles-policies/policy-rules/[policy rules] (but there are limitations, see below).
+
+* MidPoint is designed to be self-healing.
+The very philosophy of midPoint is to fix the data if they are wrong.
+In the context of IDM this often means to fix the data in target system (provisioning resources).
+But midPoint takes this philosophy for its internal implementation as well.
+MidPoint will clean up dangling references at places, where we are sure that cleaning up is the right thing to do.
+For example midPoint will delete links to shadow objects that are no longer there.
+The reason is that shadows are often "expendable" objects that can easily be replaced.
+Links are less "expendable", but link to a missing shadow does not carry any meaningful information anyway as shadow OIDs are generated randomly.
+Therefore it does not cause any extra harm to delete a dangling link.
+This is not the case everywhere.
+E.g. midPoint will not delete a dangling assignment, as assignments are often targeted to objects with fixed OIDs.
+Therefore there is still a chance that such assignment may be fixed by resurrecting missing target object.
+
+
+== Best Practice
+
+The best approach is to avoid creating "dangling" references in the first place:
+
+* Do not delete xref:/midpoint/reference/resources/shadow/[shadows] if not needed.
+And if you delete shadows then run recompute/reconcile to clean up dangling links.
+Shadows are sometimes discarded, especially when experiment with midPoint configuration.
+And that is perfectly OK.
+Recompute or reconciliation should fix the resulting dangling links.
+However, in a stable system the shadows should not disappear without a good reason.
+And if shadow disappears as a reaction to a deleted account, proper setup of xref:/midpoint/reference/synchronization/introduction/[synchronization mechanisms] will make sure that the links are properly removed.
+
+* Apply proper practices to deal with xref:/midpoint/reference/concepts/object-lifecycle/[lifecycle] of objects that are target of assignments.
+Roles and orgs should not disappear without any trace.
+Roles are usually deprecated before they disappear.
+Then they are archived, which makes then inactive.
+And archived roles may even remain assigned to the users for posterity.
+Similarly orgs are changed, replaced, renamed.
+But no user should be left in a limbo, with his assigned org just disappeard.
+Proper organizational management practices should be applied.
+
+* In case that a big administrative change is made, it is usually better to go through full unassign/assign cycle.
+I.e. first fix the assignments, then remove the targets.
+This will ensure that any privileges that were given by the targets are properly deprovisioned.
+xref:/midpoint/reference/misc/bulk/[Bulk actions] are often a very useful tool in such cases.
+
+* There are cases when we want to prohibit deletion of a target in case that it has assignees.
+xref:/midpoint/reference/roles-policies/policy-rules/[Policy rules] are mechanism that is designed to take care of that.
+However, there still may be some limitations.
+Please see the xref:/midpoint/reference/roles-policies/policy-rules/[Policy Rules] page for the details.
+In case that required functionality is missing please consider purchasing xref:/support/subscription-sponsoring/[midPoint platform subscription].
+
+
+== See Also
+
+* xref:/midpoint/reference/schema/object-references/[Object References]
+
+* xref:/midpoint/reference/schema/[Data Model]
+
+* xref:/midpoint/reference/roles-policies/policy-rules/[Policy Rules]

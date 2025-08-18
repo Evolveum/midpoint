@@ -1,0 +1,194 @@
+= Consistency Model
+// NGDe2 redirect
+:page-moved-from: /midpoint/architecture/concepts/consistency-model/
+:page-wiki-name: Consistency Model
+:page-wiki-id: 655370
+:page-wiki-metadata-create-user: semancik
+:page-wiki-metadata-create-date: 2011-04-29T11:47:43.258+02:00
+:page-wiki-metadata-modify-user: peterkortvel@gmail.com
+:page-wiki-metadata-modify-date: 2016-02-20T15:39:52.404+01:00
+
+
+== Weak Consistency
+
+Generally speaking, MidPoint relies on _weak consistency model_.
+MidPoint is not transactional in an ACID sense, MidPoint does not guarantee that the system will be consistent all the time.
+Strong consistency is unfortunately an unrealistic requirement for most integration systems.
+This is even stronger in identity management systems.
+
+MidPoint consistency model is similar to the LDAP model.
+There are no transactions.
+However, operations on a single object are usually atomic and there may be delays in propagating changes to the target system (external resource).
+
+MidPoint will try to apply operations with the best consistency.
+Operation will be atomic, if it is possible to make them atomic.
+However, inconsistencies may happen.
+The code is prepared for this eventuality, and it must behave reasonably in such a case.
+
+
+== Mechanisms
+
+There are two mechanisms for improving data consistency: the relative change model and the optimistic locking mechanism.
+
+
+=== Relative Change Model
+
+Changes to the objects are always be presented in a relative fashion - in a form of a _delta_.
+Any change defines only the items that were changed, it does not specify the data that was left unchanged.
+The relative changes are easy to merge, and in many cases provide acceptable consistency without the need for locking.
+
+We assume that all the data in midPoint system will be represented as Prism data structures, mosly as _objects_.
+The objects have _items_ which we consider to be the smallest piece of information that we work with.
+(See xref:/midpoint/reference/schema/[Data Model] for more details).
+Objects can be created and deleted, item values can be added, removed or replaced.
+But we do not support changing individual parts of an item value.
+E.g. new value _bar_ for item _foo_ can be added.
+However, to change the value _bar_ to _baz_ it is needed to remove value _bar_ and add value _baz_. We do not support replacing of a single character in the value, changing sub-elements in the item values, or any similar operation.
+
+There are three operations that implement changes:
+
+* *Add object* operations will add new objects.
+This means adding a new complete object with an identifier and property values.
+This operation should fail if the object already exists.
+
+* *Modify object* will change existing objects by modifying some of their property values.
+It has three sub-operations.
+All these sub-operations work on a specific property of an object.
+
+** *Add item values* sub-operations will add new values to the existing values of an item.
+They will not change any of the existing values.
+
+** *Remove item values* sub-operations will remove specified values from the existing values of an item.
+It will not change other existing values.
+
+** *Replace item values* sub-operations will remove all the existing values of an item and replace them with a new set of values.
+This operation should be used with care (see below).
+
+
+* *Remove object* operations will remove objects.
+
+
+All operations should be implemented as atomic oprations if possible.
+That means the operation must either succeed and make the changes durable or must fail without applying any changes.
+There must not be any intermediary state after the operation finishes and the intermediary state must not be visible to other operations even if the operation is still in progress.
+Such atomicity can ususally be achieved on lower layers of the system.
+For example, modification of data in relational database can be usually protected by transactions or similar locking mechanisms.
+Therefore implementations of repository component can provide atomicity.
+However, on the _provisioning_ and _model_ layers, it is usually not possible to provide full atomicity.
+E.g. changing an account in a remote cloud application by using REST service does not usually provide any consitency gurantees, therefore connector cannot guarantee atomicity, which means provisioning subsystem cannot guarantee atomicity, which also means that model subsystem cannot guarantee full atomicity.
+
+Relative changes are sufficient for many use-cases in the identity management field.
+For example adding a new group _foo_ to a user is a single _add property value_ operation on property _groups_ with value of _foo_. Such operation will natively merge with other similar operations.
+E.g. if another administrator is adding group _bar_ to the same user, the two _add property value_ operations will have the same result no matter in what order they are executed.
+
+
+Relative change model is not a panacea.
+It fails in a case of multiple conflicting changes.
+For example, it will fail if one operation adds the value _foo_ and another one removes the value _foo_ from the same property.
+In such a case the order of operations is important.
+Similar situation can be observed if two or more operations add value to a single-valued property.
+The client invoking the operations must be aware of the limits of relative change model and handle conflicts and errors accordingly.
+However, the consistency level provided by automatic merging of operations is usually sufficient.
+In the rare case that a stronger consistency is required, the optimistic locking mechanism (described below) should be used.
+
+== Notes
+
+NOTE: This section may be outdated, it may need review.
+
+The order of operations in the "diff algebra" sometimes matters.
+Therefore the results of (A patched-by delta1) patched-by delta2 may be different than (A patched-by delta2) patched-by delta1.
+But I argue that is does not really matter in most cases, that the usual case will end up as expected and the unusual case is indeterminable anyway.
+This is kind of conjecture rather than a theory, so any feedback is mostly appreciated (as usual).
+
+Let's describe that using examples of usual IDM cases:
+
+Example 1: Roles
+
+Change 1: Adding role "foorole" to "foobaruser".
+Let's assume that this is a modification of property "role", adding a new value of "foorole" (real case is a bit more complex) +
+ Change 2: Adding role "barrole" to "foobaruser".
+This would be modification of property "role", adding a new value of "barrole".
+
+If these two changes are applied in any order, the result is still the same (assuming that "role" property is unordered, which is one important reasons to have unordered multivalued properties).
+This is a very common case in IDM.
+
+Example 2: Changing department
+
+Change 1: Changing users organizational unit to "underground".
+Let's assume this is modification of property "ou" to replace all existing values with value "underground". +
+ Change 2: Changing users organizational unit to "board".
+Modification of property "ou" to replace all existing values with value "board".
+
+This clearly depends on the order that the operations will be executed.
+The operation that will be applied last will "win" and persist, the other will be "lost".
+Yet, this is exactly what is expected.
+If the two changes happen in a very different times, that's exactly what is expected.
+(note that "very different times" may actually mean just seconds away).
+If the operations are executed almost at the same moment, it is usually a failure of business logic and has to be manually fixed anyway.
+Does it really make sense to promote and demote an employee at the same time?
+
+As a rule of thumb, the multivalued properties should be modified using "add" and "delete" modification types.
+Single-valued properties should be modified using "replace".
+
+In case we need stronger consistency we may still use optimistic locking.
+Yet, I just cannot imagine any case in IDM where that would be needed.
+
+If we need even more "consistency" we may explore Operational Transformation (OP) method.
+But I think that is an overkill, at least for now.
+
+Guaranteed message ordering is tricky.
+That assumes we have a single reliable source of ordering.
+This is usually an (ACID) database, but such database will happily shut itself down once it looses quorum, therefore sacrificing availability.
+Do we want that? And how do we assure ordering of changes coming from external sources (synchronization).
+If we sacrifice availability, we can order them according to the time they arrive to IDM.
+But, it is the "real" order? Could not the messages be reordered before they reach IDM? If that is possible, then the "strongly consistent" ordering may not make any sense.
+
+I think it is simpler to just admit that we cannot guarantee fine-grain message ordering and that the timestamp is the best mechanism we have.
+I also speculated above that a conflicting messages very close to each other (time-wise) is a problem anyway.
+Fine-grain message reordering will not make it worse.
+
+I would rather say: anybody generating a diff should pretty much know what he's diffing.
+And I think that is a fair assumption to make.
+Just think about where in midPoint we really need diff:
+
+* GUI.
+This is displaying the properties, therefore it has to know what the rich XML structure means and therefore know how to make a "smart" diff.
+One exception may be debug pages, "raw" XML is displayed here.
+But that is not critical for "ACID".
+Even if we create unnecessary change here, nothing bad happens.
+
+* Staging.
+It is working with the knowledge of the model, therefore it knows quite well what it is diffing.
+Also we have been thinking that it will in fact remember the changes made to non-trivial properties instead of just diffing XMLs.
+
+* Provisioninig: "diffing" the changes from resources that cannot detect changes themselves and always send the current absolute state (e.g. DB table).
+But the provisioning pretty much knows what is in the properties.
+And if provisioning does not know, then we just cannot hope that any other component will know it better than provisioning.
+So there needs to be custom logic for it anyway.
+
+Issues that were not mentioned here:
+
+* Now we have kind of convention (black magic) to determine what is a property.
+This makes it difficult for example to write generic repository implementation or the diff code in staging.
+This should be improved.
+
+* How to detect conflicts? E.g. changes that were expected to be merged and were not merged? Can we have conditional operations? Will it be supported by resources? Probably not.
+Anyway, how to detect the "conflicts" and handle them manually?
+
+* There are still "window of risk" in some cases.
+E.g. "default" expression should only set new value if a value does not exist yet.
+This needs two operations (read and write).
+As resources does not support transactions, this may fail (e.g. something setting a value between read and write).
+Is it a problem at all? If it is, how to improve that (at least for resources that support transactions or some kind of locking)?
+
+* Can this model be formalized somehow?
+
+== Alternatives
+
+Alternative approach is an absolute change model: read all values of properties, modify them and set all new values of the property.
+Such approach is used by some existing IDM systems and it is inherently problematic.
+IDM business logic often contains long-running approval processes.
+If there is such change pending in the system (e.g. awaiting approval), not other change to the property is possible.
+This approach would create a bottleneck in the system, especially for frequently-used properties such as _roles_. The problem of absolute change model is that the order of operations on a single property is important, therefore the property (or the entire object) must be locked to provide reasonable degree of consistency.
+Absolute change model is possible even in our solution by using the _replace property value_ operation.
+Therefore we will try to *avoid* absolute change model whenever possible.

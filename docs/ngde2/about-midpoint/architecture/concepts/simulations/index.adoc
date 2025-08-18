@@ -3,6 +3,8 @@ midpoint-feature: simulation
 doc-type: intro
 ---
 = Simulations
+// NGDe2 redirect
+:page-moved-from: /midpoint/reference/simulation/
 :page-toc: top
 :page-since: "4.7"
 :page-upkeep-status: green
