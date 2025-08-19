@@ -18,7 +18,7 @@ The deprecation is not relevant for AssignmentType.
 This docs page is focused to deprecated usage of subtype - usage for ObjectType.
 ====
 
-MidPoint has several built-in object types such as xref:/midpoint/reference/roles-policies/rbac/[roles], xref:/midpoint/reference/org/organizational-structure/[orgs], and xref:/midpoint/reference/misc/services/[services].
+MidPoint has several built-in object types such as xref:/midpoint/reference/roles-policies/roles/rbac/[roles], xref:/midpoint/reference/org/organizational-structure/[orgs], and xref:/midpoint/reference/misc/services/[services].
 Those object types may look innocent at the first sight.
 They look like ordinary concepts that almost any other IDM system has.
 But there is much more under the surface.
@@ -53,7 +53,7 @@ The purpose of subtype is to be able to quickly look for objects of a particular
 Therefore it has to be simple to be efficiently indexed and processed even in big midPoint deployments.
 
 This also means that subtype alone cannot define all the complexities of behavior set for individual object types.
-Therefore subtype is often combined with xref:/midpoint/reference/roles-policies/metaroles/policy/[metaroles]. Metaroles are a very efficient mechanism to specify common behavior and policies for groups of objects.
+Therefore subtype is often combined with xref:/midpoint/reference/roles-policies/policies/metaroles/policy/[metaroles]. Metaroles are a very efficient mechanism to specify common behavior and policies for groups of objects.
 
 == See Also
 
@@ -61,6 +61,6 @@ Therefore subtype is often combined with xref:/midpoint/reference/roles-policies
 
 * xref:/midpoint/reference/schema/archetypes/[Archetypes]
 
-* xref:/midpoint/reference/roles-policies/metaroles/policy/[Using Metaroles for Policy Configuration]
+* xref:/midpoint/reference/roles-policies/policies/metaroles/policy/[Using Metaroles for Policy Configuration]
 
 * xref:/midpoint/reference/synchronization/generic-synchronization/[Generic Synchronization]

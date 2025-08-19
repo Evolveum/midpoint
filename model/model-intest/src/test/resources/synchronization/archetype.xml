@@ -1,0 +1,27 @@
+<!--
+  ~ Copyright (C) 2010-2025 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+<archetype oid="0e36e6a3-9b73-488d-80aa-923f86f6210c"
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
+        xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-3">
+
+    <name>Employee</name>
+    <assignment>
+        <assignmentRelation>
+            <holderType>UserType</holderType>
+        </assignmentRelation>
+    </assignment>
+    <inducement>
+        <construction>
+            <resourceRef oid="00eb54b9-9436-4e62-a598-248668b7c36f" type="ResourceType"/>
+            <kind>account</kind>
+            <intent>default</intent>
+        </construction>
+        <focusType>UserType</focusType>
+    </inducement>
+</archetype>

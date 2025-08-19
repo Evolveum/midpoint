@@ -2646,6 +2646,22 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
         assertThat(result).extracting(opex -> ObjectTypeUtil.getParentObject(opex).getName().getOrig())
                 .containsExactly("user-3", "user-2", "user-2");
     }
+
+    //covers #10682
+    @Test
+    public void test692SearchErrorOperationExecutionForTaskCheckOwnerOperationExecutionExists() throws SchemaException {
+        SearchResultList<OperationExecutionType> result = searchContainerTest(
+                "with errors related to the task", OperationExecutionType.class,
+                f -> f.item(OperationExecutionType.F_TASK_REF).ref(task1Oid)
+                        .and()
+                        .item(OperationExecutionType.F_STATUS).eq(OperationResultStatusType.FATAL_ERROR,
+                                OperationResultStatusType.PARTIAL_ERROR, OperationResultStatusType.WARNING));
+
+        assertThat(result).extracting(opex -> ((UserType) ObjectTypeUtil.getParentObject(opex)).getOperationExecution())
+                .isNotNull();
+        assertThat(result).extracting(opex -> ((UserType) ObjectTypeUtil.getParentObject(opex)).getOperationExecution().size())
+                .hasSizeGreaterThan(0);
+    }
     // endregion
 
     // region various real-life use cases

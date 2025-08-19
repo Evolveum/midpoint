@@ -9,8 +9,8 @@
 
 xref:/midpoint/reference/synchronization/introduction/[Synchronization] mechanism makes sure that the state of accounts corresponds to the state of the user that owns them with respect to the configured policies.
 For this to work properly there needs to be a way how to set which user owns which account.
-Account xref:/midpoint/reference/roles-policies/assignment/assigning-vs-linking/[linking] is used as a primary mechanisms for this.
-The links are created automatically when account is created as a consequence of user modification (e.g. a role is xref:/midpoint/reference/roles-policies/assignment/[assigned] to the user).
+Account xref:/midpoint/reference/roles-policies/roles/assignment/assigning-vs-linking/[linking] is used as a primary mechanisms for this.
+The links are created automatically when account is created as a consequence of user modification (e.g. a role is xref:/midpoint/reference/roles-policies/roles/assignment/[assigned] to the user).
 
 However, there may be accounts that existed before the IDM solution was deployed.
 Or there may be accounts that were created outside midPoint.
@@ -62,7 +62,7 @@ The result of correlation and confirmation expression does not directly means li
 The result simply determines xref:/midpoint/reference/synchronization/situations/[synchronization situation] of the account.
 The synchronization policy determines what will be the actual reaction.
 The combined correlation and confirmation expression should return `true` for at most one user.
-That will result in `unlinked`xref:/midpoint/reference/synchronization/situations/[synchronization situation]. The usual reaction to this situation is that such user and the account will be xref:/midpoint/reference/roles-policies/assignment/assigning-vs-linking/[linked]. However that may not necessarily be the case.
+That will result in `unlinked`xref:/midpoint/reference/synchronization/situations/[synchronization situation]. The usual reaction to this situation is that such user and the account will be xref:/midpoint/reference/roles-policies/roles/assignment/assigning-vs-linking/[linked]. However that may not necessarily be the case.
 Following table summarizes the resulting situation with respect to the number of correlation/confirmation results.
 
 [%autowidth]

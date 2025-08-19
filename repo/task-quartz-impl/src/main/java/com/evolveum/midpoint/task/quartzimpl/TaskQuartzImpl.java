@@ -1715,9 +1715,9 @@ public class TaskQuartzImpl implements Task {
     }
 
     @Override
-    public List<TaskRunHistoryType> getTaskRunHistory() {
+    public List<TaskRunRecordType> getTaskRunRecords() {
         synchronized (prismAccess) {
-            return new ArrayList<>(taskPrism.asObjectable().getTaskRunHistory());
+            return new ArrayList<>(taskPrism.asObjectable().getTaskRunRecord());
         }
     }
 

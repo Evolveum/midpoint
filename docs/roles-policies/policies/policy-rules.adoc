@@ -1,0 +1,355 @@
+---
+midpoint-feature: policy-rule
+doc-type: [ 'intro', 'config' ]
+compliance:
+    iso27001:
+        '5.15':
+            description: 'Use of policy rules to set up rules and constraints for access control model.'
+---
+= Policy Rules
+:page-wiki-name: Policy Rules
+:page-wiki-id: 24084558
+:page-wiki-metadata-create-user: semancik
+:page-wiki-metadata-create-date: 2016-11-28T14:26:19.638+01:00
+:page-wiki-metadata-modify-user: dantrob
+:page-wiki-metadata-modify-date: 2019-09-18T01:01:22.717+02:00
+:page-toc: top
+:page-upkeep-status: yellow
+:page-upkeep-note: Some TODOs here
+:page-moved-from: /midpoint/reference/roles-policies/policy-rules/
+
+
+== Introduction
+
+Policy rules provide a basic mechanism for many xref:/iam/iga/[identity governance] and xref:/midpoint/compliance/[regulatory compliance] features, as policy rules often define high-level business-oriented policies.
+Governance policies defined by policy rules are applied on top of the usual access control policies, such as feature:rbac[role-based access control (RBAC)].
+
+Policy rules allow you to define conditions (_policy constraints_) that are evaluated against users, roles, assignments, or other objects. 
+When these conditions are met or violated, midPoint can automatically respond with _policy actions_, such as triggering notifications, enforcing approvals, rejecting changes, annotating objects, or pruning assignments.
+
+Policy rules are a very powerful mechanism that covers a wide range of use cases.
+They are typically used to:
+
+* Enforce xref:/midpoint/reference/cases/approval/[approval] workflows for role assignments.
+* React to or restrict actions based on xref:/midpoint/reference/roles-policies/roles/role-lifecycle/[object lifecycle state]. 
+* Implement xref:/midpoint/reference/roles-policies/policies/segregation-of-duties/[segregation of duties] and other access governance policies.
+* Trigger notifications and compliance-related actions.
+
+
+== Structure
+
+Policy rules have the following parts:
+
+* *Name* and *description* of the rule are used for configuration management and diagnostics.
+The rule name will be displayed in the log files when the rule is processed.
+
+* *xref:/midpoint/reference/schema/focus-and-projections/[Focal object]* that the rule applies to.
+This defines the object that is being changed.
+For example, this can be the user who receives a new assignment, or it can be the role that is being created.
+
+* *Target object* (optional).
+This is used when xref:/midpoint/reference/roles-policies/roles/assignment/[assigning] the rule.
+The target object represents the target of the assignment, which is usually a role, org, or a service.
+
+* *Condition* (optional) when the rule should be applied.
+If the condition is not specified it is assumed to be true.
+
+* *<<policy_constraints,Policy constraints>>* specify when the rule is triggered.
+For example, the rule may be triggered when a role is assigned, when the role is changed, when the role is not assigned to any user or when it is assigned to too many persons and so on.
+
+* *<<object_marks,Object mark reference>>* (optional) points to an feature:object-mark[object mark] which marks violation of the rule.
+Affected object is marked in the repository, which can be used for analytic and reporting purposes.
+
+* *<<policy_actions,Policy actions>>* specify the actions that are to be taken when the rule is triggered.
+The actions may range from strong enforcement of the rule (i.e. prohibit the operation) through xref:/midpoint/reference/cases/approval/[Approval] to mild actions such as notifications.
+
+Some of these parts may be implicit.
+For example, if the rule is defined as a xref:/midpoint/reference/roles-policies/policies/metaroles/gensync/[high-order inducement in the metarole], the focal object or target are implicit and do not need to be explicitly specified.
+
+== Application
+
+Policy rules are used to implement a wide variety of mechanisms, some of which may be required for ISO27001 compliance:
+
+* xref:/midpoint/reference/cases/approval/[Assignment approvals]: policy rules may be used to change the default assignment approval schemes in a very flexible and scalable fashion.
+
+* xref:/midpoint/reference/roles-policies/roles/role-lifecycle/[Role lifecycle management]: policy rules may be used to enforce approvals of new roles before they are used in production.
+They may be used to approve changed role definitions, etc.
+
+* xref:/midpoint/reference/roles-policies/policies/segregation-of-duties/[Segregation of duties]: You can define exclusion constraints that ensure that conflicting roles (such as "Developer" and "Deployer") are not assigned to the same user.
+Violations can trigger logging, corrective actions, etc.
+
+* xref:/midpoint/reference/roles-policies/policies/identity-governantcCompliance reporting: policy rules may be used to set feature:object-mark[marks] in the affected objects.
+Marks may be used in reports to identify objects that violate compliance rules, to report the percentage of compliant vs non-compliant objects and so on.
+
+* Access control based on user clearance: combined with _classifications_ and _clearances_, policy rules can restrict access to sensitive systems or applications unless a specific training, screening, or NDA conditions are met.
+This is especially useful in regulated environments (e.g. healthcare, finance, government).
+
+* Temporal conditions: Rules can enforce time-sensitive conditions, such as allowing assignments only during specific periods, or delaying notifications until after a grace period.
+For example, you may want to give contractors access to a system only for a 3-month period.
+
+* Identity risk scoring: Based on a "risk score", you can trigger additional governance for your high-risk users.
+For example, to grant access to high-risk users (i.e. users in more sensitive positions), you may require additional audit flags or higher approval levels.
+
+* Flexible notifications, ad-hoc re-certification and other governance and compliance features that are planned for future midPoint versions.
+
+== Rule Content
+
+[[policy_constraints]]
+=== Policy Rule Constraints
+
+[TIP]
+.TODO
+====
+This section needs to be expanded.
+However, documentation work is similar to the development work in that it takes time and that it needs funding.
+
+If you are midPoint link:https://evolveum.com/services/[subscriber], you can request that we complete this section and we will do that as soon as possible.
+Or you may use the option to xref:/support/subscription-sponsoring/[sponsor] completion of midPoint documentation.
+====
+
+Policy rule constraints are conditions that determine when a policy rule should be activated.
+
+Rather than acting directly, policies first evaluate their constraints, and only if those constraints are met, the rule triggers the defined action, such as removing a conflicting role, requiring an approval, etc.
+
+Policy rule constraints can take various forms.
+Some evaluate the state of the user or object, such as the lifecycle status or specific attributes, while others may detect role conflicts, assignment changes, or transitions between states.
+
+Policy constraints are convenient in scenarios such as segregation of duties, dynamic role eligibility, user offboarding, or regulatory compliance, where conditions vary depending on the user's attributes, history, or your existing role structure.
+
+.Example policy constraint
+[source,xml]
+----
+<policyRule>
+    <name>Limit number of assigned licenses</name>
+    <policyConstraints>
+        <maxAssignees>
+            <multiplicity>5</multiplicity>
+        </maxAssignees>
+    </policyConstraints>
+    <policyActions>
+        <enforcement/>
+    </policyActions>
+</policyRule>
+----
+
+For more examples of policy constraints, see xref:/midpoint/reference/roles-policies/policies/policy-rule-examples/[policy rule examples].
+
+
+==== Using Multiple Policy Rule Constraints
+
+If you specify multiple constraints within one policy rule, the AND operator is assumed between them.
+
+This means that all such constraints must be satisfied for the rule to be triggered.
+This is a convenient way to cover overlapping time intervals, modifications of several properties at the same time and so on.
+However, this may be counter-intuitive for some cases, such as exclusion constraints (see an xref:/midpoint/reference/roles-policies/policies/policy-rule-examples.adoc#prevent-role-assignment[exclusion example]), even though this approach makes complete sense even in those situations.
+
+The logical AND operator between exclusions may be used to implement a "triangular" exclusion and other advanced exclusions schemes.
+
+If you want to use the OR operator instead, you need to put your individual constraints into separate policy rules.
+As policy rules are triggered individually, your constraints will then be processed as if there was an OR operator between them.
+
+
+[[object_marks]]
+=== Object Marks
+
+feature:object-mark[Object marks] indicate the result of a policy rule execution.
+Object marks are set on the focal object affected by the triggered rule.
+
+Marks can be used to locate objects for which the rule was triggered, which are usually the objects that violate a policy.
+
+See xref:/midpoint/reference/roles-policies/policies/gradual-policy-enforcement/[] for an example usage of marks with policy rules.
+
+.Policy situation
+NOTE: MidPoint 4.8 and earlier used `policySituation` instead of object marks.
+The use of `policySituation` is deprecated and strongly discouraged.
+
+[[policy_actions]]
+=== Policy Actions
+
+The action part defines what to do when the rule is triggered.
+There are several options:
+
+* `enforce`: Enforcement means that no violations of the rule are allowed.
+Any attempt to violate the rule will end in an error.
+This is an action that strictly enforces the policy.
+
+* `prune`: Pruning means that any conflicting assignments are removed (pruned).
+The removal of the conflicting assignments is automatic and silent. It will not be subject to approvals or other policy constraints.
+This mechanism can be used for example to implement a set of roles where only one of the roles can be assigned at a time.
+When a new role is assigned the existing roles that are in conflict with the new role will be unassigned.
+
+* `approval`: Approval means that the request will be subject to an additional approval.
+The approver may decide whether to allow violations of the rule.
+If the operation is approved, then it proceeds.
+
+* `record`: Violation of the rule will be recorded using a feature:object-mark[mark].
+The creation of the mark is the only effect of the rule violation.
+The operation will proceed and the rule will not affect it.
+Reporting violations is convenient for gradually enforcing policies.
+
+* `certification`: The object will be scheduled for a certification campaign after the operation is done.
+This action works with certification campaigns.
+Therefore, it is ideal for actions that are frequent and can occur on large number of objects.
+Even though campaigns cannot be started immediately, they are an efficient method how to handle mass decisions.
+
+* `notification`: Notifications are sent at the end of operations.
+
+* `scriptExecution`: Executes a script (action).
+The operation will proceed, script(s) are executed at the end of operations.
+
+* `suspendTask`: Stops an action.
+This action stops the operation after n executions and results in an error.
+
+// How do you define the "n" number of executions?
+
+== Rule Definition
+
+The policy rules can be defined at several places in the system.
+Each definition method applies to different focal/target objects and has different manageability and scalability properties.
+However, all the rules are evaluated in the same way regardless of the specific method of their definition.
+
+Policy rules can be defined:
+
+* <<global_pr,Globally>>
+* <<direct_pr,Directly>>
+* <<metarole_pr,In policies and metaroles>>
+
+[[global_pr]]
+=== Global Policy Rules
+
+Policy rules can be defined in the xref:/midpoint/reference/concepts/system-configuration-object/[system configuration object].
+In this case, the rule is evaluated for every operation, and it applies to all objects that are matched by the rule focus and target selectors.
+This method of rule specification has a global scope, and therefore the administrator can have high confidence that the rule is applied to all objects to which it should be applied.
+However, it may have scalability impact if not used properly.
+Evaluation of the focus and target selectors is usually very fast, therefore a reasonable number of global rules with simple selectors should have only negligible impact on system performance.
+However, large number of rules with complex selectors and conditions may significantly impact the performance.
+
+The global policy rule is defined in a system configuration as follows:
+
+[source,xml]
+----
+<systemConfiguration>
+    ...
+    <globalPolicyRule>
+        <name>immutable-role</name>
+        <policyConstraints>
+            <modification>
+                <operation>modify</operation>
+            </modification>
+        </policyConstraints>
+        <policyActions>
+            <enforcement/>
+        </policyActions>
+        <focusSelector>
+            <type>RoleType</type>
+            <filter>
+                <q:text>riskLevel = "high"</q:text>
+            </filter>
+        </focusSelector>
+    </globalPolicyRule>
+    ...
+</systemConfiguration>
+----
+
+This rule applies to all roles that have their risk level set to `high`.
+The rule _enforces_ the _modification_ constraint, which prohibits any role modification.
+An attempt to modify such a role will result in an error (policy violation).
+
+[[direct_pr]]
+=== Direct Rule Definition
+
+Policy rules may also be defined directly in the objects to which they apply.
+In this case, the rules are defined in assignments:
+
+[source,xml]
+----
+<role>
+    <name>Immutable role</name>
+    <assignment>
+        <policyRule>
+            <name>immutable-role</name>
+            <policyConstraints>
+                <modification>
+                    <operation>modify</operation>
+                </modification>
+            </policyConstraints>
+            <policyActions>
+                <enforcement/>
+            </policyActions>
+        </policyRule>
+    </assignment>
+</role>
+----
+
+This is the same rule as in the previous case.
+The rule prohibits role modifications.
+The focal object is implicit in this case - it is the object that contains the rule.
+There is no need for an explicit focus selector.
+
+However, this method is not very practical as it may be difficult to manage large numbers of roles when rules are specified separately in every role.
+Therefore, this approach is not recommended for production use.
+The <<metarole_pr,metarole-base approach>> is recommended instead.
+
+[[metarole_pr]]
+=== Rule Definitions in Policies and Metaroles
+
+Policy rules can be defined in assignments, which means they can be taken to the meta-level using the usual midPoint mechanism of policies (and xref:/midpoint/reference/roles-policies/policies/metaroles/policy/[metaroles] in general).
+If all sensitive roles have the same policy/metarole assigned, then the rule can be easily defined in the policy/metarole as a xref:/midpoint/reference/roles-policies/policies/metaroles/gensync/[high-order inducement].
+Like this:
+
+[source,xml]
+----
+<policy>
+    <name>Untouchable metarole</name>
+    <inducement>
+        <policyRule>
+            <name>untouchable</name>
+            <policyConstraints>
+                <modification/>
+            </policyConstraints>
+            <policyActions>
+                <enforcement/>
+            </policyActions>
+        </policyRule>
+    </inducement>
+</policy>
+----
+
+In this case, the policy rule is placed in an inducement, *not* in an assignment.
+Therefore, the rule does not apply to the policy object where it is defined, instead it applies to the roles that have the policy assigned.
+This is a simple and scalable way to define policies that apply to selected roles, organizational hierarchies, services and so on.
+This approach is often combined with feature:information-classification[classifications], clearances and other feature:policy-concept[policy objects].
+feature:archetype[Archetypes] can also be used as metaroles to apply policy rules.
+
+See xref:/midpoint/reference/roles-policies/policies/metaroles/policy/[] page for more details about the metarole mechanism.
+
+== Policy Rule Exceptions
+
+MidPoint has a mechanism to support _exceptions_ from policy rules.
+These can help you cover situations when you are using xref:/midpoint/reference/roles-policies/policies/segregation-of-duties/[Segregation of Duties] policies (SoD) but want to allow users to have specific conflicting roles for some reason.
+
+If you only allowed assigning conflicting roles by overriding the policy, the conflicting assignment would appear in every compliance report.
+Also, the approver would be asked for re-approval after every minor change in the assignment.
+
+In order to remember the decision to suppress a policy rule, midPoint supports _exceptions_ from policy rules.
+
+Policy exceptions are stored in the assignments that triggered the respective policy rule.
+As long as an exception is stored there, the referenced policy rule is deactivated for that specific user and that specific assignment.
+The rule will not be subject to re-approvals, it will not be raised as an issue in compliance reports and so on.
+The exceptions information can then also be used to report approved rule exceptions, to re-certify and so on.
+
+== See Also
+
+* xref:/midpoint/reference/roles-policies/roles/role-lifecycle/[Role Lifecycle]
+
+* xref:/midpoint/reference/cases/approval/[Approval]
+
+* xref:/midpoint/reference/roles-policies/policies/segregation-of-duties/[Segregation of Duties]
+
+* xref:/midpoint/reference/roles-policies/policies/identity-governance-rules[]
+
+* xref:/midpoint/reference/roles-policies/roles/rbac/radio-button-roles/[Radio Button Roles]
+
+* xref:/midpoint/reference/roles-policies/policies/gradual-policy-enforcement/[]
+
+* xref:/midpoint/reference/roles-policies/policies/metaroles/policy/[]

@@ -22,7 +22,6 @@ import com.evolveum.midpoint.schema.TaskExecutionMode;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.simulation.ExecutionModeProvider;
 import com.evolveum.midpoint.schema.statistics.StatisticsCollector;
-import com.evolveum.midpoint.schema.util.SimulationUtil;
 import com.evolveum.midpoint.schema.util.task.ActivityPath;
 import com.evolveum.midpoint.schema.util.task.ActivityStateUtil;
 import com.evolveum.midpoint.util.DebugDumpable;
@@ -980,7 +979,7 @@ public interface Task extends DebugDumpable, StatisticsCollector, ConnIdOperatio
 
     void setCleanupAfterCompletion(Duration duration);
 
-    List<TaskRunHistoryType> getTaskRunHistory();
+    List<TaskRunRecordType> getTaskRunRecords();
     //endregion
 
     //region Misc

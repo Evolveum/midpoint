@@ -11,6 +11,7 @@ import java.util.List;
 
 import com.evolveum.midpoint.gui.api.page.PageAdminLTE;
 
+import com.evolveum.midpoint.gui.api.util.GuiDisplayTypeUtil;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 
 import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
@@ -35,7 +36,6 @@ import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
 import com.evolveum.midpoint.gui.impl.prism.panel.PrismPropertyPanel;
 import com.evolveum.midpoint.gui.impl.util.GuiImplUtil;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.util.PolyStringUtils;
 import com.evolveum.midpoint.prism.xml.XsdTypeMapper;
 import com.evolveum.midpoint.schema.util.FormTypeUtil;
 import com.evolveum.midpoint.util.Holder;
@@ -55,32 +55,32 @@ public class DynamicFieldGroupPanel<O extends ObjectType> extends BasePanel<Pris
 
     private final List<AbstractFormItemType> formItems;
 
-    public DynamicFieldGroupPanel(String id, String groupName, IModel<PrismObjectWrapper<O>> objectWrapper, List<AbstractFormItemType> formItems, Form<?> mainForm, PageAdminLTE parentPage) {
+    public DynamicFieldGroupPanel(String id, FormItemDisplayType displayType, IModel<PrismObjectWrapper<O>> objectWrapper, List<AbstractFormItemType> formItems, Form<?> mainForm, PageAdminLTE parentPage) {
         super(id, objectWrapper);
         setParent(parentPage);
         this.formItems = formItems;
-        initLayout(groupName, formItems, mainForm);
+        initLayout(displayType, formItems, mainForm);
     }
 
     public DynamicFieldGroupPanel(String id, IModel<PrismObjectWrapper<O>> objectWrapper, @NotNull FormDefinitionType formDefinition, Form<?> mainForm, PageAdminLTE parentPage) {
         super(id, objectWrapper);
         setParent(parentPage);
         this.formItems = FormTypeUtil.getFormItems(formDefinition.getFormItems());
-        initLayout(getGroupName(formDefinition), formItems, mainForm);
+        initLayout(formDefinition.getDisplay(), formItems, mainForm);
     }
 
-    private String getGroupName(@NotNull FormDefinitionType formDefinition) {
-        if (formDefinition.getDisplay() != null) {
-            return formDefinition.getDisplay().getLabel().getOrig();
-        } else {
-            return "Basic";
-        }
-    }
-
-    private void initLayout(String groupName, List<AbstractFormItemType> formItems, Form<?> mainForm) {
+    private void initLayout(DisplayType displayType, List<AbstractFormItemType> formItems, Form<?> mainForm) {
         PageAdminLTE parentPage = WebComponentUtil.getPage(DynamicFieldGroupPanel.this, PageAdminLTE.class);
 
-        Label header = new Label(ID_HEADER, getString(groupName, (Object[]) null));
+        Label header = new Label(ID_HEADER, () -> {
+            if (displayType != null) {
+                String labelValue = GuiDisplayTypeUtil.getTranslatedLabel(displayType);
+                if (StringUtils.isNotEmpty(labelValue)) {
+                    return labelValue;
+                }
+            }
+            return "Basic";
+        });
         add(header);
 
         RepeatingView itemView = new RepeatingView(ID_PROPERTY);
@@ -90,7 +90,7 @@ public class DynamicFieldGroupPanel<O extends ObjectType> extends BasePanel<Pris
 
             if (formItem instanceof FormFieldGroupType) {
                 DynamicFieldGroupPanel<O> dynamicFieldGroupPanel = new DynamicFieldGroupPanel<>(itemView.newChildId(),
-                        formItem.getName(), getModel(), FormTypeUtil.getFormItems(((FormFieldGroupType) formItem).getFormItems()), mainForm, parentPage);
+                        formItem.getDisplay(), getModel(), FormTypeUtil.getFormItems(((FormFieldGroupType) formItem).getFormItems()), mainForm, parentPage);
                 dynamicFieldGroupPanel.setOutputMarkupId(true);
                 itemView.add(dynamicFieldGroupPanel);
                 continue;
@@ -157,11 +157,13 @@ public class DynamicFieldGroupPanel<O extends ObjectType> extends BasePanel<Pris
         }
 
         ItemDefinition.ItemDefinitionMutator itemDefMutator = itemWrapper.mutator();
-        if (PolyStringUtils.isNotEmpty(displayType.getLabel())) {
-            itemDefMutator.setDisplayName(displayType.getLabel().getOrig());
+        String labelValue = GuiDisplayTypeUtil.getTranslatedLabel(displayType);
+        if (StringUtils.isNotEmpty(labelValue)) {
+            itemDefMutator.setDisplayName(labelValue);
         }
-        if (PolyStringUtils.isNotEmpty(displayType.getHelp())) {
-            itemDefMutator.setHelp(displayType.getHelp().getOrig());
+        String helpValue = GuiDisplayTypeUtil.getHelp(displayType);
+        if (StringUtils.isNotEmpty(helpValue)) {
+            itemDefMutator.setHelp(helpValue);
         }
         if (StringUtils.isNotEmpty(displayType.getMaxOccurs())) {
             itemDefMutator.setMaxOccurs(XsdTypeMapper.multiplicityToInteger(displayType.getMaxOccurs()));

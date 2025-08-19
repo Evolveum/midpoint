@@ -113,7 +113,7 @@ public abstract class BasicDefinitionPanel<C extends Containerable>
                 super.onInitialize();
                 Component parent = get(
                         createComponentPath(
-                                ID_VALUE_FORM,
+                                ID_MAIN_CONTAINER,
                                 ID_VALUE_CONTAINER,
                                 ID_INPUT,
                                 VerticalFormDefaultContainerablePanel.ID_PROPERTIES_LABEL,
@@ -121,7 +121,7 @@ public abstract class BasicDefinitionPanel<C extends Containerable>
                 if (parent != null) {
                     parent.add(AttributeAppender.replace("class", "p-0 mb-0"));
                 }
-                get(ID_VALUE_FORM).add(AttributeAppender.remove("class"));
+                get(ID_MAIN_CONTAINER).add(AttributeAppender.remove("class"));
             }
 
             @Override

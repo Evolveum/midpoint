@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2022 Evolveum and contributors
+ * Copyright (C) 2010-2025 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -81,6 +81,9 @@ kind: PersistentVolumeClaim
 metadata:
   name: \${2}
   namespace: \${1}
+  annotations:
+    # mark for cleanup after 24h, if forgotten, see https://github.com/TwiN/k8s-ttl-controller
+    k8s-ttl-controller.twin.sh/ttl: "24h"
 spec:
   accessModes:
     - ReadWriteOnce
@@ -102,7 +105,13 @@ metadata:
   labels:
     app: \${2}-\${3}
     type: test
+  annotations:
+    # mark for cleanup after 24h, if forgotten, see https://github.com/TwiN/k8s-ttl-controller
+    k8s-ttl-controller.twin.sh/ttl: "24h"
 spec:
+  securityContext:
+    # oinstall group, this should avoid Cannot create directory "/opt/oracle/oradata/FREE"
+    fsGroup: 54321
   volumes:
     - name: pvc
       persistentVolumeClaim:
@@ -146,7 +155,7 @@ EOF
 }
 
 echo
-# 10 => 10Gi space, 5 is not enough for our tests and causes errors:
+# 20 => 20Gi space, 15 is not enough for our tests and causes errors:
 # ORA-00257: Archiver error. Connect AS SYSDBA only until resolved. (Oracle 23ai)
 # ORA-01691: unable to extend lob segment MIDPOINT.SYS_LOB... by 1024 in tablespace USERS
 createPVC jenkins test-db-${JOB_NAME}-${BUILD_NUMBER} 10 | tee ../logs-${JOB_NAME}-${BUILD_NUMBER}/dbpvc
@@ -276,7 +285,6 @@ EOF
             stage("build-with-tests") {
                 container('maven') {
                     sh """#!/bin/bash -ex
-                            export MAVEN_OPTS="-Xmx8g -Xms2g"
                             mvn -B -ntp -Dmaven.test.failure.ignore -P dbtest,-dist verify ${dbprops}
 
                             if [ "${verbose}" -ge 1 ]
@@ -290,7 +298,6 @@ EOF
                 container('maven') {
                     // -Xmx6g should fit into 8GB of RAM, 4g is on the edge for some tests
                     sh """#!/bin/bash -ex
-                            export MAVEN_OPTS="-Xmx8g -Xms2g"
                             mvn -B -ntp -Dmaven.test.failure.ignore -P extratest,-dist verify -rf testing ${dbprops} \
                                 -Dfailsafe.args="-Xms2g -Xmx6g -Duser.language=en --add-exports java.management/sun.management=ALL-UNNAMED"
 

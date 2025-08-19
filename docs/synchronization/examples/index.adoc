@@ -55,7 +55,7 @@ You can see that there are only identifiers, no data.
 ----
 
 The synchronization logic in the xref:/midpoint/architecture/archive/subsystems/provisioning/[provisioning subsystem] will issue a change notification that is picked up by the xref:/midpoint/architecture/archive/subsystems/model/[IDM model]. IDM model will try to figure out what's going on (so called _xref:/midpoint/reference/synchronization/situations/[situation]_, it is described in the second example below).
-In this case it simply means that the IDM model will check if the account has an _owner_, that means whether it is already xref:/midpoint/reference/roles-policies/assignment/assigning-vs-linking/[linked to a user]. This example assumes that it has an owner, so locating appropriate user object is straightforward.
+In this case it simply means that the IDM model will check if the account has an _owner_, that means whether it is already xref:/midpoint/reference/roles-policies/roles/assignment/assigning-vs-linking/[linked to a user]. This example assumes that it has an owner, so locating appropriate user object is straightforward.
 
 Following XML snippet shows a user object.
 It can be seen that there is appropriate `linkRef` (in 2.1.x versions `accountRef` is used instead) that points to the account shadow object provided above.
@@ -474,7 +474,7 @@ That mapping is marked as `weak` therefore it will be executed only if the `full
 Therefore this mapping will not be applied in our case, as the `fullName` attribute will be populated from the account using an `inbound` mapping in `schemaHandling`.
 
 More important aspect of the user template example above is the construction of an account assignment.
-The template specifies that the user should have an xref:/midpoint/reference/roles-policies/assignment/[assignment]. The assignment assigns an account to the user.
+The template specifies that the user should have an xref:/midpoint/reference/roles-policies/roles/assignment/[assignment]. The assignment assigns an account to the user.
 Therefore an account on the resource identified by OID `c0c010c0-d34d-b33f-f00d-333111111112` is assigned to the user and will be provisioned to he user.
 The `outbound` mapping of the `schemaHandling` part of the Resource definition will be used to set parameters for this account.
 
@@ -486,7 +486,7 @@ This situation is similar to the one described in the previous example.
 
 == RBAC
 
-xref:/midpoint/reference/roles-policies/rbac/[Role-based access control] gets processed in the _outbound_ phase.
+xref:/midpoint/reference/roles-policies/roles/rbac/[Role-based access control] gets processed in the _outbound_ phase.
 The mappings in roles are processed similarly to the outbound mappings and at almost the same time.
 Similar principles that apply to outbound mappings apply to roles as well.
 

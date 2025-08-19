@@ -376,7 +376,7 @@ public class TaskErrorsPanel extends AbstractObjectMainPanel<TaskType, TaskDetai
 
     private List<NamedIntervalPreset> createTaskRunNamedIntervals() {
         TaskType task = getObjectWrapperObject().asObjectable();
-        return task.getTaskRunHistory().stream()
+        return task.getTaskRunRecord().stream()
                 .map(r -> {
                     Long start = r.getRunStartTimestamp() != null ?
                             r.getRunStartTimestamp().toGregorianCalendar().getTimeInMillis() : null;

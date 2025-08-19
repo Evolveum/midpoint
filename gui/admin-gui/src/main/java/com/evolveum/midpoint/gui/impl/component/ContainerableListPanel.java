@@ -386,11 +386,7 @@ public abstract class ContainerableListPanel<C extends Serializable, PO extends 
 
             @Override
             protected WebMarkupContainer createButtonToolbar(String id) {
-                if (isPreview()) {
-                    return new ButtonBar<>(id, ID_BUTTON_BAR, ContainerableListPanel.this,
-                            (PreviewContainerPanelConfigurationType) config, getNavigationParametersModel());
-                }
-                return new ButtonBar<>(id, ID_BUTTON_BAR, ContainerableListPanel.this, createToolbarButtonsList(ID_BUTTON));
+                return createTableButtonToolbar(id);
             }
 
             @Override
@@ -461,6 +457,14 @@ public abstract class ContainerableListPanel<C extends Serializable, PO extends 
         itemTable.setShowAsCard(showTableAsCard());
 
         return itemTable;
+    }
+
+    protected WebMarkupContainer createTableButtonToolbar(String id) {
+        if (isPreview()) {
+            return new ButtonBar<>(id, ID_BUTTON_BAR, ContainerableListPanel.this,
+                    (PreviewContainerPanelConfigurationType) config, getNavigationParametersModel());
+        }
+        return new ButtonBar<>(id, ID_BUTTON_BAR, ContainerableListPanel.this, createToolbarButtonsList(ID_BUTTON));
     }
 
     private void onPagingChanged(ObjectPaging paging) {
@@ -1671,9 +1675,17 @@ public abstract class ContainerableListPanel<C extends Serializable, PO extends 
                 if (getObjectCollectionView().getPaging().getOrderBy() != null) {
                     orderPathString = getPrismContext().itemPathSerializer()
                             .serializeStandalone(paging.getOrderBy().getItemPath());
+                    if (StringUtils.isNotEmpty(orderPathString)) {
+                        //if there is some custom configuration in object collection, we need to apply it
+                        //noinspection unchecked
+                        ((SortableDataProvider<PO, String>) provider).setSort(new SortParam<>(orderPathString, ascending));
+                        return;
+                    }
                 }
             }
-            if (StringUtils.isEmpty(orderPathString) && columns != null) {
+
+            if (columns != null
+                    && (isCustomColumnsListConfigured() || ((SortableDataProvider<PO, String>) provider).getSort() == null)) {
                 for (IColumn<PO, String> column : columns) {
                     if (column instanceof AbstractExportableColumn) {
                         AbstractExportableColumn<PO, String> exportableColumn = (AbstractExportableColumn<PO, String>) column;

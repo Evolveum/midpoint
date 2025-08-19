@@ -21,6 +21,7 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.dialog.ConfirmationPanel;
+import com.evolveum.midpoint.web.component.util.Selectable;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.users.component.AssignmentInfoDto;
 import com.evolveum.midpoint.web.page.admin.users.component.DelegationTargetLimitationDialog;
@@ -321,13 +322,13 @@ public class DelegationEditorPanel extends AssignmentEditorPanel {
                     @Override
                     public Boolean getObject(){
                         return getModelObject().getPrivilegeLimitationList() != null
-                                && getModelObject().getPrivilegeLimitationList().size() > 0;
+                                && !getModelObject().getPrivilegeLimitationList().isEmpty();
                     }
 
                     @Override
                     public void setObject(Boolean value){
                         if (value){
-                            getModelObject().setPrivilegeLimitationList(privilegesListModel.getObject());
+                            getModelObject().setPrivilegeLimitationList(getSelectedPrivilegeList());
                         } else {
                             getModelObject().setPrivilegeLimitationList(new ArrayList<>());
                         }
@@ -661,5 +662,9 @@ public class DelegationEditorPanel extends AssignmentEditorPanel {
             }
             return "";
         };
+    }
+
+    private List<AssignmentInfoDto> getSelectedPrivilegeList() {
+        return privilegesListModel.getObject().stream().filter(Selectable::isSelected).toList();
     }
 }

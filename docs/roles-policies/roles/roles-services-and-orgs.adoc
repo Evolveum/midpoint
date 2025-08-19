@@ -1,0 +1,129 @@
+= Roles, Services and Orgs
+:page-wiki-name: Roles, Services and Orgs
+:page-wiki-id: 15859867
+:page-wiki-metadata-create-user: semancik
+:page-wiki-metadata-create-date: 2014-07-21T12:39:38.542+02:00
+:page-wiki-metadata-modify-user: semancik
+:page-wiki-metadata-modify-date: 2016-08-18T19:21:45.668+02:00
+:page-upkeep-status: yellow
+:page-moved-from: /midpoint/reference/roles-policies/roles-services-and-orgs/
+
+== Introduction
+
+MidPoint has three related concepts: roles, services and organizational units ("Orgs"). These concepts are designed to be used and re-used for wide variety of different purposes.
+Therefore they are very generic.
+And it is this generality that often causes confusion whether to use roles, services or orgs to achieve a particular goal.
+Therefore this page explains what roles, services and orgs have in common and how they are different:
+
+* *xref:/midpoint/reference/roles-policies/roles/rbac/[Roles]* are used to define _provisioning_ and _access control_ schemes.
+Roles give _privileges_ to users (or other objects).
+Roles enable users to do something that they would not be able to do without the role.
+Roles can be xref:/midpoint/reference/roles-policies/roles/rbac/[very flexible and dynamic]. There can be hierarchical roles, conditional roles, parametric roles, etc.
+Generally speaking roles can contain xref:/midpoint/reference/expressions/[mappings and expressions] to create a very dynamic structures.
+Roles can be personalized for each particular user, e.g. by using xref:/midpoint/reference/roles-policies/roles/assignment/[assignment parameters].
+
+* *xref:/midpoint/reference/misc/services/[Services]* are used to represent servers, mobile devices, printers, virtual machines, "things" (as in IoT) and other objects whose are not entirely users, orgs or roles.
+Each service can also behave as a role.
+You can use service to define provisioning and access control rules, but you can also provision the services itself.
+
+
+* *xref:/midpoint/reference/org/organizational-structure/[Orgs]* are used to _group_ users or other objects.
+Orgs can be used to create a functional organization trees.
+Orgs can be used to create flat project-like structures.
+Orgs can be used to have both of these structures at the same time.
+There can be several parallel structures.
+The structure of Orgs can be as complex as needed as long as it is an acyclic oriented graph.
+Orgs can also be used to group almost any type of objects.
+E.g. orgs can group resources to create a concept of an "application" or "domain of control".
+Orgs can also group all related objects (users, resources, roles, ...) into _tenants_ in multi-tenant systems.
+Orgs can be used to group roles to create role catalogs or sort the roles to categories.
+The Orgs are designed to be very efficient for grouping things, creating trees and hierarchies.
+However, there is price to pay.
+Maintaining orgs is slightly more resource-intensive than working with roles or services.
+
+So there is a simple rule of the thumb:
+
+* If you want to *give access or privilege* to the users use *roles*.
+
+* If you want to specify *service you are providing* for the users use *services*
+
+* If you want to *group objects* use *orgs*.
+
+Every org and service also behaves as a role (see below).
+Therefore if in doubt which one to use you should usually prefer an org.
+
+
+== Motivation
+
+There are many reasons why are midPoint roles and orgs designed in this particular way.
+Some of these are described below:
+
+* Roles cannot be used to group users.
+Roles are very dynamic.
+Especially if parametric and hierarchical roles are used at the same time.
+Roles can also be conditional, therefore a role may sometimes include another role - but not always.
+And this may depend on the way how the role is xref:/midpoint/reference/roles-policies/roles/assignment/[assigned] to a particular user.
+And it may also depend on current date and time (e.g. because of validity constraints or time-based mappings).
+However all of that flexibility has a drawback: it is extremely difficult to list all users that have a particular role.
+The reason is that we need to evaluate the particular setup, assignments, roles and sub-roles for each particular user to determine which roles the user has.
+This is what xref:/midpoint/reference/concepts/clockwork/clockwork-and-projector/[Clockwork and Projector] components do and it is quite a demanding calculation.
+And this calculation cannot be easily transformed to a database query.
+Therefore roles cannot be used to efficiently group people.
+This will be a disaster if we tried to do this in a deployment that manages couple of millions of users.
+
+* Orgs group objects.
+Orgs are designed to group objects efficiently.
+MidPoint xref:/midpoint/architecture/archive/subsystems/repo/[Repository Subsystem] maintains a high-performance application indexes (called _closure tables_) just to be able to search for the members of a particular org very efficiently.
+Even if the orgs are deep hierarchical structures and there are several parallel structures at the same time.
+This is designed to scale to a very large numbers of orgs and still be efficient.
+But this efficiency comes with a cost: the structure needs to be mostly static.
+There cannot be expressions that determine membership in an org three levels down the structure for each particular user.
+If there is such an expression then midPoint cannot efficiently maintain the indexes and the efficiency and scalability is lost.
+In fact there is hardly any place for expressions in the org structures.
+
+* Services describe servers, mobile devices, printers available to use by the users.
+
+
+== Delegated Administration
+
+Role structure and org structure are often used together in delegated administration configurations.
+In this case the role gives access to objects in a particular org.
+But in this case there are two objects that are needed to configure it:
+
+* A role (e.g. "call center operators") which allows the access.
+
+* An org that contains objects to which the access is allowed (e.g. "Example, Inc." org).
+
+
+== Orgs and Services Behave Like Roles
+
+There are times when both role-like flexibility and org-like efficiency is needed in a midPoint deployment.
+MidPoint cannot do the impossible so there is no way how to get all the features of roles and orgs at the same time.
+But midPoint can surely do miracles and there is a way how to get at least something.
+There is way how to connect role structure and the organizational structure.
+Every org can also behave as a role.
+Simply speaking it can have xref:/midpoint/reference/roles-policies/roles/assignment/assignment-vs-inducement/[inducements]. This can be used for multitude of purposes, e.g. to "automatically assign" roles for members of particular organizational unit or project.
+The same approach also applies to services.
+Services can also have inducements and they behave like roles.
+
+But remember:
+
+* Org groups people.
+And_ in addition to_ grouping people it can also specify access control and provisioning schemes.
+Therefore an org also behaves as a role.
+
+* Roles and services _cannot_ group people or other objects.
+They are not designed for that.
+Therefore a role or a service cannot behave like an org.
+
+* Role structure, service structure and org structure are separate.
+If a sub-org belongs to a super-org this does *not* mean that the sub-org automatically inherits all the roles of the super-org.
+
+
+== See Also
+
+* xref:/midpoint/reference/roles-policies/roles/rbac/[Advanced Hybrid RBAC]
+
+* xref:/midpoint/reference/org/organizational-structure/[Organizational Structure]
+
+* xref:/midpoint/reference/misc/services/[Services]

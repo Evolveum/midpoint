@@ -120,11 +120,11 @@ public class PreviewChangesTabPanel<O extends ObjectType> extends BasePanel<Mode
         if (!approvalsExecutionList.isEmpty()) {
             Task opTask = getPageBase().createSimpleTask(PageFocusPreviewChanges.class + ".createApprovals");      // TODO
             OperationResult result = opTask.getResult();
-            ObjectResolver modelObjectResolver = getPageBase().getModelObjectResolver();
             try {
                 for (ApprovalSchemaExecutionInformationType execution : approvalsExecutionList) {
                     approvals.add(ApprovalProcessExecutionInformationDto
-                            .createFrom(execution, modelObjectResolver, true, opTask, result)); // TODO reuse session
+                            .createFrom(execution, true, opTask, result,
+                                    PreviewChangesTabPanel.this.getPageBase())); // TODO reuse session
                 }
                 result.computeStatus();
             } catch (Throwable t) {

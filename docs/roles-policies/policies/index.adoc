@@ -1,0 +1,38 @@
+= Policies
+:page-nav-title: Policies
+:page-display-order: 350
+
+
+
+In midPoint, Policies are a core mechanism used to enforce governance, compliance, and operational rules across the Identity Governance and Administration (IGA) landscape.
+They define conditions and constraints that govern how users, roles, resources, and other entities interact within the system.
+Policies are used to ensure that access is granted in accordance with organizational rules, regulatory requirements, and best practices.
+They can be applied to a wide range of scenarios, including access control, segregation of duties (SoD), information classification, and lifecycle management.
+
+A common use case for using a policy in midPoint is to enforce access restrictions based on data classification.
+For example, consider an application that handles sensitive information and therefore requires elevated protection.
+You can classify this application as `secret`.
+You then define a policy to restrict access to all applications labeled as `secret`.
+This policy requires users to have a specific security training to access the `secret` applications.
+This ensures that users who have not completed the training requirement cannot be assigned a role that grants access to such applications.
+
+The primary data type used to represent policies in midPoint is the xref:/midpoint/reference/schema/policy.adoc[`PolicyType`].
+This data type is part of the midPoint schema and is used as a container for policy rules and other related configurations.
+
+Policy objects typically contain xref:policy-rules.adoc[policy rules] that are evaluated when certain conditions are met.
+These rules can enforce constraints, trigger actions, or generate alerts based on the defined conditions.
+The `PolicyType` also includes metadata such as the policy name, description, and other attributes that help in organizing and managing policies within the system.
+
+See how to:
+
+* xref:/midpoint/reference/roles-policies/policies/classification/[Configure policies]
+* xref:/midpoint/reference/roles-policies/policies/policy-rules/[Set up policy rules]
+* xref:/midpoint/reference/roles-policies/policies/applicable-policies/[Assign polices to roles in the midPoint user interface]
+
+Also see how the following concepts are implemented:
+
+* xref:/midpoint/reference/roles-policies/policies/metaroles/[Metaroles]
+* xref:/midpoint/reference/roles-policies/policies/gradual-policy-enforcement/[]
+* xref:/midpoint/reference/roles-policies/policies/segregation-of-duties/[]
+
+

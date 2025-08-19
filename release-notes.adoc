@@ -57,10 +57,12 @@ Overall, midPoint 4.9 is a major step from the past into the future.
 * bug:MID-10412[] Implemented configurable thresholds for task activities.
 * bug:MID-10496[] Task doesn't start at next scheduled time.
 * bug:MID-10414[] Page size global configuration for object collection views.
-* Compliance dashboard
+* bug:MID-10411[] Improved task run history errors search.
+* xref:/midpoint/reference/admin-gui/dashboards/compliance-dashboard/[Compliance dashboard]
 
 === Other Improvements
 
+* StartupConfiguration incorporates 'midpoint.' properties from Spring environment sources.
 * Implemented xrefv:/midpoint/reference/support-4.9/resources/attribute-caching/#_caching_passwords[shadow password caching], with the possibility of storing them in reversible encrypted form.
 * Improved handling of xrefv:/midpoint/reference/support-4.9/resources/resource-configuration/schema-handling/volatility/[volatile shadow attributes].
 * Update GUI views after changing of the archetype, that is used in the view. See bug:MID-9776[].
@@ -78,11 +80,14 @@ This can be used for approval of indirect role assignments and similar cases. Se
 * There are two new functions in midPoint function library for access to "governance" users (approvers/owners): `getRoleMemberUsers`, `getServiceMemberUsers`.
 * Use delta's "visualizer" used by GUI also in notifications and other improvements in notifications. See bug:MID-6112[], bug:MID-10633[], bug:MID-10632[], bug:MID-10635[], bug:MID-10372[], bug:MID-10634[], bug:MID-10636[].
 * Built-in archetypes for organizational structures and locations.
-* xref:/midpoint/reference/roles-policies/identity-governance-rules/[Compliance-related] marks (no classification, unowned, privileged access), object collections and policies.
-* xref:/midpoint/reference/roles-policies/privileged-access/[`Privileged access` classification] automatically sets `Privileged access` mark for directly affected roles and users.
+* xrefv:/midpoint/reference/master/roles-policies/policies/identity-governance-rules/[Compliance-related] marks (no classification, unowned, privileged access), object collections and policies.
+* xrefv:/midpoint/reference/master/roles-policies/policies/privileged-access/[`Privileged access` classification] automatically sets `Privileged access` mark for directly affected roles and users.
+* Updated various libraries, mainly: Spring Boot, Tomcat, Hibernate, PostgresSQL JDBC driver.
+* Add OAuth 2 credential flow to mail servers notification configuration
 
 === Other Bug Fixes
 
+* Fixed boolean column values for Quartz tables in Oracle 23 - "Quartz broken after DB upgrade". See bug:MID-10715[].
 * Fixed "Couldn't get assignments conflicts" error occurring during Request access. See bug:MID-10124[].
 * Fixed "No definition for item ... in outbound mapping for association" error. See bug:MID-10214[].
 * Fixed the issue with policy rules `minAssignees`/`maxAssignees` not being triggered. See bug:MID-9869[].
@@ -176,6 +181,30 @@ See bug:MID-9737[] and bug:MID-9986[].
 * Connid version was upgraded to 1.6.0.0. See bug:MID-10552[].
 * Fixed the error during saving the extension schema if there is ObjectReferenceType item. See bug:MID-10693[].
 * Fixed the search with upper case letters on the Projections panel. See bug:MID-10713[].
+* Fixed the initialization process of resource connector capabilities. See bug:MID-10644[], bug:MID-10676[].
+* Fixed the usage and application of the archetype filter within authentication definition. See bug:MID-10683[].
+* Fixed the reflexion of the custom system name on different pages. See bug:MID-10696[].
+* Fixed the query for the certification items while loading self dashboard page. See bug:MID-10753[].
+* Refactored container properties panel (e.g. object details page) not to wrap each property value field into a form.
+This reduced the number of the csrf fields which is sent by request after the form submitting.
+Also, increased the size of the http request header size to cope with big headers.
+*Important*: be aware of overriding total request size (e.g. header size or multipart parts) in your environment in case of using custom settings (e.g. in custom application.yml or through JVM arguments).
+The recommended values are: max-part-header-size: 768; max-part-count: 100.
+See bug:MID-10748[], .
+* Fixed "Select all" functionality in the assignment restriction popup while creating a delegation. See bug:MID-10757[].
+* Fixed loading and displaying the data on the Errors panel of the Task page. See bug:MID-10682[].
+* Fixed NPE on the Internals configuration page. See bug:MID-10749[].
+* Fixed "Matching rule" dropdown in Attribute override settings. See bug:MID-10710[].
+* Fixed 500 error while creating an application role with a lack of permission. See bug:MID-10778[].
+* Fixed intent dropdown on Accounts/Entitlements page to persist after navigation . See bug:MID-10697[].
+* Fixed default sort property for "My requests" widget on Self Dashboard page. See bug:MID-10772[].
+* Fixed authorization re-initialization during CompiledGuiProfile refresh functionality.
+Made a restructuring of the code.
+The goal is to decrease the time period between clearing the authorizations (and other privileges limitations) and filling them in.
+See bug:MID-10781[].
+* Fixed inconsistent type of input variable after passing ObjectTemplate validation. See bug:MID-10773[].
+* Fixed the possibility to modify the filter in the marking rule. See bug:MID-10405[].
+* Fixed the title for the edit button on the reference autocomplete panel. See bug:MID-10807[].
 
 === Releases Of Other Components
 
@@ -461,6 +490,7 @@ For more information see xrefv:/midpoint/reference/support-4.9/deployment/ninja/
 * 536-archetype-task-certification-start-campaign.xml: task activity panel was fixed to display the data from the certificationStartCampaign container.
 * 538-archetype-task-certification-reiterate-campaign.xml: task activity panel was fixed to display the data from the certificationReiterateCampaign container.
 * 029-archetype-application.xml: fixed the displaying of the application classifications.
+* 028-archetype-application-role.xml: fixed the plural label.
 * 041-role-approver.xml: added manualProvisioningContext item to read authorization of the CaseType object in order to correctly display case details page.
 * 010-value-policy.xml: improved localization
 

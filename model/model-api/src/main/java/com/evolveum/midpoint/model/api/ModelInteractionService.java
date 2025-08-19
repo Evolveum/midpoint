@@ -643,12 +643,14 @@ public interface ModelInteractionService {
     }
 
     @Experimental
-    List<? extends Serializable> searchObjectsFromCollection(CollectionRefSpecificationType collectionConfig, QName typeForFilter,
+    List<? extends Serializable> searchObjectsFromCollection(CollectionRefSpecificationType collectionConfig,
+            CompiledObjectCollectionView compiledView, QName typeForFilter,
             Collection<SelectorOptions<GetOperationOptions>> defaultOptions, ObjectPaging usedPaging, VariablesMap variables, Task task, OperationResult result)
             throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException;
 
     @Experimental
-    Integer countObjectsFromCollection(CollectionRefSpecificationType collectionConfig, QName typeForFilter,
+    Integer countObjectsFromCollection(CollectionRefSpecificationType collectionConfig,
+            CompiledObjectCollectionView compiledView, QName typeForFilter,
             Collection<SelectorOptions<GetOperationOptions>> defaultOptions, ObjectPaging usedPaging, VariablesMap variables, Task task, OperationResult result)
             throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException;
 
