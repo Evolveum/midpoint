@@ -188,8 +188,8 @@ public class TaskAsserter<RA> extends AssignmentHolderAsserter<TaskType, RA> {
     }
 
     public TaskAsserter<RA> assertTaskRunHistorySize(int expected) {
-        assertThat(getTaskBean().getTaskRunHistory())
-                .as("task run history")
+        assertThat(getTaskBean().getTaskRunRecord())
+                .as("task run record")
                 .hasSize(expected);
         return this;
     }
