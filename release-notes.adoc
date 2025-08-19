@@ -266,7 +266,7 @@ For more information see xrefv:/midpoint/reference/support-4.9/deployment/ninja/
 
 * xrefv:/midpoint/reference/support-4.9/roles-policies/roles/outlier-detection/[Outlier Detection]
 ** Introduces a feature that helps uncover potential security risks by identifying users with unusual access rights.
-** For more information, see the xrefv:/midpoint/reference/support-4.9/roles/roles-policies/outlier-detection/[Outlier Detection documentation].
+** For more information, see the xrefv:/midpoint/reference/support-4.9/roles-policies/roles/outlier-detection/[Outlier Detection documentation].
 
 * Request access
 ** Role catalog (tree) now has a search filter with the scope and type selectable.
