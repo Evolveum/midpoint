@@ -1,10 +1,10 @@
 ---
 layout: release
-release-version: '4.9.4'
+release-version: '4.9.5'
 visibility: hidden
 ---
-= MidPoint 4.9 "Verne" - Update 4
-:release-version: 4.9.4
+= MidPoint 4.9 "Verne" - Update 5
+:release-version: 4.9.5
 :page-visibility: hidden
 :page-liquid:
 :page-toc: top
@@ -34,6 +34,8 @@ Overall, midPoint 4.9 is a major step from the past into the future.
 {% endcapture %}
 {% include release-dedication.html content=dedicationContent %}
 ++++
+
+== Changes with Respect To Version 4.9.4
 
 == Changes with Respect To Version 4.9.3
 
