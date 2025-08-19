@@ -14,6 +14,7 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.component.prism.InputPanel;
 import com.evolveum.midpoint.web.page.admin.reports.component.SearchFilterConfigurationPanel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
@@ -42,11 +43,11 @@ public class ResourceAttributesSearchFilterPanelFactory extends SearchFilterPane
     }
 
     @Override
-    protected Panel getPanel(PrismPropertyPanelContext<SearchFilterType> panelCtx) {
+    protected InputPanel getPanel(PrismPropertyPanelContext<SearchFilterType> panelCtx) {
         return new SearchFilterConfigurationPanel(
                 panelCtx.getComponentId(), panelCtx.getItemWrapperModel(), panelCtx.getRealValueModel(), null) {
             @Override
-            protected IModel<String> createQueryModel(IModel model, LoadableModel filterTypeModel, boolean useParsing) {
+            protected SearchFilterTypeForQueryModel createQueryModel(IModel model, LoadableModel filterTypeModel, boolean useParsing) {
                 ItemRealValueModel<QName> objectClassModel = new ItemRealValueModel<>((IModel<? extends PrismValueWrapper<QName>>) () -> {
                     try {
                         PrismPropertyWrapper<QName> objectClass =

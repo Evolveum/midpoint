@@ -35,7 +35,7 @@ public class ResourceAttributeSearchFilterTypeForQueryModel extends SearchFilter
         this.objectClass = objectClass;
     }
 
-    protected void parseQuery(String object) throws SchemaException, ConfigurationException {
+    protected void parseQuery(String object, boolean setValue) throws SchemaException, ConfigurationException {
         PrismObjectDefinition<ShadowType> def = PrismContext.get().getSchemaRegistry().findObjectDefinitionByCompileTimeClass(ShadowType.class);
         ResourceObjectDefinition objectClassDef =
                 ((PageResource) getPageBase()).getObjectDetailsModels().getRefinedSchema().findDefinitionForObjectClass(objectClass.getObject());
@@ -44,6 +44,8 @@ public class ResourceAttributeSearchFilterTypeForQueryModel extends SearchFilter
         ObjectFilter objectFilter = getPageBase().getPrismContext().createQueryParser().parseFilter(newDef, object);
         SearchFilterType filter = getPageBase().getQueryConverter().createSearchFilterType(objectFilter);
         filter.setText(object);
-        getBaseModel().setObject(filter);
+        if (setValue) {
+            getBaseModel().setObject(filter);
+        }
     }
 }

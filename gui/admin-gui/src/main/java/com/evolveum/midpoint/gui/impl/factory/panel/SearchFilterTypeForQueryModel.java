@@ -76,14 +76,25 @@ public class SearchFilterTypeForQueryModel<O extends ObjectType> extends SearchF
             parseQuery(object);
         } catch (Exception e) {
             LoggingUtils.logUnexpectedException(LOGGER, "Cannot parse filter", e);
-            ThreadContext.getSession().error("Cannot parse filter: " + e.getMessage() + ". For more details, please, see midpoint log");
+//            ThreadContext.getSession().error("Cannot parse filter: " + e.getMessage() + ". For more details, please, see midpoint log");
         }
     }
 
-    protected void parseQuery(String object) throws SchemaException, ConfigurationException {
+    public final void parseQuery(String object) throws SchemaException, ConfigurationException {
+        parseQuery(object, true);
+    }
+
+    public final void parseQueryWithoutSetValue(String object) throws SchemaException, ConfigurationException {
+        parseQuery(object, false);
+    }
+
+    protected void parseQuery(String object, boolean setValue) throws SchemaException, ConfigurationException {
         ObjectFilter objectFilter = getPageBase().getPrismContext().createQueryParser().parseFilter(filterTypeModel.getObject(), object);
         SearchFilterType filter = getPageBase().getQueryConverter().createSearchFilterType(objectFilter);
         filter.setText(object);
-        getBaseModel().setObject(filter);
+
+        if (setValue) {
+            getBaseModel().setObject(filter);
+        }
     }
 }
