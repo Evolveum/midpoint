@@ -6,6 +6,7 @@
  */
 package com.evolveum.midpoint.web.component.search;
 
+import java.io.Serial;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -66,7 +67,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
  * @author Kateryna Honchar
  */
 public class SearchPropertiesConfigPanel<O extends ObjectType> extends AbstractSearchConfigurationPanel<BasicSearchFilter<O>, O> implements Popupable {
-    private static final long serialVersionUID = 1L;
+    @Serial private static final long serialVersionUID = 1L;
 
     private static final String ID_PROPERTY_CONFIG_CONTAINER = "propertyConfigContainer";
     private static final String ID_PROPERTY_CHOICE = "propertyChoice";
@@ -93,7 +94,7 @@ public class SearchPropertiesConfigPanel<O extends ObjectType> extends AbstractS
         DropDownChoicePanel<Property> propertyChoicePanel = new DropDownChoicePanel<Property>(ID_PROPERTY_CHOICE,
                 getDefaultPropertyChoiceModel(), getAvailablePropertiesListModel(), new IChoiceRenderer<Property>() {
 
-            private static final long serialVersionUID = 1L;
+            @Serial private static final long serialVersionUID = 1L;
 
             @Override
             public Object getDisplayValue(Property property) {
@@ -110,7 +111,7 @@ public class SearchPropertiesConfigPanel<O extends ObjectType> extends AbstractS
                 return StringUtils.isNotBlank(id) ? choices.getObject().get(Integer.parseInt(id)) : null;
             }
         }) {
-            private static final long serialVersionUID = 1L;
+            @Serial private static final long serialVersionUID = 1L;
 
             @Override
             protected String getNullValidDisplayValue() {
@@ -122,7 +123,7 @@ public class SearchPropertiesConfigPanel<O extends ObjectType> extends AbstractS
         propertyConfigContainer.add(propertyChoicePanel);
 
         AjaxButton addButton = new AjaxButton(ID_ADD_BUTTON) {
-            private static final long serialVersionUID = 1L;
+            @Serial private static final long serialVersionUID = 1L;
 
             @Override
             public void onClick(AjaxRequestTarget ajaxRequestTarget) {
@@ -137,7 +138,7 @@ public class SearchPropertiesConfigPanel<O extends ObjectType> extends AbstractS
 
     private IModel<Property> getDefaultPropertyChoiceModel() {
         return new IModel<Property>() {
-            private static final long serialVersionUID = 1L;
+            @Serial private static final long serialVersionUID = 1L;
 
             @Override
             public Property getObject() {
@@ -160,7 +161,7 @@ public class SearchPropertiesConfigPanel<O extends ObjectType> extends AbstractS
         List<IColumn<SelectableBean<ValueSearchFilterItem>, String>> columns = getTableColumns();
         BoxedTablePanel<SelectableBean<ValueSearchFilterItem>> table =
                 new BoxedTablePanel<SelectableBean<ValueSearchFilterItem>>(ID_PROPERTIES_TABLE, provider, columns) {
-                    private static final long serialVersionUID = 1L;
+                    @Serial private static final long serialVersionUID = 1L;
 
                     @Override
                     protected WebMarkupContainer createHeader(String headerId) {
@@ -175,7 +176,7 @@ public class SearchPropertiesConfigPanel<O extends ObjectType> extends AbstractS
                     @Override
                     protected WebMarkupContainer createButtonToolbar(String id) {
                         AjaxButton addRowButton = new AjaxButton(id) {
-                            private static final long serialVersionUID = 1L;
+                            @Serial private static final long serialVersionUID = 1L;
 
                             @Override
                             public void onClick(AjaxRequestTarget ajaxRequestTarget) {
@@ -217,7 +218,7 @@ public class SearchPropertiesConfigPanel<O extends ObjectType> extends AbstractS
                 .createStringResource("SearchPropertiesConfigPanel.table.column.property"),
                 "value." + ValueSearchFilterItem.F_PROPERTY_NAME) {
 
-            private static final long serialVersionUID = 1L;
+            @Serial private static final long serialVersionUID = 1L;
 
             @Override
             public String getCssClass() {
@@ -228,7 +229,7 @@ public class SearchPropertiesConfigPanel<O extends ObjectType> extends AbstractS
 
         IColumn<SelectableBean<ValueSearchFilterItem>, String> valueColumn = new AbstractColumn<SelectableBean<ValueSearchFilterItem>, String>(getPageBase()
                 .createStringResource("SearchPropertiesConfigPanel.table.column.value")) {
-            private static final long serialVersionUID = 1L;
+            @Serial private static final long serialVersionUID = 1L;
 
             @Override
             public void populateItem(Item<ICellPopulator<SelectableBean<ValueSearchFilterItem>>> item, String id, IModel<SelectableBean<ValueSearchFilterItem>> rowModel) {
@@ -244,7 +245,7 @@ public class SearchPropertiesConfigPanel<O extends ObjectType> extends AbstractS
 
         IColumn<SelectableBean<ValueSearchFilterItem>, String> filterColumn = new AbstractColumn<SelectableBean<ValueSearchFilterItem>, String>(getPageBase()
                 .createStringResource("SearchPropertiesConfigPanel.table.column.filter")) {
-            private static final long serialVersionUID = 1L;
+            @Serial private static final long serialVersionUID = 1L;
 
             @Override
             public void populateItem(Item<ICellPopulator<SelectableBean<ValueSearchFilterItem>>> item, String id, IModel<SelectableBean<ValueSearchFilterItem>> rowModel) {
@@ -270,7 +271,7 @@ public class SearchPropertiesConfigPanel<O extends ObjectType> extends AbstractS
 
         IColumn<SelectableBean<ValueSearchFilterItem>, String> matchingRuleColumn = new AbstractColumn<SelectableBean<ValueSearchFilterItem>, String>(getPageBase()
                 .createStringResource("SearchPropertiesConfigPanel.table.column.matchingRule")) {
-            private static final long serialVersionUID = 1L;
+            @Serial private static final long serialVersionUID = 1L;
 
             @Override
             public void populateItem(Item<ICellPopulator<SelectableBean<ValueSearchFilterItem>>> item, String id, IModel<SelectableBean<ValueSearchFilterItem>> rowModel) {
@@ -294,7 +295,7 @@ public class SearchPropertiesConfigPanel<O extends ObjectType> extends AbstractS
         CheckBoxColumn<SelectableBean<ValueSearchFilterItem>> negationColumn = new CheckBoxColumn<SelectableBean<ValueSearchFilterItem>>(getPageBase()
                 .createStringResource("SearchPropertiesConfigPanel.table.column.applyNegotiation"),
                 "value." + ValueSearchFilterItem.F_APPLY_NEGATION) {
-            private static final long serialVersionUID = 1L;
+            @Serial private static final long serialVersionUID = 1L;
 
             @Override
             public String getCssClass() {
@@ -306,7 +307,7 @@ public class SearchPropertiesConfigPanel<O extends ObjectType> extends AbstractS
 
         InlineMenuButtonColumn<SelectableBean<ValueSearchFilterItem>> actionsColumn = new InlineMenuButtonColumn<SelectableBean<ValueSearchFilterItem>>
                 (getTableMenuItems(), getPageBase()) {
-            private static final long serialVersionUID = 1L;
+            @Serial private static final long serialVersionUID = 1L;
 
             @Override
             public String getCssClass() {
@@ -320,12 +321,12 @@ public class SearchPropertiesConfigPanel<O extends ObjectType> extends AbstractS
 
     private List<InlineMenuItem> getTableMenuItems() {
         InlineMenuItem deleteMenuItem = new ButtonInlineMenuItem(createStringResource("PageBase.button.delete")) {
-            private static final long serialVersionUID = 1L;
+            @Serial private static final long serialVersionUID = 1L;
 
             @Override
             public InlineMenuItemAction initAction() {
                 return new ColumnMenuAction<SelectableBean<ValueSearchFilterItem>>() {
-                    private static final long serialVersionUID = 1L;
+                    @Serial private static final long serialVersionUID = 1L;
 
                     @Override
                     public void onClick(AjaxRequestTarget target) {
@@ -388,7 +389,7 @@ public class SearchPropertiesConfigPanel<O extends ObjectType> extends AbstractS
 
     private LoadableModel<List<ValueSearchFilterItem>> getSearchFilterItemModel() {
         return new LoadableModel<List<ValueSearchFilterItem>>(true) {
-            private static final long serialVersionUID = 1L;
+            @Serial private static final long serialVersionUID = 1L;
 
             @Override
             protected List<ValueSearchFilterItem> load() {
@@ -435,7 +436,10 @@ public class SearchPropertiesConfigPanel<O extends ObjectType> extends AbstractS
 
     @Override
     protected void okButtonClicked(AjaxRequestTarget target) {
-        ObjectFilter configuredFilter = getModelObject().buildObjectFilter();
+        ObjectFilter configuredFilter = null;
+        if (getModelObject() != null && !getModelObject().getObjectFilterList().isEmpty()) {
+            configuredFilter = getModelObject().buildObjectFilter();
+        }
         filterConfiguredPerformed(configuredFilter, target);
     }
 

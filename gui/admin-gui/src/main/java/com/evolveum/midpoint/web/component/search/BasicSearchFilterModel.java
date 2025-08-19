@@ -18,6 +18,8 @@ import com.evolveum.midpoint.web.component.search.filter.BasicSearchFilter;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 
+import java.io.Serial;
+
 /**
  * @author honchar
  */
@@ -25,7 +27,7 @@ public class BasicSearchFilterModel<O extends ObjectType> implements IModel<Basi
 
     private static final Trace LOGGER = TraceManager.getTrace(BasicSearchFilterModel.class);
 
-    private static final long serialVersionUID = 1L;
+    @Serial private static final long serialVersionUID = 1L;
 
     private IModel<SearchFilterType> baseModel;
     private PageBase pageBase;
@@ -53,15 +55,14 @@ public class BasicSearchFilterModel<O extends ObjectType> implements IModel<Basi
     }
 
     private BasicSearchFilter<O> loadBasicSearchFilter() {
+        ObjectQuery objectFilter;
         try {
-
-            ObjectQuery objectFilter = pageBase.getPrismContext().getQueryConverter().createObjectQuery(type, baseModel.getObject());
-            return new BasicSearchFilter<O>(pageBase, objectFilter.getFilter(), type);
-        } catch (SchemaException | IllegalStateException e) {
-            // TODO handle
+            objectFilter = pageBase.getPrismContext().getQueryConverter().createObjectQuery(type, baseModel.getObject());
+        } catch (SchemaException | IllegalStateException | IllegalArgumentException e) {
+            objectFilter = pageBase.getPrismContext().queryFor(type).build();
             LoggingUtils.logUnexpectedException(LOGGER, "Cannot serialize filter", e);
         }
-        return null;
+        return new BasicSearchFilter<O>(pageBase, objectFilter.getFilter(), type);
     }
 
     @Override

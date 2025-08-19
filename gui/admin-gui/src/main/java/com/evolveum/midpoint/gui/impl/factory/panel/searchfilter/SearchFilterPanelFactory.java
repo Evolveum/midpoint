@@ -8,17 +8,17 @@ package com.evolveum.midpoint.gui.impl.factory.panel.searchfilter;
 
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismValueWrapper;
 
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.factory.panel.AbstractInputGuiComponentFactory;
 import com.evolveum.midpoint.gui.impl.factory.panel.PrismPropertyPanelContext;
 import com.evolveum.midpoint.web.component.prism.InputPanel;
 
 import jakarta.annotation.PostConstruct;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.feedback.ComponentFeedbackMessageFilter;
-import org.apache.wicket.markup.html.panel.Panel;
 import org.springframework.stereotype.Component;
 
-import com.evolveum.midpoint.gui.api.factory.AbstractGuiComponentFactory;
 import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismPropertyWrapper;
@@ -42,22 +42,48 @@ public class SearchFilterPanelFactory extends AbstractInputGuiComponentFactory<S
 
     @Override
     public void configure(PrismPropertyPanelContext<SearchFilterType> panelCtx, org.apache.wicket.Component component) {
-        if (!(component instanceof AceEditorPanel)) {
-            super.configure(panelCtx, component);
+        if (component instanceof AceEditorPanel) {
+            panelCtx.getFeedback().setFilter(new ComponentFeedbackMessageFilter(((AceEditorPanel) component).getEditor()));
             return;
         }
-        panelCtx.getFeedback().setFilter(new ComponentFeedbackMessageFilter(((AceEditorPanel) component).getEditor()));
+        //in case object collection object has incorrectly defined filter, we want to warn user about it
+        //covers #10800
+        if (component instanceof SearchFilterConfigurationPanel sfcp) {
+            if (isCollectionObjectParentContainer(panelCtx)) {
+                PrismPropertyWrapper<SearchFilterType> searchFilterItemWrapper = panelCtx.unwrapWrapperModel();
+                PrismContainerValueWrapper<ObjectCollectionType> containerWrapper =
+                        (PrismContainerValueWrapper<ObjectCollectionType>) searchFilterItemWrapper.getParent();
+                ObjectCollectionType col = containerWrapper.getRealValue();
+                String errorMessage = "";
+                try {
+                    Class<?> collectionType = WebComponentUtil.qnameToClass(col.getType());
+                    panelCtx.getPageBase().getQueryConverter().createObjectFilter(collectionType, panelCtx.getRealValueModel().getObject());
+                } catch (Exception ex) {
+                    errorMessage = StringUtils.isNotEmpty(ex.getLocalizedMessage()) ? ex.getLocalizedMessage() : ex.getMessage();
+                }
+                if (StringUtils.isNotEmpty(errorMessage)) {
+                    sfcp.getBaseFormComponent().error(errorMessage);
+                }
+            }
+        }
+        super.configure(panelCtx, component);
     }
 
     @Override
     protected InputPanel getPanel(PrismPropertyPanelContext<SearchFilterType> panelCtx) {
         PrismPropertyWrapper<SearchFilterType> searchFilterItemWrapper = panelCtx.unwrapWrapperModel();
         PrismContainerValueWrapper<?> containerWrapper = searchFilterItemWrapper.getParent();
-        if (containerWrapper != null && containerWrapper.getRealValue() instanceof ObjectCollectionType) {
+        if (isCollectionObjectParentContainer(panelCtx)) {
             return new SearchFilterConfigurationPanel(
                     panelCtx.getComponentId(), panelCtx.getItemWrapperModel(), panelCtx.getRealValueModel(), containerWrapper);
         }
         return new SearchFilterConfigurationPanel(
                 panelCtx.getComponentId(), panelCtx.getItemWrapperModel(), panelCtx.getRealValueModel(), null);
+    }
+
+    private boolean isCollectionObjectParentContainer(PrismPropertyPanelContext<SearchFilterType> panelCtx) {
+        PrismPropertyWrapper<SearchFilterType> searchFilterItemWrapper = panelCtx.unwrapWrapperModel();
+        PrismContainerValueWrapper<?> containerWrapper = searchFilterItemWrapper.getParent();
+        return containerWrapper != null && containerWrapper.getRealValue() instanceof ObjectCollectionType;
     }
 }
