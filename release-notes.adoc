@@ -223,11 +223,11 @@ For more information see xrefv:/midpoint/reference/support-4.9/security/credenti
 For more information see xrefv:/midpoint/reference/support-4.9/deployment/ninja/command/verify.adoc[].
 
 
-* xrefv:/midpoint/reference/support-4.9/roles-policies/mining/[Role Mining]
-** Added support for xrefv:/midpoint/reference/support-4.9/roles-policies/mining/#advanced-options[attribute group by/clustering rule].
-** Added support for xrefv:/midpoint/reference/support-4.9/roles-policies/mining/#advanced-options[analyze attribute functionality].
-** Added xrefv:/midpoint/reference/support-4.9/roles-policies/mining/#role-mining-presets[predefined role mining modes].
-** Added support for xrefv:/midpoint/reference/support-4.9/roles-policies/mining/#advanced-options[assignment filters].
+* xrefv:/midpoint/reference/support-4.9/roles-policies/roles/mining/[Role Mining]
+** Added support for xrefv:/midpoint/reference/support-4.9/roles-policies/roles/mining/#advanced-options[attribute group by/clustering rule].
+** Added support for xrefv:/midpoint/reference/support-4.9/roles-policies/roles/mining/#advanced-options[analyze attribute functionality].
+** Added xrefv:/midpoint/reference/support-4.9/roles-policies/roles/mining/#role-mining-presets[predefined role mining modes].
+** Added support for xrefv:/midpoint/reference/support-4.9/roles-policies/roles/mining/#advanced-options[assignment filters].
 ** Added support for indirect access right clustering (experimental).
 ** Support for monitoring overall system access assignment reduction by applying role suggestions.
 ** Role suggestion migration improvements.
@@ -241,9 +241,9 @@ For more information see xrefv:/midpoint/reference/support-4.9/deployment/ninja/
 *** Added control options for table settings and role management processes.
 *** Allow administrators to detect and explore access patterns directly in the user permission table.
 
-* xrefv:/midpoint/reference/support-4.9/roles-policies/outlier-detection/[Outlier Detection]
+* xrefv:/midpoint/reference/support-4.9/roles-policies/roles/outlier-detection/[Outlier Detection]
 ** Introduces a feature that helps uncover potential security risks by identifying users with unusual access rights.
-** For more information, see the xrefv:/midpoint/reference/support-4.9/roles-policies/outlier-detection/[Outlier Detection documentation].
+** For more information, see the xrefv:/midpoint/reference/support-4.9/roles-policies/roles/outlier-detection/[Outlier Detection documentation].
 
 * Request access
 ** Role catalog (tree) now has a search filter with the scope and type selectable.
@@ -261,8 +261,8 @@ Tree node search is now the same for all nodes.
 ** GUI Support to show mark in the focus and shadow tables
 
 * Regulatory compliance
-** Built-in support for xrefv:/midpoint/reference/support-4.9/roles-policies/classification/[information classification and clearances].
-** Support for `requirement` policy constraint in xrefv:/midpoint/reference/support-4.9/roles-policies/policy-rules/[policy rules].
+** Built-in support for xrefv:/midpoint/reference/support-4.9/roles-policies/policies/classification/[information classification and clearances].
+** Support for `requirement` policy constraint in xrefv:/midpoint/reference/support-4.9/roles-policies/policies/policy-rules/[policy rules].
 ** Built-in classifications for _privileged access_.
 
 * Spring Boot/hibernate upgrade
@@ -289,7 +289,7 @@ There is also Statistics panel which gives an overview of the reviewers progress
 *** Certification items can be also viewed in the tiles view (Active campaigns page).
 Certification items table itself can be now configured with the help of collection view configuration.
 This means that table's columns and actions can be configured for certification items.
-** Please, see xrefv:/midpoint/reference/support-4.9/roles-policies/certification[Access Certification] for more information.
+** Please, see xrefv:/midpoint/reference/support-4.9/roles-policies/policies/certification[Access Certification] for more information.
 
 * Deployment Methodology
 ** As a part of midPoint 4.9 release, we have released also a new xref:/midpoint/methodology/[midPoint deployment methodology].
