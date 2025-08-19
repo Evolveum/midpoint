@@ -637,6 +637,16 @@ public class ConnectorFactoryConnIdImpl implements ConnectorFactory {
             if (isThisJarFileBundle(dirEntry)) {
                 addBundleIfEligible(bundleUris, dirEntry);
             }
+            if (dirEntry.isDirectory() && new File(dirEntry, "META-INF/MANIFEST.MF").exists()) {
+                try {
+                    var uri = dirEntry.toURI();
+                    if (isThisBundleCompatible(uri.toURL())) {
+                        bundleUris.add(uri);
+                    }
+                } catch (MalformedURLException e) {
+                    throw new SystemException(e);
+                }
+            }
         }
     }
 
