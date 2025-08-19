@@ -11,7 +11,10 @@ import java.io.Serial;
 
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 
+import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.impl.page.admin.certification.helpers.CertificationColumnTypeConfigContext;
+
+import com.evolveum.midpoint.prism.PrismObject;
 
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
@@ -46,9 +49,9 @@ public class CertItemObjectDisplayNameColumn extends AbstractCertificationItemCo
             @Override
             public void populateItem(Item<ICellPopulator<PrismContainerValueWrapper<AccessCertificationWorkItemType>>> item,
                     String componentId, IModel<PrismContainerValueWrapper<AccessCertificationWorkItemType>> rowModel) {
-                PrismContainerValueWrapper<AccessCertificationWorkItemType> rowObj = rowModel.getObject();
                 AccessCertificationCaseType certCase = CertCampaignTypeUtil.getCase(unwrapRowModel(rowModel));
-                item.add(new Label(componentId, WebComponentUtil.getDisplayName(certCase.getObjectRef(), true)));
+                PrismObject<?> resolvedObject = WebModelServiceUtils.loadObject(certCase.getObjectRef(), null, context.getPageBase());
+                item.add(new Label(componentId, WebComponentUtil.getDisplayName(resolvedObject, true)));
             }
         };
     }
