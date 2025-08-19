@@ -46,6 +46,11 @@ public class CertItemObjectColumn extends AbstractCertificationItemColumn {
                 AccessCertificationCaseType certCase = CertCampaignTypeUtil.getCase(unwrapRowModel(rowModel));
                 return () -> Collections.singletonList(certCase.getObjectRef());
             }
+
+            @Override
+            protected boolean useNameAsLabel() {
+                return true;
+            }
         };
     }
 }
