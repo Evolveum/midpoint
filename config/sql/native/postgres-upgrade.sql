@@ -1136,6 +1136,27 @@ CREATE INDEX m_application_modifyTimestamp_idx ON m_application (modifyTimestamp
 
 $aa$);
 
+call apply_change(54, $aa$
+   ALTER TYPE ObjectType ADD VALUE IF NOT EXISTS 'CONNECTOR_DEVELOPMENT' AFTER 'CONNECTOR';
+$aa$);
+
+call apply_change(55, $aa$
+CREATE TABLE m_connector_development (
+    oid UUID NOT NULL PRIMARY KEY REFERENCES m_object_oid(oid),
+    objectType ObjectType GENERATED ALWAYS AS ('CONNECTOR_DEVELOPMENT') STORED
+        CHECK (objectType = 'CONNECTOR_DEVELOPMENT')
+)
+    INHERITS (m_object);
+
+CREATE TRIGGER m_connector_development_oid_insert_tr BEFORE INSERT ON m_connector_development
+    FOR EACH ROW EXECUTE FUNCTION insert_object_oid();
+CREATE TRIGGER m_connector_development_update_tr BEFORE UPDATE ON m_connector_development
+    FOR EACH ROW EXECUTE FUNCTION before_update_object();
+CREATE TRIGGER m_connector_development_oid_delete_tr AFTER DELETE ON m_connector_development
+    FOR EACH ROW EXECUTE FUNCTION delete_object_oid();
+$aa$);
+
+
 ---
 -- WRITE CHANGES ABOVE ^^
 -- IMPORTANT: update apply_change number at the end of postgres-new.sql

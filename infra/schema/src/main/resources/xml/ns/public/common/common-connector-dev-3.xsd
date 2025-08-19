@@ -49,6 +49,8 @@
         </xsd:complexContent>
     </xsd:complexType>
 
+    <xsd:element name="connectorDevelopment" type="tns:ConnectorDevelopmentType" />
+
     <xsd:complexType name="ApplicationInformationType">
         <xsd:annotation>
             <xsd:appinfo>

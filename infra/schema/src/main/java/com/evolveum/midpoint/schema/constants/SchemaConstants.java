@@ -77,6 +77,9 @@ public abstract class SchemaConstants {
     public static final QName C_RESOURCE_TYPE = new QName(NS_C, "ResourceType");
     public static final QName C_CONNECTOR_TYPE = new QName(NS_C, "ConnectorType");
     public static final ItemName C_CONNECTOR = new ItemName(NS_C, "connector");
+    public static final ItemName C_CONNECTOR_DEVELOPMENT_TYPE = new ItemName(NS_C, "connectorDevelopmentType");
+    public static final ItemName C_CONNECTOR_DEVELOPMENT = new ItemName(NS_C, "connectorDevelopment");
+
     public static final QName C_CONNECTOR_HOST_TYPE = new QName(NS_C, "ConnectorHostType");
     public static final ItemName C_CONNECTOR_HOST = new ItemName(NS_C, "connectorHost");
     public static final ItemName C_ROLE_ANALYSIS_CLUSTER_TYPE = new ItemName(NS_C, "RoleAnalysisClusterType");
