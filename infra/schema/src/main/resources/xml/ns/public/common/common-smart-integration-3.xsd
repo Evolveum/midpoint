@@ -241,16 +241,16 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="valuePatternCount" type="tns:ShadowAttributeValueCountType" minOccurs="0" maxOccurs="unbounded">
+            <xsd:element name="valuePatternCount" type="tns:ShadowAttributeValuePatternCountType" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
                     <xsd:documentation>
                         Information about the number of occurrences of a particular value pattern in this attribute.
                         An example:
 
-                        pattern = ".*admin.*", count = 200
-                        pattern = ".*test.*", count = 100
-                        pattern = "a-.*", count = 500
-                        pattern = "x-.*", count = 50
+                        pattern = ".*admin.*", type = regex, count = 200
+                        pattern = ".*test.*", type = regex, count = 100
+                        pattern = "adm", type = prefix, count = 500
+                        pattern = "user", type = suffix, count = 50
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
@@ -260,7 +260,7 @@
     <xsd:complexType name="ShadowAttributeValueCountType">
         <xsd:annotation>
             <xsd:documentation>
-                Number of occurrences of a particular value or value pattern.
+                Number of occurrences of a particular value.
             </xsd:documentation>
             <xsd:appinfo>
                 <a:since>4.11</a:since>
@@ -271,14 +271,49 @@
             <xsd:element name="value" type="xsd:string">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Value or value pattern.
+                        Specific value for which the occurrence count is being tracked.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="count" type="xsd:int">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Number of occurrences.
+                        The frequency of the associated 'value' within the relevant dataset or collection.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="ShadowAttributeValuePatternCountType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Number of occurrences of a particular value pattern.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:since>4.11</a:since>
+                <!-- intentionally not a container, because this is used also in Python service API -->
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="value" type="xsd:string">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Specific value pattern for which the occurrence count is being tracked.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="type" type="xsd:string">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Type of pattern (e.g., "prefix", "suffix", "regex").
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="count" type="xsd:int">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        The frequency of the associated 'value' within the relevant dataset or collection.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>

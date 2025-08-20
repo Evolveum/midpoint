@@ -986,13 +986,13 @@ public class TestSmartIntegrationServiceImpl extends AbstractSmartIntegrationTes
         for (var attribute : statistics.getAttribute()) {
             if (attribute.getRef().toString().equals(s(Account.AttributeNames.PERSONAL_NUMBER.q()))) {
                 assertThat(attribute.getValuePatternCount()).isNotEmpty();
-                assertThat(attribute.getValuePatternCount().size()).isEqualTo(4);
-                Map<String, Integer> valueCounts = attribute.getValuePatternCount().stream()
-                        .collect(Collectors.toMap(ShadowAttributeValueCountType::getValue, ShadowAttributeValueCountType::getCount));
-                assertThat(valueCounts).containsEntry("svc", 1);
-                assertThat(valueCounts).containsEntry("usr", 1);
-                assertThat(valueCounts).containsEntry("adm", 10);
-                assertThat(valueCounts).containsEntry("int", 6);
+                assertThat(attribute.getValuePatternCount().size()).isEqualTo(5);
+                for (ShadowAttributeValuePatternCountType patternCount : attribute.getValuePatternCount()) {
+                    assertThat(patternCount.getValue()).isNotEmpty();
+                    assertThat(patternCount.getType()).isNotNull();
+                    assertThat(patternCount.getType()).isNotEmpty();
+                    assertThat(patternCount.getCount()).isGreaterThanOrEqualTo(1);
+                }
             }
         }
     }

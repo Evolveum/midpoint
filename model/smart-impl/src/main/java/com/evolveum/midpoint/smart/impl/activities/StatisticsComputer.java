@@ -9,7 +9,6 @@ package com.evolveum.midpoint.smart.impl.activities;
 
 import java.util.*;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAttributeTupleStatisticsType;
 
@@ -350,36 +349,6 @@ public class StatisticsComputer {
         }
     }
 
-    /**
-     * Counts the occurrences of predefined affixes that either start or end the provided value.
-     * Updates the {@code affixCounts} map with the counts for each affix found.
-     */
-    private void incrementVocabularyAffixCounts(String value, Map<String, Integer> affixCounts) {
-        for (String affix : AFFIXES) {
-            if (value.startsWith(affix) || value.endsWith(affix)) {
-                affixCounts.merge(affix, 1, Integer::sum);
-            }
-        }
-    }
-
-    /**
-     * Counts the first and last alphanumeric tokens in the provided value, if they are not empty and not in {@code AFFIXES}.
-     * Updates the {@code affixCounts} map with the counts for each token found.
-     */
-    private void incrementFirstAndLastAffixCounts(String value, Map<String, Integer> affixCounts) {
-        String[] tokens = value.split("[^a-zA-Z0-9]+");
-        if (tokens.length < 2) {
-            return;
-        }
-        String firstToken = tokens[0];
-        String lastToken = tokens[tokens.length - 1];
-        if (!firstToken.isEmpty() && !AFFIXES.contains(firstToken)) {
-            affixCounts.merge(firstToken, 1, Integer::sum);
-        }
-        if (!lastToken.isEmpty() && !AFFIXES.contains(lastToken)) {
-            affixCounts.merge(lastToken, 1, Integer::sum);
-        }
-    }
 
     /**
      * Checks whether the given string matches the URL pattern.
@@ -403,11 +372,63 @@ public class StatisticsComputer {
     }
 
     /**
+     * Counts the occurrences of predefined affixes that either start or end the provided value.
+     * Updates the {@code affixCounts} map with the counts for each affix found.
+     */
+    private void incrementVocabularyAffixCounts(
+            String value,
+            Map<String, Map<String, Integer>> affixCounts
+    ) {
+        for (String affix : AFFIXES) {
+            if (value.startsWith(affix)) {
+                affixCounts
+                        .computeIfAbsent("prefix", k -> new HashMap<>())
+                        .merge(affix, 1, Integer::sum);
+            }
+            if (value.endsWith(affix)) {
+                affixCounts
+                        .computeIfAbsent("suffix", k -> new HashMap<>())
+                        .merge(affix, 1, Integer::sum);
+            }
+        }
+    }
+
+    /**
+     * Counts the first and last alphanumeric tokens in the provided value, if they are not empty and not in {@code AFFIXES}.
+     * Updates the {@code affixCounts} map with the counts for each token found.
+     */
+    private void incrementFirstAndLastAffixCounts(
+            String value,
+            Map<String, Map<String, Integer>> affixCounts
+    ) {
+        String[] tokens = value.split("[^a-zA-Z0-9]+");
+        if (tokens.length < 2) {
+            return;
+        }
+        String firstToken = tokens[0];
+        String lastToken = tokens[tokens.length - 1];
+        if (!firstToken.isEmpty() && !AFFIXES.contains(firstToken)) {
+            affixCounts
+                    .computeIfAbsent("firstToken", k -> new HashMap<>())
+                    .merge(firstToken, 1, Integer::sum);
+        }
+        if (!lastToken.isEmpty() && !AFFIXES.contains(lastToken)) {
+            affixCounts
+                    .computeIfAbsent("lastToken", k -> new HashMap<>())
+                    .merge(lastToken, 1, Integer::sum);
+        }
+    }
+
+    /**
      * Computes the counts of affix values for the given attribute key by analyzing string values
      * stored in {@code shadowStorage}. Ignores values that are detected as URLs, emails, or phone numbers.
      * Counts both vocabulary affixes and the first/last tokens of each value.
      */
-    private void getAffixValueCounts(QName attrKey, Map<String, Integer> vocabCounts, Map<String, Integer> splitCounts) {
+    private void getAffixValueCounts(
+            QName attrKey,
+            Map<String, Map<String, Integer>> vocabularyCounts,
+            Map<String, Map<String, Integer>> splitTokenCounts
+    ) {
         List<List<?>> elements = shadowStorage.get(attrKey);
         if (elements == null) {
             return;
@@ -424,8 +445,8 @@ public class StatisticsComputer {
             if (isUrl(value) || isEmail(value) || isPhoneNumber(value)) {
                 continue;
             }
-            incrementVocabularyAffixCounts(value, vocabCounts);
-            incrementFirstAndLastAffixCounts(value, splitCounts);
+            incrementVocabularyAffixCounts(value, vocabularyCounts);
+            incrementFirstAndLastAffixCounts(value, splitTokenCounts);
         }
     }
 
@@ -436,18 +457,31 @@ public class StatisticsComputer {
     private void setAffixStatistics() {
         for (ShadowAttributeStatisticsType attribute : statistics.getAttribute()) {
             QName attrKey = fromAttributeRef(attribute.getRef());
-            Map<String, Integer> vocabCounts = new HashMap<>();
-            Map<String, Integer> splitCounts = new HashMap<>();
-            getAffixValueCounts(attrKey, vocabCounts, splitCounts);
-            for (Map.Entry<String, Integer> entry : vocabCounts.entrySet()) {
-                attribute.beginValuePatternCount()
-                        .value(entry.getKey())
-                        .count(entry.getValue());
-            }
-            if (splitCounts.size() < AFFIX_PERCENTAGE_LIMIT * statistics.getSize()) {
-                for (Map.Entry<String, Integer> entry : splitCounts.entrySet()) {
+            Map<String, Map<String, Integer>> vocabularyCounts = new HashMap<>();
+            Map<String, Map<String, Integer>> splitTokenCounts = new HashMap<>();
+            getAffixValueCounts(attrKey, vocabularyCounts, splitTokenCounts);
+
+            for (Map.Entry<String, Map<String, Integer>> typeEntry : vocabularyCounts.entrySet()) {
+                String type = typeEntry.getKey();
+                Map<String, Integer> valueCounts = typeEntry.getValue();
+                for (Map.Entry<String, Integer> entry : valueCounts.entrySet()) {
                     attribute.beginValuePatternCount()
                             .value(entry.getKey())
+                            .type(type)
+                            .count(entry.getValue());
+                }
+            }
+
+            for (Map.Entry<String, Map<String, Integer>> typeEntry : splitTokenCounts.entrySet()) {
+                String type = typeEntry.getKey();
+                Map<String, Integer> valueCounts = typeEntry.getValue();
+                if (valueCounts.size() > AFFIX_PERCENTAGE_LIMIT * statistics.getSize()) {
+                    continue;
+                }
+                for (Map.Entry<String, Integer> entry : valueCounts.entrySet()) {
+                    attribute.beginValuePatternCount()
+                            .value(entry.getKey())
+                            .type(type)
                             .count(entry.getValue());
                 }
             }
