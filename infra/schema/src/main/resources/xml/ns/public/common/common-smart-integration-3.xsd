@@ -725,6 +725,20 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element name="displayName" type="xsd:string">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Human-readable name for the object. Intended for display in user interfaces.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="description" type="xsd:string">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Human-readable description providing additional details about the element.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
             <xsd:element name="baseContextObjectClassName" type="xsd:string" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
