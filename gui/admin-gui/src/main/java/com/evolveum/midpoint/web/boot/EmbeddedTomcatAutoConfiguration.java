@@ -8,11 +8,16 @@ package com.evolveum.midpoint.web.boot;
 
 import java.net.InetAddress;
 import java.net.UnknownHostException;
+
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
+
 import jakarta.servlet.Servlet;
 
 import com.google.common.base.Strings;
 import org.apache.catalina.connector.Connector;
 import org.apache.catalina.startup.Tomcat;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.coyote.UpgradeProtocol;
 import org.apache.coyote.ajp.AjpNioProtocol;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -51,6 +56,8 @@ public class EmbeddedTomcatAutoConfiguration {
     @ConditionalOnMissingBean(value = TomcatServletWebServerFactory.class, search = SearchStrategy.CURRENT)
     public static class EmbeddedTomcat {
 
+        private static final Trace LOGGER = TraceManager.getTrace(EmbeddedTomcat.class);
+
         @Value("${server.tomcat.ajp.enabled:false}")
         private boolean enableAjp;
 
@@ -65,6 +72,18 @@ public class EmbeddedTomcatAutoConfiguration {
 
         @Value("${server.tomcat.ajp.secret:}")
         private String secret;
+
+        @Value("${server.tomcat.ajp.maxPartHeaderSize:}")
+        private String ajpMaxPartHeaderSize;
+
+        @Value("${server.tomcat.ajp.maxPartCount:}")
+        private String ajpMaxPartCount;
+
+        @Value("${server.tomcat.max-part-header-size:}")
+        private String tomcatMaxPartHeaderSize;
+
+        @Value("${server.tomcat.max-part-count:}")
+        private String tomcatMaxPartCount;
 
         @Value("${server.servlet.context-path}")
         private String contextPath;
@@ -88,11 +107,63 @@ public class EmbeddedTomcatAutoConfiguration {
                 ajpConnector.setScheme("http");
                 ajpConnector.setAllowTrace(false);
 
+                if (getMaxPartHeaderSize() > 0) {
+                    ajpConnector.setMaxPartHeaderSize(getMaxPartHeaderSize());
+                }
+                if (getMaxPartCount() > 0) {
+                    ajpConnector.setMaxPartCount(getMaxPartCount());
+                }
+
                 tomcat.addAdditionalTomcatConnectors(ajpConnector);
                 tomcat.setJvmRoute(jvmRoute); // will be set on Engine there
             }
 
             return tomcat;
         }
+
+        private int getMaxPartHeaderSize() {
+            if (StringUtils.isNotEmpty(ajpMaxPartHeaderSize)) {
+                try {
+                    return Integer.parseInt(ajpMaxPartHeaderSize);
+                } catch (NumberFormatException e) {
+                    LOGGER.error("Impossible to parse the value of the 'server.tomcat.ajp.maxPartHeaderSize' attribute, the value: {}",
+                            ajpMaxPartHeaderSize, e);
+                }
+            }
+            //max-part-header-size is defined for tomcat server in the bundled application.yml
+            //therefore the following 'if' should return the correct value
+            if (StringUtils.isNotEmpty(tomcatMaxPartHeaderSize)) {
+                try {
+                    return Integer.parseInt(tomcatMaxPartHeaderSize);
+                } catch (NumberFormatException e) {
+                    LOGGER.error("Impossible to parse the value of the 'server.tomcat.max-part-header-size' attribute, the value: {}",
+                            tomcatMaxPartHeaderSize, e);
+                }
+            }
+            return 0;
+        }
+
+        private int getMaxPartCount() {
+            if (StringUtils.isNotEmpty(ajpMaxPartCount)) {
+                try {
+                    return Integer.parseInt(ajpMaxPartCount);
+                } catch (NumberFormatException e) {
+                    LOGGER.error("Impossible to parse the value of the 'server.tomcat.ajp.maxPartCount' attribute, the value: {}",
+                            ajpMaxPartCount, e);
+                }
+            }
+            //max-part-count is defined for tomcat server in the bundled application.yml
+            //therefore the following 'if' should return the correct value
+            if (StringUtils.isNotEmpty(tomcatMaxPartCount)) {
+                try {
+                    return Integer.parseInt(tomcatMaxPartCount);
+                } catch (NumberFormatException e) {
+                    LOGGER.error("Impossible to parse the value of the 'server.tomcat.max-part-count' attribute, the value: {}",
+                            tomcatMaxPartCount, e);
+                }
+            }
+            return 0;
+        }
+
     }
 }

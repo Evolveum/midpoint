@@ -242,6 +242,7 @@
 
         <!-- START of Spring Boot dependencies overrides (temporary/security fixes, revise regularly!) -->
         <commons-lang3.version>3.18.0</commons-lang3.version>
+        <tomcat.version>10.1.44</tomcat.version>
         <!-- END of Spring Boot dependencies overrides -->
 
         <!-- security fix for CVE-2025-48976 -->
